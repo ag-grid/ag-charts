@@ -8,5 +8,5 @@ export const RadiusCategoryAxisModule: _ModuleSupport.AxisModule = {
     packageType: 'enterprise',
     chartTypes: ['polar'],
     identifier: 'radius-category',
-    instanceConstructor: RadiusCategoryAxis,
+    moduleFactory: (ctx) => new RadiusCategoryAxis(ctx),
 };

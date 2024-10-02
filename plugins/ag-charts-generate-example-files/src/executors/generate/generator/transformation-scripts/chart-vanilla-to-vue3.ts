@@ -1,14 +1,26 @@
 import { getChartImports, wrapOptionsUpdateCode } from './chart-utils';
-import { addBindingImports, getFunctionName, isFinancialCharts, removeFunctionKeyword } from './parser-utils';
+import { type ChartAPI, addBindingImports, chartApi, getFunctionName, removeFunctionKeyword } from './parser-utils';
 import { toKebabCase, toTitleCase } from './string-utils';
 import { convertTemplate, getImport, indentTemplate } from './vue-utils';
+
+const components: Record<ChartAPI, string> = {
+    gauge: 'AgGauge',
+    financial: 'AgFinancialCharts',
+    vanilla: 'AgCharts',
+};
+
+const tags: Record<ChartAPI, string> = {
+    gauge: 'ag-gauge',
+    financial: 'ag-financial-charts',
+    vanilla: 'ag-charts',
+};
 
 function processFunction(code: string): string {
     return wrapOptionsUpdateCode(removeFunctionKeyword(code));
 }
 
 function getImports(componentFileNames: string[], bindings): string[] {
-    const type = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
+    const type = components[chartApi(bindings)];
     const imports = ["import { createApp } from 'vue';", `import { ${type} } from 'ag-charts-vue3';`];
 
     const chartImports = bindings.imports.map((i) => ({
@@ -37,7 +49,7 @@ function getImports(componentFileNames: string[], bindings): string[] {
     }
 
     if (bindings.externalEventHandlers.length > 0 || bindings.instanceMethods.length > 0) {
-        imports.push(`import deepClone from 'deepclone';`);
+        imports.push(`import clone from 'clone';`);
     }
 
     return imports;
@@ -100,8 +112,8 @@ function getAllMethods(bindings: any): [string[], string[], string[]] {
 
 export async function vanillaToVue3(bindings: any, componentFileNames: string[]): Promise<string> {
     const { properties } = bindings;
-    const type = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
-    const tag = isFinancialCharts(bindings) ? 'ag-financial-charts' : 'ag-charts';
+    const type = components[chartApi(bindings)];
+    const tag = tags[chartApi(bindings)];
     const imports = getImports(componentFileNames, bindings);
     const [externalEventHandlers, instanceMethods, globalMethods] = getAllMethods(bindings);
     const placeholders = Object.keys(bindings.placeholders);

@@ -8,7 +8,15 @@ export function clampArray(value: number, array: number[]) {
 }
 
 export function findMinMax(array: number[]) {
-    return array.length ? [Math.min(...array), Math.max(...array)] : [];
+    if (array.length === 0) return [];
+
+    // Optimized min/max algorithm, single array pass.
+    const result = [Infinity, -Infinity];
+    for (const val of array) {
+        if (val < result[0]) result[0] = val;
+        if (val > result[1]) result[1] = val;
+    }
+    return result;
 }
 
 export function findRangeExtent(array: number[]) {
@@ -54,11 +62,26 @@ export function mod(n: number, m: number) {
     return Math.floor((n % m) + (n < 0 ? m : 0));
 }
 
-export function countFractionDigits(value: number, maximumFractionDigits = 10) {
-    const [, decimal = ''] = (Math.abs(value) % 1) // 0.123 or 1.000
-        .toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits })
-        .split('.');
-    return decimal.length;
+export function countFractionDigits(value: number) {
+    // Highly optimized fraction counting algorithm. This was highlighted as a hot-spot for
+    // tick generation on canvas resize.
+    if (Math.floor(value) === value) return 0;
+
+    let valueString = String(value);
+    let exponent = 0;
+    if (value < 1e-6 || value >= 1e21) {
+        // Scientific notation (the range is spec defined, so we can avoid a call to .includes('e'))
+        let exponentString;
+        [valueString, exponentString] = valueString.split('e');
+
+        if (exponentString != null) {
+            exponent = Number(exponentString);
+        }
+    }
+
+    const decimalPlaces = valueString.split('.')[1]?.length ?? 0;
+
+    return Math.max(decimalPlaces - exponent, 0);
 }
 
 /**

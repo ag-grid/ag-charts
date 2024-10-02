@@ -27,6 +27,7 @@ const keys: TestName[][] = [
         'multi-series benchmark after load 10x legend toggle',
         'multi-series benchmark after load 15x datum highlight',
     ],
+    ['resize benchmark after load 10x resize'],
 ];
 
 const chartOptions1: AgCartesianChartOptions = {
@@ -69,6 +70,10 @@ const chartOptions10: AgCartesianChartOptions = {
     container: document.getElementById('myChart10'),
     ...generatePerformanceChart(2, 3),
 };
+const chartOptions11: AgCartesianChartOptions = {
+    container: document.getElementById('myChart11'),
+    ...generatePerformanceChart(0, 4),
+};
 
 AgCharts.create(chartOptions1);
 AgCharts.create(chartOptions2);
@@ -80,6 +85,7 @@ AgCharts.create(chartOptions7);
 AgCharts.create(chartOptions8);
 AgCharts.create(chartOptions9);
 AgCharts.create(chartOptions10);
+AgCharts.create(chartOptions11);
 
 function generatePerformanceChart(keyX: number, keyY: number) {
     const yName = (key: TestName) => {
@@ -139,7 +145,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                 tooltip: {
                     enabled: true,
                     renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => ({
-                        content: formatMillis(datum.results[testName]?.timeMs, 2),
+                        content: formatMillis(datum.results[testName]!.timeMs, 2),
                     }),
                 },
             },
@@ -152,7 +158,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                 tooltip: {
                     enabled: true,
                     renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => {
-                        const { heapUsed } = datum.results[testName];
+                        const { heapUsed } = datum.results[testName]!;
                         return {
                             content: `${formatBytes(heapUsed)}`,
                         };
@@ -168,7 +174,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                 tooltip: {
                     enabled: true,
                     renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => {
-                        const { canvasBytes, canvasCount } = datum.results[testName];
+                        const { canvasBytes, canvasCount } = datum.results[testName]!;
                         return {
                             content: `${formatBytes(canvasBytes)} in ${canvasCount} canvases`,
                         };

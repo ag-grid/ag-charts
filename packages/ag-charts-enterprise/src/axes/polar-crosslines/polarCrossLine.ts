@@ -2,8 +2,9 @@ import type { AgBaseCrossLineLabelOptions, FontStyle, FontWeight, _Scale } from 
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const {
+    BaseProperties,
     ChartAxisDirection,
-    Layers,
+    ZIndexMap,
     ARRAY,
     BOOLEAN,
     COLOR_STRING,
@@ -11,6 +12,7 @@ const {
     FONT_WEIGHT,
     LINE_DASH,
     NUMBER,
+    OBJECT,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
@@ -20,21 +22,21 @@ const {
     MATCHING_CROSSLINE_TYPE,
 } = _ModuleSupport;
 
-const { Group } = _Scene;
+const { Layer } = _Scene;
 const { createId } = _Util;
 
-export class PolarCrossLineLabel implements AgBaseCrossLineLabelOptions {
+export class PolarCrossLineLabel extends BaseProperties implements AgBaseCrossLineLabelOptions {
     @Validate(BOOLEAN, { optional: true })
-    enabled?: boolean = undefined;
+    enabled?: boolean;
 
     @Validate(STRING, { optional: true })
-    text?: string = undefined;
+    text?: string;
 
     @Validate(FONT_STYLE, { optional: true })
-    fontStyle?: FontStyle = undefined;
+    fontStyle?: FontStyle;
 
     @Validate(FONT_WEIGHT, { optional: true })
-    fontWeight?: FontWeight = undefined;
+    fontWeight?: FontWeight;
 
     @Validate(POSITIVE_NUMBER)
     fontSize: number = 14;
@@ -55,49 +57,51 @@ export class PolarCrossLineLabel implements AgBaseCrossLineLabelOptions {
     color?: string = 'rgba(87, 87, 87, 1)';
 
     @Validate(BOOLEAN, { optional: true })
-    parallel?: boolean = undefined;
+    parallel?: boolean;
 }
 
-export abstract class PolarCrossLine implements _ModuleSupport.CrossLine {
-    protected static readonly LINE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_LINE_ZINDEX;
-    protected static readonly RANGE_LAYER_ZINDEX = Layers.SERIES_CROSSLINE_RANGE_ZINDEX;
-    protected static readonly LABEL_LAYER_ZINDEX = Layers.SERIES_LABEL_ZINDEX;
+export abstract class PolarCrossLine extends BaseProperties implements _ModuleSupport.CrossLine {
+    protected static readonly LINE_LAYER_ZINDEX = ZIndexMap.SERIES_CROSSLINE_LINE;
+    protected static readonly RANGE_LAYER_ZINDEX = ZIndexMap.SERIES_CROSSLINE_RANGE;
+    protected static readonly LABEL_LAYER_ZINDEX = ZIndexMap.SERIES_LABEL;
     readonly id = createId(this);
 
     @Validate(BOOLEAN, { optional: true })
-    enabled?: boolean = undefined;
+    enabled?: boolean;
 
     @Validate(UNION(['range', 'line'], 'a crossLine type'), { optional: true })
-    type?: _ModuleSupport.CrossLineType = undefined;
+    type?: _ModuleSupport.CrossLineType;
 
     @Validate(AND(MATCHING_CROSSLINE_TYPE('range'), ARRAY.restrict({ length: 2 })), {
         optional: true,
     })
-    range?: [any, any] = undefined;
+    range?: [any, any];
 
     @Validate(MATCHING_CROSSLINE_TYPE('value'), { optional: true })
-    value?: any = undefined;
+    value?: any;
 
     @Validate(COLOR_STRING, { optional: true })
-    fill?: string = undefined;
+    fill?: string;
 
     @Validate(RATIO, { optional: true })
-    fillOpacity?: number = undefined;
+    fillOpacity?: number;
 
     @Validate(COLOR_STRING, { optional: true })
-    stroke?: string = undefined;
+    stroke?: string;
 
     @Validate(NUMBER, { optional: true })
-    strokeWidth?: number = undefined;
+    strokeWidth?: number;
 
     @Validate(RATIO, { optional: true })
-    strokeOpacity?: number = undefined;
+    strokeOpacity?: number;
 
     @Validate(LINE_DASH, { optional: true })
-    lineDash?: [] = undefined;
+    lineDash?: [];
 
+    @Validate(UNION(['polygon', 'circle'], 'a shape'))
     shape: 'polygon' | 'circle' = 'polygon';
 
+    @Validate(OBJECT)
     label = new PolarCrossLineLabel();
 
     scale?: _Scale.Scale<any, number> = undefined;
@@ -111,8 +115,8 @@ export abstract class PolarCrossLine implements _ModuleSupport.CrossLine {
     axisInnerRadius: number = 0;
     axisOuterRadius: number = 0;
 
-    readonly group = new Group({ name: `${this.id}`, layer: true, zIndex: PolarCrossLine.LINE_LAYER_ZINDEX });
-    readonly labelGroup = new Group({ name: `${this.id}`, layer: true, zIndex: PolarCrossLine.LABEL_LAYER_ZINDEX });
+    readonly group = new Layer({ name: this.id, zIndex: PolarCrossLine.LINE_LAYER_ZINDEX });
+    readonly labelGroup = new Layer({ name: this.id, zIndex: PolarCrossLine.LABEL_LAYER_ZINDEX });
 
     abstract update(visible: boolean): void;
 
@@ -126,7 +130,7 @@ export abstract class PolarCrossLine implements _ModuleSupport.CrossLine {
     }
 
     protected setLabelNodeProps(
-        node: _Scene.Text,
+        node: _Scene.RotatableText,
         x: number,
         y: number,
         baseline: CanvasTextBaseline,
@@ -150,9 +154,5 @@ export abstract class PolarCrossLine implements _ModuleSupport.CrossLine {
         node.fontStyle = label.fontStyle;
 
         node.visible = true;
-    }
-
-    calculateLayout(_visible: boolean): _Scene.BBox | undefined {
-        return;
     }
 }

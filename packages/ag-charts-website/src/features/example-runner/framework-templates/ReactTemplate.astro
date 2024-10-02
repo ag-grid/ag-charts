@@ -12,6 +12,9 @@ interface Props {
 
     modifiedTimeMs: number;
     entryFileName: string;
+
+    layout: 'grid' | 'toolbar' | 'none';
+
     /**
      * Extra script file names (not including entry file)
      */
@@ -31,6 +34,7 @@ const {
     modifiedTimeMs,
     appLocation,
     entryFileName,
+    layout,
     scriptFiles = [],
     styleFiles = [],
     boilerplatePath,
@@ -45,7 +49,7 @@ const startFile = pathJoin(appLocation, entryFileName);
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`React Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle rootSelector="#root" extraStyles={extraStyles} />
+        <ExampleStyle rootSelector="#root" layout={layout} extraStyles={extraStyles} />
         <Styles baseUrl={appLocation} files={styleFiles} />
         <Fragment set:html={headFragment} />
     </head>

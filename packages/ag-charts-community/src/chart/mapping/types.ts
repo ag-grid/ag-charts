@@ -1,9 +1,16 @@
 import type {
     AgCartesianChartOptions,
+    AgCartesianSeriesOptions,
     AgFlowProportionChartOptions,
+    AgFlowProportionSeriesOptions,
+    AgGaugeChartOptions,
+    AgGaugeOptions,
     AgHierarchyChartOptions,
+    AgHierarchySeriesOptions,
     AgPolarChartOptions,
+    AgPolarSeriesOptions,
     AgTopologyChartOptions,
+    AgTopologySeriesOptions,
 } from 'ag-charts-types';
 import type { AgChartOptions } from 'ag-charts-types';
 
@@ -13,13 +20,22 @@ import { chartTypes } from '../factory/chartTypes';
 import {
     isEnterpriseCartesian,
     isEnterpriseFlowProportion,
+    isEnterpriseGauge,
     isEnterpriseHierarchy,
     isEnterprisePolar,
     isEnterpriseTopology,
 } from '../factory/expectedEnterpriseModules';
 
 export type AxesOptionsTypes = NonNullable<AgCartesianChartOptions['axes']>[number];
-export type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
+
+export type SeriesOptionsTypes =
+    | AgCartesianSeriesOptions
+    | AgPolarSeriesOptions
+    | AgHierarchySeriesOptions
+    | AgTopologySeriesOptions
+    | AgFlowProportionSeriesOptions
+    | AgGaugeOptions;
+
 export type SeriesType = SeriesOptionsTypes['type'];
 
 export function optionsType(input: { series?: { type?: SeriesType }[] }): NonNullable<SeriesType> {
@@ -94,6 +110,20 @@ export function isAgFlowProportionChartOptions(input: AgChartOptions): input is 
     }
 
     return chartTypes.isFlowProportion(specifiedType) || isEnterpriseFlowProportion(specifiedType);
+}
+
+export function isAgGaugeChartOptions(input: any): input is AgGaugeChartOptions {
+    const specifiedType = optionsType(input);
+    if (specifiedType == null) {
+        return false;
+    }
+
+    if ((specifiedType as string) === 'gauge') {
+        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
+        return true;
+    }
+
+    return chartTypes.isGauge(specifiedType) || isEnterpriseGauge(specifiedType);
 }
 
 export function isAgPolarChartOptionsWithSeriesBasedLegend(input: AgChartOptions): input is AgPolarChartOptions {

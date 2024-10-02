@@ -9,9 +9,8 @@ import type {
 import type { ModuleContext, SeriesContext } from '../../module/moduleContext';
 import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
-import type { ScaleType } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
-import { Group } from '../../scene/group';
+import { Group, TranslatableGroup } from '../../scene/group';
 import type { ZIndexSubOrder } from '../../scene/layersManager';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
@@ -20,26 +19,21 @@ import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlaceme
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
 import { Listeners } from '../../util/listeners';
+import { LRUCache } from '../../util/lruCache';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
-import { clamp } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
-import { isFiniteNumber } from '../../util/type-guards';
-import { isContinuous } from '../../util/value';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
 import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
-import { accumulatedValue, range, trailingAccumulatedValue } from '../data/aggregateFunctions';
 import type { DataController } from '../data/dataController';
-import type { DatumPropertyDefinition } from '../data/dataModel';
-import { accumulateContinuity, accumulateGroup } from '../data/processors';
-import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent } from '../tooltip/tooltip';
+import { ZIndexMap } from '../zIndexMap';
 import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesProperties } from './seriesProperties';
@@ -57,6 +51,8 @@ export enum SeriesNodePickMode {
     /** Pick matches based upon distance to ideal position */
     NEAREST_NODE,
 }
+
+export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
 
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
@@ -81,121 +77,7 @@ export type PickFocusOutputs = {
     showFocusBox: boolean;
 };
 
-export function basicContinuousCheckDatumValidation(value: any) {
-    return value != null && isContinuous(value);
-}
-
-function basicDiscreteCheckDatumValidation(value: any) {
-    return value != null;
-}
-
-function getValidationFn(scaleType?: ScaleType) {
-    switch (scaleType) {
-        case 'number':
-        case 'log':
-        case 'ordinal-time':
-        case 'time':
-        case 'color':
-            return basicContinuousCheckDatumValidation;
-        default:
-            return basicDiscreteCheckDatumValidation;
-    }
-}
-
-function getValueType(scaleType?: ScaleType) {
-    switch (scaleType) {
-        case 'number':
-        case 'log':
-        case 'time':
-        case 'color':
-            return 'range';
-        default:
-            return 'category';
-    }
-}
-export function keyProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
-    const result: DatumPropertyDefinition<K> = {
-        property: propName,
-        type: 'key',
-        valueType: getValueType(scaleType),
-        validation: getValidationFn(scaleType),
-        ...opts,
-    };
-    return result;
-}
-
-export function valueProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
-    const result: DatumPropertyDefinition<K> = {
-        property: propName,
-        type: 'value',
-        valueType: getValueType(scaleType),
-        validation: getValidationFn(scaleType),
-        ...opts,
-    };
-    return result;
-}
-
-export function rangedValueProperty<K>(
-    propName: K,
-    opts: Partial<DatumPropertyDefinition<K>> & { min?: number; max?: number } = {}
-): DatumPropertyDefinition<K> {
-    const { min = -Infinity, max = Infinity, ...defOpts } = opts;
-    return {
-        type: 'value',
-        property: propName,
-        valueType: 'range',
-        validation: basicContinuousCheckDatumValidation,
-        processor: () => (datum) => (isFiniteNumber(datum) ? clamp(min, datum, max) : datum),
-        ...defOpts,
-    };
-}
-
-export function accumulativeValueProperty<K>(
-    propName: K,
-    scaleType?: ScaleType,
-    opts: Partial<DatumPropertyDefinition<K>> & { onlyPositive?: boolean } = {}
-) {
-    const { onlyPositive, ...defOpts } = opts;
-    const result: DatumPropertyDefinition<K> = {
-        ...valueProperty(propName, scaleType, defOpts),
-        processor: accumulatedValue(onlyPositive),
-    };
-    return result;
-}
-
-export function trailingAccumulatedValueProperty<K>(
-    propName: K,
-    scaleType?: ScaleType,
-    opts: Partial<DatumPropertyDefinition<K>> = {}
-) {
-    const result: DatumPropertyDefinition<K> = {
-        ...valueProperty(propName, scaleType, opts),
-        processor: trailingAccumulatedValue(),
-    };
-    return result;
-}
-
-export function groupAccumulativeValueProperty<K>(
-    propName: K,
-    mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
-    sum: 'current' | 'last' = 'current',
-    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string },
-    scaleType?: ScaleType
-) {
-    return [
-        valueProperty(propName, scaleType, opts),
-        accumulateGroup(opts.groupId, mode, sum, opts.separateNegative),
-        ...(opts.rangeId != null ? [range(opts.rangeId, opts.groupId)] : []),
-    ];
-}
-
-export function groupAccumulativeContinuityProperty<K>(
-    propName: K,
-    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string },
-    scaleType?: ScaleType
-) {
-    return [valueProperty(propName, scaleType, opts), accumulateContinuity(opts.groupId, opts.separateNegative)];
-}
+export type PickResult = { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number };
 
 export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'nodeContextMenuAction' | 'groupingChanged';
 
@@ -214,6 +96,9 @@ export interface INodeEventConstructor<
 > {
     new <T extends TEvent>(type: T, event: Event, { datum }: TDatum, series: TSeries): INodeEvent<T>;
 }
+
+const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
+const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
 
 export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends string = SeriesNodeEventTypes>
     implements INodeEvent<TEvent>
@@ -311,17 +196,17 @@ export abstract class Series<
     readonly rootGroup: Group = new Group({ name: 'seriesRoot', isVirtual: true });
 
     // The group node that contains the series rendering in its default (non-highlighted) state.
-    readonly contentGroup: Group;
+    readonly contentGroup: TranslatableGroup;
 
     // The group node that contains all highlighted series items. This is a performance optimisation
     // for large-scale data-sets, where the only thing that routinely varies is the currently
     // highlighted node.
-    readonly highlightGroup: Group;
+    readonly highlightGroup: TranslatableGroup;
     readonly highlightNode: Group;
     readonly highlightLabel: Group;
 
     // Lazily initialised labelGroup for label presentation.
-    readonly labelGroup: Group;
+    readonly labelGroup: TranslatableGroup;
 
     readonly annotationGroup: Group;
 
@@ -329,7 +214,7 @@ export abstract class Series<
     chart?: {
         mode: ChartMode;
         isMiniChart: boolean;
-        placeLabels(): Map<Series<any, any>, PlacedLabel[]>;
+        placeLabels(padding?: number): Map<Series<any, any>, PlacedLabel[]>;
         seriesRect?: BBox;
     };
 
@@ -373,6 +258,7 @@ export abstract class Series<
 
     protected onDataChange() {
         this.nodeDataRefresh = true;
+        this._pickNodeCache.clear();
     }
 
     setOptionsData(input: unknown[]) {
@@ -426,18 +312,18 @@ export abstract class Series<
         this.canHaveAxes = canHaveAxes;
 
         this.contentGroup = this.rootGroup.appendChild(
-            new Group({
+            new TranslatableGroup({
                 name: `${this.internalId}-content`,
                 isVirtual: contentGroupVirtual,
-                zIndex: Layers.SERIES_LAYER_ZINDEX,
+                zIndex: ZIndexMap.SERIES_LAYER,
                 zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
             })
         );
 
-        this.highlightGroup = new Group({
+        this.highlightGroup = new TranslatableGroup({
             name: `${this.internalId}-highlight`,
             isVirtual: contentGroupVirtual,
-            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndex: ZIndexMap.SERIES_LAYER,
             zIndexSubOrder: this.getGroupZIndexSubOrder('highlight'),
         });
         this.highlightNode = this.highlightGroup.appendChild(new Group({ name: 'highlightNode', zIndex: 0 }));
@@ -446,16 +332,16 @@ export abstract class Series<
         this.pickModes = pickModes;
 
         this.labelGroup = this.rootGroup.appendChild(
-            new Group({
+            new TranslatableGroup({
                 name: `${this.internalId}-series-labels`,
-                zIndex: Layers.SERIES_LABEL_ZINDEX,
+                zIndex: ZIndexMap.SERIES_LABEL,
             })
         );
 
         this.annotationGroup = new Group({
             name: `${this.id}-annotation`,
             isVirtual: contentGroupVirtual,
-            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndex: ZIndexMap.SERIES_LAYER,
             zIndexSubOrder: this.getGroupZIndexSubOrder('annotation'),
         });
     }
@@ -571,6 +457,7 @@ export abstract class Series<
     // Indicate that something external changed and we should recalculate nodeData.
     markNodeDataDirty() {
         this.nodeDataRefresh = true;
+        this._pickNodeCache.clear();
         this.visibleMaybeChanged();
     }
 
@@ -640,21 +527,36 @@ export abstract class Series<
 
     abstract getTooltipHtml(seriesDatum: any): TooltipContent;
 
-    pickNode(
-        point: Point,
-        limitPickModes?: SeriesNodePickMode[]
-    ): { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number } | undefined {
+    protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
+    pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
         const { pickModes, visible, rootGroup } = this;
 
-        if (!visible || !rootGroup.visible) {
-            return;
+        if (!visible || !rootGroup.visible) return;
+        if (intent === 'highlight' && !this.properties.highlight.enabled) return;
+        if (intent === 'highlight-tooltip' && !this.properties.highlight.enabled) return;
+
+        let maxDistance = Infinity;
+        if (intent === 'tooltip' || intent === 'highlight-tooltip') {
+            const { tooltip } = this.properties;
+            maxDistance = typeof tooltip.range === 'number' ? tooltip.range : Infinity;
+            exactMatchOnly ||= tooltip.range === 'exact';
+        } else if (intent === 'event' || intent === 'context-menu') {
+            const { nodeClickRange } = this.properties;
+            maxDistance = typeof nodeClickRange === 'number' ? nodeClickRange : Infinity;
+            exactMatchOnly ||= nodeClickRange === 'exact';
         }
 
-        for (const pickMode of pickModes) {
-            if (limitPickModes && !limitPickModes.includes(pickMode)) {
-                continue;
-            }
+        const selectedPickModes = pickModes.filter(
+            (m) => !exactMatchOnly || m === SeriesNodePickMode.EXACT_SHAPE_MATCH
+        );
 
+        const { x, y } = point;
+        const key = JSON.stringify({ x, y, maxDistance, selectedPickModes });
+        if (this._pickNodeCache.has(key)) {
+            return this._pickNodeCache.get(key);
+        }
+
+        for (const pickMode of selectedPickModes) {
             let match: SeriesNodePickMatch | undefined;
 
             switch (pickMode) {
@@ -675,10 +577,12 @@ export abstract class Series<
                     break;
             }
 
-            if (match) {
-                return { pickMode, match: match.datum, distance: match.distance };
+            if (match && match.distance <= maxDistance) {
+                return this._pickNodeCache.set(key, { pickMode, match: match.datum, distance: match.distance });
             }
         }
+
+        return this._pickNodeCache.set(key, undefined);
     }
 
     protected pickNodeExactShape(point: Point): SeriesNodePickMatch | undefined {
@@ -730,6 +634,7 @@ export abstract class Series<
     protected toggleSeriesItem(itemId: any, enabled: boolean): void {
         this.visible = enabled;
         this.nodeDataRefresh = true;
+        this._pickNodeCache.clear();
         this.dispatch('visibility-changed', { itemId, enabled });
     }
 
@@ -783,7 +688,7 @@ export abstract class Series<
         marker: ISeriesMarker<TParams>,
         params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle(),
-        { applyTranslation = true } = {}
+        { applyTranslation = true, selected = true } = {}
     ) {
         const { point } = params.datum;
         const activeStyle = this.getMarkerStyle(marker, params, defaultStyle);
@@ -795,11 +700,27 @@ export abstract class Series<
             markerNode.setProperties({ visible, ...activeStyle });
         }
 
+        if (!selected) {
+            markerNode.fillOpacity *= CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR;
+            markerNode.strokeOpacity *= CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR;
+        }
+
         // Only for custom marker shapes
         if (typeof marker.shape === 'function' && !markerNode.dirtyPath) {
             markerNode.path.clear(true);
             markerNode.updatePath();
             markerNode.checkPathDirty();
+
+            // AG-12745 Calculate the marker size to ensure that the focus indicator is correct.
+            const bb = markerNode.getBBox();
+            if (point !== undefined && bb.isFinite()) {
+                const center = bb.computeCenter();
+                const [dx, dy] = (['x', 'y'] satisfies (keyof Point)[]).map(
+                    (key) => (activeStyle.strokeWidth ?? 0) + Math.abs(center[key] - point[key])
+                );
+                const customSize = Math.max(bb.width + dx, bb.height + dy);
+                point.focusSize = customSize;
+            }
         }
     }
 

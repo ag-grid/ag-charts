@@ -8,7 +8,7 @@ import type { Scale } from './scale';
  * Maps a discrete domain to a continuous numeric range.
  */
 export class BandScale<D, I = number> implements Scale<D, number, I> {
-    static is(value: any): value is BandScale<any, any> {
+    static is(value: unknown): value is BandScale<any, any> {
         return value instanceof BandScale;
     }
 
@@ -179,19 +179,17 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         const { _paddingOuter: paddingOuter, round } = this;
         const rangeDistance = r1 - r0;
 
-        let rawStep: number, step: number, inset: number;
+        let rawStep: number;
 
         if (count === 1) {
             paddingInner = 0;
             rawStep = rangeDistance * (1 - paddingOuter * 2);
-            step = round ? Math.round(rawStep) : rawStep;
-            inset = rangeDistance * paddingOuter;
         } else {
             rawStep = rangeDistance / Math.max(1, count - paddingInner + paddingOuter * 2);
-            step = round ? Math.floor(rawStep) : rawStep;
-            inset = r0 + (rangeDistance - step * (count - paddingInner)) / 2;
         }
 
+        const step = round ? Math.floor(rawStep) : rawStep;
+        let inset = r0 + (rangeDistance - step * (count - paddingInner)) / 2;
         let bandwidth = step * (1 - paddingInner);
 
         if (round) {

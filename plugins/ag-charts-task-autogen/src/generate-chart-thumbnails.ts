@@ -3,10 +3,15 @@ export function createTask(parentProject: string, srcRelativeInputPath: string) 
 
     return {
         'generate-thumbnail': {
-            dependsOn: ['generate-example', 'ag-charts-generate-chart-thumbnail:build'],
+            dependsOn: [
+                'generate-example',
+                'ag-charts-generate-chart-thumbnail:build',
+                'ag-charts-community:build',
+                'ag-charts-enterprise:build',
+            ],
             inputs: [
                 '{projectRoot}/**',
-                { dependentTasksOutputFiles: '**/*', transitive: false },
+                { dependentTasksOutputFiles: '**/*', transitive: true },
                 { env: 'PUBLIC_PACKAGE_VERSION' },
                 { externalDependencies: ['npm:typescript', 'npm:canvas'] },
             ],

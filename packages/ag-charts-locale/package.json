@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-locale",
-  "version": "10.0.0",
+  "version": "10.2.0-beta.20241002.1133",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
   "module": "./dist/package/main.esm.mjs",
@@ -48,7 +48,7 @@
     "not op_mini all",
     "not operamobile >= 0"
   ],
-  "homepage": "https://charts.ag-grid.com/",
+  "homepage": "https://ag-grid.com/charts/",
   "devDependencies": {
     "@jest/globals": "29.6.1",
     "@types/jest": "^29.5.0",

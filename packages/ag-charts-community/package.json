@@ -1,15 +1,22 @@
 {
   "name": "ag-charts-community",
-  "version": "10.0.0",
+  "version": "10.2.0-beta.20241002.1133",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
   "module": "./dist/package/main.esm.mjs",
   "exports": {
-    "import": "./dist/package/main.esm.mjs",
-    "require": "./dist/package/main.cjs.js",
-    "types": "./dist/types/src/main.d.ts",
-    "default": "./dist/package/main.cjs.js"
+    ".": {
+      "import": "./dist/package/main.esm.mjs",
+      "require": "./dist/package/main.cjs.js",
+      "types": "./dist/types/src/main.d.ts",
+      "default": "./dist/package/main.cjs.js"
+    },
+    "./modules": {
+      "import": "./dist/package/main-modules.esm.mjs",
+      "require": "./dist/package/main-modules.cjs.js",
+      "types": "./dist/types/src/main-modules.d.ts"
+    }
   },
   "scripts": {
     "lint:circular": "npx madge --circular --extensions ts src/",
@@ -22,11 +29,17 @@
   "keywords": [
     "chart",
     "charts",
+    "graph",
+    "graphs",
     "data",
-    "angular",
-    "angular-component",
     "react",
     "react-component",
+    "react-charts",
+    "react-graphs",
+    "angular",
+    "angular-component",
+    "angular-charts",
+    "angular-graphs",
     "reactjs",
     "vue",
     "vuejs"
@@ -45,10 +58,10 @@
     "not op_mini all",
     "not operamobile >= 0"
   ],
-  "homepage": "https://charts.ag-grid.com/",
+  "homepage": "https://ag-grid.com/charts/",
   "dependencies": {
-    "ag-charts-types": "10.0.0",
-    "ag-charts-locale": "10.0.0"
+    "ag-charts-types": "10.2.0-beta.20241002.1133",
+    "ag-charts-locale": "10.2.0-beta.20241002.1133"
   },
   "devDependencies": {
     "@babel/types": "7.12.7",
@@ -61,7 +74,7 @@
     "@types/ws": "8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
     "@typescript-eslint/parser": "^5.51.0",
-    "ag-charts-test": "10.0.0",
+    "ag-charts-test": "10.2.0-beta.20241002.1133",
     "assert": "2.0.0",
     "canvas": "^2.10.2",
     "del": "^6.0.0",

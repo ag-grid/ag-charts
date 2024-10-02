@@ -14,7 +14,7 @@ import {
 } from '../test/utils';
 
 function calculateAxisBBox(axis: ChartAxis): { x: number; y: number; width: number; height: number } {
-    const bbox = axis.computeBBox();
+    const bbox = axis.getBBox();
 
     const { x, y, width, height } = bbox;
     return { x, y, width, height };
@@ -82,7 +82,7 @@ describe('Time Axis Examples', () => {
 
             const { width, height } = axisBbox;
 
-            if (width > 0 && height > 0) {
+            if (width >= 1 && height >= 1) {
                 const imageData = extractImageData({ ...ctx, bbox: axisBbox });
                 expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
             }
@@ -109,7 +109,7 @@ describe('Time Axis Examples', () => {
         for (const [min, max] of ZOOM_LEVELS) {
             it(`for should render as expected as zoom [${min}, ${max}]`, async () => {
                 chart = AgCharts.create(prepareTestOptions({ ...TIME_AXIS_EXAMPLE }));
-                chart.updateDelta({ navigator: { min, max } });
+                await chart.updateDelta({ navigator: { min, max } });
                 await axisCompare();
             });
         }

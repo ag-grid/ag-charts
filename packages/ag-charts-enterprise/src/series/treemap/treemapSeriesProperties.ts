@@ -10,7 +10,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { AutoSizeableSecondaryLabel, AutoSizedLabel } from '../util/labelFormatter';
+import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
 const { Label } = _Scene;
 const {
@@ -107,7 +107,7 @@ class TreemapSeriesTile extends BaseProperties {
     readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
-    readonly secondaryLabel = new AutoSizeableSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
+    readonly secondaryLabel = new AutoSizedSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
 }
 
 class TreemapSeriesGroupHighlightStyle extends BaseProperties {
@@ -150,7 +150,7 @@ class TreemapSeriesTileHighlightStyle extends BaseProperties {
     readonly label = new AutoSizedLabel<AgTreemapSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
-    readonly secondaryLabel = new AutoSizeableSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
+    readonly secondaryLabel = new AutoSizedSecondaryLabel<AgTreemapSeriesLabelFormatterParams>();
 }
 
 class TreemapSeriesHighlightStyle extends HighlightStyle {

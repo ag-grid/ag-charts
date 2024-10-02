@@ -101,6 +101,9 @@ const options: AgCartesianChartOptions = {
             },
         },
     },
+    zoom: {
+        enabled: true,
+    },
 };
 
 const chart = AgCharts.create(options);

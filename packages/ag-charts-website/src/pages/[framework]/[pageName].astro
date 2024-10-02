@@ -10,6 +10,7 @@ import { SideNavigation } from '@components/pages-navigation/components/SideNavi
 import { getHeadings } from '@utils/markdoc/getHeadings';
 import { getFirstParagraphText } from '@utils/markdoc/getFirstParagraphText';
 import { DOCS_TAB_ITEM_ID_PREFIX } from '@constants';
+import styles from '@ag-website-shared/components/page-styles/docs.module.scss';
 
 export async function getStaticPaths() {
     const pages = await getCollection('docs');
@@ -45,16 +46,18 @@ const description = page.data.description
 const descriptionWithSeoTagline = `${description} ${seoTagline}`;
 ---
 
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet" />
+
 <Layout
     title={`${getFrameworkDisplayText(currentFramework)} Charts: ${title} | AG Charts`}
     description={descriptionWithSeoTagline}
     showTopBar={true}
     showSearchBar={true}
-    showDocsNav={true}
+    showDocsNav={!hidePageMenu}
 >
-    <div
-        class:list={[hidePageMenu && 'noLeftMenu', largeExamples && 'largeExamples', 'contentViewport', 'layout-grid']}
-    >
+    <div class:list={[hidePageMenu && styles.noLeftMenu, styles.contentViewport, 'layout-grid', { largeExamples }]}>
         {
             !hidePageMenu && (
                 <PagesNavigation client:load menuData={menuData} framework={currentFramework} pageName={pageName} />
@@ -63,9 +66,9 @@ const descriptionWithSeoTagline = `${description} ${seoTagline}`;
         <div
             id="doc-content"
             class:list={[
-                'docPage',
+                styles.docPage,
                 {
-                    noSideMenu: hideSideMenu,
+                    noSideMenu: styles.hideSideMenu,
                 },
             ]}
         >
@@ -79,7 +82,7 @@ const descriptionWithSeoTagline = `${description} ${seoTagline}`;
             />
 
             {/* Wrapping div is a hack to target "intro" section of docs page */}
-            <div class="pageSections">
+            <div class={styles.pageSections}>
                 <Content framework={currentFramework} page={page} />
             </div>
         </div>
@@ -87,39 +90,3 @@ const descriptionWithSeoTagline = `${description} ${seoTagline}`;
         {!hideSideMenu && <SideNavigation client:load headings={headings} delayedScrollSpy={Boolean(pageHeadings)} />}
     </div>
 </Layout>
-
-<style lang="scss">
-    @use 'design-system' as *;
-    @import '@pages-styles/docs.module.scss';
-
-    .contentViewport {
-        display: flex;
-        flex-direction: column;
-        flex-grow: 1;
-
-        @media (min-width: $breakpoint-docs-nav-medium) {
-            flex-direction: row;
-        }
-
-        &.noLeftMenu .docPage {
-            width: 100%;
-        }
-
-        @media (min-width: $breakpoint-docs-nav-large) {
-            &.noLeftMenu .docPage {
-                width: var(--layout-width-9-12);
-                margin-left: calc(var(--layout-width-3-12) + var(--layout-gap));
-            }
-        }
-
-        @media (max-width: $breakpoint-docs-nav-extra-large) {
-            &.noLeftMenu .docPage {
-                width: var(--layout-width-6-12);
-            }
-        }
-
-        &.noLeftMenu .docPage {
-            width: 100%;
-        }
-    }
-</style>

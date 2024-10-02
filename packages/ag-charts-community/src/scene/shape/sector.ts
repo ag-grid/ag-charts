@@ -1,4 +1,4 @@
-import { BBox } from '../bbox';
+import type { BBox } from '../bbox';
 import type { Point } from '../point';
 import { SectorBox } from '../sectorBox';
 import {
@@ -110,16 +110,16 @@ export class Sector extends Path {
         this.endInnerCornerRadius = value;
     }
 
-    override computeBBox(): BBox {
+    protected override computeBBox(): BBox {
         return sectorBox(this).translate(this.centerX, this.centerY);
     }
 
     private normalizedRadii() {
         const { concentricEdgeInset } = this;
-        return {
-            innerRadius: Math.max(Math.min(this.innerRadius, this.outerRadius) + concentricEdgeInset, 0),
-            outerRadius: Math.max(Math.max(this.innerRadius, this.outerRadius) - concentricEdgeInset, 0),
-        };
+        let { innerRadius, outerRadius } = this;
+        innerRadius = innerRadius > 0 ? innerRadius + concentricEdgeInset : 0;
+        outerRadius = Math.max(outerRadius - concentricEdgeInset, 0);
+        return { innerRadius, outerRadius };
     }
 
     private normalizedClipSector() {
@@ -154,21 +154,16 @@ export class Sector extends Path {
     ): Arc | undefined {
         if (r <= 0) return;
 
-        const { concentricEdgeInset } = this;
         const { startAngle, endAngle } = clockwiseAngles(this.startAngle, this.endAngle);
         const { innerRadius, outerRadius } = this.normalizedRadii();
         const clipSector = this.normalizedClipSector();
 
         if (inner && innerRadius <= 0) return;
 
-        const innerAngleOffset = this.getAngleOffset(innerRadius);
-        const outerAngleOffset = this.getAngleOffset(outerRadius);
+        const angleOffset = inner ? this.getAngleOffset(innerRadius + r) : this.getAngleOffset(outerRadius - r);
+        const angle = start ? startAngle + angleOffset + angleSweep : endAngle - angleOffset - angleSweep;
 
         const radius = inner ? innerRadius + r : outerRadius - r;
-        const angleOffset = inner
-            ? this.getAngleOffset(Math.sqrt(radius ** 2 - r ** 2))
-            : this.getAngleOffset(Math.sqrt(radius ** 2 - r ** 2));
-        const angle = start ? startAngle + angleOffset + angleSweep : endAngle - angleOffset - angleSweep;
 
         const cx = radius * Math.cos(angle);
         const cy = radius * Math.sin(angle);
@@ -185,17 +180,11 @@ export class Sector extends Path {
 
         if (clipSector != null) {
             if (inner) {
-                arc.clipStart(
-                    arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.endAngle - innerAngleOffset)
-                );
-                arc.clipEnd(
-                    arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.startAngle + innerAngleOffset)
-                );
+                arc.clipStart(arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.endAngle));
+                arc.clipEnd(arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.startAngle));
             } else {
-                arc.clipStart(
-                    arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.startAngle + outerAngleOffset)
-                );
-                arc.clipEnd(arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.endAngle - outerAngleOffset));
+                arc.clipStart(arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.startAngle));
+                arc.clipEnd(arcRadialLineIntersectionAngle(cx, cy, r, a0, a1, clipSector.endAngle));
             }
 
             let circleClipStart: number | undefined;
@@ -273,7 +262,9 @@ export class Sector extends Path {
 
         path.clear();
 
-        if ((clipSector?.startAngle ?? startAngle) === (clipSector?.endAngle ?? endAngle)) {
+        if ((innerRadius === 0 && outerRadius === 0) || innerRadius > outerRadius) {
+            return;
+        } else if ((clipSector?.startAngle ?? startAngle) === (clipSector?.endAngle ?? endAngle)) {
             return;
         } else if (
             fullPie &&
@@ -289,6 +280,11 @@ export class Sector extends Path {
                 path.moveTo(centerX + innerRadius * Math.cos(endAngle), centerY + innerRadius * Math.sin(endAngle));
                 path.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
             }
+            path.closePath();
+            return;
+        } else if (this.clipSector == null && Math.abs(innerRadius - outerRadius) < 1e-6) {
+            path.arc(centerX, centerY, outerRadius, startAngle, endAngle, false);
+            path.arc(centerX, centerY, outerRadius, endAngle, startAngle, true);
             path.closePath();
             return;
         }
@@ -495,7 +491,7 @@ export class Sector extends Path {
                 // so ensure we never go less than the inner radius
                 r = Math.hypot(radialEdgeInset, x);
             } else {
-                // Formula limits exceeded
+                // Formula limits exceeded - just use the inner radius
                 r = radialEdgeInset;
             }
             r = Math.max(r, innerRadius);
@@ -539,11 +535,9 @@ export class Sector extends Path {
     }
 
     override isPointInPath(x: number, y: number): boolean {
-        const point = this.transformPoint(x, y);
-
         const { startAngle, endAngle, innerRadius, outerRadius } = this.clipSector ?? this;
 
-        return isPointInSector(point.x - this.centerX, point.y - this.centerY, {
+        return isPointInSector(x - this.centerX, y - this.centerY, {
             startAngle,
             endAngle,
             innerRadius: Math.min(innerRadius, outerRadius),

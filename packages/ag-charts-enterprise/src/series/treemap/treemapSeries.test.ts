@@ -6,7 +6,7 @@ import type {
     AgPolarChartOptions,
     InteractionRange,
 } from 'ag-charts-community';
-import { AgCharts } from 'ag-charts-community';
+import { AgCharts, _Scene } from 'ag-charts-community';
 import {
     Chart,
     GALLERY_EXAMPLES,
@@ -52,7 +52,10 @@ describe('TreemapSeries', () => {
         };
 
         it('should render a complex chart', async () => {
-            const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                animation: { enabled: false },
+            };
             prepareEnterpriseTestOptions(options);
 
             chart = deproxy(AgCharts.create(options));
@@ -61,7 +64,10 @@ describe('TreemapSeries', () => {
 
         const childAtDepth = [0, 0, 0, 0];
         it.each([0, 1, 2, 3])(`should render highlight at depth %s`, async (depth) => {
-            const options: AgChartOptions = { ...SIMPLIFIED_EXAMPLE };
+            const options: AgChartOptions = {
+                ...SIMPLIFIED_EXAMPLE,
+                animation: { enabled: false },
+            };
             prepareEnterpriseTestOptions(options);
 
             chart = deproxy(AgCharts.create(options));
@@ -91,7 +97,10 @@ describe('TreemapSeries', () => {
 
         for (const [exampleName, example] of Object.entries(examples)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
-                const options: AgChartOptions = { ...example.options };
+                const options: AgChartOptions = {
+                    ...example.options,
+                    animation: { enabled: false },
+                };
                 prepareEnterpriseTestOptions(options);
 
                 chart = AgCharts.create(options);
@@ -100,7 +109,10 @@ describe('TreemapSeries', () => {
             });
 
             it(`for ${exampleName} it should render to canvas as expected`, async () => {
-                const options: AgChartOptions = { ...example.options };
+                const options: AgChartOptions = {
+                    ...example.options,
+                    animation: { enabled: false },
+                };
                 prepareEnterpriseTestOptions(options);
 
                 chart = AgCharts.create(options);
@@ -152,6 +164,7 @@ describe('TreemapSeries', () => {
                     },
                 ],
                 ...(testParams.chartOptions ?? {}),
+                animation: { enabled: false },
             };
             prepareEnterpriseTestOptions(options);
             const newChart = deproxy(AgCharts.create(options));
@@ -168,7 +181,11 @@ describe('TreemapSeries', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { x, y } = series.contentGroup.inverseTransformPoint(itemPoint[0], itemPoint[1]);
+                    const { x, y } = _Scene.Transformable.toCanvasPoint(
+                        series.contentGroup,
+                        itemPoint[0],
+                        itemPoint[1]
+                    );
                     await hoverAction(x, y)(chartInstance);
                     await waitForChartStability(chartInstance);
                     await iterator({ series, item, x, y });
@@ -282,7 +299,7 @@ describe('TreemapSeries', () => {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
             // Returns a highlighted marker
-            getHighlightNode: (_, series) => series.highlightNode.children[0],
+            getHighlightNode: (_, series) => series.highlightNode.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
         testPointerEvents({
@@ -297,7 +314,7 @@ describe('TreemapSeries', () => {
                 data: datasets.data,
             },
             getNodeData: (series) => {
-                const nodes = series.contentGroup.children.map((group: any) => group.children[0]);
+                const nodes = Array.from(series.contentGroup.children(), (group: any) => group.children().next().value);
                 const maxDepth = Math.max(...nodes.map((n: any) => n.datum.depth ?? -1));
                 return nodes.filter((node: any) => node.datum.depth === maxDepth);
             },
@@ -315,8 +332,11 @@ describe('TreemapSeries', () => {
             },
             getHighlightNode: (chartInstance, series) => {
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                return series.highlightGroup.children.find((child: any) => child?.datum === highlightedDatum)
-                    .children[0];
+                for (const child of series.highlightGroup.children()) {
+                    if (child.datum === highlightedDatum) {
+                        return child.children().next().value;
+                    }
+                }
             },
         });
     });

@@ -62,7 +62,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.cartesianSeries = series;
         this.groupNode = new ErrorBarGroup({
             name: `${annotationGroup.id}-errorBars`,
-            zIndex: _ModuleSupport.Layers.SERIES_LAYER_ZINDEX,
+            zIndex: _ModuleSupport.ZIndexMap.SERIES_LAYER,
             zIndexSubOrder: series.getGroupZIndexSubOrder('annotation'),
         });
 
@@ -178,12 +178,11 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             const { dataModel, processedData, cartesianSeries: series } = this;
 
             if (dataModel != null && processedData != null) {
-                const axis = series.axes[direction];
                 const id = { x: xErrorsID, y: yErrorsID }[direction];
                 const lowerDomain = dataModel.getDomain(series, `${id}-lower`, 'value', processedData);
                 const upperDomain = dataModel.getDomain(series, `${id}-upper`, 'value', processedData);
                 const domain = [Math.min(...lowerDomain, ...upperDomain), Math.max(...lowerDomain, ...upperDomain)];
-                return fixNumericExtent(domain, axis);
+                return fixNumericExtent(domain);
             }
         }
         return [];
@@ -301,7 +300,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     pickNodeExact(point: Point): PickNodeDatumResult {
-        const { x, y } = this.groupNode.transformPoint(point.x, point.y);
+        const { x, y } = point;
         const node = this.groupNode.pickNode(x, y);
         if (node != null) {
             return { datum: node.datum, distanceSquared: 0 };
@@ -370,7 +369,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         // data points with error bars).
         for (let i = 0; i < nodeData.length; i++) {
             if (highlightChange === nodeData[i]) {
-                this.selection.nodes()[i].update(style, this.properties, highlighted);
+                this.selection.at(i)?.update(style, this.properties, highlighted);
                 break;
             }
         }

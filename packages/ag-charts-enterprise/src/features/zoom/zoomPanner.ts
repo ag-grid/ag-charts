@@ -2,7 +2,7 @@ import type { _Scene } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { AxisZoomStates, ZoomCoords } from './zoomTypes';
-import { constrainZoom, definedZoomState, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
+import { UNIT, constrainZoom, definedZoomState, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
 
 export interface ZoomPanUpdate {
     type: 'update';
@@ -105,7 +105,7 @@ export class ZoomPanner {
             const velocity = Math.hypot(xVelocity, yVelocity);
             const angle = Math.atan2(yVelocity, xVelocity);
             const t0 = performance.now();
-            this.inertiaHandle = requestAnimationFrame((t) => {
+            this.inertiaHandle = _ModuleSupport.getWindow().requestAnimationFrame((t) => {
                 this.animateInertia(t, t, t0, velocity, angle);
             });
         }
@@ -161,20 +161,15 @@ export class ZoomPanner {
         const newZooms: AxisZoomStates = {};
 
         for (const [axisId, { direction, zoom: currentZoom }] of Object.entries(currentZooms)) {
-            let zoom;
-            if (direction === _ModuleSupport.ChartAxisDirection.X) {
-                zoom = definedZoomState({ x: currentZoom });
-            } else {
-                zoom = definedZoomState({ y: currentZoom });
+            // Skip panning axes that are fully zoomed out to prevent floating point issues
+            if (currentZoom && currentZoom.min === UNIT.min && currentZoom.max === UNIT.max) {
+                continue;
             }
 
+            let zoom = definedZoomState({ [direction]: currentZoom });
             zoom = constrainZoom(translateZoom(zoom, offsetX * dx(zoom), offsetY * dy(zoom)));
 
-            if (direction === _ModuleSupport.ChartAxisDirection.X) {
-                newZooms[axisId] = { direction, zoom: zoom.x };
-            } else {
-                newZooms[axisId] = { direction, zoom: zoom.y };
-            }
+            newZooms[axisId] = { direction, zoom: zoom[direction] };
         }
 
         return newZooms;

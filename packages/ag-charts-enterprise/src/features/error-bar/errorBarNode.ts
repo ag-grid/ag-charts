@@ -131,7 +131,7 @@ export class ErrorBarNode extends _Scene.Group {
 
         const whisker = this.whiskerPath;
         this.applyStyling(whisker, whiskerStyle);
-        whisker.path.clear();
+        whisker.path.clear(true);
         if (yBar !== undefined) {
             whisker.path.moveTo(yBar.lowerPoint.x, yBar.lowerPoint.y);
             whisker.path.lineTo(yBar.upperPoint.x, yBar.upperPoint.y);
@@ -141,7 +141,6 @@ export class ErrorBarNode extends _Scene.Group {
             whisker.path.lineTo(xBar.upperPoint.x, xBar.upperPoint.y);
         }
         whisker.path.closePath();
-        whisker.markDirtyTransform();
 
         // ErrorBar caps stretch out perpendicular to the whisker equally on both
         // sides, so we want the offset to be half of the total length.
@@ -149,7 +148,7 @@ export class ErrorBarNode extends _Scene.Group {
         const capOffset = this.capLength / 2;
         const caps = this.capsPath;
         this.applyStyling(caps, capsStyle);
-        caps.path.clear();
+        caps.path.clear(true);
         if (yBar !== undefined) {
             caps.path.moveTo(yBar.lowerPoint.x - capOffset, yBar.lowerPoint.y);
             caps.path.lineTo(yBar.lowerPoint.x + capOffset, yBar.lowerPoint.y);
@@ -163,7 +162,6 @@ export class ErrorBarNode extends _Scene.Group {
             caps.path.lineTo(xBar.upperPoint.x, xBar.upperPoint.y + capOffset);
         }
         caps.path.closePath();
-        caps.markDirtyTransform();
     }
 
     updateBBoxes(): void {
@@ -213,12 +211,10 @@ export class ErrorBarNode extends _Scene.Group {
 }
 
 export class ErrorBarGroup extends _Scene.Group {
-    override get children(): ErrorBarNode[] {
-        return super.children as ErrorBarNode[];
-    }
-
     nearestSquared(x: number, y: number): _ModuleSupport.PickNodeDatumResult {
-        const { nearest, distanceSquared } = nearestSquaredInContainer(x, y, this);
+        const { nearest, distanceSquared } = nearestSquaredInContainer(x, y, {
+            children: this.children() as Iterable<ErrorBarNode>,
+        });
         if (nearest !== undefined && !isNaN(distanceSquared)) {
             return { datum: nearest.datum, distanceSquared };
         }

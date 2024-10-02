@@ -10,7 +10,7 @@ export const DonutSeriesModule: SeriesModule<'donut'> = {
     chartTypes: ['polar'],
 
     identifier: 'donut',
-    instanceConstructor: DonutSeries,
+    moduleFactory: (ctx) => new DonutSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     themeTemplate: donutTheme,
     paletteFactory: piePaletteFactory,

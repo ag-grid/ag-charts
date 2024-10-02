@@ -10,23 +10,32 @@ interface Props {
     name: string;
     type: ExampleType;
     options: ExampleOptions;
+    /**
+     * If inline, there is margin on the bottom
+     */
+    isInline?: boolean;
 }
 
-const { title, name, type, options } = Astro.props as Props;
+const { title, name, type, options, isInline } = Astro.props as Props;
 
 const pathSegments = Astro.url.pathname.split('/');
-const framework = pathSegments[DOCS_FRAMEWORK_PATH_INDEX];
+[DOCS_FRAMEWORK_PATH_INDEX];
 const pageName = pathSegments[DOCS_PAGE_NAME_PATH_INDEX];
 ---
 
-<ExampleRunnerContainer exampleHeight={options?.exampleHeight} pageName={pageName} exampleName={name}>
+<ExampleRunnerContainer
+    exampleHeight={options?.exampleHeight}
+    exampleWidth={options?.exampleWidth}
+    pageName={pageName}
+    exampleName={name}
+    isInline={isInline}
+>
     <DocsExampleRunner
         client:only="react"
         title={title}
         name={name}
         exampleType={type}
         options={options}
-        framework={framework}
         pageName={pageName}
     />
 </ExampleRunnerContainer>

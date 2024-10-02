@@ -109,6 +109,7 @@ export const BOOLEAN = predicateWithMessage(isBoolean, 'a boolean');
 export const FUNCTION = predicateWithMessage(isFunction, 'a function');
 export const STRING = predicateWithMessage(isString, 'a string');
 export const NUMBER = attachNumberRestrictions(predicateWithMessage(isFiniteNumber, 'a number'));
+export const REAL_NUMBER = predicateWithMessage((value) => isNumber(value) && !isNaN(value), 'a real number');
 export const NAN = predicateWithMessage((value) => isNumber(value) && isNaN(value), 'NaN');
 export const POSITIVE_NUMBER = NUMBER.restrict({ min: 0 });
 export const RATIO = NUMBER.restrict({ min: 0, max: 1 });
@@ -157,6 +158,7 @@ export const OBJECT_ARRAY = predicateWithMessage(ARRAY_OF(OBJECT), 'objects');
 
 export const LINE_CAP = UNION(['butt', 'round', 'square'], 'a line cap');
 export const LINE_JOIN = UNION(['round', 'bevel', 'miter'], 'a line join');
+export const LINE_STYLE = UNION(['solid', 'dashed', 'dotted'], 'a line style');
 export const LINE_DASH = predicateWithMessage(
     ARRAY_OF(POSITIVE_NUMBER),
     'numbers specifying the length in pixels of alternating dashes and gaps, for example, [6, 3] means dashes with a length of 6 pixels with gaps between of 3 pixels.'

@@ -4,6 +4,8 @@ import Layout from '@layouts/Layout.astro';
 import { getFrameworkFromPath } from '@features/docs/utils/urlPaths';
 import { Changelog } from '@features/changelog/Changelog';
 import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/components/PagesNavigationFromLocalStorage';
+import styles from '@pages-styles/pipelineChangelog.module.scss';
+import classnames from 'classnames';
 
 const path = Astro.url.pathname;
 const framework = getFrameworkFromPath(path);
@@ -19,6 +21,9 @@ const menuEntry = await getEntry('menu', 'data');
 >
     <div class="layout-grid">
         <PagesNavigationFromLocalStorage client:load menuData={menuEntry.data} framework={framework} />
-        <Changelog currentFramework={framework} client:only="react" />
+        <div className={classnames('page-margin', styles.container)}>
+            <h1>AG Charts Changelog</h1>
+            <Changelog currentFramework={framework} client:only="react" />
+        </div>
     </div>
 </Layout>

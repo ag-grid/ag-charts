@@ -1,3 +1,4 @@
+import type { AgStateSerializableDate } from '../api/stateTypes';
 import type {
     FillOptions,
     FontOptions,
@@ -9,14 +10,33 @@ import type {
 import type { Formatter } from './callbackOptions';
 import type { PixelSize } from './types';
 
-// --- Theme ---
+// *********
+// * Theme *
+// *********/
+
 export interface AgAnnotationsThemeableOptions {
-    axesButtons?: AgAnnotationAxesButtons;
+    // Lines
     line?: AgLineAnnotationStyles;
     'horizontal-line'?: AgLineAnnotationStyles;
     'vertical-line'?: AgLineAnnotationStyles;
+
+    // Channels
     'disjoint-channel'?: AgChannelAnnotationStyles;
     'parallel-channel'?: AgChannelAnnotationStyles;
+
+    // Texts
+    callout?: AgCalloutAnnotationStyles;
+    comment?: AgCommentAnnotationStyles;
+    note?: AgNoteAnnotationStyles;
+    text?: AgTextAnnotationStyles;
+
+    // Shapes
+    arrow?: AgLineAnnotationStyles;
+    'arrow-up'?: AgShapeAnnotationStyles;
+    'arrow-down'?: AgShapeAnnotationStyles;
+
+    // Other
+    axesButtons?: AgAnnotationAxesButtons;
 }
 
 export interface AgAnnotationAxesButtons extends Toggleable {
@@ -25,28 +45,64 @@ export interface AgAnnotationAxesButtons extends Toggleable {
 }
 
 export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, LineDashOptions {}
-export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
+
+export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
     handle?: AgAnnotationHandleStyles;
-}
-export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineDashOptions {
-    handle?: AgAnnotationHandleStyles;
-    middle?: AgChannelAnnotationMiddle;
-    /* The fill colour for the middle of the channel. */
-    background?: AgChannelAnnotationBackground;
+    text?: AgLineAnnotationTextOptions;
 }
 
-// --- Options ---
+export interface AgShapeAnnotationStyles extends Lockable, Visible, FillOptions {}
+
+export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
+    handle?: AgAnnotationHandleStyles;
+    middle?: AgChannelAnnotationMiddle;
+    /** The fill colour for the middle of the channel. */
+    background?: AgChannelAnnotationBackground;
+    text?: AgChannelAnnotationTextOptions;
+}
+
+export interface AgTextAnnotationStyles extends FontOptions, Lockable, Visible {
+    handle?: AgAnnotationHandleStyles;
+}
+
+export interface AgCalloutAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {}
+
+export interface AgCommentAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {}
+
+export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {
+    background?: AgNoteAnnotationBackground;
+}
+
+// ***********
+// * Options *
+// ***********
+
 export interface AgAnnotationsOptions extends Toggleable {
     /** The options for the axes buttons */
     axesButtons?: AgAnnotationAxesButtons;
 }
 
 export type AgAnnotation =
+    // Lines
     | AgLineAnnotation
     | AgHorizontalLineAnnotation
     | AgVerticalLineAnnotation
+    // Channels
     | AgDisjointChannelAnnotation
-    | AgParallelChannelAnnotation;
+    | AgParallelChannelAnnotation
+    // Texts
+    | AgCalloutAnnotation
+    | AgCommentAnnotation
+    | AgNoteAnnotation
+    | AgTextAnnotation
+    // Shapes
+    | AgArrowAnnotation
+    | AgArrowUpAnnotation
+    | AgArrowDownAnnotation;
+
+// ********************
+// * Line Annotations *
+// ********************/
 
 export interface AgLineAnnotation
     extends AnnotationLinePoints,
@@ -55,42 +111,41 @@ export interface AgLineAnnotation
         Lockable,
         Visible,
         StrokeOptions,
-        LineDashOptions {
-    /*Configuration for the trend line annotation.*/
+        LineOptions {
+    /** Configuration for the trend line annotation.*/
     type: 'line';
+    /** Configuration for the drag handles. */
+    handle?: AgAnnotationHandle;
+    /** Configuration for the line text. */
+    text?: AgLineAnnotationText;
 }
 
 export interface AgHorizontalLineAnnotation extends AgCrossLineAnnotation {
-    /*Configuration for the horizontal-line annotation.*/
+    /** Configuration for the horizontal-line annotation.*/
     type: 'horizontal-line';
+    /** Configuration for the line text. */
+    text?: AgLineAnnotationText;
 }
 
 export interface AgVerticalLineAnnotation extends AgCrossLineAnnotation {
-    /*Configuration for the vertical-line annotation.*/
+    /** Configuration for the vertical-line annotation.*/
     type: 'vertical-line';
+    /** Configuration for the line text. */
+    text?: AgLineAnnotationText;
 }
 
-export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions, LineDashOptions {
-    /* Position of the annotation specified in terms of the axis values. */
+export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions, LineOptions {
+    /** Position of the annotation specified in terms of the axis values. */
     value: AgAnnotationValue;
-    /* Configuration for the annotation axis label. */
+    /** Configuration for the annotation axis label. */
     axisLabel?: AgAnnotationAxisLabel;
+    /** Configuration for the drag handle. */
+    handle?: AgAnnotationHandle;
 }
 
-export interface AgAnnotationAxisLabel extends FillOptions, StrokeOptions, LineDashOptions, AgAnnotationLabelOptions {
-    /** Apply rounded corners to the axis label container. */
-    cornerRadius?: PixelSize;
-}
-
-export interface AgAnnotationLabelOptions extends Toggleable, FontOptions {
-    /** A custom formatting function used to convert values into text for display by labels. */
-    formatter?: Formatter<AgAnnotationLabelFormatterParams>;
-}
-
-export interface AgAnnotationLabelFormatterParams {
-    /** The default label value that would have been used without a formatter. */
-    value: any;
-}
+// ***********************
+// * Channel Annotations *
+// ***********************/
 
 export interface AgParallelChannelAnnotation
     extends AnnotationLinePoints,
@@ -98,15 +153,19 @@ export interface AgParallelChannelAnnotation
         Lockable,
         Visible,
         StrokeOptions,
-        LineDashOptions {
-    /*Configuration for the parallel-channel annotation.*/
+        LineOptions {
+    /** Configuration for the parallel-channel annotation.*/
     type: 'parallel-channel';
-    /* The height of the annotation along the y-axis. */
+    /** The height of the annotation along the y-axis. */
     height: number;
-    /* Configuration for the line in the middle of the channel. */
+    /** Configuration for the drag handles. */
+    handle?: AgAnnotationHandle;
+    /** Configuration for the line in the middle of the channel. */
     middle?: AgChannelAnnotationMiddle;
-    /* The fill colour for the middle of the channel. */
+    /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
+    /** Configuration for the channel text. */
+    text?: AgChannelAnnotationText;
 }
 
 export interface AgDisjointChannelAnnotation
@@ -115,20 +174,141 @@ export interface AgDisjointChannelAnnotation
         Lockable,
         Visible,
         StrokeOptions,
-        LineDashOptions {
-    /*Configuration for the disjoint-channel annotation.*/
+        LineOptions {
+    /** Configuration for the disjoint-channel annotation.*/
     type: 'disjoint-channel';
     /** The height of the annotation along the y-axis at the start. */
     startHeight: number;
     /** The height of the annotation along the y-axis at the end. */
     endHeight: number;
-    /* The fill colour for the middle of the channel. */
+    /** Configuration for the drag handles. */
+    handle?: AgAnnotationHandle;
+    /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
+    /** Configuration for the channel text. */
+    text?: AgChannelAnnotationText;
 }
 
-// --- Components ---
-export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineDashOptions {}
+// ********************
+// * Text Annotations *
+// ********************/
+
+export interface AgCalloutAnnotation extends TextualStartEndAnnotation, FillOptions, StrokeOptions {
+    /** Configuration for the callout annotation. */
+    type: 'callout';
+}
+
+export interface AgCommentAnnotation extends TextualPointAnnotation, FillOptions {
+    /** Configuration for the comment annotation. */
+    type: 'comment';
+}
+
+export interface AgNoteAnnotation extends TextualPointAnnotation, FillOptions, StrokeOptions {
+    /** Configuration for the note annotation. */
+    type: 'note';
+    /** The fill and stroke for note icon. */
+    background?: AgNoteAnnotationBackground;
+}
+
+export interface AgTextAnnotation extends TextualPointAnnotation {
+    /** Configuration for the text annotation. */
+    type: 'text';
+}
+
+interface TextualPointAnnotation extends TextualAnnotation, AgAnnotationPoint {}
+interface TextualStartEndAnnotation extends TextualAnnotation {
+    /** The starting point of the annotation. */
+    start: AgAnnotationPoint;
+    /** The end point of the annotation. */
+    end: AgAnnotationPoint;
+}
+interface TextualAnnotation extends Lockable, Visible, FontOptions {
+    /** Configuration for the drag handle. */
+    handle?: AgAnnotationHandle;
+    /** The text content. */
+    text: string;
+}
+
+// ********************
+// * Shape Annotations *
+// ********************/
+
+export interface AgArrowAnnotation
+    extends AnnotationLinePoints,
+        Cappable,
+        Extendable,
+        Lockable,
+        Visible,
+        StrokeOptions,
+        LineOptions {
+    /** Configuration for the arrow annotation.*/
+    type: 'arrow';
+    handle?: AgAnnotationHandle;
+    /** Configuration for the line text. */
+    text?: AgLineAnnotationText;
+}
+
+export interface AgArrowMarkAnnotation extends AgAnnotationPoint, Lockable, Visible, FillOptions {
+    /** Configuration for the arrow mark annotation.*/
+    handle?: AgAnnotationHandle;
+}
+
+export interface AgArrowUpAnnotation extends AgArrowMarkAnnotation {
+    /** Configuration for the arrow up annotation.*/
+    type: 'arrow-up';
+}
+export interface AgArrowDownAnnotation extends AgArrowMarkAnnotation {
+    /** Configuration for the arrow down annotation.*/
+    type: 'arrow-down';
+}
+
+// **************
+// * Components *
+// **************/
+
+export type AgAnnotationLineStyleType = 'solid' | 'dashed' | 'dotted';
+
+export interface LineOptions extends LineDashOptions {
+    /** Defines how the line stroke is rendered. If `lineDash` is configured, this takes priority over the `lineStyle` property. */
+    lineStyle?: AgAnnotationLineStyleType;
+}
+
+export interface AgAnnotationHandle extends FillOptions, StrokeOptions, LineDashOptions {}
+export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineOptions {}
 export interface AgChannelAnnotationBackground extends FillOptions {}
+export interface AgNoteAnnotationBackground extends StrokeOptions, FillOptions {}
+export interface AgAnnotationAxisLabel
+    extends Toggleable,
+        FillOptions,
+        StrokeOptions,
+        LineDashOptions,
+        LabelOptions<AgAnnotationLabelFormatterParams> {
+    /** Apply rounded corners to the axis label container. */
+    cornerRadius?: PixelSize;
+}
+
+export interface AgAnnotationLabelFormatterParams {
+    /** The default label value that would have been used without a formatter. */
+    value: any;
+}
+
+export interface AgLineAnnotationText extends AgLineAnnotationTextOptions {
+    label?: string;
+}
+
+export interface AgChannelAnnotationText extends AgChannelAnnotationTextOptions {
+    label?: string;
+}
+
+export interface AgLineAnnotationTextOptions extends FontOptions {
+    position?: 'top' | 'center' | 'bottom';
+    alignment?: 'left' | 'center' | 'right';
+}
+
+export interface AgChannelAnnotationTextOptions extends FontOptions {
+    position?: 'top' | 'inside' | 'bottom';
+    alignment?: 'left' | 'center' | 'right';
+}
 
 interface AnnotationLinePoints {
     /** The starting point of a linear annotation. */
@@ -144,6 +324,11 @@ export interface AgAnnotationPoint {
     y: number;
 }
 
+interface LabelOptions<T> extends FontOptions {
+    /** A custom formatting function used to convert values into text for display by labels. */
+    formatter?: Formatter<T>;
+}
+
 interface Lockable {
     /**
      * Whether the annotation should be locked to prevent editing.
@@ -154,20 +339,28 @@ interface Lockable {
 }
 
 interface Extendable {
-    // extendLeft?: boolean;
-    // extendRight?: boolean;
+    /**
+     * Whether the annotation should be extended away from the start.
+     *
+     * Default: `false`
+     */
+    extendStart?: boolean;
+    /**
+     * Whether the annotation should be extended away from the end.
+     *
+     * Default: `false`
+     */
+    extendEnd?: boolean;
 }
 
+// TODO: Add these options back when we have another cap type.
 interface Cappable {
+    /** The cap to show at the start of the line. */
     // startCap?: Cap;
+    /** The cap to show at the end of the line. */
     // endCap?: Cap;
 }
 
-export type Cap = 'arrow' | 'circle';
+// type Cap = 'arrow';
 
 export type AgAnnotationValue = string | number | AgStateSerializableDate;
-
-export interface AgStateSerializableDate {
-    __type: 'date';
-    value: string | number;
-}

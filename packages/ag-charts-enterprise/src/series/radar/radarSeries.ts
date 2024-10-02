@@ -331,8 +331,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             node.size = format?.size ?? marker.size;
 
             const { x, y } = datum.point!;
-            node.translationX = x;
-            node.translationY = y;
+            node.x = x;
+            node.y = y;
             node.visible = visible && node.size > 0 && !isNaN(x) && !isNaN(y);
         });
     }
@@ -476,10 +476,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         this.toggleSeriesItem(itemId, newEnabled);
     }
 
-    protected override pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
-        const { x, y } = point;
-        const { rootGroup, nodeData, centerX: cx, centerY: cy } = this;
-        const hitPoint = rootGroup.transformPoint(x, y);
+    protected override pickNodeClosestDatum(hitPoint: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+        const { nodeData, centerX: cx, centerY: cy } = this;
+        const { x, y } = hitPoint;
         const radius = this.radius;
 
         const distanceFromCenter = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
@@ -525,7 +524,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             tempText.y = nodeDatum.label.y;
             tempText.setFont(label);
             tempText.setAlign(nodeDatum.label);
-            const box = tempText.computeBBox();
+            const box = tempText.getBBox();
             textBoxes.push(box);
         });
         if (textBoxes.length === 0) {
@@ -535,7 +534,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected getLineNode() {
-        return this.lineSelection.nodes()[0];
+        return this.lineSelection?.at(0)!;
     }
 
     protected beforePathAnimation() {

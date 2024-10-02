@@ -1,10 +1,15 @@
+import { toArray } from '../util/array';
 import { Debug } from '../util/debug';
+import { getWindow } from '../util/dom';
 import { Logger } from '../util/logger';
+import { SimpleTextMeasurer } from '../util/textMeasurer';
 import { isString } from '../util/type-guards';
+import { BBox } from './bbox';
 import { Group } from './group';
+import { Layer } from './layer';
 import type { LayersManager } from './layersManager';
 import { type Node, RedrawType, type RenderContext } from './node';
-import { Text } from './shape/text';
+import { Transformable } from './transformable';
 
 export enum DebugSelectors {
     SCENE = 'scene',
@@ -20,7 +25,8 @@ export function debugStats(
     debugSplitTimes: Record<string, number>,
     ctx: CanvasRenderingContext2D,
     renderCtxStats: RenderContext['stats'],
-    extraDebugStats = {}
+    extraDebugStats = {},
+    seriesRect = BBox.zero
 ) {
     if (!Debug.check(DebugSelectors.SCENE_STATS, DebugSelectors.SCENE_STATS_VERBOSE)) return;
 
@@ -46,7 +52,8 @@ export function debugStats(
         `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : layersManager.size}`,
         detailedStats ? `Nodes: ${pct(nodesRendered, nodesSkipped)}` : null,
     ].filter(isString);
-    const statsSize = new Map(stats.map((t) => [t, Text.getTextSize(t, ctx.font)]));
+    const measurer = new SimpleTextMeasurer((t) => ctx.measureText(t));
+    const statsSize = new Map(stats.map((t) => [t, measurer.measureLines(t)]));
     const width = Math.max(...Array.from(statsSize.values(), (s) => s.width));
     const height = accumulate(statsSize.values(), (s) => s.height);
 
@@ -58,16 +65,29 @@ export function debugStats(
     let y = 0;
     for (const [stat, size] of statsSize.entries()) {
         y += size.height;
-        ctx.fillText(stat, 2, y);
+        ctx.fillText(stat, 2 + seriesRect.x, y);
     }
     ctx.restore();
+}
+
+export function prepareSceneNodeHighlight(ctx: RenderContext) {
+    const config: string[] = toArray(getWindow('agChartsSceneDebug'));
+    const result: RenderContext['debugNodeSearch'] = [];
+    for (const name of config) {
+        if (name === 'layout') {
+            result.push('seriesRoot', 'legend', 'root', /.*Axis-\d+-axis.*/);
+        } else {
+            result.push(name);
+        }
+    }
+    ctx.debugNodeSearch = result;
 }
 
 export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNodes: Record<string, Node>) {
     ctx.save();
 
     for (const [name, node] of Object.entries(debugNodes)) {
-        const bbox = node.computeTransformedBBox();
+        const bbox = Transformable.toCanvas(node);
 
         if (!bbox) {
             Logger.log(`Scene.render() - no bbox for debugged node [${name}].`);
@@ -93,53 +113,67 @@ export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNode
 }
 
 export function buildTree(node: Node): BuildTree {
-    if (!Debug.check(true, DebugSelectors.SCENE)) return {};
+    if (!Debug.check(true, DebugSelectors.SCENE)) {
+        return {};
+    }
 
+    const { parentNode } = node as any;
     return {
         node,
-        name: (node instanceof Group ? node.name : null) ?? node.id,
+        name: node.name ?? node.id,
         dirty: RedrawType[node.dirty],
-        ...(node.parent?.isVirtual
+        ...(parentNode?.isVirtual
             ? {
-                  virtualParentDirty: RedrawType[node.parent.dirty],
-                  virtualParent: node.parent,
+                  virtualParentDirty: RedrawType[parentNode.dirty],
+                  virtualParent: parentNode,
               }
             : {}),
-        ...node.children
-            .map((c) => buildTree(c))
-            .reduce<Record<string, {}>>((result, childTree) => {
-                let { name: treeNodeName } = childTree;
-                const {
-                    node: { visible, opacity, zIndex, zIndexSubOrder },
-                    node: childNode,
-                    virtualParent,
-                } = childTree;
-                if (!visible || opacity <= 0) {
-                    treeNodeName = `(${treeNodeName})`;
-                }
-                if (childNode instanceof Group && childNode.isLayer()) {
-                    treeNodeName = `*${treeNodeName}*`;
-                }
-                const key = [
-                    `${treeNodeName ?? '<unknown>'}`,
-                    `z: ${zIndex}`,
-                    zIndexSubOrder &&
-                        `zo: ${zIndexSubOrder
-                            .map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v))
-                            .join(' / ')}`,
-                    virtualParent && `(virtual parent)`,
-                ]
-                    .filter((v) => !!v)
-                    .join(' ');
+        ...Array.from(node.children(), (c) => buildTree(c)).reduce<Record<string, {}>>((result, childTree) => {
+            let { name: treeNodeName } = childTree;
+            const {
+                node: {
+                    visible,
+                    opacity,
+                    zIndex,
+                    zIndexSubOrder,
+                    translationX,
+                    translationY,
+                    rotation,
+                    scalingX,
+                    scalingY,
+                },
+                node: childNode,
+                virtualParent,
+            } = childTree;
+            if (!visible || opacity <= 0) {
+                treeNodeName = `(${treeNodeName})`;
+            }
+            if (Layer.is(childNode)) {
+                treeNodeName = `*${treeNodeName}*`;
+            }
+            const subOrder = zIndexSubOrder?.map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v)).join(' / ');
+            const key = [
+                `${treeNodeName ?? '<unknown>'}`,
+                `z: ${zIndex}`,
+                subOrder && `zo: ${subOrder}`,
+                virtualParent && `(virtual parent)`,
+                translationX && `x: ${translationX}`,
+                translationY && `y: ${translationY}`,
+                rotation && `r: ${rotation}`,
+                scalingX != null && scalingX !== 1 && `sx: ${scalingX}`,
+                scalingY != null && scalingY !== 1 && `sy: ${scalingY}`,
+            ]
+                .filter((v) => !!v)
+                .join(' ');
 
-                let selectedKey = key;
-                let index = 1;
-                while (result[selectedKey] != null && index < 100) {
-                    selectedKey = `${key} (${index++})`;
-                }
-                result[selectedKey] = childTree;
-                return result;
-            }, {}),
+            let selectedKey = key;
+            let index = 1;
+            while (result[selectedKey] != null && index < 100) {
+                selectedKey = `${key} (${index++})`;
+            }
+            result[selectedKey] = childTree;
+            return result;
+        }, {}),
     };
 }
 
@@ -151,7 +185,7 @@ export function buildDirtyTree(node: Node): {
         return { dirtyTree: {}, paths: [] };
     }
 
-    const childrenDirtyTree = node.children.map((c) => buildDirtyTree(c)).filter((c) => c.paths.length > 0);
+    const childrenDirtyTree = Array.from(node.children(), (c) => buildDirtyTree(c)).filter((c) => c.paths.length > 0);
     const name = Group.is(node) ? node.name ?? node.id : node.id;
     const paths = childrenDirtyTree.length
         ? childrenDirtyTree.flatMap((c) => c.paths).map((p) => `${name}.${p}`)

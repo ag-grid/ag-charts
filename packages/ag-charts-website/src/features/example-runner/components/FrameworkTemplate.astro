@@ -51,7 +51,8 @@ const isDev = getIsDev();
 
 const library = 'charts';
 
-const { entryFileName, files, scriptFiles, styleFiles, isEnterprise, hasLocale } = generatedContents || {};
+const { entryFileName, files, scriptFiles, styleFiles, isEnterprise, hasLocale, layout, exampleConfig } =
+    generatedContents || {};
 const indexFragment = files?.['index.html'];
 const headFragment = files?.['head.html'];
 const appLocation = relativePath ? '' : exampleUrl;
@@ -78,6 +79,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             modifiedTimeMs={timeNow}
             isEnterprise={isEnterprise}
             hasLocale={hasLocale}
+            layout={layout}
             scriptFiles={scriptFiles}
             styleFiles={styleFiles}
             indexFragment={indexFragment}
@@ -91,6 +93,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             title={title}
             modifiedTimeMs={timeNow}
             entryFileName={entryFileName!}
+            layout={layout}
             styleFiles={styleFiles}
             indexFragment={indexFragment!}
             headFragment={headFragment}
@@ -104,6 +107,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             title={title}
             modifiedTimeMs={timeNow}
             entryFileName={entryFileName!}
+            layout={layout}
             scriptFiles={scriptFiles}
             styleFiles={styleFiles}
             appLocation={appLocation}
@@ -118,6 +122,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             title={title}
             modifiedTimeMs={timeNow}
             entryFileName={entryFileName!}
+            layout={layout}
             styleFiles={styleFiles}
             scriptFiles={scriptFiles}
             appLocation={appLocation}
@@ -131,6 +136,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             title={title}
             modifiedTimeMs={timeNow}
             entryFileName={entryFileName!}
+            layout={layout}
             scriptFiles={scriptFiles}
             styleFiles={styleFiles}
             appLocation={appLocation}
@@ -141,7 +147,16 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
     ) : null
 }
 
-{addInitMessageScript && <PostInitMessageScript pageName={pageName} exampleName={exampleName} />}
+{
+    addInitMessageScript && (
+        <PostInitMessageScript
+            pageName={pageName}
+            exampleName={exampleName}
+            shadowDomSelector={exampleConfig?.shadowDomSelector}
+            iframeSelector={exampleConfig?.iframeSelector}
+        />
+    )
+}
 
 <style>
     :global(astro-dev-toolbar) {

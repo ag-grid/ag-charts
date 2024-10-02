@@ -4,28 +4,33 @@ import type { LayoutContext, ModuleInstance } from '../../module/baseModule';
 import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import { setAttribute } from '../../util/attributeUtil';
-import { createElement } from '../../util/dom';
+import { setAttribute, setAttributes } from '../../util/attributeUtil';
+import { createElement, getWindow } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
 import { clamp } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, Validate } from '../../util/validation';
+import { Vec2 } from '../../util/vector';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
 import type {
     ToolbarButtonToggledEvent,
+    ToolbarButtonUpdatedEvent,
     ToolbarFloatingAnchorChangedEvent,
     ToolbarGroupToggledEvent,
+    ToolbarGroupUpdatedEvent,
     ToolbarProxyGroupOptionsEvent,
 } from '../interaction/toolbarManager';
-import { ToolbarGroupProperties } from './toolbarProperties';
+import { type LayoutCompleteEvent, LayoutElement } from '../layout/layoutManager';
+import { type ButtonConfiguration, ToolbarGroupProperties } from './toolbarProperties';
 import * as styles from './toolbarStyles';
-import toolbarCss from './toolbarStyles.css';
 import {
     TOOLBAR_ALIGNMENTS,
     TOOLBAR_GROUPS,
+    TOOLBAR_GROUP_ORDERING,
     TOOLBAR_POSITIONS,
     type ToolbarAlignment,
-    type ToolbarButton,
+    type ToolbarAnchor,
+    type ToolbarButtonConfig,
     type ToolbarGroup,
     ToolbarPosition,
     isAnimatingFloatingPosition,
@@ -39,6 +44,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     @Validate(BOOLEAN)
     public enabled = true;
 
+    public seriesType = new ToolbarGroupProperties(
+        this.onGroupChanged.bind(this, 'seriesType'),
+        this.onGroupButtonsChanged.bind(this, 'seriesType')
+    );
     public annotations = new ToolbarGroupProperties(
         this.onGroupChanged.bind(this, 'annotations'),
         this.onGroupButtonsChanged.bind(this, 'annotations')
@@ -56,6 +65,19 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.onGroupButtonsChanged.bind(this, 'zoom')
     );
 
+    private dragState: {
+        client: { x: number; y: number };
+        position: ToolbarAnchor;
+        detached: boolean;
+    } = {
+        client: { x: 0, y: 0 },
+        position: {
+            x: 0,
+            y: 0,
+        },
+        detached: false,
+    };
+
     private readonly horizontalSpacing = 10;
     private readonly verticalSpacing = 10;
     private readonly floatingDetectionRange = 38;
@@ -64,9 +86,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private readonly positions: Record<ToolbarPosition, Set<ToolbarGroup>> = {
         [ToolbarPosition.Top]: new Set(),
+        [ToolbarPosition.Left]: new Set(),
         [ToolbarPosition.Right]: new Set(),
         [ToolbarPosition.Bottom]: new Set(),
-        [ToolbarPosition.Left]: new Set(),
         [ToolbarPosition.Floating]: new Set(),
         [ToolbarPosition.FloatingTop]: new Set(),
         [ToolbarPosition.FloatingBottom]: new Set(),
@@ -74,15 +96,16 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     private readonly positionAlignments: Record<ToolbarPosition, Partial<Record<ToolbarAlignment, HTMLElement>>> = {
         [ToolbarPosition.Top]: {},
+        [ToolbarPosition.Left]: {},
         [ToolbarPosition.Right]: {},
         [ToolbarPosition.Bottom]: {},
-        [ToolbarPosition.Left]: {},
         [ToolbarPosition.Floating]: {},
         [ToolbarPosition.FloatingTop]: {},
         [ToolbarPosition.FloatingBottom]: {},
     };
 
     private readonly groupCallers: Record<ToolbarGroup, Set<string>> = {
+        seriesType: new Set(),
         annotations: new Set(),
         annotationOptions: new Set(),
         ranges: new Set(),
@@ -90,18 +113,23 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     };
 
     private groupButtons: Record<ToolbarGroup, Array<HTMLButtonElement>> = {
+        seriesType: [],
         annotations: [],
         annotationOptions: [],
         ranges: [],
         zoom: [],
     };
 
-    private groupDestroyFns: Record<ToolbarGroup, Array<() => void>> = {
-        annotations: [],
-        annotationOptions: [],
-        ranges: [],
-        zoom: [],
-    };
+    private readonly ariaToolbars: {
+        groups: ToolbarGroup[];
+        destroyFns: (() => void)[];
+        resetListeners: () => void;
+    }[] = [
+        { groups: ['seriesType', 'annotations'], destroyFns: [], resetListeners: () => {} },
+        { groups: ['annotationOptions'], destroyFns: [], resetListeners: () => {} },
+        { groups: ['ranges'], destroyFns: [], resetListeners: () => {} },
+        { groups: ['zoom'], destroyFns: [], resetListeners: () => {} },
+    ];
 
     private pendingButtonToggledEvents: Array<ToolbarButtonToggledEvent> = [];
 
@@ -111,11 +139,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     constructor(private readonly ctx: ModuleContext) {
         super();
 
-        ctx.domManager.addStyles(styles.block, toolbarCss);
-
         this.elements = {} as Record<ToolbarPosition, HTMLElement>;
         for (const position of TOOLBAR_POSITIONS) {
             this.elements[position] = ctx.domManager.addChild('canvas-overlay', `toolbar-${position}`);
+            this.elements[position].role = 'presentation';
             this.renderToolbar(position);
         }
         this.toggleVisibilities();
@@ -124,10 +151,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             ctx.interactionManager.addListener('hover', this.onHover.bind(this), InteractionState.All),
             ctx.interactionManager.addListener('leave', this.onLeave.bind(this), InteractionState.All),
             ctx.toolbarManager.addListener('button-toggled', this.onButtonToggled.bind(this)),
+            ctx.toolbarManager.addListener('button-updated', this.onButtonUpdated.bind(this)),
             ctx.toolbarManager.addListener('group-toggled', this.onGroupToggled.bind(this)),
+            ctx.toolbarManager.addListener('group-updated', this.onGroupUpdated.bind(this)),
             ctx.toolbarManager.addListener('floating-anchor-changed', this.onFloatingAnchorChanged.bind(this)),
             ctx.toolbarManager.addListener('proxy-group-options', this.onProxyGroupOptions.bind(this)),
-            ctx.layoutService.addListener('layout-complete', this.onLayoutComplete.bind(this)),
+            ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
+            ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.updateService.addListener('pre-dom-update', this.onPreDomUpdate.bind(this)),
+            ctx.updateService.addListener('update-complete', this.onUpdateComplete.bind(this)),
             ctx.localeManager.addListener('locale-changed', () => {
                 this.hasNewLocale = true;
             }),
@@ -197,89 +229,207 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.toggleVisibilities();
     }
 
-    private onGroupButtonsChanged(group: ToolbarGroup, buttons?: Array<ToolbarButton>) {
+    private onGroupButtonsChanged(group: ToolbarGroup, buttons: ButtonConfiguration[], configurationOnly: boolean) {
         if (!this.enabled || this.groupProxied.has(group)) return;
 
-        this.createGroupButtons(group, buttons);
+        if (configurationOnly) {
+            for (const buttonOptions of this[group].buttonConfigurations()) {
+                this.refreshButtonContent(group, buttonOptions);
+            }
+        } else {
+            this.createGroupButtons(group, buttons);
+        }
         this.toggleVisibilities();
     }
 
-    private onLayoutComplete() {
+    private onLayoutComplete(opts: LayoutCompleteEvent) {
         for (const position of TOOLBAR_POSITIONS) {
             this.elements[position].classList.remove(styles.modifiers.preventFlash);
         }
+        if (this.enabled) {
+            this.refreshInnerLayout(opts.series.rect);
+        }
+    }
+
+    private toggleButtonsTransition(enabled: boolean) {
+        const className = styles.modifiers.button.withTransition;
+
+        for (const button of Object.values(this.groupButtons).flat()) {
+            if (enabled && !button.classList.contains(className)) {
+                // AG-12489
+                // Chrome in particular is a little too lazy when it comes to style updates
+                // This means that a previous style update may be done *after* we add the transition modifier
+                // Force a style recalculation on the current styles before adding this modifier
+                // so the transition isn't applied where it shouldn't be
+                button.getBoundingClientRect();
+            }
+            button.classList.toggle(className, enabled);
+        }
+    }
+
+    private onPreDomUpdate() {
+        this.toggleButtonsTransition(false);
+    }
+
+    private onUpdateComplete() {
+        this.toggleButtonsTransition(true);
+    }
+
+    private onButtonUpdated(event: ToolbarButtonUpdatedEvent) {
+        const { type: _type, group, id, ...params } = event;
+        this[group].overrideButtonConfiguration(id, params);
+    }
+
+    private setButtonActive(button: HTMLElement, active: boolean) {
+        button.classList.toggle(styles.modifiers.button.active, active);
+    }
+
+    private setButtonChecked(button: HTMLElement, checked: boolean) {
+        if (button.role === 'switch') {
+            button.ariaChecked = checked.toString();
+        }
+    }
+
+    private setButtonGroupFirstLast(group: Element) {
+        const childNodes = Array.from(group.childNodes ?? []) as HTMLElement[];
+
+        const setFirstClass = (first: boolean, button: HTMLElement, modifier: string) => {
+            const buttonVisible = !button.classList.contains(styles.modifiers.button.hiddenToggled);
+            button.classList.toggle(modifier, buttonVisible && first);
+            return buttonVisible ? false : first;
+        };
+
+        let first = true;
+        childNodes.forEach((button) => (first = setFirstClass(first, button, styles.modifiers.button.first)));
+
+        let last = true;
+        childNodes.toReversed().forEach((button) => (last = setFirstClass(last, button, styles.modifiers.button.last)));
     }
 
     private onButtonToggled(event: ToolbarButtonToggledEvent) {
-        const { group, value, active, enabled, visible } = event;
+        const { group, id, active, enabled, visible, checked } = event;
 
         if (this.groupButtons[group].length === 0) {
             this.pendingButtonToggledEvents.push(event);
             return;
         }
 
-        for (const button of this.groupButtons[group]) {
-            if (button.dataset.toolbarValue !== `${value}`) continue;
-            button.ariaDisabled = `${!enabled}`;
-            button.classList.toggle(styles.modifiers.button.hiddenToggled, !visible);
-            button.classList.toggle(styles.modifiers.button.active, active);
-        }
+        const button = this.groupButtons[group].find((b) => b.dataset.toolbarId === `${id}`);
+        if (button == null) return;
+
+        button.ariaDisabled = `${!enabled}`;
+        button.classList.toggle(styles.modifiers.button.hiddenToggled, !visible);
+        this.setButtonActive(button, active);
+        this.setButtonChecked(button, checked);
+
+        this.setButtonGroupFirstLast(button.parentNode! as HTMLElement);
     }
 
     private onGroupToggled(event: ToolbarGroupToggledEvent) {
-        const { caller, group, visible } = event;
+        const { caller, group, active, visible } = event;
 
-        this.toggleGroup(caller, group, visible);
+        this.toggleGroup(caller, group, active, visible);
         this.toggleVisibilities();
     }
 
-    private onFloatingAnchorChanged(event: ToolbarFloatingAnchorChangedEvent) {
-        const {
-            elements,
-            groupButtons,
-            positions,
-            horizontalSpacing,
-            verticalSpacing,
-            ctx: { domManager, toolbarManager },
-        } = this;
+    private onGroupUpdated(event: ToolbarGroupUpdatedEvent) {
+        const { group } = event;
 
+        for (const ariaToolbar of this.ariaToolbars) {
+            if (ariaToolbar.groups.includes(group)) {
+                ariaToolbar.resetListeners();
+                return;
+            }
+        }
+    }
+
+    private onFloatingAnchorChanged(event: ToolbarFloatingAnchorChangedEvent) {
+        const { elements, positions, horizontalSpacing, verticalSpacing } = this;
         const { group, anchor } = event;
+
+        const element = elements[ToolbarPosition.Floating];
+
+        if (this.dragState.detached || element.classList.contains(styles.modifiers.hidden)) {
+            return;
+        }
+
+        this.dragState.detached = false;
 
         if (!positions[ToolbarPosition.Floating].has(group)) return;
 
-        const element = elements[ToolbarPosition.Floating];
-        if (element.classList.contains(styles.modifiers.hidden)) return;
+        const position = anchor.position ?? 'above';
+        const { offsetWidth: width, offsetHeight: height } = element;
 
-        let top = anchor.y - element.offsetHeight - verticalSpacing;
-        let left = anchor.x - element.offsetWidth / 2;
+        let top = anchor.y - height - verticalSpacing;
+        let left = anchor.x - width / 2;
 
-        if (anchor.position === 'above') {
-            top = anchor.y - element.offsetHeight / 2;
+        if (position === 'below') {
+            top = anchor.y + verticalSpacing;
+        } else if (position === 'right') {
+            top = anchor.y - height / 2;
             left = anchor.x + horizontalSpacing;
+        } else if (position === 'above-left') {
+            left = anchor.x;
         }
 
-        const canvasRect = domManager.getBoundingClientRect();
-        top = clamp(0, top, canvasRect.height - element.offsetHeight);
-        left = clamp(0, left, canvasRect.width - element.offsetWidth);
+        const groupBBox = new BBox(left, top, width, height);
+        this.positionGroup(element, group, groupBBox);
+    }
 
-        element.style.top = `${top}px`;
-        element.style.left = `${left}px`;
+    private positionGroup(element: HTMLElement, group: ToolbarGroup, bbox: BBox) {
+        const {
+            ctx: { domManager },
+        } = this;
+
+        const canvasRect = domManager.getBoundingClientRect();
+        bbox.x = clamp(0, bbox.x, canvasRect.width - bbox.width);
+        bbox.y = clamp(0, bbox.y, canvasRect.height - bbox.height);
+
+        const left = `${Math.floor(bbox.x)}px`;
+        const top = `${Math.floor(bbox.y)}px`;
+
+        const dirty = element.style.getPropertyValue('left') !== left || element.style.getPropertyValue('top') !== top;
+
+        if (!dirty) return;
+
+        element.style.setProperty('left', left);
+        element.style.setProperty('top', top);
+
+        this.onGroupMoved(group, bbox);
+    }
+
+    private onGroupMoved(group: ToolbarGroup, bbox: BBox) {
+        const {
+            groupButtons,
+            ctx: { toolbarManager },
+        } = this;
 
         for (const button of groupButtons[group]) {
-            if (button.classList.contains(styles.modifiers.button.hiddenToggled)) return;
+            if (button.classList.contains(styles.modifiers.button.hiddenToggled)) continue;
 
             const parent = button.offsetParent as HTMLElement | null;
             toolbarManager.buttonMoved(
                 group,
-                button.dataset.toolbarValue,
+                button.dataset.toolbarId,
                 new BBox(
-                    button.offsetLeft - button.offsetWidth + (parent?.offsetLeft ?? 0),
+                    button.offsetLeft + (parent?.offsetLeft ?? 0),
                     button.offsetTop + (parent?.offsetTop ?? 0),
                     button.offsetWidth,
-                    button.offsetWidth
-                )
+                    button.offsetHeight
+                ),
+                bbox
             );
         }
+    }
+
+    private buttonRect(button: HTMLButtonElement, canvasRect: DOMRect = this.ctx.domManager.getBoundingClientRect()) {
+        const buttonRect = button.getBoundingClientRect();
+        return new BBox(
+            buttonRect.left - canvasRect.left,
+            buttonRect.top - canvasRect.top,
+            buttonRect.width,
+            buttonRect.height
+        );
     }
 
     private onProxyGroupOptions(event: ToolbarProxyGroupOptionsEvent) {
@@ -290,7 +440,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.groupProxied.set(group, options);
         this[group].set(options);
 
-        this.toggleGroup(caller, group, options.enabled);
+        this.toggleGroup(caller, group, undefined, options.enabled);
         this.createGroup(group, options.enabled, options.position);
 
         if (options.enabled) {
@@ -311,70 +461,109 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    private createGroupButtons(group: ToolbarGroup, buttons: Array<ToolbarButton> = []) {
+    private createGroupButtons(group: ToolbarGroup, buttons: ButtonConfiguration[] = []) {
         for (const button of this.groupButtons[group]) {
             button.remove();
         }
 
         this.groupButtons[group] = [];
-        this.groupDestroyFns[group].forEach((d) => d());
-        this.groupDestroyFns[group] = [];
-
         if (buttons.length === 0) return;
 
         const { align, position } = this[group];
+
         const alignElement = this.positionAlignments[position][align];
 
         if (!alignElement) return;
 
-        let index = 0;
-        const nextSection = () => {
-            let newSection = alignElement.children.item(index);
-            if (!newSection) {
-                newSection = createElement('div');
-                alignElement.appendChild(newSection);
-                this.destroyFns.push(() => newSection!.remove());
+        const nextSection = (section: string | undefined) => {
+            const alignElementChildren = Array.from(alignElement.children);
+            const dataGroup = 'data-group';
+            const dataSection = 'data-section';
+            let sectionElement = alignElementChildren.find((prevSection) => {
+                return (
+                    prevSection.getAttribute(dataGroup) === group &&
+                    prevSection.getAttribute(dataSection) === (section ?? '')
+                );
+            });
+
+            if (!sectionElement) {
+                sectionElement = createElement('div');
+                sectionElement.role = 'presentation';
+                sectionElement.setAttribute(dataGroup, group);
+                sectionElement.setAttribute(dataSection, section ?? '');
+
+                const groupIndex = TOOLBAR_GROUP_ORDERING[group];
+                const insertBeforeElement = alignElementChildren.find((prevSection) => {
+                    const prevGroup = prevSection.getAttribute(dataGroup) as ToolbarGroup;
+                    const prevGroupIndex = TOOLBAR_GROUP_ORDERING[prevGroup];
+                    return prevGroupIndex > groupIndex;
+                });
+                if (insertBeforeElement != null) {
+                    alignElement.insertBefore(sectionElement, insertBeforeElement);
+                } else {
+                    alignElement.appendChild(sectionElement);
+                }
+
+                this.destroyFns.push(() => sectionElement!.remove());
             }
-            newSection.classList.add(styles.elements.section, styles.modifiers[this[group].size]);
-            index++;
-            return newSection;
+
+            sectionElement.classList.add(styles.elements.section, styles.modifiers[this[group].size]);
+
+            return sectionElement;
         };
 
-        let section = nextSection();
         let prevSection = buttons.at(0)?.section;
+        let section = nextSection(prevSection);
 
         for (const options of buttons) {
             if (prevSection !== options.section) {
-                section = nextSection();
+                this.setButtonGroupFirstLast(section);
+                section = nextSection(options.section);
             }
             prevSection = options.section;
             const button = this.createButtonElement(group, options);
             section.appendChild(button);
             this.groupButtons[group].push(button);
         }
+        this.setButtonGroupFirstLast(section);
 
         const onEscape = () => {
             this.ctx.toolbarManager.cancel(group);
         };
-
         let onFocus;
         let onBlur;
-
         if (isAnimatingFloatingPosition(position)) {
             onFocus = () => this.translateFloatingElements(position, true);
             onBlur = () => this.translateFloatingElements(position, false);
         }
 
+        this.createAriaToolbar(group, alignElement, onFocus, onBlur, onEscape);
+    }
+
+    private createAriaToolbar(
+        group: ToolbarGroup,
+        toolbar: HTMLElement,
+        onFocus: undefined | ((event: FocusEvent) => void),
+        onBlur: undefined | ((event: FocusEvent) => void),
+        onEscape: (event: KeyboardEvent) => void
+    ) {
         const orientation = this.computeAriaOrientation(this[group].position);
-        this.groupDestroyFns[group] = initToolbarKeyNav({
-            orientation,
-            toolbar: alignElement,
-            buttons: this.groupButtons[group],
-            onEscape,
-            onFocus,
-            onBlur,
-        });
-        this.updateToolbarAriaLabel(group, alignElement);
+        const ariaToolbar = this.getAriaToolbar(group);
+
+        ariaToolbar.resetListeners = () => {
+            const buttons = ariaToolbar.groups
+                .map((g) => this.groupButtons[g])
+                .flat()
+                .filter(
+                    (b) =>
+                        !b.classList.contains(styles.modifiers.button.hiddenToggled) &&
+                        !b.classList.contains(styles.modifiers.button.dragHandle)
+                );
+            ariaToolbar.destroyFns.forEach((d) => d());
+            ariaToolbar.destroyFns = initToolbarKeyNav({ orientation, toolbar, buttons, onEscape, onFocus, onBlur });
+        };
+        ariaToolbar.resetListeners();
+        this.updateToolbarAriaLabel(group, toolbar);
     }
 
     private computeAriaOrientation(position: ToolbarPosition): 'horizontal' | 'vertical' {
@@ -391,11 +580,22 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         )[position];
     }
 
-    private toggleGroup(caller: string, group: ToolbarGroup, enabled?: boolean) {
-        if (enabled) {
+    private toggleGroup(
+        caller: string,
+        group: ToolbarGroup,
+        active: boolean | undefined,
+        enabled: boolean | undefined
+    ) {
+        if (enabled === true) {
             this.groupCallers[group].add(caller);
-        } else {
+        } else if (enabled === false) {
             this.groupCallers[group].delete(caller);
+        }
+
+        if (active != null) {
+            for (const button of this.groupButtons[group]) {
+                this.setButtonActive(button, active);
+            }
         }
     }
 
@@ -409,19 +609,11 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.pendingButtonToggledEvents = [];
     }
 
-    async performLayout(ctx: LayoutContext): Promise<LayoutContext> {
-        if (!this.enabled) return ctx;
-
-        this.refreshOuterLayout(ctx.shrinkRect);
-        this.refreshLocale();
-
-        return ctx;
-    }
-
-    async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
-        if (!this.enabled) return;
-
-        this.refreshInnerLayout(opts.seriesRect);
+    private onLayoutStart(ctx: LayoutContext) {
+        if (this.enabled) {
+            this.refreshOuterLayout(ctx.layoutBox);
+            this.refreshLocale();
+        }
     }
 
     private refreshOuterLayout(shrinkRect: BBox) {
@@ -448,13 +640,15 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     }
 
     private refreshLocale() {
-        const { groupButtons, groupProxied, hasNewLocale } = this;
+        const { hasNewLocale } = this;
 
         if (!hasNewLocale) return;
 
         for (const group of TOOLBAR_GROUPS) {
-            const groupProxyOptions = groupProxied.get(group);
-            groupButtons[group].forEach((element) => this.refreshButtonLocale(element, this[group], groupProxyOptions));
+            const buttons = this[group].buttonConfigurations();
+            for (const buttonOptions of buttons) {
+                this.refreshButtonContent(group, buttonOptions);
+            }
             this.updateToolbarAriaLabel(group);
         }
 
@@ -469,8 +663,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         elements.top.style.left = `${rect.x}px`;
         elements.top.style.width = `${rect.width}px`;
 
-        // See: https://ag-grid.atlassian.net/browse/AG-11852
-        // elements.bottom.style.top = `${rect.y + rect.height}px`;
         elements.bottom.style.left = `${rect.x}px`;
         elements.bottom.style.width = `${rect.width}px`;
 
@@ -487,34 +679,30 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         elements[FloatingBottom].style.top = `${rect.y + rect.height - elements[FloatingBottom].offsetHeight}px`;
     }
 
-    private refreshButtonLocale(
-        element: HTMLButtonElement,
-        group: ToolbarGroupProperties,
-        groupProxyOptions?: ToolbarProxyGroupOptionsEvent['options']
-    ) {
-        const {
-            dataset: { toolbarValue },
-        } = element;
+    private refreshButtonContent(group: ToolbarGroup, buttonOptions: ButtonConfiguration) {
+        const id = this.buttonId(buttonOptions);
+        const button = this.groupProxied.get(group)?.buttons?.find((b) => this.buttonId(b) === id) ?? buttonOptions;
 
-        const button =
-            groupProxyOptions?.buttons?.find(({ value }) => value === toolbarValue) ??
-            group.buttons?.find(({ value }) => value === toolbarValue);
+        const element = this.groupButtons[group].find((b) => b.getAttribute('data-toolbar-id') === id);
+        if (element == null) return;
 
-        if (!button) return;
-
-        this.updateButtonText(element, button);
+        this.updateButton(element, button);
     }
 
     private toggleVisibilities() {
         if (this.elements == null) return;
 
         const isGroupVisible = (group: ToolbarGroup) => this[group].enabled && this.groupCallers[group].size > 0;
-        const isButtonVisible = (element: HTMLButtonElement) => (button: ToolbarButton) =>
-            (typeof button.value !== 'string' && typeof button.value !== 'number') ||
-            `${button.value}` === element.dataset.toolbarValue;
+        const isButtonVisible = (element: HTMLButtonElement) => (button: ButtonConfiguration) => {
+            const id = this.buttonId(button);
+            return id == null || id === element.dataset.toolbarId;
+        };
 
         for (const position of TOOLBAR_POSITIONS) {
             const visible = this.enabled && Array.from(this.positions[position].values()).some(isGroupVisible);
+            if (position === ToolbarPosition.Floating && !visible) {
+                this.dragState.detached = false;
+            }
             this.elements[position].classList.toggle(styles.modifiers.hidden, !visible);
         }
 
@@ -522,7 +710,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             if (this[group] == null) continue;
             const groupVisible = isGroupVisible(group);
             for (const button of this.groupButtons[group]) {
-                const buttonVisible = groupVisible && this[group].buttons?.some(isButtonVisible(button));
+                const buttonVisible = groupVisible && this[group].buttonConfigurations().some(isButtonVisible(button));
                 button.classList.toggle(styles.modifiers.button.hiddenValue, !buttonVisible);
             }
         }
@@ -558,27 +746,56 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         for (const align of TOOLBAR_ALIGNMENTS) {
             const alignmentElement = createElement('div');
+            alignmentElement.role = 'presentation';
             alignmentElement.classList.add(styles.elements.align, styles.modifiers.align[align]);
+            alignmentElement.dataset.pointerCapture = 'exclusive';
             element.appendChild(alignmentElement);
             this.positionAlignments[position][align] = alignmentElement;
         }
     }
 
-    private createButtonElement(group: ToolbarGroup, options: ToolbarButton) {
+    private createButtonElement(group: ToolbarGroup, options: ButtonConfiguration) {
         const button = createElement('button');
         button.classList.add(styles.elements.button);
         button.dataset.toolbarGroup = group;
-        button.tabIndex = -1;
-
-        if (typeof options.value === 'string' || typeof options.value === 'number') {
-            button.dataset.toolbarValue = `${options.value}`;
+        setAttribute(button, 'tabindex', -1);
+        if (options.haspopup) {
+            setAttributes(button, { 'aria-haspopup': true, 'aria-expanded': false });
         }
-        button.onclick = makeAccessibleClickListener(button, this.onButtonPress.bind(this, group, options.value));
-        this.updateButtonText(button, options);
+
+        button.dataset.toolbarId = this.buttonId(options);
+        button.addEventListener(
+            'click',
+            makeAccessibleClickListener(button, (event) =>
+                this.onButtonPress(event, button, group, options.id, options.value)
+            )
+        );
+
+        if (options.value === 'drag') {
+            button.addEventListener(
+                'mousedown',
+                makeAccessibleClickListener(button, (event) => this.onDragStart(event, button, group))
+            );
+            button.classList.add(styles.modifiers.button.dragHandle);
+        }
+
+        if (options.role === 'switch') {
+            setAttributes(button, { role: options.role, 'aria-checked': false });
+        }
+        this.updateButton(button, options);
 
         this.destroyFns.push(() => button.remove());
 
         return button;
+    }
+
+    private getAriaToolbar(group: ToolbarGroup): Toolbar['ariaToolbars'][number] {
+        for (const ariaToolbar of this.ariaToolbars) {
+            if (ariaToolbar.groups.includes(group)) {
+                return ariaToolbar;
+            }
+        }
+        throw new Error(`AG Charts - cannot find aria-toolbar of '${group}'`);
     }
 
     private updateToolbarAriaLabel(group: ToolbarGroup, alignElement?: HTMLElement) {
@@ -588,7 +805,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             if (!alignElement) return;
         }
         const map = {
-            annotations: 'ariaLabelAnnotationsToolbar',
+            seriesType: 'ariaLabelFinancialCharts',
+            annotations: 'ariaLabelFinancialCharts',
             annotationOptions: 'ariaLabelAnnotationOptionsToolbar',
             ranges: 'ariaLabelRangesToolbar',
             zoom: 'ariaLabelZoomToolbar',
@@ -596,29 +814,113 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         alignElement.ariaLabel = this.ctx.localeManager.t(map[group]);
     }
 
-    private updateButtonText(button: HTMLButtonElement, options: ToolbarButton) {
-        if (options.tooltip) {
-            const tooltip = this.ctx.localeManager.t(options.tooltip);
-            button.title = tooltip;
+    private expandButtonConfig(button: HTMLButtonElement, options: ButtonConfiguration): ToolbarButtonConfig {
+        if (options.role !== 'switch' || button.ariaChecked !== 'true' || options.checkedOverrides === undefined)
+            return options;
+
+        return {
+            icon: options.checkedOverrides.icon ?? options.icon,
+            label: options.checkedOverrides.label ?? options.label,
+            ariaLabel: options.checkedOverrides.ariaLabel ?? options.ariaLabel,
+            tooltip: options.checkedOverrides.tooltip ?? options.tooltip,
+        };
+    }
+
+    private updateButton(button: HTMLButtonElement, options: ButtonConfiguration) {
+        const { domManager, localeManager } = this.ctx;
+        const { icon, label, ariaLabel, tooltip } = this.expandButtonConfig(button, options);
+
+        if (tooltip) {
+            button.title = localeManager.t(tooltip);
         }
 
         let inner = '';
 
-        if (options.icon != null) {
-            inner = `<span class="ag-charts-icon-${options.icon} ${styles.elements.icon}"></span>`;
+        if (icon != null) {
+            inner = `<span class="${domManager.getIconClassNames(icon)} ${styles.elements.icon}"></span>`;
         }
 
-        if (options.label != null) {
-            const label = this.ctx.localeManager.t(options.label);
-            inner = `${inner}<span class="${styles.elements.label}">${label}</span>`;
+        if (label != null) {
+            const tlabel = localeManager.t(label);
+            inner = `${inner}<span class="${styles.elements.label}">${tlabel}</span>`;
         }
 
         button.innerHTML = inner;
-        const ariaLabel = options.ariaLabel ? this.ctx.localeManager.t(options.ariaLabel) : undefined;
-        setAttribute(button, 'aria-label', ariaLabel);
+
+        button.classList.toggle(styles.modifiers.button.fillVisible, options.fill != null);
+        button.style.setProperty('--fill', options.fill ?? null);
+
+        const strokeWidthVisible = options.strokeWidth != null;
+        button.classList.toggle(styles.modifiers.button.strokeWidthVisible, strokeWidthVisible);
+        button.style.setProperty('--strokeWidth', strokeWidthVisible ? `${options.strokeWidth}px` : null);
+
+        const tAriaLabel = ariaLabel ? this.ctx.localeManager.t(ariaLabel) : undefined;
+        setAttribute(button, 'aria-label', tAriaLabel);
     }
 
-    private onButtonPress(group: ToolbarGroup, value: any) {
-        this.ctx.toolbarManager.pressButton(group, value);
+    private onButtonPress(
+        event: MouseEvent,
+        button: HTMLButtonElement,
+        group: ToolbarGroup,
+        id: string | undefined,
+        value: any
+    ) {
+        this.ctx.toolbarManager.pressButton(group, this.buttonId({ id, value }), value, this.buttonRect(button), event);
+    }
+
+    private onDragStart(event: MouseEvent, button: HTMLButtonElement, group: ToolbarGroup) {
+        const element = this.elements[ToolbarPosition.Floating];
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        this.dragState = {
+            client: Vec2.from(event.clientX, event.clientY),
+            position: Vec2.from(
+                Number(element.style.getPropertyValue('left').replace('px', '')),
+                Number(element.style.getPropertyValue('top').replace('px', ''))
+            ),
+            detached: true,
+        };
+
+        button.classList.toggle(styles.modifiers.button.dragging, true);
+
+        const onDrag = (e: MouseEvent) => this.onDrag(e, group);
+        const onDragEnd = () => {
+            button.classList.toggle(styles.modifiers.button.dragging, false);
+            window.removeEventListener('mousemove', onDrag);
+        };
+
+        const window = getWindow();
+
+        window.addEventListener('mousemove', onDrag);
+        window.addEventListener('mouseup', onDragEnd, {
+            once: true,
+        });
+
+        this.ctx.toolbarManager.groupMoved(group);
+    }
+
+    private onDrag(event: MouseEvent, group: ToolbarGroup) {
+        const { elements, dragState } = this;
+        const element = elements[ToolbarPosition.Floating];
+        const { offsetWidth: width, offsetHeight: height } = element;
+
+        const offset = Vec2.sub(Vec2.from(event.clientX, event.clientY), dragState.client);
+        const position = Vec2.add(dragState.position, offset);
+
+        const groupBBox = new BBox(position.x, position.y, width, height);
+        this.positionGroup(element, group, groupBBox);
+    }
+
+    private buttonId(button: ButtonConfiguration) {
+        const { id, value, label } = button;
+        if (id != null) {
+            return id;
+        } else if (value != null && typeof value !== 'object') {
+            return String(value);
+        }
+        // @todo(AG-12343): buttons with non-primitive values need IDs
+        return label ?? '';
     }
 }

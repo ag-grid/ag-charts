@@ -1,0 +1,19 @@
+.annotations__text-size {
+    width: 34px;
+    min-width: 0;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    --item-padding: 4px 8px;
+}
+
+.annotations__line-stroke-width {
+    min-width: 0;
+    --item-padding: 6px;
+    column-gap: var(--item-padding);
+}
+
+.annotations__line-style-type {
+    min-width: 0;
+    --item-padding: 6px;
+    column-gap: 0;
+}

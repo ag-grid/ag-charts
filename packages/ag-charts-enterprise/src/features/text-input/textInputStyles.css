@@ -1,0 +1,26 @@
+.ag-charts-text-input {
+    position: absolute;
+}
+
+.ag-charts-text-input__textarea {
+    display: block;
+    height: 100%;
+    width: 100%;
+    border: 0;
+    background: none;
+    line-height: 1.38;
+
+    /* Adjust the position of the text input relative to the font size to
+       account for differences in canvas and html text rendering. */
+    transform: translate(0, 0.09em);
+}
+
+.ag-charts-text-input__textarea[placeholder]:empty:before {
+    content: attr(placeholder);
+    color: var(--ag-charts-input-placeholder-color);
+    font-weight: 400;
+}
+
+.ag-charts-text-input__textarea[placeholder]:not(:empty):before {
+    content: '';
+}

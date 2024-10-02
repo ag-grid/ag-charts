@@ -1,4 +1,15 @@
-import type { AgCartesianChartOptions, AgChartThemeOverrides, AgPolarChartOptions } from 'ag-charts-types';
+import type {
+    AgCartesianChartOptions,
+    AgCartesianSeriesOptions,
+    AgChartThemeOverrides,
+    AgFlowProportionSeriesOptions,
+    AgHierarchySeriesOptions,
+    AgLinearGaugeOptions,
+    AgPolarChartOptions,
+    AgPolarSeriesOptions,
+    AgRadialGaugeOptions,
+    AgTopologySeriesOptions,
+} from 'ag-charts-types';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
@@ -7,14 +18,14 @@ import type { BaseModule, ChartTypes, ModuleInstance } from './baseModule';
 import type { RequiredSeriesType, SeriesPaletteFactory } from './coreModulesTypes';
 import type { ModuleContext } from './moduleContext';
 
-type ModuleInstanceConstructor<M> = new (moduleContext: ModuleContext) => M;
-export type SeriesConstructor = ModuleInstanceConstructor<Series<any, any>>;
-export type LegendConstructor = ModuleInstanceConstructor<ChartLegend>;
+type ModuleInstanceFactory<M> = (moduleContext: ModuleContext) => M;
+export type SeriesFactory = ModuleInstanceFactory<Series<any, any>>;
+export type LegendFactory = ModuleInstanceFactory<ChartLegend>;
 
 export interface RootModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
     type: 'root';
 
-    instanceConstructor: ModuleInstanceConstructor<M>;
+    moduleFactory: ModuleInstanceFactory<M>;
 
     themeTemplate?: {};
 }
@@ -23,32 +34,35 @@ export interface LegendModule extends BaseModule {
     type: 'legend';
 
     identifier: ChartLegendType;
-    instanceConstructor: LegendConstructor;
+    moduleFactory: LegendFactory;
 
     themeTemplate?: {};
 }
 
 type SeriesOptionsTypes = NonNullable<AgChartOptions['series']>[number];
 
-type Extensible<T> = { [K in keyof T]?: NonNullable<T[K]> extends object ? Extensible<T[K]> : T[K] } & {
-    __extends__?: string;
+type Themes = AgChartThemeOverrides & {
+    'linear-gauge'?: { series: AgLinearGaugeOptions };
+    'radial-gauge'?: { series: AgRadialGaugeOptions };
 };
-export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = Extensible<
-    NonNullable<AgChartThemeOverrides[SeriesType]>
->;
+
+export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = NonNullable<Themes[SeriesType]>;
 
 export type SeriesTypeOptions<SeriesType extends RequiredSeriesType> = Extract<
     SeriesOptionsTypes,
     { type: SeriesType }
 >;
 
-type OptionsSeriesType<T extends AgChartOptions> = NonNullable<T['series']>[number]['type'];
-type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> =
-    SeriesType extends OptionsSeriesType<AgCartesianChartOptions>
-        ? AgCartesianChartOptions['axes']
-        : SeriesType extends OptionsSeriesType<AgPolarChartOptions>
-          ? AgPolarChartOptions['axes']
-          : never;
+type Axes = Record<Required<AgCartesianSeriesOptions>['type'], AgCartesianChartOptions['axes']> &
+    Record<Required<AgPolarSeriesOptions>['type'], AgPolarChartOptions['axes']> &
+    Record<Required<AgHierarchySeriesOptions>['type'], never> &
+    Record<Required<AgTopologySeriesOptions>['type'], never> &
+    Record<Required<AgFlowProportionSeriesOptions>['type'], never> & {
+        'radial-gauge': AgPolarChartOptions['axes'];
+        'linear-gauge': AgCartesianChartOptions['axes'];
+    };
+
+type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> = Axes[SeriesType] | ((series: any) => Axes[SeriesType]);
 
 export type SeriesTooltipDefaults = {
     range: 'exact' | 'nearest';
@@ -61,14 +75,13 @@ export interface SeriesModule<
     type: 'series';
 
     identifier: SeriesType;
-    instanceConstructor: SeriesConstructor;
+    moduleFactory: SeriesFactory;
     hidden?: boolean;
 
     tooltipDefaults: SeriesTooltipDefaults;
     defaultAxes?: SeriesDefaultAxes<SeriesType>;
     themeTemplate: ExtensibleTheme<SeriesType>;
-    enterpriseThemeTemplate?: ExtensibleTheme<SeriesType>;
-    paletteFactory?: SeriesPaletteFactory<SeriesType>;
+    paletteFactory?: SeriesPaletteFactory<ExtensibleTheme<SeriesType>>;
     solo?: boolean;
     stackable?: boolean;
     groupable?: boolean;

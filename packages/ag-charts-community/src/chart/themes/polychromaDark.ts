@@ -1,10 +1,10 @@
-import type { AgChartThemePalette } from 'ag-charts-types';
-
 import { DarkTheme } from './darkTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
-    DEFAULT_ANNOTATION_STROKE,
-    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    DEFAULT_ANNOTATION_COLOR,
+    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
+    DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
+    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
 } from './symbols';
 
 const POLYCHROMA_DARK_FILLS = {
@@ -18,6 +18,7 @@ const POLYCHROMA_DARK_FILLS = {
     GREEN: '#21b448',
     CYAN: '#00b9a2',
     MODERATE_BLUE: '#00aee4',
+    GRAY: '#bbbbbb',
 };
 
 const POLYCHROMA_DARK_STROKES = {
@@ -31,14 +32,7 @@ const POLYCHROMA_DARK_STROKES = {
     GREEN: '#58dd70',
     CYAN: '#51e2c9',
     MODERATE_BLUE: '#4fd7ff',
-};
-
-const POLYCHROMA_DARK_FILL_GRAY = '#bbbbbb';
-const POLYCHROMA_DARK_STROKE_GRAY = '#eeeeee';
-
-const palette: AgChartThemePalette = {
-    fills: Object.values(POLYCHROMA_DARK_FILLS),
-    strokes: Object.values(POLYCHROMA_DARK_STROKES),
+    GRAY: '#eeeeee',
 };
 
 export class PolychromaDark extends DarkTheme {
@@ -46,23 +40,34 @@ export class PolychromaDark extends DarkTheme {
         return {
             fills: POLYCHROMA_DARK_FILLS,
             strokes: POLYCHROMA_DARK_STROKES,
-            up: { fill: POLYCHROMA_DARK_FILLS.BLUE, stroke: POLYCHROMA_DARK_STROKES.BLUE },
+            up: { fill: POLYCHROMA_DARK_FILLS.GREEN, stroke: POLYCHROMA_DARK_STROKES.GREEN },
             down: { fill: POLYCHROMA_DARK_FILLS.RED, stroke: POLYCHROMA_DARK_STROKES.RED },
-            neutral: { fill: POLYCHROMA_DARK_FILL_GRAY, stroke: POLYCHROMA_DARK_STROKE_GRAY },
+            neutral: { fill: POLYCHROMA_DARK_FILLS.GRAY, stroke: POLYCHROMA_DARK_STROKES.GRAY },
+            altUp: { fill: POLYCHROMA_DARK_FILLS.BLUE, stroke: POLYCHROMA_DARK_STROKES.BLUE },
+            altDown: { fill: POLYCHROMA_DARK_FILLS.RED, stroke: POLYCHROMA_DARK_STROKES.RED },
+            altNeutral: { fill: POLYCHROMA_DARK_FILLS.GRAY, stroke: POLYCHROMA_DARK_STROKES.GRAY },
         };
     }
 
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
 
-        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [POLYCHROMA_DARK_FILLS.BLUE, POLYCHROMA_DARK_FILLS.RED]);
+        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [POLYCHROMA_DARK_FILLS.BLUE, POLYCHROMA_DARK_FILLS.RED]);
+        params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
+            POLYCHROMA_DARK_FILLS.BLUE,
+            POLYCHROMA_DARK_FILLS.PURPLE,
+            POLYCHROMA_DARK_FILLS.MAGENTA,
+            POLYCHROMA_DARK_FILLS.PINK,
+            POLYCHROMA_DARK_FILLS.RED,
+            POLYCHROMA_DARK_FILLS.ORANGE,
+            POLYCHROMA_DARK_FILLS.YELLOW,
+            POLYCHROMA_DARK_FILLS.GREEN,
+        ]);
+        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [POLYCHROMA_DARK_FILLS.BLUE, POLYCHROMA_DARK_FILLS.RED]);
 
-        params.set(DEFAULT_ANNOTATION_STROKE, POLYCHROMA_DARK_FILLS.BLUE);
+        params.set(DEFAULT_ANNOTATION_COLOR, POLYCHROMA_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, POLYCHROMA_DARK_FILLS.BLUE);
 
         return params;
-    }
-    protected override getPalette(): AgChartThemePalette {
-        return palette;
     }
 }

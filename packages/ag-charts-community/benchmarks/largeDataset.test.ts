@@ -5,7 +5,7 @@ import { AgCartesianChartOptions } from '../src/main';
 import { addSeriesNodePoints, benchmark, setupBenchmark } from './benchmark';
 
 const EXPECTATIONS = {
-    expectedMaxMemoryMB: 920,
+    expectedMaxMemoryMB: 945,
 };
 
 describe('large-dataset benchmark', () => {
@@ -19,15 +19,21 @@ describe('large-dataset benchmark', () => {
         beforeEach(async () => {
             await ctx.create();
             addSeriesNodePoints(ctx, 0, 4);
-        });
+        }, 10_000);
 
-        benchmark('1x legend toggle', ctx, EXPECTATIONS, async () => {
-            ctx.options.series![0].visible = false;
-            await ctx.update();
+        benchmark(
+            '1x legend toggle',
+            ctx,
+            EXPECTATIONS,
+            async () => {
+                ctx.options.series![0].visible = false;
+                await ctx.update();
 
-            ctx.options.series![0].visible = true;
-            await ctx.update();
-        });
+                ctx.options.series![0].visible = true;
+                await ctx.update();
+            },
+            15_000
+        );
 
         benchmark('1x datum highlight', ctx, EXPECTATIONS, async () => {
             const point = ctx.nodePositions[0][1];

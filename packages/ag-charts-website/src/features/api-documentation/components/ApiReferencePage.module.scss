@@ -1,7 +1,7 @@
 @use 'design-system' as *;
 
 .container {
-    --total-header-height: calc(var(--header-nav-height) + 54px);
+    --total-header-height: calc(var(--header-nav-height) + var(--tab-bar-height));
 
     width: 100%;
 }
@@ -57,11 +57,13 @@
         padding-top: $spacing-size-8;
         padding-bottom: $spacing-size-8;
         background-color: var(--color-bg-primary);
-        border-bottom: 1px solid var(--color-border-primary);
+        border-bottom: 1px solid var(--color-border-secondary);
     }
 
-    tr:first-child {
-        border-top: none;
+    :global(.property-row) {
+        &:first-child {
+            border-top: none;
+        }
     }
 }
 

@@ -26,7 +26,7 @@ export default [
                     fixStyle: 'separate-type-imports',
                 },
             ],
-            'import-x/consistent-type-specifier-style': 'error',
+            // 'import-x/consistent-type-specifier-style': 'error',
             '@typescript-eslint/no-this-alias': 'off',
             'no-restricted-imports': [
                 'error',

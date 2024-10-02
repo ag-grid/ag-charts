@@ -19,18 +19,20 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModelOptions, DatumPropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { animationValidation, createDatumId, diff, normaliseGroupTo } from '../../data/processors';
+import {
+    animationValidation,
+    createDatumId,
+    diff,
+    groupAccumulativeValueProperty,
+    keyProperty,
+    normaliseGroupTo,
+    valueProperty,
+} from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import {
-    type PickFocusInputs,
-    SeriesNodePickMode,
-    groupAccumulativeValueProperty,
-    keyProperty,
-    valueProperty,
-} from '../series';
+import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData, CartesianSeriesNodeDataContext } from './cartesianSeries';
 import {
@@ -49,9 +51,21 @@ import {
 } from './markerUtil';
 import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, plotPath, updateClipPath } from './pathUtil';
 
-type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum>;
+const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
 
-export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, LineNodeDatum> {
+interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContext<LineNodeDatum> {
+    crossFiltering: boolean;
+}
+
+type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
+
+export class LineSeries extends CartesianSeries<
+    Group,
+    LineSeriesProperties,
+    LineNodeDatum,
+    LineNodeDatum,
+    LineSeriesNodeDataContext
+> {
     static readonly className = 'LineSeries';
     static readonly type = 'line' as const;
 
@@ -70,7 +84,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             ],
             markerSelectionGarbageCollection: false,
             animationResetFns: {
-                path: buildResetPathFn({ getOpacity: () => this.getOpacity() }),
+                path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
                 marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
@@ -83,7 +97,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         }
 
         const { data, visible, seriesGrouping: { groupIndex = this.id, stackCount = 1 } = {} } = this;
-        const { xKey, yKey, connectMissingData, normalizedTo } = this.properties;
+        const { xKey, yKey, yFilterKey, connectMissingData, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
@@ -117,6 +131,10 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             })
         );
 
+        if (yFilterKey != null) {
+            props.push(valueProperty(yFilterKey, yScaleType, { id: 'yFilterRaw' }));
+        }
+
         if (stackCount > 1) {
             const ids = [
                 `line-stack-${groupIndex}-yValues`,
@@ -129,33 +147,21 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                     yKey,
                     'window',
                     'current',
-                    {
-                        id: `yValueEnd`,
-                        ...common,
-                        groupId: ids[0],
-                    },
+                    { id: `yValueEnd`, ...common, groupId: ids[0] },
                     yScaleType
                 ),
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'window-trailing',
                     'current',
-                    {
-                        id: `yValueStart`,
-                        ...common,
-                        groupId: ids[1],
-                    },
+                    { id: `yValueStart`, ...common, groupId: ids[1] },
                     yScaleType
                 ),
                 ...groupAccumulativeValueProperty(
                     yKey,
                     'normal',
                     'current',
-                    {
-                        id: `yValueCumulative`,
-                        ...common,
-                        groupId: ids[2],
-                    },
+                    { id: `yValueCumulative`, ...common, groupId: ids[2] },
                     yScaleType
                 )
             );
@@ -178,11 +184,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
-        const { processedData, dataModel, axes } = this;
-        if (!processedData || !dataModel || processedData.data.length === 0) return [];
-
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData?.data.length) return [];
 
         const xDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
         if (direction === ChartAxisDirection.X) {
@@ -191,14 +194,14 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                 return domain;
             }
 
-            return fixNumericExtent(extent(domain), xAxis);
+            return fixNumericExtent(extent(domain));
         } else {
             const stackCount = this.seriesGrouping?.stackCount ?? 1;
             const domain =
                 stackCount > 1
                     ? dataModel.getDomain(this, `yValueEnd`, 'value', processedData)
                     : dataModel.getDomain(this, `yValueRaw`, 'value', processedData);
-            return fixNumericExtent(domain as any, yAxis);
+            return fixNumericExtent(domain);
         }
     }
 
@@ -212,7 +215,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             return;
         }
 
-        const { xKey, yKey, xName, yName, marker, label, connectMissingData, legendItemName } = this.properties;
+        const { xKey, yKey, yFilterKey, xName, yName, marker, label, connectMissingData, legendItemName } =
+            this.properties;
         const stacked = (this.seriesGrouping?.stackCount ?? 1) > 1;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -223,10 +227,13 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
         const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
         const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValueRaw`);
+        const ySelectionIdx =
+            yFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `yFilterRaw`) : undefined;
         const yCumulativeIdx = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValueCumulative`) : yIdx;
         const yEndIdx = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValueEnd`) : undefined;
 
         let moveTo = true;
+        let crossFiltering = false;
         // let nextPoint: UngroupedDataItem<any, any> | undefined;
         processedData.data?.forEach(({ datum, values }) => {
             const xDatum = values[xIdx];
@@ -246,6 +253,11 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             }
 
             const y = yScale.convert(yCumulativeDatum) + yOffset;
+
+            const selected = ySelectionIdx != null ? values[ySelectionIdx] === yDatum : undefined;
+            if (selected === false) {
+                crossFiltering = true;
+            }
 
             const labelText = this.getLabelText(
                 label,
@@ -267,18 +279,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
                     lengthRatioMultiplier: this.properties.marker.getDiameter(),
                     lengthMax: Infinity,
                 },
-                label: labelText
-                    ? {
-                          text: labelText,
-                          fontStyle: label.fontStyle,
-                          fontWeight: label.fontWeight,
-                          fontSize: label.fontSize,
-                          fontFamily: label.fontFamily,
-                          textAlign: 'center',
-                          textBaseline: 'bottom',
-                          fill: label.color,
-                      }
-                    : undefined,
+                labelText,
+                selected,
             });
             moveTo = false;
         });
@@ -289,6 +291,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             labelData: nodeData,
             scales: this.calculateScaling(),
             visible: this.visible,
+            crossFiltering,
         };
     }
 
@@ -315,6 +318,7 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             visible,
             animationEnabled,
         } = opts;
+        const crossFiltering = this.contextNodeData?.crossFiltering === true;
 
         lineNode.setProperties({
             fill: undefined,
@@ -323,7 +327,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             opacity,
             stroke: this.properties.stroke,
             strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
-            strokeOpacity: this.properties.strokeOpacity,
+            strokeOpacity:
+                this.properties.strokeOpacity * (crossFiltering ? CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR : 1),
             lineDash: this.properties.lineDash,
             lineDashOffset: this.properties.lineDashOffset,
         });
@@ -342,8 +347,8 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
     }) {
         let { nodeData } = opts;
         const { markerSelection } = opts;
-        const { shape, enabled } = this.properties.marker;
-        nodeData = shape && enabled ? nodeData : [];
+        const markersEnabled = this.properties.marker.enabled || this.contextNodeData?.crossFiltering === true;
+        nodeData = markersEnabled ? nodeData : [];
 
         if (this.properties.marker.isDirty()) {
             markerSelection.clear();
@@ -367,7 +372,10 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
         const applyTranslation = this.ctx.animationManager.isSkipped();
         markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle, { applyTranslation });
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle, {
+                applyTranslation,
+                selected: datum.selected,
+            });
         });
 
         if (!highlighted) {
@@ -386,18 +394,16 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = this.properties.label;
 
         opts.labelSelection.each((text, datum) => {
-            const { point, label } = datum;
-
-            if (datum && label && enabled) {
+            if (enabled && datum?.labelText) {
                 text.fontStyle = fontStyle;
                 text.fontWeight = fontWeight;
                 text.fontSize = fontSize;
                 text.fontFamily = fontFamily;
-                text.textAlign = label.textAlign;
-                text.textBaseline = label.textBaseline;
-                text.text = label.text;
-                text.x = point.x;
-                text.y = point.y - 10;
+                text.textAlign = 'center';
+                text.textBaseline = 'bottom';
+                text.text = datum.labelText;
+                text.x = datum.point.x;
+                text.y = datum.point.y - 10;
                 text.fill = color;
                 text.visible = true;
             } else {
@@ -538,9 +544,11 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
         } = animationData;
         const [path] = paths;
 
-        super.resetAllAnimation(animationData);
+        this.resetMarkerAnimation(animationData);
+        this.resetLabelAnimation(animationData);
 
         const update = () => {
+            this.resetPathAnimation(animationData);
             this.updateLinePaths(paths, contextData);
         };
         const skip = () => {
@@ -559,12 +567,24 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
             return;
         }
 
-        const fns = prepareLinePathAnimation(
-            contextData,
-            previousContextData,
-            this.processedData?.reduced?.diff,
-            this.properties.interpolation
-        );
+        if (contextData.crossFiltering !== previousContextData.crossFiltering) {
+            skip();
+            return;
+        }
+
+        let fns: ReturnType<typeof prepareLinePathAnimation>;
+        try {
+            fns = prepareLinePathAnimation(
+                contextData,
+                previousContextData,
+                this.processedData?.reduced?.diff,
+                this.properties.interpolation
+            );
+        } catch {
+            // @todo(CRT-468) - this code will likely be replaced with area-series implementation
+            fns = undefined;
+        }
+
         if (fns === undefined) {
             skip();
             return;
@@ -574,7 +594,15 @@ export class LineSeries extends CartesianSeries<Group, LineSeriesProperties, Lin
 
         markerFadeInAnimation(this, animationManager, undefined, markerSelections);
         fromToMotion(this.id, 'path_properties', animationManager, [path], fns.pathProperties);
-        pathMotion(this.id, 'path_update', animationManager, [path], fns.path);
+
+        if (fns.status === 'added') {
+            this.updateLinePaths(paths, contextData);
+        } else if (fns.status === 'removed') {
+            this.updateLinePaths(paths, previousContextData);
+        } else {
+            pathMotion(this.id, 'path_update', animationManager, [path], fns.path);
+        }
+
         if (fns.hasMotion) {
             seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelections);
             seriesLabelFadeInAnimation(this, 'annotations', animationManager, ...annotationSelections);

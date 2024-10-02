@@ -50,7 +50,7 @@
 
             css: 'npm:systemjs-plugin-css@0.1.37/css.js',
 
-            deepclone: 'npm:deepclone@1.0.2',
+            clone: 'npm:clone@2.1.2',
 
             ts: 'npm:plugin-typescript@8.0.0/lib/plugin.js',
             tslib: 'npm:tslib@2.3.1/tslib.js',

@@ -1,3 +1,5 @@
+import { getWindow } from './dom';
+
 type Callback = (params: { count: number }) => Promise<void> | void;
 
 /**
@@ -6,7 +8,7 @@ type Callback = (params: { count: number }) => Promise<void> | void;
  * animation callback executes.
  */
 export function debouncedAnimationFrame(cb: Callback): { schedule(delayMs?: number): void; await(): Promise<void> } {
-    return buildScheduler((innerCb, _delayMs) => requestAnimationFrame(innerCb), cb);
+    return buildScheduler((innerCb, _delayMs) => getWindow().requestAnimationFrame(innerCb), cb);
 }
 
 export function debouncedCallback(cb: Callback): { schedule(delayMs?: number): void; await(): Promise<void> } {

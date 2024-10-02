@@ -12,12 +12,13 @@ import {
     type FlowProportionNodeDatum,
     FlowProportionSeries,
 } from '../flow-proportion/flowProportionSeries';
-import { ChordLink } from './chordLink';
+import { ChordLink, bezierControlPoints } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
-const { SeriesNodePickMode, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
+const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, createDatumId, EMPTY_TOOLTIP_CONTENT } =
+    _ModuleSupport;
 const { angleBetween, normalizeAngle360, isBetweenAngles, sanitizeHtml, Logger } = _Util;
-const { Sector, Text } = _Scene;
+const { Sector, Text, evaluateBezier } = _Scene;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum {
     size: number;
@@ -163,8 +164,16 @@ export class ChordSeries extends FlowProportionSeries<
                 const { id, label } = node;
                 if (label == null) return;
 
-                const text = Text.wrap(label, labelMaxWidth, Infinity, this.properties.label, 'never', 'ellipsis');
-                const { width } = Text.measureText(text, canvasFont, 'middle', 'left');
+                const text = TextWrapper.wrapText(label, {
+                    maxWidth: labelMaxWidth,
+                    font: this.properties.label,
+                    textWrap: 'never',
+                });
+                const { width } = CachedTextMeasurerPool.measureText(text, {
+                    font: canvasFont,
+                    textAlign: 'left',
+                    textBaseline: 'middle',
+                });
                 maxMeasuredLabelWidth = Math.max(width, maxMeasuredLabelWidth);
 
                 labelData.push({
@@ -253,18 +262,31 @@ export class ChordSeries extends FlowProportionSeries<
 
             nodeData.push(node);
         });
+        const { tension } = this.properties.link;
         links.forEach((link) => {
             link.radius = radius;
-            const cpa0 = link.startAngle1 + angleBetween(link.startAngle1, link.endAngle1) / 2;
-            const cpa3 = link.startAngle2 + angleBetween(link.startAngle2, link.endAngle2) / 2;
-            const cp0x = radius * Math.cos(cpa0);
-            const cp0y = radius * Math.sin(cpa0);
-            const cp3x = radius * Math.cos(cpa3);
-            const cp3y = radius * Math.sin(cpa3);
+
+            const outer = bezierControlPoints({
+                radius,
+                startAngle: link.startAngle1,
+                endAngle: link.endAngle2,
+                tension,
+            });
+            const inner = bezierControlPoints({
+                radius,
+                startAngle: link.startAngle2,
+                endAngle: link.endAngle1,
+                tension,
+            });
+
+            const outerX = evaluateBezier(...outer.x, 0.5);
+            const outerY = evaluateBezier(...outer.y, 0.5);
+            const innerX = evaluateBezier(...inner.x, 0.5);
+            const innerY = evaluateBezier(...inner.y, 0.5);
 
             link.midPoint = {
-                x: link.centerX + (cp0x + cp3x) * 0.125,
-                y: link.centerY + (cp0y + cp3y) * 0.125,
+                x: link.centerX + (outerX + innerX) / 2,
+                y: link.centerY + (outerY + innerY) / 2,
             };
 
             nodeData.push(link);
@@ -305,13 +327,15 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected async updateLabelSelection(opts: {
         labelData: ChordNodeLabelDatum[];
-        labelSelection: _Scene.Selection<_Scene.Text, ChordNodeLabelDatum>;
+        labelSelection: _Scene.Selection<_Scene.TransformableText, ChordNodeLabelDatum>;
     }) {
         const labels = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(labels);
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, ChordNodeLabelDatum> }) {
+    protected async updateLabelNodes(opts: {
+        labelSelection: _Scene.Selection<_Scene.TransformableText, ChordNodeLabelDatum>;
+    }) {
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
 

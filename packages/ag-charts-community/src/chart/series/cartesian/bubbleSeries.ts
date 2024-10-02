@@ -11,16 +11,17 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
+import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
-import { createDatumId } from '../../data/processors';
+import { createDatumId, valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import type { PickFocusInputs, SeriesNodeEventTypes } from '../series';
-import { SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { type BubbleNodeDatum, BubbleSeriesProperties } from './bubbleSeriesProperties';
 import type { CartesianAnimationData } from './cartesianSeries';
@@ -65,7 +66,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 SeriesNodePickMode.NEAREST_NODE,
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
-            pathsPerSeries: 0,
+            pathsPerSeries: [],
             hasMarkers: true,
             markerSelectionGarbageCollection: false,
             animationResetFns: {
@@ -83,14 +84,28 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const colorScaleType = this.colorScale.type;
         const sizeScaleType = this.sizeScale.type;
-        const { xKey, yKey, sizeKey, labelKey, colorDomain, colorRange, colorKey, marker } = this.properties;
+        const {
+            xKey,
+            yKey,
+            sizeKey,
+            xFilterKey,
+            yFilterKey,
+            sizeFilterKey,
+            labelKey,
+            colorDomain,
+            colorRange,
+            colorKey,
+            marker,
+        } = this.properties;
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(xKey, xScaleType, { id: 'xKey-raw' }),
-                keyProperty(yKey, yScaleType, { id: 'yKey-raw' }),
-                ...(labelKey ? [keyProperty(labelKey, 'band', { id: `labelKey-raw` })] : []),
                 valueProperty(xKey, xScaleType, { id: `xValue` }),
                 valueProperty(yKey, yScaleType, { id: `yValue` }),
+                ...(xFilterKey != null ? [valueProperty(xFilterKey, xScaleType, { id: `xFilterValue` })] : []),
+                ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: `yFilterValue` })] : []),
+                ...(sizeFilterKey != null
+                    ? [valueProperty(sizeFilterKey, sizeScaleType, { id: `sizeFilterValue` })]
+                    : []),
                 valueProperty(sizeKey, sizeScaleType, { id: `sizeValue` }),
                 ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(labelKey, 'band', { id: `labelValue` })] : []),
@@ -121,14 +136,28 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         if (dataDef?.def.type === 'value' && dataDef?.def.valueType === 'category') {
             return domain;
         }
-        const axis = this.axes[direction];
-        return fixNumericExtent(extent(domain), axis);
+        return fixNumericExtent(extent(domain));
     }
 
     async createNodeData() {
         const { axes, dataModel, processedData, colorScale, sizeScale } = this;
-        const { xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName, label, colorKey, marker, visible } =
-            this.properties;
+        const {
+            xKey,
+            yKey,
+            sizeKey,
+            xFilterKey,
+            yFilterKey,
+            sizeFilterKey,
+            labelKey,
+            xName,
+            yName,
+            sizeName,
+            labelName,
+            label,
+            colorKey,
+            marker,
+            visible,
+        } = this.properties;
         const markerShape = getMarker(marker.shape);
         const { placement } = label;
 
@@ -141,9 +170,15 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
         const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
         const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
-        const sizeDataIdx = sizeKey ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`) : -1;
-        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : -1;
-        const labelDataIdx = labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : -1;
+        const sizeDataIdx = sizeKey != null ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`) : undefined;
+        const colorDataIdx = colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : -1;
+        const labelDataIdx = labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : -1;
+        const xFilterDataIdx =
+            xFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `xFilterValue`) : undefined;
+        const yFilterDataIdx =
+            yFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `yFilterValue`) : undefined;
+        const sizeFilterDataIdx =
+            sizeFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `sizeFilterValue`) : undefined;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -154,11 +189,22 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         sizeScale.range = [marker.size, marker.maxSize];
 
         const font = label.getFont();
+        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
         for (const { values, datum } of processedData.data ?? []) {
             const xDatum = values[xDataIdx];
             const yDatum = values[yDataIdx];
+            const sizeValue = sizeDataIdx != null ? values[sizeDataIdx] : undefined;
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
+
+            let selected: boolean | undefined;
+            if (xFilterDataIdx != null && yFilterDataIdx != null) {
+                selected = values[xFilterDataIdx] === xDatum && values[yFilterDataIdx] === yDatum;
+
+                if (sizeFilterDataIdx != null) {
+                    selected &&= values[sizeFilterDataIdx] === sizeValue;
+                }
+            }
 
             const labelText = this.getLabelText(label, {
                 value: labelKey ? values[labelDataIdx] : yDatum,
@@ -173,8 +219,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 labelName,
             });
 
-            const size = Text.getTextSize(String(labelText), font);
-            const markerSize = sizeKey ? sizeScale.convert(values[sizeDataIdx]) : marker.size;
+            const size = textMeasurer.measureText(String(labelText));
+            const markerSize = sizeValue ? sizeScale.convert(sizeValue) : marker.size;
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 
             nodeData.push({
@@ -185,13 +231,14 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 datum,
                 xValue: xDatum,
                 yValue: yDatum,
-                sizeValue: values[sizeDataIdx],
+                sizeValue,
                 point: { x, y, size: markerSize },
                 midPoint: { x, y },
                 fill,
                 label: { text: labelText, ...size },
                 marker: markerShape,
                 placement,
+                selected,
             });
         }
 
@@ -250,7 +297,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         this.sizeScale.range = [marker.size, marker.maxSize];
 
         markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, sizeKey, labelKey }, baseStyle);
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, sizeKey, labelKey }, baseStyle, {
+                selected: datum.selected,
+            });
         });
 
         if (!highlighted) {

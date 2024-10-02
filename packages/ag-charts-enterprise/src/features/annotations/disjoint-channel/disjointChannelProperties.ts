@@ -1,23 +1,25 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 
 import {
     Annotation,
-    AnnotationHandle,
-    AnnotationLine,
-    ChannelAnnotation,
-    LineDash,
+    Background,
+    ChannelTextProperties,
+    Extendable,
+    Handle,
+    Line,
+    LineStyle,
     Stroke,
 } from '../annotationProperties';
-import { type AnnotationContext, AnnotationType } from '../annotationTypes';
-import { validateDatumLine } from '../annotationUtils';
+import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
+import { getLineCap, getLineDash } from '../utils/line';
+import { validateDatumLine } from '../utils/validation';
 
-const { NUMBER, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
+const { NUMBER, OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-export class DisjointChannelAnnotation extends Annotation(
-    AnnotationType.DisjointChannel,
-    ChannelAnnotation(AnnotationLine(AnnotationHandle(Stroke(LineDash(BaseProperties)))))
+export class DisjointChannelProperties extends Annotation(
+    Background(Line(Handle(Extendable(Stroke(LineStyle(BaseProperties))))))
 ) {
-    static is(value: unknown): value is DisjointChannelAnnotation {
+    static is(value: unknown): value is DisjointChannelProperties {
         return isObject(value) && value.type === AnnotationType.DisjointChannel;
     }
 
@@ -29,6 +31,15 @@ export class DisjointChannelAnnotation extends Annotation(
 
     @Validate(NUMBER)
     endHeight!: number;
+
+    @Validate(NUMBER)
+    snapToAngle: number = 45;
+
+    @Validate(OBJECT, { optional: true })
+    text = new ChannelTextProperties();
+
+    lineCap?: _Scene.ShapeLineCap = undefined;
+    computedLineDash?: PixelSize[] = undefined;
 
     get bottom() {
         const bottom = {
@@ -52,5 +63,33 @@ export class DisjointChannelAnnotation extends Annotation(
             validateDatumLine(context, this, warningPrefix) &&
             validateDatumLine(context, this.bottom, warningPrefix)
         );
+    }
+
+    getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case `fill-color`:
+                return this.background.fill;
+            case `line-color`:
+                return this.stroke;
+            case 'text-color':
+                return this.text.color;
+        }
+    }
+
+    getDefaultOpacity(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case `fill-color`:
+                return this.background.fillOpacity;
+            case `line-color`:
+                return this.strokeOpacity;
+        }
+    }
+
+    getLineDash(): PixelSize[] | undefined {
+        return getLineDash(this.lineDash, this.computedLineDash, this.lineStyle, this.strokeWidth);
+    }
+
+    getLineCap(): _Scene.ShapeLineCap | undefined {
+        return getLineCap(this.lineCap, this.lineDash, this.lineStyle);
     }
 }

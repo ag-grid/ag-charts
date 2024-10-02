@@ -1,8 +1,9 @@
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../motion/fromToMotion';
 import type { FromToFns } from '../../motion/fromToMotion';
-import type { Group } from '../../scene/group';
+import type { Group, TransformableGroup } from '../../scene/group';
 import type { Line } from '../../scene/shape/line';
-import type { Text } from '../../scene/shape/text';
+import type { RotatableText, TransformableText } from '../../scene/shape/text';
+import type { TranslatableType } from '../../scene/transformable';
 import { findMinMax } from '../../util/number';
 
 export type AxisLineDatum = { x: number; y1: number; y2: number };
@@ -45,10 +46,11 @@ const fullCircle = Math.PI * 2;
 const halfCircle = fullCircle / 2;
 function normaliseEndRotation(start: number, end: number) {
     const directDistance = Math.abs(end - start);
-
-    if (directDistance < halfCircle) return end;
-
-    if (start > end) return end + fullCircle;
+    if (directDistance < halfCircle) {
+        return end;
+    } else if (start > end) {
+        return end + fullCircle;
+    }
     return end - fullCircle;
 }
 
@@ -57,7 +59,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
         const [min = ctx.min, max = ctx.max] = findMinMax(range ?? []);
         return y < min || y > max;
     };
-    const tick: FromToFns<Line, any, AxisNodeDatum> = {
+    const tick: FromToFns<TranslatableType<Line>, any, AxisNodeDatum> = {
         fromFn(node, datum, status) {
             // Default to starting at the same position that the node is currently in.
             let y = node.y1 + node.translationY;
@@ -90,12 +92,13 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
                 },
             };
         },
-        intermediateFn(node, _datum, _status) {
-            return { visible: !outOfBounds(node.y) };
+        applyFn(node, props) {
+            node.setProperties(props);
+            node.visible = !outOfBounds(node.y);
         },
     };
 
-    const label: FromToFns<Text, Partial<Omit<AxisLabelDatum, 'range'>>, AxisLabelDatum> = {
+    const label: FromToFns<TransformableText, Partial<Omit<AxisLabelDatum, 'range'>>, AxisLabelDatum> = {
         fromFn(node, newDatum, status) {
             const datum: AxisLabelDatum = node.previousDatum ?? newDatum;
 
@@ -157,7 +160,7 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
             return { ...datum };
         },
     };
-    const group: FromToFns<Group, any, AxisGroupDatum> = {
+    const group: FromToFns<TransformableGroup, any, AxisGroupDatum> = {
         fromFn(node, _datum) {
             const { rotation, translationX, translationY } = node;
             return {
@@ -209,7 +212,7 @@ export function resetAxisSelectionFn(ctx: AxisAnimationContext) {
 }
 
 export function resetAxisLabelSelectionFn() {
-    return (_node: Text, datum: AxisLabelDatum) => {
+    return (_node: RotatableText, datum: AxisLabelDatum) => {
         return {
             x: datum.x,
             y: datum.y,

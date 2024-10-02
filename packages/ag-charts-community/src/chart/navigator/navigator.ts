@@ -3,6 +3,7 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
+import type { BBoxProvider } from '../../util/bboxinterface';
 import { setElementBBox } from '../../util/dom';
 import { initToolbarKeyNav } from '../../util/keynavUtil';
 import { Logger } from '../../util/logger';
@@ -10,7 +11,9 @@ import { clamp, formatPercentage } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
+import type { RegionEvent } from '../interaction/regionManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
+import { type LayoutCompleteEvent, LayoutElement } from '../layout/layoutManager';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
@@ -29,9 +32,11 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     public minHandle = new RangeHandle();
     public maxHandle = new RangeHandle();
     private readonly maskVisibleRange = {
-        computeBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
-        computeTransformedBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
-    };
+        id: 'navigator-mask-visible-range',
+        getBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
+        toCanvasBBox: (): BBox => this.mask.computeVisibleRangeBBox(),
+        fromCanvasPoint: (x: number, y: number) => ({ x, y }),
+    } satisfies BBoxProvider & { getBBox(): BBox };
 
     @Validate(POSITIVE_NUMBER)
     public height: number = 30;
@@ -86,6 +91,8 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             region.addListener('drag-end', () => this.onDragEnd(), dragStates),
             region.addListener('leave', (event) => this.onLeave(event), dragStates),
             this.ctx.localeManager.addListener('locale-changed', () => this.updateZoom()),
+            this.ctx.layoutManager.registerElement(LayoutElement.Navigator, (e) => this.onLayoutStart(e)),
+            this.ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
         );
 
@@ -105,7 +112,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 ariaLabel: { id: 'ariaLabelNavigatorMinimum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
-                focusable: this.minHandle,
                 onchange: (ev) => this.onMinSliderChange(ev),
             }),
             this.ctx.proxyInteractionService.createProxyElement({
@@ -114,7 +120,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 ariaLabel: { id: 'ariaLabelNavigatorRange' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
-                focusable: this.maskVisibleRange,
                 onchange: (ev) => this.onPanSliderChange(ev),
             }),
             this.ctx.proxyInteractionService.createProxyElement({
@@ -123,7 +128,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 ariaLabel: { id: 'ariaLabelNavigatorMaximum' },
                 ariaOrientation: 'horizontal',
                 parent: this.proxyNavigatorToolbar,
-                focusable: this.maxHandle,
                 onchange: (ev) => this.onMaxSliderChange(ev),
             }),
         ];
@@ -147,6 +151,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
         if (this.rangeSelector == null || enabled === this.rangeSelector.visible) return;
         this.rangeSelector.visible = enabled;
+        this.proxyNavigatorToolbar.ariaHidden = (!enabled).toString();
 
         if (enabled) {
             this.updateZoom();
@@ -155,21 +160,19 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    async performLayout(ctx: LayoutContext): Promise<LayoutContext> {
-        const { shrinkRect } = ctx;
+    protected onLayoutStart(ctx: LayoutContext) {
         if (this.enabled) {
+            const { layoutBox } = ctx;
             const navigatorTotalHeight = this.height + this.spacing;
-            shrinkRect.shrink(navigatorTotalHeight, 'bottom');
-            this.y = shrinkRect.y + shrinkRect.height + this.spacing;
+            layoutBox.shrink(navigatorTotalHeight, 'bottom');
+            this.y = layoutBox.y + layoutBox.height + this.spacing;
         } else {
             this.y = 0;
         }
-
-        return { ...ctx, shrinkRect };
     }
 
-    async performCartesianLayout(opts: { seriesRect: BBox }): Promise<void> {
-        const { x, width } = opts.seriesRect;
+    onLayoutComplete(opts: LayoutCompleteEvent) {
+        const { x, width } = opts.series.rect;
 
         if (this.enabled) {
             const { y, height } = this;
@@ -184,42 +187,45 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.width = width;
     }
 
-    private onHover(event: PointerInteractionEvent<'hover'>) {
+    private onHover(event: RegionEvent<'hover'>) {
         if (!this.enabled) return;
 
         const { mask, minHandle, maxHandle } = this;
-        const { offsetX, offsetY } = event;
+        const { regionOffsetX, regionOffsetY } = event;
 
-        if (minHandle.containsPoint(offsetX, offsetY) || maxHandle.containsPoint(offsetX, offsetY)) {
+        if (
+            minHandle.containsPoint(regionOffsetX, regionOffsetY) ||
+            maxHandle.containsPoint(regionOffsetX, regionOffsetY)
+        ) {
             this.ctx.cursorManager.updateCursor('navigator', 'ew-resize');
-        } else if (mask.computeVisibleRangeBBox().containsPoint(offsetX, offsetY)) {
+        } else if (mask.computeVisibleRangeBBox().containsPoint(regionOffsetX, regionOffsetY)) {
             this.ctx.cursorManager.updateCursor('navigator', 'grab');
         } else {
             this.ctx.cursorManager.updateCursor('navigator');
         }
     }
 
-    private onDragStart(event: PointerInteractionEvent<'drag-start'>) {
+    private onDragStart(event: RegionEvent<'drag-start'>) {
         if (!this.enabled) return;
 
         const { mask, minHandle, maxHandle, x, width, _min: min } = this;
-        const { offsetX, offsetY } = event;
+        const { regionOffsetX, regionOffsetY } = event;
 
         if (minHandle.zIndex < maxHandle.zIndex) {
-            if (maxHandle.containsPoint(offsetX, offsetY)) {
+            if (maxHandle.containsPoint(regionOffsetX, regionOffsetY)) {
                 this.dragging = 'max';
-            } else if (minHandle.containsPoint(offsetX, offsetY)) {
+            } else if (minHandle.containsPoint(regionOffsetX, regionOffsetY)) {
                 this.dragging = 'min';
             }
-        } else if (minHandle.containsPoint(offsetX, offsetY)) {
+        } else if (minHandle.containsPoint(regionOffsetX, regionOffsetY)) {
             this.dragging = 'min';
-        } else if (maxHandle.containsPoint(offsetX, offsetY)) {
+        } else if (maxHandle.containsPoint(regionOffsetX, regionOffsetY)) {
             this.dragging = 'max';
         }
 
-        if (this.dragging == null && mask.computeVisibleRangeBBox().containsPoint(offsetX, offsetY)) {
+        if (this.dragging == null && mask.computeVisibleRangeBBox().containsPoint(regionOffsetX, regionOffsetY)) {
             this.dragging = 'pan';
-            this.panStart = (offsetX - x) / width - min;
+            this.panStart = (regionOffsetX - x) / width - min;
         }
 
         if (this.dragging != null) {
@@ -227,14 +233,14 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    private onDrag(event: PointerInteractionEvent<'drag'>) {
+    private onDrag(event: RegionEvent<'drag'>) {
         if (!this.enabled || this.dragging == null) return;
 
         const { dragging, minRange, panStart, x, width } = this;
         let { _min: min, _max: max } = this;
-        const { offsetX } = event;
+        const { regionOffsetX } = event;
 
-        const ratio = (offsetX - x) / width;
+        const ratio = (regionOffsetX - x) / width;
 
         if (dragging === 'min') {
             min = clamp(0, ratio, max - minRange);
@@ -267,6 +273,9 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this._min = x.min;
         this._max = x.max;
         this.updateNodes(x.min, x.max);
+        this.setPanSliderValue(x.min, x.max);
+        this.setSliderRatio(this.proxyNavigatorElements[0], x.min);
+        this.setSliderRatio(this.proxyNavigatorElements[2], x.max);
     }
 
     private onPanSliderChange(_event: Event) {
@@ -330,7 +339,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
 
         [minHandle, this.maskVisibleRange, maxHandle].forEach((node, index) => {
-            const bbox = node.computeBBox();
+            const bbox = node.getBBox();
             const tbox = { x: bbox.x - x, y: bbox.y - y, height: bbox.height, width: bbox.width };
             setElementBBox(this.proxyNavigatorElements[index], tbox);
         });
@@ -344,7 +353,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         if (!this.enabled) return;
 
         const { _min: min, _max: max } = this;
-        const zoom = this.ctx.zoomManager.getZoom();
         if (min == null || max == null) return;
 
         const warnOnConflict = (stateId: string) => {
@@ -354,9 +362,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             );
         };
 
-        this.setPanSliderValue(min, max);
-        this.setSliderRatio(this.proxyNavigatorElements[0], min);
-        this.setSliderRatio(this.proxyNavigatorElements[2], max);
-        return this.ctx.zoomManager.updateZoom('navigator', { x: { min, max }, y: zoom?.y }, false, warnOnConflict);
+        return this.ctx.zoomManager.updateZoom('navigator', { x: { min, max } }, false, warnOnConflict);
     }
 }

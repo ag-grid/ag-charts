@@ -7,6 +7,7 @@ import type { Node } from '../scene/node';
 import { Selection } from '../scene/selection';
 import { Rect } from '../scene/shape/rect';
 import { Sector } from '../scene/shape/sector';
+import { Transformable } from '../scene/transformable';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
 import { Circle } from './marker/circle';
@@ -121,7 +122,7 @@ describe('Chart', () => {
                 expect(nodeData.length).toBeGreaterThan(0);
                 for (const item of nodeData) {
                     const itemPoint = testParams.getNodePoint(item);
-                    const { x, y } = series.contentGroup.inverseTransformPoint(itemPoint[0], itemPoint[1]);
+                    const { x, y } = Transformable.toCanvasPoint(series.contentGroup, itemPoint[0], itemPoint[1]);
                     await hoverAction(x, y)(chartInstance);
                     await waitForChartStability(chartInstance);
                     await iterator({ series, item, x, y });
@@ -141,11 +142,20 @@ describe('Chart', () => {
         const checkNodeClick = async (
             chartInstance: Chart,
             onNodeClick: () => void,
-            offset?: { x: number; y: number }
+            offsetX?: boolean,
+            offsetY?: boolean
         ) => {
             await hoverChartNodes(chartInstance, async ({ x, y }) => {
+                const seriesAreaCenter = (chartInstance as any).seriesRect.computeCenter();
+
+                if (offsetX) {
+                    x += x < seriesAreaCenter.x ? 5 : -5;
+                }
+                if (offsetY) {
+                    y += y < seriesAreaCenter.y ? 5 : -5;
+                }
                 // Perform click
-                await clickAction(x + (offset?.x ?? 0), y + (offset?.y ?? 0))(chartInstance);
+                await clickAction(x, y)(chartInstance);
                 await waitForChartStability(chartInstance);
             });
 
@@ -218,18 +228,20 @@ describe('Chart', () => {
         it(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
             const onNodeClick = jest.fn();
             chart = await createChartPreset({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
-            await checkNodeClick(chart, onNodeClick, { x: 5, y: 5 });
+            await checkNodeClick(chart, onNodeClick, true, true);
         });
 
         it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
             const onNodeClick = jest.fn();
             chart = await createChartPreset({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
-            await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });
+            await waitForChartStability(chart);
+            await checkNodeClick(chart, onNodeClick, false, true);
         });
 
         it(`should trigger nodeClick event only on mousedown and mouseup`, async () => {
             const onNodeClick = jest.fn();
             chart = await createChartPreset({ hasTooltip: true });
+            await waitForChartStability(chart);
             await checkMouseUpOnlyClick(chart, onNodeClick, testParams.getNodeExitPoint);
         });
     };
@@ -238,7 +250,7 @@ describe('Chart', () => {
         getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
         getTooltipRenderedValues: (params) => [params.datum[params.xKey], params.datum[params.yKey]],
         // Returns a highlighted marker
-        getHighlightNode: (_, series) => series.highlightNode.children[0],
+        getHighlightNode: (_, series) => series.highlightNode.children().next().value,
     } as Parameters<typeof testPointerEvents>[0];
 
     describe(`Line Series Pointer Events`, () => {
@@ -307,7 +319,7 @@ describe('Chart', () => {
         });
     });
 
-    describe(`Column Series Pointer Events`, () => {
+    describe(`Bar Series Pointer Events`, () => {
         testPointerEvents({
             ...cartesianTestParams,
             seriesOptions: {
@@ -346,9 +358,11 @@ describe('Chart', () => {
             getHighlightNode: (chartInstance, series) => {
                 // Returns a highlighted sector
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                return series.highlightGroup.children.find(
-                    (child: any) => child?.datum?.itemId === highlightedDatum.itemId
-                );
+                for (const child of series.highlightGroup.children()) {
+                    if (child.datum?.itemId === highlightedDatum.itemId) {
+                        return child;
+                    }
+                }
             },
         });
     });
@@ -554,7 +568,7 @@ describe('Chart', () => {
             expect(elements.length).toEqual(1);
 
             expect(elements[0].querySelectorAll('canvas')).toHaveLength(1);
-            expect(elements[0].querySelectorAll('.ag-charts-focus')).toHaveLength(1);
+            expect(elements[0].querySelectorAll('.ag-charts-focus-indicator')).toHaveLength(1);
         });
 
         it('should cleanup DOM on destroy()', async () => {
@@ -564,7 +578,7 @@ describe('Chart', () => {
             expect(elements.length).toEqual(0);
 
             expect(document.querySelectorAll('canvas')).toHaveLength(0);
-            expect(document.querySelectorAll('.ag-charts-focus')).toHaveLength(0);
+            expect(document.querySelectorAll('.ag-charts-focus-indicator')).toHaveLength(0);
             expect(document.querySelectorAll('div')).toHaveLength(0);
         });
 
@@ -587,7 +601,7 @@ describe('Chart', () => {
             expect(elements).toHaveLength(1);
 
             expect(elements[0].querySelectorAll('canvas')).toHaveLength(1);
-            expect(elements[0].querySelectorAll('.ag-charts-focus')).toHaveLength(1);
+            expect(elements[0].querySelectorAll('.ag-charts-focus-indicator')).toHaveLength(1);
             expect(elements[0].querySelectorAll('.ag-charts-toolbar')).toHaveLength(0);
         });
     });

@@ -11,7 +11,7 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'heatmap',
-    instanceConstructor: HeatmapSeries,
+    moduleFactory: (ctx) => new HeatmapSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {
@@ -25,7 +25,7 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
     ],
     themeTemplate: HEATMAP_SERIES_THEME,
     paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
-        const defaultColorRange = themeTemplateParameters.get(_Theme.DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
+        const defaultColorRange = themeTemplateParameters.get(_Theme.DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
         const defaultBackgroundColor = themeTemplateParameters.get(_Theme.DEFAULT_BACKGROUND_COLOUR);
         const backgroundFill =
             (Array.isArray(defaultBackgroundColor) ? defaultBackgroundColor[0] : defaultBackgroundColor) ?? 'white';

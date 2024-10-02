@@ -1,60 +1,52 @@
-import type { AgBaseAxisOptions, AgChartClickEvent, AgChartDoubleClickEvent, AgChartOptions } from 'ag-charts-types';
+import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateOptions } from 'ag-charts-types';
 
-import type { ModuleInstance } from '../module/baseModule';
+import type { LayoutContext, ModuleInstance } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
 import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
 import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
-import { Group } from '../scene/group';
-import type { Point } from '../scene/point';
+import { Group, TranslatableGroup } from '../scene/group';
+import { Layer, TranslatableLayer } from '../scene/layer';
+import type { Node } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
 import { groupBy } from '../util/array';
 import { sleep } from '../util/async';
-import { setAttribute } from '../util/attributeUtil';
 import { Debug } from '../util/debug';
 import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
 import { Logger } from '../util/logger';
 import { Mutex } from '../util/mutex';
-import { clamp } from '../util/number';
 import { mergeDefaults, without } from '../util/object';
 import type { TypedEvent, TypedEventListener } from '../util/observable';
 import { Observable } from '../util/observable';
 import { Padding } from '../util/padding';
 import { BaseProperties } from '../util/properties';
-import { ActionOnSet } from '../util/proxy';
-import { debouncedAnimationFrame, debouncedCallback } from '../util/render';
+import { ActionOnSet, ProxyProperty } from '../util/proxy';
+import { debouncedCallback } from '../util/render';
 import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
-import { BOOLEAN, NUMBER, OBJECT, UNION, Validate } from '../util/validation';
+import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
+import { ChartCaptions } from './chartCaptions';
 import { ChartContext } from './chartContext';
 import { ChartHighlight } from './chartHighlight';
 import type { ChartMode } from './chartMode';
-import { JSON_APPLY_PLUGINS } from './chartOptions';
 import { ChartUpdateType } from './chartUpdateType';
 import { DataController } from './data/dataController';
 import { axisRegistry } from './factory/axisRegistry';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
 import { legendRegistry } from './factory/legendRegistry';
 import { seriesRegistry } from './factory/seriesRegistry';
-import type { HighlightChangeEvent } from './interaction/highlightManager';
-import type { PointerInteractionEvent, PointerOffsets } from './interaction/interactionManager';
-import { InteractionState } from './interaction/interactionManager';
-import type { KeyNavEvent } from './interaction/keyNavManager';
-import { REGIONS } from './interaction/regions';
+import { REGIONS, SimpleRegionBBoxProvider } from './interaction/regions';
 import { SyncManager } from './interaction/syncManager';
-import { TooltipManager } from './interaction/tooltipManager';
-import { ZoomManager } from './interaction/zoomManager';
 import { Keyboard } from './keyboard';
-import { makeKeyboardPointerEvent } from './keyboardUtil';
-import { Layers } from './layers';
+import { LayoutElement } from './layout/layoutManager';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import { guessInvalidPositions } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
@@ -62,23 +54,17 @@ import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/ty
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
-import { type PickFocusOutputs, type Series, SeriesGroupingChangedEvent, SeriesNodePickMode } from './series/series';
+import { type Series, SeriesGroupingChangedEvent } from './series/series';
+import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
-import type { SeriesProperties } from './series/seriesProperties';
 import type { SeriesGrouping } from './series/seriesStateManager';
-import type { ISeries, SeriesNodeDatum } from './series/seriesTypes';
-import {
-    DEFAULT_TOOLTIP_CLASS,
-    Tooltip,
-    type TooltipContent,
-    type TooltipEventType,
-    type TooltipPointerEvent,
-} from './tooltip/tooltip';
-import { BaseLayoutProcessor } from './update/baseLayoutProcessor';
+import type { ISeries } from './series/seriesTypes';
+import { Tooltip } from './tooltip/tooltip';
 import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
 import type { UpdateOpts } from './updateService';
+import { ZIndexMap } from './zIndexMap';
 
 const debug = Debug.create(true, 'opts');
 
@@ -88,12 +74,6 @@ export type TransferableResources = {
 };
 
 type SyncModule = ModuleInstance & { enabled?: boolean; syncAxes: (skipSync: boolean) => void };
-
-type PickedNode = {
-    series: Series<any, any>;
-    datum: SeriesNodeDatum;
-    distance: number;
-};
 
 type SeriesChangeType =
     | 'no-op'
@@ -114,20 +94,10 @@ export interface ChartSpecialOverrides {
     window?: Window;
     overrideDevicePixelRatio?: number;
     sceneMode?: 'simple';
-    _type?: string;
+    presetType?: string;
 }
 
 export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
-
-type PointerOffsetsAndHistory = PointerOffsets & { pointerHistory?: PointerOffsets[] };
-
-type ChartFocusData = {
-    hasFocus: boolean;
-    series?: Series<any, any>;
-    seriesIndex: number;
-    datum: any;
-    datumIndex: number;
-};
 
 class SeriesArea extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
@@ -148,17 +118,15 @@ export abstract class Chart extends Observable {
 
     className?: string;
 
-    readonly seriesRoot = new Group({ name: `${this.id}-series-root` });
-    readonly highlightRoot = new Group({
+    readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root` });
+    readonly highlightRoot = new TranslatableLayer({
         name: `${this.id}-highlight-root`,
-        layer: true,
-        zIndex: Layers.SERIES_HIGHLIGHT_ZINDEX,
-        nonEmptyChildDerivedZIndex: true,
+        zIndex: ZIndexMap.SERIES_HIGHLIGHT,
+        deriveZIndexFromChildren: true, // TODO remove feature
     });
-    readonly annotationRoot = new Group({
+    readonly annotationRoot = new TranslatableLayer({
         name: `${this.id}-annotation-root`,
-        layer: true,
-        zIndex: Layers.SERIES_ANNOTATION_ZINDEX,
+        zIndex: ZIndexMap.SERIES_ANNOTATION,
     });
 
     readonly tooltip: Tooltip;
@@ -227,29 +195,32 @@ export abstract class Chart extends Observable {
         return this.ctx.scene.getDataURL(fileFormat);
     }
 
+    toSVG() {
+        return this.ctx.scene.toSVG();
+    }
+
     @Validate(OBJECT)
     readonly padding = new Padding(20);
 
-    @Validate(NUMBER)
-    readonly titlePadding = 0;
-
     @Validate(OBJECT)
     readonly seriesArea = new SeriesArea();
-
-    @Validate(OBJECT)
-    readonly title = new Caption();
-
-    @Validate(OBJECT)
-    readonly subtitle = new Caption();
-
-    @Validate(OBJECT)
-    readonly footnote = new Caption();
 
     @Validate(OBJECT)
     readonly keyboard = new Keyboard();
 
     @Validate(UNION(['standalone', 'integrated'], 'a chart mode'))
     mode: ChartMode = 'standalone';
+
+    private readonly chartCaptions = new ChartCaptions();
+
+    @ProxyProperty('chartCaptions.title')
+    readonly title!: Caption;
+
+    @ProxyProperty('chartCaptions.subtitle')
+    readonly subtitle!: Caption;
+
+    @ProxyProperty('chartCaptions.footnote')
+    readonly footnote!: Caption;
 
     public destroyed = false;
 
@@ -259,15 +230,20 @@ export abstract class Chart extends Observable {
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
     public readonly modulesManager = new ModulesManager();
-    // FIXME: zoomManager should be owned by ctx, but it can't because it is used by CartesianChart.onAxisChange before ctx is initialised
-    public readonly zoomManager = new ZoomManager();
     public readonly ctx: ChartContext;
     protected readonly seriesLayerManager: SeriesLayerManager;
+    protected readonly seriesAreaManager: SeriesAreaManager;
 
     private readonly processors: UpdateProcessor[] = [];
 
     queuedUserOptions: AgChartOptions[] = [];
     chartOptions: ChartOptions;
+
+    /**
+     * Public API for this Chart instance. NOTE: This is initialized after construction by the
+     * wrapping class that implements AgChartInstance.
+     */
+    publicApi?: AgChartInstance;
 
     getOptions() {
         return this.queuedUserOptions.at(-1) ?? this.chartOptions.userOptions;
@@ -279,10 +255,10 @@ export abstract class Chart extends Observable {
         this.chartOptions = options;
 
         const scene: Scene | undefined = resources?.scene;
-        const container = resources?.container;
+        const container = resources?.container ?? options.processedOptions.container ?? undefined;
 
         const root = new Group({ name: 'root' });
-        const titleGroup = new Group({ name: 'titles', layer: true, zIndex: Layers.SERIES_LABEL_ZINDEX });
+        const titleGroup = new Layer({ name: 'titles', zIndex: ZIndexMap.SERIES_LABEL });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;
@@ -295,18 +271,16 @@ export abstract class Chart extends Observable {
         titleGroup.append(this.subtitle.node);
         titleGroup.append(this.footnote.node);
 
-        const { overrideDevicePixelRatio } = options.specialOverrides;
-
         this.tooltip = new Tooltip();
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.highlightRoot, this.annotationRoot);
         const ctx = (this.ctx = new ChartContext(this, {
             scene,
             root,
-            syncManager: new SyncManager(this),
             container,
+            syncManager: new SyncManager(this),
+            pixelRatio: options.specialOverrides.overrideDevicePixelRatio,
             updateCallback: (type = ChartUpdateType.FULL, opts) => this.update(type, opts),
             updateMutex: this.updateMutex,
-            overrideDevicePixelRatio,
         }));
 
         this._destroyFns.push(
@@ -318,13 +292,12 @@ export abstract class Chart extends Observable {
             getLoadingSpinner(this.overlays.loading.getText(ctx.localeManager), ctx.animationManager.defaultDuration);
 
         this.processors = [
-            new BaseLayoutProcessor(this, ctx.layoutService),
             new DataWindowProcessor(this, ctx.dataService, ctx.updateService, ctx.zoomManager),
             new OverlaysProcessor(
                 this,
                 this.overlays,
                 ctx.dataService,
-                ctx.layoutService,
+                ctx.layoutManager,
                 ctx.localeManager,
                 ctx.animationManager,
                 ctx.domManager
@@ -334,64 +307,40 @@ export abstract class Chart extends Observable {
         this.highlight = new ChartHighlight();
         this.container = container;
 
-        const { All } = InteractionState;
         const moduleContext = this.getModuleContext();
-        const seriesRegion = ctx.regionManager.addRegion(
+        ctx.regionManager.addRegion(
             REGIONS.SERIES,
             this.seriesRoot,
+            new SimpleRegionBBoxProvider(this.seriesRoot, () => this.seriesRect ?? BBox.zero),
             this.ctx.axisManager.axisGridGroup
         );
-
-        const horizontalAxesRegion = this.ctx.regionManager.addRegion(REGIONS.HORIZONTAL_AXES);
-        const verticalAxesRegion = this.ctx.regionManager.addRegion(REGIONS.VERTICAL_AXES);
-
+        ctx.regionManager.addRegion(REGIONS.HORIZONTAL_AXES);
+        ctx.regionManager.addRegion(REGIONS.VERTICAL_AXES);
         ctx.regionManager.addRegion('root', root);
 
+        this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
         this._destroyFns.push(
+            ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
+                e.layoutBox.shrink(this.padding.toJson());
+                this.chartCaptions.positionCaptions(e);
+            }),
+            ctx.layoutManager.addListener('layout:complete', (e) => this.chartCaptions.positionAbsoluteCaptions(e)),
+
             ctx.dataService.addListener('data-load', (event) => {
                 this.data = event.data;
             }),
 
-            this.title.registerInteraction(moduleContext),
-            this.subtitle.registerInteraction(moduleContext),
-            this.footnote.registerInteraction(moduleContext),
+            this.title.registerInteraction(moduleContext, 'beforebegin'),
+            this.subtitle.registerInteraction(moduleContext, 'beforebegin'),
+            this.footnote.registerInteraction(moduleContext, 'afterend'),
 
-            ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
-            ctx.regionManager.listenAll('dblclick', (event) => this.onDoubleClick(event)),
-            seriesRegion.addListener(
-                'hover',
-                (event) => this.onMouseMove(event),
-                InteractionState.Default | InteractionState.Annotations
-            ),
-            seriesRegion.addListener(
-                'drag',
-                (event) => this.onMouseMove(event),
-                InteractionState.Default | InteractionState.Annotations
-            ),
-            horizontalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
-            verticalAxesRegion.addListener('hover', (event) => this.onMouseMove(event)),
-            seriesRegion.addListener('leave', (event) => this.onLeave(event)),
-            horizontalAxesRegion.addListener('leave', (event) => this.onLeave(event)),
-            verticalAxesRegion.addListener('leave', (event) => this.onLeave(event)),
-            seriesRegion.addListener('blur', () => this.onBlur()),
-            seriesRegion.addListener('tab', (event) => this.onTab(event)),
-            seriesRegion.addListener('nav-vert', (event) => this.onNavVert(event)),
-            seriesRegion.addListener('nav-hori', (event) => this.onNavHori(event)),
-            seriesRegion.addListener('submit', (event) => this.onSubmit(event)),
-            seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), All),
-            ctx.keyNavManager.addListener('browserfocus', (event) => this.onBrowserFocus(event)),
             ctx.interactionManager.addListener('page-left', () => this.destroy()),
-            ctx.animationManager.addListener('animation-start', () => this.onAnimationStart()),
 
             ctx.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
             }),
-            ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            ctx.zoomManager.addListener('zoom-pan-start', () => this.resetPointer()),
             ctx.zoomManager.addListener('zoom-change', () => {
-                this.resetPointer();
-                this.ctx.focusIndicator.updateBounds(undefined);
-                this.series.map((s) => (s as any).animationState?.transition('updateData'));
+                this.series.forEach((s) => (s as any).animationState?.transition('updateData'));
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
                 this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
             })
@@ -400,9 +349,19 @@ export abstract class Chart extends Observable {
         this.parentResize(ctx.domManager.containerSize);
     }
 
+    private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
+        const { ctx, tooltip, highlight, overlays, seriesRoot } = this;
+        const chartType = this.getChartType();
+        const fireEvent = this.fireEvent.bind(this);
+        const getUpdateType = () => this.performUpdateType;
+        return { fireEvent, getUpdateType, chartType, ctx, tooltip, highlight, overlays, seriesRoot };
+    }
+
     getModuleContext(): ModuleContext {
         return this.ctx;
     }
+
+    abstract getChartType(): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge';
 
     protected getCaptionText(): string {
         return [this.title, this.subtitle, this.footnote]
@@ -411,16 +370,8 @@ export abstract class Chart extends Observable {
             .join('. ');
     }
 
-    getAriaLabel(): string {
-        return this.ctx.localeManager.t('ariaAnnounceChart', {
-            seriesCount: this.series.length,
-            caption: this.getCaptionText(),
-        });
-    }
-
-    private getDatumAriaText(datum: SeriesNodeDatum, html: TooltipContent): string {
-        const description = html.ariaLabel;
-        return datum.series.getDatumAriaText?.(datum, description) ?? description;
+    protected getAriaLabel(): string {
+        return this.ctx.localeManager.t('ariaAnnounceChart', { seriesCount: this.series.length });
     }
 
     resetAnimations() {
@@ -481,20 +432,11 @@ export abstract class Chart extends Observable {
         this.animationRect = undefined;
 
         this.ctx.destroy();
-        this.zoomManager.destroy();
         this.destroyed = true;
 
         Object.freeze(this);
 
         return result;
-    }
-
-    resetPointer(highlightOnly = false) {
-        if (!highlightOnly) {
-            this.ctx.tooltipManager.removeTooltip(this.id);
-        }
-        this.ctx.highlightManager.updateHighlight(this.id);
-        this.lastInteractionEvent = undefined;
     }
 
     requestFactoryUpdate(cb: (chart: Chart) => Promise<void> | void) {
@@ -596,6 +538,7 @@ export abstract class Chart extends Observable {
         let updateDeferred = false;
         switch (performUpdateType) {
             case ChartUpdateType.FULL:
+                this.ctx.updateService.dispatchPreDomUpdate();
                 this.updateDOM();
             // fallthrough
 
@@ -606,7 +549,7 @@ export abstract class Chart extends Observable {
 
             case ChartUpdateType.PROCESS_DATA:
                 await this.processData();
-                this.resetPointer(true);
+                this.seriesAreaManager.dataChanged();
                 updateSplits('🏭');
             // fallthrough
 
@@ -628,16 +571,16 @@ export abstract class Chart extends Observable {
                 await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
 
                 updateSplits('🤔');
+
+                this.updateAriaLabels();
             // fallthrough
 
-            case ChartUpdateType.TOOLTIP_RECALCULATION:
-                if (this.checkUpdateShortcut(ChartUpdateType.TOOLTIP_RECALCULATION)) break;
+            case ChartUpdateType.PRE_SCENE_RENDER:
+                if (this.checkUpdateShortcut(ChartUpdateType.PRE_SCENE_RENDER)) break;
 
-                const tooltipMeta = ctx.tooltipManager.getTooltipMeta(this.id);
+                // Allow any additional pre-rendering processing to happen.
+                ctx.updateService.dispatchPreSceneRender(this.getMinRects());
 
-                if (performUpdateType <= ChartUpdateType.SERIES_UPDATE && tooltipMeta?.lastPointerEvent != null) {
-                    this.handlePointer(tooltipMeta.lastPointerEvent, true);
-                }
                 updateSplits('↖');
             // fallthrough
 
@@ -648,7 +591,7 @@ export abstract class Chart extends Observable {
                 ctx.animationManager.endBatch();
 
                 extraDebugStats['updateShortcutCount'] = this.updateShortcutCount;
-                await ctx.scene.render({ debugSplitTimes: splits, extraDebugStats });
+                await ctx.scene.render({ debugSplitTimes: splits, extraDebugStats, seriesRect: this.seriesRect });
                 this.extraDebugStats = {};
                 for (const key in splits) {
                     delete splits[key];
@@ -707,9 +650,10 @@ export abstract class Chart extends Observable {
 
         const { enabled, tabIndex } = this.keyboard;
         this.ctx.domManager.setTabIndex(enabled ? tabIndex ?? 0 : -1);
+    }
 
-        setAttribute(this.ctx.scene.canvas.element, 'role', 'figure');
-        setAttribute(this.ctx.scene.canvas.element, 'aria-label', this.getAriaLabel());
+    private updateAriaLabels() {
+        this.ctx.domManager.updateCanvasLabel(this.getAriaLabel());
     }
 
     private checkUpdateShortcut(checkUpdateType: ChartUpdateType) {
@@ -787,7 +731,7 @@ export abstract class Chart extends Observable {
         for (const series of newValue) {
             if (oldValue?.includes(series)) continue;
 
-            if (series.rootGroup.parent == null) {
+            if (series.rootGroup.isRoot()) {
                 this.seriesLayerManager.requestGroup(series);
             }
 
@@ -802,8 +746,8 @@ export abstract class Chart extends Observable {
                 get seriesRect() {
                     return chart.seriesRect;
                 },
-                placeLabels() {
-                    return chart.placeLabels();
+                placeLabels(padding?: number) {
+                    return chart.placeLabels(padding);
                 },
             };
 
@@ -811,6 +755,8 @@ export abstract class Chart extends Observable {
             this.addSeriesListeners(series);
             series.addChartEventListeners();
         }
+
+        this.seriesAreaManager?.seriesChanged(newValue);
     }
 
     protected destroySeries(allSeries: Series<any, any>[]): void {
@@ -837,22 +783,10 @@ export abstract class Chart extends Observable {
         series.addEventListener('groupingChanged', this.seriesGroupingChanged);
     }
 
-    updateAllSeriesListeners(): void {
-        this.series.forEach((series) => {
-            series.removeEventListener('nodeClick', this.onSeriesNodeClick);
-            series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
-
-            this.addSeriesListeners(series);
-        });
-    }
-
     protected assignSeriesToAxes() {
-        this.axes.forEach((axis) => {
-            axis.boundSeries = this.series.filter((s) => {
-                const seriesAxis = s.axes[axis.direction];
-                return seriesAxis === axis;
-            });
-        });
+        for (const axis of this.axes) {
+            axis.boundSeries = this.series.filter((s) => s.axes[axis.direction] === axis);
+        }
     }
 
     protected assignAxesToSeries() {
@@ -922,7 +856,6 @@ export abstract class Chart extends Observable {
         if (width == null || height == null || !isFiniteNumber(width) || !isFiniteNumber(height)) return;
 
         if (scene.resize(width, height)) {
-            this.resetPointer();
             animationManager.reset();
 
             let skipAnimations = true;
@@ -937,7 +870,7 @@ export abstract class Chart extends Observable {
 
     async updateData() {
         this.series.forEach((s) => s.setChartData(this.data));
-        const modulePromises = this.modulesManager.mapModules((m) => m.updateData?.({ data: this.data }));
+        const modulePromises = this.modulesManager.mapModules((m) => m.updateData?.(this.data));
         await Promise.all(modulePromises);
     }
 
@@ -955,7 +888,7 @@ export abstract class Chart extends Observable {
 
         const dataController = new DataController(this.mode);
         const seriesPromises = this.series.map((s) => s.processData(dataController));
-        const modulePromises = this.modulesManager.mapModules((m) => m.processData?.({ dataController }));
+        const modulePromises = this.modulesManager.mapModules((m) => m.processData?.(dataController));
         dataController.execute();
         await Promise.all([...seriesPromises, ...modulePromises]);
 
@@ -967,9 +900,9 @@ export abstract class Chart extends Observable {
         this.dataProcessListeners.clear();
     }
 
-    placeLabels(): Map<Series<any, any>, PlacedLabel[]> {
+    placeLabels(padding?: number): Map<Series<any, any>, PlacedLabel[]> {
         const visibleSeries: Series<any, any>[] = [];
-        const data: (readonly PointLabelDatum[])[] = [];
+        const data: PointLabelDatum[][] = [];
         for (const series of this.series) {
             if (!series.visible) continue;
 
@@ -985,12 +918,16 @@ export abstract class Chart extends Observable {
         const { top, right, bottom, left } = this.seriesArea.padding;
         const labels: PlacedLabel[][] =
             seriesRect && data.length > 0
-                ? placeLabels(data, {
-                      x: -left,
-                      y: -top,
-                      width: seriesRect.width + left + right,
-                      height: seriesRect.height + top + bottom,
-                  })
+                ? placeLabels(
+                      data,
+                      {
+                          x: -left,
+                          y: -top,
+                          width: seriesRect.width + left + right,
+                          height: seriesRect.height + top + bottom,
+                      },
+                      padding
+                  )
                 : [];
         return new Map(labels.map((l, i) => [visibleSeries[i], l]));
     }
@@ -1033,490 +970,31 @@ export abstract class Chart extends Observable {
 
     private async processLayout() {
         const oldRect = this.animationRect;
-        await this.performLayout();
+        const { width, height } = this.ctx.scene;
+        const ctx = this.ctx.layoutManager.createContext(width, height);
+
+        await this.performLayout(ctx);
 
         if (oldRect && !this.animationRect?.equals(oldRect)) {
             // Skip animations if the layout changed.
             this.ctx.animationManager.skipCurrentBatch();
         }
-
         this.debug('Chart.performUpdate() - seriesRect', this.seriesRect);
     }
 
-    protected async performLayout() {
-        const { width, height } = this.ctx.scene;
-        let ctx = { shrinkRect: new BBox(0, 0, width, height), positions: {}, padding: {} };
-        ctx = this.ctx.layoutService.dispatchPerformLayout('start-layout', ctx);
-        ctx = this.ctx.layoutService.dispatchPerformLayout('before-series', ctx);
-
-        for (const m of this.modulesManager.modules()) {
-            if (m.performLayout != null) {
-                ctx = await m.performLayout(ctx);
-            }
-        }
-
-        return ctx.shrinkRect;
-    }
-
-    protected hoverRect?: BBox;
+    protected abstract performLayout(ctx: LayoutContext): Promise<void> | void;
 
     // Should be available after the first layout.
     protected seriesRect?: BBox;
     // BBox of the chart area containing animatable elements; if this changes, we skip animations.
     protected animationRect?: BBox;
 
-    // x/y are local canvas coordinates in CSS pixels, not actual pixels
-    private pickNode(
-        point: Point,
-        collection: {
-            series: Series<SeriesNodeDatum, SeriesProperties<object[]>>;
-            pickModes?: SeriesNodePickMode[];
-            maxDistance?: number;
-        }[]
-    ): PickedNode | undefined {
-        const start = performance.now();
-
-        // Iterate through series in reverse, as later declared series appears on top of earlier
-        // declared series.
-        const reverseSeries = [...collection].reverse();
-
-        let result: { series: Series<any, any>; datum: SeriesNodeDatum; distance: number } | undefined;
-        for (const { series, pickModes, maxDistance } of reverseSeries) {
-            if (!series.visible || !series.rootGroup.visible) {
-                continue;
-            }
-            const { match, distance } = series.pickNode(point, pickModes) ?? {};
-            if (!match || distance == null) {
-                continue;
-            }
-            if ((!result || result.distance > distance) && distance <= (maxDistance ?? Infinity)) {
-                result = { series, distance, datum: match };
-            }
-            if (distance === 0) {
-                break;
-            }
-        }
-
-        this.extraDebugStats['pickSeriesNode'] = Math.round(
-            (this.extraDebugStats['pickSeriesNode'] ?? 0) + (performance.now() - start)
-        );
-
-        return result;
-    }
-
-    private pickSeriesNode(point: Point, exactMatchOnly: boolean, maxDistance?: number): PickedNode | undefined {
-        // Disable 'nearest match' options if looking for exact matches only
-        const pickModes = exactMatchOnly ? [SeriesNodePickMode.EXACT_SHAPE_MATCH] : undefined;
-        return this.pickNode(
-            point,
-            this.series.map((series) => {
-                return { series, pickModes, maxDistance };
-            })
-        );
-    }
-
-    private pickTooltip(point: Point): PickedNode | undefined {
-        return this.pickNode(
-            point,
-            this.series.map((series) => {
-                const tooltipRange = series.properties.tooltip.range;
-                let pickModes: SeriesNodePickMode[] | undefined;
-                if (tooltipRange === 'exact') {
-                    pickModes = [SeriesNodePickMode.EXACT_SHAPE_MATCH];
-                } else {
-                    pickModes = undefined;
-                }
-
-                const maxDistance = typeof tooltipRange === 'number' ? tooltipRange : undefined;
-                return { series, pickModes, maxDistance };
-            })
-        );
-    }
-
-    private lastPick?: SeriesNodeDatum;
-
-    protected onMouseMove(event: PointerInteractionEvent<'hover' | 'drag'>): void {
-        this.lastInteractionEvent = event;
-        this.pointerScheduler.schedule();
-
-        this.extraDebugStats['mouseX'] = event.offsetX;
-        this.extraDebugStats['mouseY'] = event.offsetY;
-        this.update(ChartUpdateType.SCENE_RENDER);
-    }
-
-    protected onLeave(event: PointerInteractionEvent<'leave'>): void {
-        const el = event.relatedElement;
-        if (el && this.ctx.domManager.isManagedDOMElement(el)) return;
-
-        this.resetPointer();
-        this.update(ChartUpdateType.SCENE_RENDER);
-        this.ctx.cursorManager.updateCursor('chart');
-    }
-
-    private onBrowserFocus(event: KeyNavEvent<'browserfocus'>): void {
-        if (event.delta > 0) {
-            this.focus.datum = undefined;
-            this.focus.series = undefined;
-            this.focus.datumIndex = 0;
-            this.focus.seriesIndex = 0;
-        } else if (event.delta < 0) {
-            this.focus.datum = undefined;
-            this.focus.series = undefined;
-            this.focus.datumIndex = Infinity;
-            this.focus.seriesIndex = Infinity;
-        }
-    }
-
-    private onAnimationStart() {
-        if (this.focus.hasFocus) {
-            this.onBlur();
-        }
-    }
-
-    private onBlur(): void {
-        this.ctx.focusIndicator.updateBounds(undefined);
-        this.resetPointer();
-        this.focus.hasFocus = false;
-        // Do not consume blur events to allow the browser-focus to leave the canvas element.
-    }
-
-    private onTab(event: KeyNavEvent<'tab'>): void {
-        this.handleFocus(0, 0);
-        event.preventDefault();
-        this.focus.hasFocus = true;
-    }
-
-    private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
-        this.focus.seriesIndex += event.delta;
-        this.handleFocus(event.delta, 0);
-        event.preventDefault();
-    }
-
-    private onNavHori(event: KeyNavEvent<'nav-hori'>): void {
-        this.focus.datumIndex += event.delta;
-        this.handleFocus(0, event.delta);
-        event.preventDefault();
-    }
-
-    private onSubmit(event: KeyNavEvent<'submit'>): void {
-        const { series, datum } = this.focus;
-        const sourceEvent = event.sourceEvent.sourceEvent;
-        if (series !== undefined && datum !== undefined) {
-            series.fireNodeClickEvent(sourceEvent, datum);
-        } else {
-            this.fireEvent<AgChartClickEvent>({
-                type: 'click',
-                event: sourceEvent,
-            });
-        }
-        event.preventDefault();
-    }
-
-    private onContextMenu(event: PointerInteractionEvent<'contextmenu'>): void {
-        this.ctx.tooltipManager.removeTooltip(this.id);
-
-        // If there is already a context menu visible, then re-pick the highlighted node.
-        // We check InteractionState.Default too just in case we were in ContextMenu and the
-        // mouse hasn't moved since (see AG-10233).
-        const { Default, ContextMenu } = InteractionState;
-
-        let pickedNode: SeriesNodeDatum | undefined;
-        if (this.ctx.interactionManager.getState() & (Default | ContextMenu)) {
-            this.checkSeriesNodeRange(event, (_series, datum) => {
-                this.ctx.highlightManager.updateHighlight(this.id);
-                pickedNode = datum;
-            });
-        }
-
-        this.ctx.contextMenuRegistry.dispatchContext('series', event, { pickedNode });
-    }
-
-    protected focus: ChartFocusData = {
-        hasFocus: false,
-        series: undefined,
-        seriesIndex: 0,
-        datumIndex: 0,
-        datum: undefined,
-    };
-
-    private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
-        this.focus.hasFocus = true;
-        const overlayFocus = this.overlays.getFocusInfo(this.ctx.localeManager);
-        if (overlayFocus == null) {
-            this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
-        } else {
-            this.ctx.focusIndicator.updateBounds(overlayFocus.rect);
-            this.ctx.ariaAnnouncementService.announceValue(overlayFocus.text);
-        }
-    }
-
-    protected handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number) {
-        const { series, seriesRect, focus } = this;
-        const visibleSeries = series.filter((s) => s.visible);
-        if (visibleSeries.length === 0) return;
-
-        // Update focused series:
-        focus.seriesIndex = clamp(0, focus.seriesIndex, visibleSeries.length - 1);
-        focus.series = visibleSeries[focus.seriesIndex];
-
-        // Update focused datum:
-        const { datumIndex, seriesIndex: otherIndex } = focus;
-        const pick = focus.series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
-        this.updatePickedFocus(pick);
-    }
-
-    protected updatePickedFocus(pick: PickFocusOutputs | undefined) {
-        const { focus } = this;
-        if (pick === undefined || focus.series === undefined) return;
-
-        const { datum, datumIndex } = pick;
-        focus.datumIndex = datumIndex;
-        focus.datum = datum;
-
-        // Update user interaction/interface:
-        const keyboardEvent = makeKeyboardPointerEvent(this.ctx.focusIndicator, pick);
-        if (keyboardEvent !== undefined) {
-            this.lastInteractionEvent = keyboardEvent;
-            const html = focus.series.getTooltipHtml(datum);
-            const meta = TooltipManager.makeTooltipMeta(this.lastInteractionEvent, datum);
-            const aria = this.getDatumAriaText(datum, html);
-            this.ctx.highlightManager.updateHighlight(this.id, datum);
-            this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
-            this.ctx.ariaAnnouncementService.announceValue('ariaAnnounceHoverDatum', { datum: aria });
-        }
-    }
-
-    private lastInteractionEvent?: TooltipPointerEvent<'hover' | 'drag' | 'keyboard'>;
-    private static isHoverEvent(
-        event: TooltipPointerEvent<TooltipEventType> | undefined
-    ): event is TooltipPointerEvent<'hover'> {
-        return event !== undefined && event.type === 'hover';
-    }
-    private static isDragEvent(
-        event: TooltipPointerEvent<TooltipEventType> | undefined
-    ): event is TooltipPointerEvent<'drag'> {
-        return event !== undefined && event.type === 'drag';
-    }
-    private readonly pointerScheduler = debouncedAnimationFrame(() => {
-        if (!this.lastInteractionEvent) return;
-
-        if (this.performUpdateType <= ChartUpdateType.SERIES_UPDATE) {
-            // Reschedule until the current update processing is complete, if we try to
-            // perform a highlight mid-update then we may not have fresh node data to work with.
-            this.pointerScheduler.schedule();
-            return;
-        }
-
-        this.handlePointer(this.lastInteractionEvent, false);
-        this.lastInteractionEvent = undefined;
-    });
-    protected handlePointer(event: TooltipPointerEvent<'hover' | 'drag' | 'keyboard'>, redisplay: boolean) {
-        // Ignored "pointer event" that comes from a keyboard. We don't need to worry about finding out
-        // which datum to use in the highlight & tooltip because the keyboard just navigates through the
-        // data directly.
-        const state = this.ctx.interactionManager.getState();
-        if (
-            (state !== InteractionState.Default && state !== InteractionState.Annotations) ||
-            (!Chart.isHoverEvent(event) && !Chart.isDragEvent(event))
-        ) {
-            return;
-        }
-
-        const { lastPick, hoverRect } = this;
-        const { offsetX, offsetY } = event;
-
-        const disablePointer = (highlightOnly = false) => {
-            if (lastPick) {
-                this.resetPointer(highlightOnly);
-            }
-        };
-
-        if (redisplay ? this.ctx.animationManager.isActive() : !hoverRect?.containsPoint(offsetX, offsetY)) {
-            disablePointer();
-            return;
-        }
-
-        // Handle node highlighting and tooltip toggling when pointer within `tooltip.range`
-        this.handlePointerTooltip(event, disablePointer);
-
-        // Handle node highlighting and mouse cursor when pointer withing `series[].nodeClickRange`
-        this.handlePointerNode(event);
-    }
-
-    protected handlePointerTooltip(
-        event: TooltipPointerEvent<'hover' | 'drag'>,
-        disablePointer: (highlightOnly?: boolean) => void
-    ) {
-        const { lastPick } = this;
-        const { offsetX, offsetY, targetElement } = event;
-
-        if (
-            targetElement &&
-            this.tooltip.interactive &&
-            this.ctx.domManager.isManagedChildDOMElement(targetElement, 'canvas-overlay', DEFAULT_TOOLTIP_CLASS)
-        ) {
-            // Skip tooltip update if tooltip is interactive, and the source event was for a tooltip HTML element.
-            return;
-        }
-
-        const pick = this.pickTooltip({ x: offsetX, y: offsetY });
-        if (!pick) {
-            this.ctx.tooltipManager.removeTooltip(this.id);
-            if (this.highlight.range === 'tooltip') {
-                disablePointer(true);
-            }
-            return;
-        }
-
-        const isNewDatum = this.highlight.range === 'node' || !lastPick || lastPick !== pick.datum;
-        let html;
-
-        if (isNewDatum) {
-            html = pick.series.getTooltipHtml(pick.datum);
-
-            if (this.highlight.range === 'tooltip') {
-                this.ctx.highlightManager.updateHighlight(this.id, pick.datum);
-            }
-        }
-
-        const tooltipEnabled = this.tooltip.enabled && pick.series.tooltipEnabled;
-        const shouldUpdateTooltip = tooltipEnabled && (!isNewDatum || html !== undefined);
-
-        const meta = TooltipManager.makeTooltipMeta(event, pick.datum);
-
-        if (shouldUpdateTooltip) {
-            this.ctx.tooltipManager.updateTooltip(this.id, meta, html);
-        }
-    }
-
-    protected handlePointerNode(event: PointerOffsetsAndHistory) {
-        const found = this.checkSeriesNodeRange(event, (series, datum) => {
-            if (series.hasEventListener('nodeClick') || series.hasEventListener('nodeDoubleClick')) {
-                this.ctx.cursorManager.updateCursor('chart', 'pointer');
-            }
-
-            if (this.highlight.range === 'node') {
-                this.ctx.highlightManager.updateHighlight(this.id, datum);
-            }
-        });
-
-        if (!found) {
-            this.ctx.cursorManager.updateCursor('chart');
-
-            if (this.highlight.range === 'node') {
-                this.ctx.highlightManager.updateHighlight(this.id);
-            }
-        }
-    }
-
-    protected onClick(event: PointerInteractionEvent<'click'>) {
-        if (this.checkSeriesNodeClick(event)) {
-            this.update(ChartUpdateType.SERIES_UPDATE);
-            event.preventDefault();
-            return;
-        }
-        this.fireEvent<AgChartClickEvent>({ type: 'click', event: event.sourceEvent });
-    }
-
-    protected onDoubleClick(event: PointerInteractionEvent<'dblclick'>) {
-        if (this.checkSeriesNodeDoubleClick(event)) {
-            this.update(ChartUpdateType.SERIES_UPDATE);
-            event.preventDefault();
-            return;
-        }
-        this.fireEvent<AgChartDoubleClickEvent>({ type: 'doubleClick', event: event.sourceEvent });
-    }
-
-    private checkSeriesNodeClick(event: PointerInteractionEvent<'click'>): boolean {
-        return this.checkSeriesNodeRange(event, (series, datum) => series.fireNodeClickEvent(event.sourceEvent, datum));
-    }
-
-    private checkSeriesNodeDoubleClick(event: PointerInteractionEvent<'dblclick'>): boolean {
-        return this.checkSeriesNodeRange(event, (series, datum) =>
-            series.fireNodeDoubleClickEvent(event.sourceEvent, datum)
-        );
-    }
-
-    private checkSeriesNodeRange(
-        event: PointerOffsetsAndHistory & { preventZoomDblClick?: boolean },
-        callback: (series: ISeries<any, any>, datum: SeriesNodeDatum) => void
-    ): boolean {
-        const nearestNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false);
-
-        const datum = nearestNode?.datum;
-        const nodeClickRange = datum?.series.properties.nodeClickRange;
-
-        let pixelRange: number | undefined;
-        if (isFiniteNumber(nodeClickRange)) {
-            pixelRange = nodeClickRange;
-        }
-
-        // Find the node if exactly matched and update the highlight picked node
-        let pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, true);
-        if (pickedNode) {
-            // See: AG-11737#TC3, AG-11676
-            //
-            // The Zoom module's double-click handler resets the zoom, but only if there isn't an
-            // exact match on a node. This is counter-intuitive, and there's no built-in mechanism
-            // in the InteractionManager / RegionManager for the Zoom module to listen to non-exact
-            // series-rect double-clicks. As a workaround, we'll set this boolean to tell the Zoom
-            // double-click handler to ignore the event whenever we are double-clicking exactly on
-            // a node.
-            event.preventZoomDblClick = true;
-        }
-
-        // First check if we should trigger the callback based on nearest node
-        if (datum && nodeClickRange === 'nearest') {
-            callback(datum.series, datum);
-            return true;
-        }
-
-        if (nodeClickRange !== 'exact') {
-            pickedNode = this.pickSeriesNode({ x: event.offsetX, y: event.offsetY }, false, pixelRange);
-        }
-
-        if (!pickedNode) return false;
-
-        // Then if we've picked a node within the pixel range, or exactly, trigger the callback
-        const isPixelRange = pixelRange != null;
-        const exactlyMatched = nodeClickRange === 'exact' && pickedNode.distance === 0;
-
-        if (isPixelRange || exactlyMatched) {
-            const allMatch: boolean =
-                event.pointerHistory === undefined ||
-                event.pointerHistory?.every((pastEvent) => {
-                    const historyPoint = { x: pastEvent.offsetX, y: pastEvent.offsetY };
-                    const historyNode = this.pickSeriesNode(historyPoint, false, pixelRange);
-                    return historyNode?.datum === pickedNode?.datum;
-                });
-            if (allMatch) {
-                callback(pickedNode.series, pickedNode.datum);
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private readonly onSeriesNodeClick = (event: TypedEvent) => {
-        const seriesNodeClickEvent = {
-            ...event,
-            type: 'seriesNodeClick',
-        };
-        Object.defineProperty(seriesNodeClickEvent, 'series', {
-            enumerable: false,
-            // Should display the deprecation warning
-            get: () => (event as any).series,
-        });
-        this.fireEvent(seriesNodeClickEvent);
+        this.fireEvent({ ...event, type: 'seriesNodeClick' });
     };
 
     private readonly onSeriesNodeDoubleClick = (event: TypedEvent) => {
-        const seriesNodeDoubleClick = {
-            ...event,
-            type: 'seriesNodeDoubleClick',
-        };
-        this.fireEvent(seriesNodeDoubleClick);
+        this.fireEvent({ ...event, type: 'seriesNodeDoubleClick' });
     };
 
     private readonly seriesGroupingChanged = (event: TypedEvent) => {
@@ -1524,7 +1002,7 @@ export abstract class Chart extends Observable {
         const { series, seriesGrouping, oldGrouping } = event;
 
         // Short-circuit if series isn't already attached to the scene-graph yet.
-        if (series.rootGroup.parent == null) return;
+        if (series.rootGroup.isRoot()) return;
 
         this.seriesLayerManager.changeGroup({
             internalId: series.internalId,
@@ -1537,37 +1015,6 @@ export abstract class Chart extends Observable {
             oldGrouping,
         });
     };
-
-    changeHighlightDatum(event: HighlightChangeEvent) {
-        const seriesToUpdate: Set<ISeries<any, any>> = new Set();
-        const { series: newSeries = undefined, datum: newDatum } = event.currentHighlight ?? {};
-        const { series: lastSeries = undefined, datum: lastDatum } = event.previousHighlight ?? {};
-
-        if (lastSeries) {
-            seriesToUpdate.add(lastSeries);
-        }
-
-        if (newSeries) {
-            seriesToUpdate.add(newSeries);
-        }
-
-        // Adjust cursor if a specific datum is highlighted, rather than just a series.
-        if (lastSeries?.properties.cursor && lastDatum) {
-            this.ctx.cursorManager.updateCursor(lastSeries.id);
-        }
-        if (newSeries?.properties.cursor && newDatum) {
-            this.ctx.cursorManager.updateCursor(newSeries.id, newSeries.properties.cursor);
-        }
-
-        this.lastPick = event.currentHighlight;
-
-        const updateAll = newSeries == null || lastSeries == null;
-        if (updateAll) {
-            this.update(ChartUpdateType.SERIES_UPDATE);
-        } else {
-            this.update(ChartUpdateType.SERIES_UPDATE, { seriesToUpdate });
-        }
-    }
 
     async waitForUpdate(timeoutMs = 10_000, failOnTimeout = false): Promise<void> {
         const start = performance.now();
@@ -1665,6 +1112,7 @@ export abstract class Chart extends Observable {
             'legend.listeners',
             'navigator.miniChart.series',
             'navigator.miniChart.label',
+            'locale.localeText',
             'axes',
             'topology',
             'nodes',
@@ -1680,7 +1128,7 @@ export abstract class Chart extends Observable {
 
         let forceNodeDataRefresh = false;
         let seriesStatus: SeriesChangeType = 'no-op';
-        if (deltaOptions.series?.length) {
+        if (deltaOptions.series != null) {
             seriesStatus = this.applySeries(this, deltaOptions.series, oldOpts?.series);
             forceNodeDataRefresh = true;
         }
@@ -1697,8 +1145,8 @@ export abstract class Chart extends Observable {
         if (deltaOptions.legend?.listeners && this.modulesManager.isEnabled('legend')) {
             Object.assign((this as any).legend.listeners, deltaOptions.legend.listeners);
         }
-        if (deltaOptions.listeners) {
-            this.updateAllSeriesListeners();
+        if (deltaOptions.locale?.localeText) {
+            this.modulesManager.getModule<any>('locale').localeText = deltaOptions.locale?.localeText;
         }
 
         this.chartOptions = newChartOptions;
@@ -1732,22 +1180,32 @@ export abstract class Chart extends Observable {
             forceNodeDataRefresh,
         });
         this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
+
+        if (deltaOptions.initialState || deltaOptions.theme) {
+            this.applyInitialState(newChartOptions.userOptions.initialState);
+        }
     }
 
-    applyInitialState() {
+    private applyInitialState(initialState?: AgInitialStateOptions) {
         const {
-            ctx: { annotationManager, stateManager },
+            ctx: { annotationManager, historyManager, stateManager },
         } = this;
 
-        const options = this.getOptions();
-
-        if (options.initialState?.annotations != null) {
-            const annotations = options.initialState.annotations.map((annotation) => {
+        if (initialState?.annotations != null) {
+            const annotations = initialState.annotations.map((annotation) => {
                 const annotationTheme = annotationManager.getAnnotationTypeStyles(annotation.type);
                 return mergeDefaults(annotation, annotationTheme);
             });
 
             stateManager.setState(annotationManager, annotations);
+        }
+
+        // if (initialState?.zoom != null) {
+        //     stateManager.setState(zoomManager, initialState.zoom);
+        // }
+
+        if (initialState != null) {
+            historyManager.clear();
         }
     }
 
@@ -1796,6 +1254,12 @@ export abstract class Chart extends Observable {
             'axes[].label',
         ]);
 
+        const series = miniChart.series as Series<any, any>[];
+        for (const s of series) {
+            // AG-12681
+            s.properties.id = undefined;
+        }
+
         const axes = miniChart.axes as ChartAxis[];
         const horizontalAxis = axes.find((axis) => axis.direction === ChartAxisDirection.X);
 
@@ -1838,7 +1302,7 @@ export abstract class Chart extends Observable {
             if (shouldBeEnabled === this.modulesManager.isEnabled(module)) continue;
 
             if (shouldBeEnabled) {
-                this.modulesManager.addModule(module, (m) => new m.instanceConstructor(this.getModuleContext()));
+                this.modulesManager.addModule(module, (m) => m.moduleFactory(this.getModuleContext()));
 
                 if (module.type === 'legend') {
                     this.modulesManager.getModule<ChartLegend>(module)?.attachLegend(this.ctx.scene);
@@ -1856,6 +1320,13 @@ export abstract class Chart extends Observable {
         return modulesChanged;
     }
 
+    private initSeriesDeclarationOrder(series: Series<any, any>[]) {
+        // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
+        for (let idx = 0; idx < series.length; idx++) {
+            series[idx]._declarationOrder = idx;
+        }
+    }
+
     private applySeries(
         chart: { series: Series<any, any>[] },
         optSeries: AgChartOptions['series'],
@@ -1869,6 +1340,7 @@ export abstract class Chart extends Observable {
         if (matchResult.status === 'no-overlap') {
             debug(`Chart.applySeries() - creating new series instances, status: ${matchResult.status}`, matchResult);
             chart.series = optSeries.map((opts) => this.createSeries(opts));
+            this.initSeriesDeclarationOrder(chart.series);
             return 'replaced';
         }
 
@@ -1885,11 +1357,12 @@ export abstract class Chart extends Observable {
             isUpdated ||= change.status !== 'no-op';
 
             switch (change.status) {
-                case 'add':
+                case 'add': {
                     const newSeries = this.createSeries(change.opts);
                     seriesInstances.push(newSeries);
                     debug(`Chart.applySeries() - created new series`, newSeries);
                     break;
+                }
 
                 case 'remove':
                     debug(`Chart.applySeries() - removing series at previous idx ${change.idx}`, change.series);
@@ -1902,18 +1375,16 @@ export abstract class Chart extends Observable {
 
                 case 'series-grouping':
                 case 'update':
-                default:
+                default: {
                     const { series, diff, idx } = change;
                     debug(`Chart.applySeries() - applying series diff previous idx ${idx}`, diff, series);
                     this.applySeriesValues(series, diff);
                     series.markNodeDataDirty();
                     seriesInstances.push(series);
+                }
             }
         }
-        // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
-        for (let idx = 0; idx < seriesInstances.length; idx++) {
-            seriesInstances[idx]._declarationOrder = idx;
-        }
+        this.initSeriesDeclarationOrder(seriesInstances);
 
         debug(`Chart.applySeries() - final series instances`, seriesInstances);
         chart.series = seriesInstances;
@@ -1955,7 +1426,7 @@ export abstract class Chart extends Observable {
                 debug(`Chart.applyAxes() - applying axis diff idx ${index}`, axisDiff);
 
                 const path = `axes[${index}]`;
-                jsonApply(axis, axisDiff, { ...JSON_APPLY_PLUGINS, path, skip });
+                jsonApply(axis, axisDiff, { path, skip });
             });
             return true;
         }
@@ -1963,12 +1434,12 @@ export abstract class Chart extends Observable {
         debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
         chart.axes = this.createAxis(axes, skip);
 
-        const axisGroups: { [Key in ChartAxisDirection]: Group[] } = {
+        const axisGroups: { [Key in ChartAxisDirection]: { id: string; node: Node }[] } = {
             [ChartAxisDirection.X]: [],
             [ChartAxisDirection.Y]: [],
         };
 
-        chart.axes.forEach((axis) => axisGroups[axis.direction].push(axis.getAxisGroup()));
+        chart.axes.forEach((axis) => axisGroups[axis.direction].push({ id: axis.id, node: axis.getRegionNode() }));
 
         if (registerRegions) {
             this.ctx.regionManager.updateRegion(REGIONS.HORIZONTAL_AXES, ...axisGroups[ChartAxisDirection.X]);
@@ -1991,7 +1462,7 @@ export abstract class Chart extends Observable {
 
         for (const module of moduleRegistry.byType<SeriesOptionModule>('series-option')) {
             if (module.optionsKey in options && module.seriesTypes.includes(series.type)) {
-                moduleMap.addModule(module, (m) => new m.instanceConstructor(moduleContext));
+                moduleMap.addModule(module, (m) => m.moduleFactory(moduleContext));
             }
         }
     }
@@ -2039,7 +1510,7 @@ export abstract class Chart extends Observable {
             const axisOptions = options[index];
             const axis = axisRegistry.create(axisOptions.type, moduleContext);
             this.applyAxisModules(axis, axisOptions);
-            jsonApply(axis, axisOptions, { ...JSON_APPLY_PLUGINS, path: `axes[${index}]`, skip });
+            jsonApply(axis, axisOptions, { path: `axes[${index}]`, skip });
 
             newAxes.push(axis);
         }
@@ -2059,7 +1530,7 @@ export abstract class Chart extends Observable {
             if (shouldBeEnabled === moduleMap.isEnabled(module)) continue;
 
             if (shouldBeEnabled) {
-                moduleMap.addModule(module, (m) => new m.instanceConstructor(moduleContext));
+                moduleMap.addModule(module, (m) => m.moduleFactory(moduleContext));
                 (axis as any)[module.optionsKey] = moduleMap.getModule(module); // TODO remove
             } else {
                 moduleMap.removeModule(module);

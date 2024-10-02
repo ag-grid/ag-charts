@@ -3,7 +3,6 @@ import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from 'ag-c
 import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
-import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import { Logger } from '../../util/logger';
 import type { TimeInterval } from '../../util/time/interval';
@@ -35,7 +34,8 @@ export const validateCrossLineValues = (
     type: 'line' | 'range',
     value: any,
     range: any,
-    scale: Scale<any, number>
+    scale: Scale<any, number>,
+    visibilityCheck?: () => boolean
 ): boolean => {
     const lineCrossLine = type === 'line' && value !== undefined;
     const rangeCrossLine = type === 'range' && range !== undefined;
@@ -50,7 +50,7 @@ export const validateCrossLineValues = (
     const validEnd = checkDatum(end, isContinuous) && !isNaN(scale.convert(end));
 
     if ((lineCrossLine && validStart) || (rangeCrossLine && validStart && validEnd)) {
-        return true;
+        return visibilityCheck?.() ?? true;
     }
 
     const message = [`Expecting crossLine`];
@@ -74,8 +74,8 @@ export const validateCrossLineValues = (
 };
 
 export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
-    calculateLayout(visible: boolean, reversedAxis?: boolean): BBox | undefined;
-    calculatePadding?: (padding: Partial<Record<AgCrossLineLabelPosition, number>>) => void;
+    calculateLayout?(visible: boolean, reversedAxis?: boolean): void;
+    calculatePadding?(padding: Partial<Record<AgCrossLineLabelPosition, number>>): void;
     clippedRange: [number, number];
     direction: ChartAxisDirection;
     enabled?: boolean;
@@ -98,4 +98,5 @@ export interface CrossLine<LabelType = AgBaseCrossLineLabelOptions> {
     type?: CrossLineType;
     update(visible: boolean): void;
     value?: any;
+    set(properties: object): void;
 }

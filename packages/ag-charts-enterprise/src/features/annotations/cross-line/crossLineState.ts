@@ -1,37 +1,62 @@
 import { type Direction, _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { StateClickEvent } from '../annotationTypes';
-import { type CrossLineAnnotation, HorizontalLineAnnotation, VerticalLineAnnotation } from './crossLineProperties';
-import type { CrossLine } from './crossLineScene';
+import { AnnotationType, type Point } from '../annotationTypes';
+import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
+import { type CrossLineProperties, HorizontalLineProperties, VerticalLineProperties } from './crossLineProperties';
+import type { CrossLineScene } from './crossLineScene';
 
 export function isHorizontalAxis(region: any) {
     return region === 'horizontal-axes';
 }
 
-export class CrossLineStateMachine extends _ModuleSupport.StateMachine<'start', 'click' | 'cancel'> {
+const { StateMachine } = _ModuleSupport;
+
+interface CrossLineStateMachineContext extends Omit<AnnotationsStateMachineContext, 'create' | 'node'> {
+    create: (datum: CrossLineProperties) => void;
+    node: () => CrossLineScene | undefined;
+    showAnnotationOptions: () => void;
+}
+
+export class CrossLineStateMachine extends StateMachine<
+    'start' | 'waiting-first-render',
+    'click' | 'cancel' | 'render' | 'reset'
+> {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    constructor(
-        direction: Direction,
-        appendDatum: (datum: CrossLineAnnotation, direction?: any) => void,
-        onExit: () => void
-    ) {
-        const onClick = ({ point }: StateClickEvent<CrossLineAnnotation, CrossLine>) => {
+    constructor(direction: Direction, ctx: CrossLineStateMachineContext) {
+        const onClick = ({ point }: { point: () => Point }) => {
             const isHorizontal = direction === 'horizontal';
-            const datum = isHorizontal ? new HorizontalLineAnnotation() : new VerticalLineAnnotation();
+            const datum = isHorizontal ? new HorizontalLineProperties() : new VerticalLineProperties();
 
-            datum.set({ value: isHorizontal ? point.y : point.x });
-            appendDatum(datum);
+            const { x, y } = point();
+            datum.set({ value: isHorizontal ? y : x });
+            ctx.create(datum);
+
+            ctx.recordAction(
+                `Create ${isHorizontal ? AnnotationType.HorizontalLine : AnnotationType.VerticalLine} annotation`
+            );
+        };
+
+        const actionFirstRender = () => {
+            ctx.node()?.toggleActive(true);
+            ctx.showAnnotationOptions();
+            ctx.update();
         };
 
         super('start', {
             start: {
                 click: {
-                    target: '__parent',
+                    target: 'waiting-first-render',
                     action: onClick,
                 },
-                cancel: '__parent',
-                onExit,
+                reset: StateMachine.parent,
+                cancel: StateMachine.parent,
+            },
+            'waiting-first-render': {
+                render: {
+                    target: StateMachine.parent,
+                    action: actionFirstRender,
+                },
             },
         });
     }

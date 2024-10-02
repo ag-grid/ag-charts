@@ -1,0 +1,129 @@
+@use 'design-system' as *;
+
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-size-4;
+    align-items: center;
+}
+
+.tabContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: $spacing-size-4;
+    padding: $spacing-size-1;
+    max-width: 100%;
+    margin-top: $spacing-size-6;
+    margin-bottom: $spacing-size-6;
+}
+
+.tabButton {
+    position: relative;
+    width: auto;
+    padding: $spacing-size-2 $spacing-size-1;
+    color: var(--color-fg-primary);
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
+    border-radius: var(--radius-none);
+    font-weight: var(--text-regular);
+    overflow: hidden;
+
+    &::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: var(--color-brand-400);
+        transition: transform $transition-default-timing;
+    }
+
+    &:hover,
+    &.activeTabButton {
+        background: transparent;
+        color: var(--color-brand-600);
+
+        #{$selector-darkmode} & {
+            color: var(--color-brand-200);
+        }
+
+        .tabButtonIcon,
+        .activeTabButtonIcon {
+            fill: var(--color-brand-600) !important;
+            #{$selector-darkmode} & {
+                fill: var(--color-brand-200) !important;
+            }
+        }
+
+        &::after {
+            transform: translateY(-2px);
+        }
+    }
+}
+
+.tabButtonIcon,
+.activeTabButtonIcon {
+    --icon-size: #{$spacing-size-6} !important;
+
+    fill: var(--color-text-primary) !important;
+    margin-right: $spacing-size-2 !important;
+}
+
+.activeTabButton {
+    #{$selector-darkmode} & {
+        color: var(--color-brand-200);
+    }
+}
+
+.activeTabButtonIcon {
+    fill: var(--color-brand-600) !important;
+
+    #{$selector-darkmode} & {
+        fill: var(--color-brand-200) !important;
+    }
+}
+
+.exampleContainer {
+    position: relative;
+    width: 100%;
+
+    :global(.logomark) {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -100%) scale(2);
+    }
+}
+
+.sideContainer {
+    display: flex;
+    flex-direction: row;
+    gap: $spacing-size-4;
+    width: 100%;
+}
+
+.verticalTabContainer {
+    max-height: 625px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 16px;
+    background: var(--color-brand-200);
+    border-radius: var(--radius-4xl);
+    padding: $spacing-size-1;
+    min-width: 160px;
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    // Add padding to the first and last buttons
+    & > :first-child {
+        margin-top: $spacing-size-20;
+    }
+
+    & > :last-child {
+        padding-bottom: $spacing-size-4;
+    }
+}

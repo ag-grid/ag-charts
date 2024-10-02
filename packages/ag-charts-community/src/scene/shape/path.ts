@@ -1,4 +1,5 @@
-import type { DistantObject } from '../../util//nearest';
+import type { DistantObject } from '../../util/nearest';
+import { nodeCount } from '../debug.util';
 import { ExtendedPath2D } from '../extendedPath2D';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
@@ -29,7 +30,7 @@ export class Path extends Shape implements DistantObject {
     private _clipPath?: ExtendedPath2D;
 
     @ScenePathChangeDetection()
-    clipMode?: 'normal' | 'punch-out';
+    clip: boolean = false;
 
     @ScenePathChangeDetection()
     set clipX(value: number) {
@@ -54,7 +55,7 @@ export class Path extends Shape implements DistantObject {
         if (this._dirtyPath !== value) {
             this._dirtyPath = value;
             if (value) {
-                this.markDirty(this, RedrawType.MAJOR);
+                this.markDirty(RedrawType.MAJOR);
             }
         }
     }
@@ -72,18 +73,19 @@ export class Path extends Shape implements DistantObject {
     }
 
     isPointInPath(x: number, y: number): boolean {
-        const point = this.transformPoint(x, y);
-        return this.path.closedPath && this.path.isPointInPath(point.x, point.y);
+        return this.path.closedPath && this.path.isPointInPath(x, y);
     }
 
     distanceSquared(x: number, y: number): number {
-        const point = this.transformPoint(x, y);
-        return this.distanceSquaredTransformedPoint(point.x, point.y);
+        return this.distanceSquaredTransformedPoint(x, y);
     }
 
-    computeSVGDataPath(): string {
-        const { x, y } = this.inverseTransformPoint(0, 0);
-        return this.path.computeSVGDataPath(x, y);
+    svgPathData(transform?: (x: number, y: number) => { x: number; y: number }): string {
+        if (this.dirtyPath) {
+            this.updatePath();
+            this.dirtyPath = false;
+        }
+        return this.path.toSVG(transform);
     }
 
     protected distanceSquaredTransformedPoint(x: number, y: number): number {
@@ -106,19 +108,16 @@ export class Path extends Shape implements DistantObject {
         const { ctx, forceRender, stats } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {
-            if (stats) stats.nodesSkipped += this.nodeCount.count;
+            if (stats) stats.nodesSkipped += nodeCount(this).count;
             return;
         }
-
-        this.computeTransformMatrix();
-        this.matrix.toContext(ctx);
 
         if (this.dirtyPath || this.isDirtyPath()) {
             this.updatePath();
             this.dirtyPath = false;
         }
 
-        if (!isNaN(this._clipX) && !isNaN(this._clipY) && this.clipMode != null) {
+        if (this.clip && !isNaN(this._clipX) && !isNaN(this._clipY)) {
             ctx.save();
 
             // AG-10477 avoid clipping thick lines that touch the top, bottom and left edges of the clip rect
@@ -127,25 +126,17 @@ export class Path extends Shape implements DistantObject {
             this._clipPath.clear();
             this._clipPath.rect(-margin, -margin, this._clipX + margin, this._clipY + margin + margin);
 
-            if (this.clipMode === 'normal') {
-                // Bound the shape rendered to the clipping path.
-                ctx.clip(this._clipPath?.getPath2D());
-            }
+            // Bound the shape rendered to the clipping path.
+            ctx.clip(this._clipPath?.getPath2D());
 
             if (this._clipX > 0 && this._clipY > 0) {
                 this.drawPath(ctx);
             }
 
-            if (this.clipMode === 'punch-out') {
-                // Bound the shape rendered to the clipping path.
-                ctx.clip(this._clipPath?.getPath2D());
-                // Fallback values, but practically these should never be used.
-                const { x = -10000, y = -10000, width = 20000, height = 20000 } = this.computeBBox() ?? {};
-                ctx.clearRect(x, y, width, height);
-            }
-
             ctx.restore();
         } else {
+            this._clipPath = undefined;
+
             this.drawPath(ctx);
         }
 
@@ -155,5 +146,24 @@ export class Path extends Shape implements DistantObject {
 
     protected drawPath(ctx: any) {
         this.fillStroke(ctx, this.path.getPath2D());
+    }
+
+    override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
+        if (!this.visible) return;
+
+        const element = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+        element.setAttribute('d', this.svgPathData());
+        element.setAttribute('fill', typeof this.fill === 'string' ? this.fill : 'none');
+        element.setAttribute('fill-opacity', String(this.fillOpacity));
+        if (this.stroke != null) {
+            element.setAttribute('stroke', this.stroke);
+            element.setAttribute('stroke-opacity', String(this.strokeOpacity));
+            element.setAttribute('stroke-width', String(this.strokeWidth));
+        }
+
+        return {
+            elements: [element],
+        };
     }
 }

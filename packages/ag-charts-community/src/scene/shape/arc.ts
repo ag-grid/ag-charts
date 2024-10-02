@@ -77,19 +77,14 @@ export class Arc extends Path {
         }
     }
 
-    override computeBBox(): BBox {
+    protected override computeBBox(): BBox {
         // Only works with full arcs (circles) and untransformed ellipses.
         return new BBox(this.centerX - this.radius, this.centerY - this.radius, this.radius * 2, this.radius * 2);
     }
 
     override isPointInPath(x: number, y: number): boolean {
-        const point = this.transformPoint(x, y);
-        const bbox = this.computeBBox();
+        const bbox = this.getBBox();
 
-        return (
-            this.type !== ArcType.Open &&
-            bbox.containsPoint(point.x, point.y) &&
-            this.path.isPointInPath(point.x, point.y)
-        );
+        return this.type !== ArcType.Open && bbox.containsPoint(x, y) && this.path.isPointInPath(x, y);
     }
 }

@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { PolarCrossLine } from './polarCrossLine';
 
 const { ChartAxisDirection, validateCrossLineValues } = _ModuleSupport;
-const { Path, Sector, Text } = _Scene;
+const { Path, Sector, RotatableText, ContinuousScale } = _Scene;
 const { normalizeAngle360, isNumberEqual } = _Util;
 export class AngleCrossLine extends PolarCrossLine {
     static readonly className = 'AngleCrossLine';
@@ -13,7 +13,7 @@ export class AngleCrossLine extends PolarCrossLine {
     private readonly polygonNode = new Path();
     private readonly sectorNode = new Sector();
     private readonly lineNode = new Path();
-    private readonly labelNode = new Text();
+    private readonly labelNode = new RotatableText();
 
     constructor() {
         super();
@@ -27,7 +27,18 @@ export class AngleCrossLine extends PolarCrossLine {
     update(visible: boolean) {
         const { scale, shape, type, value, range } = this;
 
-        if (!scale || !type || !validateCrossLineValues(type, value, range, scale)) {
+        const visibilityCheck = () => {
+            if (!ContinuousScale.is(scale)) {
+                return true;
+            }
+
+            const [start, end] = range ?? [value, undefined];
+            const domain = scale.getDomain?.() ?? scale.domain;
+            // TODO support clipping if only end is out-of-bounds
+            return start >= domain[0] && start <= domain[1] && (type === 'line' || (end >= start && end <= domain[1]));
+        };
+
+        if (!scale || !type || !validateCrossLineValues(type, value, range, scale, visibilityCheck)) {
             this.group.visible = false;
             this.labelGroup.visible = false;
             return;

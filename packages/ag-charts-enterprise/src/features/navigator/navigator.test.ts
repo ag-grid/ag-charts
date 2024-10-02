@@ -5,6 +5,7 @@ import {
     type CartesianTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    expectWarningsCalls,
     extractImageData,
     setupMockCanvas,
     setupMockConsole,
@@ -107,6 +108,10 @@ const NAVIGATOR_MINICHART_EXAMPLES: Record<string, CartesianTestCase> = {
             },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['number', 'category'], seriesTypes: ['line', 'area'] }),
+        // warnings: [
+        //     ['AG Charts - Property [navigator.min] is deprecated. Use [initialState.zoom.ratioX] instead.'],
+        //     ['AG Charts - Property [navigator.max] is deprecated. Use [initialState.zoom.ratioX] instead.'],
+        // ],
     },
 };
 
@@ -134,6 +139,8 @@ describe('Navigator', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
+
+                if (example.warnings) expectWarningsCalls().toEqual(example.warnings);
             }
         );
 
@@ -152,6 +159,8 @@ describe('Navigator', () => {
 
                 chart = AgCharts.create(options);
                 await compare();
+
+                if (example.warnings) expectWarningsCalls().toEqual(example.warnings);
             }
         );
     });

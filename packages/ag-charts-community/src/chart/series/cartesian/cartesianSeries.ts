@@ -3,7 +3,7 @@ import { resetMotion } from '../../../motion/resetMotion';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { LogScale } from '../../../scale/logScale';
 import { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
+import { Group, TranslatableGroup } from '../../../scene/group';
 import type { ZIndexSubOrder } from '../../../scene/layersManager';
 import type { Node, NodeWithOpacity } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
@@ -15,14 +15,14 @@ import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
 import { StateMachine } from '../../../util/stateMachine';
 import { isFunction } from '../../../util/type-guards';
-import { STRING, Validate } from '../../../util/validation';
+import { BOOLEAN, STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../../interaction/chartEventManager';
-import { Layers } from '../../layers';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
+import { ZIndexMap } from '../../zIndexMap';
 import { DataModelSeries } from '../dataModelSeries';
 import type {
     SeriesConstructorOpts,
@@ -50,7 +50,7 @@ type CartesianSeriesOpts<
     TDatum extends CartesianSeriesNodeDatum,
     TLabel extends SeriesNodeDatum,
 > = {
-    pathsPerSeries: number;
+    pathsPerSeries: string[];
     pathsZIndexSubOrderOffset: number[];
     hasMarkers: boolean;
     hasHighlightedLabels: boolean;
@@ -127,6 +127,9 @@ export interface CartesianAnimationData<
 export abstract class CartesianSeriesProperties<T extends object> extends SeriesProperties<T> {
     @Validate(STRING, { optional: true })
     legendItemName?: string;
+
+    @Validate(BOOLEAN, { optional: true })
+    pickOutsideVisibleMinorAxis = false;
 }
 
 export interface CartesianSeriesNodeDataContext<
@@ -160,21 +163,21 @@ export abstract class CartesianSeries<
     private readonly dataNodeGroup = this.contentGroup.appendChild(
         new Group({
             name: `${this.id}-series-dataNodes`,
-            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndex: ZIndexMap.SERIES_LAYER,
             zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
         })
     );
     private readonly markerGroup = this.contentGroup.appendChild(
         new Group({
             name: `${this.id}-series-markers`,
-            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndex: ZIndexMap.SERIES_LAYER,
             zIndexSubOrder: this.getGroupZIndexSubOrder('marker'),
         })
     );
     override readonly labelGroup = this.contentGroup.appendChild(
-        new Group({
+        new TranslatableGroup({
             name: `${this.id}-series-labels`,
-            zIndex: Layers.SERIES_LABEL_ZINDEX,
+            zIndex: ZIndexMap.SERIES_LABEL,
             zIndexSubOrder: this.getGroupZIndexSubOrder('labels'),
         })
     );
@@ -206,7 +209,7 @@ export abstract class CartesianSeries<
     protected animationState: StateMachine<CartesianAnimationState, CartesianAnimationEvent>;
 
     protected constructor({
-        pathsPerSeries = 1,
+        pathsPerSeries = ['path'],
         hasMarkers = false,
         hasHighlightedLabels = false,
         pathsZIndexSubOrderOffset = [],
@@ -243,9 +246,9 @@ export abstract class CartesianSeries<
         };
 
         this.paths = [];
-        for (let index = 0; index < pathsPerSeries; index++) {
-            this.paths[index] = new Path();
-            this.paths[index].zIndex = Layers.SERIES_LAYER_ZINDEX;
+        for (let index = 0; index < pathsPerSeries.length; index++) {
+            this.paths[index] = new Path({ name: `${this.id}-${pathsPerSeries[index]}` });
+            this.paths[index].zIndex = ZIndexMap.SERIES_LAYER;
             this.paths[index].zIndexSubOrder = this.getGroupZIndexSubOrder('paths', index);
             this.contentGroup.appendChild(this.paths[index]);
         }
@@ -286,7 +289,13 @@ export abstract class CartesianSeries<
                 waiting: {
                     update: {
                         target: 'ready',
-                        action: (data) => this.animateWaitingUpdateReady(data),
+                        action: (data) => {
+                            if (this.ctx.animationManager.isSkipped()) {
+                                this.resetAllAnimation(data);
+                            } else {
+                                this.animateWaitingUpdateReady(data);
+                            }
+                        },
                     },
                     reset: 'empty',
                     skip: 'ready',
@@ -462,7 +471,7 @@ export abstract class CartesianSeries<
         if (hasMarkers) {
             markerGroup.opacity = opacity;
             markerGroup.zIndex =
-                dataNodeGroup.zIndex >= Layers.SERIES_LAYER_ZINDEX ? dataNodeGroup.zIndex : dataNodeGroup.zIndex + 1;
+                dataNodeGroup.zIndex >= ZIndexMap.SERIES_LAYER ? dataNodeGroup.zIndex : dataNodeGroup.zIndex + 1;
             markerGroup.visible = visible;
         }
 
@@ -590,13 +599,13 @@ export abstract class CartesianSeries<
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         const { x, y } = point;
-        const { axes, rootGroup, _contextNodeData: contextNodeData } = this;
+        const { axes, _contextNodeData: contextNodeData } = this;
         if (!contextNodeData) return;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        const hitPoint = rootGroup.transformPoint(x, y);
+        const hitPoint = { x, y };
 
         let minDistance = Infinity;
         let closestDatum: SeriesNodeDatum | undefined;
@@ -640,42 +649,40 @@ export abstract class CartesianSeries<
         requireCategoryAxis: boolean
     ): SeriesNodePickMatch | undefined {
         const { x, y } = point;
-        const { axes, rootGroup, _contextNodeData: contextNodeData } = this;
+        const { axes, _contextNodeData: contextNodeData } = this;
+        const { pickOutsideVisibleMinorAxis } = this.properties;
         if (!contextNodeData) return;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
         // Prefer to start search with any available category axis.
-        const directions = [xAxis, yAxis]
-            .filter((a): a is CategoryAxis => a instanceof CategoryAxis)
-            .map((a) => a.direction);
-        if (requireCategoryAxis && directions.length === 0) {
-            return;
-        }
+        const directions = [xAxis, yAxis].filter(CategoryAxis.is).map((a) => a.direction);
+        if (requireCategoryAxis && directions.length === 0) return;
 
         // Default to X-axis unless we found a suitable category axis.
-        const [primaryDirection = ChartAxisDirection.X] = directions;
+        const [majorDirection = ChartAxisDirection.X] = directions;
 
-        const hitPoint = rootGroup.transformPoint(x, y);
-        const hitPointCoords =
-            primaryDirection === ChartAxisDirection.X ? [hitPoint.x, hitPoint.y] : [hitPoint.y, hitPoint.x];
+        const hitPointCoords = [x, y];
+        if (majorDirection !== ChartAxisDirection.X) hitPointCoords.reverse();
 
         const minDistance = [Infinity, Infinity];
         let closestDatum: SeriesNodeDatum | undefined;
 
         for (const datum of contextNodeData.nodeData) {
             const { x: datumX = NaN, y: datumY = NaN } = datum.point ?? datum.midPoint ?? {};
-            if (isNaN(datumX) || isNaN(datumY) || datum.missing === true) {
-                continue;
-            }
+            if (isNaN(datumX) || isNaN(datumY) || datum.missing === true) continue;
 
-            const isInRange = xAxis?.inRange(datumX) && yAxis?.inRange(datumY);
-            if (!isInRange) {
-                continue;
+            const visible = [xAxis?.inRange(datumX), yAxis?.inRange(datumY)];
+            if (majorDirection !== ChartAxisDirection.X) {
+                visible.reverse();
             }
+            if (!visible[0] || (!pickOutsideVisibleMinorAxis && !visible[1])) continue;
 
-            const datumPoint = primaryDirection === ChartAxisDirection.X ? [datumX, datumY] : [datumY, datumX];
+            const datumPoint = [datumX, datumY];
+            if (majorDirection !== ChartAxisDirection.X) {
+                datumPoint.reverse();
+            }
 
             // Compare distances from most significant dimension to least.
             let newMinDistance = true;
@@ -684,8 +691,7 @@ export abstract class CartesianSeries<
                 if (dist > minDistance[i]) {
                     newMinDistance = false;
                     break;
-                }
-                if (dist < minDistance[i]) {
+                } else if (dist < minDistance[i]) {
                     minDistance[i] = dist;
                     minDistance.fill(Infinity, i + 1, minDistance.length);
                 }
@@ -936,26 +942,48 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected resetAllAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
-        const { path, datum, label, marker } = this.opts?.animationResetFns ?? {};
-
-        // Stop any running animations by prefix convention.
-        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+    protected resetPathAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        const { path } = this.opts?.animationResetFns ?? {};
 
         if (path) {
             data.paths.forEach((paths) => {
                 resetMotion([paths], path);
             });
         }
+    }
+
+    protected resetDatumAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        const { datum } = this.opts?.animationResetFns ?? {};
+
         if (datum) {
             resetMotion([data.datumSelection], datum);
         }
+    }
+
+    protected resetLabelAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        const { label } = this.opts?.animationResetFns ?? {};
+
         if (label) {
             resetMotion([data.labelSelection], label);
         }
+    }
+
+    protected resetMarkerAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        const { marker } = this.opts?.animationResetFns ?? {};
+
         if (marker && this.opts.hasMarkers) {
             resetMotion([data.markerSelection], marker);
         }
+    }
+
+    protected resetAllAnimation(data: CartesianAnimationData<TNode, TDatum, TLabel, TContext>) {
+        // Stop any running animations by prefix convention.
+        this.ctx.animationManager.stopByAnimationGroupId(this.id);
+
+        this.resetPathAnimation(data);
+        this.resetDatumAnimation(data);
+        this.resetLabelAnimation(data);
+        this.resetMarkerAnimation(data);
 
         if (data.contextData?.animationValid === false) {
             this.ctx.animationManager.skipCurrentBatch();

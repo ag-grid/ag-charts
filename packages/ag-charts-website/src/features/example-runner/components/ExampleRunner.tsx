@@ -17,14 +17,18 @@ interface Props {
     exampleUrl?: string;
     exampleRunnerExampleUrl?: string;
     exampleType?: ExampleType;
+    hideCode?: boolean;
     initialShowCode?: boolean;
     externalLinks?: ReactElement;
+    hideExternalLinks?: boolean;
     exampleHeight?: number;
+    exampleWidth?: number;
     exampleFiles?: FileContents;
     initialSelectedFile?: string;
     internalFramework: InternalFramework;
     hideInternalFrameworkSelection?: boolean;
     loadingIFrameId: string;
+    footerChildren?: ReactElement;
 }
 
 const DEFAULT_HEIGHT = 500;
@@ -35,18 +39,20 @@ export const ExampleRunner: FunctionComponent<Props> = ({
     exampleUrl,
     exampleRunnerExampleUrl,
     exampleType,
+    hideCode,
     initialShowCode,
     externalLinks,
-    exampleHeight: initialExampleHeight,
+    hideExternalLinks,
+    exampleHeight = DEFAULT_HEIGHT,
     exampleFiles,
     initialSelectedFile,
     internalFramework,
     hideInternalFrameworkSelection,
     loadingIFrameId,
+    footerChildren,
 }) => {
     const [showCode, setShowCode] = useState(initialShowCode);
-
-    const exampleHeight = initialExampleHeight || DEFAULT_HEIGHT;
+    const hideFooter = !hideCode && !hideExternalLinks && !footerChildren;
 
     return (
         <div id={id} className={styles.exampleOuter}>
@@ -55,7 +61,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                     className={classnames(chartsStyles.content, styles.content)}
                     role="tabpanel"
                     aria-labelledby={`${showCode ? 'Preview' : 'Code'} tab`}
-                    style={{ height: exampleHeight, width: '100%' }}
+                    style={{ height: exampleHeight }}
                 >
                     <ExampleIFrame
                         title={title}
@@ -63,7 +69,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                         url={exampleRunnerExampleUrl!}
                         loadingIFrameId={loadingIFrameId}
                     />
-                    {exampleFiles && (
+                    {exampleFiles && !hideCode && (
                         <CodeViewer
                             id={id}
                             isActive={showCode}
@@ -75,32 +81,40 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                         />
                     )}
                 </div>
-                <footer className={styles.footer}>
-                    <button
-                        className={classnames(styles.previewCodeToggle, 'button-secondary')}
-                        onClick={(e) => {
-                            setShowCode(!showCode);
-                        }}
-                    >
-                        {showCode && (
-                            <span>
-                                <Icon name="eye" /> Preview
-                            </span>
+                {hideFooter && (
+                    <footer className={styles.footer}>
+                        {!hideCode && (
+                            <button
+                                className={classnames(styles.previewCodeToggle, 'button-secondary')}
+                                onClick={(e) => {
+                                    setShowCode(!showCode);
+                                }}
+                            >
+                                {showCode && (
+                                    <span>
+                                        <Icon name="eye" /> Preview
+                                    </span>
+                                )}
+                                {!showCode && (
+                                    <span>
+                                        <Icon name="code" /> Code
+                                    </span>
+                                )}
+                            </button>
                         )}
-                        {!showCode && (
-                            <span>
-                                <Icon name="code" /> Code
-                            </span>
-                        )}
-                    </button>
 
-                    <ul className={classnames('list-style-none', styles.externalLinks)}>
-                        <li>
-                            <OpenInCTA type="newTab" href={exampleUrl!} />
-                        </li>
-                        {externalLinks}
-                    </ul>
-                </footer>
+                        {!hideExternalLinks && (
+                            <ul className={classnames('list-style-none', styles.externalLinks)}>
+                                <li>
+                                    <OpenInCTA type="newTab" href={exampleUrl!} />
+                                </li>
+                                {externalLinks}
+                            </ul>
+                        )}
+
+                        {footerChildren}
+                    </footer>
+                )}
             </div>
         </div>
     );

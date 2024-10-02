@@ -1,33 +1,78 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import type { AgAnnotationLineStyleType, _ModuleSupport, _Scene } from 'ag-charts-community';
+
+export type Constructor<T = object> = new (...args: any[]) => T;
 
 export enum AnnotationType {
+    // Lines
     Line = 'line',
-    DisjointChannel = 'disjoint-channel',
-    ParallelChannel = 'parallel-channel',
     HorizontalLine = 'horizontal-line',
     VerticalLine = 'vertical-line',
+
+    // Channels
+    DisjointChannel = 'disjoint-channel',
+    ParallelChannel = 'parallel-channel',
+
+    // Texts
+    Callout = 'callout',
+    Comment = 'comment',
+    Note = 'note',
+    Text = 'text',
+
+    // Shapes
+    Arrow = 'arrow',
+    ArrowUp = 'arrow-up',
+    ArrowDown = 'arrow-down',
 }
+
+export type TextualAnnotationType =
+    | AnnotationType.Callout
+    | AnnotationType.Comment
+    | AnnotationType.Note
+    | AnnotationType.Text;
+
+export type LineAnnotationType =
+    | AnnotationType.Line
+    | AnnotationType.HorizontalLine
+    | AnnotationType.VerticalLine
+    | AnnotationType.Arrow;
+
+export type ChannelAnnotationType = AnnotationType.DisjointChannel | AnnotationType.ParallelChannel;
+
+export type HasColorAnnotationType = AnnotationType;
+export type HasLineStyleAnnotationType = LineAnnotationType | ChannelAnnotationType;
+export type HasLineTextAnnotationType = LineAnnotationType | ChannelAnnotationType;
+export type HasFontSizeAnnotationType =
+    | Exclude<TextualAnnotationType, AnnotationType.Note>
+    | LineAnnotationType
+    | ChannelAnnotationType;
+
 export const ANNOTATION_TYPES = Object.values(AnnotationType);
 export const ANNOTATION_BUTTONS = [
+    // Lines
     AnnotationType.Line,
-    AnnotationType.DisjointChannel,
-    AnnotationType.ParallelChannel,
     AnnotationType.HorizontalLine,
     AnnotationType.VerticalLine,
+
+    // Channels
+    AnnotationType.DisjointChannel,
+    AnnotationType.ParallelChannel,
+
+    // Texts
+    AnnotationType.Callout,
+    AnnotationType.Comment,
+    AnnotationType.Note,
+    AnnotationType.Text,
+
+    // Shapes
+    AnnotationType.Arrow,
+    AnnotationType.ArrowUp,
+    AnnotationType.ArrowDown,
 ] as const;
+export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu', 'shape-menu'] as const;
 
 export function stringToAnnotationType(value: string) {
-    switch (value) {
-        case 'line':
-            return AnnotationType.Line;
-        case 'horizontal-line':
-            return AnnotationType.HorizontalLine;
-        case 'vertical-line':
-            return AnnotationType.VerticalLine;
-        case 'disjoint-channel':
-            return AnnotationType.DisjointChannel;
-        case 'parallel-channel':
-            return AnnotationType.ParallelChannel;
+    for (const t of ANNOTATION_TYPES) {
+        if (t === value) return t;
     }
 }
 
@@ -43,26 +88,24 @@ export interface LineCoords {
     y2: number;
 }
 
+export interface Bounds {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
 export interface Point {
     x?: number | string | Date;
     y?: number;
 }
 
-export interface StateHoverEvent<Annotation, Scene> {
-    datum: Annotation;
-    node: Scene;
-    point: Coords;
-    region?: _ModuleSupport.RegionName;
+export interface Padding {
+    top: number;
+    right: number;
+    bottom: number;
+    left: number;
 }
-
-export interface StateClickEvent<Annotation, Scene> {
-    datum?: Annotation;
-    node?: Scene;
-    point: Coords;
-    region?: _ModuleSupport.RegionName;
-}
-
-export interface StateDragEvent<Annotation, Scene> extends StateClickEvent<Annotation, Scene> {}
 
 export interface AnnotationAxisContext
     extends Pick<
@@ -88,3 +131,20 @@ export type AnnotationContext = {
     xAxis: AnnotationAxisContext;
     yAxis: AnnotationAxisContext;
 };
+
+export interface GuardDragClickDoubleEvent {
+    guard: () => boolean;
+    hover: () => void;
+    reset: () => void;
+}
+
+export type AnnotationOptionsColorPickerType = 'line-color' | 'fill-color' | 'text-color';
+
+export type AnnotationLineStyle = {
+    type?: AgAnnotationLineStyleType;
+    strokeWidth?: number;
+};
+
+export type LineTextAlignment = 'left' | 'center' | 'right';
+export type LineTextPosition = 'top' | 'center' | 'bottom';
+export type ChannelTextPosition = 'top' | 'inside' | 'bottom';

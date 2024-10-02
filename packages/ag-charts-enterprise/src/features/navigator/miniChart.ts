@@ -1,8 +1,10 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { Validate, BOOLEAN, POSITIVE_NUMBER, Layers, ActionOnSet, CategoryAxis, GroupedCategoryAxis } = _ModuleSupport;
+const { Validate, BOOLEAN, POSITIVE_NUMBER, ZIndexMap, ActionOnSet, CategoryAxis, GroupedCategoryAxis, TextUtils } =
+    _ModuleSupport;
+
 const { Padding, Logger } = _Util;
-const { Text, Group, BBox } = _Scene;
+const { Group, BBox, TranslatableLayer, Layer } = _Scene;
 
 class MiniChartPadding {
     @Validate(POSITIVE_NUMBER)
@@ -20,14 +22,10 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     readonly root = new Group({ name: 'root' });
     readonly seriesRoot = this.root.appendChild(
-        new Group({ name: 'Series-root', layer: true, zIndex: Layers.SERIES_LAYER_ZINDEX })
+        new TranslatableLayer({ name: 'Series-root', zIndex: ZIndexMap.SERIES_LAYER })
     );
-    readonly axisGridGroup = this.root.appendChild(
-        new Group({ name: 'Axes-Grids', layer: true, zIndex: Layers.AXIS_GRID_ZINDEX })
-    );
-    readonly axisGroup = this.root.appendChild(
-        new Group({ name: 'Axes-Grids', layer: true, zIndex: Layers.AXIS_GRID_ZINDEX })
-    );
+    readonly axisGridGroup = this.root.appendChild(new Layer({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID }));
+    readonly axisGroup = this.root.appendChild(new Layer({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID }));
 
     public data: any = [];
 
@@ -83,7 +81,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         for (const series of newValue) {
             if (oldValue?.includes(series)) continue;
 
-            if (series.rootGroup.parent == null) {
+            if (series.rootGroup.isRoot()) {
                 this.seriesRoot.appendChild(series.rootGroup);
             }
 
@@ -112,11 +110,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
     protected destroySeries(allSeries: _ModuleSupport.Series<any, any>[]): void {
         allSeries?.forEach((series) => {
             series.destroy();
-
-            if (series.rootGroup != null) {
-                this.seriesRoot.removeChild(series.rootGroup);
-            }
-
+            series.rootGroup?.remove();
             series.chart = undefined;
         });
     }
@@ -185,8 +179,8 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
     }
 
-    async updateData(opts: { data: any }) {
-        this.series.forEach((s) => s.setChartData(opts.data));
+    updateData(data: any) {
+        this.series.forEach((s) => s.setChartData(data));
         if (this.miniChartAnimationPhase === 'initial') {
             this.ctx.animationManager.onBatchStop(() => {
                 this.miniChartAnimationPhase = 'ready';
@@ -196,14 +190,12 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
     }
 
-    async processData(opts: { dataController: _ModuleSupport.DataController }) {
+    async processData(dataController: _ModuleSupport.DataController) {
         if (this.series.some((s) => s.canHaveAxes)) {
             this.assignAxesToSeries();
             this.assignSeriesToAxes();
         }
-
-        const seriesPromises = this.series.map((s) => s.processData(opts.dataController));
-        await Promise.all(seriesPromises);
+        await Promise.all(this.series.map((s) => s.processData(dataController)));
     }
 
     computeAxisPadding() {
@@ -212,17 +204,22 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             return padding;
         }
 
-        this.axes.forEach((axis) => {
-            const { position, thickness = 0, line, label } = axis;
+        this.axes.forEach(({ position, thickness = 0, line, label }) => {
             if (position == null) return;
 
             let size: number;
             if (thickness > 0) {
                 size = thickness;
             } else {
+                // Because of the rotation technique used by axes rendering labels are padded 5px off,
+                // which need to be account for in these calculations to make sure labels aren't being clipped.
+                // This will become obsolete only once axes rotation technique would be removed.
+                const rotationPaddingFix = 5;
                 size =
                     (line.enabled ? line.width : 0) +
-                    (label.enabled ? (label.fontSize ?? 0) * Text.defaultLineHeightRatio + label.padding : 0);
+                    (label.enabled
+                        ? TextUtils.getLineHeight(label.fontSize ?? 0) + label.padding + rotationPaddingFix
+                        : 0);
             }
 
             padding[position] = Math.ceil(size);
@@ -233,27 +230,15 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     async layout(width: number, height: number) {
         const { padding } = this;
-
         const animated = this.seriesRect != null;
-
         const seriesRect = new BBox(0, 0, width, height - (padding.top + padding.bottom));
+
         this.seriesRect = seriesRect;
-
         this.seriesRoot.translationY = padding.top;
-        this.seriesRoot.setClipRectInGroupCoordinateSpace(
-            this.seriesRoot.inverseTransformBBox(new BBox(0, -padding.top, width, height))
-        );
-
-        const axisLeftRightRange = (axis: _ModuleSupport.ChartAxis): [number, number] => {
-            if (axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis) {
-                return [0, seriesRect.height];
-            }
-            return [seriesRect.height, 0];
-        };
+        this.seriesRoot.setClipRect(new BBox(0, -padding.top, width, height), false);
 
         this.axes.forEach((axis) => {
             const { position = 'left' } = axis;
-
             switch (position) {
                 case 'top':
                 case 'bottom':
@@ -262,33 +247,25 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
                     break;
                 case 'right':
                 case 'left':
-                    axis.range = axisLeftRightRange(axis);
+                    const isCategoryAxis = axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis;
+                    axis.range = isCategoryAxis ? [0, seriesRect.height] : [seriesRect.height, 0];
                     axis.gridLength = seriesRect.width;
                     break;
             }
 
-            switch (position) {
-                case 'top':
-                case 'left':
-                    axis.translation.x = 0;
-                    axis.translation.y = 0;
-                    break;
-                case 'bottom':
-                    axis.translation.x = 0;
-                    axis.translation.y = height;
-                    break;
-                case 'right':
-                    axis.translation.x = width;
-                    axis.translation.y = 0;
-                    break;
-            }
-
             axis.gridPadding = 0;
+            axis.translation.x = 0;
+            axis.translation.y = 0;
+
+            if (position === 'right') {
+                axis.translation.x = width;
+            } else if (position === 'bottom') {
+                axis.translation.y = height;
+            }
 
             axis.calculateLayout();
             axis.updatePosition();
-
-            axis.update(undefined, animated);
+            axis.update(animated);
         });
 
         await Promise.all(this.series.map((series) => series.update({ seriesRect })));

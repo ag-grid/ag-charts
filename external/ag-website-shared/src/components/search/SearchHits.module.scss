@@ -7,12 +7,13 @@
     font-size: 18px;
 
     border-top: 1px solid var(--color-border-secondary);
-    #{$selector-darkmode} & {
-        border-top: 1px solid var(--color-border-primary);
-    }
 
     overflow: auto;
     overscroll-behavior: contain;
+
+    #{$selector-darkmode} & {
+        border-top: 1px solid var(--color-border-primary);
+    }
 
     &::after {
         content: '';
@@ -22,14 +23,14 @@
         left: 0;
         bottom: var(--controls-height);
         background-image: linear-gradient(transparent, var(--color-bg-primary));
+        pointer-events: none;
+
         #{$selector-darkmode} & {
             background-image: linear-gradient(
                 transparent,
                 color-mix(in srgb, var(--color-bg-primary), var(--color-fg-primary) 6%)
             );
         }
-
-        pointer-events: none;
     }
 
     // Prevent scroll indicator from effecting last item
@@ -57,6 +58,13 @@
     &[data-selected='true'] {
         background: rgba(4, 75, 147, 1);
         z-index: 1;
+        #{$selector-darkmode} & {
+            background-color: var(--color-brand-300);
+            span,
+            p {
+                color: var(--color-bg-primary);
+            }
+        }
     }
 }
 
@@ -148,6 +156,8 @@
     align-items: center;
     justify-content: center;
     height: $spacing-size-40;
+    padding-left: $spacing-size-4;
+    padding-right: $spacing-size-4;
     border-top: 1px solid var(--color-border-primary);
     color: var(--color-text-tertiary);
 
@@ -157,6 +167,10 @@
         opacity: 0.7;
 
         margin-bottom: $spacing-size-2;
+    }
+
+    span {
+        text-align: center;
     }
 }
 

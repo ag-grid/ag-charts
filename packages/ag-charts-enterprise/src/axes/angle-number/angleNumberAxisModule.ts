@@ -8,5 +8,5 @@ export const AngleNumberAxisModule: _ModuleSupport.AxisModule = {
     packageType: 'enterprise',
     chartTypes: ['polar'],
     identifier: 'angle-number',
-    instanceConstructor: AngleNumberAxis,
+    moduleFactory: (ctx) => new AngleNumberAxis(ctx),
 };

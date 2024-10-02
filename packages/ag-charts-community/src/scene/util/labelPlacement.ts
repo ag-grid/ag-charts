@@ -1,6 +1,14 @@
 import type { Point, SizedPoint } from '../point';
 
-export type LabelPlacement = 'top' | 'bottom' | 'left' | 'right';
+export type LabelPlacement =
+    | 'top'
+    | 'bottom'
+    | 'left'
+    | 'right'
+    | 'top-left'
+    | 'top-right'
+    | 'bottom-left'
+    | 'bottom-right';
 
 export interface MeasuredLabel {
     readonly text: string;
@@ -38,7 +46,9 @@ function circleRectOverlap(
     w: number,
     h: number
 ): boolean {
-    if (c.size === 0) return false;
+    if (c.size === 0) {
+        return false;
+    }
 
     let cx = c.x;
     let cy = c.y;
@@ -48,7 +58,7 @@ function circleRectOverlap(
         cy -= (unitCenter.y - 0.5) * c.size;
     }
 
-    // Find closest horizontal and vertical edges.
+    // Find the closest horizontal and vertical edges.
     let edgeX = cx;
     if (cx < x) {
         edgeX = x;
@@ -61,7 +71,7 @@ function circleRectOverlap(
     } else if (cy > y + h) {
         edgeY = y + h;
     }
-    // Find distance to closest edges.
+    // Find distance to the closest edges.
     const dx = cx - edgeX;
     const dy = cy - edgeY;
     const d = Math.sqrt(dx * dx + dy * dy);
@@ -87,18 +97,19 @@ const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> 
     bottom: { x: 0, y: 1 },
     left: { x: -1, y: 0 },
     right: { x: 1, y: 0 },
+    'top-left': { x: -1, y: -1 },
+    'top-right': { x: 1, y: -1 },
+    'bottom-left': { x: -1, y: 1 },
+    'bottom-right': { x: 1, y: 1 },
 };
 
 /**
  * @param data Points and labels for one or more series. The order of series determines label placement precedence.
  * @param bounds Bounds to fit the labels into. If a label can't be fully contained, it doesn't fit.
+ * @param padding
  * @returns Placed labels for the given series (in the given order).
  */
-export function placeLabels(
-    data: readonly (readonly PointLabelDatum[])[],
-    bounds?: Bounds,
-    padding = 5
-): PlacedLabel[][] {
+export function placeLabels(data: PointLabelDatum[][], bounds?: Bounds, padding = 5): PlacedLabel[][] {
     const result: PlacedLabel[][] = [];
 
     data = data.map((d) => d.slice().sort((a, b) => b.point.size - a.point.size));
@@ -108,8 +119,8 @@ export function placeLabels(
         if (!(datum?.length && datum[0].label)) {
             continue;
         }
-        for (let i = 0, ln = datum.length; i < ln; i++) {
-            const d = datum[i];
+        for (let index = 0, ln = datum.length; index < ln; index++) {
+            const d = datum[index];
             const { point, label, marker } = d;
             const { text, width, height } = label;
             const r = point.size * 0.5;
@@ -142,54 +153,32 @@ export function placeLabels(
                 continue;
             }
 
-            labels.push({
-                index: i,
-                text,
-                x,
-                y,
-                width,
-                height,
-                datum: d,
-            });
+            labels.push({ index, text, x, y, width, height, datum: d });
         }
     }
 
     return result;
 }
 
-export function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding?: number): boolean {
+export function axisLabelsOverlap(data: readonly PlacedLabelDatum[], padding: number = 0): boolean {
     const result: PlacedLabel<PlacedLabelDatum>[] = [];
 
-    for (let i = 0; i < data.length; i++) {
-        const datum = data[i];
+    for (let index = 0; index < data.length; index++) {
+        const datum = data[index];
         const {
             point: { x, y },
             label: { text },
         } = datum;
-        let {
-            label: { width, height },
-        } = datum;
+        let { width, height } = datum.label;
 
-        width += padding ?? 0;
-        height += padding ?? 0;
+        width += padding;
+        height += padding;
 
-        const overlapLabels = result.some((l) => {
-            return rectRectOverlap(l, x, y, width, height);
-        });
-
-        if (overlapLabels) {
+        if (result.some((l) => rectRectOverlap(l, x, y, width, height))) {
             return true;
         }
 
-        result.push({
-            index: i,
-            text,
-            x,
-            y,
-            width,
-            height,
-            datum,
-        });
+        result.push({ index, text, x, y, width, height, datum });
     }
 
     return false;

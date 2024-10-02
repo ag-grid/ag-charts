@@ -420,6 +420,7 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "seriesGrouping": {
       "groupCount": 4,
+      "groupId": "bar-quarter-grouped",
       "groupIndex": 0,
       "stackCount": 0,
       "stackIndex": 0,
@@ -461,6 +462,7 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "seriesGrouping": {
       "groupCount": 4,
+      "groupId": "bar-quarter-grouped",
       "groupIndex": 1,
       "stackCount": 0,
       "stackIndex": 0,
@@ -502,6 +504,7 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "seriesGrouping": {
       "groupCount": 4,
+      "groupId": "bar-quarter-grouped",
       "groupIndex": 2,
       "stackCount": 0,
       "stackIndex": 0,
@@ -543,6 +546,7 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "seriesGrouping": {
       "groupCount": 4,
+      "groupId": "bar-quarter-grouped",
       "groupIndex": 3,
       "stackCount": 0,
       "stackIndex": 0,
@@ -671,6 +675,7 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "seriesGrouping": {
       "groupCount": 4,
+      "groupId": "bar-quarter-grouped",
       "groupIndex": 0,
       "stackCount": 0,
       "stackIndex": 0,
@@ -712,6 +717,7 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "seriesGrouping": {
       "groupCount": 4,
+      "groupId": "bar-quarter-grouped",
       "groupIndex": 1,
       "stackCount": 0,
       "stackIndex": 0,
@@ -753,6 +759,7 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "seriesGrouping": {
       "groupCount": 4,
+      "groupId": "bar-quarter-grouped",
       "groupIndex": 2,
       "stackCount": 0,
       "stackIndex": 0,
@@ -794,6 +801,7 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "seriesGrouping": {
       "groupCount": 4,
+      "groupId": "bar-quarter-grouped",
       "groupIndex": 3,
       "stackCount": 0,
       "stackIndex": 0,
@@ -922,6 +930,7 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "seriesGrouping": {
       "groupCount": 1,
+      "groupId": "bar-quarter-stacked",
       "groupIndex": 0,
       "stackCount": 4,
       "stackIndex": 0,
@@ -963,6 +972,7 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "seriesGrouping": {
       "groupCount": 1,
+      "groupId": "bar-quarter-stacked",
       "groupIndex": 0,
       "stackCount": 4,
       "stackIndex": 1,
@@ -1004,6 +1014,7 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "seriesGrouping": {
       "groupCount": 1,
+      "groupId": "bar-quarter-stacked",
       "groupIndex": 0,
       "stackCount": 4,
       "stackIndex": 2,
@@ -1045,6 +1056,7 @@ describe('ChartOptions', () => {
     "lineDashOffset": 0,
     "seriesGrouping": {
       "groupCount": 1,
+      "groupId": "bar-quarter-stacked",
       "groupIndex": 0,
       "stackCount": 4,
       "stackIndex": 3,

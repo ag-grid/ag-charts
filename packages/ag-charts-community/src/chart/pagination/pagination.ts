@@ -1,8 +1,9 @@
 import type { AgChartLegendOrientation, FontStyle, FontWeight } from 'ag-charts-types';
 
-import { Group } from '../../scene/group';
+import { TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Text } from '../../scene/shape/text';
+import { Rotatable, type RotatableType, Transformable } from '../../scene/transformable';
 import { createId } from '../../util/id';
 import { clamp } from '../../util/number';
 import { BaseProperties } from '../../util/properties';
@@ -18,9 +19,6 @@ import {
     Validate,
 } from '../../util/validation';
 import { ChartUpdateType } from '../chartUpdateType';
-import type { CursorManager } from '../interaction/cursorManager';
-import type { PointerInteractionEvent } from '../interaction/interactionManager';
-import type { RegionManager } from '../interaction/regionManager';
 import type { Marker } from '../marker/marker';
 import { Triangle } from '../marker/triangle';
 import { type MarkerShape, getMarker } from '../marker/util';
@@ -106,16 +104,14 @@ export class Pagination extends BaseProperties {
     @Validate(OBJECT)
     readonly label = new PaginationLabel();
 
-    private readonly group = new Group({ name: 'pagination' });
+    private readonly group = new TranslatableGroup({ name: 'pagination' });
     private readonly labelNode: Text = new Text();
     private highlightActive?: 'previous' | 'next';
     private readonly destroyFns: (() => void)[] = [];
 
     constructor(
         private readonly chartUpdateCallback: (type: ChartUpdateType) => void,
-        private readonly pageUpdateCallback: (newPage: number) => void,
-        private readonly regionManager: RegionManager,
-        private readonly cursorManager: CursorManager
+        private readonly pageUpdateCallback: (newPage: number) => void
     ) {
         super();
 
@@ -128,12 +124,6 @@ export class Pagination extends BaseProperties {
         });
 
         this.group.append([this.nextButton, this.previousButton, this.labelNode]);
-
-        const region = this.regionManager.addRegion('pagination', this.group);
-        this.destroyFns.push(
-            region.addListener('click', (event) => this.onPaginationClick(event)),
-            region.addListener('hover', (event) => this.onPaginationMouseMove(event))
-        );
 
         this.update();
         this.updateMarkers();
@@ -194,27 +184,27 @@ export class Pagination extends BaseProperties {
         return this._orientation;
     }
 
-    private _nextButton: Marker = new Triangle();
-    set nextButton(value: Marker) {
+    private _nextButton: RotatableType<Marker> = new Triangle();
+    set nextButton(value: RotatableType<Marker>) {
         if (this._nextButton !== value) {
             this.group.removeChild(this._nextButton);
             this._nextButton = value;
             this.group.appendChild(value);
         }
     }
-    get nextButton(): Marker {
+    get nextButton() {
         return this._nextButton;
     }
 
-    private _previousButton: Marker = new Triangle();
-    set previousButton(value: Marker) {
+    private _previousButton: RotatableType<Marker> = new Triangle();
+    set previousButton(value: RotatableType<Marker>) {
         if (this._previousButton !== value) {
             this.group.removeChild(this._previousButton);
             this._previousButton = value;
             this.group.appendChild(value);
         }
     }
-    get previousButton(): Marker {
+    get previousButton() {
         return this._previousButton;
     }
 
@@ -242,8 +232,8 @@ export class Pagination extends BaseProperties {
     }
 
     private updateNextButtonPosition() {
-        const labelBBox = this.labelNode.computeBBox();
-        this.nextButton.translationX = labelBBox.x + labelBBox.width + this.marker.size / 2 + this.marker.padding;
+        const labelBBox = this.labelNode.getBBox();
+        this.nextButton.translationX = labelBBox.width + (this.marker.size / 2 + this.marker.padding) * 2;
     }
 
     private updateLabel() {
@@ -308,24 +298,6 @@ export class Pagination extends BaseProperties {
         this.previousButtonDisabled = onFirstPage || zeroPagesToDisplay;
     }
 
-    private nextButtonContainsPoint(offsetX: number, offsetY: number) {
-        return !this.nextButtonDisabled && this.nextButton.containsPoint(offsetX, offsetY);
-    }
-
-    private previousButtonContainsPoint(offsetX: number, offsetY: number) {
-        return !this.previousButtonDisabled && this.previousButton.containsPoint(offsetX, offsetY);
-    }
-
-    public clickNext() {
-        this.incrementPage();
-        this.onPaginationChanged();
-    }
-
-    public clickPrevious() {
-        this.decrementPage();
-        this.onPaginationChanged();
-    }
-
     public setPage(pageNumber: number) {
         pageNumber = clamp(0, pageNumber, this.totalPages - 1);
         if (this.currentPage !== pageNumber) {
@@ -334,33 +306,24 @@ export class Pagination extends BaseProperties {
         }
     }
 
-    private onPaginationClick(event: PointerInteractionEvent<'click'>) {
-        const { offsetX, offsetY } = event;
-        event.preventDefault();
+    public getCursor(node: 'previous' | 'next') {
+        return { previous: this.previousButtonDisabled, next: this.nextButtonDisabled }[node] ? undefined : 'pointer';
+    }
 
-        if (this.nextButtonContainsPoint(offsetX, offsetY)) {
-            this.clickNext();
-        } else if (this.previousButtonContainsPoint(offsetX, offsetY)) {
-            this.clickPrevious();
+    public onClick(event: MouseEvent, node: 'previous' | 'next') {
+        event.preventDefault();
+        if (node === 'next' && !this.nextButtonDisabled) {
+            this.incrementPage();
+            this.onPaginationChanged();
+        } else if (node === 'previous' && !this.previousButtonDisabled) {
+            this.decrementPage();
+            this.onPaginationChanged();
         }
     }
 
-    private onPaginationMouseMove(event: PointerInteractionEvent<'hover'>) {
-        const { offsetX, offsetY } = event;
-
-        if (this.nextButtonContainsPoint(offsetX, offsetY)) {
-            this.cursorManager.updateCursor(this.id, 'pointer');
-            this.highlightActive = 'next';
-        } else if (this.previousButtonContainsPoint(offsetX, offsetY)) {
-            this.cursorManager.updateCursor(this.id, 'pointer');
-            this.highlightActive = 'previous';
-        } else {
-            this.cursorManager.updateCursor(this.id);
-            this.highlightActive = undefined;
-        }
-
+    public onMouseHover(node: 'previous' | 'next' | undefined) {
+        this.highlightActive = node;
         this.updateMarkers();
-
         this.chartUpdateCallback(ChartUpdateType.SCENE_RENDER);
     }
 
@@ -377,7 +340,7 @@ export class Pagination extends BaseProperties {
     }
 
     onMarkerShapeChange() {
-        const Marker = getMarker(this.marker.shape || Triangle);
+        const Marker = Rotatable(getMarker(this.marker.shape || Triangle));
         this.previousButton = new Marker();
         this.nextButton = new Marker();
         this.updatePositions();
@@ -389,18 +352,13 @@ export class Pagination extends BaseProperties {
         node.append(this.group);
     }
 
-    computeBBox() {
-        return this.group.computeBBox();
+    getBBox() {
+        return this.group.getBBox();
     }
 
     computeCSSBounds() {
-        const group = this.group.computeTransformedBBox();
-        const prev = this._previousButton.computeTransformedBBox();
-        const next = this._nextButton.computeTransformedBBox();
-        prev.x -= group.x;
-        prev.y -= group.y;
-        next.x -= group.x;
-        next.y -= group.y;
-        return { group, prev, next };
+        const prev = Transformable.toCanvas(this.previousButton);
+        const next = Transformable.toCanvas(this.nextButton);
+        return { prev, next };
     }
 }

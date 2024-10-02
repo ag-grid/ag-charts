@@ -1,7 +1,7 @@
 import { Marker } from './marker';
 
 export class Pin extends Marker {
-    static override readonly className = 'MapPin';
+    static readonly className = 'MapPin';
 
     static override center = { x: 0.5, y: 1 };
 

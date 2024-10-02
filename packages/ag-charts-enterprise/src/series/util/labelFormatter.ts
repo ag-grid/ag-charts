@@ -1,39 +1,47 @@
-import { type OverflowStrategy, type TextWrap, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Util } from 'ag-charts-community';
+import type {
+    AgChartAutoSizedBaseLabelOptions,
+    AgChartAutoSizedLabelOptions,
+    AgChartAutoSizedSecondaryLabelOptions,
+    FontFamily,
+    FontSize,
+    FontStyle,
+    FontWeight,
+    OverflowStrategy,
+    TextWrap,
+} from 'ag-charts-types';
 
-const { Validate, TextMeasurer, NUMBER, TEXT_WRAP, OVERFLOW_STRATEGY } = _ModuleSupport;
+const { CachedTextMeasurerPool, TextUtils, TextWrapper, findMaxValue } = _ModuleSupport;
 const { Logger } = _Util;
-const { Text, Label } = _Scene;
 
-class BaseAutoSizedLabel<FormatterParams> extends Label<FormatterParams> {
-    static lineHeight(fontSize: number): number {
-        return Math.ceil(fontSize * Text.defaultLineHeightRatio);
-    }
-
-    @Validate(TEXT_WRAP)
-    wrapping: TextWrap = 'on-space';
-
-    @Validate(OVERFLOW_STRATEGY)
-    overflowStrategy: OverflowStrategy = 'ellipsis';
-
-    @Validate(NUMBER, { optional: true })
-    minimumFontSize?: number;
+interface AutoSizedBaseLabelOptions extends AgChartAutoSizedBaseLabelOptions<unknown, any> {
+    fontSize: FontSize;
 }
 
-export class AutoSizedLabel<FormatterParams> extends BaseAutoSizedLabel<FormatterParams> {
-    @Validate(NUMBER)
-    spacing: number = 0;
+interface AutoSizedLabelOptions extends AgChartAutoSizedLabelOptions<unknown, any> {
+    fontSize: FontSize;
 }
 
-export class AutoSizeableSecondaryLabel<FormatterParams> extends BaseAutoSizedLabel<FormatterParams> {}
+interface AutoSizedSecondaryLabelOptions extends AgChartAutoSizedSecondaryLabelOptions<unknown, any> {
+    fontSize: FontSize;
+}
+
+interface TextProperties {
+    fontSize: FontSize;
+    fontStyle?: FontStyle;
+    fontWeight?: FontWeight;
+    fontFamily?: FontFamily;
+    lineHeight?: number;
+}
 
 type FontSizeCandidate = {
     labelFontSize: number;
     secondaryLabelFontSize: number;
 };
 
-export function generateLabelSecondaryLabelFontSizeCandidates<FormatterParams>(
-    label: BaseAutoSizedLabel<FormatterParams>,
-    secondaryLabel: BaseAutoSizedLabel<FormatterParams>
+export function generateLabelSecondaryLabelFontSizeCandidates(
+    label: AutoSizedBaseLabelOptions,
+    secondaryLabel: AutoSizedBaseLabelOptions
 ): FontSizeCandidate[] {
     const { fontSize: labelFontSize, minimumFontSize: labelMinimumFontSize = labelFontSize } = label;
     const {
@@ -74,39 +82,11 @@ export function generateLabelSecondaryLabelFontSizeCandidates<FormatterParams>(
     return out;
 }
 
-export function maximumValueSatisfying<T>(
-    from: number,
-    to: number,
-    iteratee: (value: number) => T | undefined
-): T | undefined {
-    // Binary search of layouts returning the largest value
-
-    if (from > to) {
-        return;
-    }
-    let min = from;
-    let max = to;
-    let found: T | undefined;
-
-    while (max >= min) {
-        const index = Math.floor((max + min) / 2);
-        const value = iteratee(index);
-        if (value == null) {
-            max = index - 1;
-        } else {
-            found = value;
-            min = index + 1;
-        }
-    }
-
-    return found;
-}
-
 type LayoutParams = {
     padding: number;
 };
 
-type LabelFormatting = {
+export type LabelFormatting = {
     text: string;
     fontSize: number;
     lineHeight: number;
@@ -142,29 +122,33 @@ type SizeFittingHeightFn<Meta> = (
     meta: Meta;
 };
 
-export function formatStackedLabels<Meta, FormatterParams>(
+export function getLineHeight(labelProps: AgChartAutoSizedLabelOptions<any, any>, fontSize: number) {
+    if (labelProps.lineHeight != null && labelProps.fontSize != null) {
+        return (labelProps.lineHeight * fontSize) / labelProps.fontSize;
+    } else {
+        return TextUtils.getLineHeight(fontSize);
+    }
+}
+
+export function formatStackedLabels<Meta>(
     labelValue: string,
-    labelProps: AutoSizedLabel<FormatterParams>,
+    labelProps: AutoSizedLabelOptions,
     secondaryLabelValue: string,
-    secondaryLabelProps: AutoSizeableSecondaryLabel<FormatterParams>,
+    secondaryLabelProps: AutoSizedSecondaryLabelOptions,
     { padding }: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ) {
-    const { spacing } = labelProps;
+    const { spacing = 0 } = labelProps;
 
     const widthAdjust = 2 * padding;
     const heightAdjust = 2 * padding + spacing;
     const minimumHeight =
         (labelProps.minimumFontSize ?? labelProps.fontSize) +
         (secondaryLabelProps.minimumFontSize ?? secondaryLabelProps.fontSize);
-    if (minimumHeight > sizeFittingHeight(minimumHeight + heightAdjust, false).height - heightAdjust) {
-        return;
-    }
+
+    if (minimumHeight > sizeFittingHeight(minimumHeight + heightAdjust, false).height - heightAdjust) return;
 
     const fontSizeCandidates = generateLabelSecondaryLabelFontSizeCandidates(labelProps, secondaryLabelProps);
-
-    const labelTextNode = new Text();
-    labelTextNode.setFont(labelProps);
 
     const labelTextSizeProps = {
         fontFamily: labelProps.fontFamily,
@@ -173,9 +157,6 @@ export function formatStackedLabels<Meta, FormatterParams>(
         fontWeight: labelProps.fontWeight,
     };
 
-    const secondaryLabelTextNode = new Text();
-    secondaryLabelTextNode.setFont(secondaryLabelProps);
-
     const secondaryLabelTextSizeProps = {
         fontFamily: secondaryLabelProps.fontFamily,
         fontSize: secondaryLabelProps.fontSize,
@@ -183,15 +164,15 @@ export function formatStackedLabels<Meta, FormatterParams>(
         fontWeight: secondaryLabelProps.fontWeight,
     };
 
-    // The font size candidates will repeat some font sizes, so cache the results so we don't do extra text measuring
+    // The font size candidates will repeat some font sizes, so cache the results, so we don't do extra text measuring
     let label: LabelFormatting | undefined;
     let secondaryLabel: LabelFormatting | undefined;
 
-    return maximumValueSatisfying<StackedLabelFormatting<Meta>>(0, fontSizeCandidates.length - 1, (index) => {
+    return findMaxValue<StackedLabelFormatting<Meta>>(0, fontSizeCandidates.length - 1, (index) => {
         const { labelFontSize, secondaryLabelFontSize } = fontSizeCandidates[index];
         const allowTruncation = index === 0;
-        const labelLineHeight = AutoSizedLabel.lineHeight(labelFontSize);
-        const secondaryLabelLineHeight = AutoSizeableSecondaryLabel.lineHeight(secondaryLabelFontSize);
+        const labelLineHeight = getLineHeight(labelProps, labelFontSize);
+        const secondaryLabelLineHeight = getLineHeight(secondaryLabelProps, secondaryLabelFontSize);
         const sizeFitting = sizeFittingHeight(
             labelLineHeight + secondaryLabelLineHeight + heightAdjust,
             allowTruncation
@@ -199,13 +180,12 @@ export function formatStackedLabels<Meta, FormatterParams>(
         const availableWidth = sizeFitting.width - widthAdjust;
         const availableHeight = sizeFitting.height - heightAdjust;
 
-        if (labelLineHeight + secondaryLabelLineHeight > availableHeight) {
-            return;
-        }
+        if (labelLineHeight + secondaryLabelLineHeight > availableHeight) return;
 
         if (label == null || label.fontSize !== labelFontSize) {
             labelTextSizeProps.fontSize = labelFontSize;
-            const labelLines = Text.wrapLines(
+            label = wrapLabel(
+                labelProps,
                 labelValue,
                 availableWidth,
                 availableHeight,
@@ -213,35 +193,14 @@ export function formatStackedLabels<Meta, FormatterParams>(
                 labelProps.wrapping,
                 allowTruncation ? labelProps.overflowStrategy : 'hide'
             );
-
-            if (labelLines == null) {
-                label = undefined;
-            } else {
-                const labelText = labelLines.join('\n');
-
-                labelTextNode.text = labelText;
-                labelTextNode.fontSize = labelFontSize;
-                labelTextNode.lineHeight = labelFontSize;
-                const labelWidth = labelTextNode.computeBBox().width;
-                const labelHeight = labelLines.length * labelLineHeight;
-
-                label = {
-                    text: labelText,
-                    fontSize: labelFontSize,
-                    lineHeight: labelLineHeight,
-                    width: labelWidth,
-                    height: labelHeight,
-                };
-            }
         }
 
-        if (label == null || label.width > availableWidth || label.height > availableHeight) {
-            return;
-        }
+        if (label == null || label.width > availableWidth || label.height > availableHeight) return;
 
         if (secondaryLabel == null || secondaryLabel.fontSize !== secondaryLabelFontSize) {
             secondaryLabelTextSizeProps.fontSize = secondaryLabelFontSize;
-            const secondaryLabelLines = Text.wrapLines(
+            secondaryLabel = wrapLabel(
+                secondaryLabelProps,
                 secondaryLabelValue,
                 availableWidth,
                 availableHeight,
@@ -249,37 +208,13 @@ export function formatStackedLabels<Meta, FormatterParams>(
                 secondaryLabelProps.wrapping,
                 allowTruncation ? secondaryLabelProps.overflowStrategy : 'hide'
             );
-
-            if (secondaryLabelLines == null) {
-                secondaryLabel = undefined;
-            } else {
-                const secondaryLabelText = secondaryLabelLines.join('\n');
-
-                secondaryLabelTextNode.text = secondaryLabelText;
-                secondaryLabelTextNode.fontSize = secondaryLabelFontSize;
-                secondaryLabelTextNode.lineHeight = secondaryLabelLineHeight;
-                const secondaryLabelWidth = secondaryLabelTextNode.computeBBox().width;
-                const secondaryLabelHeight = secondaryLabelLines.length * secondaryLabelLineHeight;
-
-                secondaryLabel = {
-                    text: secondaryLabelText,
-                    fontSize: secondaryLabelFontSize,
-                    lineHeight: secondaryLabelLineHeight,
-                    width: secondaryLabelWidth,
-                    height: secondaryLabelHeight,
-                };
-            }
         }
 
-        if (secondaryLabel == null) {
-            return;
-        }
+        if (secondaryLabel == null) return;
 
         const totalLabelHeight = label.height + secondaryLabel.height;
 
-        if (secondaryLabel.width > availableWidth || totalLabelHeight > availableHeight) {
-            return;
-        }
+        if (secondaryLabel.width > availableWidth || totalLabelHeight > availableHeight) return;
 
         return {
             width: Math.max(label.width, secondaryLabel.width),
@@ -291,17 +226,14 @@ export function formatStackedLabels<Meta, FormatterParams>(
     });
 }
 
-export function formatSingleLabel<Meta, FormatterParams>(
+export function formatSingleLabel<Meta>(
     value: string,
-    props: BaseAutoSizedLabel<FormatterParams>,
+    props: AutoSizedBaseLabelOptions,
     { padding }: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ): [LabelFormatting, Meta] | undefined {
     const sizeAdjust = 2 * padding;
     const minimumFontSize = Math.min(props.minimumFontSize ?? props.fontSize, props.fontSize);
-
-    const textNode = new Text();
-    textNode.setFont(props);
 
     const textSizeProps = {
         fontFamily: props.fontFamily,
@@ -310,8 +242,8 @@ export function formatSingleLabel<Meta, FormatterParams>(
         fontWeight: props.fontWeight,
     };
 
-    return maximumValueSatisfying<[LabelFormatting, Meta]>(minimumFontSize, props.fontSize, (fontSize) => {
-        const lineHeight = AutoSizedLabel.lineHeight(fontSize);
+    return findMaxValue<[LabelFormatting, Meta]>(minimumFontSize, props.fontSize, (fontSize) => {
+        const lineHeight = getLineHeight(props, fontSize);
         const allowTruncation = fontSize === minimumFontSize;
         const sizeFitting = sizeFittingHeight(lineHeight + sizeAdjust, allowTruncation);
         const availableWidth = sizeFitting.width - sizeAdjust;
@@ -320,46 +252,38 @@ export function formatSingleLabel<Meta, FormatterParams>(
         if (lineHeight > availableHeight) return;
 
         textSizeProps.fontSize = fontSize;
-        const lines = Text.wrapLines(
-            value,
-            availableWidth,
-            availableHeight,
-            textSizeProps,
-            props.wrapping,
-            allowTruncation ? props.overflowStrategy : 'hide'
-        );
+        const lines = TextWrapper.wrapLines(value, {
+            maxWidth: availableWidth,
+            maxHeight: availableHeight,
+            font: textSizeProps,
+            textWrap: props.wrapping,
+            overflow: (allowTruncation ? props.overflowStrategy : undefined) ?? 'hide',
+        });
 
-        if (lines == null) return;
+        if (!lines.length) return;
 
-        textNode.fontSize = fontSize;
-        textNode.lineHeight = lineHeight;
-        textNode.text = lines.join('\n');
+        const clippedLabel = clipLines(lines, {
+            lineHeight,
+            font: textSizeProps,
+            maxWidth: availableWidth,
+            maxHeight: availableHeight,
+        });
 
-        let height = lineHeight * lines.length;
-        while (height > availableHeight) {
-            if (lines.length === 1) return;
-            lines.pop();
-            lines[lines.length - 1] += TextMeasurer.EllipsisChar;
-            textNode.text = lines.join('\n');
-            height = lineHeight * lines.length;
-        }
+        if (!clippedLabel) return;
 
-        const { width } = textNode.computeBBox();
-        if (width > availableWidth) return;
-
-        return [{ text: textNode.text, fontSize, lineHeight, width, height }, sizeFitting.meta];
+        return [{ fontSize, lineHeight, ...clippedLabel }, sizeFitting.meta];
     });
 }
 
-function hasInvalidFontSize<FormatterParams>(label?: BaseAutoSizedLabel<FormatterParams>) {
+function hasInvalidFontSize(label?: AutoSizedBaseLabelOptions) {
     return label?.minimumFontSize != null && label?.fontSize && label?.minimumFontSize > label?.fontSize;
 }
 
-export function formatLabels<Meta = never, FormatterParams = any>(
+export function formatLabels<Meta = never>(
     baseLabelValue: string | undefined,
-    labelProps: AutoSizedLabel<FormatterParams>,
+    labelProps: AutoSizedLabelOptions,
     baseSecondaryLabelValue: string | undefined,
-    secondaryLabelProps: AutoSizeableSecondaryLabel<FormatterParams>,
+    secondaryLabelProps: AutoSizedSecondaryLabelOptions,
     layoutParams: LayoutParams,
     sizeFittingHeight: SizeFittingHeightFn<Meta>
 ): StackedLabelFormatting<Meta> | undefined {
@@ -392,7 +316,7 @@ export function formatLabels<Meta = never, FormatterParams = any>(
         value = {
             width: label.width,
             height: label.height,
-            meta: meta,
+            meta,
             label,
             secondaryLabel: undefined,
         };
@@ -420,4 +344,64 @@ export function formatLabels<Meta = never, FormatterParams = any>(
     }
 
     return value;
+}
+
+function wrapLabel(
+    props: AgChartAutoSizedLabelOptions<any, any>,
+    text: string,
+    maxWidth: number,
+    maxHeight: number,
+    font: TextProperties,
+    textWrap?: TextWrap,
+    overflow?: OverflowStrategy
+) {
+    const lines = TextWrapper.wrapLines(text, { maxWidth, maxHeight, font, textWrap, overflow });
+
+    if (!lines.length) return;
+
+    const lineHeight = getLineHeight(props, font.fontSize);
+    const { width } = CachedTextMeasurerPool.measureLines(lines, { font });
+
+    return {
+        width,
+        lineHeight,
+        text: lines.join('\n'),
+        height: lines.length * lineHeight,
+        fontSize: font.fontSize,
+    };
+}
+
+function clipLines(
+    lines: string[],
+    { font, lineHeight = TextUtils.defaultLineHeight, maxWidth, maxHeight = Infinity }: _ModuleSupport.WrapOptions
+) {
+    let height = lineHeight * lines.length;
+    while (height > maxHeight) {
+        if (lines.length === 1) return;
+        lines.pop();
+        lines[lines.length - 1] = TextWrapper.appendEllipsis(lines.at(-1)!);
+        height = lineHeight * lines.length;
+    }
+
+    const metrics = CachedTextMeasurerPool.measureLines(lines, { font });
+
+    let text: string, width: number;
+    if (metrics.width > maxWidth) {
+        const clippedLines: string[] = [];
+        width = 0;
+        for (const line of metrics.lineMetrics) {
+            if (line.width > maxWidth) {
+                if (!clippedLines.length) return;
+                break;
+            }
+            clippedLines.push(line.text);
+            width = Math.max(width, line.width);
+        }
+        text = TextWrapper.appendEllipsis(clippedLines.join('\n'));
+    } else {
+        text = lines.join('\n');
+        width = metrics.width;
+    }
+
+    return { text, width, height };
 }

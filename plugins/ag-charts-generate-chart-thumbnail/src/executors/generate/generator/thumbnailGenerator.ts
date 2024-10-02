@@ -31,7 +31,7 @@ interface Params {
 export async function generateThumbnail({ example, theme, outputPath, dpi, mockText }: Params) {
     const { entryFileName, files = {} } = example;
 
-    const entryFile = files[entryFileName];
+    const entryFile: string = files[entryFileName];
 
     const preamble = Object.entries(files).map(([fileName, contents]) => {
         if (fileName.endsWith('.js') && fileName !== entryFileName) {
@@ -41,6 +41,7 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
         }
     });
     const { optionsById } = transformPlainEntryFile(entryFile, preamble);
+    const api = entryFile.match(/AgCharts.(create[\w]*)/)![1] as 'create' | 'createGauge' | 'createFinancialChart';
 
     const { rows, columns, charts } = getChartLayout(files['index.html']);
 
@@ -63,6 +64,7 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
             window,
             window: { document },
         } = new JSDOM(`<html><head><style></style></head><body></body></html>`);
+        window.requestAnimationFrame = (cb) => setTimeout(cb, 0);
 
         // Note - we'll need one instance per DPI setting
         const mockCtx = mockCanvas.setup({
@@ -72,7 +74,7 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
             mockText,
         });
 
-        const chartProxy = AgCharts.create({
+        const chartProxy = AgCharts[api]({
             animation: { enabled: false },
             document,
             window,
@@ -86,7 +88,7 @@ export async function generateThumbnail({ example, theme, outputPath, dpi, mockT
         if (options == null) {
             throw new Error(`No options found for container with id "${id}"`);
         }
-        patchOptions(options, theme);
+        patchOptions(options, theme, output.multiple, api);
 
         const containerWidth = (DEFAULT_THUMBNAIL_WIDTH / columns) | 0;
         const containerHeight = (DEFAULT_THUMBNAIL_HEIGHT / rows) | 0;

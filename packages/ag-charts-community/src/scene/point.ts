@@ -5,4 +5,5 @@ export interface Point {
 
 export interface SizedPoint extends Point {
     size: number;
+    focusSize?: number;
 }

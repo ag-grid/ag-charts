@@ -52,6 +52,7 @@ type GeneratedContents = {
     entryFileName: string;
     files: Record<string, string>;
     scriptFiles: string[];
+    layout: 'toolbar' | 'grid';
 };
 
 const cacheKeys: Record<string, object> = {};
@@ -95,5 +96,6 @@ export const getGeneratedContentsFileList = async (params: GeneratedExampleParam
 };
 
 export const getGeneratedContents = async (params: GeneratedExampleParams) => {
+    // Generated from `plugins/ag-charts-generate-example-files`
     return readContentJson(params);
 };

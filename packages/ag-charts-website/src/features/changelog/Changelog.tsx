@@ -16,7 +16,7 @@ import { useDarkmode } from '@utils/hooks/useDarkmode';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import { createBrowserHistory } from 'history';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 const IS_SSR = typeof window === 'undefined';
 const ALL_FIX_VERSIONS = 'All Versions';
@@ -52,7 +52,7 @@ export const Changelog = () => {
     const location = useLocation();
     const [rowData, setRowData] = useState(null);
     const [gridApi, setGridApi] = useState<any>(null);
-    const [versions, setVersions] = useState<any>([]);
+    const [versions, setVersions] = useState<string[]>([]);
     const [allReleaseNotes, setAllReleaseNotes] = useState<any>(null);
     const [currentReleaseNotes, setCurrentReleaseNotes] = useState<any>(null);
     const [markdownContent, setMarkdownContent] = useState<any>(undefined);
@@ -72,10 +72,13 @@ export const Changelog = () => {
 
     const applyFixVersionFilter = useCallback(() => {
         if (gridApi && fixVersion) {
-            const versionsFilterComponent = gridApi.getFilterInstance('versions');
-            const newModel = { values: fixVersion === ALL_FIX_VERSIONS ? versions : [fixVersion], filterType: 'set' };
-            versionsFilterComponent.setModel(newModel);
-            gridApi.onFilterChanged();
+            const newModel = fixVersion === ALL_FIX_VERSIONS ? null : { values: [fixVersion], filterType: 'set' };
+            if (gridApi.getColumnFilterModel('versions') === newModel) {
+                return;
+            }
+            gridApi.setColumnFilterModel('versions', newModel).then(() => {
+                gridApi.onFilterChanged();
+            });
         }
     }, [gridApi, fixVersion, versions]);
 
@@ -89,7 +92,19 @@ export const Changelog = () => {
                     ALL_FIX_VERSIONS,
                     ...data.map((row: any) => row.versions[0]).map(gridToChartVersion),
                 ];
-                setVersions([...new Set(chartVersions)]);
+                const allVersions = Array.from(new Set<string>(chartVersions)).sort((v1, v2) => {
+                    const [v1Major, v1Minor, v1Patch] = v1.split('.').map((num: string) => parseInt(num, 10));
+                    const [v2Major, v2Minor, v2Patch] = v2.split('.').map((num: string) => parseInt(num, 10));
+
+                    if (v1Major !== v2Major) {
+                        return v2Major - v1Major;
+                    } else if (v1Minor !== v2Minor) {
+                        return v2Minor - v1Minor;
+                    }
+
+                    return v2Patch - v1Patch;
+                });
+                setVersions(allVersions);
                 setRowData(data);
             });
         fetch(urlWithBaseUrl(`/changelog/releaseVersionNotes.json`))
@@ -181,7 +196,7 @@ export const Changelog = () => {
             headerClass: styles.fontClass,
             autoHeaderHeight: true,
             wrapHeaderText: true,
-            suppressMenu: true,
+            suppressHeaderMenuButton: true,
             filter: true,
             floatingFilter: true,
             suppressKeyboardEvent: (params: any) => {
@@ -341,14 +356,12 @@ export const Changelog = () => {
     return (
         <>
             {!IS_SSR && (
-                <div className={styles.container}>
-                    <h1>AG Charts Changelog</h1>
-
+                <div>
                     <section className={styles.header}>
                         <Alert type="idea">
                             This changelog enables you to identify the specific version in which a feature request or
-                            bug fix was included. Check out the <a href="../pipeline/">Pipeline</a> to see what's in our
-                            product backlog.
+                            bug fix was included. Check out the <a href={urlWithBaseUrl('/pipeline')}>Pipeline</a> to
+                            see what's in our product backlog.
                         </Alert>
 
                         <ReleaseVersionNotes

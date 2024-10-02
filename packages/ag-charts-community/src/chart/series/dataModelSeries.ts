@@ -81,12 +81,12 @@ export abstract class DataModelSeries<
     public override pickFocus(opts: PickFocusInputs): PickFocusOutputs | undefined {
         const nodeData = this.getNodeData();
         if (nodeData === undefined || nodeData.length === 0) {
-            return undefined;
+            return;
         }
 
         const datumIndex = this.computeFocusDatumIndex(opts, nodeData);
         if (datumIndex === undefined) {
-            return undefined;
+            return;
         }
 
         const { showFocusBox } = this;
@@ -100,8 +100,8 @@ export abstract class DataModelSeries<
 
     private computeFocusDatumIndex(opts: PickFocusInputs, nodeData: TDatum[]): number | undefined {
         const isDatumEnabled = (datumIndex: number): boolean => {
-            const { missing = false, enabled = true } = nodeData[datumIndex];
-            return !missing && enabled;
+            const { missing = false, enabled = true, focusable = true } = nodeData[datumIndex];
+            return !missing && enabled && focusable;
         };
         const searchBackward = (datumIndex: number): number | undefined => {
             while (datumIndex >= 0 && !isDatumEnabled(datumIndex)) {
@@ -124,13 +124,12 @@ export abstract class DataModelSeries<
         } else if (opts.datumIndexDelta > 0) {
             datumIndex = searchForward(clampedIndex);
         } /* opts.datumIndexDelta === 0 */ else {
-            datumIndex ??= searchForward(clampedIndex);
-            datumIndex ??= searchBackward(clampedIndex);
+            datumIndex = searchForward(clampedIndex) ?? searchBackward(clampedIndex);
         }
 
         if (datumIndex === undefined) {
             if (opts.datumIndexDelta === 0) {
-                return undefined;
+                return;
             } else {
                 // If datumIndex is undefined, then this datum is the first or last enabled datum.
                 // last enabled datum. If that's the case, then reverse the keyboard delta to stay on

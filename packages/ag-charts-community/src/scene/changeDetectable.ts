@@ -14,7 +14,7 @@ export enum RedrawType {
 
 type SceneChangeDetectionOptions<T = any> = {
     redraw?: RedrawType;
-    type?: 'normal' | 'transform' | 'path' | 'font';
+    type?: 'normal' | 'transform' | 'path';
     convertor?: (o: any) => any;
     changeCb?: (o: T) => any;
     checkDirtyOnAssignment?: boolean;
@@ -55,9 +55,6 @@ function prepareGetSet(target: any, key: string, privateKey: string, opts?: Scen
             break;
         case 'path':
             setter = buildPathSetter(privateKey, requiredOpts);
-            break;
-        case 'font':
-            setter = buildFontSetter(privateKey, requiredOpts);
             break;
     }
     setter = buildCheckDirtyChain(
@@ -112,7 +109,7 @@ function buildCheckDirtyChain(setterFn: Function, opts: SceneChangeDetectionOpti
             const change = setterFn.call(this, value);
 
             if (change !== NO_CHANGE && value != null && value._dirty > RedrawType.NONE) {
-                this.markDirty(value, value._dirty);
+                this.markDirty(value._dirty);
             }
 
             return change;
@@ -129,7 +126,7 @@ function buildNormalSetter(privateKey: string, opts: SceneChangeDetectionOptions
         const oldValue = this[privateKey];
         if (value !== oldValue) {
             this[privateKey] = value;
-            this.markDirty(this, redraw);
+            this.markDirty(redraw);
             changeCb?.(this);
             return value;
         }
@@ -162,47 +159,11 @@ function buildPathSetter(privateKey: string, opts: SceneChangeDetectionOptions) 
             this[privateKey] = value;
             if (!this._dirtyPath) {
                 this._dirtyPath = true;
-                this.markDirty(this, redraw);
+                this.markDirty(redraw);
             }
             return value;
         }
 
         return NO_CHANGE;
     };
-}
-
-function buildFontSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
-    const { redraw = RedrawType.TRIVIAL } = opts;
-
-    return function (this: any, value: any) {
-        const oldValue = this[privateKey];
-        if (value !== oldValue) {
-            this[privateKey] = value;
-            if (!this._dirtyFont) {
-                this._dirtyFont = true;
-                this.markDirty(this, redraw);
-            }
-            return value;
-        }
-
-        return NO_CHANGE;
-    };
-}
-
-export abstract class ChangeDetectable {
-    protected _dirty: RedrawType = RedrawType.MAJOR;
-
-    protected markDirty(_source: any, type = RedrawType.TRIVIAL) {
-        if (this._dirty < type) {
-            this._dirty = type;
-        }
-    }
-
-    markClean(_opts?: { force?: boolean; recursive?: boolean }) {
-        this._dirty = RedrawType.NONE;
-    }
-
-    isDirty(): boolean {
-        return this._dirty > RedrawType.NONE;
-    }
 }

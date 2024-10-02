@@ -3,8 +3,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
-const { assignJsonApplyConstructedArray, ChartAxisDirection, Default, Layers, DEGREE, BOOLEAN, Validate } =
-    _ModuleSupport;
+const { ChartAxisDirection, Default, ZIndexMap, DEGREE, BOOLEAN, Validate } = _ModuleSupport;
 const { Caption, Group, Path, Selection } = _Scene;
 const { isNumberEqual, normalizeAngle360, toRadians } = _Util;
 
@@ -17,6 +16,8 @@ class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
 }
 
 export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
+    protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
+
     @Validate(DEGREE)
     @Default(0)
     positionAngle: number = 0;
@@ -24,7 +25,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
     protected readonly gridPathGroup = this.gridGroup.appendChild(
         new Group({
             name: `${this.id}-gridPaths`,
-            zIndex: Layers.AXIS_GRID_ZINDEX,
+            zIndex: ZIndexMap.AXIS_GRID,
         })
     );
 
@@ -36,10 +37,6 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
 
     get direction() {
         return ChartAxisDirection.Y;
-    }
-
-    protected assignCrossLineArrayConstructor(crossLines: _ModuleSupport.CrossLine[]) {
-        assignJsonApplyConstructedArray(crossLines, RadiusCrossLine);
     }
 
     protected override getAxisTransform() {
@@ -155,27 +152,21 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         const identityFormatter = (params: AgAxisCaptionFormatterParams) => params.defaultValue;
         const {
             title,
-            _titleCaption,
             range: requestedRange,
             moduleCtx: { callbackCache },
         } = this;
-        const { formatter = identityFormatter } = this.title ?? {};
+        const { formatter = identityFormatter } = this.title;
 
-        if (!title) {
-            _titleCaption.enabled = false;
-            return;
-        }
-
-        _titleCaption.enabled = title.enabled;
-        _titleCaption.fontFamily = title.fontFamily;
-        _titleCaption.fontSize = title.fontSize;
-        _titleCaption.fontStyle = title.fontStyle;
-        _titleCaption.fontWeight = title.fontWeight;
-        _titleCaption.color = title.color;
-        _titleCaption.wrapping = title.wrapping;
+        title.caption.enabled = title.enabled;
+        title.caption.fontFamily = title.fontFamily;
+        title.caption.fontSize = title.fontSize;
+        title.caption.fontStyle = title.fontStyle;
+        title.caption.fontWeight = title.fontWeight;
+        title.caption.color = title.color;
+        title.caption.wrapping = title.wrapping;
 
         let titleVisible = false;
-        const titleNode = _titleCaption.node;
+        const titleNode = title.caption.node;
         if (title.enabled) {
             titleVisible = true;
 

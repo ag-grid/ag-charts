@@ -14,6 +14,20 @@
         "documentationUrl": null
     },
     {
+        "key": "AG-10036",
+        "issueType": "Task",
+        "componentsByName": ["Charts"],
+        "summary": "[Charts] Add support for Angular version 15+",
+        "versions": ["31.3.2"],
+        "status": "Done",
+        "resolution": "Done",
+        "features": ["Frameworks"],
+        "moreInformation": null,
+        "deprecationNotes": null,
+        "breakingChangesNotes": null,
+        "documentationUrl": null
+    },
+    {
         "key": "AG-9866",
         "issueType": "Task",
         "componentsByName": ["Charts"],

@@ -1,12 +1,14 @@
-import { allInStringUnion } from '../../util/array';
+import type { DOMManager } from '../../dom/domManager';
 import { Debug } from '../../util/debug';
 import { getWindow } from '../../util/dom';
+import type { Listeners } from '../../util/listeners';
 import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
-import { BaseManager } from '../baseManager';
-import type { DOMManager } from '../dom/domManager';
-import { type PreventableEvent, type Unpreventable, dispatchTypedEvent } from './preventableEvent';
+import { InteractionState, InteractionStateListener } from './interactionStateListener';
+import { type PreventableEvent, type Unpreventable, buildPreventable, dispatchTypedEvent } from './preventableEvent';
+
+export { InteractionState };
 
 export const POINTER_INTERACTION_TYPES = [
     'click',
@@ -93,6 +95,7 @@ export type PointerInteractionEvent<T extends PointerInteractionTypes = PointerI
         pageY: number;
         deltaX: number;
         deltaY: number;
+        button: number;
         pointerHistory: PointerHistoryEvent[];
     };
 
@@ -122,31 +125,44 @@ interface Coords {
 
 type SupportedEvent = MouseEvent | TouchEvent | Event;
 
-// These interaction state are both bitflags and priorities.
-// Smaller numbers have higher priority, because it is possible to find the least
-// significant bit in O(1) complexity using a bitwise operation.
-export enum InteractionState {
-    Default = 16,
-    ZoomDrag = 8,
-    Annotations = 4,
-    ContextMenu = 2,
-    Animation = 1,
-    All = Default | ZoomDrag | Annotations | ContextMenu | Animation,
+// Setting data-pointer-capture on an element will stop the interaction manager
+// sending mouse events to the canvas while the mouse is over one of these elements
+enum PointerCapture {
+    // Keep the mouse cursor in the last position on the canvas
+    Retain = 'retain',
+    // Treat the mouse cursor as exiting the canvas
+    Exclusive = 'exclusive',
+}
+const pointerCaptures = new Set(Object.values(PointerCapture));
+
+function isPointerEvent(type: InteractionTypes): type is PointerInteractionTypes {
+    return POINTER_INTERACTION_TYPES.includes(type as any);
+}
+
+function isFocusEvent(type: InteractionTypes): type is FocusInteractionTypes {
+    return FOCUS_INTERACTION_TYPES.includes(type as any);
+}
+
+function isKeyEvent(type: InteractionTypes): type is KeyInteractionTypes {
+    return KEY_INTERACTION_TYPES.includes(type as any);
 }
 
 /**
  * Manages user interactions with a specific HTMLElement (or interactions that bubble from it's
  * children)
  */
-export class InteractionManager extends BaseManager<InteractionTypes, InteractionEvent> {
+export class InteractionManager extends InteractionStateListener<InteractionTypes, InteractionEvent> {
     private readonly debug = Debug.create(true, 'interaction');
 
     private rootElement: HTMLElement | undefined;
 
     private readonly eventHandler = (event: SupportedEvent) => this.processEvent(event);
+    private readonly overlayEventHandler = (event: SupportedEvent) => this.processCanvasOverlayEvent(event);
 
     private mouseDown = false;
     private touchDown = false;
+    private pointerCaptureCanvasElement?: HTMLElement = undefined;
+    private dragPreStartElement?: HTMLElement;
     private dragStartElement?: HTMLElement;
     private readonly clickHistory: [PointerHistoryEvent] = [{ offsetX: NaN, offsetY: NaN, type: 'mousedown' }];
     private readonly dblclickHistory: [PointerHistoryEvent, PointerHistoryEvent, PointerHistoryEvent] = [
@@ -163,7 +179,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
     ) {
         super();
 
-        this.rootElement = this.domManager.getDocumentRoot();
+        this.rootElement = this.domManager.getShadowDocumentRoot();
 
         for (const type of EVENT_HANDLERS) {
             if (type.startsWith('touch') || type === 'wheel') {
@@ -177,12 +193,17 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             getWindow().addEventListener(type, this.eventHandler);
         }
 
+        this.destroyFns.push(
+            this.domManager.addEventListenerOnElement('canvas-overlay', 'mouseover', this.overlayEventHandler),
+            this.domManager.addEventListenerOnElement('canvas-overlay', 'mouseout', this.overlayEventHandler)
+        );
+
         this.containerChanged(true);
         this.domManager.addListener('container-changed', () => this.containerChanged());
     }
 
     private containerChanged(force = false) {
-        const newRoot = this.domManager.getDocumentRoot();
+        const newRoot = this.domManager.getShadowDocumentRoot();
         if (!force && newRoot === this.rootElement) return;
 
         for (const type of SHADOW_DOM_HANDLERS) {
@@ -206,26 +227,11 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         for (const type of SHADOW_DOM_HANDLERS) {
             this.rootElement?.removeEventListener(type, this.eventHandler);
         }
-
         for (const type of EVENT_HANDLERS) {
             this.domManager.removeEventListener(type, this.eventHandler);
         }
 
         this.domManager.removeStyles('interactionManager');
-    }
-
-    // Wrapper to only broadcast events when the InteractionManager is a given state.
-    override addListener<T extends InteractionTypes>(
-        type: T,
-        handler: (event: InteractionEvent & { type: T }) => void,
-        triggeringStates: InteractionState = InteractionState.Default
-    ) {
-        return super.addListener(type, (e) => {
-            const currentState = this.getState();
-            if (currentState & triggeringStates) {
-                handler(e);
-            }
-        });
     }
 
     public pushState(state: InteractionState) {
@@ -236,45 +242,108 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         this.stateQueue &= ~state;
     }
 
-    public getState() {
+    public override getState(): InteractionState {
         // Bitwise operation to get the least significant bit:
         return this.stateQueue & -this.stateQueue;
     }
 
+    private processCanvasOverlayEvent(event: SupportedEvent) {
+        const coords = this.calculateCoordinates(event);
+        if (coords == null) return;
+
+        let target = event.target as HTMLElement | null;
+        let pointerCapture: PointerCapture | null = null;
+        while (target != null) {
+            pointerCapture = target.getAttribute('data-pointer-capture') as PointerCapture | null;
+
+            if (pointerCapture == null) {
+                target = target.parentElement;
+            } else {
+                break;
+            }
+        }
+
+        if (target == null || pointerCapture == null || !pointerCaptures.has(pointerCapture)) return;
+
+        const isOverCanvasOverlay = event.type === 'mouseover';
+        const pointerCaptureCanvasElement = isOverCanvasOverlay ? target : undefined;
+
+        if (this.pointerCaptureCanvasElement === pointerCaptureCanvasElement) return;
+
+        this.pointerCaptureCanvasElement = pointerCaptureCanvasElement;
+
+        if (pointerCapture === PointerCapture.Exclusive) {
+            const pointerEvent = this.buildPointerEvent({
+                type: isOverCanvasOverlay ? 'leave' : 'enter',
+                event,
+                ...coords,
+            });
+            this.debug('Dispatching canvas overlay event', pointerEvent, this.getState());
+            dispatchTypedEvent(this.listeners, pointerEvent);
+        }
+    }
+
     private processEvent(event: SupportedEvent) {
-        const types: InteractionTypes[] = this.decideInteractionEventTypes(event);
+        this.debug('Received raw event', event);
+
+        let types = this.decideInteractionEventTypes(event);
+        if (types != null && !Array.isArray(types)) {
+            types = [types];
+        }
 
         // AG-11385 Ignore clicks on focusable & disabled elements.
-        const target: (EventTarget & { ariaDisabled?: string }) | null = event.target;
+        const target: (EventTarget & { ariaDisabled?: string; tagName?: string; role?: string }) | null = event.target;
         if (event.type === 'click' && target?.ariaDisabled === 'true') {
             event.preventDefault();
             return;
         }
 
-        if (types.length > 0) {
+        for (const type of types ?? []) {
+            if (this.ignoreEvent(type, target)) continue;
+
             // Async dispatch to avoid blocking the event-processing thread.
-            this.dispatchEvent(event, types).catch((e) => Logger.errorOnce(e));
+            this.dispatchEvent(event, type).catch((e) => Logger.errorOnce(e));
         }
     }
 
-    private async dispatchEvent(event: SupportedEvent, types: InteractionTypes[]) {
-        if (allInStringUnion(POINTER_INTERACTION_TYPES, types)) {
-            this.dispatchPointerEvent(event, types);
+    private ignoreEvent(
+        type: InteractionTypes | undefined,
+        target: (EventTarget & { ariaDisabled?: string; tagName?: string; role?: string }) | null
+    ) {
+        // AG-12824 Don't ignore contextmenu events.
+        if (type === 'contextmenu') return false;
+
+        // AG-12037 Interacting with HTML buttons can also fire events on the series, which we don't want.
+        // AG-12604 Same thing with <input> tags
+        const ignoredTags: (string | undefined)[] = ['button', 'input'];
+        const targetTags = [target?.tagName?.toLowerCase(), target?.role];
+        return targetTags.some((tag) => ignoredTags.includes(tag));
+    }
+
+    private async dispatchEvent(event: SupportedEvent, type: InteractionTypes) {
+        if (isPointerEvent(type)) {
+            this.dispatchPointerEvent(event, type);
             return;
         }
 
         const { relatedElement, targetElement } = this.extractElements(event);
-        if (allInStringUnion(FOCUS_INTERACTION_TYPES, types)) {
-            for (const type of types) {
-                const sourceEvent = event as FocusEvent;
-                dispatchTypedEvent(this.listeners, { type, sourceEvent, relatedElement, targetElement });
-            }
-        } else if (allInStringUnion(KEY_INTERACTION_TYPES, types)) {
-            for (const type of types) {
-                const sourceEvent = event as KeyboardEvent;
-                dispatchTypedEvent(this.listeners, { type, sourceEvent, relatedElement, targetElement });
-            }
+        if (isFocusEvent(type)) {
+            const sourceEvent = event as FocusEvent;
+            this.dispatchTypedEvent(this.listeners, { type, sourceEvent, relatedElement, targetElement });
+        } else if (isKeyEvent(type)) {
+            const sourceEvent = event as KeyboardEvent;
+            this.dispatchTypedEvent(this.listeners, { type, sourceEvent, relatedElement, targetElement });
         }
+    }
+
+    private dispatchTypedEvent<
+        T extends string,
+        E extends { type: T },
+        L extends Listeners<T, (event: PreventableEvent & E) => void>,
+    >(listeners: L, event: E) {
+        const preventableEvent = buildPreventable(event);
+        this.debug('Dispatching typed event', preventableEvent, this.getState());
+        listeners.dispatchWrapHandlers(event.type, (handler, e) => handler(e), preventableEvent);
     }
 
     extractElements(event: SupportedEvent): { relatedElement?: HTMLElement; targetElement?: HTMLElement } {
@@ -291,16 +360,13 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
         return { relatedElement, targetElement };
     }
 
-    private dispatchPointerEvent(event: SupportedEvent, types: PointerInteractionTypes[]) {
+    private dispatchPointerEvent(event: SupportedEvent, type: PointerInteractionTypes) {
         const coords = this.calculateCoordinates(event);
+        if (coords == null) return;
 
-        if (coords == null) {
-            return;
-        }
-
-        for (const type of types) {
-            dispatchTypedEvent(this.listeners, this.buildPointerEvent({ type, event, ...coords }));
-        }
+        const pointerEvent = this.buildPointerEvent({ type, event, ...coords });
+        this.debug('Dispatching pointer event', pointerEvent, this.getState());
+        dispatchTypedEvent(this.listeners, pointerEvent);
     }
 
     private getEventHTMLTarget(event: SupportedEvent): HTMLElement | undefined {
@@ -318,91 +384,102 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[2], this.dblclickHistory[0]);
             partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[0], event);
         }
-        this.dragStartElement = this.getEventHTMLTarget(event);
+        this.dragPreStartElement = this.getEventHTMLTarget(event);
     }
 
     private recordUp(event: SupportedEvent) {
         if (event instanceof MouseEvent) {
             partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[1], event);
         }
-        this.dragStartElement = undefined;
+        this.dragPreStartElement = undefined;
+        if (this.dragStartElement) {
+            this.dragStartElement = undefined;
+            return true;
+        }
+        return false;
     }
-    private decideInteractionEventTypes(event: SupportedEvent): InteractionTypes[] {
+
+    private decideInteractionEventTypes(event: SupportedEvent): InteractionTypes | InteractionTypes[] | undefined {
         const dragStart = 'drag-start';
+
+        if (this.pointerCaptureCanvasElement?.isConnected === false) {
+            this.pointerCaptureCanvasElement = undefined;
+        }
+
+        if (this.pointerCaptureCanvasElement != null) {
+            // Ignore events while inside overlays
+            return;
+        }
 
         switch (event.type) {
             case 'blur':
             case 'focus':
             case 'keydown':
             case 'keyup':
-                return this.keyboardOptions.enabled ? [event.type] : [];
+                return this.keyboardOptions.enabled ? event.type : undefined;
 
             case 'click':
             case 'dblclick':
             case 'contextmenu':
             case 'wheel':
-                return [event.type];
+                return event.type;
 
             case 'mousedown':
-                if (!this.isEventOverElement(event) || !('button' in event) || event.button !== 0) {
-                    return [];
+                if (!this.isEventOverElement(event)) {
+                    return;
                 }
                 this.mouseDown = true;
                 this.recordDown(event);
-                return [dragStart];
+                return;
             case 'touchstart':
                 if (!this.isEventOverElement(event)) {
-                    return [];
+                    return;
                 }
                 this.touchDown = true;
                 this.recordDown(event);
-                return [dragStart];
+                return;
 
             case 'touchmove':
             case 'mousemove':
                 if (!this.mouseDown && !this.touchDown && !this.isEventOverElement(event)) {
                     // We only care about these events if the target is the canvas, unless
                     // we're in the middle of a drag/slide.
-                    return [];
+                    return;
                 }
-                return this.mouseDown || this.touchDown ? ['drag'] : ['hover'];
+                if (!this.mouseDown && !this.touchDown) return 'hover';
+                if (this.dragStartElement) return 'drag';
+
+                this.dragStartElement = this.dragPreStartElement;
+                this.dragPreStartElement = undefined;
+                return [dragStart, 'drag'];
 
             case 'mouseup':
                 if (!this.mouseDown && !this.isEventOverElement(event)) {
                     // We only care about these events if the target is the canvas, unless
                     // we're in the middle of a drag.
-                    return [];
+                    return;
                 }
                 this.mouseDown = false;
-                this.recordUp(event);
-                return ['drag-end'];
+                return this.recordUp(event) ? 'drag-end' : undefined;
             case 'touchend':
                 if (!this.touchDown && !this.isEventOverElement(event)) {
                     // We only care about these events if the target is the canvas, unless
                     // we're in the middle of a slide.
-                    return [];
+                    return;
                 }
                 this.touchDown = false;
-                this.recordUp(event);
-                return ['drag-end'];
+                return this.recordUp(event) ? 'drag-end' : undefined;
 
             case 'mouseleave':
             case 'touchcancel':
-                return ['leave'];
+                return 'leave';
 
             case 'mouseenter':
-                const mouseButtonDown = event instanceof MouseEvent && (event.buttons & 1) === 1;
-                if (this.mouseDown !== mouseButtonDown) {
-                    this.mouseDown = mouseButtonDown;
-                    return [mouseButtonDown ? dragStart : 'drag-end'];
-                }
-                return ['enter'];
+                return 'enter';
 
             case 'pagehide':
-                return ['page-left'];
+                return 'page-left';
         }
-
-        return [];
     }
 
     private isEventOverElement(event: SupportedEvent) {
@@ -505,6 +582,7 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
 
         const { relatedElement, targetElement } = this.extractElements(event);
 
+        const button = 'button' in event ? Number(event.button) : 0;
         const builtEvent = {
             type,
             offsetX,
@@ -513,13 +591,14 @@ export class InteractionManager extends BaseManager<InteractionTypes, Interactio
             pageY,
             deltaX,
             deltaY,
+            button,
             pointerHistory,
             sourceEvent: event,
             relatedElement,
             targetElement,
         };
 
-        this.debug('InteractionManager - builtEvent: ', builtEvent);
+        this.debug('InteractionManager - builtEvent: ', builtEvent, this.getState());
         return builtEvent;
     }
 }

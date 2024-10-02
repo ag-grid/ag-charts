@@ -1,5 +1,65 @@
 ---
 title: 'Funnel Series'
+description: '$framework Funnel Series shows the change of a value over a set of processes.'
 ---
 
-TODO
+A Funnel Series shows the change of a value over a set of processes.
+
+## Simple Funnel
+
+{% chartExampleRunner title="Funnel Chart" name="simple-funnel" type="generated" /%}
+
+To create a Funnel Series, use the `funnel` series type.
+
+```js
+series: [
+    {
+        type: 'funnel',
+        xKey: 'group',
+        yKey: 'value'
+    },
+],
+```
+
+In this configuration:
+
+-   `xKey` defines the categories, and is mapped to the stages of the funnel.
+-   `yKey` provides the numerical values, corresponding values of each stage.
+
+## Horizontal Funnel
+
+{% chartExampleRunner title="Horizontal Funnel Chart" name="horizontal-funnel" type="generated" /%}
+
+To create a horizontal Funnel Series, set the `direction` to `horizontal`.
+
+```js
+{
+    direction: 'horizontal',
+}
+```
+
+## Segmented Funnel
+
+A segmented funnel does not draw the drop offs between the stages.
+
+{% chartExampleRunner title="Segmented Funnel Chart" name="segmented" type="generated" /%}
+
+To disable the drop offs, set `enabled` to `false` in the `dropOff` configuration.
+
+```js
+{
+    dropOff: {
+        enabled: false,
+    },
+}
+```
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgFunnelSeriesOptions" label="Funnel Series" %}
+{% apiReference id="AgFunnelSeriesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

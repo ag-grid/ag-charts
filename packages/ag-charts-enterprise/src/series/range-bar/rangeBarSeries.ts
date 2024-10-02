@@ -27,7 +27,7 @@ const {
     computeBarFocusBounds,
 } = _ModuleSupport;
 const { Rect, PointerEvents, motion } = _Scene;
-const { sanitizeHtml, isNumber, extent } = _Util;
+const { sanitizeHtml, isNumber } = _Util;
 const { ContinuousScale } = _Scale;
 
 type Bounds = {
@@ -105,7 +105,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
             directionKeys: {
                 x: ['xKey'],
@@ -161,31 +161,20 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
-        const { processedData, dataModel, smallestDataInterval } = this;
-        if (!(processedData && dataModel)) return [];
+        const { processedData, dataModel } = this;
+        if (!processedData || !dataModel) return [];
 
         const {
-            domain: {
-                keys: [keys],
-                values,
-            },
-        } = processedData;
+            keys: [keys],
+            values,
+        } = processedData.domain;
 
         if (direction === this.getCategoryDirection()) {
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
-
             if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
                 return keys;
             }
-
-            const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
-            const keysExtent = extent(keys) ?? [NaN, NaN];
-
-            const categoryAxis = this.getCategoryAxis();
-
-            const d0 = keysExtent[0] + -scalePadding;
-            const d1 = keysExtent[1] + scalePadding;
-            return fixNumericExtent([d0, d1], categoryAxis);
+            return this.padBandExtent(keys);
         } else {
             const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue');
             const yLowExtent = values[yLowIndex];
@@ -242,11 +231,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 const xDatum = keys[xIndex];
                 const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex)) + barOffset;
 
-                const rawLowValue: unknown = value[yLowIndex];
-                const rawHighValue: unknown = value[yHighIndex];
-                if (!_Util.isNumber(rawHighValue) || !_Util.isNumber(rawLowValue)) {
-                    return;
-                }
+                const rawLowValue = value[yLowIndex];
+                const rawHighValue = value[yHighIndex];
 
                 const yLowValue = Math.min(rawLowValue, rawHighValue);
                 const yHighValue = Math.max(rawLowValue, rawHighValue);
@@ -390,6 +376,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             yLowKey,
             yHighKey,
             highlightStyle: { item: itemHighlightStyle },
+            fillOpacity,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+            itemStyler,
+            shadow: fillShadow,
         } = this.properties;
 
         const xAxis = this.axes[ChartAxisDirection.X];
@@ -403,15 +396,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         datumSelection.each((rect, datum) => {
-            const {
-                fillOpacity,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-                itemStyler,
-                shadow: fillShadow,
-            } = this.properties;
             const style: _ModuleSupport.RectConfig = {
                 fill: datum.fill,
                 stroke: datum.stroke,
@@ -438,7 +422,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             });
             config.crisp = crisp;
             config.visible = visible;
-            updateRect({ rect, config });
+            updateRect(rect, config);
         });
     }
 

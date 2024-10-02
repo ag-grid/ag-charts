@@ -1,6 +1,7 @@
 import type {
     AgCartesianSeriesOptions,
     AgFlowProportionSeriesOptions,
+    AgGaugeOptions,
     AgHierarchySeriesOptions,
     AgPolarSeriesOptions,
     AgTopologySeriesOptions,
@@ -22,6 +23,7 @@ export type SeriesType = NonNullable<
     | AgHierarchySeriesOptions['type']
     | AgTopologySeriesOptions['type']
     | AgFlowProportionSeriesOptions['type']
+    | AgGaugeOptions['type']
 >;
 
 export interface SeriesOptionInstance extends ModuleInstance {
@@ -42,6 +44,6 @@ export interface SeriesOptionInstance extends ModuleInstance {
 export interface SeriesOptionModule<M extends SeriesOptionInstance = SeriesOptionInstance> extends BaseModule {
     type: 'series-option';
     seriesTypes: readonly SeriesType[];
-    instanceConstructor: new (ctx: SeriesContext) => M;
+    moduleFactory: (ctx: SeriesContext) => M;
     themeTemplate: {};
 }

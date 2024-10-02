@@ -11,7 +11,7 @@ export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'range-area',
-    instanceConstructor: RangeAreaSeries,
+    moduleFactory: (ctx) => new RangeAreaSeries(ctx),
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {

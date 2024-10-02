@@ -11,7 +11,7 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
     chartTypes: ['polar'],
 
     identifier: 'nightingale',
-    instanceConstructor: NightingaleSeries,
+    moduleFactory: (ctx) => new NightingaleSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [
         {

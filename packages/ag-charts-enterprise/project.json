@@ -1,7 +1,7 @@
 {
   "name": "ag-charts-enterprise",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/ag-charts-enterprise/src",
+  "sourceRoot": "{projectRoot}/src",
   "projectType": "library",
   "targets": {
     "build": {
@@ -30,14 +30,15 @@
       ],
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/ag-charts-enterprise/dist/types",
-        "main": "packages/ag-charts-enterprise/src/main.ts",
-        "tsConfig": "packages/ag-charts-enterprise/tsconfig.types.json",
+        "outputPath": "{projectRoot}/dist/types",
+        "main": "{projectRoot}/src/main.ts",
+        "additionalEntryPoints": ["{projectRoot}/src/main-modules.ts"],
+        "tsConfig": "{projectRoot}/tsconfig.types.json",
         "compiler": "tsc"
       },
       "configurations": {
         "watch": {
-          "tsConfig": "packages/ag-charts-enterprise/tsconfig.types.watch.json"
+          "tsConfig": "{projectRoot}/tsconfig.types.watch.json"
         },
         "production": {}
       }
@@ -80,6 +81,7 @@
       "options": {
         "outputPath": "{projectRoot}/dist/package",
         "main": "{projectRoot}/src/main.ts",
+        "additionalEntryPoints": ["{projectRoot}/src/main-modules.ts"],
         "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "external": ["ag-charts-community"],
@@ -91,6 +93,9 @@
       "configurations": {
         "watch": {
           "tsConfig": "{projectRoot}/tsconfig.watch.json"
+        },
+        "staging": {
+          "sourcemap": false
         },
         "production": {
           "sourcemap": false
@@ -109,7 +114,7 @@
         "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
-        "target": "es6",
+        "target": "es2020",
         "bundle": true,
         "thirdParty": true,
         "skipTypeCheck": true,
@@ -120,6 +125,9 @@
       "configurations": {
         "watch": {
           "tsConfig": "{projectRoot}/tsconfig.watch.json"
+        },
+        "staging": {
+          "sourcemap": false
         },
         "production": {
           "sourcemap": false
@@ -147,7 +155,7 @@
     },
     "lint:depcruise": {
       "executor": "nx:run-commands",
-      "inputs": ["{projectRoot}/src/**"],
+      "inputs": ["{projectRoot}/src/**", "{projectRoot}/.dependency-cruiser.js"],
       "outputs": [],
       "options": {
         "cwd": "packages/ag-charts-community",
@@ -166,7 +174,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-enterprise.xml"],
       "options": {
-        "jestConfig": "packages/ag-charts-enterprise/jest.config.ts",
+        "jestConfig": "{projectRoot}/jest.config.ts",
         "testPathIgnorePatterns": [".*/benchmarks/.*"],
         "passWithNoTests": false
       },
@@ -189,9 +197,10 @@
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
+      "inputs": ["allTransitiveOutputs"],
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
-        "cwd": "packages/ag-charts-enterprise",
+        "cwd": "{projectRoot}",
         "parallel": false,
         "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-enterprise.tgz"]
       }
@@ -199,22 +208,16 @@
     "pack:extract": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack"],
-      "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
+      "inputs": ["allOutputs"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-enterprise/"],
-      "options": {
-        "parallel": false,
-        "commands": [
-          "mkdir -p dist/packages/contents/ag-charts-enterprise",
-          "tar -xzf dist/packages/ag-charts-enterprise.tgz -C dist/packages/contents/ag-charts-enterprise/"
-        ]
-      }
+      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
     },
     "pack:verify": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
-      "inputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-enterprise/"],
+      "inputs": ["allOutputs"],
       "options": {
-        "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-enterprise/package"]
+        "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-enterprise/package"]
       }
     }
   },

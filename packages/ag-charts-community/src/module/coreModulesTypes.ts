@@ -1,4 +1,4 @@
-import type { AgChartOptions, AgChartThemePalette } from 'ag-charts-types';
+import type { AgChartThemePalette, AgPaletteColors } from 'ag-charts-types';
 
 import type { SeriesOptionsTypes } from '../chart/mapping/types';
 
@@ -19,17 +19,14 @@ export interface SeriesPaletteFactoryParams {
     takeColors: (count: number) => { fills: string[]; strokes: string[] };
     colorsCount: number;
     userPalette: PaletteType;
-    palette: Required<AgChartThemePalette>;
+    palette: Required<AgChartThemePalette & { altUp: AgPaletteColors; altDown: AgPaletteColors }>;
     themeTemplateParameters: Map<string, string | string[]>;
 }
 
-export type SeriesPaletteFactory<SeriesType extends RequiredSeriesType = RequiredSeriesType> = (
-    params: SeriesPaletteFactoryParams
-) => SeriesPaletteOptions<SeriesType>;
+export type SeriesPaletteFactory<SeriesOpts> = (params: SeriesPaletteFactoryParams) => SeriesPaletteOptions<SeriesOpts>;
 
 export type SeriesPaletteOptions<
-    SeriesType extends RequiredSeriesType,
-    SeriesOpts = NonNullable<AgChartOptions['series']>[number] & { type: SeriesType },
+    SeriesOpts,
     ColourKeys = 'stroke' | 'fill' | 'fills' | 'strokes' | 'colors',
     NestedKeys = 'marker' | 'calloutLine',
 > = {

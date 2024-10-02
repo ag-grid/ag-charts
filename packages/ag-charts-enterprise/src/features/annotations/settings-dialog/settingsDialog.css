@@ -1,0 +1,9 @@
+.ag-charts-dialog--annotation-settings {
+    width: 289px;
+}
+
+.ag-charts-dialog--annotation-settings .ag-charts-textarea {
+    height: calc(10px * 2 + var(--line-height) * 1em * 3 + 2px);
+    overflow-y: auto;
+    resize: vertical;
+}

@@ -1,3 +1,4 @@
+import { LocaleModule } from '../../locale/localeModule';
 import { moduleRegistry } from '../../module/module';
 import { CategoryAxis } from '../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../axis/groupedCategoryAxis';
@@ -6,7 +7,6 @@ import { NumberAxis } from '../axis/numberAxis';
 import { TimeAxis } from '../axis/timeAxis';
 import { BackgroundModule } from '../background/backgroundModule';
 import { CommunityLegendModule } from '../legendModule';
-import { LocaleModule } from '../locale/localeModule';
 import { NavigatorModule } from '../navigator/navigatorModule';
 import { AreaSeriesModule } from '../series/cartesian/areaSeriesModule';
 import { BarSeriesModule } from '../series/cartesian/barSeriesModule';
@@ -38,7 +38,7 @@ export function registerInbuiltModules() {
 
     for (const AxisConstructor of [NumberAxis, CategoryAxis, TimeAxis, GroupedCategoryAxis, LogAxis]) {
         axisRegistry.register(AxisConstructor.type, {
-            instanceConstructor: AxisConstructor,
+            moduleFactory: (ctx) => new AxisConstructor(ctx),
             hidden: AxisConstructor === GroupedCategoryAxis,
         });
     }

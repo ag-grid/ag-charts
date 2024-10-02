@@ -6,9 +6,9 @@ import { ContextMenu } from './contextMenu';
 export const ContextMenuModule: _ModuleSupport.Module = {
     type: 'root',
     packageType: 'enterprise',
-    chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion'],
+    chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'gauge'],
     optionsKey: 'contextMenu',
-    instanceConstructor: ContextMenu,
+    moduleFactory: (ctx) => new ContextMenu(ctx),
     themeTemplate: {
         contextMenu: {
             enabled: true,

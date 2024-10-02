@@ -17,8 +17,8 @@ export default defineConfig({
     forbidOnly: !!process.env.CI,
     /* Retry on CI only */
     retries: process.env.CI ? 2 : 0,
-    /* Opt out of parallel tests on CI. */
-    workers: process.env.CI ? 1 : undefined,
+    /* Limit parallel tests on CI. */
+    workers: process.env.CI ? 2 : undefined,
     /* Reporter to use. See https://playwright.dev/docs/test-reporters */
     reporter: [
         [
@@ -92,15 +92,19 @@ export default defineConfig({
     ],
 
     /* Run your local dev server before starting the tests */
-    webServer: {
-        env: {
-            PUBLIC_SITE_URL: 'http://localhost:4601',
-            FAIL_ON_UNMATCHED_GLOBS: 'false',
-            PUBLIC_HTTPS_SERVER: 'false',
-        },
-        command: 'npx astro dev --port=4601 --host',
-        url: 'http://localhost:4601/',
-        ignoreHTTPSErrors: true,
-        reuseExistingServer: !process.env.CI,
-    },
+    webServer:
+        process.env.HOSTNAME === 'docker-desktop' || process.env.CI
+            ? undefined
+            : {
+                  env: {
+                      PUBLIC_SITE_URL: 'http://localhost:4601',
+
+                      FAIL_ON_UNMATCHED_GLOBS: 'false',
+                      PUBLIC_HTTPS_SERVER: 'false',
+                  },
+                  command: 'npx astro dev --port=4601 --host',
+                  url: 'http://localhost:4601/',
+                  ignoreHTTPSErrors: true,
+                  reuseExistingServer: !process.env.CI,
+              },
 });

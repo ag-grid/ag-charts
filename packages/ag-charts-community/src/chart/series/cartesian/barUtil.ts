@@ -7,8 +7,9 @@ import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
 import type { DropShadow } from '../../../scene/dropShadow';
-import type { Node } from '../../../scene/node';
+import type { Group } from '../../../scene/group';
 import type { Rect } from '../../../scene/shape/rect';
+import { Transformable } from '../../../scene/transformable';
 import { isNegative } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import type { ChartAxis } from '../../chartAxis';
@@ -34,38 +35,21 @@ export type RectConfig = {
     visible?: boolean;
 };
 
-export function updateRect({ rect, config }: { rect: Rect; config: RectConfig }) {
-    const {
-        crisp = true,
-        fill,
-        stroke,
-        strokeWidth,
-        fillOpacity,
-        strokeOpacity,
-        lineDash,
-        lineDashOffset,
-        fillShadow,
-        cornerRadius = 0,
-        topLeftCornerRadius = true,
-        topRightCornerRadius = true,
-        bottomRightCornerRadius = true,
-        bottomLeftCornerRadius = true,
-        visible = true,
-    } = config;
-    rect.crisp = crisp;
-    rect.fill = fill;
-    rect.stroke = stroke;
-    rect.strokeWidth = strokeWidth;
-    rect.fillOpacity = fillOpacity;
-    rect.strokeOpacity = strokeOpacity;
-    rect.lineDash = lineDash;
-    rect.lineDashOffset = lineDashOffset;
-    rect.fillShadow = fillShadow;
-    rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
-    rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
-    rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;
-    rect.bottomLeftCornerRadius = bottomLeftCornerRadius ? cornerRadius : 0;
-    rect.visible = visible;
+export function updateRect(rect: Rect, config: RectConfig) {
+    rect.crisp = config.crisp ?? true;
+    rect.fill = config.fill;
+    rect.stroke = config.stroke;
+    rect.strokeWidth = config.strokeWidth;
+    rect.fillOpacity = config.fillOpacity;
+    rect.strokeOpacity = config.strokeOpacity;
+    rect.lineDash = config.lineDash;
+    rect.lineDashOffset = config.lineDashOffset;
+    rect.fillShadow = config.fillShadow;
+    rect.topLeftCornerRadius = config.topLeftCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
+    rect.topRightCornerRadius = config.topRightCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
+    rect.bottomRightCornerRadius = config.bottomRightCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
+    rect.bottomLeftCornerRadius = config.bottomLeftCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
+    rect.visible = config.visible ?? true;
 }
 
 interface NodeDatum extends Omit<CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {}
@@ -98,13 +82,6 @@ export function getRectConfig<Params extends Omit<AgBarSeriesItemStylerParams<an
         lineDashOffset,
         cornerRadius = 0,
     } = mergeDefaults(isHighlighted && highlightStyle, style);
-    const {
-        fillShadow,
-        topLeftCornerRadius = true,
-        topRightCornerRadius = true,
-        bottomRightCornerRadius = true,
-        bottomLeftCornerRadius = true,
-    } = style;
 
     let format: AgBarSeriesStyle | undefined;
     if (itemStyler) {
@@ -134,11 +111,11 @@ export function getRectConfig<Params extends Omit<AgBarSeriesItemStylerParams<an
         lineDash: format?.lineDash ?? lineDash,
         lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
         cornerRadius: format?.cornerRadius ?? cornerRadius,
-        topLeftCornerRadius,
-        topRightCornerRadius,
-        bottomRightCornerRadius,
-        bottomLeftCornerRadius,
-        fillShadow,
+        topLeftCornerRadius: style.topLeftCornerRadius,
+        topRightCornerRadius: style.topRightCornerRadius,
+        bottomRightCornerRadius: style.bottomRightCornerRadius,
+        bottomLeftCornerRadius: style.bottomLeftCornerRadius,
+        fillShadow: style.fillShadow,
     };
 }
 
@@ -166,7 +143,7 @@ const isDatumNegative = (datum: AnimatableBarDatum) => {
     return isNegative((datum as any).yValue ?? 0);
 };
 
-type InitialPosition<T> = {
+export type InitialPosition<T> = {
     isVertical: boolean;
     mode: 'normal' | 'fade';
     calculate: (datum: T, prevDatum?: T) => T;
@@ -320,11 +297,11 @@ export function resetBarSelectionsFn(_node: Rect, { x, y, width, height, clipBBo
 
 export function computeBarFocusBounds(
     datum: { x: number; y: number; width: number; height: number } | undefined,
-    barGroup: Node,
+    barGroup: Group,
     seriesRect: BBox | undefined
 ): BBox | undefined {
     if (datum === undefined) return undefined;
 
     const { x, y, width, height } = datum;
-    return barGroup.inverseTransformBBox(new BBox(x, y, width, height)).clip(seriesRect);
+    return Transformable.toCanvas(barGroup, new BBox(x, y, width, height)).clip(seriesRect);
 }

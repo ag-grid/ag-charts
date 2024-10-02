@@ -1,4 +1,4 @@
-import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions } from 'ag-charts-types';
+import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions, AgGaugeOptions } from 'ag-charts-types';
 
 import { CartesianChart } from '../chart/cartesianChart';
 import { Chart, type ChartExtendedOptions } from '../chart/chart';
@@ -6,10 +6,12 @@ import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
 import { FlowProportionChart } from '../chart/flowProportionChart';
+import { GaugeChart } from '../chart/gaugeChart';
 import { HierarchyChart } from '../chart/hierarchyChart';
 import {
     isAgCartesianChartOptions,
     isAgFlowProportionChartOptions,
+    isAgGaugeChartOptions,
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
     isAgTopologyChartOptions,
@@ -28,7 +30,7 @@ import { MementoCaretaker } from './state/memento';
 
 const debug = Debug.create(true, 'opts');
 
-function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' {
+function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge' {
     if (isAgCartesianChartOptions(options)) {
         return 'cartesian';
     } else if (isAgPolarChartOptions(options)) {
@@ -39,6 +41,8 @@ function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topolog
         return 'topology';
     } else if (isAgFlowProportionChartOptions(options)) {
         return 'flow-proportion';
+    } else if (isAgGaugeChartOptions(options)) {
+        return 'gauge';
     }
 
     throw new Error(`AG Chart - unknown type of chart for options with type: ${options.type}`);
@@ -91,19 +95,25 @@ export abstract class AgCharts {
      */
     public static create<O extends AgChartOptions>(options: O): AgChartInstance<O> {
         this.licenseCheck(options);
-        const chart = AgChartsInternal.createOrUpdate(options);
+        const chart = AgChartsInternal.createOrUpdate(
+            options,
+            undefined,
+            this.licenseManager,
+            enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : []
+        );
 
-        if (this.licenseManager?.isDisplayWatermark()) {
+        if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
             enterpriseModule.injectWatermark?.(chart.chart.ctx.domManager, this.licenseManager.getWatermarkMessage());
         }
         return chart as unknown as AgChartInstance<O>;
     }
 
-    public static createFinancialChart(options: AgFinancialChartOptions) {
-        return this.create({
-            _type: 'price-volume',
-            ...options,
-        } as AgChartOptions) as unknown as AgChartInstance<AgFinancialChartOptions>;
+    public static createFinancialChart(options: AgFinancialChartOptions): AgChartInstance<AgFinancialChartOptions> {
+        return this.create({ presetType: 'price-volume', ...options } as AgChartOptions) as any;
+    }
+
+    public static createGauge(options: AgGaugeOptions): AgChartInstance<AgGaugeOptions> {
+        return this.create({ presetType: 'gauge', ...(options as any) } as AgChartOptions) as any;
     }
 }
 
@@ -135,35 +145,45 @@ class AgChartsInternal {
         },
     };
 
-    static createOrUpdate(options: ChartExtendedOptions, proxy?: AgChartInstanceProxy) {
+    static createOrUpdate(
+        options: ChartExtendedOptions,
+        proxy?: AgChartInstanceProxy,
+        licenseManager?: LicenseManager,
+        styles?: Array<[string, string]>
+    ) {
         AgChartsInternal.initialiseModules();
 
         debug('>>> AgCharts.createOrUpdate() user options', options);
 
-        const defaultType = proxy?.chart.chartOptions.type;
-        const { _type = defaultType, ...otherOptions } = options;
+        const { presetType = proxy?.chart.chartOptions.presetType, ...otherOptions } = options;
 
         let mutableOptions = otherOptions;
         if (AgCharts.optionsMutationFn) {
-            mutableOptions = AgCharts.optionsMutationFn(mutableOptions, _type);
+            mutableOptions = AgCharts.optionsMutationFn(mutableOptions, presetType);
             debug('>>> AgCharts.createOrUpdate() MUTATED user options', options);
         }
 
         const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = mutableOptions;
         const chartOptions = new ChartOptions(userOptions, {
-            overrideDevicePixelRatio,
+            presetType,
             document,
             window: userWindow,
-            type: _type,
+            overrideDevicePixelRatio,
         });
 
         let chart = proxy?.chart;
-        if (chart == null || chartType(userOptions) !== chartType(chart?.chartOptions.processedOptions)) {
+        if (
+            chart == null ||
+            chartType(chartOptions.processedOptions) !== chartType(chart?.chartOptions.processedOptions)
+        ) {
             chart = AgChartsInternal.createChartInstance(chartOptions, chart);
+            styles?.forEach(([id, css]) => {
+                chart?.ctx.domManager.addStyles(id, css);
+            });
         }
 
         if (proxy == null) {
-            proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi);
+            proxy = new AgChartInstanceProxy(chart, AgChartsInternal.callbackApi, licenseManager);
         } else {
             proxy.chart = chart;
         }
@@ -180,7 +200,6 @@ class AgChartsInternal {
             // so we need to remove all queue items up to the last successfully applied item.
             const queueIdx = chartRef.queuedUserOptions.indexOf(userOptions) + 1;
             chartRef.queuedUserOptions.splice(0, queueIdx);
-            chartRef.applyInitialState();
         });
 
         return proxy;
@@ -227,6 +246,8 @@ class AgChartsInternal {
             return TopologyChart;
         } else if (isAgFlowProportionChartOptions(options)) {
             return FlowProportionChart;
+        } else if (isAgGaugeChartOptions(options)) {
+            return GaugeChart;
         }
 
         throw new Error(

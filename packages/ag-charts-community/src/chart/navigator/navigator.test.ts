@@ -8,6 +8,7 @@ import {
     type CartesianTestCase,
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    expectWarningsCalls,
     extractImageData,
     prepareTestOptions,
     repeat,
@@ -122,6 +123,11 @@ describe('Navigator', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
+
+                expectWarningsCalls().toEqual([
+                    // ['AG Charts - Property [navigator.min] is deprecated. Use [initialState.zoom.ratioX] instead.'],
+                    // ['AG Charts - Property [navigator.max] is deprecated. Use [initialState.zoom.ratioX] instead.'],
+                ]);
             }
         );
 
@@ -140,6 +146,11 @@ describe('Navigator', () => {
 
                 chart = AgCharts.create(options);
                 await compare();
+
+                expectWarningsCalls().toEqual([
+                    // ['AG Charts - Property [navigator.min] is deprecated. Use [initialState.zoom.ratioX] instead.'],
+                    // ['AG Charts - Property [navigator.max] is deprecated. Use [initialState.zoom.ratioX] instead.'],
+                ]);
             }
         );
     });

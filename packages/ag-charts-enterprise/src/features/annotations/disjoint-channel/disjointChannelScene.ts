@@ -1,19 +1,20 @@
 import { _Util } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
-import { convertPoint, invertCoords } from '../annotationUtils';
-import { Annotation } from '../scenes/annotation';
+import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
-import type { DisjointChannelAnnotation } from './disjointChannelProperties';
+import { LineWithTextScene } from '../scenes/lineWithTextScene';
+import { convertPoint, invertCoords } from '../utils/values';
+import type { DisjointChannelProperties } from './disjointChannelProperties';
 
 const { Vec2 } = _Util;
 
-type ChannelHandle = keyof DisjointChannel['handles'];
+type ChannelHandle = keyof DisjointChannelScene['handles'];
 
-export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
-    static override is(value: unknown): value is DisjointChannel {
-        return Annotation.isCheck(value, 'disjoint-channel');
+export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties> {
+    static override is(value: unknown): value is DisjointChannelScene {
+        return AnnotationScene.isCheck(value, 'disjoint-channel');
     }
 
     type = 'disjoint-channel';
@@ -56,10 +57,10 @@ export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
     }
 
     override dragHandle(
-        datum: DisjointChannelAnnotation,
+        datum: DisjointChannelProperties,
         target: Coords,
         context: AnnotationContext,
-        onInvalid: () => void
+        snapping: boolean
     ) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
@@ -69,21 +70,27 @@ export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
 
         const invert = (coords: Coords) => invertCoords(coords, context);
         const prev = datum.toJson();
+        const angle = datum.snapToAngle;
 
         switch (activeHandle) {
             case 'topLeft':
             case 'bottomLeft': {
                 const direction = activeHandle === 'topLeft' ? 1 : -1;
-                const start = invert({
-                    x: handles.topLeft.handle.x + offset.x,
-                    y: handles.topLeft.handle.y + offset.y * direction,
-                });
-                const bottomStart = invert({
-                    x: handles.bottomLeft.handle.x + offset.x,
-                    y: handles.bottomLeft.handle.y + offset.y * -direction,
-                });
+                const start = snapping
+                    ? this.snapToAngle(target, context, 'topLeft', 'topRight', angle, direction)
+                    : invert({
+                          x: handles.topLeft.handle.x + offset.x,
+                          y: handles.topLeft.handle.y + offset.y * direction,
+                      });
 
-                if (!start || !bottomStart || datum.start.y == null) return;
+                const bottomStart = snapping
+                    ? this.snapToAngle(target, context, 'bottomLeft', 'bottomRight', angle, -direction)
+                    : invert({
+                          x: handles.bottomLeft.handle.x + offset.x,
+                          y: handles.bottomLeft.handle.y + offset.y * -direction,
+                      });
+
+                if (!start || start.y == null || !bottomStart || bottomStart.y == null || datum.start.y == null) return;
 
                 const startHeight = datum.startHeight + (start.y - datum.start.y) * 2;
 
@@ -95,12 +102,14 @@ export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
             }
 
             case 'topRight': {
-                const end = invert({
-                    x: handles.topRight.handle.x + offset.x,
-                    y: handles.topRight.handle.y + offset.y,
-                });
+                const end = snapping
+                    ? this.snapToAngle(target, context, 'topRight', 'topLeft', angle)
+                    : invert({
+                          x: handles.topRight.handle.x + offset.x,
+                          y: handles.topRight.handle.y + offset.y,
+                      });
 
-                if (!end || datum.end.y == null) return;
+                if (!end || end.y == null || datum.end.y == null) return;
 
                 const endHeight = datum.endHeight + (end.y - datum.end.y) * 2;
 
@@ -133,12 +142,11 @@ export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
 
         if (!datum.isValidWithContext(context)) {
             datum.set(prev);
-            onInvalid();
         }
     }
 
     protected override getOtherCoords(
-        datum: DisjointChannelAnnotation,
+        datum: DisjointChannelProperties,
         topLeft: Coords,
         topRight: Coords,
         context: AnnotationContext
@@ -156,11 +164,18 @@ export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
         return [bottomLeft, bottomRight];
     }
 
-    override updateLines(datum: DisjointChannelAnnotation, top: LineCoords, bottom: LineCoords) {
+    override updateLines(datum: DisjointChannelProperties, top: LineCoords, bottom: LineCoords) {
         const { topLine, bottomLine } = this;
-        const { lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
+        const { lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
 
-        const lineStyles = { lineDash, lineDashOffset, stroke, strokeOpacity, strokeWidth };
+        const lineStyles = {
+            lineDash: datum.getLineDash(),
+            lineDashOffset,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            lineCap: datum.getLineCap(),
+        };
 
         topLine.setProperties({
             x1: top.x1,
@@ -176,11 +191,9 @@ export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
             y2: bottom.y2,
             ...lineStyles,
         });
-        topLine.updateCollisionBBox();
-        bottomLine.updateCollisionBBox();
     }
 
-    override updateHandles(datum: DisjointChannelAnnotation, top: LineCoords, bottom: LineCoords) {
+    override updateHandles(datum: DisjointChannelProperties, top: LineCoords, bottom: LineCoords) {
         const {
             handles: { topLeft, topRight, bottomLeft, bottomRight },
         } = this;
@@ -200,5 +213,41 @@ export class DisjointChannel extends ChannelScene<DisjointChannelAnnotation> {
             x: bottom.x2 - bottomRight.handle.width / 2,
             y: bottom.y2 - bottomRight.handle.height / 2,
         });
+    }
+
+    override updateText = LineWithTextScene.updateChannelText.bind(this, false);
+
+    protected override getBackgroundPoints(
+        datum: DisjointChannelProperties,
+        top: LineCoords,
+        bottom: LineCoords,
+        bounds: LineCoords
+    ) {
+        const isFlippedX = top.x1 > top.x2;
+        const isFlippedY = top.y1 > top.y2;
+        const topY = isFlippedY ? bounds.y2 : bounds.y1;
+        const bottomY = isFlippedY ? bounds.y1 : bounds.y2;
+
+        const points = Vec2.from(top);
+
+        if (datum.extendEnd && top.y2 === bottomY) {
+            points.push(Vec2.from(isFlippedX ? bounds.x1 : bounds.x2, isFlippedY ? bounds.y1 : bounds.y2));
+        }
+
+        if (datum.extendEnd && bottom.y2 === topY) {
+            points.push(Vec2.from(isFlippedX ? bounds.x1 : bounds.x2, isFlippedY ? bounds.y2 : bounds.y1));
+        }
+
+        points.push(...Vec2.from(bottom).reverse());
+
+        if (datum.extendStart && bottom.y1 === bottomY) {
+            points.push(Vec2.from(isFlippedX ? bounds.x2 : bounds.x1, isFlippedY ? bounds.y1 : bounds.y2));
+        }
+
+        if (datum.extendStart && top.y1 === topY) {
+            points.push(Vec2.from(isFlippedX ? bounds.x2 : bounds.x1, isFlippedY ? bounds.y2 : bounds.y1));
+        }
+
+        return points;
     }
 }

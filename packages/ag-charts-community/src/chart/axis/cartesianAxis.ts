@@ -4,9 +4,6 @@ import type { AxisContext } from '../../module/axisContext';
 import type { Scale } from '../../scale/scale';
 import { POSITION, POSITIVE_NUMBER, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
-import { assignJsonApplyConstructedArray } from '../chartOptions';
-import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
-import type { CrossLine } from '../crossline/crossLine';
 import { Axis } from './axis';
 import { CartesianAxisLabel } from './cartesianAxisLabel';
 
@@ -14,7 +11,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     S,
     D
 > {
-    static is(value: any): value is CartesianAxis<any> {
+    static is(value: unknown): value is CartesianAxis<any> {
         return value instanceof CartesianAxis;
     }
 
@@ -25,7 +22,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     position!: AgCartesianAxisPosition;
 
     get direction() {
-        return ['top', 'bottom'].includes(this.position) ? ChartAxisDirection.X : ChartAxisDirection.Y;
+        return this.position === 'top' || this.position === 'bottom' ? ChartAxisDirection.X : ChartAxisDirection.Y;
     }
 
     protected updateDirection() {
@@ -58,9 +55,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         }
     }
 
-    override update(primaryTickCount?: number, animated?: boolean) {
+    override update(animated?: boolean) {
         this.updateDirection();
-        return super.update(primaryTickCount, animated);
+        return super.update(animated);
     }
 
     override calculateLayout(primaryTickCount?: number) {
@@ -69,14 +66,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     }
 
     override createAxisContext(): AxisContext {
-        return {
-            ...super.createAxisContext(),
-            position: this.position,
-        };
-    }
-
-    protected assignCrossLineArrayConstructor(crossLines: CrossLine[]) {
-        assignJsonApplyConstructedArray(crossLines, CartesianCrossLine);
+        return { ...super.createAxisContext(), position: this.position };
     }
 
     protected override createLabel() {

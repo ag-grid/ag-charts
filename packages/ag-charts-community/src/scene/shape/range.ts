@@ -1,4 +1,5 @@
 import { BBox } from '../bbox';
+import { nodeCount } from '../debug.util';
 import type { NodeOptions, RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 import { Shape } from './shape';
@@ -37,7 +38,7 @@ export class Range extends Shape {
     @SceneChangeDetection({ redraw: RedrawType.MINOR })
     isRange: boolean = false;
 
-    override computeBBox(): BBox {
+    protected override computeBBox(): BBox {
         return new BBox(this.x1, this.y1, this.x2 - this.x1, this.y2 - this.y1);
     }
 
@@ -49,12 +50,9 @@ export class Range extends Shape {
         const { ctx, forceRender, stats } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {
-            if (stats) stats.nodesSkipped += this.nodeCount.count;
+            if (stats) stats.nodesSkipped += nodeCount(this).count;
             return;
         }
-
-        this.computeTransformMatrix();
-        this.matrix.toContext(ctx);
 
         let { x1, y1, x2, y2 } = this;
 
@@ -69,7 +67,7 @@ export class Range extends Shape {
         if (fillActive) {
             const { fillOpacity } = this;
 
-            ctx.fillStyle = fill;
+            this.applyFill(ctx);
             ctx.globalAlpha = opacity * fillOpacity;
 
             ctx.beginPath();

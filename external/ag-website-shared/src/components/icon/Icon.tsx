@@ -7,10 +7,12 @@ import Chord from '@ag-website-shared/images/inline-svgs/chord.svg?react';
 import CodeResult from '@ag-website-shared/images/inline-svgs/code-result.svg?react';
 import CodeSandboxIcon from '@ag-website-shared/images/inline-svgs/codesandbox.svg?react';
 import ColumnsIcon from '@ag-website-shared/images/inline-svgs/columns.svg?react';
+import ConeFunnel from '@ag-website-shared/images/inline-svgs/cone-funnel.svg?react';
 import CrossIcon from '@ag-website-shared/images/inline-svgs/cross.svg?react';
 import EnterpriseIcon from '@ag-website-shared/images/inline-svgs/enterprise.svg?react';
 import EscapeIcon from '@ag-website-shared/images/inline-svgs/escape.svg?react';
 import FigmaIcon from '@ag-website-shared/images/inline-svgs/figma-logo.svg?react';
+import Funnel from '@ag-website-shared/images/inline-svgs/funnel.svg?react';
 import HeadingResult from '@ag-website-shared/images/inline-svgs/heading-result.svg?react';
 import IntegratedChartsIcon from '@ag-website-shared/images/inline-svgs/integrated-chart.svg?react';
 import maximizeIcon from '@ag-website-shared/images/inline-svgs/maximize.svg?react';
@@ -20,6 +22,7 @@ import PageResult from '@ag-website-shared/images/inline-svgs/page-result.svg?re
 import PlunkerIcon from '@ag-website-shared/images/inline-svgs/plunker.svg?react';
 import RadarArea from '@ag-website-shared/images/inline-svgs/radar-area.svg?react';
 import RadialColumn from '@ag-website-shared/images/inline-svgs/radial-column.svg?react';
+import RadialGauge from '@ag-website-shared/images/inline-svgs/radial-gauge.svg?react';
 import ReplayDemoIcon from '@ag-website-shared/images/inline-svgs/replay-demo-icon.svg?react';
 import RowsIcon from '@ag-website-shared/images/inline-svgs/rows.svg?react';
 import Sankey from '@ag-website-shared/images/inline-svgs/sankey.svg?react';
@@ -113,6 +116,7 @@ const CHARTS_ICON_MAP = {
     chartsWaterfall: CarbonIcon.ChartWaterfall,
     chartsRadar: CarbonIcon.ChartRadar,
     chartsRadarArea: RadarArea,
+    chartsRadialGauge: RadialGauge,
     chartsSankey: Sankey,
     chartsChord: Chord,
     chartsNightingale: CarbonIcon.ChartRose,
@@ -121,9 +125,10 @@ const CHARTS_ICON_MAP = {
     chartsTreemap: CarbonIcon.ChartTreemap,
     chartsSunburst: CarbonIcon.ChartSunburst,
     chartsIcicle: CarbonIcon.ChartClusterBar,
-    chartsFunnel: CarbonIcon.Filter,
+    chartsFunnel: Funnel,
+    chartsConeFunnel: ConeFunnel,
     chartsPyramid: CarbonIcon.UpToTop,
-    chartsBullet: CarbonIcon.ChartBullet,
+    chartsLinearGauge: CarbonIcon.ChartBullet,
     chartsMap: CarbonIcon.Plan,
     chartsCandlestick: CarbonIcon.ChartCandlestick,
     chartsOHLC: CarbonIcon.ChartHighLow,
@@ -179,6 +184,8 @@ export const ICON_MAP = {
     listBoxes: CarbonIcon.List,
     figmaCommunity: FigmaIcon,
     copy: CarbonIcon.Copy,
+    play: CarbonIcon.PlayFilled,
+    pause: CarbonIcon.PauseOutlineFilled,
     ...SOCIALS_ICON_MAP,
     ...DOCS_CATEGORIES_ICON_MAP,
     ...HOMEPAGE_FEATURES_ICON_MAP,

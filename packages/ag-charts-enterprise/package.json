@@ -1,15 +1,22 @@
 {
   "name": "ag-charts-enterprise",
-  "version": "10.0.0",
+  "version": "10.2.0-beta.20241002.1133",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
   "module": "./dist/package/main.esm.mjs",
   "exports": {
-    "import": "./dist/package/main.esm.mjs",
-    "require": "./dist/package/main.cjs.js",
-    "types": "./dist/types/src/main.d.ts",
-    "default": "./dist/package/main.cjs.js"
+    ".": {
+      "import": "./dist/package/main.esm.mjs",
+      "require": "./dist/package/main.cjs.js",
+      "types": "./dist/types/src/main.d.ts",
+      "default": "./dist/package/main.cjs.js"
+    },
+    "./modules": {
+      "import": "./dist/package/main-modules.esm.mjs",
+      "require": "./dist/package/main-modules.cjs.js",
+      "types": "./dist/types/src/main-modules.d.ts"
+    }
   },
   "private": false,
   "scripts": {
@@ -23,14 +30,21 @@
   "keywords": [
     "chart",
     "charts",
+    "graph",
+    "graphs",
     "data",
-    "angular",
-    "angular-component",
     "react",
     "react-component",
+    "react-charts",
+    "react-graphs",
+    "angular",
+    "angular-component",
+    "angular-charts",
+    "angular-graphs",
     "reactjs",
     "vue",
-    "vuejs"
+    "vuejs",
+    "enterprise-charts"
   ],
   "author": "AG Grid <info@ag-grid.com>",
   "license": "Commercial",
@@ -46,7 +60,7 @@
     "not op_mini all",
     "not operamobile >= 0"
   ],
-  "homepage": "https://charts.ag-grid.com/",
+  "homepage": "https://ag-grid.com/charts/",
   "devDependencies": {
     "@babel/types": "7.12.7",
     "@jest/globals": "29.6.1",
@@ -56,7 +70,7 @@
     "@types/pngjs": "^6.0.1",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
     "@typescript-eslint/parser": "^5.51.0",
-    "ag-charts-community": "10.0.0",
+    "ag-charts-community": "10.2.0-beta.20241002.1133",
     "canvas": "^2.10.2",
     "del": "^6.0.0",
     "eslint": "^8.56.0",
@@ -76,7 +90,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "ag-charts-community": "10.0.0"
+    "ag-charts-community": "10.2.0-beta.20241002.1133"
   },
   "publishConfig": {
     "access": "public"

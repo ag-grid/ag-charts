@@ -1,10 +1,6 @@
 import type { AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult } from 'ag-charts-community';
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import defaultLabelCss from './crosshairLabel.css';
-
-export { defaultLabelCss };
-
 const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate } = _ModuleSupport;
 const { setAttribute } = _Util;
 
@@ -65,14 +61,18 @@ export class CrosshairLabel extends BaseProperties {
 
     private readonly element: HTMLElement;
 
-    constructor(private readonly domManager: _ModuleSupport.DOMManager) {
+    constructor(
+        private readonly domManager: _ModuleSupport.DOMManager,
+        key: string,
+        axisId: string
+    ) {
         super();
 
         this.element = domManager.addChild('canvas-overlay', `crosshair-label-${this.id}`);
         this.element.classList.add(DEFAULT_LABEL_CLASS);
         setAttribute(this.element, 'aria-hidden', true);
-
-        this.domManager.addStyles('crosshair-labels', defaultLabelCss);
+        this.element.setAttribute('data-key', key);
+        this.element.setAttribute('data-axis-id', axisId);
     }
 
     show(meta: _Scene.Point) {
@@ -93,7 +93,7 @@ export class CrosshairLabel extends BaseProperties {
         }
     }
 
-    computeBBox(): _Scene.BBox {
+    getBBox(): _Scene.BBox {
         const { element } = this;
         return new _Scene.BBox(element.clientLeft, element.clientTop, element.clientWidth, element.clientHeight);
     }

@@ -1,15 +1,6 @@
 .ag-charts-color-picker {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
     width: 190px;
     padding: 8px;
-    border: var(--ag-charts-toolbar-border);
-    color: var(--ag-charts-toolbar-foreground-color);
-    background: var(--ag-charts-toolbar-background-color);
-    border-radius: 4px;
-    /* Needs to beat .ag-crosshair-label */
-    z-index: 99999;
 
     --h: 0;
     --s: 0;
@@ -23,6 +14,11 @@
     --track-height: 12px;
     --palette-height: 136px;
     --checker: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="4" height="4"><rect x="0" y="0" width="4" height="4" fill="%23fff"/><path d="M0 0H2V4H4V2H0Z" fill="%23b2b2b2"/></svg>');
+}
+
+.ag-charts-color-picker__content {
+    display: flex;
+    flex-direction: column;
 }
 
 .ag-charts-color-picker__palette {

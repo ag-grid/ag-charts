@@ -36,10 +36,3 @@ const options: AgChartOptions = {
 };
 
 AgCharts.create(options);
-const labelOptions = {
-    labelKey: 'iso2',
-    labelName: 'Country Code',
-    label: {
-        fontWeight: 'lighter',
-    },
-};

@@ -13,6 +13,9 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
+import type { Group } from '../../scene/group';
+import { Selection } from '../../scene/selection';
+import { Transformable } from '../../scene/transformable';
 import { getDocument } from '../../util/dom';
 import {
     CANVAS_HEIGHT,
@@ -26,6 +29,7 @@ import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
 import type { PointerOffsets } from '../interaction/interactionManager';
+import { LegendMarkerLabel } from '../legendMarkerLabel';
 
 export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
@@ -277,14 +281,33 @@ export function flowProportionChartAssertions(params?: { seriesTypes?: string[] 
     };
 }
 
+export function gaugeAssertions() {
+    return async (chartOrProxy: ChartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        expect(chart?.constructor?.name).toEqual('GaugeChart');
+    };
+}
+
 const checkTargetValid = (target: HTMLElement) => {
     if (!target.isConnected) throw new Error('Chart must be configured with a container for event testing to work');
 };
 
-export function hoverAction(x: number, y: number): (chart: ChartOrProxy) => Promise<void> {
+function findTarget(chart: Chart, canvasX: number, canvasY: number): { target: HTMLElement; x: number; y: number } {
+    const legendGroup: Group = chart.modulesManager.getModule<any>('legend').group;
+    for (const node of Selection.selectByClass(legendGroup, LegendMarkerLabel)) {
+        const bbox = Transformable.toCanvas(node);
+        if (bbox.containsPoint(canvasX, canvasY)) {
+            const { x, y } = Transformable.fromCanvasPoint(node, canvasX, canvasY);
+            return { target: node.proxyButton?.button!, x, y };
+        }
+    }
+    return { target: chart.ctx.scene.canvas.element, x: canvasX, y: canvasY };
+}
+
+export function hoverAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const target = chart.ctx.scene.canvas.element;
+        const { target, x, y } = findTarget(chart, canvasX, canvasY);
         checkTargetValid(target);
 
         target?.dispatchEvent(mouseMoveEvent({ offsetX: x, offsetY: y }));
@@ -293,13 +316,17 @@ export function hoverAction(x: number, y: number): (chart: ChartOrProxy) => Prom
 }
 
 export function clickAction(
-    x: number,
-    y: number,
+    canvasX: number,
+    canvasY: number,
     opts?: { mousedown?: { offsetX: number; offsetY: number } }
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const target = chart.ctx.scene.canvas.element;
+        const { target, x, y } = findTarget(
+            chart,
+            opts?.mousedown?.offsetX ?? canvasX,
+            opts?.mousedown?.offsetY ?? canvasY
+        );
         checkTargetValid(target);
 
         const offsets = { offsetX: x, offsetY: y };
@@ -310,10 +337,10 @@ export function clickAction(
     };
 }
 
-export function doubleClickAction(x: number, y: number): (chart: ChartOrProxy) => Promise<void> {
+export function doubleClickAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const target = chart.ctx.scene.canvas.element;
+        const { target, x, y } = findTarget(chart, canvasX, canvasY);
         const offsets = { offsetX: x, offsetY: y };
         // A double click is always preceded by two single clicks, simulate here to ensure correct handling
         target?.dispatchEvent(mouseDownEvent(offsets));
@@ -329,10 +356,10 @@ export function doubleClickAction(x: number, y: number): (chart: ChartOrProxy) =
     };
 }
 
-export function contextMenuAction(x: number, y: number): (chart: ChartOrProxy) => Promise<void> {
+export function contextMenuAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const target = chart.ctx.scene.canvas.element;
+        const { target, x, y } = findTarget(chart, canvasX, canvasY);
         checkTargetValid(target);
 
         const offsets = { offsetX: x, offsetY: y };
@@ -347,7 +374,11 @@ export function dragAction(
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const target = chart.ctx.scene.canvas.element;
+        const { target } = findTarget(chart, from.x, from.y);
+        const { target: toTarget } = findTarget(chart, to.x, to.y);
+        if (target !== toTarget) {
+            throw new Error('from and to points are on different elements, drag test will fail');
+        }
         checkTargetValid(target);
 
         target?.dispatchEvent(mouseDownEvent({ offsetX: from.x, offsetY: from.y }));
@@ -361,15 +392,15 @@ export function dragAction(
 }
 
 export function scrollAction(
-    x: number,
-    y: number,
+    canvasX: number,
+    canvasY: number,
     deltaY: number,
     deltaMode: WheelDeltaMode = WheelDeltaMode.Lines,
     deltaX: number = 0
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const target = chart.ctx.scene.canvas.element;
+        const { target, x, y } = findTarget(chart, canvasX, canvasY);
         target?.dispatchEvent(wheelEvent({ clientX: x, clientY: y, deltaY, deltaX, deltaMode }));
         await delay(50);
     };
@@ -472,7 +503,7 @@ export function mixinReversedAxesCases(
 
 export function computeLegendBBox(chart: Chart): BBox {
     const legendModule = chart.modulesManager.getModule<any>('legend');
-    const { x = 0, y = 0, width = 0, height = 0 } = legendModule?.group.computeBBox() ?? {};
+    const { x = 0, y = 0, width = 0, height = 0 } = legendModule?.group.getBBox() ?? {};
     return new BBox(x, y, width, height);
 }
 

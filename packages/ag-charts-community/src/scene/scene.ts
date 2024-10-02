@@ -1,24 +1,19 @@
 import { Debug } from '../util/debug';
 import { downloadUrl } from '../util/dom';
 import { createId } from '../util/id';
+import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
-import { Group } from './group';
 import { LayersManager } from './layersManager';
 import type { Node, RenderContext } from './node';
 import { RedrawType } from './node';
-import { DebugSelectors, buildDirtyTree, buildTree, debugSceneNodeHighlight, debugStats } from './sceneDebug';
-
-type DOMManagerLike = {
-    addChild(type: 'canvas', id: string, child?: HTMLElement): HTMLElement;
-};
-
-interface SceneOptions {
-    width?: number;
-    height?: number;
-    pixelRatio?: number;
-    canvasPosition?: 'absolute';
-    domManager?: DOMManagerLike;
-}
+import {
+    DebugSelectors,
+    buildDirtyTree,
+    buildTree,
+    debugSceneNodeHighlight,
+    debugStats,
+    prepareSceneNodeHighlight,
+} from './sceneDebug';
 
 export class Scene {
     static readonly className = 'Scene';
@@ -30,23 +25,11 @@ export class Scene {
     readonly layersManager: LayersManager;
 
     private root: Node | null = null;
+    private pendingSize: [number, number] | null = null;
     private isDirty: boolean = false;
-    private pendingSize?: [number, number];
 
-    private domManager?: DOMManagerLike;
-
-    constructor({ width, height, pixelRatio, domManager }: SceneOptions) {
-        this.domManager = domManager;
-
-        const canvasOpts: CanvasOptions = {
-            width,
-            height,
-            pixelRatio,
-        };
-        if (domManager) {
-            canvasOpts.canvasConstructor = () => domManager.addChild('canvas', 'scene-canvas') as HTMLCanvasElement;
-        }
-        this.canvas = new HdpiCanvas(canvasOpts);
+    constructor(canvasOptions: CanvasOptions) {
+        this.canvas = new HdpiCanvas(canvasOptions);
         this.layersManager = new LayersManager(this.canvas, () => {
             this.isDirty = true;
         });
@@ -60,18 +43,11 @@ export class Scene {
         return this.pendingSize?.[1] ?? this.canvas.height;
     }
 
-    setContainer(value: HTMLElement | DOMManagerLike) {
-        const isElement = (v: unknown): v is HTMLElement => {
-            return typeof (v as any).tagName !== 'undefined';
-        };
-        if (isElement(value)) {
-            const { element } = this.canvas;
-            element.parentElement?.removeChild(element);
-            value.appendChild(element);
-        } else {
-            this.domManager = value;
-            this.domManager.addChild('canvas', 'scene-canvas', this.canvas.element);
-        }
+    /** @deprecated v10.2.0 Only used by AG Grid Sparklines */
+    setContainer(value: HTMLElement) {
+        const { element } = this.canvas;
+        element.parentElement?.removeChild(element);
+        value.appendChild(element);
         return this;
     }
 
@@ -92,17 +68,9 @@ export class Scene {
         return this;
     }
 
-    attachNode<T extends Node>(node: T, rootGroupName?: string) {
-        if (!rootGroupName) {
-            this.root?.appendChild(node);
-            return () => this.removeChild(node);
-        }
-
-        const parentGroup = this.root?.children.find((g) => g instanceof Group && g.name === rootGroupName);
-        if (!parentGroup) throw new Error('AG Charts - Unrecognized root group name: ' + rootGroupName);
-
-        parentGroup.appendChild(node);
-        return () => parentGroup.removeChild(node);
+    attachNode<T extends Node>(node: T) {
+        this.appendChild(node);
+        return () => this.removeChild(node);
     }
 
     appendChild<T extends Node>(node: T) {
@@ -135,8 +103,12 @@ export class Scene {
         return false;
     }
 
-    async render(opts?: { debugSplitTimes: Record<string, number>; extraDebugStats: Record<string, number> }) {
-        const { debugSplitTimes = { start: performance.now() }, extraDebugStats } = opts ?? {};
+    async render(opts?: {
+        debugSplitTimes: Record<string, number>;
+        extraDebugStats: Record<string, number>;
+        seriesRect?: BBox;
+    }) {
+        const { debugSplitTimes = { start: performance.now() }, extraDebugStats, seriesRect } = opts ?? {};
         const { canvas, canvas: { context: ctx } = {}, root, pendingSize } = this;
 
         if (!ctx) {
@@ -147,7 +119,7 @@ export class Scene {
         const renderStartTime = performance.now();
         if (pendingSize) {
             this.layersManager.resize(...pendingSize);
-            this.pendingSize = undefined;
+            this.pendingSize = null;
         }
 
         if (root && !root.visible) {
@@ -163,7 +135,7 @@ export class Scene {
                 });
             }
 
-            debugStats(this.layersManager, debugSplitTimes, ctx, undefined, extraDebugStats);
+            debugStats(this.layersManager, debugSplitTimes, ctx, undefined, extraDebugStats, seriesRect);
             return;
         }
 
@@ -178,6 +150,8 @@ export class Scene {
         if (Debug.check(DebugSelectors.SCENE_STATS_VERBOSE)) {
             renderCtx.stats = { layersRendered: 0, layersSkipped: 0, nodesRendered: 0, nodesSkipped: 0 };
         }
+
+        prepareSceneNodeHighlight(renderCtx);
 
         let canvasCleared = false;
         if (!root || root.dirty >= RedrawType.TRIVIAL) {
@@ -228,7 +202,7 @@ export class Scene {
 
         this.isDirty = false;
 
-        debugStats(this.layersManager, debugSplitTimes, ctx, renderCtx.stats, extraDebugStats);
+        debugStats(this.layersManager, debugSplitTimes, ctx, renderCtx.stats, extraDebugStats, seriesRect);
         debugSceneNodeHighlight(ctx, renderCtx.debugNodes);
 
         if (root && this.debug.check()) {
@@ -238,6 +212,26 @@ export class Scene {
                 canvasCleared,
             });
         }
+    }
+
+    toSVG() {
+        const svg = this.root?.toSVG();
+
+        if (svg == null) return;
+
+        const root = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        root.setAttribute('width', String(this.width));
+        root.setAttribute('height', String(this.height));
+
+        if (svg.defs != null) {
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            defs.append(...svg.defs);
+            root.append(defs);
+        }
+
+        root.append(...svg.elements);
+
+        return root.outerHTML;
     }
 
     /** Alternative to destroy() that preserves re-usable resources. */

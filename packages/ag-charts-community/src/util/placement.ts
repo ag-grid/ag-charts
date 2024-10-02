@@ -7,32 +7,38 @@ export type Bounds = {
     height?: number;
 };
 
+export type Placement = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+};
+
 export function calculatePlacement(
     naturalWidth: number,
     naturalHeight: number,
-    containerWidth: number,
-    containerHeight: number,
+    container: Pick<DOMRect, 'width' | 'height' | 'x' | 'y'>,
     bounds: Bounds
-) {
+): Placement {
     let { top, right, bottom, left, width, height } = bounds;
 
     if (left != null) {
         if (width != null) {
-            right = containerWidth - left + width;
+            right = container.width - left + width;
         } else if (right != null) {
-            width = containerWidth - left - right;
+            width = container.width - left - right;
         }
     } else if (right != null && width != null) {
-        left = containerWidth - right - width;
+        left = container.width - right - width;
     }
     if (top != null) {
         if (height != null) {
-            bottom = containerHeight - top - height;
+            bottom = container.height - top - height;
         } else if (bottom != null) {
-            height = containerHeight - bottom - top;
+            height = container.height - bottom - top;
         }
     } else if (bottom != null && height != null) {
-        top = containerHeight - bottom - height;
+        top = container.height - bottom - height;
     }
 
     // If width and height still undetermined, derive them from natural size.
@@ -49,16 +55,16 @@ export function calculatePlacement(
 
     if (left == null) {
         if (right == null) {
-            left = Math.floor((containerWidth - width) / 2);
+            left = Math.floor((container.width - width) / 2);
         } else {
-            left = containerWidth - right - width;
+            left = container.width - right - width;
         }
     }
     if (top == null) {
         if (bottom == null) {
-            top = Math.floor((containerHeight - height) / 2);
+            top = Math.floor((container.height - height) / 2);
         } else {
-            top = containerHeight - height - bottom;
+            top = container.height - height - bottom;
         }
     }
 

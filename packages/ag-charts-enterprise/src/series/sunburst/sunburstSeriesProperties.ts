@@ -8,7 +8,7 @@ import type {
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { AutoSizeableSecondaryLabel, AutoSizedLabel } from '../util/labelFormatter';
+import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
 const {
     HierarchySeriesProperties,
@@ -85,7 +85,7 @@ export class SunburstSeriesProperties extends HierarchySeriesProperties<AgSunbur
     readonly label = new AutoSizedLabel<AgSunburstSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
-    readonly secondaryLabel = new AutoSizeableSecondaryLabel<AgSunburstSeriesLabelFormatterParams>();
+    readonly secondaryLabel = new AutoSizedSecondaryLabel<AgSunburstSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgSunburstSeriesTooltipRendererParams<any>>();

@@ -47,12 +47,22 @@ export function createElement<K extends keyof HTMLElementTagNameMap>(
         className = undefined;
     }
     if (className) {
-        element.classList.add(className);
+        for (const name of className.split(' ')) {
+            element.classList.add(name);
+        }
     }
     if (style) {
         Object.assign(element.style, style);
     }
     return element;
+}
+
+export function createElementNS<K extends keyof SVGElementTagNameMap>(
+    namespaceURI: 'http://www.w3.org/2000/svg',
+    qualifiedName: K
+): SVGElementTagNameMap[K];
+export function createElementNS(namespaceURI: 'http://www.w3.org/2000/svg', qualifiedName: string) {
+    return getDocument().createElementNS(namespaceURI, qualifiedName);
 }
 
 export function downloadUrl(dataUrl: string, fileName: string) {
@@ -80,4 +90,23 @@ export function setElementBBox(element: HTMLElement | undefined, bbox: BBoxValue
         element.style.left = `${bbox.x}px`;
         element.style.top = `${bbox.y}px`;
     }
+}
+
+export function focusCursorAtEnd(element: HTMLElement) {
+    element.focus();
+
+    if (element.lastChild?.textContent == null) return;
+
+    const range = getDocument().createRange();
+    range.setStart(element.lastChild, element.lastChild.textContent.length);
+    range.setEnd(element.lastChild, element.lastChild.textContent.length);
+
+    const selection = getWindow().getSelection();
+    selection?.removeAllRanges();
+    selection?.addRange(range);
+}
+
+let _id = 0;
+export function createElementId(label?: string) {
+    return `${label ?? 'ag-charts-element'}-${_id++}`;
 }

@@ -4,6 +4,9 @@ import type {
     AgChartThemeOverrides,
     AgChartThemePalette,
     AgCommonThemeableChartOptions,
+    AgPaletteColors,
+    AgPresetOverrides,
+    AgThemeOverrides,
 } from 'ag-charts-types';
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
@@ -18,16 +21,18 @@ import { CARTESIAN_AXIS_TYPE, FONT_SIZE, FONT_WEIGHT, POLAR_AXIS_TYPE, POSITION 
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
+    DEFAULT_ANNOTATION_COLOR,
     DEFAULT_ANNOTATION_HANDLE_FILL,
-    DEFAULT_ANNOTATION_STROKE,
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_AXIS_LINE_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
     DEFAULT_CROSS_LINES_COLOUR,
-    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FONT_FAMILY,
+    DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
+    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
     DEFAULT_GRIDLINE_ENABLED,
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_HIERARCHY_STROKES,
@@ -38,8 +43,18 @@ import {
     DEFAULT_PADDING,
     DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SHADOW_COLOUR,
+    DEFAULT_TEXTBOX_COLOR,
+    DEFAULT_TEXTBOX_FILL,
+    DEFAULT_TEXTBOX_STROKE,
+    DEFAULT_TEXT_ANNOTATION_COLOR,
     DEFAULT_TOOLBAR_POSITION,
     IS_DARK_THEME,
+    PALETTE_ALT_DOWN_FILL,
+    PALETTE_ALT_DOWN_STROKE,
+    PALETTE_ALT_NEUTRAL_FILL,
+    PALETTE_ALT_NEUTRAL_STROKE,
+    PALETTE_ALT_UP_FILL,
+    PALETTE_ALT_UP_STROKE,
     PALETTE_DOWN_FILL,
     PALETTE_DOWN_STROKE,
     PALETTE_NEUTRAL_FILL,
@@ -50,11 +65,6 @@ import {
 
 // If this changes, update plugins/ag-charts-generate-chart-thumbnail/src/executors/generate/generator/constants.ts
 const DEFAULT_BACKGROUND_FILL = 'white';
-
-const DEFAULT_PALETTE: AgChartThemePalette = {
-    fills: Object.values(DEFAULT_FILLS),
-    strokes: Object.values(DEFAULT_STROKES),
-};
 
 type ChartTypeConfig = {
     seriesTypes: string[];
@@ -77,21 +87,36 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
     get 'flow-proportion'(): ChartTypeConfig {
         return { seriesTypes: chartTypes.flowProportionTypes, commonOptions: [] };
     },
+    get gauge(): ChartTypeConfig {
+        return { seriesTypes: chartTypes.gaugeTypes, commonOptions: [] };
+    },
 };
+
+type OverridesKey = keyof AgThemeOverrides;
+
+const PRESET_OVERRIDES_TYPES: Record<keyof AgPresetOverrides, true> = {
+    'radial-gauge': true,
+    'linear-gauge': true,
+};
+
+function isPresetOverridesType(type: OverridesKey): type is keyof AgPresetOverrides {
+    return PRESET_OVERRIDES_TYPES[type as keyof AgPresetOverrides] === true;
+}
 
 const CHART_TYPE_SPECIFIC_COMMON_OPTIONS = Object.values(CHART_TYPE_CONFIG).reduce<
     (keyof AgCommonThemeableChartOptions)[]
 >((r, { commonOptions }) => r.concat(commonOptions), []);
 
 export class ChartTheme {
-    readonly palette: AgChartThemePalette;
+    readonly palette: Required<AgChartThemePalette> & {
+        altUp: AgPaletteColors;
+        altDown: AgPaletteColors;
+        altNeutral: AgPaletteColors;
+    };
     readonly paletteType: PaletteType;
 
-    protected getPalette(): AgChartThemePalette {
-        return DEFAULT_PALETTE;
-    }
-
     readonly config: any;
+    readonly presets: AgPresetOverrides;
 
     private static getAxisDefaults(overrideDefaults?: object) {
         return mergeDefaults(overrideDefaults, {
@@ -138,6 +163,9 @@ export class ChartTheme {
                     padding: 5,
                     color: DEFAULT_LABEL_COLOUR,
                 },
+            },
+            crosshair: {
+                enabled: true,
             },
         });
     }
@@ -210,7 +238,6 @@ export class ChartTheme {
             tooltip: {
                 enabled: true,
                 darkTheme: IS_DARK_THEME,
-                range: undefined,
                 delay: 0,
             },
             overlays: { darkTheme: IS_DARK_THEME },
@@ -225,27 +252,19 @@ export class ChartTheme {
         [CARTESIAN_AXIS_TYPE.LOG]: ChartTheme.getAxisDefaults({
             base: 10,
             line: { enabled: false },
+            interval: { minSpacing: NaN },
         }),
         [CARTESIAN_AXIS_TYPE.CATEGORY]: ChartTheme.getAxisDefaults({
             groupPaddingInner: 0.1,
             label: { autoRotate: true },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+            crosshair: { enabled: false },
         }),
         [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } }),
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({
             groupPaddingInner: 0,
             label: { autoRotate: false },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            crosshair: {
-                enabled: true,
-                snap: true,
-                stroke: DEFAULT_MUTED_LABEL_COLOUR,
-                strokeWidth: 1,
-                strokeOpacity: 1,
-                lineDash: [5, 6],
-                lineDashOffset: 0,
-                label: { enabled: true },
-            },
         }),
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
@@ -253,31 +272,37 @@ export class ChartTheme {
         [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({ gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } }),
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults({
             line: { enabled: false },
-            tick: { enabled: false },
         }),
         [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults({
             line: { enabled: false },
-            tick: { enabled: false },
         }),
-        'grouped-category': ChartTheme.getAxisDefaults(),
+        'grouped-category': ChartTheme.getAxisDefaults({
+            tick: { enabled: true },
+        }),
     };
 
     constructor(options: AgChartTheme = {}) {
         const { overrides, palette } = deepClone(options) as AgChartThemeOptions;
         const defaults = this.createChartConfigPerChartType(this.getDefaults());
+        const presets: Record<string, any> = {};
 
         if (overrides) {
-            this.mergeOverrides(defaults, overrides);
+            this.mergeOverrides(defaults, presets, overrides);
         }
 
-        const { fills: _fills, strokes: _strokes, ...otherColors } = this.getDefaultColors();
-        this.palette = mergeDefaults(palette, this.getPalette(), { ...otherColors });
+        const { fills, strokes, ...otherColors } = this.getDefaultColors();
+        this.palette = mergeDefaults(palette, {
+            fills: Object.values(fills),
+            strokes: Object.values(strokes),
+            ...otherColors,
+        });
         this.paletteType = paletteType(palette);
 
         this.config = Object.freeze(this.templateTheme(defaults));
+        this.presets = presets;
     }
 
-    private mergeOverrides(defaults: AgChartThemeOverrides, overrides: AgChartThemeOverrides) {
+    private mergeOverrides(defaults: AgChartThemeOverrides, presets: AgPresetOverrides, overrides: AgThemeOverrides) {
         for (const { seriesTypes, commonOptions } of Object.values(CHART_TYPE_CONFIG)) {
             const cleanedCommon = { ...overrides.common };
             for (const commonKey of CHART_TYPE_SPECIFIC_COMMON_OPTIONS) {
@@ -287,15 +312,22 @@ export class ChartTheme {
             }
             if (!cleanedCommon) continue;
             for (const s of seriesTypes) {
-                const seriesType = s as keyof AgChartThemeOverrides;
-                defaults[seriesType] = mergeDefaults(cleanedCommon, defaults[seriesType]);
+                const seriesType = s as keyof AgThemeOverrides;
+
+                if (!isPresetOverridesType(seriesType)) {
+                    defaults[seriesType] = mergeDefaults(cleanedCommon, defaults[seriesType]);
+                }
             }
         }
 
         chartTypes.seriesTypes.forEach((s) => {
-            const seriesType = s as keyof AgChartThemeOverrides;
-            if (overrides[seriesType]) {
-                defaults[seriesType] = mergeDefaults(overrides[seriesType], defaults[seriesType]);
+            const seriesType = s as keyof AgThemeOverrides;
+            const seriesOverrides = overrides[seriesType];
+
+            if (isPresetOverridesType(seriesType)) {
+                presets[seriesType] = seriesOverrides as any;
+            } else {
+                defaults[seriesType] = mergeDefaults(seriesOverrides, defaults[seriesType]);
             }
         });
     }
@@ -344,7 +376,8 @@ export class ChartTheme {
             getOverridesByType('polar', chartTypes.polarTypes),
             getOverridesByType('hierarchy', chartTypes.hierarchyTypes),
             getOverridesByType('topology', chartTypes.topologyTypes),
-            getOverridesByType('flow-proportion', chartTypes.flowProportionTypes)
+            getOverridesByType('flow-proportion', chartTypes.flowProportionTypes),
+            getOverridesByType('gauge', chartTypes.gaugeTypes)
         );
     }
 
@@ -376,9 +409,12 @@ export class ChartTheme {
         return {
             fills: DEFAULT_FILLS,
             strokes: DEFAULT_STROKES,
-            up: { fill: DEFAULT_FILLS.BLUE, stroke: DEFAULT_STROKES.BLUE },
-            down: { fill: DEFAULT_FILLS.ORANGE, stroke: DEFAULT_STROKES.ORANGE },
+            up: { fill: DEFAULT_FILLS.GREEN, stroke: DEFAULT_STROKES.GREEN },
+            down: { fill: DEFAULT_FILLS.RED, stroke: DEFAULT_STROKES.RED },
             neutral: { fill: DEFAULT_FILLS.GRAY, stroke: DEFAULT_STROKES.GRAY },
+            altUp: { fill: DEFAULT_FILLS.BLUE, stroke: DEFAULT_STROKES.BLUE },
+            altDown: { fill: DEFAULT_FILLS.ORANGE, stroke: DEFAULT_STROKES.ORANGE },
+            altNeutral: { fill: DEFAULT_FILLS.GRAY, stroke: DEFAULT_STROKES.GRAY },
         };
     }
 
@@ -395,10 +431,21 @@ export class ChartTheme {
         params.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_BACKGROUND_FILL);
         params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL);
         params.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
-        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
+        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
             DEFAULT_FILLS.ORANGE,
             DEFAULT_FILLS.YELLOW,
             DEFAULT_FILLS.GREEN,
+        ]);
+        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [DEFAULT_FILLS.GREEN, DEFAULT_FILLS.YELLOW, DEFAULT_FILLS.RED]);
+        params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
+            '#5090dc',
+            '#629be0',
+            '#73a6e3',
+            '#85b1e7',
+            '#96bcea',
+            '#a8c8ee',
+            '#b9d3f1',
+            '#cbdef5',
         ]);
         params.set(DEFAULT_PADDING, 20);
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'block');
@@ -406,9 +453,16 @@ export class ChartTheme {
         params.set(DEFAULT_HIERARCHY_FILLS, ['#ffffff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
         params.set(DEFAULT_HIERARCHY_STROKES, ['#ffffff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);
-        params.set(DEFAULT_ANNOTATION_STROKE, DEFAULT_FILLS.BLUE);
+
+        params.set(DEFAULT_ANNOTATION_COLOR, DEFAULT_FILLS.BLUE);
+        params.set(DEFAULT_TEXT_ANNOTATION_COLOR, DEFAULT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_BACKGROUND_FILL);
+
+        params.set(DEFAULT_TEXTBOX_FILL, '#fafafa');
+        params.set(DEFAULT_TEXTBOX_STROKE, '#dddddd');
+        params.set(DEFAULT_TEXTBOX_COLOR, '#000000');
+
         params.set(DEFAULT_TOOLBAR_POSITION, 'top');
         params.set(DEFAULT_GRIDLINE_ENABLED, false);
 
@@ -419,6 +473,12 @@ export class ChartTheme {
         params.set(PALETTE_DOWN_FILL, this.palette.down?.fill ?? defaultColors.down.fill);
         params.set(PALETTE_NEUTRAL_STROKE, this.palette.neutral?.stroke ?? defaultColors.neutral.stroke);
         params.set(PALETTE_NEUTRAL_FILL, this.palette.neutral?.fill ?? defaultColors.neutral.fill);
+        params.set(PALETTE_ALT_UP_STROKE, this.palette.altUp?.stroke ?? defaultColors.up.stroke);
+        params.set(PALETTE_ALT_UP_FILL, this.palette.altUp?.fill ?? defaultColors.up.fill);
+        params.set(PALETTE_ALT_DOWN_STROKE, this.palette.altDown?.stroke ?? defaultColors.down.stroke);
+        params.set(PALETTE_ALT_DOWN_FILL, this.palette.altDown?.fill ?? defaultColors.down.fill);
+        params.set(PALETTE_ALT_NEUTRAL_FILL, this.palette.altNeutral?.fill ?? defaultColors.altNeutral.fill);
+        params.set(PALETTE_ALT_NEUTRAL_STROKE, this.palette.altNeutral?.stroke ?? defaultColors.altNeutral.stroke);
 
         return params;
     }

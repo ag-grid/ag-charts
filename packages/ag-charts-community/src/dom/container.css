@@ -1,0 +1,52 @@
+.ag-charts-wrapper {
+    position: relative;
+    user-select: none;
+}
+
+.ag-charts-canvas-center {
+    width: 100%;
+    height: 100%;
+
+    position: absolute;
+    touch-action: auto;
+
+    display: flex;
+    align-items: var(--ag-charts-align);
+    justify-content: var(--ag-charts-justify);
+}
+
+.ag-charts-canvas-container,
+.ag-charts-canvas {
+    position: relative;
+    user-select: none;
+}
+
+.ag-charts-canvas-container > *,
+.ag-charts-canvas > * {
+    display: block;
+    pointer-events: none;
+}
+
+/* This `opacity` CSS property is read by FocusIndicator to determine the `:focus-visible` state. */
+.ag-charts-canvas-proxy > * {
+    opacity: 0;
+}
+.ag-charts-series-area:focus-visible {
+    opacity: 1;
+}
+.ag-charts-series-area {
+    pointer-events: auto;
+}
+
+.ag-charts-canvas-proxy,
+.ag-charts-canvas-overlay {
+    pointer-events: none;
+    user-select: none;
+    position: absolute;
+    inset: 0;
+}
+
+.ag-charts-canvas-overlay > * {
+    position: absolute;
+    pointer-events: auto;
+}

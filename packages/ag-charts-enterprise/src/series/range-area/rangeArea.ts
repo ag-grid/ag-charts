@@ -9,7 +9,6 @@ const {
     mergeDefaults,
     updateLabelNode,
     fixNumericExtent,
-    AreaSeriesTag,
     buildResetPathFn,
     resetLabelFn,
     resetMarkerFn,
@@ -87,7 +86,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         super({
             moduleCtx,
             hasMarkers: true,
-            pathsPerSeries: 2,
+            pathsPerSeries: ['fill', 'stroke'],
             directionKeys: {
                 [ChartAxisDirection.X]: ['xKey'],
                 [ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'],
@@ -97,7 +96,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 [ChartAxisDirection.Y]: ['yLowName', 'yHighName', 'yName'],
             },
             animationResetFns: {
-                path: buildResetPathFn({ getOpacity: () => this.getOpacity() }),
+                path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
                 marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
@@ -134,7 +133,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
-        const { processedData, dataModel, axes } = this;
+        const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 
         const {
@@ -146,13 +145,10 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         if (direction === ChartAxisDirection.X) {
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
-
-            const xAxis = axes[ChartAxisDirection.X];
             if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
                 return keys;
             }
-
-            return fixNumericExtent(extent(keys), xAxis);
+            return fixNumericExtent(extent(keys));
         } else {
             const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue');
             const yLowExtent = values[yLowIndex];
@@ -162,7 +158,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],
                 yHighExtent[1] < yLowExtent[1] ? yLowExtent[1] : yHighExtent[1],
             ];
-            return fixNumericExtent(fixedYExtent as any);
+            return fixNumericExtent(fixedYExtent);
         }
     }
 
@@ -359,7 +355,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
-            tag: AreaSeriesTag.Stroke,
             fill: undefined,
             lineJoin: (stroke.lineCap = 'round'),
             pointerEvents: PointerEvents.None,
@@ -372,7 +367,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             visible,
         });
         fill.setProperties({
-            tag: AreaSeriesTag.Fill,
             stroke: undefined,
             lineJoin: 'round',
             pointerEvents: PointerEvents.None,
@@ -469,7 +463,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const { labelData, labelSelection } = opts;
 
         return labelSelection.update(labelData, (text) => {
-            text.tag = AreaSeriesTag.Label;
             text.pointerEvents = PointerEvents.None;
         });
     }

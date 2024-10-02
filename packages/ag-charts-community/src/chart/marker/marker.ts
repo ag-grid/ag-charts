@@ -2,12 +2,26 @@ import { BBox } from '../../scene/bbox';
 import type { Point } from '../../scene/point';
 import { Path, ScenePathChangeDetection } from '../../scene/shape/path';
 import type { CanvasContext } from '../../scene/shape/shape';
+import { Rotatable, Scalable, Translatable } from '../../scene/transformable';
 
 export type MarkerPathMove = { x: number; y: number; t?: 'move' };
 
-export class Marker extends Path {
-    public static center: Point = { x: 0.5, y: 0.5 };
+const BUILTIN_MARKERS: readonly string[] = [
+    'ArrowDown',
+    'ArrowUp',
+    'Circle',
+    'Cross',
+    'Diamond',
+    'Heart',
+    'MapPin',
+    'Plus',
+    'Square',
+    'Star',
+    'Triangle',
+];
 
+const DEFAULT_CENTER_POINT = Object.freeze({ x: 0.5, y: 0.5 });
+class InternalMarker extends Path {
     @ScenePathChangeDetection()
     x: number = 0;
 
@@ -17,28 +31,24 @@ export class Marker extends Path {
     @ScenePathChangeDetection({ convertor: Math.abs })
     size: number = 12;
 
-    @ScenePathChangeDetection()
-    repeat?: { x: number; y: number }[];
+    private isBuiltIn(): boolean {
+        return BUILTIN_MARKERS.includes((this.constructor as { className?: string }).className ?? '');
+    }
 
-    override computeBBox(): BBox {
+    protected override computeBBox(): BBox {
+        if (!this.isBuiltIn()) {
+            return this.path.computeBBox();
+        }
+
         const { x, y, size } = this;
         const { center } = this.constructor as any;
 
         return new BBox(x - size * center.x, y - size * center.y, size, size);
     }
 
-    override computeTransformedBBox(): BBox {
-        return super.computeTransformedBBox()!;
-    }
-
     protected applyPath(s: number, moves: MarkerPathMove[]) {
         const { path } = this;
         let { x, y } = this;
-
-        if (this.repeat != null) {
-            x = 0;
-            y = 0;
-        }
 
         path.clear();
         for (const { x: mx, y: my, t } of moves) {
@@ -56,38 +66,17 @@ export class Marker extends Path {
     protected override executeFill(ctx: CanvasContext, path?: Path2D | undefined): void {
         if (!path) return;
 
-        if (this.repeat == null) {
-            return super.executeFill(ctx, path);
-        }
-
-        ctx.save();
-        let x = this.translationX;
-        let y = this.translationY;
-        for (const translation of this.repeat) {
-            ctx.translate(translation.x - x, translation.y - y);
-            ctx.fill(path);
-            x = translation.x;
-            y = translation.y;
-        }
-        ctx.restore();
+        return super.executeFill(ctx, path);
     }
 
     protected override executeStroke(ctx: CanvasContext, path?: Path2D | undefined): void {
         if (!path) return;
 
-        if (this.repeat == null) {
-            return super.executeStroke(ctx, path);
-        }
-
-        ctx.save();
-        let x = this.translationX;
-        let y = this.translationY;
-        for (const translation of this.repeat) {
-            ctx.translate(translation.x - x, translation.y - y);
-            ctx.stroke(path);
-            x = translation.x;
-            y = translation.y;
-        }
-        ctx.restore();
+        return super.executeStroke(ctx, path);
     }
+}
+
+// Needed to ensure correct order of operations WRT computeBBox().
+export class Marker extends Rotatable(Scalable(Translatable(InternalMarker))) {
+    public static center: Point = DEFAULT_CENTER_POINT;
 }

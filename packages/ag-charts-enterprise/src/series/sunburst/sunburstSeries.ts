@@ -1,17 +1,11 @@
-import {
-    type AgSunburstSeriesLabelFormatterParams,
-    type AgSunburstSeriesStyle,
-    type AgTooltipRendererResult,
-    _ModuleSupport,
-    _Scene,
-    _Util,
-} from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import type { AgSunburstSeriesStyle, AgTooltipRendererResult } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
 
 const { fromToMotion } = _ModuleSupport;
-const { Sector, Group, Selection, Text } = _Scene;
+const { Sector, ScalableGroup, Selection, TransformableText } = _Scene;
 const { sanitizeHtml } = _Util;
 
 interface LabelData {
@@ -59,7 +53,7 @@ enum TextNodeTag {
 }
 
 export class SunburstSeries extends _ModuleSupport.HierarchySeries<
-    _Scene.Group,
+    _Scene.ScalableGroup,
     SunburstSeriesProperties,
     _ModuleSupport.SeriesNodeDatum
 > {
@@ -68,9 +62,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     override properties = new SunburstSeriesProperties();
 
-    groupSelection = Selection.select(this.contentGroup, Group);
+    groupSelection = Selection.select(this.contentGroup, ScalableGroup);
     private readonly highlightSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> =
-        Selection.select(this.highlightGroup, Group);
+        Selection.select(this.highlightGroup, ScalableGroup);
 
     private angleData: Array<{ start: number; end: number } | undefined> = [];
 
@@ -162,8 +156,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const updateGroup = (group: _Scene.Group) => {
             group.append([
                 new Sector(),
-                new Text({ tag: TextNodeTag.Primary }),
-                new Text({ tag: TextNodeTag.Secondary }),
+                new TransformableText({ tag: TextNodeTag.Primary }),
+                new TransformableText({ tag: TextNodeTag.Secondary }),
             ]);
         };
 
@@ -194,7 +188,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const highlightedNode: _ModuleSupport.HierarchyNode | undefined =
             this.ctx.highlightManager?.getActiveHighlight() as any;
 
-        const labelTextNode = new Text();
+        const labelTextNode = new TransformableText();
         labelTextNode.setFont(this.properties.label);
 
         this.rootNode.walk((node) => {
@@ -325,7 +319,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     : { width: perpendicularWidth, height: perpendicularHeight, meta: LabelPlacement.Perpendicular };
             };
 
-            const formatting = formatLabels<LabelPlacement, AgSunburstSeriesLabelFormatterParams>(
+            const formatting = formatLabels<LabelPlacement>(
                 labelDatum?.label,
                 this.properties.label,
                 labelDatum?.secondaryLabel,
@@ -383,7 +377,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const updateText = (
             node: _ModuleSupport.HierarchyNode,
-            text: _Scene.Text,
+            text: _Scene.TransformableText,
             tag: TextNodeTag,
             highlighted: boolean
         ) => {
@@ -455,10 +449,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             text.visible = true;
         };
 
-        this.groupSelection.selectByClass(Text).forEach((text) => {
+        this.groupSelection.selectByClass(TransformableText).forEach((text) => {
             updateText(text.datum, text, text.tag, false);
         });
-        this.highlightSelection.selectByClass(Text).forEach((text) => {
+        this.highlightSelection.selectByClass(TransformableText).forEach((text) => {
             const node: _ModuleSupport.HierarchyNode = text.datum;
             const isHighlighted = highlightedNode === node;
             text.visible = isHighlighted;
@@ -582,10 +576,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     protected override animateEmptyUpdateReady({
         datumSelections,
-    }: _ModuleSupport.HierarchyAnimationData<_Scene.Group, _ModuleSupport.SeriesNodeDatum>) {
+    }: _ModuleSupport.HierarchyAnimationData<_Scene.ScalableGroup, _ModuleSupport.SeriesNodeDatum>) {
         fromToMotion<
-            _Scene.Group,
-            Pick<_Scene.Group, 'scalingX' | 'scalingY'>,
+            _Scene.ScalableGroup,
+            Pick<_Scene.ScalableGroup, 'scalingX' | 'scalingY'>,
             _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
         >(this.id, 'nodes', this.ctx.animationManager, datumSelections, {
             toFn(_group, _datum, _status) {

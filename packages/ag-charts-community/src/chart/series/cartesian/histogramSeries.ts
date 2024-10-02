@@ -17,17 +17,10 @@ import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFu
 import type { DataController } from '../../data/dataController';
 import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
-import { SORT_DOMAIN_GROUPS, createDatumId, diff } from '../../data/processors';
+import { SORT_DOMAIN_GROUPS, createDatumId, diff, keyProperty, valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import {
-    type PickFocusInputs,
-    Series,
-    type SeriesNodePickMatch,
-    SeriesNodePickMode,
-    keyProperty,
-    valueProperty,
-} from '../series';
+import { type PickFocusInputs, Series, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import {
     collapsedStartingBarPosition,
@@ -42,12 +35,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
-import { addHitTestersToQuadtree, childrenIter, findQuadtreeMatch } from './quadtreeUtil';
-
-enum HistogramSeriesNodeTag {
-    Bin,
-    Label,
-}
+import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;
 
@@ -247,14 +235,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
         const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, cornerRadius } = this.properties;
-        const {
-            formatter: labelFormatter = (params) => String(params.value),
-            fontStyle: labelFontStyle,
-            fontWeight: labelFontWeight,
-            fontSize: labelFontSize,
-            fontFamily: labelFontFamily,
-            color: labelColor,
-        } = this.properties.label;
+        const labelFormatter = this.properties.label.formatter ?? ((params) => String(params.value));
 
         const nodeData: HistogramNodeDatum[] = [];
         const context = {
@@ -292,6 +273,8 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             let selectionDatumLabel = undefined;
             if (total !== 0) {
                 selectionDatumLabel = {
+                    x: x + w / 2,
+                    y: y + h / 2,
                     text:
                         callbackCache.call(labelFormatter, {
                             value: total,
@@ -302,13 +285,6 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                             xName,
                             yName,
                         }) ?? String(total),
-                    fontStyle: labelFontStyle,
-                    fontWeight: labelFontWeight,
-                    fontSize: labelFontSize,
-                    fontFamily: labelFontFamily,
-                    fill: labelColor,
-                    x: x + w / 2,
-                    y: y + h / 2,
                 };
             }
 
@@ -367,7 +343,6 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         return datumSelection.update(
             nodeData,
             (rect) => {
-                rect.tag = HistogramSeriesNodeTag.Bin;
                 rect.crisp = true;
             },
             (datum: HistogramNodeDatum) => datum.domain.join('_')
@@ -433,7 +408,6 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         const { labelData, labelSelection } = opts;
 
         return labelSelection.update(labelData, (text) => {
-            text.tag = HistogramSeriesNodeTag.Label;
             text.pointerEvents = PointerEvents.None;
             text.textAlign = 'center';
             text.textBaseline = 'middle';
@@ -441,20 +415,19 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     }
 
     protected async updateLabelNodes(opts: { labelSelection: Selection<Text, HistogramNodeDatum> }) {
+        const { fontStyle, fontWeight, fontFamily, fontSize, color } = this.properties.label;
         const labelEnabled = this.isLabelEnabled();
 
         opts.labelSelection.each((text, datum) => {
-            const label = datum.label;
-
-            if (label && labelEnabled) {
-                text.text = label.text;
-                text.x = label.x;
-                text.y = label.y;
-                text.fontStyle = label.fontStyle;
-                text.fontWeight = label.fontWeight;
-                text.fontSize = label.fontSize;
-                text.fontFamily = label.fontFamily;
-                text.fill = label.fill;
+            if (labelEnabled && datum?.label) {
+                text.text = datum.label.text;
+                text.x = datum.label.x;
+                text.y = datum.label.y;
+                text.fontStyle = fontStyle;
+                text.fontWeight = fontWeight;
+                text.fontFamily = fontFamily;
+                text.fontSize = fontSize;
+                text.fill = color;
                 text.visible = true;
             } else {
                 text.visible = false;
@@ -463,7 +436,10 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     }
 
     protected override initQuadTree(quadtree: QuadtreeNearest<HistogramNodeDatum>) {
-        addHitTestersToQuadtree(quadtree, childrenIter<Rect>(this.contentGroup.children[0]));
+        const { value: childNode } = this.contentGroup.children().next();
+        if (childNode) {
+            addHitTestersToQuadtree(quadtree, childNode.children() as Iterable<Rect>);
+        }
     }
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {

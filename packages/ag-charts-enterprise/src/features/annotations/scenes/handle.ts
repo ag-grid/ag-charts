@@ -9,14 +9,15 @@ type DivariantHandleStyles = { x: number; y: number } & { [K in keyof _Scene.Cir
 export abstract class Handle extends _Scene.Group {
     public static readonly HANDLE_SIZE: number;
     public static readonly GLOW_SIZE: number;
-    public static readonly INACTIVE_STROKE_WIDTH = 1;
+    public static readonly INACTIVE_STROKE_WIDTH = 2;
 
-    protected abstract handle: _Scene.Rect | _Scene.Circle;
+    abstract handle: _Scene.Rect | _Scene.Circle;
     protected abstract glow: _Scene.Rect | _Scene.Circle;
     protected active = false;
     protected locked = false;
 
     override visible = false;
+    override zIndex = 1;
 
     public abstract update(styles: {
         [K in keyof (_Scene.Rect | _Scene.Circle)]?: (_Scene.Rect | _Scene.Circle)[K];
@@ -59,8 +60,8 @@ export abstract class Handle extends _Scene.Group {
         this.locked = locked;
     }
 
-    public getCursor() {
-        return 'default';
+    public getCursor(): string | undefined {
+        return undefined;
     }
 
     override containsPoint(x: number, y: number) {
@@ -196,7 +197,7 @@ export class UnivariantHandle extends Handle {
     }
 
     override getCursor() {
-        if (this.locked) return 'default';
+        if (this.locked) return;
         return this.gradient === 'vertical' ? 'col-resize' : 'row-resize';
     }
 }

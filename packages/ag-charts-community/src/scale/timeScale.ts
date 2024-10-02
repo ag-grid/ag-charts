@@ -95,8 +95,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
 
         if (isDenseInterval((stop - start) / absInterval, availableRange)) return;
 
-        const reversedInterval = [...TickIntervals].reverse();
-        const timeInterval = reversedInterval.find((tickInterval) => absInterval % tickInterval.duration === 0);
+        const timeInterval = TickIntervals.findLast((tickInterval) => absInterval % tickInterval.duration === 0);
 
         if (timeInterval) {
             const i = timeInterval.timeInterval.every(absInterval / (timeInterval.duration / timeInterval.step));
@@ -117,9 +116,12 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
 
     /**
      * Returns a time format function suitable for displaying tick values.
-     * @param specifier If the specifier string is provided, this method is equivalent to
-     * the {@link TimeLocaleObject.format} method.
-     * If no specifier is provided, this method returns the default time format function.
+     *
+     * @param ticks Optional array of tick values for custom formatting.
+     * @param domain Optional array representing the [min, max] values of the time axis.
+     * @param specifier Optional format specifier string for custom date formatting (e.g., `%Y`, `%m`, `%d`).
+     * @param formatOffset Optional number for applying an offset to the format (e.g., timezone shifts).
+     * @returns A function that formats a `Date` object into a string based on the provided specifier or default format.
      */
     tickFormat({
         ticks,

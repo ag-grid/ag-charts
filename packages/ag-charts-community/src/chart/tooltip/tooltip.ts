@@ -1,7 +1,7 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from 'ag-charts-types';
 
+import type { DOMManager } from '../../dom/domManager';
 import { setAttribute } from '../../util/attributeUtil';
-import { getWindow } from '../../util/dom';
 import { clamp } from '../../util/number';
 import { type Bounds, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
@@ -17,7 +17,6 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
-import type { DOMManager } from '../dom/domManager';
 import type { PointerOffsets } from '../interaction/interactionManager';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
@@ -36,11 +35,7 @@ type TooltipPositionType =
     | 'bottom-left';
 
 export type TooltipEventType = 'hover' | 'drag' | 'keyboard';
-export type TooltipPointerEvent<T extends TooltipEventType> = PointerOffsets & {
-    type: T;
-    relatedElement?: HTMLElement;
-    targetElement?: HTMLElement;
-};
+export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = PointerOffsets & { type: T };
 
 export type TooltipMeta = PointerOffsets & {
     showArrow?: boolean;
@@ -167,8 +162,9 @@ export class Tooltip extends BaseProperties {
     @Validate(BOOLEAN)
     darkTheme = false;
 
-    @Validate(BOOLEAN)
-    nestedDOM = true;
+    /** Escape-hatch for changes in AG-11645. */
+    @Validate(UNION(['extended', 'canvas']))
+    bounds: 'extended' | 'canvas' = 'extended';
 
     private enableInteraction: boolean = false;
     private lastVisibilityChange: number = Date.now();
@@ -205,8 +201,16 @@ export class Tooltip extends BaseProperties {
      * Shows tooltip at the given event's coordinates.
      * If the `html` parameter is missing, moves the existing tooltip to the new position.
      */
-    show(canvasRect: DOMRect, meta: TooltipMeta, content?: TooltipContent | null, instantly = false) {
+    show(
+        boundingRect: DOMRect,
+        canvasRect: DOMRect,
+        meta: TooltipMeta,
+        content?: TooltipContent | null,
+        instantly = false
+    ) {
         const { element } = this;
+
+        const existingPosition = element?.getBoundingClientRect();
 
         if (content != null && element != null) {
             element.innerHTML = content.html;
@@ -221,23 +225,31 @@ export class Tooltip extends BaseProperties {
 
         const tooltipBounds = this.getTooltipBounds({ positionType, meta, yOffset, xOffset, canvasRect });
 
-        const position = calculatePlacement(
-            element.clientWidth,
-            element.clientHeight,
-            canvasRect.width,
-            canvasRect.height,
-            tooltipBounds
-        );
+        const relativeRect = {
+            x: boundingRect.x - canvasRect.x,
+            y: boundingRect.y - canvasRect.y,
+            width: boundingRect.width,
+            height: boundingRect.height,
+        };
+        const position = calculatePlacement(element.clientWidth, element.clientHeight, relativeRect, tooltipBounds);
 
-        const windowBounds = this.nestedDOM ? canvasRect : this.getWindowSize();
-        const minX = this.nestedDOM ? 0 : -canvasRect.left;
-        const minY = this.nestedDOM ? 0 : -canvasRect.top;
-
-        const maxX = windowBounds.width - element.clientWidth - 1 + minX;
-        const maxY = windowBounds.height - element.clientHeight + minY;
+        const minX = relativeRect.x;
+        const minY = relativeRect.y;
+        const maxX = relativeRect.width - element.clientWidth - 1 + minX;
+        const maxY = relativeRect.height - element.clientHeight + minY;
 
         const left = clamp(minX, position.x, maxX);
         const top = clamp(minY, position.y, maxY);
+
+        let willExistOutsideBoundingRectDuringTransition = false;
+        if (existingPosition != null) {
+            // When we adjusted the content, we changed the width/height of the tooltip
+            // Detect whether the new size with the old position will overflow the bounding rect
+            const maxXWithPreviousPosition = relativeRect.width - existingPosition.width - 1 + minX;
+            const maxYWithPreviousPosition = relativeRect.height - existingPosition.height + minY;
+            willExistOutsideBoundingRectDuringTransition =
+                maxXWithPreviousPosition > maxX || maxYWithPreviousPosition > maxY;
+        }
 
         const constrained = left !== position.x || top !== position.y;
         const defaultShowArrow =
@@ -245,7 +257,17 @@ export class Tooltip extends BaseProperties {
         const showArrow = meta.showArrow ?? this.showArrow ?? defaultShowArrow;
         this.updateShowArrow(showArrow);
 
+        if (willExistOutsideBoundingRectDuringTransition) {
+            // https://ag-grid.atlassian.net/browse/AG-12685
+            element.style.transition = 'none';
+        }
         element.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
+        if (willExistOutsideBoundingRectDuringTransition) {
+            element.style.transition = '';
+        }
+
+        element.style.pointerEvents = meta.enableInteraction ? 'auto' : 'none';
+        element.setAttribute('data-pointer-capture', 'retain');
 
         this.enableInteraction = meta.enableInteraction ?? false;
 
@@ -257,11 +279,6 @@ export class Tooltip extends BaseProperties {
         } else {
             this.toggle(true);
         }
-    }
-
-    private getWindowSize() {
-        const { innerWidth, innerHeight } = getWindow();
-        return { width: innerWidth, height: innerHeight };
     }
 
     toggle(visible: boolean) {

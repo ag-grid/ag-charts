@@ -1,141 +1,166 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, AgGaugeOptions } from 'ag-charts-enterprise';
 
-const first: AgChartOptions = {
+const first: AgGaugeOptions = {
+    type: 'linear-gauge',
     container: document.getElementById('first'),
-    data: [{ revenue: 326, targetRevenue: 250 }],
-    series: [
-        {
-            type: 'bullet',
-            valueKey: 'revenue',
-            valueName: 'Tech',
-            targetKey: 'targetRevenue',
-            targetName: 'Target',
-            scale: { max: 350 },
-            tooltip: {
-                renderer: ({ datum, valueKey, valueName, targetKey, targetName }) => {
-                    const value = datum[valueKey];
-                    const target = targetKey ? datum[targetKey] : NaN;
-                    return {
-                        title: valueName,
-                        content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>${targetName}: </b>${target}`,
-                    };
-                },
-            },
-        },
+    title: {
+        text: 'Tech',
+    },
+    value: 326,
+    scale: {
+        min: 0,
+        max: 350,
+        fills: [{ color: '#8898', stop: 200 }, { color: '#AAB8', stop: 300 }, { color: '#CCD8' }],
+        fillMode: 'discrete',
+    },
+    bar: {
+        fill: '#334E',
+        thickness: 30,
+    },
+    targets: [
+        { value: 250, shape: 'line', placement: 'middle', rotation: 90, size: 40, stroke: '#112E', strokeWidth: 2 },
     ],
+    thickness: 50,
     width: 150,
+    tooltip: {
+        enabled: true,
+        renderer: ({ value }) => ({
+            title: 'Tech',
+            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${250}`,
+        }),
+    },
 };
 
-AgCharts.create(first);
+AgCharts.createGauge(first);
 
-const second: AgChartOptions = {
+const second: AgGaugeOptions = {
+    type: 'linear-gauge',
     container: document.getElementById('second'),
-    data: [{ revenue: 123, targetRevenue: 250 }],
-    series: [
-        {
-            type: 'bullet',
-            valueKey: 'revenue',
-            valueName: 'Travel',
-            targetKey: 'targetRevenue',
-            targetName: 'Target',
-            scale: { max: 350 },
-            tooltip: {
-                renderer: ({ datum, valueKey, valueName, targetKey, targetName }) => {
-                    const value = datum[valueKey];
-                    const target = targetKey ? datum[targetKey] : NaN;
-                    return {
-                        title: valueName,
-                        content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>${targetName}: </b>${target}`,
-                    };
-                },
-            },
-        },
+    title: {
+        text: 'Travel',
+    },
+    value: 123,
+    scale: {
+        min: 0,
+        max: 350,
+        fills: [{ color: '#8898', stop: 200 }, { color: '#AAB8', stop: 300 }, { color: '#CCD8' }],
+        fillMode: 'discrete',
+    },
+    bar: {
+        fill: '#334E',
+        thickness: 30,
+    },
+    targets: [
+        { value: 250, shape: 'line', placement: 'middle', rotation: 90, size: 40, stroke: '#112E', strokeWidth: 2 },
     ],
+    thickness: 50,
     width: 150,
+    tooltip: {
+        enabled: true,
+        renderer: ({ value }) => ({
+            title: 'Travel',
+            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${250}`,
+        }),
+    },
 };
 
-AgCharts.create(second);
+AgCharts.createGauge(second);
 
-const third: AgChartOptions = {
+const third: AgGaugeOptions = {
+    type: 'linear-gauge',
     container: document.getElementById('third'),
-    data: [{ revenue: 225, targetRevenue: 250 }],
-    series: [
-        {
-            type: 'bullet',
-            valueKey: 'revenue',
-            valueName: 'Energy',
-            targetKey: 'targetRevenue',
-            targetName: 'Target',
-            scale: { max: 350 },
-            tooltip: {
-                renderer: ({ datum, valueKey, valueName, targetKey, targetName }) => {
-                    const value = datum[valueKey];
-                    const target = targetKey ? datum[targetKey] : NaN;
-                    return {
-                        title: valueName,
-                        content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>${targetName}: </b>${target}`,
-                    };
-                },
-            },
-        },
+    title: {
+        text: 'Energy',
+    },
+    value: 225,
+    scale: {
+        min: 0,
+        max: 350,
+        fills: [{ color: '#8898', stop: 200 }, { color: '#AAB8', stop: 300 }, { color: '#CCD8' }],
+        fillMode: 'discrete',
+    },
+    bar: {
+        fill: '#334E',
+        thickness: 30,
+    },
+    targets: [
+        { value: 250, shape: 'line', placement: 'middle', rotation: 90, size: 40, stroke: '#112E', strokeWidth: 2 },
     ],
+    thickness: 50,
     width: 150,
+    tooltip: {
+        enabled: true,
+        renderer: ({ value }) => ({
+            title: 'Energy',
+            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${250}`,
+        }),
+    },
 };
 
-AgCharts.create(third);
+AgCharts.createGauge(third);
 
-const fourth: AgChartOptions = {
+const fourth: AgGaugeOptions = {
+    type: 'linear-gauge',
     container: document.getElementById('fourth'),
-    data: [{ revenue: 95, targetRevenue: 120 }],
-    series: [
-        {
-            type: 'bullet',
-            valueKey: 'revenue',
-            valueName: 'Education',
-            targetKey: 'targetRevenue',
-            targetName: 'Target',
-            scale: { max: 350 },
-            tooltip: {
-                renderer: ({ datum, valueKey, valueName, targetKey, targetName }) => {
-                    const value = datum[valueKey];
-                    const target = targetKey ? datum[targetKey] : NaN;
-                    return {
-                        title: valueName,
-                        content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>${targetName}: </b>${target}`,
-                    };
-                },
-            },
-        },
+    title: {
+        text: 'Education',
+    },
+    value: 95,
+    scale: {
+        min: 0,
+        max: 350,
+        fills: [{ color: '#8898', stop: 200 }, { color: '#AAB8', stop: 300 }, { color: '#CCD8' }],
+        fillMode: 'discrete',
+    },
+    bar: {
+        fill: '#334E',
+        thickness: 30,
+    },
+    targets: [
+        { value: 120, shape: 'line', placement: 'middle', rotation: 90, size: 40, stroke: '#112E', strokeWidth: 2 },
     ],
+    thickness: 50,
     width: 150,
+    tooltip: {
+        enabled: true,
+        renderer: ({ value }) => ({
+            title: 'Education',
+            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${120}`,
+        }),
+    },
 };
 
-AgCharts.create(fourth);
+AgCharts.createGauge(fourth);
 
-const fifth: AgChartOptions = {
+const fifth: AgGaugeOptions = {
+    type: 'linear-gauge',
     container: document.getElementById('fifth'),
-    data: [{ revenue: 225, targetRevenue: 330 }],
-    series: [
-        {
-            type: 'bullet',
-            valueKey: 'revenue',
-            valueName: 'Government',
-            targetKey: 'targetRevenue',
-            targetName: 'Target',
-            scale: { max: 350 },
-            tooltip: {
-                renderer: ({ datum, valueKey, valueName, targetKey, targetName }) => {
-                    const value = datum[valueKey];
-                    const target = targetKey ? datum[targetKey] : NaN;
-                    return {
-                        title: valueName,
-                        content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>${targetName}: </b>${target}`,
-                    };
-                },
-            },
-        },
+    title: {
+        text: 'Government',
+    },
+    value: 225,
+    scale: {
+        min: 0,
+        max: 350,
+        fills: [{ color: '#8898', stop: 200 }, { color: '#AAB8', stop: 300 }, { color: '#CCD8' }],
+        fillMode: 'discrete',
+    },
+    bar: {
+        fill: '#334E',
+        thickness: 30,
+    },
+    targets: [
+        { value: 330, shape: 'line', placement: 'middle', rotation: 90, size: 40, stroke: '#112E', strokeWidth: 2 },
     ],
+    thickness: 50,
     width: 150,
+    tooltip: {
+        enabled: true,
+        renderer: ({ value }) => ({
+            title: 'Government',
+            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${330}`,
+        }),
+    },
 };
 
-AgCharts.create(fifth);
+AgCharts.createGauge(fifth);

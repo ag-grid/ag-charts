@@ -60,6 +60,7 @@
       "dependsOn": ["^build:types", "^build:package"],
       "inputs": [],
       "outputs": [],
+      "cache": false,
       "options": {
         "parallel": false,
         "commands": [
@@ -75,7 +76,7 @@
       "outputs": [],
       "options": {
         "parallel": true,
-        "commands": ["node {projectRoot}/watch.js", "nx run ag-charts-website:dev"]
+        "commands": ["node external/ag-shared/scripts/watch/watch.js charts", "nx run ag-charts-website:dev"]
       },
       "configurations": {
         "windows": {
@@ -96,7 +97,7 @@
         "parallel": false,
         "commands": [
           "nx run ag-charts-website-gallery_simple-bar_main.ts:generate-thumbnail",
-          "node {projectRoot}/watch.js & nx run ag-charts-website:dev"
+          "node external/ag-shared/scripts/watch/watch.js charts & nx run ag-charts-website:dev"
         ]
       },
       "configurations": {
@@ -126,6 +127,11 @@
       }
     },
     "clean": { "cache": false, "command": "rimraf dist/ 'packages/*/dist/'" },
+    "benchmark": {
+      "dependsOn": ["ag-charts-community:benchmark"],
+      "cache": false,
+      "command": "node ./tools/benchmark/collate-reports.js"
+    },
     "generate-docs-example": {
       "executor": "nx:run-commands",
       "options": {

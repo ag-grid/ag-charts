@@ -3,6 +3,7 @@ import type { MenuItem } from '@ag-grid-types';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { Collapsible } from '@components/Collapsible';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import { useEffect, useState } from 'react';
 
@@ -113,7 +114,7 @@ function NavItemContainer({
                         [styles.active]: isActive,
                     })}
                     aria-expanded={isActive}
-                    aria-controls={`#${toElementId(title)}`}
+                    aria-controls={toElementId(title)}
                 >
                     <Icon
                         name="chevronRight"
@@ -342,7 +343,7 @@ export function PagesNavigation({
         <Collapsible id="docs-nav-collapser" isOpen={navOpen}>
             <aside className={classnames(styles.menu, gridStyles.menu)}>
                 <div className={styles.whatsNewLink}>
-                    <a href="/whats-new">What's New</a>
+                    <a href={urlWithBaseUrl('/whats-new')}>What's New</a>
                 </div>
                 <MenuNavigation
                     menuData={menuData}

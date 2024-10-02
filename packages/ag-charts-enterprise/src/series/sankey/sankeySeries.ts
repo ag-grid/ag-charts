@@ -18,7 +18,8 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
-const { SeriesNodePickMode, createDatumId, EMPTY_TOOLTIP_CONTENT } = _ModuleSupport;
+const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, createDatumId, EMPTY_TOOLTIP_CONTENT } =
+    _ModuleSupport;
 const { sanitizeHtml } = _Util;
 const { Rect, Text, BBox } = _Scene;
 
@@ -282,15 +283,30 @@ export class SankeySeries extends FlowProportionSeries<
                         }
                     });
                     const maxWidth = maxX - node.x - 2 * labelSpacing;
-                    text = Text.wrap(node.label, maxWidth, node.height, this.properties.label, 'never', 'hide');
+                    text = TextWrapper.wrapText(node.label, {
+                        maxWidth,
+                        maxHeight: node.height,
+                        font: this.properties.label,
+                        textWrap: 'never',
+                        overflow: 'hide',
+                    });
                 }
                 if (text == null || text === '') {
                     const labelInset = leading || trailing ? labelSpacing : labelSpacing * 2;
-                    text = Text.wrap(node.label, columnWidth - labelInset, node.height, this.properties.label, 'never');
+                    text = TextWrapper.wrapText(node.label, {
+                        maxWidth: columnWidth - labelInset,
+                        maxHeight: node.height,
+                        font: this.properties.label,
+                        textWrap: 'never',
+                    });
                 }
                 if (text === '') return;
 
-                const { height } = Text.measureText(text, canvasFont, 'middle', 'left');
+                const { height } = CachedTextMeasurerPool.measureText(text, {
+                    font: canvasFont,
+                    textAlign: 'left',
+                    textBaseline: 'middle',
+                });
                 const y0 = y - height / 2;
                 const y1 = y + height / 2;
 
@@ -322,13 +338,15 @@ export class SankeySeries extends FlowProportionSeries<
 
     protected async updateLabelSelection(opts: {
         labelData: SankeyNodeLabelDatum[];
-        labelSelection: _Scene.Selection<_Scene.Text, SankeyNodeLabelDatum>;
+        labelSelection: _Scene.Selection<_Scene.TransformableText, SankeyNodeLabelDatum>;
     }) {
         const labels = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(labels);
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, SankeyNodeLabelDatum> }) {
+    protected async updateLabelNodes(opts: {
+        labelSelection: _Scene.Selection<_Scene.TransformableText, SankeyNodeLabelDatum>;
+    }) {
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
 
@@ -608,7 +626,7 @@ export class SankeySeries extends FlowProportionSeries<
         if (datum?.type === FlowProportionDatumType.Node) {
             const { x, y, width, height } = datum;
             const bbox = new BBox(x, y, width, height);
-            return this.contentGroup.inverseTransformBBox(bbox).clip(seriesRect);
+            return _Scene.Transformable.toCanvas(this.contentGroup, bbox).clip(seriesRect);
         } else if (datum?.type === FlowProportionDatumType.Link) {
             for (const link of this.linkSelection) {
                 if (link.datum === datum) {

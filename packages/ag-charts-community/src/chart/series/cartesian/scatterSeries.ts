@@ -11,15 +11,17 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
+import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
 import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
+import { valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import { type PickFocusInputs, SeriesNodePickMode, keyProperty, valueProperty } from '../series';
+import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
@@ -50,7 +52,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 SeriesNodePickMode.NEAREST_NODE,
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
-            pathsPerSeries: 0,
+            pathsPerSeries: [],
             hasMarkers: true,
             markerSelectionGarbageCollection: false,
             animationResetFns: {
@@ -67,15 +69,14 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const yScale = this.axes[ChartAxisDirection.Y]?.scale;
         const { xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const colorScaleType = this.colorScale.type;
-        const { xKey, yKey, labelKey, colorKey, colorDomain, colorRange } = this.properties;
+        const { xKey, yKey, xFilterKey, yFilterKey, labelKey, colorKey, colorDomain, colorRange } = this.properties;
 
         const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(xKey, xScaleType, { id: 'xKey-raw' }),
-                keyProperty(yKey, yScaleType, { id: 'yKey-raw' }),
-                ...(labelKey ? [keyProperty(labelKey, 'band', { id: `labelKey-raw` })] : []),
                 valueProperty(xKey, xScaleType, { id: `xValue` }),
                 valueProperty(yKey, yScaleType, { id: `yValue` }),
+                ...(xFilterKey != null ? [valueProperty(xFilterKey, xScaleType, { id: 'xFilterValue' })] : []),
+                ...(yFilterKey != null ? [valueProperty(yFilterKey, yScaleType, { id: 'yFilterValue' })] : []),
                 ...(colorKey ? [valueProperty(colorKey, colorScaleType, { id: `colorValue` })] : []),
                 ...(labelKey ? [valueProperty(labelKey, 'band', { id: `labelValue` })] : []),
             ],
@@ -101,13 +102,25 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         if (dataDef?.def.type === 'value' && dataDef?.def.valueType === 'category') {
             return domain;
         }
-        const axis = this.axes[direction];
-        return fixNumericExtent(extent(domain), axis);
+        return fixNumericExtent(extent(domain));
     }
 
     async createNodeData() {
         const { axes, dataModel, processedData, colorScale } = this;
-        const { xKey, yKey, labelKey, colorKey, xName, yName, labelName, marker, label, visible } = this.properties;
+        const {
+            xKey,
+            yKey,
+            xFilterKey,
+            yFilterKey,
+            labelKey,
+            colorKey,
+            xName,
+            yName,
+            labelName,
+            marker,
+            label,
+            visible,
+        } = this.properties;
         const { placement } = label;
         const markerShape = getMarker(marker.shape);
 
@@ -120,8 +133,12 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
         const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
         const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
-        const colorDataIdx = colorKey ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : -1;
-        const labelDataIdx = labelKey ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : -1;
+        const colorDataIdx = colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : -1;
+        const labelDataIdx = labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : -1;
+        const xFilterDataIdx =
+            xFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `xFilterValue`) : undefined;
+        const yFilterDataIdx =
+            yFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `yFilterValue`) : undefined;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -130,11 +147,16 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const nodeData: ScatterNodeDatum[] = [];
 
         const font = label.getFont();
+        const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
         for (const { values, datum } of processedData.data ?? []) {
             const xDatum = values[xDataIdx];
             const yDatum = values[yDataIdx];
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
+            const selected =
+                xFilterDataIdx != null && yFilterDataIdx != null
+                    ? values[xFilterDataIdx] === xDatum && values[yFilterDataIdx] === yDatum
+                    : undefined;
 
             const labelText = this.getLabelText(label, {
                 value: labelKey ? values[labelDataIdx] : yDatum,
@@ -147,7 +169,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 labelName,
             });
 
-            const size = Text.getTextSize(labelText, font);
+            const size = textMeasurer.measureText(labelText);
             const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
 
             nodeData.push({
@@ -165,6 +187,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 label: { text: labelText, ...size },
                 marker: markerShape,
                 placement,
+                selected,
             });
         }
 
@@ -214,7 +237,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const baseStyle = mergeDefaults(highlighted && highlightStyle.item, marker.getStyle());
 
         markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, labelKey }, baseStyle);
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, labelKey }, baseStyle, {
+                selected: datum.selected,
+            });
         });
 
         if (!highlighted) {

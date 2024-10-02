@@ -18,6 +18,7 @@ export interface MemberNode {
     name: string;
     type: TypeNode;
     docs?: string[];
+    omit?: string;
     optional?: boolean;
     defaultValue?: string;
 }
@@ -29,13 +30,16 @@ export interface InterfaceNode {
     members: MemberNode[];
     typeParams?: TypeParameterNode[];
     genericsMap?: Record<string, string>;
+    deprecated?: boolean;
 }
 
 export interface TypeAliasNode {
     kind: 'typeAlias';
     name: string;
+    docs?: string[];
     type: TypeNode;
     typeParams?: TypeParameterNode[];
+    deprecated?: boolean;
 }
 
 export interface TypeLiteralNode {

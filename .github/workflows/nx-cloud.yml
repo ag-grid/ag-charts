@@ -18,7 +18,7 @@ env:
 
 jobs:
     execute_blt:
-        runs-on: ubuntu-24.04
+        runs-on: macos-latest
         steps:
             - name: Checkout
               id: checkout
@@ -30,6 +30,7 @@ jobs:
               id: setup
               uses: ./.github/actions/setup-nx
               with:
+                  os: macos
                   nx_restore: false # We deliberately want a clean starting state.
 
             - name: nx build

@@ -1,0 +1,362 @@
+---
+title: 'Radial Gauge'
+---
+
+A Radial Gauge presents a single data point within a predefined range using a circular scale.
+The data is represented by a needle or bar indicating the value.
+
+## Simple Radial Gauge
+
+{% chartExampleRunner title="Simple Radial Gauge" name="simple-radial-gauge" type="generated" options={ "exampleHeight": 250 } /%}
+
+To create a Radial Gauge, use the `createGauge` API with the type `radial-gauge`.
+
+{% if isFramework("javascript") %}
+
+```js
+const options = {
+    type: 'radial-gauge',
+    container: document.getElementById('myChart'),
+    value: 80,
+    scale: {
+        min: 0,
+        max: 100,
+    },
+};
+
+AgCharts.createGauge(options);
+```
+
+{% /if %}
+
+{% if isFramework("react") %}
+
+```jsx
+const [options, setOptions] = useState({
+    type: 'radial-gauge',
+    value: 80,
+    scale: {
+      min: 0,
+      max: 100,
+    },
+});
+
+return (
+    <AgGauge options={options} />
+);
+```
+
+{% /if %}
+
+{% if isFramework("angular") %}
+
+```js
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [AgGauge],
+  template: `<ag-gauge [options]="options"></ag-gauge>`,
+})
+export class AppComponent {
+  public options: AgRadialGaugeOptions;
+  constructor() {
+    this.options = {
+        type: "radial-gauge",
+
+        value: 80,
+        scale: {
+          min: 0,
+          max: 100,
+        },
+    };
+  }
+}
+```
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+```js
+template: `<ag-gauge:options="options"/>`,
+components: {
+    'ag-gauge': AgGauge,
+},
+data() {
+    return {
+        options: {
+            type: "radial-gauge",
+
+        value: 80,
+        scale: {
+          min: 0,
+          max: 100,
+        },
+          }      ,
+    };
+}
+```
+
+{% /if %}
+
+In this configuration:
+
+-   `value` is the value displayed by the gauge.
+-   `scale.min` defines the minimum value of the scale.
+-   `scale.max` defines the maximum value of the scale.
+-   The data is represented by a coloured bar displayed over a grey scale.
+
+## Customisation
+
+### Needle / Bar
+
+{% chartExampleRunner title="Needle" name="needle" type="generated" options={ "exampleHeight": 350 } /%}
+
+It is possible to display the data value using a bar, a needle or both. These are both rendered over the scale.
+
+```js
+{
+    needle: {
+        enabled: true,
+    },
+    bar: {
+        enabled: false,
+    },
+}
+```
+
+In the above example, note that:
+
+-   When the needle is enabled, the label is not shown.
+-   When the bar is disabled, the scale defaults to showing the gradient colour instead of the solid grey.
+
+For customisation of both the bar and needle, see below or the [API Reference](#api-reference).
+
+### Labels
+
+{% chartExampleRunner title="Labels" name="labels" type="generated" options={ "exampleHeight": 250 } /%}
+
+Up to two inner labels can be configured with the `label` and `secondaryLabel` properties.
+
+```js
+{
+    label: {
+        formatter({ value }) {
+            return `${value.toFixed(0)}%`;
+        },
+    },
+    secondaryLabel: {
+        text: 'Test Score',
+    },
+    scale: {
+        label: {
+            enabled: false,
+        },
+    },
+}
+```
+
+In this configuration:
+
+-   The first label uses a `formatter` to format the value.
+-   The second label displays a fixed `text` string. This option is only available for inner labels.
+-   The scale labels are hidden using the `scale.label.enabled` option. See the [API Reference](#api-reference) for more details about customising the scale label style and interval.
+
+### Segmentation
+
+To split the gauge into segments, set `segmentation.enabled` to `true`.
+
+{% chartExampleRunner title="Segmentation" name="segmentation" type="generated" options={ "exampleHeight": 300 } /%}
+
+```js
+{
+    segmentation: {
+        enabled: true,
+        interval: {
+            count: 4
+        },
+        spacing: 2,
+    },
+}
+```
+
+In this configuration:
+
+-   `segmentation.interval` specifies how the gauge is segmented. Available options are:
+    -   `step` - segments the gauge at a fixed interval.
+    -   `count` - segments the gauge a fixed number of times.
+    -   `values` - segments the gauge at specific scale values.
+-   `spacing` defines the spacing between each segment.
+
+### Corner Radius
+
+{% chartExampleRunner title="Corner Radius" name="corner-radius" type="generated" options={ "exampleHeight": 350 } /%}
+
+```js
+{
+    cornerRadius: 99,
+    cornerMode: 'container',
+}
+```
+
+In this configuration:
+
+-   `cornerRadius` specifies the amount of curvature applied to each corner.
+-   `cornerMode` can be set to `container` to apply rounded corners only to the start and end of the gauge, or `item` for all visual items within the gauge.
+
+### Start and End Angles
+
+{% chartExampleRunner title="Angles" name="angles" type="generated" options={ "exampleHeight": 300 } /%}
+
+The `startAngle` and `endAngle` properties can be used to customise the start and end position of the gauge.
+
+```js
+{
+    startAngle: 225,
+    endAngle: 495,
+}
+```
+
+-   Angles are calculated clockwise, starting from the top of the gauge.
+-   `endAngle` must be greater than `startAngle`.
+
+## Colour Options
+
+### Single Colour
+
+Both the bar and scale can be displayed using a solid fill.
+
+{% chartExampleRunner title="Fill" name="fill" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+{
+    scale: {
+        fill: '#f5f6fa',
+    },
+    bar: {
+        fill: '#4cd137',
+    },
+}
+```
+
+### Multiple Colours
+
+Multiple colours can be specified using the `fills` property.
+
+{% chartExampleRunner title="Colour Scales" name="fill-mode" type="generated" options={ "exampleHeight": 300 } /%}
+
+```js
+{
+    bar: {
+        fills: [{ color: '#00a8ff' }, { color: '#9c88ff' }, { color: '#e84118' }],
+        fillMode: 'discrete',
+    },
+}
+```
+
+In this configuration:
+
+-   `fills` specifies an array of colours to use to fill the bar.
+-   `fillMode` can be set to `continuous` for a gradient, or `discrete` to use blocks of solid colours.
+
+The default behaviour is to space out the colours evenly. This can be customised by using colour stops.
+
+### Colour Stops
+
+{% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+{
+    bar: {
+        fills: [
+            { color: '#E84118', stop: 35 },
+            { color: '#FBC531', stop: 45 },
+            { color: '#4CD137', stop: 55 },
+            { color: '#FBC531', stop: 65 },
+            { color: '#E84118' },
+        ],
+        fillMode: 'discrete',
+    },
+}
+```
+
+In this configuration:
+
+-   Each colour stops at the `stop` value, and the next colour begins at that point.
+-   If no `stop` is provided, the fills will be distributed equally.
+-   The last colour is used until the end of the scale or bar.
+-   Both `discrete` and `continuous` modes can be used with colour stops.
+
+## Targets
+
+Gauges often display targets or thresholds to provide context to the displayed data value. These can be added using the `targets` configuration array.
+
+{% chartExampleRunner title="Targets" name="targets" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+{
+    targets: [
+        {
+            value: 70,
+            text: 'Average',
+        },
+    ],
+}
+```
+
+In this configuration:
+
+-   `value` is the position for the target marker.
+-   `text` is an optional string for the target label.
+
+### Customisation
+
+{% chartExampleRunner title="Target Customisation" name="custom-targets" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+{
+    targets: [
+        {
+            value: 30,
+            shape: 'triangle',
+            placement: 'outside',
+            fill: 'white',
+            strokeWidth: 2,
+            spacing: 8,
+        },
+        {
+            value: 75,
+            placement: 'inside',
+            shape: 'triangle',
+            fill: 'white',
+            strokeWidth: 2,
+            spacing: 8,
+        },
+        {
+            value: 90,
+            placement: 'middle',
+            shape: 'circle',
+            fill: 'white',
+            strokeWidth: 2,
+            spacing: 8,
+        },
+    ],
+}
+```
+
+In this configuration:
+
+-   `shape` is a [marker shape](#reference-AgRadialGaugeOptions-targets-shape).
+-   `placement` indicates the relative placement to the gauge - either `inside`, `outside`, or `middle`.
+-   `size` is the size of the marker, in pixels.
+-   `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle`.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgRadialGaugeOptions" label="Radial Gauge Options" %}
+{% apiReference id="AgRadialGaugeOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

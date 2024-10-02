@@ -1,31 +1,62 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport, type _Scene } from 'ag-charts-community';
 
-import {
-    Annotation,
-    AnnotationHandle,
-    AnnotationLine,
-    Cappable,
-    Extendable,
-    LineDash,
-    Stroke,
-} from '../annotationProperties';
-import { type AnnotationContext, AnnotationType } from '../annotationTypes';
-import { validateDatumLine } from '../annotationUtils';
+import { Cappable, Extendable, LineStyle, LineTextProperties, Stroke } from '../annotationProperties';
+import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
+import { StartEndProperties } from '../properties/startEndProperties';
+import { getLineCap, getLineDash } from '../utils/line';
+import { validateDatumLine } from '../utils/validation';
 
-const { STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
+const { OBJECT, STRING, Validate, isObject } = _ModuleSupport;
 
-export class LineAnnotation extends Annotation(
-    AnnotationType.Line,
-    AnnotationLine(AnnotationHandle(Cappable(Extendable(Stroke(LineDash(BaseProperties))))))
-) {
-    static is(value: unknown): value is LineAnnotation {
+export abstract class LineTypeProperties extends Cappable(Extendable(Stroke(LineStyle(StartEndProperties)))) {
+    @Validate(OBJECT, { optional: true })
+    text = new LineTextProperties();
+
+    lineCap?: _Scene.ShapeLineCap = undefined;
+    computedLineDash?: PixelSize[] = undefined;
+
+    override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
+        return super.isValid(warningPrefix) && validateDatumLine(context, this, warningPrefix);
+    }
+
+    override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case 'line-color':
+                return this.stroke;
+            case 'text-color':
+                return this.text.color;
+        }
+    }
+
+    override getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType) {
+        return this.strokeOpacity;
+    }
+
+    getLineDash(): PixelSize[] | undefined {
+        return getLineDash(this.lineDash, this.computedLineDash, this.lineStyle, this.strokeWidth);
+    }
+
+    getLineCap(): _Scene.ShapeLineCap | undefined {
+        return getLineCap(this.lineCap, this.lineDash, this.lineStyle);
+    }
+}
+
+export class ArrowProperties extends LineTypeProperties {
+    static is(value: unknown): value is ArrowProperties {
+        return isObject(value) && value.type === AnnotationType.Arrow;
+    }
+
+    @Validate(STRING)
+    type = AnnotationType.Arrow as const;
+
+    override endCap = 'arrow' as const;
+}
+
+export class LineProperties extends LineTypeProperties {
+    static is(value: unknown): value is LineProperties {
         return isObject(value) && value.type === AnnotationType.Line;
     }
 
     @Validate(STRING)
     type = AnnotationType.Line as const;
-
-    override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
-        return super.isValid(warningPrefix) && validateDatumLine(context, this, warningPrefix);
-    }
 }

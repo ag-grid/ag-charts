@@ -12,6 +12,7 @@ import {
 } from './mapMarkerSeriesProperties';
 
 const {
+    CachedTextMeasurerPool,
     Validate,
     fromToMotion,
     StateMachine,
@@ -19,12 +20,12 @@ const {
     createDatumId,
     DataModelSeries,
     SeriesNodePickMode,
-    Layers,
+    ZIndexMap,
     valueProperty,
     computeMarkerFocusBounds,
 } = _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;
-const { Group, Selection, Text, getMarker } = _Scene;
+const { Layer, Selection, Text, getMarker } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
 
 export interface MapMarkerNodeDataContext
@@ -71,11 +72,9 @@ export class MapMarkerSeries
     private readonly sizeScale = new LinearScale();
 
     private readonly markerGroup = this.contentGroup.appendChild(
-        new Group({
+        new Layer({
             name: 'markerGroup',
-            layer: true,
-            isVirtual: false,
-            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndex: ZIndexMap.SERIES_LAYER,
             zIndexSubOrder: this.getGroupZIndexSubOrder('marker'),
         })
     );
@@ -322,7 +321,7 @@ export class MapMarkerSeries
         });
         if (labelText == null) return;
 
-        const { width, height } = Text.getTextSize(String(labelText), font);
+        const { width, height } = CachedTextMeasurerPool.measureText(String(labelText), { font });
 
         return {
             point: { x, y, size },
@@ -637,7 +636,7 @@ export class MapMarkerSeries
     }
 
     override pickNodeClosestDatum(p: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
-        const { x: x0, y: y0 } = this.rootGroup.transformPoint(p.x, p.y);
+        const { x: x0, y: y0 } = p;
 
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;

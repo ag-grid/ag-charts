@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type { AgAreaSeriesOptions, AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
+import { Transformable } from '../../../scene/transformable';
 import { deepClone } from '../../../util/json';
+import { LegendMarkerLabel } from '../../legendMarkerLabel';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
     DATA_INVALID_DOMAIN_LOG_AXIS,
@@ -16,6 +18,9 @@ import type { CartesianOrPolarTestCase, TestCase } from '../../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
+    clickAction,
+    deproxy,
+    doubleClickAction,
     extractImageData,
     mixinReversedAxesCases,
     prepareTestOptions,
@@ -24,6 +29,7 @@ import {
     spyOnAnimationManager,
     waitForChartStability,
 } from '../../test/utils';
+import { AreaSeries } from './areaSeries';
 
 const buildLogAxisTestCase = (data: any[]): CartesianOrPolarTestCase => {
     return {
@@ -40,6 +46,19 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
         },
         STACKED_AREA_MISSING_Y_DATA_EXAMPLE: {
             options: examples.STACKED_AREA_MISSING_Y_DATA_EXAMPLE,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['category', 'number'],
+                seriesTypes: repeat('area', 4),
+            }),
+        },
+        STACKED_AREA_MISSING_Y_DATA_WITH_INTERPOLATION_EXAMPLE: {
+            options: {
+                ...examples.STACKED_AREA_MISSING_Y_DATA_EXAMPLE,
+                series: (examples.STACKED_AREA_MISSING_Y_DATA_EXAMPLE.series ?? []).map((series) => ({
+                    ...series,
+                    interpolation: { type: 'smooth' },
+                })),
+            },
             assertions: cartesianChartAssertions({
                 axisTypes: ['category', 'number'],
                 seriesTypes: repeat('area', 4),
@@ -293,15 +312,70 @@ describe('AreaSeries', () => {
         });
     });
 
+    describe('undefined data animation', () => {
+        const animate = spyOnAnimationManager();
+
+        const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
+        EXAMPLE.series?.forEach((series: any) => {
+            series.interpolation = { type: 'smooth' };
+        });
+
+        const updatedData = deepClone(EXAMPLE.data)!;
+        updatedData[4]['Science Museum'] = undefined;
+
+        describe('set to undefined', () => {
+            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+                it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                    animate(1200, 1);
+
+                    const options: AgChartOptions = { ...EXAMPLE };
+                    prepareTestOptions(options);
+
+                    chart = AgCharts.create(options);
+                    await waitForChartStability(chart);
+
+                    animate(1200, ratio);
+                    await chart.update({ ...options, data: updatedData });
+
+                    await compare();
+                });
+            }
+        });
+
+        describe('unset from undefined', () => {
+            for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
+                it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
+                    animate(1200, 1);
+
+                    const options: AgChartOptions = { ...EXAMPLE, data: updatedData };
+                    prepareTestOptions(options);
+
+                    chart = AgCharts.create(options);
+                    await waitForChartStability(chart);
+
+                    animate(1200, ratio);
+                    await chart.update({ ...options, data: EXAMPLE.data });
+
+                    await compare();
+                });
+            }
+        });
+    });
+
     describe('legend toggle animation', () => {
         const animate = spyOnAnimationManager();
+
+        const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
+        EXAMPLE.series?.forEach((s) => {
+            (s as AgAreaSeriesOptions).strokeWidth = 2;
+        });
 
         describe('hide', () => {
             for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
                 it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
                     animate(1200, 1);
 
-                    const options: AgChartOptions = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
+                    const options: AgChartOptions = deepClone(EXAMPLE);
                     prepareTestOptions(options);
 
                     chart = AgCharts.create(options);
@@ -321,7 +395,7 @@ describe('AreaSeries', () => {
                 it(`for STACKED_AREA_GRAPH_EXAMPLE should animate at ${ratio * 100}%`, async () => {
                     animate(1200, 1);
 
-                    const options: AgChartOptions = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
+                    const options: AgChartOptions = deepClone(EXAMPLE);
                     options.series![1].visible = false;
                     prepareTestOptions(options);
 
@@ -409,6 +483,114 @@ describe('AreaSeries', () => {
 
             chart = AgCharts.create(options);
             await compare();
+        });
+    });
+
+    // AG-12350 - nodeClick triggered on legend item click.
+    describe('nodeClick', () => {
+        const clicks: string[] = [];
+        const doubleClicks: string[] = [];
+        const legendClicks: string[] = [];
+
+        const nodeClickOptions: AgCartesianChartOptions = {
+            data: [
+                { asset: 'Stocks', amount: 5 },
+                { asset: 'Cash', amount: 5 },
+                { asset: 'Bonds', amount: 0 },
+                { asset: 'Real Estate', amount: 5 },
+                { asset: 'Commodities', amount: 5 },
+            ],
+            series: [
+                {
+                    type: 'area',
+                    xKey: 'asset',
+                    yKey: 'amount',
+                    marker: { size: 5 },
+                    listeners: {
+                        nodeClick: (event) => {
+                            clicks.push(event.datum.asset);
+                        },
+                        nodeDoubleClick: (event) => {
+                            doubleClicks.push(event.datum.asset);
+                        },
+                    },
+                },
+            ],
+            legend: {
+                listeners: {
+                    legendItemClick: (event) => {
+                        legendClicks.push(event.itemId);
+                    },
+                },
+            },
+        };
+
+        beforeEach(() => {
+            clicks.splice(0, clicks.length);
+            doubleClicks.splice(0, doubleClicks.length);
+            legendClicks.splice(0, legendClicks.length);
+        });
+
+        it('should fire a nodeClick event for each node', async () => {
+            const options = { ...nodeClickOptions };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const areaSeries = deproxy(chart).series[0] as AreaSeries;
+            for (const nodeData of areaSeries.getNodeData() ?? []) {
+                const { x = 0, y = 0 } = nodeData.point ?? {};
+                const { x: clickX, y: clickY } = Transformable.toCanvasPoint(areaSeries.contentGroup, x, y);
+                await waitForChartStability(chart);
+                await clickAction(clickX, clickY)(chart);
+            }
+
+            expect(clicks).toEqual(['Stocks', 'Cash', 'Bonds', 'Real Estate', 'Commodities']);
+            expect(doubleClicks).toHaveLength(0);
+            expect(legendClicks).toHaveLength(0);
+        });
+
+        it('should fire a nodeDoubleClick event for each node', async () => {
+            const options = { ...nodeClickOptions };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            const areaSeries = deproxy(chart).series[0] as AreaSeries;
+            for (const nodeData of areaSeries.getNodeData() ?? []) {
+                const { x = 0, y = 0 } = nodeData.point ?? {};
+                const { x: clickX, y: clickY } = Transformable.toCanvasPoint(areaSeries.contentGroup, x, y);
+                await waitForChartStability(chart);
+                await doubleClickAction(clickX, clickY)(chart);
+            }
+
+            expect(doubleClicks).toEqual(['Stocks', 'Cash', 'Bonds', 'Real Estate', 'Commodities']);
+            expect(clicks).toHaveLength(10);
+            expect(legendClicks).toHaveLength(0);
+        });
+
+        it('should not fire series events for legend clicks', async () => {
+            const options = { ...nodeClickOptions };
+            prepareTestOptions(options);
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            for (const { legend } of deproxy(chart).modulesManager.legends()) {
+                const markerLabels = (legend as any).itemSelection?._nodes as LegendMarkerLabel[];
+                for (const label of markerLabels) {
+                    const { x, y } = Transformable.toCanvas(label).computeCenter();
+
+                    await clickAction(x, y)(chart);
+                    await waitForChartStability(chart);
+
+                    await clickAction(x, y)(chart);
+                    await waitForChartStability(chart);
+                }
+            }
+
+            expect(legendClicks).toEqual(['amount', 'amount']);
+            expect(doubleClicks).toHaveLength(0);
+            expect(clicks).toHaveLength(0);
         });
     });
 });

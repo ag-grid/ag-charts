@@ -19,8 +19,8 @@ enum DefaultTimeFormats {
     YEAR,
 }
 
-export function dateToNumber(x: any) {
-    return x instanceof Date ? x.getTime() : x;
+export function dateToNumber(value: any) {
+    return value instanceof Date ? value.getTime() : value;
 }
 
 export function defaultTimeTickFormat(ticks?: any[], domain?: any[], formatOffset?: number) {
@@ -121,10 +121,10 @@ function formatStringBuilder(defaultTimeFormat: DefaultTimeFormats, yearChange: 
     const formatParts = parts
         // Retain relevant parts.
         .filter((v) => {
-            if (typeof v === 'string') return true;
-
+            if (typeof v === 'string') {
+                return true;
+            }
             const [_, min, max, format] = v;
-
             return format >= defaultTimeFormat && min <= extent && extent < max;
         })
         // Deduplicate overlapping parts (earlier declaration wins).
@@ -143,10 +143,10 @@ function formatStringBuilder(defaultTimeFormat: DefaultTimeFormats, yearChange: 
 
     // Strip redundant leading/trailing separators.
     const firstFormat = formatParts.findIndex((v) => typeof v !== 'string');
-    const lastFormat = formatParts.length - [...formatParts].reverse().findIndex((v) => typeof v !== 'string');
+    const lastFormat = formatParts.findLastIndex((v) => typeof v !== 'string');
 
     return formatParts
-        .slice(firstFormat, lastFormat)
+        .slice(firstFormat, lastFormat + 1)
         .map((v) => (typeof v === 'string' ? v : v[4]))
         .join('')
         .replaceAll(/\s+/g, ' ')

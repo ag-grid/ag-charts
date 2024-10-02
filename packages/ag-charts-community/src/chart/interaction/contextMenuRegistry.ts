@@ -92,9 +92,13 @@ export class ContextMenuRegistry {
     public dispatchContext<T extends ContextType>(
         type: T,
         pointerEvent: PointerInteractionEvent<'contextmenu'>,
-        context: ContextTypeMap[T]
+        context: ContextTypeMap[T],
+        position?: { x: number; y: number }
     ) {
-        const { offsetX: x, offsetY: y, sourceEvent } = pointerEvent;
+        const { sourceEvent } = pointerEvent;
+        const x = position?.x ?? pointerEvent.offsetX;
+        const y = position?.y ?? pointerEvent.offsetY;
+        sourceEvent.stopPropagation();
         this.listeners.dispatch('', buildPreventable({ type, x, y, context, sourceEvent }));
     }
 
@@ -108,11 +112,19 @@ export class ContextMenuRegistry {
         });
     }
 
-    public registerDefaultAction<T extends ContextType>(action: ContextMenuAction<T>) {
-        if (action.id && this.defaultActions.find(({ id }) => id === action.id)) {
-            return;
+    public registerDefaultAction<T extends ContextType>(action: ContextMenuAction<T>): () => void {
+        const didAdd = action.id != null && !this.defaultActions.some(({ id }) => id === action.id);
+
+        if (didAdd) {
+            this.defaultActions.push(action);
         }
-        this.defaultActions.push(action);
+
+        return () => {
+            const index = didAdd ? this.defaultActions.findIndex(({ id }) => id === action.id) : -1;
+            if (index !== -1) {
+                this.defaultActions.splice(index, 1);
+            }
+        };
     }
 
     public enableAction(actionId: string) {

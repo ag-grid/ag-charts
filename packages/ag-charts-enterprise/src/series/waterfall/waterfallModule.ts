@@ -12,20 +12,16 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
 
     identifier: 'waterfall',
     solo: true,
-    instanceConstructor: WaterfallSeries,
+    moduleFactory: (ctx) => new WaterfallSeries(ctx),
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: [
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: _Theme.POSITION.BOTTOM,
-        },
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-            position: _Theme.POSITION.LEFT,
-        },
-    ],
+    defaultAxes: _Theme.swapAxisCondition(
+        [
+            { type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER, position: _Theme.POSITION.LEFT },
+            { type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY, position: _Theme.POSITION.BOTTOM },
+        ],
+        (series) => series?.direction === 'horizontal'
+    ),
     themeTemplate: WATERFALL_SERIES_THEME,
-    swapDefaultAxesCondition: ({ direction }) => direction === 'horizontal',
     paletteFactory: ({ takeColors, colorsCount, userPalette, palette }) => {
         if (userPalette === 'user-indexed') {
             const { fills, strokes } = takeColors(colorsCount);
@@ -51,15 +47,15 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
             line: { stroke: palette.neutral.stroke },
             item: {
                 positive: {
-                    fill: palette.up.fill,
-                    stroke: palette.up.stroke,
+                    fill: palette.altUp.fill,
+                    stroke: palette.altUp.stroke,
                     label: {
                         color: _Theme.DEFAULT_LABEL_COLOUR,
                     },
                 },
                 negative: {
-                    fill: palette.down.fill,
-                    stroke: palette.down.stroke,
+                    fill: palette.altDown.fill,
+                    stroke: palette.altDown.stroke,
                     label: {
                         color: _Theme.DEFAULT_LABEL_COLOUR,
                     },

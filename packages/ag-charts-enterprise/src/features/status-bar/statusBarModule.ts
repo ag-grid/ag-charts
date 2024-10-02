@@ -8,15 +8,10 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
     optionsKey: 'statusBar',
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
-    instanceConstructor: StatusBar,
+    moduleFactory: (ctx) => new StatusBar(ctx),
     themeTemplate: {
         statusBar: {
             enabled: false,
-            openKey: undefined,
-            highKey: undefined,
-            lowKey: undefined,
-            closeKey: undefined,
-            volumeKey: undefined,
             layoutStyle: _Theme.DEFAULT_CAPTION_LAYOUT_STYLE,
             title: {
                 color: _Theme.DEFAULT_LABEL_COLOUR,
@@ -26,6 +21,16 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
             },
             negative: {
                 color: _Theme.PALETTE_DOWN_STROKE,
+            },
+            neutral: {
+                color: _Theme.PALETTE_NEUTRAL_STROKE,
+            },
+            background: {
+                fill: _Theme.DEFAULT_BACKGROUND_COLOUR,
+                fillOpacity: 0.5,
+            },
+            altNeutral: {
+                color: 'gray',
             },
         },
     },

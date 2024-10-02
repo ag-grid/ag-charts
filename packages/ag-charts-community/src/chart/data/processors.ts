@@ -1,18 +1,135 @@
 /* eslint-disable sonarjs/no-duplicate-string */
+import type { ScaleType } from '../../scale/scale';
 import { arraysEqual } from '../../util/array';
 import { memo } from '../../util/memo';
-import { isNegative } from '../../util/number';
+import { clamp, isNegative } from '../../util/number';
 import { isArray, isFiniteNumber } from '../../util/type-guards';
-import { transformIntegratedCategoryValue } from '../../util/value';
+import { isContinuous, transformIntegratedCategoryValue } from '../../util/value';
+import { accumulatedValue, range, trailingAccumulatedValue } from './aggregateFunctions';
 import type {
     DatumPropertyDefinition,
     GroupValueProcessorDefinition,
     ProcessedData,
     ProcessorOutputPropertyDefinition,
-    PropertyId,
     PropertyValueProcessorDefinition,
     ReducerOutputPropertyDefinition,
 } from './dataModel';
+
+function basicContinuousCheckDatumValidation(value: any) {
+    return value != null && isContinuous(value);
+}
+
+function basicDiscreteCheckDatumValidation(value: any) {
+    return value != null;
+}
+
+function getValidationFn(scaleType?: ScaleType) {
+    switch (scaleType) {
+        case 'number':
+        case 'log':
+        case 'ordinal-time':
+        case 'time':
+        case 'color':
+            return basicContinuousCheckDatumValidation;
+        default:
+            return basicDiscreteCheckDatumValidation;
+    }
+}
+
+function getValueType(scaleType?: ScaleType) {
+    switch (scaleType) {
+        case 'number':
+        case 'log':
+        case 'time':
+        case 'color':
+            return 'range';
+        default:
+            return 'category';
+    }
+}
+export function keyProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
+    const result: DatumPropertyDefinition<K> = {
+        property: propName,
+        type: 'key',
+        valueType: getValueType(scaleType),
+        validation: getValidationFn(scaleType),
+        ...opts,
+    };
+    return result;
+}
+
+export function valueProperty<K>(propName: K, scaleType?: ScaleType, opts: Partial<DatumPropertyDefinition<K>> = {}) {
+    const result: DatumPropertyDefinition<K> = {
+        property: propName,
+        type: 'value',
+        valueType: getValueType(scaleType),
+        validation: getValidationFn(scaleType),
+        ...opts,
+    };
+    return result;
+}
+
+export function rangedValueProperty<K>(
+    propName: K,
+    opts: Partial<DatumPropertyDefinition<K>> & { min?: number; max?: number } = {}
+): DatumPropertyDefinition<K> {
+    const { min = -Infinity, max = Infinity, ...defOpts } = opts;
+    return {
+        type: 'value',
+        property: propName,
+        valueType: 'range',
+        validation: basicContinuousCheckDatumValidation,
+        processor: () => (datum) => (isFiniteNumber(datum) ? clamp(min, datum, max) : datum),
+        ...defOpts,
+    };
+}
+
+export function accumulativeValueProperty<K>(
+    propName: K,
+    scaleType?: ScaleType,
+    opts: Partial<DatumPropertyDefinition<K>> & { onlyPositive?: boolean } = {}
+) {
+    const { onlyPositive, ...defOpts } = opts;
+    const result: DatumPropertyDefinition<K> = {
+        ...valueProperty(propName, scaleType, defOpts),
+        processor: accumulatedValue(onlyPositive),
+    };
+    return result;
+}
+
+export function trailingAccumulatedValueProperty<K>(
+    propName: K,
+    scaleType?: ScaleType,
+    opts: Partial<DatumPropertyDefinition<K>> = {}
+) {
+    const result: DatumPropertyDefinition<K> = {
+        ...valueProperty(propName, scaleType, opts),
+        processor: trailingAccumulatedValue(),
+    };
+    return result;
+}
+
+export function groupAccumulativeValueProperty<K>(
+    propName: K,
+    mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
+    sum: 'current' | 'last' = 'current',
+    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string },
+    scaleType?: ScaleType
+) {
+    return [
+        valueProperty(propName, scaleType, opts),
+        accumulateGroup(opts.groupId, mode, sum, opts.separateNegative),
+        ...(opts.rangeId != null ? [range(opts.rangeId, opts.groupId)] : []),
+    ];
+}
+
+export function groupStackValueProperty<K>(
+    propName: K,
+    scaleType: ScaleType | undefined,
+    opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string }
+) {
+    return [valueProperty(propName, scaleType, opts), accumulateStack(opts.groupId)];
+}
 
 export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKeyInterval'> = {
     type: 'reducer',
@@ -77,20 +194,24 @@ function normaliseFnBuilder({ normaliseTo, mode }: { normaliseTo: number; mode: 
     return () => () => (values: any[], valueIndexes: number[]) => {
         const valuesExtent = [0, 0];
         for (const valueIdx of valueIndexes) {
-            const value = values[valueIdx];
-            const valIdx = value < 0 ? 0 : 1;
+            const value: number | number[] = values[valueIdx];
+            // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators
+            const valueExtent = typeof value === 'number' ? value : Math.max(...value);
+            const valIdx = valueExtent < 0 ? 0 : 1;
             if (mode === 'sum') {
-                valuesExtent[valIdx] += value;
+                valuesExtent[valIdx] += valueExtent;
             } else if (valIdx === 0) {
-                valuesExtent[valIdx] = Math.min(valuesExtent[valIdx], value);
+                valuesExtent[valIdx] = Math.min(valuesExtent[valIdx], valueExtent);
             } else {
-                valuesExtent[valIdx] = Math.max(valuesExtent[valIdx], value);
+                valuesExtent[valIdx] = Math.max(valuesExtent[valIdx], valueExtent);
             }
         }
 
         const extent = Math.max(Math.abs(valuesExtent[0]), valuesExtent[1]);
         for (const valueIdx of valueIndexes) {
-            values[valueIdx] = normalise(values[valueIdx], extent);
+            const value: number | number[] = values[valueIdx];
+            values[valueIdx] =
+                typeof value === 'number' ? normalise(value, extent) : value.map((v) => normalise(v, extent));
         }
     };
 }
@@ -153,7 +274,7 @@ function normalisePropertyFnBuilder({
 }
 
 export function normalisePropertyTo(
-    property: PropertyId<any>,
+    property: string,
     normaliseTo: [number, number],
     zeroDomain: number,
     rangeMin?: number,
@@ -285,30 +406,25 @@ export function accumulateGroup(
     };
 }
 
-function buildGroupContinuityAccFn({ separateNegative }: { separateNegative: boolean }) {
-    return () => () => (values: any[], valueIndexes: number[]) => {
+function groupStackAccFn() {
+    return () => (values: any[], valueIndexes: number[]) => {
         // Datum scope.
-        const acc = [true, true];
+        const acc = new Float64Array(32);
+        let stackCount = 0;
         for (const valueIdx of valueIndexes) {
-            const currentVal = values[valueIdx];
-            const accIndex = isNegative(currentVal) && separateNegative ? 0 : 1;
-
-            acc[accIndex] &&= isFiniteNumber(currentVal);
-            values[valueIdx] = acc[accIndex];
+            const currentValue = values[valueIdx];
+            acc[stackCount] = Number.isFinite(currentValue) ? currentValue : NaN;
+            stackCount += 1;
+            values[valueIdx] = acc.subarray(0, stackCount);
         }
     };
 }
 
-export function accumulateContinuity(
-    matchGroupId: string,
-    separateNegative = false
-): GroupValueProcessorDefinition<any, any> {
-    const adjust = memo({ separateNegative }, buildGroupContinuityAccFn);
-
+export function accumulateStack(matchGroupId: string): GroupValueProcessorDefinition<any, any> {
     return {
         type: 'group-value-processor',
         matchGroupIds: [matchGroupId],
-        adjust,
+        adjust: groupStackAccFn,
     };
 }
 
@@ -369,8 +485,8 @@ export function diff(
     };
 }
 
-type KeyType = string | number | object;
-export function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string | number)[]) {
+type KeyType = string | number | boolean | object;
+export function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string | number | boolean)[]) {
     let result;
     if (isArray(keys)) {
         result = keys.map((key) => transformIntegratedCategoryValue(key)).join('___');
@@ -378,7 +494,11 @@ export function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string |
         result = transformIntegratedCategoryValue(keys);
     }
 
-    const primitiveType = typeof result === 'string' || typeof result === 'number' || result instanceof Date;
+    const primitiveType =
+        typeof result === 'string' ||
+        typeof result === 'number' ||
+        typeof result === 'boolean' ||
+        result instanceof Date;
     if (primitiveType && extraKeys.length > 0) {
         result += `___${extraKeys.join('___')}`;
     }

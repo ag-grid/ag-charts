@@ -12,7 +12,7 @@ export * from './util/vector';
 export * from './util/zip';
 
 export { isValidDate as isDate, isFiniteNumber as isNumber, isString } from './util/type-guards';
-export { bifurcate, extent, normalisedExtent, normalisedExtentWithMetadata } from './util/array';
+export { extent, normalisedExtentWithMetadata } from './util/array';
 export { toFixed, isEqual as isNumberEqual } from './util/number';
 export { tickFormat } from './util/ticks';
 

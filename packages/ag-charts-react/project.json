@@ -79,6 +79,9 @@
         "watch": {
           "tsConfig": "packages/ag-charts-react/tsconfig.watch.json"
         },
+        "staging": {
+          "sourcemap": false
+        },
         "production": {
           "sourcemap": false
         }
@@ -104,6 +107,9 @@
         "sourcemap": true
       },
       "configurations": {
+        "staging": {
+          "sourcemap": false
+        },
         "production": {
           "sourcemap": false
         }
@@ -119,7 +125,7 @@
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
-      "inputs": ["production", "{projectRoot}/dist"],
+      "inputs": ["allTransitiveOutputs"],
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
         "cwd": "packages/ag-charts-react",
@@ -130,22 +136,16 @@
     "pack:extract": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack"],
-      "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
+      "inputs": ["allOutputs"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-react/"],
-      "options": {
-        "parallel": false,
-        "commands": [
-          "mkdir -p dist/packages/contents/ag-charts-react",
-          "tar -xzf dist/packages/ag-charts-react.tgz -C dist/packages/contents/ag-charts-react/"
-        ]
-      }
+      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
     },
     "pack:verify": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
-      "inputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-react/"],
+      "inputs": ["allOutputs"],
       "options": {
-        "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-react/package"]
+        "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-react/package"]
       }
     }
   },

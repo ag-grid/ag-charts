@@ -1,3 +1,5 @@
+import type { AgLinearGaugeTarget, AgLinearGaugeThemeableOptions } from '../presets/gauge/linearGaugeOptions';
+import type { AgRadialGaugeTarget, AgRadialGaugeThemeableOptions } from '../presets/gauge/radialGaugeOptions';
 import type { AgAreaSeriesThemeableOptions } from '../series/cartesian/areaOptions';
 import type { AgBarSeriesThemeableOptions } from '../series/cartesian/barOptions';
 import type { AgBoxPlotSeriesThemeableOptions } from '../series/cartesian/boxPlotOptions';
@@ -6,6 +8,8 @@ import type { AgBulletSeriesThemeableOptions } from '../series/cartesian/bulletO
 import type { AgCandlestickSeriesThemeableOptions } from '../series/cartesian/candlestickOptions';
 import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
+import type { AgConeFunnelSeriesThemeableOptions } from '../series/cartesian/coneFunnelOptions';
+import type { AgFunnelSeriesThemeableOptions } from '../series/cartesian/funnelOptions';
 import type { AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
 import type { AgHistogramSeriesThemeableOptions } from '../series/cartesian/histogramOptions';
 import type { AgLineSeriesThemeableOptions } from '../series/cartesian/lineOptions';
@@ -53,7 +57,7 @@ export type AgChartThemeName =
     | 'ag-financial'
     | 'ag-financial-dark';
 
-interface AgPaletteColors {
+export interface AgPaletteColors {
     fill?: CssColor;
     stroke?: CssColor;
 }
@@ -75,7 +79,7 @@ export interface AgBaseChartThemeOptions {
     /** The palette to use. If specified, this replaces the palette from the base theme. */
     palette?: AgChartThemePalette;
     /** Configuration from this object is merged over the defaults specified in the base theme. */
-    overrides?: AgChartThemeOverrides;
+    overrides?: AgThemeOverrides;
 }
 
 /** This object is used to define the configuration for a custom chart theme. */
@@ -105,6 +109,12 @@ export interface AgBoxPlotSeriesThemeOverrides extends AgBaseCartesianThemeOptio
 }
 export interface AgCandlestickSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgCandlestickSeriesThemeableOptions;
+}
+export interface AConeFunnelSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
+    series?: AgConeFunnelSeriesThemeableOptions;
+}
+export interface AgFunnelSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
+    series?: AgFunnelSeriesThemeableOptions;
 }
 export interface AgOhlcSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgOhlcSeriesThemeableOptions;
@@ -176,6 +186,35 @@ export interface AgChordThemeOverrides extends AgBaseFlowProportionThemeOptions 
     series?: AgChordSeriesThemeableOptions;
 }
 
+export type AgBaseGaugePresetThemeOptions = Pick<
+    AgBaseChartOptions<any>,
+    | 'animation'
+    | 'background'
+    | 'container'
+    | 'contextMenu'
+    | 'footnote'
+    | 'height'
+    | 'listeners'
+    | 'locale'
+    | 'minHeight'
+    | 'minWidth'
+    | 'padding'
+    | 'subtitle'
+    | 'title'
+    | 'width'
+>;
+
+// Interface needed for docs generation, but listeners conflicts using the extends clause
+type AgRadialGaugeTheme = AgBaseGaugePresetThemeOptions & AgRadialGaugeThemeableOptions;
+export interface AgRadialGaugeThemeOverrides extends AgRadialGaugeTheme {
+    targets?: AgRadialGaugeTarget;
+}
+
+type AgLinearGaugeTheme = AgBaseGaugePresetThemeOptions & AgLinearGaugeThemeableOptions;
+export interface AgLinearGaugeThemeOverrides extends AgLinearGaugeTheme {
+    targets?: AgLinearGaugeTarget;
+}
+
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
 
 export interface AgCommonThemeableChartOptions extends AgBaseThemeableChartOptions {
@@ -183,6 +222,8 @@ export interface AgCommonThemeableChartOptions extends AgBaseThemeableChartOptio
     annotations?: AgAnnotationsThemeableOptions;
     locale?: AgLocaleThemeableOptions;
 }
+
+export type AgGaugeThemeOverrides = AgRadialGaugeThemeOverrides | AgLinearGaugeThemeOverrides;
 
 export interface AgChartThemeOverrides {
     /** Common theme overrides for series. */
@@ -202,6 +243,10 @@ export interface AgChartThemeOverrides {
     'box-plot'?: AgBoxPlotSeriesThemeOverrides;
     /** Candlestick series theme overrides. */
     candlestick?: AgCandlestickSeriesThemeOverrides;
+    /** Cone Funnel series theme overrides. */
+    'cone-funnel'?: AConeFunnelSeriesThemeOverrides;
+    /** Funnel series theme overrides. */
+    funnel?: AgFunnelSeriesThemeOverrides;
     /** ohlc series theme overrides. */
     ohlc?: AgOhlcSeriesThemeOverrides;
     /** Histogram series theme overrides. */
@@ -234,21 +279,30 @@ export interface AgChartThemeOverrides {
     sunburst?: AgSunburstSeriesThemeOverrides;
     /** Treemap series theme overrides. */
     treemap?: AgTreemapSeriesThemeOverrides;
-    /** Map series theme overrides. */
+    /** Map shape series theme overrides. */
     'map-shape'?: AgMapShapeSeriesThemeOverrides;
-    /** Map-line series theme overrides. */
+    /** Map line series theme overrides. */
     'map-line'?: AgMapLineSeriesThemeOverrides;
-    /** Map-marker series theme overrides. */
+    /** Map marker series theme overrides. */
     'map-marker'?: AgMapMarkerSeriesThemeOverrides;
-    /** map-shape-background series theme overrides. */
+    /** Map shape background series theme overrides. */
     'map-shape-background'?: AgMapShapeBackgroundThemeOverrides;
-    /** map-line-background series theme overrides. */
+    /** Map line background series theme overrides. */
     'map-line-background'?: AgMapLineBackgroundThemeOverrides;
-    /** sankey series theme overrides. */
+    /** Sankey series theme overrides. */
     sankey?: AgSankeyThemeOverrides;
-    /** sankey series theme overrides. */
+    /** Chord series theme overrides. */
     chord?: AgChordThemeOverrides;
 }
+
+export interface AgPresetOverrides {
+    /** Radial gauge theme overrides. */
+    'radial-gauge'?: AgRadialGaugeThemeOverrides;
+    /** Linear Gauge theme overrides. */
+    'linear-gauge'?: AgLinearGaugeThemeOverrides;
+}
+
+export interface AgThemeOverrides extends AgChartThemeOverrides, AgPresetOverrides {}
 
 // Use Typescript function types to verify that all series types are present in the manually
 // maintained AgBaseChartThemeOverrides type.
@@ -265,7 +319,7 @@ type VerifyAgBaseChartThemeOverrides<T = AgBaseChartOptions> = {
 };
 
 // Verification checks for completeness/correctness.
-const __THEME_OVERRIDES = {} as Required<AgChartThemeOverrides>;
+const __THEME_OVERRIDES = undefined as any as Required<AgChartThemeOverrides>;
 // eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
 // @ts-ignore
 let __VERIFY_THEME_OVERRIDES: Required<VerifyAgBaseChartThemeOverrides> = undefined as any;

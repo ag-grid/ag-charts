@@ -85,7 +85,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            pathsPerSeries: 0,
+            pathsPerSeries: [],
             hasMarkers: false,
             hasHighlightedLabels: true,
         });
@@ -291,6 +291,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
     protected override nodeFactory() {
         return new Rect();
+    }
+
+    override async update(params: { seriesRect?: _Scene.BBox }) {
+        // Animations are unsupported by heat-map, so prevent all animations.
+        this.ctx.animationManager.skipCurrentBatch();
+
+        return super.update(params);
     }
 
     protected override async updateDatumSelection(opts: {

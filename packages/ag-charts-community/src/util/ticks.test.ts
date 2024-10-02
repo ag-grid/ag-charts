@@ -20,4 +20,10 @@ describe('ticks', () => {
         expect(createTicks(2, 97, 10)).toEqual(ticks_7_to_13);
         expect(createTicks(2, 97, 20)).toEqual(ticks_14_30);
     });
+
+    test('floating point errors', () => {
+        expect(createTicks(1.1e-11, 1.4e-11, 7)).toEqual([
+            1.1e-11, 1.15e-11, 1.2e-11, 1.25e-11, 1.3e-11, 1.35e-11, 1.4e-11,
+        ]);
+    });
 });

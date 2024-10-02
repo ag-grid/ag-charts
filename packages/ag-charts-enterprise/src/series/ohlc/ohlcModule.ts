@@ -9,7 +9,7 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
     chartTypes: ['cartesian'],
 
     identifier: 'ohlc',
-    instanceConstructor: OhlcSeries,
+    moduleFactory: (ctx) => new OhlcSeries(ctx),
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {

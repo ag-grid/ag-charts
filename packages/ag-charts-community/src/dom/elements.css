@@ -1,0 +1,97 @@
+/* Input */
+.ag-charts-input {
+    --input-layer-active: 1;
+    --input-layer-focus: 2;
+
+    color: inherit;
+    font-family: var(--ag-charts-input-font-family);
+    font-size: var(--ag-charts-input-font-size);
+    transition-duration: var(--ag-charts-input-transition-duration);
+    transition-property: none;
+    transition-timing-function: var(--ag-charts-input-transition-timing-function);
+}
+
+.ag-charts-input:focus-visible {
+    outline: var(--ag-charts-input-focus-outline);
+    box-shadow: var(--ag-charts-input-focus-box-shadow);
+    z-index: var(--input-layer-focus);
+}
+
+/* Button */
+.ag-charts-button {
+    background: var(--ag-charts-input-background-color);
+    border: 1px solid var(--ag-charts-input-border-color);
+    border-radius: var(--ag-charts-input-border-radius);
+    cursor: pointer;
+    padding: var(--ag-charts-input-padding);
+    transition-property: background, border-color;
+}
+
+.ag-charts-button:hover {
+    background: var(--ag-charts-input-background-color--hover);
+}
+
+.ag-charts-button:has(.ag-charts-icon) {
+    padding: 2px;
+}
+
+/* Checkbox */
+.ag-charts-checkbox {
+    appearance: none;
+    background: var(--ag-charts-input-checkbox-background-color);
+    border-radius: 9px;
+    cursor: pointer;
+    height: 18px;
+    margin: 0;
+    transition-duration: var(--ag-charts-input-transition-duration--fast);
+    transition-property: margin;
+    width: 29px;
+}
+
+.ag-charts-checkbox::before {
+    display: block;
+    background: var(--ag-charts-input-background-color);
+    border-radius: 7px;
+    content: ' ';
+    height: 14px;
+    margin: 2px;
+    transition-duration: var(--ag-charts-input-transition-duration--fast);
+    transition-property: margin;
+    transition-timing-function: var(--ag-charts-input-transition-easing);
+    width: 14px;
+}
+
+.ag-charts-checkbox:checked {
+    background: var(--ag-charts-input-checkbox-background-color--checked);
+}
+
+.ag-charts-checkbox:checked::before {
+    margin-left: 13px;
+}
+
+/* Select */
+.ag-charts-select {
+    background: var(--ag-charts-input-background-color);
+    border: 1px solid var(--ag-charts-input-border-color);
+    border-radius: var(--ag-charts-input-border-radius);
+    padding: 3px 2px 4px;
+    font-size: inherit;
+}
+
+/* Textarea */
+.ag-charts-textarea {
+    --line-height: 1.38;
+
+    background: var(--ag-charts-input-background-color);
+    border: 1px solid var(--ag-charts-input-border-color);
+    border-radius: var(--ag-charts-input-border-radius);
+    line-height: var(--line-height);
+    font-family: var(--ag-charts-input-font-family);
+    font-size: var(--ag-charts-input-font-size);
+    padding: var(--ag-charts-input-padding-large) var(--ag-charts-input-padding);
+}
+
+.ag-charts-textarea[placeholder]:empty::before {
+    color: var(--ag-charts-input-placeholder);
+    content: attr(placeholder);
+}

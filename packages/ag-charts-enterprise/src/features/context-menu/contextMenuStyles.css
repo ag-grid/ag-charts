@@ -9,7 +9,7 @@
         sans-serif;
     transition: transform 0.1s ease;
     white-space: nowrap;
-    z-index: var(--ag-charts-layer-context-menu);
+    z-index: var(--ag-charts-layer-ui-overlay);
 }
 
 .ag-chart-context-menu.ag-charts-dark-context-menu {
@@ -51,11 +51,11 @@
     color: white;
 }
 
-.ag-chart-context-menu__item:hover {
+.ag-chart-context-menu__item:focus {
     background: rgb(33, 150, 243, 0.1);
 }
 
-.ag-chart-context-menu__item:hover.ag-charts-dark-context-menu {
+.ag-chart-context-menu__item:focus.ag-charts-dark-context-menu {
     background: rgb(33, 150, 243, 0.1);
 }
 
@@ -67,13 +67,19 @@
     background: rgb(33, 150, 243, 0.1);
 }
 
+.ag-chart-context-menu__item:focus-visible {
+    outline: var(--ag-charts-focus-border);
+    box-shadow: var(--ag-charts-focus-border-shadow);
+    z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
+}
+
 .ag-chart-context-menu__item[aria-disabled='true'] {
     border: none;
     opacity: 0.5;
     text-align: left;
 }
 
-.ag-chart-context-menu__item[aria-disabled='true']:hover {
+.ag-chart-context-menu__item[aria-disabled='true']:focus {
     background: inherit;
     cursor: inherit;
 }

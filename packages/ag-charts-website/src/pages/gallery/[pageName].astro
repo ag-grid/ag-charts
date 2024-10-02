@@ -16,6 +16,8 @@ export async function getStaticPaths() {
 }
 
 const { page, prevExample, nextExampleOne, nextExampleTwo } = Astro.props;
+const exampleName = Astro.params.pageName;
+
 const metaDescription = `Example of a ${page.title} Chart built with AG Charts JavaScript Charting Library. Edit source code with CodeSandbox & Plunker. View JavaScript ${toTitle(page.seriesTitle)} Charts documentation for more info.`;
 ---
 
@@ -23,22 +25,21 @@ const metaDescription = `Example of a ${page.title} Chart built with AG Charts J
     <div class="gallery-page-container layout-max-width-small text-base">
         <div class="title-container">
             <h1>{page.title}</h1>
-            <span>
-                {
-                    page.enterprise && (
-                        <span class="enterpriseIcon">
-                            <Icon client:only="react" name="enterprise" />
-                        </span>
-                    )
-                }
-            </span>
-
-            <GallerySeriesLink client:only="react" series={page.seriesTitle} link={page.seriesLink} />
+            <div class="chart-link-item">
+                <span>
+                    {
+                        page.enterprise && (
+                            <span class="enterpriseIcon">
+                                <Icon client:only="react" name="enterprise" />
+                            </span>
+                        )
+                    }
+                </span>
+                <GallerySeriesLink client:only="react" series={page.seriesTitle} link={page.seriesLink} />
+            </div>
         </div>
 
-        <GalleryExampleRunner title={page.name} name={page.slug} />
-
-        <p class="description" set:html={page.description} />
+        <GalleryExampleRunner exampleName={exampleName} />
 
         <p class="moreExampleLabel text-secondary">More from the charts gallery...</p>
 
@@ -67,6 +68,16 @@ const metaDescription = `Example of a ${page.title} Chart built with AG Charts J
     .title-container {
         display: flex;
         align-items: center;
+        @media screen and (max-width: 500px) {
+            flex-direction: column;
+            align-items: start;
+            margin-bottom: $spacing-size-4;
+        }
+    }
+    .chart-link-item {
+        gap: 8px;
+        display: flex;
+        align-items: center;
     }
 
     h1 {
@@ -83,12 +94,9 @@ const metaDescription = `Example of a ${page.title} Chart built with AG Charts J
         fill: var(--color-enterprise-icon);
     }
 
-    .description {
-        margin-bottom: $spacing-size-24 !important;
-    }
-
-    .description,
     .moreExampleLabel {
+        margin-top: $spacing-size-24;
+
         @media screen and (min-width: $breakpoint-gallery-small) {
             font-size: var(--text-fs-lg);
         }

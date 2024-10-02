@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-angular",
-  "version": "10.0.0",
+  "version": "10.2.0-beta.20241002.1133",
   "scripts": {
     "ng": "ng",
     "build": "ng build",
@@ -12,18 +12,23 @@
     "url": "https://github.com/ag-grid/ag-charts.git"
   },
   "keywords": [
-    "angular-component",
+    "angular",
     "charts",
-    "data",
+    "graphs",
     "chart",
-    "angular"
+    "graph",
+    "data",
+    "angular charts",
+    "angular graphs",
+    "data visualization",
+    "angular-component"
   ],
   "author": "AG Grid <info@ag-grid.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ag-grid/ag-charts/issues"
   },
-  "homepage": "https://charts.ag-grid.com/",
+  "homepage": "https://ag-grid.com/charts/",
   "private": false,
   "module": "./dist/ag-charts-angular/fesm2022/ag-charts-angular.mjs",
   "typings": "./dist/ag-charts-angular/index.d.ts",
@@ -36,7 +41,7 @@
     "@angular/platform-browser": "^16.0.0",
     "@angular/platform-browser-dynamic": "^16.0.0",
     "@angular/router": "^16.0.0",
-    "ag-charts-community": "10.0.0",
+    "ag-charts-community": "10.2.0-beta.20241002.1133",
     "rxjs": "~7.5.0",
     "tslib": "^2.3.0",
     "zone.js": "~0.11.4"

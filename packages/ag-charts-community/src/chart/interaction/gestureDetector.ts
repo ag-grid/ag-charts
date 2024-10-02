@@ -1,7 +1,7 @@
+import type { DOMManager } from '../../dom/domManager';
 import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
 import { BaseManager } from '../baseManager';
-import type { DOMManager } from '../dom/domManager';
 import { type PreventableEvent, buildPreventable } from './preventableEvent';
 
 type PinchEventTypes = 'pinch-start' | 'pinch-move' | 'pinch-end';

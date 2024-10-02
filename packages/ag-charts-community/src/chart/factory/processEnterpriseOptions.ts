@@ -1,12 +1,13 @@
 import type { AgChartOptions } from 'ag-charts-types';
 
 import { Logger } from '../../util/logger';
-import { optionsType } from '../mapping/types';
+import { isAgGaugeChartOptions, optionsType } from '../mapping/types';
 import { chartTypes } from './chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './expectedEnterpriseModules';
 
-export function removeUsedEnterpriseOptions<T extends AgChartOptions>(options: T) {
-    const usedOptions: string[] = [];
+export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(options: T, silent?: boolean) {
+    let usedOptions: string[] = [];
+    const isGaugeChart = isAgGaugeChartOptions(options);
     const optionsChartType = chartTypes.get(optionsType(options));
     for (const {
         type,
@@ -58,9 +59,13 @@ export function removeUsedEnterpriseOptions<T extends AgChartOptions>(options: T
             });
         }
     }
-    if (usedOptions.length) {
+    if (usedOptions.length && !silent) {
+        if (isGaugeChart) {
+            usedOptions = ['AgCharts.createGauge'];
+        }
+
         let enterprisePackageName = 'ag-charts-enterprise';
-        let enterpriseReferenceUrl = 'https://charts.ag-grid.com/javascript/installation/';
+        let enterpriseReferenceUrl = 'https://ag-grid.com/charts/javascript/installation/';
 
         if ((options as any).mode === 'integrated') {
             enterprisePackageName = "ag-grid-charts-enterprise' or 'ag-grid-enterprise/charts-enterprise";

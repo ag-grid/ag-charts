@@ -1,34 +1,38 @@
-import { _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { AnnotationPoint } from '../annotationProperties';
-import type { AnnotationContext, LineCoords } from '../annotationTypes';
-import { convertLine } from '../annotationUtils';
+import type { ChannelTextProperties } from '../annotationProperties';
+import type { AnnotationContext, Coords, LineCoords, Point } from '../annotationTypes';
+import { snapToAngle } from '../utils/coords';
+import { convertLine, invertCoords } from '../utils/values';
+import { CollidableLine } from './collidableLineScene';
+import type { CollidableText } from './collidableTextScene';
 import type { Handle } from './handle';
 import { LinearScene } from './linearScene';
-import { CollidableLine } from './shapes';
+
+type ChannelHandle = Partial<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' | 'topMiddle' | 'bottomMiddle'>;
 
 export abstract class ChannelScene<
     Datum extends {
         background: { fill?: string; fillOpacity?: number };
         locked?: boolean;
         visible?: boolean;
-        start: Pick<AnnotationPoint, 'x' | 'y'>;
-        end: Pick<AnnotationPoint, 'x' | 'y'>;
-        bottom: { start: Pick<AnnotationPoint, 'x' | 'y'>; end: Pick<AnnotationPoint, 'x' | 'y'> };
+        start: Point;
+        end: Point;
+        bottom: { start: Point; end: Point };
+        strokeWidth?: number;
+        text?: ChannelTextProperties;
     },
 > extends LinearScene<Datum> {
     protected handles: { [key: string]: Handle } = {};
-    protected seriesRect?: _Scene.BBox;
 
     protected topLine = new CollidableLine();
     protected bottomLine = new CollidableLine();
     protected background = new _Scene.Path({ zIndex: -1 });
+    public text?: CollidableText;
+    private readonly anchor: _ModuleSupport.ToolbarAnchor = { x: 0, y: 0 };
 
     public update(datum: Datum, context: AnnotationContext) {
         const { locked, visible } = datum;
-
-        this.locked = locked ?? false;
-        this.seriesRect = context.seriesRect;
 
         const top = convertLine(datum, context);
         const bottom = convertLine(datum.bottom, context);
@@ -40,13 +44,34 @@ export abstract class ChannelScene<
             this.visible = visible ?? true;
         }
 
-        this.updateLines(datum, top, bottom);
+        const topLine = this.extendLine(top, datum, context);
+        const bottomLine = this.extendLine(bottom, datum, context);
+
+        this.updateLines(datum, topLine, bottomLine, context, top, bottom);
         this.updateHandles(datum, top, bottom);
-        this.updateBackground(datum, top, bottom);
+        this.updateText(datum, top, bottom);
+        this.updateBackground(datum, topLine, bottomLine, context);
+        this.updateAnchor(top, bottom);
 
         for (const handle of Object.values(this.handles)) {
-            handle.toggleLocked(this.locked);
+            handle.toggleLocked(locked ?? false);
         }
+    }
+
+    snapToAngle(
+        target: Coords,
+        context: AnnotationContext,
+        handle: ChannelHandle,
+        originHandle: ChannelHandle,
+        angle: number,
+        direction?: number
+    ): Point | undefined {
+        const { handles } = this;
+
+        const fixed = handles[originHandle].handle;
+        const active = handles[handle].drag(target).point;
+
+        return invertCoords(snapToAngle(active, fixed, angle, direction), context);
     }
 
     override toggleActive(active: boolean) {
@@ -64,8 +89,7 @@ export abstract class ChannelScene<
     }
 
     override getAnchor() {
-        const bbox = this.getCachedBBoxWithoutHandles();
-        return { x: bbox.x + bbox.width / 2, y: bbox.y };
+        return this.anchor;
     }
 
     override getCursor() {
@@ -74,7 +98,7 @@ export abstract class ChannelScene<
     }
 
     override containsPoint(x: number, y: number) {
-        const { handles, seriesRect, topLine, bottomLine } = this;
+        const { handles, topLine, bottomLine, text } = this;
 
         this.activeHandle = undefined;
 
@@ -85,24 +109,45 @@ export abstract class ChannelScene<
             }
         }
 
-        x -= seriesRect?.x ?? 0;
-        y -= seriesRect?.y ?? 0;
-
-        return topLine.containsPoint(x, y) || bottomLine.containsPoint(x, y);
+        return topLine.containsPoint(x, y) || bottomLine.containsPoint(x, y) || Boolean(text?.containsPoint(x, y));
     }
 
-    protected abstract updateLines(datum: Datum, top: LineCoords, bottom: LineCoords): void;
+    protected abstract updateLines(
+        datum: Datum,
+        top: LineCoords,
+        bottom: LineCoords,
+        context: AnnotationContext,
+        naturalTop: LineCoords,
+        naturalBottom: LineCoords
+    ): void;
 
     protected abstract updateHandles(datum: Datum, top: LineCoords, bottom: LineCoords): void;
 
-    protected updateBackground(datum: Datum, top: LineCoords, bottom: LineCoords) {
-        const { background } = this;
+    protected abstract updateText(datum: Datum, top: LineCoords, bottom: LineCoords): void;
 
-        background.path.clear();
-        background.path.moveTo(top.x1, top.y1);
-        background.path.lineTo(top.x2, top.y2);
-        background.path.lineTo(bottom.x2, bottom.y2);
-        background.path.lineTo(bottom.x1, bottom.y1);
+    protected updateBackground(datum: Datum, top: LineCoords, bottom: LineCoords, context: AnnotationContext) {
+        const { background } = this;
+        const { seriesRect } = context;
+
+        background.path.clear(true);
+
+        const bounds = {
+            x1: 0,
+            y1: 0,
+            x2: seriesRect.width,
+            y2: seriesRect.height,
+        };
+
+        const points = this.getBackgroundPoints(datum, top, bottom, bounds);
+        for (let i = 0; i < points.length; i++) {
+            const point = points[i];
+            if (i === 0) {
+                background.path.moveTo(point.x, point.y);
+            } else {
+                background.path.lineTo(point.x, point.y);
+            }
+        }
+
         background.path.closePath();
         background.checkPathDirty();
         background.setProperties({
@@ -110,4 +155,22 @@ export abstract class ChannelScene<
             fillOpacity: datum.background.fillOpacity,
         });
     }
+
+    protected updateAnchor(top: LineCoords, bottom: LineCoords) {
+        const { x, y } = _Scene.Transformable.toCanvasPoint(
+            this.topLine,
+            (top.x1 + top.x2) / 2,
+            Math.min(top.y1, top.y2, bottom.y1, bottom.y2)
+        );
+
+        this.anchor.x = x;
+        this.anchor.y = y;
+    }
+
+    protected abstract getBackgroundPoints(
+        datum: Datum,
+        top: LineCoords,
+        bottom: LineCoords,
+        bounds: LineCoords
+    ): Array<_Util.Vec2>;
 }

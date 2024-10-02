@@ -1,19 +1,26 @@
 import { wrapOptionsUpdateCode } from './chart-utils';
 import {
+    type ChartAPI,
     addBindingImports,
+    chartApi,
     convertFunctionToConstProperty,
     convertFunctionToProperty,
-    isFinancialCharts,
 } from './parser-utils';
 import { convertFunctionalTemplate, getImport, styleAsObject } from './react-utils';
 import { toTitleCase } from './string-utils';
 
+const components: Record<ChartAPI, string> = {
+    gauge: 'AgGauge',
+    financial: 'AgFinancialCharts',
+    vanilla: 'AgCharts',
+};
+
 export function processFunction(code: string): string {
     return wrapOptionsUpdateCode(
         convertFunctionToProperty(code),
-        'const clone = deepClone(options);',
-        'setOptions(clone);',
-        'clone'
+        'const nextOptions = clone(options);',
+        'setOptions(nextOptions);',
+        'nextOptions'
     );
 }
 
@@ -25,7 +32,7 @@ function needsWrappingInFragment(bindings: any) {
 }
 
 function getImports(componentFilenames: string[], bindings: any): string[] {
-    const type = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
+    const type = components[chartApi(bindings)];
     const reactImports = ['useState'];
     if (bindings.usesChartApi) reactImports.push('useRef');
     if (needsWrappingInFragment(bindings)) reactImports.push('Fragment');
@@ -52,7 +59,7 @@ function getImports(componentFilenames: string[], bindings: any): string[] {
     }
 
     if (bindings.externalEventHandlers.length > 0 || bindings.instanceMethods.length > 0) {
-        imports.push(`import deepClone from 'deepclone';`);
+        imports.push(`import clone from 'clone';`);
     }
 
     if (componentFilenames) {
@@ -63,7 +70,7 @@ function getImports(componentFilenames: string[], bindings: any): string[] {
 }
 
 function getAgChartTag(bindings: any, componentAttributes: string[]): string {
-    const tag = isFinancialCharts(bindings) ? 'AgFinancialCharts' : 'AgCharts';
+    const tag = components[chartApi(bindings)];
     return `<${tag}
             ${bindings.usesChartApi ? 'ref={chartRef}' : ''}
             ${componentAttributes.join(`

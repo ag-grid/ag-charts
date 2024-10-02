@@ -1,13 +1,17 @@
 import type { FontStyle, FontWeight, TextAlign, TextWrap } from 'ag-charts-types';
 
+import type { BoundedText } from '../dom/boundedText';
+import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
-import { Text } from '../scene/shape/text';
+import { RotatableText } from '../scene/shape/text';
+import { Transformable } from '../scene/transformable';
 import { joinFunctions } from '../util/function';
 import { createId } from '../util/id';
 import { BaseProperties } from '../util/properties';
 import { ProxyPropertyOnWrite } from '../util/proxy';
-import { TextMeasurer } from '../util/textMeasurer';
+import { TextUtils } from '../util/textMeasurer';
+import { TextWrapper } from '../util/textWrapper';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -28,12 +32,13 @@ export class Caption extends BaseProperties implements CaptionLike {
     static readonly LARGE_PADDING = 20;
 
     readonly id = createId(this);
-    readonly node = new Text({ zIndex: 1 }).setProperties({
+    readonly node = new RotatableText({ zIndex: 1 }).setProperties({
         textAlign: 'center',
         pointerEvents: PointerEvents.None,
     });
 
     @Validate(BOOLEAN)
+    @ProxyPropertyOnWrite('node', 'visible')
     enabled: boolean = false;
 
     @Validate(STRING, { optional: true })
@@ -68,9 +73,6 @@ export class Caption extends BaseProperties implements CaptionLike {
     spacing?: number;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
-    lineHeight?: number;
-
-    @Validate(POSITIVE_NUMBER, { optional: true })
     maxWidth?: number;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
@@ -79,14 +81,20 @@ export class Caption extends BaseProperties implements CaptionLike {
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'always';
 
-    private truncated = false;
+    @Validate(POSITIVE_NUMBER)
+    padding: number = 0;
 
     @Validate(STRING)
     layoutStyle: 'block' | 'overlay' = 'block';
 
-    registerInteraction(moduleCtx: ModuleContext) {
-        const region = moduleCtx.regionManager.getRegion('root');
+    private truncated = false;
+    private proxyText?: BoundedText;
+
+    registerInteraction(moduleCtx: ModuleContext, where: 'beforebegin' | 'afterend') {
+        const { regionManager, proxyInteractionService, layoutManager } = moduleCtx;
+        const region = regionManager.getRegion('root');
         const destroyFns = [
+            layoutManager.addListener('layout:complete', () => this.updateA11yText(proxyInteractionService, where)),
             region.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event)),
             region.addListener('leave', (event) => this.handleMouseLeave(moduleCtx, event)),
         ];
@@ -95,16 +103,31 @@ export class Caption extends BaseProperties implements CaptionLike {
     }
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
-        const { text, wrapping } = this;
-        const maxWidth = Math.min(this.maxWidth ?? Infinity, containerWidth);
-        const maxHeight = this.maxHeight ?? containerHeight;
+        const { text, padding, wrapping } = this;
+        const maxWidth = Math.min(this.maxWidth ?? Infinity, containerWidth) - padding * 2;
+        const maxHeight = this.maxHeight ?? containerHeight - padding * 2;
         if (!isFinite(maxWidth) && !isFinite(maxHeight)) {
             this.node.text = text;
             return;
         }
-        const wrappedText = Text.wrap(text ?? '', maxWidth, maxHeight, this, wrapping);
+        const wrappedText = TextWrapper.wrapText(text ?? '', { maxWidth, maxHeight, font: this, textWrap: wrapping });
         this.node.text = wrappedText;
-        this.truncated = wrappedText.includes(TextMeasurer.EllipsisChar);
+        this.truncated = wrappedText.includes(TextUtils.EllipsisChar);
+    }
+
+    updateA11yText(proxyService: ProxyInteractionService, where: 'beforebegin' | 'afterend') {
+        if (this.enabled && this.text) {
+            const bbox = Transformable.toCanvas(this.node);
+            if (bbox) {
+                const { id } = this;
+                this.proxyText ??= proxyService.createProxyElement({ type: 'text', id, parent: where });
+                this.proxyText.textContent = this.text;
+                this.proxyText.updateBounds(bbox);
+            }
+        } else {
+            this.proxyText?.remove();
+            this.proxyText = undefined;
+        }
     }
 
     handleMouseMove(moduleCtx: ModuleContext, event: PointerInteractionEvent<'hover'>) {

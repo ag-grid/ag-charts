@@ -106,16 +106,15 @@ export abstract class RadialColumnSeriesBase<
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
-        const { axes, dataModel, processedData } = this;
+        const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
         if (direction === ChartAxisDirection.X) {
             return dataModel.getDomain(this, 'angleValue', 'key', processedData);
         } else {
-            const radiusAxis = axes[ChartAxisDirection.Y];
             const yExtent = dataModel.getDomain(this, 'radiusValue-end', 'value', processedData);
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
-            return fixNumericExtent(fixedYExtent as any, radiusAxis);
+            return fixNumericExtent(fixedYExtent);
         }
     }
 
@@ -305,12 +304,7 @@ export abstract class RadialColumnSeriesBase<
                 startAngle = -0.5 * Math.PI;
                 endAngle = 1.5 * Math.PI;
             } else {
-                let groupAngle = angleScale.convert(angleDatum);
-
-                if (visibleGroupCount === 1) {
-                    groupAngle -= groupScale.bandwidth / 2;
-                }
-
+                const groupAngle = angleScale.convert(angleDatum);
                 startAngle = normalizeAngle360(groupAngle + groupScale.convert(String(groupIndex)));
                 endAngle = normalizeAngle360(startAngle + groupScale.bandwidth);
             }

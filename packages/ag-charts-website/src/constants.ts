@@ -15,7 +15,7 @@ export const INTERNAL_FRAMEWORKS: readonly InternalFramework[] = [
 export const TYPESCRIPT_INTERNAL_FRAMEWORKS: InternalFramework[] = ['typescript', 'reactFunctionalTs', 'angular'];
 
 export const FRAMEWORK_DISPLAY_TEXT: Record<Framework, string> = {
-    javascript: 'Javascript',
+    javascript: 'JavaScript',
     react: 'React',
     angular: 'Angular',
     vue: 'Vue',
@@ -27,6 +27,8 @@ export const agChartsAngularVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ??
 export const agChartsVueVersion = import.meta.env?.PUBLIC_PACKAGE_VERSION ?? 'unknown';
 
 export const agLibraryVersion = agChartsVersion;
+
+export const agGridVersion = import.meta.env?.PUBLIC_GRID_VERSION ?? 'unknown';
 
 export const NPM_CDN = 'https://cdn.jsdelivr.net/npm';
 export const PUBLISHED_URLS = {
@@ -49,15 +51,17 @@ export const DOCS_TAB_ITEM_ID_PREFIX = 'reference-';
 /**
  * Site base URL
  *
- * ie undefined for dev, /ag-charts for staging
+ * ie, /charts for most environments
  *
  * NOTE: Includes trailing slash (`/`)
  */
 export const SITE_BASE_URL =
-    // Astro default env var (for build time)
-    import.meta.env?.BASE_URL ||
+    // Use node env value during Astro build
+    globalThis.process?.env?.PUBLIC_BASE_URL?.replace(/\/?$/, '/') ||
     // `.env.*` override (for client side)
-    import.meta.env?.PUBLIC_BASE_URL.replace(/\/?$/, '/');
+    import.meta.env?.PUBLIC_BASE_URL?.replace(/\/?$/, '/') ||
+    // Use Astro base url for e2e tests
+    import.meta.env?.BASE_URL;
 
 /*
  * Site URL
@@ -66,8 +70,10 @@ export const SITE_BASE_URL =
  */
 export const SITE_URL = import.meta.env?.SITE_URL || import.meta.env?.PUBLIC_SITE_URL;
 
+export const GRID_STAGING_SITE_URL = 'https://grid-staging.ag-grid.com';
 export const STAGING_SITE_URL = 'https://charts-staging.ag-grid.com';
-export const PRODUCTION_SITE_URL = 'https://charts.ag-grid.com';
+// NOTE: no `/charts` folder here, as it is just for comparing hostname
+export const PRODUCTION_SITE_URLS = ['https://ag-grid.com', 'https://www.ag-grid.com'];
 export const USE_PUBLISHED_PACKAGES = ['1', 'true'].includes(import.meta.env?.PUBLIC_USE_PUBLISHED_PACKAGES);
 export const FAIL_ON_UNMATCHED_GLOBS = ['1', 'true'].includes(import.meta.env?.FAIL_ON_UNMATCHED_GLOBS) ?? true;
 /**
@@ -84,6 +90,8 @@ export const ASTRO_ALGOLIA_APP_ID = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_APP_ID
 
 export const ASTRO_ALGOLIA_SEARCH_KEY = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_SEARCH_KEY;
 
+export const PRODUCTION_GRID_SITE_URL = 'https://ag-grid.com';
+
 function calculateGridUrl() {
     if (SITE_URL == null) return;
 
@@ -92,12 +100,15 @@ function calculateGridUrl() {
     } else if (SITE_URL?.includes(STAGING_SITE_URL)) {
         return 'https://grid-staging.ag-grid.com';
     }
-    return 'https://ag-grid.com';
+    return PRODUCTION_GRID_SITE_URL;
 }
 
 export const GRID_URL = calculateGridUrl();
 
 export const GALLERY_IMAGE_DPR_ENHANCEMENT = import.meta.env?.PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT === 'true';
+
+export const PRODUCTION_CHARTS_SITE_URL = 'https://ag-grid.com/charts';
+export const LEGACY_CHARTS_SITE_URL = 'https://charts.ag-grid.com';
 
 /*
  * Charts URL
@@ -106,10 +117,10 @@ function getChartsUrl() {
     if (SITE_URL == null) return;
 
     if (SITE_URL?.includes('localhost:4600')) {
-        return 'https://localhost:4600';
+        return 'https://localhost:4600/charts';
     } else if (SITE_URL?.includes(STAGING_SITE_URL)) {
         return 'https://charts-staging.ag-grid.com';
     }
-    return 'https://charts.ag-grid.com';
+    return PRODUCTION_CHARTS_SITE_URL;
 }
 export const CHARTS_SITE_URL = getChartsUrl();

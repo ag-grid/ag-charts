@@ -8,10 +8,12 @@ import { RadiusNumberAxisModule } from './axes/radius-number/main';
 import { AnimationModule } from './features/animation/main';
 import { AnnotationsModule } from './features/annotations/annotationsModule';
 import { BackgroundModule } from './features/background/main';
+import { ChartToolbarModule } from './features/chart-toolbar/main';
 import { ContextMenuModule } from './features/context-menu/main';
 import { CrosshairModule } from './features/crosshair/main';
 import { DataSourceModule } from './features/data-source/main';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
+import { ForegroundModule } from './features/foreground/main';
 import { NavigatorModule } from './features/navigator/navigatorModule';
 import { StatusBarModule } from './features/status-bar/main';
 import { SyncModule } from './features/sync/syncModule';
@@ -23,7 +25,10 @@ import { BoxPlotModule } from './series/box-plot/main';
 import { BulletModule } from './series/bullet/bulletModule';
 import { CandlestickModule } from './series/candlestick/main';
 import { ChordModule } from './series/chord/main';
+import { ConeFunnelModule } from './series/cone-funnel/coneFunnelModule';
+import { FunnelModule } from './series/funnel/funnelModule';
 import { HeatmapModule } from './series/heatmap/main';
+import { LinearGaugeModule } from './series/linear-gauge/main';
 import { MapLineBackgroundModule } from './series/map-line-background/main';
 import { MapLineModule } from './series/map-line/main';
 import { MapMarkerModule } from './series/map-marker/main';
@@ -35,12 +40,14 @@ import { RadarAreaModule } from './series/radar-area/main';
 import { RadarLineModule } from './series/radar-line/main';
 import { RadialBarModule } from './series/radial-bar/main';
 import { RadialColumnModule } from './series/radial-column/main';
+import { RadialGaugeModule } from './series/radial-gauge/main';
 import { RangeAreaModule } from './series/range-area/main';
 import { RangeBarModule } from './series/range-bar/main';
 import { SankeyModule } from './series/sankey/main';
 import { SunburstModule } from './series/sunburst/main';
 import { TreemapModule } from './series/treemap/main';
 import { WaterfallModule } from './series/waterfall/main';
+import styles from './styles.css';
 
 export function setupEnterpriseModules() {
     _ModuleSupport.moduleRegistry.register(
@@ -49,15 +56,20 @@ export function setupEnterpriseModules() {
         AnimationModule,
         AnnotationsModule,
         BackgroundModule,
+        ForegroundModule,
         BoxPlotModule,
         CandlestickModule,
         ChordModule,
+        ConeFunnelModule,
+        FunnelModule,
         OhlcModule,
         BulletModule,
+        ChartToolbarModule,
         ContextMenuModule,
         CrosshairModule,
         DataSourceModule,
         ErrorBarsModule,
+        LinearGaugeModule,
         MapLineModule,
         MapLineBackgroundModule,
         MapMarkerModule,
@@ -74,6 +86,7 @@ export function setupEnterpriseModules() {
         RadialBarModule,
         RadialColumnModule,
         RadiusCategoryAxisModule,
+        RadialGaugeModule,
         RadiusNumberAxisModule,
         RangeBarModule,
         RangeAreaModule,
@@ -86,6 +99,7 @@ export function setupEnterpriseModules() {
     );
 
     _ModuleSupport.enterpriseModule.isEnterprise = true;
+    _ModuleSupport.enterpriseModule.styles = styles;
     _ModuleSupport.enterpriseModule.licenseManager = (options: AgChartOptions) =>
         new LicenseManager(
             options.container?.ownerDocument ?? (typeof document === 'undefined' ? undefined : document)

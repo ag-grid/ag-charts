@@ -35,6 +35,9 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
     @Validate(STRING, { optional: true })
     yName?: string;
 
+    @Validate(STRING, { optional: true })
+    yFilterKey: string | undefined;
+
     @Validate(POSITIVE_NUMBER, { optional: true })
     normalizedTo?: number;
 

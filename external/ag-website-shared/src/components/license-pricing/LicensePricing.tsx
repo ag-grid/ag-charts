@@ -6,7 +6,8 @@ import { chartsUrlWithPrefix } from '@ag-website-shared/utils/chartsUrlWithPrefi
 import { gridUrlWithPrefix } from '@ag-website-shared/utils/gridUrlWithPrefix';
 import { useFrameworkFromStore } from '@utils/hooks/useFrameworkFromStore';
 import classnames from 'classnames';
-import { type FunctionComponent, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { FunctionComponent } from 'react';
 
 import chartsFeaturesData from '../../content/license-features/chartsFeaturesMatrix.json';
 import gridFeaturesData from '../../content/license-features/gridFeaturesMatrix.json';
@@ -78,35 +79,36 @@ export const LicensePricing: FunctionComponent<Props> = ({ defaultSelection }) =
                 </div>
             )}
 
+            <div className={styles.introSection}>
+                <div className={styles.gradient}></div>
+                <div className={styles.switchContainer}>
+                    <div className={styles.toggleWrapper}>
+                        <input
+                            type="checkbox"
+                            id="toggle"
+                            className={styles.toggleCheckbox}
+                            checked={chartsIsSelected}
+                            onChange={handleToggle}
+                        />
+                        <label htmlFor="toggle" className={styles.toggleContainer}>
+                            <div className={styles.gridToggle}>
+                                <GridActive className={styles.gridActive} />
+                                <GridInactive className={styles.gridInactive} />
+                                AG Grid
+                            </div>
+                            <div className={styles.chartsToggle}>
+                                <ChartsActive className={styles.chartsActive} />
+                                <ChartsInactive className={styles.chartsInactive} />
+                                AG Charts
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
             <div className={classnames('layout-max-width-small', styles.container)}>
                 <div className={styles.topSection}>
                     <div className={styles.intro}>
-                        <div className={styles.introSection}>
-                            <div className={styles.switchContainer}>
-                                <div className={styles.gradient}></div>
-                                <div className={styles.toggleWrapper}>
-                                    <input
-                                        type="checkbox"
-                                        id="toggle"
-                                        className={styles.toggleCheckbox}
-                                        checked={chartsIsSelected}
-                                        onChange={handleToggle}
-                                    />
-                                    <label htmlFor="toggle" className={styles.toggleContainer}>
-                                        <div className={styles.gridToggle}>
-                                            <GridActive className={styles.gridActive} />
-                                            <GridInactive className={styles.gridInactive} />
-                                            AG Grid
-                                        </div>
-                                        <div className={styles.chartsToggle}>
-                                            <ChartsActive className={styles.chartsActive} />
-                                            <ChartsInactive className={styles.chartsInactive} />
-                                            AG Charts
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
                         <div className={styles.licensesOuter}>
                             <Licenses className={styles.licensesInfo} isChecked={chartsIsSelected} />
                         </div>

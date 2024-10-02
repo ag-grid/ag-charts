@@ -52,11 +52,9 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         'bar-series-error-bars': { status: '404' },
         '100--stacked-column': { status: '404' },
         '100--stacked-bar': { status: '404' },
+        'horizontal-bullet': { status: '404' },
     },
 
-    annotations: {
-        'annotation-save-restore': { skipCanvasUpdateCheck: true },
-    },
     'axes-labels': {
         // Too complex to test with a naive button-click sweep
         'axis-label-rotation': { skipCanvasUpdateCheck: true },
@@ -70,15 +68,32 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
             skipCanvasUpdateCheck: true,
         },
     },
+    'api-state': {
+        // Buttons have no visible rendering change
+        'state-save-restore': { skipCanvasUpdateCheck: true },
+    },
+    'api-download': {
+        // No canvas updates for downloading
+        download: { skipCanvasUpdateCheck: true },
+    },
     events: {
         // Buttons have no visible rendering change
         'interaction-ranges': { skipCanvasUpdateCheck: true },
+    },
+    'financial-charts-toolbar': {
+        'annotation-save-restore': { skipCanvasUpdateCheck: true },
     },
     'financial-chart-types': {
         'toggle-financial-features': { clickOrder: 'reverse' },
     },
     legend: {
         'legend-position': { clickOrder: 'reverse' },
+    },
+    'linear-gauge': {
+        labels: { skipCanvasUpdateCheck: true },
+    },
+    'radial-gauge': {
+        needle: { skipCanvasUpdateCheck: true },
     },
     'range-bar-series': {
         // Warns for missing data
@@ -155,13 +170,17 @@ test.describe('examples', () => {
                 ignoreConsoleWarnings,
             } = opts;
 
-            test.describe(`Framework: ${framework}`, () => {
-                test.describe(`Example ${pagePath}: ${example}`, () => {
-                    if (status === 'ok') {
-                        test(`should load ${url}`, async ({ page }) => {
-                            config.ignoreConsoleWarnings = ignoreConsoleWarnings;
+            const testFn = affected ? test : test.skip;
 
-                            test.skip(!affected, 'unaffected example');
+            test.describe(`Framework: ${framework}`, () => {
+                test.skip(!affected, 'unaffected example');
+
+                test.describe(`Example ${pagePath}: ${example}${affected ? '' : ' (!!!SKIPPED!!!)'}`, () => {
+                    if (status === 'ok') {
+                        testFn(`should load ${url}`, async ({ page }) => {
+                            test.slow(framework === 'angular', 'allow more time for Angular load times');
+
+                            config.ignoreConsoleWarnings = ignoreConsoleWarnings;
 
                             // Load example and wait for things to settle.
                             await gotoExample(page, url);
@@ -195,9 +214,7 @@ test.describe('examples', () => {
                     }
 
                     if (status === '404') {
-                        test(`should 404 on ${url}`, async ({ page }) => {
-                            test.skip(!affected, 'unaffected example');
-
+                        testFn(`should 404 on ${url}`, async ({ page }) => {
                             config.ignore404s = true;
                             await page.goto(url);
                             expect(await page.title()).toMatch(/Page Not Found/);

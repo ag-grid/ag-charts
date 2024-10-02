@@ -47,7 +47,7 @@ export async function generateFiles(options: ExecutorOptions) {
                 }
             } catch (error) {
                 failures.set(internalFramework, [error, errorsPath]);
-                await writeFile(errorsPath, String(error));
+                await writeFile(errorsPath, error.stack ?? String(error));
                 continue;
             }
 

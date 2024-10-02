@@ -1,25 +1,26 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 
 import {
     Annotation,
-    AnnotationHandle,
-    AnnotationLine,
-    ChannelAnnotation,
-    ChannelAnnotationMiddle,
+    Background,
+    ChannelAnnotationMiddleProperties,
+    ChannelTextProperties,
     Extendable,
-    LineDash,
+    Handle,
+    Line,
+    LineStyle,
     Stroke,
 } from '../annotationProperties';
-import { type AnnotationContext, AnnotationType } from '../annotationTypes';
-import { validateDatumLine } from '../annotationUtils';
+import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
+import { getLineCap, getLineDash } from '../utils/line';
+import { validateDatumLine } from '../utils/validation';
 
 const { NUMBER, STRING, OBJECT, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-export class ParallelChannelAnnotation extends Annotation(
-    AnnotationType.ParallelChannel,
-    ChannelAnnotation(AnnotationLine(AnnotationHandle(Extendable(Stroke(LineDash(BaseProperties))))))
+export class ParallelChannelProperties extends Annotation(
+    Background(Line(Handle(Extendable(Stroke(LineStyle(BaseProperties))))))
 ) {
-    static is(value: unknown): value is ParallelChannelAnnotation {
+    static is(value: unknown): value is ParallelChannelProperties {
         return isObject(value) && value.type === AnnotationType.ParallelChannel;
     }
 
@@ -29,8 +30,17 @@ export class ParallelChannelAnnotation extends Annotation(
     @Validate(NUMBER)
     height!: number;
 
+    @Validate(NUMBER)
+    snapToAngle: number = 45;
+
     @Validate(OBJECT, { optional: true })
-    middle = new ChannelAnnotationMiddle();
+    middle = new ChannelAnnotationMiddleProperties();
+
+    @Validate(OBJECT, { optional: true })
+    text = new ChannelTextProperties();
+
+    lineCap?: _Scene.ShapeLineCap = undefined;
+    computedLineDash?: PixelSize[] = undefined;
 
     get bottom() {
         const bottom = {
@@ -54,5 +64,33 @@ export class ParallelChannelAnnotation extends Annotation(
             validateDatumLine(context, this, warningPrefix) &&
             validateDatumLine(context, this.bottom, warningPrefix)
         );
+    }
+
+    getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case `fill-color`:
+                return this.background.fill;
+            case `line-color`:
+                return this.stroke;
+            case 'text-color':
+                return this.text.color;
+        }
+    }
+
+    getDefaultOpacity(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case `fill-color`:
+                return this.background.fillOpacity;
+            case `line-color`:
+                return this.strokeOpacity;
+        }
+    }
+
+    getLineDash(): PixelSize[] | undefined {
+        return getLineDash(this.lineDash, this.computedLineDash, this.lineStyle, this.strokeWidth);
+    }
+
+    getLineCap(): _Scene.ShapeLineCap | undefined {
+        return getLineCap(this.lineCap, this.lineDash, this.lineStyle);
     }
 }

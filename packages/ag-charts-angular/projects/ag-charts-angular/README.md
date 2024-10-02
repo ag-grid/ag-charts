@@ -12,7 +12,7 @@
 
 AG Charts is a fully-featured and highly customizable JavaScript charting library. The professional choice for developers building enterprise applications
 
-It delivers [outstanding performance](https://charts.ag-grid.com/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github), has no third-party dependencies and [integrates smoothly with all major JavaScript frameworks](https://charts.ag-grid.com/angular/quick-start?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github).
+It delivers [outstanding performance](https://ag-grid.com/charts/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github), has no third-party dependencies and [integrates smoothly with all major JavaScript frameworks](https://ag-grid.com/charts/angular/quick-start?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github).
 
 ## Features
 
@@ -47,17 +47,17 @@ Here are some of the features that make AG Charts stand out:
 -   Simple, clean API
 -   Interactive documentation
 
-\* The features marked with an asterisk are available in the [Enterprise version](https://charts.ag-grid.com/license-pricing/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) only.
+\* The features marked with an asterisk are available in the [Enterprise version](https://ag-grid.com/charts/license-pricing/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) only.
 
-Check out the [developer documentation](https://charts.ag-grid.com/angular/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) for a complete list of features or visit [our official docs](https://charts.ag-grid.com/gallery/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) for tutorials and feature demos.
+Check out the [developer documentation](https://ag-grid.com/charts/angular/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) for a complete list of features or visit [our official docs](https://ag-grid.com/charts/gallery/?utm_source=ag-grid-readme&utm_medium=repository&utm_campaign=github) for tutorials and feature demos.
 
 ## Getting started
 
-See [Get Started with Angular](https://charts.ag-grid.com/angular/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github).
+See [Get Started with Angular](https://ag-grid.com/charts/angular/quick-start/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github).
 
 ### Installation
 
-See [Installation for Angular](https://charts.ag-grid.com/angular/installation/).
+See [Installation for Angular](https://ag-grid.com/charts/angular/installation/).
 
 ## Issue Reporting
 

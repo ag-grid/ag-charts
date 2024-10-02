@@ -5,7 +5,7 @@ import { readFile } from '../../../executors-utils';
 import { ANGULAR_GENERATED_MAIN_FILE_NAME, SOURCE_ENTRY_FILE_NAME } from './constants';
 import { transformPlainEntryFile } from './transformPlainEntryFile';
 import chartVanillaSrcParser from './transformation-scripts/chart-vanilla-src-parser';
-import type { GeneratedContents, InternalFramework } from './types';
+import type { GeneratedContents, InternalFramework, Layout } from './types';
 import {
     getEntryFileName,
     getHasLocale,
@@ -16,6 +16,7 @@ import {
 } from './utils/fileUtils';
 import { frameworkFilesGenerator } from './utils/frameworkFilesGenerator';
 import { getDarkModeSnippet } from './utils/getDarkModeSnippet';
+import { getExampleConfig } from './utils/getExampleConfig';
 import { getHtmlFiles } from './utils/getHtmlFiles';
 import { getOtherScriptFiles } from './utils/getOtherScriptFiles';
 import { getPackageJson } from './utils/getPackageJson';
@@ -95,6 +96,11 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
     let indexHtml = await readFile(path.join(folderPath, 'index.html'));
     extractOptions ||= entryFile.includes('@ag-options-extract');
 
+    const hasToolbarClass = Array.from(indexHtml.matchAll(/class="([^"]*)"/g)).some(([_fullMatch, classList]) => {
+        return classList.split(/\s+/g).includes('toolbar');
+    });
+    let layout: Layout = hasToolbarClass ? 'toolbar' : 'grid';
+
     if (entryFile.includes('@ag-skip-fws')) {
         if (['vanilla', 'typescript'].includes(internalFramework)) {
             entryFile = entryFile.replace(/^\s*\/\/ @ag-skip-fws\s*\n*$/g, '');
@@ -103,6 +109,11 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
             indexHtml = `<div id="myChart"></div>`;
             extractOptions = false;
         }
+    }
+
+    if (entryFile.includes('@ag-no-style')) {
+        entryFile = entryFile.replace(/^\s*\/\/ @ag-no-style\s*\n*$/g, '');
+        layout = 'none';
     }
 
     const otherScriptFiles = await getOtherScriptFiles({
@@ -135,6 +146,7 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
 
     const isEnterprise = getIsEnterprise({ entryFile });
     const hasLocale = getHasLocale({ entryFile });
+    const exampleConfig = await getExampleConfig({ folderPath, sourceFileList });
 
     const { bindings, typedBindings } = chartVanillaSrcParser({
         srcFile: entryFile,
@@ -182,7 +194,9 @@ export const getGeneratedContents = async (params: GeneratedContentParams): Prom
 
     const result: GeneratedContents = {
         isEnterprise,
+        layout,
         hasLocale,
+        exampleConfig,
         scriptFiles: scriptFiles!,
         styleFiles: Object.keys(styleFiles),
         htmlFiles: Object.keys(htmlFiles),

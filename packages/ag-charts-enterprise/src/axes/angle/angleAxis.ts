@@ -3,17 +3,9 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
-const {
-    AND,
-    assignJsonApplyConstructedArray,
-    ChartAxisDirection,
-    GREATER_THAN,
-    NUMBER,
-    UNION,
-    ProxyOnWrite,
-    Validate,
-} = _ModuleSupport;
-const { Path, Text } = _Scene;
+const { AND, ChartAxisDirection, GREATER_THAN, NUMBER, UNION, ProxyOnWrite, TextWrapper, TextUtils, Validate } =
+    _ModuleSupport;
+const { Path, RotatableText } = _Scene;
 const { angleBetween, isNumberEqual, toRadians, normalizeAngle360 } = _Util;
 
 export interface AngleAxisLabelDatum {
@@ -41,6 +33,8 @@ export abstract class AngleAxis<
     TDomain,
     TScale extends _Scale.Scale<TDomain, any>,
 > extends _ModuleSupport.PolarAxis<TScale> {
+    protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = AngleCrossLine;
+
     @ProxyOnWrite('rotation')
     @Validate(NUMBER.restrict({ min: 0, max: 360 }))
     startAngle: number = 0;
@@ -61,10 +55,6 @@ export abstract class AngleAxis<
         return ChartAxisDirection.X;
     }
 
-    protected assignCrossLineArrayConstructor(crossLines: _ModuleSupport.CrossLine[]) {
-        assignJsonApplyConstructedArray(crossLines, AngleCrossLine);
-    }
-
     protected override createLabel() {
         return new AngleAxisLabel();
     }
@@ -80,14 +70,14 @@ export abstract class AngleAxis<
         return this.tickData.length;
     }
 
-    override computeRange = () => {
+    override computeRange() {
         const startAngle = normalizeAngle360(-Math.PI / 2 + toRadians(this.startAngle));
         let endAngle = this.endAngle == null ? startAngle + Math.PI * 2 : -Math.PI / 2 + toRadians(this.endAngle);
         if (endAngle < startAngle) {
             endAngle += 2 * Math.PI;
         }
         this.range = [startAngle, endAngle];
-    };
+    }
 
     protected override calculateAvailableRange(): number {
         const { range, gridLength: radius } = this;
@@ -148,35 +138,39 @@ export abstract class AngleAxis<
         const points = [];
         if (shape === 'circle') {
             if (isFullCircle) {
-                points.push({ x: radius, y: 0, moveTo: true });
-                points.push({
-                    x: 0,
-                    y: 0,
-                    radius,
-                    startAngle: 0,
-                    endAngle: 2 * Math.PI,
-                    arc: true,
-                    moveTo: false,
-                });
+                points.push(
+                    { x: radius, y: 0, moveTo: true },
+                    {
+                        x: 0,
+                        y: 0,
+                        radius,
+                        startAngle: 0,
+                        endAngle: 2 * Math.PI,
+                        arc: true,
+                        moveTo: false,
+                    }
+                );
             } else {
-                points.push({
-                    x: radius * Math.cos(startAngle),
-                    y: radius * Math.sin(startAngle),
-                    moveTo: true,
-                });
-                points.push({
-                    x: 0,
-                    y: 0,
-                    radius,
-                    startAngle: normalizeAngle360(startAngle),
-                    endAngle: normalizeAngle360(endAngle),
-                    arc: true,
-                    moveTo: false,
-                });
+                points.push(
+                    {
+                        x: radius * Math.cos(startAngle),
+                        y: radius * Math.sin(startAngle),
+                        moveTo: true,
+                    },
+                    {
+                        x: 0,
+                        y: 0,
+                        radius,
+                        startAngle: normalizeAngle360(startAngle),
+                        endAngle: normalizeAngle360(endAngle),
+                        arc: true,
+                        moveTo: false,
+                    }
+                );
             }
         } else if (shape === 'polygon') {
-            const angles = (scale.ticks?.() ?? []).map((value) => scale.convert(value));
-            if (angles.length > 2) {
+            const angles = scale.ticks?.().map((value) => scale.convert(value));
+            if (angles && angles.length > 2) {
                 angles.forEach((angle, i) => {
                     const x = radius * Math.cos(angle);
                     const y = radius * Math.sin(angle);
@@ -277,7 +271,7 @@ export abstract class AngleAxis<
             return [];
         }
 
-        const tempText = new Text();
+        const tempText = new RotatableText();
 
         const seriesLeft = seriesRect.x - this.translation.x;
         const seriesRight = seriesRect.x + seriesRect.width - this.translation.x;
@@ -318,19 +312,19 @@ export abstract class AngleAxis<
                 tempText.rotationCenterY = y;
             }
 
-            let box: _Scene.BBox | undefined = rotation ? tempText.computeTransformedBBox() : tempText.computeBBox();
+            let box: _Scene.BBox | undefined = rotation ? _Scene.Transformable.toCanvas(tempText) : tempText.getBBox();
             if (box && options.hideWhenNecessary && !rotation) {
                 const overflowLeft = seriesLeft - box.x;
                 const overflowRight = box.x + box.width - seriesRight;
                 const pixelError = 1;
                 if (overflowLeft > pixelError || overflowRight > pixelError) {
                     const availWidth = box.width - Math.max(overflowLeft, overflowRight);
-                    text = Text.wrap(text, availWidth, Infinity, label, 'never');
-                    if (text === '\u2026') {
+                    text = TextWrapper.wrapText(text, { maxWidth: availWidth, font: label, textWrap: 'never' });
+                    if (text === TextUtils.EllipsisChar) {
                         text = '';
                     }
                     tempText.text = text;
-                    box = tempText.computeBBox();
+                    box = tempText.getBBox();
                 }
             }
 

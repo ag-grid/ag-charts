@@ -2,69 +2,85 @@ import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { Annotations } from './annotations';
 
+const stroke = {
+    stroke: _Theme.DEFAULT_ANNOTATION_COLOR,
+    strokeOpacity: 1,
+    strokeWidth: 2,
+};
+
+const handle = {
+    fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
+    strokeOpacity: 1,
+    strokeWidth: 2,
+};
+
+const font = {
+    color: _Theme.DEFAULT_TEXT_ANNOTATION_COLOR,
+    fontSize: 14,
+    fontFamily: _Theme.DEFAULT_FONT_FAMILY,
+};
+
+const axisLabel = {
+    ...font,
+    enabled: true,
+    color: 'white',
+    fill: _Theme.DEFAULT_ANNOTATION_COLOR,
+    fontSize: 12,
+};
+
+const text = {
+    ...font,
+    color: _Theme.DEFAULT_TEXT_ANNOTATION_COLOR,
+    textAlign: 'left',
+};
+
+const lineText = {
+    ...font,
+    position: 'top',
+    alignment: 'center',
+    color: _Theme.DEFAULT_ANNOTATION_COLOR,
+};
+
 export const AnnotationsModule: _ModuleSupport.Module = {
     type: 'root',
     optionsKey: 'annotations',
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
     dependencies: ['toolbar'],
-    instanceConstructor: Annotations,
+    moduleFactory: (ctx) => new Annotations(ctx),
     themeTemplate: {
         annotations: {
+            // Lines
             line: {
-                stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
-                strokeWidth: 2,
-                strokeOpacity: 1,
-                handle: {
-                    fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
-                },
+                ...stroke,
+                handle: { ...handle },
+                text: { ...lineText },
             },
             'horizontal-line': {
-                stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
-                strokeWidth: 2,
-                strokeOpacity: 1,
-                handle: {
-                    fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
-                },
-                axisLabel: {
-                    enabled: true,
-                    color: 'white',
-                    fill: _Theme.DEFAULT_ANNOTATION_STROKE,
-                    fontSize: 12,
-                    fontFamily: _Theme.DEFAULT_FONT_FAMILY,
-                },
+                ...stroke,
+                handle: { ...handle },
+                axisLabel: { ...axisLabel },
+                text: { ...lineText },
             },
             'vertical-line': {
-                stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
-                strokeWidth: 2,
-                strokeOpacity: 1,
-                handle: {
-                    fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
-                },
-                axisLabel: {
-                    enabled: true,
-                    color: 'white',
-                    fill: _Theme.DEFAULT_ANNOTATION_STROKE,
-                    fontSize: 12,
-                    fontFamily: _Theme.DEFAULT_FONT_FAMILY,
-                },
+                ...stroke,
+                handle: { ...handle },
+                axisLabel: { ...axisLabel },
+                text: { ...lineText },
             },
+
+            // Channels
             'disjoint-channel': {
-                stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
-                strokeWidth: 2,
-                strokeOpacity: 1,
+                ...stroke,
                 background: {
                     fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
                     fillOpacity: 0.2,
                 },
-                handle: {
-                    fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
-                },
+                handle: { ...handle },
+                text: { ...lineText },
             },
             'parallel-channel': {
-                stroke: _Theme.DEFAULT_ANNOTATION_STROKE,
-                strokeWidth: 2,
-                strokeOpacity: 1,
+                ...stroke,
                 middle: {
                     lineDash: [6, 5],
                     strokeWidth: 1,
@@ -73,9 +89,58 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
                     fillOpacity: 0.2,
                 },
-                handle: {
-                    fill: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
+                handle: { ...handle },
+                text: { ...lineText },
+            },
+
+            // Texts
+            callout: {
+                ...stroke,
+                ...text,
+                color: _Theme.DEFAULT_LABEL_COLOUR,
+                handle: { ...handle },
+                fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
+                fillOpacity: 0.2,
+            },
+            comment: {
+                ...text,
+                color: 'white',
+                fontWeight: 700,
+                handle: { ...handle },
+                fill: _Theme.DEFAULT_ANNOTATION_COLOR,
+            },
+            note: {
+                ...text,
+                color: _Theme.DEFAULT_TEXTBOX_COLOR,
+                fill: _Theme.DEFAULT_ANNOTATION_COLOR,
+                stroke: _Theme.DEFAULT_ANNOTATION_HANDLE_FILL,
+                strokeWidth: 1,
+                strokeOpacity: 1,
+                handle: { ...handle },
+                background: {
+                    fill: _Theme.DEFAULT_TEXTBOX_FILL,
+                    stroke: _Theme.DEFAULT_TEXTBOX_STROKE,
+                    strokeWidth: 1,
                 },
+            },
+            text: {
+                ...text,
+                handle: { ...handle },
+            },
+
+            // Shapes
+            arrow: {
+                ...stroke,
+                handle: { ...handle },
+                text: { ...lineText },
+            },
+            'arrow-up': {
+                fill: _Theme.PALETTE_UP_FILL,
+                handle: { ...handle, stroke: _Theme.DEFAULT_ANNOTATION_COLOR },
+            },
+            'arrow-down': {
+                fill: _Theme.PALETTE_DOWN_FILL,
+                handle: { ...handle, stroke: _Theme.DEFAULT_ANNOTATION_COLOR },
             },
         },
     },

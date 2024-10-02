@@ -1,7 +1,7 @@
 {
   "name": "ag-charts-community",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/ag-charts-community/src",
+  "sourceRoot": "{projectRoot}/src",
   "projectType": "library",
   "targets": {
     "build": {
@@ -30,14 +30,15 @@
       ],
       "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/ag-charts-community/dist/types",
-        "main": "packages/ag-charts-community/src/main.ts",
-        "tsConfig": "packages/ag-charts-community/tsconfig.types.json",
+        "outputPath": "{projectRoot}/dist/types",
+        "main": "{projectRoot}/src/main.ts",
+        "additionalEntryPoints": ["{projectRoot}/src/main-modules.ts"],
+        "tsConfig": "{projectRoot}/tsconfig.types.json",
         "compiler": "tsc"
       },
       "configurations": {
         "watch": {
-          "tsConfig": "packages/ag-charts-community/tsconfig.types.watch.json"
+          "tsConfig": "{projectRoot}/tsconfig.types.watch.json"
         },
         "production": {}
       }
@@ -80,6 +81,7 @@
       "options": {
         "outputPath": "{projectRoot}/dist/package",
         "main": "{projectRoot}/src/main.ts",
+        "additionalEntryPoints": ["{projectRoot}/src/main-modules.ts"],
         "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
@@ -90,6 +92,9 @@
       "configurations": {
         "watch": {
           "tsConfig": "{projectRoot}/tsconfig.watch.json"
+        },
+        "staging": {
+          "sourcemap": false
         },
         "production": {
           "sourcemap": false
@@ -108,7 +113,7 @@
         "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
-        "target": "es6",
+        "target": "es2020",
         "bundle": true,
         "thirdParty": true,
         "skipTypeCheck": true,
@@ -119,6 +124,9 @@
       "configurations": {
         "watch": {
           "tsConfig": "{projectRoot}/tsconfig.watch.json"
+        },
+        "staging": {
+          "sourcemap": false
         },
         "production": {
           "sourcemap": false
@@ -133,7 +141,7 @@
       "cache": true,
       "options": {
         "mode": "debug-interfaces",
-        "inputs": ["packages/ag-charts-community/src/options"],
+        "inputs": ["{projectRoot}/src/options"],
         "output": "dist/packages/ag-charts-community/debug-interfaces.AUTO.json"
       }
     },
@@ -145,7 +153,7 @@
       "cache": true,
       "options": {
         "mode": "docs-interfaces",
-        "inputs": ["packages/ag-charts-community/src/options"],
+        "inputs": ["{projectRoot}/src/options"],
         "output": "dist/packages/ag-charts-community/resolved-interfaces.AUTO.json"
       }
     },
@@ -170,10 +178,10 @@
     },
     "lint:depcruise": {
       "executor": "nx:run-commands",
-      "inputs": ["{projectRoot}/src/**"],
+      "inputs": ["{projectRoot}/src/**", "{projectRoot}/.dependency-cruiser.js"],
       "outputs": [],
       "options": {
-        "cwd": "packages/ag-charts-community",
+        "cwd": "{projectRoot}",
         "commands": ["npx depcruise src"]
       }
     },
@@ -188,7 +196,7 @@
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-community.xml"],
       "options": {
-        "jestConfig": "packages/ag-charts-community/jest.config.ts",
+        "jestConfig": "{projectRoot}/jest.config.ts",
         "testPathIgnorePatterns": [".*/benchmarks/.*"],
         "passWithNoTests": false
       },
@@ -215,18 +223,18 @@
       "outputs": ["{workspaceRoot}/reports/{projectRoot}/benchmarks"],
       "options": {
         "commands": [
-          "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand --testPathPattern '.*/benchmarks/.*'"
+          "find {projectRoot}/benchmarks -name '*.test.ts' | xargs -L1 -P1 node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand"
         ]
       },
       "configurations": {
-        "watch": {
-          "commands": [
-            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand --testPathPattern '.*/benchmarks/.*' --watch"
-          ]
-        },
         "update": {
           "commands": [
-            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand --testPathPattern '.*/benchmarks/.*' -u"
+            "find {projectRoot}/benchmarks -name '*.test.ts' | xargs -L1 -P1 node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand -u"
+          ]
+        },
+        "single-process": {
+          "commands": [
+            "node --expose-gc ./node_modules/jest/bin/jest.js --config {projectRoot}/jest.config.ts --runInBand --testPathPattern '{projectRoot}/benchmarks/.*\\.test\\.ts'"
           ]
         }
       },
@@ -235,15 +243,17 @@
         "ag-charts-website-benchmarks_integrated-large-scale_main.ts:generate-example",
         "ag-charts-website-benchmarks_large-dataset_main.ts:generate-example",
         "ag-charts-website-benchmarks_large-scale-multi-series_main.ts:generate-example",
-        "ag-charts-website-benchmarks_multi-series_main.ts:generate-example"
+        "ag-charts-website-benchmarks_multi-series_main.ts:generate-example",
+        "ag-charts-website-benchmarks_resize_main.ts:generate-example"
       ]
     },
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],
+      "inputs": ["allTransitiveOutputs"],
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
-        "cwd": "packages/ag-charts-community",
+        "cwd": "{projectRoot}",
         "parallel": false,
         "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-community.tgz"]
       }
@@ -251,22 +261,16 @@
     "pack:extract": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack"],
-      "inputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
+      "inputs": ["allOutputs"],
       "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-community/"],
-      "options": {
-        "parallel": false,
-        "commands": [
-          "mkdir -p dist/packages/contents/ag-charts-community",
-          "tar -xzf dist/packages/ag-charts-community.tgz -C dist/packages/contents/ag-charts-community/"
-        ]
-      }
+      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
     },
     "pack:verify": {
       "executor": "nx:run-commands",
       "dependsOn": ["pack:extract"],
-      "inputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-community/"],
+      "inputs": ["allOutputs"],
       "options": {
-        "commands": ["node tools/sanity-check-package.js dist/packages/contents/ag-charts-community/package"]
+        "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-community/package"]
       }
     }
   },

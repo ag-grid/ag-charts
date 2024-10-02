@@ -1,7 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { isFiniteNumber } from '../../util/type-guards';
-import { rangedValueProperty } from '../series/series';
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
 import { expectWarningsCalls, setupMockConsole } from '../test/utils';
@@ -20,6 +19,7 @@ import {
     SORT_DOMAIN_GROUPS,
     normaliseGroupTo as actualNormaliseGroupTo,
     normalisePropertyTo as actualNormalisePropertyTo,
+    rangedValueProperty,
 } from './processors';
 
 const rangeKey = (property: string) => ({ scope: 'test', property, type: 'key' as const, valueType: 'range' as const });
@@ -1277,6 +1277,10 @@ describe('DataModel', () => {
 
         it('handles string escapes paths', () => {
             expect(getPathComponents(`[ 'a\\'b' ] [ "a\\"b" ]`)).toEqual([`a'b`, `a"b`]);
+        });
+
+        // Re-enable when we drop support for Safari <16.4
+        it.skip('handles string escapes paths', () => {
             expect(getPathComponents(`[ 'a\\\\'b' ]`)).toBe(undefined);
             expect(getPathComponents(`[ "a\\\\"b" ]`)).toBe(undefined);
         });

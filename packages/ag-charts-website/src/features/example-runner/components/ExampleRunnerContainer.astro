@@ -5,24 +5,42 @@ import { getLoadingLogoId } from '@features/example-runner/utils/getLoadingLogoI
 
 interface Props {
     exampleHeight?: number;
+    exampleWidth?: number;
     pageName: string;
     exampleName: string;
+    /**
+     * If inline, there is margin on the bottom
+     */
+    isInline?: boolean;
 }
 
 const DEFAULT_HEIGHT = 500;
-const FRAME_WRAPPER_HEIGHT = 48 + 26;
 
-const { exampleHeight = DEFAULT_HEIGHT, pageName, exampleName } = Astro.props as Props;
+const { exampleHeight = DEFAULT_HEIGHT, exampleWidth, pageName, exampleName, isInline } = Astro.props as Props;
+const FRAME_WRAPPER_HEIGHT = isInline ? 42 + 16 : 0;
+
 const minHeight = exampleHeight + FRAME_WRAPPER_HEIGHT;
+const maxWidth = exampleWidth;
 const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
 ---
 
-<div class="container example-runner-outer" style={{ minHeight: `${minHeight}px` }}>
+<div
+    class:list={[
+        'container',
+        'example-runner-outer',
+        {
+            isInline,
+        },
+    ]}
+    style={{ minHeight: `${minHeight}px`, maxWidth: maxWidth != null ? `${maxWidth}px` : undefined }}
+>
     <LoadingLogo id={loadingLogoId} />
     <slot />
 </div>
 
 <style lang="scss">
+    @use 'design-system' as *;
+
     .container {
         position: relative;
 
@@ -30,7 +48,21 @@ const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(2);
+            transform: translate(-50%, -100%) scale(2);
+        }
+    }
+
+    .isInline {
+        margin-bottom: $spacing-size-4;
+    }
+
+    :global(.tabs-content) .example-runner-outer {
+        margin-bottom: 0;
+    }
+
+    @media screen and (min-width: $breakpoint-docs-nav-large) {
+        :global(.largeExamples) .example-runner-outer {
+            width: calc(139% - 40px);
         }
     }
 </style>

@@ -1,0 +1,396 @@
+---
+title: 'Linear Gauge'
+---
+
+A Linear Gauge presents a single data point within a predefined range along a scale.
+The data is represented by a bar indicating the value.
+
+## Simple Linear Gauge
+
+{% chartExampleRunner title="Simple Linear Gauge" name="simple-linear-gauge" type="generated" /%}
+
+{% if isFramework("javascript") %}
+
+To create a Linear Gauge, use the `createGauge` API with the type `linear-gauge`.
+
+```js
+const options = {
+    type: 'linear-gauge',
+    container: document.getElementById('myChart'),
+    value: 80,
+    scale: {
+        min: 0,
+        max: 100,
+    },
+};
+
+AgCharts.createGauge(options);
+```
+
+{% /if %}
+
+{% if isFramework("react") %}
+
+To create a Linear Gauge, use the `<AgGauge />` component with the type `linear-gauge`.
+
+```jsx
+const [options, setOptions] = useState({
+    type: 'linear-gauge',
+    value: 80,
+    scale: {
+      min: 0,
+      max: 100,
+    },
+});
+
+return (
+    <AgGauge options={options} />
+);
+```
+
+{% /if %}
+
+{% if isFramework("angular") %}
+
+To create a Linear Gauge, use the `<ag-gauge />` component with the type `linear-gauge`.
+
+```js
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [AgGauge],
+  template: `<ag-gauge [options]="options"></ag-gauge>`,
+})
+export class AppComponent {
+  public options: AgLinearGaugeOptions;
+  constructor() {
+    this.options = {
+        type: "linear-gauge",
+
+        value: 80,
+        scale: {
+          min: 0,
+          max: 100,
+        },
+    };
+  }
+}
+```
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+To create a Linear Gauge, use the `AgGauge` component with the type `linear-gauge`.
+
+```js
+template: `<ag-gauge:options="options"/>`,
+components: {
+    'ag-gauge': AgGauge,
+},
+data() {
+    return {
+        options: {
+            type: "linear-gauge",
+            value: 80,
+            scale: {
+                min: 0,
+                max: 100,
+            },
+        },
+    };
+}
+```
+
+{% /if %}
+
+In this configuration:
+
+-   `value` is the value displayed by the gauge.
+-   `scale.min` defines the minimum value of the scale.
+-   `scale.max` defines the maximum value of the scale.
+-   The data is represented by a coloured bar displayed over a grey scale.
+
+## Horizontal Linear Gauge
+
+{% chartExampleRunner title="Horizontal Linear Gauge" name="horizontal-linear-gauge" type="generated" options={ "exampleHeight": 250 } /%}
+
+To create a Horizontal Linear Gauge, set `direction: 'horizontal'`.
+
+```js
+{
+    direction: 'horizontal',
+}
+```
+
+## Customisation
+
+### Thickness
+
+{% chartExampleRunner title="Thickness" name="thickness" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+{
+    thickness: 100;
+    bar: {
+        thickness: 50;
+    }
+}
+```
+
+In the above configuration:
+
+-   The thickness of the scale is specified as 100 pixels.
+-   The thickness of the bar is specified as 50 pixels.
+-   It is also possible to use `thicknessRatio` to specify the width of the bar as a proportion of the scale.
+
+### Labels
+
+An inner labels can be configured with the `label` property.
+
+{% chartExampleRunner title="Labels" name="labels" type="generated" options={ "exampleHeight": 300 } /%}
+
+```js
+{
+    label: {
+        enabled: true,
+        placement: 'inside-start',
+        avoidCollisions: true,
+    },
+    scale: {
+        label: {
+            enabled: false,
+        },
+    },
+}
+```
+
+In this configuration:
+
+-   The label placement in relation to the gauge is configured by the `placement` property.
+-   The label is configured to avoid simultaneously overlapping the bar and scale with the `avoidCollisions` property.
+-   The scale labels are hidden using the `scale.label.enabled` option. See the [API Reference](#api-reference) for more details about customising the scale label style and interval.
+
+### Segmentation
+
+To split the gauge into segments, set `segmentation.enabled` to `true`.
+
+{% chartExampleRunner title="Segmentation" name="segmentation" type="generated" options={ "exampleHeight": 300 } /%}
+
+```js
+{
+    segmentation: {
+        enabled: true,
+        interval: {
+            count: 4
+        },
+        spacing: 2,
+    },
+}
+```
+
+In this configuration:
+
+-   `segmentation.interval` specifies how the gauge is segmented. Available options are:
+    -   `step` - segments the gauge at a fixed interval.
+    -   `count` - segments the gauge a fixed number of times.
+    -   `values` - segments the gauge at specific scale values.
+-   `spacing` defines the spacing between each segment.
+
+### Corner Radius
+
+{% chartExampleRunner title="Corner Radius" name="corner-radius" type="generated" options={ "exampleHeight": 350 } /%}
+
+```js
+{
+    cornerRadius: 99,
+    cornerMode: 'container',
+}
+```
+
+In this configuration:
+
+-   `cornerRadius` specifies the amount of curvature applied to each corner.
+-   `cornerMode` can be set to `container` to apply rounded corners only to the start and end of the gauge, or `item` for all visual items within the gauge.
+
+## Colour Options
+
+### Single Colour
+
+Both the bar and scale can be displayed using a solid fill.
+
+{% chartExampleRunner title="Fill" name="fill" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+{
+    scale: {
+        fill: '#f5f6fa',
+    },
+    bar: {
+        fill: '#4cd137',
+    },
+}
+```
+
+### Multiple Colours
+
+Multiple colours can be specified using the `fills` property.
+
+{% chartExampleRunner title="Colour Scales" name="fill-mode" type="generated" options={ "exampleHeight": 300 } /%}
+
+```js
+{
+    bar: {
+        fills: [{ color: '#00a8ff' }, { color: '#9c88ff' }, { color: '#e84118' }],
+        fillMode: 'discrete',
+    },
+}
+```
+
+In this configuration:
+
+-   `fills` specifies an array of colours to use to fill the bar.
+-   `fillMode` can be set to `continuous` for a gradient, or `discrete` to use blocks of solid colours.
+
+The default behaviour is to space out the colours evenly. This can be customised by using colour stops.
+
+### Colour Stops
+
+{% chartExampleRunner title="Scale Values" name="scale-values" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+{
+    bar: {
+        fills: [
+            { color: '#E84118', stop: 35 },
+            { color: '#FBC531', stop: 45 },
+            { color: '#4CD137', stop: 55 },
+            { color: '#FBC531', stop: 65 },
+            { color: '#E84118' },
+        ],
+        fillMode: 'discrete',
+    },
+}
+```
+
+In this configuration:
+
+-   Each colour stops at the `stop` value, and the next colour begins at that point.
+-   If no `stop` is provided, the fills will be distributed equally.
+-   The last colour is used until the end of the scale or bar.
+-   Both `discrete` and `continuous` modes can be used with colour stops.
+
+## Targets
+
+Gauges often display targets or thresholds to provide context to the displayed data value. These can be added using the `targets` configuration array.
+
+{% chartExampleRunner title="Targets" name="targets" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+{
+    targets: [
+        {
+            value: 70,
+            text: 'Average',
+        },
+    ],
+}
+```
+
+In this configuration:
+
+-   `value` is the position for the target marker.
+-   `text` is an optional string for the target label.
+
+### Customisation
+
+{% chartExampleRunner title="Target Customisation" name="custom-targets" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+{
+    targets: [
+        {
+            value: 30,
+            shape: 'triangle',
+            placement: 'before',
+            fill: 'white',
+            strokeWidth: 2,
+            spacing: 8,
+        },
+        {
+            value: 75,
+            placement: 'after',
+            shape: 'triangle',
+            fill: 'white',
+            strokeWidth: 2,
+            spacing: 8,
+        },
+        {
+            value: 90,
+            placement: 'middle',
+            shape: 'circle',
+            fill: 'white',
+            strokeWidth: 2,
+            spacing: 8,
+        },
+    ],
+}
+```
+
+In this configuration:
+
+-   `shape` is a [marker shape](#reference-AgLinearGaugeOptions-targets-shape).
+-   `placement` indicates the relative placement to the gauge - either `before`, `after`, or `middle`.
+-   `size` is the size of the marker, in pixels.
+-   `spacing` is spacing from the edge of the gauge to the marker. Ignored when `placement` is `middle`.
+
+## Bullet Series
+
+The Linear Gauge is used to create a Bullet Series.
+
+{% chartExampleRunner title="Bullet" name="bullet" type="generated" options={ "exampleHeight": 250 } /%}
+
+```js
+{
+    type: "linear-gauge",
+    //...
+
+    thickness: 50,
+    value: 50,
+    scale: {
+        min: 0,
+        max: 100,
+        fills: [{ color: "#A6A6A5" }, { color: "#BFBFBF" }, { color: "#D9D9D9" }],
+        fillMode: "discrete",
+    },
+    bar: {
+        thickness: 25,
+        fill: "black",
+    },
+    targets: [
+        {
+            value: 60,
+            shape: "line",
+            size: 20,
+            placement: "middle",
+            strokeWidth: 2,
+        },
+    ],
+}
+```
+
+In the above configuration:
+
+-   The bar `thickness` is set to less that the gauge thickness.
+-   The scale has a number of `fills` and a `fillMode` of `discrete`.
+-   The target has `line` shape with a `strokeWidth` of 2 and is placed in the `middle`.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgLinearGaugeOptions" label="Linear Gauge Options" %}
+{% apiReference id="AgLinearGaugeOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

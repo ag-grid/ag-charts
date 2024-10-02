@@ -50,7 +50,7 @@ export async function generateFiles(options: ExecutorOptions, ctx: ExecutorConte
     const name = `${ctx.projectName}:${ctx.targetName}:${ctx.configurationName ?? ''}`;
     const jsonPath = path.join(generatedExamplePath, 'plain', 'vanilla', 'contents.json');
     const example = await readJSONFile(jsonPath);
-    const production = ['production', 'staging'].includes(process.env.NX_TASK_TARGET_CONFIGURATION);
+    const production = ['production', 'staging', 'archive'].includes(process.env.NX_TASK_TARGET_CONFIGURATION);
     const dpiOutputs = production ? [1, 2] : [1];
 
     if (example == null) {
@@ -67,7 +67,8 @@ export async function generateFiles(options: ExecutorOptions, ctx: ExecutorConte
                 try {
                     await generateThumbnail({ example, theme, outputPath, dpi, mockText: false });
                 } catch (e) {
-                    throw new Error(`Unable to render example [${name}] with theme [${theme}]: ${e}`);
+                    console.error(`Unable to render example [${name}] with theme [${theme}]: ${e}`);
+                    throw e;
                 }
             }
         }

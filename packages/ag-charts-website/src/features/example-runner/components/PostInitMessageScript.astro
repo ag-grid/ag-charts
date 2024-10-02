@@ -1,11 +1,18 @@
 ---
-import { POST_INIT_MESSAGE_START, POST_INIT_MESSAGE_END } from '@features/example-runner/constants';
+import {
+    POST_INIT_MESSAGE_START,
+    POST_INIT_MESSAGE_END,
+    LIBRARY_INIT_SELECTOR,
+} from '@features/example-runner/constants';
 interface Props {
     pageName: string;
     exampleName: string;
+    shadowDomSelector?: string;
+    iframeSelector?: string;
 }
 
-const { pageName, exampleName } = Astro.props as Props;
+const { pageName, exampleName, shadowDomSelector, iframeSelector } = Astro.props as Props;
+const initSelector = LIBRARY_INIT_SELECTOR;
 ---
 
 <Fragment set:html={POST_INIT_MESSAGE_START} />
@@ -13,13 +20,51 @@ const { pageName, exampleName } = Astro.props as Props;
     define:vars={{
         pageName,
         exampleName,
+        shadowDomSelector,
+        iframeSelector,
+        initSelector,
     }}
 >
-    const loadedEvent = {
-        type: 'init',
-        pageName,
-        exampleName,
+    const TIMEOUT_MS = 15000;
+    let hasTimedOut = false;
+    const timeout = setTimeout(() => {
+        hasTimedOut = true;
+    }, TIMEOUT_MS);
+
+    const checkInit = function () {
+        let elExists = false;
+
+        if (shadowDomSelector) {
+            elExists = Boolean(document.querySelector(shadowDomSelector)?.shadowRoot?.querySelector(initSelector));
+        } else if (iframeSelector) {
+            elExists = Boolean(
+                document.querySelector(iframeSelector)?.contentWindow.document.querySelector(initSelector)
+            );
+        } else {
+            elExists = document.querySelector(initSelector);
+        }
+
+        if (elExists) {
+            const loadedEvent = {
+                type: 'init',
+                pageName,
+                exampleName,
+            };
+            window.parent?.postMessage(loadedEvent);
+            clearTimeout(timeout);
+        } else if (hasTimedOut) {
+            console.warn('Loading example timed out', {
+                pageName,
+                exampleName,
+                shadowDomSelector,
+                iframeSelector,
+                initSelector,
+            });
+        } else {
+            requestAnimationFrame(() => checkInit());
+        }
     };
-    window.parent?.postMessage(loadedEvent);
+
+    checkInit();
 </script>
 <Fragment set:html={POST_INIT_MESSAGE_END} />

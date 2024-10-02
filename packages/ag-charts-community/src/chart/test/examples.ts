@@ -1,4 +1,9 @@
-import type { AgCartesianChartOptions, AgHierarchyChartOptions, AgPolarChartOptions } from 'ag-charts-types';
+import type {
+    AgCartesianChartOptions,
+    AgGaugeOptions,
+    AgHierarchyChartOptions,
+    AgPolarChartOptions,
+} from 'ag-charts-types';
 
 import {
     DATA_APPLE_REVENUE_BY_PRODUCT,
@@ -50,6 +55,8 @@ export const DOCS_EXAMPLES = {
     'simple-sunburst': loadExampleOptions('simple-sunburst'),
     'simple-sankey': loadExampleOptions('simple-sankey'),
     'simple-chord': loadExampleOptions('simple-chord'),
+    'simple-radial-gauge': loadExampleOptions('simple-radial-gauge'),
+    'simple-linear-gauge': loadExampleOptions('simple-linear-gauge'),
     'stacked-area': loadExampleOptions('stacked-area'),
     'stacked-bar': loadExampleOptions('stacked-bar'),
     'stacked-column': loadExampleOptions('stacked-column'),
@@ -89,6 +96,8 @@ export const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
 export const SIMPLE_SUNBURST_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-sunburst'];
 export const SIMPLE_SANKEY_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-sankey'];
 export const SIMPLE_CHORD_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-chord'];
+export const SIMPLE_RADIAL_GAUGE_EXAMPLE: AgGaugeOptions = DOCS_EXAMPLES['simple-radial-gauge'];
+export const SIMPLE_LINEAR_GAUGE_EXAMPLE: AgGaugeOptions = DOCS_EXAMPLES['simple-linear-gauge'];
 export const TREEMAP_WITH_COLOR_RANGE_EXAMPLE: AgHierarchyChartOptions = DOCS_EXAMPLES['treemap-with-color-range'];
 export const SIMPLE_HISTOGRAM_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-histogram'];
 export const HISTOGRAM_WITH_SPECIFIED_BINS_EXAMPLE: AgCartesianChartOptions =

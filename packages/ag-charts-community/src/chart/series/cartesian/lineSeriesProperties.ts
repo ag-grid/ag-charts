@@ -3,8 +3,6 @@ import type {
     AgLineSeriesOptions,
     AgLineSeriesOptionsKeys,
     AgLineSeriesTooltipRendererParams,
-    FontStyle,
-    FontWeight,
 } from 'ag-charts-types';
 
 import {
@@ -28,16 +26,8 @@ export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSerie
     readonly point: CartesianSeriesNodeDatum['point'] & {
         readonly moveTo: boolean;
     };
-    readonly label?: {
-        readonly text: string;
-        readonly fontStyle?: FontStyle;
-        readonly fontWeight?: FontWeight;
-        readonly fontSize: number;
-        readonly fontFamily: string;
-        readonly textAlign: CanvasTextAlign;
-        readonly textBaseline: CanvasTextBaseline;
-        readonly fill?: string;
-    };
+    readonly labelText?: string;
+    readonly selected: boolean | undefined;
 }
 
 export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeriesOptions> {
@@ -52,6 +42,9 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
 
     @Validate(STRING, { optional: true })
     yName?: string;
+
+    @Validate(STRING, { optional: true })
+    yFilterKey: string | undefined;
 
     @Validate(STRING, { optional: true })
     stackGroup?: string;

@@ -1,10 +1,11 @@
 import { clamp } from '../../util/number';
 import type { DropShadow } from '../dropShadow';
+import { Gradient } from '../gradient/gradient';
 import { LinearGradient } from '../gradient/linearGradient';
 import { Node, RedrawType, SceneChangeDetection } from '../node';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
-type ShapeLineJoin = 'round' | 'bevel' | 'miter';
+export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
 
 export type CanvasContext = CanvasFillStrokeStyles &
     CanvasCompositing &
@@ -52,13 +53,15 @@ export abstract class Shape extends Node {
     strokeOpacity: number = 1;
 
     @SceneChangeDetection({ redraw: RedrawType.MINOR, changeCb: (s: Shape) => s.onFillChange() })
-    fill?: string = Shape.defaultStyles.fill;
+    fill?: string | Gradient = Shape.defaultStyles.fill;
 
     protected onFillChange() {
         const { fill } = this;
 
         let linearGradientMatch: RegExpMatchArray | null;
-        if (fill?.startsWith('linear-gradient') && (linearGradientMatch = LINEAR_GRADIENT_REGEXP.exec(fill))) {
+        if (fill instanceof Gradient) {
+            this.gradient = fill;
+        } else if (fill?.startsWith('linear-gradient') && (linearGradientMatch = LINEAR_GRADIENT_REGEXP.exec(fill))) {
             const angle = parseFloat(linearGradientMatch[1]);
             const colors = [];
             const colorsPart = linearGradientMatch[2];
@@ -68,6 +71,7 @@ export abstract class Shape extends Node {
                 colors.push(c[0]);
             }
             this.gradient = new LinearGradient(
+                'rgb',
                 colors.map((color, index) => ({ color, offset: index / (colors.length - 1) })),
                 angle
             );
@@ -76,7 +80,7 @@ export abstract class Shape extends Node {
         }
     }
 
-    protected gradient: LinearGradient | undefined;
+    protected gradient: Gradient | undefined;
 
     /**
      * Note that `strokeStyle = null` means invisible stroke,
@@ -163,7 +167,10 @@ export abstract class Shape extends Node {
     }
 
     protected applyFill(ctx: CanvasContext) {
-        ctx.fillStyle = this.gradient?.createGradient(ctx as any, this.computeBBox()!) ?? this.fill!;
+        ctx.fillStyle =
+            this.gradient?.createGradient(ctx as any, this.getBBox()) ??
+            (typeof this.fill === 'string' ? this.fill : undefined) ??
+            'black';
     }
 
     protected applyFillAlpha(ctx: CanvasContext) {

@@ -40,5 +40,9 @@ for envFile in ./packages/ag-charts-website/.env* ./.env ; do
     echo "PUBLIC_PACKAGE_VERSION=${NEW_VERSION}" >>${envFile}
 done
 
+# Update grid version
+GRID_VERSION=$(node ${TOOLS_DIR}/calculate-grid-version.js "$NEW_VERSION")
+node ${TOOLS_DIR}/update-grid-version.js "$GRID_VERSION"
+
 # Ensure consistent package.json formatting.
 npx prettier -w $(git status -s | grep package.json | awk '{ print $2 }')

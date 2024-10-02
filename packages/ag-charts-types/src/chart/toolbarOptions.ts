@@ -1,6 +1,8 @@
 import type { Toggleable } from '../series/cartesian/commonOptions';
+import type { AgIconName } from './icons';
 
 export interface AgToolbarOptions extends Toggleable {
+    seriesType?: AgToolbarSeriesTypeGroup;
     annotations?: AgToolbarAnnotationsGroup;
     annotationOptions?: AgToolbarAnnotationOptionsGroup;
     ranges?: AgToolbarRangesGroup;
@@ -12,9 +14,11 @@ export interface AgToolbarGroup extends Toggleable {
     align?: AgToolbarGroupAlignment;
     /** Position of the toolbar group on the outside of the chart. */
     position?: AgToolbarGroupPosition;
+    /** whether the toolbar can be dragged */
+    draggable?: boolean;
     /** Size of the toolbar group buttons, defaults to 'normal'. */
     size?: AgToolbarGroupSize;
-    buttons?: AgToolbarButton[];
+    buttons?: (AgToolbarButton | AgToolbarSwitch)[];
 }
 
 export type AgToolbarGroupAlignment = 'start' | 'center' | 'end';
@@ -26,13 +30,10 @@ export type AgToolbarGroupPosition =
     | 'floating'
     | 'floating-top'
     | 'floating-bottom';
+
 export type AgToolbarGroupSize = 'small' | 'normal';
 
-export interface AgToolbarButton {
-    /** Section name used for grouping of buttons.
-     *
-     * Adjacent buttons with the same section are grouped together.*/
-    section?: string;
+interface AgToolbarButtonConfig {
     /** Icon to display on the button. */
     icon?: AgIconName;
     /** Text label to display on the button. */
@@ -41,62 +42,85 @@ export interface AgToolbarButton {
     ariaLabel?: string;
     /** Tooltip text to display on hover over the button. */
     tooltip?: string;
-    /** Value provided to caller when the button is pressed. */
-    value: any;
 }
 
-export type AgIconName = IconNameAnnotation | IconNameZoom;
-type IconNameAnnotation =
-    | 'horizontal-line'
-    | 'vertical-line'
-    | 'trend-line'
-    | 'parallel-channel'
-    | 'disjoint-channel'
-    | 'delete'
-    | 'line-color'
-    | 'lock'
-    | 'reset'
-    | 'unlock';
-type IconNameZoom =
-    | 'pan-end'
-    | 'pan-left'
-    | 'pan-right'
-    | 'pan-start'
-    | 'reset'
-    | 'zoom-in'
-    | 'zoom-in-alt'
-    | 'zoom-out'
-    | 'zoom-out-alt';
+interface AgBaseToolbarButton extends AgToolbarButtonConfig {
+    /** Section name used for grouping of buttons.
+     *
+     * Adjacent buttons with the same section are grouped together.*/
+    section?: string;
+    /** Value provided to caller when the button is pressed. */
+    value: any;
+    /** ID of the button (must be set when value is not a primitive) */
+    id?: string;
+    /** The button type (default: `'button'`); `'switch'` is the same but also have an on/off state like checkboxes. */
+    role?: 'button' | 'switch';
+}
+
+export interface AgToolbarButton extends AgBaseToolbarButton {
+    /** The button type (default: `'button'`); `'switch'` is the same but also have an on/off state like checkboxes. */
+    role?: 'button';
+}
+
+export interface AgToolbarSwitch extends AgBaseToolbarButton {
+    /** The button type (default: `'button'`); `'switch'` is the same but also have an on/off state like checkboxes. */
+    role: 'switch';
+    /** Overrides for the switch-button when checked. */
+    checkedOverrides?: AgToolbarButtonConfig;
+}
 
 /* Annotations */
 export interface AgToolbarAnnotationsGroup extends AgToolbarGroup {
     buttons?: AgToolbarAnnotationsButton[];
 }
 
+export interface AgToolbarChartGroup extends AgToolbarGroup {}
+
 export interface AgToolbarAnnotationsButton extends AgToolbarButton {
-    section?: 'create' | 'tools';
     /** An annotation type or action. */
     value: AgToolbarAnnotationsButtonValue;
 }
 
 export type AgToolbarAnnotationsButtonValue =
+    | 'line-menu'
+    | 'text-menu'
+    | 'shape-menu'
+    | 'line'
     | 'horizontal-line'
     | 'vertical-line'
-    | 'line'
     | 'parallel-channel'
     | 'disjoint-channel'
+    | 'text'
+    | 'comment'
+    | 'callout'
+    | 'note'
     | 'clear';
+
+/* Series Type */
+export interface AgToolbarSeriesTypeGroup extends AgToolbarGroup {}
 
 /* Annotation Options */
 export interface AgToolbarAnnotationOptionsGroup extends AgToolbarGroup {
-    buttons?: AgToolbarAnnotationOptionsButton[];
+    buttons?: (AgToolbarAnnotationOptionsButton | AgToolbarAnnotationOptionsSwitch)[];
 }
 
 export interface AgToolbarAnnotationOptionsButton extends AgToolbarButton {
     value: AgToolbarAnnotationOptionsButtonValue;
 }
+export interface AgToolbarAnnotationOptionsSwitch extends AgToolbarSwitch {
+    value: AgToolbarAnnotationOptionsButtonValue;
+}
 
-export type AgToolbarAnnotationOptionsButtonValue = 'line-color' | 'delete' | 'lock' | 'unlock';
+export type AgToolbarAnnotationOptionsButtonValue =
+    | 'line-stroke-width'
+    | 'line-style-type'
+    | 'line-color'
+    | 'fill-color'
+    | 'text-color'
+    | 'text-size'
+    | 'delete'
+    | 'lock'
+    | 'settings';
 
 /* Ranges */
 export interface AgToolbarRangesGroup extends AgToolbarGroup {

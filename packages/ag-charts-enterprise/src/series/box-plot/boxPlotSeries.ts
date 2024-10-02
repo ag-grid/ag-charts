@@ -6,7 +6,6 @@ import { BoxPlotSeriesProperties } from './boxPlotSeriesProperties';
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 const {
-    extent,
     extractDecoratedProperties,
     fixNumericExtent,
     keyProperty,
@@ -17,7 +16,6 @@ const {
     diff,
     animationValidation,
     convertValuesToScaleByDefs,
-    isFiniteNumber,
     computeBarFocusBounds,
 } = _ModuleSupport;
 const { motion } = _Scene;
@@ -69,7 +67,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 x: ['xName'],
                 y: ['medianName', 'q1Name', 'q3Name', 'minName', 'maxName'],
             },
-            pathsPerSeries: 1,
+            pathsPerSeries: [],
             hasHighlightedLabels: true,
         });
     }
@@ -110,14 +108,14 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {
-        const { processedData, dataModel, smallestDataInterval } = this;
+        const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 
         if (direction === this.getBarDirection()) {
             const minValues = dataModel.getDomain(this, `minValue`, 'value', processedData);
             const maxValues = dataModel.getDomain(this, `maxValue`, 'value', processedData);
 
-            return fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)], this.getValueAxis());
+            return fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)]);
         }
 
         const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
@@ -125,15 +123,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         if (def.type === 'key' && def.valueType === 'category') {
             return keys;
         }
-
-        const categoryAxis = this.getCategoryAxis();
-
-        const keysExtent = extent(keys) ?? [NaN, NaN];
-        const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval * 0.5 : 0;
-
-        const d0 = keysExtent[0] + -scalePadding;
-        const d1 = keysExtent[1] + scalePadding;
-        return fixNumericExtent([d0, d1], categoryAxis);
+        return this.padBandExtent(keys);
     }
 
     async createNodeData() {

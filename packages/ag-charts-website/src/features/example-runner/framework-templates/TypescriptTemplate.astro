@@ -13,6 +13,8 @@ interface Props {
     modifiedTimeMs: number;
     entryFileName: string;
 
+    layout: 'grid' | 'toolbar' | 'none';
+
     styleFiles?: string[];
     indexFragment: string;
     appLocation: string;
@@ -28,6 +30,7 @@ const {
     modifiedTimeMs,
     appLocation,
     entryFileName,
+    layout,
     styleFiles,
     indexFragment,
     boilerplatePath,
@@ -41,7 +44,7 @@ const startFile = pathJoin(appLocation, entryFileName);
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`Typescript Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle extraStyles={extraStyles} />
+        <ExampleStyle layout={layout} extraStyles={extraStyles} />
         <Styles
             baseUrl={appLocation}
             files={isDev && styleFiles

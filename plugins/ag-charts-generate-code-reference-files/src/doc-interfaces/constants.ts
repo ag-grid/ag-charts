@@ -1,5 +1,10 @@
-export const HIDDEN_API_OPTIONS = {
+export const HIDDEN_SERIES_TYPES = ['AgBulletSeriesOptions'];
+
+export const HIDDEN_API_INTERFACE_MEMBERS = {
+    AgChartThemeOverrides: ['bullet'],
     AgGradientLegendOptions: ['stop'],
+    AgConeFunnelSeriesOptions: ['showInMiniChart'],
+    AgFunnelSeriesOptions: ['showInMiniChart'],
     AgHeatmapSeriesOptions: ['showInLegend'],
     AgSunburstSeriesHighlightStyle: ['item', 'series'],
     AgSunburstSeriesOptions: ['showInLegend'],
@@ -9,4 +14,4 @@ export const HIDDEN_API_OPTIONS = {
     AgAngleNumberAxisOptions: ['keys'],
     AgRadiusCategoryAxisOptions: ['keys'],
     AgRadiusNumberAxisOptions: ['keys'],
-};
+} satisfies Record<string, string[]>;

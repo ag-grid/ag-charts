@@ -17,11 +17,11 @@ export interface AgZoomRatio {
     /** The minimum value of the axis zoom ratio.
      *  Default: `0`
      */
-    start?: number;
+    start?: Ratio;
     /** The maximum value of the axis zoom ratio.
      *  Default: `1`
      */
-    end?: number;
+    end?: Ratio;
 }
 
 export interface AgZoomButtons extends Omit<AgToolbarZoomGroup, 'align' | 'position'> {}
@@ -107,13 +107,21 @@ export interface AgZoomOptions {
      * Default: `alt`
      */
     panKey?: AgZoomPanKey;
-    /** The initial x-axis range of the zoom, as values of the axis type. */
+    /**
+     * The initial x-axis range of the zoom, as values of the axis type.
+     */
     rangeX?: AgZoomRange;
-    /** The initial y-axis range of the zoom, as values of the axis type. */
+    /**
+     * The initial y-axis range of the zoom, as values of the axis type.
+     */
     rangeY?: AgZoomRange;
-    /** The initial x-axis range of the zoom, as a ratio between 0 to 1. */
+    /**
+     * The initial x-axis range of the zoom, as a ratio between 0 to 1.
+     */
     ratioX?: AgZoomRatio;
-    /** The initial y-axis range of the zoom, as a ratio between 0 to 1. */
+    /**
+     * The initial y-axis range of the zoom, as a ratio between 0 to 1.
+     */
     ratioY?: AgZoomRatio;
     /**
      * The amount to zoom when scrolling with the mouse wheel, as a ratio of the full chart.

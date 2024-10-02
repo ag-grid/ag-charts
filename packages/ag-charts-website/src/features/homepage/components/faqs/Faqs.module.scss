@@ -1,0 +1,67 @@
+@use 'design-system' as *;
+
+.container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 1500px;
+    justify-content: space-between;
+    padding-top: $spacing-size-5;
+    border-radius: 8px;
+
+    @media screen and (min-width: $breakpoint-faq-columns-medium) {
+        flex-direction: row;
+        gap: $spacing-size-4;
+    }
+}
+
+.column {
+    flex: 1;
+    box-sizing: border-box;
+    padding-top: 20px;
+
+    @media screen and (min-width: $breakpoint-faq-columns-medium) {
+        width: 50%;
+    }
+}
+
+.questionContainer {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+}
+
+.titleContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    word-wrap: break-word;
+    padding: 10px;
+    transition: border-color 0.3s ease;
+}
+
+.titleContainer:hover {
+    border-color: #bbb;
+}
+
+.question {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--color-fg-secondary);
+}
+
+.expandIcon {
+    flex-shrink: 0;
+    padding: $spacing-size-2;
+    fill: var(--color-fg-secondary);
+}
+
+.answerContainer {
+    padding: 10px;
+}
+
+hr {
+    background-color: #d0d5dd54;
+    margin: $spacing-size-4 0;
+}

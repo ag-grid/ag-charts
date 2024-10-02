@@ -24,8 +24,8 @@ export interface ISeries<TDatum, TProps> {
     properties: TProps;
     hasEventListener(type: string): boolean;
     update(opts: { seriesRect?: BBox }): Promise<void>;
-    fireNodeClickEvent(event: Event, datum: TDatum): void;
-    fireNodeDoubleClickEvent(event: Event, datum: TDatum): void;
+    fireNodeClickEvent(event: Event, datum: SeriesNodeDatum): void;
+    fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum): void;
     createNodeContextMenuActionEvent(event: Event, datum: TDatum): NodeContextMenuActionEvent;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
@@ -52,9 +52,10 @@ export interface SeriesNodeDatum {
     readonly series: ISeries<any, any>;
     readonly itemId?: any;
     readonly datum: any;
-    readonly point?: Readonly<SizedPoint>;
+    readonly point?: Readonly<Point> & SizedPoint;
     readonly missing?: boolean;
     readonly enabled?: boolean;
+    readonly focusable?: boolean;
     midPoint?: Readonly<Point>;
 }
 

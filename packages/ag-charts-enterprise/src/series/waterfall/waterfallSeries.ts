@@ -1,5 +1,5 @@
 import type { AgWaterfallSeriesItemType } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { WaterfallSeriesItem, WaterfallSeriesTotal } from './waterfallSeriesProperties';
 import { WaterfallSeriesProperties } from './waterfallSeriesProperties';
@@ -30,7 +30,6 @@ const {
 } = _ModuleSupport;
 const { Rect, motion } = _Scene;
 const { sanitizeHtml, isContinuous } = _Util;
-const { ContinuousScale } = _Scale;
 
 type WaterfallNodeLabelDatum = Readonly<_Scene.Point> & {
     readonly text: string;
@@ -86,7 +85,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            pathsPerSeries: 1,
+            pathsPerSeries: ['connector'],
             hasHighlightedLabels: true,
             pathsZIndexSubOrderOffset: [-1, -1],
             animationResetFns: {
@@ -104,24 +103,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!this.properties.isValid() || !this.visible) return;
 
-        const positiveNumber = (v: any) => {
-            return isContinuous(v) && Number(v) >= 0;
-        };
-
-        const negativeNumber = (v: any) => {
-            return isContinuous(v) && Number(v) < 0;
-        };
-
-        const totalTypeValue = (v: any) => {
-            return v === 'total' || v === 'subtotal';
-        };
-
-        const propertyDefinition = {
-            missingValue: undefined,
-            invalidValue: undefined,
-        };
-
-        const dataWithTotals: any[] = [];
+        const positiveNumber = (v: unknown) => isContinuous(v) && Number(v) >= 0;
+        const negativeNumber = (v: unknown) => isContinuous(v) && Number(v) >= 0;
+        const totalTypeValue = (v: unknown) => v === 'total' || v === 'subtotal';
+        const propertyDefinition = { missingValue: undefined, invalidValue: undefined };
+        const dataWithTotals: unknown[] = [];
 
         const totalsMap = totals.reduce<Map<number, WaterfallSeriesTotal[]>>((result, total) => {
             const totalsAtIndex = result.get(total.index);
@@ -196,7 +182,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
-        const { processedData, dataModel, smallestDataInterval } = this;
+        const { processedData, dataModel } = this;
         if (!processedData || !dataModel) return [];
 
         const {
@@ -204,27 +190,14 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             values,
         } = processedData.domain;
 
-        const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
-
         if (direction === this.getCategoryDirection()) {
+            const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
                 return keys;
             }
-
-            const scalePadding = isFiniteNumber(smallestDataInterval) ? smallestDataInterval : 0;
-            const keysExtent = _ModuleSupport.extent(keys) ?? [NaN, NaN];
-
-            const categoryAxis = this.getCategoryAxis();
-            const isReversed = Boolean(categoryAxis?.isReversed());
             const isDirectionY = direction === ChartAxisDirection.Y;
-
-            const padding0 = isReversed === isDirectionY ? 0 : -scalePadding;
-            const padding1 = isReversed === isDirectionY ? scalePadding : 0;
-
-            const d0 = keysExtent[0] + padding0;
-            const d1 = keysExtent[1] + padding1;
-
-            return fixNumericExtent([d0, d1], categoryAxis);
+            const isReversed = this.getCategoryAxis()!.isReversed();
+            return this.padBandExtent(keys, isReversed !== isDirectionY);
         } else {
             const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
             const yExtent = values[yCurrIndex];
@@ -234,28 +207,20 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     async createNodeData() {
-        const { data, dataModel, smallestDataInterval } = this;
-        const { line } = this.properties;
+        const { data, dataModel } = this;
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();
 
-        if (!(data && categoryAxis && valueAxis && dataModel)) {
-            return;
-        }
+        if (!data || !categoryAxis || !valueAxis || !dataModel) return;
 
+        const { line } = this.properties;
         const xScale = categoryAxis.scale;
         const yScale = valueAxis.scale;
-
+        const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
+        const barWidth = this.getBandwidth(categoryAxis) ?? 10;
         const categoryAxisReversed = categoryAxis.isReversed();
 
-        const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
-
-        const barWidth =
-            (ContinuousScale.is(xScale) ? xScale.calcBandwidth(smallestDataInterval) : xScale.bandwidth) ?? 10;
-
-        if (this.processedData?.type !== 'ungrouped') {
-            return;
-        }
+        if (this.processedData?.type !== 'ungrouped') return;
 
         const context: WaterfallContext = {
             itemId: this.properties.yKey,
@@ -265,6 +230,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             scales: this.calculateScaling(),
             visible: this.visible,
         };
+
         if (!this.visible) return context;
 
         const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yRaw`);
@@ -397,18 +363,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
             pointData.push(pathPoint);
 
-            const labelText = this.getLabelText(
-                label,
-                {
-                    itemId: seriesItemType === 'subtotal' ? 'total' : seriesItemType,
-                    value,
-                    datum,
-                    xKey,
-                    yKey,
-                    xName,
-                    yName,
-                },
-                (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
+            const itemId = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
+            const labelText = this.getLabelText(label, { itemId, value, datum, xKey, yKey, xName, yName }, (v) =>
+                isFiniteNumber(v) ? v.toFixed(2) : String(v)
             );
 
             const nodeDatum: WaterfallNodeDatum = {
@@ -590,7 +547,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             });
             config.crisp = crisp;
             config.visible = visible;
-            updateRect({ rect, config });
+            updateRect(rect, config);
         });
     }
 

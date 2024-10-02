@@ -1,9 +1,9 @@
+import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
 import { createElement } from '../../util/dom';
 import { BaseProperties } from '../../util/properties';
 import { FUNCTION, STRING, Validate } from '../../util/validation';
 import type { AnimationManager } from '../interaction/animationManager';
-import type { LocaleManager } from '../locale/localeManager';
 
 export const DEFAULT_OVERLAY_CLASS = 'ag-chart-overlay';
 export const DEFAULT_OVERLAY_DARK_CLASS = 'ag-chart-dark-overlay';
@@ -35,11 +35,12 @@ export class Overlay extends BaseProperties {
 
         if (this.renderer) {
             const htmlContent = this.renderer();
-            this.content = createElement('div');
             if (htmlContent instanceof HTMLElement) {
-                this.content.replaceChildren(htmlContent);
+                this.content = htmlContent;
             } else {
-                this.content.innerHTML = htmlContent;
+                const tempDiv = createElement('div');
+                tempDiv.innerHTML = htmlContent;
+                this.content = tempDiv.firstElementChild! as HTMLElement;
             }
         } else {
             const content = createElement('div', {

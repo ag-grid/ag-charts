@@ -2,7 +2,8 @@ import { Checkmark, ChevronUp } from '@carbon/icons-react';
 import * as RadixSelect from '@radix-ui/react-select';
 import classnames from 'classnames';
 import { ChevronDown } from 'lucide-react';
-import { type ReactElement, type ReactNode, forwardRef } from 'react';
+import { forwardRef, useCallback } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 
 import styles from './Select.module.scss';
 
@@ -29,10 +30,7 @@ export function Select<O>({
     isPopper,
     isLarge,
 }: SelectProps<O>) {
-    const optionsByValue = new Map<string, O>();
-    const content: Record<string, ReactElement[]> = {};
-    for (const option of options) {
-        const group = getGroupLabel(option) || '';
+    const getOptionContent = useCallback((option: O) => {
         const key = getKey(option) || '';
         let label: string | undefined = getLabel?.(option);
         if (label == null) {
@@ -41,10 +39,24 @@ export function Select<O>({
         if (label == null) {
             label = key;
         }
+
+        const optionContent = renderItem ? renderItem(option) : label || key;
+
+        return {
+            key,
+            optionContent,
+        };
+    }, []);
+
+    const optionsByValue = new Map<string, O>();
+    const content: Record<string, ReactElement[]> = {};
+    for (const option of options) {
+        const group = getGroupLabel(option) || '';
+        const { key, optionContent } = getOptionContent(option);
         content[group] ||= [];
         content[group].push(
             <SelectItem key={key} value={key} isLarge={isLarge}>
-                {renderItem ? renderItem(option) : label || key}
+                {optionContent}
             </SelectItem>
         );
         optionsByValue.set(key, option);
@@ -60,8 +72,12 @@ export function Select<O>({
                 }
             }}
         >
-            <RadixSelect.Trigger tabIndex={0} className={classnames(styles.trigger, { [styles.large]: isLarge })}>
-                <RadixSelect.Value placeholder="Choose..." />
+            <RadixSelect.Trigger
+                tabIndex={0}
+                aria-label="Framework selector"
+                className={classnames(styles.trigger, { [styles.large]: isLarge })}
+            >
+                <RadixSelect.Value>{getOptionContent(value).optionContent}</RadixSelect.Value>
                 <RadixSelect.Icon>
                     <ChevronDown className={styles.chevronDown} />
                 </RadixSelect.Icon>
@@ -96,13 +112,13 @@ export function Select<O>({
     );
 }
 
-const defaultGetKey = (option: any) => {
+const defaultGetKey = (option: any): string => {
     if (typeof option === 'string') return option;
     const valueProperty = option?.value;
-    if (typeof valueProperty !== 'string') {
-        throw new Error('option.value must be a string or getOptionValue must be provided');
+    if (typeof valueProperty === 'string' || typeof valueProperty === 'number') {
+        return String(valueProperty);
     }
-    return valueProperty;
+    throw new Error('option.value must be a string or getKey must be provided');
 };
 
 const defaultGetLabel = (option: any): string | undefined => {

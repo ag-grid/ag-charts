@@ -1,5 +1,85 @@
 [
     {
+        "version": "10.3.0",
+        "date": "October 22nd 2024",
+        "highlightSummary": "Funnel Series",
+        "highlights": [
+            {
+                "text": "Funnel Series",
+                "path": "./funnel-series/"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-10-3"
+    },
+    {
+        "version": "10.2.0",
+        "date": "September 17th 2024",
+        "highlightSummary": "Radial Gauge Series, Financial Charts Trend Line Labels & Arrow Drawings",
+        "highlights": [
+            {
+                "text": "Radial Gauge",
+                "path": "./radial-gauge/"
+            },
+            {
+                "text": "Linear Gauge",
+                "path": "./linear-gauge/"
+            },
+            {
+                "text": "Arrow Drawings",
+                "path": "./financial-charts-toolbar#arrows"
+            },
+            {
+                "text": "Trend Line Labels",
+                "path": "./financial-charts-toolbar#line-and-channel-labels"
+            },
+            {
+                "text": "Extending Trend Lines and Channels",
+                "path": "./financial-charts-toolbar#extending-lines-and-channels"
+            },
+            {
+                "text": "Copy/Paste and Undo/Redo Support",
+                "path": "./financial-charts-toolbar#keyboard-shortcuts"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-10-2"
+    },
+    {
+        "version": "10.1.0",
+        "date": "August 8th 2024",
+        "highlightSummary": "New Financial Charts Annotations: Text, Comments, Callouts & Notes",
+        "highlights": [
+            {
+                "text": "Financial Chart Type Selection",
+                "path": "./financial-charts-toolbar#chart-type-selection"
+            },
+            {
+                "text": "Text Annotation",
+                "path": "./financial-charts-toolbar#annotations"
+            },
+            {
+                "text": "Comment Annotation",
+                "path": "./financial-charts-toolbar#annotations"
+            },
+            {
+                "text": "Callout Annotation",
+                "path": "./financial-charts-toolbar#annotations"
+            },
+            {
+                "text": "Note Annotation",
+                "path": "./financial-charts-toolbar#annotations"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-10-1"
+    },
+    {
+        "version": "10.0.2",
+        "date": "July 14th 2024"
+    },
+    {
+        "version": "10.0.1",
+        "date": "July 9th 2024"
+    },
+    {
         "version": "10.0.0",
         "date": "July 1st 2024",
         "highlights": [
@@ -9,7 +89,7 @@
             },
             {
                 "text": "Annotations",
-                "path": "./annotations"
+                "path": "./financial-charts-toolbar#lines"
             },
             {
                 "text": "Sankey Series",
@@ -21,7 +101,7 @@
             },
             {
                 "text": "Smooth and Step Line Style",
-                "path": "./line/#line"
+                "path": "./line-series#interpolation"
             },
             {
                 "text": "Localisation",
@@ -29,6 +109,10 @@
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-10"
+    },
+    {
+        "version": "9.3.2",
+        "date": "July 16th 2024"
     },
     {
         "version": "9.3.1",
@@ -48,11 +132,11 @@
             },
             {
                 "text": "Ordinal Time Axis",
-                "path": "./axes-types/#ordinal-time"
+                "path": "./axes-types#ordinal-time"
             },
             {
                 "text": "Zoom Buttons",
-                "path": "./zoom/#buttons"
+                "path": "./zoom#buttons"
             }
         ],
         "versionType": "Minor",
@@ -80,7 +164,7 @@
             },
             {
                 "text": "Rounded Corners for All Bar Series",
-                "path": "./bar-series/#corner-radius"
+                "path": "./bar-series#corner-radius"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-9-2"
@@ -95,11 +179,11 @@
             },
             {
                 "text": "Mini Chart in Navigator",
-                "path": "./navigator/#mini-chart"
+                "path": "./navigator#mini-chart"
             },
             {
                 "text": "Asynchronous Data Loading",
-                "path": "./zoom/#asynchronous-loading"
+                "path": "./zoom#asynchronous-loading"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-9-1"

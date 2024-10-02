@@ -6,7 +6,7 @@ const options: AgChartOptions = {
         text: 'Custom Context Menu Text',
     },
     subtitle: {
-        text: 'Hover toolbar icons for tooltips, right click to show context menu',
+        text: 'Hover zoom buttons for tooltips, right click to show context menu',
     },
     data: [
         { month: 'Jan', avgTemp: 2.3, iceCreamSales: 162000 },

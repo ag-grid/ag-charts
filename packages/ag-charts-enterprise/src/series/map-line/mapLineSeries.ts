@@ -7,7 +7,15 @@ import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
-const { getMissCount, createDatumId, DataModelSeries, SeriesNodePickMode, valueProperty, Validate } = _ModuleSupport;
+const {
+    getMissCount,
+    createDatumId,
+    DataModelSeries,
+    SeriesNodePickMode,
+    valueProperty,
+    CachedTextMeasurerPool,
+    Validate,
+} = _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;
 const { Selection, Text } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
@@ -206,7 +214,7 @@ export class MapLineSeries
         });
         if (labelText == null) return;
 
-        const labelSize = Text.getTextSize(String(labelText), font);
+        const labelSize = CachedTextMeasurerPool.measureText(String(labelText), { font });
         const labelCenter = lineStringCenter(lineString);
         if (labelCenter == null) return;
 
@@ -653,6 +661,7 @@ export class MapLineSeries
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
-        return findFocusedGeoGeometry(this, opts)?.computeTransformedBBox();
+        const geometry = findFocusedGeoGeometry(this, opts);
+        return geometry ? _Scene.Transformable.toCanvas(geometry) : undefined;
     }
 }

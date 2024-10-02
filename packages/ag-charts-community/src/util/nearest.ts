@@ -9,8 +9,8 @@ type NearestCalculator<TNearest> = {
 };
 
 type DistantContainer<TNearest> = {
-    get children(): NearestCalculator<TNearest>[];
-    transformPoint(x: number, y: number): { x: number; y: number };
+    children: Iterable<NearestCalculator<TNearest>>;
+    transformPoint?: (x: number, y: number) => { x: number; y: number };
 };
 
 export function nearestSquared<TObject extends DistantObject>(
@@ -38,7 +38,7 @@ export function nearestSquaredInContainer<TNearest>(
     container: DistantContainer<TNearest>,
     maxDistanceSquared = Infinity
 ): NearestResult<TNearest> {
-    const { x: tx, y: ty } = container.transformPoint(x, y);
+    const { x: tx = x, y: ty = y } = container.transformPoint?.(x, y) ?? {};
     const result: NearestResult<TNearest> = { nearest: undefined, distanceSquared: maxDistanceSquared };
     for (const child of container.children) {
         const { nearest, distanceSquared } = child.nearestSquared(tx, ty, result.distanceSquared);

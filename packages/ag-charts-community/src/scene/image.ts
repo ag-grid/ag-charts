@@ -2,11 +2,17 @@ import type { RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
 
 export class Image extends Node {
-    private readonly sourceImage: HTMLImageElement;
-
-    constructor(sourceImage: HTMLImageElement) {
+    constructor(private sourceImage?: HTMLImageElement | ImageBitmap) {
         super();
-        this.sourceImage = sourceImage;
+    }
+
+    updateBitmap(newBitmap: ImageBitmap, bitmapPixelRatio: number, x: number, y: number) {
+        this.sourceImage = newBitmap;
+        this.width = newBitmap.width / bitmapPixelRatio;
+        this.height = newBitmap.height / bitmapPixelRatio;
+        this.x = x / bitmapPixelRatio;
+        this.y = y / bitmapPixelRatio;
+        this.markDirty(RedrawType.MAJOR);
     }
 
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
@@ -31,10 +37,9 @@ export class Image extends Node {
             if (stats) stats.nodesSkipped++;
             return;
         }
-        this.computeTransformMatrix();
-        this.matrix.toContext(ctx);
-
         const image = this.sourceImage;
+        if (!image) return;
+
         ctx.globalAlpha = this.opacity;
         ctx.drawImage(image, 0, 0, image.width, image.height, this.x, this.y, this.width, this.height);
 

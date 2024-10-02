@@ -1,11 +1,29 @@
+import { setAttribute } from './attributeUtil';
+
+function addRemovableEventListener<K extends keyof WindowEventMap>(
+    destroyFns: (() => void)[],
+    elem: Window,
+    type: K,
+    listener: (this: Window, ev: WindowEventMap[K]) => any
+): () => void;
+
 function addRemovableEventListener<K extends keyof HTMLElementEventMap>(
     destroyFns: (() => void)[],
-    button: HTMLElement,
+    elem: HTMLElement,
     type: K,
     listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any
-): void {
-    button.addEventListener(type, listener);
-    destroyFns.push(() => button.removeEventListener(type, listener));
+): () => void;
+
+function addRemovableEventListener<K extends keyof (HTMLElementEventMap | WindowEventMap)>(
+    destroyFns: (() => void)[],
+    elem: HTMLElement | Window,
+    type: K,
+    listener: (this: unknown, ev: unknown) => unknown
+): () => void {
+    elem.addEventListener(type, listener);
+    const remover = () => elem.removeEventListener(type, listener);
+    destroyFns.push(remover);
+    return remover;
 }
 
 function addEscapeEventListener(
@@ -20,11 +38,31 @@ function addEscapeEventListener(
     });
 }
 
+function addMouseCloseListener(destroyFns: (() => void)[], menu: HTMLElement, hideCallback: () => void): () => void {
+    const self = addRemovableEventListener(destroyFns, window, 'mousedown', (event: MouseEvent) => {
+        if ([0, 2].includes(event.button) && !containsPoint(menu, event)) {
+            hideCallback();
+            self();
+        }
+    });
+    return self;
+}
+
+function containsPoint(container: Element, event: MouseEvent) {
+    if (event.target instanceof Element) {
+        const { x, y, width, height } = container.getBoundingClientRect();
+        const { clientX: ex, clientY: ey } = event;
+        return ex >= x && ey >= y && ex <= x + width && ey <= y + height;
+    }
+    return false;
+}
+
+function hasNoModifiers(event: KeyboardEvent | MouseEvent): boolean {
+    return !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey);
+}
+
 function matchesKey(event: KeyboardEvent, key: string, ...morekeys: string[]): boolean {
-    return (
-        !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey) &&
-        (event.key === key || morekeys.some((altkey) => event.key === altkey))
-    );
+    return hasNoModifiers(event) && (event.key === key || morekeys.some((altkey) => event.key === altkey));
 }
 
 function linkTwoButtons(destroyFns: (() => void)[], src: HTMLElement, dst: HTMLElement | undefined, key: string) {
@@ -60,21 +98,26 @@ const PREV_NEXT_KEYS = {
 } as const;
 
 // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/toolbar_role
-export function initToolbarKeyNav(opts: {
+export function initToolbarKeyNav(
+    opts: { toolbar: HTMLElement } & Parameters<typeof initRovingTabIndex>[0]
+): ReturnType<typeof initRovingTabIndex> {
+    opts.toolbar.role = 'toolbar';
+    opts.toolbar.ariaOrientation = opts.orientation;
+    opts.toolbar.ariaHidden = (opts.buttons.length === 0).toString();
+    return initRovingTabIndex(opts);
+}
+
+// https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex
+export function initRovingTabIndex(opts: {
     orientation: 'horizontal' | 'vertical';
-    toolbar: HTMLElement;
     buttons: HTMLElement[];
+    wrapAround?: boolean;
     onFocus?: (event: FocusEvent) => void;
     onBlur?: (event: FocusEvent) => void;
     onEscape?: (event: KeyboardEvent) => void;
-}): (() => void)[] {
-    const { orientation, toolbar, buttons, onEscape, onFocus, onBlur } = opts;
+}) {
+    const { orientation, buttons, wrapAround = false, onEscape, onFocus, onBlur } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
-    const ariaHidden: boolean = buttons.length === 0;
-
-    toolbar.role = 'toolbar';
-    toolbar.ariaOrientation = orientation;
-    toolbar.ariaHidden = ariaHidden.toString();
 
     // Assistive Technologies might provide functionality to focus on any element at random.
     // For example, in VoiceOver the user can press Ctrl+Opt+Shift Up to leave the toolbar, and then
@@ -87,11 +130,13 @@ export function initToolbarKeyNav(opts: {
         }
     };
 
+    // When wrapAround is false, use c,m such that (c+x)%m === x
+    const [c, m] = wrapAround ? [buttons.length, buttons.length] : [0, Infinity];
     const destroyFns: (() => void)[] = [];
     for (let i = 0; i < buttons.length; i++) {
-        const prev = buttons[i - 1];
+        const prev = buttons[(c + i - 1) % m];
         const curr = buttons[i];
-        const next = buttons[i + 1];
+        const next = buttons[(c + i + 1) % m];
         addRemovableEventListener(destroyFns, curr, 'focus', setTabIndices);
         if (onFocus) addRemovableEventListener(destroyFns, curr, 'focus', onFocus);
         if (onBlur) addRemovableEventListener(destroyFns, curr, 'blur', onBlur);
@@ -103,33 +148,65 @@ export function initToolbarKeyNav(opts: {
     return destroyFns;
 }
 
+export interface MenuCloser {
+    close(): void;
+    finishClosing(): void;
+}
+
+class MenuCloserImp implements MenuCloser {
+    public readonly destroyFns: (() => void)[] = [];
+
+    constructor(
+        menu: HTMLElement,
+        private lastFocus: HTMLElement | undefined,
+        public readonly closeCallback: () => void
+    ) {
+        this.destroyFns.push(addMouseCloseListener(this.destroyFns, menu, () => this.close()));
+    }
+
+    close() {
+        this.destroyFns.forEach((d) => d());
+        this.destroyFns.length = 0;
+        this.closeCallback();
+        this.finishClosing();
+    }
+
+    finishClosing() {
+        this.destroyFns.forEach((d) => d());
+        this.destroyFns.length = 0;
+        setAttribute(this.lastFocus, 'aria-expanded', false);
+        this.lastFocus?.focus();
+        this.lastFocus = undefined;
+    }
+}
+
 // https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/menu_role
 export function initMenuKeyNav(opts: {
     orientation: 'vertical';
+    sourceEvent: Event;
     menu: HTMLElement;
     buttons: HTMLElement[];
-    onEscape?: (event: KeyboardEvent) => void;
-}): (() => void)[] {
-    const { orientation, menu, buttons, onEscape } = opts;
+    // CRT-481 Automatically close the context menu when change focus with TAB / Shift+TAB
+    autoCloseOnBlur?: boolean;
+    closeCallback: () => void;
+}): MenuCloser {
+    const { sourceEvent, orientation, menu, buttons, closeCallback, autoCloseOnBlur = false } = opts;
     const { nextKey, prevKey } = PREV_NEXT_KEYS[orientation];
+
+    const lastFocus = getLastFocus(sourceEvent);
+    setAttribute(lastFocus, 'aria-expanded', true);
+
+    const menuCloser = new MenuCloserImp(menu, lastFocus, closeCallback);
+    const onEscape = () => menuCloser.close();
+    const { destroyFns } = menuCloser;
 
     menu.role = 'menu';
     menu.ariaOrientation = orientation;
-
-    const destroyFns: (() => void)[] = [];
-    for (let i = 0; i < buttons.length; i++) {
-        // Use modules to wrap around when navigation past the start/end of the menu.
-        const prev = buttons[(buttons.length + i - 1) % buttons.length];
-        const curr = buttons[i];
-        const next = buttons[(buttons.length + i + 1) % buttons.length];
-        if (onEscape) addEscapeEventListener(destroyFns, curr, onEscape);
-        linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey);
-        curr.tabIndex = -1;
-    }
+    destroyFns.push(...initRovingTabIndex({ orientation, buttons, onEscape, wrapAround: true }));
 
     // Add handlers for the menu element itself.
     menu.tabIndex = -1;
-    if (onEscape) addEscapeEventListener(destroyFns, menu, onEscape);
+    addEscapeEventListener(destroyFns, menu, onEscape);
     addRemovableEventListener(destroyFns, menu, 'keydown', (ev: KeyboardEvent) => {
         if (ev.target === menu && (ev.key === nextKey || ev.key === prevKey)) {
             ev.preventDefault();
@@ -137,7 +214,21 @@ export function initMenuKeyNav(opts: {
         }
     });
 
-    return destroyFns;
+    if (autoCloseOnBlur) {
+        const handler = (ev: FocusEvent) => {
+            const buttonArray: (EventTarget | null)[] = buttons;
+            const isLeavingMenu = !buttonArray.includes(ev.relatedTarget);
+            if (isLeavingMenu) {
+                onEscape();
+            }
+        };
+        for (const button of buttons) {
+            addRemovableEventListener(destroyFns, button, 'blur', handler);
+        }
+    }
+
+    buttons[0]?.focus();
+    return menuCloser;
 }
 
 export function makeAccessibleClickListener(element: HTMLElement, onclick: (event: MouseEvent) => unknown) {
@@ -147,4 +238,19 @@ export function makeAccessibleClickListener(element: HTMLElement, onclick: (even
         }
         onclick(event);
     };
+}
+
+export function isButtonClickEvent(event: KeyboardEvent | MouseEvent): boolean {
+    if ('button' in event) {
+        return event.button === 0;
+    }
+    // AG-12871 Use `key` for Enter to also include the Numpad Enter key.
+    return hasNoModifiers(event) && (event.code === 'Space' || event.key === 'Enter');
+}
+
+export function getLastFocus(sourceEvent: Event | undefined): HTMLElement | undefined {
+    if (sourceEvent?.target instanceof HTMLElement && 'tabindex' in sourceEvent.target.attributes) {
+        return sourceEvent.target;
+    }
+    return undefined;
 }

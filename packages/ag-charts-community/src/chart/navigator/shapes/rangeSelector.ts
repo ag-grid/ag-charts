@@ -1,10 +1,11 @@
 import { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
+import { Group, TranslatableGroup } from '../../../scene/group';
+import { Layer } from '../../../scene/layer';
 import type { Node } from '../../../scene/node';
-import { Layers } from '../../layers';
+import { ZIndexMap } from '../../zIndexMap';
 
-export class RangeSelector extends Group {
-    private readonly background: Group;
+export class RangeSelector extends Layer {
+    private readonly background: TranslatableGroup;
 
     private x = 0;
     private y = 0;
@@ -14,13 +15,8 @@ export class RangeSelector extends Group {
     private rOffset = 0;
 
     constructor(children: Node[]) {
-        super({ name: 'rangeSelectorGroup', layer: true, zIndex: Layers.NAVIGATOR_ZINDEX });
-        this.isContainerNode = true;
-
-        this.background = new Group({ name: 'navigator-background' });
-        this.background.zIndex = 1;
-
-        this.appendChild(this.background);
+        super({ name: 'rangeSelectorGroup', zIndex: ZIndexMap.NAVIGATOR });
+        this.background = this.appendChild(new TranslatableGroup({ name: 'navigator-background', zIndex: 1 }));
         this.append(children);
     }
 
@@ -46,7 +42,7 @@ export class RangeSelector extends Group {
         }
     }
 
-    override computeBBox() {
+    protected override computeBBox() {
         const { x, y, width, height, lOffset, rOffset } = this;
         return new BBox(x - lOffset, y, width + (lOffset + rOffset), height);
     }

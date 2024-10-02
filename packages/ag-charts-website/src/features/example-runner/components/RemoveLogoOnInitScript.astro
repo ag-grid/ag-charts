@@ -8,6 +8,10 @@ interface Props {
 const { pageName, exampleName } = Astro.props as Props;
 const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
 const loadingIFrameId = getLoadingIFrameId({ pageName, exampleName });
+/**
+ * NOTE: This script is duplicated in `onMessageRemoveLodingLogo.ts` but inlined
+ * here, so that Astro can inline the script on the page and it can run faster
+ */
 ---
 
 <script

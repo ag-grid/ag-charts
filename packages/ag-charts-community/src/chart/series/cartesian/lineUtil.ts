@@ -1,4 +1,4 @@
-import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
+import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
 import type { Path } from '../../../scene/shape/path';
 import { transformIntegratedCategoryValue } from '../../../util/value';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
@@ -14,7 +14,7 @@ import type {
     PathPointMap,
 } from './pathUtil';
 import { backfillPathPointData, minMax, renderPartialPath } from './pathUtil';
-import { type Scaling, areScalingEqual } from './scaling';
+import { type Scaling, areScalingEqual, isScaleValid } from './scaling';
 
 export function* pathRanges<T extends { point: PartialPathPoint }>(points: T[]) {
     let start = -1;
@@ -56,7 +56,18 @@ export function* pathRangePointsReverse<T extends { point: PartialPathPoint }>(
     }
 }
 
-function scale(val: number | string | Date, scaling?: Scaling) {
+function integratedCategoryMatch(a: unknown, b: unknown) {
+    if (a == null || b == null) return false;
+    if (typeof a !== 'object' || typeof b !== 'object') return false;
+
+    if ('id' in a && 'id' in b) {
+        return a.id === b.id;
+    }
+
+    return a.toString() === b.toString();
+}
+
+export function scale(val: number | string | Date, scaling?: Scaling) {
     if (!scaling) return NaN;
 
     if (val instanceof Date) {
@@ -74,6 +85,12 @@ function scale(val: number | string | Date, scaling?: Scaling) {
     const matchingIndex = scaling.domain.findIndex((d) => d === val);
     if (matchingIndex >= 0) {
         return scaling.range[matchingIndex];
+    }
+
+    // Integrated Charts category case.
+    const matchingIntegratedIndex = scaling.domain.findIndex((d) => integratedCategoryMatch(val, d));
+    if (matchingIntegratedIndex >= 0) {
+        return scaling.range[matchingIntegratedIndex];
     }
 
     // We failed to convert using the scale.
@@ -115,18 +132,6 @@ export function pairContinuousData(
     } = {}
 ) {
     const { backfillSplitMode = 'intersect' } = opts;
-    const toNewScale = (oldDatum: { xValue?: number; yValue?: number }) => {
-        return {
-            x: scale(oldDatum.xValue ?? NaN, newData.scales.x),
-            y: scale(oldDatum.yValue ?? NaN, newData.scales.y),
-        };
-    };
-    const toOldScale = (newDatum: { xValue?: number; yValue?: number }) => {
-        return {
-            x: scale(newDatum.xValue ?? NaN, oldData.scales.x),
-            y: scale(newDatum.yValue ?? NaN, oldData.scales.y),
-        };
-    };
 
     const result: PathPoint[] = [];
     const resultMap: {
@@ -176,23 +181,23 @@ export function pairContinuousData(
         const from = oldData.nodeData[oldIdx];
         const to = newData.nodeData[newIdx];
 
-        const fromShifted = from ? toNewScale(from) : undefined;
-        const toUnshifted = to ? toOldScale(to) : undefined;
+        const fromShifted = from ? scale(from.xValue ?? NaN, newData.scales.x) : undefined;
+        const toUnshifted = to ? scale(to.xValue ?? NaN, oldData.scales.x) : undefined;
 
         const NA = undefined;
-        if (fromShifted && closeMatch(fromShifted.x, to?.point.x)) {
+        if (fromShifted != null && closeMatch(fromShifted, to?.point.x)) {
             pairUp(from, to, to.xValue, 'move');
-        } else if (fromShifted && fromShifted.x < (minToNode?.point.x ?? -Infinity)) {
+        } else if (fromShifted != null && fromShifted < (minToNode?.point.x ?? -Infinity)) {
             pairUp(from, NA, from.xValue, 'out');
-        } else if (fromShifted && fromShifted.x > (maxToNode?.point.x ?? Infinity)) {
+        } else if (fromShifted != null && fromShifted > (maxToNode?.point.x ?? Infinity)) {
             pairUp(from, NA, from.xValue, 'out');
-        } else if (toUnshifted && toUnshifted.x < (minFromNode?.point.x ?? -Infinity)) {
+        } else if (toUnshifted != null && toUnshifted < (minFromNode?.point.x ?? -Infinity)) {
             pairUp(NA, to, to.xValue, 'in');
-        } else if (toUnshifted && toUnshifted.x > (maxFromNode?.point.x ?? Infinity)) {
+        } else if (toUnshifted != null && toUnshifted > (maxFromNode?.point.x ?? Infinity)) {
             pairUp(NA, to, to.xValue, 'in');
-        } else if (fromShifted && fromShifted.x < to?.point.x) {
+        } else if (fromShifted != null && fromShifted < to?.point.x) {
             pairUp(from, NA, from.xValue, 'out');
-        } else if (toUnshifted && toUnshifted.x < from?.point.x) {
+        } else if (toUnshifted != null && toUnshifted < from?.point.x) {
             pairUp(NA, to, to.xValue, 'in');
         } else if (from) {
             pairUp(from, NA, from.xValue, 'out');
@@ -347,7 +352,10 @@ export function determinePathStatus(newData: LineContextLike, oldData: LineConte
     return status;
 }
 
-export function prepareLinePathPropertyAnimation(status: NodeUpdateState, visibleToggleMode: 'fade' | 'none') {
+export function prepareLinePathPropertyAnimation(
+    status: NodeUpdateState,
+    visibleToggleMode: 'fade' | 'none'
+): FromToFns<Path, any, unknown> {
     const phase: NodeUpdateState = visibleToggleMode === 'none' ? 'updated' : status;
 
     const result = {
@@ -396,7 +404,7 @@ export function prepareLinePathAnimationFns(
         interpolation: InterpolationProperties | undefined
     ) => void
 ) {
-    const status = determinePathStatus(newData, oldData, pairData);
+    const status: NodeUpdateState = determinePathStatus(newData, oldData, pairData);
     const removePhaseFn = (ratio: number, path: Path) => {
         render(pairData, { move: 0, out: ratio }, path, interpolation);
     };
@@ -419,7 +427,7 @@ export function prepareLinePathAnimation(
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
     const wasCategoryBased = oldData.scales.x?.type === 'category';
-    if (isCategoryBased !== wasCategoryBased) {
+    if (isCategoryBased !== wasCategoryBased || !isScaleValid(newData.scales.x) || !isScaleValid(oldData.scales.x)) {
         // Not comparable.
         return;
     }

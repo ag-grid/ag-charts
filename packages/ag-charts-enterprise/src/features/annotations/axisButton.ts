@@ -1,7 +1,7 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 
 import type { Coords } from './annotationTypes';
-import { convert, invert } from './annotationUtils';
+import { convert, invert } from './utils/values';
 
 const { BaseModuleInstance, InteractionState, Validate, BOOLEAN, createElement, REGIONS, ChartAxisDirection } =
     _ModuleSupport;
@@ -38,9 +38,11 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
 
         this.destroyFns.push(
-            seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
-            seriesRegion.addListener('drag', (event) => this.onMouseMove(event), mouseMoveStates),
-            seriesRegion.addListener('leave', () => this.onLeave()),
+            seriesRegion.addListener('hover', (event) => this.show(event), mouseMoveStates),
+            seriesRegion.addListener('drag', (event) => this.show(event), InteractionState.Annotations),
+            seriesRegion.addListener('drag', () => this.hide(), InteractionState.ZoomDrag),
+            seriesRegion.addListener('leave', () => this.hide(), InteractionState.Default),
+            ctx.zoomManager.addListener('zoom-change', () => this.hide()),
             () => this.destroyElements(),
             () => this.wrapper.remove(),
             () => this.button.remove()
@@ -74,16 +76,22 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.ctx.domManager.removeChild('canvas-overlay', DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
     }
 
-    private onMouseMove(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>) {
-        if (!this.enabled) return;
+    private show(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>) {
+        const { offsetX: x, offsetY: y } = event;
+
+        if (!(this.enabled && this.seriesRect.containsPoint(x, y))) {
+            this.hide();
+            return;
+        }
 
         this.toggleVisibility(true);
-        const buttonCoords = this.getButtonCoordinates({ x: event.offsetX, y: event.offsetY });
+
+        const buttonCoords = this.getButtonCoordinates({ x, y });
         this.coords = this.getAxisCoordinates(buttonCoords);
         this.updatePosition(buttonCoords);
     }
 
-    private onLeave() {
+    private hide() {
         this.toggleVisibility(false);
     }
 
@@ -152,9 +160,9 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     }
 
     private updateButtonElement() {
-        const { button } = this;
+        const { button, ctx } = this;
         button.onclick = _ModuleSupport.makeAccessibleClickListener(button, () => this.onButtonClick(this.coords));
 
-        button.innerHTML = `<span class="ag-charts-icon-crossline-add-line ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`;
+        button.innerHTML = `<span class="${ctx.domManager.getIconClassNames('zoom-in')} ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`;
     }
 }

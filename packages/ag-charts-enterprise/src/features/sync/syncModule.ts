@@ -7,7 +7,7 @@ export const SyncModule: _ModuleSupport.RootModule = {
     optionsKey: 'sync',
     packageType: 'enterprise',
     chartTypes: ['cartesian'],
-    instanceConstructor: ChartSync,
+    moduleFactory: (ctx) => new ChartSync(ctx),
     themeTemplate: {
         sync: { enabled: false },
     },

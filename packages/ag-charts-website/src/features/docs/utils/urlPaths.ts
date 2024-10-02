@@ -5,6 +5,16 @@ import { pathJoin } from '@utils/pathJoin';
 
 import { DOCS_FRAMEWORK_PATH_INDEX, DOCS_PAGE_NAME_PATH_INDEX } from '../constants';
 
+/**
+ * Get framework path in url
+ *
+ * Not as relevant in charts, but allows charts/grid to use the same
+ * shared files
+ */
+export function getFrameworkPath(framework: Framework) {
+    return framework;
+}
+
 export function getFrameworkFromPath(path: string) {
     return path.split('/')[DOCS_FRAMEWORK_PATH_INDEX];
 }

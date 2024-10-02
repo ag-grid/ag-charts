@@ -10,7 +10,6 @@ import { Grid } from '@components/grid/Grid';
 import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
 // @ts-expect-error
 import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
-import { SITE_BASE_URL, SITE_URL } from '@constants';
 import styles from '@pages-styles/pipelineChangelog.module.scss';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
@@ -147,8 +146,7 @@ const detailCellRendererParams = (params: any) => {
 const extractFilterTerm = (location: any) =>
     location?.search ? new URLSearchParams(location.search).get('searchQuery') : '';
 
-// @ts-expect-error
-export const Pipeline = ({ location, currentFramework }) => {
+export const Pipeline = ({ location }: { location: string }) => {
     const [rowData, setRowData] = useState<any>(null);
     const [gridApi, setGridApi] = useState<any>(null);
     const URLFilterSearchQuery = useState(extractFilterTerm(location))[0];
@@ -179,16 +177,15 @@ export const Pipeline = ({ location, currentFramework }) => {
     return (
         <>
             {!IS_SSR && (
-                <div className={styles.container}>
-                    <h1>AG Charts Pipeline</h1>
+                <div>
                     <section className={styles.header}>
                         <Alert type="idea">
                             <p>
                                 The AG Charts pipeline lists the feature requests and active bugs in our product
                                 backlog. Use it to see the items scheduled for our next release or to look up the status
                                 of a specific item. If you can’t find the item you’re looking for, check the{' '}
-                                <a href={`${SITE_URL}${SITE_BASE_URL ?? ''}changelog/`}>Changelog</a> containing the
-                                list of completed items.
+                                <a href={urlWithBaseUrl('/changelog')}>Changelog</a> containing the list of completed
+                                items.
                             </p>
                         </Alert>
                     </section>

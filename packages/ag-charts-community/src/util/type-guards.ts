@@ -37,7 +37,7 @@ export function isObjectLike(value: unknown): value is PlainObject | unknown[] {
 }
 
 export function isPlainObject(value: unknown): value is PlainObject {
-    return typeof value === 'object' && value !== null && value.constructor === Object;
+    return typeof value === 'object' && value !== null && Object.getPrototypeOf(value) === Object.prototype;
 }
 
 export function isString(value: unknown): value is string {
@@ -49,7 +49,7 @@ export function isNumber(value: unknown): value is number {
 }
 
 export function isFiniteNumber(value: unknown): value is number {
-    return isNumber(value) && Number.isFinite(value);
+    return Number.isFinite(value);
 }
 
 export function isHtmlElement(value: unknown): value is HTMLElement {

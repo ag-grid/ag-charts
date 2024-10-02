@@ -5,7 +5,6 @@ import type { ModuleContextWithParent } from '../module/moduleContext';
 import type { ModuleMap } from '../module/moduleMap';
 import type { Scale } from '../scale/scale';
 import type { BBox } from '../scene/bbox';
-import type { Group } from '../scene/group';
 import type { Node } from '../scene/node';
 import type { AxisGridLine } from './axis/axisGridLine';
 import type { AxisLine } from './axis/axisLine';
@@ -13,86 +12,84 @@ import type { AxisTick, TickInterval } from './axis/axisTick';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxisDirection } from './chartAxisDirection';
 import type { CrossLine } from './crossline/crossLine';
-import type { AxisLayout } from './layout/layoutService';
+import type { AxisLayout } from './layout/layoutManager';
 import type { ISeries } from './series/seriesTypes';
 
 export type ChartAxisLabelFlipFlag = 1 | -1;
 
+interface AxisInterval {
+    step?: number | TickInterval<any>;
+    values?: any[];
+    minSpacing?: number;
+    maxSpacing?: number;
+}
+
+interface AxisLayoutConstraints {
+    stacked: boolean;
+    align: 'start' | 'end';
+    width: number;
+    unit: 'percent' | 'px';
+}
+
 export interface ChartAxis {
     attachAxis(axisGroup: Node, gridGroup: Node): void;
-    getAxisGroup(): Group;
-    boundSeries: ISeries<unknown, unknown>[];
-    calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox };
-    calculatePadding(min: number, max: number): [number, number];
+    calculateLayout(primaryTickCount?: number): { primaryTickCount?: number; bbox: BBox };
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
-    computeBBox(): BBox;
-    isReversed(): boolean;
-    crossLines?: CrossLine[];
-    dataDomain: { domain: any[]; clipped: boolean };
+    createAxisContext(): AxisContext;
+    createModuleContext(): ModuleContextWithParent<AxisContext>;
     destroy(): void;
     detachAxis(axisGroup: Node, gridGroup: Node): void;
-    direction: ChartAxisDirection;
-    interactionEnabled: boolean;
     formatDatum(datum: any): string;
+    getBBox(): BBox;
     getLayoutState(): AxisLayout;
     getModuleMap(): ModuleMap<any, any, any>;
-    createAxisContext(): AxisContext;
+    getRegionNode(): Node;
+    inRange(x: number, width?: number, tolerance?: number): boolean;
+    isReversed(): boolean;
+    resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
+    setCrossLinesVisible(visible: boolean): void;
+    update(animated?: boolean): number | undefined;
+    updatePosition(): void;
+    boundSeries: ISeries<unknown, unknown>[];
+    crossLines?: CrossLine[];
+    dataDomain: { domain: any[]; clipped: boolean };
+    direction: ChartAxisDirection;
     gridLength: number;
+    gridLine: AxisGridLine;
     gridPadding: number;
     id: string;
-    inRange(x: number, width?: number, tolerance?: number): boolean;
+    interactionEnabled: boolean;
+    interval: AxisInterval;
     keys: string[];
-    line: AxisLine;
-    gridLine: AxisGridLine;
     label: ChartAxisLabel;
-    tick: AxisTick;
-    maxThickness: number;
+    layoutConstraints: AxisLayoutConstraints;
+    line: AxisLine;
     nice: boolean;
     position?: AgCartesianAxisPosition;
     range: [number, number];
     rotation: number;
     scale: Scale<any, any, any>;
     seriesAreaPadding: number;
-    setCrossLinesVisible(visible: boolean): void;
     thickness?: number;
+    tick: AxisTick;
     translation: { x: number; y: number };
     type: string;
-    update(primaryTickCount?: number, animated?: boolean): number | undefined;
-    updateScale(): void;
-    updatePosition(): void;
     visibleRange: [number, number];
-    createModuleContext: () => ModuleContextWithParent<AxisContext>;
-    resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
-    interval: {
-        step?: number | TickInterval<any>;
-        values?: any[];
-        minSpacing?: number;
-        maxSpacing?: number;
-    };
-    layoutConstraints: {
-        stacked: boolean;
-        align: 'start' | 'end';
-        width: number;
-        unit: 'percent' | 'px';
-    };
 }
 
 export interface ChartAxisLabel extends FontOptions {
+    getSideFlag(): ChartAxisLabelFlipFlag;
+    set(props: object): void;
     autoRotate?: boolean;
     autoRotateAngle?: number;
-    autoWrap?: boolean;
     avoidCollisions: boolean;
     enabled: boolean;
     format?: string;
     formatter?: Formatter<AgAxisLabelFormatterParams>;
-    getSideFlag(): ChartAxisLabelFlipFlag;
-    maxHeight?: number;
-    maxWidth?: number;
     minSpacing: number;
     mirrored: boolean;
     padding: number;
     parallel: boolean;
     rotation?: number;
-    set(props: object): void;
 }

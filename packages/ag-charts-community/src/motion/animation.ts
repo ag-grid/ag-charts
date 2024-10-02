@@ -2,8 +2,9 @@ import { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { interpolateColor, interpolateNumber } from '../util/interpolate';
 import { type Interpolating, interpolate, isInterpolating } from '../util/interpolating';
-import { jsonDiff } from '../util/json';
 import { clamp } from '../util/number';
+import { objectEqualWith } from '../util/object';
+import { isPlainObject } from '../util/type-guards';
 import { linear } from './easing';
 
 export type AnimationMetadata = {
@@ -117,6 +118,20 @@ export function deconstructSelectionsOrNodes<N extends Node, D>(
         : { nodes: [], selections: selectionsOrNodes };
 }
 
+function animationValuesEqual(a: AnimationValue, b: AnimationValue): boolean {
+    if (a === b) {
+        return true;
+    } else if (Array.isArray(a) && Array.isArray(b)) {
+        return a.length === b.length && a.every((v, i) => animationValuesEqual(v, b[i]));
+    } else if (isInterpolating(a) && isInterpolating(b)) {
+        return a.equals(b);
+    } else if (isPlainObject(a) && isPlainObject(b)) {
+        return objectEqualWith(a, b, animationValuesEqual);
+    }
+
+    return false;
+}
+
 export class Animation<T extends AnimationValue> implements IAnimation {
     public readonly id;
     public readonly groupId;
@@ -180,14 +195,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
         // state, allowing us to run the update processing once and then skip any further updates.
         // This additionally allows animation phases to progress if all animations in a phase are
         // no-ops.
-        if (opts.from === opts.to) return 0;
-
-        const diff = typeof opts.from === 'object' ? jsonDiff(opts.from, opts.to) : null;
-        if (diff) {
-            return calculatedDuration;
-        }
-
-        return 0;
+        return animationValuesEqual(opts.from, opts.to) ? 0 : calculatedDuration;
     }
 
     play(initialUpdate = false) {
@@ -274,7 +282,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
     }
 
     private interpolateValue(a: any, b: any) {
-        if (a === undefined || b === undefined) {
+        if (a == null || b == null) {
             return;
         } else if (isInterpolating(a)) {
             return (d: number) => a[interpolate](b, d);
@@ -287,7 +295,9 @@ export class Animation<T extends AnimationValue> implements IAnimation {
                 case 'string':
                     return interpolateColor(a, b);
                 case 'boolean':
-                    if (a === b) return () => a;
+                    if (a === b) {
+                        return () => a;
+                    }
                     break;
             }
         } catch (e) {

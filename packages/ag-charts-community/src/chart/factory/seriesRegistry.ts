@@ -1,15 +1,5 @@
-import type {
-    AgCartesianSeriesOptions,
-    AgChartOptions,
-    AgFlowProportionSeriesOptions,
-    AgHierarchySeriesOptions,
-    AgPolarSeriesOptions,
-    AgTopologySeriesOptions,
-} from 'ag-charts-types';
-
-import type { SeriesConstructor, SeriesModule, SeriesTooltipDefaults } from '../../module/coreModules';
+import type { SeriesFactory, SeriesModule, SeriesTooltipDefaults } from '../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../module/coreModulesTypes';
-import { enterpriseModule } from '../../module/enterpriseModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import { deepClone } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
@@ -17,50 +7,40 @@ import type { SeriesType } from '../mapping/types';
 import type { ISeries } from '../series/seriesTypes';
 import { chartTypes, publicChartTypes } from './chartTypes';
 
-export type SeriesOptions =
-    | AgCartesianSeriesOptions
-    | AgPolarSeriesOptions
-    | AgHierarchySeriesOptions
-    | AgTopologySeriesOptions
-    | AgFlowProportionSeriesOptions;
-
 interface SeriesRegistryRecord {
-    instanceConstructor?: SeriesConstructor;
-    defaultAxes?: object[];
+    moduleFactory?: SeriesFactory;
+    defaultAxes?: object[] | ((opts: {}) => object[]);
     tooltipDefaults?: SeriesTooltipDefaults;
-    paletteFactory?: SeriesPaletteFactory;
+    paletteFactory?: SeriesPaletteFactory<unknown>;
     solo?: boolean;
     groupable?: boolean;
     stackable?: boolean;
     stackedByDefault?: boolean;
-    swapDefaultAxesCondition?: (opts: any) => boolean;
 }
 
 export class SeriesRegistry {
     private readonly seriesMap = new Map<SeriesType, SeriesRegistryRecord>();
-    private readonly themeTemplates = new Map<string, { community: object; enterprise: object }>();
+    private readonly themeTemplates = new Map<string, object>();
 
     register(
         seriesType: NonNullable<SeriesType>,
         {
             chartTypes: [chartType],
-            instanceConstructor,
+            moduleFactory,
             tooltipDefaults,
             defaultAxes,
             themeTemplate,
-            enterpriseThemeTemplate,
             paletteFactory,
             solo,
             stackable,
             groupable,
             stackedByDefault,
-            swapDefaultAxesCondition,
             hidden,
         }: SeriesModule<any, any>
     ) {
-        this.setThemeTemplate(seriesType, themeTemplate, enterpriseThemeTemplate);
+        this.setThemeTemplate(seriesType, themeTemplate);
         this.seriesMap.set(seriesType, {
-            instanceConstructor,
+            moduleFactory,
             tooltipDefaults,
             defaultAxes,
             paletteFactory,
@@ -68,7 +48,6 @@ export class SeriesRegistry {
             stackable,
             groupable,
             stackedByDefault,
-            swapDefaultAxesCondition,
         });
         chartTypes.set(seriesType, chartType);
         if (!hidden) {
@@ -77,29 +56,28 @@ export class SeriesRegistry {
     }
 
     create(seriesType: SeriesType, moduleContext: ModuleContext): ISeries<any, any> {
-        const SeriesConstructor = this.seriesMap.get(seriesType)?.instanceConstructor;
-        if (SeriesConstructor) {
-            return new SeriesConstructor(moduleContext);
+        const seriesFactory = this.seriesMap.get(seriesType)?.moduleFactory;
+        if (seriesFactory) {
+            return seriesFactory(moduleContext);
         }
         throw new Error(`AG Charts - unknown series type: ${seriesType}`);
     }
 
-    cloneDefaultAxes(seriesType: SeriesType) {
+    cloneDefaultAxes(seriesType: SeriesType, options: {}) {
         const defaultAxes = this.seriesMap.get(seriesType)?.defaultAxes;
-        return defaultAxes ? { axes: deepClone(defaultAxes) } : null;
+        if (defaultAxes == null) return null;
+
+        const axes = typeof defaultAxes === 'function' ? defaultAxes(options) : defaultAxes;
+        return { axes: deepClone(axes) };
     }
 
-    setThemeTemplate(seriesType: NonNullable<SeriesType>, themeTemplate: {}, enterpriseThemeTemplate = {}) {
+    setThemeTemplate(seriesType: NonNullable<SeriesType>, themeTemplate: {}) {
         const currentTemplate = this.themeTemplates.get(seriesType);
-        this.themeTemplates.set(seriesType, {
-            community: mergeDefaults(themeTemplate, currentTemplate?.community),
-            enterprise: mergeDefaults(enterpriseThemeTemplate, themeTemplate, currentTemplate?.community),
-        });
+        this.themeTemplates.set(seriesType, mergeDefaults(themeTemplate, currentTemplate));
     }
 
     getThemeTemplate(seriesType: string) {
-        const themeTemplate = this.themeTemplates.get(seriesType);
-        return enterpriseModule.isEnterprise ? themeTemplate?.enterprise : themeTemplate?.community;
+        return this.themeTemplates.get(seriesType);
     }
 
     getPaletteFactory(seriesType: SeriesType) {
@@ -124,26 +102,6 @@ export class SeriesRegistry {
 
     isStackedByDefault(seriesType: SeriesType) {
         return this.seriesMap.get(seriesType)?.stackedByDefault ?? false;
-    }
-
-    isDefaultAxisSwapNeeded(options: AgChartOptions) {
-        let result: boolean | undefined;
-
-        for (const series of options.series ?? []) {
-            const { type = 'line' } = series;
-            const isDefaultAxisSwapped = this.seriesMap.get(type)?.swapDefaultAxesCondition?.(series);
-
-            if (isDefaultAxisSwapped != null) {
-                if (result != null && result != isDefaultAxisSwapped) {
-                    // TODO change to a warning
-                    throw new Error('AG Charts - The provided series have incompatible directions');
-                }
-
-                result = isDefaultAxisSwapped;
-            }
-        }
-
-        return result;
     }
 }
 

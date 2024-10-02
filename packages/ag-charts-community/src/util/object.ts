@@ -4,6 +4,17 @@ import type { Intersection, PlainObject } from './types';
 
 type FalsyType = false | null | undefined;
 
+export function objectEqualWith<T extends PlainObject>(a: T, b: T, cmp: (a: T, b: T) => boolean): boolean {
+    for (const key in b) {
+        if (!(key in a)) return false;
+    }
+    for (const key in a) {
+        if (!(key in b)) return false;
+        if (!cmp(a[key], b[key])) return false;
+    }
+    return true;
+}
+
 export function deepMerge<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(...sources: TArgs) {
     return mergeDefaults(...sources.reverse());
 }
@@ -28,7 +39,7 @@ export function mergeDefaults<TSource extends PlainObject, TArgs extends (TSourc
     return target as Intersection<Exclude<TArgs[number], FalsyType>>;
 }
 
-export function mergeArrayDefaults(dataArray: PlainObject[], ...itemDefaults: PlainObject[]) {
+export function mergeArrayDefaults<T extends PlainObject>(dataArray: T[], ...itemDefaults: T[]) {
     if (itemDefaults && isArray(dataArray)) {
         return dataArray.map((item) => mergeDefaults(item, ...itemDefaults));
     }
@@ -61,12 +72,12 @@ export function getPath(object: object, path: string | string[]) {
     return pathArray.reduce<any>((value, pathKey) => value[pathKey], object);
 }
 
-export const SKIP_JS_BUILTINS = new Set('__proto__');
+export const SKIP_JS_BUILTINS = new Set(['__proto__', 'constructor', 'prototype']);
 
 export function setPath(object: object, path: string | string[], newValue: unknown) {
     const pathArray = isArray(path) ? path.slice() : path.split('.');
     const lastKey = pathArray.pop()!;
-    if (SKIP_JS_BUILTINS.has(lastKey)) return;
+    if (pathArray.some((p) => SKIP_JS_BUILTINS.has(p))) return;
 
     const lastObject = pathArray.reduce<any>((value, pathKey) => value[pathKey], object);
     lastObject[lastKey] = newValue;

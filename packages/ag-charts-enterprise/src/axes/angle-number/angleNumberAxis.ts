@@ -6,7 +6,7 @@ import { AngleAxisInterval } from './angleAxisInterval';
 import { LinearAngleScale } from './linearAngleScale';
 
 const { AND, Default, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, OBJECT, Validate } = _ModuleSupport;
-const { angleBetween, isNumberEqual, normalisedExtentWithMetadata } = _Util;
+const { angleBetween, isNumberEqual, normalisedExtentWithMetadata, findMinMax } = _Util;
 
 export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     static readonly className = 'AngleNumberAxis';
@@ -60,10 +60,15 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         scale.maxTickCount = maxTicksCount;
         scale.arcLength = arcLength;
 
-        const ticks = values ?? scale.ticks();
-        return ticks.map((value) => {
-            return { value, visible: true };
-        });
+        let rawTicks: number[];
+        if (values != null) {
+            const [d0, d1] = findMinMax(scale.getDomain().map(Number));
+            rawTicks = values.filter((value) => value >= d0 && value <= d1).sort((a, b) => a - b);
+        } else {
+            rawTicks = scale.ticks();
+        }
+
+        return rawTicks.map((value) => ({ value, visible: true }));
     }
 
     protected avoidLabelCollisions(labelData: AngleAxisLabelDatum[]) {

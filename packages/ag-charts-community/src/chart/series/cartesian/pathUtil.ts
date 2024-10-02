@@ -216,8 +216,8 @@ export function pathSwipeInAnimation(
         { clipX: width },
         {
             phase: 'initial',
-            start: { clipMode: 'normal', clipY: height, visible },
-            finish: { clipMode: undefined, visible },
+            start: { clip: true, clipY: height, visible },
+            finish: { clip: false, visible },
         }
     );
 }
@@ -241,10 +241,13 @@ export function pathFadeOutAnimation<T>(
     staticFromToMotion(id, subId, animationManager, selection, { opacity: 1 }, { opacity: 0 }, { phase: 'remove' });
 }
 
-export function buildResetPathFn(opts: { getOpacity(): number }) {
-    return (_node: Path) => {
-        return { opacity: opts.getOpacity(), clipScalingX: 1, clipMode: undefined };
-    };
+export function buildResetPathFn(opts: { getVisible(): boolean; getOpacity(): number }) {
+    return (_node: Path) => ({
+        visible: opts.getVisible(),
+        opacity: opts.getOpacity(),
+        clipScalingX: 1,
+        clip: false,
+    });
 }
 
 export function updateClipPath({ nodeDataDependencies }: NodeDataDependant, path: Path): void {

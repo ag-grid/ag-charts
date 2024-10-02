@@ -1,9 +1,9 @@
+import type { DOMManager } from '../../dom/domManager';
+import { Transformable } from '../../scene/transformable';
 import { StateTracker } from '../../util/stateTracker';
-import type { DOMManager } from '../dom/domManager';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
 import type { Tooltip, TooltipContent, TooltipMeta } from '../tooltip/tooltip';
 import { type TooltipPointerEvent } from '../tooltip/tooltip';
-import defaultTooltipCss from './tooltipManager.css';
 
 interface TooltipState {
     content?: TooltipContent;
@@ -26,7 +26,6 @@ export class TooltipManager {
         tooltip.setup(domManager);
 
         domManager.addListener('hidden', () => this.tooltip.toggle(false));
-        domManager.addStyles('tooltip', defaultTooltipCss);
     }
 
     public updateTooltip(callerId: string, meta?: TooltipMeta, content?: TooltipContent) {
@@ -69,12 +68,13 @@ export class TooltipManager {
         }
 
         const canvasRect = this.domManager.getBoundingClientRect();
+        const boundingRect = this.tooltip.bounds === 'extended' ? this.domManager.getOverlayClientRect() : canvasRect;
 
         if (this.appliedState?.content === state?.content) {
             const renderInstantly = this.tooltip.isVisible();
-            this.tooltip.show(canvasRect, state?.meta, null, renderInstantly);
+            this.tooltip.show(boundingRect, canvasRect, state?.meta, null, renderInstantly);
         } else {
-            this.tooltip.show(canvasRect, state?.meta, state?.content);
+            this.tooltip.show(boundingRect, canvasRect, state?.meta, state?.content);
         }
 
         this.appliedState = state;
@@ -105,7 +105,7 @@ export class TooltipManager {
 
         if (tooltip.position.type === 'node' && refPoint) {
             const { x, y } = refPoint;
-            const point = datum.series.contentGroup.inverseTransformPoint(x, y);
+            const point = Transformable.toCanvasPoint(datum.series.contentGroup, x, y);
             return {
                 ...meta,
                 offsetX: Math.round(point.x),

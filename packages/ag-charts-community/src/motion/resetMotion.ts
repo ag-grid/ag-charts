@@ -5,7 +5,7 @@ import { deconstructSelectionsOrNodes } from './animation';
 /**
  * Implements a per-node reset.
  *
- * @param selections contains nodes to be reset
+ * @param selectionsOrNodes contains nodes to be reset
  * @param propsFn callback to determine per-node properties
  */
 export function resetMotion<N extends Node, T extends Partial<N>, D>(

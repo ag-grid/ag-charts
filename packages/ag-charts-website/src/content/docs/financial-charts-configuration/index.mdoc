@@ -117,7 +117,7 @@ This snippet assumes the supplied data includes 'date', 'open', 'high', 'low', '
 
 For custom data keys, map your data properties to the appropriate [AgFinancialChartOptions](#reference-AgFinancialChartOptions) keys:
 
--   `xKey` : key for the date values.
+-   `dateKey` : key for the date values.
 -   `openKey`: key for the open values.
 -   `highKey`: key for the high values.
 -   `lowKey`: key for the low values.
@@ -126,9 +126,37 @@ For custom data keys, map your data properties to the appropriate [AgFinancialCh
 
 ## Customisation
 
+### Chart Features
+
+{% chartExampleRunner title="Chart Features" name="chart-features" type="generated" /%}
+
+Financial Chart features can be enabled or disabled via the following properties:
+
+```js
+const options: AgFinancialChartOptions = {
+  // ...
+  navigator: false, // disabled by default
+  toolbar: true,
+  rangeButtons: true,
+  volume: true,
+  statusBar: true,
+  zoom: true,
+};
+```
+
+In this configuration:
+
+-   `navigator`: Enables the mini chart navigator for easy dataset navigation.
+-   `toolbar`: Shows the [Toolbar](./financial-charts-toolbar/).
+-   `rangeButtons`: Provides range buttons for navigating different time periods.
+-   `volume`: Displays volume data on the chart.
+-   `statusBar`: Shows a status bar at the top of the chart when hovering over the chart series.
+-   `zoom`: Enables zoom functionality for detailed analysis of the data.
+
 ### Chart Types
 
-{% chartExampleRunner title="Chart Types" name="chart-types" type="generated" /%}
+End users can use the [Chart Type Selection Tool](./financial-charts-toolbar/#chart-type-selection) to choose a series type for visualising the data.
+However, this can also be done programmatically.
 
 The default chart type is `candlestick`. To use a different chart type, set the `chartType` property.
 
@@ -141,39 +169,7 @@ const options: AgFinancialChartOptions = {
 
 The following chart types are supported:
 
--   `candlestick`
--   `hollow-candlestick`
--   `ohlc`
--   `line`
--   `step-line`
--   `range-area`
-
-### Chart Features
-
-{% chartExampleRunner title="Chart Features" name="chart-features" type="generated" /%}
-
-Financial Chart features can be enabled or disabled via the following properties:
-
-```js
-const options: AgFinancialChartOptions = {
-  // ...
-  navigator: false, // disabled by default
-  annotations: true,
-  rangeToolbar: true,
-  volume: true,
-  statusBar: true,
-  zoom: true,
-};
-```
-
-In this configuration:
-
--   `navigator`: Enables the mini chart navigator for easy dataset navigation.
--   `annotations`: Allows users to add annotations on the chart using the annotations toolbar.
--   `rangeToolbar`: Provides range buttons for navigating different time periods.
--   `volume`: Displays volume data on the chart.
--   `statusBar`: Shows a status bar at the top of the chart when hovering over the chart series.
--   `zoom`: Enables zoom functionality for detailed analysis of the data.
+-   `candlestick`, `hollow-candlestick`, `ohlc`, `line`, `step-line`, `hlc`, `high-low`.
 
 ### Chart Styling
 

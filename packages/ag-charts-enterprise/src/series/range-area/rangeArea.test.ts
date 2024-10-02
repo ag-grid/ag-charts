@@ -359,7 +359,7 @@ describe('RangeAreaSeries', () => {
                     xKey: 'x',
                     yHighKey: 'fHi',
                     yLowKey: 'fLo',
-                    marker: { shape: 'cross', enabled: false }, // should draw a square
+                    marker: { shape: 'cross', enabled: false }, // should draw a circle
                 },
                 {
                     type: 'range-area',

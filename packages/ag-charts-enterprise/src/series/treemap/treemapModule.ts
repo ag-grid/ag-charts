@@ -3,7 +3,7 @@ import { type _ModuleSupport, _Theme } from 'ag-charts-community';
 import { TreemapSeries } from './treemapSeries';
 
 const {
-    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FONT_FAMILY,
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_HIERARCHY_STROKES,
@@ -18,7 +18,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
     packageType: 'enterprise',
     chartTypes: ['hierarchy'],
     identifier: 'treemap',
-    instanceConstructor: TreemapSeries,
+    moduleFactory: (ctx) => new TreemapSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     solo: true,
     themeTemplate: {
@@ -99,7 +99,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
     },
     paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
         const { fills, strokes } = takeColors(colorsCount);
-        const defaultColorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
         const groupFills = themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
         const groupStrokes = themeTemplateParameters.get(DEFAULT_HIERARCHY_STROKES);
         return {

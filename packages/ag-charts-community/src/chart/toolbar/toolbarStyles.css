@@ -45,7 +45,6 @@
     background: none;
     border: none;
     flex-direction: row;
-    overflow: hidden;
     pointer-events: none;
     width: 100%;
 }
@@ -64,6 +63,7 @@
 .ag-charts-toolbar--floating-bottom {
     height: calc(var(--ag-charts-toolbar-size) + 10px);
     padding-bottom: 10px;
+    overflow: hidden;
 }
 
 .ag-charts-toolbar__align {
@@ -121,54 +121,73 @@
     border: var(--ag-charts-toolbar-border);
     color: var(--ag-charts-toolbar-foreground-color);
     display: flex;
-    font-size: var(--ag-charts-toolbar-font-size);
-    font-weight: 500;
+    font: var(--ag-charts-toolbar-font-size) var(--ag-charts-font-family);
     justify-content: center;
     margin: 0 0 0 -1px;
     min-height: var(--ag-charts-toolbar-size);
     min-width: var(--ag-charts-toolbar-size);
     padding: var(--ag-charts-toolbar-button-padding);
     pointer-events: all;
+    position: relative;
+    white-space: nowrap;
+    --stroke-width-color: var(--ag-charts-toolbar-foreground-color);
+}
+
+.ag-charts-toolbar__button--drag-handle {
+    min-width: 24px;
+    padding-left: 0;
+    padding-right: 0;
+}
+
+/* Applying this class just after the element is created prevents the flash of the default border color on initial
+   render. The border color variable is evaluated after the transition and a fallback value can not be provided as it
+   differs per theme. */
+.ag-charts-toolbar__button--with-transition {
     transition:
         background-color 0.25s ease-in-out,
+        border-color 0.25s ease-in-out,
         color 0.25s ease-in-out;
-    white-space: nowrap;
 }
 
-.ag-charts-toolbar__button:first-child {
-    border-bottom-left-radius: var(--ag-charts-button-radius);
-    border-top-left-radius: var(--ag-charts-button-radius);
-    margin: 0;
+.ag-charts-toolbar__button[data-toolbar-group='ranges'] {
+    padding: var(--ag-charts-toolbar-button-padding) calc(var(--ag-charts-toolbar-button-padding) * 1.5);
 }
 
-.ag-charts-toolbar__button:last-child {
-    border-bottom-right-radius: var(--ag-charts-button-radius);
-    border-right: var(--ag-charts-toolbar-border);
-    border-top-right-radius: var(--ag-charts-button-radius);
+.ag-charts-toolbar--top,
+.ag-charts-toolbar--bottom,
+.ag-charts-toolbar--floating,
+.ag-charts-toolbar--floating-top,
+.ag-charts-toolbar--floating-bottom {
+    .ag-charts-toolbar__button--first {
+        border-bottom-left-radius: var(--ag-charts-button-radius);
+        border-top-left-radius: var(--ag-charts-button-radius);
+        margin: 0;
+    }
+
+    .ag-charts-toolbar__button--last {
+        border-bottom-right-radius: var(--ag-charts-button-radius);
+        border-top-right-radius: var(--ag-charts-button-radius);
+    }
 }
 
-.ag-charts-toolbar--left .ag-charts-toolbar__button,
-.ag-charts-toolbar--right .ag-charts-toolbar__button {
-    border-left: var(--ag-charts-toolbar-border);
-    border-right: var(--ag-charts-toolbar-border);
-    border-radius: 0;
-    margin: -1px 0 0 0;
-    max-width: 100%;
-    overflow: hidden;
-}
+.ag-charts-toolbar--left,
+.ag-charts-toolbar--right {
+    .ag-charts-toolbar__button {
+        border-radius: 0;
+        margin: -1px 0 0 0;
+        max-width: 100%;
+    }
 
-.ag-charts-toolbar--left .ag-charts-toolbar__button:first-child,
-.ag-charts-toolbar--right .ag-charts-toolbar__button:first-child {
-    border-top-left-radius: var(--ag-charts-button-radius);
-    border-top-right-radius: var(--ag-charts-button-radius);
-    margin: 0;
-}
+    .ag-charts-toolbar__button--first {
+        border-top-left-radius: var(--ag-charts-button-radius);
+        border-top-right-radius: var(--ag-charts-button-radius);
+        margin: 0;
+    }
 
-.ag-charts-toolbar--left .ag-charts-toolbar__button:last-child,
-.ag-charts-toolbar--right .ag-charts-toolbar__button:last-child {
-    border-bottom: var(--ag-charts-toolbar-border);
-    border-bottom-left-radius: var(--ag-charts-button-radius);
-    border-bottom-right-radius: var(--ag-charts-button-radius);
+    .ag-charts-toolbar__button--last {
+        border-bottom-left-radius: var(--ag-charts-button-radius);
+        border-bottom-right-radius: var(--ag-charts-button-radius);
+    }
 }
 
 .ag-charts-toolbar__button--hidden-value,
@@ -176,20 +195,23 @@
     display: none;
 }
 
-.ag-charts-toolbar__button:hover {
+.ag-charts-toolbar__button:hover:not([aria-disabled='true'], .ag-charts-toolbar__button--drag-handle) {
     background: var(--ag-charts-toolbar-hover-color);
+    z-index: 1;
 }
 
-.ag-charts-toolbar .ag-charts-toolbar__button:focus-visible {
-    border-left: var(--ag-charts-toolbar-border);
-    border-color: var(--ag-charts-toolbar-focus-color);
+.ag-charts-toolbar__button:focus-visible {
+    outline: var(--ag-charts-focus-border);
     box-shadow: var(--ag-charts-focus-border-shadow);
-    z-index: 1;
+    z-index: calc(var(--ag-charts-layer-ui-overlay) + 1);
 }
 
 .ag-charts-toolbar__button.ag-charts-toolbar__button--active {
     background: var(--ag-charts-toolbar-active-background-color);
+    border-color: var(--ag-charts-toolbar-active-color);
     color: var(--ag-charts-toolbar-active-color);
+    z-index: 2;
+    --stroke-width-color: var(--ag-charts-toolbar-active-color);
 }
 
 .ag-charts-toolbar__button[aria-disabled='true'] {
@@ -201,9 +223,43 @@
     cursor: pointer;
 }
 
-.ag-charts-toolbar__icon {
-    height: 1.2em;
-    width: 1.2em;
+.ag-charts-toolbar__button.ag-charts-toolbar__button--drag-handle {
+    cursor: grab;
+}
+
+.ag-charts-toolbar__button.ag-charts-toolbar__button--dragging {
+    cursor: grabbing;
+}
+
+.ag-charts-toolbar__button--fill-visible::after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: 3px;
+    left: 5px;
+    right: 5px;
+    height: 4px;
+    border-radius: 99px;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ag-charts-foreground-color) 10%, transparent);
+    background: var(--fill);
+}
+
+.ag-charts-toolbar__button--fill-visible[aria-disabled='true']::after {
+    filter: grayscale(1);
+    opacity: 0.5;
+}
+
+.ag-charts-toolbar__button--stroke-width-visible::before {
+    content: '';
+    height: min(var(--strokeWidth), 20px);
+    width: 12px;
+    background: var(--stroke-width-color);
+    margin-right: var(--ag-charts-toolbar-button-padding);
+}
+
+.ag-charts-toolbar__button--stroke-width-visible[aria-disabled='true']::before {
+    filter: grayscale(1);
+    opacity: 0.5;
 }
 
 .ag-charts-toolbar__icon + .ag-charts-toolbar__label {

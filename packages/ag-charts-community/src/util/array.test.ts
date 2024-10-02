@@ -24,12 +24,12 @@ describe('array module', () => {
 
         test('returns undefined for list of invalid values', () => {
             const result = extent([NaN, null, undefined] as any[]);
-            expect(result).toBe(undefined);
+            expect(result).toBe(null);
         });
 
         test('returns undefined for empty list', () => {
             const result = extent([]);
-            expect(result).toBe(undefined);
+            expect(result).toBe(null);
         });
 
         test('returns same lowest and highest number for single number', () => {
@@ -46,7 +46,7 @@ describe('array module', () => {
 
         test('does not coerce objects', () => {
             const result = extent([{ toString: () => '2' }, { toString: () => '1' }] as any);
-            expect(result).toBe(undefined);
+            expect(result).toBe(null);
         });
 
         test('coerces Dates to numbers', () => {

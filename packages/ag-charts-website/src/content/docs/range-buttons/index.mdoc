@@ -1,0 +1,66 @@
+---
+title: 'Financial Charts - Range Buttons'
+enterprise: true
+---
+
+Range Buttons allow the user to easily navigate to specific time periods and ranges along the chart timeline.
+
+## Range Buttons
+
+{% chartExampleRunner title="Range Buttons" name="range-buttons" type="generated" /%}
+
+The Range Buttons are enabled by default for Financial Charts. To hide them, set the `rangeButtons` chart option to `false`.
+
+## Custom Buttons
+
+It is possible to override the default buttons by providing an array of button objects.
+
+{% chartExampleRunner title="Custom Range Buttons" name="custom-range-buttons" type="generated" /%}
+
+Custom buttons can be defined through the `toolbar.ranges` options object.
+
+```ts
+toolbar: {
+    ranges: {
+      enabled: true,
+      buttons: [
+        {
+          label: "6 Months",
+          value: 6 * MONTH,
+        },
+        {
+          label: "12 Months",
+          value: 12 * MONTH,
+        },
+        {
+          label: 'February',
+          value: [new Date(2023, 1, 1), new Date(2023, 2, 1)],
+          id: 'February'
+        },
+        {
+          label: "All Data",
+          value: (start, end) => [start, end],
+          id: 'All Data'
+        },
+      ],
+    },
+  },
+```
+
+In this configuration:
+
+-   `label` specifies the text displayed on the button.
+-   `value` determines the time range the button applies:
+    -   For "6 Months" and "12 Months", it sets the range to the past 6 or 12 months, respectively.
+    -   For "February", it sets the range to February 2023, from February 1 to March 1.
+    -   For "All Data", it dynamically sets the range to include all available data from the start to the end date.
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgToolbarOptions" label="Range Button Options" %}
+{% apiReference id="AgToolbarRangesGroup" /%}
+{% /tabItem %}
+
+{% /tabs %}

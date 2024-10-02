@@ -1,12 +1,12 @@
+import type { DOMManager } from '../../dom/domManager';
+import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
+import { setAttribute } from '../../util/attributeUtil';
 import type { DataService } from '../data/dataService';
-import type { DOMManager } from '../dom/domManager';
 import type { AnimationManager } from '../interaction/animationManager';
-import type { LayoutCompleteEvent, LayoutService } from '../layout/layoutService';
-import type { LocaleManager } from '../locale/localeManager';
+import type { LayoutCompleteEvent, LayoutManager } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { DEFAULT_OVERLAY_CLASS, DEFAULT_OVERLAY_DARK_CLASS, type Overlay } from '../overlay/overlay';
-import defaultOverlayCss from './overlaysProcessor.css';
 import type { ChartLike, UpdateProcessor } from './processor';
 
 export class OverlaysProcessor<D extends object> implements UpdateProcessor {
@@ -17,7 +17,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         private readonly chartLike: ChartLike,
         private readonly overlays: ChartOverlays,
         private readonly dataService: DataService<D>,
-        private readonly layoutService: LayoutService,
+        private readonly layoutManager: LayoutManager,
         private readonly localeManager: LocaleManager,
         private readonly animationManager: AnimationManager,
         private readonly domManager: DOMManager
@@ -27,8 +27,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         this.overlayElem.ariaAtomic = 'false';
         this.overlayElem.ariaLive = 'polite';
         this.overlayElem.classList.toggle(DEFAULT_OVERLAY_CLASS);
-        this.domManager.addStyles('overlays', defaultOverlayCss);
-        this.destroyFns.push(this.layoutService.addListener('layout-complete', (e) => this.onLayoutComplete(e)));
+        this.destroyFns.push(this.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)));
     }
 
     public destroy() {
@@ -52,9 +51,16 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         this.overlayElem.style.width = `${rect.width}px`;
         this.overlayElem.style.height = `${rect.height}px`;
 
-        this.toggleOverlay(this.overlays.loading, rect, isLoading);
-        this.toggleOverlay(this.overlays.noData, rect, !isLoading && !hasData);
-        this.toggleOverlay(this.overlays.noVisibleSeries, rect, hasData && !anySeriesVisible);
+        const loadingShown = isLoading;
+        const noDataShown = !isLoading && !hasData;
+        const noVisibleSeriesShown = hasData && !anySeriesVisible;
+
+        this.toggleOverlay(this.overlays.loading, rect, loadingShown);
+        this.toggleOverlay(this.overlays.noData, rect, noDataShown);
+        this.toggleOverlay(this.overlays.noVisibleSeries, rect, noVisibleSeriesShown);
+
+        const shown = loadingShown || noDataShown || noVisibleSeriesShown;
+        setAttribute(this.overlayElem, 'aria-hidden', !shown);
     }
 
     private toggleOverlay(overlay: Overlay, seriesRect: BBox, visible: boolean) {
