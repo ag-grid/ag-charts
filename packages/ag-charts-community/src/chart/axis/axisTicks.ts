@@ -54,7 +54,7 @@ export class AxisTicks {
     readonly id = createId(this);
 
     protected readonly axisGroup = new TranslatableGroup({ name: `${this.id}-AxisTicks`, zIndex: ZIndexMap.AXIS });
-    protected readonly labelSelection = Selection.select<Text, LabelNodeDatum>(this.axisGroup, Text, false);
+    protected readonly labelSelection = Selection.select<Text, LabelNodeDatum>(this.axisGroup, Text);
 
     readonly interval = new AxisInterval();
     readonly label = new AxisLabel();
@@ -77,7 +77,7 @@ export class AxisTicks {
 
         this.labelSelection.update(
             tickData.ticks.map((d) => this.createLabelDatum(d)),
-            (group) => group.appendChild(new Text()),
+            undefined,
             (datum) => datum.tickId
         );
 
