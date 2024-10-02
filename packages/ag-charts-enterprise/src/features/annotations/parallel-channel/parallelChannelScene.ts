@@ -153,10 +153,6 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         topRight: Coords,
         context: AnnotationContext
     ): Coords[] {
-        const { dragState } = this;
-
-        if (!dragState) return [];
-
         const height = convertPoint(datum.bottom.start, context).y - convertPoint(datum.start, context).y;
 
         const bottomLeft = Vec2.add(topLeft, Vec2.from(0, height));
