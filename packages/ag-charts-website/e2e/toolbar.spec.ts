@@ -1,6 +1,13 @@
 import { expect, test } from '@playwright/test';
 
-import { SELECTORS, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
+import {
+    SELECTORS,
+    canvasToPageTransformer,
+    gotoExample,
+    locateCanvas,
+    setupIntrinsicAssertions,
+    toExamplePageUrl,
+} from './util';
 
 test.describe('toolbar', () => {
     setupIntrinsicAssertions();
@@ -132,11 +139,14 @@ test.describe('toolbar', () => {
 
     test('AG-13008 delete annotation', async ({ page }) => {
         await gotoExample(page, url);
+        const point = await canvasToPageTransformer(page);
+        const hover = point(200, 200);
+        const leave = point(300, 400);
 
         // Test 1. Check that the Delete & Backspace keys work:
         await page.locator(SELECTORS.textAnnotationMenu).click();
         await page.locator(SELECTORS.commentMenuItem).click();
-        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.mouse.click(hover.x, hover.y, { button: 'left' });
         await page.keyboard.type('this sentence is missing a word');
         await page.keyboard.press('Backspace');
         await page.keyboard.press('Backspace');
@@ -149,15 +159,15 @@ test.describe('toolbar', () => {
 
         // Test 2. Check that Backspace key deletes the annotation when in idle state:
         // (Click away from the annotation, then reclick it to go into idle state)
-        await page.click(SELECTORS.canvas, { position: { x: 300, y: 400 } });
-        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.mouse.click(leave.x, leave.y, { button: 'left' });
+        await page.mouse.click(hover.x, hover.y, { button: 'left' });
         await page.keyboard.press('Backspace');
         await expect(page).toHaveScreenshot('delete-annotation-removed.png');
 
         // Test 3. Check that the Delete button works in text-editing state:
         await page.locator(SELECTORS.textAnnotationMenu).click();
         await page.locator(SELECTORS.commentMenuItem).click();
-        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.mouse.click(hover.x, hover.y, { button: 'left' });
         await page.locator(SELECTORS.annotationOptionsDeleteButton).click();
         await expect(page).toHaveScreenshot('delete-annotation-removed.png');
 
@@ -165,9 +175,9 @@ test.describe('toolbar', () => {
         // (Click away from the annotation, then reclick it to go into idle state)
         await page.locator(SELECTORS.textAnnotationMenu).click();
         await page.locator(SELECTORS.commentMenuItem).click();
-        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
-        await page.click(SELECTORS.canvas, { position: { x: 300, y: 400 } });
-        await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
+        await page.mouse.click(hover.x, hover.y, { button: 'left' });
+        await page.mouse.click(leave.x, leave.y, { button: 'left' });
+        await page.mouse.click(hover.x, hover.y, { button: 'left' });
         await page.locator(SELECTORS.annotationOptionsDeleteButton).click();
         await expect(page).toHaveScreenshot('delete-annotation-removed.png');
     });
