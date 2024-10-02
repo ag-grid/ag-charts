@@ -181,7 +181,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             const xValue: string = values[xIdx];
             const yValue = Number(values[yIdx]);
 
-            let yEnd = yStart + yValue;
+            const yEnd = yStart + yValue;
 
             const yMidRatio = (yStart + yEnd) / (2 * yTotal);
             const x = bounds.x + bounds.width * (horizontal ? yMidRatio : 0.5);
