@@ -125,10 +125,10 @@
       },
       "configurations": {
         "update": {
-          "command": "./playwright.sh --host test -u $(grep -lR 'toHaveScreenshot' e2e/**/*.spec.ts)"
+          "command": "./playwright.sh --host test -u $(grep -lR 'toHaveScreenshot' e2e)"
         },
         "without-snapshots": {
-          "command": "./playwright.sh --host test $(grep -LR 'toHaveScreenshot' e2e/**/*.spec.ts)"
+          "command": "./playwright.sh --host test $(grep -LR 'toHaveScreenshot' e2e)"
         }
       }
     },
