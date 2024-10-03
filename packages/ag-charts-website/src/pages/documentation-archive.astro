@@ -1,7 +1,7 @@
 ---
 import { getCollection, getEntry } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
-import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/components/PagesNavigationFromLocalStorage';
+import { NewDocsNavFromLocalStorage } from '@ag-website-shared/components/new-docs-navigation/NewDocsNavFromLocalStorage';
 import { getDocsPages } from '../features/docs/utils/pageData';
 import type { Framework } from '@ag-grid-types';
 import DocumentationArchive from '@ag-website-shared/components/documentation-archive/DocumentationArchive.astro';
@@ -13,10 +13,10 @@ export async function getStaticPaths() {
 
 const pageName = Astro.params.pageName as Framework;
 
-const menuEntry = await getEntry('menu', 'docsMenu');
-
 const versionsContent = await getEntry('versions', 'ag-charts-versions');
 const versionsData: any[] = versionsContent ? versionsContent.data : [];
+
+const { data: newMenuData } = await getEntry('newMenu', 'newDocsMenu');
 ---
 
 <Layout
@@ -26,7 +26,7 @@ const versionsData: any[] = versionsContent ? versionsContent.data : [];
     showSearchBar={true}
 >
     <div class:list={['contentViewport layout-grid']}>
-        <PagesNavigationFromLocalStorage client:load menuData={menuEntry.data} pageName={pageName} />
+        <NewDocsNavFromLocalStorage client:load menuData={newMenuData} pageName={pageName} />
 
         <DocumentationArchive site="charts" versionsData={versionsData} />
     </div>

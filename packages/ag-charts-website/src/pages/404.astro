@@ -2,15 +2,15 @@
 import Layout from '@layouts/Layout.astro';
 import { getEntry } from 'astro:content';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
-import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/components/PagesNavigationFromLocalStorage';
+import { NewDocsNavFromLocalStorage } from '@ag-website-shared/components/new-docs-navigation/NewDocsNavFromLocalStorage';
 
-const menuEntry = await getEntry('menu', 'docsMenu');
+const { data: newMenuData } = await getEntry('newMenu', 'newDocsMenu');
 ---
 
 <Layout title="AG Charts: Page Not Found" showDocsNav={true} showSearchBar={true}>
     <div class="layout-grid">
         <!-- NOTE: 404 is used for all paths, so will need to get framework from localstorage -->
-        <PagesNavigationFromLocalStorage client:load menuData={menuEntry.data} pageName={'404'} />
+        <NewDocsNavFromLocalStorage client:load menuData={newMenuData} pageName={'404'} />
 
         <div id="doc-content" class:list={['docPage', 'noSideMenu']}>
             <h1>Page Not Found</h1>
