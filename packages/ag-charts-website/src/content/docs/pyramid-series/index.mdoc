@@ -1,0 +1,50 @@
+---
+title: 'Pyramid Series'
+description: '$framework Pyramid Series uses the height of sections to show the proportions of a value over a category of values.'
+---
+
+A Pyramid Series uses the height of sections to show the proportions of a value over a category of values.
+
+## Simple Pyramid
+
+{% chartExampleRunner title="Pyramid Chart" name="simple-pyramid" type="generated" /%}
+
+To create a Funnel Series, use the `pyramid` series type.
+
+```js
+series: [
+    {
+        type: 'pyramid',
+        xKey: 'group',
+        yKey: 'value'
+    },
+],
+```
+
+In this configuration:
+
+-   `xKey` defines the categories, and is mapped to the stages of the funnel.
+-   `yKey` provides the numerical values, corresponding values of each stage.
+
+## Horizontal Pyramid
+
+{% chartExampleRunner title="Horizontal Pyramid Chart" name="horizontal-pyramid" type="generated" /%}
+
+To create a horizontal Funnel Series, set the `direction` to `horizontal`.
+
+```js
+{
+    direction: 'horizontal',
+    reverse: true,
+}
+```
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgConeFunnelSeriesOptions" label="Pyramid Series" %}
+{% apiReference id="AgConeFunnelSeriesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

@@ -2,31 +2,25 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const numberFormatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-});
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
         text: 'Revenue Open by Sales Stage',
     },
+    seriesArea: {
+        padding: {
+            left: 20,
+            right: 20,
+        },
+    },
     series: [
         {
-            type: 'funnel',
+            type: 'pyramid',
             xKey: 'group',
             yKey: 'value',
-            direction: 'vertical',
-            dropOff: {
-                enabled: false,
-            },
-            label: {
-                formatter({ value }) {
-                    return numberFormatter.format(value);
-                },
-            },
+            direction: 'horizontal',
+            reverse: true,
         },
     ],
 };
