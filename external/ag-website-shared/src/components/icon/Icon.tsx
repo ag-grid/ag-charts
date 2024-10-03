@@ -20,6 +20,7 @@ import minimizeIcon from '@ag-website-shared/images/inline-svgs/minimize.svg?rea
 import NewTabIcon from '@ag-website-shared/images/inline-svgs/new-tab.svg?react';
 import PageResult from '@ag-website-shared/images/inline-svgs/page-result.svg?react';
 import PlunkerIcon from '@ag-website-shared/images/inline-svgs/plunker.svg?react';
+import Pyramid from '@ag-website-shared/images/inline-svgs/pyramid.svg?react';
 import RadarArea from '@ag-website-shared/images/inline-svgs/radar-area.svg?react';
 import RadialColumn from '@ag-website-shared/images/inline-svgs/radial-column.svg?react';
 import RadialGauge from '@ag-website-shared/images/inline-svgs/radial-gauge.svg?react';
@@ -127,7 +128,7 @@ const CHARTS_ICON_MAP = {
     chartsIcicle: CarbonIcon.ChartClusterBar,
     chartsFunnel: Funnel,
     chartsConeFunnel: ConeFunnel,
-    chartsPyramid: CarbonIcon.UpToTop,
+    chartsPyramid: Pyramid,
     chartsLinearGauge: CarbonIcon.ChartBullet,
     chartsMap: CarbonIcon.Plan,
     chartsCandlestick: CarbonIcon.ChartCandlestick,

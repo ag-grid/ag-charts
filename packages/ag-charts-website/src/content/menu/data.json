@@ -443,6 +443,12 @@
                         "isEnterprise": true
                     },
                     {
+                        "title": "Pyramid",
+                        "icon": "chartsPyramid",
+                        "path": "pyramid-series",
+                        "isEnterprise": true
+                    },
+                    {
                         "title": "Radial Gauge",
                         "icon": "chartsRadialGauge",
                         "path": "radial-gauge",
