@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-
+import { expect, test } from './fixture';
 import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls } from './util';
 
 test.describe('icons', () => {

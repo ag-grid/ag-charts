@@ -1,6 +1,8 @@
-import { Page, expect, test } from '@playwright/test';
+import { type Page } from '@playwright/test';
 import { execSync } from 'child_process';
 import glob from 'glob';
+
+import { expect, test } from './fixture';
 
 const baseUrl = process.env.PUBLIC_SITE_URL;
 const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'] as const;
@@ -160,7 +162,7 @@ export async function locateCanvas(page: Page) {
 type PointTransformer = (x: number, y: number) => { x: number; y: number };
 
 export async function canvasToPageTransformer(page: Page): Promise<PointTransformer> {
-    const offset = await (await page.$(SELECTORS.canvas)).boundingBox();
+    const offset = await (await page.$(SELECTORS.canvas))?.boundingBox();
     if (!offset) throw new Error("Couldn't get the canvas bbox");
     return (x: number, y: number) => {
         return { x: offset.x + x, y: offset.y + y };
