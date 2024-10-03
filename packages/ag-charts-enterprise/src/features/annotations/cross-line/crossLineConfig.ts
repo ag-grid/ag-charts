@@ -10,6 +10,9 @@ export const horizontalLineConfig: AnnotationTypeConfig<HorizontalLineProperties
     datum: HorizontalLineProperties,
     scene: CrossLineScene,
     isDatum: HorizontalLineProperties.is,
+    translate: (node, datum, translation, context) => {
+        if (HorizontalLineProperties.is(datum) && CrossLineScene.is(node)) node.translate(datum, translation, context);
+    },
     copy: (node, datum, copiedDatum, context) => {
         if (HorizontalLineProperties.is(datum) && HorizontalLineProperties.is(copiedDatum) && CrossLineScene.is(node)) {
             return node.copy(datum, copiedDatum, context) as HorizontalLineProperties;
@@ -39,6 +42,9 @@ export const verticalLineConfig: AnnotationTypeConfig<VerticalLineProperties, Cr
     datum: VerticalLineProperties,
     scene: CrossLineScene,
     isDatum: VerticalLineProperties.is,
+    translate: (node, datum, translation, context) => {
+        if (VerticalLineProperties.is(datum) && CrossLineScene.is(node)) node.translate(datum, translation, context);
+    },
     copy: (node, datum, copiedDatum, context) => {
         if (VerticalLineProperties.is(datum) && VerticalLineProperties.is(copiedDatum) && CrossLineScene.is(node)) {
             return node.copy(datum, copiedDatum, context) as VerticalLineProperties;

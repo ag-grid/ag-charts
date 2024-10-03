@@ -31,7 +31,7 @@ import { pickNode } from './util';
 export interface SeriesAreaChartDependencies {
     fireEvent<TEvent extends TypedEvent>(event: TEvent): void;
     getUpdateType(): ChartUpdateType;
-    chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge';
+    chartType: 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'standalone' | 'gauge';
     seriesRoot: TranslatableGroup;
     ctx: ChartContext;
     tooltip: Tooltip;

@@ -75,7 +75,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
             seriesRegion.addListener('drag', (event) => this.onMouseMove(event), InteractionState.Annotations),
             seriesRegion.addListener('wheel', () => this.onMouseOut(), InteractionState.Default),
-            seriesRegion.addListener('leave', () => this.onMouseOut(), InteractionState.Default),
+            seriesRegion.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.onMouseOut()),
             ctx.zoomManager.addListener('zoom-change', () => this.onMouseOut()),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),

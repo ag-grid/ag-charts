@@ -638,13 +638,27 @@
         [
             {
                 "title": "Cone Funnel",
-                "seriesName": "cone funnel",
+                "seriesName": "cone-funnel",
                 "icon": "chartsConeFunnel",
                 "enterprise": true,
                 "examples": [
                     {
                         "title": "Simple Cone Funnel",
                         "name": "simple-cone-funnel"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Pyramid",
+                "seriesName": "pyramid",
+                "icon": "chartsPyramid",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Pyramid",
+                        "name": "simple-pyramid"
                     }
                 ]
             }

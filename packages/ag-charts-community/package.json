@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-community",
-  "version": "10.2.0-beta.20241002.1133",
+  "version": "10.2.0-beta.20241003",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
@@ -60,8 +60,8 @@
   ],
   "homepage": "https://ag-grid.com/charts/",
   "dependencies": {
-    "ag-charts-types": "10.2.0-beta.20241002.1133",
-    "ag-charts-locale": "10.2.0-beta.20241002.1133"
+    "ag-charts-types": "10.2.0-beta.20241003",
+    "ag-charts-locale": "10.2.0-beta.20241003"
   },
   "devDependencies": {
     "@babel/types": "7.12.7",
@@ -74,7 +74,7 @@
     "@types/ws": "8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
     "@typescript-eslint/parser": "^5.51.0",
-    "ag-charts-test": "10.2.0-beta.20241002.1133",
+    "ag-charts-test": "10.2.0-beta.20241003",
     "assert": "2.0.0",
     "canvas": "^2.10.2",
     "del": "^6.0.0",

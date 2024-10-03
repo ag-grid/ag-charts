@@ -9,6 +9,8 @@ import type {
     AgHierarchySeriesOptions,
     AgPolarChartOptions,
     AgPolarSeriesOptions,
+    AgStandaloneChartOptions,
+    AgStandaloneSeriesOptions,
     AgTopologyChartOptions,
     AgTopologySeriesOptions,
 } from 'ag-charts-types';
@@ -23,6 +25,7 @@ import {
     isEnterpriseGauge,
     isEnterpriseHierarchy,
     isEnterprisePolar,
+    isEnterpriseStandalone,
     isEnterpriseTopology,
 } from '../factory/expectedEnterpriseModules';
 
@@ -34,6 +37,7 @@ export type SeriesOptionsTypes =
     | AgHierarchySeriesOptions
     | AgTopologySeriesOptions
     | AgFlowProportionSeriesOptions
+    | AgStandaloneSeriesOptions
     | AgGaugeOptions;
 
 export type SeriesType = SeriesOptionsTypes['type'];
@@ -110,6 +114,20 @@ export function isAgFlowProportionChartOptions(input: AgChartOptions): input is 
     }
 
     return chartTypes.isFlowProportion(specifiedType) || isEnterpriseFlowProportion(specifiedType);
+}
+
+export function isAgStandaloneChartOptions(input: AgChartOptions): input is AgStandaloneChartOptions {
+    const specifiedType = optionsType(input);
+    if (specifiedType == null) {
+        return false;
+    }
+
+    if ((specifiedType as string) === 'standalone') {
+        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
+        return true;
+    }
+
+    return chartTypes.isStandalone(specifiedType) || isEnterpriseStandalone(specifiedType);
 }
 
 export function isAgGaugeChartOptions(input: any): input is AgGaugeChartOptions {

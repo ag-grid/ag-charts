@@ -219,6 +219,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 return hovered;
             },
 
+            translate: (index: number, translation: Coords) => {
+                const node = this.annotations.at(index);
+                const datum = getTypedDatum(this.annotationData.at(index));
+                if (!node || !datum) {
+                    return;
+                }
+
+                return this.translateNode({ node, datum, translation });
+            },
+
             copy: (index: number) => {
                 const node = this.annotations.at(index);
                 const datum = getTypedDatum(this.annotationData.at(index));
@@ -490,7 +500,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
             ctx.keyNavManager.addListener('cancel', this.onCancel.bind(this), Default | AnnotationsState),
-            ctx.keyNavManager.addListener('delete', this.onDelete.bind(this), Default | AnnotationsState),
+            ctx.keyNavManager.addListener('delete', (ev) => this.onDelete(ev), Default | AnnotationsState),
             ctx.interactionManager.addListener('keydown', this.onTextInput.bind(this), AnnotationsState),
             ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), All),
             ctx.interactionManager.addListener('keyup', this.onKeyUp.bind(this), All),
@@ -531,6 +541,25 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
+    private translateNode({
+        node,
+        datum,
+        translation,
+    }: {
+        node: AnnotationScene;
+        datum: AnnotationProperties;
+        translation: Coords;
+    }): AnnotationProperties | undefined {
+        const config = this.getAnnotationConfig(datum);
+
+        const context = this.getAnnotationContext();
+        if (!context) {
+            return;
+        }
+
+        config.translate(node, datum, translation, context);
+    }
+
     private createAnnotationDatumCopy({
         node,
         datum,
@@ -538,15 +567,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         node: AnnotationScene;
         datum: AnnotationProperties;
     }): AnnotationProperties | undefined {
-        const { type } = datum;
-
-        if (!(type in annotationConfigs)) {
-            throw new Error(
-                `AG Charts - Cannot set property of unknown type [${type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
-            );
-        }
-
-        const config = annotationConfigs[type];
+        const config = this.getAnnotationConfig(datum);
 
         const newDatum = new config.datum();
         newDatum.set(datum.toJson());
@@ -557,6 +578,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         return config.copy(node, datum, newDatum, context);
+    }
+
+    private getAnnotationConfig(datum: AnnotationProperties) {
+        const { type } = datum;
+
+        if (!(type in annotationConfigs)) {
+            throw new Error(
+                `AG Charts - Cannot set property of unknown type [${type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
+            );
+        }
+
+        return annotationConfigs[type];
     }
 
     private createAnnotation(type: AnnotationType, datum: AnnotationProperties, applyDefaults: boolean = true) {
@@ -1193,11 +1226,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.reset();
     }
 
-    private onDelete() {
+    private onDelete(event: _ModuleSupport.KeyNavEvent<'delete'>) {
+        if (this.textInput.isVisible()) return;
         this.cancel();
         this.delete();
         this.reset();
         this.update();
+
+        // AG-13041 Treat the Backspace/Delete key as a mouse event (iff the user is in "mouse mode").
+        this.ctx.focusIndicator.toggleForceInvisible(event.previousInputDevice === 'mouse');
     }
 
     private onTextInput(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
@@ -1213,20 +1250,55 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onKeyDown(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
+        const { state } = this;
+        const context = this.getAnnotationContext();
+
         const { sourceEvent } = event;
-        const { shiftKey } = sourceEvent;
-        const modifierKey = sourceEvent.ctrlKey || sourceEvent.metaKey;
+        const { shiftKey, ctrlKey, metaKey } = sourceEvent;
+        const ctrlMeta = ctrlKey || metaKey;
+        const ctrlShift = ctrlKey || shiftKey;
 
         this.state.transition('keyDown', { shiftKey });
 
-        if (modifierKey && sourceEvent.key === 'c') {
-            this.state.transition('copy');
-        } else if (modifierKey && sourceEvent.key === 'x') {
-            this.state.transition('cut');
-            this.recordActionAfterNextUpdate('Cut annotation');
-        } else if (modifierKey && sourceEvent.key === 'v') {
-            this.state.transition('paste');
-            this.recordActionAfterNextUpdate('Paste annotation');
+        const translation = { x: 0, y: 0 };
+
+        const xStep = Math.max(context?.xAxis.scaleBandwidth() ?? 0, ctrlShift ? 10 : 1);
+        const yStep = Math.max(context?.yAxis.scaleBandwidth() ?? 0, ctrlShift ? 10 : 1);
+        switch (sourceEvent.key) {
+            case 'ArrowDown':
+                translation.y = yStep;
+                break;
+            case 'ArrowUp':
+                translation.y = -yStep;
+                break;
+            case 'ArrowLeft':
+                translation.x = -xStep;
+                break;
+            case 'ArrowRight':
+                translation.x = xStep;
+                break;
+        }
+
+        if (translation.x || translation.y) {
+            state.transition('translate', { translation, context });
+        }
+
+        if (!ctrlMeta) {
+            return;
+        }
+
+        switch (sourceEvent.key) {
+            case 'c':
+                state.transition('copy');
+                return;
+            case 'x':
+                state.transition('cut');
+                this.recordActionAfterNextUpdate('Cut annotation');
+                return;
+            case 'v':
+                state.transition('paste');
+                this.recordActionAfterNextUpdate('Paste annotation');
+                return;
         }
     }
 
@@ -1234,6 +1306,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const { shiftKey } = event.sourceEvent;
 
         this.state.transition('keyUp', { shiftKey });
+        this.state.transition('translateEnd');
     }
 
     private beginAnnotationPlacement(annotation: AnnotationType) {

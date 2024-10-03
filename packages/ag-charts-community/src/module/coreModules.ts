@@ -8,6 +8,7 @@ import type {
     AgPolarChartOptions,
     AgPolarSeriesOptions,
     AgRadialGaugeOptions,
+    AgStandaloneSeriesOptions,
     AgTopologySeriesOptions,
 } from 'ag-charts-types';
 import type { AgChartOptions } from 'ag-charts-types';
@@ -53,14 +54,18 @@ export type SeriesTypeOptions<SeriesType extends RequiredSeriesType> = Extract<
     { type: SeriesType }
 >;
 
+type GaugeAxes = {
+    'radial-gauge': AgPolarChartOptions['axes'];
+    'linear-gauge': AgCartesianChartOptions['axes'];
+};
+
 type Axes = Record<Required<AgCartesianSeriesOptions>['type'], AgCartesianChartOptions['axes']> &
     Record<Required<AgPolarSeriesOptions>['type'], AgPolarChartOptions['axes']> &
     Record<Required<AgHierarchySeriesOptions>['type'], never> &
     Record<Required<AgTopologySeriesOptions>['type'], never> &
-    Record<Required<AgFlowProportionSeriesOptions>['type'], never> & {
-        'radial-gauge': AgPolarChartOptions['axes'];
-        'linear-gauge': AgCartesianChartOptions['axes'];
-    };
+    Record<Required<AgFlowProportionSeriesOptions>['type'], never> &
+    Record<Required<AgStandaloneSeriesOptions>['type'], never> &
+    GaugeAxes;
 
 type SeriesDefaultAxes<SeriesType extends RequiredSeriesType> = Axes[SeriesType] | ((series: any) => Axes[SeriesType]);
 

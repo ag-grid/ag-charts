@@ -118,20 +118,17 @@
       "dependsOn": ["^build", "generate-examples"],
       "inputs": ["{projectRoot}/playwright.config.ts", "{projectRoot}/e2e/**", { "env": "NX_BASE" }],
       "outputs": [],
-      "command": "npx playwright test",
+      "command": "./playwright.sh --host test",
       "cache": false,
       "options": {
         "cwd": "packages/ag-charts-website"
       },
       "configurations": {
         "update": {
-          "command": "npx playwright test -u $(grep -lR 'toHaveScreenshot' e2e)"
-        },
-        "docker": {
-          "command": "./playwright.sh --host test"
-        },
-        "docker:update": {
           "command": "./playwright.sh --host test -u $(grep -lR 'toHaveScreenshot' e2e)"
+        },
+        "without-snapshots": {
+          "command": "./playwright.sh --host test $(grep -LR 'toHaveScreenshot' e2e)"
         }
       }
     },
