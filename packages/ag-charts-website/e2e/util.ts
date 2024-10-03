@@ -1,11 +1,14 @@
-import { Page, expect, test } from '@playwright/test';
+import { type Page } from '@playwright/test';
 import { execSync } from 'child_process';
 import glob from 'glob';
+
+import { expect, test } from './fixture';
 
 const baseUrl = process.env.PUBLIC_SITE_URL;
 const fws = ['vanilla', 'typescript', 'reactFunctional', 'reactFunctionalTs', 'angular', 'vue3'] as const;
 
 export const SELECTORS = {
+    wrapper: '.ag-charts-wrapper',
     canvas: '.ag-charts-canvas-proxy',
     canvasCenter: '.ag-charts-canvas-center',
     legendItem0: '#ag-charts-legend-item-0',
@@ -110,8 +113,9 @@ export async function gotoExample(page: Page, url: string) {
     for (const elements of await page.locator(SELECTORS.canvas).all()) {
         await expect(elements).toBeVisible();
     }
-    for (const elements of await page.locator('.ag-charts-wrapper').all()) {
+    for (const elements of await page.locator(SELECTORS.wrapper).all()) {
         await expect(elements).toHaveAttribute('data-scene-renders', { timeout: 5_000 });
+        await expect(elements).toHaveAttribute('data-update-pending', 'false', { timeout: 5_000 });
     }
 }
 
@@ -140,6 +144,7 @@ export async function dragCanvas(
 export async function locateCanvas(page: Page) {
     const canvasElem = page.locator('canvas');
     const canvas = page.locator(SELECTORS.canvas);
+    const wrapper = page.locator(SELECTORS.wrapper);
     const width = Number(await canvasElem.getAttribute('width'));
     const height = Number(await canvasElem.getAttribute('height'));
     const bbox = await canvas.boundingBox();
@@ -151,13 +156,13 @@ export async function locateCanvas(page: Page) {
         throw new Error(`Invalid canvas bbox!`);
     }
 
-    return { canvas, width, height, bbox };
+    return { wrapper, canvas, width, height, bbox };
 }
 
 type PointTransformer = (x: number, y: number) => { x: number; y: number };
 
 export async function canvasToPageTransformer(page: Page): Promise<PointTransformer> {
-    const offset = await (await page.$(SELECTORS.canvas)).boundingBox();
+    const offset = await (await page.$(SELECTORS.canvas))?.boundingBox();
     if (!offset) throw new Error("Couldn't get the canvas bbox");
     return (x: number, y: number) => {
         return { x: offset.x + x, y: offset.y + y };
