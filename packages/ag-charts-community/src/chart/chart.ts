@@ -515,6 +515,7 @@ export abstract class Chart extends Observable {
 
         if (type < this.performUpdateType) {
             this.performUpdateType = type;
+            this.ctx.domManager.setDataBoolean('updatePending', true);
             this.performUpdateTrigger.schedule(opts?.backOffMs);
         }
     }
@@ -617,6 +618,7 @@ export abstract class Chart extends Observable {
 
         if (!updateDeferred) {
             ctx.updateService.dispatchUpdateComplete(this.getMinRects());
+            this.ctx.domManager.setDataBoolean('updatePending', false);
         }
 
         const end = performance.now();
