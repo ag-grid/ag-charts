@@ -7,6 +7,33 @@ import { useState } from 'react';
 
 import styles from './NewDocsNav.module.scss';
 
+function getOpenGroup({ menuData, pageName }: { menuData?: any; pageName: string }) {
+    let openGroup = undefined;
+
+    function childrenHasPage({ group, children, pageName }) {
+        // console.log({ group, children, pageName });
+
+        children.forEach((child) => {
+            if (child.path === pageName) {
+                openGroup = group;
+                return;
+            }
+
+            if (child.children) childrenHasPage({ group, children: child.children, pageName });
+        });
+    }
+
+    menuData.sections.forEach((section) => {
+        section.children.forEach((child) => {
+            if (child.type !== 'group' || !child.children) return;
+
+            childrenHasPage({ group: child, children: child.children, pageName });
+        });
+    });
+
+    return openGroup;
+}
+
 function getLinkUrl({ framework, path, url }: { framework: Framework; path?: string; url?: string }) {
     return url ? url : getExamplePageUrl({ framework, path: path! });
 }
@@ -127,7 +154,8 @@ export function NewDocsNav({
     framework: Framework;
     pageName: string;
 }) {
-    const [openGroup, setOpenGroup] = useState(menuData.sections[0].children[1]);
+    const pageOpenGroup = getOpenGroup({ menuData, pageName });
+    const [openGroup, setOpenGroup] = useState(pageOpenGroup);
 
     return (
         <div className={styles.docsNavOuter}>
