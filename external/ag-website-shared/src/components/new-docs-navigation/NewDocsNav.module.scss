@@ -22,7 +22,7 @@
 
 .docsNavOuter {
     --right-margin: #{$spacing-size-16};
-    --nav-max-width: 276px; // TODO: Review magic number
+    --nav-max-width: 276px;
 
     --item-min-height: 34px;
     --item-left-offset: #{$spacing-size-2};
@@ -111,9 +111,6 @@
     margin-bottom: $spacing-size-4;
     margin-left: var(--item-left-offset);
     background-color: var(--color-border-secondary);
-}
-
-.group {
 }
 
 .groupTitle {
