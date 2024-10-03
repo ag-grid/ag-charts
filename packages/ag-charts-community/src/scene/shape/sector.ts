@@ -60,6 +60,9 @@ export class Sector extends Path {
     static override readonly className = 'Sector';
 
     @ScenePathChangeDetection()
+    strokeAlign: 'inside' | 'middle' = 'inside';
+
+    @ScenePathChangeDetection()
     centerX: number = 0;
 
     @ScenePathChangeDetection()
@@ -115,7 +118,7 @@ export class Sector extends Path {
     }
 
     private get strokeInset() {
-        return this.stroke != null ? this.strokeWidth / 2 : 0;
+        return this.stroke != null && this.strokeAlign === 'inside' ? this.strokeWidth / 2 : 0;
     }
 
     private normalizedRadii(insetStroke: boolean) {
