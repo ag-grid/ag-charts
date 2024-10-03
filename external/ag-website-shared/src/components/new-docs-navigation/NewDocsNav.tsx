@@ -3,7 +3,7 @@ import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { Collapsible } from '@components/Collapsible';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import classnames from 'classnames';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 
 import styles from './NewDocsNav.module.scss';
 
@@ -55,7 +55,14 @@ function Item({ itemData, framework, pageName }: { itemData?: any; framework: Fr
             ) : (
                 <div className={styles.nestedItems}>
                     {itemData.children.map((childData) => {
-                        return <Item itemData={childData} framework={framework} pageName={pageName} />;
+                        return (
+                            <Item
+                                key={childData.title}
+                                itemData={childData}
+                                framework={framework}
+                                pageName={pageName}
+                            />
+                        );
                     })}
                 </div>
             )}
@@ -96,7 +103,14 @@ function Group({
             <Collapsible id={groupData.title} isOpen={isOpen}>
                 <div className={styles.groupChildren}>
                     {groupData.children.map((childData) => {
-                        return <Item itemData={childData} framework={framework} pageName={pageName} />;
+                        return (
+                            <Item
+                                key={childData.title}
+                                itemData={childData}
+                                framework={framework}
+                                pageName={pageName}
+                            />
+                        );
                     })}
                 </div>
             </Collapsible>
@@ -123,7 +137,7 @@ function Section({
 
             {sectionData.children.map((childData) => {
                 return (
-                    <>
+                    <Fragment key={childData.title}>
                         {childData.type === 'item' && (
                             <Item itemData={childData} framework={framework} pageName={pageName} />
                         )}
@@ -136,7 +150,7 @@ function Section({
                                 setOpenGroup={setOpenGroup}
                             />
                         )}
-                    </>
+                    </Fragment>
                 );
             })}
         </div>
@@ -160,7 +174,7 @@ export function NewDocsNav({
             <div className={styles.docsNavInner}>
                 {menuData.sections.map((sectionData, i) => {
                     return (
-                        <>
+                        <Fragment key={sectionData.title}>
                             <Section
                                 sectionData={sectionData}
                                 framework={framework}
@@ -169,7 +183,7 @@ export function NewDocsNav({
                                 setOpenGroup={setOpenGroup}
                             />
                             {i !== menuData.sections.length - 1 && <hr className={styles.divider} />}
-                        </>
+                        </Fragment>
                     );
                 })}
             </div>
