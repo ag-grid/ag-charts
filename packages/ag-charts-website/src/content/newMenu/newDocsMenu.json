@@ -288,7 +288,7 @@
                         },
                         {
                             "type": "item",
-                            "title": "Markers and Points of Interest",
+                            "title": "Markers & Points of Interest",
                             "path": "map-markers",
                             "isEnterprise": true
                         },

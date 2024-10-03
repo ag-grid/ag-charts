@@ -1,5 +1,25 @@
 @use 'design-system' as *;
 
+@media screen and (min-width: $breakpoint-docs-nav-medium) {
+    :global(#docs-mobile-nav-collapser) {
+        --right-margin: #{$spacing-size-16};
+
+        height: unset !important;
+        width: calc(var(--layout-width-3-12));
+        overflow: unset !important;
+    }
+
+    :global(#docs-mobile-nav-collapser > div) {
+        display: unset !important;
+    }
+}
+
+@media screen and (min-width: $breakpoint-docs-nav-large) {
+    :global(#docs-mobile-nav-collapser) {
+        width: calc(var(--layout-width-3-12) - var(--right-margin));
+    }
+}
+
 .docsNavOuter {
     --right-margin: #{$spacing-size-16};
     --nav-max-width: 272px; // TODO: Review magic number
@@ -12,7 +32,7 @@
     --indent-border-offset: #{$spacing-size-1};
 
     position: sticky;
-    width: calc(var(--layout-width-3-12) - var(--right-margin)); // TODO: Refactor docs nav width
+    width: 100%;
     height: calc(100vh - var(--layout-site-header-height));
     top: var(--layout-site-header-height);
     overflow-x: hidden;
@@ -20,8 +40,16 @@
 }
 
 .docsNavInner {
-    padding-top: $spacing-size-8; // Temp padding
-    padding-bottom: $spacing-size-32; // Temp padding
+    padding-top: $spacing-size-10;
+    padding-bottom: $spacing-size-8;
+
+    @media screen and (min-width: $breakpoint-docs-nav-medium) {
+        padding-bottom: $spacing-size-32;
+    }
+
+    @media screen and (min-width: $breakpoint-docs-nav-large) {
+        max-width: 276px;
+    }
 }
 
 .whatsNewLink a {
@@ -32,6 +60,7 @@
     width: fit-content;
     height: var(--height);
     margin-bottom: $spacing-size-4;
+    margin-left: $spacing-size-2;
     padding: 2px 10px;
     border-radius: var(--height);
     font-size: var(--text-fs-sm);
@@ -57,7 +86,9 @@
 }
 
 .section {
-    max-width: var(--nav-max-width);
+    @media screen and (min-width: $breakpoint-docs-nav-medium) {
+        max-width: var(--nav-max-width);
+    }
 }
 
 .sectionTitle,
@@ -76,7 +107,6 @@
 }
 
 .divider {
-    max-width: calc(var(--nav-max-width) - var(--item-left-offset));
     margin-top: $spacing-size-8;
     margin-bottom: $spacing-size-4;
     margin-left: var(--item-left-offset);
@@ -176,10 +206,13 @@
 
 // TODO: Refactor icons in links/buttons so we don't require !important/overrides
 .enterpriseIcon {
-    position: relative;
-    top: 1px;
     width: $spacing-size-5;
     height: $spacing-size-5;
     margin-left: $spacing-size-1 !important;
     fill: var(--color-enterprise-icon) !important;
+
+    .groupTitle & {
+        position: relative;
+        top: 1px;
+    }
 }

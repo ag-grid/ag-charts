@@ -4,7 +4,7 @@ import { Collapsible } from '@components/Collapsible';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 
 import styles from './NewDocsNav.module.scss';
 
@@ -173,30 +173,48 @@ export function NewDocsNav({
     pageName: string;
 }) {
     const pageOpenGroup = getOpenGroup({ menuData, pageName });
+
     const [openGroup, setOpenGroup] = useState(pageOpenGroup);
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+    useEffect(() => {
+        const docsButtonEl = document.querySelector('#top-bar-docs-button');
+
+        const docsButtonHandler = () => {
+            setMobileNavOpen(!mobileNavOpen);
+        };
+
+        docsButtonEl?.addEventListener('click', docsButtonHandler);
+
+        return () => {
+            docsButtonEl?.removeEventListener('click', docsButtonHandler);
+        };
+    }, [mobileNavOpen]);
 
     return (
-        <div className={styles.docsNavOuter}>
-            <div className={styles.docsNavInner}>
-                <div className={styles.whatsNewLink}>
-                    <a href={urlWithBaseUrl('/whats-new')}>What's New</a>
-                </div>
+        <Collapsible id="docs-mobile-nav-collapser" isOpen={mobileNavOpen}>
+            <div className={styles.docsNavOuter}>
+                <div className={styles.docsNavInner}>
+                    <div className={styles.whatsNewLink}>
+                        <a href={urlWithBaseUrl('/whats-new')}>What's New</a>
+                    </div>
 
-                {menuData.sections.map((sectionData, i) => {
-                    return (
-                        <Fragment key={sectionData.title}>
-                            <Section
-                                sectionData={sectionData}
-                                framework={framework}
-                                pageName={pageName}
-                                openGroup={openGroup}
-                                setOpenGroup={setOpenGroup}
-                            />
-                            {i !== menuData.sections.length - 1 && <hr className={styles.divider} />}
-                        </Fragment>
-                    );
-                })}
+                    {menuData.sections.map((sectionData, i) => {
+                        return (
+                            <Fragment key={sectionData.title}>
+                                <Section
+                                    sectionData={sectionData}
+                                    framework={framework}
+                                    pageName={pageName}
+                                    openGroup={openGroup}
+                                    setOpenGroup={setOpenGroup}
+                                />
+                                {i !== menuData.sections.length - 1 && <hr className={styles.divider} />}
+                            </Fragment>
+                        );
+                    })}
+                </div>
             </div>
-        </div>
+        </Collapsible>
     );
 }
