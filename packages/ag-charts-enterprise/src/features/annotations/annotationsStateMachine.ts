@@ -4,6 +4,7 @@ import {
     type AnnotationLineStyle,
     type AnnotationOptionsColorPickerType,
     AnnotationType,
+    type Coords,
     type GuardDragClickDoubleEvent,
 } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
@@ -40,6 +41,8 @@ type AnnotationEvent =
     | 'keyUp'
     // Data events
     | 'selectLast'
+    | 'translate'
+    | 'translateEnd'
     | 'copy'
     | 'cut'
     | 'paste'
@@ -262,6 +265,22 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 keyUp: ({ shiftKey }: { shiftKey: boolean }) => {
                     this.snapping = shiftKey;
+                },
+
+                translate: {
+                    guard: guardActive,
+                    action: ({ translation }: { translation: Coords }) => {
+                        ctx.startInteracting();
+                        ctx.translate(this.active!, translation);
+                        ctx.update();
+                    },
+                },
+
+                translateEnd: {
+                    guard: guardActive,
+                    action: () => {
+                        ctx.stopInteracting();
+                    },
                 },
 
                 copy: {
