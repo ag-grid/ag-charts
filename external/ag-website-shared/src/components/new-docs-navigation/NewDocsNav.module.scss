@@ -74,6 +74,14 @@
     height: $spacing-size-5;
     margin: 0 !important;
     fill: var(--color-util-gray-400) !important;
+    transition:
+        transform $transition-default-timing,
+        fill $transition-default-timing;
+
+    .group.isOpen & {
+        fill: var(--color-fg-primary) !important;
+        transform: rotate(90deg) translate(0, 2px);
+    }
 }
 
 .groupChildren {
