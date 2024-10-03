@@ -22,6 +22,7 @@ import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
 import type { Has } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
+import { ChartUpdateType } from '../../chartUpdateType';
 import type { DataController } from '../../data/dataController';
 import { DataModel, getMissCount } from '../../data/dataModel';
 import {
@@ -141,6 +142,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     // When a user toggles a series item (e.g. from the legend), its boolean state is recorded here.
     public seriesItemEnabled: boolean[] = [];
+    public legendItemEnabled: boolean[] = [];
 
     private oldTitle?: PieTitle;
 
@@ -171,9 +173,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     override get visible() {
-        return (
-            super.visible && (this.seriesItemEnabled.length === 0 || this.seriesItemEnabled.some((visible) => visible))
-        );
+        return super.visible && (this.seriesItemEnabled.length === 0 || this.seriesItemEnabled.includes(true));
     }
 
     protected override nodeFactory(): Sector {
@@ -731,7 +731,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     private async updateNodes(seriesRect: BBox) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        const isVisible = this.visible && this.seriesItemEnabled.indexOf(true) >= 0;
+        const isVisible = this.visible && this.seriesItemEnabled.includes(true);
         this.rootGroup.visible = isVisible;
         this.backgroundGroup.visible = isVisible;
         this.contentGroup.visible = isVisible;
@@ -1346,7 +1346,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 id: this.id,
                 itemId: index,
                 seriesId: this.id,
-                enabled: visible && this.seriesItemEnabled[index],
+                enabled: visible && this.legendItemEnabled[index],
                 label: {
                     text: labelParts.join(' - '),
                 },
@@ -1380,10 +1380,17 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     protected override toggleSeriesItem(itemId: number, enabled: boolean): void {
         this.seriesItemEnabled[itemId] = enabled;
+        this.legendItemEnabled[itemId] = enabled;
         if (this.nodeData[itemId]) {
             this.nodeData[itemId].enabled = enabled;
         }
         this.nodeDataRefresh = true;
+    }
+
+    // Used for grid
+    setLegendState(enabledItems: boolean[]) {
+        this.legendItemEnabled = enabledItems;
+        this.ctx.updateService.update(ChartUpdateType.SERIES_UPDATE);
     }
 
     toggleOtherSeriesItems(legendItemName: string, enabled: boolean): void {
@@ -1512,7 +1519,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     protected override onDataChange() {
-        const { data, seriesItemEnabled } = this;
+        const { data, seriesItemEnabled, legendItemEnabled } = this;
         this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
+        this.legendItemEnabled = data?.map((_, index) => legendItemEnabled[index] ?? true) ?? [];
     }
 }
