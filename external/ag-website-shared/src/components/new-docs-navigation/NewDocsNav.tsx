@@ -2,6 +2,7 @@ import type { Framework } from '@ag-grid-types';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { Collapsible } from '@components/Collapsible';
 import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import { Fragment, useState } from 'react';
 
@@ -48,9 +49,10 @@ function Item({ itemData, framework, pageName }: { itemData?: any; framework: Fr
                 <a href={linkUrl} className={className}>
                     {itemData.icon && <Icon name={itemData.icon} svgClasses={styles.itemIcon} />}
 
-                    {itemData.title}
-
-                    {itemData.isEnterprise && <Icon name="enterprise" svgClasses={styles.enterpriseIcon} />}
+                    <span>
+                        {itemData.title}
+                        {itemData.isEnterprise && <Icon name="enterprise" svgClasses={styles.enterpriseIcon} />}
+                    </span>
                 </a>
             ) : (
                 <div className={styles.nestedItems}>
@@ -90,7 +92,11 @@ function Group({
             <button
                 className={classnames('button-style-none', styles.groupTitle)}
                 onClick={() => {
-                    setOpenGroup(groupData);
+                    if (isOpen) {
+                        setOpenGroup(undefined);
+                    } else {
+                        setOpenGroup(groupData);
+                    }
                 }}
             >
                 <Icon name="chevronRight" svgClasses={styles.groupChevron} />
@@ -172,6 +178,10 @@ export function NewDocsNav({
     return (
         <div className={styles.docsNavOuter}>
             <div className={styles.docsNavInner}>
+                <div className={styles.whatsNewLink}>
+                    <a href={urlWithBaseUrl('/whats-new')}>What's New</a>
+                </div>
+
                 {menuData.sections.map((sectionData, i) => {
                     return (
                         <Fragment key={sectionData.title}>
