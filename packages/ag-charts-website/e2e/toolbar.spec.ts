@@ -169,7 +169,7 @@ test.describe('toolbar', () => {
         await page.locator(SELECTORS.commentMenuItem).click();
         await page.mouse.click(hover.x, hover.y, { button: 'left' });
         await page.locator(SELECTORS.annotationOptionsDeleteButton).click();
-        await expect(page).toHaveScreenshot('delete-annotation-removed.png');
+        await expect(page).toHaveScreenshot('delete-annotation-removed-no-crosshair.png');
 
         // Test 4. Check that the Delete button works in idle state:
         // (Click away from the annotation, then reclick it to go into idle state)
@@ -180,6 +180,6 @@ test.describe('toolbar', () => {
         await page.mouse.click(leave.x, leave.y, { button: 'left' });
         await page.mouse.click(hover.x, hover.y, { button: 'left' });
         await page.locator(SELECTORS.annotationOptionsDeleteButton).click();
-        await expect(page).toHaveScreenshot('delete-annotation-removed.png');
+        await expect(page).toHaveScreenshot('delete-annotation-removed-no-crosshair.png');
     });
 });
