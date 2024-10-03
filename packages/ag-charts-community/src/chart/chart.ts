@@ -27,7 +27,7 @@ import { Padding } from '../util/padding';
 import { BaseProperties } from '../util/properties';
 import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
-import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
+import { isDefined, isFiniteNumber, isFunction } from '../util/type-guards';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
@@ -896,9 +896,6 @@ export abstract class Chart extends Observable {
         for (const { legendType, legend } of this.modulesManager.legends()) {
             legend.data = this.getLegendData(legendType, this.mode !== 'integrated');
         }
-
-        this.dataProcessListeners.forEach((resolve) => resolve());
-        this.dataProcessListeners.clear();
     }
 
     placeLabels(padding?: number): Map<Series<any, any>, PlacedLabel[]> {
@@ -1039,21 +1036,6 @@ export abstract class Chart extends Observable {
 
         // wait until any remaining updates are flushed through.
         await this.updateMutex.waitForClearAcquireQueue();
-    }
-
-    private readonly dataProcessListeners = new Set<(...args: any[]) => void>();
-    waitForDataProcess(timeout?: number): Promise<void> {
-        return new Promise((resolve) => {
-            this.dataProcessListeners.add(resolve);
-            if (isNumber(timeout)) {
-                setTimeout(() => {
-                    if (this.dataProcessListeners.has(resolve)) {
-                        this.dataProcessListeners.delete(resolve);
-                        resolve();
-                    }
-                }, timeout);
-            }
-        });
     }
 
     protected getMinRects() {
