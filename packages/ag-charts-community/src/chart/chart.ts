@@ -1,6 +1,6 @@
 import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateOptions } from 'ag-charts-types';
 
-import type { LayoutContext, ModuleInstance } from '../module/baseModule';
+import type { LayoutContext } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
 import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
@@ -27,7 +27,7 @@ import { Padding } from '../util/padding';
 import { BaseProperties } from '../util/properties';
 import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
-import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
+import { isDefined, isFiniteNumber, isFunction } from '../util/type-guards';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
@@ -72,8 +72,6 @@ export type TransferableResources = {
     container?: HTMLElement;
     scene: Scene;
 };
-
-type SyncModule = ModuleInstance & { enabled?: boolean; syncAxes: (skipSync: boolean) => void };
 
 type SeriesChangeType =
     | 'no-op'
@@ -224,8 +222,10 @@ export abstract class Chart extends Observable {
 
     public destroyed = false;
 
-    private _skipSync = false;
     private readonly _destroyFns: (() => void)[] = [];
+
+    // Used to prevent infinite update loops when syncing charts.
+    protected skipSync = false;
 
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
@@ -505,7 +505,7 @@ export abstract class Chart extends Observable {
             this._performUpdateSkipAnimations = true;
         }
 
-        this._skipSync = opts?.skipSync ?? false;
+        this.skipSync = opts?.skipSync ?? false;
 
         if (this.debug.check()) {
             let stack = new Error().stack ?? '<unknown>';
@@ -886,13 +886,7 @@ export abstract class Chart extends Observable {
     async processData() {
         if (this.series.some((s) => s.canHaveAxes)) {
             this.assignAxesToSeries();
-
-            const syncModule = this.modulesManager.getModule<SyncModule>('sync');
-            if (syncModule?.enabled) {
-                syncModule.syncAxes(this._skipSync);
-            } else {
-                this.assignSeriesToAxes();
-            }
+            this.assignSeriesToAxes();
         }
 
         const dataController = new DataController(this.mode);
@@ -904,9 +898,6 @@ export abstract class Chart extends Observable {
         for (const { legendType, legend } of this.modulesManager.legends()) {
             legend.data = this.getLegendData(legendType, this.mode !== 'integrated');
         }
-
-        this.dataProcessListeners.forEach((resolve) => resolve());
-        this.dataProcessListeners.clear();
     }
 
     placeLabels(padding?: number): Map<Series<any, any>, PlacedLabel[]> {
@@ -1047,21 +1038,6 @@ export abstract class Chart extends Observable {
 
         // wait until any remaining updates are flushed through.
         await this.updateMutex.waitForClearAcquireQueue();
-    }
-
-    private readonly dataProcessListeners = new Set<(...args: any[]) => void>();
-    waitForDataProcess(timeout?: number): Promise<void> {
-        return new Promise((resolve) => {
-            this.dataProcessListeners.add(resolve);
-            if (isNumber(timeout)) {
-                setTimeout(() => {
-                    if (this.dataProcessListeners.has(resolve)) {
-                        this.dataProcessListeners.delete(resolve);
-                        resolve();
-                    }
-                }, timeout);
-            }
-        });
     }
 
     protected getMinRects() {

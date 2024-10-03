@@ -31,7 +31,6 @@ type ChartLike = {
         updateService: UpdateService;
         zoomManager: ZoomManager;
     };
-    waitForDataProcess(timeout?: number): Promise<void>;
 };
 
 export class SyncManager extends BaseManager {
