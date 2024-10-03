@@ -1,7 +1,7 @@
 ---
 import { getCollection, getEntry } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
-import { NewDocsNavFromLocalStorage } from '@ag-website-shared/components/new-docs-navigation/NewDocsNavFromLocalStorage';
+import { DocsNavFromLocalStorage } from '@ag-website-shared/components/docs-navigation/DocsNavFromLocalStorage';
 import { getDocsPages } from '../features/docs/utils/pageData';
 import type { Framework } from '@ag-grid-types';
 import DocumentationArchive from '@ag-website-shared/components/documentation-archive/DocumentationArchive.astro';
@@ -16,7 +16,7 @@ const pageName = Astro.params.pageName as Framework;
 const versionsContent = await getEntry('versions', 'ag-charts-versions');
 const versionsData: any[] = versionsContent ? versionsContent.data : [];
 
-const { data: newMenuData } = await getEntry('newMenu', 'newDocsMenu');
+const { data: docsNavData } = await getEntry('docs-nav', 'docsNav');
 ---
 
 <Layout
@@ -26,7 +26,7 @@ const { data: newMenuData } = await getEntry('newMenu', 'newDocsMenu');
     showSearchBar={true}
 >
     <div class:list={['contentViewport layout-grid']}>
-        <NewDocsNavFromLocalStorage client:load menuData={newMenuData} pageName={pageName} />
+        <DocsNavFromLocalStorage client:load menuData={docsNavData} pageName={pageName} />
 
         <DocumentationArchive site="charts" versionsData={versionsData} />
     </div>

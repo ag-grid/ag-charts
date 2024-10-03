@@ -45,8 +45,8 @@ const description = page.data.description
 const descriptionWithSeoTagline = `${description} ${seoTagline}`;
 
 // NEW NAV WIP
-import { NewDocsNav } from '@ag-website-shared/components/new-docs-navigation/NewDocsNav';
-const { data: newMenuData } = await getEntry('newMenu', 'newDocsMenu');
+import { DocsNav } from '@ag-website-shared/components/docs-navigation/DocsNav';
+const { data: docsNavData } = await getEntry('docs-nav', 'docsNav');
 ---
 
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -63,7 +63,7 @@ const { data: newMenuData } = await getEntry('newMenu', 'newDocsMenu');
     <div class:list={[hidePageMenu && styles.noLeftMenu, styles.contentViewport, 'layout-grid', { largeExamples }]}>
         {
             !hidePageMenu && (
-                <NewDocsNav client:load menuData={newMenuData} framework={currentFramework} pageName={pageName} />
+                <DocsNav client:load menuData={docsNavData} framework={currentFramework} pageName={pageName} />
             )
         }
         <div

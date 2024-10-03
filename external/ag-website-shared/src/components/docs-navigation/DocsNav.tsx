@@ -6,7 +6,7 @@ import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import { Fragment, useEffect, useState } from 'react';
 
-import styles from './NewDocsNav.module.scss';
+import styles from './DocsNav.module.scss';
 
 function getOpenGroup({ menuData, pageName }: { menuData?: any; pageName: string }) {
     let openGroup = undefined;
@@ -163,15 +163,7 @@ function Section({
     );
 }
 
-export function NewDocsNav({
-    menuData,
-    framework,
-    pageName,
-}: {
-    menuData?: any;
-    framework: Framework;
-    pageName: string;
-}) {
+export function DocsNav({ menuData, framework, pageName }: { menuData?: any; framework: Framework; pageName: string }) {
     const pageOpenGroup = getOpenGroup({ menuData, pageName });
 
     const [openGroup, setOpenGroup] = useState(pageOpenGroup);

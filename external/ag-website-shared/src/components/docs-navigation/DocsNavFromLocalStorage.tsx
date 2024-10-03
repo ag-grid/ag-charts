@@ -4,9 +4,9 @@ import { $internalFramework } from '@stores/frameworkStore';
 import { getFrameworkFromInternalFramework } from '@utils/framework';
 import { useEffect, useState } from 'react';
 
-import { NewDocsNav } from './NewDocsNav';
+import { DocsNav } from './DocsNav';
 
-export function NewDocsNavFromLocalStorage({ menuData, pageName }: { menuData: any; pageName: string }) {
+export function DocsNavFromLocalStorage({ menuData, pageName }: { menuData: any; pageName: string }) {
     const internalFramework = useStore($internalFramework);
     const [framework, setFramework] = useState<Framework>();
 
@@ -18,5 +18,5 @@ export function NewDocsNavFromLocalStorage({ menuData, pageName }: { menuData: a
         }
     }, [internalFramework]);
 
-    return framework && <NewDocsNav menuData={menuData} framework={framework} pageName={pageName} />;
+    return framework && <DocsNav menuData={menuData} framework={framework} pageName={pageName} />;
 }
