@@ -11,8 +11,6 @@ function getOpenGroup({ menuData, pageName }: { menuData?: any; pageName: string
     let openGroup = undefined;
 
     function childrenHasPage({ group, children, pageName }) {
-        // console.log({ group, children, pageName });
-
         children.forEach((child) => {
             if (child.path === pageName) {
                 openGroup = group;
