@@ -6,6 +6,7 @@ export const PYRAMID_SERIES_THEME: {
     series: {
         direction: 'vertical',
         strokeWidth: 0,
+        spacing: 2,
         label: {
             enabled: true,
             fontSize: 12,

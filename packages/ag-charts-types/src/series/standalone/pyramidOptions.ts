@@ -46,6 +46,8 @@ export interface AgPyramidSeriesThemeableOptions<TDatum = any> extends LineDashO
     direction?: 'horizontal' | 'vertical';
     /** Reverse the order of the polygons. */
     reverse?: boolean;
+    /** Spacing between the polygons. */
+    spacing?: number;
     /** Configuration for the labels shown on polygons. */
     label?: AgPyramidSeriesLabelOptions<TDatum, AgPyramidSeriesLabelFormatterParams>;
     /** Configuration for the stage labels. */
