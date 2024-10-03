@@ -12,22 +12,22 @@ export function funnelSeriesAxes(series: Pick<AgFunnelSeriesOptions, 'direction'
         ? [
               {
                   type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-                  position: placement === 'after' ? _Theme.POSITION.RIGHT : _Theme.POSITION.LEFT,
+                  position: placement === 'after' ? _Theme.CARTESIAN_POSITION.RIGHT : _Theme.CARTESIAN_POSITION.LEFT,
                   label: categoryLabel,
               },
               {
                   type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-                  position: _Theme.POSITION.BOTTOM,
+                  position: _Theme.CARTESIAN_POSITION.BOTTOM,
               },
           ]
         : [
               {
                   type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-                  position: _Theme.POSITION.LEFT,
+                  position: _Theme.CARTESIAN_POSITION.LEFT,
               },
               {
                   type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-                  position: placement === 'before' ? _Theme.POSITION.TOP : _Theme.POSITION.BOTTOM,
+                  position: placement === 'before' ? _Theme.CARTESIAN_POSITION.TOP : _Theme.CARTESIAN_POSITION.BOTTOM,
                   label: categoryLabel,
               },
           ];

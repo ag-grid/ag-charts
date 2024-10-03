@@ -16,11 +16,11 @@ export const RangeAreaModule: _ModuleSupport.SeriesModule<'range-area'> = {
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-            position: _Theme.POSITION.LEFT,
+            position: _Theme.CARTESIAN_POSITION.LEFT,
         },
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: _Theme.POSITION.BOTTOM,
+            position: _Theme.CARTESIAN_POSITION.BOTTOM,
         },
     ],
     themeTemplate: RANGE_AREA_SERIES_THEME,

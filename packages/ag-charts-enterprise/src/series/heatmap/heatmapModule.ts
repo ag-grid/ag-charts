@@ -16,11 +16,11 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: _Theme.POSITION.LEFT,
+            position: _Theme.CARTESIAN_POSITION.LEFT,
         },
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: _Theme.POSITION.BOTTOM,
+            position: _Theme.CARTESIAN_POSITION.BOTTOM,
         },
     ],
     themeTemplate: HEATMAP_SERIES_THEME,
