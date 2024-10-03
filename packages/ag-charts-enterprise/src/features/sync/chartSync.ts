@@ -55,16 +55,9 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     updateSiblings(groupId?: string) {
         const { syncManager } = this.moduleContext;
-
-        const updateFn = async () => {
-            for (const chart of syncManager.getGroupSiblings(groupId ?? this.groupId)) {
-                await chart.waitForDataProcess(120);
-                this.updateChart(chart);
-            }
-        };
-        updateFn().catch((e) => {
-            Logger.warnOnce('Error updating sibling chart', e);
-        });
+        for (const chart of syncManager.getGroupSiblings(groupId ?? this.groupId)) {
+            this.updateChart(chart);
+        }
     }
 
     private updateChart(chart: ChartLike, updateType = ChartUpdateType.UPDATE_DATA) {
