@@ -77,6 +77,9 @@ export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> 
     @Validate(BOOLEAN)
     reverse: boolean = false;
 
+    @Validate(POSITIVE_NUMBER)
+    spacing: number = 0;
+
     @Validate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgPyramidSeriesItemStylerParams<unknown>, AgPyramidSeriesStyle>;
 

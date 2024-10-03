@@ -102,7 +102,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     override async createNodeData(): Promise<PyramidNodeDataContext | undefined> {
         const { id: seriesId, dataModel, processedData, properties } = this;
-        const { xKey, yKey, xName, yName, fills, strokes, direction, reverse, label, stageLabel } = properties;
+        const { xKey, yKey, xName, yName, fills, strokes, direction, reverse, spacing, label, stageLabel } = properties;
 
         if (dataModel == null || processedData == null) return;
 
@@ -135,7 +135,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             const text = xValue;
 
-            const { width, height } = textMeasurer.measureText(text);
+            const { width } = textMeasurer.measureText(text);
+            const height = text.split('\n').length * label.fontSize * Text.defaultLineHeightRatio;
             maxLabelWidth = Math.max(maxLabelWidth, width);
             maxLabelHeight = Math.max(maxLabelHeight, height);
 
@@ -150,6 +151,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const seriesRectWidth = this._nodeDataDependencies?.seriesRectWidth ?? 0;
         const seriesRectHeight = this._nodeDataDependencies?.seriesRectHeight ?? 0;
+        const totalSpacing = spacing * (processedData.data.length - 1);
 
         let bounds: _Scene.BBox;
         let labelX: number | undefined;
@@ -174,6 +176,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             labelX = stageLabel.placement === 'after' ? seriesRectWidth - maxLabelWidth : maxLabelWidth;
         }
 
+        const availableWidth = bounds.width - (horizontal ? totalSpacing : 0);
+        const availableHeight = bounds.height - (horizontal ? 0 : totalSpacing);
+
         const nodeData: PyramidNodeDatum[] = [];
         const labelData: PyramidNodeLabelDatum[] = [];
         let yStart = 0;
@@ -184,20 +189,38 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             const yEnd = yStart + yValue;
 
             const yMidRatio = (yStart + yEnd) / (2 * yTotal);
-            const x = bounds.x + bounds.width * (horizontal ? yMidRatio : 0.5);
-            const y = bounds.y + bounds.height * (horizontal ? 0.5 : yMidRatio);
+            const yRangeRatio = (yEnd - yStart) / yTotal;
+
+            const x = bounds.x + (horizontal ? availableWidth * yMidRatio + spacing * index : availableWidth * 0.5);
+            const y = bounds.y + (horizontal ? availableHeight * 0.5 : availableHeight * yMidRatio + spacing * index);
 
             const stageLabelDatum = stageLabelData[index] as Writeable<PyramidNodeLabelDatum>;
             stageLabelDatum.x = labelX ?? x;
             stageLabelDatum.y = labelY ?? y;
 
-            const yStartRatio = (reverse ? yTotal - yStart : yStart) / yTotal;
-            const yEndRatio = (reverse ? yTotal - yEnd : yEnd) / yTotal;
-            const yRangeRatio = (yEnd - yStart) / yTotal;
-            const top = bounds.width * (horizontal ? yRangeRatio : yStartRatio);
-            const right = bounds.height * (horizontal ? yEndRatio : yRangeRatio);
-            const bottom = bounds.width * (horizontal ? yRangeRatio : yEndRatio);
-            const left = bounds.height * (horizontal ? yStartRatio : yRangeRatio);
+            let top: number;
+            let right: number;
+            let bottom: number;
+            let left: number;
+            if (horizontal) {
+                const barWidth = availableWidth * yRangeRatio;
+                top = barWidth;
+                bottom = barWidth;
+
+                const y0 = (x + barWidth / 2) * (availableHeight / bounds.width);
+                const y1 = (x - barWidth / 2) * (availableHeight / bounds.width);
+                right = reverse ? bounds.height - y0 : y0;
+                left = reverse ? bounds.height - y1 : y1;
+            } else {
+                const barHeight = availableHeight * yRangeRatio;
+                right = barHeight;
+                left = barHeight;
+
+                const x0 = (y - barHeight / 2) * (availableWidth / bounds.height);
+                const x1 = (y + barHeight / 2) * (availableWidth / bounds.height);
+                top = reverse ? bounds.width - x0 : x0;
+                bottom = reverse ? bounds.width - x1 : x1;
+            }
 
             const text = this.getLabelText(label, {
                 datum,
