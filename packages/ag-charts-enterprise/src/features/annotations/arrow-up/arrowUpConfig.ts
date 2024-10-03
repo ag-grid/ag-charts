@@ -10,6 +10,9 @@ export const arrowUpConfig: AnnotationTypeConfig<ArrowUpProperties, ArrowUpScene
     datum: ArrowUpProperties,
     scene: ArrowUpScene,
     isDatum: ArrowUpProperties.is,
+    translate: (node, datum, translation, context) => {
+        if (ArrowUpProperties.is(datum) && ArrowUpScene.is(node)) node.translate(datum, translation, context);
+    },
     copy: (node, datum, copiedDatum, context) => {
         if (ArrowUpProperties.is(datum) && ArrowUpProperties.is(copiedDatum) && ArrowUpScene.is(node)) {
             return node.copy(datum, copiedDatum, context);

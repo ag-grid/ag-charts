@@ -24,6 +24,7 @@ import {
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
     isAgPolarChartOptionsWithSeriesBasedLegend,
+    isAgStandaloneChartOptions,
     isAgTopologyChartOptions,
     isAxisOptionType,
     isSeriesOptionType,
@@ -441,6 +442,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return 'map-shape';
         } else if (isAgFlowProportionChartOptions(options)) {
             return 'sankey';
+        } else if (isAgStandaloneChartOptions(options)) {
+            return 'pyramid';
         } else if (isAgGaugeChartOptions(options)) {
             return 'radial-gauge';
         }

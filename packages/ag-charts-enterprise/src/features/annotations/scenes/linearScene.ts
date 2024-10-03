@@ -131,6 +131,16 @@ export abstract class LinearScene<
         }
     }
 
+    public translate(datum: Datum, translation: Coords, context: AnnotationContext) {
+        this.translatePoints({
+            datum,
+            start: convertPoint(datum.start, context),
+            end: convertPoint(datum.end, context),
+            translation,
+            context,
+        });
+    }
+
     public copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext) {
         const coords = convertLine(datum, context);
 

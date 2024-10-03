@@ -151,10 +151,6 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         topRight: Coords,
         context: AnnotationContext
     ): Coords[] {
-        const { dragState } = this;
-
-        if (!dragState) return [];
-
         const startHeight = convertPoint(datum.bottom.start, context).y - convertPoint(datum.start, context).y;
         const endHeight = convertPoint(datum.bottom.end, context).y - convertPoint(datum.end, context).y;
 

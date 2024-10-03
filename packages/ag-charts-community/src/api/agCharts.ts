@@ -14,9 +14,11 @@ import {
     isAgGaugeChartOptions,
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
+    isAgStandaloneChartOptions,
     isAgTopologyChartOptions,
 } from '../chart/mapping/types';
 import { PolarChart } from '../chart/polarChart';
+import { StandaloneChart } from '../chart/standaloneChart';
 import { TopologyChart } from '../chart/topologyChart';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
@@ -30,7 +32,9 @@ import { MementoCaretaker } from './state/memento';
 
 const debug = Debug.create(true, 'opts');
 
-function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge' {
+function chartType(
+    options: any
+): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'standalone' | 'gauge' {
     if (isAgCartesianChartOptions(options)) {
         return 'cartesian';
     } else if (isAgPolarChartOptions(options)) {
@@ -41,6 +45,8 @@ function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topolog
         return 'topology';
     } else if (isAgFlowProportionChartOptions(options)) {
         return 'flow-proportion';
+    } else if (isAgStandaloneChartOptions(options)) {
+        return 'standalone';
     } else if (isAgGaugeChartOptions(options)) {
         return 'gauge';
     }
@@ -246,6 +252,8 @@ class AgChartsInternal {
             return TopologyChart;
         } else if (isAgFlowProportionChartOptions(options)) {
             return FlowProportionChart;
+        } else if (isAgStandaloneChartOptions(options)) {
+            return StandaloneChart;
         } else if (isAgGaugeChartOptions(options)) {
             return GaugeChart;
         }

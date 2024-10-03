@@ -25,6 +25,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         alignment: 'center',
         textAlign: 'center',
     };
+    private visible = false;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -92,6 +93,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
 
         opts.onChange?.(this.getValue()!, this.getBBox());
+        this.visible = true;
     }
 
     public hide() {
@@ -102,6 +104,11 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             alignment: 'center',
             textAlign: 'center',
         };
+        this.visible = false;
+    }
+
+    public isVisible() {
+        return this.visible;
     }
 
     public updateColor(color: string) {
