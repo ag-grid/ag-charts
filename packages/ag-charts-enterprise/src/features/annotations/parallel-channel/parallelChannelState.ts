@@ -28,6 +28,18 @@ export class ParallelChannelStateMachine extends StateMachine<
             const origin = point();
             datum.set({ start: origin, end: origin, height: 0 });
             ctx.create(datum);
+            ctx.addPostUpdateFns(
+                () => ctx.node()?.toggleActive(true),
+                () =>
+                    ctx.node()?.toggleHandles({
+                        topLeft: true,
+                        topMiddle: false,
+                        topRight: false,
+                        bottomLeft: false,
+                        bottomMiddle: false,
+                        bottomRight: false,
+                    })
+            );
         };
 
         const actionEndUpdate = ({ point }: { point: (origin?: Point, snapToAngle?: number) => Point }) => {
@@ -36,18 +48,13 @@ export class ParallelChannelStateMachine extends StateMachine<
             const datum = ctx.datum();
             datum?.set({ end: point(datum?.start, datum?.snapToAngle), height: 0 });
 
-            ctx.node()?.toggleHandles({
-                topMiddle: false,
-                topRight: false,
-                bottomLeft: false,
-                bottomMiddle: false,
-                bottomRight: false,
-            });
             ctx.update();
         };
 
         const actionEndFinish = () => {
-            ctx.node()?.toggleHandles({ topMiddle: false, bottomMiddle: false });
+            ctx.node()?.toggleHandles({
+                topRight: true,
+            });
             ctx.update();
         };
 
@@ -60,7 +67,7 @@ export class ParallelChannelStateMachine extends StateMachine<
             const height = datum.end.y - (y ?? 0);
             const bottomStartY = datum.start.y - height;
 
-            ctx.node()?.toggleHandles({ topMiddle: false, bottomMiddle: false });
+            ctx.node()?.toggleHandles({ bottomLeft: true, bottomRight: true });
 
             if (
                 !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }) ||
