@@ -406,10 +406,15 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {}
 
-    protected override computeFocusBounds(
-        _opts: _ModuleSupport.PickFocusInputs
-    ): _Scene.BBox | _Scene.Path | undefined {
-        return;
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | _Scene.Path | undefined {
+        const datum = this.getNodeData()?.[opts.datumIndex];
+        if (datum === undefined) return;
+
+        for (const node of this.datumSelection) {
+            if (node.datum === datum) {
+                return node.node;
+            }
+        }
     }
 
     override getTooltipHtml(nodeDatum: any): _ModuleSupport.TooltipContent {
