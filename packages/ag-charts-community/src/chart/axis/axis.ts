@@ -12,7 +12,6 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { LogScale } from '../../scale/logScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
-import { TimeScale } from '../../scale/timeScale';
 import { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup } from '../../scene/group';
 import { Matrix } from '../../scene/matrix';
@@ -396,10 +395,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     @Validate(OBJECT)
     readonly title = new AxisTitle();
 
-    private setTickInterval(interval?: TickInterval<S>) {
-        this.scale.interval = this.interval?.step ?? interval;
-    }
-
     /**
      * The length of the grid. The grid is only visible in case of a non-zero value.
      */
@@ -566,12 +561,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     private tickGenerationResult: TickGenerationResult | undefined = undefined;
 
-    calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox } {
+    calculateLayout(domain?: any[], primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox } {
         const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
         const sideFlag = this.label.getSideFlag();
         const labelX = sideFlag * (this.getTickSize() + this.label.padding + this.seriesAreaPadding);
 
-        this.updateScale();
+        this.updateScale(domain);
 
         this.tickGenerationResult = this.generateTicks({
             primaryTickCount,
@@ -683,18 +678,20 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.scale.domain = this.dataDomain.domain;
     }
 
-    updateScale() {
-        this.updateRange();
-        this.calculateDomain();
-        this.setTickInterval(this.interval.step);
-
-        const { scale, nice } = this;
-        if (!ContinuousScale.is(scale)) {
-            return;
+    updateScale(domain?: any[]) {
+        if (domain) {
+            this.setDomain(domain);
+        } else {
+            this.calculateDomain();
         }
 
-        scale.nice = nice;
-        scale.update();
+        this.updateRange();
+        this.scale.interval = this.interval.step;
+
+        if (ContinuousScale.is(this.scale)) {
+            this.scale.nice = this.nice;
+            this.scale.update();
+        }
     }
 
     private calculateRotations() {
@@ -1043,13 +1040,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { scale } = this;
 
         if (tickCount && (ContinuousScale.is(scale) || OrdinalTimeScale.is(scale))) {
-            if (typeof tickCount === 'number') {
-                scale.tickCount = tickCount;
-                scale.minTickCount = minTickCount ?? 0;
-                scale.maxTickCount = maxTickCount ?? Infinity;
-            } else if (scale instanceof TimeScale) {
-                this.setTickInterval(tickCount as TickInterval<S>);
-            }
+            scale.tickCount = tickCount;
+            scale.minTickCount = minTickCount ?? 0;
+            scale.maxTickCount = maxTickCount ?? Infinity;
         }
 
         return scale.ticks?.() ?? [];

@@ -1,6 +1,6 @@
 import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateOptions } from 'ag-charts-types';
 
-import type { LayoutContext, ModuleInstance } from '../module/baseModule';
+import type { LayoutContext } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
 import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
@@ -72,8 +72,6 @@ export type TransferableResources = {
     container?: HTMLElement;
     scene: Scene;
 };
-
-type SyncModule = ModuleInstance & { enabled?: boolean; syncAxes: (skipSync: boolean) => void };
 
 type SeriesChangeType =
     | 'no-op'
@@ -224,8 +222,10 @@ export abstract class Chart extends Observable {
 
     public destroyed = false;
 
-    private _skipSync = false;
     private readonly _destroyFns: (() => void)[] = [];
+
+    // Used to prevent infinite update loops when syncing charts.
+    protected skipSync = false;
 
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
@@ -505,7 +505,7 @@ export abstract class Chart extends Observable {
             this._performUpdateSkipAnimations = true;
         }
 
-        this._skipSync = opts?.skipSync ?? false;
+        this.skipSync = opts?.skipSync ?? false;
 
         if (this.debug.check()) {
             let stack = new Error().stack ?? '<unknown>';
@@ -884,13 +884,7 @@ export abstract class Chart extends Observable {
     async processData() {
         if (this.series.some((s) => s.canHaveAxes)) {
             this.assignAxesToSeries();
-
-            const syncModule = this.modulesManager.getModule<SyncModule>('sync');
-            if (syncModule?.enabled) {
-                syncModule.syncAxes(this._skipSync);
-            } else {
-                this.assignSeriesToAxes();
-            }
+            this.assignSeriesToAxes();
         }
 
         const dataController = new DataController(this.mode);
