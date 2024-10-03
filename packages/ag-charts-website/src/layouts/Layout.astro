@@ -40,7 +40,6 @@ const path = Astro.url.pathname;
 const isProduction = getIsProduction();
 const isArchive = getIsArchive();
 const isStaging = getIsStaging();
-const menuData = await getEntry('menu', 'docsMenu');
 const apiMenuData = await getEntry('api-menu', 'apiMenu');
 const apiMenuItems = apiMenuData.data.api.items as ApiMenuItem[];
 const apiPaths = apiMenuData.data.api.items.flatMap(({ path }) => {

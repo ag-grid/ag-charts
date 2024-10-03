@@ -103,7 +103,8 @@
                 },
                 {
                     "type": "group",
-                    "title": "Data elements",
+                    "title": "Data Elements",
+                    "isPricingFeature": true,
                     "children": [
                         {
                             "title": "item",
@@ -130,7 +131,8 @@
                 },
                 {
                     "type": "group",
-                    "title": "Interactive Elements",
+                    "title": "Interactivity",
+                    "isPricingFeature": true,
                     "children": [
                         {
                             "type": "item",
@@ -230,12 +232,13 @@
             ]
         },
         {
-            "title": "Specialty Charts",
+            "title": "Specialised Charts",
             "children": [
                 {
                     "type": "group",
                     "title": "Financial Charts",
                     "isEnterprise": true,
+                    "isPricingFeature": true,
                     "children": [
                         {
                             "type": "item",
@@ -267,6 +270,7 @@
                     "type": "group",
                     "title": "Maps",
                     "isEnterprise": true,
+                    "isPricingFeature": true,
                     "children": [
                         {
                             "type": "item",
@@ -304,6 +308,7 @@
         },
         {
             "title": "Series",
+            "isPricingFeature": true,
             "children": [
                 {
                     "type": "item",
@@ -490,6 +495,7 @@
         },
         {
             "title": "Guages",
+            "isPricingFeature": true,
             "children": [
                 {
                     "type": "item",
