@@ -22,13 +22,13 @@
 
 .docsNavOuter {
     --right-margin: #{$spacing-size-16};
-    --nav-max-width: 272px; // TODO: Review magic number
+    --nav-max-width: 276px; // TODO: Review magic number
 
     --item-min-height: 34px;
     --item-left-offset: #{$spacing-size-2};
 
     --indent-size: #{$spacing-size-4};
-    --indent-border-color: #e3e8f0; // TODO: Why isn't this a colour from :root ?
+    --indent-border-color: var(--color-util-gray-300);
     --indent-border-offset: #{$spacing-size-1};
 
     position: sticky;
@@ -48,7 +48,7 @@
     }
 
     @media screen and (min-width: $breakpoint-docs-nav-large) {
-        max-width: 276px;
+        max-width: var(--nav-max-width);
     }
 }
 
@@ -120,6 +120,7 @@
     position: relative;
     padding-left: calc(var(--indent-size) + var(--item-left-offset));
     font-weight: var(--text-semibold);
+    transition: color $transition-default-timing;
 
     &:hover {
         color: var(--color-util-brand-600);
@@ -139,6 +140,10 @@
     transition:
         transform $transition-default-timing,
         fill $transition-default-timing;
+
+    #{$selector-darkmode} & {
+        fill: var(--color-util-gray-500) !important;
+    }
 
     .groupTitle:hover & {
         transform: translate(2px, 0);
@@ -173,6 +178,10 @@
 
     &:hover {
         background-color: var(--color-util-brand-50);
+
+        #{$selector-darkmode} & {
+            background-color: color-mix(in srgb, var(--color-brand-400) 10%, transparent);
+        }
     }
 
     .groupChildren & {
@@ -186,6 +195,13 @@
 
         background-color: var(--color-util-brand-50);
         color: var(--color-util-brand-500);
+
+        #{$selector-darkmode} & {
+            --indent-border-color: var(--color-brand-300);
+
+            background-color: color-mix(in srgb, var(--color-brand-400) 10%, transparent);
+            color: var(--color-brand-300);
+        }
     }
 
     &.hasIcon:not(:last-child) {
@@ -201,6 +217,10 @@
 
     .item.isIsActive & {
         fill: var(--color-util-brand-500);
+
+        #{$selector-darkmode} & {
+            fill: var(--color-brand-300);
+        }
     }
 }
 
