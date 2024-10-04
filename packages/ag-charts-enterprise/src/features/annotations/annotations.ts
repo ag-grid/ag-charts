@@ -347,6 +347,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.update();
             },
 
+            addPostUpdateFns: (...fns: (() => void)[]) => {
+                this.postUpdateFns.push(...fns);
+            },
+
             showTextInput: (active: number) => {
                 const datum = getTypedDatum(this.annotationData.at(active));
                 const node = this.annotations.at(active);

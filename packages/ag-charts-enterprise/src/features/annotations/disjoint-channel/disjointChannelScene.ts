@@ -33,29 +33,6 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         this.append([this.background, this.topLine, this.bottomLine, ...Object.values(this.handles)]);
     }
 
-    override toggleHandles(show: boolean | Partial<Record<ChannelHandle, boolean>>) {
-        if (typeof show === 'boolean') {
-            show = {
-                topLeft: show,
-                topRight: show,
-                bottomLeft: show,
-                bottomRight: show,
-            };
-        }
-
-        for (const [handle, node] of Object.entries(this.handles)) {
-            node.visible = show[handle as ChannelHandle] ?? true;
-            node.toggleHovered(this.activeHandle === handle);
-        }
-    }
-
-    override toggleActive(active: boolean) {
-        this.toggleHandles(active);
-        for (const node of Object.values(this.handles)) {
-            node.toggleActive(active);
-        }
-    }
-
     override dragHandle(
         datum: DisjointChannelProperties,
         target: Coords,

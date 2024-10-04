@@ -29,6 +29,10 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
             const origin = point();
             datum.set({ start: origin, end: origin });
             ctx.create(datum);
+            ctx.addPostUpdateFns(
+                () => ctx.node()?.toggleActive(true),
+                () => ctx.node()?.toggleHandles({ start: true, end: false })
+            );
         };
 
         const actionEndUpdate = ({ point }: { point: (origin?: Point, snapToAngle?: number) => Point }) => {
@@ -37,13 +41,12 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
             const datum = ctx.datum();
             datum?.set({ end: point(datum?.start, datum?.snapToAngle) });
 
-            ctx.node()?.toggleActive(true); // TODO: move to onEnter, but node doesn't exist until next render
-            ctx.node()?.toggleHandles({ end: false });
             ctx.update();
         };
 
         const actionEndFinish = () => {
             ctx.node()?.toggleHandles({ end: true });
+            ctx.update();
         };
 
         const actionCancel = () => ctx.delete();

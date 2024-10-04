@@ -92,6 +92,7 @@ export interface AnnotationsStateMachineContext {
     showAnnotationSettings: (index: number, sourceEvent?: Event) => void;
 
     recordAction: (label: string) => void;
+    addPostUpdateFns: (...fns: (() => void)[]) => void;
 
     update: () => void;
 }

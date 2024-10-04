@@ -9,10 +9,10 @@ import { convertLine, convertPoint, invertCoords } from '../utils/values';
 import { DivariantHandle } from './handle';
 import { LinearScene } from './linearScene';
 
-export type ActiveHandle = 'start' | 'end';
+export type StartEndHandle = 'start' | 'end';
 
 export abstract class StartEndScene<Datum extends StartEndProperties> extends LinearScene<Datum> {
-    override activeHandle?: ActiveHandle;
+    override activeHandle?: StartEndHandle;
 
     protected readonly start = new DivariantHandle();
     protected readonly end = new DivariantHandle();
@@ -35,13 +35,15 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         this.updateAnchor(datum, coords, context);
     }
 
-    override toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {
+    override toggleHandles(show: boolean | Partial<Record<StartEndHandle, boolean>>) {
         if (typeof show === 'boolean') {
-            show = { start: show, end: show };
+            this.start.visible = show;
+            this.end.visible = show;
+        } else {
+            for (const [handle, visible] of Object.entries(show) as [StartEndHandle, boolean][]) {
+                this[handle].visible = visible;
+            }
         }
-
-        this.start.visible = show.start ?? true;
-        this.end.visible = show.end ?? true;
 
         this.start.toggleHovered(this.activeHandle === 'start');
         this.end.toggleHovered(this.activeHandle === 'end');
@@ -77,7 +79,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
     ): Pick<PointProperties, 'x' | 'y'> | undefined {
         const { activeHandle } = this;
 
-        const handles: ActiveHandle[] = ['start', 'end'];
+        const handles: StartEndHandle[] = ['start', 'end'];
         const fixedHandle = handles.find((handle) => handle !== activeHandle);
 
         if (!activeHandle || !fixedHandle) return;
@@ -146,7 +148,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
     protected getHandleCoords(
         _datum: Datum,
         coords: LineCoords,
-        handle: 'start' | 'end',
+        handle: StartEndHandle,
         _bbox?: _Scene.BBox
     ): _Util.Vec2 {
         return {
