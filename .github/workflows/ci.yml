@@ -291,7 +291,7 @@ jobs:
                   git fetch origin ${{github.head_ref}}
                   git switch ${{github.head_ref}}
                   git cherry-pick ${{steps.test-no-shard.outputs.updateSha}}
-                  git push origin HEAD:${{github.head_ref}}
+                  git push origin -f HEAD:gha/snapshots-${{github.head_ref}}
 
             - uses: actions/github-script@v7
               if: matrix.shard == 0 && steps.test-no-shard.outputs.updates == 'true' && github.head_ref
@@ -302,7 +302,7 @@ jobs:
                         issue_number: context.issue.number,
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        body: `Snaspshots automatically updated, please review before merge @${context.issue.user.login}.`
+                        body: `Snaspshots automatically updated, please review before merge: [diff](https://github.com/ag-grid/ag-charts/compare/${{github.head_ref}}...gha/snapshots-${{github.head_ref}})`
                       })
 
             - name: Raise PR with Snaspshot Changes

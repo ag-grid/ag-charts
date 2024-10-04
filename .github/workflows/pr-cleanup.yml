@@ -29,5 +29,8 @@ jobs:
                       gh actions-cache delete $cacheKey -R $REPO -B $BRANCH --confirm
                   done
                   echo "Done"
+
+                  echo "Cleaning up any auto-generated branches."
+                  git push -D origin gha/snapshots-${{ github.head_ref }}
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
