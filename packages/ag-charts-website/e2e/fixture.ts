@@ -7,6 +7,7 @@ function stabilityProxy(page: Page, instance: any) {
             if (value instanceof Function) {
                 return async function (...args) {
                     await expect(page.locator('.ag-charts-wrapper')).toHaveAttribute('data-update-pending', 'false');
+                    await expect(page.locator('.ag-charts-wrapper')).toHaveAttribute('data-animating', 'false');
                     return target[prop].apply(this === receiver ? target : this, args);
                 };
             }
