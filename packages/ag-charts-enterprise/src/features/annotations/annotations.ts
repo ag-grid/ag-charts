@@ -1250,9 +1250,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!context) return;
 
         const { key, shiftKey } = event.sourceEvent;
-        const textInputValue = this.textInput.getValue();
+        const { textInputValue, bbox } = this.textInput.getValue() ?? {};
 
-        state.transition('keyDown', { key, shiftKey, textInputValue });
+        state.transition('keyDown', { key, shiftKey, textInputValue, bbox });
     }
 
     private onKeyDown(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {

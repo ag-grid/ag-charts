@@ -67,13 +67,8 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox) {
         const { text, isPlaceholder } = datum.getText();
-        const wrappedText = wrapText(datum, text, bbox.width);
 
-        if (!isPlaceholder) {
-            datum.set({ text: wrappedText });
-        }
-
-        updateTextNode(this.label, wrappedText, isPlaceholder, datum, this.getLabelCoords(datum, bbox));
+        updateTextNode(this.label, text, isPlaceholder, datum, this.getLabelCoords(datum, bbox));
     }
 
     protected updateShape(_datum: Datum, _bbox: _Scene.BBox) {

@@ -18,6 +18,7 @@ import type {
     LinearSettingsDialogTextChangeProps,
 } from './settings-dialog/settingsDialog';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
+import { wrapText } from './text/util';
 import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setLineStyle } from './utils/styles';
 import { isChannelType, isTextType } from './utils/types';
@@ -223,12 +224,18 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             ctx.update();
         };
 
-        const actionSaveText = ({ textInputValue }: { textInputValue?: string }) => {
+        const actionSaveText = ({ textInputValue, bbox }: { textInputValue?: string; bbox: _Scene.BBox }) => {
             const datum = ctx.datum(this.active!);
             if (textInputValue != null && textInputValue.length > 0) {
-                datum?.set({ text: textInputValue });
+                if (!isTextType(datum)) {
+                    return;
+                }
+
+                const wrappedText = wrapText(datum, textInputValue, bbox.width);
+                datum.set({ text: wrappedText });
+
                 ctx.update();
-                ctx.recordAction(`Change ${datum?.type} annotation text`);
+                ctx.recordAction(`Change ${datum.type} annotation text`);
             } else {
                 ctx.delete(this.active!);
                 ctx.recordAction(`Delete ${datum?.type} annotation`);

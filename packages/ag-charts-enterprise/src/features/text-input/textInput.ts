@@ -80,7 +80,8 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         textArea.addEventListener('input', () => {
             this.updatePosition();
-            opts.onChange?.(this.getValue()!, this.getBBox());
+            const { textInputValue, bbox } = this.getValue()!;
+            opts.onChange?.(textInputValue, bbox);
         });
 
         textArea.addEventListener('click', (event) => {
@@ -92,7 +93,8 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             this.updatePosition();
         }
 
-        opts.onChange?.(this.getValue()!, this.getBBox());
+        const { textInputValue, bbox } = this.getValue()!;
+        opts.onChange?.(textInputValue, bbox);
         this.visible = true;
     }
 
@@ -125,7 +127,12 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     public getValue() {
         if (!this.element.firstElementChild) return;
-        return (this.element.firstElementChild as HTMLDivElement).innerText.trim();
+        const textInputValue = (this.element.firstElementChild as HTMLDivElement).innerText.trim();
+        const bbox = this.getBBox();
+        return {
+            textInputValue,
+            bbox,
+        };
     }
 
     private updatePosition() {
