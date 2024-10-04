@@ -14,71 +14,8 @@
         "production": {}
       }
     },
-    "build:types": {
-      "executor": "@nx/js:tsc",
-      "dependsOn": ["^build:types"],
-      "inputs": [
-        "{projectRoot}/package.json",
-        "{projectRoot}/src/**/*",
-        "{projectRoot}/tsconfig.*.json",
-        "tsDeclarations",
-        "sharedGlobals",
-        "defaultExcludes",
-        {
-          "externalDependencies": ["npm:typescript"]
-        }
-      ],
-      "outputs": ["{options.outputPath}"],
-      "options": {
-        "outputPath": "{projectRoot}/dist/types",
-        "main": "{projectRoot}/src/main.ts",
-        "tsConfig": "{projectRoot}/tsconfig.types.json",
-        "compiler": "tsc"
-      },
-      "configurations": {
-        "watch": {
-          "tsConfig": "{projectRoot}/tsconfig.types.watch.json"
-        },
-        "production": {}
-      }
-    },
-    "build:package": {
-      "executor": "@nx/esbuild:esbuild",
-      "dependsOn": ["^build"],
-      "inputs": [
-        "{projectRoot}/package.json",
-        "{projectRoot}/src/**/*",
-        "{projectRoot}/tsconfig.*.json",
-        "tsDeclarations",
-        "sharedGlobals",
-        "defaultExcludes",
-        {
-          "externalDependencies": ["npm:typescript", "npm:esbuild"]
-        }
-      ],
-      "outputs": ["{options.outputPath}"],
-      "options": {
-        "outputPath": "{projectRoot}/dist/package",
-        "main": "{projectRoot}/src/main.ts",
-        "tsConfig": "{projectRoot}/tsconfig.lib.json",
-        "esbuildConfig": "esbuild.config.cjs",
-        "platform": "browser",
-        "target": "es2020",
-        "format": ["cjs", "esm"],
-        "sourcemap": true
-      },
-      "configurations": {
-        "watch": {
-          "tsConfig": "{projectRoot}/tsconfig.watch.json"
-        },
-        "staging": {
-          "sourcemap": false
-        },
-        "production": {
-          "sourcemap": false
-        }
-      }
-    },
+    "build:types": {},
+    "build:package": {},
     "docs-debug-interfaces": {
       "executor": "ag-charts-generate-code-reference-files:generate",
       "dependsOn": ["ag-charts-generate-code-reference-files:build"],
