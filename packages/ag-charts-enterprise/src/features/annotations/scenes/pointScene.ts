@@ -92,7 +92,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
     }
 
     override getCursor() {
-        if (this.activeHandle == null) return 'pointer';
+        return 'pointer';
     }
 
     override containsPoint(x: number, y: number) {

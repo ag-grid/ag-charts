@@ -383,6 +383,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         this.state.transition('updateTextInputBBox', bbox);
                     },
                 });
+
+                this.ctx.cursorManager.updateCursor('annotations', undefined);
             },
 
             hideTextInput: () => {
