@@ -116,6 +116,7 @@ export async function gotoExample(page: Page, url: string) {
     for (const elements of await page.locator(SELECTORS.wrapper).all()) {
         await expect(elements).toHaveAttribute('data-scene-renders', { timeout: 5_000 });
         await expect(elements).toHaveAttribute('data-update-pending', 'false', { timeout: 5_000 });
+        await expect(elements).toHaveAttribute('data-animating', 'false', { timeout: 5_000 });
     }
 }
 
