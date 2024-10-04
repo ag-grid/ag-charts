@@ -319,8 +319,8 @@ jobs:
               run: |
                   pr_count=$(
                     gh pr list \
-                      --head gha/snapshots-latest \
-                      --base latest \
+                      --base ${{ github.ref }} \
+                      --head ${{ steps.push.outputs.branch }} \
                       --json title \
                       --jq 'length'
                   )
@@ -333,13 +333,13 @@ jobs:
 
                   gh pr create \
                     --base ${{ github.ref }} \
-                    --head ${{steps.push.outputs.branch}} \
+                    --head ${{ steps.push.outputs.branch }} \
                     --title "Snapshot updates at $(date +%Y/%m/%d-%H:%M)" \
                     --body "Automatically generated for review."
 
                   url=$(gh pr view \
                     --base ${{ github.ref }} \
-                    --head ${{steps.push.outputs.branch}} \
+                    --head ${{ steps.push.outputs.branch }} \
                     --json url | jq -r .url)
 
                   echo "url=${url}" >> $GITHUB_OUTPUT
