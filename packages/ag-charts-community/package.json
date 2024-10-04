@@ -19,7 +19,6 @@
     }
   },
   "scripts": {
-    "lint:circular": "npx madge --circular --extensions ts src/",
     "lint:prune": "npx ts-prune -p tsconfig.lib.json"
   },
   "repository": {
