@@ -302,7 +302,7 @@ jobs:
                         issue_number: context.issue.number,
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        body: `Snaspshots automatically updated, please review before merge: [diff](https://github.com/ag-grid/ag-charts/compare/gha/${{github.head_ref}}...snapshots-${{github.head_ref}})`
+                        body: `Snaspshots automatically updated, please review before merge: [diff](https://github.com/ag-grid/ag-charts/compare/${{github.head_ref}}...gha/snapshots-${{github.head_ref}})`
                       })
 
             - name: Raise PR with Snaspshot Changes
