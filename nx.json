@@ -290,7 +290,7 @@
     "appsDir": "packages",
     "libsDir": "libraries"
   },
-  "nxCloudAccessToken": "ZDJhN2YwMWMtYWZiMS00MzY2LWFiZDgtZTc0ZTg4MTk4ZDE2fHJlYWQ=",
+  "disabledNxCloudAccessToken": "ZDJhN2YwMWMtYWZiMS00MzY2LWFiZDgtZTc0ZTg4MTk4ZDE2fHJlYWQ=",
   "defaultProject": "all",
   "defaultBase": "latest"
 }
