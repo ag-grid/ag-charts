@@ -31,6 +31,9 @@ jobs:
                   echo "Done"
 
                   echo "Cleaning up any auto-generated branches."
-                  git push -d origin gha/snapshots-${{ github.head_ref }}
+                  snapshotBranch=gha/snapshots-${{ github.head_ref }}
+                  if (git ls-remote --exit-code --heads origin ${snapshotBranch} >/dev/null) ; then
+                      git push -d origin gha/snapshots-${{ github.head_ref }}
+                  fi
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
