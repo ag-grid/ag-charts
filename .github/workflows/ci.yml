@@ -337,10 +337,12 @@ jobs:
                     --title "Snapshot updates at $(date +%Y/%m/%d-%H:%M)" \
                     --body "Automatically generated for review."
 
-                  url=$(gh pr view \
+                  url=$(
+                    gh pr view \
                     --base ${{ github.ref }} \
                     --head ${{ steps.push.outputs.branch }} \
-                    --json url | jq -r .url)
+                    --json url | jq -r .url
+                  )
 
                   echo "url=${url}" >> $GITHUB_OUTPUT
 
