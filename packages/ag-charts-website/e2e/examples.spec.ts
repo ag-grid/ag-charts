@@ -54,11 +54,11 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         'horizontal-bullet': { status: '404' },
     },
 
-    'animation': {
+    animation: {
         // FIXME: Some examples could tested in reverse click-order. Skip for now.
         'initial-load': { skipCanvasUpdateCheck: true /* clickOrder: 'reverse' */ },
         'data-updates': { skipCanvasUpdateCheck: true /* clickOrder: 'reverse' */ },
-        'duration': { skipCanvasUpdateCheck: true },
+        duration: { skipCanvasUpdateCheck: true },
     },
 
     'axes-labels': {
