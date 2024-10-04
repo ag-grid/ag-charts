@@ -78,14 +78,41 @@
       "cache": true
     },
     "lint:depcruise": {
-      "inputs": ["default", "buildOutputExcludes", "{projectRoot}/.dependency-cruise.js"],
+      "executor": "nx:run-commands",
+      "inputs": ["{projectRoot}/src/**", "{projectRoot}/.dependency-cruiser.js"],
       "outputs": [],
-      "cache": true
+      "cache": true,
+      "options": {
+        "cwd": "{projectRoot}",
+        "commands": ["npx depcruise src"]
+      }
     },
     "lint:circular": {
-      "inputs": ["default", "buildOutputExcludes"],
+      "executor": "nx:run-commands",
+      "inputs": ["{projectRoot}/src/**"],
       "outputs": [],
-      "cache": true
+      "cache": true,
+      "options": {
+        "cwd": "{projectRoot}",
+        "commands": ["npx madge --circular --extensions ts src/"]
+      }
+    },
+    "lint:eslint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "eslintConfig": "{projectRoot}/.eslintrc.js",
+        "cache": true,
+        "cacheLocation": "{workspaceRoot}/node_modules/.cache/.eslintcache"
+      },
+      "cache": true,
+      "inputs": [
+        "default",
+        "buildOutputExcludes",
+        "{workspaceRoot}/.eslintrc.*",
+        "{projectRoot}/.eslintrc.*",
+        "{workspaceRoot}/tools/eslint-rules/**/*"
+      ],
+      "outputs": []
     },
     "test": {
       "inputs": ["default", "buildOutputExcludes", "^production", "{workspaceRoot}/jest.preset.js"],

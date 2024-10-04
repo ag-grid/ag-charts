@@ -134,34 +134,9 @@
         }
       }
     },
-    "lint:eslint": {
-      "executor": "@nx/eslint:lint",
-      "options": {
-        "eslintConfig": "{projectRoot}/.eslintrc.js"
-      },
-      "configurations": {
-        "fix": {
-          "fix": true
-        }
-      }
-    },
-    "lint:circular": {
-      "executor": "nx:run-script",
-      "inputs": ["{projectRoot}/src/**"],
-      "outputs": [],
-      "options": {
-        "script": "lint:circular"
-      }
-    },
-    "lint:depcruise": {
-      "executor": "nx:run-commands",
-      "inputs": ["{projectRoot}/src/**", "{projectRoot}/.dependency-cruiser.js"],
-      "outputs": [],
-      "options": {
-        "cwd": "{projectRoot}",
-        "commands": ["npx depcruise src"]
-      }
-    },
+    "lint:eslint": {},
+    "lint:circular": {},
+    "lint:depcruise": {},
 
     "lint": {
       "executor": "nx:noop",
