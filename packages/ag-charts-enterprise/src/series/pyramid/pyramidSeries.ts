@@ -429,7 +429,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const { xKey, yKey, xName, yName, itemStyler, tooltip } = this.properties;
         const { strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
-        const { datum, yValue, fill, stroke } = nodeDatum;
+        const { datum, xValue, yValue, fill, stroke } = nodeDatum;
 
         let format;
         if (itemStyler) {
@@ -451,7 +451,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const color = format?.fill ?? fill ?? 'gray';
 
-        const title = '';
+        const title = sanitizeHtml(String(xValue));
         const content = sanitizeHtml(String(yValue));
 
         const defaults: AgTooltipRendererResult = {
