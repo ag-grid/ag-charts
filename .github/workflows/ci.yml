@@ -285,16 +285,22 @@ jobs:
                   fi
               timeout-minutes: 10
 
-            - name: Push PR Snapshot Changes
-              if: matrix.shard == 0 && steps.test-no-shard.outputs.updates == 'true' && github.head_ref
+            - name: Push Snapshot Changes
+              if: matrix.shard == 0 && steps.test-no-shard.outputs.updates == 'true'
+              id: push
               run: |
+                  branch=gha/snapshots-${{github.head_ref || github.ref}}
+
                   git fetch origin ${{github.head_ref}}
                   git switch ${{github.head_ref}}
                   git cherry-pick ${{steps.test-no-shard.outputs.updateSha}}
-                  git push origin -f HEAD:gha/snapshots-${{github.head_ref}}
+                  git push origin -f HEAD:${branch}
 
-            - uses: actions/github-script@v7
+                  echo "branch=${branch}" >> $GITHUB_OUTPUT
+
+            - name: Add PR Comment
               if: matrix.shard == 0 && steps.test-no-shard.outputs.updates == 'true' && github.head_ref
+              uses: actions/github-script@v7
               continue-on-error: true
               with:
                   script: |
@@ -302,29 +308,48 @@ jobs:
                         issue_number: context.issue.number,
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        body: `Snaspshots automatically updated, please review before merge: [diff](https://github.com/ag-grid/ag-charts/compare/${{github.head_ref}}...gha/snapshots-${{github.head_ref}})`
+                        body: `Snaspshots automatically updated, please review before merge: [diff](https://github.com/ag-grid/ag-charts/compare/${{github.head_ref}}...${{steps.push.outputs.branch}})`
                       })
 
-            - name: Raise PR with Snaspshot Changes
+            - name: Raise PR with Snaspshot Changes on latest
               id: raise-pr
               if: matrix.shard == 0 && steps.test-no-shard.outputs.updates == 'true' && github.ref == 'refs/heads/latest'
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  pr_branch_name=snapshot-updates-$(date +%Y%m%d%H%M)
+                  pr_count=$(
+                    gh pr list \
+                      --base ${{ github.ref }} \
+                      --head ${{ steps.push.outputs.branch }} \
+                      --json title \
+                      --jq 'length'
+                  )
 
-                  git checkout -b ${pr_branch_name}
-                  git push --set-upstream origin ${pr_branch_name}
+                  if ((prs > 0)); then
+                      echo "Existing PRs for snapshots, skipping PR creation."
+                      echo "skip=true" >> "$GITHUB_OUTPUT"
+                      exit
+                  fi
 
-                  gh pr create -B ${{ github.ref }} --title "Snapshot updates at $(date +%Y/%m/%d-%H:%M)" --body "Automatically generated."
+                  gh pr create \
+                    --base ${{ github.ref }} \
+                    --head ${{ steps.push.outputs.branch }} \
+                    --title "Snapshot updates at $(date +%Y/%m/%d-%H:%M)" \
+                    --body "Automatically generated for review."
 
-                  echo "url=$(gh pr view --json url | jq -r .url)" >> $GITHUB_OUTPUT
+                  url=$(
+                    gh pr view \
+                    --base ${{ github.ref }} \
+                    --head ${{ steps.push.outputs.branch }} \
+                    --json url | jq -r .url
+                  )
+
+                  echo "url=${url}" >> $GITHUB_OUTPUT
 
             - name: Slack Notification
               uses: rtCamp/action-slack-notify@v2
               if: matrix.shard == 0 && steps.raise-pr.outputs.url
               env:
-                  SLACK_CHANNEL: alan
                   SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
                   SLACK_COLOR: 'warning'
                   SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
@@ -333,8 +358,8 @@ jobs:
                   SLACK_MESSAGE: >
                       New E2E Snapshot PR: ${{ steps.raise-pr.outputs.url }}
 
-            - name: Fail if updates needed
-              if: steps.test-no-shard.outputs.updates == 'true' && !steps.raise-pr.outputs.url
+            - name: Fail PR checks if updates needed
+              if: steps.test-no-shard.outputs.updates == 'true' && github.head_ref
               run: |
                   echo "Snapshots need to be updated, failing test execution."
                   exit 1
