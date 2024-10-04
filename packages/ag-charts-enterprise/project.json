@@ -158,7 +158,7 @@
       "inputs": ["{projectRoot}/src/**", "{projectRoot}/.dependency-cruiser.js"],
       "outputs": [],
       "options": {
-        "cwd": "packages/ag-charts-community",
+        "cwd": "{projectRoot}",
         "commands": ["npx depcruise src"]
       }
     },
