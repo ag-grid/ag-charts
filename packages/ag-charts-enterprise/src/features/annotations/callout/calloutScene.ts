@@ -337,10 +337,6 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         };
     }
 
-    override getCursor() {
-        if (this.activeHandle == null || this.activeHandle === 'end') return 'pointer';
-    }
-
     override containsPoint(x: number, y: number) {
         const { start, end, shape } = this;
 

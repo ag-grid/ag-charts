@@ -258,4 +258,8 @@ export class DivariantHandle extends Handle {
         this.handle.setProperties(styles);
         this.glow.setProperties({ ...styles, strokeWidth: 0, fill: styles.stroke });
     }
+
+    override getCursor() {
+        return 'pointer';
+    }
 }

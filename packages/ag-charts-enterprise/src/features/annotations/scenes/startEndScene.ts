@@ -102,7 +102,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
     }
 
     override getCursor() {
-        if (this.activeHandle == null) return 'pointer';
+        return 'pointer';
     }
 
     override containsPoint(x: number, y: number) {
