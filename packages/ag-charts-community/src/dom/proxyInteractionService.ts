@@ -128,7 +128,7 @@ export class ProxyInteractionService {
         const meta: ProxyMeta[T] = allocateMeta(args);
         const { params, result: div } = meta;
 
-        this.domManager.addChild('canvas-overlay', params.id, div);
+        this.domManager.addChild('canvas-proxy', params.id, div);
         div.classList.add(...params.classList, 'ag-charts-proxy-container');
         div.role = params.type;
         if ('ariaOrientation' in params) {
