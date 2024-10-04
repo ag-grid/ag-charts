@@ -3,7 +3,7 @@ import { getEntry } from 'astro:content';
 import WhatsNew from '@ag-website-shared/components/whats-new/pages/whats-new.astro';
 
 const { data: versionsData } = await getEntry('versions', 'ag-charts-versions');
-const { data: menuData } = await getEntry('menu', 'data');
+const { data: docsNavData } = await getEntry('docs-nav', 'docsNav');
 ---
 
-<WhatsNew site="charts" versionsData={versionsData} menuData={menuData} />
+<WhatsNew site="charts" versionsData={versionsData} menuData={docsNavData} />

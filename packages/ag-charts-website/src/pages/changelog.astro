@@ -3,14 +3,14 @@ import { getEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import { getFrameworkFromPath } from '@features/docs/utils/urlPaths';
 import { Changelog } from '@features/changelog/Changelog';
-import { PagesNavigationFromLocalStorage } from '@components/pages-navigation/components/PagesNavigationFromLocalStorage';
+import { DocsNavFromLocalStorage } from '@ag-website-shared/components/docs-navigation/DocsNavFromLocalStorage';
 import styles from '@pages-styles/pipelineChangelog.module.scss';
 import classnames from 'classnames';
 
 const path = Astro.url.pathname;
 const framework = getFrameworkFromPath(path);
 
-const menuEntry = await getEntry('menu', 'data');
+const { data: docsNavData } = await getEntry('docs-nav', 'docsNav');
 ---
 
 <Layout
@@ -20,7 +20,8 @@ const menuEntry = await getEntry('menu', 'data');
     showSearchBar={true}
 >
     <div class="layout-grid">
-        <PagesNavigationFromLocalStorage client:load menuData={menuEntry.data} framework={framework} />
+        <DocsNavFromLocalStorage client:load menuData={docsNavData} framework={framework} />
+
         <div className={classnames('page-margin', styles.container)}>
             <h1>AG Charts Changelog</h1>
             <Changelog currentFramework={framework} client:only="react" />
