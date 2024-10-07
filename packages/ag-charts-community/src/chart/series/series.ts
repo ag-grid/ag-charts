@@ -534,7 +534,6 @@ export abstract class Series<
         if (!visible || !rootGroup.visible) return;
         if (intent === 'highlight' && !this.properties.highlight.enabled) return;
         if (intent === 'highlight-tooltip' && !this.properties.highlight.enabled) return;
-        if (intent === 'highlight' && !this.properties.highlight.enabled) return;
 
         let maxDistance = Infinity;
         if (intent === 'tooltip' || intent === 'highlight-tooltip') {

@@ -1,0 +1,1 @@
+export { PyramidModule } from './pyramidModule';

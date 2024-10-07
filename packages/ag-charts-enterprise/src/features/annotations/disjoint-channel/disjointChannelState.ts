@@ -28,6 +28,16 @@ export class DisjointChannelStateMachine extends StateMachine<
             const origin = point();
             datum.set({ start: origin, end: origin, startHeight: 0, endHeight: 0 });
             ctx.create(datum);
+            ctx.addPostUpdateFns(
+                () => ctx.node()?.toggleActive(true),
+                () =>
+                    ctx.node()?.toggleHandles({
+                        topLeft: true,
+                        topRight: false,
+                        bottomLeft: false,
+                        bottomRight: false,
+                    })
+            );
         };
 
         const actionEndUpdate = ({ point }: { point: (origin?: Point, snapToAngle?: number) => Point }) => {
@@ -36,7 +46,13 @@ export class DisjointChannelStateMachine extends StateMachine<
             const datum = ctx.datum();
             datum?.set({ end: point(datum?.start, datum?.snapToAngle) });
 
-            ctx.node()?.toggleHandles({ topRight: false, bottomLeft: false, bottomRight: false });
+            ctx.update();
+        };
+
+        const actionEndFinish = () => {
+            ctx.node()?.toggleHandles({
+                topRight: true,
+            });
             ctx.update();
         };
 
@@ -52,7 +68,7 @@ export class DisjointChannelStateMachine extends StateMachine<
             const bottomStart = { x: datum.start.x, y: datum.start.y - startHeight };
             const bottomEnd = { x: datum.end.x, y };
 
-            ctx.node()?.toggleHandles({ bottomLeft: false });
+            ctx.node()?.toggleHandles({ bottomLeft: true, bottomRight: true });
 
             if (!ctx.validatePoint(bottomStart) || !ctx.validatePoint(bottomEnd)) {
                 return;
@@ -108,6 +124,7 @@ export class DisjointChannelStateMachine extends StateMachine<
                     // transition causing the start and end to be at the same point.
                     guard: ctx.guardDragClickDoubleEvent.guard,
                     target: 'height',
+                    action: actionEndFinish,
                 },
                 reset: {
                     target: StateMachine.parent,

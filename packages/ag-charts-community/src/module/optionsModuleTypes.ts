@@ -4,6 +4,7 @@ import type {
     AgGaugeOptions,
     AgHierarchySeriesOptions,
     AgPolarSeriesOptions,
+    AgStandaloneSeriesOptions,
     AgTopologySeriesOptions,
 } from 'ag-charts-types';
 
@@ -23,6 +24,7 @@ export type SeriesType = NonNullable<
     | AgHierarchySeriesOptions['type']
     | AgTopologySeriesOptions['type']
     | AgFlowProportionSeriesOptions['type']
+    | AgStandaloneSeriesOptions['type']
     | AgGaugeOptions['type']
 >;
 

@@ -10,6 +10,9 @@ export const calloutConfig: AnnotationTypeConfig<CalloutProperties, CalloutScene
     datum: CalloutProperties,
     scene: CalloutScene,
     isDatum: CalloutProperties.is,
+    translate: (node, datum, transition, context) => {
+        if (CalloutProperties.is(datum) && CalloutScene.is(node)) return node.translate(datum, transition, context);
+    },
     copy: (node, datum, copiedDatum, context) => {
         if (CalloutProperties.is(datum) && CalloutProperties.is(copiedDatum) && CalloutScene.is(node)) {
             return node.copy(datum, copiedDatum, context);

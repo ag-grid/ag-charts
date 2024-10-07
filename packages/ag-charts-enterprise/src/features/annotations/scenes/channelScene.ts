@@ -74,6 +74,25 @@ export abstract class ChannelScene<
         return invertCoords(snapToAngle(active, fixed, angle, direction), context);
     }
 
+    override toggleHandles(show: boolean | Partial<Record<ChannelHandle, boolean>>) {
+        const { handles } = this;
+
+        if (typeof show === 'boolean') {
+            for (const [handle, node] of Object.entries(handles)) {
+                node.visible = show;
+                node.toggleHovered(this.activeHandle === handle);
+            }
+
+            return;
+        }
+
+        for (const [handle, visible] of Object.entries(show)) {
+            const node = handles[handle];
+            node.visible = visible ?? true;
+            node.toggleHovered(this.activeHandle === handle);
+        }
+    }
+
     override toggleActive(active: boolean) {
         this.toggleHandles(active);
         for (const node of Object.values(this.handles)) {

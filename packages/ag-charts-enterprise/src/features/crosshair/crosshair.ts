@@ -10,6 +10,8 @@ const { createId } = _Util;
 const { POSITIVE_NUMBER, RATIO, BOOLEAN, COLOR_STRING, LINE_DASH, OBJECT, InteractionState, Validate, ZIndexMap } =
     _ModuleSupport;
 
+type CrosshairOffsets = { offsetX: number; offsetY: number; regionOffsetX: number; regionOffsetY: number };
+
 export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     readonly id = createId(this);
 
@@ -72,10 +74,12 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         this.destroyFns.push(
             ctx.scene.attachNode(this.crosshairGroup),
+            ctx.keyNavManager.addListener('nav-hori', (event) => this.onKeyPress(event), InteractionState.Default),
+            ctx.keyNavManager.addListener('nav-vert', (event) => this.onKeyPress(event), InteractionState.Default),
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
             seriesRegion.addListener('drag', (event) => this.onMouseMove(event), InteractionState.Annotations),
             seriesRegion.addListener('wheel', () => this.onMouseOut(), InteractionState.Default),
-            seriesRegion.addListener('leave', () => this.onMouseOut(), InteractionState.Default),
+            seriesRegion.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.onMouseOut()),
             ctx.zoomManager.addListener('zoom-change', () => this.onMouseOut()),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
@@ -188,7 +192,22 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         return typeof val === 'number' ? val.toFixed(fractionDigits) : String(val);
     }
 
-    private onMouseMove(event: _ModuleSupport.RegionEvent<'hover' | 'drag'>) {
+    private onKeyPress(_event: _ModuleSupport.KeyNavEvent<'nav-hori' | 'nav-vert'>) {
+        if (!this.enabled || this.snap) {
+            return;
+        }
+
+        // AG-13040 When snapping is disabled, use the highlighted mid-point to mimic a mouse event.
+        const highlight = this.ctx.highlightManager.getActiveHighlight();
+        if (highlight?.midPoint !== undefined) {
+            const offsetX = highlight.midPoint.x + this.hoverRect.x;
+            const offsetY = highlight.midPoint.y + this.hoverRect.y;
+            const { regionOffsetX, regionOffsetY } = this.ctx.regionManager.toRegionOffsets('series', offsetX, offsetY);
+            this.onMouseMove({ offsetX, offsetY, regionOffsetX, regionOffsetY });
+        }
+    }
+
+    private onMouseMove(event: CrosshairOffsets) {
         if (!this.enabled || this.snap) {
             return;
         }
@@ -272,7 +291,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         });
     }
 
-    private getData(event: _ModuleSupport.RegionEvent<'hover' | 'drag'>): {
+    private getData(event: CrosshairOffsets): {
         [key: string]: { position: number; value: any };
     } {
         const { axisCtx } = this;

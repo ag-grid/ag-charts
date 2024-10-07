@@ -11,7 +11,7 @@ const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
-        text: 'Conversion Drop Off',
+        text: 'Revenue Open by Sales Stage',
     },
     series: [
         {

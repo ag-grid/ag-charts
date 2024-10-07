@@ -1,5 +1,6 @@
 .ag-charts-proxy-container {
     pointer-events: none;
+    position: absolute;
 }
 
 .ag-charts-proxy-elem {

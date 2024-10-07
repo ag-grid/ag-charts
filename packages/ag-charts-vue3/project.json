@@ -15,64 +15,14 @@
       }
     },
     "build:types": {
-      "executor": "@nx/js:tsc",
-      "dependsOn": ["^build:types"],
-      "inputs": [
-        "{projectRoot}/package.json",
-        "{projectRoot}/src/**/*",
-        "{projectRoot}/tsconfig.*.json",
-        "tsDeclarations",
-        "sharedGlobals",
-        "defaultExcludes",
-        {
-          "externalDependencies": ["npm:typescript"]
-        }
-      ],
-      "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/ag-charts-vue3/dist/types",
-        "main": "packages/ag-charts-vue3/src/index.ts",
-        "tsConfig": "packages/ag-charts-vue3/tsconfig.types.json",
-        "compiler": "tsc"
-      },
-      "configurations": {
-        "watch": {},
-        "production": {}
+        "main": "{projectRoot}/src/index.ts"
       }
     },
     "build:package": {
-      "executor": "@nx/esbuild:esbuild",
-      "dependsOn": ["^build"],
-      "inputs": [
-        "{projectRoot}/package.json",
-        "{projectRoot}/src/**/*",
-        "{projectRoot}/tsconfig.*.json",
-        "tsDeclarations",
-        "sharedGlobals",
-        "defaultExcludes"
-      ],
-      "outputs": ["{options.outputPath}"],
       "options": {
-        "outputPath": "packages/ag-charts-vue3/dist/package",
-        "main": "packages/ag-charts-vue3/src/index.ts",
-        "tsConfig": "packages/ag-charts-vue3/tsconfig.lib.json",
-        "external": ["ag-charts-community", "vue"],
-        "esbuildConfig": "esbuild.config.cjs",
-        "platform": "browser",
-        "target": "es2020",
-        "format": ["cjs", "esm"],
-        "sourcemap": true
-      },
-      "configurations": {
-        "watch": {
-          "tsConfig": "packages/ag-charts-vue3/tsconfig.watch.json"
-        },
-        "staging": {
-          "sourcemap": false
-        },
-        "production": {
-          "sourcemap": false
-        }
+        "main": "{projectRoot}/src/index.ts",
+        "external": ["ag-charts-community", "vue"]
       }
     },
     "pack": {
@@ -81,7 +31,7 @@
       "inputs": ["allTransitiveOutputs"],
       "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
       "options": {
-        "cwd": "packages/ag-charts-vue3",
+        "cwd": "{projectRoot}",
         "parallel": false,
         "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/packages/ag-charts-vue3.tgz"]
       }

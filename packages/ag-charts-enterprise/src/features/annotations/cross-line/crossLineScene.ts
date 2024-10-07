@@ -7,7 +7,7 @@ import { CollidableLine } from '../scenes/collidableLineScene';
 import type { CollidableText } from '../scenes/collidableTextScene';
 import { UnivariantHandle } from '../scenes/handle';
 import { LineWithTextScene } from '../scenes/lineWithTextScene';
-import { convert, invertCoords } from '../utils/values';
+import { convert, invert, invertCoords } from '../utils/values';
 import { type CrossLineProperties, HorizontalLineProperties } from './crossLineProperties';
 
 const { Vec2 } = _Util;
@@ -191,6 +191,20 @@ export class CrossLineScene extends AnnotationScene {
 
         const isHorizontal = HorizontalLineProperties.is(datum);
         datum.set({ value: isHorizontal ? point.y : point.x });
+    }
+
+    public translate(datum: CrossLineProperties, { x, y }: Coords, context: AnnotationContext) {
+        if (datum.locked) return;
+
+        const { axisContext, translation } = HorizontalLineProperties.is(datum)
+            ? { axisContext: context.yAxis, translation: y }
+            : { axisContext: context.xAxis, translation: x };
+
+        const halfBandwidth = (axisContext.scaleBandwidth() ?? 0) / 2;
+        const translated = convert(datum.value, axisContext) + halfBandwidth + translation;
+        const value = invert(translated, axisContext);
+
+        if (!isNaN(value)) datum.set({ value });
     }
 
     override stopDragging() {

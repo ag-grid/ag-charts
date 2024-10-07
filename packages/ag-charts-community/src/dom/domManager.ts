@@ -434,6 +434,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         dataset[name] = String(Number(dataset[name]) + 1);
     }
 
+    setDataBoolean(name: string, value: boolean) {
+        this.element.dataset[name] = String(value);
+    }
+
     getIconClassNames(icon: AgIconName) {
         return `ag-charts-icon ag-charts-icon-${icon}`;
     }

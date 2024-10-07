@@ -22,7 +22,7 @@ import {
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukRoadData } from '../map-test/ukRoadData';
 // @ts-expect-error
-import ukRoadTopology from '../map-test/ukRoadTopology';
+import ukRoadTopology from '../map-test/ukRoadTopology.json';
 import type { MapLineSeries } from './mapLineSeries';
 
 const SIMPLIFIED_EXAMPLE: AgChartOptions = {

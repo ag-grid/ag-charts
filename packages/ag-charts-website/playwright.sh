@@ -12,6 +12,20 @@ fi
 if [ "$1" == "--host" ] ; then
   shift
 
+  dockerBin=$(which docker)
+  if [[ ! -e ${dockerBin} ]] ; then
+    echo Docker CLI not found!
+
+    if [[ $(uname) == "Darwin" ]] ; then
+      echo
+      echo Run the following commands to install and launch Docker Desktop for MacOS:
+      echo \$ brew install --cask docker
+      echo \$ open /Applications/Docker.app
+    fi
+
+    exit 1
+  fi
+
   npx astro dev --port=4601 --host &
 
   cd $(git rev-parse --show-toplevel)
