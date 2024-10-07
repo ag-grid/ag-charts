@@ -9,6 +9,7 @@ import { RotatableText, TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent, unique } from '../../util/array';
+import { iterate } from '../../util/iterator';
 import { isNumber } from '../../util/type-guards';
 import { BOOLEAN, COLOR_STRING, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -200,7 +201,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             line.y2 = datum.y;
             line.visible = this.tick.enabled && datum.y >= range[0] - epsilon && datum.y <= range[1] + epsilon;
             line.stroke = this.tick.stroke;
-            line.fill = undefined;
             line.strokeWidth = 1;
         });
     }
@@ -210,17 +210,9 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         const { axisLineLayout } = this.computedLayout;
         const axisLineSelection = this.axisLineSelection.update(axisLineLayout);
         axisLineSelection.each((line, datum) => {
-            line.setProperties({
-                ...datum,
-                stroke: this.line.stroke,
-                strokeWidth: this.line.width,
-            });
-            line.x1 = datum.x;
-            line.x2 = datum.x;
-            line.y1 = datum.y1;
-            line.y2 = datum.y2;
-            line.strokeWidth = this.line.width;
+            line.setProperties(datum);
             line.stroke = this.line.stroke;
+            line.strokeWidth = this.line.width;
         });
     }
 
@@ -235,17 +227,15 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
             gridSelection.each((line, datum, index) => {
                 const y = Math.round(tickScale.convert(datum));
+                const { stroke, lineDash } = style[index % styleCount];
+                line.visible = gridLine.enabled && y >= range[0] && y <= range[1];
                 line.x1 = 0;
                 line.x2 = -sideFlag * gridLength;
                 line.y1 = y;
                 line.y2 = y;
-                line.visible = gridLine.enabled && y >= range[0] && y <= range[1];
-
-                const { stroke, lineDash } = style[index % styleCount];
                 line.stroke = stroke;
                 line.strokeWidth = width;
                 line.lineDash = lineDash;
-                line.fill = undefined;
             });
         }
     }
@@ -283,6 +273,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         const labels = scale.ticks();
         const treeLabels = tickTreeLayout ? tickTreeLayout.nodes : [];
         const isLabelTree = tickTreeLayout ? tickTreeLayout.depth > 1 : false;
+        const isCaptionEnabled = title?.enabled && labels.length > 0;
         // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
         // flip the labels to avoid upside-down text, when the axis is rotated
         // such that it is in the right hemisphere, i.e. the angle of rotation
@@ -327,6 +318,26 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         const tempText = new TransformableText();
 
         const setLabelProps = (datum: (typeof treeLabels)[number], index: number) => {
+            if (index === 0) {
+                if (isCaptionEnabled) {
+                    const text = callbackCache.call(formatter, this.getTitleFormatterParams());
+                    tempText.setProperties({
+                        text,
+                        fill: title.color,
+                        fontFamily: title.fontFamily,
+                        fontSize: title.fontSize,
+                        fontStyle: title.fontStyle,
+                        fontWeight: title.fontWeight,
+                        textAlign: 'center',
+                        textBaseline: 'hanging',
+                        translationX: datum.screenY - title.fontSize * 0.25,
+                        translationY: datum.screenX,
+                    });
+                    return true;
+                }
+                return false;
+            }
+
             tempText.setProperties({
                 fill: label.color,
                 fontFamily: label.fontFamily,
@@ -339,41 +350,23 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                 translationY: datum.screenX,
             });
 
-            if (index === 0) {
-                const isCaptionEnabled = title?.enabled && labels.length > 0;
-                if (!isCaptionEnabled) {
-                    return false;
-                }
-                const text = callbackCache.call(formatter, this.getTitleFormatterParams());
-                tempText.setProperties({
-                    fill: title.color,
-                    fontFamily: title.fontFamily,
-                    fontSize: title.fontSize,
-                    fontStyle: title.fontStyle,
-                    fontWeight: title.fontWeight,
-                    text,
-                    textBaseline: 'hanging',
-                    translationX: datum.screenY - label.fontSize * 0.25,
-                    translationY: datum.screenX,
-                });
-            } else if (index % keepEvery === 0) {
-                const isInRange = datum.screenX >= range[0] && datum.screenX <= range[1];
-                if (!isInRange) {
-                    return false;
-                }
-                if (label.formatter) {
-                    tempText.text =
-                        callbackCache.call(label.formatter, {
-                            value: String(datum.label),
-                            index,
-                        }) ?? String(datum.label);
-                } else {
-                    tempText.text = String(datum.label);
-                }
-            } else {
+            if (index % keepEvery !== 0) {
+                return false;
+            }
+            // Check datum is in range.
+            if (datum.screenX < range[0] || datum.screenX > range[1]) {
                 return false;
             }
 
+            if (label.formatter) {
+                tempText.text =
+                    callbackCache.call(label.formatter, {
+                        value: String(datum.label),
+                        index,
+                    }) ?? String(datum.label);
+            } else {
+                tempText.text = String(datum.label);
+            }
             return true;
         };
 
@@ -392,30 +385,28 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         });
 
         const labelX = sideFlag * label.padding;
-
         const labelGrid = this.label.grid;
         const separatorData: Array<{ y: number; x1: number; x2: number }> = [];
+
         treeLabels.forEach((datum, index) => {
-            let visible = setLabelProps(datum, index);
-            const id = index;
-            tempText.x = labelX;
-            tempText.rotationCenterX = labelX;
             const isLeaf = !datum.children.length;
+            let visible = setLabelProps(datum, index);
+            tempText.x = labelX;
+            tempText.y = index === 0 && isCaptionEnabled ? title.spacing ?? 0 : 0;
+            tempText.rotationCenterX = labelX;
             if (isLeaf) {
                 tempText.rotation = configuredRotation;
                 tempText.textAlign = 'end';
                 tempText.textBaseline = 'middle';
             } else {
-                tempText.translationX -= maxLeafLabelWidth - lineHeight + this.label.padding;
                 const availableRange = datum.leafCount * bandwidth;
-                const bbox = labelBBoxes.get(id);
+                const bbox = labelBBoxes.get(index);
+                tempText.translationX -= maxLeafLabelWidth - lineHeight + this.label.padding;
                 if (bbox && bbox.width > availableRange) {
                     visible = false;
-                    labelBBoxes.delete(id);
-                } else if (isHorizontal) {
-                    tempText.rotation = defaultRotation;
+                    labelBBoxes.delete(index);
                 } else {
-                    tempText.rotation = -Math.PI / 2;
+                    tempText.rotation = isHorizontal ? defaultRotation : -Math.PI / 2;
                 }
             }
 
@@ -488,7 +479,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             axisLineLayout.push({ x, y1: range[0], y2: range[1], visible });
         }
 
-        const bbox = BBox.merge([...labelBBoxes.values(), ...separatorBoxes, ...axisLineBoxes]);
+        const bbox = BBox.merge(iterate(labelBBoxes.values(), separatorBoxes, axisLineBoxes));
         const transformedBBox = this.getTransformBox(bbox);
 
         return {
