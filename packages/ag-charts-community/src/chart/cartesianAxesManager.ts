@@ -1,7 +1,11 @@
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
+import type { ModuleInstance } from '../module/baseModule';
+import { ContinuousScale } from '../scale/continuousScale';
 import type { BBox } from '../scene/bbox';
+import { arraysEqual } from '../util/array';
 import { Logger } from '../util/logger';
+import { findMinMax } from '../util/number';
 import type { Padding } from '../util/padding';
 import { CategoryAxis } from './axis/categoryAxis';
 import { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
@@ -11,6 +15,12 @@ import type { ChartContext } from './chartContext';
 
 const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
 type AreaWidthMap = Map<AgCartesianAxisPosition, number>;
+
+interface SyncModule extends ModuleInstance {
+    enabled?: boolean;
+    getSyncedDomain(axis: ChartAxis): any[] | undefined;
+    updateSiblings(): void;
+}
 
 export class CartesianAxesManager {
     static AxesPadding = 15; // TODO should come from theme
@@ -78,7 +88,6 @@ export class CartesianAxesManager {
                 clipSeries: lastPassClipSeries,
                 axisAreaWidths: lastPassAxisAreaWidths,
             } = this.updateAxesPass(axes, axisAreaWidths, layoutBox.clone(), seriesPadding, seriesRect));
-            // lastPassAxisAreaWidths = ceilValues(result.axisAreaWidths);
 
             if (count++ > 10) {
                 Logger.warn('unable to find stable axis layout.');
@@ -193,6 +202,29 @@ export class CartesianAxesManager {
         return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, visibility };
     }
 
+    private getSyncedDomain(axis: ChartAxis) {
+        const syncModule = this.modulesManager.getModule<SyncModule>('sync');
+        if (!syncModule?.enabled) return;
+        const syncedDomain = syncModule.getSyncedDomain(axis);
+
+        // If synced domain available and axis domain is already set.
+        if (syncedDomain && axis.dataDomain.domain.length) {
+            let shouldUpdate: boolean;
+            const { domain } = axis.scale;
+            if (ContinuousScale.is(axis.scale)) {
+                const [min, max] = findMinMax(syncedDomain);
+                shouldUpdate = min !== domain[0] || max !== domain[1];
+            } else {
+                shouldUpdate = !arraysEqual(syncedDomain, domain);
+            }
+            if (shouldUpdate && !this.skipSync) {
+                syncModule.updateSiblings();
+            }
+        }
+
+        return syncedDomain;
+    }
+
     private buildCrossLinePadding(axes: ChartAxis[], axisAreaSize: Map<AgCartesianAxisPosition, number>) {
         const crossLinePadding: Partial<Record<AgCartesianAxisPosition, number>> = {};
 
@@ -281,9 +313,9 @@ export class CartesianAxesManager {
 
         this.sizeAxis(axis, seriesRect, position);
 
+        const syncedDomain = this.getSyncedDomain(axis);
+        const layout = axis.calculateLayout(syncedDomain, axis.nice ? primaryTickCounts[direction] : undefined);
         const isVertical = direction === ChartAxisDirection.Y;
-
-        const layout = axis.calculateLayout(axis.nice ? primaryTickCounts[direction] : undefined);
         primaryTickCounts[direction] ??= layout.primaryTickCount;
 
         clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
