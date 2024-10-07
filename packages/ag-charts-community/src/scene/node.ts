@@ -267,7 +267,7 @@ export abstract class Node {
             }
         }
 
-        this.cachedBBox = undefined;
+        this.invalidateCachedBBox();
         this.dirtyZIndex = true;
         this.markDirty(RedrawType.MAJOR);
     }
@@ -289,7 +289,7 @@ export abstract class Node {
             this.virtualChildrenCount--;
         }
 
-        this.cachedBBox = undefined;
+        this.invalidateCachedBBox();
         this.dirtyZIndex = true;
         this.markDirty(RedrawType.MAJOR);
 
@@ -306,7 +306,7 @@ export abstract class Node {
             child._setLayerManager();
         }
         this.childNodes?.clear();
-        this.cachedBBox = undefined;
+        this.invalidateCachedBBox();
         this.virtualChildrenCount = 0;
     }
 
@@ -370,6 +370,11 @@ export abstract class Node {
         }
     }
 
+    private invalidateCachedBBox() {
+        this.cachedBBox = undefined;
+        this.parentNode?.invalidateCachedBBox();
+    }
+
     getBBox(): BBox {
         if (this.cachedBBox == null) {
             this.cachedBBox = Object.freeze(this.computeBBox());
@@ -391,7 +396,7 @@ export abstract class Node {
         const noParentCachedBBox = this.cachedBBox == null;
         if (noParentCachedBBox && dirtyTypeBelowHighWatermark) return;
 
-        this.cachedBBox = undefined;
+        this.invalidateCachedBBox();
         this._dirty = Math.max(_dirty, type);
         if (this.parentNode) {
             this.parentNode.markDirty(parentType);
