@@ -2,7 +2,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
-import { getBBox, updateTextNode, wrapText } from '../text/util';
+import { getBBox, updateTextNode } from '../text/util';
 import { convertPoint, invertCoords } from '../utils/values';
 import { PointScene } from './pointScene';
 

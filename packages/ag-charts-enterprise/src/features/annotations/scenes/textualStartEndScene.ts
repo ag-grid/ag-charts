@@ -3,7 +3,7 @@ import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import { StartEndScene } from '../scenes/startEndScene';
-import { getBBox, updateTextNode, wrapText } from '../text/util';
+import { getBBox, updateTextNode } from '../text/util';
 import { convertLine } from '../utils/values';
 
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends StartEndScene<Datum> {
