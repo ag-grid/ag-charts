@@ -60,9 +60,9 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return super.update(animated);
     }
 
-    override calculateLayout(primaryTickCount?: number) {
+    override calculateLayout(domain?: any[], primaryTickCount?: number) {
         this.updateDirection();
-        return super.calculateLayout(primaryTickCount);
+        return super.calculateLayout(domain, primaryTickCount);
     }
 
     override createAxisContext(): AxisContext {

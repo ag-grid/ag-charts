@@ -58,34 +58,175 @@
       "cache": true
     },
     "build:types": {
+      "executor": "@nx/js:tsc",
       "dependsOn": ["^build:types"],
-      "inputs": ["production", "^production"],
-      "cache": true
+      "cache": true,
+      "inputs": [
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "defaultExcludes",
+        {
+          "externalDependencies": ["npm:typescript"]
+        }
+      ],
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "{projectRoot}/dist/types",
+        "main": "{projectRoot}/src/main.ts",
+        "tsConfig": "{projectRoot}/tsconfig.types.json",
+        "compiler": "tsc"
+      },
+      "configurations": {
+        "watch": {
+          "tsConfig": "{projectRoot}/tsconfig.types.watch.json"
+        },
+        "production": {}
+      }
+    },
+    "build:test": {
+      "executor": "nx:run-commands",
+      "cache": true,
+      "dependsOn": ["^build:types", "build:types"],
+      "inputs": [
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "buildOutputExcludes",
+        {
+          "externalDependencies": ["npm:typescript"]
+        }
+      ],
+      "outputs": ["{projectRoot}/dist/test"],
+      "options": {
+        "command": "npx tsc -p {projectRoot}/tsconfig.spec.json --outDir {projectRoot}/dist/test"
+      },
+      "configurations": {
+        "watch": {},
+        "production": {}
+      }
     },
     "build:package": {
-      "dependsOn": ["^build:package"],
-      "inputs": ["production", "^production"],
-      "cache": true
+      "executor": "@nx/esbuild:esbuild",
+      "cache": true,
+      "dependsOn": ["^build:types"],
+      "inputs": [
+        "{projectRoot}/package.json",
+        "{projectRoot}/src/**/*",
+        "{projectRoot}/tsconfig.*.json",
+        "tsDeclarations",
+        "sharedGlobals",
+        "defaultExcludes",
+        {
+          "externalDependencies": ["npm:typescript", "npm:esbuild"]
+        }
+      ],
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "{projectRoot}/dist/package",
+        "main": "{projectRoot}/src/main.ts",
+        "tsConfig": "{projectRoot}/tsconfig.lib.json",
+        "esbuildConfig": "esbuild.config.cjs",
+        "platform": "browser",
+        "target": "es2020",
+        "format": ["cjs", "esm"],
+        "sourcemap": true
+      },
+      "configurations": {
+        "watch": {
+          "tsConfig": "{projectRoot}/tsconfig.watch.json"
+        },
+        "staging": {
+          "sourcemap": false
+        },
+        "production": {
+          "sourcemap": false
+        }
+      }
     },
     "build:umd": {
+      "executor": "@nx/esbuild:esbuild",
+      "cache": true,
       "dependsOn": ["build:package", "^build:package"],
-      "inputs": ["^jsOutputs"],
-      "cache": true
+      "inputs": ["jsOutputs", "^jsOutputs"],
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "{projectRoot}/dist/umd",
+        "main": "{projectRoot}/dist/package/main.cjs.js",
+        "tsConfig": "{projectRoot}/tsconfig.lib.json",
+        "esbuildConfig": "esbuild.config.cjs",
+        "platform": "browser",
+        "target": "es2020",
+        "bundle": true,
+        "thirdParty": true,
+        "skipTypeCheck": true,
+        "external": [],
+        "format": ["cjs"],
+        "sourcemap": true
+      },
+      "configurations": {
+        "watch": {
+          "tsConfig": "{projectRoot}/tsconfig.watch.json"
+        },
+        "staging": {
+          "sourcemap": false
+        },
+        "production": {
+          "sourcemap": false
+        }
+      }
     },
+
     "lint": {
       "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/.eslintrc.*", "{workspaceRoot}/.eslintignore"],
       "outputs": [],
       "cache": true
     },
     "lint:depcruise": {
-      "inputs": ["default", "buildOutputExcludes", "{projectRoot}/.dependency-cruise.js"],
+      "executor": "nx:run-commands",
+      "inputs": ["{projectRoot}/src/**", "{projectRoot}/.dependency-cruiser.js"],
       "outputs": [],
-      "cache": true
+      "cache": true,
+      "options": {
+        "cwd": "{projectRoot}",
+        "commands": ["npx depcruise src"]
+      }
     },
     "lint:circular": {
-      "inputs": ["default", "buildOutputExcludes"],
+      "executor": "nx:run-commands",
+      "inputs": ["{projectRoot}/src/**"],
       "outputs": [],
-      "cache": true
+      "cache": true,
+      "options": {
+        "cwd": "{projectRoot}",
+        "commands": ["npx madge --circular --extensions ts src/"]
+      }
+    },
+    "lint:eslint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "eslintConfig": "{projectRoot}/.eslintrc.js",
+        "cache": true,
+        "cacheLocation": "{workspaceRoot}/node_modules/.cache/.eslintcache"
+      },
+      "cache": true,
+      "inputs": [
+        "default",
+        "buildOutputExcludes",
+        "{workspaceRoot}/.eslintrc.*",
+        "{projectRoot}/.eslintrc.*",
+        "{workspaceRoot}/tools/eslint-rules/**/*"
+      ],
+      "outputs": [],
+      "configurations": {
+        "fix": {
+          "fix": true
+        }
+      }
     },
     "test": {
       "inputs": ["default", "buildOutputExcludes", "^production", "{workspaceRoot}/jest.preset.js"],
@@ -149,7 +290,7 @@
     "appsDir": "packages",
     "libsDir": "libraries"
   },
-  "nxCloudAccessToken": "ZDJhN2YwMWMtYWZiMS00MzY2LWFiZDgtZTc0ZTg4MTk4ZDE2fHJlYWQ=",
+  "disabledNxCloudAccessToken": "ZDJhN2YwMWMtYWZiMS00MzY2LWFiZDgtZTc0ZTg4MTk4ZDE2fHJlYWQ=",
   "defaultProject": "all",
   "defaultBase": "latest"
 }

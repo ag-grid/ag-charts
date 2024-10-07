@@ -1,0 +1,30 @@
+{
+    "api": {
+        "items": [
+            {
+                "title": "Options API",
+                "path": "/options"
+            },
+            {
+                "title": "Themes API",
+                "path": "/themes-api"
+            },
+            {
+                "title": "Chart API",
+                "path": "/[framework]/api-create-update"
+            },
+            {
+                "title": "Events API",
+                "path": "/[framework]/events"
+            },
+            {
+                "title": "Download API",
+                "path": "/[framework]/api-download"
+            },
+            {
+                "title": "State API",
+                "path": "/[framework]/api-state"
+            }
+        ]
+    }
+}

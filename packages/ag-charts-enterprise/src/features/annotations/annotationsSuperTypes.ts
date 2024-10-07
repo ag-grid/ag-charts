@@ -4,6 +4,7 @@ import type {
     AnnotationContext,
     AnnotationType,
     Constructor,
+    Coords,
     GuardDragClickDoubleEvent,
     Point,
 } from './annotationTypes';
@@ -68,6 +69,7 @@ export interface AnnotationsStateMachineContext {
     startInteracting: () => void;
     stopInteracting: () => void;
 
+    translate: (index: number, translation: Coords) => void;
     copy: (index: number) => AnnotationProperties | undefined;
     paste: (datum: AnnotationProperties) => void;
     create: (type: AnnotationType, datum: AnnotationProperties) => void;
@@ -90,6 +92,7 @@ export interface AnnotationsStateMachineContext {
     showAnnotationSettings: (index: number, sourceEvent?: Event) => void;
 
     recordAction: (label: string) => void;
+    addPostUpdateFns: (...fns: (() => void)[]) => void;
 
     update: () => void;
 }
@@ -100,6 +103,12 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
     datum: Constructor<Datum>;
     scene: Constructor<Scene>;
     update: (node: AnnotationSceneNode, datum: _ModuleSupport.BaseProperties, context: AnnotationContext) => void;
+    translate: (
+        node: AnnotationSceneNode,
+        datum: _ModuleSupport.BaseProperties,
+        translation: Coords,
+        context: AnnotationContext
+    ) => void;
     copy: (
         node: AnnotationSceneNode,
         datum: _ModuleSupport.BaseProperties,
@@ -117,7 +126,11 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
         helpers: AnnotationsStateMachineHelperFns
     ) => _ModuleSupport.StateMachine<any, any>;
     dragState: (
-        ctx: AnnotationsStateMachineContext & { setSelectedWithDrag: () => void },
+        ctx: AnnotationsStateMachineContext & {
+            setSelectedWithDrag: () => void;
+            setSnapping: (snapping: boolean) => void;
+            getSnapping: () => boolean;
+        },
         helpers: AnnotationsStateMachineHelperFns
     ) => _ModuleSupport.StateMachine<any, any>;
 }

@@ -153,17 +153,18 @@ export class RegionManager {
         return true;
     }
 
-    // Create and dispatch a copy of the InteractionEvent.
-    private dispatch(
-        current: { region: Region; bboxProvider?: BBoxProvider } | undefined,
-        partialEvent: Unpreventable<PointerInteractionEvent>
-    ) {
-        if (current == null) return;
+    public toRegionOffsets(regionName: RegionName, offsetX?: number, offsetY?: number) {
+        const region = this.regions.get(regionName);
+        if (!region) throw new Error(`AG Charts - cannot find region '${regionName}'`);
+        return this.getRegionOffsets(region, { offsetX, offsetY });
+    }
 
-        const mainBBoxProvider = current.region.properties.bboxproviders[0];
+    public getRegionOffsets(region: Region, partialEvent: { offsetX?: number; offsetY?: number }) {
+        const mainBBoxProvider = region.properties.bboxproviders[0];
+
         let regionOffsetX = 0;
         let regionOffsetY = 0;
-        if ('offsetX' in partialEvent && 'offsetY' in partialEvent) {
+        if (partialEvent.offsetX !== undefined && partialEvent.offsetY !== undefined) {
             ({ x: regionOffsetX, y: regionOffsetY } = mainBBoxProvider.fromCanvasPoint(
                 partialEvent.offsetX,
                 partialEvent.offsetY
@@ -173,7 +174,17 @@ export class RegionManager {
             regionOffsetX = regionBBox.width / 2;
             regionOffsetY = regionBBox.height / 2;
         }
+        return { regionOffsetX, regionOffsetY };
+    }
 
+    // Create and dispatch a copy of the InteractionEvent.
+    private dispatch(
+        current: { region: Region; bboxProvider?: BBoxProvider } | undefined,
+        partialEvent: Unpreventable<PointerInteractionEvent>
+    ) {
+        if (current == null) return;
+
+        const { regionOffsetX, regionOffsetY } = this.getRegionOffsets(current.region, partialEvent);
         const event: RegionEvent = buildPreventable({
             ...partialEvent,
             region: current.region.properties.name,

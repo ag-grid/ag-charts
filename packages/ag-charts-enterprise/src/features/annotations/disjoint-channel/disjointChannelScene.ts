@@ -33,30 +33,12 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         this.append([this.background, this.topLine, this.bottomLine, ...Object.values(this.handles)]);
     }
 
-    override toggleHandles(show: boolean | Partial<Record<ChannelHandle, boolean>>) {
-        if (typeof show === 'boolean') {
-            show = {
-                topLeft: show,
-                topRight: show,
-                bottomLeft: show,
-                bottomRight: show,
-            };
-        }
-
-        for (const [handle, node] of Object.entries(this.handles)) {
-            node.visible = show[handle as ChannelHandle] ?? true;
-            node.toggleHovered(this.activeHandle === handle);
-        }
-    }
-
-    override toggleActive(active: boolean) {
-        this.toggleHandles(active);
-        for (const node of Object.values(this.handles)) {
-            node.toggleActive(active);
-        }
-    }
-
-    override dragHandle(datum: DisjointChannelProperties, target: Coords, context: AnnotationContext) {
+    override dragHandle(
+        datum: DisjointChannelProperties,
+        target: Coords,
+        context: AnnotationContext,
+        snapping: boolean
+    ) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
 
@@ -65,21 +47,27 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
 
         const invert = (coords: Coords) => invertCoords(coords, context);
         const prev = datum.toJson();
+        const angle = datum.snapToAngle;
 
         switch (activeHandle) {
             case 'topLeft':
             case 'bottomLeft': {
                 const direction = activeHandle === 'topLeft' ? 1 : -1;
-                const start = invert({
-                    x: handles.topLeft.handle.x + offset.x,
-                    y: handles.topLeft.handle.y + offset.y * direction,
-                });
-                const bottomStart = invert({
-                    x: handles.bottomLeft.handle.x + offset.x,
-                    y: handles.bottomLeft.handle.y + offset.y * -direction,
-                });
+                const start = snapping
+                    ? this.snapToAngle(target, context, 'topLeft', 'topRight', angle, direction)
+                    : invert({
+                          x: handles.topLeft.handle.x + offset.x,
+                          y: handles.topLeft.handle.y + offset.y * direction,
+                      });
 
-                if (!start || !bottomStart || datum.start.y == null) return;
+                const bottomStart = snapping
+                    ? this.snapToAngle(target, context, 'bottomLeft', 'bottomRight', angle, -direction)
+                    : invert({
+                          x: handles.bottomLeft.handle.x + offset.x,
+                          y: handles.bottomLeft.handle.y + offset.y * -direction,
+                      });
+
+                if (!start || start.y == null || !bottomStart || bottomStart.y == null || datum.start.y == null) return;
 
                 const startHeight = datum.startHeight + (start.y - datum.start.y) * 2;
 
@@ -91,12 +79,14 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
             }
 
             case 'topRight': {
-                const end = invert({
-                    x: handles.topRight.handle.x + offset.x,
-                    y: handles.topRight.handle.y + offset.y,
-                });
+                const end = snapping
+                    ? this.snapToAngle(target, context, 'topRight', 'topLeft', angle)
+                    : invert({
+                          x: handles.topRight.handle.x + offset.x,
+                          y: handles.topRight.handle.y + offset.y,
+                      });
 
-                if (!end || datum.end.y == null) return;
+                if (!end || end.y == null || datum.end.y == null) return;
 
                 const endHeight = datum.endHeight + (end.y - datum.end.y) * 2;
 
@@ -138,10 +128,6 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         topRight: Coords,
         context: AnnotationContext
     ): Coords[] {
-        const { dragState } = this;
-
-        if (!dragState) return [];
-
         const startHeight = convertPoint(datum.bottom.start, context).y - convertPoint(datum.start, context).y;
         const endHeight = convertPoint(datum.bottom.end, context).y - convertPoint(datum.end, context).y;
 

@@ -10,13 +10,15 @@ import {
 } from 'ag-charts-community-test';
 import type { AgChartInstance, AgFinancialChartOptions } from 'ag-charts-types';
 
-import { AgCharts } from '../main';
+import { setupEnterpriseModules } from '../main-modules';
 import { getStockData } from './test/stockData';
 
 const EXAMPLES: Record<string, AgFinancialChartOptions> = {
     minimal: { data: getStockData() },
     // 'with-navigator': { data: getStockData(), navigator: true },
 };
+
+const { AgCharts } = setupEnterpriseModules();
 
 describe('priceVolumePreset', () => {
     setupMockConsole();

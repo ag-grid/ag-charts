@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-
+import { expect, test } from './fixture';
 import { SELECTORS, dragCanvas, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrl } from './util';
 
 test.describe('zoom', () => {

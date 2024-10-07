@@ -5,6 +5,6 @@ export const BackgroundModule: Module = {
     type: 'root',
     optionsKey: 'background',
     packageType: 'community',
-    chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'gauge'],
+    chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'standalone', 'gauge'],
     moduleFactory: (ctx) => new Background(ctx),
 };

@@ -135,7 +135,7 @@ async function checkExports(exports) {
 
 const allowedExtensions = ['.md', '.js', '.mjs', '.d.ts', '.txt', '.json'];
 if (args.allowedExt) {
-    console.log(`Adding extensions to whitelist: ` + args.allowedExt.join(' '));
+    console.log(`Adding extensions to allow-list: ` + args.allowedExt.join(' '));
     allowedExtensions.push(...args.allowedExt.map((e) => `.${e}`));
 }
 function checkAllowedExtension(filename) {

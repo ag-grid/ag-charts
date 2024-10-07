@@ -22,6 +22,7 @@ import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
 import type { Has } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
+import { ChartUpdateType } from '../../chartUpdateType';
 import type { DataController } from '../../data/dataController';
 import { DataModel, getMissCount } from '../../data/dataModel';
 import {
@@ -153,6 +154,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     // When a user toggles a series item (e.g. from the legend), its boolean state is recorded here.
     public seriesItemEnabled: boolean[] = [];
+    public legendItemEnabled: boolean[] = [];
 
     private oldTitle?: DonutTitle;
 
@@ -183,9 +185,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     override get visible() {
-        return (
-            super.visible && (this.seriesItemEnabled.length === 0 || this.seriesItemEnabled.some((visible) => visible))
-        );
+        return super.visible && (this.seriesItemEnabled.length === 0 || this.seriesItemEnabled.includes(true));
     }
 
     protected override nodeFactory(): Sector {
@@ -663,10 +663,10 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         if (title) {
             const dy = this.getTitleTranslationY();
-            const titleBox = title.node.getBBox();
-            title.node.visible =
-                title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox, 0, dy);
             title.node.y = isFinite(dy) ? dy : 0;
+
+            const titleBox = title.node.getBBox();
+            title.node.visible = title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox);
         }
 
         for (const circle of [this.zerosumInnerRing, this.zerosumOuterRing]) {
@@ -782,15 +782,13 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     private async updateNodes(seriesRect: BBox) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        const isVisible = this.visible && this.seriesItemEnabled.indexOf(true) >= 0;
+        const isVisible = this.visible && this.seriesItemEnabled.includes(true);
         this.rootGroup.visible = isVisible;
         this.backgroundGroup.visible = isVisible;
         this.contentGroup.visible = isVisible;
         this.highlightGroup.visible = isVisible && highlightedDatum?.series === this;
         this.highlightLabel.visible = isVisible && highlightedDatum?.series === this;
-        if (this.labelGroup) {
-            this.labelGroup.visible = isVisible;
-        }
+        this.labelGroup.visible = isVisible;
 
         this.contentGroup.opacity = this.getOpacity();
 
@@ -837,12 +835,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
         this.highlightSelection.each((node, datum, index) => {
-            if (datum.itemId === highlightedDatum?.itemId) {
-                node.visible = true;
-                updateSectorFn(node, datum, index, true);
-            } else {
-                node.visible = false;
-            }
+            updateSectorFn(node, datum, index, true);
+
+            node.visible = datum.itemId === highlightedDatum?.itemId;
         });
         this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
 
@@ -933,16 +928,16 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         return { textLength, hasVerticalOverflow, hasSurroundingSeriesOverflow };
     }
 
-    private bboxIntersectsSurroundingSeries(box: BBox, dx = 0, dy = 0) {
+    private bboxIntersectsSurroundingSeries(box: BBox) {
         const { surroundingRadius } = this;
         if (surroundingRadius == null) {
             return false;
         }
         const corners = [
-            { x: box.x + dx, y: box.y + dy },
-            { x: box.x + box.width + dx, y: box.y + dy },
-            { x: box.x + box.width + dx, y: box.y + box.height + dy },
-            { x: box.x + dx, y: box.y + box.height + dy },
+            { x: box.x, y: box.y },
+            { x: box.x + box.width, y: box.y },
+            { x: box.x + box.width, y: box.y + box.height },
+            { x: box.x, y: box.y + box.height },
         ];
         const sur2 = surroundingRadius ** 2;
         return corners.some((corner) => corner.x ** 2 + corner.y ** 2 > sur2);
@@ -1442,7 +1437,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 id: this.id,
                 itemId: index,
                 seriesId: this.id,
-                enabled: visible && this.seriesItemEnabled[index],
+                enabled: visible && this.legendItemEnabled[index],
                 label: {
                     text: labelParts.join(' - '),
                 },
@@ -1476,10 +1471,17 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     protected override toggleSeriesItem(itemId: number, enabled: boolean): void {
         this.seriesItemEnabled[itemId] = enabled;
+        this.legendItemEnabled[itemId] = enabled;
         if (this.nodeData[itemId]) {
             this.nodeData[itemId].enabled = enabled;
         }
         this.nodeDataRefresh = true;
+    }
+
+    // Used for grid
+    setLegendState(enabledItems: boolean[]) {
+        this.legendItemEnabled = enabledItems;
+        this.ctx.updateService.update(ChartUpdateType.SERIES_UPDATE);
     }
 
     toggleOtherSeriesItems(legendItemName: string, enabled: boolean): void {
@@ -1614,7 +1616,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     protected override onDataChange() {
-        const { data, seriesItemEnabled } = this;
+        const { data, seriesItemEnabled, legendItemEnabled } = this;
         this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
+        this.legendItemEnabled = data?.map((_, index) => legendItemEnabled[index] ?? true) ?? [];
     }
 }

@@ -14,6 +14,7 @@ import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOp
 import type { AgBaseFlowProportionChartOptions } from './series/flow-proportion/flowProportionOptions';
 import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from './series/polar/polarOptions';
+import type { AgBaseStandaloneChartOptions } from './series/standalone/standaloneOptions';
 import type { AgBaseTopologyChartOptions } from './series/topology/topologyOptions';
 
 export interface AgChartThemeOptions extends AgBaseChartThemeOptions {}
@@ -39,6 +40,9 @@ export interface AgTopologyChartOptions extends AgBaseTopologyChartOptions, AgBa
 export interface AgFlowProportionChartOptions extends AgBaseFlowProportionChartOptions, AgBaseChartOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
+export interface AgStandaloneChartOptions extends AgBaseStandaloneChartOptions, AgBaseChartOptions {
+    theme?: AgChartTheme | AgChartThemeName;
+}
 export interface AgGaugeChartOptions extends AgBaseChartOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
@@ -47,7 +51,8 @@ export type AgChartOptions =
     | AgPolarChartOptions
     | AgHierarchyChartOptions
     | AgTopologyChartOptions
-    | AgFlowProportionChartOptions;
+    | AgFlowProportionChartOptions
+    | AgStandaloneChartOptions;
 
 export type AgBaseFinancialPresetOptions = Pick<
     AgCartesianChartOptions,
@@ -125,15 +130,6 @@ export interface AgChartInstance<O extends AgChartInstanceOptions = AgChartOptio
 
     /** Destroy the chart instance and any allocated resources supporting its rendering. */
     destroy(): void;
-}
-
-/** NOTE: For API docs use; simplified typings to enable rendering. */
-// @ts-ignore
-interface _AgChartsInterface {
-    /**
-     * Create a new `AgChartInstance` based upon the given configuration options.
-     */
-    create(options: AgChartOptions): AgChartInstance;
 }
 
 /** NOTE: For API docs use; simplified typings to enable rendering. */

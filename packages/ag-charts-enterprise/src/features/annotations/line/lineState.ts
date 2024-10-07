@@ -24,23 +24,29 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: LineStateMachineContext<Datum>) {
-        const actionCreate = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: () => Point }) => {
             const datum = this.createDatum();
-            datum.set({ start: point, end: point });
+            const origin = point();
+            datum.set({ start: origin, end: origin });
             ctx.create(datum);
+            ctx.addPostUpdateFns(
+                () => ctx.node()?.toggleActive(true),
+                () => ctx.node()?.toggleHandles({ start: true, end: false })
+            );
         };
 
-        const actionEndUpdate = ({ point }: { point: Point }) => {
+        const actionEndUpdate = ({ point }: { point: (origin?: Point, snapToAngle?: number) => Point }) => {
             ctx.guardDragClickDoubleEvent.hover();
-            ctx.datum()?.set({ end: point });
-            ctx.node()?.toggleActive(true); // TODO: move to onEnter, but node doesn't exist until next render
-            ctx.node()?.toggleHandles({ end: false });
+
+            const datum = ctx.datum();
+            datum?.set({ end: point(datum?.start, datum?.snapToAngle) });
+
             ctx.update();
         };
 
-        const actionEndFinish = ({ point }: { point: Point }) => {
-            ctx.datum()?.set({ end: point });
+        const actionEndFinish = () => {
             ctx.node()?.toggleHandles({ end: true });
+            ctx.update();
         };
 
         const actionCancel = () => ctx.delete();

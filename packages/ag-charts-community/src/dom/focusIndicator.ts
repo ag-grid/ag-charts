@@ -1,7 +1,7 @@
 import { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
 import type { BBoxValues } from '../util/bboxinterface';
-import { getDocument, setElementBBox } from '../util/dom';
+import { getDocument, getWindow, setElementBBox } from '../util/dom';
 import type { DOMManager } from './domManager';
 
 const FOCUS_INDICATOR_CSS_CLASS = 'ag-charts-focus-indicator';
@@ -10,6 +10,7 @@ export class FocusIndicator {
     private readonly svg: SVGSVGElement;
     private readonly path: SVGPathElement;
     private readonly div: HTMLDivElement;
+    private forceInvisible = false;
 
     constructor(private readonly domManager: DOMManager) {
         this.div = getDocument().createElement('div');
@@ -33,7 +34,7 @@ export class FocusIndicator {
             // skip
         } else if (bounds instanceof Path) {
             const transform = (x: number, y: number) => Transformable.toCanvasPoint(bounds, x, y);
-            this.path.setAttribute('d', bounds.computeSVGDataPath(transform));
+            this.path.setAttribute('d', bounds.svgPathData(transform));
             this.show(this.svg);
         } else {
             setElementBBox(this.div, bounds);
@@ -46,9 +47,15 @@ export class FocusIndicator {
         this.element.append(child);
     }
 
+    // Use with caution! The focus must be visible when using the keyboard.
+    toggleForceInvisible(force: boolean) {
+        this.forceInvisible = force;
+        this.element.classList.toggle(`ag-charts-focus-indicator__force_invisible`, force);
+    }
+
     // Get the `:focus-visible` CSS state.
     public isFocusVisible(): boolean {
-        const focusableParent = this.element.parentElement;
-        return focusableParent != null && getComputedStyle(focusableParent).opacity === '1';
+        const parent = this.element.parentElement;
+        return !this.forceInvisible && parent != null && getWindow().getComputedStyle(parent).opacity === '1';
     }
 }

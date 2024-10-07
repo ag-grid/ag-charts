@@ -11,7 +11,7 @@ export abstract class Handle extends _Scene.Group {
     public static readonly GLOW_SIZE: number;
     public static readonly INACTIVE_STROKE_WIDTH = 2;
 
-    protected abstract handle: _Scene.Rect | _Scene.Circle;
+    abstract handle: _Scene.Rect | _Scene.Circle;
     protected abstract glow: _Scene.Rect | _Scene.Circle;
     protected active = false;
     protected locked = false;
@@ -257,5 +257,9 @@ export class DivariantHandle extends Handle {
 
         this.handle.setProperties(styles);
         this.glow.setProperties({ ...styles, strokeWidth: 0, fill: styles.stroke });
+    }
+
+    override getCursor() {
+        return 'pointer';
     }
 }

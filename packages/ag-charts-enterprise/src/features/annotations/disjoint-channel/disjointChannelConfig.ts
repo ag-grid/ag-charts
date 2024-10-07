@@ -10,6 +10,10 @@ export const disjointChannelConfig: AnnotationTypeConfig<DisjointChannelProperti
     datum: DisjointChannelProperties,
     scene: DisjointChannelScene,
     isDatum: DisjointChannelProperties.is,
+    translate: (node, datum, transition, context) => {
+        if (DisjointChannelProperties.is(datum) && DisjointChannelScene.is(node))
+            node.translate(datum, transition, context);
+    },
     copy: (node, datum, copiedDatum, context) => {
         if (
             DisjointChannelProperties.is(datum) &&

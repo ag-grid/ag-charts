@@ -1,6 +1,6 @@
 import { type _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
+import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ArrowCapScene, type CapScene } from '../scenes/capScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
@@ -8,8 +8,7 @@ import type { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle } from '../scenes/handle';
 import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { StartEndScene } from '../scenes/startEndScene';
-import { validateDatumPoint } from '../utils/validation';
-import { convertLine, invertCoords } from '../utils/values';
+import { convertLine } from '../utils/values';
 import type { LineTypeProperties } from './lineProperties';
 
 const { Vec2 } = _Util;
@@ -142,20 +141,6 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
         this.anchor.x = x;
         this.anchor.y = y;
-    }
-
-    override dragHandle(datum: LineTypeProperties, target: Coords, context: AnnotationContext) {
-        const { activeHandle } = this;
-
-        if (!activeHandle) return;
-
-        this[activeHandle].toggleDragging(true);
-        const point = invertCoords(this[activeHandle].drag(target).point, context);
-
-        if (!validateDatumPoint(context, point)) return;
-
-        datum[activeHandle].x = point.x;
-        datum[activeHandle].y = point.y;
     }
 
     override containsPoint(x: number, y: number) {

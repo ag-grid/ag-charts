@@ -172,6 +172,46 @@ export class Text extends Shape {
         this.textAlign = props.textAlign;
         this.textBaseline = props.textBaseline;
     }
+
+    override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] | undefined } | undefined {
+        if (!this.visible || !this.text) return;
+
+        const element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+
+        element.setAttribute('font-family', this.fontFamily?.split(',')[0] ?? '');
+        element.setAttribute('font-size', String(this.fontSize));
+        element.setAttribute('font-style', this.fontStyle ?? '');
+        element.setAttribute('font-weight', String(this.fontWeight ?? ''));
+        element.setAttribute(
+            'text-anchor',
+            {
+                center: 'middle',
+                left: 'start',
+                right: 'end',
+                start: 'start',
+                end: 'end',
+            }[this.textAlign ?? 'start']
+        );
+        element.setAttribute(
+            'alignment-baseline',
+            {
+                alphabetic: 'alphabetic',
+                top: 'top',
+                bottom: 'bottom',
+                hanging: 'hanging',
+                middle: 'middle',
+                ideographic: 'ideographic',
+            }[this.textBaseline ?? 'alphabetic']
+        );
+        element.setAttribute('x', String(this.x));
+        element.setAttribute('y', String(this.y));
+
+        element.textContent = this.text ?? '';
+
+        return {
+            elements: [element],
+        };
+    }
 }
 
 export class RotatableText extends Rotatable(Text) {}

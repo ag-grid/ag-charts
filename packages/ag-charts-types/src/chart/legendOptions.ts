@@ -73,9 +73,13 @@ export interface AgChartLegendEvent<T extends string> {
     enabled: boolean;
 }
 
-export interface AgChartLegendClickEvent extends AgChartLegendEvent<'click'> {}
+export interface AgChartLegendClickEvent extends AgChartLegendEvent<'click'> {
+    preventDefault(): void;
+}
 
-export interface AgChartLegendDoubleClickEvent extends AgChartLegendEvent<'dblclick'> {}
+export interface AgChartLegendDoubleClickEvent extends AgChartLegendEvent<'dblclick'> {
+    preventDefault(): void;
+}
 
 export interface AgChartLegendContextMenuEvent extends AgChartLegendEvent<'contextmenu'> {}
 

@@ -6,7 +6,7 @@ import { ChannelScene } from '../scenes/channelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import { LineWithTextScene } from '../scenes/lineWithTextScene';
-import { validateDatumPoint } from '../utils/validation';
+import { isPoint, validateDatumPoint } from '../utils/validation';
 import { convertPoint, invertCoords } from '../utils/values';
 import type { ParallelChannelProperties } from './parallelChannelProperties';
 
@@ -38,32 +38,12 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         this.append([this.background, this.topLine, this.middleLine, this.bottomLine, ...Object.values(this.handles)]);
     }
 
-    override toggleHandles(show: boolean | Partial<Record<ChannelHandle, boolean>>) {
-        if (typeof show === 'boolean') {
-            show = {
-                topLeft: show,
-                topMiddle: show,
-                topRight: show,
-                bottomLeft: show,
-                bottomMiddle: show,
-                bottomRight: show,
-            };
-        }
-
-        for (const [handle, node] of Object.entries(this.handles)) {
-            node.visible = show[handle as ChannelHandle] ?? true;
-            node.toggleHovered(this.activeHandle === handle);
-        }
-    }
-
-    override toggleActive(active: boolean) {
-        this.toggleHandles(active);
-        for (const node of Object.values(this.handles)) {
-            node.toggleActive(active);
-        }
-    }
-
-    override dragHandle(datum: ParallelChannelProperties, target: Coords, context: AnnotationContext) {
+    override dragHandle(
+        datum: ParallelChannelProperties,
+        target: Coords,
+        context: AnnotationContext,
+        snapping: boolean
+    ) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
 
@@ -72,11 +52,13 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
         const prev = datum.toJson();
         let moves: Array<ChannelHandle> = [];
+        let origins: Array<ChannelHandle> = [];
 
         switch (activeHandle) {
             case 'topLeft':
             case 'bottomLeft':
                 moves = ['topLeft', 'bottomLeft'];
+                origins = ['topRight', 'bottomRight'];
                 break;
             case 'topMiddle':
                 moves = ['topLeft', 'topRight'];
@@ -85,6 +67,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
             case 'topRight':
             case 'bottomRight':
                 moves = ['topRight', 'bottomRight'];
+                origins = ['topLeft', 'bottomLeft'];
                 break;
             case 'bottomMiddle':
                 moves = ['bottomLeft', 'bottomRight'];
@@ -92,7 +75,14 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
                 break;
         }
 
-        const invertedMoves = moves.map((move) => invertCoords(Vec2.add(handles[move].handle, offset), context));
+        const angle = datum.snapToAngle;
+        const invertedMoves = moves
+            .map((handle, index) =>
+                snapping && origins[index]
+                    ? this.snapToAngle(target, context, handle, origins[index], angle)
+                    : invertCoords(Vec2.add(handles[handle].handle, offset), context)
+            )
+            .filter(isPoint);
 
         // Do not move any handles if some of them are trying to move to invalid points
         if (invertedMoves.some((invertedMove) => !validateDatumPoint(context, invertedMove))) {
@@ -138,10 +128,6 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         topRight: Coords,
         context: AnnotationContext
     ): Coords[] {
-        const { dragState } = this;
-
-        if (!dragState) return [];
-
         const height = convertPoint(datum.bottom.start, context).y - convertPoint(datum.start, context).y;
 
         const bottomLeft = Vec2.add(topLeft, Vec2.from(0, height));

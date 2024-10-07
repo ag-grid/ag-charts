@@ -136,6 +136,24 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
                 renderCtx.ctx.restore();
             }
         }
+
+        override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] | undefined } | undefined {
+            const svg = super.toSVG();
+
+            const matrix = this[TRANSFORM_MATRIX];
+            if (matrix.identity || svg == null) return svg;
+
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.append(...svg.elements);
+
+            const [a, b, c, d, e, f] = matrix.e;
+            g.setAttribute('transform', `matrix(${a} ${b} ${c} ${d} ${e} ${f})`);
+
+            return {
+                elements: [g],
+                defs: svg.defs,
+            };
+        }
     }
     return MatrixTransformInternal as unknown as Constructor<MatrixTransformType<N>>;
 }

@@ -423,4 +423,8 @@ export abstract class Node {
             this.parentNode.dirtyZIndex = true;
         }
     }
+
+    toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
+        return;
+    }
 }

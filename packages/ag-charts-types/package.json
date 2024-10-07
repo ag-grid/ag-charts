@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-types",
-  "version": "10.2.0-beta.20240929",
+  "version": "10.2.0-beta.20241006",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
@@ -12,7 +12,6 @@
     "default": "./dist/package/main.cjs.js"
   },
   "scripts": {
-    "lint:circular": "npx madge --circular --extensions ts src/",
     "lint:prune": "npx ts-prune -p tsconfig.lib.json"
   },
   "repository": {

@@ -4,6 +4,7 @@ import {
     type AnnotationLineStyle,
     type AnnotationOptionsColorPickerType,
     AnnotationType,
+    type Coords,
     type GuardDragClickDoubleEvent,
 } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
@@ -37,8 +38,11 @@ type AnnotationEvent =
     | 'dragStart'
     | 'dragEnd'
     | 'keyDown'
+    | 'keyUp'
     // Data events
     | 'selectLast'
+    | 'translate'
+    | 'translateEnd'
     | 'copy'
     | 'cut'
     | 'paste'
@@ -65,6 +69,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
     private hovered?: number;
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private active?: number;
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly
+    private snapping: boolean = false;
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private copied?: AnnotationProperties;
 
@@ -150,6 +156,12 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             ...ctx,
             setSelectedWithDrag: () => {
                 selectedWithDrag = true;
+            },
+            setSnapping: (snapping: boolean) => {
+                this.snapping = snapping;
+            },
+            getSnapping: () => {
+                return this.snapping;
             },
         };
         const dragStateMachines = Object.fromEntries(
@@ -245,6 +257,30 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 hover: ({ offset }: { offset: _Util.Vec2 }) => {
                     this.hovered = ctx.hoverAtCoords(offset, this.active);
+                },
+
+                keyDown: ({ shiftKey }: { shiftKey: boolean }) => {
+                    this.snapping = shiftKey;
+                },
+
+                keyUp: ({ shiftKey }: { shiftKey: boolean }) => {
+                    this.snapping = shiftKey;
+                },
+
+                translate: {
+                    guard: guardActive,
+                    action: ({ translation }: { translation: Coords }) => {
+                        ctx.startInteracting();
+                        ctx.translate(this.active!, translation);
+                        ctx.update();
+                    },
+                },
+
+                translateEnd: {
+                    guard: guardActive,
+                    action: () => {
+                        ctx.stopInteracting();
+                    },
                 },
 
                 copy: {
