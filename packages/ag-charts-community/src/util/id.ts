@@ -17,7 +17,7 @@ export function createId(instance: any): string {
     return `${className}-${nextId}`;
 }
 
-export function uuid(): string {
+export function generateUUID(): string {
     // Prefer crypto.randomUUID which isn't available in certain environments,
     // Fallback to an implementation using crypto.getRandomValues.
     return crypto.randomUUID?.() ?? generateUUIDv4();

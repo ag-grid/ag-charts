@@ -88,7 +88,7 @@ export interface AxisLabelFormatterParams {
 export function Annotation<U extends Constructor<_ModuleSupport.BaseProperties>>(Parent: U) {
     abstract class AnnotationInternal extends Lockable(Visible(Parent)) {
         // A uuid is required, over the usual incrementing index, as annotations can be restored from external databases
-        id = _Util.uuid();
+        id = _Util.generateUUID();
 
         isValidWithContext(_context: AnnotationContext, warningPrefix: string) {
             return super.isValid(warningPrefix);
