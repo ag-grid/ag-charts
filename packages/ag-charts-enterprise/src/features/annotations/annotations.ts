@@ -1153,9 +1153,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const offset = Vec2.from(event);
         const point = () => invertCoords(offset, context);
-        const textInputValue = this.textInput.getValue();
+        const { textInputValue, bbox } = this.textInput.getValue() ?? {};
 
-        state.transition('click', { offset, point, textInputValue });
+        state.transition('click', { offset, point, textInputValue, bbox });
     }
 
     private onDoubleClick() {
