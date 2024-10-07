@@ -561,9 +561,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             return labelSelection.update([]);
         }
 
-        const itemId = labelData[0].itemId;
-        const { label } = this.getItemConfig(itemId);
-        const data = label.enabled ? labelData : [];
+        const data = labelData.filter((labelDatum) => {
+            const { label } = this.getItemConfig(labelDatum.itemId);
+            return label.enabled;
+        });
 
         return labelSelection.update(data);
     }
