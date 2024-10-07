@@ -35,7 +35,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
 
         this.iconBackground.fillShadow = new _Scene.DropShadow();
 
-        this.append([this.shape, this.label, this.iconLines, this.iconBackground, this.handle]);
+        this.append([this.shape, this.label, this.iconBackground, this.iconLines, this.handle]);
     }
 
     override update(datum: NoteProperties, context: AnnotationContext): void {
