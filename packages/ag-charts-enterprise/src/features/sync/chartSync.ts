@@ -7,7 +7,6 @@ const {
     BaseProperties,
     CartesianAxis,
     ChartUpdateType,
-    arraysEqual,
     isDate,
     isDefined,
     isFiniteNumber,
@@ -193,60 +192,6 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                 })
                 .flatMap((series) => series.getDomain(axis.direction))
         );
-    }
-
-    syncAxes(stopPropagation = false) {
-        const { syncManager } = this.moduleContext;
-        const chart = syncManager.getChart();
-
-        const syncGroup = syncManager.getGroup(this.groupId);
-        const syncSeries = syncGroup.flatMap((c) => c.series);
-        const syncAxes = syncGroup[0].axes;
-
-        let hasUpdated = false;
-
-        chart.axes.forEach((axis) => {
-            if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) {
-                axis.boundSeries = chart.series.filter((s) => s.axes[axis.direction] === (axis as any));
-                return;
-            }
-
-            const { direction, min, max, nice, reverse } = axis as (typeof syncAxes)[number];
-
-            for (const mainAxis of syncAxes) {
-                if (direction !== mainAxis.direction) continue;
-
-                if (
-                    nice !== mainAxis.nice ||
-                    reverse !== mainAxis.reverse ||
-                    (min !== mainAxis.min && (isFiniteNumber(min) || isFiniteNumber(mainAxis.min))) ||
-                    (max !== mainAxis.max && (isFiniteNumber(max) || isFiniteNumber(mainAxis.max)))
-                ) {
-                    Logger.warnOnce(
-                        'To allow synchronization, ensure that all charts have matching min, max, nice, and reverse properties on the synchronized axes.'
-                    );
-                    axis.boundSeries = chart.series.filter((s) => s.axes[axis.direction] === (axis as any));
-                    this.enabled = false;
-                    return;
-                }
-            }
-
-            const boundSeries = syncSeries.filter((series) => {
-                if (series.visible) {
-                    const seriesKeys = series.getKeys(axis.direction);
-                    return axis.keys.length ? axis.keys.some((key) => seriesKeys.includes(key)) : true;
-                }
-            });
-
-            if (!arraysEqual(axis.boundSeries, boundSeries)) {
-                axis.boundSeries = boundSeries;
-                hasUpdated = true;
-            }
-        });
-
-        if (hasUpdated && !stopPropagation) {
-            this.updateSiblings();
-        }
     }
 
     private mergeZoom(chart: any) {

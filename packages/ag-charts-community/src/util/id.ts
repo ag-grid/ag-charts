@@ -17,6 +17,29 @@ export function createId(instance: any): string {
     return `${className}-${nextId}`;
 }
 
-export function uuid() {
-    return crypto.randomUUID();
+export function uuid(): string {
+    // Prefer crypto.randomUUID which isn't available in certain environments,
+    // Fallback to an implementation using crypto.getRandomValues.
+    return crypto.randomUUID?.() ?? generateUUIDv4();
+}
+
+function generateUUIDv4(): string {
+    // Create a new array of 16 random values
+    const uuidArray = new Uint8Array(16);
+    crypto.getRandomValues(uuidArray);
+
+    // Set specific bits for UUID version and variant
+    uuidArray[6] = (uuidArray[6] & 0x0f) | 0x40; // UUID version 4 (random)
+    uuidArray[8] = (uuidArray[8] & 0x3f) | 0x80; // Variant (RFC4122)
+
+    // Convert the array to a string representation of a UUID
+    let uuid = '';
+    for (let i = 0; i < uuidArray.length; i++) {
+        // Insert hyphens at the appropriate positions (8-4-4-4-12)
+        if (i === 4 || i === 6 || i === 8 || i === 10) {
+            uuid += '-';
+        }
+        uuid += uuidArray[i].toString(16).padStart(2, '0');
+    }
+    return uuid;
 }
