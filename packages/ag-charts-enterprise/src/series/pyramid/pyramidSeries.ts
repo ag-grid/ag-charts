@@ -30,7 +30,7 @@ export interface PyramidNodeDatum extends _ModuleSupport.SeriesNodeDatum, Readon
 
 export interface PyramidNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<PyramidNodeDatum, PyramidNodeLabelDatum> {
-    stageLabelData: PyramidNodeLabelDatum[];
+    stageLabelData: PyramidNodeLabelDatum[] | undefined;
 }
 
 export class PyramidSeries extends _ModuleSupport.DataModelSeries<
@@ -123,15 +123,18 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             textBaseline = 'middle';
         }
 
-        const stageLabelData: PyramidNodeLabelDatum[] = [];
+        const stageLabelData: PyramidNodeLabelDatum[] | undefined = stageLabel.enabled ? [] : undefined;
         let maxLabelWidth = 0;
         let maxLabelHeight = 0;
         let yTotal = 0;
+
         processedData.data.forEach(({ values }) => {
             const xValue: string = values[xIdx];
             const yValue = Number(values[yIdx]);
 
             yTotal += yValue;
+
+            if (stageLabelData == null) return;
 
             const text = xValue;
 
@@ -194,9 +197,11 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             const x = bounds.x + (horizontal ? availableWidth * yMidRatio + spacing * index : availableWidth * 0.5);
             const y = bounds.y + (horizontal ? availableHeight * 0.5 : availableHeight * yMidRatio + spacing * index);
 
-            const stageLabelDatum = stageLabelData[index] as Writeable<PyramidNodeLabelDatum>;
-            stageLabelDatum.x = labelX ?? x;
-            stageLabelDatum.y = labelY ?? y;
+            if (stageLabelData != null) {
+                const stageLabelDatum = stageLabelData[index] as Writeable<PyramidNodeLabelDatum>;
+                stageLabelDatum.x = labelX ?? x;
+                stageLabelDatum.y = labelY ?? y;
+            }
 
             let top: number;
             let right: number;
