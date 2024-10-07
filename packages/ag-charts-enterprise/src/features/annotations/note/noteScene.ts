@@ -49,7 +49,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         const { seriesRect } = context;
 
         bbox.x -= datum.width / 2;
-        bbox.x = clamp(0, bbox.x, seriesRect.width - bbox.width);
+        bbox.x = clamp(0, bbox.x, seriesRect.width - datum.width);
 
         const padding = datum.getPadding().top;
         const topY = bbox.y - LABEL_OFFSET - padding * 2;
