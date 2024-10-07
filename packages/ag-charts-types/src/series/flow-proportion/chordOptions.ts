@@ -88,9 +88,15 @@ export interface AgChordSeriesOptionsNames {
     sizeName?: string;
 }
 
+interface SizeParams {
+    /* Size of the link, or the computed size of the node */
+    size: number;
+}
+
 export interface AgChordSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgChordSeriesOptionsKeys,
-        AgChordSeriesOptionsNames {}
+        AgChordSeriesOptionsNames,
+        SizeParams {}
 
-export interface AgChordSeriesLabelFormatterParams<_TDatum = any> extends AgChordSeriesOptionsKeys {}
+export interface AgChordSeriesLabelFormatterParams<_TDatum = any> extends AgChordSeriesOptionsKeys, SizeParams {}
