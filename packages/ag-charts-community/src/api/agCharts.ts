@@ -1,4 +1,10 @@
-import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions, AgGaugeOptions } from 'ag-charts-types';
+import type {
+    AgChartInstance,
+    AgChartOptions,
+    AgFinancialChartOptions,
+    AgGaugeOptions,
+    AgSparklineOptions,
+} from 'ag-charts-types';
 
 import { CartesianChart } from '../chart/cartesianChart';
 import { Chart, type ChartExtendedOptions } from '../chart/chart';
@@ -120,6 +126,10 @@ export abstract class AgCharts {
 
     public static createGauge(options: AgGaugeOptions): AgChartInstance<AgGaugeOptions> {
         return this.create({ presetType: 'gauge', ...(options as any) } as AgChartOptions) as any;
+    }
+
+    public static __createSparkline(options: AgSparklineOptions): AgChartInstance<AgSparklineOptions> {
+        return this.create({ presetType: 'sparkline', ...(options as any) } as AgChartOptions) as any;
     }
 }
 

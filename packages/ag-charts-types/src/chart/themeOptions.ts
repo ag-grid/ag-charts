@@ -209,6 +209,11 @@ export type AgBaseGaugePresetThemeOptions = Pick<
     | 'width'
 >;
 
+export type AgBaseSparklinePresetThemeOptions = Pick<
+    AgBaseChartOptions<any>,
+    'background' | 'container' | 'height' | 'listeners' | 'locale' | 'minHeight' | 'minWidth' | 'padding' | 'width'
+>;
+
 // Interface needed for docs generation, but listeners conflicts using the extends clause
 type AgRadialGaugeTheme = AgBaseGaugePresetThemeOptions & AgRadialGaugeThemeableOptions;
 export interface AgRadialGaugeThemeOverrides extends AgRadialGaugeTheme {
