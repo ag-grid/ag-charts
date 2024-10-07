@@ -80,8 +80,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         textArea.addEventListener('input', () => {
             this.updatePosition();
-            const { textInputValue, bbox } = this.getValue()!;
-            opts.onChange?.(textInputValue, bbox);
+            opts.onChange?.(this.getValue()!, this.getBBox());
         });
 
         textArea.addEventListener('click', (event) => {
@@ -93,8 +92,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             this.updatePosition();
         }
 
-        const { textInputValue, bbox } = this.getValue()!;
-        opts.onChange?.(textInputValue, bbox);
+        opts.onChange?.(this.getValue()!, this.getBBox());
         this.visible = true;
     }
 
@@ -127,12 +125,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     public getValue() {
         if (!this.element.firstElementChild) return;
-        const textInputValue = (this.element.firstElementChild as HTMLDivElement).innerText.trim();
-        const bbox = this.getBBox();
-        return {
-            textInputValue,
-            bbox,
-        };
+        return (this.element.firstElementChild as HTMLDivElement).innerText.trim();
     }
 
     private updatePosition() {
@@ -172,7 +165,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         textArea.style.setProperty('text-align', textAlign);
     }
 
-    private getBBox() {
+    public getBBox() {
         const { left, top, width, height } = this.element.getBoundingClientRect();
         return new _Scene.BBox(left, top, width, height);
     }
