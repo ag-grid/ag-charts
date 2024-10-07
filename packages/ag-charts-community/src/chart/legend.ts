@@ -160,6 +160,22 @@ class LegendListeners extends BaseProperties implements AgChartLegendListeners {
 const ID_LEGEND_VISIBILITY = 'legend-visibility';
 const ID_LEGEND_OTHER_SERIES = 'legend-other-series';
 
+class LegendItemEvent<Type extends 'click' | 'dblclick'> {
+    defaultPrevented = false;
+
+    constructor(
+        readonly type: Type,
+        readonly enabled: boolean,
+        readonly itemId: string,
+        readonly seriesId: string,
+        readonly event: Event
+    ) {}
+
+    preventDefault() {
+        this.defaultPrevented = true;
+    }
+}
+
 export class Legend extends BaseProperties {
     static readonly className = 'Legend';
 
@@ -929,8 +945,8 @@ export class Legend extends BaseProperties {
 
     private updateContextMenu() {
         const { toggleSeries } = this;
-        this.ctx.contextMenuRegistry.setActionVisiblity(ID_LEGEND_VISIBILITY, toggleSeries);
-        this.ctx.contextMenuRegistry.setActionVisiblity(ID_LEGEND_OTHER_SERIES, toggleSeries);
+        this.ctx.contextMenuRegistry.setActionVisibility(ID_LEGEND_VISIBILITY, toggleSeries);
+        this.ctx.contextMenuRegistry.setActionVisibility(ID_LEGEND_OTHER_SERIES, toggleSeries);
     }
 
     private getLineStyles(datum: LegendSymbolOptions) {
@@ -980,11 +996,11 @@ export class Legend extends BaseProperties {
 
     private contextToggleVisibility(params: AgChartLegendContextMenuEvent) {
         const { datum, proxyButton } = this.findNode(params);
-        this.doClick(datum, proxyButton.button);
+        this.doClick(params.event, datum, proxyButton.button);
     }
 
     private contextToggleOtherSeries(params: AgChartLegendContextMenuEvent) {
-        this.doDoubleClick(this.findNode(params).datum);
+        this.doDoubleClick(params.event, this.findNode(params).datum);
     }
 
     private onContextClick(sourceEvent: MouseEvent, node: LegendMarkerLabel) {
@@ -1013,8 +1029,8 @@ export class Legend extends BaseProperties {
         this.ctx.contextMenuRegistry.dispatchContext('legend', event, { legendItem });
     }
 
-    private onClick(event: MouseEvent, datum: CategoryLegendDatum, proxyButton: HTMLButtonElement) {
-        if (this.doClick(datum, proxyButton)) {
+    private onClick(event: Event, datum: CategoryLegendDatum, proxyButton: HTMLButtonElement) {
+        if (this.doClick(event, datum, proxyButton)) {
             event.preventDefault();
         }
     }
@@ -1023,7 +1039,7 @@ export class Legend extends BaseProperties {
         return this.ctx.chartService.series.flatMap((s) => s.getLegendData('category')).filter((d) => d.enabled).length;
     }
 
-    private doClick(datum: CategoryLegendDatum, proxyButton: HTMLButtonElement): boolean {
+    private doClick(event: Event, datum: CategoryLegendDatum, proxyButton: HTMLButtonElement): boolean {
         const {
             listeners: { legendItemClick },
             ctx: { chartService, highlightManager },
@@ -1042,18 +1058,10 @@ export class Legend extends BaseProperties {
         }
 
         let newEnabled = enabled;
-        let defaultPrevented = false;
-        legendItemClick?.({
-            type: 'click',
-            enabled: newEnabled,
-            itemId,
-            seriesId: series.id,
-            preventDefault() {
-                defaultPrevented = true;
-            },
-        });
+        const clickEvent = new LegendItemEvent('click', newEnabled, itemId, series.id, event);
+        legendItemClick?.(clickEvent);
 
-        if (defaultPrevented) return true;
+        if (clickEvent.defaultPrevented) return true;
 
         if (toggleSeries) {
             newEnabled = !enabled;
@@ -1085,12 +1093,12 @@ export class Legend extends BaseProperties {
     }
 
     private onDoubleClick(event: MouseEvent, datum: CategoryLegendDatum) {
-        if (this.doDoubleClick(datum)) {
+        if (this.doDoubleClick(event, datum)) {
             event.preventDefault();
         }
     }
 
-    private doDoubleClick(datum: CategoryLegendDatum | undefined): boolean {
+    private doDoubleClick(event: Event, datum: CategoryLegendDatum | undefined): boolean {
         const {
             listeners: { legendItemDoubleClick },
             ctx: { chartService },
@@ -1112,18 +1120,10 @@ export class Legend extends BaseProperties {
             return false;
         }
 
-        let defaultPrevented = false;
-        legendItemDoubleClick?.({
-            type: 'dblclick',
-            enabled: true,
-            itemId,
-            seriesId: series.id,
-            preventDefault() {
-                defaultPrevented = true;
-            },
-        });
+        const doubleClickEvent = new LegendItemEvent('dblclick', true, itemId, series.id, event);
+        legendItemDoubleClick?.(doubleClickEvent);
 
-        if (defaultPrevented) return true;
+        if (doubleClickEvent.defaultPrevented) return true;
 
         if (toggleSeries) {
             const legendData = chartService.series.flatMap((s) => s.getLegendData('category'));
