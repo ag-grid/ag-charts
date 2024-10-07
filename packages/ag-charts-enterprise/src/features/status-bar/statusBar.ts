@@ -12,6 +12,7 @@ const {
     COLOR_STRING,
     RATIO,
     valueProperty,
+    TextUtils,
 } = _ModuleSupport;
 const { Label, Rect, Text } = _Scene;
 
@@ -305,7 +306,7 @@ export class StatusBar
         this.labelGroup.translationY = layoutBox.y + spacingAbove;
 
         const maxFontSize = Math.max(this.title.fontSize, this.positive.fontSize, this.negative.fontSize);
-        const lineHeight = maxFontSize * Text.defaultLineHeightRatio;
+        const lineHeight = TextUtils.getLineHeight(maxFontSize);
 
         const labelConfigurations = chartConfigurations[this.getChartType()] ?? 0;
 

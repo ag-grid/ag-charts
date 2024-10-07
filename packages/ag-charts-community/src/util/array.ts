@@ -101,12 +101,12 @@ export function circularSliceArray<T>(data: T[], size: number, offset = 0): T[] 
 export function sortBasedOnArray<T>(baseArray: T[], orderArray: T[]): T[] {
     const orderMap = new Map<T, number>();
 
-    // Create a map from the `order` array for quick lookups
+    // Create a map from the `orderArray` array for quick lookups
     orderArray.forEach((item, index) => {
         orderMap.set(item, index);
     });
 
-    // Sort the `arr` array based on the indices in the `orderMap`
+    // Sort the `baseArray` array based on the indices in the `orderMap`
     return baseArray.sort((a, b) => {
         const indexA = orderMap.get(a) ?? Infinity;
         const indexB = orderMap.get(b) ?? Infinity;

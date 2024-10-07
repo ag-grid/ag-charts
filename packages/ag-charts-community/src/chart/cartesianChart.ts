@@ -5,7 +5,7 @@ import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import { ContinuousScale } from '../scale/continuousScale';
 import type { BBox } from '../scene/bbox';
-import { arraysEqual, sortBasedOnArray } from '../util/array';
+import { arraysEqual } from '../util/array';
 import { Logger } from '../util/logger';
 import { findMinMax } from '../util/number';
 import { CategoryAxis } from './axis/categoryAxis';
@@ -464,7 +464,6 @@ export class CartesianChart extends Chart {
                 const [min, max] = findMinMax(syncedDomain);
                 shouldUpdate = min !== domain[0] || max !== domain[1];
             } else {
-                sortBasedOnArray(syncedDomain, domain);
                 shouldUpdate = !arraysEqual(syncedDomain, domain);
             }
             if (shouldUpdate && !this.skipSync) {

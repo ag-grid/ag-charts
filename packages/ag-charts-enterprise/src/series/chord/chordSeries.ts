@@ -15,10 +15,10 @@ import {
 import { ChordLink, bezierControlPoints } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
-const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, createDatumId, EMPTY_TOOLTIP_CONTENT } =
+const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, TextUtils, createDatumId, EMPTY_TOOLTIP_CONTENT } =
     _ModuleSupport;
 const { angleBetween, normalizeAngle360, isBetweenAngles, sanitizeHtml, Logger } = _Util;
-const { Sector, Text, evaluateBezier } = _Scene;
+const { Sector, evaluateBezier } = _Scene;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum {
     size: number;
@@ -303,7 +303,7 @@ export class ChordSeries extends FlowProportionSeries<
         let minAngle = Infinity;
         let maxAngle = -Infinity;
         labelData = labelData.filter((label) => {
-            const labelHeight = fontSize * Text.defaultLineHeightRatio;
+            const labelHeight = TextUtils.getLineHeight(fontSize);
             const da = Math.atan2(labelHeight / 2, label.radius);
 
             const a0 = label.angle - da;

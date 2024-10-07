@@ -17,7 +17,7 @@ import { axisRegistry } from '../factory/axisRegistry';
 import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
 import { legendRegistry } from '../factory/legendRegistry';
 import { seriesRegistry } from '../factory/seriesRegistry';
-import { CARTESIAN_AXIS_TYPE, FONT_SIZE, FONT_WEIGHT, POLAR_AXIS_TYPE, POSITION } from './constants';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE, FONT_WEIGHT, POLAR_AXIS_TYPE } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
@@ -214,7 +214,7 @@ export class ChartTheme {
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
             },
             legend: {
-                position: POSITION.BOTTOM,
+                position: CARTESIAN_POSITION.BOTTOM,
                 spacing: 30,
                 listeners: {},
                 toggleSeries: true,

@@ -3,7 +3,7 @@ import { type AgTooltipRendererResult, _ModuleSupport, _Scene, _Util } from 'ag-
 import { FunnelConnector } from '../funnel/funnelConnector';
 import { PyramidProperties } from './pyramidProperties';
 
-const { valueProperty, SeriesNodePickMode, CachedTextMeasurerPool } = _ModuleSupport;
+const { valueProperty, SeriesNodePickMode, CachedTextMeasurerPool, TextUtils } = _ModuleSupport;
 const { Group, Selection, Text, PointerEvents } = _Scene;
 const { sanitizeHtml } = _Util;
 
@@ -136,7 +136,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             const text = xValue;
 
             const { width } = textMeasurer.measureText(text);
-            const height = text.split('\n').length * label.fontSize * Text.defaultLineHeightRatio;
+            const height = text.split('\n').length * TextUtils.getLineHeight(label.fontSize);
             maxLabelWidth = Math.max(maxLabelWidth, width);
             maxLabelHeight = Math.max(maxLabelHeight, height);
 

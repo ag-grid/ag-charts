@@ -18,10 +18,10 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
-const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, createDatumId, EMPTY_TOOLTIP_CONTENT } =
+const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, TextUtils, createDatumId, EMPTY_TOOLTIP_CONTENT } =
     _ModuleSupport;
 const { sanitizeHtml } = _Util;
-const { Rect, Text, BBox } = _Scene;
+const { Rect, BBox } = _Scene;
 
 export interface SankeyNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<SankeyDatum, SankeyNodeLabelDatum> {}
@@ -272,8 +272,8 @@ export class SankeySeries extends FlowProportionSeries<
                 const y = node.y + node.height / 2;
                 let text: string | undefined;
                 if (!leading && !trailing) {
-                    const y1 = y - fontSize * Text.defaultLineHeightRatio;
-                    const y2 = y + fontSize * Text.defaultLineHeightRatio;
+                    const y1 = y - TextUtils.getLineHeight(fontSize);
+                    const y2 = y + TextUtils.getLineHeight(fontSize);
                     let maxX = seriesRectWidth;
                     nodeGraph.forEach(({ datum }) => {
                         const intersectsLabel =
