@@ -423,8 +423,8 @@ export class SankeySeries extends FlowProportionSeries<
 
             rect.x = datum.x;
             rect.y = datum.y;
-            rect.width = datum.width;
-            rect.height = datum.height;
+            rect.width = Math.max(datum.width, 0);
+            rect.height = Math.max(datum.height, 0);
             rect.fill = highlightStyle?.fill ?? format?.fill ?? fill;
             rect.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
             rect.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke;
