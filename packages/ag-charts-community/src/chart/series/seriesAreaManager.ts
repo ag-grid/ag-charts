@@ -382,9 +382,6 @@ export class SeriesAreaManager extends BaseManager {
         focus.datumIndex = datumIndex;
         focus.datum = datum;
 
-        // Only update the highlight/tooltip/status if this is a keyboard user.
-        if (!this.chart.ctx.focusIndicator.isFocusVisible()) return;
-
         this.chart.ctx.animationManager.reset();
 
         // Update the bounds of the focus indicator:
