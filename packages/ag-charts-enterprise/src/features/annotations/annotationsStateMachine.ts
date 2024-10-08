@@ -341,11 +341,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 dblclick: {
                     guard: guardActiveHasLineText,
                     action: ({ offset }) => {
-                        const nodeAtCoords = ctx.getNodeAtCoords(offset, this.active!);
-
-                        if (!(nodeAtCoords === 'line' || nodeAtCoords === 'text')) {
-                            return;
-                        }
+                        const nodeAtCoords = ctx.getNodeAtCoords(offset, this.active!) === 'text' ? 'text' : 'line';
 
                         ctx.showAnnotationSettings(this.active!, undefined, nodeAtCoords);
                     },
