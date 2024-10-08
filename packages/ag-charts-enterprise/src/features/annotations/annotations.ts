@@ -368,6 +368,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 if (!isLineType(datum) && !isChannelType(datum) && !isMeasurerType(datum)) return;
 
                 const options: LinearSettingsDialogOptions = {
+                    initialSelectedTab: 'text',
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
                     sourceEvent,
                     onChangeLine: (props) => {
