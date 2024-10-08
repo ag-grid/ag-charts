@@ -1,13 +1,11 @@
 import type { _Scene, _Util } from 'ag-charts-community';
 
-import { type AnnotationContext, AnnotationType } from '../annotationTypes';
+import { type AnnotationContext } from '../annotationTypes';
 import type { ShapePointProperties } from '../properties/shapePointProperties';
 import { convertPoint } from '../utils/values';
 import { PointScene } from './pointScene';
 
 export abstract class ShapePointScene<Datum extends ShapePointProperties> extends PointScene<Datum> {
-    override type = AnnotationType.ArrowUp;
-
     protected abstract shape: _Scene.Marker;
 
     constructor() {

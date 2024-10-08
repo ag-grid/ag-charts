@@ -55,13 +55,13 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
         line.setProperties({
             ...linePoints,
+            lineCap: datum.getLineCap(),
             lineDash: datum.getLineDash(),
             lineDashOffset,
             stroke,
             strokeWidth,
             strokeOpacity,
             fillOpacity: 0,
-            lineCap: datum.getLineCap(),
         });
     }
 

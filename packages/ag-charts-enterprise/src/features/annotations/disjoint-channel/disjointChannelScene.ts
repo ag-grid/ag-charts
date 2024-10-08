@@ -142,12 +142,12 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         const { lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
 
         const lineStyles = {
+            lineCap: datum.getLineCap(),
             lineDash: datum.getLineDash(),
             lineDashOffset,
             stroke,
             strokeOpacity,
             strokeWidth,
-            lineCap: datum.getLineCap(),
         };
 
         topLine.setProperties({

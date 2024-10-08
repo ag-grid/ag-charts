@@ -11,7 +11,7 @@ export class TextScene extends TextualPointScene<TextProperties> {
         return AnnotationScene.isCheck(value, AnnotationType.Text);
     }
 
-    override type = AnnotationType.Text;
+    type = AnnotationType.Text;
 
     constructor() {
         super();

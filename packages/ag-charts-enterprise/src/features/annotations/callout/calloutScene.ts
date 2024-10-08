@@ -27,7 +27,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         return AnnotationScene.isCheck(value, AnnotationType.Callout);
     }
 
-    override type = AnnotationType.Callout;
+    type = AnnotationType.Callout;
 
     private readonly shape = new _Scene.Path();
 

@@ -15,7 +15,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         return AnnotationScene.isCheck(value, AnnotationType.Note);
     }
 
-    override type = AnnotationType.Note;
+    type = AnnotationType.Note;
 
     private readonly shape = new _Scene.Rect();
     private readonly iconBackground = new _Scene.SvgPath(

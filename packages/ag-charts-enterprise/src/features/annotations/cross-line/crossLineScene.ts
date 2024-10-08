@@ -72,13 +72,13 @@ export class CrossLineScene extends AnnotationScene {
             y1,
             x2,
             y2,
+            lineCap: datum.getLineCap(),
             lineDash: datum.getLineDash(),
             lineDashOffset,
             stroke,
             strokeWidth,
             strokeOpacity,
             fillOpacity: 0,
-            lineCap: datum.getLineCap(),
         });
     }
 

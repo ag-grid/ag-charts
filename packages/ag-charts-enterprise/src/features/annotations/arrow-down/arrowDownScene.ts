@@ -11,7 +11,7 @@ export class ArrowDownScene extends ShapePointScene<ArrowDownProperties> {
         return AnnotationScene.isCheck(value, AnnotationType.ArrowDown);
     }
 
-    override type = AnnotationType.ArrowDown;
+    type = AnnotationType.ArrowDown;
 
     protected readonly shape = new _Scene.ArrowDown();
 
