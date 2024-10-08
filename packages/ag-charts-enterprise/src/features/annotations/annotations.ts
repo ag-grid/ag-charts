@@ -460,48 +460,47 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const annotationsState = Default | ZoomDrag | AnnotationsState | AnnotationsSelected;
 
-        InteractionState.AnnotationsSelected |
-            this.destroyFns.push(
-                // Interactions
-                seriesRegion.addListener('hover', this.onHover.bind(this), All),
-                seriesRegion.addListener('click', this.onClick.bind(this), All),
-                seriesRegion.addListener('dblclick', this.onDoubleClick.bind(this), All),
-                seriesRegion.addListener('drag-start', this.onDragStart.bind(this), annotationsState),
-                seriesRegion.addListener('drag', this.onDrag.bind(this), annotationsState),
-                seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
-                ctx.keyNavManager.addListener(
-                    'cancel',
-                    this.onCancel.bind(this),
-                    Default | AnnotationsState | AnnotationsSelected
-                ),
-                ctx.keyNavManager.addListener(
-                    'delete',
-                    (ev) => this.onDelete(ev),
-                    Default | AnnotationsState | AnnotationsSelected
-                ),
-                ctx.interactionManager.addListener(
-                    'keydown',
-                    this.onTextInput.bind(this),
-                    AnnotationsState | AnnotationsSelected
-                ),
-                ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), All),
-                ctx.interactionManager.addListener('keyup', this.onKeyUp.bind(this), All),
-                ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
+        this.destroyFns.push(
+            // Interactions
+            seriesRegion.addListener('hover', this.onHover.bind(this), All),
+            seriesRegion.addListener('click', this.onClick.bind(this), All),
+            seriesRegion.addListener('dblclick', this.onDoubleClick.bind(this), All),
+            seriesRegion.addListener('drag-start', this.onDragStart.bind(this), annotationsState),
+            seriesRegion.addListener('drag', this.onDrag.bind(this), annotationsState),
+            seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
+            ctx.keyNavManager.addListener(
+                'cancel',
+                this.onCancel.bind(this),
+                Default | AnnotationsState | AnnotationsSelected
+            ),
+            ctx.keyNavManager.addListener(
+                'delete',
+                (ev) => this.onDelete(ev),
+                Default | AnnotationsState | AnnotationsSelected
+            ),
+            ctx.interactionManager.addListener(
+                'keydown',
+                this.onTextInput.bind(this),
+                AnnotationsState | AnnotationsSelected
+            ),
+            ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), All),
+            ctx.interactionManager.addListener('keyup', this.onKeyUp.bind(this), All),
+            ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
 
-                // Services
-                ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
-                ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
-                ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
-                ctx.toolbarManager.addListener('group-moved', this.onToolbarGroupMoved.bind(this)),
-                ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
-                ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
-                ctx.updateService.addListener('pre-scene-render', this.onPreRender.bind(this)),
+            // Services
+            ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
+            ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPress.bind(this)),
+            ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
+            ctx.toolbarManager.addListener('group-moved', this.onToolbarGroupMoved.bind(this)),
+            ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
+            ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
+            ctx.updateService.addListener('pre-scene-render', this.onPreRender.bind(this)),
 
-                // DOM
-                ctx.annotationManager.attachNode(this.container),
-                () => this.colorPicker.destroy(),
-                () => ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS)
-            );
+            // DOM
+            ctx.annotationManager.attachNode(this.container),
+            () => this.colorPicker.destroy(),
+            () => ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS)
+        );
     }
 
     override destroy(): void {
