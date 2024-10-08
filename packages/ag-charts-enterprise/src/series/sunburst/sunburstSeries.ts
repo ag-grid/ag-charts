@@ -63,8 +63,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     override properties = new SunburstSeriesProperties();
 
     groupSelection = Selection.select(this.contentGroup, ScalableGroup);
-    private readonly highlightSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> =
-        Selection.select(this.highlightGroup, ScalableGroup);
+    private readonly highlightSelection = Selection.select(this.highlightGroup, ScalableGroup);
 
     private angleData: Array<{ start: number; end: number } | undefined> = [];
 
