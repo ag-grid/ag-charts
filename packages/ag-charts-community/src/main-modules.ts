@@ -8,3 +8,5 @@ export function setupCommunityModules(): { AgCharts: AgChartsApi; version: strin
     registerInbuiltModules();
     return { AgCharts: AgCharts as AgChartsApi, version: VERSION };
 }
+
+export { AgCharts };
