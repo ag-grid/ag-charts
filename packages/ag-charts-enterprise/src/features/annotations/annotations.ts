@@ -440,7 +440,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private setupListeners() {
         const { ctx } = this;
-        const { All, Default, Annotations, AnnotationsSelected, ZoomDrag } = InteractionState;
+        const { All, Default, Annotations: AnnotationsState, AnnotationsSelected, ZoomDrag } = InteractionState;
 
         const seriesRegion = ctx.regionManager.getRegion(REGIONS.SERIES);
 
@@ -458,7 +458,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             )
             .map((region) => ctx.regionManager.getRegion(region));
 
-        const annotationsState = Default | ZoomDrag | Annotations | AnnotationsSelected;
+        const annotationsState = Default | ZoomDrag | AnnotationsState | AnnotationsSelected;
 
         InteractionState.AnnotationsSelected |
             this.destroyFns.push(
@@ -472,17 +472,17 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.keyNavManager.addListener(
                     'cancel',
                     this.onCancel.bind(this),
-                    Default | Annotations | AnnotationsSelected
+                    Default | AnnotationsState | AnnotationsSelected
                 ),
                 ctx.keyNavManager.addListener(
                     'delete',
                     (ev) => this.onDelete(ev),
-                    Default | Annotations | AnnotationsSelected
+                    Default | AnnotationsState | AnnotationsSelected
                 ),
                 ctx.interactionManager.addListener(
                     'keydown',
                     this.onTextInput.bind(this),
-                    Annotations | AnnotationsSelected
+                    AnnotationsState | AnnotationsSelected
                 ),
                 ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), All),
                 ctx.interactionManager.addListener('keyup', this.onKeyUp.bind(this), All),
