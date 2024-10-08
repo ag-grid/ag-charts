@@ -490,6 +490,13 @@
                     "path": "cone-funnel-series",
                     "icon": "chartsConeFunnel",
                     "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Pyramid",
+                    "path": "pyramid-series",
+                    "icon": "chartsPyramid",
+                    "enterprise": true
                 }
             ]
         },
