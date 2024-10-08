@@ -67,7 +67,7 @@ export class CollidableLine extends _Scene.Line {
     /**
      * Apply a clipping mask to the shape, this must be called before the shape calls `ctx.beginPath()`.
      */
-    protected applyClipMask(ctx: any) {
+    protected applyClipMask(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
         const { clipMask } = this;
         if (!clipMask) return;
 
@@ -84,7 +84,7 @@ export class CollidableLine extends _Scene.Line {
         ctx.clip();
     }
 
-    protected closeClipMask(ctx: any) {
+    protected closeClipMask(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
         if (!this.clipMask) return;
         ctx.restore();
     }

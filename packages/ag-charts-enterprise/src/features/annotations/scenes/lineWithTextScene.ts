@@ -20,13 +20,14 @@ interface Numbers {
 
 export class LineWithTextScene {
     static updateLineText<Datum extends { strokeWidth?: number; text?: LineTextProperties }>(
-        this: AnnotationScene & { line: CollidableLine; text?: CollidableText },
+        this: AnnotationScene & { text?: CollidableText },
+        line: CollidableLine,
         datum: Datum,
         coords: LineCoords
     ) {
         if (!datum.text?.label && this.text) {
             this.removeChild(this.text);
-            this.line.setClipMask();
+            line.setClipMask();
             this.text = undefined;
         }
 
@@ -46,13 +47,13 @@ export class LineWithTextScene {
         if (position === 'center') {
             const { x, y, width, height } = this.text.getBBox();
             const diameter = Vec2.length(Vec2.from(width, height));
-            this.line.setClipMask({
+            line.setClipMask({
                 x: x + width / 2,
                 y: y + height / 2,
                 radius: diameter / 2 + Vec2.length(numbers.offset),
             });
         } else {
-            this.line.setClipMask();
+            line.setClipMask();
         }
     }
 

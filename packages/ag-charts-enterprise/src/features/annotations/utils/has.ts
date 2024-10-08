@@ -4,13 +4,14 @@ import type {
     AnnotationProperties,
     ChannelPropertiesType,
     LinePropertiesType,
+    MeasurerPropertiesType,
     TextualPropertiesType,
 } from '../annotationsSuperTypes';
 import { CalloutProperties } from '../callout/calloutProperties';
 import { CommentProperties } from '../comment/commentProperties';
 import { NoteProperties } from '../note/noteProperties';
 import { ShapePointProperties } from '../properties/shapePointProperties';
-import { isChannelType, isLineType, isTextType } from './types';
+import { isChannelType, isLineType, isMeasurerType, isTextType } from './types';
 
 const { isObject } = _ModuleSupport;
 
@@ -18,12 +19,20 @@ export function hasFontSize(datum?: AnnotationProperties): datum is Exclude<Text
     return isTextType(datum) && !NoteProperties.is(datum);
 }
 
-export function hasLineStyle(datum?: AnnotationProperties): datum is LinePropertiesType | ChannelPropertiesType {
-    return isLineType(datum) || isChannelType(datum);
+export function hasLineStyle(
+    datum?: AnnotationProperties
+): datum is LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType {
+    return isLineType(datum) || isChannelType(datum) || isMeasurerType(datum);
 }
 
 export function hasLineColor(datum?: AnnotationProperties) {
-    return isLineType(datum) || isChannelType(datum) || CalloutProperties.is(datum) || NoteProperties.is(datum);
+    return (
+        isLineType(datum) ||
+        isChannelType(datum) ||
+        isMeasurerType(datum) ||
+        CalloutProperties.is(datum) ||
+        NoteProperties.is(datum)
+    );
 }
 
 export function hasIconColor(datum?: AnnotationProperties) {
@@ -33,6 +42,7 @@ export function hasIconColor(datum?: AnnotationProperties) {
 export function hasFillColor(datum?: AnnotationProperties) {
     return (
         isChannelType(datum) ||
+        isMeasurerType(datum) ||
         CalloutProperties.is(datum) ||
         CommentProperties.is(datum) ||
         ShapePointProperties.is(datum)
@@ -44,5 +54,5 @@ export function hasTextColor(datum?: AnnotationProperties) {
 }
 
 export function hasLineText(datum?: AnnotationProperties): datum is LinePropertiesType | ChannelPropertiesType {
-    return (isLineType(datum) || isChannelType(datum)) && isObject(datum.text);
+    return (isLineType(datum) || isChannelType(datum) || isMeasurerType(datum)) && isObject(datum.text);
 }

@@ -1,4 +1,12 @@
-import type { AgAnnotationLineStyleType, FontStyle, FontWeight, Formatter, TextAlign } from 'ag-charts-community';
+import type {
+    AgAnnotationLineStyleType,
+    FontStyle,
+    FontWeight,
+    Formatter,
+    PixelSize,
+    TextAlign,
+    _Scene,
+} from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type {
@@ -243,6 +251,9 @@ export function Stroke<T extends Constructor>(Parent: T) {
 
 export function LineStyle<T extends Constructor>(Parent: T) {
     class LineDashInternal extends Parent {
+        lineCap?: _Scene.ShapeLineCap = undefined;
+        computedLineDash?: PixelSize[] = undefined;
+
         @Validate(LINE_DASH, { optional: true })
         lineDash?: number[];
 

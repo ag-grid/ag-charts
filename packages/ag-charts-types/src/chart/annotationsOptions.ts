@@ -35,6 +35,12 @@ export interface AgAnnotationsThemeableOptions {
     'arrow-up'?: AgShapeAnnotationStyles;
     'arrow-down'?: AgShapeAnnotationStyles;
 
+    // Measurers
+    'date-range'?: AgMeasurerAnnotationStyles;
+    'price-range'?: AgMeasurerAnnotationStyles;
+    'date-price-range'?: AgMeasurerAnnotationStyles;
+    'quick-date-price-range'?: AgMeasurerAnnotationStyles;
+
     // Other
     axesButtons?: AgAnnotationAxesButtons;
 }
@@ -46,13 +52,13 @@ export interface AgAnnotationAxesButtons extends Toggleable {
 
 export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, LineDashOptions {}
 
+// Lines
 export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
     handle?: AgAnnotationHandleStyles;
     text?: AgLineAnnotationTextOptions;
 }
 
-export interface AgShapeAnnotationStyles extends Lockable, Visible, FillOptions {}
-
+// Channels
 export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
     handle?: AgAnnotationHandleStyles;
     middle?: AgChannelAnnotationMiddle;
@@ -61,6 +67,7 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
     text?: AgChannelAnnotationTextOptions;
 }
 
+// Texts
 export interface AgTextAnnotationStyles extends FontOptions, Lockable, Visible {
     handle?: AgAnnotationHandleStyles;
 }
@@ -71,6 +78,14 @@ export interface AgCommentAnnotationStyles extends AgTextAnnotationStyles, Strok
 
 export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles, StrokeOptions, FillOptions {
     background?: AgNoteAnnotationBackground;
+}
+
+// Shapes
+export interface AgShapeAnnotationStyles extends Lockable, Visible, FillOptions {}
+
+// Measurers
+export interface AgMeasurerAnnotationStyles extends Extendable, Lockable, Visible {
+    statistics: FontOptions;
 }
 
 // ***********
@@ -98,7 +113,11 @@ export type AgAnnotation =
     // Shapes
     | AgArrowAnnotation
     | AgArrowUpAnnotation
-    | AgArrowDownAnnotation;
+    | AgArrowDownAnnotation
+    // Measurers
+    | AgDateRangeAnnotation
+    | AgPriceRangeAnnotation
+    | AgDatePriceRangeAnnotation;
 
 // ********************
 // * Line Annotations *
@@ -260,6 +279,44 @@ export interface AgArrowUpAnnotation extends AgArrowMarkAnnotation {
 export interface AgArrowDownAnnotation extends AgArrowMarkAnnotation {
     /** Configuration for the arrow down annotation.*/
     type: 'arrow-down';
+}
+
+// ************************
+// * Measurer Annotations *
+// ************************/
+
+export interface AgDateRangeAnnotation extends AgMeasurerAnnotation {
+    /** Configuration for the date range annotation.*/
+    type: 'date-range';
+    extendAbove?: boolean;
+    extendBelow?: boolean;
+}
+
+export interface AgPriceRangeAnnotation extends AgMeasurerAnnotation {
+    /** Configuration for the price range annotation.*/
+    type: 'price-range';
+    extendLeft?: boolean;
+    extendRight?: boolean;
+}
+
+export interface AgDatePriceRangeAnnotation extends AgMeasurerAnnotation {
+    /** Configuration for the price range annotation.*/
+    type: 'date-price-range';
+}
+
+export interface AgMeasurerAnnotation
+    extends AnnotationLinePoints,
+        Extendable,
+        Lockable,
+        Visible,
+        StrokeOptions,
+        LineOptions {
+    /** Configuration for the drag handles. */
+    handle?: AgAnnotationHandle;
+    /** Configuration for the line text. */
+    text?: AgLineAnnotationText;
+    /** */
+    statistics?: FontOptions;
 }
 
 // **************

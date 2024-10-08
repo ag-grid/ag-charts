@@ -85,6 +85,7 @@ export type AgToolbarAnnotationsButtonValue =
     | 'line-menu'
     | 'text-menu'
     | 'shape-menu'
+    | 'measurer-menu'
     | 'line'
     | 'horizontal-line'
     | 'vertical-line'

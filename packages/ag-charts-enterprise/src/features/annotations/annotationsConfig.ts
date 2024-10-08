@@ -7,6 +7,7 @@ import { commentConfig } from './comment/commentConfig';
 import { horizontalLineConfig, verticalLineConfig } from './cross-line/crossLineConfig';
 import { disjointChannelConfig } from './disjoint-channel/disjointChannelConfig';
 import { arrowConfig, lineConfig } from './line/lineConfig';
+import { datePriceRangeConfig, dateRangeConfig, priceRangeConfig } from './measurer/measurerConfig';
 import { noteConfig } from './note/noteConfig';
 import { parallelChannelConfig } from './parallel-channel/parallelChannelConfig';
 import { textConfig } from './text/textConfig';
@@ -31,6 +32,11 @@ export const annotationConfigs = {
     [arrowConfig.type]: arrowConfig,
     [arrowUpConfig.type]: arrowUpConfig,
     [arrowDownConfig.type]: arrowDownConfig,
+
+    // Measurers
+    [dateRangeConfig.type]: dateRangeConfig,
+    [priceRangeConfig.type]: priceRangeConfig,
+    [datePriceRangeConfig.type]: datePriceRangeConfig,
 };
 
 export function getTypedDatum(datum: unknown) {

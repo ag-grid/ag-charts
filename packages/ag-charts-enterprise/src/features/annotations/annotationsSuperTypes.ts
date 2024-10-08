@@ -22,6 +22,12 @@ import type { DisjointChannelProperties } from './disjoint-channel/disjointChann
 import type { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
 import type { ArrowProperties, LineProperties } from './line/lineProperties';
 import type { LineScene } from './line/lineScene';
+import type {
+    DatePriceRangeProperties,
+    DateRangeProperties,
+    PriceRangeProperties,
+} from './measurer/measurerProperties';
+import type { MeasurerScene } from './measurer/measurerScene';
 import type { NoteProperties } from './note/noteProperties';
 import type { NoteScene } from './note/noteScene';
 import type { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
@@ -34,12 +40,14 @@ export type ShapePropertiesType = ArrowUpProperties | ArrowDownProperties;
 export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
 export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties | ArrowProperties;
 export type ChannelPropertiesType = ParallelChannelProperties | DisjointChannelProperties;
+export type MeasurerPropertiesType = DateRangeProperties | PriceRangeProperties | DatePriceRangeProperties;
 
 export type AnnotationProperties =
     | LinePropertiesType
     | ChannelPropertiesType
     | TextualPropertiesType
-    | ShapePropertiesType;
+    | ShapePropertiesType
+    | MeasurerPropertiesType;
 
 export type AnnotationScene =
     // Lines
@@ -58,7 +66,10 @@ export type AnnotationScene =
     | CalloutScene
     | CommentScene
     | NoteScene
-    | TextScene;
+    | TextScene
+
+    // Measurers
+    | MeasurerScene;
 
 export interface AnnotationsStateMachineContext {
     resetToIdle: () => void;

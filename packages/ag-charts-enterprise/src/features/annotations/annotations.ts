@@ -11,14 +11,14 @@ import { Menu, type MenuItem } from '../../components/menu/menu';
 import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
 import { TextInput } from '../text-input/textInput';
+import { AxesButtons } from './annotationAxesButtons';
 import { AnnotationDefaults } from './annotationDefaults';
 import type {
     AnnotationContext,
     AnnotationOptionsColorPickerType,
-    ChannelAnnotationType,
     Coords,
     HasFontSizeAnnotationType,
-    LineAnnotationType,
+    HasLineStyleAnnotationType,
     Point,
 } from './annotationTypes';
 import {
@@ -28,16 +28,25 @@ import {
     stringToAnnotationType,
 } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
-import { LINE_STROKE_WIDTH_ITEMS, LINE_STYLE_TYPE_ITEMS, TEXT_SIZE_ITEMS } from './annotationsMenuOptions';
+import {
+    AnnotationOptions,
+    LINE_ANNOTATION_ITEMS,
+    LINE_STROKE_WIDTH_ITEMS,
+    LINE_STYLE_TYPE_ITEMS,
+    MEASURER_ANNOTATION_ITEMS,
+    SHAPE_ANNOTATION_ITEMS,
+    TEXT_ANNOTATION_ITEMS,
+    TEXT_SIZE_ITEMS,
+} from './annotationsMenuOptions';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
-import { AnnotationSettingsDialog } from './settings-dialog/settingsDialog';
+import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
 import { snapToAngle } from './utils/coords';
 import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
-import { isChannelType, isLineType, isTextType } from './utils/types';
+import { isChannelType, isLineType, isMeasurerType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { convertPoint, invertCoords } from './utils/values';
@@ -51,7 +60,6 @@ const {
     ToolbarManager,
     Validate,
     REGIONS,
-    UNION,
     ChartAxisDirection,
 } = _ModuleSupport;
 const { Vec2 } = _Util;
@@ -64,69 +72,6 @@ type AnnotationAxis = {
     bounds: _Scene.BBox;
     button?: AxisButton;
 };
-
-const AXIS_TYPE = UNION(['x', 'y', 'xy'], 'an axis type');
-
-const LINE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
-    {
-        label: 'toolbarAnnotationsTrendLine',
-        icon: 'trend-line-drawing',
-        value: AnnotationType.Line,
-    },
-    {
-        label: 'toolbarAnnotationsHorizontalLine',
-        icon: 'horizontal-line-drawing',
-        value: AnnotationType.HorizontalLine,
-    },
-    {
-        label: 'toolbarAnnotationsVerticalLine',
-        icon: 'vertical-line-drawing',
-        value: AnnotationType.VerticalLine,
-    },
-    {
-        label: 'toolbarAnnotationsParallelChannel',
-        icon: 'parallel-channel-drawing',
-        value: AnnotationType.ParallelChannel,
-    },
-    {
-        label: 'toolbarAnnotationsDisjointChannel',
-        icon: 'disjoint-channel-drawing',
-        value: AnnotationType.DisjointChannel,
-    },
-];
-
-const TEXT_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
-    { label: 'toolbarAnnotationsText', icon: 'text-annotation', value: AnnotationType.Text },
-    { label: 'toolbarAnnotationsComment', icon: 'comment-annotation', value: AnnotationType.Comment },
-    { label: 'toolbarAnnotationsCallout', icon: 'callout-annotation', value: AnnotationType.Callout },
-    { label: 'toolbarAnnotationsNote', icon: 'note-annotation', value: AnnotationType.Note },
-];
-
-const SHAPE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
-    { label: 'toolbarAnnotationsArrow', icon: 'arrow-drawing', value: AnnotationType.Arrow },
-    { label: 'toolbarAnnotationsArrowUp', icon: 'arrow-up-drawing', value: AnnotationType.ArrowUp },
-    { label: 'toolbarAnnotationsArrowDown', icon: 'arrow-down-drawing', value: AnnotationType.ArrowDown },
-];
-
-enum AnnotationOptions {
-    Delete = 'delete',
-    LineStrokeWidth = 'line-stroke-width',
-    LineStyleType = 'line-style-type',
-    LineColor = 'line-color',
-    FillColor = 'fill-color',
-    Lock = 'lock',
-    TextColor = 'text-color',
-    TextSize = 'text-size',
-    Settings = 'settings',
-}
-
-class AxesButtons {
-    @Validate(BOOLEAN)
-    public enabled: boolean = true;
-
-    @Validate(AXIS_TYPE, { optional: true })
-    public axes?: 'x' | 'y' | 'xy' = 'y';
-}
 
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ObserveChanges<Annotations>((target, newValue?: boolean, oldValue?: boolean) => {
@@ -419,8 +364,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             showAnnotationSettings: (active: number, sourceEvent?: Event) => {
                 const datum = this.annotationData.at(active);
-                if (!isLineType(datum) && !isChannelType(datum)) return;
-                this.settingsDialog.showLineOrChannel(datum, {
+
+                if (!isLineType(datum) && !isChannelType(datum) && !isMeasurerType(datum)) return;
+
+                const options: LinearSettingsDialogOptions = {
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
                     sourceEvent,
                     onChangeLine: (props) => {
@@ -447,14 +394,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         );
                         this.update();
                     },
-                    onChangeLineStyleType: (lineStyleType: AgAnnotationLineStyleType) => {
+                    onChangeLineStyleType: (lineStyleType) => {
                         this.setLineStyleTypeAndDefault(datum.type, lineStyleType);
                         this.updateToolbarLineStyleType(
                             LINE_STYLE_TYPE_ITEMS.find((item) => item.value === lineStyleType) ??
                                 LINE_STYLE_TYPE_ITEMS[0]
                         );
                     },
-                    onChangeLineStyleWidth: (strokeWidth: number) => {
+                    onChangeLineStyleWidth: (strokeWidth) => {
                         this.setLineStyleWidthAndDefault(datum.type, strokeWidth);
                         this.updateToolbarStrokeWidth({ strokeWidth, value: strokeWidth, label: String(strokeWidth) });
                     },
@@ -469,10 +416,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         );
                         this.update();
                     },
-                    onChangeTextFontSize: (fontSize: number) => {
+                    onChangeTextFontSize: (fontSize) => {
                         this.setFontSizeAndDefault(datum.type, fontSize);
                     },
-                });
+                };
+
+                this.settingsDialog.show(datum, options);
             },
         });
     }
@@ -535,7 +484,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createAnnotationScene(datum: AnnotationProperties) {
-        return new annotationConfigs[datum.type].scene();
+        if (datum.type in annotationConfigs) {
+            return new annotationConfigs[datum.type].scene();
+        }
+        throw new Error(
+            `AG Charts - Cannot create annotation scene of type [${datum.type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
+        );
     }
 
     private createAnnotationDatum(params: { type: AnnotationType }) {
@@ -543,7 +497,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return new annotationConfigs[params.type].datum().set(params);
         }
         throw new Error(
-            `AG Charts - Cannot set property of unknown type [${params.type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
+            `AG Charts - Cannot create annotation datum of unknown type [${params.type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
         );
     }
 
@@ -654,6 +608,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (event.value === 'shape-menu') {
             this.onToolbarButtonPressMenu(event, 'toolbarAnnotationsShapeAnnotations', SHAPE_ANNOTATION_ITEMS);
+            return;
+        }
+
+        if (event.value === 'measurer-menu') {
+            this.onToolbarButtonPressMenu(event, 'toolbarAnnotationsMeasurerAnnotations', MEASURER_ANNOTATION_ITEMS);
             return;
         }
 
@@ -1044,16 +1003,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.recordActionAfterNextUpdate(`Change ${datumType} font size to ${fontSize}`, ['annotations', 'defaults']);
     }
 
-    private setLineStyleTypeAndDefault(
-        datumType: LineAnnotationType | ChannelAnnotationType,
-        styleType: AgAnnotationLineStyleType
-    ) {
+    private setLineStyleTypeAndDefault(datumType: HasLineStyleAnnotationType, styleType: AgAnnotationLineStyleType) {
         this.state.transition('lineStyle', { type: styleType });
         this.defaults.setDefaultLineStyleType(datumType, styleType);
         this.recordActionAfterNextUpdate(`Change ${datumType} line style to ${styleType}`, ['annotations', 'defaults']);
     }
 
-    private setLineStyleWidthAndDefault(datumType: LineAnnotationType | ChannelAnnotationType, strokeWidth: number) {
+    private setLineStyleWidthAndDefault(datumType: HasLineStyleAnnotationType, strokeWidth: number) {
         this.state.transition('lineStyle', { strokeWidth });
         this.defaults.setDefaultLineStyleWidth(datumType, strokeWidth);
         this.recordActionAfterNextUpdate(`Change ${datumType} stroke width to ${strokeWidth}`, [
@@ -1088,6 +1044,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     return;
                 }
 
+                if ('setLocaleManager' in datum) datum.setLocaleManager(this.ctx.localeManager);
                 updateAnnotation(node, datum, context);
             });
 

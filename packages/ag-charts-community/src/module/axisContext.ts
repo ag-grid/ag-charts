@@ -15,6 +15,7 @@ export interface AxisContext {
     scaleConvert(val: any): number;
     scaleInvert(position: number): any;
     scaleInvertNearest(position: number): any;
+    scaleStep(): number;
     scaleValueFormatter(specifier?: string): ((x: any) => string) | undefined;
     attachLabel(node: Node): void;
     inRange(x: number, tolerance?: number): boolean;

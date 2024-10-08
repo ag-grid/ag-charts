@@ -39,9 +39,6 @@ export class ParallelChannelProperties extends Annotation(
     @Validate(OBJECT, { optional: true })
     text = new ChannelTextProperties();
 
-    lineCap?: _Scene.ShapeLineCap = undefined;
-    computedLineDash?: PixelSize[] = undefined;
-
     get bottom() {
         const bottom = {
             start: { x: this.start.x, y: this.start.y },

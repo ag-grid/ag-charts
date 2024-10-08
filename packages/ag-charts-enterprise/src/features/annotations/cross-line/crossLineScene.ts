@@ -22,7 +22,7 @@ export class CrossLineScene extends AnnotationScene {
 
     override activeHandle?: 'middle';
 
-    public readonly line = new CollidableLine();
+    private readonly line = new CollidableLine();
     private readonly middle = new UnivariantHandle();
     private axisLabel?: AxisLabelScene;
     public text?: CollidableText;
@@ -103,7 +103,9 @@ export class CrossLineScene extends AnnotationScene {
         middle.toggleLocked(locked ?? false);
     }
 
-    private readonly updateText = LineWithTextScene.updateLineText.bind(this);
+    private updateText(datum: CrossLineProperties, coords: LineCoords) {
+        LineWithTextScene.updateLineText.call(this, this.line, datum, coords);
+    }
 
     private createAxisLabel(context: AnnotationAxisContext) {
         const axisLabel = new AxisLabelScene();

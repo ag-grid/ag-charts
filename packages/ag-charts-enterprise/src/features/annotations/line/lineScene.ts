@@ -20,7 +20,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
     type = 'line';
 
-    public readonly line = new CollidableLine();
+    private readonly line = new CollidableLine();
     public text?: CollidableText;
     private startCap?: CapScene;
     private endCap?: CapScene;
@@ -48,7 +48,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         this.updateAnchor(datum, coords, context);
     }
 
-    updateLine(datum: LineTypeProperties, coords: LineCoords, context: AnnotationContext) {
+    private updateLine(datum: LineTypeProperties, coords: LineCoords, context: AnnotationContext) {
         const { line } = this;
         const { lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const linePoints = this.extendLine(coords, datum, context);
@@ -65,9 +65,11 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         });
     }
 
-    private readonly updateText = LineWithTextScene.updateLineText.bind(this);
+    private updateText(datum: LineTypeProperties, coords: LineCoords) {
+        LineWithTextScene.updateLineText.call(this, this.line, datum, coords);
+    }
 
-    updateCaps(datum: LineTypeProperties, coords: LineCoords) {
+    private updateCaps(datum: LineTypeProperties, coords: LineCoords) {
         if (!datum.startCap && this.startCap) {
             this.removeChild(this.startCap);
             this.startCap = undefined;
@@ -170,7 +172,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         return handle === 'start' ? startPoint : endPoint;
     }
 
-    protected override getHandleStyles(datum: LineTypeProperties, _handle?: 'start' | 'end') {
+    protected override getHandleStyles(datum: LineTypeProperties) {
         return {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke ?? datum.stroke,

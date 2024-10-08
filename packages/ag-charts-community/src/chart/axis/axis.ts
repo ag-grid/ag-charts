@@ -1395,6 +1395,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 ? (val) => scale.invertNearest?.(val)
                 : (val) => scale.invert?.(val),
             scaleInvertNearest: (val) => scale.invertNearest?.(val),
+            scaleStep: () => scale.step ?? 0,
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (x, tolerance) => this.inRange(x, tolerance),
         };
