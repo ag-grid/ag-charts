@@ -229,7 +229,6 @@ export class SeriesAreaManager extends BaseManager {
     private onHoverOrDrag(event: RegionEvent<'hover' | 'drag'>): void {
         this.highlight.pendingHoverEvent = event;
         this.hoverScheduler.schedule();
-        // this.hoverDevice = 'mouse';
 
         if (this.chart.ctx.interactionManager.getState() === InteractionState.Default) {
             const { regionOffsetX, regionOffsetY } = event;
