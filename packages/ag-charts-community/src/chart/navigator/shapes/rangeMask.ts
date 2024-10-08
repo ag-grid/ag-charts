@@ -1,4 +1,5 @@
 import { BBox } from '../../../scene/bbox';
+import { RedrawType } from '../../../scene/changeDetectable';
 import { Path } from '../../../scene/shape/path';
 
 export class RangeMask extends Path {
@@ -14,17 +15,25 @@ export class RangeMask extends Path {
     private max = 1;
 
     layout(x: number, y: number, width: number, height: number) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.dirtyPath = true;
+        if (x !== this.x || y !== this.y || width !== this.width || this.height !== height) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+            this.dirtyPath = true;
+            this.markDirty(RedrawType.MAJOR);
+        }
     }
 
     update(min: number, max: number) {
-        this.min = isNaN(min) ? this.min : min;
-        this.max = isNaN(max) ? this.max : max;
-        this.dirtyPath = true;
+        min = isNaN(min) ? this.min : min;
+        max = isNaN(max) ? this.max : max;
+        if (min !== this.min || max !== this.max) {
+            this.min = min;
+            this.max = max;
+            this.dirtyPath = true;
+            this.markDirty(RedrawType.MAJOR);
+        }
     }
 
     protected override computeBBox() {
