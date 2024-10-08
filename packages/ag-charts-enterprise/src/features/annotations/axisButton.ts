@@ -1,6 +1,5 @@
 import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 
-import type { Coords } from './annotationTypes';
 import { convert, invert } from './utils/values';
 
 const { BaseModuleInstance, InteractionState, Validate, BOOLEAN, createElement, REGIONS, ChartAxisDirection } =
@@ -16,12 +15,12 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     private readonly wrapper: HTMLElement;
     private readonly snap: boolean = false;
     private padding: number = 0;
-    private coords?: Coords;
+    private coords?: _ModuleSupport.Vec2;
 
     constructor(
         private readonly ctx: _ModuleSupport.ModuleContext,
         private readonly axisCtx: _ModuleSupport.AxisContext,
-        private readonly onButtonClick: (coords?: Coords) => void,
+        private readonly onButtonClick: (coords?: _ModuleSupport.Vec2) => void,
         private seriesRect: _Scene.BBox
     ) {
         super();
@@ -95,7 +94,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.toggleVisibility(false);
     }
 
-    private getButtonCoordinates({ x, y }: Coords) {
+    private getButtonCoordinates({ x, y }: _ModuleSupport.Vec2) {
         const {
             axisCtx: { direction, position },
             seriesRect,
@@ -131,7 +130,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         return { x, y };
     }
 
-    private getAxisCoordinates(coords: Coords) {
+    private getAxisCoordinates(coords: _ModuleSupport.Vec2) {
         const { seriesRect } = this;
         const { clientWidth: buttonWidth, clientHeight: buttonHeight } = this.button;
 
@@ -155,7 +154,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.wrapper.classList.toggle(`${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-wrapper-${name}`, include);
     }
 
-    private updatePosition({ x, y }: Coords) {
+    private updatePosition({ x, y }: _ModuleSupport.Vec2) {
         this.wrapper.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
     }
 

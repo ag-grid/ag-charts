@@ -1,7 +1,5 @@
 import { type AgAnnotationLineStyleType, type PixelSize, _ModuleSupport, type _Scene } from 'ag-charts-community';
 
-import type { Coords, LineCoords } from '../annotationTypes';
-
 const { Vec2 } = _ModuleSupport;
 
 export function getLineStyle(lineDash?: PixelSize[], lineStyle?: AgAnnotationLineStyleType) {
@@ -41,12 +39,13 @@ export function getLineCap(
 /**
  * Find the pair of points where a line intersects a bounding box.
  */
-export function boundsIntersections({ x1, y1, x2, y2 }: LineCoords, bounds: _Scene.BBox): [Coords, Coords] {
-    const p1 = Vec2.from(x1, y1);
-    const p2 = Vec2.from(x2, y2);
+export function boundsIntersections(
+    coords: _ModuleSupport.Vec4,
+    bounds: _Scene.BBox
+): [_ModuleSupport.Vec2, _ModuleSupport.Vec2] {
+    const [p1, p2] = Vec2.from(coords);
 
     const reflection = bounds.height;
-
     const gradient = Vec2.gradient(p2, p1, reflection);
     const intercept = Vec2.intercept(p2, gradient, reflection);
 
@@ -54,7 +53,7 @@ export function boundsIntersections({ x1, y1, x2, y2 }: LineCoords, bounds: _Sce
     const fallback = [
         { x: p1.x, y: reflection == null ? 0 : reflection },
         { x: p1.x, y: reflection == null ? bounds.height : reflection - bounds.height },
-    ] as [Coords, Coords];
+    ] as [_ModuleSupport.Vec2, _ModuleSupport.Vec2];
 
     // When a line is vertical the gradient is infinity and none of our intersections will be valid, so shortcut and
     // return the fallback value.
@@ -83,5 +82,5 @@ export function boundsIntersections({ x1, y1, x2, y2 }: LineCoords, bounds: _Sce
         return fallback;
     }
 
-    return points as [Coords, Coords];
+    return points as [_ModuleSupport.Vec2, _ModuleSupport.Vec2];
 }

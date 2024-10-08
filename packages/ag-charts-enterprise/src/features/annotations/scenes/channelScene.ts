@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { ChannelTextProperties } from '../annotationProperties';
-import type { AnnotationContext, Coords, LineCoords, Point } from '../annotationTypes';
+import type { AnnotationContext, Point } from '../annotationTypes';
 import { snapToAngle } from '../utils/coords';
 import { convertLine, invertCoords } from '../utils/values';
 import { CollidableLine } from './collidableLineScene';
@@ -60,7 +60,7 @@ export abstract class ChannelScene<
     }
 
     snapToAngle(
-        target: Coords,
+        target: _ModuleSupport.Vec2,
         context: AnnotationContext,
         handle: ChannelHandle,
         originHandle: ChannelHandle,
@@ -144,20 +144,20 @@ export abstract class ChannelScene<
 
     protected abstract updateLines(
         datum: Datum,
-        top: LineCoords,
-        bottom: LineCoords,
+        top: _ModuleSupport.Vec4,
+        bottom: _ModuleSupport.Vec4,
         context: AnnotationContext,
-        naturalTop: LineCoords,
-        naturalBottom: LineCoords
+        naturalTop: _ModuleSupport.Vec4,
+        naturalBottom: _ModuleSupport.Vec4
     ): void;
 
-    protected abstract updateHandles(datum: Datum, top: LineCoords, bottom: LineCoords): void;
+    protected abstract updateHandles(datum: Datum, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4): void;
 
-    protected abstract updateText(datum: Datum, top: LineCoords, bottom: LineCoords): void;
+    protected abstract updateText(datum: Datum, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4): void;
 
     protected readonly updateBackground = WithBackgroundScene.updateBackground.bind(this);
 
-    protected updateAnchor(top: LineCoords, bottom: LineCoords) {
+    protected updateAnchor(top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
         const { x, y } = _Scene.Transformable.toCanvasPoint(
             this.topLine,
             (top.x1 + top.x2) / 2,
@@ -170,8 +170,8 @@ export abstract class ChannelScene<
 
     public abstract getBackgroundPoints(
         datum: Datum,
-        top: LineCoords,
-        bottom: LineCoords,
-        bounds: LineCoords
+        top: _ModuleSupport.Vec4,
+        bottom: _ModuleSupport.Vec4,
+        bounds: _ModuleSupport.Vec4
     ): Array<_ModuleSupport.Vec2>;
 }

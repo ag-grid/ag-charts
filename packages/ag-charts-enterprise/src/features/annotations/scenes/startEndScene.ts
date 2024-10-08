@@ -1,13 +1,15 @@
 import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { PointProperties } from '../annotationProperties';
-import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
+import type { AnnotationContext } from '../annotationTypes';
 import type { StartEndProperties } from '../properties/startEndProperties';
 import { snapToAngle } from '../utils/coords';
 import { validateDatumPoint } from '../utils/validation';
 import { convertLine, convertPoint, invertCoords } from '../utils/values';
 import { DivariantHandle } from './handle';
 import { LinearScene } from './linearScene';
+
+const { Vec4 } = _ModuleSupport;
 
 export type StartEndHandle = 'start' | 'end';
 
@@ -54,7 +56,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: Datum, target: Coords, context: AnnotationContext, snapping: boolean) {
+    override dragHandle(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) {
         const { activeHandle } = this;
 
         if (!activeHandle) return;
@@ -73,7 +75,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
 
     snapToAngle(
         datum: Datum,
-        target: Coords,
+        target: _ModuleSupport.Vec2,
         context: AnnotationContext
     ): Pick<PointProperties, 'x' | 'y'> | undefined {
         const { activeHandle } = this;
@@ -126,7 +128,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         if (this.start.containsPoint(x, y) || this.end.containsPoint(x, y)) return 'handle';
     }
 
-    protected updateHandles(datum: Datum, coords: LineCoords, bbox?: _Scene.BBox) {
+    protected updateHandles(datum: Datum, coords: _ModuleSupport.Vec4, bbox?: _Scene.BBox) {
         this.start.update({
             ...this.getHandleStyles(datum, 'start'),
             ...this.getHandleCoords(datum, coords, 'start'),
@@ -140,7 +142,12 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         this.end.toggleLocked(datum.locked ?? false);
     }
 
-    protected updateAnchor(_datum: Datum, coords: LineCoords, context: AnnotationContext, _bbox?: _Scene.BBox) {
+    protected updateAnchor(
+        _datum: Datum,
+        coords: _ModuleSupport.Vec4,
+        context: AnnotationContext,
+        _bbox?: _Scene.BBox
+    ) {
         this.anchor = {
             x: coords.x1 + context.seriesRect.x,
             y: coords.y1 + context.seriesRect.y,
@@ -150,14 +157,11 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
 
     protected getHandleCoords(
         _datum: Datum,
-        coords: LineCoords,
+        coords: _ModuleSupport.Vec4,
         handle: StartEndHandle,
         _bbox?: _Scene.BBox
     ): _ModuleSupport.Vec2 {
-        return {
-            x: handle === 'start' ? coords.x1 : coords.x2,
-            y: handle === 'start' ? coords.y1 : coords.y2,
-        };
+        return handle === 'start' ? Vec4.start(coords) : Vec4.end(coords);
     }
 
     protected getHandleStyles(datum: Datum, _handle?: 'start' | 'end'): AgAnnotationHandleStyles {

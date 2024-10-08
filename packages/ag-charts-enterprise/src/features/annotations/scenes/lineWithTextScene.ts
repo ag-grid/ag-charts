@@ -1,7 +1,6 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { ChannelTextProperties, LineTextProperties } from '../annotationProperties';
-import type { LineCoords } from '../annotationTypes';
 import type { AnnotationScene } from './annotationScene';
 import type { CollidableLine } from './collidableLineScene';
 import { CollidableText } from './collidableTextScene';
@@ -23,7 +22,7 @@ export class LineWithTextScene {
         this: AnnotationScene & { text?: CollidableText },
         line: CollidableLine,
         datum: Datum,
-        coords: LineCoords
+        coords: _ModuleSupport.Vec4
     ) {
         if (!datum.text?.label && this.text) {
             this.removeChild(this.text);
@@ -61,8 +60,8 @@ export class LineWithTextScene {
         this: AnnotationScene & { text?: _Scene.TransformableText },
         offsetInsideTextLabel: boolean,
         datum: Datum,
-        top: LineCoords,
-        bottom: LineCoords
+        top: _ModuleSupport.Vec4,
+        bottom: _ModuleSupport.Vec4
     ) {
         if (!datum.text?.label && this.text) {
             this.removeChild(this.text);
@@ -102,7 +101,7 @@ export class LineWithTextScene {
         LineWithTextScene.setProperties(this.text, datum.text, point, numbers.angle, textBaseline);
     }
 
-    static getNumbers(coords: LineCoords, fontSize?: number, strokeWidth?: number): Numbers {
+    static getNumbers(coords: _ModuleSupport.Vec4, fontSize?: number, strokeWidth?: number): Numbers {
         let [left, right] = Vec2.from(coords);
         if (left.x > right.x) [left, right] = [right, left];
 

@@ -16,7 +16,6 @@ import { AnnotationDefaults } from './annotationDefaults';
 import type {
     AnnotationContext,
     AnnotationOptionsColorPickerType,
-    Coords,
     HasFontSizeAnnotationType,
     HasLineStyleAnnotationType,
     Point,
@@ -147,7 +146,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.update();
             },
 
-            hoverAtCoords: (coords: Coords, active?: number) => {
+            hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number) => {
                 let hovered;
 
                 this.annotations.each((annotation, _, index) => {
@@ -164,7 +163,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 return hovered;
             },
 
-            getNodeAtCoords: (coords: Coords, active: number) => {
+            getNodeAtCoords: (coords: _ModuleSupport.Vec2, active: number) => {
                 const node = this.annotations.at(active);
 
                 if (!node) {
@@ -174,7 +173,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 return node.getNodeAtCoords(coords.x, coords.y);
             },
 
-            translate: (index: number, translation: Coords) => {
+            translate: (index: number, translation: _ModuleSupport.Vec2) => {
                 const node = this.annotations.at(index);
                 const datum = getTypedDatum(this.annotationData.at(index));
                 if (!node || !datum) {
@@ -519,7 +518,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }: {
         node: AnnotationScene;
         datum: AnnotationProperties;
-        translation: Coords;
+        translation: _ModuleSupport.Vec2;
     }): AnnotationProperties | undefined {
         const config = this.getAnnotationConfig(datum);
 
@@ -1138,7 +1137,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('dblclick', { offset });
     }
 
-    private onAxisButtonClick(coords?: Coords, direction?: Direction) {
+    private onAxisButtonClick(coords?: _ModuleSupport.Vec2, direction?: Direction) {
         this.cancel();
         this.reset();
 

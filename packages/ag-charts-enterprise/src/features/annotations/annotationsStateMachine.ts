@@ -4,7 +4,6 @@ import {
     type AnnotationLineStyle,
     type AnnotationOptionsColorPickerType,
     AnnotationType,
-    type Coords,
     type GuardDragClickDoubleEvent,
 } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
@@ -276,7 +275,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 translate: {
                     guard: guardActive,
-                    action: ({ translation }: { translation: Coords }) => {
+                    action: ({ translation }: { translation: _ModuleSupport.Vec2 }) => {
                         ctx.startInteracting();
                         ctx.translate(this.active!, translation);
                         ctx.update();

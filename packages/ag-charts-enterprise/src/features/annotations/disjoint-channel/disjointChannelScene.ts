@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
+import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
@@ -8,7 +8,7 @@ import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { convertPoint, invertCoords } from '../utils/values';
 import type { DisjointChannelProperties } from './disjointChannelProperties';
 
-const { Vec2 } = _ModuleSupport;
+const { Vec2, Vec4 } = _ModuleSupport;
 
 type ChannelHandle = keyof DisjointChannelScene['handles'];
 
@@ -35,7 +35,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
 
     override dragHandle(
         datum: DisjointChannelProperties,
-        target: Coords,
+        target: _ModuleSupport.Vec2,
         context: AnnotationContext,
         snapping: boolean
     ) {
@@ -45,7 +45,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         const { offset } = handles[activeHandle].drag(target);
         handles[activeHandle].toggleDragging(true);
 
-        const invert = (coords: Coords) => invertCoords(coords, context);
+        const invert = (coords: _ModuleSupport.Vec2) => invertCoords(coords, context);
         const prev = datum.toJson();
         const angle = datum.snapToAngle;
 
@@ -124,10 +124,10 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
 
     protected override getOtherCoords(
         datum: DisjointChannelProperties,
-        topLeft: Coords,
-        topRight: Coords,
+        topLeft: _ModuleSupport.Vec2,
+        topRight: _ModuleSupport.Vec2,
         context: AnnotationContext
-    ): Coords[] {
+    ): _ModuleSupport.Vec2[] {
         const startHeight = convertPoint(datum.bottom.start, context).y - convertPoint(datum.start, context).y;
         const endHeight = convertPoint(datum.bottom.end, context).y - convertPoint(datum.end, context).y;
 
@@ -137,7 +137,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         return [bottomLeft, bottomRight];
     }
 
-    override updateLines(datum: DisjointChannelProperties, top: LineCoords, bottom: LineCoords) {
+    override updateLines(datum: DisjointChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
         const { topLine, bottomLine } = this;
         const { lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
 
@@ -150,23 +150,11 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
             strokeWidth,
         };
 
-        topLine.setProperties({
-            x1: top.x1,
-            y1: top.y1,
-            x2: top.x2,
-            y2: top.y2,
-            ...lineStyles,
-        });
-        bottomLine.setProperties({
-            x1: bottom.x1,
-            y1: bottom.y1,
-            x2: bottom.x2,
-            y2: bottom.y2,
-            ...lineStyles,
-        });
+        topLine.setProperties({ ...top, ...lineStyles });
+        bottomLine.setProperties({ ...bottom, ...lineStyles });
     }
 
-    override updateHandles(datum: DisjointChannelProperties, top: LineCoords, bottom: LineCoords) {
+    override updateHandles(datum: DisjointChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
         const {
             handles: { topLeft, topRight, bottomLeft, bottomRight },
         } = this;
@@ -178,13 +166,12 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
             strokeWidth: datum.handle.strokeWidth ?? datum.strokeWidth,
         };
 
-        topLeft.update({ ...handleStyles, x: top.x1, y: top.y1 });
-        topRight.update({ ...handleStyles, x: top.x2, y: top.y2 });
-        bottomLeft.update({ ...handleStyles, x: bottom.x1, y: bottom.y1 });
+        topLeft.update({ ...handleStyles, ...Vec4.start(top) });
+        topRight.update({ ...handleStyles, ...Vec4.end(top) });
+        bottomLeft.update({ ...handleStyles, ...Vec4.start(bottom) });
         bottomRight.update({
             ...handleStyles,
-            x: bottom.x2 - bottomRight.handle.width / 2,
-            y: bottom.y2 - bottomRight.handle.height / 2,
+            ...Vec2.sub(Vec4.end(bottom), Vec2.from(bottomRight.handle.width / 2, bottomRight.handle.height / 2)),
         });
     }
 
@@ -192,9 +179,9 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
 
     override getBackgroundPoints(
         datum: DisjointChannelProperties,
-        top: LineCoords,
-        bottom: LineCoords,
-        bounds: LineCoords
+        top: _ModuleSupport.Vec4,
+        bottom: _ModuleSupport.Vec4,
+        bounds: _ModuleSupport.Vec4
     ) {
         const isFlippedX = top.x1 > top.x2;
         const isFlippedY = top.y1 > top.y2;
