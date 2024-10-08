@@ -2,7 +2,6 @@ import type { AgBaseChartOptions } from './chart/chartOptions';
 import type {
     AgBaseChartThemeOptions,
     AgBaseGaugePresetThemeOptions,
-    AgBaseSparklinePresetThemeOptions,
     AgChartTheme,
     AgChartThemeName,
 } from './chart/themeOptions';
@@ -58,9 +57,23 @@ export type AgChartOptions =
 
 export type AgBaseFinancialPresetOptions = Pick<
     AgCartesianChartOptions,
-    'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title'
-> &
-    Pick<AgCartesianChartOptions, 'initialState' | 'data'>;
+    'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title' | 'initialState' | 'data'
+>;
+
+export type AgBaseSparklinePresetThemeOptions = Pick<
+    AgCartesianChartOptions,
+    | 'background'
+    | 'container'
+    | 'height'
+    | 'listeners'
+    | 'locale'
+    | 'minHeight'
+    | 'minWidth'
+    | 'padding'
+    | 'width'
+    | 'data'
+    | 'axes'
+>;
 
 export type AgFinancialChartOptions = AgBaseFinancialPresetOptions & AgFinancialChartPresets;
 

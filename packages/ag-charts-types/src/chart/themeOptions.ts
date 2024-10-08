@@ -1,4 +1,3 @@
-import type { AgCartesianChartOptions } from '../chartBuilderOptions';
 import type { AgLinearGaugeTarget, AgLinearGaugeThemeableOptions } from '../presets/gauge/linearGaugeOptions';
 import type { AgRadialGaugeTarget, AgRadialGaugeThemeableOptions } from '../presets/gauge/radialGaugeOptions';
 import type { AgAreaSeriesThemeableOptions } from '../series/cartesian/areaOptions';
@@ -208,21 +207,6 @@ export type AgBaseGaugePresetThemeOptions = Pick<
     | 'subtitle'
     | 'title'
     | 'width'
->;
-
-export type AgBaseSparklinePresetThemeOptions = Pick<
-    AgCartesianChartOptions,
-    | 'background'
-    | 'container'
-    | 'height'
-    | 'listeners'
-    | 'locale'
-    | 'minHeight'
-    | 'minWidth'
-    | 'padding'
-    | 'width'
-    | 'data'
-    | 'axes'
 >;
 
 // Interface needed for docs generation, but listeners conflicts using the extends clause
