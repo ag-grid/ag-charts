@@ -251,11 +251,11 @@ export class CrossLineScene extends AnnotationScene {
     }
 
     override getNodeAtCoords(x: number, y: number) {
-        if (this.middle.containsPoint(x, y)) return 'handle';
-
         if (this.text?.containsPoint(x, y)) return 'text';
 
         if (this.line.isPointInPath(x, y)) return 'line';
+
+        if (this.middle.containsPoint(x, y)) return 'handle';
     }
 
     override getAnchor() {
