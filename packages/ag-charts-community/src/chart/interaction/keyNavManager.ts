@@ -55,7 +55,6 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
     }
 
     private onMouse() {
-        this.focusIndicator.toggleForceInvisible(true);
         this.previousInputDevice = 'mouse';
     }
 
