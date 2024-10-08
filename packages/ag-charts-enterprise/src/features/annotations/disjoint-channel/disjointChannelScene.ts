@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
+import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
@@ -35,7 +35,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
 
     override dragHandle(
         datum: DisjointChannelProperties,
-        target: Coords,
+        target: _ModuleSupport.Vec2,
         context: AnnotationContext,
         snapping: boolean
     ) {
@@ -45,7 +45,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         const { offset } = handles[activeHandle].drag(target);
         handles[activeHandle].toggleDragging(true);
 
-        const invert = (coords: Coords) => invertCoords(coords, context);
+        const invert = (coords: _ModuleSupport.Vec2) => invertCoords(coords, context);
         const prev = datum.toJson();
         const angle = datum.snapToAngle;
 
@@ -124,10 +124,10 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
 
     protected override getOtherCoords(
         datum: DisjointChannelProperties,
-        topLeft: Coords,
-        topRight: Coords,
+        topLeft: _ModuleSupport.Vec2,
+        topRight: _ModuleSupport.Vec2,
         context: AnnotationContext
-    ): Coords[] {
+    ): _ModuleSupport.Vec2[] {
         const startHeight = convertPoint(datum.bottom.start, context).y - convertPoint(datum.start, context).y;
         const endHeight = convertPoint(datum.bottom.end, context).y - convertPoint(datum.end, context).y;
 

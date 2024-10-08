@@ -1,7 +1,7 @@
 import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { PointProperties } from '../annotationProperties';
-import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
+import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import type { StartEndProperties } from '../properties/startEndProperties';
 import { snapToAngle } from '../utils/coords';
 import { validateDatumPoint } from '../utils/validation';
@@ -54,7 +54,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: Datum, target: Coords, context: AnnotationContext, snapping: boolean) {
+    override dragHandle(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) {
         const { activeHandle } = this;
 
         if (!activeHandle) return;
@@ -73,7 +73,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
 
     snapToAngle(
         datum: Datum,
-        target: Coords,
+        target: _ModuleSupport.Vec2,
         context: AnnotationContext
     ): Pick<PointProperties, 'x' | 'y'> | undefined {
         const { activeHandle } = this;

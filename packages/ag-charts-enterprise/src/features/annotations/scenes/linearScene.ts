@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 import type { PointProperties } from '../annotationProperties';
-import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
+import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import { boundsIntersections } from '../utils/line';
 import { convertLine, convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
@@ -18,9 +18,9 @@ export abstract class LinearScene<
     },
 > extends AnnotationScene {
     protected dragState?: {
-        offset: Coords;
-        start: Coords;
-        end: Coords;
+        offset: _ModuleSupport.Vec2;
+        start: _ModuleSupport.Vec2;
+        end: _ModuleSupport.Vec2;
     };
 
     protected extendLine({ x1, y1, x2, y2 }: LineCoords, datum: Datum, context: AnnotationContext) {
@@ -58,7 +58,7 @@ export abstract class LinearScene<
         return linePoints;
     }
 
-    public dragStart(datum: Datum, target: Coords, context: AnnotationContext) {
+    public dragStart(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext) {
         this.dragState = {
             offset: target,
             start: convertPoint(datum.start, context),
@@ -66,7 +66,7 @@ export abstract class LinearScene<
         };
     }
 
-    public drag(datum: Datum, target: Coords, context: AnnotationContext, snapping: boolean) {
+    public drag(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) {
         if (datum.locked) return;
 
         if (this.activeHandle) {
@@ -76,9 +76,14 @@ export abstract class LinearScene<
         }
     }
 
-    protected abstract dragHandle(datum: Datum, target: Coords, context: AnnotationContext, snapping: boolean): void;
+    protected abstract dragHandle(
+        datum: Datum,
+        target: _ModuleSupport.Vec2,
+        context: AnnotationContext,
+        snapping: boolean
+    ): void;
 
-    protected dragAll(datum: Datum, target: Coords, context: AnnotationContext) {
+    protected dragAll(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext) {
         const { dragState } = this;
 
         if (!dragState) return;
@@ -100,8 +105,8 @@ export abstract class LinearScene<
         context,
     }: {
         datum: Datum;
-        start: Coords;
-        end: Coords;
+        start: _ModuleSupport.Vec2;
+        end: _ModuleSupport.Vec2;
         translation: _ModuleSupport.Vec2;
         context: AnnotationContext;
     }) {
@@ -131,7 +136,7 @@ export abstract class LinearScene<
         }
     }
 
-    public translate(datum: Datum, translation: Coords, context: AnnotationContext) {
+    public translate(datum: Datum, translation: _ModuleSupport.Vec2, context: AnnotationContext) {
         this.translatePoints({
             datum,
             start: convertPoint(datum.start, context),
@@ -163,10 +168,10 @@ export abstract class LinearScene<
 
     protected getOtherCoords(
         _datum: Datum,
-        _topLeft: Coords,
-        _topRight: Coords,
+        _topLeft: _ModuleSupport.Vec2,
+        _topRight: _ModuleSupport.Vec2,
         _context: AnnotationContext
-    ): Array<Coords> {
+    ): Array<_ModuleSupport.Vec2> {
         return [];
     }
 }

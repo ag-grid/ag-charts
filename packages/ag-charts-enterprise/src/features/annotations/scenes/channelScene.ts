@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { ChannelTextProperties } from '../annotationProperties';
-import type { AnnotationContext, Coords, LineCoords, Point } from '../annotationTypes';
+import type { AnnotationContext, LineCoords, Point } from '../annotationTypes';
 import { snapToAngle } from '../utils/coords';
 import { convertLine, invertCoords } from '../utils/values';
 import { CollidableLine } from './collidableLineScene';
@@ -60,7 +60,7 @@ export abstract class ChannelScene<
     }
 
     snapToAngle(
-        target: Coords,
+        target: _ModuleSupport.Vec2,
         context: AnnotationContext,
         handle: ChannelHandle,
         originHandle: ChannelHandle,

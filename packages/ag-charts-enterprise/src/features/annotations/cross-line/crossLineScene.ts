@@ -1,6 +1,6 @@
 import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 
-import type { AnnotationAxisContext, AnnotationContext, Coords, LineCoords } from '../annotationTypes';
+import type { AnnotationAxisContext, AnnotationContext, LineCoords } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { AxisLabelScene } from '../scenes/axisLabelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
@@ -28,8 +28,8 @@ export class CrossLineScene extends AnnotationScene {
 
     private seriesRect?: _Scene.BBox;
     private dragState?: {
-        offset: Coords;
-        middle: Coords;
+        offset: _ModuleSupport.Vec2;
+        middle: _ModuleSupport.Vec2;
     };
     private isHorizontal = false;
 
@@ -161,7 +161,7 @@ export class CrossLineScene extends AnnotationScene {
         this.middle.toggleActive(active);
     }
 
-    public dragStart(datum: CrossLineProperties, target: Coords, context: AnnotationContext) {
+    public dragStart(datum: CrossLineProperties, target: _ModuleSupport.Vec2, context: AnnotationContext) {
         const middle = HorizontalLineProperties.is(datum)
             ? { x: target.x, y: convert(datum.value, context.yAxis) }
             : { x: convert(datum.value, context.xAxis), y: target.y };
@@ -172,7 +172,7 @@ export class CrossLineScene extends AnnotationScene {
         };
     }
 
-    public drag(datum: CrossLineProperties, target: Coords, context: AnnotationContext) {
+    public drag(datum: CrossLineProperties, target: _ModuleSupport.Vec2, context: AnnotationContext) {
         const { activeHandle, dragState } = this;
 
         if (datum.locked) return;
@@ -194,7 +194,7 @@ export class CrossLineScene extends AnnotationScene {
         datum.set({ value: isHorizontal ? point.y : point.x });
     }
 
-    public translate(datum: CrossLineProperties, { x, y }: Coords, context: AnnotationContext) {
+    public translate(datum: CrossLineProperties, { x, y }: _ModuleSupport.Vec2, context: AnnotationContext) {
         if (datum.locked) return;
 
         const { axisContext, translation } = HorizontalLineProperties.is(datum)

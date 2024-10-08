@@ -87,11 +87,6 @@ export function stringToAnnotationType(value: string) {
     }
 }
 
-export interface Coords {
-    x: number;
-    y: number;
-}
-
 export interface LineCoords {
     x1: number;
     y1: number;

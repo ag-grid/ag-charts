@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
+import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
@@ -40,7 +40,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
     override dragHandle(
         datum: ParallelChannelProperties,
-        target: Coords,
+        target: _ModuleSupport.Vec2,
         context: AnnotationContext,
         snapping: boolean
     ) {
@@ -124,10 +124,10 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
     protected override getOtherCoords(
         datum: ParallelChannelProperties,
-        topLeft: Coords,
-        topRight: Coords,
+        topLeft: _ModuleSupport.Vec2,
+        topRight: _ModuleSupport.Vec2,
         context: AnnotationContext
-    ): Coords[] {
+    ): _ModuleSupport.Vec2[] {
         const height = convertPoint(datum.bottom.start, context).y - convertPoint(datum.start, context).y;
 
         const bottomLeft = Vec2.add(topLeft, Vec2.from(0, height));
