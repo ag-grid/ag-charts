@@ -3,7 +3,7 @@ import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import { StartEndScene } from '../scenes/startEndScene';
-import { getBBox, updateTextNode, wrapText } from '../text/util';
+import { getBBox, updateTextNode } from '../text/util';
 import { convertLine } from '../utils/values';
 
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends StartEndScene<Datum> {
@@ -52,13 +52,8 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
         const { text, isPlaceholder } = datum.getText();
-        const wrappedText = wrapText(datum, text, bbox.width);
 
-        if (!isPlaceholder) {
-            datum.set({ text: wrappedText });
-        }
-
-        updateTextNode(this.label, wrappedText, isPlaceholder, datum, this.getLabelCoords(datum, bbox, coords));
+        updateTextNode(this.label, text, isPlaceholder, datum, this.getLabelCoords(datum, bbox, coords));
     }
 
     protected updateShape(_datum: Datum, _textBBox: _Scene.BBox, _coords: LineCoords) {

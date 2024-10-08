@@ -165,7 +165,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         textArea.style.setProperty('text-align', textAlign);
     }
 
-    private getBBox() {
+    public getBBox() {
         const { left, top, width, height } = this.element.getBoundingClientRect();
         return new _Scene.BBox(left, top, width, height);
     }

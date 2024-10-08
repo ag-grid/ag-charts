@@ -1154,8 +1154,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const offset = Vec2.from(event);
         const point = () => invertCoords(offset, context);
         const textInputValue = this.textInput.getValue();
+        const bbox = this.textInput.getBBox();
 
-        state.transition('click', { offset, point, textInputValue });
+        state.transition('click', { offset, point, textInputValue, bbox });
     }
 
     private onDoubleClick() {
@@ -1251,8 +1252,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const { key, shiftKey } = event.sourceEvent;
         const textInputValue = this.textInput.getValue();
+        const bbox = this.textInput.getBBox();
 
-        state.transition('keyDown', { key, shiftKey, textInputValue });
+        state.transition('keyDown', { key, shiftKey, textInputValue, bbox });
     }
 
     private onKeyDown(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
