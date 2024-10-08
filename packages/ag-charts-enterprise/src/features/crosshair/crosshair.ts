@@ -76,6 +76,8 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             seriesRegion.addListener('drag', (event) => this.onMouseMove(event), InteractionState.Annotations),
             seriesRegion.addListener('wheel', () => this.onMouseOut(), InteractionState.Default),
             seriesRegion.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
+            ctx.keyNavManager.addListener('nav-hori', () => this.onKeyPress()),
+            ctx.keyNavManager.addListener('nav-vert', () => this.onKeyPress()),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.onMouseOut()),
             ctx.zoomManager.addListener('zoom-change', () => this.onMouseOut()),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
@@ -214,6 +216,12 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
     }
 
+    private onKeyPress() {
+        if (this.enabled && !this.snap) {
+            this.hideCrosshairs();
+        }
+    }
+
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
         if (!this.enabled) {
             return;
@@ -225,12 +233,9 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         this.activeHighlight = hasCrosshair ? event.currentHighlight : undefined;
 
-        if (this.snap) {
-            if (!this.activeHighlight) {
-                this.hideCrosshairs();
-                return;
-            }
-
+        if (!this.activeHighlight) {
+            this.hideCrosshairs();
+        } else if (this.snap) {
             const activeHighlightData = this.getActiveHighlightData(this.activeHighlight);
 
             this.updatePositions(activeHighlightData);
