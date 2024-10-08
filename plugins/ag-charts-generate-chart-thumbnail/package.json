@@ -1,17 +1,17 @@
 {
   "name": "ag-charts-generate-chart-thumbnail",
-  "version": "10.2.0-beta.20241006",
+  "version": "10.2.0-beta.20241008",
   "private": true,
   "dependencies": {
-    "ag-charts-generate-example-files": "10.2.0-beta.20241006",
+    "ag-charts-generate-example-files": "10.2.0-beta.20241008",
     "glob": "8.0.3",
     "typescript": "^5.4.5",
     "@nx/devkit": "^18.3.4",
-    "ag-charts-community": "10.2.0-beta.20241006",
+    "ag-charts-community": "10.2.0-beta.20241008",
     "jsdom": "~22.1.0",
     "sharp": "0.33.5",
-    "ag-charts-enterprise": "10.2.0-beta.20241006",
-    "ag-charts-test": "10.2.0-beta.20241006",
+    "ag-charts-enterprise": "10.2.0-beta.20241008",
+    "ag-charts-test": "10.2.0-beta.20241008",
     "@swc/helpers": "0.5.3",
     "tinypool": "^0.8.1",
     "process": "0.11.10"
