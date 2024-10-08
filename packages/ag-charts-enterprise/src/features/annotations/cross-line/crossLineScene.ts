@@ -10,7 +10,7 @@ import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { convert, invert, invertCoords } from '../utils/values';
 import { type CrossLineProperties, HorizontalLineProperties } from './crossLineProperties';
 
-const { ChartAxisDirection, Vec2 } = _ModuleSupport;
+const { ChartAxisDirection, Vec2, Vec4 } = _ModuleSupport;
 
 export class CrossLineScene extends AnnotationScene {
     static override is(value: unknown): value is CrossLineScene {
@@ -84,7 +84,6 @@ export class CrossLineScene extends AnnotationScene {
     private updateHandle(datum: CrossLineProperties, coords: _ModuleSupport.Vec4) {
         const { middle } = this;
         const { locked, stroke, strokeWidth, strokeOpacity } = datum;
-        const { x1, y1, x2, y2 } = coords;
 
         const handleStyles = {
             fill: datum.handle.fill,
@@ -93,11 +92,13 @@ export class CrossLineScene extends AnnotationScene {
             strokeWidth: datum.handle.strokeWidth ?? strokeWidth,
         };
 
-        const x = x1 + (x2 - x1) / 2;
-        const y = y1 + (y2 - y1) / 2;
-        const { width: handleWidth, height: handleHeight } = middle.handle;
+        const handlePosition = Vec2.sub(
+            Vec4.center(coords),
+            Vec2.from(middle.handle.width / 2, middle.handle.height / 2)
+        );
+
         middle.gradient = this.isHorizontal ? 'horizontal' : 'vertical';
-        middle.update({ ...handleStyles, x: x - handleWidth / 2, y: y - handleHeight / 2 });
+        middle.update({ ...handleStyles, ...handlePosition });
 
         middle.toggleLocked(locked ?? false);
     }
@@ -115,28 +116,27 @@ export class CrossLineScene extends AnnotationScene {
     private updateAxisLabel(
         datum: CrossLineProperties,
         axisContext: AnnotationAxisContext,
-        { x1, y1, x2, y2 }: _ModuleSupport.Vec4
+        coords: _ModuleSupport.Vec4
     ) {
         if (!this.axisLabel) {
             this.axisLabel = this.createAxisLabel(axisContext);
         }
 
         const { axisLabel, seriesRect } = this;
+        const { direction, position } = axisContext;
         if (datum.axisLabel.enabled) {
             axisLabel.visible = this.visible;
 
-            const [labelX, labelY] =
-                axisContext.position === 'left' || axisContext.position === 'top' ? [x1, y1] : [x2, y2];
+            const labelCorner = position === 'left' || position === 'top' ? Vec4.start(coords) : Vec4.end(coords);
+            const labelPosition = direction === ChartAxisDirection.X ? labelCorner.x : labelCorner.y;
 
-            const labelPosition = axisContext.direction === ChartAxisDirection.X ? labelX : labelY;
             if (!axisContext.inRange(labelPosition)) {
                 axisLabel.visible = false;
                 return;
             }
 
             axisLabel.update({
-                x: labelX + (seriesRect?.x ?? 0),
-                y: labelY + (seriesRect?.y ?? 0),
+                ...Vec2.add(labelCorner, Vec2.required(seriesRect)),
                 value: datum.value,
                 styles: datum.axisLabel,
                 context: axisContext,

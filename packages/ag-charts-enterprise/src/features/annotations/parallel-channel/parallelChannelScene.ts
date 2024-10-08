@@ -10,7 +10,7 @@ import { isPoint, validateDatumPoint } from '../utils/validation';
 import { convertPoint, invertCoords } from '../utils/values';
 import type { ParallelChannelProperties } from './parallelChannelProperties';
 
-const { Vec2 } = _ModuleSupport;
+const { Vec2, Vec4 } = _ModuleSupport;
 
 type ChannelHandle = keyof ParallelChannelScene['handles'];
 
@@ -172,20 +172,8 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
             strokeWidth,
         };
 
-        topLine.setProperties({
-            x1: top.x1,
-            y1: top.y1,
-            x2: top.x2,
-            y2: top.y2,
-            ...lineStyles,
-        });
-        bottomLine.setProperties({
-            x1: bottom.x1,
-            y1: bottom.y1,
-            x2: bottom.x2,
-            y2: bottom.y2,
-            ...lineStyles,
-        });
+        topLine.setProperties({ ...top, ...lineStyles });
+        bottomLine.setProperties({ ...bottom, ...lineStyles });
 
         const middlePoints = this.extendLine(
             {
@@ -221,19 +209,17 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
             strokeWidth: datum.handle.strokeWidth ?? datum.strokeWidth,
         };
 
-        topLeft.update({ ...handleStyles, x: top.x1, y: top.y1 });
-        topRight.update({ ...handleStyles, x: top.x2, y: top.y2 });
-        bottomLeft.update({ ...handleStyles, x: bottom.x1, y: bottom.y1 });
-        bottomRight.update({ ...handleStyles, x: bottom.x2, y: bottom.y2 });
+        topLeft.update({ ...handleStyles, ...Vec4.start(top) });
+        topRight.update({ ...handleStyles, ...Vec4.end(top) });
+        bottomLeft.update({ ...handleStyles, ...Vec4.start(bottom) });
+        bottomRight.update({ ...handleStyles, ...Vec4.end(bottom) });
         topMiddle.update({
             ...handleStyles,
-            x: top.x1 + (top.x2 - top.x1) / 2 - topMiddle.handle.width / 2,
-            y: top.y1 + (top.y2 - top.y1) / 2 - topMiddle.handle.height / 2,
+            ...Vec2.sub(Vec4.center(top), Vec2.from(topMiddle.handle.width / 2, topMiddle.handle.height / 2)),
         });
         bottomMiddle.update({
             ...handleStyles,
-            x: bottom.x1 + (bottom.x2 - bottom.x1) / 2 - bottomMiddle.handle.width / 2,
-            y: bottom.y1 + (bottom.y2 - bottom.y1) / 2 - bottomMiddle.handle.height / 2,
+            ...Vec2.sub(Vec4.center(bottom), Vec2.from(bottomMiddle.handle.width / 2, bottomMiddle.handle.height / 2)),
         });
     }
 

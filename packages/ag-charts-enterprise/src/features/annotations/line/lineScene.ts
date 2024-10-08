@@ -11,7 +11,7 @@ import { StartEndScene } from '../scenes/startEndScene';
 import { convertLine } from '../utils/values';
 import type { LineTypeProperties } from './lineProperties';
 
-const { Vec2 } = _ModuleSupport;
+const { Vec2, Vec4 } = _ModuleSupport;
 
 export class LineScene extends StartEndScene<LineTypeProperties> {
     static override is(value: unknown): value is LineScene {
@@ -135,14 +135,8 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         _context: AnnotationContext,
         _bbox?: _Scene.BBox
     ) {
-        const { x, y } = _Scene.Transformable.toCanvasPoint(
-            this.line,
-            (coords.x1 + coords.x2) / 2,
-            Math.min(coords.y1, coords.y2)
-        );
-
-        this.anchor.x = x;
-        this.anchor.y = y;
+        const point = Vec4.topCenter(coords);
+        Vec2.apply(this.anchor, _Scene.Transformable.toCanvasPoint(this.line, point.x, point.y));
     }
 
     override containsPoint(x: number, y: number) {

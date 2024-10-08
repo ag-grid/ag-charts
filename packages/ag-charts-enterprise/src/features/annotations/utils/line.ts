@@ -40,14 +40,12 @@ export function getLineCap(
  * Find the pair of points where a line intersects a bounding box.
  */
 export function boundsIntersections(
-    { x1, y1, x2, y2 }: _ModuleSupport.Vec4,
+    coords: _ModuleSupport.Vec4,
     bounds: _Scene.BBox
 ): [_ModuleSupport.Vec2, _ModuleSupport.Vec2] {
-    const p1 = Vec2.from(x1, y1);
-    const p2 = Vec2.from(x2, y2);
+    const [p1, p2] = Vec2.from(coords);
 
     const reflection = bounds.height;
-
     const gradient = Vec2.gradient(p2, p1, reflection);
     const intercept = Vec2.intercept(p2, gradient, reflection);
 

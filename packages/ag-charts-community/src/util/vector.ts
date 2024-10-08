@@ -1,5 +1,3 @@
-import type { Vec4 } from './vector4';
-
 export const Vec2 = {
     add,
     angle,
@@ -25,6 +23,14 @@ export const Vec2 = {
 export interface Vec2 {
     x: number;
     y: number;
+}
+
+// Avoiding circular deps, placing elsewhere causes issues of clashing Vec4.fn() naming
+interface Vec4 {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
 }
 
 /**

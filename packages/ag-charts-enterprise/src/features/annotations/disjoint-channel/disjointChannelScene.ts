@@ -8,7 +8,7 @@ import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { convertPoint, invertCoords } from '../utils/values';
 import type { DisjointChannelProperties } from './disjointChannelProperties';
 
-const { Vec2 } = _ModuleSupport;
+const { Vec2, Vec4 } = _ModuleSupport;
 
 type ChannelHandle = keyof DisjointChannelScene['handles'];
 
@@ -150,20 +150,8 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
             strokeWidth,
         };
 
-        topLine.setProperties({
-            x1: top.x1,
-            y1: top.y1,
-            x2: top.x2,
-            y2: top.y2,
-            ...lineStyles,
-        });
-        bottomLine.setProperties({
-            x1: bottom.x1,
-            y1: bottom.y1,
-            x2: bottom.x2,
-            y2: bottom.y2,
-            ...lineStyles,
-        });
+        topLine.setProperties({ ...top, ...lineStyles });
+        bottomLine.setProperties({ ...bottom, ...lineStyles });
     }
 
     override updateHandles(datum: DisjointChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
@@ -178,13 +166,12 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
             strokeWidth: datum.handle.strokeWidth ?? datum.strokeWidth,
         };
 
-        topLeft.update({ ...handleStyles, x: top.x1, y: top.y1 });
-        topRight.update({ ...handleStyles, x: top.x2, y: top.y2 });
-        bottomLeft.update({ ...handleStyles, x: bottom.x1, y: bottom.y1 });
+        topLeft.update({ ...handleStyles, ...Vec4.start(top) });
+        topRight.update({ ...handleStyles, ...Vec4.end(top) });
+        bottomLeft.update({ ...handleStyles, ...Vec4.start(bottom) });
         bottomRight.update({
             ...handleStyles,
-            x: bottom.x2 - bottomRight.handle.width / 2,
-            y: bottom.y2 - bottomRight.handle.height / 2,
+            ...Vec2.sub(Vec4.end(bottom), Vec2.from(bottomRight.handle.width / 2, bottomRight.handle.height / 2)),
         });
     }
 

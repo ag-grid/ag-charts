@@ -1,8 +1,10 @@
-import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 import type { FillOptions } from 'ag-charts-types';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { AnnotationScene } from './annotationScene';
+
+const { Vec4 } = _ModuleSupport;
 
 export class WithBackgroundScene {
     static updateBackground<Datum extends { background: FillOptions }>(
@@ -25,12 +27,7 @@ export class WithBackgroundScene {
 
         background.path.clear(true);
 
-        const bounds = {
-            x1: 0,
-            y1: 0,
-            x2: seriesRect.width,
-            y2: seriesRect.height,
-        };
+        const bounds = Vec4.from(0, 0, seriesRect.width, seriesRect.height);
 
         const points = this.getBackgroundPoints(datum, top, bottom, bounds);
         for (let i = 0; i < points.length; i++) {

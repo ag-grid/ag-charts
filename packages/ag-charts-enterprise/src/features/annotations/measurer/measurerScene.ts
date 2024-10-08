@@ -12,7 +12,7 @@ import { convertLine } from '../utils/values';
 import { DateRangeProperties, type MeasurerTypeProperties, PriceRangeProperties } from './measurerProperties';
 import { MeasurerStatisticsScene, type Statistics } from './measurerStatisticsScene';
 
-const { Vec2 } = _ModuleSupport;
+const { Vec2, Vec4 } = _ModuleSupport;
 
 export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
     static override is(value: unknown): value is MeasurerScene {
@@ -131,9 +131,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         const { horizontalLine, verticalLine } = this;
         const { direction, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const { x1, y1, x2, y2 } = coords;
-
-        const xMiddle = x1 + (x2 - x1) / 2;
-        const yMiddle = y1 + (y2 - y1) / 2;
+        const center = Vec4.center(coords);
 
         const lineStyles = {
             lineCap: datum.getLineCap(),
@@ -150,16 +148,16 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
                 ...lineStyles,
                 x1,
                 x2,
-                y1: yMiddle,
-                y2: yMiddle,
+                y1: center.y,
+                y2: center.y,
             });
         }
 
         if (direction !== 'horizontal') {
             verticalLine.setProperties({
                 ...lineStyles,
-                x1: xMiddle,
-                x2: xMiddle,
+                x1: center.x,
+                x2: center.x,
                 y1,
                 y2,
             });
@@ -168,19 +166,19 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     private updateText(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {
         const { direction } = datum;
-        const { x1, y1, x2, y2 } = coords;
+        const center = Vec4.center(coords);
 
         let line;
         const textCoords = { ...coords };
 
         if (direction === 'vertical') {
             line = this.verticalLine;
-            textCoords.x1 = x1 + (x2 - x1) / 2;
-            textCoords.x2 = textCoords.x1;
+            textCoords.x1 = center.x;
+            textCoords.x2 = center.x;
         } else {
             line = this.horizontalLine;
-            textCoords.y1 = y1 + (y2 - y1) / 2;
-            textCoords.y2 = textCoords.y1;
+            textCoords.y1 = center.y;
+            textCoords.y2 = center.y;
         }
 
         LineWithTextScene.updateLineText.call(this, line, datum, textCoords);
@@ -191,19 +189,17 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         const { direction, stroke, strokeWidth, strokeOpacity } = datum;
         const { x1, y1, x2, y2 } = coords;
 
-        const xMiddle = x1 + (x2 - x1) / 2;
-        const yMiddle = y1 + (y2 - y1) / 2;
-
+        const center = Vec4.center(coords);
         const capStyles = { stroke, strokeWidth, strokeOpacity };
 
         if (direction !== 'vertical') {
             const angle = x1 <= x2 ? 0 : Math.PI;
-            horizontalEndCap.update({ ...capStyles, x: x2, y: yMiddle, angle });
+            horizontalEndCap.update({ ...capStyles, x: x2, y: center.y, angle });
         }
 
         if (direction !== 'horizontal') {
             const angle = y1 <= y2 ? Math.PI / 2 : Math.PI / -2;
-            verticalEndCap.update({ ...capStyles, x: xMiddle, y: y2, angle });
+            verticalEndCap.update({ ...capStyles, x: center.x, y: y2, angle });
         }
     }
 
@@ -235,8 +231,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
     private readonly updateBackground = WithBackgroundScene.updateBackground.bind(this);
 
     private updateStatistics(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4, context: AnnotationContext) {
-        const point = Vec2.from(coords.x1 + (coords.x2 - coords.x1) / 2, Math.max(coords.y1, coords.y2) + 10);
-
+        const point = Vec2.add(Vec4.bottomCenter(coords), Vec2.from(0, 10));
         const statistics: Statistics = { volume: this.getVolume() };
 
         if (datum.hasPriceRange) {
@@ -262,14 +257,8 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         _context: AnnotationContext,
         _bbox?: _Scene.BBox
     ) {
-        const { x, y } = _Scene.Transformable.toCanvasPoint(
-            this.horizontalLine,
-            (coords.x1 + coords.x2) / 2,
-            Math.min(coords.y1, coords.y2)
-        );
-
-        this.anchor.x = x;
-        this.anchor.y = y;
+        const point = Vec4.topCenter(coords);
+        Vec2.apply(this.anchor, _Scene.Transformable.toCanvasPoint(this.horizontalLine, point.x, point.y));
     }
 
     public getBackgroundPoints(
@@ -317,7 +306,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
     }
 
     private getDateRangeBars(coords: _ModuleSupport.Vec4, context: AnnotationContext) {
-        return Math.round(Math.abs((coords.x2 - coords.x1) / context.xAxis.scaleStep()));
+        return Math.round(Vec4.width(coords) / context.xAxis.scaleStep());
     }
 
     private getDateRangeValue(datum: MeasurerTypeProperties) {

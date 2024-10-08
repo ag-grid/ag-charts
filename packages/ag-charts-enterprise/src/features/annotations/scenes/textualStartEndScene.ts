@@ -6,6 +6,8 @@ import { StartEndScene } from '../scenes/startEndScene';
 import { getBBox, updateTextNode } from '../text/util';
 import { convertLine } from '../utils/values';
 
+const { Vec4 } = _ModuleSupport;
+
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends StartEndScene<Datum> {
     override activeHandle?: 'start' | 'end';
 
@@ -53,7 +55,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     protected getTextBBox(datum: Datum, coords: _ModuleSupport.Vec4) {
         const { text } = datum.getText();
 
-        return getBBox(datum, text, { x: coords.x2, y: coords.y2 }, this.textInputBBox);
+        return getBBox(datum, text, Vec4.end(coords), this.textInputBBox);
     }
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox, coords: _ModuleSupport.Vec4) {
@@ -67,10 +69,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
     }
 
     protected getLabelCoords(_datum: Datum, _bbox: _Scene.BBox, coords: _ModuleSupport.Vec4): _ModuleSupport.Vec2 {
-        return {
-            x: coords.x2,
-            y: coords.y2,
-        };
+        return Vec4.end(coords);
     }
 
     protected override getHandleStyles(datum: Datum, handle?: 'start' | 'end'): AgAnnotationHandleStyles {

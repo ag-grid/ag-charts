@@ -9,6 +9,8 @@ import { convertLine, convertPoint, invertCoords } from '../utils/values';
 import { DivariantHandle } from './handle';
 import { LinearScene } from './linearScene';
 
+const { Vec4 } = _ModuleSupport;
+
 export type StartEndHandle = 'start' | 'end';
 
 export abstract class StartEndScene<Datum extends StartEndProperties> extends LinearScene<Datum> {
@@ -159,10 +161,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         handle: StartEndHandle,
         _bbox?: _Scene.BBox
     ): _ModuleSupport.Vec2 {
-        return {
-            x: handle === 'start' ? coords.x1 : coords.x2,
-            y: handle === 'start' ? coords.y1 : coords.y2,
-        };
+        return handle === 'start' ? Vec4.start(coords) : Vec4.end(coords);
     }
 
     protected getHandleStyles(datum: Datum, _handle?: 'start' | 'end'): AgAnnotationHandleStyles {
