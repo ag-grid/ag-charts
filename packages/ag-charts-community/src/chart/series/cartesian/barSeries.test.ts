@@ -393,4 +393,40 @@ describe('BarSeries', () => {
             }
         );
     });
+
+    describe('label placement', () => {
+        describe.each(['inside-start', 'inside-end', 'outside-start', 'outside-end'] as const)(
+            'renders label placement %s',
+            (placement) => {
+                it.each(['horizontal', 'vertical'] as const)('direction %s', async (direction) => {
+                    const options: AgChartOptions = {
+                        data: [
+                            { x: 'a', y: 100 },
+                            { x: 'b', y: -100 },
+                            { x: 'c', y: 200 },
+                            { x: 'd', y: -200 },
+                        ],
+                        series: [
+                            {
+                                type: 'bar',
+                                direction,
+                                xKey: 'x',
+                                yKey: 'y',
+                                label: {
+                                    placement,
+                                    spacing: 10,
+                                    color: 'black',
+                                },
+                            },
+                        ],
+                    };
+
+                    prepareTestOptions(options);
+
+                    chart = AgCharts.create(options);
+                    await compare();
+                });
+            }
+        );
+    });
 });
