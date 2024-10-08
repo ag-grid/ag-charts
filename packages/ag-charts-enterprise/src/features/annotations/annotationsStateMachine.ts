@@ -35,6 +35,7 @@ type AnnotationEvent =
     | 'hover'
     | 'click'
     | 'dblclick'
+    | 'zoomChange'
     | 'drag'
     | 'dragStart'
     | 'dragEnd'
@@ -171,6 +172,17 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 config.dragState(dragStateMachineContext, stateMachineHelpers),
             ])
         ) as Record<Partial<AnnotationType>, _ModuleSupport.StateMachine<any, any>>;
+
+        const actionReset = () => {
+            if (this.active != null) {
+                ctx.node(this.active)?.toggleActive(false);
+            }
+
+            this.hovered = undefined;
+            this.active = undefined;
+
+            ctx.resetToIdle();
+        };
 
         const actionColor = ({
             colorPickerType,
@@ -338,6 +350,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     },
                 ],
 
+                zoomChange: actionReset,
+
                 dblclick: {
                     guard: guardActiveHasLineText,
                     action: () => {
@@ -420,16 +434,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     },
                 },
 
-                reset: () => {
-                    if (this.active != null) {
-                        ctx.node(this.active)?.toggleActive(false);
-                    }
-
-                    this.hovered = undefined;
-                    this.active = undefined;
-
-                    ctx.resetToIdle();
-                },
+                reset: actionReset,
 
                 delete: () => {
                     if (this.active == null) return;
@@ -475,6 +480,11 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 updateTextInputBBox: {
                     guard: guardActive,
                     action: actionUpdateTextInputBBox,
+                },
+
+                zoomChange: {
+                    target: States.Idle,
+                    action: actionSaveText,
                 },
 
                 click: {
