@@ -8,8 +8,8 @@ export class RangeHandle extends Path {
 
     override zIndex = 3;
 
-    protected centerX: number = 0;
-    protected centerY: number = 0;
+    private centerX: number = 0;
+    private centerY: number = 0;
 
     @Validate(POSITIVE_NUMBER)
     @SceneChangeDetection({ redraw: RedrawType.MAJOR, type: 'path' })
@@ -29,8 +29,11 @@ export class RangeHandle extends Path {
 
     setCenter(x: number, y: number) {
         this.dirtyPath = true;
-        this.centerX = x;
-        this.centerY = y;
+        if (this.centerX !== x || this.centerY !== y) {
+            this.centerX = x;
+            this.centerY = y;
+            this.markDirty(RedrawType.MAJOR);
+        }
     }
 
     static align(

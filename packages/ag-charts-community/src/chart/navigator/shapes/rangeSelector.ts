@@ -1,4 +1,5 @@
 import { BBox } from '../../../scene/bbox';
+import { RedrawType } from '../../../scene/changeDetectable';
 import { Group, TranslatableGroup } from '../../../scene/group';
 import { Layer } from '../../../scene/layer';
 import type { Node } from '../../../scene/node';
@@ -30,6 +31,7 @@ export class RangeSelector extends Layer {
 
         this.background.translationX = x;
         this.background.translationY = y;
+        this.markDirty(RedrawType.MAJOR);
     }
 
     updateBackground(oldGroup?: Group, newGroup?: Group) {
@@ -40,6 +42,7 @@ export class RangeSelector extends Layer {
         if (newGroup != null) {
             this.background.appendChild(newGroup);
         }
+        this.markDirty(RedrawType.MAJOR);
     }
 
     protected override computeBBox() {
