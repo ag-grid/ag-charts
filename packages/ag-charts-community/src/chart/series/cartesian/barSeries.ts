@@ -87,7 +87,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
     override properties = new BarSeriesProperties();
 
-    override get nearestNodeAxis() {
+    override get pickModeAxis() {
         return this.properties.sparklineMode ? ('main' as const) : undefined;
     }
 
@@ -96,7 +96,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
-            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [
+                SeriesNodePickMode.AXIS_ALIGNED, // Only used in sparklineMode
+                SeriesNodePickMode.NEAREST_NODE,
+                SeriesNodePickMode.EXACT_SHAPE_MATCH,
+            ],
             pathsPerSeries: [],
             hasHighlightedLabels: true,
             datumSelectionGarbageCollection: false,

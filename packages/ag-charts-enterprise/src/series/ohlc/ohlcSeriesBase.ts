@@ -60,10 +60,6 @@ export abstract class OhlcSeriesBase<
 > extends _ModuleSupport.AbstractBarSeries<TItemShapeGroup, TSeriesOptions, TNodeDatum> {
     protected override readonly NodeEvent = CandlestickSeriesNodeEvent;
 
-    override get nearestNodeAxis() {
-        return 'main' as const;
-    }
-
     constructor(
         moduleCtx: _ModuleSupport.ModuleContext,
         datumAnimationResetFnc: (
@@ -73,7 +69,7 @@ export abstract class OhlcSeriesBase<
     ) {
         super({
             moduleCtx,
-            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             directionKeys: {
                 x: ['xKey'],
                 y: ['lowKey', 'highKey', 'openKey', 'closeKey'],

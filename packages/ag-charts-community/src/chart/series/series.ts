@@ -46,6 +46,8 @@ export enum SeriesNodePickMode {
     EXACT_SHAPE_MATCH,
     /** Pick matches based upon distance to ideal position */
     NEAREST_NODE,
+    /** Pick matches based upon distance from axis */
+    AXIS_ALIGNED,
 }
 
 export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
@@ -165,8 +167,8 @@ export abstract class Series<
 
     pickModes: SeriesNodePickMode[];
 
-    get nearestNodeAxis(): 'main' | 'main-category' | undefined {
-        return undefined;
+    get pickModeAxis(): 'main' | 'main-category' | undefined {
+        return 'main';
     }
 
     @ActionOnSet<Series<TDatum, TProps, TLabel>>({
@@ -529,7 +531,7 @@ export abstract class Series<
 
     protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
     pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
-        const { pickModes, nearestNodeAxis, visible, rootGroup } = this;
+        const { pickModes, pickModeAxis, visible, rootGroup } = this;
 
         if (!visible || !rootGroup.visible) return;
         if (intent === 'highlight' && !this.properties.highlight.enabled) return;
@@ -565,10 +567,14 @@ export abstract class Series<
                     break;
 
                 case SeriesNodePickMode.NEAREST_NODE:
-                    if (nearestNodeAxis != null) {
-                        match = this.pickNodeMainAxisFirst(point, nearestNodeAxis === 'main-category');
-                    }
-                    match ??= this.pickNodeClosestDatum(point);
+                    match = this.pickNodeClosestDatum(point);
+                    break;
+
+                case SeriesNodePickMode.AXIS_ALIGNED:
+                    match =
+                        pickMode != null
+                            ? this.pickNodeMainAxisFirst(point, pickModeAxis === 'main-category')
+                            : undefined;
                     break;
             }
 

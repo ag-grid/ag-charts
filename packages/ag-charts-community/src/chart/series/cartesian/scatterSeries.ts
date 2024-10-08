@@ -42,7 +42,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
     readonly colorScale = new ColorScale();
 
-    override get nearestNodeAxis() {
+    override get pickModeAxis() {
         return 'main-category' as const;
     }
 
@@ -51,7 +51,11 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
-            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [
+                SeriesNodePickMode.AXIS_ALIGNED,
+                SeriesNodePickMode.NEAREST_NODE,
+                SeriesNodePickMode.EXACT_SHAPE_MATCH,
+            ],
             pathsPerSeries: [],
             hasMarkers: true,
             markerSelectionGarbageCollection: false,

@@ -82,16 +82,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     protected override readonly NodeEvent = RangeAreaSeriesNodeEvent;
 
-    override get nearestNodeAxis() {
-        return 'main' as const;
-    }
-
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
             hasMarkers: true,
             pathsPerSeries: ['fill', 'stroke'],
-            pickModes: [_ModuleSupport.SeriesNodePickMode.NEAREST_NODE],
+            pickModes: [_ModuleSupport.SeriesNodePickMode.AXIS_ALIGNED],
             directionKeys: {
                 [ChartAxisDirection.X]: ['xKey'],
                 [ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'],
