@@ -71,17 +71,17 @@ export class LineSeries extends CartesianSeries<
 
     override properties = new LineSeriesProperties();
 
+    override get nearestNodeAxis() {
+        return 'main-category' as const;
+    }
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             hasMarkers: true,
-            pickModes: [
-                SeriesNodePickMode.NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
-                SeriesNodePickMode.NEAREST_NODE,
-                SeriesNodePickMode.EXACT_SHAPE_MATCH,
-            ],
+            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             markerSelectionGarbageCollection: false,
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),

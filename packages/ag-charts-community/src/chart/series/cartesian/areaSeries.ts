@@ -83,6 +83,10 @@ export class AreaSeries extends CartesianSeries<
 
     override properties = new AreaSeriesProperties();
 
+    override get nearestNodeAxis() {
+        return 'main-category' as const;
+    }
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
@@ -92,7 +96,7 @@ export class AreaSeries extends CartesianSeries<
             pathsZIndexSubOrderOffset: [0, 1000],
             hasMarkers: true,
             markerSelectionGarbageCollection: false,
-            pickModes: [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,

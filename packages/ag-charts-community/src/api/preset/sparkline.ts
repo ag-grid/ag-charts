@@ -9,6 +9,51 @@ import type {
 
 import { IGNORED_PROP, assertEmpty, pickProps } from './presetUtils';
 
+const commonAxisProperties = {
+    line: {
+        enabled: false,
+    },
+    title: {
+        enabled: false,
+    },
+    label: {
+        enabled: false,
+    },
+    crosshair: {
+        enabled: false,
+        label: {
+            enabled: false,
+        },
+    },
+};
+
+const numericAxisProperties = {
+    ...commonAxisProperties,
+    nice: false,
+    crosshair: {
+        enabled: false,
+        strokeOpacity: 0.25,
+        lineDash: [0],
+        label: {
+            enabled: false,
+        },
+    },
+};
+
+const bottomCrossHairAxisProperties = {
+    bottom: {
+        crosshair: {
+            enabled: true,
+        },
+    },
+};
+
+const crossHairAxes = {
+    number: bottomCrossHairAxisProperties,
+    log: bottomCrossHairAxisProperties,
+    time: bottomCrossHairAxisProperties,
+};
+
 const SPARKLINE_THEME: AgChartTheme = {
     overrides: {
         common: {
@@ -23,28 +68,32 @@ const SPARKLINE_THEME: AgChartTheme = {
             },
             axes: {
                 number: {
-                    nice: false,
-                    line: {
-                        enabled: false,
-                    },
-                    gridLine: {
-                        enabled: true,
-                    },
-                    label: {
-                        enabled: false,
-                    },
+                    ...numericAxisProperties,
                     interval: {
                         values: [0],
                     },
                 },
+                log: {
+                    ...numericAxisProperties,
+                },
+                time: {
+                    ...numericAxisProperties,
+                },
                 category: {
-                    line: {
-                        enabled: false,
-                    },
-                    label: {
+                    ...commonAxisProperties,
+                    gridLine: {
                         enabled: false,
                     },
                 },
+            },
+        },
+        bar: {
+            series: {
+                // @ts-expect-error
+                sparklineMode: true,
+            },
+            tooltip: {
+                range: 'nearest',
             },
         },
         line: {
@@ -56,9 +105,11 @@ const SPARKLINE_THEME: AgChartTheme = {
                     left: 2,
                 },
             },
+            axes: crossHairAxes,
             series: {
                 strokeWidth: 1,
                 marker: {
+                    enabled: false,
                     size: 3,
                 },
             },
@@ -72,6 +123,7 @@ const SPARKLINE_THEME: AgChartTheme = {
                     left: 0,
                 },
             },
+            axes: crossHairAxes,
             series: {
                 strokeWidth: 1,
                 fillOpacity: 0.4,
@@ -114,13 +166,15 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         padding,
         width,
         theme: baseTheme,
+        data,
+        axes,
         ...optsRest
     } = opts as any as AgBaseSparklinePresetOptions;
     assertEmpty(optsRest);
 
     const seriesOptions = optsRest as any as AgCartesianSeriesOptions;
 
-    const chartOpts = pickProps<AgBaseSparklinePresetOptions>(opts, {
+    const chartOpts: AgCartesianChartOptions = pickProps<AgBaseSparklinePresetOptions>(opts, {
         background,
         container,
         height,
@@ -130,12 +184,13 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         minWidth,
         padding,
         width,
+        data,
+        axes,
         theme: IGNORED_PROP,
     });
 
-    return {
-        ...chartOpts,
-        theme: setInitialBaseTheme(baseTheme, SPARKLINE_THEME),
-        series: [seriesOptions],
-    };
+    chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME);
+    chartOpts.series = [seriesOptions];
+
+    return chartOpts;
 }

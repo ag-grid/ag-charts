@@ -76,10 +76,10 @@ export interface AgBaseSparklinePresetOptions extends AgBaseSparklinePresetTheme
     theme?: AgChartTheme | AgChartThemeName;
 }
 
-export type AgSparklineBarOptions = AgBaseGaugePresetOptions & SparklineBarPreset;
-export type AgSparklineLineOptions = AgBaseGaugePresetOptions & SparklineLinePreset;
-export type AgSparklineAreaOptions = AgBaseGaugePresetOptions & SparklineLinePreset;
-export type AgSparklineOptions = AgBaseGaugePresetOptions & AgBaseSparklinePresetOptions;
+export type AgSparklineBarOptions = AgBaseSparklinePresetOptions & SparklineBarPreset;
+export type AgSparklineLineOptions = AgBaseSparklinePresetOptions & SparklineLinePreset;
+export type AgSparklineAreaOptions = AgBaseSparklinePresetOptions & SparklineLinePreset;
+export type AgSparklineOptions = AgBaseSparklinePresetOptions & AgBaseSparklinePresetOptions;
 
 export type AgPresetOptions = AgFinancialChartOptions | AgGaugeOptions;
 

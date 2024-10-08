@@ -102,10 +102,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override readonly NodeEvent = RangeBarSeriesNodeEvent;
 
+    override get nearestNodeAxis() {
+        return 'main' as const;
+    }
+
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            pickModes: [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
             directionKeys: {
                 x: ['xKey'],
