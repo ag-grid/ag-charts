@@ -496,7 +496,7 @@
                     "title": "Pyramid",
                     "path": "pyramid-series",
                     "icon": "chartsPyramid",
-                    "enterprise": true
+                    "isEnterprise": true
                 }
             ]
         },
