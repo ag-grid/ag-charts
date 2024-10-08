@@ -59,6 +59,12 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         return super.containsPoint(x, y) || (label.visible && label.containsPoint(x, y));
     }
 
+    override getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.label.visible && this.label.containsPoint(x, y)) return 'text';
+
+        return super.getNodeAtCoords(x, y);
+    }
+
     protected getTextBBox(datum: Datum, coords: _Util.Vec2, _context: AnnotationContext) {
         const { text } = datum.getText();
 

@@ -122,6 +122,10 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         return false;
     }
 
+    public getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.start.containsPoint(x, y) || this.end.containsPoint(x, y)) return 'handle';
+    }
+
     protected updateHandles(datum: Datum, coords: LineCoords, bbox?: _Scene.BBox) {
         this.start.update({
             ...this.getHandleStyles(datum, 'start'),

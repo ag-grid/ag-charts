@@ -164,6 +164,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 return hovered;
             },
 
+            getNodeAtCoords: (coords: Coords, active: number) => {
+                const node = this.annotations.at(active);
+
+                if (!node) {
+                    return;
+                }
+
+                return node.getNodeAtCoords(coords.x, coords.y);
+            },
+
             translate: (index: number, translation: Coords) => {
                 const node = this.annotations.at(index);
                 const datum = getTypedDatum(this.annotationData.at(index));
@@ -362,12 +372,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
             },
 
-            showAnnotationSettings: (active: number, sourceEvent?: Event) => {
+            showAnnotationSettings: (active: number, sourceEvent?: Event, initialTab: 'line' | 'text' = 'line') => {
                 const datum = this.annotationData.at(active);
 
                 if (!isLineType(datum) && !isChannelType(datum) && !isMeasurerType(datum)) return;
 
                 const options: LinearSettingsDialogOptions = {
+                    initialSelectedTab: initialTab,
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
                     sourceEvent,
                     onChangeLine: (props) => {
@@ -1116,13 +1127,15 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('click', { offset, point, textInputValue, bbox });
     }
 
-    private onDoubleClick() {
+    private onDoubleClick(event: _ModuleSupport.RegionEvent<'dblclick'>) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        state.transition('dblclick');
+        const offset = Vec2.from(event);
+
+        state.transition('dblclick', { offset });
     }
 
     private onAxisButtonClick(coords?: Coords, direction?: Direction) {

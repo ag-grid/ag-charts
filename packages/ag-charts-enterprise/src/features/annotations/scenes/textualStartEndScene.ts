@@ -44,6 +44,12 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         return super.containsPoint(x, y) || label.containsPoint(x, y);
     }
 
+    public override getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.label.containsPoint(x, y)) return 'text';
+
+        return super.getNodeAtCoords(x, y);
+    }
+
     protected getTextBBox(datum: Datum, coords: LineCoords) {
         const { text } = datum.getText();
 

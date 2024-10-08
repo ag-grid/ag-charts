@@ -15,6 +15,7 @@ import { isChannelType } from '../utils/types';
 const { focusCursorAtEnd } = _ModuleSupport;
 
 export interface LinearSettingsDialogOptions extends DialogOptions {
+    initialSelectedTab: 'line' | 'text';
     onChangeLine: (props: LinearSettingsDialogLineChangeProps) => void;
     onChangeText: (props: LinearSettingsDialogTextChangeProps) => void;
     onChangeLineColor: Required<ColorPickerOptions>['onChange'];
@@ -64,7 +65,7 @@ export class AnnotationSettingsDialog extends Dialog {
             lineLabel = 'dialogHeaderDatePriceRange';
         }
 
-        const tabs = this.createTabs('ariaLabelSettingsTabBar', 'line', {
+        const tabs = this.createTabs('ariaLabelSettingsTabBar', options.initialSelectedTab, {
             line: {
                 label: lineLabel,
                 panel: lineTab,
