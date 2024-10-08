@@ -10,7 +10,6 @@ test.describe('keyboard-nav', () => {
         test.describe(`for ${framework}`, () => {
             test('basic keyboard navigation', async ({ page }) => {
                 await gotoExample(page, url);
-                page.check;
 
                 await page.locator('input').first().click();
 
