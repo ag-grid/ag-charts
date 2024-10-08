@@ -11,7 +11,7 @@ export enum GeoGeometryRenderMode {
     Lines = 0b10,
 }
 
-export class GeoGeometry extends Path {
+export class GeoGeometry extends Path implements _ModuleSupport.DistantObject {
     @ScenePathChangeDetection()
     projectedGeometry: _ModuleSupport.Geometry | undefined = undefined;
 
@@ -55,9 +55,11 @@ export class GeoGeometry extends Path {
         return this.geometryDistance(projectedGeometry, x, y) <= 0;
     }
 
-    distanceToPoint(x: number, y: number) {
+    override distanceSquared(x: number, y: number): number {
         const { projectedGeometry } = this;
-        return projectedGeometry != null ? this.geometryDistance(projectedGeometry, x, y) : Infinity;
+        if (projectedGeometry == null) return Infinity;
+        const distance = this.geometryDistance(projectedGeometry, x, y);
+        return distance > 0 ? distance * distance : 0;
     }
 
     private geometryDistance(geometry: _ModuleSupport.Geometry, x: number, y: number): number {

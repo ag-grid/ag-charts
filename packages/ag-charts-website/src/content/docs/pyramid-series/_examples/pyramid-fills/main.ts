@@ -8,14 +8,18 @@ const options: AgChartOptions = {
     title: {
         text: 'Revenue Open by Sales Stage',
     },
+    seriesArea: {
+        padding: {
+            left: 20,
+            right: 20,
+        },
+    },
     series: [
         {
-            type: 'funnel',
+            type: 'pyramid',
             stageKey: 'group',
             valueKey: 'value',
-            dropOff: {
-                enabled: false,
-            },
+            fills: ['#5C6BC0', '#3F51B5', '#303F9F', '#1A237E'],
         },
     ],
 };

@@ -11,8 +11,8 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'pyramid',
-            xKey: 'group',
-            yKey: 'value',
+            stageKey: 'group',
+            valueKey: 'value',
         },
     ],
 };

@@ -475,18 +475,18 @@ export class MapLineSeries
     }
 
     override pickNodeClosestDatum({ x, y }: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
-        let minDistance = Infinity;
+        let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
 
         this.datumSelection.each((node, datum) => {
-            const distance = node.distanceToPoint(x, y);
-            if (distance < minDistance) {
-                minDistance = distance;
+            const distanceSquared = node.distanceSquared(x, y);
+            if (distanceSquared < minDistanceSquared) {
+                minDistanceSquared = distanceSquared;
                 minDatum = datum;
             }
         });
 
-        return minDatum != null ? { datum: minDatum, distance: minDistance } : undefined;
+        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
     }
 
     private _previousDatumMidPoint:

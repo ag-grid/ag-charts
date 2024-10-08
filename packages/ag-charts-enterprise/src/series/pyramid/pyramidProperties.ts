@@ -39,16 +39,10 @@ class PyramidSeriesStageLabel extends Label {
 
 export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> {
     @Validate(STRING)
-    xKey!: string;
+    stageKey!: string;
 
     @Validate(STRING)
-    yKey!: string;
-
-    @Validate(STRING, { optional: true })
-    xName: string | undefined;
-
-    @Validate(STRING, { optional: true })
-    yName: string | undefined;
+    valueKey!: string;
 
     @Validate(COLOR_STRING_ARRAY)
     fills: string[] = [];
@@ -74,11 +68,14 @@ export class PyramidProperties extends SeriesProperties<AgPyramidSeriesOptions> 
     @Validate(DIRECTION)
     direction: Direction = 'vertical';
 
-    @Validate(BOOLEAN)
-    reverse: boolean = false;
+    @Validate(BOOLEAN, { optional: true })
+    reverse?: boolean = undefined;
 
     @Validate(POSITIVE_NUMBER)
     spacing: number = 0;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    aspectRatio?: number = undefined;
 
     @Validate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgPyramidSeriesItemStylerParams<unknown>, AgPyramidSeriesStyle>;
