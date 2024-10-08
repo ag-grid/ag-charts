@@ -181,7 +181,6 @@ export class SankeySeries extends FlowProportionSeries<
         });
 
         nodeGraph.forEach((graphNode) => {
-            console.log(graphNode.datum.label);
             let closestColumnIndex = Infinity;
             let maxSizeOfClosestNodesAfter = 0;
             graphNode.linksAfter.forEach((link) => {
