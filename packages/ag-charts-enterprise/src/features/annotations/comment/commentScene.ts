@@ -1,4 +1,4 @@
-import { _Scene, type _Util } from 'ag-charts-community';
+import { type _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -36,7 +36,7 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
         this.updatePath(datum, bbox);
     }
 
-    protected override getLabelCoords(datum: CommentProperties, point: _Util.Vec2): _Util.Vec2 {
+    protected override getLabelCoords(datum: CommentProperties, point: _ModuleSupport.Vec2): _ModuleSupport.Vec2 {
         const padding = datum.getPadding();
         return {
             x: point.x + padding.left,

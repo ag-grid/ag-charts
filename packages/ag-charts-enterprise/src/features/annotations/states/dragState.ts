@@ -3,14 +3,13 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 import type { AnnotationContext } from '../annotationTypes';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 
-const { StateMachine } = _ModuleSupport;
-const { Vec2 } = _Util;
+const { StateMachine, Vec2 } = _ModuleSupport;
 
 export class DragStateMachine<
     D extends AnnotationProperties,
     N extends {
-        dragStart: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
-        drag: (datum: D, offset: _Util.Vec2, context: AnnotationContext, snapping: boolean) => void;
+        dragStart: (datum: D, offset: _ModuleSupport.Vec2, context: AnnotationContext) => void;
+        drag: (datum: D, offset: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) => void;
         stopDragging: () => void;
     },
 > extends StateMachine<'idle' | 'dragging', 'keyDown' | 'keyUp' | 'drag' | 'dragStart' | 'dragEnd'> {
@@ -19,7 +18,7 @@ export class DragStateMachine<
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private hasMoved = false;
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private dragStart?: _Util.Vec2;
+    private dragStart?: _ModuleSupport.Vec2;
 
     constructor(
         ctx: AnnotationsStateMachineContext & {

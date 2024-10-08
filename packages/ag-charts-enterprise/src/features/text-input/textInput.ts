@@ -10,7 +10,7 @@ const moduleId = 'text-input';
 const canvasOverlay = 'canvas-overlay';
 
 interface Layout {
-    getTextInputCoords: (height: number) => _Util.Vec2;
+    getTextInputCoords: (height: number) => _ModuleSupport.Vec2;
     getTextPosition: () => AnnotationTextPosition;
     alignment: 'left' | 'center' | 'right';
     textAlign: TextAlign;

@@ -153,7 +153,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         coords: LineCoords,
         handle: StartEndHandle,
         _bbox?: _Scene.BBox
-    ): _Util.Vec2 {
+    ): _ModuleSupport.Vec2 {
         return {
             x: handle === 'start' ? coords.x1 : coords.x2,
             y: handle === 'start' ? coords.y1 : coords.y2,

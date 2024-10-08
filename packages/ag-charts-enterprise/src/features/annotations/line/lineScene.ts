@@ -1,4 +1,4 @@
-import { type _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -11,7 +11,7 @@ import { StartEndScene } from '../scenes/startEndScene';
 import { convertLine } from '../utils/values';
 import type { LineTypeProperties } from './lineProperties';
 
-const { Vec2 } = _Util;
+const { Vec2 } = _ModuleSupport;
 
 export class LineScene extends StartEndScene<LineTypeProperties> {
     static override is(value: unknown): value is LineScene {
@@ -55,13 +55,13 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
         line.setProperties({
             ...linePoints,
+            lineCap: datum.getLineCap(),
             lineDash: datum.getLineDash(),
             lineDashOffset,
             stroke,
             strokeWidth,
             strokeOpacity,
             fillOpacity: 0,
-            lineCap: datum.getLineCap(),
         });
     }
 
@@ -163,7 +163,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         coords: LineCoords,
         handle: 'start' | 'end',
         _bbox?: _Scene.BBox | undefined
-    ): _Util.Vec2 {
+    ): _ModuleSupport.Vec2 {
         const { startCap, endCap } = this;
 
         let [startPoint, endPoint] = Vec2.from(coords);

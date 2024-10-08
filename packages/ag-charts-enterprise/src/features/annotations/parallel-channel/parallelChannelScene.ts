@@ -1,4 +1,4 @@
-import { _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -10,7 +10,7 @@ import { isPoint, validateDatumPoint } from '../utils/validation';
 import { convertPoint, invertCoords } from '../utils/values';
 import type { ParallelChannelProperties } from './parallelChannelProperties';
 
-const { Vec2 } = _Util;
+const { Vec2 } = _ModuleSupport;
 
 type ChannelHandle = keyof ParallelChannelScene['handles'];
 

@@ -1,4 +1,4 @@
-import type { _Util } from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 
 import { AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -11,14 +11,14 @@ export class TextScene extends TextualPointScene<TextProperties> {
         return AnnotationScene.isCheck(value, AnnotationType.Text);
     }
 
-    override type = AnnotationType.Text;
+    type = AnnotationType.Text;
 
     constructor() {
         super();
         this.append([this.label, this.handle]);
     }
 
-    protected override getHandleCoords(_datum: TextProperties, point: _Util.Vec2): _Util.Vec2 {
+    protected override getHandleCoords(_datum: TextProperties, point: _ModuleSupport.Vec2): _ModuleSupport.Vec2 {
         const halfSize = DivariantHandle.HANDLE_SIZE / 2;
         return {
             x: point.x + halfSize,
