@@ -358,6 +358,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                                   isPositive,
                                   isVertical: !barAlongX,
                                   placement: label.placement,
+                                  padding: label.spacing,
                                   rect,
                               }),
                           }

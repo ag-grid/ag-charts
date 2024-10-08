@@ -10,7 +10,15 @@ type Bounds = {
     height: number;
 };
 
-type LabelPlacement = 'start' | 'end' | 'inside' | 'outside';
+type LabelPlacement =
+    | 'start'
+    | 'end'
+    | 'inside'
+    | 'inside-start'
+    | 'inside-end'
+    | 'outside'
+    | 'outside-start'
+    | 'outside-end';
 
 type LabelDatum = Point & {
     text: string;
@@ -40,6 +48,23 @@ export function updateLabelNode(textNode: Text, label: AgChartLabelOptions<any, 
     }
 }
 
+interface PlacementConfig {
+    inside: boolean;
+    direction: -1 | 1;
+    textAlignment: -1 | 1;
+}
+
+const placements: Record<Exclude<LabelPlacement, 'inside'>, PlacementConfig> = {
+    'inside-start': { inside: true, direction: -1, textAlignment: 1 },
+    'inside-end': { inside: true, direction: 1, textAlignment: -1 },
+    'outside-start': { inside: false, direction: -1, textAlignment: -1 },
+    'outside-end': { inside: false, direction: 1, textAlignment: 1 },
+    // Remove these in a breaking release
+    start: { inside: true, direction: -1, textAlignment: 1 },
+    end: { inside: true, direction: 1, textAlignment: -1 },
+    outside: { inside: false, direction: 1, textAlignment: 1 },
+};
+
 export function adjustLabelPlacement({
     isPositive,
     isVertical,
@@ -58,27 +83,21 @@ export function adjustLabelPlacement({
     let textAlign: CanvasTextAlign = 'center';
     let textBaseline: CanvasTextBaseline = 'middle';
 
-    switch (placement) {
-        case 'start': {
-            if (isVertical) {
-                y = isPositive ? rect.y + rect.height + padding : rect.y - padding;
-                textBaseline = isPositive ? 'top' : 'bottom';
-            } else {
-                x = isPositive ? rect.x - padding : rect.x + rect.width + padding;
-                textAlign = isPositive ? 'start' : 'end';
-            }
-            break;
-        }
-        case 'outside':
-        case 'end': {
-            if (isVertical) {
-                y = isPositive ? rect.y - padding : rect.y + rect.height + padding;
-                textBaseline = isPositive ? 'bottom' : 'top';
-            } else {
-                x = isPositive ? rect.x + rect.width + padding : rect.x - padding;
-                textAlign = isPositive ? 'start' : 'end';
-            }
-            break;
+    if (placement !== 'inside') {
+        const barDirection = (isPositive ? 1 : -1) * (isVertical ? -1 : 1);
+        const { direction, textAlignment } = placements[placement];
+        const displacementRatio = (direction + 1) * 0.5;
+
+        if (isVertical) {
+            const y0 = isPositive ? rect.y + rect.height : rect.y;
+            const height = rect.height * barDirection;
+            y = y0 + height * displacementRatio + padding * textAlignment * barDirection;
+            textBaseline = textAlignment === barDirection ? 'top' : 'bottom';
+        } else {
+            const x0 = isPositive ? rect.x : rect.x + rect.width;
+            const width = rect.width * barDirection;
+            x = x0 + width * displacementRatio + padding * textAlignment * barDirection;
+            textAlign = textAlignment === barDirection ? 'left' : 'right';
         }
     }
 
