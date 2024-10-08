@@ -1,3 +1,5 @@
+import type { Vec4 } from './vector4';
+
 export const Vec2 = {
     add,
     angle,
@@ -185,14 +187,14 @@ function from(bbox: { x: number; y: number; width: number; height: number }): [V
 /**
  * Create a pair of vectors from a line or box containing a pair of coordinates.
  */
-function from(pair: { x1: number; y1: number; x2: number; y2: number }): [Vec2, Vec2];
+function from(vec4: Vec4): [Vec2, Vec2];
 function from(
     a:
         | number
         | { offsetWidth: number; offsetHeight: number }
         | { regionOffsetX: number; regionOffsetY: number }
         | { x: number; y: number; width: number; height: number }
-        | { x1: number; y1: number; x2: number; y2: number },
+        | Vec4,
     b?: number
 ): Vec2 | [Vec2, Vec2] {
     if (typeof a === 'number') {

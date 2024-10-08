@@ -1,7 +1,5 @@
 import { type AgAnnotationLineStyleType, type PixelSize, _ModuleSupport, type _Scene } from 'ag-charts-community';
 
-import type { LineCoords } from '../annotationTypes';
-
 const { Vec2 } = _ModuleSupport;
 
 export function getLineStyle(lineDash?: PixelSize[], lineStyle?: AgAnnotationLineStyleType) {
@@ -42,7 +40,7 @@ export function getLineCap(
  * Find the pair of points where a line intersects a bounding box.
  */
 export function boundsIntersections(
-    { x1, y1, x2, y2 }: LineCoords,
+    { x1, y1, x2, y2 }: _ModuleSupport.Vec4,
     bounds: _Scene.BBox
 ): [_ModuleSupport.Vec2, _ModuleSupport.Vec2] {
     const p1 = Vec2.from(x1, y1);

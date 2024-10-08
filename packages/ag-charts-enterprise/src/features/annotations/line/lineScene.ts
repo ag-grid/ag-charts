@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { AnnotationContext, LineCoords } from '../annotationTypes';
+import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ArrowCapScene, type CapScene } from '../scenes/capScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
@@ -48,7 +48,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         this.updateAnchor(datum, coords, context);
     }
 
-    private updateLine(datum: LineTypeProperties, coords: LineCoords, context: AnnotationContext) {
+    private updateLine(datum: LineTypeProperties, coords: _ModuleSupport.Vec4, context: AnnotationContext) {
         const { line } = this;
         const { lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const linePoints = this.extendLine(coords, datum, context);
@@ -65,11 +65,11 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         });
     }
 
-    private updateText(datum: LineTypeProperties, coords: LineCoords) {
+    private updateText(datum: LineTypeProperties, coords: _ModuleSupport.Vec4) {
         LineWithTextScene.updateLineText.call(this, this.line, datum, coords);
     }
 
-    private updateCaps(datum: LineTypeProperties, coords: LineCoords) {
+    private updateCaps(datum: LineTypeProperties, coords: _ModuleSupport.Vec4) {
         if (!datum.startCap && this.startCap) {
             this.removeChild(this.startCap);
             this.startCap = undefined;
@@ -131,7 +131,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
     override updateAnchor(
         _datum: LineTypeProperties,
-        coords: LineCoords,
+        coords: _ModuleSupport.Vec4,
         _context: AnnotationContext,
         _bbox?: _Scene.BBox
     ) {
@@ -160,7 +160,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
     protected override getHandleCoords(
         _datum: LineTypeProperties,
-        coords: LineCoords,
+        coords: _ModuleSupport.Vec4,
         handle: 'start' | 'end',
         _bbox?: _Scene.BBox | undefined
     ): _ModuleSupport.Vec2 {

@@ -1,7 +1,7 @@
 import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { PointProperties } from '../annotationProperties';
-import type { AnnotationContext, LineCoords } from '../annotationTypes';
+import type { AnnotationContext } from '../annotationTypes';
 import type { StartEndProperties } from '../properties/startEndProperties';
 import { snapToAngle } from '../utils/coords';
 import { validateDatumPoint } from '../utils/validation';
@@ -126,7 +126,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         if (this.start.containsPoint(x, y) || this.end.containsPoint(x, y)) return 'handle';
     }
 
-    protected updateHandles(datum: Datum, coords: LineCoords, bbox?: _Scene.BBox) {
+    protected updateHandles(datum: Datum, coords: _ModuleSupport.Vec4, bbox?: _Scene.BBox) {
         this.start.update({
             ...this.getHandleStyles(datum, 'start'),
             ...this.getHandleCoords(datum, coords, 'start'),
@@ -140,7 +140,12 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         this.end.toggleLocked(datum.locked ?? false);
     }
 
-    protected updateAnchor(_datum: Datum, coords: LineCoords, context: AnnotationContext, _bbox?: _Scene.BBox) {
+    protected updateAnchor(
+        _datum: Datum,
+        coords: _ModuleSupport.Vec4,
+        context: AnnotationContext,
+        _bbox?: _Scene.BBox
+    ) {
         this.anchor = {
             x: coords.x1 + context.seriesRect.x,
             y: coords.y1 + context.seriesRect.y,
@@ -150,7 +155,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
 
     protected getHandleCoords(
         _datum: Datum,
-        coords: LineCoords,
+        coords: _ModuleSupport.Vec4,
         handle: StartEndHandle,
         _bbox?: _Scene.BBox
     ): _ModuleSupport.Vec2 {

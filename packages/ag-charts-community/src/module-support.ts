@@ -21,6 +21,7 @@ export * from './util/types';
 export * from './util/type-guards';
 export * from './util/validation';
 export * from './util/vector';
+export * from './util/vector4';
 export * from './module/theme';
 export * from './module/axisModule';
 export * from './module/baseModule';

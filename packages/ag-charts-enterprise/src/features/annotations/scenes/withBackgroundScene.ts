@@ -1,7 +1,7 @@
 import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type { FillOptions } from 'ag-charts-types';
 
-import type { AnnotationContext, LineCoords } from '../annotationTypes';
+import type { AnnotationContext } from '../annotationTypes';
 import type { AnnotationScene } from './annotationScene';
 
 export class WithBackgroundScene {
@@ -10,14 +10,14 @@ export class WithBackgroundScene {
             background: _Scene.Path;
             getBackgroundPoints(
                 datum: Datum,
-                top: LineCoords,
-                bottom: LineCoords,
-                bounds: LineCoords
+                top: _ModuleSupport.Vec4,
+                bottom: _ModuleSupport.Vec4,
+                bounds: _ModuleSupport.Vec4
             ): Array<_ModuleSupport.Vec2>;
         },
         datum: Datum,
-        top: LineCoords,
-        bottom: LineCoords,
+        top: _ModuleSupport.Vec4,
+        bottom: _ModuleSupport.Vec4,
         context: AnnotationContext
     ) {
         const { background } = this;

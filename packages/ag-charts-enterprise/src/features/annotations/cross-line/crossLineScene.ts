@@ -1,6 +1,6 @@
 import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 
-import type { AnnotationAxisContext, AnnotationContext, LineCoords } from '../annotationTypes';
+import type { AnnotationAxisContext, AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { AxisLabelScene } from '../scenes/axisLabelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
@@ -61,7 +61,7 @@ export class CrossLineScene extends AnnotationScene {
         this.updateAxisLabel(datum, axisContext, coords);
     }
 
-    private updateLine(datum: CrossLineProperties, coords: LineCoords) {
+    private updateLine(datum: CrossLineProperties, coords: _ModuleSupport.Vec4) {
         const { line } = this;
         const { lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const { x1, y1, x2, y2 } = coords;
@@ -81,7 +81,7 @@ export class CrossLineScene extends AnnotationScene {
         });
     }
 
-    private updateHandle(datum: CrossLineProperties, coords: LineCoords) {
+    private updateHandle(datum: CrossLineProperties, coords: _ModuleSupport.Vec4) {
         const { middle } = this;
         const { locked, stroke, strokeWidth, strokeOpacity } = datum;
         const { x1, y1, x2, y2 } = coords;
@@ -102,7 +102,7 @@ export class CrossLineScene extends AnnotationScene {
         middle.toggleLocked(locked ?? false);
     }
 
-    private updateText(datum: CrossLineProperties, coords: LineCoords) {
+    private updateText(datum: CrossLineProperties, coords: _ModuleSupport.Vec4) {
         LineWithTextScene.updateLineText.call(this, this.line, datum, coords);
     }
 
@@ -115,7 +115,7 @@ export class CrossLineScene extends AnnotationScene {
     private updateAxisLabel(
         datum: CrossLineProperties,
         axisContext: AnnotationAxisContext,
-        { x1, y1, x2, y2 }: LineCoords
+        { x1, y1, x2, y2 }: _ModuleSupport.Vec4
     ) {
         if (!this.axisLabel) {
             this.axisLabel = this.createAxisLabel(axisContext);

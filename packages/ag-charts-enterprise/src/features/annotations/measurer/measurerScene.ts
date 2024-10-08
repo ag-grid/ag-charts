@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { AnnotationContext, LineCoords } from '../annotationTypes';
+import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ArrowCapScene } from '../scenes/capScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
@@ -82,7 +82,11 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         this.updateAnchor(datum, coords, context);
     }
 
-    private extendPerpendicular(coords: LineCoords, datum: MeasurerTypeProperties, context: AnnotationContext) {
+    private extendPerpendicular(
+        coords: _ModuleSupport.Vec4,
+        datum: MeasurerTypeProperties,
+        context: AnnotationContext
+    ) {
         const extended = {
             x1: Math.min(coords.x1, coords.x2),
             x2: Math.max(coords.x1, coords.x2),
@@ -123,7 +127,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         verticalEndCap.visible = direction !== 'horizontal';
     }
 
-    private updateLines(datum: MeasurerTypeProperties, coords: LineCoords) {
+    private updateLines(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {
         const { horizontalLine, verticalLine } = this;
         const { direction, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const { x1, y1, x2, y2 } = coords;
@@ -162,7 +166,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         }
     }
 
-    private updateText(datum: MeasurerTypeProperties, coords: LineCoords) {
+    private updateText(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {
         const { direction } = datum;
         const { x1, y1, x2, y2 } = coords;
 
@@ -182,7 +186,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         LineWithTextScene.updateLineText.call(this, line, datum, textCoords);
     }
 
-    private updateCaps(datum: MeasurerTypeProperties, coords: LineCoords) {
+    private updateCaps(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {
         const { horizontalEndCap, verticalEndCap } = this;
         const { direction, stroke, strokeWidth, strokeOpacity } = datum;
         const { x1, y1, x2, y2 } = coords;
@@ -203,7 +207,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         }
     }
 
-    private updateBoundingLines(datum: MeasurerTypeProperties, extendedCoords: LineCoords) {
+    private updateBoundingLines(datum: MeasurerTypeProperties, extendedCoords: _ModuleSupport.Vec4) {
         const { verticalStartLine, verticalEndLine, horizontalStartLine, horizontalEndLine } = this;
         const { direction, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const { x1, y1, x2, y2 } = extendedCoords;
@@ -230,7 +234,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     private readonly updateBackground = WithBackgroundScene.updateBackground.bind(this);
 
-    private updateStatistics(datum: MeasurerTypeProperties, coords: LineCoords, context: AnnotationContext) {
+    private updateStatistics(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4, context: AnnotationContext) {
         const point = Vec2.from(coords.x1 + (coords.x2 - coords.x1) / 2, Math.max(coords.y1, coords.y2) + 10);
 
         const statistics: Statistics = { volume: this.getVolume() };
@@ -254,7 +258,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     override updateAnchor(
         _datum: MeasurerTypeProperties,
-        coords: LineCoords,
+        coords: _ModuleSupport.Vec4,
         _context: AnnotationContext,
         _bbox?: _Scene.BBox
     ) {
@@ -270,9 +274,9 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     public getBackgroundPoints(
         _datum: MeasurerTypeProperties,
-        verticalStart: LineCoords,
-        verticalEnd: LineCoords,
-        _bounds: LineCoords
+        verticalStart: _ModuleSupport.Vec4,
+        verticalEnd: _ModuleSupport.Vec4,
+        _bounds: _ModuleSupport.Vec4
     ) {
         const [startStart, startEnd] = Vec2.from(verticalStart);
         const [endStart, endEnd] = Vec2.from(verticalEnd);
@@ -312,7 +316,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         );
     }
 
-    private getDateRangeBars(coords: LineCoords, context: AnnotationContext) {
+    private getDateRangeBars(coords: _ModuleSupport.Vec4, context: AnnotationContext) {
         return Math.round(Math.abs((coords.x2 - coords.x1) / context.xAxis.scaleStep()));
     }
 

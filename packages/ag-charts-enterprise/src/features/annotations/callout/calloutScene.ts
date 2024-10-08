@@ -1,6 +1,6 @@
 import { type _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { type AnnotationContext, AnnotationType, type Bounds, type LineCoords } from '../annotationTypes';
+import { type AnnotationContext, AnnotationType, type Bounds } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { TextualStartEndScene } from '../scenes/textualStartEndScene';
 import type { CalloutProperties } from './calloutProperties';
@@ -54,7 +54,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
     protected override getLabelCoords(
         datum: CalloutProperties,
         bbox: _Scene.BBox,
-        coords: LineCoords
+        coords: _ModuleSupport.Vec4
     ): _ModuleSupport.Vec2 {
         const padding = datum.getPadding();
         const {
@@ -85,7 +85,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
 
     protected override updateAnchor(
         datum: CalloutProperties,
-        coords: LineCoords,
+        coords: _ModuleSupport.Vec4,
         context: AnnotationContext,
         bbox: _Scene.BBox
     ) {
@@ -98,7 +98,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         };
     }
 
-    protected override updateShape(datum: CalloutProperties, textBBox: _Scene.BBox, coords: LineCoords) {
+    protected override updateShape(datum: CalloutProperties, textBBox: _Scene.BBox, coords: _ModuleSupport.Vec4) {
         const { shape } = this;
 
         // update shape styles
@@ -321,7 +321,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
     public getDimensions(
         datum: CalloutProperties,
         textBBox: _Scene.BBox,
-        coords: LineCoords
+        coords: _ModuleSupport.Vec4
     ): CalloutDimensions | undefined {
         const { fontSize } = datum;
         const padding = datum.getPadding();

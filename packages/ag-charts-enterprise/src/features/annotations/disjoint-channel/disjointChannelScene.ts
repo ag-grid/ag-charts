@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import type { AnnotationContext, LineCoords } from '../annotationTypes';
+import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
@@ -137,7 +137,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         return [bottomLeft, bottomRight];
     }
 
-    override updateLines(datum: DisjointChannelProperties, top: LineCoords, bottom: LineCoords) {
+    override updateLines(datum: DisjointChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
         const { topLine, bottomLine } = this;
         const { lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
 
@@ -166,7 +166,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         });
     }
 
-    override updateHandles(datum: DisjointChannelProperties, top: LineCoords, bottom: LineCoords) {
+    override updateHandles(datum: DisjointChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
         const {
             handles: { topLeft, topRight, bottomLeft, bottomRight },
         } = this;
@@ -192,9 +192,9 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
 
     override getBackgroundPoints(
         datum: DisjointChannelProperties,
-        top: LineCoords,
-        bottom: LineCoords,
-        bounds: LineCoords
+        top: _ModuleSupport.Vec4,
+        bottom: _ModuleSupport.Vec4,
+        bounds: _ModuleSupport.Vec4
     ) {
         const isFlippedX = top.x1 > top.x2;
         const isFlippedY = top.y1 > top.y2;

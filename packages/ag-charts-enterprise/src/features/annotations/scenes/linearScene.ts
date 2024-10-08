@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 import type { PointProperties } from '../annotationProperties';
-import type { AnnotationContext, LineCoords } from '../annotationTypes';
+import type { AnnotationContext } from '../annotationTypes';
 import { boundsIntersections } from '../utils/line';
 import { convertLine, convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
@@ -23,7 +23,7 @@ export abstract class LinearScene<
         end: _ModuleSupport.Vec2;
     };
 
-    protected extendLine({ x1, y1, x2, y2 }: LineCoords, datum: Datum, context: AnnotationContext) {
+    protected extendLine({ x1, y1, x2, y2 }: _ModuleSupport.Vec4, datum: Datum, context: AnnotationContext) {
         // Clone the points to prevent mutating the original
         const linePoints = { x1, y1, x2, y2 };
 

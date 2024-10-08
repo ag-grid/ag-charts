@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import type { AnnotationContext, LineCoords } from '../annotationTypes';
+import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
@@ -152,11 +152,11 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
     override updateLines(
         datum: ParallelChannelProperties,
-        top: LineCoords,
-        bottom: LineCoords,
+        top: _ModuleSupport.Vec4,
+        bottom: _ModuleSupport.Vec4,
         context: AnnotationContext,
-        naturalTop: LineCoords,
-        naturalBottom: LineCoords
+        naturalTop: _ModuleSupport.Vec4,
+        naturalBottom: _ModuleSupport.Vec4
     ) {
         const { topLine, middleLine, bottomLine } = this;
         const { lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
@@ -209,7 +209,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         });
     }
 
-    override updateHandles(datum: ParallelChannelProperties, top: LineCoords, bottom: LineCoords) {
+    override updateHandles(datum: ParallelChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
         const {
             handles: { topLeft, topMiddle, topRight, bottomLeft, bottomMiddle, bottomRight },
         } = this;
@@ -241,9 +241,9 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
     override getBackgroundPoints(
         datum: ParallelChannelProperties,
-        top: LineCoords,
-        bottom: LineCoords,
-        bounds: LineCoords
+        top: _ModuleSupport.Vec4,
+        bottom: _ModuleSupport.Vec4,
+        bounds: _ModuleSupport.Vec4
     ) {
         const isFlippedX = top.x1 > top.x2;
         const isFlippedY = top.y1 > top.y2;
