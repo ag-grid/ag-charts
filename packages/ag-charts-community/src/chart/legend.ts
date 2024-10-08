@@ -33,6 +33,7 @@ import { BaseProperties } from '../util/properties';
 import { ObserveChanges } from '../util/proxy';
 import { CachedTextMeasurerPool, TextUtils } from '../util/textMeasurer';
 import { TextWrapper } from '../util/textWrapper';
+import { isDefined } from '../util/type-guards';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -338,7 +339,7 @@ export class Legend extends BaseProperties {
         const buttons: HTMLButtonElement[] = this.itemSelection
             .nodes()
             .map((markerLabel) => markerLabel.proxyButton?.button)
-            .filter((button): button is HTMLButtonElement => !!button);
+            .filter(isDefined);
         const orientation = this.getOrientation();
         this.proxyLegendToolbarDestroyFns.setFns(initRovingTabIndex({ orientation, buttons }));
         this.proxyLegendToolbar.ariaOrientation = orientation;
