@@ -1,4 +1,4 @@
-import { _Scene, _Util } from 'ag-charts-community';
+import { type _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -11,7 +11,7 @@ export class ArrowUpScene extends ShapePointScene<ArrowUpProperties> {
         return AnnotationScene.isCheck(value, AnnotationType.ArrowUp);
     }
 
-    override type = AnnotationType.ArrowUp;
+    type = AnnotationType.ArrowUp;
 
     protected readonly shape = new _Scene.ArrowUp();
 
@@ -20,7 +20,7 @@ export class ArrowUpScene extends ShapePointScene<ArrowUpProperties> {
         this.append([this.shape]);
     }
 
-    protected override getHandleCoords(datum: ArrowUpProperties, point: _Util.Vec2): _Util.Vec2 {
+    protected override getHandleCoords(datum: ArrowUpProperties, point: _ModuleSupport.Vec2): _ModuleSupport.Vec2 {
         const halfSize = DivariantHandle.HANDLE_SIZE / 2;
         const handleCoords = super.getHandleCoords(datum, point);
         handleCoords.y -= halfSize;

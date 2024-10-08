@@ -1,4 +1,4 @@
-import { _Scene, type _Util } from 'ag-charts-community';
+import { type _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType, type Bounds, type Coords, type LineCoords } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -27,7 +27,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         return AnnotationScene.isCheck(value, AnnotationType.Callout);
     }
 
-    override type = AnnotationType.Callout;
+    type = AnnotationType.Callout;
 
     private readonly shape = new _Scene.Path();
 
@@ -46,7 +46,11 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         }
     }
 
-    protected override getLabelCoords(datum: CalloutProperties, bbox: _Scene.BBox, coords: LineCoords): _Util.Vec2 {
+    protected override getLabelCoords(
+        datum: CalloutProperties,
+        bbox: _Scene.BBox,
+        coords: LineCoords
+    ): _ModuleSupport.Vec2 {
         const padding = datum.getPadding();
         const {
             bodyBounds = {

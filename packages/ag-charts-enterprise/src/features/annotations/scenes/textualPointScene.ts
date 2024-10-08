@@ -65,7 +65,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         return super.getNodeAtCoords(x, y);
     }
 
-    protected getTextBBox(datum: Datum, coords: _Util.Vec2, _context: AnnotationContext) {
+    protected getTextBBox(datum: Datum, coords: _ModuleSupport.Vec2, _context: AnnotationContext) {
         const { text } = datum.getText();
 
         return getBBox(datum, text, { x: coords.x, y: coords.y }, this.textInputBBox);
@@ -89,11 +89,15 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         };
     }
 
-    protected getLabelCoords(_datum: Datum, bbox: _Scene.BBox): _Util.Vec2 {
+    protected getLabelCoords(_datum: Datum, bbox: _Scene.BBox): _ModuleSupport.Vec2 {
         return bbox;
     }
 
-    protected override getHandleCoords(_datum: Datum, _coords: _Util.Vec2, bbox: _Scene.BBox): _Util.Vec2 {
+    protected override getHandleCoords(
+        _datum: Datum,
+        _coords: _ModuleSupport.Vec2,
+        bbox: _Scene.BBox
+    ): _ModuleSupport.Vec2 {
         return bbox;
     }
 

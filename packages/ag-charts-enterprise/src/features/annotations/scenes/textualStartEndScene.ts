@@ -66,7 +66,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         // Shapes should be implemented by the extending annotation type class
     }
 
-    protected getLabelCoords(_datum: Datum, _bbox: _Scene.BBox, coords: LineCoords): _Util.Vec2 {
+    protected getLabelCoords(_datum: Datum, _bbox: _Scene.BBox, coords: LineCoords): _ModuleSupport.Vec2 {
         return {
             x: coords.x2,
             y: coords.y2,

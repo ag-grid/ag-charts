@@ -1,4 +1,4 @@
-import { type _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -12,7 +12,7 @@ import { convertLine } from '../utils/values';
 import { DateRangeProperties, type MeasurerTypeProperties, PriceRangeProperties } from './measurerProperties';
 import { MeasurerStatisticsScene, type Statistics } from './measurerStatisticsScene';
 
-const { Vec2 } = _Util;
+const { Vec2 } = _ModuleSupport;
 
 export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
     static override is(value: unknown): value is MeasurerScene {

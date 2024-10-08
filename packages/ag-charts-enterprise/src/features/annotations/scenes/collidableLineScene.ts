@@ -1,6 +1,6 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-const { Vec2 } = _Util;
+const { Vec2 } = _ModuleSupport;
 
 export type ShapeClipMask = { x: number; y: number; radius: number };
 

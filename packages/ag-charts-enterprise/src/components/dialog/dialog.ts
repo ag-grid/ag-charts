@@ -5,6 +5,7 @@ import { ColorPicker } from '../../features/color-picker/colorPicker';
 import { Popover, type PopoverOptions } from '../popover/popover';
 
 const {
+    Vec2,
     createButton,
     createCheckbox,
     createElement,
@@ -16,7 +17,7 @@ const {
     getWindow,
     mapValues,
 } = _ModuleSupport;
-const { Vec2, setAttribute, setAttributes } = _Util;
+const { setAttribute, setAttributes } = _Util;
 
 export interface DialogOptions extends PopoverOptions {}
 
@@ -60,7 +61,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     private readonly colorPicker = new ColorPicker(this.ctx, { detached: true });
     private colorPickerAnchorElement?: HTMLElement;
-    private dragStartState?: { client: _Util.Vec2; position: _Util.Vec2 };
+    private dragStartState?: { client: _ModuleSupport.Vec2; position: _ModuleSupport.Vec2 };
     private seriesRect?: _Scene.BBox;
     private initialFocus?: HTMLElement;
 
@@ -90,7 +91,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return popover;
     }
 
-    protected override updatePosition(position: _Util.Vec2): void {
+    protected override updatePosition(position: _ModuleSupport.Vec2): void {
         super.updatePosition(position);
 
         const { anchor, fallbackAnchor } = this.getColorPickerAnchors() ?? {};
@@ -415,7 +416,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const popoverSize = Vec2.from(popover);
         const halfWidth = Vec2.from(0.5, 1);
 
-        let position: _Util.Vec2;
+        let position: _ModuleSupport.Vec2;
         if (seriesRect.width > 1000) {
             const bottomCenter = Vec2.sub(
                 Vec2.add(outerOffset, Vec2.multiply(outerSize, halfWidth)),

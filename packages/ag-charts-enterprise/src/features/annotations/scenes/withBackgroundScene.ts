@@ -1,4 +1,4 @@
-import type { _Scene, _Util } from 'ag-charts-community';
+import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type { FillOptions } from 'ag-charts-types';
 
 import type { AnnotationContext, LineCoords } from '../annotationTypes';
@@ -13,7 +13,7 @@ export class WithBackgroundScene {
                 top: LineCoords,
                 bottom: LineCoords,
                 bounds: LineCoords
-            ): Array<_Util.Vec2>;
+            ): Array<_ModuleSupport.Vec2>;
         },
         datum: Datum,
         top: LineCoords,

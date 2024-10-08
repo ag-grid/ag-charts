@@ -1,4 +1,4 @@
-import { _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -8,7 +8,7 @@ import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { convertPoint, invertCoords } from '../utils/values';
 import type { DisjointChannelProperties } from './disjointChannelProperties';
 
-const { Vec2 } = _Util;
+const { Vec2 } = _ModuleSupport;
 
 type ChannelHandle = keyof DisjointChannelScene['handles'];
 
@@ -142,12 +142,12 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         const { lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
 
         const lineStyles = {
+            lineCap: datum.getLineCap(),
             lineDash: datum.getLineDash(),
             lineDashOffset,
             stroke,
             strokeOpacity,
             strokeWidth,
-            lineCap: datum.getLineCap(),
         };
 
         topLine.setProperties({

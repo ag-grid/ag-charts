@@ -37,7 +37,7 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
             const datum = ctx.datum();
             datum?.set({ end: point() });
 
-            ctx.node()?.toggleActive(true); // TODO: move to onEnter, but node doesn't exist until next render
+            ctx.node()?.toggleActive(true);
             ctx.node()?.toggleHandles({ end: false });
             ctx.update();
         };
