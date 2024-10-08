@@ -11,9 +11,10 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
+import { formatValue } from '../../../util/format.util';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { isDefined, isFiniteNumber } from '../../../util/type-guards';
+import { isDefined } from '../../../util/type-guards';
 import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -262,7 +263,7 @@ export class LineSeries extends CartesianSeries<
             const labelText = this.getLabelText(
                 label,
                 { value: yDatum, datum, xKey, yKey, xName, yName, legendItemName },
-                (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
+                formatValue
             );
 
             nodeData.push({

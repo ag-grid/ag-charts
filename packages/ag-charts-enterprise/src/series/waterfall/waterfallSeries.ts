@@ -25,7 +25,7 @@ const {
     animationValidation,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
-    isFiniteNumber,
+    formatValue,
     computeBarFocusBounds,
 } = _ModuleSupport;
 const { Rect, motion } = _Scene;
@@ -364,9 +364,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             pointData.push(pathPoint);
 
             const itemId = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
-            const labelText = this.getLabelText(label, { itemId, value, datum, xKey, yKey, xName, yName }, (v) =>
-                isFiniteNumber(v) ? v.toFixed(2) : String(v)
-            );
+            const labelText = this.getLabelText(label, { itemId, value, datum, xKey, yKey, xName, yName }, formatValue);
 
             const nodeDatum: WaterfallNodeDatum = {
                 index: dataIndex,

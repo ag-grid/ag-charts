@@ -23,11 +23,11 @@ const {
     resetLabelFn,
     animationValidation,
     createDatumId,
-    isFiniteNumber,
+    formatValue,
     computeBarFocusBounds,
 } = _ModuleSupport;
 const { Rect, PointerEvents, motion } = _Scene;
-const { sanitizeHtml, isNumber } = _Util;
+const { sanitizeHtml } = _Util;
 const { ContinuousScale } = _Scale;
 
 type Bounds = {
@@ -323,9 +323,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText(label, { itemId: 'low', value: yLowValue, ...labelParams }, (v) =>
-                isFiniteNumber(v) ? v.toFixed(2) : String(v)
-            ),
+            text: this.getLabelText(label, { itemId: 'low', value: yLowValue, ...labelParams }, formatValue),
             itemId: 'low',
             datum,
             series,
@@ -335,9 +333,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
             textAlign: barAlongX ? 'right' : 'center',
             textBaseline: barAlongX ? 'middle' : 'top',
-            text: this.getLabelText(label, { itemId: 'high', value: yHighValue, ...labelParams }, (value) =>
-                isNumber(value) ? value.toFixed(2) : ''
-            ),
+            text: this.getLabelText(label, { itemId: 'high', value: yHighValue, ...labelParams }, formatValue),
             itemId: 'high',
             datum,
             series,
