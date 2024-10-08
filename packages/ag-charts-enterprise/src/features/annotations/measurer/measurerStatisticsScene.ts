@@ -44,7 +44,7 @@ export class MeasurerStatisticsScene extends _Scene.Group {
     update(
         datum: MeasurerTypeProperties,
         stats: Statistics,
-        anchor: _Util.Vec2,
+        anchor: _ModuleSupport.Vec2,
         localeManager?: _ModuleSupport.ModuleContext['localeManager']
     ) {
         const {

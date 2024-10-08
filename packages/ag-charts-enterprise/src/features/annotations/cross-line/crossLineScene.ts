@@ -1,4 +1,4 @@
-import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 
 import type { AnnotationAxisContext, AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -10,8 +10,7 @@ import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { convert, invert, invertCoords } from '../utils/values';
 import { type CrossLineProperties, HorizontalLineProperties } from './crossLineProperties';
 
-const { Vec2 } = _Util;
-const { ChartAxisDirection } = _ModuleSupport;
+const { ChartAxisDirection, Vec2 } = _ModuleSupport;
 
 export class CrossLineScene extends AnnotationScene {
     static override is(value: unknown): value is CrossLineScene {

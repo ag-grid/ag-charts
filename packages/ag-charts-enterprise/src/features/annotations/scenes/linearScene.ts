@@ -1,4 +1,4 @@
-import { _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
@@ -6,7 +6,7 @@ import { boundsIntersections } from '../utils/line';
 import { convertLine, convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 
-const { Vec2 } = _Util;
+const { Vec2 } = _ModuleSupport;
 
 export abstract class LinearScene<
     Datum extends {
@@ -102,7 +102,7 @@ export abstract class LinearScene<
         datum: Datum;
         start: Coords;
         end: Coords;
-        translation: _Util.Vec2;
+        translation: _ModuleSupport.Vec2;
         context: AnnotationContext;
     }) {
         const translatedStart = Vec2.add(start, translation);

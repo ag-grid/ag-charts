@@ -173,5 +173,5 @@ export abstract class ChannelScene<
         top: LineCoords,
         bottom: LineCoords,
         bounds: LineCoords
-    ): Array<_Util.Vec2>;
+    ): Array<_ModuleSupport.Vec2>;
 }

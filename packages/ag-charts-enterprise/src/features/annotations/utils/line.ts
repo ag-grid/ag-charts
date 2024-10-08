@@ -1,8 +1,8 @@
-import { type AgAnnotationLineStyleType, type PixelSize, type _Scene, _Util } from 'ag-charts-community';
+import { type AgAnnotationLineStyleType, type PixelSize, _ModuleSupport, type _Scene } from 'ag-charts-community';
 
 import type { Coords, LineCoords } from '../annotationTypes';
 
-const { Vec2 } = _Util;
+const { Vec2 } = _ModuleSupport;
 
 export function getLineStyle(lineDash?: PixelSize[], lineStyle?: AgAnnotationLineStyleType) {
     return lineDash ? 'dashed' : lineStyle ?? 'solid';

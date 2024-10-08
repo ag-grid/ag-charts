@@ -1,4 +1,4 @@
-import { _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -8,7 +8,7 @@ import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { convertPoint, invertCoords } from '../utils/values';
 import type { DisjointChannelProperties } from './disjointChannelProperties';
 
-const { Vec2 } = _Util;
+const { Vec2 } = _ModuleSupport;
 
 type ChannelHandle = keyof DisjointChannelScene['handles'];
 

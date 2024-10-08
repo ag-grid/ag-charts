@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { AnnotationContext, Coords } from '../annotationTypes';
 import type { PointProperties } from '../properties/pointProperties';
@@ -7,7 +7,8 @@ import { convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 import { DivariantHandle } from './handle';
 
-const { Vec2 } = _Util;
+const { Vec2 } = _ModuleSupport;
+
 export abstract class PointScene<Datum extends PointProperties> extends AnnotationScene {
     override activeHandle?: string;
 
@@ -112,7 +113,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         if (this.handle.containsPoint(x, y)) return 'handle';
     }
 
-    protected updateHandle(datum: Datum, point: _Util.Vec2, bbox?: _Scene.BBox) {
+    protected updateHandle(datum: Datum, point: _ModuleSupport.Vec2, bbox?: _Scene.BBox) {
         const { x, y } = this.getHandleCoords(datum, point, bbox);
         const styles = this.getHandleStyles(datum);
 
@@ -120,7 +121,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         this.handle.toggleLocked(datum.locked ?? false);
     }
 
-    protected updateAnchor(datum: Datum, point: _Util.Vec2, context: AnnotationContext) {
+    protected updateAnchor(datum: Datum, point: _ModuleSupport.Vec2, context: AnnotationContext) {
         const coords = this.getHandleCoords(datum, point);
         return {
             x: coords.x + context.seriesRect.x,
@@ -129,7 +130,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         };
     }
 
-    protected getHandleCoords(_datum: Datum, point: _Util.Vec2, _bbox?: _Scene.BBox): _Util.Vec2 {
+    protected getHandleCoords(_datum: Datum, point: _ModuleSupport.Vec2, _bbox?: _Scene.BBox): _ModuleSupport.Vec2 {
         return {
             x: point.x,
             y: point.y,

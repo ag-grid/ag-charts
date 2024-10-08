@@ -61,8 +61,8 @@ const {
     Validate,
     REGIONS,
     ChartAxisDirection,
+    Vec2,
 } = _ModuleSupport;
-const { Vec2 } = _Util;
 
 type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
 
@@ -1034,7 +1034,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             annotationData,
             annotations,
             seriesRect,
-            ctx: { annotationManager, toolbarManager },
+            ctx: { annotationManager, localeManager, toolbarManager },
         } = this;
 
         const context = this.getAnnotationContext();
@@ -1055,7 +1055,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     return;
                 }
 
-                if ('setLocaleManager' in datum) datum.setLocaleManager(this.ctx.localeManager);
+                if ('setLocaleManager' in datum) datum.setLocaleManager(localeManager);
                 updateAnnotation(node, datum, context);
             });
 
