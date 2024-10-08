@@ -150,6 +150,14 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         return super.containsPoint(x, y) || line.isPointInPath(x, y) || Boolean(text?.containsPoint(x, y));
     }
 
+    public override getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.text?.containsPoint(x, y)) return 'text';
+
+        if (this.line.isPointInPath(x, y)) return 'line';
+
+        return super.getNodeAtCoords(x, y);
+    }
+
     protected override getHandleCoords(
         _datum: LineTypeProperties,
         coords: LineCoords,

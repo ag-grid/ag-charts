@@ -132,6 +132,16 @@ export abstract class ChannelScene<
         return topLine.containsPoint(x, y) || bottomLine.containsPoint(x, y) || Boolean(text?.containsPoint(x, y));
     }
 
+    public getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.text?.containsPoint(x, y)) return 'text';
+
+        if (this.topLine.containsPoint(x, y) || this.bottomLine.containsPoint(x, y)) return 'line';
+
+        for (const [_, child] of Object.entries(this.handles)) {
+            if (child.containsPoint(x, y)) return 'handle';
+        }
+    }
+
     protected abstract updateLines(
         datum: Datum,
         top: LineCoords,

@@ -44,4 +44,10 @@ export abstract class ShapePointScene<Datum extends ShapePointProperties> extend
     override containsPoint(x: number, y: number) {
         return super.containsPoint(x, y) || this.shape.containsPoint(x, y);
     }
+
+    override getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.shape.containsPoint(x, y)) return 'shape';
+
+        return super.getNodeAtCoords(x, y);
+    }
 }

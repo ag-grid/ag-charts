@@ -143,6 +143,13 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         );
     }
 
+    public override getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.middleLine.visible && this.middleLine.strokeWidth > 0 && this.middleLine.containsPoint(x, y))
+            return 'line';
+
+        return super.getNodeAtCoords(x, y);
+    }
+
     override updateLines(
         datum: ParallelChannelProperties,
         top: LineCoords,

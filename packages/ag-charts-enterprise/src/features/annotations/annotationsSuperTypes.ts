@@ -74,6 +74,7 @@ export type AnnotationScene =
 export interface AnnotationsStateMachineContext {
     resetToIdle: () => void;
     hoverAtCoords: (coords: _Util.Vec2, active?: number) => number | undefined;
+    getNodeAtCoords: (coords: _Util.Vec2, active: number) => string | undefined;
     select: (index?: number, previous?: number) => void;
     selectLast: () => number;
 
@@ -100,7 +101,7 @@ export interface AnnotationsStateMachineContext {
     updateTextInputBBox: (bbox?: _Scene.BBox) => void;
 
     showAnnotationOptions: (index: number) => void;
-    showAnnotationSettings: (index: number, sourceEvent?: Event) => void;
+    showAnnotationSettings: (index: number, sourceEvent?: Event, initialTab?: 'line' | 'text') => void;
 
     recordAction: (label: string) => void;
     addPostUpdateFns: (...fns: (() => void)[]) => void;

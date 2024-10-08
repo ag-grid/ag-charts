@@ -108,6 +108,10 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         return false;
     }
 
+    override getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.handle.containsPoint(x, y)) return 'handle';
+    }
+
     protected updateHandle(datum: Datum, point: _Util.Vec2, bbox?: _Scene.BBox) {
         const { x, y } = this.getHandleCoords(datum, point, bbox);
         const styles = this.getHandleStyles(datum);
