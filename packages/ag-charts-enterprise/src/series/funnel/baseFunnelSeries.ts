@@ -126,6 +126,10 @@ export abstract class BaseFunnelSeries<
         () => this.connectionFactory()
     );
 
+    override get pickModeAxis() {
+        return 'main-category' as const;
+    }
+
     constructor({
         moduleCtx,
         animationResetFns,
@@ -137,7 +141,7 @@ export abstract class BaseFunnelSeries<
     }) {
         super({
             moduleCtx,
-            pickModes: [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
             directionKeys: {
                 x: ['stageKey'],

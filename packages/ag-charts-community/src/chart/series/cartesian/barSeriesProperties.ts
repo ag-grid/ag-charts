@@ -91,4 +91,7 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgBarSeriesTooltipRendererParams>();
+
+    @Validate(BOOLEAN)
+    sparklineMode: boolean = false;
 }
