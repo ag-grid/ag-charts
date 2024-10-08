@@ -4,7 +4,7 @@ import type { AgSunburstSeriesStyle, AgTooltipRendererResult } from 'ag-charts-t
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
 
-const { fromToMotion } = _ModuleSupport;
+const { fromToMotion, formatValue } = _ModuleSupport;
 const { Sector, ScalableGroup, Selection, TransformableText } = _Scene;
 const { sanitizeHtml } = _Util;
 
@@ -75,18 +75,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         await super.processData();
 
         this.angleData = getAngleData(this.rootNode);
-
-        const defaultLabelFormatter = (value: any) => {
-            if (typeof value === 'number') {
-                // This copies what other series are doing - we should look to provide format customization
-                return value.toFixed(2);
-            } else if (typeof value === 'string') {
-                return value;
-            } else {
-                return '';
-            }
-        };
-
         this.labelData = Array.from(this.rootNode, ({ datum, depth }) => {
             let label: string | undefined;
             if (datum != null && depth != null && labelKey != null) {
@@ -105,7 +93,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                         sizeName,
                         value,
                     },
-                    defaultLabelFormatter
+                    formatValue
                 );
             }
             if (label === '') {
@@ -129,7 +117,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                         sizeName,
                         value,
                     },
-                    defaultLabelFormatter
+                    formatValue
                 );
             }
             if (secondaryLabel === '') {

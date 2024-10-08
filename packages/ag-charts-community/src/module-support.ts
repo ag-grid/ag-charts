@@ -11,6 +11,7 @@ export * from './util/object';
 export * from './util/placement';
 export * from './util/properties';
 export * from './util/proxy';
+export * from './util/format.util';
 export * from './util/search.util';
 export * from './util/stateMachine';
 export * from './util/timeFormatDefaults';

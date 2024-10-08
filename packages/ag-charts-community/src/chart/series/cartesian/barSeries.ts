@@ -9,6 +9,7 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
+import { formatValue } from '../../../util/format.util';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
 import type { RequireOptional } from '../../../util/types';
@@ -388,7 +389,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                                   yName,
                                   legendItemName,
                               },
-                              (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
+                              formatValue
                           )
                         : undefined;
 
