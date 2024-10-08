@@ -8,11 +8,19 @@ import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../se
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
-export type AgBarSeriesLabelPlacement = 'inside' | 'outside';
+export type AgBarSeriesLabelPlacement =
+    | 'inside'
+    | 'inside-start'
+    | 'inside-end'
+    | 'outside'
+    | 'outside-start'
+    | 'outside-end';
 
 export interface AgBarSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
     /** Where to render series labels relative to the segments. */
     placement?: AgBarSeriesLabelPlacement;
+    /** Distance between the shape edges and the text. */
+    spacing?: PixelSize;
 }
 
 export interface AgBarSeriesItemStylerParams<TDatum>
