@@ -36,13 +36,18 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
         readonly interactionManager: InteractionManager
     ) {
         super();
-        const mouseStates = InteractionState.Default | InteractionState.Annotations;
+        const mouseStates =
+            InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
         this.destroyFns.push(
             interactionManager.addListener('hover', () => this.onMouse(), mouseStates),
             interactionManager.addListener('drag-start', () => this.onMouse(), mouseStates),
             interactionManager.addListener('blur', (e) => this.onBlur(e), InteractionState.All),
             interactionManager.addListener('focus', (e) => this.onFocus(e), InteractionState.All),
-            interactionManager.addListener('keydown', (e) => this.onKeyDown(e), InteractionState.All)
+            interactionManager.addListener(
+                'keydown',
+                (e) => this.onKeyDown(e),
+                InteractionState.AllButAnnotationsSelected
+            )
         );
     }
 
@@ -102,6 +107,8 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
             case '-':
                 return this.dispatch('nav-zoom', -1, event);
         }
+
+        this.focusIndicator.updateBounds(undefined);
     }
 
     private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, sourceEvent: InteractionEvent) {

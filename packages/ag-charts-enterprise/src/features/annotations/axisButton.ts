@@ -34,11 +34,16 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.snap = axisCtx.scaleBandwidth() > 0;
 
         const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
-        const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
+        const mouseMoveStates =
+            InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
 
         this.destroyFns.push(
             seriesRegion.addListener('hover', (event) => this.show(event), mouseMoveStates),
-            seriesRegion.addListener('drag', (event) => this.show(event), InteractionState.Annotations),
+            seriesRegion.addListener(
+                'drag',
+                (event) => this.show(event),
+                InteractionState.Annotations | InteractionState.AnnotationsSelected
+            ),
             seriesRegion.addListener('drag', () => this.hide(), InteractionState.ZoomDrag),
             seriesRegion.addListener('leave', () => this.hide(), InteractionState.Default),
             ctx.zoomManager.addListener('zoom-change', () => this.hide()),
