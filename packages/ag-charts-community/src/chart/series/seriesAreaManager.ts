@@ -93,6 +93,7 @@ export class SeriesAreaManager extends BaseManager {
         const horizontalAxesRegion = chart.ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
         const verticalAxesRegion = chart.ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
         const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
+        const keyState = InteractionState.Default | InteractionState.Animation;
 
         const labelEl = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label');
         this.ariaLabel = new SeriesAreaAriaLabel(labelEl, `${this.id}-aria-label`);
@@ -111,10 +112,10 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.domManager.addListener('resize', () => this.clearAll()),
             chart.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
             chart.ctx.keyNavManager.addListener('blur', () => this.clearAll()),
-            chart.ctx.keyNavManager.addListener('focus', (event) => this.onFocus(event)),
-            chart.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event)),
-            chart.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event)),
-            chart.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event)),
+            chart.ctx.keyNavManager.addListener('focus', (event) => this.onFocus(event), keyState),
+            chart.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event), keyState),
+            chart.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event), keyState),
+            chart.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event), keyState),
             chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             chart.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
@@ -359,6 +360,8 @@ export class SeriesAreaManager extends BaseManager {
 
         // Only update the highlight/tooltip/status if this is a keyboard user.
         if (!this.chart.ctx.focusIndicator.isFocusVisible()) return;
+
+        this.chart.ctx.animationManager.reset();
 
         // Update user interaction/interface:
         const keyboardEvent = makeKeyboardPointerEvent(this.chart.ctx.focusIndicator, pick);
