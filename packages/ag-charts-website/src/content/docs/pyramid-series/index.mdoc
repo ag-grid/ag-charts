@@ -15,16 +15,16 @@ To create a Pyramid Series, use the `pyramid` series type.
 series: [
     {
         type: 'pyramid',
-        xKey: 'group',
-        yKey: 'value'
+        stageKey: 'group',
+        valueKey: 'value'
     },
 ],
 ```
 
 In this configuration:
 
--   `xKey` defines the categories, and is mapped to the stages of the pyramid.
--   `yKey` provides the numerical values, corresponding values of each stage.
+-   `stageKey` defines the categories, and is mapped to the stages of the pyramid.
+-   `valueKey` provides the numerical values, corresponding values of each stage.
 
 ## Horizontal Pyramid
 
@@ -35,7 +35,30 @@ To create a horizontal Pyramid Series, set the `direction` to `horizontal`.
 ```js
 {
     direction: 'horizontal',
-    reverse: true,
+}
+```
+
+## Reverse Pyramid
+
+{% chartExampleRunner title="Reverse Pyramid Chart" name="reverse-pyramid" type="generated" /%}
+
+To reverse a Pyramid Series, set `reverse` to `true`.
+
+```js
+{
+    reverse: 'true',
+}
+```
+
+## Pyramid Fills
+
+{% chartExampleRunner title="Pyramid Fills" name="pyramid-fills" type="generated" /%}
+
+The colours in a Pyramid Series can be customised with the `fills` property.
+
+```js
+{
+    fills: ['#5C6BC0', '#3F51B5', '#303F9F', '#1A237E'],
 }
 ```
 

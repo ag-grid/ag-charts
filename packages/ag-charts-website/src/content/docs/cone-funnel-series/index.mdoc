@@ -15,16 +15,16 @@ To create a Cone Funnel Series, use the `cone-funnel` series type.
 series: [
     {
         type: 'cone-funnel',
-        xKey: 'group',
-        yKey: 'value'
+        stageKey: 'group',
+        valueKey: 'value'
     },
 ],
 ```
 
 In this configuration:
 
--   `xKey` defines the categories, and is mapped to the stages of the funnel.
--   `yKey` provides the numerical values, corresponding values of each stage.
+-   `stageKey` defines the categories, and is mapped to the stages of the funnel.
+-   `valueKey` provides the numerical values, corresponding values of each stage.
 
 ## Horizontal Cone Funnel
 
@@ -35,6 +35,18 @@ To create a horizontal Cone Funnel Series, set the `direction` to `horizontal`.
 ```js
 {
     direction: 'horizontal',
+}
+```
+
+## Cone Funnel Fills
+
+{% chartExampleRunner title="Cone Funnel Fills" name="cone-funnel-fills" type="generated" /%}
+
+The colours in a Cone Funnel Series can be customised with the `fills` property.
+
+```js
+{
+    fills: ['#9FA8DA', '#7986CB', '#5C6BC0'],
 }
 ```
 

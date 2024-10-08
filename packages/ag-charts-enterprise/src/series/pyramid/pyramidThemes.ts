@@ -18,6 +18,7 @@ export const PYRAMID_SERIES_THEME: {
             fontSize: 12,
             fontFamily: _Theme.DEFAULT_FONT_FAMILY,
             color: _Theme.DEFAULT_LABEL_COLOUR,
+            spacing: 12,
         },
     },
 };

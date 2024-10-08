@@ -76,7 +76,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_Scene.Line> {
         yDatum: number;
         datum: any;
     }): FunnelNodeLabelDatum | undefined {
-        const { xKey, yKey, xName, yName, legendItemName, label } = this.properties;
+        const { stageKey, valueKey, label } = this.properties;
         const { spacing, placement } = label;
 
         let x: number;
@@ -124,12 +124,10 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_Scene.Line> {
             y,
             textAlign,
             textBaseline,
-            text: this.getLabelText(
-                label,
-                { itemId: yKey, value: yDatum, legendItemName, datum, xKey, yKey, xName, yName },
-                (v) => (isFiniteNumber(v) ? v.toFixed(0) : String(v))
+            text: this.getLabelText(label, { itemId: valueKey, value: yDatum, datum, stageKey, valueKey }, (v) =>
+                isFiniteNumber(v) ? v.toFixed(0) : String(v)
             ),
-            itemId: yKey,
+            itemId: valueKey,
             datum,
             series: this,
         };
