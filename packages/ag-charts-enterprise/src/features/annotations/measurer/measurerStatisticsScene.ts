@@ -6,7 +6,7 @@ import type { MeasurerTypeProperties } from './measurerProperties';
 export interface Statistics {
     dateRange?: { bars: number; value: number };
     priceRange?: { percentage: number; value: number };
-    volume: number;
+    volume?: number;
 }
 
 export class MeasurerStatisticsScene extends _Scene.Group {
@@ -110,12 +110,14 @@ export class MeasurerStatisticsScene extends _Scene.Group {
             scenes.push(priceScenes);
         }
 
-        volumeText.setProperties({
-            ...textStyles,
-            x: anchor.x,
-            text: this.formatVolume(stats.volume, localeManager),
-        });
-        scenes.push(volumeText);
+        if (stats.volume != null) {
+            volumeText.setProperties({
+                ...textStyles,
+                x: anchor.x,
+                text: this.formatVolume(stats.volume, localeManager),
+            });
+            scenes.push(volumeText);
+        }
 
         layoutScenesColumn(scenes, anchor.y, verticalGap);
 

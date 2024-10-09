@@ -61,6 +61,9 @@ const {
     REGIONS,
     ChartAxisDirection,
     Vec2,
+    isValidDate,
+    keyProperty,
+    valueProperty,
 } = _ModuleSupport;
 
 type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
@@ -94,12 +97,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     public axesButtons = new AxesButtons();
 
+    // Hidden options for use with measurer statistics
+    public data?: any[] = undefined;
+    public xKey?: string = undefined;
+    public volumeKey?: string = undefined;
+
     // State
     private readonly state: AnnotationsStateMachine;
     private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray<AnnotationProperties>(
         this.createAnnotationDatum
     );
     private readonly defaults = new AnnotationDefaults();
+    private dataModel?: _ModuleSupport.DataModel<any, any>;
+    private processedData?: _ModuleSupport.ProcessedData<any>;
 
     // Elements
     private seriesRect?: _Scene.BBox;
@@ -121,7 +131,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private removeAmbientKeyboardListener?: () => void = undefined;
 
-    constructor(readonly ctx: _ModuleSupport.ModuleContext) {
+    constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
         this.state = this.setupStateMachine();
         this.setupListeners();
@@ -496,6 +506,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.removeAmbientKeyboardListener = undefined;
     }
 
+    async processData(dataController: _ModuleSupport.DataController) {
+        if (!this.enabled || this.data == null || this.xKey == null || this.volumeKey == null) return;
+
+        const props = [
+            keyProperty(this.xKey, undefined, { id: 'date' }),
+            valueProperty(this.volumeKey, 'number', { id: 'volume' }),
+        ];
+
+        const { dataModel, processedData } = await dataController.request('annotations', this.data, { props });
+        this.dataModel = dataModel;
+        this.processedData = processedData;
+    }
+
     /**
      * Create an annotation scene within the `this.annotations` scene selection. This method is automatically called by
      * the selection when a new scene is required.
@@ -536,14 +559,38 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             this.defaults.applyDefaults(datum);
         }
 
-        if ('setLocaleManager' in datum) datum.setLocaleManager(this.ctx.localeManager);
-
+        this.injectDatumDependencies(datum);
         this.resetToolbarButtonStates();
 
         this.removeAmbientKeyboardListener?.();
         this.removeAmbientKeyboardListener = undefined;
 
         this.update();
+    }
+
+    private injectDatumDependencies(datum: AnnotationProperties) {
+        if ('setLocaleManager' in datum) {
+            datum.setLocaleManager(this.ctx.localeManager);
+        }
+
+        if ('getVolume' in datum) {
+            datum.getVolume = this.getDatumRangeVolume.bind(this);
+        }
+    }
+
+    private getDatumRangeVolume(from: Point['x'], to: Point['x']) {
+        if (!isValidDate(from) || !isValidDate(to) || !this.dataModel || !this.processedData) return 0;
+
+        const dateDef = this.dataModel.resolveProcessedDataDefById({ id: 'annotations' }, 'date');
+        const volumeDef = this.dataModel.resolveProcessedDataDefById({ id: 'annotations' }, 'volume');
+
+        return this.processedData.data.reduce((sum, datum) => {
+            const key = datum.keys[dateDef.index];
+            if (isValidDate(key) && key >= from && key <= to) {
+                return sum + datum.values[volumeDef.index];
+            }
+            return sum;
+        }, 0);
     }
 
     private translateNode(
@@ -1039,7 +1086,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             annotationData,
             annotations,
             seriesRect,
-            ctx: { annotationManager, localeManager, toolbarManager },
+            ctx: { annotationManager, toolbarManager },
         } = this;
 
         const context = this.getAnnotationContext();
@@ -1060,7 +1107,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     return;
                 }
 
-                if ('setLocaleManager' in datum) datum.setLocaleManager(localeManager);
+                this.injectDatumDependencies(datum);
                 updateAnnotation(node, datum, context);
             });
 
@@ -1353,7 +1400,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.updateToolbarLineStyles(datum);
     }
 
-    updateToolbarLineStyles(datum?: AnnotationProperties) {
+    private updateToolbarLineStyles(datum?: AnnotationProperties) {
         if (!hasLineStyle(datum)) {
             return;
         }
