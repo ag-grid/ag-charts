@@ -147,15 +147,12 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
         this.toggleVisibilities();
 
+        const dragStates = InteractionState.Default | InteractionState.Annotations;
         const seriesRegion = ctx.regionManager.getRegion('series');
         this.destroyFns.push(
             ctx.interactionManager.addListener('hover', this.onHover.bind(this), InteractionState.All),
             ctx.interactionManager.addListener('leave', this.onLeave.bind(this), InteractionState.All),
-            seriesRegion.addListener(
-                'drag-start',
-                this.onStopPointerEvents.bind(this),
-                InteractionState.Default | InteractionState.Annotations
-            ),
+            seriesRegion.addListener('drag-start', this.onStopPointerEvents.bind(this), dragStates),
             seriesRegion.addListener('drag-end', this.onResumePointerEvents.bind(this), InteractionState.All),
             ctx.toolbarManager.addListener('button-toggled', this.onButtonToggled.bind(this)),
             ctx.toolbarManager.addListener('button-updated', this.onButtonUpdated.bind(this)),
