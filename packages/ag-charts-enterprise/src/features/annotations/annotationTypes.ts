@@ -27,6 +27,7 @@ export enum AnnotationType {
     DateRange = 'date-range',
     PriceRange = 'price-range',
     DatePriceRange = 'date-price-range',
+    QuickDatePriceRange = 'quick-date-price-range',
 }
 
 export type TextualAnnotationType =
@@ -46,16 +47,27 @@ export type ChannelAnnotationType = AnnotationType.DisjointChannel | AnnotationT
 export type MeasurerAnnotationType =
     | AnnotationType.DateRange
     | AnnotationType.PriceRange
-    | AnnotationType.DatePriceRange;
+    | AnnotationType.DatePriceRange
+    | AnnotationType.QuickDatePriceRange;
+
+export type EphemeralAnnotationType = AnnotationType.QuickDatePriceRange;
 
 export type HasColorAnnotationType = AnnotationType;
-export type HasLineStyleAnnotationType = LineAnnotationType | ChannelAnnotationType | MeasurerAnnotationType;
-export type HasLineTextAnnotationType = LineAnnotationType | ChannelAnnotationType | MeasurerAnnotationType;
-export type HasFontSizeAnnotationType =
+export type HasLineStyleAnnotationType = Exclude<
+    LineAnnotationType | ChannelAnnotationType | MeasurerAnnotationType,
+    EphemeralAnnotationType
+>;
+export type HasLineTextAnnotationType = Exclude<
+    LineAnnotationType | ChannelAnnotationType | MeasurerAnnotationType,
+    EphemeralAnnotationType
+>;
+export type HasFontSizeAnnotationType = Exclude<
     | Exclude<TextualAnnotationType, AnnotationType.Note>
     | LineAnnotationType
     | ChannelAnnotationType
-    | MeasurerAnnotationType;
+    | MeasurerAnnotationType,
+    EphemeralAnnotationType
+>;
 
 export const ANNOTATION_TYPES = Object.values(AnnotationType);
 export const ANNOTATION_BUTTONS = [

@@ -9,7 +9,12 @@ import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { StartEndScene } from '../scenes/startEndScene';
 import { WithBackgroundScene } from '../scenes/withBackgroundScene';
 import { convertLine } from '../utils/values';
-import { DateRangeProperties, type MeasurerTypeProperties, PriceRangeProperties } from './measurerProperties';
+import {
+    DateRangeProperties,
+    type MeasurerTypeProperties,
+    PriceRangeProperties,
+    QuickDatePriceRangeProperties,
+} from './measurerProperties';
 import { MeasurerStatisticsScene, type Statistics } from './measurerStatisticsScene';
 
 const { Vec2, Vec4 } = _ModuleSupport;
@@ -37,6 +42,8 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     public readonly background = new _Scene.Path({ zIndex: -1 });
     private readonly statistics = new MeasurerStatisticsScene();
+
+    protected verticalDirection?: 'up' | 'down';
 
     constructor() {
         super();
@@ -70,6 +77,8 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         const extended = this.extendPerpendicular(coords, datum, context);
         const verticalStart = { ...extended, y2: extended.y1 };
         const verticalEnd = { ...extended, y1: extended.y2 };
+
+        this.verticalDirection = coords.y1 < coords.y2 ? 'down' : 'up';
 
         this.updateVisibilities(datum);
         this.updateLines(datum, coords);
@@ -129,19 +138,11 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     private updateLines(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {
         const { horizontalLine, verticalLine } = this;
-        const { direction, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        const { direction } = datum;
         const { x1, y1, x2, y2 } = coords;
         const center = Vec4.center(coords);
 
-        const lineStyles = {
-            lineCap: datum.getLineCap(),
-            lineDash: datum.getLineDash(),
-            lineDashOffset,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            fillOpacity: 0,
-        };
+        const lineStyles = this.getLineStyles(datum);
 
         if (direction !== 'vertical') {
             horizontalLine.setProperties({
@@ -186,10 +187,12 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     private updateCaps(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {
         const { horizontalEndCap, verticalEndCap } = this;
-        const { direction, stroke, strokeWidth, strokeOpacity } = datum;
+        const { direction } = datum;
         const { x1, y1, x2, y2 } = coords;
 
         const center = Vec4.center(coords);
+
+        const { stroke, strokeWidth, strokeOpacity } = this.getLineStyles(datum);
         const capStyles = { stroke, strokeWidth, strokeOpacity };
 
         if (direction !== 'vertical') {
@@ -273,6 +276,27 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         return [startStart, startEnd, endEnd, endStart];
     }
 
+    protected getLineStyles(datum: MeasurerTypeProperties) {
+        const { lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        return {
+            lineCap: datum.getLineCap(),
+            lineDash: datum.getLineDash(),
+            lineDashOffset,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            fillOpacity: 0,
+        };
+    }
+
+    public getBackgroundStyles(datum: MeasurerTypeProperties) {
+        const { background } = datum;
+        return {
+            fill: background.fill,
+            fillOpacity: background.fillOpacity,
+        };
+    }
+
     override getHandleStyles(datum: MeasurerTypeProperties) {
         return {
             fill: datum.handle.fill,
@@ -340,5 +364,48 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     private getVolume() {
         return 0;
+    }
+}
+
+export class QuickMeasurerScene extends MeasurerScene {
+    static override is(value: unknown): value is QuickMeasurerScene {
+        return AnnotationScene.isCheck(value, 'quick-measurer');
+    }
+
+    override type = 'quick-measurer';
+
+    private getDirectionStyles(datum: QuickDatePriceRangeProperties) {
+        return this.verticalDirection === 'down' ? datum.down : datum.up;
+    }
+
+    override getLineStyles(datum: QuickDatePriceRangeProperties) {
+        const styles = this.getDirectionStyles(datum);
+
+        return {
+            ...super.getLineStyles(datum),
+            stroke: styles.stroke,
+            strokeWidth: styles.strokeWidth,
+            strokeOpacity: styles.strokeOpacity,
+        };
+    }
+
+    override getBackgroundStyles(datum: QuickDatePriceRangeProperties) {
+        const styles = this.getDirectionStyles(datum);
+
+        return {
+            fill: styles.fill,
+            fillOpacity: styles.fillOpacity,
+        };
+    }
+
+    override getHandleStyles(datum: QuickDatePriceRangeProperties) {
+        const styles = this.getDirectionStyles(datum);
+
+        return {
+            fill: styles.handle.fill,
+            stroke: styles.handle.stroke ?? styles.stroke,
+            strokeOpacity: styles.handle.strokeOpacity ?? styles.strokeOpacity,
+            strokeWidth: styles.handle.strokeWidth ?? styles.strokeWidth,
+        };
     }
 }

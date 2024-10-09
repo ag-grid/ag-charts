@@ -25,6 +25,7 @@ import type {
     DatePriceRangeProperties,
     DateRangeProperties,
     PriceRangeProperties,
+    QuickDatePriceRangeProperties,
 } from './measurer/measurerProperties';
 import type { MeasurerScene } from './measurer/measurerScene';
 import type { NoteProperties } from './note/noteProperties';
@@ -39,7 +40,11 @@ export type ShapePropertiesType = ArrowUpProperties | ArrowDownProperties;
 export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
 export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties | ArrowProperties;
 export type ChannelPropertiesType = ParallelChannelProperties | DisjointChannelProperties;
-export type MeasurerPropertiesType = DateRangeProperties | PriceRangeProperties | DatePriceRangeProperties;
+export type MeasurerPropertiesType =
+    | DateRangeProperties
+    | PriceRangeProperties
+    | DatePriceRangeProperties
+    | QuickDatePriceRangeProperties;
 
 export type AnnotationProperties =
     | LinePropertiesType
@@ -47,6 +52,8 @@ export type AnnotationProperties =
     | TextualPropertiesType
     | ShapePropertiesType
     | MeasurerPropertiesType;
+
+export type EphemeralPropertiesType = QuickDatePriceRangeProperties;
 
 export type AnnotationScene =
     // Lines
