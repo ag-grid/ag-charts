@@ -192,10 +192,14 @@ test.describe('toolbar', () => {
         await page.mouse.move(initX, initY);
         await page.mouse.click(initY, initY, { button: 'left' });
 
+        // FIXME: annotation dragging is broken unless the mouse moves after creating an annotation.
+        await page.mouse.move(0, 0);
+        await page.mouse.move(initX, initY);
+
         const bbox = await page.locator(SELECTORS.annotationOptionsSettingsButton).boundingBox();
         const [dragX, dragY] = [bbox.x + bbox.width / 2, bbox.y + bbox.height / 2];
         await page.mouse.down({ button: 'left' });
-        await page.mouse.move(dragX, dragY);
+        await page.mouse.move(dragX, dragY, { steps: 10 });
         await expect(page).toHaveScreenshot('settings-button-ignored-hover-event.png', { animations: 'disabled' });
     });
 });
