@@ -181,7 +181,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     return;
                 }
 
-                return this.translateNode({ node, datum, translation });
+                return this.translateNode(node, datum, translation);
             },
 
             copy: (index: number) => {
@@ -191,7 +191,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     return;
                 }
 
-                return this.createAnnotationDatumCopy({ node, datum });
+                return this.createAnnotationDatumCopy(node, datum);
             },
 
             paste: (datum: AnnotationProperties) => {
@@ -496,6 +496,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.removeAmbientKeyboardListener = undefined;
     }
 
+    /**
+     * Create an annotation scene within the `this.annotations` scene selection. This method is automatically called by
+     * the selection when a new scene is required.
+     */
     private createAnnotationScene(datum: AnnotationProperties) {
         if (datum.type in annotationConfigs) {
             return new annotationConfigs[datum.type].scene();
@@ -505,6 +509,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
+    /**
+     * Create an annotation datum within the `this.annotationData` properties array. It is created as an instance
+     * of `AnnotationProperties` from the given config for its type. This method is only called when annotations
+     * are added from the initial state.
+     */
     private createAnnotationDatum(params: { type: AnnotationType }) {
         if (params.type in annotationConfigs) {
             return new annotationConfigs[params.type].datum().set(params);
@@ -514,57 +523,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
-    private translateNode({
-        node,
-        datum,
-        translation,
-    }: {
-        node: AnnotationScene;
-        datum: AnnotationProperties;
-        translation: _ModuleSupport.Vec2;
-    }): AnnotationProperties | undefined {
-        const config = this.getAnnotationConfig(datum);
-
-        const context = this.getAnnotationContext();
-        if (!context) {
-            return;
-        }
-
-        config.translate(node, datum, translation, context);
-    }
-
-    private createAnnotationDatumCopy({
-        node,
-        datum,
-    }: {
-        node: AnnotationScene;
-        datum: AnnotationProperties;
-    }): AnnotationProperties | undefined {
-        const config = this.getAnnotationConfig(datum);
-
-        const newDatum = new config.datum();
-        newDatum.set(datum.toJson());
-
-        const context = this.getAnnotationContext();
-        if (!context) {
-            return;
-        }
-
-        return config.copy(node, datum, newDatum, context);
-    }
-
-    private getAnnotationConfig(datum: AnnotationProperties) {
-        const { type } = datum;
-
-        if (!(type in annotationConfigs)) {
-            throw new Error(
-                `AG Charts - Cannot set property of unknown type [${type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
-            );
-        }
-
-        return annotationConfigs[type];
-    }
-
+    /**
+     * Append an annotation datum to `this.annotationData`, applying default styles. This method is called when a user
+     * interacts with the chart to draw their own annotations.
+     */
     private createAnnotation(type: AnnotationType, datum: AnnotationProperties, applyDefaults: boolean = true) {
         this.annotationData.push(datum);
 
@@ -582,6 +544,47 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.removeAmbientKeyboardListener = undefined;
 
         this.update();
+    }
+
+    private translateNode(
+        node: AnnotationScene,
+        datum: AnnotationProperties,
+        translation: _ModuleSupport.Vec2
+    ): AnnotationProperties | undefined {
+        const config = this.getAnnotationConfig(datum);
+
+        const context = this.getAnnotationContext();
+        if (!context) {
+            return;
+        }
+
+        config.translate(node, datum, translation, context);
+    }
+
+    private createAnnotationDatumCopy(
+        node: AnnotationScene,
+        datum: AnnotationProperties
+    ): AnnotationProperties | undefined {
+        const config = this.getAnnotationConfig(datum);
+
+        const newDatum = new config.datum();
+        newDatum.set(datum.toJson());
+
+        const context = this.getAnnotationContext();
+        if (!context) {
+            return;
+        }
+
+        return config.copy(node, datum, newDatum, context);
+    }
+
+    private getAnnotationConfig(datum: AnnotationProperties) {
+        if (datum.type in annotationConfigs) {
+            return annotationConfigs[datum.type];
+        }
+        throw new Error(
+            `AG Charts - Cannot get annotation config of unknown type [${datum.type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
+        );
     }
 
     private onRestoreAnnotations(event: { annotations?: any }) {
