@@ -1,4 +1,6 @@
-export const IS_DARK_THEME = Symbol('is-dark-theme') as unknown as string;
+export const IS_DARK_THEME = Symbol('is-dark-theme') as unknown as boolean;
+export const IS_COMMUNITY = Symbol('is-community') as unknown as boolean;
+export const IS_ENTERPRISE = Symbol('is-enterprise') as unknown as boolean;
 export const DEFAULT_FONT_FAMILY = Symbol('default-font') as unknown as string;
 export const DEFAULT_LABEL_COLOUR = Symbol('default-label-colour') as unknown as string;
 export const DEFAULT_INVERTED_LABEL_COLOUR = Symbol('default-inverted-label-colour') as unknown as string;
