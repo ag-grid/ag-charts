@@ -110,7 +110,7 @@ export class SeriesAreaManager extends BaseManager {
         const verticalAxesRegion = chart.ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
         const mouseMoveStates =
             InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
-        const keyState = InteractionState.Default | InteractionState.Animation | InteractionState.AnnotationsSelected;
+        const keyState = InteractionState.Default | InteractionState.Animation;
 
         const labelEl = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label');
         this.ariaLabel = new SeriesAreaAriaLabel(labelEl, `${this.id}-aria-label`);

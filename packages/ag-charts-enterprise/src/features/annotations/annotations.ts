@@ -249,6 +249,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
 
             selectLast: () => {
+                this.ctx.interactionManager.pushState(InteractionState.AnnotationsSelected);
                 return this.annotationData.length - 1;
             },
 
@@ -1214,8 +1215,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.delete();
         this.reset();
         this.update();
-
-        this.ctx.focusIndicator.toggleForceInvisible(true);
     }
 
     private onTextInput(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {

@@ -10,8 +10,7 @@ export enum InteractionState {
     ContextMenu = 4,
     Animation = 2,
     AnnotationsSelected = 1,
-    AllButAnnotationsSelected = Default | ZoomDrag | Annotations | ContextMenu | Animation,
-    All = AllButAnnotationsSelected | AnnotationsSelected,
+    All = Default | ZoomDrag | Annotations | ContextMenu | Animation | AnnotationsSelected,
 }
 
 export abstract class InteractionStateListener<
