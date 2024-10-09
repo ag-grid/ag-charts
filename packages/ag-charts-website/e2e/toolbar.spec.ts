@@ -138,7 +138,6 @@ test.describe('toolbar', () => {
 
     test('AG-13008 delete annotation', async ({ page }) => {
         await gotoExample(page, url);
-        await locateCanvas(page);
         const point = await canvasToPageTransformer(page);
         const hover = point(200, 200);
         const leave = point(300, 400);
