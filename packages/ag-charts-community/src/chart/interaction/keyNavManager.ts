@@ -46,6 +46,7 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
         const annotationsStates = InteractionState.Annotations | InteractionState.AnnotationsSelected;
 
         this.destroyFns.push(
+            interactionManager.addListener('click', () => this.onClick(), mouseStates),
             interactionManager.addListener('hover', () => this.onMouse(), mouseStates),
             interactionManager.addListener('drag-start', () => this.onMouse(), mouseStates),
             interactionManager.addListener('blur', (e) => this.onBlur(e), InteractionState.All),
@@ -63,20 +64,27 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
         super.destroy();
     }
 
+    private onClick() {
+        this.focusIndicator.overrideFocusVisible(false);
+        this.previousInputDevice = 'mouse';
+    }
+
     private onMouse() {
         this.previousInputDevice = 'mouse';
     }
 
     private onBlur(event: FocusInteractionEvent<'blur'>) {
+        this.focusIndicator.overrideFocusVisible(undefined);
         this.dispatch('blur', 0, event);
     }
 
     private onFocus(event: FocusInteractionEvent<'focus'>) {
+        this.focusIndicator.overrideFocusVisible(undefined);
         this.dispatch('focus', 0, event);
     }
 
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
-        this.focusIndicator.toggleForceInvisible(false);
+        this.focusIndicator.overrideFocusVisible(true);
         const { code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
         if (altKey || shiftKey || metaKey || ctrlKey) return this.hideFocusIndicator();
         switch (code) {
