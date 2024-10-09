@@ -228,18 +228,16 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     // AG-12695 Temporarily set `pointer-events: none` on the annotationOptions when dragging, because the
     // buttons block to mouse from hovering over the canvas.
-    private oldPointerEvents: Map<HTMLButtonElement, string> = new Map();
+    private readonly oldPointerEvents: Map<HTMLButtonElement, string> = new Map();
     private onStopPointerEvents() {
         if (this.oldPointerEvents.size !== 0) throw new Error('AG Charts - unexpected drag-start event');
         this.groupButtons['annotationOptions'].forEach((b) => {
-            this.oldPointerEvents.set(b, b.style.getPropertyValue('pointer-events'));
-            b.style.setProperty('pointer-events', 'none');
+            this.oldPointerEvents.set(b, b.style.pointerEvents);
+            b.style.pointerEvents = 'none';
         });
     }
     private onResumePointerEvents() {
-        this.oldPointerEvents.forEach((oldPointerEvent, button) => {
-            button.style.setProperty('pointer-events', oldPointerEvent);
-        });
+        this.oldPointerEvents.forEach((oldPointerEvent, b) => (b.style.pointerEvents = oldPointerEvent));
         this.oldPointerEvents.clear();
     }
 
