@@ -7,6 +7,7 @@ import { BBox } from '../../scene/bbox';
 import { setAttribute, setAttributes } from '../../util/attributeUtil';
 import { createElement, getWindow } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
+import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, Validate } from '../../util/validation';
@@ -230,7 +231,10 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     // buttons block to mouse from hovering over the canvas.
     private readonly oldPointerEvents: Map<HTMLButtonElement, string> = new Map();
     private onStopPointerEvents() {
-        if (this.oldPointerEvents.size !== 0) throw new Error('AG Charts - unexpected drag-start event');
+        if (this.oldPointerEvents.size !== 0) {
+            Logger.errorOnce('unexpected drag-start event');
+            return;
+        }
         this.groupButtons['annotationOptions'].forEach((b) => {
             this.oldPointerEvents.set(b, b.style.pointerEvents);
             b.style.pointerEvents = 'none';
