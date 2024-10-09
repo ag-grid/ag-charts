@@ -1,4 +1,4 @@
-import { type Direction, type _ModuleSupport, _Util } from 'ag-charts-community';
+import { type Direction, _Scale, _Util } from 'ag-charts-community';
 
 import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
 
@@ -58,7 +58,7 @@ export function validateDatumPoint(context: AnnotationContext, point: Point, war
 
 export function validateDatumPointDirection(value: any, context: AnnotationAxisContext) {
     const domain = context.scaleDomain();
-    if (domain && context.continuous) {
+    if (domain && _Scale.OrdinalTimeScale.is(context.scale)) {
         return value >= domain[0] && value <= domain.at(-1);
     }
     return true; // domain.includes(value); // TODO: does not work with dates

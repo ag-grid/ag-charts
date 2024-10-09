@@ -1363,6 +1363,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { scale } = this;
         return {
             axisId: this.id,
+            scale: this.scale,
             direction: this.direction,
             continuous: ContinuousScale.is(scale) || OrdinalTimeScale.is(scale),
             keys: () => this.boundSeries.flatMap((s) => s.getKeys(this.direction)),

@@ -1,6 +1,7 @@
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { ChartAxisDirection } from '../chart/chartAxisDirection';
+import type { Scale } from '../scale/scale';
 import type { Node } from '../scene/node';
 
 export interface AxisContext {
@@ -8,6 +9,7 @@ export interface AxisContext {
     continuous: boolean;
     direction: ChartAxisDirection;
     position?: AgCartesianAxisPosition;
+    scale: Scale<any, any, any>;
     keys(): string[];
     seriesKeyProperties(): string[];
     scaleDomain(): any[] | undefined;
