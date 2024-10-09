@@ -104,7 +104,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            pickModes: [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
             directionKeys: {
                 x: ['xKey'],

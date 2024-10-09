@@ -20,7 +20,7 @@ import {
 
 const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, TextUtils, createDatumId, EMPTY_TOOLTIP_CONTENT } =
     _ModuleSupport;
-const { sanitizeHtml } = _Util;
+const { sanitizeHtml, Logger } = _Util;
 const { Rect, BBox } = _Scene;
 
 export interface SankeyNodeDataContext
@@ -213,7 +213,10 @@ export class SankeySeries extends FlowProportionSeries<
             sizeScale,
         });
 
+        let hasNegativeNodeHeight = false;
         nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }) => {
+            hasNegativeNodeHeight ||= node.height < 0;
+
             const bottom = node.y + node.height;
             const sortNodes = (l: typeof linksBefore) => {
                 return l.sort((a, b) => {
@@ -243,6 +246,13 @@ export class SankeySeries extends FlowProportionSeries<
                 y1 += link.size * seriesRectHeight * sizeScale;
             });
         });
+
+        if (hasNegativeNodeHeight) {
+            Logger.warnOnce(
+                'There was insufficient space to display the Sankey Series. Reduce the node spacing, or provide a larger container.'
+            );
+            return;
+        }
 
         const nodeData: SankeyDatum[] = [];
         const labelData: SankeyNodeLabelDatum[] = [];
@@ -418,8 +428,8 @@ export class SankeySeries extends FlowProportionSeries<
 
             rect.x = datum.x;
             rect.y = datum.y;
-            rect.width = datum.width;
-            rect.height = datum.height;
+            rect.width = Math.max(datum.width, 0);
+            rect.height = Math.max(datum.height, 0);
             rect.fill = highlightStyle?.fill ?? format?.fill ?? fill;
             rect.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
             rect.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke;

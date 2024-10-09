@@ -1,23 +1,26 @@
-import type { _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 import type { FillOptions } from 'ag-charts-types';
 
-import type { AnnotationContext, LineCoords } from '../annotationTypes';
+import type { AnnotationContext } from '../annotationTypes';
 import type { AnnotationScene } from './annotationScene';
+
+const { Vec4 } = _ModuleSupport;
 
 export class WithBackgroundScene {
     static updateBackground<Datum extends { background: FillOptions }>(
         this: AnnotationScene & {
             background: _Scene.Path;
+            getBackgroundStyles?(datum: Datum): FillOptions;
             getBackgroundPoints(
                 datum: Datum,
-                top: LineCoords,
-                bottom: LineCoords,
-                bounds: LineCoords
-            ): Array<_Util.Vec2>;
+                top: _ModuleSupport.Vec4,
+                bottom: _ModuleSupport.Vec4,
+                bounds: _ModuleSupport.Vec4
+            ): Array<_ModuleSupport.Vec2>;
         },
         datum: Datum,
-        top: LineCoords,
-        bottom: LineCoords,
+        top: _ModuleSupport.Vec4,
+        bottom: _ModuleSupport.Vec4,
         context: AnnotationContext
     ) {
         const { background } = this;
@@ -25,12 +28,7 @@ export class WithBackgroundScene {
 
         background.path.clear(true);
 
-        const bounds = {
-            x1: 0,
-            y1: 0,
-            x2: seriesRect.width,
-            y2: seriesRect.height,
-        };
+        const bounds = Vec4.from(0, 0, seriesRect.width, seriesRect.height);
 
         const points = this.getBackgroundPoints(datum, top, bottom, bounds);
         for (let i = 0; i < points.length; i++) {
@@ -44,9 +42,11 @@ export class WithBackgroundScene {
 
         background.path.closePath();
         background.checkPathDirty();
+
+        const backgroundStyles = this.getBackgroundStyles?.(datum) ?? datum.background;
         background.setProperties({
-            fill: datum.background.fill,
-            fillOpacity: datum.background.fillOpacity,
+            fill: backgroundStyles.fill,
+            fillOpacity: backgroundStyles.fillOpacity,
         });
     }
 }

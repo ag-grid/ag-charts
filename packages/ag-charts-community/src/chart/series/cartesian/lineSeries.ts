@@ -71,6 +71,10 @@ export class LineSeries extends CartesianSeries<
 
     override properties = new LineSeriesProperties();
 
+    override get pickModeAxis() {
+        return 'main-category' as const;
+    }
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
@@ -78,7 +82,7 @@ export class LineSeries extends CartesianSeries<
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             hasMarkers: true,
             pickModes: [
-                SeriesNodePickMode.NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
+                SeriesNodePickMode.AXIS_ALIGNED,
                 SeriesNodePickMode.NEAREST_NODE,
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],

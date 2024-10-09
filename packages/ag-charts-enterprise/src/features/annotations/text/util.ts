@@ -50,7 +50,7 @@ export function measureAnnotationText(options: TextOptions, text: string) {
 export function getBBox(
     options: TextOptions & { width?: number },
     text: string,
-    coords: _Util.Vec2,
+    coords: _ModuleSupport.Vec2,
     bbox?: _Scene.BBox
 ) {
     let width = bbox?.width ?? 0;
@@ -69,7 +69,7 @@ export function updateTextNode(
     text: string,
     isPlaceholder: boolean,
     config: TextOptions & { visible?: boolean; color?: string; getPlaceholderColor: () => string | undefined },
-    { x, y }: _Util.Vec2
+    { x, y }: _ModuleSupport.Vec2
 ) {
     const { visible = true, fontFamily, fontSize = 14, fontStyle, fontWeight, textAlign } = config;
     const lineHeight = fontSize * ANNOTATION_TEXT_LINE_HEIGHT;

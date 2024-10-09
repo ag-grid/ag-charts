@@ -25,6 +25,14 @@ export interface Vec2 {
     y: number;
 }
 
+// Avoiding circular deps, placing elsewhere causes issues of clashing Vec4.fn() naming
+interface Vec4 {
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+}
+
 /**
  * Add the components of the vectors `a` and `b`.
  */
@@ -185,14 +193,14 @@ function from(bbox: { x: number; y: number; width: number; height: number }): [V
 /**
  * Create a pair of vectors from a line or box containing a pair of coordinates.
  */
-function from(pair: { x1: number; y1: number; x2: number; y2: number }): [Vec2, Vec2];
+function from(vec4: Vec4): [Vec2, Vec2];
 function from(
     a:
         | number
         | { offsetWidth: number; offsetHeight: number }
         | { regionOffsetX: number; regionOffsetY: number }
         | { x: number; y: number; width: number; height: number }
-        | { x1: number; y1: number; x2: number; y2: number },
+        | Vec4,
     b?: number
 ): Vec2 | [Vec2, Vec2] {
     if (typeof a === 'number') {

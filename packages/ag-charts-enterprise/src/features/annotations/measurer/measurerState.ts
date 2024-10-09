@@ -2,7 +2,12 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { GuardDragClickDoubleEvent, Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext, MeasurerPropertiesType } from '../annotationsSuperTypes';
-import { DatePriceRangeProperties, DateRangeProperties, PriceRangeProperties } from './measurerProperties';
+import {
+    DatePriceRangeProperties,
+    DateRangeProperties,
+    PriceRangeProperties,
+    QuickDatePriceRangeProperties,
+} from './measurerProperties';
 import type { MeasurerScene } from './measurerScene';
 
 const { StateMachine } = _ModuleSupport;
@@ -37,7 +42,7 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
             const datum = ctx.datum();
             datum?.set({ end: point() });
 
-            ctx.node()?.toggleActive(true); // TODO: move to onEnter, but node doesn't exist until next render
+            ctx.node()?.toggleActive(true);
             ctx.node()?.toggleHandles({ end: false });
             ctx.update();
         };
@@ -105,5 +110,11 @@ export class PriceRangeStateMachine extends MeasurerTypeStateMachine<PriceRangeP
 export class DatePriceRangeStateMachine extends MeasurerTypeStateMachine<DatePriceRangeProperties> {
     override createDatum() {
         return new DatePriceRangeProperties();
+    }
+}
+
+export class QuickDatePriceRangeStateMachine extends MeasurerTypeStateMachine<QuickDatePriceRangeProperties> {
+    override createDatum() {
+        return new QuickDatePriceRangeProperties();
     }
 }

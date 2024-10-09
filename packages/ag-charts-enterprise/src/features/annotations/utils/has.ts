@@ -3,15 +3,17 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type {
     AnnotationProperties,
     ChannelPropertiesType,
+    EphemeralPropertiesType,
     LinePropertiesType,
     MeasurerPropertiesType,
     TextualPropertiesType,
 } from '../annotationsSuperTypes';
 import { CalloutProperties } from '../callout/calloutProperties';
 import { CommentProperties } from '../comment/commentProperties';
+import { QuickDatePriceRangeProperties } from '../measurer/measurerProperties';
 import { NoteProperties } from '../note/noteProperties';
 import { ShapePointProperties } from '../properties/shapePointProperties';
-import { isChannelType, isLineType, isMeasurerType, isTextType } from './types';
+import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './types';
 
 const { isObject } = _ModuleSupport;
 
@@ -21,8 +23,10 @@ export function hasFontSize(datum?: AnnotationProperties): datum is Exclude<Text
 
 export function hasLineStyle(
     datum?: AnnotationProperties
-): datum is LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType {
-    return isLineType(datum) || isChannelType(datum) || isMeasurerType(datum);
+): datum is Exclude<LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType, EphemeralPropertiesType> {
+    return (
+        isLineType(datum) || isChannelType(datum) || (isMeasurerType(datum) && !QuickDatePriceRangeProperties.is(datum))
+    );
 }
 
 export function hasLineColor(datum?: AnnotationProperties) {
@@ -53,6 +57,12 @@ export function hasTextColor(datum?: AnnotationProperties) {
     return isTextType(datum) && !NoteProperties.is(datum);
 }
 
-export function hasLineText(datum?: AnnotationProperties): datum is LinePropertiesType | ChannelPropertiesType {
-    return (isLineType(datum) || isChannelType(datum) || isMeasurerType(datum)) && isObject(datum.text);
+export function hasLineText(
+    datum?: AnnotationProperties
+): datum is Exclude<LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType, EphemeralPropertiesType> {
+    return (
+        (isLineType(datum) || isChannelType(datum) || isMeasurerType(datum)) &&
+        !isEphemeralType(datum) &&
+        isObject(datum.text)
+    );
 }

@@ -16,19 +16,26 @@ import {
     LINE_DASH,
     NUMBER,
     OBJECT,
+    OR,
     PLACEMENT,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    UNION,
     Validate,
 } from '../../../util/validation';
 import { Label } from '../../label';
 import { SeriesTooltip } from '../seriesTooltip';
 import { AbstractBarSeriesProperties } from './abstractBarSeries';
 
+const BAR_LABEL_PLACEMENT = UNION(['inside-start', 'inside-end', 'outside-start', 'outside-end'], 'a placement');
+
 class BarSeriesLabel extends Label<AgBarSeriesLabelFormatterParams> {
-    @Validate(PLACEMENT)
+    @Validate(OR(BAR_LABEL_PLACEMENT, PLACEMENT))
     placement: AgBarSeriesLabelPlacement = 'inside';
+
+    @Validate(NUMBER)
+    spacing: number = 0;
 }
 
 export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeriesOptions> {
@@ -91,4 +98,7 @@ export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeries
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgBarSeriesTooltipRendererParams>();
+
+    @Validate(BOOLEAN)
+    sparklineMode: boolean = false;
 }

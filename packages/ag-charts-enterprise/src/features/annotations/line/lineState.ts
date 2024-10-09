@@ -54,7 +54,7 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
         const onExitEnd = () => {
             ctx.guardDragClickDoubleEvent.reset();
             ctx.showAnnotationOptions();
-            ctx.recordAction(`Create ${ctx.node()?.type} annotation`);
+            ctx.recordAction(`Create ${ctx.datum()?.type} annotation`);
         };
 
         super('start', {

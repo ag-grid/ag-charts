@@ -135,7 +135,7 @@ export class ContextMenuRegistry {
         this.disabledActions.add(actionId);
     }
 
-    public setActionVisiblity(actionId: string, visible: boolean) {
+    public setActionVisibility(actionId: string, visible: boolean) {
         if (visible) {
             this.hiddenActions.delete(actionId);
         } else {

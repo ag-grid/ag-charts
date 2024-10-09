@@ -159,7 +159,9 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Text for the annotation toolbar's price range button
     toolbarAnnotationsPriceRange: 'Price Range',
     // Text for the annotation toolbar's date and price range button
-    toolbarAnnotationsDatePRiceRange: 'Date and Price',
+    toolbarAnnotationsDatePriceRange: 'Date and Price',
+    // Text for the annotation toolbar's quick date and price range button
+    toolbarAnnotationsQuickDatePriceRange: 'Measure',
     // Text for the range toolbar's 1 month button
     toolbarRange1Month: '1M',
     // Aria label for the range toolbar's 1 month button

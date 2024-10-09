@@ -1,20 +1,19 @@
-import { _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { ChannelTextProperties, LineTextProperties } from '../annotationProperties';
-import type { LineCoords } from '../annotationTypes';
 import type { AnnotationScene } from './annotationScene';
 import type { CollidableLine } from './collidableLineScene';
 import { CollidableText } from './collidableTextScene';
 import { DivariantHandle } from './handle';
 
-const { Vec2 } = _Util;
+const { Vec2 } = _ModuleSupport;
 
 interface Numbers {
-    left: _Util.Vec2;
-    right: _Util.Vec2;
-    inset: _Util.Vec2;
-    offset: _Util.Vec2;
-    normal: _Util.Vec2;
+    left: _ModuleSupport.Vec2;
+    right: _ModuleSupport.Vec2;
+    inset: _ModuleSupport.Vec2;
+    offset: _ModuleSupport.Vec2;
+    normal: _ModuleSupport.Vec2;
     angle: number;
 }
 
@@ -23,7 +22,7 @@ export class LineWithTextScene {
         this: AnnotationScene & { text?: CollidableText },
         line: CollidableLine,
         datum: Datum,
-        coords: LineCoords
+        coords: _ModuleSupport.Vec4
     ) {
         if (!datum.text?.label && this.text) {
             this.removeChild(this.text);
@@ -61,8 +60,8 @@ export class LineWithTextScene {
         this: AnnotationScene & { text?: _Scene.TransformableText },
         offsetInsideTextLabel: boolean,
         datum: Datum,
-        top: LineCoords,
-        bottom: LineCoords
+        top: _ModuleSupport.Vec4,
+        bottom: _ModuleSupport.Vec4
     ) {
         if (!datum.text?.label && this.text) {
             this.removeChild(this.text);
@@ -102,7 +101,7 @@ export class LineWithTextScene {
         LineWithTextScene.setProperties(this.text, datum.text, point, numbers.angle, textBaseline);
     }
 
-    static getNumbers(coords: LineCoords, fontSize?: number, strokeWidth?: number): Numbers {
+    static getNumbers(coords: _ModuleSupport.Vec4, fontSize?: number, strokeWidth?: number): Numbers {
         let [left, right] = Vec2.from(coords);
         if (left.x > right.x) [left, right] = [right, left];
 
@@ -124,7 +123,7 @@ export class LineWithTextScene {
         alignment?: 'left' | 'center' | 'right',
         offsetInsideTextLabel?: boolean
     ) {
-        let point: _Util.Vec2;
+        let point: _ModuleSupport.Vec2;
         if (alignment === 'right') {
             point = Vec2.sub(right, inset);
         } else if (alignment === 'center') {
@@ -149,7 +148,7 @@ export class LineWithTextScene {
     static setProperties(
         scene: _Scene.TransformableText,
         datum: LineTextProperties | ChannelTextProperties,
-        point: _Util.Vec2,
+        point: _ModuleSupport.Vec2,
         angle: number,
         textBaseline: CanvasTextBaseline
     ) {

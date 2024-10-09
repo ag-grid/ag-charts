@@ -4,7 +4,6 @@ import type {
     AnnotationContext,
     AnnotationType,
     Constructor,
-    Coords,
     GuardDragClickDoubleEvent,
     Point,
 } from './annotationTypes';
@@ -26,6 +25,7 @@ import type {
     DatePriceRangeProperties,
     DateRangeProperties,
     PriceRangeProperties,
+    QuickDatePriceRangeProperties,
 } from './measurer/measurerProperties';
 import type { MeasurerScene } from './measurer/measurerScene';
 import type { NoteProperties } from './note/noteProperties';
@@ -40,7 +40,11 @@ export type ShapePropertiesType = ArrowUpProperties | ArrowDownProperties;
 export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
 export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties | ArrowProperties;
 export type ChannelPropertiesType = ParallelChannelProperties | DisjointChannelProperties;
-export type MeasurerPropertiesType = DateRangeProperties | PriceRangeProperties | DatePriceRangeProperties;
+export type MeasurerPropertiesType =
+    | DateRangeProperties
+    | PriceRangeProperties
+    | DatePriceRangeProperties
+    | QuickDatePriceRangeProperties;
 
 export type AnnotationProperties =
     | LinePropertiesType
@@ -48,6 +52,8 @@ export type AnnotationProperties =
     | TextualPropertiesType
     | ShapePropertiesType
     | MeasurerPropertiesType;
+
+export type EphemeralPropertiesType = QuickDatePriceRangeProperties;
 
 export type AnnotationScene =
     // Lines
@@ -73,14 +79,15 @@ export type AnnotationScene =
 
 export interface AnnotationsStateMachineContext {
     resetToIdle: () => void;
-    hoverAtCoords: (coords: _Util.Vec2, active?: number) => number | undefined;
+    hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number) => number | undefined;
+    getNodeAtCoords: (coords: _ModuleSupport.Vec2, active: number) => string | undefined;
     select: (index?: number, previous?: number) => void;
     selectLast: () => number;
 
     startInteracting: () => void;
     stopInteracting: () => void;
 
-    translate: (index: number, translation: Coords) => void;
+    translate: (index: number, translation: _ModuleSupport.Vec2) => void;
     copy: (index: number) => AnnotationProperties | undefined;
     paste: (datum: AnnotationProperties) => void;
     create: (type: AnnotationType, datum: AnnotationProperties) => void;
@@ -100,7 +107,7 @@ export interface AnnotationsStateMachineContext {
     updateTextInputBBox: (bbox?: _Scene.BBox) => void;
 
     showAnnotationOptions: (index: number) => void;
-    showAnnotationSettings: (index: number, sourceEvent?: Event) => void;
+    showAnnotationSettings: (index: number, sourceEvent?: Event, initialTab?: 'line' | 'text') => void;
 
     recordAction: (label: string) => void;
     addPostUpdateFns: (...fns: (() => void)[]) => void;
@@ -117,7 +124,7 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
     translate: (
         node: AnnotationSceneNode,
         datum: _ModuleSupport.BaseProperties,
-        translation: Coords,
+        translation: _ModuleSupport.Vec2,
         context: AnnotationContext
     ) => void;
     copy: (

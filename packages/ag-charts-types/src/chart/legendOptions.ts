@@ -71,6 +71,8 @@ export interface AgChartLegendEvent<T extends string> {
     itemId: string;
     /** Whether the legend item is currently enabled or not. */
     enabled: boolean;
+    /** The browser event that triggered the legend event. */
+    event: Event;
 }
 
 export interface AgChartLegendClickEvent extends AgChartLegendEvent<'click'> {

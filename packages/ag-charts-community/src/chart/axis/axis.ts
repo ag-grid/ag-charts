@@ -18,7 +18,7 @@ import { Matrix } from '../../scene/matrix';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
-import { RotatableText, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
+import { type TextSizeProperties, TransformableText } from '../../scene/shape/text';
 import { Translatable } from '../../scene/transformable';
 import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
@@ -1196,22 +1196,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             range: number[];
         }
     ) {
+        const getDatumId = (datum: { tickId: string }) => datum.tickId;
+        const labelsData = data.map((d) => this.getTickLabelProps(d, params));
+
         this.lineNode.datum = lineData;
-        this.gridLineGroupSelection.update(
-            this.gridLength ? data : [],
-            (group) => group.append(new Line()),
-            (datum: TickDatum) => datum.tickId
-        );
-        this.tickLineGroupSelection.update(
-            data,
-            (group) => group.appendChild(new Line()),
-            (datum: TickDatum) => datum.tickId
-        );
-        this.tickLabelGroupSelection.update(
-            data.map((d) => this.getTickLabelProps(d, params)),
-            (group) => group.appendChild(new RotatableText()),
-            (datum) => datum.tickId
-        );
+        this.gridLineGroupSelection.update(this.gridLength ? data : [], undefined, getDatumId);
+        this.tickLineGroupSelection.update(data, undefined, getDatumId);
+        this.tickLabelGroupSelection.update(labelsData, undefined, getDatumId);
     }
 
     private updateAxisLine() {

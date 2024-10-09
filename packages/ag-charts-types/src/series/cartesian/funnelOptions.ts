@@ -50,11 +50,7 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = any>
     spacingRatio?: Ratio;
     /** Configuration for drop-offs between adjacent bars. */
     dropOff?: AgFunnelSeriesDropOff;
-    /**
-     * Bar rendering direction.
-     *
-     * __Note:__ This option affects the layout direction of X and Y data values.
-     */
+    /** Bar rendering direction. */
     direction?: 'horizontal' | 'vertical';
     /** Align bars to whole pixel values to remove anti-aliasing. */
     crisp?: boolean;
@@ -71,20 +67,13 @@ export interface AgFunnelSeriesThemeableOptions<TDatum = any>
 }
 
 export interface AgFunnelSeriesOptionsKeys {
-    /** The key to use to retrieve x-values from the data. */
-    xKey: string;
-    /** The key to use to retrieve y-values from the data. */
-    yKey: string;
+    /** The key to use to retrieve stage values from the data. */
+    stageKey: string;
+    /** The key to use to retrieve values from the data. */
+    valueKey: string;
 }
 
-export interface AgFunnelSeriesOptionsNames {
-    /** A human-readable description of the x-values. If supplied, this will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    xName?: string;
-    /** Human-readable description of the y-values. If supplied, a corresponding `yName` will be shown in the default tooltip and passed to the tooltip renderer as one of the parameters. */
-    yName?: string;
-    /** Human-readable description of the y-values. If supplied, matching items with the same value will be toggled together. */
-    legendItemName?: string;
-}
+export interface AgFunnelSeriesOptionsNames {}
 
 export interface AgFunnelSeriesOptions<TDatum = any>
     extends AgBaseSeriesOptions<TDatum>,

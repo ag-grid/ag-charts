@@ -1,6 +1,6 @@
-import { type _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type { AnnotationContext, LineCoords } from '../annotationTypes';
+import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ArrowCapScene, type CapScene } from '../scenes/capScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
@@ -11,7 +11,7 @@ import { StartEndScene } from '../scenes/startEndScene';
 import { convertLine } from '../utils/values';
 import type { LineTypeProperties } from './lineProperties';
 
-const { Vec2 } = _Util;
+const { Vec2, Vec4 } = _ModuleSupport;
 
 export class LineScene extends StartEndScene<LineTypeProperties> {
     static override is(value: unknown): value is LineScene {
@@ -48,28 +48,28 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         this.updateAnchor(datum, coords, context);
     }
 
-    private updateLine(datum: LineTypeProperties, coords: LineCoords, context: AnnotationContext) {
+    private updateLine(datum: LineTypeProperties, coords: _ModuleSupport.Vec4, context: AnnotationContext) {
         const { line } = this;
         const { lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
         const linePoints = this.extendLine(coords, datum, context);
 
         line.setProperties({
             ...linePoints,
+            lineCap: datum.getLineCap(),
             lineDash: datum.getLineDash(),
             lineDashOffset,
             stroke,
             strokeWidth,
             strokeOpacity,
             fillOpacity: 0,
-            lineCap: datum.getLineCap(),
         });
     }
 
-    private updateText(datum: LineTypeProperties, coords: LineCoords) {
+    private updateText(datum: LineTypeProperties, coords: _ModuleSupport.Vec4) {
         LineWithTextScene.updateLineText.call(this, this.line, datum, coords);
     }
 
-    private updateCaps(datum: LineTypeProperties, coords: LineCoords) {
+    private updateCaps(datum: LineTypeProperties, coords: _ModuleSupport.Vec4) {
         if (!datum.startCap && this.startCap) {
             this.removeChild(this.startCap);
             this.startCap = undefined;
@@ -131,18 +131,12 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
     override updateAnchor(
         _datum: LineTypeProperties,
-        coords: LineCoords,
+        coords: _ModuleSupport.Vec4,
         _context: AnnotationContext,
         _bbox?: _Scene.BBox
     ) {
-        const { x, y } = _Scene.Transformable.toCanvasPoint(
-            this.line,
-            (coords.x1 + coords.x2) / 2,
-            Math.min(coords.y1, coords.y2)
-        );
-
-        this.anchor.x = x;
-        this.anchor.y = y;
+        const point = Vec4.topCenter(coords);
+        Vec2.apply(this.anchor, _Scene.Transformable.toCanvasPoint(this.line, point.x, point.y));
     }
 
     override containsPoint(x: number, y: number) {
@@ -150,12 +144,20 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         return super.containsPoint(x, y) || line.isPointInPath(x, y) || Boolean(text?.containsPoint(x, y));
     }
 
+    public override getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.text?.containsPoint(x, y)) return 'text';
+
+        if (this.line.isPointInPath(x, y)) return 'line';
+
+        return super.getNodeAtCoords(x, y);
+    }
+
     protected override getHandleCoords(
         _datum: LineTypeProperties,
-        coords: LineCoords,
+        coords: _ModuleSupport.Vec4,
         handle: 'start' | 'end',
         _bbox?: _Scene.BBox | undefined
-    ): _Util.Vec2 {
+    ): _ModuleSupport.Vec2 {
         const { startCap, endCap } = this;
 
         let [startPoint, endPoint] = Vec2.from(coords);

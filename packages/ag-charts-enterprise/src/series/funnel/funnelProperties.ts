@@ -67,16 +67,10 @@ export class FunnelProperties
     implements BaseFunnelProperties<AgFunnelSeriesOptions>
 {
     @Validate(STRING)
-    xKey!: string;
+    stageKey!: string;
 
     @Validate(STRING)
-    yKey!: string;
-
-    @Validate(STRING, { optional: true })
-    xName: string | undefined;
-
-    @Validate(STRING, { optional: true })
-    yName: string | undefined;
+    valueKey!: string;
 
     @Validate(COLOR_STRING_ARRAY)
     fills: string[] = [];

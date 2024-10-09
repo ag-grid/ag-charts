@@ -187,6 +187,25 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 text: { ...lineText },
                 statistics: { ...measurerStatistics },
             },
+            'quick-date-price-range': {
+                up: {
+                    ...stroke,
+                    fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
+                    fillOpacity: 0.2,
+                    handle: { ...handle },
+                },
+                down: {
+                    ...stroke,
+                    stroke: _Theme.PALETTE_DOWN_STROKE,
+                    fill: _Theme.PALETTE_DOWN_FILL,
+                    fillOpacity: 0.2,
+                    handle: {
+                        ...handle,
+                        stroke: _Theme.PALETTE_DOWN_STROKE,
+                    },
+                },
+                statistics: { ...measurerStatistics },
+            },
         },
     },
 };

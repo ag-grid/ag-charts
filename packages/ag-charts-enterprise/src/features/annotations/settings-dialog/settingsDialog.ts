@@ -9,12 +9,18 @@ import {
     type LineTextPosition,
 } from '../annotationTypes';
 import { LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
-import type { ChannelPropertiesType, LinePropertiesType, MeasurerPropertiesType } from '../annotationsSuperTypes';
+import type {
+    ChannelPropertiesType,
+    EphemeralPropertiesType,
+    LinePropertiesType,
+    MeasurerPropertiesType,
+} from '../annotationsSuperTypes';
 import { isChannelType } from '../utils/types';
 
 const { focusCursorAtEnd } = _ModuleSupport;
 
 export interface LinearSettingsDialogOptions extends DialogOptions {
+    initialSelectedTab: 'line' | 'text';
     onChangeLine: (props: LinearSettingsDialogLineChangeProps) => void;
     onChangeText: (props: LinearSettingsDialogTextChangeProps) => void;
     onChangeLineColor: Required<ColorPickerOptions>['onChange'];
@@ -41,15 +47,17 @@ export interface LinearSettingsDialogTextChangeProps {
     label?: string;
 }
 
+type LinearDialogPropertiesType = Exclude<
+    LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType,
+    EphemeralPropertiesType
+>;
+
 export class AnnotationSettingsDialog extends Dialog {
     constructor(ctx: _ModuleSupport.ModuleContext) {
         super(ctx, 'settings');
     }
 
-    show(
-        datum: LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType,
-        options: LinearSettingsDialogOptions
-    ) {
+    show(datum: LinearDialogPropertiesType, options: LinearSettingsDialogOptions) {
         const lineTab = this.createLinearLineTab(datum, options);
         const textTab = this.createLinearTextTab(datum, options);
 
@@ -64,7 +72,7 @@ export class AnnotationSettingsDialog extends Dialog {
             lineLabel = 'dialogHeaderDatePriceRange';
         }
 
-        const tabs = this.createTabs('ariaLabelSettingsTabBar', 'line', {
+        const tabs = this.createTabs('ariaLabelSettingsTabBar', options.initialSelectedTab, {
             line: {
                 label: lineLabel,
                 panel: lineTab,
@@ -147,10 +155,7 @@ export class AnnotationSettingsDialog extends Dialog {
         return panel;
     }
 
-    private createLinearTextTab(
-        datum: LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType,
-        options: LinearSettingsDialogOptions
-    ) {
+    private createLinearTextTab(datum: LinearDialogPropertiesType, options: LinearSettingsDialogOptions) {
         const panel = this.createTabPanel();
 
         const textArea = this.createTextArea({

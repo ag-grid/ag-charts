@@ -11,10 +11,8 @@ interface FunnelSeriesLabel extends _Scene.Label<AgFunnelSeriesLabelFormatterPar
 
 export interface BaseFunnelProperties<SeriesOptions extends object>
     extends _ModuleSupport.AbstractBarSeriesProperties<SeriesOptions> {
-    xKey: string;
-    yKey: string;
-    xName: string | undefined;
-    yName: string | undefined;
+    stageKey: string;
+    valueKey: string;
     fills: string[];
     strokes: string[];
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;

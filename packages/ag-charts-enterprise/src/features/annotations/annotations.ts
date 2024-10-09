@@ -16,7 +16,6 @@ import { AnnotationDefaults } from './annotationDefaults';
 import type {
     AnnotationContext,
     AnnotationOptionsColorPickerType,
-    Coords,
     HasFontSizeAnnotationType,
     HasLineStyleAnnotationType,
     Point,
@@ -46,7 +45,7 @@ import { calculateAxisLabelPadding } from './utils/axis';
 import { snapToAngle } from './utils/coords';
 import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
-import { isChannelType, isLineType, isMeasurerType, isTextType } from './utils/types';
+import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { convertPoint, invertCoords } from './utils/values';
@@ -61,8 +60,8 @@ const {
     Validate,
     REGIONS,
     ChartAxisDirection,
+    Vec2,
 } = _ModuleSupport;
-const { Vec2 } = _Util;
 
 type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
 
@@ -142,12 +141,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
                 ctx.tooltipManager.unsuppressTooltip('annotations');
                 this.hideOverlays();
+                this.deleteEphemeralAnnotations();
                 this.resetToolbarButtonStates();
                 this.toggleAnnotationOptionsButtons();
                 this.update();
             },
 
-            hoverAtCoords: (coords: Coords, active?: number) => {
+            hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number) => {
                 let hovered;
 
                 this.annotations.each((annotation, _, index) => {
@@ -164,7 +164,17 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 return hovered;
             },
 
-            translate: (index: number, translation: Coords) => {
+            getNodeAtCoords: (coords: _ModuleSupport.Vec2, active: number) => {
+                const node = this.annotations.at(active);
+
+                if (!node) {
+                    return;
+                }
+
+                return node.getNodeAtCoords(coords.x, coords.y);
+            },
+
+            translate: (index: number, translation: _ModuleSupport.Vec2) => {
                 const node = this.annotations.at(index);
                 const datum = getTypedDatum(this.annotationData.at(index));
                 if (!node || !datum) {
@@ -234,6 +244,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
                 toolbarManager.updateButton('annotations', 'shape-menu', { icon: undefined });
 
+                this.deleteEphemeralAnnotations();
                 this.update();
             },
 
@@ -355,19 +366,21 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             showAnnotationOptions: (active: number) => {
                 const node = this.annotations.at(active);
-                if (!node) return;
+                if (!node || isEphemeralType(this.annotationData.at(active))) return;
 
                 this.toggleAnnotationOptionsButtons();
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
                 ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
             },
 
-            showAnnotationSettings: (active: number, sourceEvent?: Event) => {
+            showAnnotationSettings: (active: number, sourceEvent?: Event, initialTab: 'line' | 'text' = 'line') => {
                 const datum = this.annotationData.at(active);
 
                 if (!isLineType(datum) && !isChannelType(datum) && !isMeasurerType(datum)) return;
+                if (isEphemeralType(datum)) return;
 
                 const options: LinearSettingsDialogOptions = {
+                    initialSelectedTab: initialTab,
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
                     sourceEvent,
                     onChangeLine: (props) => {
@@ -508,7 +521,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }: {
         node: AnnotationScene;
         datum: AnnotationProperties;
-        translation: Coords;
+        translation: _ModuleSupport.Vec2;
     }): AnnotationProperties | undefined {
         const config = this.getAnnotationConfig(datum);
 
@@ -1023,7 +1036,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             annotationData,
             annotations,
             seriesRect,
-            ctx: { annotationManager, toolbarManager },
+            ctx: { annotationManager, localeManager, toolbarManager },
         } = this;
 
         const context = this.getAnnotationContext();
@@ -1044,7 +1057,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     return;
                 }
 
-                if ('setLocaleManager' in datum) datum.setLocaleManager(this.ctx.localeManager);
+                if ('setLocaleManager' in datum) datum.setLocaleManager(localeManager);
                 updateAnnotation(node, datum, context);
             });
 
@@ -1116,16 +1129,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('click', { offset, point, textInputValue, bbox });
     }
 
-    private onDoubleClick() {
+    private onDoubleClick(event: _ModuleSupport.RegionEvent<'dblclick'>) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        state.transition('dblclick');
+        const offset = Vec2.from(event);
+
+        state.transition('dblclick', { offset });
     }
 
-    private onAxisButtonClick(coords?: Coords, direction?: Direction) {
+    private onAxisButtonClick(coords?: _ModuleSupport.Vec2, direction?: Direction) {
         this.cancel();
         this.reset();
 
@@ -1373,6 +1388,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private deleteAll() {
         this.state.transition('deleteAll');
+    }
+
+    private deleteEphemeralAnnotations() {
+        for (const [index, datum] of this.annotationData.entries()) {
+            if (isEphemeralType(datum)) {
+                this.annotationData.splice(index, 1);
+            }
+        }
     }
 
     private hideOverlays() {

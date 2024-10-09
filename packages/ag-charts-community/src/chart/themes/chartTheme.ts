@@ -10,6 +10,7 @@ import type {
 } from 'ag-charts-types';
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
+import { enterpriseModule } from '../../module/enterpriseModule';
 import { deepClone, jsonWalk } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import { isArray } from '../../util/type-guards';
@@ -48,7 +49,9 @@ import {
     DEFAULT_TEXTBOX_STROKE,
     DEFAULT_TEXT_ANNOTATION_COLOR,
     DEFAULT_TOOLBAR_POSITION,
+    IS_COMMUNITY,
     IS_DARK_THEME,
+    IS_ENTERPRISE,
     PALETTE_ALT_DOWN_FILL,
     PALETTE_ALT_DOWN_STROKE,
     PALETTE_ALT_NEUTRAL_FILL,
@@ -423,8 +426,12 @@ export class ChartTheme {
     }
 
     getTemplateParameters() {
+        const { isEnterprise } = enterpriseModule;
+
         const params = new Map();
         params.set(IS_DARK_THEME, false);
+        params.set(IS_ENTERPRISE, isEnterprise);
+        params.set(IS_COMMUNITY, !isEnterprise);
         params.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');
         params.set(DEFAULT_LABEL_COLOUR, 'rgb(70, 70, 70)');
         params.set(DEFAULT_INVERTED_LABEL_COLOUR, 'white');

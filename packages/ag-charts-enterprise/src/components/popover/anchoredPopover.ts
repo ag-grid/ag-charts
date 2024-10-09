@@ -5,8 +5,8 @@ import { Popover, type PopoverOptions } from './popover';
 const { clamp } = _Util;
 
 export interface AnchoredPopoverOptions extends PopoverOptions {
-    anchor?: _Util.Vec2;
-    fallbackAnchor?: _Util.Vec2;
+    anchor?: _ModuleSupport.Vec2;
+    fallbackAnchor?: _ModuleSupport.Vec2;
 }
 
 /**
@@ -16,10 +16,10 @@ export interface AnchoredPopoverOptions extends PopoverOptions {
 export abstract class AnchoredPopover<
     Options extends AnchoredPopoverOptions = AnchoredPopoverOptions,
 > extends Popover<Options> {
-    private anchor?: _Util.Vec2;
-    private fallbackAnchor?: Partial<_Util.Vec2>;
+    private anchor?: _ModuleSupport.Vec2;
+    private fallbackAnchor?: Partial<_ModuleSupport.Vec2>;
 
-    public setAnchor(anchor: _Util.Vec2, fallbackAnchor?: Partial<_Util.Vec2>) {
+    public setAnchor(anchor: _ModuleSupport.Vec2, fallbackAnchor?: Partial<_ModuleSupport.Vec2>) {
         this.anchor = anchor;
         this.fallbackAnchor = fallbackAnchor;
 
