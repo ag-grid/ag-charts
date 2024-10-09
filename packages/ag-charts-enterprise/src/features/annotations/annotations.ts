@@ -468,16 +468,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('drag-start', this.onDragStart.bind(this), annotationsState),
             seriesRegion.addListener('drag', this.onDrag.bind(this), annotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
-            ctx.keyNavManager.addListener(
-                'cancel',
-                this.onCancel.bind(this),
-                Default | AnnotationsState | AnnotationsSelected
-            ),
-            ctx.keyNavManager.addListener(
-                'delete',
-                (ev) => this.onDelete(ev),
-                Default | AnnotationsState | AnnotationsSelected
-            ),
             ctx.interactionManager.addListener(
                 'keydown',
                 this.onTextInput.bind(this),
@@ -1218,15 +1208,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.reset();
     }
 
-    private onDelete(event: _ModuleSupport.KeyNavEvent<'delete'>) {
+    private onDelete() {
         if (this.textInput.isVisible()) return;
         this.cancel();
         this.delete();
         this.reset();
         this.update();
 
-        // AG-13041 Treat the Backspace/Delete key as a mouse event (iff the user is in "mouse mode").
-        this.ctx.focusIndicator.toggleForceInvisible(event.previousInputDevice === 'mouse');
+        this.ctx.focusIndicator.toggleForceInvisible(true);
     }
 
     private onTextInput(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
@@ -1270,6 +1259,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             case 'ArrowRight':
                 translation.x = xStep;
                 break;
+            case 'Escape':
+                this.onCancel();
+                return;
+            case 'Backspace':
+            case 'Delete':
+                this.onDelete();
+                return;
         }
 
         if (translation.x || translation.y) {

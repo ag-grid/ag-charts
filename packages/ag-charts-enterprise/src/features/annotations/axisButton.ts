@@ -45,7 +45,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
                 InteractionState.Annotations | InteractionState.AnnotationsSelected
             ),
             seriesRegion.addListener('drag', () => this.hide(), InteractionState.ZoomDrag),
-            seriesRegion.addListener('leave', () => this.hide(), InteractionState.Default),
+            seriesRegion.addListener('leave', () => this.hide(), mouseMoveStates),
             ctx.zoomManager.addListener('zoom-change', () => this.hide()),
             () => this.destroyElements(),
             () => this.wrapper.remove(),

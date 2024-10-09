@@ -120,7 +120,7 @@ export class SeriesAreaManager extends BaseManager {
             seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All),
             seriesRegion.addListener('drag', (event) => this.onHoverOrDrag(event), mouseMoveStates),
             seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
-            seriesRegion.addListener('leave', () => this.onLeave()),
+            seriesRegion.addListener('leave', () => this.onLeave(), mouseMoveStates),
             horizontalAxesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
             horizontalAxesRegion.addListener('leave', () => this.onLeave()),
             verticalAxesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
