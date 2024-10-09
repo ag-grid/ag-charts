@@ -195,7 +195,7 @@ export abstract class RadialColumnSeriesBase<
         const cx = this.centerX;
         const cy = this.centerY;
         const cache = this.circleCache;
-        if (!(r === cache.r && cx === cache.cx && cy === cache.cy)) {
+        if (r !== cache.r || cx !== cache.cx || cy !== cache.cy) {
             this.circleCache = { r, cx, cy };
             return true;
         }

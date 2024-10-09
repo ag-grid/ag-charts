@@ -17,7 +17,7 @@ const {
 } = _ModuleSupport;
 
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
-const { extent, isNumberEqual, sanitizeHtml, toFixed } = _Util;
+const { extent, isNumberEqual, sanitizeHtml } = _Util;
 
 export interface RadarPathPoint {
     x: number;
@@ -370,8 +370,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const { angleKey, radiusKey, angleName, radiusName, marker, tooltip } = this.properties;
         const { datum, angleValue, radiusValue, itemId } = nodeDatum;
 
-        const formattedAngleValue = typeof angleValue === 'number' ? toFixed(angleValue) : String(angleValue);
-        const formattedRadiusValue = typeof radiusValue === 'number' ? toFixed(radiusValue) : String(radiusValue);
+        const formattedAngleValue = formatValue(angleValue);
+        const formattedRadiusValue = formatValue(radiusValue);
         const title = sanitizeHtml(radiusName);
         const content = sanitizeHtml(`${formattedAngleValue}: ${formattedRadiusValue}`);
 
