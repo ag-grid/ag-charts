@@ -173,17 +173,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             ])
         ) as Record<Partial<AnnotationType>, _ModuleSupport.StateMachine<any, any>>;
 
-        const actionReset = () => {
-            if (this.active != null) {
-                ctx.node(this.active)?.toggleActive(false);
-            }
-
-            this.hovered = undefined;
-            this.active = undefined;
-
-            ctx.resetToIdle();
-        };
-
         const actionColor = ({
             colorPickerType,
             colorOpacity,
@@ -350,8 +339,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     },
                 ],
 
-                zoomChange: actionReset,
-
                 dblclick: {
                     guard: guardActiveHasLineText,
                     action: () => {
@@ -434,7 +421,16 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     },
                 },
 
-                reset: actionReset,
+                reset: () => {
+                    if (this.active != null) {
+                        ctx.node(this.active)?.toggleActive(false);
+                    }
+
+                    this.hovered = undefined;
+                    this.active = undefined;
+
+                    ctx.resetToIdle();
+                },
 
                 delete: () => {
                     if (this.active == null) return;
