@@ -22,7 +22,7 @@ export const Collapsible: FunctionComponent<Props> = ({
 
     const height = isOpen ? 'auto' : 0;
     return (
-        <AnimateHeight id={id} duration={animationDuration} height={height}>
+        <AnimateHeight id={id} duration={animationDuration} height={height} aria-hidden={isOpen}>
             {children}
         </AnimateHeight>
     );
