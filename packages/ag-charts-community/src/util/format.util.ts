@@ -1,4 +1,6 @@
-const percentFormatter = new Intl.NumberFormat(navigator.language, { style: 'percent' });
+import { getWindow } from './dom';
+
+const percentFormatter = new Intl.NumberFormat(getWindow('navigator')?.language, { style: 'percent' });
 
 /**
  * Formats a value as a string. If the value is a number, it formats it with two fraction digits.

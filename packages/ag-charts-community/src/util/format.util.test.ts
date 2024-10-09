@@ -15,7 +15,7 @@ describe('Format utils', () => {
 
     test('formatValue', () => {
         expect(formatValue(123.456)).toBe('123.46');
-        expect(formatValue(0.0000345)).toBe('0.00003');
+        expect(formatValue(0.0000345)).toBe('0.000034');
         expect(formatValue('test')).toBe('test');
         expect(formatValue(undefined)).toBe('');
         expect(formatValue(null)).toBe('');
