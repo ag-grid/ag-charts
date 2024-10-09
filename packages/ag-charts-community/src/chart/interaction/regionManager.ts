@@ -1,7 +1,7 @@
 import { Node } from '../../scene/node';
 import type { BBoxProvider } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
-import { Listeners } from '../../util/listeners';
+import { Listeners, type StoppableEvent, buildStoppable } from '../../util/listeners';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import { type Unpreventable, buildPreventable } from './preventableEvent';
@@ -9,7 +9,7 @@ import { NodeRegionBBoxProvider, type RegionBBoxProvider, type RegionName } from
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
-type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> & RegionEventMixins };
+type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> & StoppableEvent & RegionEventMixins };
 
 type RegionEventMixins = {
     region: RegionName;
@@ -19,6 +19,7 @@ type RegionEventMixins = {
 };
 
 export type RegionEvent<T extends PointerInteractionTypes = PointerInteractionTypes> = PointerInteractionEvent &
+    StoppableEvent &
     RegionEventMixins & { type: T };
 type RegionHandler = (event: RegionEvent) => void;
 
@@ -174,13 +175,15 @@ export class RegionManager {
             regionOffsetY = regionBBox.height / 2;
         }
 
-        const event: RegionEvent = buildPreventable({
-            ...partialEvent,
-            region: current.region.properties.name,
-            bboxProviderId: current.bboxProvider?.id,
-            regionOffsetX,
-            regionOffsetY,
-        });
+        const event: RegionEvent = buildStoppable(
+            buildPreventable({
+                ...partialEvent,
+                region: current.region.properties.name,
+                bboxProviderId: current.bboxProvider?.id,
+                regionOffsetX,
+                regionOffsetY,
+            })
+        );
         this.debug('Dispatching region event: ', event);
         this.allRegionsListeners.dispatch(event.type, event);
         current.region.listeners.dispatch(event.type, event);
