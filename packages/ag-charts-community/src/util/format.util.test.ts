@@ -5,12 +5,12 @@ import { formatNumber, formatPercent, formatValue } from './format.util';
 describe('Format utils', () => {
     test('formatNumber', () => {
         expect(formatNumber(0.000347985, 2)).toBe('0.00035');
-        expect(formatNumber(234.000347985, 2)).toBe('234.00');
+        expect(formatNumber(234.000347985, 2)).toBe('234');
         expect(formatNumber(234.2343, 2)).toBe('234.23');
         expect(formatNumber(234.2343, 3)).toBe('234.234');
         expect(formatNumber(-0.0830894028175203, 2)).toBe('-0.083');
         expect(formatNumber(-0.0830894028175203, 4)).toBe('-0.08309');
-        expect(formatNumber(0, 2)).toBe('0.00');
+        expect(formatNumber(0, 2)).toBe('0');
     });
 
     test('formatValue', () => {

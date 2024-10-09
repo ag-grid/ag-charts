@@ -1,6 +1,8 @@
 import { getWindow } from './dom';
 
-const percentFormatter = new Intl.NumberFormat(getWindow('navigator')?.language, { style: 'percent' });
+const defaultLocale = getWindow('navigator')?.language;
+const numberFormatter = new Intl.NumberFormat(defaultLocale, { maximumFractionDigits: 2 });
+const percentFormatter = new Intl.NumberFormat(defaultLocale, { style: 'percent' });
 
 /**
  * Formats a value as a string. If the value is a number, it formats it with two fraction digits.
@@ -43,7 +45,11 @@ export function formatPercent(value: number): string {
 export function formatNumber(value: number, fractionOrSignificantDigits: number): string {
     const absValue = Math.abs(value);
     if (absValue === 0 || absValue >= 1) {
-        return value.toFixed(fractionOrSignificantDigits); // fraction digits
+        const formatter =
+            fractionOrSignificantDigits === 2
+                ? numberFormatter
+                : new Intl.NumberFormat(defaultLocale, { maximumFractionDigits: fractionOrSignificantDigits });
+        return formatter.format(value);
     }
     const decimalPlaces = Math.abs(Math.floor(Math.log(absValue) / Math.LN10)) - 1;
     return value.toFixed(decimalPlaces + fractionOrSignificantDigits); // significant digits
