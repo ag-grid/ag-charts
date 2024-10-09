@@ -71,8 +71,9 @@ input[type='submit']#{$selector-exclude-grid},
         pointer-events: none;
     }
 
-    .icon {
+    :where(.icon) {
         --icon-size: 2em;
+
         fill: var(--color-button-primary-fg);
         display: inline-block;
         position: relative;
@@ -101,7 +102,7 @@ a.button:hover {
         background-color: var(--color-button-secondary-bg-active);
     }
 
-    .icon {
+    :where(.icon) {
         fill: var(--color-button-secondary-fg);
     }
 }
@@ -126,7 +127,7 @@ a.button-secondary:hover {
         background-color: var(--color-button-tertiary-bg-active);
     }
 
-    .icon {
+    :where(.icon) {
         fill: var(--color-button-tertiary-fg);
     }
 }
