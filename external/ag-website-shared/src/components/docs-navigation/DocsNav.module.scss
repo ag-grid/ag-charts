@@ -143,16 +143,15 @@
     }
 }
 
-// TODO: Refactor icons in buttons so !important not nessisary
 .groupChevron {
-    position: absolute !important;
+    position: absolute;
     left: calc(var(--indent-border-offset) * -1 + var(--indent-initial-offset));
     top: 7px;
-    bottom: auto !important;
-    width: $spacing-size-5 !important;
-    height: $spacing-size-5 !important;
-    margin: 0 !important;
-    fill: var(--item-chevron-color) !important;
+    bottom: auto;
+    width: $spacing-size-5;
+    height: $spacing-size-5;
+    margin: 0;
+    fill: var(--item-chevron-color);
     transition:
         transform $transition-default-timing,
         fill $transition-default-timing;
@@ -162,7 +161,7 @@
     }
 
     .group.isOpen & {
-        fill: var(--color-fg-primary) !important;
+        fill: var(--color-fg-primary);
         transform: rotate(90deg) translate(0, 2px);
     }
 }
@@ -213,24 +212,22 @@
     }
 }
 
-// TODO: Refactor icons in links so don't need to override icon CSS vars
 .itemIcon {
-    fill: var(--color-fg-secondary) !important;
+    fill: var(--color-fg-secondary);
     margin-right: $spacing-size-2;
     transition: fill $transition-default-timing;
 
     .item:hover &,
     .item.isIsActive & {
-        fill: var(--item-active-color) !important;
+        fill: var(--item-active-color);
     }
 }
 
-// TODO: Refactor icons in links/buttons so we don't require !important/overrides
 .enterpriseIcon {
-    width: $spacing-size-5 !important;
-    height: $spacing-size-5 !important;
-    margin-left: $spacing-size-1 !important;
-    fill: var(--color-enterprise-icon) !important;
+    width: $spacing-size-5;
+    height: $spacing-size-5;
+    margin-left: $spacing-size-1;
+    fill: var(--color-enterprise-icon);
 
     .groupTitle & {
         position: relative;
