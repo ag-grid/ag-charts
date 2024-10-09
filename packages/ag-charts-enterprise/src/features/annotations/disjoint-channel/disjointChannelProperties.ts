@@ -10,9 +10,8 @@ import {
     LineStyle,
     Stroke,
 } from '../annotationProperties';
-import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
+import { type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { getLineCap, getLineDash } from '../utils/line';
-import { validateDatumLine } from '../utils/validation';
 
 const { NUMBER, OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
@@ -52,14 +51,6 @@ export class DisjointChannelProperties extends Annotation(
         }
 
         return bottom;
-    }
-
-    override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
-        return (
-            super.isValid(warningPrefix) &&
-            validateDatumLine(context, this, warningPrefix) &&
-            validateDatumLine(context, this.bottom, warningPrefix)
-        );
     }
 
     getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
