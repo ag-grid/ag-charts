@@ -178,9 +178,9 @@ export const PLACEMENT = UNION(['inside', 'outside'], 'a placement');
 export const INTERACTION_RANGE = OR(UNION(['exact', 'nearest'], 'interaction range'), NUMBER);
 export const LABEL_PLACEMENT = UNION(['top', 'bottom', 'left', 'right']);
 
-export function UNION(options: string[], message: string = 'a') {
+export function UNION(options: string[], message: string = 'a', undocumentedTypes?: string[]) {
     return predicateWithMessage(
-        (v: any) => options.includes(v),
+        (v: any) => options.includes(v) || undocumentedTypes?.includes(v) === true,
         `${message} keyword such as ${joinUnionOptions(options)}`
     );
 }

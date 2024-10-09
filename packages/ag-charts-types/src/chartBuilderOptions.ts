@@ -10,8 +10,13 @@ import type { AgFinancialChartPresets } from './presets/financial/financialOptio
 import type { AgGaugePresets } from './presets/gauge/gaugeOptions';
 import type { AgLinearGaugePreset } from './presets/gauge/linearGaugeOptions';
 import type { AgRadialGaugePreset } from './presets/gauge/radialGaugeOptions';
-import type { SparklineBarPreset, SparklineLinePreset } from './presets/sparkline/sparklineOptions';
-import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOptions';
+import type {
+    AgSparklineAreaPreset,
+    AgSparklineBarPreset,
+    AgSparklineLinePreset,
+    AgSparklinePresets,
+} from './presets/sparkline/sparklineOptions';
+import type { AgBaseCartesianChartOptions, AgCartesianAxisOptions } from './series/cartesian/cartesianOptions';
 import type { AgBaseFlowProportionChartOptions } from './series/flow-proportion/flowProportionOptions';
 import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from './series/polar/polarOptions';
@@ -72,8 +77,10 @@ export type AgBaseSparklinePresetThemeOptions = Pick<
     | 'padding'
     | 'width'
     | 'data'
-    | 'axes'
->;
+> & {
+    mainAxis?: Omit<AgCartesianAxisOptions, 'position'>;
+    crossAxis?: Omit<AgCartesianAxisOptions, 'position'>;
+};
 
 export type AgFinancialChartOptions = AgBaseFinancialPresetOptions & AgFinancialChartPresets;
 
@@ -89,12 +96,12 @@ export interface AgBaseSparklinePresetOptions extends AgBaseSparklinePresetTheme
     theme?: AgChartTheme | AgChartThemeName;
 }
 
-export type AgSparklineBarOptions = AgBaseSparklinePresetOptions & SparklineBarPreset;
-export type AgSparklineLineOptions = AgBaseSparklinePresetOptions & SparklineLinePreset;
-export type AgSparklineAreaOptions = AgBaseSparklinePresetOptions & SparklineLinePreset;
-export type AgSparklineOptions = AgBaseSparklinePresetOptions & AgBaseSparklinePresetOptions;
+export type AgSparklineBarOptions = AgBaseSparklinePresetOptions & AgSparklineBarPreset;
+export type AgSparklineLineOptions = AgBaseSparklinePresetOptions & AgSparklineLinePreset;
+export type AgSparklineAreaOptions = AgBaseSparklinePresetOptions & AgSparklineAreaPreset;
+export type AgSparklineOptions = AgBaseSparklinePresetOptions & AgSparklinePresets;
 
-export type AgPresetOptions = AgFinancialChartOptions | AgGaugeOptions;
+export type AgPresetOptions = AgFinancialChartOptions | AgGaugeOptions | AgSparklineOptions;
 
 export type AgChartInstanceOptions = AgChartOptions | AgPresetOptions;
 

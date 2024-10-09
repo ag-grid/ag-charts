@@ -1,6 +1,7 @@
 import type { DOMManager } from '../../dom/domManager';
 import { Transformable } from '../../scene/transformable';
 import { StateTracker } from '../../util/stateTracker';
+import type { SeriesTooltip } from '../series/seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
 import type { Tooltip, TooltipContent, TooltipMeta } from '../tooltip/tooltip';
 import { type TooltipPointerEvent } from '../tooltip/tooltip';
@@ -85,7 +86,7 @@ export class TooltipManager {
         datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
     ): TooltipMeta {
         const { offsetX, offsetY } = event;
-        const { tooltip } = datum.series.properties;
+        const tooltip = datum.series.properties.tooltip as SeriesTooltip<any>;
         const meta: TooltipMeta = {
             offsetX,
             offsetY,

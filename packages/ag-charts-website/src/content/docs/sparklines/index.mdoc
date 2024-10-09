@@ -1,0 +1,100 @@
+---
+title: 'Sparklines - Overview'
+---
+
+A Sparkline condenses data trends into small, inline charts, for embedding in tables or dashboards.
+
+{% chartExampleRunner title="Sparklines" name="sparklines" type="generated" /%}
+
+## Minimal Configuration
+
+To create a Sparkline, use the `createSparkline` API.
+
+{% if isFramework("javascript") %}
+
+```js
+const options = {
+    type: 'bar',
+    container: document.getElementById('myChart'),
+    data: [],
+    xKey: 'date',
+    yKey: 'price',
+};
+
+AgCharts.createSparkline(options);
+```
+
+{% /if %}
+
+{% if isFramework("react") %}
+
+```jsx
+const [options, setOptions] = useState({
+    type: 'bar',
+    container: document.getElementById('myChart'),
+    data: [],
+    xKey: 'date',
+    yKey: 'price',
+});
+
+return (
+    <AgSparkline options={options} />
+);
+```
+
+{% /if %}
+
+{% if isFramework("angular") %}
+
+```js
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [AgSparkline],
+  template: `<ag-sparkline [options]="options"></ag-sparkline>`,
+})
+export class AppComponent {
+  public options: AgRadialGaugeOptions;
+  constructor() {
+    this.options = {
+        type: 'bar',
+        container: document.getElementById('myChart'),
+        data: [],
+        xKey: 'date',
+        yKey: 'price',
+    };
+  }
+}
+```
+
+{% /if %}
+
+{% if isFramework("vue") %}
+
+```js
+template: `<ag-sparkline :options="options"/>`,
+components: {
+    'ag-sparkline': AgSparkline,
+},
+data() {
+    return {
+        type: 'bar',
+        container: document.getElementById('myChart'),
+        data: [],
+        xKey: 'date',
+        yKey: 'price',
+    };
+}
+```
+
+{% /if %}
+
+In this configuration:
+
+-   `type` is one of:
+    -   `'bar'` for a [Bar Series](./bar-series).
+    -   `'line'` for a [Line Series](./line-series).
+    -   `'area'` for an [Area Series](./area-series).
+-   `data` defines the [chart data](./quick-start).
+-   `xKey` defines the categories, and is mapped to the [Category Axis](./axes-types/#category).
+-   `yKey` provides the numerical values, corresponding to the [Number Axis](./axes-types/#number).
