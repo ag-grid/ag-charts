@@ -147,9 +147,16 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
         this.toggleVisibilities();
 
+        const seriesRegion = ctx.regionManager.getRegion('series');
         this.destroyFns.push(
             ctx.interactionManager.addListener('hover', this.onHover.bind(this), InteractionState.All),
             ctx.interactionManager.addListener('leave', this.onLeave.bind(this), InteractionState.All),
+            seriesRegion.addListener(
+                'drag-start',
+                this.onStopPointerEvents.bind(this),
+                InteractionState.Default | InteractionState.Annotations
+            ),
+            seriesRegion.addListener('drag-end', this.onResumePointerEvents.bind(this), InteractionState.All),
             ctx.toolbarManager.addListener('button-toggled', this.onButtonToggled.bind(this)),
             ctx.toolbarManager.addListener('button-updated', this.onButtonUpdated.bind(this)),
             ctx.toolbarManager.addListener('group-toggled', this.onGroupToggled.bind(this)),
@@ -220,6 +227,23 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         this.translateFloatingElements(FloatingBottom, false);
         this.translateFloatingElements(FloatingTop, false);
+    }
+
+    // AG-12695 Temporarily set `pointer-events: none` on the annotationOptions when dragging, because the
+    // buttons block to mouse from hovering over the canvas.
+    private oldPointerEvents: Map<HTMLButtonElement, string> = new Map();
+    private onStopPointerEvents() {
+        if (this.oldPointerEvents.size !== 0) throw new Error('AG Charts - unexpected drag-start event');
+        this.groupButtons['annotationOptions'].forEach((b) => {
+            this.oldPointerEvents.set(b, b.style.getPropertyValue('pointer-events'));
+            b.style.setProperty('pointer-events', 'none');
+        });
+    }
+    private onResumePointerEvents() {
+        this.oldPointerEvents.forEach((oldPointerEvent, button) => {
+            button.style.setProperty('pointer-events', oldPointerEvent);
+        });
+        this.oldPointerEvents.clear();
     }
 
     private onGroupChanged(group: ToolbarGroup) {
