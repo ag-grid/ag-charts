@@ -57,6 +57,11 @@ export const SHAPE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
 ];
 
 export const MEASURER_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
+    {
+        label: 'toolbarAnnotationsQuickDatePriceRange',
+        icon: 'measurer-drawing',
+        value: AnnotationType.QuickDatePriceRange,
+    },
     { label: 'toolbarAnnotationsDateRange', icon: 'date-range-drawing', value: AnnotationType.DateRange },
     { label: 'toolbarAnnotationsPriceRange', icon: 'price-range-drawing', value: AnnotationType.PriceRange },
     {

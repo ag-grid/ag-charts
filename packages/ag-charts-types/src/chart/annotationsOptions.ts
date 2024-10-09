@@ -39,7 +39,7 @@ export interface AgAnnotationsThemeableOptions {
     'date-range'?: AgMeasurerAnnotationStyles;
     'price-range'?: AgMeasurerAnnotationStyles;
     'date-price-range'?: AgMeasurerAnnotationStyles;
-    'quick-date-price-range'?: AgMeasurerAnnotationStyles;
+    'quick-date-price-range'?: AgQuickMeasurerAnnotationStyles;
 
     // Other
     axesButtons?: AgAnnotationAxesButtons;
@@ -84,8 +84,15 @@ export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles, StrokeOp
 export interface AgShapeAnnotationStyles extends Lockable, Visible, FillOptions {}
 
 // Measurers
-export interface AgMeasurerAnnotationStyles extends Extendable, Lockable, Visible {
-    statistics: FontOptions;
+export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, Extendable, Lockable, Visible {
+    background?: FillOptions;
+    statistics?: FontOptions;
+}
+
+export interface AgQuickMeasurerAnnotationStyles extends Extendable, Lockable, Visible {
+    up?: AgQuickMeasurerAnnotationDirectionStyles;
+    down?: AgQuickMeasurerAnnotationDirectionStyles;
+    statistics?: FontOptions;
 }
 
 // ***********
@@ -331,9 +338,13 @@ export interface LineOptions extends LineDashOptions {
 }
 
 export interface AgAnnotationHandle extends FillOptions, StrokeOptions, LineDashOptions {}
+
 export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineOptions {}
+
 export interface AgChannelAnnotationBackground extends FillOptions {}
+
 export interface AgNoteAnnotationBackground extends StrokeOptions, FillOptions {}
+
 export interface AgAnnotationAxisLabel
     extends Toggleable,
         FillOptions,
@@ -366,6 +377,8 @@ export interface AgChannelAnnotationTextOptions extends FontOptions {
     position?: 'top' | 'inside' | 'bottom';
     alignment?: 'left' | 'center' | 'right';
 }
+
+export interface AgQuickMeasurerAnnotationDirectionStyles extends FillOptions, StrokeOptions, LineOptions {}
 
 interface AnnotationLinePoints {
     /** The starting point of a linear annotation. */

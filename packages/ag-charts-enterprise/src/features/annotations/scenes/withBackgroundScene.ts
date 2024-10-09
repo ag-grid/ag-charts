@@ -10,6 +10,7 @@ export class WithBackgroundScene {
     static updateBackground<Datum extends { background: FillOptions }>(
         this: AnnotationScene & {
             background: _Scene.Path;
+            getBackgroundStyles?(datum: Datum): FillOptions;
             getBackgroundPoints(
                 datum: Datum,
                 top: _ModuleSupport.Vec4,
@@ -41,9 +42,11 @@ export class WithBackgroundScene {
 
         background.path.closePath();
         background.checkPathDirty();
+
+        const backgroundStyles = this.getBackgroundStyles?.(datum) ?? datum.background;
         background.setProperties({
-            fill: datum.background.fill,
-            fillOpacity: datum.background.fillOpacity,
+            fill: backgroundStyles.fill,
+            fillOpacity: backgroundStyles.fillOpacity,
         });
     }
 }

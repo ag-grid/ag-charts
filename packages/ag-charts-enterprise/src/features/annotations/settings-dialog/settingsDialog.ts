@@ -9,7 +9,12 @@ import {
     type LineTextPosition,
 } from '../annotationTypes';
 import { LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
-import type { ChannelPropertiesType, LinePropertiesType, MeasurerPropertiesType } from '../annotationsSuperTypes';
+import type {
+    ChannelPropertiesType,
+    EphemeralPropertiesType,
+    LinePropertiesType,
+    MeasurerPropertiesType,
+} from '../annotationsSuperTypes';
 import { isChannelType } from '../utils/types';
 
 const { focusCursorAtEnd } = _ModuleSupport;
@@ -42,15 +47,17 @@ export interface LinearSettingsDialogTextChangeProps {
     label?: string;
 }
 
+type LinearDialogPropertiesType = Exclude<
+    LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType,
+    EphemeralPropertiesType
+>;
+
 export class AnnotationSettingsDialog extends Dialog {
     constructor(ctx: _ModuleSupport.ModuleContext) {
         super(ctx, 'settings');
     }
 
-    show(
-        datum: LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType,
-        options: LinearSettingsDialogOptions
-    ) {
+    show(datum: LinearDialogPropertiesType, options: LinearSettingsDialogOptions) {
         const lineTab = this.createLinearLineTab(datum, options);
         const textTab = this.createLinearTextTab(datum, options);
 
@@ -148,10 +155,7 @@ export class AnnotationSettingsDialog extends Dialog {
         return panel;
     }
 
-    private createLinearTextTab(
-        datum: LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType,
-        options: LinearSettingsDialogOptions
-    ) {
+    private createLinearTextTab(datum: LinearDialogPropertiesType, options: LinearSettingsDialogOptions) {
         const panel = this.createTabPanel();
 
         const textArea = this.createTextArea({

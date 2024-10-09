@@ -45,7 +45,7 @@ import { calculateAxisLabelPadding } from './utils/axis';
 import { snapToAngle } from './utils/coords';
 import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
-import { isChannelType, isLineType, isMeasurerType, isTextType } from './utils/types';
+import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
 import { convertPoint, invertCoords } from './utils/values';
@@ -141,6 +141,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
                 ctx.tooltipManager.unsuppressTooltip('annotations');
                 this.hideOverlays();
+                this.deleteEphemeralAnnotations();
                 this.resetToolbarButtonStates();
                 this.toggleAnnotationOptionsButtons();
                 this.update();
@@ -243,6 +244,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
                 toolbarManager.updateButton('annotations', 'shape-menu', { icon: undefined });
 
+                this.deleteEphemeralAnnotations();
                 this.update();
             },
 
@@ -364,7 +366,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             showAnnotationOptions: (active: number) => {
                 const node = this.annotations.at(active);
-                if (!node) return;
+                if (!node || isEphemeralType(this.annotationData.at(active))) return;
 
                 this.toggleAnnotationOptionsButtons();
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
@@ -375,6 +377,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const datum = this.annotationData.at(active);
 
                 if (!isLineType(datum) && !isChannelType(datum) && !isMeasurerType(datum)) return;
+                if (isEphemeralType(datum)) return;
 
                 const options: LinearSettingsDialogOptions = {
                     initialSelectedTab: initialTab,
@@ -1385,6 +1388,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private deleteAll() {
         this.state.transition('deleteAll');
+    }
+
+    private deleteEphemeralAnnotations() {
+        for (const [index, datum] of this.annotationData.entries()) {
+            if (isEphemeralType(datum)) {
+                this.annotationData.splice(index, 1);
+            }
+        }
     }
 
     private hideOverlays() {
