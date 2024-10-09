@@ -7,6 +7,7 @@ import type {
     AgSparklineOptions,
 } from 'ag-charts-types';
 
+import { IS_ENTERPRISE } from '../../chart/themes/symbols';
 import { IGNORED_PROP, assertEmpty, pickProps } from './presetUtils';
 
 const commonAxisProperties = {
@@ -43,7 +44,7 @@ const numericAxisProperties = {
 const bottomCrossHairAxisProperties = {
     bottom: {
         crosshair: {
-            enabled: true,
+            enabled: IS_ENTERPRISE,
         },
     },
 };
