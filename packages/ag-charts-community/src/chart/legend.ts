@@ -15,7 +15,8 @@ import type { ListSwitch } from '../dom/proxyInteractionService';
 import type { LayoutContext } from '../module/baseModule';
 import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
-import { Group, TranslatableGroup } from '../scene/group';
+import { Group } from '../scene/group';
+import { TranslatableLayer } from '../scene/layer';
 import { RedrawType } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
@@ -32,6 +33,7 @@ import { BaseProperties } from '../util/properties';
 import { ObserveChanges } from '../util/proxy';
 import { CachedTextMeasurerPool, TextUtils } from '../util/textMeasurer';
 import { TextWrapper } from '../util/textWrapper';
+import { isDefined } from '../util/type-guards';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -50,7 +52,6 @@ import type { Page } from './gridLayout';
 import { gridLayout } from './gridLayout';
 import type { HighlightNodeDatum } from './interaction/highlightManager';
 import { InteractionState, type PointerInteractionEvent } from './interaction/interactionManager';
-import { Layers } from './layers';
 import { LayoutElement } from './layout/layoutManager';
 import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
 import { LegendMarkerLabel } from './legendMarkerLabel';
@@ -58,6 +59,7 @@ import type { Marker } from './marker/marker';
 import { type MarkerConstructor, getMarker } from './marker/util';
 import { Pagination } from './pagination/pagination';
 import { type TooltipMeta, type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
+import { ZIndexMap } from './zIndexMap';
 
 class LegendLabel extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
@@ -159,12 +161,28 @@ class LegendListeners extends BaseProperties implements AgChartLegendListeners {
 const ID_LEGEND_VISIBILITY = 'legend-visibility';
 const ID_LEGEND_OTHER_SERIES = 'legend-other-series';
 
+class LegendItemEvent<Type extends 'click' | 'dblclick'> {
+    defaultPrevented = false;
+
+    constructor(
+        readonly type: Type,
+        readonly enabled: boolean,
+        readonly itemId: string,
+        readonly seriesId: string,
+        readonly event: Event
+    ) {}
+
+    preventDefault() {
+        this.defaultPrevented = true;
+    }
+}
+
 export class Legend extends BaseProperties {
     static readonly className = 'Legend';
 
     readonly id = createId(this);
 
-    private readonly group = new TranslatableGroup({ name: 'legend', layer: true, zIndex: Layers.LEGEND_ZINDEX });
+    private readonly group = new TranslatableLayer({ name: 'legend', zIndex: ZIndexMap.LEGEND });
 
     private readonly itemSelection: Selection<LegendMarkerLabel, CategoryLegendDatum> = Selection.select(
         this.group,
@@ -275,7 +293,7 @@ export class Legend extends BaseProperties {
         this.destroyFns.push(
             ctx.layoutManager.registerElement(LayoutElement.Legend, (e) => this.positionLegend(e)),
             ctx.localeManager.addListener('locale-changed', () => this.onLocaleChanged()),
-            () => this.group.parent?.removeChild(this.group)
+            () => this.group.remove()
         );
 
         this.proxyLegendToolbar = this.ctx.proxyInteractionService.createProxyContainer({
@@ -337,7 +355,7 @@ export class Legend extends BaseProperties {
         const buttons: HTMLButtonElement[] = this.itemSelection
             .nodes()
             .map((markerLabel) => markerLabel.proxyButton?.button)
-            .filter((button): button is HTMLButtonElement => !!button);
+            .filter(isDefined);
         const orientation = this.getOrientation();
         this.proxyLegendToolbarDestroyFns.setFns(initRovingTabIndex({ orientation, buttons }));
         this.proxyLegendToolbar.ariaOrientation = orientation;
@@ -346,7 +364,7 @@ export class Legend extends BaseProperties {
 
     public onMarkerShapeChange() {
         this.itemSelection.clear();
-        this.group.markDirty(this.group, RedrawType.MINOR);
+        this.group.markDirty(RedrawType.MINOR);
     }
 
     private getOrientation(): AgChartLegendOrientation {
@@ -585,9 +603,8 @@ export class Legend extends BaseProperties {
                 const { shape: markerShape = symbol.marker.shape } = itemMarker;
                 const MarkerCtr = getMarker(markerShape);
 
-                lines.push(new Line());
-                // Important! marker must be created after line to ensure zIndex correctness
-                markers.push(new MarkerCtr());
+                lines.push(new Line({ zIndex: 0 }));
+                markers.push(new MarkerCtr({ zIndex: 1 }));
             });
 
             markerLabel.updateSymbols(markers, lines);
@@ -717,7 +734,15 @@ export class Legend extends BaseProperties {
     }
 
     private updateItemProxyButtons() {
-        this.itemSelection.each((l) => setElementBBox(l.proxyButton?.listitem, Transformable.toCanvas(l)));
+        this.itemSelection.each((l) => {
+            if (l.proxyButton) {
+                const { listitem, button } = l.proxyButton;
+                const visible = l.pageIndex === this.pagination.currentPage;
+                // TODO(olegat) this should be part of CSS once all element types support pointer events.
+                button.style.pointerEvents = visible ? 'auto' : 'none';
+                setElementBBox(listitem, Transformable.toCanvas(l));
+            }
+        });
     }
 
     private updatePaginationProxyButtons(oldPages: Page[] | undefined) {
@@ -921,8 +946,8 @@ export class Legend extends BaseProperties {
 
     private updateContextMenu() {
         const { toggleSeries } = this;
-        this.ctx.contextMenuRegistry.setActionVisiblity(ID_LEGEND_VISIBILITY, toggleSeries);
-        this.ctx.contextMenuRegistry.setActionVisiblity(ID_LEGEND_OTHER_SERIES, toggleSeries);
+        this.ctx.contextMenuRegistry.setActionVisibility(ID_LEGEND_VISIBILITY, toggleSeries);
+        this.ctx.contextMenuRegistry.setActionVisibility(ID_LEGEND_OTHER_SERIES, toggleSeries);
     }
 
     private getLineStyles(datum: LegendSymbolOptions) {
@@ -952,16 +977,12 @@ export class Legend extends BaseProperties {
 
     private computePagedBBox(): BBox {
         // Get BBox without group transforms applied.
-        let actualBBox = Group.computeChildrenBBox(this.group.children);
-        if (this.pages.length <= 1) {
-            return actualBBox;
+        const actualBBox = Group.computeChildrenBBox(this.group.children());
+        if (this.pages.length > 1) {
+            const [maxPageWidth, maxPageHeight] = this.maxPageSize;
+            actualBBox.height = Math.max(maxPageHeight, actualBBox.height);
+            actualBBox.width = Math.max(maxPageWidth, actualBBox.width);
         }
-
-        const [maxPageWidth, maxPageHeight] = this.maxPageSize;
-        actualBBox = actualBBox.clone();
-        actualBBox.height = Math.max(maxPageHeight, actualBBox.height);
-        actualBBox.width = Math.max(maxPageWidth, actualBBox.width);
-
         return actualBBox;
     }
 
@@ -976,11 +997,11 @@ export class Legend extends BaseProperties {
 
     private contextToggleVisibility(params: AgChartLegendContextMenuEvent) {
         const { datum, proxyButton } = this.findNode(params);
-        this.doClick(datum, proxyButton.button);
+        this.doClick(params.event, datum, proxyButton.button);
     }
 
     private contextToggleOtherSeries(params: AgChartLegendContextMenuEvent) {
-        this.doDoubleClick(this.findNode(params).datum);
+        this.doDoubleClick(params.event, this.findNode(params).datum);
     }
 
     private onContextClick(sourceEvent: MouseEvent, node: LegendMarkerLabel) {
@@ -1009,8 +1030,8 @@ export class Legend extends BaseProperties {
         this.ctx.contextMenuRegistry.dispatchContext('legend', event, { legendItem });
     }
 
-    private onClick(event: MouseEvent, datum: CategoryLegendDatum, proxyButton: HTMLButtonElement) {
-        if (this.doClick(datum, proxyButton)) {
+    private onClick(event: Event, datum: CategoryLegendDatum, proxyButton: HTMLButtonElement) {
+        if (this.doClick(event, datum, proxyButton)) {
             event.preventDefault();
         }
     }
@@ -1019,7 +1040,7 @@ export class Legend extends BaseProperties {
         return this.ctx.chartService.series.flatMap((s) => s.getLegendData('category')).filter((d) => d.enabled).length;
     }
 
-    private doClick(datum: CategoryLegendDatum, proxyButton: HTMLButtonElement): boolean {
+    private doClick(event: Event, datum: CategoryLegendDatum, proxyButton: HTMLButtonElement): boolean {
         const {
             listeners: { legendItemClick },
             ctx: { chartService, highlightManager },
@@ -1038,6 +1059,11 @@ export class Legend extends BaseProperties {
         }
 
         let newEnabled = enabled;
+        const clickEvent = new LegendItemEvent('click', newEnabled, itemId, series.id, event);
+        legendItemClick?.(clickEvent);
+
+        if (clickEvent.defaultPrevented) return true;
+
         if (toggleSeries) {
             newEnabled = !enabled;
 
@@ -1064,17 +1090,16 @@ export class Legend extends BaseProperties {
 
         this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
 
-        legendItemClick?.({ type: 'click', enabled: newEnabled, itemId, seriesId: series.id });
         return true;
     }
 
     private onDoubleClick(event: MouseEvent, datum: CategoryLegendDatum) {
-        if (this.doDoubleClick(datum)) {
+        if (this.doDoubleClick(event, datum)) {
             event.preventDefault();
         }
     }
 
-    private doDoubleClick(datum: CategoryLegendDatum | undefined): boolean {
+    private doDoubleClick(event: Event, datum: CategoryLegendDatum | undefined): boolean {
         const {
             listeners: { legendItemDoubleClick },
             ctx: { chartService },
@@ -1096,10 +1121,14 @@ export class Legend extends BaseProperties {
             return false;
         }
 
+        const doubleClickEvent = new LegendItemEvent('dblclick', true, itemId, series.id, event);
+        legendItemDoubleClick?.(doubleClickEvent);
+
+        if (doubleClickEvent.defaultPrevented) return true;
+
         if (toggleSeries) {
             const legendData = chartService.series.flatMap((s) => s.getLegendData('category'));
             const numVisibleItems = legendData.filter((d) => d.enabled).length;
-
             const clickedItem = legendData.find((d) => d.itemId === itemId && d.seriesId === seriesId);
 
             this.ctx.chartEventManager.legendItemDoubleClick(
@@ -1113,7 +1142,6 @@ export class Legend extends BaseProperties {
 
         this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
 
-        legendItemDoubleClick?.({ type: 'dblclick', enabled: true, itemId, seriesId: series.id });
         return true;
     }
 

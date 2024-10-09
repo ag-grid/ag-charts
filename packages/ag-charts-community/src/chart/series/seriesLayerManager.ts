@@ -1,7 +1,8 @@
 import { Group } from '../../scene/group';
+import { Layer } from '../../scene/layer';
 import type { ZIndexSubOrder } from '../../scene/layersManager';
 import { clamp } from '../../util/number';
-import { Layers } from '../layers';
+import { ZIndexMap } from '../zIndexMap';
 import type { SeriesGrouping } from './seriesStateManager';
 
 export type SeriesGroupZIndexSubOrderType =
@@ -81,36 +82,32 @@ export class SeriesLayerManager {
         this.groups[type] ??= {};
 
         const lookupIndex = this.lookupIdx(groupIndex);
-        let groupInfo = this.groups[type][lookupIndex];
-        if (!groupInfo) {
-            groupInfo = this.groups[type][lookupIndex] ??= {
-                type,
-                id: lookupIndex,
-                seriesIds: [],
-                group: this.seriesRoot.appendChild(
-                    new Group({
-                        name: `${type}-content`,
-                        layer: true,
-                        zIndex: Layers.SERIES_LAYER_ZINDEX,
-                        zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('data'),
-                    })
-                ),
-                highlight: this.highlightRoot.appendChild(
-                    new Group({
-                        name: `${type}-highlight`,
-                        zIndex: Layers.SERIES_LAYER_ZINDEX,
-                        zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('highlight'),
-                    })
-                ),
-                annotation: this.annotationRoot.appendChild(
-                    new Group({
-                        name: `${type}-annotation`,
-                        zIndex: Layers.SERIES_LAYER_ZINDEX,
-                        zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('annotation'),
-                    })
-                ),
-            };
-        }
+        const groupInfo = (this.groups[type][lookupIndex] ??= {
+            type,
+            id: lookupIndex,
+            seriesIds: [],
+            group: this.seriesRoot.appendChild(
+                new Layer({
+                    name: `${type}-content`,
+                    zIndex: ZIndexMap.SERIES_LAYER,
+                    zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('data'),
+                })
+            ),
+            highlight: this.highlightRoot.appendChild(
+                new Group({
+                    name: `${type}-highlight`,
+                    zIndex: ZIndexMap.SERIES_LAYER,
+                    zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('highlight'),
+                })
+            ),
+            annotation: this.annotationRoot.appendChild(
+                new Group({
+                    name: `${type}-annotation`,
+                    zIndex: ZIndexMap.SERIES_LAYER,
+                    zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('annotation'),
+                })
+            ),
+        });
 
         this.series[internalId] = { layerState: groupInfo, seriesConfig };
 

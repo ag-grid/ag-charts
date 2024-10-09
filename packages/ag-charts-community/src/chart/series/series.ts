@@ -30,10 +30,10 @@ import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
-import { Layers } from '../layers';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent } from '../tooltip/tooltip';
+import { ZIndexMap } from '../zIndexMap';
 import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesProperties } from './seriesProperties';
@@ -44,12 +44,10 @@ import type { ISeries, NodeDataDependencies, SeriesNodeDatum } from './seriesTyp
 export enum SeriesNodePickMode {
     /** Pick matches based upon pick coordinates being inside a matching shape/marker. */
     EXACT_SHAPE_MATCH,
-    /** Pick matches by nearest category/X-axis value, then distance within that category/X-value. */
-    NEAREST_BY_MAIN_AXIS_FIRST,
-    /** Pick matches by nearest category value, then distance within that category. */
-    NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
     /** Pick matches based upon distance to ideal position */
     NEAREST_NODE,
+    /** Pick matches based upon distance from axis */
+    AXIS_ALIGNED,
 }
 
 export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
@@ -148,7 +146,7 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
 export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     moduleCtx: ModuleContext;
     useLabelLayer?: boolean;
-    pickModes?: SeriesNodePickMode[];
+    pickModes: SeriesNodePickMode[];
     contentGroupVirtual?: boolean;
     directionKeys?: SeriesDirectionKeysMapping<TProps>;
     directionNames?: SeriesDirectionKeysMapping<TProps>;
@@ -168,6 +166,10 @@ export abstract class Series<
     abstract readonly properties: TProps;
 
     pickModes: SeriesNodePickMode[];
+
+    get pickModeAxis(): 'main' | 'main-category' | undefined {
+        return 'main';
+    }
 
     @ActionOnSet<Series<TDatum, TProps, TLabel>>({
         changeValue: function (newVal, oldVal) {
@@ -299,7 +301,7 @@ export abstract class Series<
 
         const {
             moduleCtx,
-            pickModes = [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST],
+            pickModes,
             directionKeys = {},
             directionNames = {},
             contentGroupVirtual = true,
@@ -315,7 +317,7 @@ export abstract class Series<
             new TranslatableGroup({
                 name: `${this.internalId}-content`,
                 isVirtual: contentGroupVirtual,
-                zIndex: Layers.SERIES_LAYER_ZINDEX,
+                zIndex: ZIndexMap.SERIES_LAYER,
                 zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
             })
         );
@@ -323,7 +325,7 @@ export abstract class Series<
         this.highlightGroup = new TranslatableGroup({
             name: `${this.internalId}-highlight`,
             isVirtual: contentGroupVirtual,
-            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndex: ZIndexMap.SERIES_LAYER,
             zIndexSubOrder: this.getGroupZIndexSubOrder('highlight'),
         });
         this.highlightNode = this.highlightGroup.appendChild(new Group({ name: 'highlightNode', zIndex: 0 }));
@@ -334,14 +336,14 @@ export abstract class Series<
         this.labelGroup = this.rootGroup.appendChild(
             new TranslatableGroup({
                 name: `${this.internalId}-series-labels`,
-                zIndex: Layers.SERIES_LABEL_ZINDEX,
+                zIndex: ZIndexMap.SERIES_LABEL,
             })
         );
 
         this.annotationGroup = new Group({
             name: `${this.id}-annotation`,
             isVirtual: contentGroupVirtual,
-            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndex: ZIndexMap.SERIES_LAYER,
             zIndexSubOrder: this.getGroupZIndexSubOrder('annotation'),
         });
     }
@@ -529,12 +531,11 @@ export abstract class Series<
 
     protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
     pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
-        const { pickModes, visible, rootGroup } = this;
+        const { pickModes, pickModeAxis, visible, rootGroup } = this;
 
         if (!visible || !rootGroup.visible) return;
         if (intent === 'highlight' && !this.properties.highlight.enabled) return;
         if (intent === 'highlight-tooltip' && !this.properties.highlight.enabled) return;
-        if (intent === 'highlight' && !this.properties.highlight.enabled) return;
 
         let maxDistance = Infinity;
         if (intent === 'tooltip' || intent === 'highlight-tooltip') {
@@ -565,16 +566,15 @@ export abstract class Series<
                     match = this.pickNodeExactShape(point);
                     break;
 
-                case SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST:
-                case SeriesNodePickMode.NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST:
-                    match = this.pickNodeMainAxisFirst(
-                        point,
-                        pickMode === SeriesNodePickMode.NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST
-                    );
-                    break;
-
                 case SeriesNodePickMode.NEAREST_NODE:
                     match = this.pickNodeClosestDatum(point);
+                    break;
+
+                case SeriesNodePickMode.AXIS_ALIGNED:
+                    match =
+                        pickMode != null
+                            ? this.pickNodeMainAxisFirst(point, pickModeAxis === 'main-category')
+                            : undefined;
                     break;
             }
 

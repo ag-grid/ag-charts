@@ -4,6 +4,8 @@ import type { AgBoxPlotSeriesOptions } from './boxPlotOptions';
 import type { AgBubbleSeriesOptions } from './bubbleOptions';
 import type { AgBulletSeriesOptions } from './bulletOptions';
 import type { AgCandlestickSeriesOptions } from './candlestickOptions';
+import type { AgConeFunnelSeriesOptions } from './coneFunnelOptions';
+import type { AgFunnelSeriesOptions } from './funnelOptions';
 import type { AgHeatmapSeriesOptions } from './heatmapOptions';
 import type { AgHistogramSeriesOptions } from './histogramOptions';
 import type { AgLineSeriesOptions } from './lineOptions';
@@ -14,17 +16,19 @@ import type { AgScatterSeriesOptions } from './scatterOptions';
 import type { AgWaterfallSeriesOptions } from './waterfallOptions';
 
 export type AgCartesianSeriesOptions =
-    | AgLineSeriesOptions
-    | AgScatterSeriesOptions
-    | AgBubbleSeriesOptions
     | AgAreaSeriesOptions
     | AgBarSeriesOptions
     | AgBoxPlotSeriesOptions
+    | AgBubbleSeriesOptions
+    | AgBulletSeriesOptions
     | AgCandlestickSeriesOptions
-    | AgOhlcSeriesOptions
-    | AgHistogramSeriesOptions
+    | AgConeFunnelSeriesOptions
+    | AgFunnelSeriesOptions
     | AgHeatmapSeriesOptions
-    | AgWaterfallSeriesOptions
-    | AgRangeBarSeriesOptions
+    | AgHistogramSeriesOptions
+    | AgLineSeriesOptions
+    | AgOhlcSeriesOptions
     | AgRangeAreaSeriesOptions
-    | AgBulletSeriesOptions;
+    | AgRangeBarSeriesOptions
+    | AgScatterSeriesOptions
+    | AgWaterfallSeriesOptions;

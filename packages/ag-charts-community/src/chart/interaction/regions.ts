@@ -4,15 +4,11 @@ import { Transformable } from '../../scene/transformable';
 import type { BBoxContainsTester, BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 
 export enum REGIONS {
-    TITLE = 'title',
-    SUBTITLE = 'subtitle',
-    FOOTNOTE = 'footnote',
     NAVIGATOR = 'navigator',
     ROOT = 'root',
     SERIES = 'series',
     HORIZONTAL_AXES = 'horizontal-axes',
     VERTICAL_AXES = 'vertical-axes',
-    TOOLBAR = 'toolbar',
 }
 
 export type RegionName = `${REGIONS}`;

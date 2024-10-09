@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-
+import { expect, test } from './fixture';
 import { dragCanvas, gotoExample, locateCanvas, setupIntrinsicAssertions, toExamplePageUrls } from './util';
 
 test.describe('financial-charts-showcase', () => {

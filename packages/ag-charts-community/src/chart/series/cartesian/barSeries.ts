@@ -9,6 +9,7 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
+import { formatValue } from '../../../util/format.util';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
 import type { RequireOptional } from '../../../util/types';
@@ -87,12 +88,20 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
     override properties = new BarSeriesProperties();
 
+    override get pickModeAxis() {
+        return this.properties.sparklineMode ? ('main' as const) : undefined;
+    }
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
-            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [
+                SeriesNodePickMode.AXIS_ALIGNED, // Only used in sparklineMode
+                SeriesNodePickMode.NEAREST_NODE,
+                SeriesNodePickMode.EXACT_SHAPE_MATCH,
+            ],
             pathsPerSeries: [],
             hasHighlightedLabels: true,
             datumSelectionGarbageCollection: false,
@@ -349,6 +358,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                                   isPositive,
                                   isVertical: !barAlongX,
                                   placement: label.placement,
+                                  padding: label.spacing,
                                   rect,
                               }),
                           }
@@ -388,7 +398,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                                   yName,
                                   legendItemName,
                               },
-                              (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
+                              formatValue
                           )
                         : undefined;
 

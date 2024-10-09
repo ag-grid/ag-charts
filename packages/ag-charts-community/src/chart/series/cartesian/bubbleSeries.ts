@@ -56,13 +56,17 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
     private readonly colorScale = new ColorScale();
 
+    override get pickModeAxis() {
+        return 'main-category' as const;
+    }
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             pickModes: [
-                SeriesNodePickMode.NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
+                SeriesNodePickMode.AXIS_ALIGNED,
                 SeriesNodePickMode.NEAREST_NODE,
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],

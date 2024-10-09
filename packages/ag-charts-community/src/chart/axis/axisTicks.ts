@@ -12,7 +12,7 @@ import { createIdsGenerator } from '../../util/tempUtils';
 import { CachedTextMeasurerPool } from '../../util/textMeasurer';
 import { estimateTickCount } from '../../util/ticks';
 import { isNumber } from '../../util/type-guards';
-import { Layers } from '../layers';
+import { ZIndexMap } from '../zIndexMap';
 import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
 
@@ -53,8 +53,8 @@ export class AxisTicks {
 
     readonly id = createId(this);
 
-    protected readonly axisGroup = new TranslatableGroup({ name: `${this.id}-AxisTicks`, zIndex: Layers.AXIS_ZINDEX });
-    protected readonly labelSelection = Selection.select<Text, LabelNodeDatum>(this.axisGroup, Text, false);
+    protected readonly axisGroup = new TranslatableGroup({ name: `${this.id}-AxisTicks`, zIndex: ZIndexMap.AXIS });
+    protected readonly labelSelection = Selection.select<Text, LabelNodeDatum>(this.axisGroup, Text);
 
     readonly interval = new AxisInterval();
     readonly label = new AxisLabel();
@@ -77,7 +77,7 @@ export class AxisTicks {
 
         this.labelSelection.update(
             tickData.ticks.map((d) => this.createLabelDatum(d)),
-            (group) => group.appendChild(new Text()),
+            undefined,
             (datum) => datum.tickId
         );
 

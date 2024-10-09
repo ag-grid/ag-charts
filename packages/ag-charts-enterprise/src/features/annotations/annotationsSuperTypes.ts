@@ -21,6 +21,13 @@ import type { DisjointChannelProperties } from './disjoint-channel/disjointChann
 import type { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
 import type { ArrowProperties, LineProperties } from './line/lineProperties';
 import type { LineScene } from './line/lineScene';
+import type {
+    DatePriceRangeProperties,
+    DateRangeProperties,
+    PriceRangeProperties,
+    QuickDatePriceRangeProperties,
+} from './measurer/measurerProperties';
+import type { MeasurerScene } from './measurer/measurerScene';
 import type { NoteProperties } from './note/noteProperties';
 import type { NoteScene } from './note/noteScene';
 import type { ParallelChannelProperties } from './parallel-channel/parallelChannelProperties';
@@ -33,12 +40,20 @@ export type ShapePropertiesType = ArrowUpProperties | ArrowDownProperties;
 export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
 export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties | ArrowProperties;
 export type ChannelPropertiesType = ParallelChannelProperties | DisjointChannelProperties;
+export type MeasurerPropertiesType =
+    | DateRangeProperties
+    | PriceRangeProperties
+    | DatePriceRangeProperties
+    | QuickDatePriceRangeProperties;
 
 export type AnnotationProperties =
     | LinePropertiesType
     | ChannelPropertiesType
     | TextualPropertiesType
-    | ShapePropertiesType;
+    | ShapePropertiesType
+    | MeasurerPropertiesType;
+
+export type EphemeralPropertiesType = QuickDatePriceRangeProperties;
 
 export type AnnotationScene =
     // Lines
@@ -57,17 +72,22 @@ export type AnnotationScene =
     | CalloutScene
     | CommentScene
     | NoteScene
-    | TextScene;
+    | TextScene
+
+    // Measurers
+    | MeasurerScene;
 
 export interface AnnotationsStateMachineContext {
     resetToIdle: () => void;
-    hoverAtCoords: (coords: _Util.Vec2, active?: number) => number | undefined;
+    hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number) => number | undefined;
+    getNodeAtCoords: (coords: _ModuleSupport.Vec2, active: number) => string | undefined;
     select: (index?: number, previous?: number) => void;
     selectLast: () => number;
 
     startInteracting: () => void;
     stopInteracting: () => void;
 
+    translate: (index: number, translation: _ModuleSupport.Vec2) => void;
     copy: (index: number) => AnnotationProperties | undefined;
     paste: (datum: AnnotationProperties) => void;
     create: (type: AnnotationType, datum: AnnotationProperties) => void;
@@ -87,9 +107,10 @@ export interface AnnotationsStateMachineContext {
     updateTextInputBBox: (bbox?: _Scene.BBox) => void;
 
     showAnnotationOptions: (index: number) => void;
-    showAnnotationSettings: (index: number, sourceEvent?: Event) => void;
+    showAnnotationSettings: (index: number, sourceEvent?: Event, initialTab?: 'line' | 'text') => void;
 
     recordAction: (label: string) => void;
+    addPostUpdateFns: (...fns: (() => void)[]) => void;
 
     update: () => void;
 }
@@ -100,6 +121,12 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
     datum: Constructor<Datum>;
     scene: Constructor<Scene>;
     update: (node: AnnotationSceneNode, datum: _ModuleSupport.BaseProperties, context: AnnotationContext) => void;
+    translate: (
+        node: AnnotationSceneNode,
+        datum: _ModuleSupport.BaseProperties,
+        translation: _ModuleSupport.Vec2,
+        context: AnnotationContext
+    ) => void;
     copy: (
         node: AnnotationSceneNode,
         datum: _ModuleSupport.BaseProperties,
@@ -117,7 +144,11 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
         helpers: AnnotationsStateMachineHelperFns
     ) => _ModuleSupport.StateMachine<any, any>;
     dragState: (
-        ctx: AnnotationsStateMachineContext & { setSelectedWithDrag: () => void },
+        ctx: AnnotationsStateMachineContext & {
+            setSelectedWithDrag: () => void;
+            setSnapping: (snapping: boolean) => void;
+            getSnapping: () => boolean;
+        },
         helpers: AnnotationsStateMachineHelperFns
     ) => _ModuleSupport.StateMachine<any, any>;
 }

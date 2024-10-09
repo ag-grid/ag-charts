@@ -1,10 +1,10 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { Validate, BOOLEAN, POSITIVE_NUMBER, Layers, ActionOnSet, CategoryAxis, GroupedCategoryAxis, TextUtils } =
+const { Validate, BOOLEAN, POSITIVE_NUMBER, ZIndexMap, ActionOnSet, CategoryAxis, GroupedCategoryAxis, TextUtils } =
     _ModuleSupport;
 
 const { Padding, Logger } = _Util;
-const { Group, BBox, TranslatableGroup } = _Scene;
+const { Group, BBox, TranslatableLayer, Layer } = _Scene;
 
 class MiniChartPadding {
     @Validate(POSITIVE_NUMBER)
@@ -22,14 +22,10 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     readonly root = new Group({ name: 'root' });
     readonly seriesRoot = this.root.appendChild(
-        new TranslatableGroup({ name: 'Series-root', layer: true, zIndex: Layers.SERIES_LAYER_ZINDEX })
+        new TranslatableLayer({ name: 'Series-root', zIndex: ZIndexMap.SERIES_LAYER })
     );
-    readonly axisGridGroup = this.root.appendChild(
-        new Group({ name: 'Axes-Grids', layer: true, zIndex: Layers.AXIS_GRID_ZINDEX })
-    );
-    readonly axisGroup = this.root.appendChild(
-        new Group({ name: 'Axes-Grids', layer: true, zIndex: Layers.AXIS_GRID_ZINDEX })
-    );
+    readonly axisGridGroup = this.root.appendChild(new Layer({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID }));
+    readonly axisGroup = this.root.appendChild(new Layer({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID }));
 
     public data: any = [];
 
@@ -85,7 +81,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         for (const series of newValue) {
             if (oldValue?.includes(series)) continue;
 
-            if (series.rootGroup.parent == null) {
+            if (series.rootGroup.isRoot()) {
                 this.seriesRoot.appendChild(series.rootGroup);
             }
 
@@ -114,11 +110,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
     protected destroySeries(allSeries: _ModuleSupport.Series<any, any>[]): void {
         allSeries?.forEach((series) => {
             series.destroy();
-
-            if (series.rootGroup != null) {
-                this.seriesRoot.removeChild(series.rootGroup);
-            }
-
+            series.rootGroup?.remove();
             series.chart = undefined;
         });
     }
@@ -243,7 +235,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         this.seriesRect = seriesRect;
         this.seriesRoot.translationY = padding.top;
-        this.seriesRoot.setClipRect(new BBox(0, -padding.top, width, height));
+        this.seriesRoot.setClipRect(new BBox(0, -padding.top, width, height), false);
 
         this.axes.forEach((axis) => {
             const { position = 'left' } = axis;

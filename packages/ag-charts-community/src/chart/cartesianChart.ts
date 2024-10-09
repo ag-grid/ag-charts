@@ -1,10 +1,13 @@
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
-import type { LayoutContext } from '../module/baseModule';
+import type { LayoutContext, ModuleInstance } from '../module/baseModule';
 import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
+import { ContinuousScale } from '../scale/continuousScale';
 import type { BBox } from '../scene/bbox';
+import { arraysEqual } from '../util/array';
 import { Logger } from '../util/logger';
+import { findMinMax } from '../util/number';
 import { CategoryAxis } from './axis/categoryAxis';
 import { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
 import type { TransferableResources } from './chart';
@@ -16,6 +19,12 @@ import type { Series } from './series/series';
 
 type VisibilityMap = { crossLines: boolean; series: boolean };
 const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
+
+interface SyncModule extends ModuleInstance {
+    enabled?: boolean;
+    getSyncedDomain(axis: ChartAxis): any[] | undefined;
+    updateSiblings(): void;
+}
 
 export class CartesianChart extends Chart {
     static readonly className = 'CartesianChart';
@@ -47,20 +56,20 @@ export class CartesianChart extends Chart {
 
     private setRootClipRects(clipRect: BBox | undefined) {
         const { seriesRoot, annotationRoot, highlightRoot } = this;
-        seriesRoot.setClipRectInGroupCoordinateSpace(clipRect);
-        highlightRoot.setClipRectInGroupCoordinateSpace(clipRect);
-        annotationRoot.setClipRectInGroupCoordinateSpace(clipRect);
+        seriesRoot.setClipRect(clipRect);
+        highlightRoot.setClipRect(clipRect);
+        annotationRoot.setClipRect(clipRect);
     }
 
     private lastUpdateClipRect: BBox | undefined = undefined;
 
     protected performLayout(ctx: LayoutContext) {
         const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
-        const { animationRect, seriesRect, visibility, clipSeries } = this.updateAxes(ctx.layoutBox);
+        const { seriesRect, visibility, clipSeries } = this.updateAxes(ctx.layoutBox);
 
         this.seriesRoot.visible = visibility.series;
         this.seriesRect = seriesRect;
-        this.animationRect = animationRect;
+        this.animationRect = ctx.layoutBox;
 
         const { x, y } = seriesRect;
         if (firstSeriesTranslation) {
@@ -266,7 +275,7 @@ export class CartesianChart extends Chart {
         this._lastVisibility = visibility;
         this._lastClipSeries = clipSeries;
 
-        return { seriesRect, animationRect: layoutBox, visibility, clipSeries };
+        return { seriesRect, visibility, clipSeries };
     }
 
     private updateAxesPass(
@@ -423,11 +432,11 @@ export class CartesianChart extends Chart {
 
         this.sizeAxis(axis, seriesRect, position);
 
+        const syncedDomain = this.getSyncedDomain(axis);
+        const layout = axis.calculateLayout(syncedDomain, axis.nice ? primaryTickCounts[direction] : undefined);
         const isVertical = direction === ChartAxisDirection.Y;
 
-        const layout = axis.calculateLayout(axis.nice ? primaryTickCounts[direction] : undefined);
         primaryTickCounts[direction] ??= layout.primaryTickCount;
-
         clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
 
         let axisThickness;
@@ -440,6 +449,29 @@ export class CartesianChart extends Chart {
         axisThickness = Math.ceil(axisThickness);
 
         return { clipSeries, axisThickness };
+    }
+
+    private getSyncedDomain(axis: ChartAxis) {
+        const syncModule = this.modulesManager.getModule<SyncModule>('sync');
+        if (!syncModule?.enabled) return;
+        const syncedDomain = syncModule.getSyncedDomain(axis);
+
+        // If synced domain available and axis domain is already set.
+        if (syncedDomain && axis.dataDomain.domain.length) {
+            let shouldUpdate: boolean;
+            const { domain } = axis.scale;
+            if (ContinuousScale.is(axis.scale)) {
+                const [min, max] = findMinMax(syncedDomain);
+                shouldUpdate = min !== domain[0] || max !== domain[1];
+            } else {
+                shouldUpdate = !arraysEqual(syncedDomain, domain);
+            }
+            if (shouldUpdate && !this.skipSync) {
+                syncModule.updateSiblings();
+            }
+        }
+
+        return syncedDomain;
     }
 
     private sizeAxis(axis: ChartAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {

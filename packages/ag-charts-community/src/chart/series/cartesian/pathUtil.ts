@@ -216,8 +216,8 @@ export function pathSwipeInAnimation(
         { clipX: width },
         {
             phase: 'initial',
-            start: { clipMode: 'normal', clipY: height, visible },
-            finish: { clipMode: undefined, visible },
+            start: { clip: true, clipY: height, visible },
+            finish: { clip: false, visible },
         }
     );
 }
@@ -246,7 +246,7 @@ export function buildResetPathFn(opts: { getVisible(): boolean; getOpacity(): nu
         visible: opts.getVisible(),
         opacity: opts.getOpacity(),
         clipScalingX: 1,
-        clipMode: undefined,
+        clip: false,
     });
 }
 

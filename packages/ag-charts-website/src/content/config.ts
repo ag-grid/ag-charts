@@ -72,12 +72,6 @@ const level1MenuItem = z.object({
 const menu = defineCollection({
     type: 'data',
     schema: z.object({
-        header: z.object({
-            items: z.array(level1MenuItem),
-        }),
-        api: z.object({
-            items: z.array(level1MenuItem),
-        }),
         main: z.object({
             items: z.array(level1MenuItem),
         }),

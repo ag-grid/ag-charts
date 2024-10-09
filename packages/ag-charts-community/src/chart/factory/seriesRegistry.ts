@@ -1,5 +1,3 @@
-import type { AgChartOptions } from 'ag-charts-types';
-
 import type { SeriesFactory, SeriesModule, SeriesTooltipDefaults } from '../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../module/coreModulesTypes';
 import type { ModuleContext } from '../../module/moduleContext';
@@ -11,14 +9,13 @@ import { chartTypes, publicChartTypes } from './chartTypes';
 
 interface SeriesRegistryRecord {
     moduleFactory?: SeriesFactory;
-    defaultAxes?: object[];
+    defaultAxes?: object[] | ((opts: {}) => object[]);
     tooltipDefaults?: SeriesTooltipDefaults;
     paletteFactory?: SeriesPaletteFactory<unknown>;
     solo?: boolean;
     groupable?: boolean;
     stackable?: boolean;
     stackedByDefault?: boolean;
-    swapDefaultAxesCondition?: (opts: any) => boolean;
 }
 
 export class SeriesRegistry {
@@ -38,7 +35,6 @@ export class SeriesRegistry {
             stackable,
             groupable,
             stackedByDefault,
-            swapDefaultAxesCondition,
             hidden,
         }: SeriesModule<any, any>
     ) {
@@ -52,7 +48,6 @@ export class SeriesRegistry {
             stackable,
             groupable,
             stackedByDefault,
-            swapDefaultAxesCondition,
         });
         chartTypes.set(seriesType, chartType);
         if (!hidden) {
@@ -68,9 +63,12 @@ export class SeriesRegistry {
         throw new Error(`AG Charts - unknown series type: ${seriesType}`);
     }
 
-    cloneDefaultAxes(seriesType: SeriesType) {
+    cloneDefaultAxes(seriesType: SeriesType, options: {}) {
         const defaultAxes = this.seriesMap.get(seriesType)?.defaultAxes;
-        return defaultAxes ? { axes: deepClone(defaultAxes) } : null;
+        if (defaultAxes == null) return null;
+
+        const axes = typeof defaultAxes === 'function' ? defaultAxes(options) : defaultAxes;
+        return { axes: deepClone(axes) };
     }
 
     setThemeTemplate(seriesType: NonNullable<SeriesType>, themeTemplate: {}) {
@@ -104,26 +102,6 @@ export class SeriesRegistry {
 
     isStackedByDefault(seriesType: SeriesType) {
         return this.seriesMap.get(seriesType)?.stackedByDefault ?? false;
-    }
-
-    isDefaultAxisSwapNeeded(options: AgChartOptions) {
-        let result: boolean | undefined;
-
-        for (const series of options.series ?? []) {
-            const { type = 'line' } = series;
-            const isDefaultAxisSwapped = this.seriesMap.get(type)?.swapDefaultAxesCondition?.(series);
-
-            if (isDefaultAxisSwapped != null) {
-                if (result != null && result != isDefaultAxisSwapped) {
-                    // TODO change to a warning
-                    throw new Error('AG Charts - The provided series have incompatible directions');
-                }
-
-                result = isDefaultAxisSwapped;
-            }
-        }
-
-        return result;
     }
 }
 

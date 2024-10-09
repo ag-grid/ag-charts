@@ -7,10 +7,10 @@ const {
     BaseProperties,
     CartesianAxis,
     ChartUpdateType,
-    arraysEqual,
     isDate,
     isDefined,
     isFiniteNumber,
+    unique,
     ObserveChanges,
     TooltipManager,
     Validate,
@@ -20,7 +20,7 @@ const { Logger } = _Util;
 interface ChartLike {
     ctx: {
         updateService: {
-            update: (type: _ModuleSupport.ChartUpdateType, options: { skipSync: boolean }) => void;
+            update(type: _ModuleSupport.ChartUpdateType, options: { skipSync: boolean }): void;
         };
     };
 }
@@ -52,22 +52,15 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         super();
     }
 
-    private updateChart(chart: ChartLike, updateType = ChartUpdateType.UPDATE_DATA) {
-        chart.ctx.updateService.update(updateType, { skipSync: true });
+    updateSiblings(groupId?: string) {
+        const { syncManager } = this.moduleContext;
+        for (const chart of syncManager.getGroupSiblings(groupId ?? this.groupId)) {
+            this.updateChart(chart);
+        }
     }
 
-    private updateSiblings(groupId?: string) {
-        const { syncManager } = this.moduleContext;
-
-        const updateFn = async () => {
-            for (const chart of syncManager.getGroupSiblings(groupId)) {
-                await chart.waitForDataProcess(120);
-                this.updateChart(chart);
-            }
-        };
-        updateFn().catch((e) => {
-            Logger.warnOnce('Error updating sibling chart', e);
-        });
+    private updateChart(chart: ChartLike, updateType = ChartUpdateType.UPDATE_DATA) {
+        chart.ctx.updateService.update(updateType, { skipSync: true });
     }
 
     private enabledZoomSync() {
@@ -160,58 +153,45 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
 
     private disableNodeInteractionSync?: () => void;
 
-    syncAxes(stopPropagation = false) {
+    getSyncedDomain(axis: unknown) {
+        if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) {
+            return;
+        }
+
         const { syncManager } = this.moduleContext;
-        const chart = syncManager.getChart();
-
         const syncGroup = syncManager.getGroup(this.groupId);
-        const syncSeries = syncGroup.flatMap((c) => c.series);
-        const syncAxes = syncGroup[0].axes;
+        const [{ axes: syncAxes }] = syncGroup;
 
-        let hasUpdated = false;
+        const { direction, min, max, nice, reverse } = axis as (typeof syncAxes)[number];
 
-        chart.axes.forEach((axis) => {
-            if (!CartesianAxis.is(axis) || (this.axes !== 'xy' && this.axes !== axis.direction)) {
-                axis.boundSeries = chart.series.filter((s) => s.axes[axis.direction] === (axis as any));
+        for (const mainAxis of syncAxes) {
+            if (direction !== mainAxis.direction) continue;
+
+            if (
+                nice !== mainAxis.nice ||
+                reverse !== mainAxis.reverse ||
+                (min !== mainAxis.min && (isFiniteNumber(min) || isFiniteNumber(mainAxis.min))) ||
+                (max !== mainAxis.max && (isFiniteNumber(max) || isFiniteNumber(mainAxis.max)))
+            ) {
+                Logger.warnOnce(
+                    'To allow synchronization, ensure that all charts have matching min, max, nice, and reverse properties on the synchronized axes.'
+                );
+                this.enabled = false;
                 return;
             }
-
-            const { direction, min, max, nice, reverse } = axis as (typeof syncAxes)[number];
-
-            for (const mainAxis of syncAxes) {
-                if (direction !== mainAxis.direction) continue;
-
-                if (
-                    nice !== mainAxis.nice ||
-                    reverse !== mainAxis.reverse ||
-                    (min !== mainAxis.min && (isFiniteNumber(min) || isFiniteNumber(mainAxis.min))) ||
-                    (max !== mainAxis.max && (isFiniteNumber(max) || isFiniteNumber(mainAxis.max)))
-                ) {
-                    Logger.warnOnce(
-                        'To allow synchronization, ensure that all charts have matching min, max, nice, and reverse properties on the synchronized axes.'
-                    );
-                    axis.boundSeries = chart.series.filter((s) => s.axes[axis.direction] === (axis as any));
-                    this.enabled = false;
-                    return;
-                }
-            }
-
-            const boundSeries = syncSeries.filter((series) => {
-                if (series.visible) {
-                    const seriesKeys = series.getKeys(axis.direction);
-                    return axis.keys.length ? axis.keys.some((key) => seriesKeys.includes(key)) : true;
-                }
-            });
-
-            if (!arraysEqual(axis.boundSeries, boundSeries)) {
-                axis.boundSeries = boundSeries;
-                hasUpdated = true;
-            }
-        });
-
-        if (hasUpdated && !stopPropagation) {
-            this.updateSiblings(this.groupId);
         }
+
+        return unique(
+            syncGroup
+                .flatMap((c) => c.series)
+                .filter((series) => {
+                    if (series.visible) {
+                        const seriesKeys = series.getKeys(axis.direction);
+                        return axis.keys.length ? axis.keys.some((key) => seriesKeys.includes(key)) : true;
+                    }
+                })
+                .flatMap((series) => series.getDomain(axis.direction))
+        );
     }
 
     private mergeZoom(chart: any) {
@@ -233,7 +213,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
         } else {
             syncManager.unsubscribe(this.groupId);
         }
-        this.updateSiblings(this.groupId);
+        this.updateSiblings();
         this.onNodeInteractionChange();
         this.onZoomChange();
     }
@@ -272,7 +252,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
     destroy() {
         const { syncManager } = this.moduleContext;
         syncManager.unsubscribe(this.groupId);
-        this.updateSiblings(this.groupId);
+        this.updateSiblings();
         this.disableZoomSync?.();
     }
 }

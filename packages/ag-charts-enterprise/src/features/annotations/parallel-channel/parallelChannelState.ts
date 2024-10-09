@@ -23,44 +23,55 @@ export class ParallelChannelStateMachine extends StateMachine<
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: ParallelChannelStateMachineContext) {
-        const actionCreate = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: () => Point }) => {
             const datum = new ParallelChannelProperties();
-            datum.set({ start: point, end: point, height: 0 });
+            const origin = point();
+            datum.set({ start: origin, end: origin, height: 0 });
             ctx.create(datum);
+            ctx.addPostUpdateFns(
+                () => ctx.node()?.toggleActive(true),
+                () =>
+                    ctx.node()?.toggleHandles({
+                        topLeft: true,
+                        topMiddle: false,
+                        topRight: false,
+                        bottomLeft: false,
+                        bottomMiddle: false,
+                        bottomRight: false,
+                    })
+            );
         };
 
-        const actionEndUpdate = ({ point }: { point: Point }) => {
+        const actionEndUpdate = ({ point }: { point: (origin?: Point, snapToAngle?: number) => Point }) => {
             ctx.guardDragClickDoubleEvent.hover();
-            ctx.datum()?.set({ end: point, height: 0 });
+
+            const datum = ctx.datum();
+            datum?.set({ end: point(datum?.start, datum?.snapToAngle), height: 0 });
+
+            ctx.update();
+        };
+
+        const actionEndFinish = () => {
             ctx.node()?.toggleHandles({
-                topMiddle: false,
-                topRight: false,
-                bottomLeft: false,
-                bottomMiddle: false,
-                bottomRight: false,
+                topRight: true,
             });
             ctx.update();
         };
 
-        const actionEndFinish = ({ point }: { point: Point }) => {
-            ctx.datum()?.set({ end: point });
-            ctx.node()?.toggleHandles({ topMiddle: false, bottomMiddle: false });
-            ctx.update();
-        };
-
-        const actionHeightUpdate = ({ point }: { point: Point }) => {
+        const actionHeightUpdate = ({ point }: { point: () => Point }) => {
             const datum = ctx.datum();
 
             if (datum?.start.y == null || datum?.end.y == null) return;
 
-            const height = datum.end.y - (point.y ?? 0);
+            const y = point().y;
+            const height = datum.end.y - (y ?? 0);
             const bottomStartY = datum.start.y - height;
 
-            ctx.node()?.toggleHandles({ topMiddle: false, bottomMiddle: false });
+            ctx.node()?.toggleHandles({ bottomLeft: true, bottomRight: true });
 
             if (
                 !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }) ||
-                !ctx.validatePoint({ x: datum.end.x, y: point.y })
+                !ctx.validatePoint({ x: datum.end.x, y })
             ) {
                 return;
             }
@@ -69,19 +80,20 @@ export class ParallelChannelStateMachine extends StateMachine<
             ctx.update();
         };
 
-        const actionHeightFinish = ({ point }: { point: Point }) => {
+        const actionHeightFinish = ({ point }: { point: () => Point }) => {
             const datum = ctx.datum();
 
             if (datum?.start.y == null || datum?.end.y == null) return;
 
-            const height = datum.end.y - (point.y ?? 0);
+            const y = point().y;
+            const height = datum.end.y - (y ?? 0);
             const bottomStartY = datum.start.y - height;
 
             ctx.node()?.toggleHandles(true);
 
             if (
                 !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }) ||
-                !ctx.validatePoint({ x: datum.end.x, y: point.y })
+                !ctx.validatePoint({ x: datum.end.x, y })
             ) {
                 return;
             }

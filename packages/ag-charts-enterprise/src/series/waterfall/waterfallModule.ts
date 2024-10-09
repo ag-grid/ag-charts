@@ -14,18 +14,14 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     solo: true,
     moduleFactory: (ctx) => new WaterfallSeries(ctx),
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: [
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: _Theme.POSITION.BOTTOM,
-        },
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-            position: _Theme.POSITION.LEFT,
-        },
-    ],
+    defaultAxes: _Theme.swapAxisCondition(
+        [
+            { type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER, position: _Theme.CARTESIAN_POSITION.LEFT },
+            { type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY, position: _Theme.CARTESIAN_POSITION.BOTTOM },
+        ],
+        (series) => series?.direction === 'horizontal'
+    ),
     themeTemplate: WATERFALL_SERIES_THEME,
-    swapDefaultAxesCondition: ({ direction }) => direction === 'horizontal',
     paletteFactory: ({ takeColors, colorsCount, userPalette, palette }) => {
         if (userPalette === 'user-indexed') {
             const { fills, strokes } = takeColors(colorsCount);

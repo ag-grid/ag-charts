@@ -15,25 +15,7 @@ import {
 } from 'ag-charts-types';
 
 import { mergeArrayDefaults, mergeDefaults } from '../../util/object';
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function assertEmpty(_t: Record<string, never>) {}
-
-const IGNORED_PROP = Symbol('IGNORED_PROP');
-
-function pickProps<T>(
-    opts: Partial<T>,
-    values: { [K in keyof Required<T>]: (T[K] extends Required<T[K]> ? T[K] : T[K] | undefined) | typeof IGNORED_PROP }
-) {
-    const out: any = {};
-    for (const key in values) {
-        const value = values[key];
-        if (value !== IGNORED_PROP && Object.hasOwn(opts as any, key)) {
-            out[key] = value;
-        }
-    }
-    return out;
-}
+import { IGNORED_PROP, assertEmpty, pickProps } from './presetUtils';
 
 function isRadialGauge(opts: AgGaugeOptions): opts is AgRadialGaugeOptions {
     return opts.type === 'radial-gauge';

@@ -15,11 +15,11 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-            position: _Theme.POSITION.LEFT,
+            position: _Theme.CARTESIAN_POSITION.LEFT,
         },
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.ORDINAL_TIME,
-            position: _Theme.POSITION.BOTTOM,
+            position: _Theme.CARTESIAN_POSITION.BOTTOM,
         },
     ],
     themeTemplate: CANDLESTICK_SERIES_THEME,

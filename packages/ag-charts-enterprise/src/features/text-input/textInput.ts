@@ -10,7 +10,7 @@ const moduleId = 'text-input';
 const canvasOverlay = 'canvas-overlay';
 
 interface Layout {
-    getTextInputCoords: (height: number) => _Util.Vec2;
+    getTextInputCoords: (height: number) => _ModuleSupport.Vec2;
     getTextPosition: () => AnnotationTextPosition;
     alignment: 'left' | 'center' | 'right';
     textAlign: TextAlign;
@@ -25,6 +25,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         alignment: 'center',
         textAlign: 'center',
     };
+    private visible = false;
 
     constructor(readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -92,6 +93,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
 
         opts.onChange?.(this.getValue()!, this.getBBox());
+        this.visible = true;
     }
 
     public hide() {
@@ -102,6 +104,11 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
             alignment: 'center',
             textAlign: 'center',
         };
+        this.visible = false;
+    }
+
+    public isVisible() {
+        return this.visible;
     }
 
     public updateColor(color: string) {
@@ -158,7 +165,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         textArea.style.setProperty('text-align', textAlign);
     }
 
-    private getBBox() {
+    public getBBox() {
         const { left, top, width, height } = this.element.getBoundingClientRect();
         return new _Scene.BBox(left, top, width, height);
     }

@@ -4,6 +4,7 @@ import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import type { TextualStartEndScene } from '../scenes/textualStartEndScene';
+import { wrapText } from '../text/util';
 import { setColor } from '../utils/styles';
 import { isTextType } from '../utils/types';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
@@ -28,14 +29,24 @@ export abstract class TextualStartEndStateMachine<
     Node extends TextualStartEndScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit' | 'end',
-    'click' | 'cancel' | 'hover' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'fontSize' | 'render' | 'reset'
+    | 'click'
+    | 'zoomChange'
+    | 'cancel'
+    | 'hover'
+    | 'keyDown'
+    | 'updateTextInputBBox'
+    | 'color'
+    | 'fontSize'
+    | 'render'
+    | 'reset'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: TextualStartEndStateMachineContext<Datum, Node>) {
-        const actionCreate = ({ point }: { point: Point }) => {
+        const actionCreate = ({ point }: { point: () => Point }) => {
             const datum = this.createDatum();
-            datum.set({ start: point, end: point, visible: true });
+            const origin = point();
+            datum.set({ start: origin, end: origin, visible: true });
             ctx.create(datum);
         };
 
@@ -62,16 +73,15 @@ export abstract class TextualStartEndStateMachine<
             ctx.update();
         };
 
-        const onEndHover = ({ point }: { point: Point }) => {
-            ctx.datum()?.set({ end: point });
+        const onEndHover = ({ point }: { point: () => Point }) => {
+            ctx.datum()?.set({ end: point() });
             ctx.node()?.toggleActive(true);
             ctx.node()?.toggleHandles({ end: false });
             ctx.update();
         };
 
-        const onEndClick = ({ point }: { point: Point }) => {
+        const onEndClick = () => {
             ctx.showAnnotationOptions();
-            ctx.datum()?.set({ end: point });
             ctx.node()?.toggleHandles({ end: true });
         };
 
@@ -110,9 +120,17 @@ export abstract class TextualStartEndStateMachine<
             ctx.delete();
         };
 
-        const actionSave = ({ textInputValue }: { textInputValue?: string }) => {
+        const actionSave = ({ textInputValue, bbox }: { textInputValue?: string; bbox: _Scene.BBox }) => {
             if (textInputValue != null && textInputValue.length > 0) {
-                ctx.datum()?.set({ text: textInputValue });
+                const datum = ctx.datum();
+
+                if (!isTextType(datum)) {
+                    return;
+                }
+
+                const wrappedText = wrapText(datum, textInputValue, bbox.width);
+                datum?.set({ text: wrappedText });
+
                 ctx.update();
                 ctx.recordAction(`Create ${ctx.node()?.type} annotation`);
             } else {
@@ -168,6 +186,10 @@ export abstract class TextualStartEndStateMachine<
                     },
                 ],
                 click: {
+                    target: StateMachine.parent,
+                    action: actionSave,
+                },
+                zoomChange: {
                     target: StateMachine.parent,
                     action: actionSave,
                 },

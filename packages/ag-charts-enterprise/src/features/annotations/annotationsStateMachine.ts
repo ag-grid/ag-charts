@@ -17,6 +17,7 @@ import type {
     LinearSettingsDialogTextChangeProps,
 } from './settings-dialog/settingsDialog';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
+import { wrapText } from './text/util';
 import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setLineStyle } from './utils/styles';
 import { isChannelType, isTextType } from './utils/types';
@@ -33,12 +34,16 @@ type AnnotationEvent =
     | 'hover'
     | 'click'
     | 'dblclick'
+    | 'zoomChange'
     | 'drag'
     | 'dragStart'
     | 'dragEnd'
     | 'keyDown'
+    | 'keyUp'
     // Data events
     | 'selectLast'
+    | 'translate'
+    | 'translateEnd'
     | 'copy'
     | 'cut'
     | 'paste'
@@ -65,6 +70,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
     private hovered?: number;
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private active?: number;
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly
+    private snapping: boolean = false;
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private copied?: AnnotationProperties;
 
@@ -151,6 +158,12 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             setSelectedWithDrag: () => {
                 selectedWithDrag = true;
             },
+            setSnapping: (snapping: boolean) => {
+                this.snapping = snapping;
+            },
+            getSnapping: () => {
+                return this.snapping;
+            },
         };
         const dragStateMachines = Object.fromEntries(
             Object.entries(annotationConfigs).map(([type, config]) => [
@@ -211,12 +224,18 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             ctx.update();
         };
 
-        const actionSaveText = ({ textInputValue }: { textInputValue?: string }) => {
+        const actionSaveText = ({ textInputValue, bbox }: { textInputValue?: string; bbox: _Scene.BBox }) => {
             const datum = ctx.datum(this.active!);
             if (textInputValue != null && textInputValue.length > 0) {
-                datum?.set({ text: textInputValue });
+                if (!isTextType(datum)) {
+                    return;
+                }
+
+                const wrappedText = wrapText(datum, textInputValue, bbox.width);
+                datum.set({ text: wrappedText });
+
                 ctx.update();
-                ctx.recordAction(`Change ${datum?.type} annotation text`);
+                ctx.recordAction(`Change ${datum.type} annotation text`);
             } else {
                 ctx.delete(this.active!);
                 ctx.recordAction(`Delete ${datum?.type} annotation`);
@@ -243,8 +262,32 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     ctx.select(this.active, this.active);
                 },
 
-                hover: ({ offset }: { offset: _Util.Vec2 }) => {
+                hover: ({ offset }: { offset: _ModuleSupport.Vec2 }) => {
                     this.hovered = ctx.hoverAtCoords(offset, this.active);
+                },
+
+                keyDown: ({ shiftKey }: { shiftKey: boolean }) => {
+                    this.snapping = shiftKey;
+                },
+
+                keyUp: ({ shiftKey }: { shiftKey: boolean }) => {
+                    this.snapping = shiftKey;
+                },
+
+                translate: {
+                    guard: guardActive,
+                    action: ({ translation }: { translation: _ModuleSupport.Vec2 }) => {
+                        ctx.startInteracting();
+                        ctx.translate(this.active!, translation);
+                        ctx.update();
+                    },
+                },
+
+                translateEnd: {
+                    guard: guardActive,
+                    action: () => {
+                        ctx.stopInteracting();
+                    },
                 },
 
                 copy: {
@@ -297,8 +340,10 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 dblclick: {
                     guard: guardActiveHasLineText,
-                    action: () => {
-                        ctx.showAnnotationSettings(this.active!, undefined);
+                    action: ({ offset }) => {
+                        const nodeAtCoords = ctx.getNodeAtCoords(offset, this.active!) === 'text' ? 'text' : 'line';
+
+                        ctx.showAnnotationSettings(this.active!, undefined, nodeAtCoords);
                     },
                 },
 
@@ -432,6 +477,11 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 updateTextInputBBox: {
                     guard: guardActive,
                     action: actionUpdateTextInputBBox,
+                },
+
+                zoomChange: {
+                    target: States.Idle,
+                    action: actionSaveText,
                 },
 
                 click: {

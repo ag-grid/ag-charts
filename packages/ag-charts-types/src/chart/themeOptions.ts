@@ -8,6 +8,8 @@ import type { AgBulletSeriesThemeableOptions } from '../series/cartesian/bulletO
 import type { AgCandlestickSeriesThemeableOptions } from '../series/cartesian/candlestickOptions';
 import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
+import type { AgConeFunnelSeriesThemeableOptions } from '../series/cartesian/coneFunnelOptions';
+import type { AgFunnelSeriesThemeableOptions } from '../series/cartesian/funnelOptions';
 import type { AgHeatmapSeriesThemeableOptions } from '../series/cartesian/heatmapOptions';
 import type { AgHistogramSeriesThemeableOptions } from '../series/cartesian/histogramOptions';
 import type { AgLineSeriesThemeableOptions } from '../series/cartesian/lineOptions';
@@ -30,6 +32,8 @@ import type { AgRadarAreaSeriesThemeableOptions } from '../series/polar/radarAre
 import type { AgRadarSeriesThemeableOptions } from '../series/polar/radarOptions';
 import type { AgRadialBarSeriesThemeableOptions } from '../series/polar/radialBarOptions';
 import type { AgRadialColumnSeriesThemeableOptions } from '../series/polar/radialColumnOptions';
+import type { AgPyramidSeriesThemeableOptions } from '../series/standalone/pyramidOptions';
+import type { AgBaseStandaloneThemeOptions } from '../series/standalone/standaloneOptions';
 import type { AgMapLineBackgroundThemeableOptions } from '../series/topology/mapLineBackgroundOptions';
 import type { AgMapLineSeriesThemeableOptions } from '../series/topology/mapLineOptions';
 import type { AgMapMarkerSeriesThemeableOptions } from '../series/topology/mapMarkerOptions';
@@ -108,6 +112,12 @@ export interface AgBoxPlotSeriesThemeOverrides extends AgBaseCartesianThemeOptio
 export interface AgCandlestickSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgCandlestickSeriesThemeableOptions;
 }
+export interface AConeFunnelSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
+    series?: AgConeFunnelSeriesThemeableOptions;
+}
+export interface AgFunnelSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
+    series?: AgFunnelSeriesThemeableOptions;
+}
 export interface AgOhlcSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgOhlcSeriesThemeableOptions;
 }
@@ -177,6 +187,9 @@ export interface AgSankeyThemeOverrides extends AgBaseFlowProportionThemeOptions
 export interface AgChordThemeOverrides extends AgBaseFlowProportionThemeOptions {
     series?: AgChordSeriesThemeableOptions;
 }
+export interface AgPyramidThemeOverrides extends AgBaseStandaloneThemeOptions {
+    series?: AgPyramidSeriesThemeableOptions;
+}
 
 export type AgBaseGaugePresetThemeOptions = Pick<
     AgBaseChartOptions<any>,
@@ -235,6 +248,10 @@ export interface AgChartThemeOverrides {
     'box-plot'?: AgBoxPlotSeriesThemeOverrides;
     /** Candlestick series theme overrides. */
     candlestick?: AgCandlestickSeriesThemeOverrides;
+    /** Cone Funnel series theme overrides. */
+    'cone-funnel'?: AConeFunnelSeriesThemeOverrides;
+    /** Funnel series theme overrides. */
+    funnel?: AgFunnelSeriesThemeOverrides;
     /** ohlc series theme overrides. */
     ohlc?: AgOhlcSeriesThemeOverrides;
     /** Histogram series theme overrides. */
@@ -281,6 +298,8 @@ export interface AgChartThemeOverrides {
     sankey?: AgSankeyThemeOverrides;
     /** Chord series theme overrides. */
     chord?: AgChordThemeOverrides;
+    /** Pyramid series theme overrides. */
+    pyramid?: AgPyramidThemeOverrides;
 }
 
 export interface AgPresetOverrides {

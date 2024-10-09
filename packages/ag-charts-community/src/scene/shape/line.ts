@@ -1,6 +1,7 @@
 import { lineDistanceSquared } from '../../util/distance';
 import type { DistantObject } from '../../util/nearest';
 import { BBox } from '../bbox';
+import { nodeCount } from '../debug.util';
 import type { NodeOptions, RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 import { Shape } from './shape';
@@ -40,6 +41,10 @@ export class Line extends Shape implements DistantObject {
         this.y2 = value;
     }
 
+    get midPoint(): { x: number; y: number } {
+        return { x: (this.x1 + this.x2) / 2, y: (this.y1 + this.y2) / 2 };
+    }
+
     protected override computeBBox(): BBox {
         return new BBox(
             Math.min(this.x1, this.x2),
@@ -68,7 +73,7 @@ export class Line extends Shape implements DistantObject {
         const { ctx, forceRender, stats, devicePixelRatio } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {
-            if (stats) stats.nodesSkipped += this.nodeCount.count;
+            if (stats) stats.nodesSkipped += nodeCount(this).count;
             return;
         }
 
@@ -100,5 +105,23 @@ export class Line extends Shape implements DistantObject {
 
         this.fillShadow?.markClean();
         super.render(renderCtx);
+    }
+
+    override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
+        if (!this.visible) return;
+
+        const element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+
+        element.setAttribute('x1', String(this.x1));
+        element.setAttribute('y1', String(this.y1));
+        element.setAttribute('x2', String(this.x2));
+        element.setAttribute('y2', String(this.y2));
+        element.setAttribute('stroke', this.stroke ?? 'none');
+        element.setAttribute('stroke-opacity', String(this.strokeOpacity));
+        element.setAttribute('stroke-width', String(this.strokeWidth));
+
+        return {
+            elements: [element],
+        };
     }
 }

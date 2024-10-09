@@ -1,9 +1,11 @@
 import { BBox } from '../../../scene/bbox';
+import { RedrawType } from '../../../scene/changeDetectable';
 import { Group, TranslatableGroup } from '../../../scene/group';
+import { Layer } from '../../../scene/layer';
 import type { Node } from '../../../scene/node';
-import { Layers } from '../../layers';
+import { ZIndexMap } from '../../zIndexMap';
 
-export class RangeSelector extends Group {
+export class RangeSelector extends Layer {
     private readonly background: TranslatableGroup;
 
     private x = 0;
@@ -14,13 +16,8 @@ export class RangeSelector extends Group {
     private rOffset = 0;
 
     constructor(children: Node[]) {
-        super({ name: 'rangeSelectorGroup', layer: true, zIndex: Layers.NAVIGATOR_ZINDEX });
-        this.isContainerNode = true;
-
-        this.background = new TranslatableGroup({ name: 'navigator-background' });
-        this.background.zIndex = 1;
-
-        this.appendChild(this.background);
+        super({ name: 'rangeSelectorGroup', zIndex: ZIndexMap.NAVIGATOR });
+        this.background = this.appendChild(new TranslatableGroup({ name: 'navigator-background', zIndex: 1 }));
         this.append(children);
     }
 
@@ -34,6 +31,7 @@ export class RangeSelector extends Group {
 
         this.background.translationX = x;
         this.background.translationY = y;
+        this.markDirty(RedrawType.MAJOR);
     }
 
     updateBackground(oldGroup?: Group, newGroup?: Group) {
@@ -44,6 +42,7 @@ export class RangeSelector extends Group {
         if (newGroup != null) {
             this.background.appendChild(newGroup);
         }
+        this.markDirty(RedrawType.MAJOR);
     }
 
     protected override computeBBox() {

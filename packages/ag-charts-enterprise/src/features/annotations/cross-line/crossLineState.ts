@@ -24,11 +24,12 @@ export class CrossLineStateMachine extends StateMachine<
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(direction: Direction, ctx: CrossLineStateMachineContext) {
-        const onClick = ({ point }: { point: Point }) => {
+        const onClick = ({ point }: { point: () => Point }) => {
             const isHorizontal = direction === 'horizontal';
             const datum = isHorizontal ? new HorizontalLineProperties() : new VerticalLineProperties();
 
-            datum.set({ value: isHorizontal ? point.y : point.x });
+            const { x, y } = point();
+            datum.set({ value: isHorizontal ? y : x });
             ctx.create(datum);
 
             ctx.recordAction(

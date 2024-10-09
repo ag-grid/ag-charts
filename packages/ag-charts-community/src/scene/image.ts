@@ -12,7 +12,7 @@ export class Image extends Node {
         this.height = newBitmap.height / bitmapPixelRatio;
         this.x = x / bitmapPixelRatio;
         this.y = y / bitmapPixelRatio;
-        this.markDirty(this, RedrawType.MAJOR);
+        this.markDirty(RedrawType.MAJOR);
     }
 
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })

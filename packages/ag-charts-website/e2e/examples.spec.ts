@@ -1,5 +1,4 @@
-import { expect, test } from '@playwright/test';
-
+import { expect, test } from './fixture';
 import { getExamples, gotoExample, setupIntrinsicAssertions, toExamplePageUrls, toGalleryPageUrls } from './util';
 
 type Status = 'ok' | '404';
@@ -55,6 +54,13 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         'horizontal-bullet': { status: '404' },
     },
 
+    animation: {
+        // FIXME: Some examples could tested in reverse click-order. Skip for now.
+        'initial-load': { skipCanvasUpdateCheck: true /* clickOrder: 'reverse' */ },
+        'data-updates': { skipCanvasUpdateCheck: true /* clickOrder: 'reverse' */ },
+        duration: { skipCanvasUpdateCheck: true },
+    },
+
     'axes-labels': {
         // Too complex to test with a naive button-click sweep
         'axis-label-rotation': { skipCanvasUpdateCheck: true },
@@ -91,9 +97,11 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
     },
     'linear-gauge': {
         labels: { skipCanvasUpdateCheck: true },
+        segmentation: { clickOrder: 'reverse' },
     },
     'radial-gauge': {
         needle: { skipCanvasUpdateCheck: true },
+        segmentation: { clickOrder: 'reverse' },
     },
     'range-bar-series': {
         // Warns for missing data

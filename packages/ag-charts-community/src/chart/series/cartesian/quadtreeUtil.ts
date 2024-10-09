@@ -9,12 +9,6 @@ import type { SeriesNodeDatum } from '../seriesTypes';
 
 export type QuadtreeCompatibleNode = Node & DistantObject & { readonly midPoint: { x: number; y: number } };
 
-export function* childrenIter<TNode extends Node = Node>(parent: Node): Iterable<TNode> {
-    for (const node of parent.children) {
-        yield node as TNode;
-    }
-}
-
 export function addHitTestersToQuadtree<TNode extends QuadtreeCompatibleNode, TDatum extends SeriesNodeDatum>(
     quadtree: QuadtreeNearest<TDatum>,
     hitTesters: Iterable<TNode>

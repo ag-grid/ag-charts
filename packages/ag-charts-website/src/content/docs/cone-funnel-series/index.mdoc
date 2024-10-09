@@ -1,0 +1,61 @@
+---
+title: 'Cone Funnel Series'
+description: '$framework Cone Funnel Series shows the change of a value over a set of processes.'
+---
+
+A Cone Funnel Series shows the change of a value over a set of processes.
+
+## Simple Cone Funnel
+
+{% chartExampleRunner title="Cone Funnel Chart" name="simple-cone-funnel" type="generated" /%}
+
+To create a Cone Funnel Series, use the `cone-funnel` series type.
+
+```js
+series: [
+    {
+        type: 'cone-funnel',
+        stageKey: 'group',
+        valueKey: 'value'
+    },
+],
+```
+
+In this configuration:
+
+-   `stageKey` defines the categories, and is mapped to the stages of the funnel.
+-   `valueKey` provides the numerical values, corresponding values of each stage.
+
+## Horizontal Cone Funnel
+
+{% chartExampleRunner title="Horizontal Cone Funnel Chart" name="horizontal-cone-funnel" type="generated" /%}
+
+To create a horizontal Cone Funnel Series, set the `direction` to `horizontal`.
+
+```js
+{
+    direction: 'horizontal',
+}
+```
+
+## Cone Funnel Fills
+
+{% chartExampleRunner title="Cone Funnel Fills" name="cone-funnel-fills" type="generated" /%}
+
+The colours in a Cone Funnel Series can be customised with the `fills` property.
+
+```js
+{
+    fills: ['#9FA8DA', '#7986CB', '#5C6BC0'],
+}
+```
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgConeFunnelSeriesOptions" label="Cone Funnel Series" %}
+{% apiReference id="AgConeFunnelSeriesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

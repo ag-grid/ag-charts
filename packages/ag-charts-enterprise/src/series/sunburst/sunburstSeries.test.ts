@@ -283,7 +283,7 @@ describe('SunburstSeries', () => {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
             // Returns a highlighted marker
-            getHighlightNode: (_, series) => series.highlightNode.children[0],
+            getHighlightNode: (_, series) => series.highlightNode.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
 
         testPointerEvents({
@@ -298,7 +298,7 @@ describe('SunburstSeries', () => {
                 data: datasets.data,
             },
             getNodeData: (series) => {
-                const nodes = series.contentGroup.children.map((group: any) => group.children[0]);
+                const nodes = Array.from(series.contentGroup.children(), (group: any) => group.children().next().value);
                 const maxDepth = Math.max(...nodes.map((n: any) => n.datum.depth ?? -1));
                 return nodes.filter((node: any) => node.datum.depth === maxDepth);
             },
@@ -318,8 +318,11 @@ describe('SunburstSeries', () => {
             },
             getHighlightNode: (chartInstance, series) => {
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                return series.highlightGroup.children.find((child: any) => child?.datum === highlightedDatum)
-                    .children[0];
+                for (const child of series.highlightGroup.children()) {
+                    if (child.datum === highlightedDatum) {
+                        return child.children().next().value;
+                    }
+                }
             },
         });
     });

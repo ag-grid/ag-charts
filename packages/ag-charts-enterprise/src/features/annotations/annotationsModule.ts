@@ -41,6 +41,19 @@ const lineText = {
     color: _Theme.DEFAULT_ANNOTATION_COLOR,
 };
 
+const measurerStatistics = {
+    ...font,
+    fontSize: 12,
+    fill: '#fafafb',
+    stroke: '#dddddd',
+    strokeWidth: 1,
+    divider: {
+        stroke: '#181D1F',
+        strokeWidth: 1,
+        strokeOpacity: 0.5,
+    },
+};
+
 export const AnnotationsModule: _ModuleSupport.Module = {
     type: 'root',
     optionsKey: 'annotations',
@@ -141,6 +154,57 @@ export const AnnotationsModule: _ModuleSupport.Module = {
             'arrow-down': {
                 fill: _Theme.PALETTE_DOWN_FILL,
                 handle: { ...handle, stroke: _Theme.DEFAULT_ANNOTATION_COLOR },
+            },
+
+            // Measurers
+            'date-range': {
+                ...stroke,
+                background: {
+                    fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
+                    fillOpacity: 0.2,
+                },
+                handle: { ...handle },
+                text: { ...lineText },
+                statistics: { ...measurerStatistics },
+            },
+            'price-range': {
+                ...stroke,
+                background: {
+                    fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
+                    fillOpacity: 0.2,
+                },
+                handle: { ...handle },
+                text: { ...lineText },
+                statistics: { ...measurerStatistics },
+            },
+            'date-price-range': {
+                ...stroke,
+                background: {
+                    fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
+                    fillOpacity: 0.2,
+                },
+                handle: { ...handle },
+                text: { ...lineText },
+                statistics: { ...measurerStatistics },
+            },
+            'quick-date-price-range': {
+                up: {
+                    ...stroke,
+                    fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
+                    fillOpacity: 0.2,
+                    handle: { ...handle },
+                },
+                down: {
+                    ...stroke,
+                    stroke: _Theme.PALETTE_DOWN_STROKE,
+                    fill: _Theme.PALETTE_DOWN_FILL,
+                    fillOpacity: 0.2,
+                    handle: {
+                        ...handle,
+                        stroke: _Theme.PALETTE_DOWN_STROKE,
+                    },
+                },
+                statistics: { ...measurerStatistics },
             },
         },
     },

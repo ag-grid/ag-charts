@@ -20,7 +20,7 @@ const {
     seriesLabelFadeInAnimation,
     seriesLabelFadeOutAnimation,
     animationValidation,
-    isFiniteNumber,
+    formatValue,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -260,7 +260,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             const labelText = this.getLabelText(
                 label,
                 { value: angleDatum, datum, angleKey, radiusKey, angleName, radiusName },
-                (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
+                formatValue
             );
             if (labelText) {
                 return { x, y, text: labelText, textAlign: 'center', textBaseline: 'middle' };

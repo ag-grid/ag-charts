@@ -2,14 +2,25 @@ import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-commun
 
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
 import type { ColorPickerOptions } from '../../color-picker/colorPicker';
-import type { ChannelTextPosition, LineTextAlignment, LineTextPosition } from '../annotationTypes';
+import {
+    AnnotationType,
+    type ChannelTextPosition,
+    type LineTextAlignment,
+    type LineTextPosition,
+} from '../annotationTypes';
 import { LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
-import type { ChannelPropertiesType, LinePropertiesType } from '../annotationsSuperTypes';
+import type {
+    ChannelPropertiesType,
+    EphemeralPropertiesType,
+    LinePropertiesType,
+    MeasurerPropertiesType,
+} from '../annotationsSuperTypes';
 import { isChannelType } from '../utils/types';
 
 const { focusCursorAtEnd } = _ModuleSupport;
 
-interface LinearSettingsDialogOptions extends DialogOptions {
+export interface LinearSettingsDialogOptions extends DialogOptions {
+    initialSelectedTab: 'line' | 'text';
     onChangeLine: (props: LinearSettingsDialogLineChangeProps) => void;
     onChangeText: (props: LinearSettingsDialogTextChangeProps) => void;
     onChangeLineColor: Required<ColorPickerOptions>['onChange'];
@@ -24,6 +35,10 @@ interface LinearSettingsDialogOptions extends DialogOptions {
 export interface LinearSettingsDialogLineChangeProps {
     extendStart?: boolean;
     extendEnd?: boolean;
+    extendAbove?: boolean;
+    extendBelow?: boolean;
+    extendLeft?: boolean;
+    extendRight?: boolean;
 }
 
 export interface LinearSettingsDialogTextChangeProps {
@@ -32,18 +47,34 @@ export interface LinearSettingsDialogTextChangeProps {
     label?: string;
 }
 
+type LinearDialogPropertiesType = Exclude<
+    LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType,
+    EphemeralPropertiesType
+>;
+
 export class AnnotationSettingsDialog extends Dialog {
     constructor(ctx: _ModuleSupport.ModuleContext) {
         super(ctx, 'settings');
     }
 
-    showLineOrChannel(datum: LinePropertiesType | ChannelPropertiesType, options: LinearSettingsDialogOptions) {
+    show(datum: LinearDialogPropertiesType, options: LinearSettingsDialogOptions) {
         const lineTab = this.createLinearLineTab(datum, options);
         const textTab = this.createLinearTextTab(datum, options);
 
-        const tabs = this.createTabs('ariaLabelSettingsTabBar', 'line', {
+        let lineLabel = 'dialogHeaderLine';
+        if (isChannelType(datum)) {
+            lineLabel = 'dialogHeaderChannel';
+        } else if (datum.type === AnnotationType.DateRange) {
+            lineLabel = 'dialogHeaderDateRange';
+        } else if (datum.type === AnnotationType.PriceRange) {
+            lineLabel = 'dialogHeaderPriceRange';
+        } else if (datum.type === AnnotationType.DatePriceRange) {
+            lineLabel = 'dialogHeaderDatePriceRange';
+        }
+
+        const tabs = this.createTabs('ariaLabelSettingsTabBar', options.initialSelectedTab, {
             line: {
-                label: isChannelType(datum) ? 'dialogHeaderChannel' : 'dialogHeaderLine',
+                label: lineLabel,
                 panel: lineTab,
             },
             text: {
@@ -58,7 +89,7 @@ export class AnnotationSettingsDialog extends Dialog {
     }
 
     private createLinearLineTab(
-        datum: LinePropertiesType | ChannelPropertiesType,
+        datum: LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType,
         options: LinearSettingsDialogOptions
     ) {
         const panel = this.createTabPanel();
@@ -91,13 +122,40 @@ export class AnnotationSettingsDialog extends Dialog {
             );
         }
 
+        if ('extendAbove' in datum && 'extendBelow' in datum) {
+            panel.append(
+                this.createCheckbox({
+                    label: 'dialogInputExtendAbove',
+                    checked: datum.extendAbove ?? false,
+                    onChange: (extendAbove) => options.onChangeLine({ extendAbove }),
+                }),
+                this.createCheckbox({
+                    label: 'dialogInputExtendBelow',
+                    checked: datum.extendBelow ?? false,
+                    onChange: (extendBelow) => options.onChangeLine({ extendBelow }),
+                })
+            );
+        }
+
+        if ('extendLeft' in datum && 'extendRight' in datum) {
+            panel.append(
+                this.createCheckbox({
+                    label: 'dialogInputExtendLeft',
+                    checked: datum.extendLeft ?? false,
+                    onChange: (extendLeft) => options.onChangeLine({ extendLeft }),
+                }),
+                this.createCheckbox({
+                    label: 'dialogInputExtendRight',
+                    checked: datum.extendRight ?? false,
+                    onChange: (extendRight) => options.onChangeLine({ extendRight }),
+                })
+            );
+        }
+
         return panel;
     }
 
-    private createLinearTextTab(
-        datum: LinePropertiesType | ChannelPropertiesType,
-        options: LinearSettingsDialogOptions
-    ) {
+    private createLinearTextTab(datum: LinearDialogPropertiesType, options: LinearSettingsDialogOptions) {
         const panel = this.createTabPanel();
 
         const textArea = this.createTextArea({

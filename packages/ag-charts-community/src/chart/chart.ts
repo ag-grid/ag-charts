@@ -1,6 +1,6 @@
 import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateOptions } from 'ag-charts-types';
 
-import type { LayoutContext, ModuleInstance } from '../module/baseModule';
+import type { LayoutContext } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
 import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
@@ -8,6 +8,7 @@ import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
+import { Layer, TranslatableLayer } from '../scene/layer';
 import type { Node } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
@@ -26,7 +27,7 @@ import { Padding } from '../util/padding';
 import { BaseProperties } from '../util/properties';
 import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
-import { isDefined, isFiniteNumber, isFunction, isNumber } from '../util/type-guards';
+import { isDefined, isFiniteNumber, isFunction } from '../util/type-guards';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
@@ -45,7 +46,6 @@ import { seriesRegistry } from './factory/seriesRegistry';
 import { REGIONS, SimpleRegionBBoxProvider } from './interaction/regions';
 import { SyncManager } from './interaction/syncManager';
 import { Keyboard } from './keyboard';
-import { Layers } from './layers';
 import { LayoutElement } from './layout/layoutManager';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
 import { guessInvalidPositions } from './mapping/prepareAxis';
@@ -55,7 +55,7 @@ import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
 import { type Series, SeriesGroupingChangedEvent } from './series/series';
-import { SeriesAreaManager } from './series/seriesAreaManager';
+import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries } from './series/seriesTypes';
@@ -64,6 +64,7 @@ import { DataWindowProcessor } from './update/dataWindowProcessor';
 import { OverlaysProcessor } from './update/overlaysProcessor';
 import type { UpdateProcessor } from './update/processor';
 import type { UpdateOpts } from './updateService';
+import { ZIndexMap } from './zIndexMap';
 
 const debug = Debug.create(true, 'opts');
 
@@ -71,8 +72,6 @@ export type TransferableResources = {
     container?: HTMLElement;
     scene: Scene;
 };
-
-type SyncModule = ModuleInstance & { enabled?: boolean; syncAxes: (skipSync: boolean) => void };
 
 type SeriesChangeType =
     | 'no-op'
@@ -118,16 +117,14 @@ export abstract class Chart extends Observable {
     className?: string;
 
     readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root` });
-    readonly highlightRoot = new TranslatableGroup({
+    readonly highlightRoot = new TranslatableLayer({
         name: `${this.id}-highlight-root`,
-        layer: true,
-        zIndex: Layers.SERIES_HIGHLIGHT_ZINDEX,
-        nonEmptyChildDerivedZIndex: true,
+        zIndex: ZIndexMap.SERIES_HIGHLIGHT,
+        deriveZIndexFromChildren: true, // TODO remove feature
     });
-    readonly annotationRoot = new TranslatableGroup({
+    readonly annotationRoot = new TranslatableLayer({
         name: `${this.id}-annotation-root`,
-        layer: true,
-        zIndex: Layers.SERIES_ANNOTATION_ZINDEX,
+        zIndex: ZIndexMap.SERIES_ANNOTATION,
     });
 
     readonly tooltip: Tooltip;
@@ -196,6 +193,10 @@ export abstract class Chart extends Observable {
         return this.ctx.scene.getDataURL(fileFormat);
     }
 
+    toSVG() {
+        return this.ctx.scene.toSVG();
+    }
+
     @Validate(OBJECT)
     readonly padding = new Padding(20);
 
@@ -221,8 +222,10 @@ export abstract class Chart extends Observable {
 
     public destroyed = false;
 
-    private _skipSync = false;
     private readonly _destroyFns: (() => void)[] = [];
+
+    // Used to prevent infinite update loops when syncing charts.
+    protected skipSync = false;
 
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
@@ -255,7 +258,7 @@ export abstract class Chart extends Observable {
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
 
         const root = new Group({ name: 'root' });
-        const titleGroup = new Group({ name: 'titles', layer: true, zIndex: Layers.SERIES_LABEL_ZINDEX });
+        const titleGroup = new Layer({ name: 'titles', zIndex: ZIndexMap.SERIES_LABEL });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;
@@ -313,24 +316,12 @@ export abstract class Chart extends Observable {
         );
         ctx.regionManager.addRegion(REGIONS.HORIZONTAL_AXES);
         ctx.regionManager.addRegion(REGIONS.VERTICAL_AXES);
-
-        const thisChart = this;
-        this.seriesAreaManager = new SeriesAreaManager(
-            {
-                fireEvent: this.fireEvent.bind(thisChart),
-                get performUpdateType() {
-                    return thisChart.performUpdateType;
-                },
-                seriesRoot: this.seriesRoot,
-            },
-            ctx,
-            this.getChartType(),
-            this.tooltip,
-            this.highlight,
-            this.overlays
-        );
-
         ctx.regionManager.addRegion('root', root);
+
+        // The 'data-animating' is used by e2e tests to wait for the animation to end before starting kbm interactions
+        ctx.domManager.setDataBoolean('animating', false);
+
+        this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
         this._destroyFns.push(
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(this.padding.toJson());
@@ -342,15 +333,17 @@ export abstract class Chart extends Observable {
                 this.data = event.data;
             }),
 
-            this.title.registerInteraction(moduleContext),
-            this.subtitle.registerInteraction(moduleContext),
-            this.footnote.registerInteraction(moduleContext),
+            this.title.registerInteraction(moduleContext, 'beforebegin'),
+            this.subtitle.registerInteraction(moduleContext, 'beforebegin'),
+            this.footnote.registerInteraction(moduleContext, 'afterend'),
 
             ctx.interactionManager.addListener('page-left', () => this.destroy()),
 
             ctx.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);
             }),
+            ctx.animationManager.addListener('animation-start', () => ctx.domManager.setDataBoolean('animating', true)),
+            ctx.animationManager.addListener('animation-stop', () => ctx.domManager.setDataBoolean('animating', false)),
             ctx.zoomManager.addListener('zoom-change', () => {
                 this.series.forEach((s) => (s as any).animationState?.transition('updateData'));
                 const skipAnimations = this.chartAnimationPhase !== 'initial';
@@ -361,11 +354,26 @@ export abstract class Chart extends Observable {
         this.parentResize(ctx.domManager.containerSize);
     }
 
+    private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
+        const { ctx, tooltip, highlight, overlays, seriesRoot } = this;
+        const chartType = this.getChartType();
+        const fireEvent = this.fireEvent.bind(this);
+        const getUpdateType = () => this.performUpdateType;
+        return { fireEvent, getUpdateType, chartType, ctx, tooltip, highlight, overlays, seriesRoot };
+    }
+
     getModuleContext(): ModuleContext {
         return this.ctx;
     }
 
-    abstract getChartType(): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge';
+    abstract getChartType():
+        | 'cartesian'
+        | 'polar'
+        | 'hierarchy'
+        | 'topology'
+        | 'flow-proportion'
+        | 'standalone'
+        | 'gauge';
 
     protected getCaptionText(): string {
         return [this.title, this.subtitle, this.footnote]
@@ -502,7 +510,7 @@ export abstract class Chart extends Observable {
             this._performUpdateSkipAnimations = true;
         }
 
-        this._skipSync = opts?.skipSync ?? false;
+        this.skipSync = opts?.skipSync ?? false;
 
         if (this.debug.check()) {
             let stack = new Error().stack ?? '<unknown>';
@@ -512,6 +520,7 @@ export abstract class Chart extends Observable {
 
         if (type < this.performUpdateType) {
             this.performUpdateType = type;
+            this.ctx.domManager.setDataBoolean('updatePending', true);
             this.performUpdateTrigger.schedule(opts?.backOffMs);
         }
     }
@@ -614,6 +623,7 @@ export abstract class Chart extends Observable {
 
         if (!updateDeferred) {
             ctx.updateService.dispatchUpdateComplete(this.getMinRects());
+            this.ctx.domManager.setDataBoolean('updatePending', false);
         }
 
         const end = performance.now();
@@ -735,7 +745,7 @@ export abstract class Chart extends Observable {
         for (const series of newValue) {
             if (oldValue?.includes(series)) continue;
 
-            if (series.rootGroup.parent == null) {
+            if (series.rootGroup.isRoot()) {
                 this.seriesLayerManager.requestGroup(series);
             }
 
@@ -881,13 +891,7 @@ export abstract class Chart extends Observable {
     async processData() {
         if (this.series.some((s) => s.canHaveAxes)) {
             this.assignAxesToSeries();
-
-            const syncModule = this.modulesManager.getModule<SyncModule>('sync');
-            if (syncModule?.enabled) {
-                syncModule.syncAxes(this._skipSync);
-            } else {
-                this.assignSeriesToAxes();
-            }
+            this.assignSeriesToAxes();
         }
 
         const dataController = new DataController(this.mode);
@@ -899,9 +903,6 @@ export abstract class Chart extends Observable {
         for (const { legendType, legend } of this.modulesManager.legends()) {
             legend.data = this.getLegendData(legendType, this.mode !== 'integrated');
         }
-
-        this.dataProcessListeners.forEach((resolve) => resolve());
-        this.dataProcessListeners.clear();
     }
 
     placeLabels(padding?: number): Map<Series<any, any>, PlacedLabel[]> {
@@ -1006,7 +1007,7 @@ export abstract class Chart extends Observable {
         const { series, seriesGrouping, oldGrouping } = event;
 
         // Short-circuit if series isn't already attached to the scene-graph yet.
-        if (series.rootGroup.parent == null) return;
+        if (series.rootGroup.isRoot()) return;
 
         this.seriesLayerManager.changeGroup({
             internalId: series.internalId,
@@ -1042,21 +1043,6 @@ export abstract class Chart extends Observable {
 
         // wait until any remaining updates are flushed through.
         await this.updateMutex.waitForClearAcquireQueue();
-    }
-
-    private readonly dataProcessListeners = new Set<(...args: any[]) => void>();
-    waitForDataProcess(timeout?: number): Promise<void> {
-        return new Promise((resolve) => {
-            this.dataProcessListeners.add(resolve);
-            if (isNumber(timeout)) {
-                setTimeout(() => {
-                    if (this.dataProcessListeners.has(resolve)) {
-                        this.dataProcessListeners.delete(resolve);
-                        resolve();
-                    }
-                }, timeout);
-            }
-        });
     }
 
     protected getMinRects() {

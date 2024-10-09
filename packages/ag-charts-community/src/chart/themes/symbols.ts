@@ -1,4 +1,6 @@
-export const IS_DARK_THEME = Symbol('is-dark-theme') as unknown as string;
+export const IS_DARK_THEME = Symbol('is-dark-theme') as unknown as boolean;
+export const IS_COMMUNITY = Symbol('is-community') as unknown as boolean;
+export const IS_ENTERPRISE = Symbol('is-enterprise') as unknown as boolean;
 export const DEFAULT_FONT_FAMILY = Symbol('default-font') as unknown as string;
 export const DEFAULT_LABEL_COLOUR = Symbol('default-label-colour') as unknown as string;
 export const DEFAULT_INVERTED_LABEL_COLOUR = Symbol('default-inverted-label-colour') as unknown as string;
@@ -27,10 +29,11 @@ export const PALETTE_ALT_NEUTRAL_FILL = Symbol('palette-gray-fill') as unknown a
 export const PALETTE_ALT_NEUTRAL_STROKE = Symbol('palette-gray-stroke') as unknown as string;
 
 export const DEFAULT_POLAR_SERIES_STROKE = Symbol('default-polar-series-stroke') as unknown as string;
-export const DEFAULT_DIVERGING_SERIES_COLOUR_RANGE = Symbol(
+export const DEFAULT_DIVERGING_SERIES_COLOR_RANGE = Symbol(
     'default-diverging-series-colour-range'
 ) as unknown as string;
-export const DEFAULT_GAUGE_SERIES_COLOUR_RANGE = Symbol('default-gauge-series-colour-range') as unknown as string;
+export const DEFAULT_GAUGE_SERIES_COLOR_RANGE = Symbol('default-gauge-series-colour-range') as unknown as string;
+export const DEFAULT_FUNNEL_SERIES_COLOR_RANGE = Symbol('default-funnel-series-colour-range') as unknown as string;
 export const DEFAULT_HIERARCHY_FILLS = Symbol('default-hierarchy-fills') as unknown as string;
 export const DEFAULT_HIERARCHY_STROKES = Symbol('default-hierarchy-strokes') as unknown as string;
 export const DEFAULT_ANNOTATION_COLOR = Symbol('default-annotation-stroke') as unknown as string;

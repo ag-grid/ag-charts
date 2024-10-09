@@ -108,7 +108,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         return this.element.firstElementChild as HTMLDivElement | undefined;
     }
 
-    protected updatePosition(position: _Util.Vec2) {
+    protected updatePosition(position: _ModuleSupport.Vec2) {
         const popover = this.getPopoverElement();
         if (!popover) return;
 

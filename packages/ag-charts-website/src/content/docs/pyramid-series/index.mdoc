@@ -1,0 +1,73 @@
+---
+title: 'Pyramid Series'
+description: '$framework Pyramid Series uses the height of sections to show the proportions of a value over a category of values.'
+---
+
+A Pyramid Series uses the height of sections to show the proportions of a value over a category of values.
+
+## Simple Pyramid
+
+{% chartExampleRunner title="Pyramid Chart" name="simple-pyramid" type="generated" /%}
+
+To create a Pyramid Series, use the `pyramid` series type.
+
+```js
+series: [
+    {
+        type: 'pyramid',
+        stageKey: 'group',
+        valueKey: 'value'
+    },
+],
+```
+
+In this configuration:
+
+-   `stageKey` defines the categories, and is mapped to the stages of the pyramid.
+-   `valueKey` provides the numerical values, corresponding values of each stage.
+
+## Horizontal Pyramid
+
+{% chartExampleRunner title="Horizontal Pyramid Chart" name="horizontal-pyramid" type="generated" /%}
+
+To create a horizontal Pyramid Series, set the `direction` to `horizontal`.
+
+```js
+{
+    direction: 'horizontal',
+}
+```
+
+## Reverse Pyramid
+
+{% chartExampleRunner title="Reverse Pyramid Chart" name="reverse-pyramid" type="generated" /%}
+
+To reverse a Pyramid Series, set `reverse` to `true`.
+
+```js
+{
+    reverse: 'true',
+}
+```
+
+## Pyramid Fills
+
+{% chartExampleRunner title="Pyramid Fills" name="pyramid-fills" type="generated" /%}
+
+The colours in a Pyramid Series can be customised with the `fills` property.
+
+```js
+{
+    fills: ['#5C6BC0', '#3F51B5', '#303F9F', '#1A237E'],
+}
+```
+
+## API Reference
+
+{% tabs %}
+
+{% tabItem id="AgPyramidSeriesOptions" label="Pyramid Series" %}
+{% apiReference id="AgPyramidSeriesOptions" /%}
+{% /tabItem %}
+
+{% /tabs %}

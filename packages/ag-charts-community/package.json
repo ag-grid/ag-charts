@@ -1,18 +1,24 @@
 {
   "name": "ag-charts-community",
-  "version": "10.2.0-beta.20240922",
+  "version": "10.2.0-beta.20241008.1216",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
   "module": "./dist/package/main.esm.mjs",
   "exports": {
-    "import": "./dist/package/main.esm.mjs",
-    "require": "./dist/package/main.cjs.js",
-    "types": "./dist/types/src/main.d.ts",
-    "default": "./dist/package/main.cjs.js"
+    ".": {
+      "import": "./dist/package/main.esm.mjs",
+      "require": "./dist/package/main.cjs.js",
+      "types": "./dist/types/src/main.d.ts",
+      "default": "./dist/package/main.cjs.js"
+    },
+    "./modules": {
+      "import": "./dist/package/main-modules.esm.mjs",
+      "require": "./dist/package/main-modules.cjs.js",
+      "types": "./dist/types/src/main-modules.d.ts"
+    }
   },
   "scripts": {
-    "lint:circular": "npx madge --circular --extensions ts src/",
     "lint:prune": "npx ts-prune -p tsconfig.lib.json"
   },
   "repository": {
@@ -53,8 +59,8 @@
   ],
   "homepage": "https://ag-grid.com/charts/",
   "dependencies": {
-    "ag-charts-types": "10.2.0-beta.20240922",
-    "ag-charts-locale": "10.2.0-beta.20240922"
+    "ag-charts-types": "10.2.0-beta.20241008.1216",
+    "ag-charts-locale": "10.2.0-beta.20241008.1216"
   },
   "devDependencies": {
     "@babel/types": "7.12.7",
@@ -67,7 +73,7 @@
     "@types/ws": "8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
     "@typescript-eslint/parser": "^5.51.0",
-    "ag-charts-test": "10.2.0-beta.20240922",
+    "ag-charts-test": "10.2.0-beta.20241008.1216",
     "assert": "2.0.0",
     "canvas": "^2.10.2",
     "del": "^6.0.0",

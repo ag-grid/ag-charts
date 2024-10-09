@@ -1,6 +1,6 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-const { Vec2 } = _Util;
+const { Vec2 } = _ModuleSupport;
 
 export type ShapeClipMask = { x: number; y: number; radius: number };
 
@@ -58,7 +58,7 @@ export class CollidableLine extends _Scene.Line {
 
     public setClipMask(mask?: ShapeClipMask) {
         if (_ModuleSupport.jsonDiff(this.clipMask, mask) != null) {
-            this.markDirty(this, _Scene.RedrawType.MAJOR);
+            this.markDirty(_Scene.RedrawType.MAJOR);
         }
 
         this.clipMask = mask;
@@ -67,7 +67,7 @@ export class CollidableLine extends _Scene.Line {
     /**
      * Apply a clipping mask to the shape, this must be called before the shape calls `ctx.beginPath()`.
      */
-    protected applyClipMask(ctx: any) {
+    protected applyClipMask(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
         const { clipMask } = this;
         if (!clipMask) return;
 
@@ -84,7 +84,7 @@ export class CollidableLine extends _Scene.Line {
         ctx.clip();
     }
 
-    protected closeClipMask(ctx: any) {
+    protected closeClipMask(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
         if (!this.clipMask) return;
         ctx.restore();
     }

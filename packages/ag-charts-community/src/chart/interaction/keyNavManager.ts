@@ -1,3 +1,4 @@
+import type { FocusIndicator } from '../../dom/focusIndicator';
 import type {
     FocusInteractionEvent,
     InteractionEvent,
@@ -14,15 +15,31 @@ export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = Preventab
     type: T;
     delta: -1 | 0 | 1;
     sourceEvent: InteractionEvent;
+
+    // This is the "second last" input event. It can be useful for keydown
+    // events that for which don't to set the isFocusVisible state
+    // (e.g. Backspace/Delete key on FC annotations, see AG-13041).
+    //
+    // Use with caution! The focus indicator must ALWAYS be visible for
+    // keyboard-only users.
+    previousInputDevice: 'mouse' | 'keyboard';
 };
 
 // The purpose of this class is to decouple keyboard input events configuration with
 // navigation commands. For example, keybindings might be different on macOS and Windows,
 // or the charts might include options to reconfigure keybindings.
 export class KeyNavManager extends InteractionStateListener<KeyNavEventType, KeyNavEvent> {
-    constructor(readonly interactionManager: InteractionManager) {
+    private previousInputDevice: KeyNavEvent['previousInputDevice'] = 'keyboard';
+
+    constructor(
+        readonly focusIndicator: FocusIndicator,
+        readonly interactionManager: InteractionManager
+    ) {
         super();
+        const mouseStates = InteractionState.Default | InteractionState.Annotations;
         this.destroyFns.push(
+            interactionManager.addListener('hover', () => this.onMouse(), mouseStates),
+            interactionManager.addListener('drag-start', () => this.onMouse(), mouseStates),
             interactionManager.addListener('blur', (e) => this.onBlur(e), InteractionState.All),
             interactionManager.addListener('focus', (e) => this.onFocus(e), InteractionState.All),
             interactionManager.addListener('keydown', (e) => this.onKeyDown(e), InteractionState.All)
@@ -37,6 +54,10 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
         super.destroy();
     }
 
+    private onMouse() {
+        this.previousInputDevice = 'mouse';
+    }
+
     private onBlur(event: FocusInteractionEvent<'blur'>) {
         this.dispatch('blur', 0, event);
     }
@@ -46,6 +67,7 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
     }
 
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
+        this.focusIndicator.toggleForceInvisible(false);
         const { code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
         if (altKey || shiftKey || metaKey || ctrlKey) return;
 
@@ -83,6 +105,10 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
     }
 
     private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, sourceEvent: InteractionEvent) {
-        dispatchTypedEvent(this.listeners, { type, delta, sourceEvent });
+        const { previousInputDevice } = this;
+        dispatchTypedEvent(this.listeners, { type, delta, sourceEvent, previousInputDevice });
+        if (sourceEvent.type === 'keydown') {
+            this.previousInputDevice = 'keyboard';
+        }
     }
 }

@@ -188,7 +188,6 @@ jobs:
               uses: ./.github/actions/setup-nx
               with:
                   cache_mode: ro
-                  playwright_install: true # Cache playwright Chrome binaries for e2e jobs.
 
             - name: build examples
               run: |
@@ -209,7 +208,7 @@ jobs:
                     count=0
                   fi
 
-                  matrix=$(node ./tools/test/calculate-shards.js eval ${count})
+                  matrix=$(node ./tools/test/calculate-shards.js eval --zero ${count})
                   echo "matrix=${matrix}" >> $GITHUB_OUTPUT
                   echo "count=${count}" >> $GITHUB_OUTPUT
                   echo "E2E matrix determined to be: ${matrix}"
@@ -253,13 +252,117 @@ jobs:
                   yarn_postinstall: false
                   nx_restore: false # Restored in previous step.
                   cache_mode: ro
-                  playwright_install: true
 
-            - name: nx test:e2e
+            - name: nx test:e2e:without-snapshots
+              if: matrix.shard != 0
+              id: test
               run: |
                   cd packages/ag-charts-website/
-                  npx playwright test --shard=${{ matrix.shard }}/${{ strategy.job-total }}
+                  ./playwright.sh --host test --shard=${{ matrix.shard }}/$((${{ strategy.job-total }} - 1)) $(grep -LR 'toHaveScreenshot' e2e)
               timeout-minutes: 10
+
+            - name: nx test:e2e:update
+              if: matrix.shard == 0
+              id: test-no-shard
+              run: |
+                  cd packages/ag-charts-website/
+
+                  ./playwright.sh --host test -u $(grep -lR 'toHaveScreenshot' e2e)
+
+                  # Based on https://github.com/actions/checkout?tab=readme-ov-file#push-a-commit-using-the-built-in-token
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+                  git status
+                  git add e2e/
+                  if [[ $(git diff --cached --name-only | wc -l) -gt 0 ]] ; then
+                    echo "Committing changes."
+                    git commit -m "Update E2E snapshots."
+                    echo "updates=true" >> $GITHUB_OUTPUT
+                    echo "updateSha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+                  else
+                    echo "No changes to commit."
+                    echo "updates=false" >> $GITHUB_OUTPUT
+                  fi
+              timeout-minutes: 10
+
+            - name: Push Snapshot Changes
+              if: matrix.shard == 0 && steps.test-no-shard.outputs.updates == 'true'
+              id: push
+              run: |
+                  branch=gha/snapshots-${{github.head_ref || github.ref}}
+
+                  git fetch origin ${{github.head_ref}}
+                  git switch ${{github.head_ref}}
+                  git cherry-pick ${{steps.test-no-shard.outputs.updateSha}}
+                  git push origin -f HEAD:${branch}
+
+                  echo "branch=${branch}" >> $GITHUB_OUTPUT
+
+            - name: Add PR Comment
+              if: matrix.shard == 0 && steps.test-no-shard.outputs.updates == 'true' && github.head_ref
+              uses: actions/github-script@v7
+              continue-on-error: true
+              with:
+                  script: |
+                      github.rest.issues.createComment({
+                        issue_number: context.issue.number,
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        body: `Snaspshots automatically updated, please review before merge: [diff](https://github.com/ag-grid/ag-charts/compare/${{github.head_ref}}...${{steps.push.outputs.branch}})`
+                      })
+
+            - name: Raise PR with Snaspshot Changes on latest
+              id: raise-pr
+              if: matrix.shard == 0 && steps.test-no-shard.outputs.updates == 'true' && github.ref == 'refs/heads/latest'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  pr_count=$(
+                    gh pr list \
+                      --base ${{ github.ref }} \
+                      --head ${{ steps.push.outputs.branch }} \
+                      --json title \
+                      --jq 'length'
+                  )
+
+                  if ((prs > 0)); then
+                      echo "Existing PRs for snapshots, skipping PR creation."
+                      echo "skip=true" >> "$GITHUB_OUTPUT"
+                      exit
+                  fi
+
+                  gh pr create \
+                    --base ${{ github.ref }} \
+                    --head ${{ steps.push.outputs.branch }} \
+                    --title "Snapshot updates at $(date +%Y/%m/%d-%H:%M)" \
+                    --body "Automatically generated for review."
+
+                  url=$(
+                    gh pr view \
+                    --base ${{ github.ref }} \
+                    --head ${{ steps.push.outputs.branch }} \
+                    --json url | jq -r .url
+                  )
+
+                  echo "url=${url}" >> $GITHUB_OUTPUT
+
+            - name: Slack Notification
+              uses: rtCamp/action-slack-notify@v2
+              if: matrix.shard == 0 && steps.raise-pr.outputs.url
+              env:
+                  SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+                  SLACK_COLOR: 'warning'
+                  SLACK_ICON: https://avatars.slack-edge.com/2020-11-25/1527503386626_319578f21381f9641cd8_192.png
+                  SLACK_USERNAME: ag-charts CI
+                  SLACK_FOOTER: ''
+                  SLACK_MESSAGE: >
+                      New E2E Snapshot PR: ${{ steps.raise-pr.outputs.url }}
+
+            - name: Fail PR checks if updates needed
+              if: steps.test-no-shard.outputs.updates == 'true' && github.head_ref
+              run: |
+                  echo "Snapshots need to be updated, failing test execution."
+                  exit 1
 
             - name: Perist test results
               if: always()

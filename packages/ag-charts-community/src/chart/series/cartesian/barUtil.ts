@@ -143,7 +143,7 @@ const isDatumNegative = (datum: AnimatableBarDatum) => {
     return isNegative((datum as any).yValue ?? 0);
 };
 
-type InitialPosition<T> = {
+export type InitialPosition<T> = {
     isVertical: boolean;
     mode: 'normal' | 'fade';
     calculate: (datum: T, prevDatum?: T) => T;

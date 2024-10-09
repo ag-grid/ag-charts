@@ -12,14 +12,13 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { LogScale } from '../../scale/logScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
-import { TimeScale } from '../../scale/timeScale';
 import { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup } from '../../scene/group';
 import { Matrix } from '../../scene/matrix';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
-import { RotatableText, type TextSizeProperties, TransformableText } from '../../scene/shape/text';
+import { type TextSizeProperties, TransformableText } from '../../scene/shape/text';
 import { Translatable } from '../../scene/transformable';
 import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
@@ -41,9 +40,9 @@ import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
 import type { AnimationManager } from '../interaction/animationManager';
 import { calculateLabelBBox, calculateLabelRotation, getLabelSpacing, getTextAlign, getTextBaseline } from '../label';
-import { Layers } from '../layers';
 import type { AxisLayout } from '../layout/layoutManager';
 import type { ISeries } from '../series/seriesTypes';
+import { ZIndexMap } from '../zIndexMap';
 import { AxisGridLine } from './axisGridLine';
 import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
@@ -188,23 +187,23 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     interactionEnabled = true;
 
-    readonly axisGroup = new TransformableGroup({ name: `${this.id}-axis`, zIndex: Layers.AXIS_ZINDEX });
+    readonly axisGroup = new TransformableGroup({ name: `${this.id}-axis`, zIndex: ZIndexMap.AXIS });
 
     protected lineNode = this.axisGroup.appendChild(new TranslatableLine({ name: `${this.id}-Axis-line` }));
     protected readonly tickLineGroup = this.axisGroup.appendChild(
-        new Group({ name: `${this.id}-Axis-tick-lines`, zIndex: Layers.AXIS_ZINDEX })
+        new Group({ name: `${this.id}-Axis-tick-lines`, zIndex: ZIndexMap.AXIS })
     );
     protected readonly tickLabelGroup = this.axisGroup.appendChild(
-        new Group({ name: `${this.id}-Axis-tick-labels`, zIndex: Layers.AXIS_ZINDEX })
+        new Group({ name: `${this.id}-Axis-tick-labels`, zIndex: ZIndexMap.AXIS })
     );
     protected readonly crossLineGroup = new TransformableGroup({ name: `${this.id}-CrossLines` });
-    protected readonly labelGroup = new Group({ name: `${this.id}-Labels`, zIndex: Layers.SERIES_ANNOTATION_ZINDEX });
+    protected readonly labelGroup = new Group({ name: `${this.id}-Labels`, zIndex: ZIndexMap.SERIES_ANNOTATION });
 
     readonly gridGroup = new TransformableGroup({ name: `${this.id}-Axis-grid` });
     protected readonly gridLineGroup = this.gridGroup.appendChild(
         new Group({
             name: `${this.id}-gridLines`,
-            zIndex: Layers.AXIS_GRID_ZINDEX,
+            zIndex: ZIndexMap.AXIS_GRID,
         })
     );
 
@@ -286,7 +285,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let previousSize: { width: number; height: number } | undefined = undefined;
         this.destroyFns.push(
-            this.title.caption.registerInteraction(this.moduleCtx),
+            this.title.caption.registerInteraction(this.moduleCtx, 'afterend'),
             moduleCtx.layoutManager.addListener('layout:complete', (e) => {
                 // Fire resize animation action if chart canvas size changes.
                 if (previousSize != null && jsonDiff(e.chart, previousSize) != null) {
@@ -395,10 +394,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     @Validate(OBJECT)
     readonly title = new AxisTitle();
-
-    private setTickInterval(interval?: TickInterval<S>) {
-        this.scale.interval = this.interval?.step ?? interval;
-    }
 
     /**
      * The length of the grid. The grid is only visible in case of a non-zero value.
@@ -559,18 +554,19 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { callbackCache } = this.moduleCtx;
         const { formatter = (p) => p.defaultValue } = title;
         const text = callbackCache.call(formatter, this.getTitleFormatterParams());
+        caption.text = text;
 
         titleNode.setProperties({ visible: true, text, textBaseline, x, y, rotation });
     }
 
     private tickGenerationResult: TickGenerationResult | undefined = undefined;
 
-    calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox } {
+    calculateLayout(domain?: any[], primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox } {
         const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
         const sideFlag = this.label.getSideFlag();
         const labelX = sideFlag * (this.getTickSize() + this.label.padding + this.seriesAreaPadding);
 
-        this.updateScale();
+        this.updateScale(domain);
 
         this.tickGenerationResult = this.generateTicks({
             primaryTickCount,
@@ -682,18 +678,20 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.scale.domain = this.dataDomain.domain;
     }
 
-    updateScale() {
-        this.updateRange();
-        this.calculateDomain();
-        this.setTickInterval(this.interval.step);
-
-        const { scale, nice } = this;
-        if (!ContinuousScale.is(scale)) {
-            return;
+    updateScale(domain?: any[]) {
+        if (domain) {
+            this.setDomain(domain);
+        } else {
+            this.calculateDomain();
         }
 
-        scale.nice = nice;
-        scale.update();
+        this.updateRange();
+        this.scale.interval = this.interval.step;
+
+        if (ContinuousScale.is(this.scale)) {
+            this.scale.nice = this.nice;
+            this.scale.update();
+        }
     }
 
     private calculateRotations() {
@@ -1042,13 +1040,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { scale } = this;
 
         if (tickCount && (ContinuousScale.is(scale) || OrdinalTimeScale.is(scale))) {
-            if (typeof tickCount === 'number') {
-                scale.tickCount = tickCount;
-                scale.minTickCount = minTickCount ?? 0;
-                scale.maxTickCount = maxTickCount ?? Infinity;
-            } else if (scale instanceof TimeScale) {
-                this.setTickInterval(tickCount as TickInterval<S>);
-            }
+            scale.tickCount = tickCount;
+            scale.minTickCount = minTickCount ?? 0;
+            scale.maxTickCount = maxTickCount ?? Infinity;
         }
 
         return scale.ticks?.() ?? [];
@@ -1202,22 +1196,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             range: number[];
         }
     ) {
+        const getDatumId = (datum: { tickId: string }) => datum.tickId;
+        const labelsData = data.map((d) => this.getTickLabelProps(d, params));
+
         this.lineNode.datum = lineData;
-        this.gridLineGroupSelection.update(
-            this.gridLength ? data : [],
-            (group) => group.append(new Line()),
-            (datum: TickDatum) => datum.tickId
-        );
-        this.tickLineGroupSelection.update(
-            data,
-            (group) => group.appendChild(new Line()),
-            (datum: TickDatum) => datum.tickId
-        );
-        this.tickLabelGroupSelection.update(
-            data.map((d) => this.getTickLabelProps(d, params)),
-            (group) => group.appendChild(new RotatableText()),
-            (datum) => datum.tickId
-        );
+        this.gridLineGroupSelection.update(this.gridLength ? data : [], undefined, getDatumId);
+        this.tickLineGroupSelection.update(data, undefined, getDatumId);
+        this.tickLabelGroupSelection.update(labelsData, undefined, getDatumId);
     }
 
     private updateAxisLine() {
@@ -1325,11 +1310,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     clipTickLines(x: number, y: number, width: number, height: number) {
-        this.tickLineGroup.setClipRectInGroupCoordinateSpace(new BBox(x, y, width, height));
+        this.tickLineGroup.setClipRect(new BBox(x, y, width, height));
     }
 
     clipGrid(x: number, y: number, width: number, height: number) {
-        this.gridGroup.setClipRectInGroupCoordinateSpace(new BBox(x, y, width, height));
+        this.gridGroup.setClipRect(new BBox(x, y, width, height));
     }
 
     protected getTitleFormatterParams() {
@@ -1401,6 +1386,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 ? (val) => scale.invertNearest?.(val)
                 : (val) => scale.invert?.(val),
             scaleInvertNearest: (val) => scale.invertNearest?.(val),
+            scaleStep: () => scale.step ?? 0,
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (x, tolerance) => this.inRange(x, tolerance),
         };

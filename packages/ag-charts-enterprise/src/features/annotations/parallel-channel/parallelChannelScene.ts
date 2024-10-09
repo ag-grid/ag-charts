@@ -1,16 +1,16 @@
-import { _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
+import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import { LineWithTextScene } from '../scenes/lineWithTextScene';
-import { validateDatumPoint } from '../utils/validation';
+import { isPoint, validateDatumPoint } from '../utils/validation';
 import { convertPoint, invertCoords } from '../utils/values';
 import type { ParallelChannelProperties } from './parallelChannelProperties';
 
-const { Vec2 } = _Util;
+const { Vec2, Vec4 } = _ModuleSupport;
 
 type ChannelHandle = keyof ParallelChannelScene['handles'];
 
@@ -38,32 +38,12 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         this.append([this.background, this.topLine, this.middleLine, this.bottomLine, ...Object.values(this.handles)]);
     }
 
-    override toggleHandles(show: boolean | Partial<Record<ChannelHandle, boolean>>) {
-        if (typeof show === 'boolean') {
-            show = {
-                topLeft: show,
-                topMiddle: show,
-                topRight: show,
-                bottomLeft: show,
-                bottomMiddle: show,
-                bottomRight: show,
-            };
-        }
-
-        for (const [handle, node] of Object.entries(this.handles)) {
-            node.visible = show[handle as ChannelHandle] ?? true;
-            node.toggleHovered(this.activeHandle === handle);
-        }
-    }
-
-    override toggleActive(active: boolean) {
-        this.toggleHandles(active);
-        for (const node of Object.values(this.handles)) {
-            node.toggleActive(active);
-        }
-    }
-
-    override dragHandle(datum: ParallelChannelProperties, target: Coords, context: AnnotationContext) {
+    override dragHandle(
+        datum: ParallelChannelProperties,
+        target: _ModuleSupport.Vec2,
+        context: AnnotationContext,
+        snapping: boolean
+    ) {
         const { activeHandle, handles } = this;
         if (activeHandle == null) return;
 
@@ -72,11 +52,13 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
         const prev = datum.toJson();
         let moves: Array<ChannelHandle> = [];
+        let origins: Array<ChannelHandle> = [];
 
         switch (activeHandle) {
             case 'topLeft':
             case 'bottomLeft':
                 moves = ['topLeft', 'bottomLeft'];
+                origins = ['topRight', 'bottomRight'];
                 break;
             case 'topMiddle':
                 moves = ['topLeft', 'topRight'];
@@ -85,6 +67,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
             case 'topRight':
             case 'bottomRight':
                 moves = ['topRight', 'bottomRight'];
+                origins = ['topLeft', 'bottomLeft'];
                 break;
             case 'bottomMiddle':
                 moves = ['bottomLeft', 'bottomRight'];
@@ -92,7 +75,14 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
                 break;
         }
 
-        const invertedMoves = moves.map((move) => invertCoords(Vec2.add(handles[move].handle, offset), context));
+        const angle = datum.snapToAngle;
+        const invertedMoves = moves
+            .map((handle, index) =>
+                snapping && origins[index]
+                    ? this.snapToAngle(target, context, handle, origins[index], angle)
+                    : invertCoords(Vec2.add(handles[handle].handle, offset), context)
+            )
+            .filter(isPoint);
 
         // Do not move any handles if some of them are trying to move to invalid points
         if (invertedMoves.some((invertedMove) => !validateDatumPoint(context, invertedMove))) {
@@ -134,14 +124,10 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
     protected override getOtherCoords(
         datum: ParallelChannelProperties,
-        topLeft: Coords,
-        topRight: Coords,
+        topLeft: _ModuleSupport.Vec2,
+        topRight: _ModuleSupport.Vec2,
         context: AnnotationContext
-    ): Coords[] {
-        const { dragState } = this;
-
-        if (!dragState) return [];
-
+    ): _ModuleSupport.Vec2[] {
         const height = convertPoint(datum.bottom.start, context).y - convertPoint(datum.start, context).y;
 
         const bottomLeft = Vec2.add(topLeft, Vec2.from(0, height));
@@ -157,13 +143,20 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         );
     }
 
+    public override getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.middleLine.visible && this.middleLine.strokeWidth > 0 && this.middleLine.containsPoint(x, y))
+            return 'line';
+
+        return super.getNodeAtCoords(x, y);
+    }
+
     override updateLines(
         datum: ParallelChannelProperties,
-        top: LineCoords,
-        bottom: LineCoords,
+        top: _ModuleSupport.Vec4,
+        bottom: _ModuleSupport.Vec4,
         context: AnnotationContext,
-        naturalTop: LineCoords,
-        naturalBottom: LineCoords
+        naturalTop: _ModuleSupport.Vec4,
+        naturalBottom: _ModuleSupport.Vec4
     ) {
         const { topLine, middleLine, bottomLine } = this;
         const { lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
@@ -179,20 +172,8 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
             strokeWidth,
         };
 
-        topLine.setProperties({
-            x1: top.x1,
-            y1: top.y1,
-            x2: top.x2,
-            y2: top.y2,
-            ...lineStyles,
-        });
-        bottomLine.setProperties({
-            x1: bottom.x1,
-            y1: bottom.y1,
-            x2: bottom.x2,
-            y2: bottom.y2,
-            ...lineStyles,
-        });
+        topLine.setProperties({ ...top, ...lineStyles });
+        bottomLine.setProperties({ ...bottom, ...lineStyles });
 
         const middlePoints = this.extendLine(
             {
@@ -216,7 +197,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         });
     }
 
-    override updateHandles(datum: ParallelChannelProperties, top: LineCoords, bottom: LineCoords) {
+    override updateHandles(datum: ParallelChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
         const {
             handles: { topLeft, topMiddle, topRight, bottomLeft, bottomMiddle, bottomRight },
         } = this;
@@ -228,29 +209,27 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
             strokeWidth: datum.handle.strokeWidth ?? datum.strokeWidth,
         };
 
-        topLeft.update({ ...handleStyles, x: top.x1, y: top.y1 });
-        topRight.update({ ...handleStyles, x: top.x2, y: top.y2 });
-        bottomLeft.update({ ...handleStyles, x: bottom.x1, y: bottom.y1 });
-        bottomRight.update({ ...handleStyles, x: bottom.x2, y: bottom.y2 });
+        topLeft.update({ ...handleStyles, ...Vec4.start(top) });
+        topRight.update({ ...handleStyles, ...Vec4.end(top) });
+        bottomLeft.update({ ...handleStyles, ...Vec4.start(bottom) });
+        bottomRight.update({ ...handleStyles, ...Vec4.end(bottom) });
         topMiddle.update({
             ...handleStyles,
-            x: top.x1 + (top.x2 - top.x1) / 2 - topMiddle.handle.width / 2,
-            y: top.y1 + (top.y2 - top.y1) / 2 - topMiddle.handle.height / 2,
+            ...Vec2.sub(Vec4.center(top), Vec2.from(topMiddle.handle.width / 2, topMiddle.handle.height / 2)),
         });
         bottomMiddle.update({
             ...handleStyles,
-            x: bottom.x1 + (bottom.x2 - bottom.x1) / 2 - bottomMiddle.handle.width / 2,
-            y: bottom.y1 + (bottom.y2 - bottom.y1) / 2 - bottomMiddle.handle.height / 2,
+            ...Vec2.sub(Vec4.center(bottom), Vec2.from(bottomMiddle.handle.width / 2, bottomMiddle.handle.height / 2)),
         });
     }
 
     override updateText = LineWithTextScene.updateChannelText.bind(this, true);
 
-    protected override getBackgroundPoints(
+    override getBackgroundPoints(
         datum: ParallelChannelProperties,
-        top: LineCoords,
-        bottom: LineCoords,
-        bounds: LineCoords
+        top: _ModuleSupport.Vec4,
+        bottom: _ModuleSupport.Vec4,
+        bounds: _ModuleSupport.Vec4
     ) {
         const isFlippedX = top.x1 > top.x2;
         const isFlippedY = top.y1 > top.y2;

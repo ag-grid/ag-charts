@@ -32,11 +32,11 @@ export class DisjointChannelProperties extends Annotation(
     @Validate(NUMBER)
     endHeight!: number;
 
+    @Validate(NUMBER)
+    snapToAngle: number = 45;
+
     @Validate(OBJECT, { optional: true })
     text = new ChannelTextProperties();
-
-    lineCap?: _Scene.ShapeLineCap = undefined;
-    computedLineDash?: PixelSize[] = undefined;
 
     get bottom() {
         const bottom = {

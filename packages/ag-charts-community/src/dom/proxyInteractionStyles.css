@@ -1,5 +1,6 @@
 .ag-charts-proxy-container {
     pointer-events: none;
+    position: absolute;
 }
 
 .ag-charts-proxy-elem {
@@ -13,15 +14,14 @@
     position: absolute;
 }
 
-.ag-charts-proxy-elem::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
+.ag-charts-proxy-elem::-moz-range-thumb,
+.ag-charts-proxy-elem::-moz-range-track {
+    opacity: 0;
 }
 
-.ag-charts-proxy-elem::-moz-range-thumb {
-    appearance: none;
-    background: none;
-    border: none;
+.ag-charts-proxy-elem::-webkit-slider-runnable-track,
+.ag-charts-proxy-elem::-webkit-slider-thumb {
+    opacity: 0;
 }
 
 .ag-charts-proxy-elem:focus-visible {

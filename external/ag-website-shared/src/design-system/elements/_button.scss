@@ -18,7 +18,7 @@ input[type='submit']#{$selector-exclude-grid},
     font-weight: var(--text-bold);
     padding: 0.375em 1em 0.5em;
     white-space: nowrap;
-    border-radius: 6px;
+    border-radius: var(--radius-sm);
     background-color: var(--color-button-primary-bg);
     color: var(--color-button-primary-fg);
     border: 1px solid var(--color-button-primary-border);

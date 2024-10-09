@@ -9,8 +9,9 @@ import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_CROSS_LINES_COLOUR,
-    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
-    DEFAULT_GAUGE_SERIES_COLOUR_RANGE,
+    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
+    DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
+    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_HIERARCHY_STROKES,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
@@ -77,15 +78,25 @@ export class DarkTheme extends ChartTheme {
         params.set(DEFAULT_MUTED_LABEL_COLOUR, '#7D91A0');
         params.set(DEFAULT_AXIS_GRID_COLOUR, '#545A6E');
         params.set(DEFAULT_CROSS_LINES_COLOUR, 'white');
-        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
+        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
             DEFAULT_DARK_FILLS.ORANGE,
             DEFAULT_DARK_FILLS.YELLOW,
             DEFAULT_DARK_FILLS.GREEN,
         ]);
-        params.set(DEFAULT_GAUGE_SERIES_COLOUR_RANGE, [
+        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [
             DEFAULT_DARK_FILLS.GREEN,
             DEFAULT_DARK_FILLS.YELLOW,
             DEFAULT_DARK_FILLS.RED,
+        ]);
+        params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
+            '#5090dc',
+            '#4882c6',
+            '#4073b0',
+            '#38659a',
+            '#305684',
+            '#28486e',
+            '#203a58',
+            '#182b42',
         ]);
         params.set(DEFAULT_HIERARCHY_FILLS, ['#192834', '#253746', '#324859', '#3f596c', '#4d6a80']);
         params.set(DEFAULT_HIERARCHY_STROKES, ['#192834', '#3b5164', '#496275', '#577287', '#668399']);

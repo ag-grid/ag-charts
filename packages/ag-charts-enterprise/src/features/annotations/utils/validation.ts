@@ -63,3 +63,7 @@ export function validateDatumPointDirection(value: any, context: AnnotationAxisC
     }
     return true; // domain.includes(value); // TODO: does not work with dates
 }
+
+export function isPoint(point: Point | undefined): point is Point {
+    return point?.x != null && point?.y != null;
+}

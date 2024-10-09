@@ -3,14 +3,14 @@ import type { Direction } from 'ag-charts-types';
 import type { LocaleManager } from '../locale/localeManager';
 import { createElement } from '../util/dom';
 import { BoundedText } from './boundedText';
-import type { DOMElementClass, DOMManager } from './domManager';
+import type { DOMManager } from './domManager';
 
 export type ListSwitch = { button: HTMLButtonElement; listitem: HTMLElement };
 
 type ElemParams<T extends ProxyElementType> = {
     readonly type: T;
     readonly id: string;
-    readonly parent: HTMLElement | DOMElementClass;
+    readonly parent: HTMLElement | 'beforebegin' | 'afterend';
     readonly cursor?: 'pointer';
 };
 
@@ -128,7 +128,7 @@ export class ProxyInteractionService {
         const meta: ProxyMeta[T] = allocateMeta(args);
         const { params, result: div } = meta;
 
-        this.domManager.addChild('canvas-overlay', params.id, div);
+        this.domManager.addChild('canvas-proxy', params.id, div);
         div.classList.add(...params.classList, 'ag-charts-proxy-container');
         div.role = params.type;
         if ('ariaOrientation' in params) {
@@ -258,7 +258,8 @@ export class ProxyInteractionService {
     private setParent<T extends ProxyElementType, TElem extends HTMLElement>(params: ElemParams<T>, element: TElem) {
         const { id, parent } = params;
         if (typeof parent === 'string') {
-            this.domManager.addChild(parent, id, element);
+            const insert = { where: parent, query: '.ag-charts-series-area' };
+            this.domManager.addChild('canvas-proxy', id, element, insert);
         } else {
             parent.appendChild(element);
         }

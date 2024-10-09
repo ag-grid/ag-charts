@@ -2,7 +2,7 @@ import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSuppo
 
 const {
     CachedTextMeasurerPool,
-    Layers,
+    ZIndexMap,
     LayoutElement,
     Validate,
     BaseProperties,
@@ -12,6 +12,7 @@ const {
     COLOR_STRING,
     RATIO,
     valueProperty,
+    TextUtils,
 } = _ModuleSupport;
 const { Label, Rect, Text } = _Scene;
 
@@ -117,10 +118,9 @@ export class StatusBar
     data?: any[] = undefined;
 
     private readonly highlightManager: _ModuleSupport.HighlightManager;
-    private readonly labelGroup = new _Scene.TranslatableGroup({
+    private readonly labelGroup = new _Scene.TranslatableLayer({
         name: 'StatusBar',
-        zIndex: Layers.CHART_OVERLAY_ZINDEX,
-        layer: true,
+        zIndex: ZIndexMap.STATUS_BAR,
     });
     private readonly backgroundNode = this.labelGroup.appendChild(new Rect());
     private readonly labels = [
@@ -306,7 +306,7 @@ export class StatusBar
         this.labelGroup.translationY = layoutBox.y + spacingAbove;
 
         const maxFontSize = Math.max(this.title.fontSize, this.positive.fontSize, this.negative.fontSize);
-        const lineHeight = maxFontSize * Text.defaultLineHeightRatio;
+        const lineHeight = TextUtils.getLineHeight(maxFontSize);
 
         const labelConfigurations = chartConfigurations[this.getChartType()] ?? 0;
 

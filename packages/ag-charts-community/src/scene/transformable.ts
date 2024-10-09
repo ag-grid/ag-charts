@@ -55,7 +55,7 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
         private _dirtyTransform = true;
         markDirtyTransform() {
             this._dirtyTransform = true;
-            super.markDirty(this, RedrawType.MAJOR);
+            super.markDirty(RedrawType.MAJOR);
         }
 
         updateMatrix(_matrix: Matrix) {
@@ -135,6 +135,24 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
             if (performRestore) {
                 renderCtx.ctx.restore();
             }
+        }
+
+        override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] | undefined } | undefined {
+            const svg = super.toSVG();
+
+            const matrix = this[TRANSFORM_MATRIX];
+            if (matrix.identity || svg == null) return svg;
+
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.append(...svg.elements);
+
+            const [a, b, c, d, e, f] = matrix.e;
+            g.setAttribute('transform', `matrix(${a} ${b} ${c} ${d} ${e} ${f})`);
+
+            return {
+                elements: [g],
+                defs: svg.defs,
+            };
         }
     }
     return MatrixTransformInternal as unknown as Constructor<MatrixTransformType<N>>;
@@ -261,7 +279,7 @@ export class Transformable {
      */
     static fromCanvas(node: Node, bbox: BBox) {
         const parents = [];
-        for (const parent of node.ancestors()) {
+        for (const parent of node.traverseUp()) {
             if (isMatrixTransform(parent)) {
                 parents.unshift(parent);
             }
@@ -285,7 +303,7 @@ export class Transformable {
         } else if (isMatrixTransform(node)) {
             bbox = node.toParent(bbox);
         }
-        for (const parent of node.ancestors()) {
+        for (const parent of node.traverseUp()) {
             if (isMatrixTransform(parent)) {
                 bbox = parent.toParent(bbox);
             }
@@ -298,7 +316,7 @@ export class Transformable {
      */
     static fromCanvasPoint(node: Node, x: number, y: number) {
         const parents = [];
-        for (const parent of node.ancestors()) {
+        for (const parent of node.traverseUp()) {
             if (isMatrixTransform(parent)) {
                 parents.unshift(parent);
             }
@@ -319,7 +337,7 @@ export class Transformable {
         if (isMatrixTransform(node)) {
             ({ x, y } = node.toParentPoint(x, y));
         }
-        for (const parent of node.ancestors()) {
+        for (const parent of node.traverseUp()) {
             if (isMatrixTransform(parent)) {
                 ({ x, y } = parent.toParentPoint(x, y));
             }

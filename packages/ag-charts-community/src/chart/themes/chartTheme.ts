@@ -10,6 +10,7 @@ import type {
 } from 'ag-charts-types';
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
+import { enterpriseModule } from '../../module/enterpriseModule';
 import { deepClone, jsonWalk } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import { isArray } from '../../util/type-guards';
@@ -17,7 +18,7 @@ import { axisRegistry } from '../factory/axisRegistry';
 import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
 import { legendRegistry } from '../factory/legendRegistry';
 import { seriesRegistry } from '../factory/seriesRegistry';
-import { CARTESIAN_AXIS_TYPE, FONT_SIZE, FONT_WEIGHT, POLAR_AXIS_TYPE, POSITION } from './constants';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE, FONT_WEIGHT, POLAR_AXIS_TYPE } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
@@ -29,9 +30,10 @@ import {
     DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
     DEFAULT_CROSS_LINES_COLOUR,
-    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FONT_FAMILY,
-    DEFAULT_GAUGE_SERIES_COLOUR_RANGE,
+    DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
+    DEFAULT_GAUGE_SERIES_COLOR_RANGE,
     DEFAULT_GRIDLINE_ENABLED,
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_HIERARCHY_STROKES,
@@ -47,7 +49,9 @@ import {
     DEFAULT_TEXTBOX_STROKE,
     DEFAULT_TEXT_ANNOTATION_COLOR,
     DEFAULT_TOOLBAR_POSITION,
+    IS_COMMUNITY,
     IS_DARK_THEME,
+    IS_ENTERPRISE,
     PALETTE_ALT_DOWN_FILL,
     PALETTE_ALT_DOWN_STROKE,
     PALETTE_ALT_NEUTRAL_FILL,
@@ -85,6 +89,9 @@ const CHART_TYPE_CONFIG: { [k in ChartType]: ChartTypeConfig } = {
     },
     get 'flow-proportion'(): ChartTypeConfig {
         return { seriesTypes: chartTypes.flowProportionTypes, commonOptions: [] };
+    },
+    get standalone(): ChartTypeConfig {
+        return { seriesTypes: chartTypes.standaloneTypes, commonOptions: [] };
     },
     get gauge(): ChartTypeConfig {
         return { seriesTypes: chartTypes.gaugeTypes, commonOptions: [] };
@@ -210,7 +217,7 @@ export class ChartTheme {
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
             },
             legend: {
-                position: POSITION.BOTTOM,
+                position: CARTESIAN_POSITION.BOTTOM,
                 spacing: 30,
                 listeners: {},
                 toggleSeries: true,
@@ -376,6 +383,7 @@ export class ChartTheme {
             getOverridesByType('hierarchy', chartTypes.hierarchyTypes),
             getOverridesByType('topology', chartTypes.topologyTypes),
             getOverridesByType('flow-proportion', chartTypes.flowProportionTypes),
+            getOverridesByType('standalone', chartTypes.standaloneTypes),
             getOverridesByType('gauge', chartTypes.gaugeTypes)
         );
     }
@@ -418,8 +426,12 @@ export class ChartTheme {
     }
 
     getTemplateParameters() {
+        const { isEnterprise } = enterpriseModule;
+
         const params = new Map();
         params.set(IS_DARK_THEME, false);
+        params.set(IS_ENTERPRISE, isEnterprise);
+        params.set(IS_COMMUNITY, !isEnterprise);
         params.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');
         params.set(DEFAULT_LABEL_COLOUR, 'rgb(70, 70, 70)');
         params.set(DEFAULT_INVERTED_LABEL_COLOUR, 'white');
@@ -430,12 +442,22 @@ export class ChartTheme {
         params.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_BACKGROUND_FILL);
         params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL);
         params.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
-        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
+        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
             DEFAULT_FILLS.ORANGE,
             DEFAULT_FILLS.YELLOW,
             DEFAULT_FILLS.GREEN,
         ]);
-        params.set(DEFAULT_GAUGE_SERIES_COLOUR_RANGE, [DEFAULT_FILLS.GREEN, DEFAULT_FILLS.YELLOW, DEFAULT_FILLS.RED]);
+        params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [DEFAULT_FILLS.GREEN, DEFAULT_FILLS.YELLOW, DEFAULT_FILLS.RED]);
+        params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
+            '#5090dc',
+            '#629be0',
+            '#73a6e3',
+            '#85b1e7',
+            '#96bcea',
+            '#a8c8ee',
+            '#b9d3f1',
+            '#cbdef5',
+        ]);
         params.set(DEFAULT_PADDING, 20);
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'block');
         params.set(DEFAULT_CAPTION_ALIGNMENT, 'center');

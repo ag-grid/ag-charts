@@ -5,7 +5,7 @@ import {
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
-    DEFAULT_DIVERGING_SERIES_COLOUR_RANGE,
+    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_GRIDLINE_ENABLED,
     DEFAULT_PADDING,
     DEFAULT_TOOLBAR_POSITION,
@@ -42,7 +42,7 @@ export class FinancialLight extends ChartTheme {
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
 
-        params.set(DEFAULT_DIVERGING_SERIES_COLOUR_RANGE, [
+        params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
             FINANCIAL_LIGHT_FILLS.GREEN,
             FINANCIAL_LIGHT_FILLS.BLUE,
             FINANCIAL_LIGHT_FILLS.RED,

@@ -11,7 +11,7 @@ export enum FONT_WEIGHT {
     LIGHTER = 'lighter',
 }
 
-export enum POSITION {
+export enum CARTESIAN_POSITION {
     TOP = 'top',
     RIGHT = 'right',
     BOTTOM = 'bottom',

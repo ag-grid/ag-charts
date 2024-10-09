@@ -1,4 +1,12 @@
-import type { AgAnnotationLineStyleType, FontStyle, FontWeight, Formatter, TextAlign } from 'ag-charts-community';
+import type {
+    AgAnnotationLineStyleType,
+    FontStyle,
+    FontWeight,
+    Formatter,
+    PixelSize,
+    TextAlign,
+    _Scene,
+} from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type {
@@ -88,7 +96,7 @@ export interface AxisLabelFormatterParams {
 export function Annotation<U extends Constructor<_ModuleSupport.BaseProperties>>(Parent: U) {
     abstract class AnnotationInternal extends Lockable(Visible(Parent)) {
         // A uuid is required, over the usual incrementing index, as annotations can be restored from external databases
-        id = _Util.uuid();
+        id = _Util.generateUUID();
 
         isValidWithContext(_context: AnnotationContext, warningPrefix: string) {
             return super.isValid(warningPrefix);
@@ -243,6 +251,9 @@ export function Stroke<T extends Constructor>(Parent: T) {
 
 export function LineStyle<T extends Constructor>(Parent: T) {
     class LineDashInternal extends Parent {
+        lineCap?: _Scene.ShapeLineCap = undefined;
+        computedLineDash?: PixelSize[] = undefined;
+
         @Validate(LINE_DASH, { optional: true })
         lineDash?: number[];
 

@@ -2,6 +2,7 @@ import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-type
 
 import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
+import { nodeCount } from '../debug.util';
 import type { RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 import { Rotatable, Translatable } from '../transformable';
@@ -19,9 +20,6 @@ export interface TextSizeProperties {
 
 export class Text extends Shape {
     static readonly className = 'Text';
-
-    // The default line spacing for document editors is usually 1.15
-    static defaultLineHeightRatio = 1.15;
 
     static override defaultStyles = Object.assign({}, Shape.defaultStyles, {
         textAlign: 'start' as CanvasTextAlign,
@@ -88,12 +86,12 @@ export class Text extends Shape {
         const { ctx, forceRender, stats } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {
-            if (stats) stats.nodesSkipped += this.nodeCount.count;
+            if (stats) stats.nodesSkipped += nodeCount(this).count;
             return;
         }
 
         if (!this.lines.length || !this.layerManager) {
-            if (stats) stats.nodesSkipped += this.nodeCount.count;
+            if (stats) stats.nodesSkipped += nodeCount(this).count;
             return;
         }
 
@@ -170,6 +168,44 @@ export class Text extends Shape {
     setAlign(props: { textAlign: CanvasTextAlign; textBaseline: CanvasTextBaseline }) {
         this.textAlign = props.textAlign;
         this.textBaseline = props.textBaseline;
+    }
+
+    override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] | undefined } | undefined {
+        if (!this.visible || !this.text) return;
+
+        const element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+
+        element.setAttribute('font-family', this.fontFamily?.split(',')[0] ?? '');
+        element.setAttribute('font-size', String(this.fontSize));
+        element.setAttribute('font-style', this.fontStyle ?? '');
+        element.setAttribute('font-weight', String(this.fontWeight ?? ''));
+        element.setAttribute(
+            'text-anchor',
+            {
+                center: 'middle',
+                left: 'start',
+                right: 'end',
+                start: 'start',
+                end: 'end',
+            }[this.textAlign ?? 'start']
+        );
+        element.setAttribute(
+            'alignment-baseline',
+            {
+                alphabetic: 'alphabetic',
+                top: 'top',
+                bottom: 'bottom',
+                hanging: 'hanging',
+                middle: 'middle',
+                ideographic: 'ideographic',
+            }[this.textBaseline ?? 'alphabetic']
+        );
+        element.setAttribute('x', String(this.x));
+        element.setAttribute('y', String(this.y));
+
+        element.textContent = this.text ?? '';
+
+        return { elements: [element] };
     }
 }
 

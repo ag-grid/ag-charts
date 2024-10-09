@@ -619,6 +619,52 @@
         ],
         [
             {
+                "title": "Funnel",
+                "seriesName": "funnel",
+                "icon": "chartsFunnel",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Funnel",
+                        "name": "simple-funnel"
+                    },
+                    {
+                        "title": "Customised Funnel",
+                        "name": "customised-funnel"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Cone Funnel",
+                "seriesName": "cone-funnel",
+                "icon": "chartsConeFunnel",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Cone Funnel",
+                        "name": "simple-cone-funnel"
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "Pyramid",
+                "seriesName": "pyramid",
+                "icon": "chartsPyramid",
+                "enterprise": true,
+                "examples": [
+                    {
+                        "title": "Simple Pyramid",
+                        "name": "simple-pyramid"
+                    }
+                ]
+            }
+        ],
+        [
+            {
                 "title": "Radial Gauge",
                 "seriesName": "radial-gauge",
                 "seriesLink": "./radial-gauge/",

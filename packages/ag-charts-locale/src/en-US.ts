@@ -154,6 +154,14 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Arrow Up',
     // Text for the annotation toolbar's arrow down button
     toolbarAnnotationsArrowDown: 'Arrow Down',
+    // Text for the annotation toolbar's date range button
+    toolbarAnnotationsDateRange: 'Date Range',
+    // Text for the annotation toolbar's price range button
+    toolbarAnnotationsPriceRange: 'Price Range',
+    // Text for the annotation toolbar's date and price range button
+    toolbarAnnotationsDatePriceRange: 'Date and Price',
+    // Text for the annotation toolbar's quick date and price range button
+    toolbarAnnotationsQuickDatePriceRange: 'Measure',
     // Text for the range toolbar's 1 month button
     toolbarRange1Month: '1M',
     // Aria label for the range toolbar's 1 month button
@@ -206,6 +214,12 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogHeaderChannel: 'Channel',
     // Text for the annotation dialog's header line tab label
     dialogHeaderLine: 'Line',
+    // Text for the annotation dialog's header date range tab label
+    dialogHeaderDateRange: 'Date Range',
+    // Text for the annotation dialog's header price range tab label
+    dialogHeaderPriceRange: 'Price Range',
+    // Text for the annotation dialog's header date and price range tab label
+    dialogHeaderDatePriceRange: 'Date and Price',
     // Text for the annotation dialog's header text tab label
     dialogHeaderText: 'Text',
     // Text for the annotation dialog's text alignment radio label
@@ -222,6 +236,14 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputExtendLineStart: 'Extend line start',
     // Text for the annotation dialog's extend line end checkbox
     dialogInputExtendLineEnd: 'Extend line end',
+    // Text for the annotation dialog's extend above checkbox
+    dialogInputExtendAbove: 'Extend above',
+    // Text for the annotation dialog's extend below checkbox
+    dialogInputExtendBelow: 'Extend below',
+    // Text for the annotation dialog's extend left checkbox
+    dialogInputExtendLeft: 'Extend left',
+    // Text for the annotation dialog's extend right checkbox
+    dialogInputExtendRight: 'Extend right',
     // Text for the annotation dialog's font size select box label
     dialogInputFontSize: 'Size',
     // Text for the annotation dialog's font size select box alt text
@@ -236,4 +258,12 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputStrokeWidthAltText: 'Line Weight',
     // Text for text area input placeholders
     inputTextareaPlaceholder: 'Add Text',
+    // Text for the measurer statistics date range bars value
+    measurerDateRangeBars: '${value}[number] bars',
+    // Text for the measurer statistics price range value
+    measurerPriceRangeValue: '${value}[number]',
+    // Text for the measurer statistics price range percentage
+    measurerPriceRangePercent: '${value}[percent]',
+    // Text for the measurer statistics volume value
+    measurerVolume: 'Vol ${value}',
 };

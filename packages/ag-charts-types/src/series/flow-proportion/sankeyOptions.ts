@@ -85,9 +85,15 @@ export interface AgSankeySeriesOptionsNames {
     sizeName?: string;
 }
 
+interface SizeParams {
+    /* Size of the link, or the computed size of the node */
+    size: number;
+}
+
 export interface AgSankeySeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgSankeySeriesOptionsKeys,
-        AgSankeySeriesOptionsNames {}
+        AgSankeySeriesOptionsNames,
+        SizeParams {}
 
-export interface AgSankeySeriesLabelFormatterParams<_TDatum = any> extends AgSankeySeriesOptionsKeys {}
+export interface AgSankeySeriesLabelFormatterParams<_TDatum = any> extends AgSankeySeriesOptionsKeys, SizeParams {}

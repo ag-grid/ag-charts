@@ -14,7 +14,6 @@ import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
 import { DataService } from './data/dataService';
 import { AnimationManager } from './interaction/animationManager';
-import { AriaAnnouncementService } from './interaction/ariaAnnouncementServices';
 import { ChartEventManager } from './interaction/chartEventManager';
 import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
 import { CursorManager } from './interaction/cursorManager';
@@ -46,7 +45,6 @@ export class ChartContext implements ModuleContext {
 
     animationManager: AnimationManager;
     annotationManager: AnnotationManager;
-    ariaAnnouncementService: AriaAnnouncementService;
     axisManager: AxisManager;
     chartService: ChartService;
     contextMenuRegistry: ContextMenuRegistry;
@@ -97,16 +95,11 @@ export class ChartContext implements ModuleContext {
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
         this.cursorManager = new CursorManager(this.domManager);
         this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
-        this.keyNavManager = new KeyNavManager(this.interactionManager);
         this.focusIndicator = new FocusIndicator(this.domManager);
+        this.keyNavManager = new KeyNavManager(this.focusIndicator, this.interactionManager);
         this.regionManager = new RegionManager(this.interactionManager);
         this.contextMenuRegistry = new ContextMenuRegistry(this.regionManager);
         this.gestureDetector = new GestureDetector(this.domManager);
-        this.ariaAnnouncementService = new AriaAnnouncementService(
-            this.localeManager,
-            this.domManager,
-            this.layoutManager
-        );
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(this.localeManager, this.domManager);
         this.historyManager = new HistoryManager(this.domManager);
@@ -120,16 +113,15 @@ export class ChartContext implements ModuleContext {
     destroy() {
         // chart.ts handles the destruction of the scene.
         this.animationManager.destroy();
-        this.ariaAnnouncementService.destroy();
         this.axisManager.destroy();
         this.callbackCache.invalidateCache();
         this.chartEventManager.destroy();
         this.contextMenuRegistry.destroy();
         this.domManager.destroy();
-        this.focusIndicator.destroy();
         this.highlightManager.destroy();
         this.interactionManager.destroy();
         this.keyNavManager.destroy();
+        this.focusIndicator.destroy();
         this.proxyInteractionService.destroy();
         this.regionManager.destroy();
         this.syncManager.destroy();

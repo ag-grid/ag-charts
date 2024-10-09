@@ -4,7 +4,8 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
-import { Group, TranslatableGroup } from '../../../scene/group';
+import { Group } from '../../../scene/group';
+import { TranslatableLayer } from '../../../scene/layer';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
@@ -21,6 +22,7 @@ import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
 import type { Has } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
+import { ChartUpdateType } from '../../chartUpdateType';
 import type { DataController } from '../../data/dataController';
 import { DataModel, getMissCount } from '../../data/dataModel';
 import {
@@ -33,10 +35,10 @@ import {
     valueProperty,
 } from '../../data/processors';
 import type { LegendItemClickChartEvent } from '../../interaction/chartEventManager';
-import { Layers } from '../../layers';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import { ZIndexMap } from '../../zIndexMap';
 import { SeriesNodeEvent, type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
@@ -126,10 +128,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     // The group node that contains the background graphics.
     readonly backgroundGroup = this.rootGroup.appendChild(
-        new TranslatableGroup({
+        new TranslatableLayer({
             name: `${this.id}-background`,
-            layer: true,
-            zIndex: Layers.SERIES_BACKGROUND_ZINDEX,
+            zIndex: ZIndexMap.SERIES_BACKGROUND,
         })
     );
 
@@ -141,6 +142,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     // When a user toggles a series item (e.g. from the legend), its boolean state is recorded here.
     public seriesItemEnabled: boolean[] = [];
+    public legendItemEnabled: boolean[] = [];
 
     private oldTitle?: PieTitle;
 
@@ -171,9 +173,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     override get visible() {
-        return (
-            super.visible && (this.seriesItemEnabled.length === 0 || this.seriesItemEnabled.some((visible) => visible))
-        );
+        return super.visible && (this.seriesItemEnabled.length === 0 || this.seriesItemEnabled.includes(true));
     }
 
     protected override nodeFactory(): Sector {
@@ -635,10 +635,10 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
         if (title) {
             const dy = this.getTitleTranslationY();
-            const titleBox = title.node.getBBox();
-            title.node.visible =
-                title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox, 0, dy);
             title.node.y = isFinite(dy) ? dy : 0;
+
+            const titleBox = title.node.getBBox();
+            title.node.visible = title.enabled && isFinite(dy) && !this.bboxIntersectsSurroundingSeries(titleBox);
         }
 
         this.zerosumOuterRing.fillOpacity = 0;
@@ -731,7 +731,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     private async updateNodes(seriesRect: BBox) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        const isVisible = this.visible && this.seriesItemEnabled.indexOf(true) >= 0;
+        const isVisible = this.visible && this.seriesItemEnabled.includes(true);
         this.rootGroup.visible = isVisible;
         this.backgroundGroup.visible = isVisible;
         this.contentGroup.visible = isVisible;
@@ -779,12 +779,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         this.itemSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
         this.highlightSelection.each((node, datum, index) => {
             updateSectorFn(node, datum, index, true);
-            if (datum.itemId === highlightedDatum?.itemId) {
-                node.visible = true;
-                updateSectorFn(node, datum, index, true);
-            } else {
-                node.visible = false;
-            }
+
+            node.visible = datum.itemId === highlightedDatum?.itemId;
         });
         this.phantomSelection.each((node, datum, index) => updateSectorFn(node, datum, index, false));
 
@@ -874,16 +870,16 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         return { textLength, hasVerticalOverflow, hasSurroundingSeriesOverflow };
     }
 
-    private bboxIntersectsSurroundingSeries(box: BBox, dx = 0, dy = 0) {
+    private bboxIntersectsSurroundingSeries(box: BBox) {
         const { surroundingRadius } = this;
         if (surroundingRadius == null) {
             return false;
         }
         const corners = [
-            { x: box.x + dx, y: box.y + dy },
-            { x: box.x + box.width + dx, y: box.y + dy },
-            { x: box.x + box.width + dx, y: box.y + box.height + dy },
-            { x: box.x + dx, y: box.y + box.height + dy },
+            { x: box.x, y: box.y },
+            { x: box.x + box.width, y: box.y },
+            { x: box.x + box.width, y: box.y + box.height },
+            { x: box.x, y: box.y + box.height },
         ];
         const sur2 = surroundingRadius ** 2;
         return corners.some((corner) => corner.x ** 2 + corner.y ** 2 > sur2);
@@ -1350,7 +1346,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 id: this.id,
                 itemId: index,
                 seriesId: this.id,
-                enabled: visible && this.seriesItemEnabled[index],
+                enabled: visible && this.legendItemEnabled[index],
                 label: {
                     text: labelParts.join(' - '),
                 },
@@ -1384,10 +1380,17 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     protected override toggleSeriesItem(itemId: number, enabled: boolean): void {
         this.seriesItemEnabled[itemId] = enabled;
+        this.legendItemEnabled[itemId] = enabled;
         if (this.nodeData[itemId]) {
             this.nodeData[itemId].enabled = enabled;
         }
         this.nodeDataRefresh = true;
+    }
+
+    // Used for grid
+    setLegendState(enabledItems: boolean[]) {
+        this.legendItemEnabled = enabledItems;
+        this.ctx.updateService.update(ChartUpdateType.SERIES_UPDATE);
     }
 
     toggleOtherSeriesItems(legendItemName: string, enabled: boolean): void {
@@ -1516,7 +1519,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     protected override onDataChange() {
-        const { data, seriesItemEnabled } = this;
+        const { data, seriesItemEnabled, legendItemEnabled } = this;
         this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
+        this.legendItemEnabled = data?.map((_, index) => legendItemEnabled[index] ?? true) ?? [];
     }
 }

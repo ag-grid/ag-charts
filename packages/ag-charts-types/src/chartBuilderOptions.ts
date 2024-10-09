@@ -10,10 +10,12 @@ import type { AgFinancialChartPresets } from './presets/financial/financialOptio
 import type { AgGaugePresets } from './presets/gauge/gaugeOptions';
 import type { AgLinearGaugePreset } from './presets/gauge/linearGaugeOptions';
 import type { AgRadialGaugePreset } from './presets/gauge/radialGaugeOptions';
+import type { SparklineBarPreset, SparklineLinePreset } from './presets/sparkline/sparklineOptions';
 import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOptions';
 import type { AgBaseFlowProportionChartOptions } from './series/flow-proportion/flowProportionOptions';
 import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from './series/polar/polarOptions';
+import type { AgBaseStandaloneChartOptions } from './series/standalone/standaloneOptions';
 import type { AgBaseTopologyChartOptions } from './series/topology/topologyOptions';
 
 export interface AgChartThemeOptions extends AgBaseChartThemeOptions {}
@@ -39,6 +41,9 @@ export interface AgTopologyChartOptions extends AgBaseTopologyChartOptions, AgBa
 export interface AgFlowProportionChartOptions extends AgBaseFlowProportionChartOptions, AgBaseChartOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
+export interface AgStandaloneChartOptions extends AgBaseStandaloneChartOptions, AgBaseChartOptions {
+    theme?: AgChartTheme | AgChartThemeName;
+}
 export interface AgGaugeChartOptions extends AgBaseChartOptions {
     theme?: AgChartTheme | AgChartThemeName;
 }
@@ -47,13 +52,28 @@ export type AgChartOptions =
     | AgPolarChartOptions
     | AgHierarchyChartOptions
     | AgTopologyChartOptions
-    | AgFlowProportionChartOptions;
+    | AgFlowProportionChartOptions
+    | AgStandaloneChartOptions;
 
 export type AgBaseFinancialPresetOptions = Pick<
     AgCartesianChartOptions,
-    'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title'
-> &
-    Pick<AgCartesianChartOptions, 'initialState' | 'data'>;
+    'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title' | 'initialState' | 'data'
+>;
+
+export type AgBaseSparklinePresetThemeOptions = Pick<
+    AgCartesianChartOptions,
+    | 'background'
+    | 'container'
+    | 'height'
+    | 'listeners'
+    | 'locale'
+    | 'minHeight'
+    | 'minWidth'
+    | 'padding'
+    | 'width'
+    | 'data'
+    | 'axes'
+>;
 
 export type AgFinancialChartOptions = AgBaseFinancialPresetOptions & AgFinancialChartPresets;
 
@@ -64,6 +84,15 @@ export interface AgBaseGaugePresetOptions extends AgBaseGaugePresetThemeOptions 
 export type AgLinearGaugeOptions = AgBaseGaugePresetOptions & AgLinearGaugePreset;
 export type AgRadialGaugeOptions = AgBaseGaugePresetOptions & AgRadialGaugePreset;
 export type AgGaugeOptions = AgBaseGaugePresetOptions & AgGaugePresets;
+
+export interface AgBaseSparklinePresetOptions extends AgBaseSparklinePresetThemeOptions {
+    theme?: AgChartTheme | AgChartThemeName;
+}
+
+export type AgSparklineBarOptions = AgBaseSparklinePresetOptions & SparklineBarPreset;
+export type AgSparklineLineOptions = AgBaseSparklinePresetOptions & SparklineLinePreset;
+export type AgSparklineAreaOptions = AgBaseSparklinePresetOptions & SparklineLinePreset;
+export type AgSparklineOptions = AgBaseSparklinePresetOptions & AgBaseSparklinePresetOptions;
 
 export type AgPresetOptions = AgFinancialChartOptions | AgGaugeOptions;
 
@@ -125,15 +154,6 @@ export interface AgChartInstance<O extends AgChartInstanceOptions = AgChartOptio
 
     /** Destroy the chart instance and any allocated resources supporting its rendering. */
     destroy(): void;
-}
-
-/** NOTE: For API docs use; simplified typings to enable rendering. */
-// @ts-ignore
-interface _AgChartsInterface {
-    /**
-     * Create a new `AgChartInstance` based upon the given configuration options.
-     */
-    create(options: AgChartOptions): AgChartInstance;
 }
 
 /** NOTE: For API docs use; simplified typings to enable rendering. */

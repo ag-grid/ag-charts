@@ -94,7 +94,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
         this._markers = markers;
         this._lines = lines;
         this.symbolsGroup.clear();
-        this.symbolsGroup.append([this.bitmap, ...markers, ...lines]);
+        this.symbolsGroup.append([this.bitmap, ...lines, ...markers]);
     }
 
     setEnabled(enabled: boolean) {
@@ -164,7 +164,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
                 line.x2 = shift + length;
                 line.y1 = 0;
                 line.y2 = 0;
-                line.markDirty(this, RedrawType.MAJOR);
+                line.markDirty(RedrawType.MAJOR);
                 lineTop = -line.strokeWidth / 2;
                 lineX1 = line.x1;
                 lineX2 = line.x2;
@@ -207,7 +207,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
         const clippedWidth = Math.max(lastMarker?.size ?? 0, lastSymbolProps?.length ?? 0);
         const clipRect = new BBox(bbox.x + clippedWidth / 2, bbox.y, clippedWidth, bbox.height);
 
-        this.symbolsGroup.setClipRectInGroupCoordinateSpace(clipRect);
+        this.symbolsGroup.setClipRect(clipRect);
     }
 
     protected override computeBBox(): BBox {
@@ -215,6 +215,6 @@ export class LegendMarkerLabel extends Translatable(Group) {
         // not want to include this padding in the layout bounds. So just compute the bounds for the Line
         // and Marker nodes directly rather than Group's default behaviour of computing this.bitmap's BBox.
         const { label, lines, markers } = this;
-        return this.toParent(Group.computeChildrenBBox(iterate([label], lines, markers), { skipInvisible: false }));
+        return this.toParent(Group.computeChildrenBBox(iterate([label], lines, markers), false));
     }
 }

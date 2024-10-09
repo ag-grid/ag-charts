@@ -1,6 +1,4 @@
-import { _Scene } from 'ag-charts-community';
-
-import type { Coords } from '../annotationTypes';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 type InvariantHandleStyles = { x: number; y: number } & { [K in keyof _Scene.Circle]?: _Scene.Circle[K] };
 type UnivariantHandleStyles = { x: number; y: number } & { [K in keyof _Scene.Rect]?: _Scene.Rect[K] };
@@ -11,7 +9,7 @@ export abstract class Handle extends _Scene.Group {
     public static readonly GLOW_SIZE: number;
     public static readonly INACTIVE_STROKE_WIDTH = 2;
 
-    protected abstract handle: _Scene.Rect | _Scene.Circle;
+    abstract handle: _Scene.Rect | _Scene.Circle;
     protected abstract glow: _Scene.Rect | _Scene.Circle;
     protected active = false;
     protected locked = false;
@@ -23,7 +21,7 @@ export abstract class Handle extends _Scene.Group {
         [K in keyof (_Scene.Rect | _Scene.Circle)]?: (_Scene.Rect | _Scene.Circle)[K];
     }): void;
 
-    public drag(target: Coords): { point: Coords; offset: Coords } {
+    public drag(target: _ModuleSupport.Vec2): { point: _ModuleSupport.Vec2; offset: _ModuleSupport.Vec2 } {
         const { handle, locked } = this;
 
         if (locked) {
@@ -89,7 +87,7 @@ export class InvariantHandle extends Handle {
         this.handle.setProperties({ ...styles, strokeWidth: Handle.INACTIVE_STROKE_WIDTH });
     }
 
-    override drag(target: Coords): { point: Coords; offset: Coords } {
+    override drag(target: _ModuleSupport.Vec2): { point: _ModuleSupport.Vec2; offset: _ModuleSupport.Vec2 } {
         return { point: target, offset: { x: 0, y: 0 } };
     }
 }
@@ -179,7 +177,7 @@ export class UnivariantHandle extends Handle {
         });
     }
 
-    override drag(target: Coords) {
+    override drag(target: _ModuleSupport.Vec2) {
         if (this.locked) {
             return { point: target, offset: { x: 0, y: 0 } };
         }
@@ -257,5 +255,9 @@ export class DivariantHandle extends Handle {
 
         this.handle.setProperties(styles);
         this.glow.setProperties({ ...styles, strokeWidth: 0, fill: styles.stroke });
+    }
+
+    override getCursor() {
+        return 'pointer';
     }
 }

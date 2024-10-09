@@ -11,9 +11,10 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
+import { formatValue } from '../../../util/format.util';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { isDefined, isFiniteNumber } from '../../../util/type-guards';
+import { isDefined } from '../../../util/type-guards';
 import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -71,6 +72,10 @@ export class LineSeries extends CartesianSeries<
 
     override properties = new LineSeriesProperties();
 
+    override get pickModeAxis() {
+        return 'main-category' as const;
+    }
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
@@ -78,7 +83,7 @@ export class LineSeries extends CartesianSeries<
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
             hasMarkers: true,
             pickModes: [
-                SeriesNodePickMode.NEAREST_BY_MAIN_CATEGORY_AXIS_FIRST,
+                SeriesNodePickMode.AXIS_ALIGNED,
                 SeriesNodePickMode.NEAREST_NODE,
                 SeriesNodePickMode.EXACT_SHAPE_MATCH,
             ],
@@ -262,7 +267,7 @@ export class LineSeries extends CartesianSeries<
             const labelText = this.getLabelText(
                 label,
                 { value: yDatum, datum, xKey, yKey, xName, yName, legendItemName },
-                (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
+                formatValue
             );
 
             nodeData.push({

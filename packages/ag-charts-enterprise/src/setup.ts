@@ -25,6 +25,8 @@ import { BoxPlotModule } from './series/box-plot/main';
 import { BulletModule } from './series/bullet/bulletModule';
 import { CandlestickModule } from './series/candlestick/main';
 import { ChordModule } from './series/chord/main';
+import { ConeFunnelModule } from './series/cone-funnel/coneFunnelModule';
+import { FunnelModule } from './series/funnel/funnelModule';
 import { HeatmapModule } from './series/heatmap/main';
 import { LinearGaugeModule } from './series/linear-gauge/main';
 import { MapLineBackgroundModule } from './series/map-line-background/main';
@@ -34,6 +36,7 @@ import { MapShapeBackgroundModule } from './series/map-shape-background/main';
 import { MapShapeModule } from './series/map-shape/main';
 import { NightingaleModule } from './series/nightingale/main';
 import { OhlcModule } from './series/ohlc/main';
+import { PyramidModule } from './series/pyramid/main';
 import { RadarAreaModule } from './series/radar-area/main';
 import { RadarLineModule } from './series/radar-line/main';
 import { RadialBarModule } from './series/radial-bar/main';
@@ -58,6 +61,8 @@ export function setupEnterpriseModules() {
         BoxPlotModule,
         CandlestickModule,
         ChordModule,
+        ConeFunnelModule,
+        FunnelModule,
         OhlcModule,
         BulletModule,
         ChartToolbarModule,
@@ -86,6 +91,7 @@ export function setupEnterpriseModules() {
         RadiusNumberAxisModule,
         RangeBarModule,
         RangeAreaModule,
+        PyramidModule,
         SankeyModule,
         SunburstModule,
         SyncModule,

@@ -29,5 +29,11 @@ jobs:
                       gh actions-cache delete $cacheKey -R $REPO -B $BRANCH --confirm
                   done
                   echo "Done"
+
+                  echo "Cleaning up any auto-generated branches."
+                  snapshotBranch=gha/snapshots-${{ github.head_ref }}
+                  if (git ls-remote --exit-code --heads origin ${snapshotBranch} >/dev/null) ; then
+                      git push -d origin gha/snapshots-${{ github.head_ref }}
+                  fi
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

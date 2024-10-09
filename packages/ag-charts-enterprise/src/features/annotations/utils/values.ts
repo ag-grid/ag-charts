@@ -1,5 +1,7 @@
+import type { _ModuleSupport } from 'ag-charts-community';
+
 import type { PointProperties } from '../annotationProperties';
-import type { AnnotationAxisContext, AnnotationContext, Coords, Point } from '../annotationTypes';
+import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
 
 export function convertLine(
     datum: { start: Pick<PointProperties, 'x' | 'y'>; end: Pick<PointProperties, 'x' | 'y'> },
@@ -29,7 +31,7 @@ export function convert(p: Point['x' | 'y'], context: Pick<AnnotationAxisContext
     return context.scaleConvert(p) + halfBandwidth;
 }
 
-export function invertCoords(coords: Coords, context: AnnotationContext) {
+export function invertCoords(coords: _ModuleSupport.Vec2, context: AnnotationContext) {
     const x = invert(coords.x, context.xAxis);
     const y = invert(coords.y, context.yAxis);
 
@@ -37,7 +39,7 @@ export function invertCoords(coords: Coords, context: AnnotationContext) {
 }
 
 export function invert(
-    n: Coords['x' | 'y'],
+    n: _ModuleSupport.Vec2['x' | 'y'],
     context: Pick<AnnotationAxisContext, 'scaleBandwidth' | 'continuous' | 'scaleInvert' | 'scaleInvertNearest'>
 ) {
     const halfBandwidth = (context.scaleBandwidth() ?? 0) / 2;

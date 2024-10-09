@@ -1,4 +1,10 @@
-import type { AgChartInstance, AgChartOptions, AgFinancialChartOptions, AgGaugeOptions } from 'ag-charts-types';
+import type {
+    AgChartInstance,
+    AgChartOptions,
+    AgFinancialChartOptions,
+    AgGaugeOptions,
+    AgSparklineOptions,
+} from 'ag-charts-types';
 
 import { CartesianChart } from '../chart/cartesianChart';
 import { Chart, type ChartExtendedOptions } from '../chart/chart';
@@ -14,9 +20,11 @@ import {
     isAgGaugeChartOptions,
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
+    isAgStandaloneChartOptions,
     isAgTopologyChartOptions,
 } from '../chart/mapping/types';
 import { PolarChart } from '../chart/polarChart';
+import { StandaloneChart } from '../chart/standaloneChart';
 import { TopologyChart } from '../chart/topologyChart';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
@@ -30,7 +38,9 @@ import { MementoCaretaker } from './state/memento';
 
 const debug = Debug.create(true, 'opts');
 
-function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'gauge' {
+function chartType(
+    options: any
+): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'standalone' | 'gauge' {
     if (isAgCartesianChartOptions(options)) {
         return 'cartesian';
     } else if (isAgPolarChartOptions(options)) {
@@ -41,6 +51,8 @@ function chartType(options: any): 'cartesian' | 'polar' | 'hierarchy' | 'topolog
         return 'topology';
     } else if (isAgFlowProportionChartOptions(options)) {
         return 'flow-proportion';
+    } else if (isAgStandaloneChartOptions(options)) {
+        return 'standalone';
     } else if (isAgGaugeChartOptions(options)) {
         return 'gauge';
     }
@@ -114,6 +126,10 @@ export abstract class AgCharts {
 
     public static createGauge(options: AgGaugeOptions): AgChartInstance<AgGaugeOptions> {
         return this.create({ presetType: 'gauge', ...(options as any) } as AgChartOptions) as any;
+    }
+
+    public static __createSparkline(options: AgSparklineOptions): AgChartInstance<AgSparklineOptions> {
+        return this.create({ presetType: 'sparkline', ...(options as any) } as AgChartOptions) as any;
     }
 }
 
@@ -246,6 +262,8 @@ class AgChartsInternal {
             return TopologyChart;
         } else if (isAgFlowProportionChartOptions(options)) {
             return FlowProportionChart;
+        } else if (isAgStandaloneChartOptions(options)) {
+            return StandaloneChart;
         } else if (isAgGaugeChartOptions(options)) {
             return GaugeChart;
         }

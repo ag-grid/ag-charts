@@ -42,7 +42,7 @@ export abstract class PolarSeries<
 > extends DataModelSeries<TDatum, TProps> {
     protected itemGroup = this.contentGroup.appendChild(new Group());
     public getItemNodes(): TNode[] {
-        return this.itemGroup.children as TNode[];
+        return [...this.itemGroup.children()] as TNode[];
     }
 
     protected nodeData: TDatum[] = [];

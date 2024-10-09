@@ -22,7 +22,7 @@ import {
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukRoadData } from '../map-test/ukRoadData';
 // @ts-expect-error
-import ukRoadTopology from '../map-test/ukRoadTopology';
+import ukRoadTopology from '../map-test/ukRoadTopology.json';
 import type { MapLineSeries } from './mapLineSeries';
 
 const SIMPLIFIED_EXAMPLE: AgChartOptions = {
@@ -296,7 +296,7 @@ describe('MapLineSeries', () => {
             },
             getDatumValues: (item, series) => [item.datum[series.properties.idKey]],
             getTooltipRenderedValues: ({ datum, idKey }) => [datum[idKey]],
-            getHighlightNode: (_, series) => series.highlightNode.children[0],
+            getHighlightNode: (_, series) => series.highlightNode.children().next().value,
         });
     });
 });

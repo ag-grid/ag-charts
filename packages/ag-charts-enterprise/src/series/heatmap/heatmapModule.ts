@@ -16,16 +16,16 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
     defaultAxes: [
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: _Theme.POSITION.LEFT,
+            position: _Theme.CARTESIAN_POSITION.LEFT,
         },
         {
             type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: _Theme.POSITION.BOTTOM,
+            position: _Theme.CARTESIAN_POSITION.BOTTOM,
         },
     ],
     themeTemplate: HEATMAP_SERIES_THEME,
     paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
-        const defaultColorRange = themeTemplateParameters.get(_Theme.DEFAULT_DIVERGING_SERIES_COLOUR_RANGE);
+        const defaultColorRange = themeTemplateParameters.get(_Theme.DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
         const defaultBackgroundColor = themeTemplateParameters.get(_Theme.DEFAULT_BACKGROUND_COLOUR);
         const backgroundFill =
             (Array.isArray(defaultBackgroundColor) ? defaultBackgroundColor[0] : defaultBackgroundColor) ?? 'white';

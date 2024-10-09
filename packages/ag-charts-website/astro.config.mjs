@@ -36,7 +36,6 @@ const {
      * Checks the `to` paths in `src/utils/htaccess/redirects.ts`
      */
     CHECK_REDIRECTS = 'false',
-    WATCH_INTEGRATION = 'true',
 } = dotenvExpand.expand(dotenv).parsed;
 
 const OUTPUT_DIR = '../../dist/packages/ag-charts-website';
@@ -54,7 +53,6 @@ console.log(
             PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT,
             HTACCESS,
             CHECK_REDIRECTS,
-            WATCH_INTEGRATION,
         },
         null,
         2
@@ -73,7 +71,7 @@ export default defineConfig({
         plugins: [
             mkcert(),
             svgr(),
-            agHotModuleReload(Boolean(WATCH_INTEGRATION)),
+            agHotModuleReload(),
             agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
         ],
         resolve: {

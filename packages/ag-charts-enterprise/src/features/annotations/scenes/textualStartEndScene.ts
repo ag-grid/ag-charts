@@ -1,10 +1,12 @@
 import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { AnnotationContext, LineCoords } from '../annotationTypes';
+import type { AnnotationContext } from '../annotationTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import { StartEndScene } from '../scenes/startEndScene';
-import { getBBox, updateTextNode, wrapText } from '../text/util';
+import { getBBox, updateTextNode } from '../text/util';
 import { convertLine } from '../utils/values';
+
+const { Vec4 } = _ModuleSupport;
 
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends StartEndScene<Datum> {
     override activeHandle?: 'start' | 'end';
@@ -20,7 +22,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
 
     public setTextInputBBox(bbox?: _Scene.BBox) {
         this.textInputBBox = bbox;
-        this.markDirty(this, _Scene.RedrawType.MINOR);
+        this.markDirty(_Scene.RedrawType.MINOR);
     }
 
     public override update(datum: Datum, context: AnnotationContext) {
@@ -44,32 +46,30 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         return super.containsPoint(x, y) || label.containsPoint(x, y);
     }
 
-    protected getTextBBox(datum: Datum, coords: LineCoords) {
+    public override getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.label.containsPoint(x, y)) return 'text';
+
+        return super.getNodeAtCoords(x, y);
+    }
+
+    protected getTextBBox(datum: Datum, coords: _ModuleSupport.Vec4) {
         const { text } = datum.getText();
 
-        return getBBox(datum, text, { x: coords.x2, y: coords.y2 }, this.textInputBBox);
+        return getBBox(datum, text, Vec4.end(coords), this.textInputBBox);
     }
 
-    protected updateLabel(datum: Datum, bbox: _Scene.BBox, coords: LineCoords) {
+    protected updateLabel(datum: Datum, bbox: _Scene.BBox, coords: _ModuleSupport.Vec4) {
         const { text, isPlaceholder } = datum.getText();
-        const wrappedText = wrapText(datum, text, bbox.width);
 
-        if (!isPlaceholder) {
-            datum.set({ text: wrappedText });
-        }
-
-        updateTextNode(this.label, wrappedText, isPlaceholder, datum, this.getLabelCoords(datum, bbox, coords));
+        updateTextNode(this.label, text, isPlaceholder, datum, this.getLabelCoords(datum, bbox, coords));
     }
 
-    protected updateShape(_datum: Datum, _textBBox: _Scene.BBox, _coords: LineCoords) {
+    protected updateShape(_datum: Datum, _textBBox: _Scene.BBox, _coords: _ModuleSupport.Vec4) {
         // Shapes should be implemented by the extending annotation type class
     }
 
-    protected getLabelCoords(_datum: Datum, _bbox: _Scene.BBox, coords: LineCoords): _Util.Vec2 {
-        return {
-            x: coords.x2,
-            y: coords.y2,
-        };
+    protected getLabelCoords(_datum: Datum, _bbox: _Scene.BBox, coords: _ModuleSupport.Vec4): _ModuleSupport.Vec2 {
+        return Vec4.end(coords);
     }
 
     protected override getHandleStyles(datum: Datum, handle?: 'start' | 'end'): AgAnnotationHandleStyles {

@@ -24,6 +24,7 @@ import {
     isAgHierarchyChartOptions,
     isAgPolarChartOptions,
     isAgPolarChartOptionsWithSeriesBasedLegend,
+    isAgStandaloneChartOptions,
     isAgTopologyChartOptions,
     isAxisOptionType,
     isSeriesOptionType,
@@ -192,13 +193,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     protected getDefaultAxes(options: T) {
         const optionsType = this.optionsType(options);
-        const axesDefaults = seriesRegistry.cloneDefaultAxes(optionsType) as T;
-
-        if (seriesRegistry.isDefaultAxisSwapNeeded(options)) {
-            this.swapAxesPosition(axesDefaults);
-        }
-
-        return axesDefaults;
+        const firstSeriesOptions = options.series?.find((series) => (series.type ?? 'line') === optionsType) ?? {};
+        return seriesRegistry.cloneDefaultAxes(optionsType, firstSeriesOptions) as T;
     }
 
     protected optionsType(options: Partial<T>) {
@@ -221,16 +217,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         ) {
             Logger.warnOnce('bullet series cannot be synced, disabling synchronization.');
             delete options.sync;
-        }
-    }
-
-    protected swapAxesPosition(options: T) {
-        if (isAgCartesianChartOptions(options)) {
-            const [axis0, axis1] = options.axes ?? [];
-            options.axes = [
-                { ...axis0, position: axis1.position },
-                { ...axis1, position: axis0.position },
-            ];
         }
     }
 
@@ -456,6 +442,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return 'map-shape';
         } else if (isAgFlowProportionChartOptions(options)) {
             return 'sankey';
+        } else if (isAgStandaloneChartOptions(options)) {
+            return 'pyramid';
         } else if (isAgGaugeChartOptions(options)) {
             return 'radial-gauge';
         }

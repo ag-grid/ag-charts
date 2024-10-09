@@ -12,6 +12,7 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
+import { formatValue } from '../../../util/format.util';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isDefined, isFiniteNumber } from '../../../util/type-guards';
@@ -92,7 +93,7 @@ export class AreaSeries extends CartesianSeries<
             pathsZIndexSubOrderOffset: [0, 1000],
             hasMarkers: true,
             markerSelectionGarbageCollection: false,
-            pickModes: [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             animationResetFns: {
                 path: buildResetPathFn({ getVisible: () => this.visible, getOpacity: () => this.getOpacity() }),
                 label: resetLabelFn,
@@ -304,7 +305,7 @@ export class AreaSeries extends CartesianSeries<
                             xName: this.properties.xName,
                             yName: this.properties.yName,
                         },
-                        (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
+                        formatValue
                     );
 
                     labelData.push({

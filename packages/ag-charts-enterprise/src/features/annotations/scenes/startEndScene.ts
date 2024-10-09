@@ -1,16 +1,20 @@
 import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import type { AnnotationContext, Coords, LineCoords } from '../annotationTypes';
+import type { PointProperties } from '../annotationProperties';
+import type { AnnotationContext } from '../annotationTypes';
 import type { StartEndProperties } from '../properties/startEndProperties';
+import { snapToAngle } from '../utils/coords';
 import { validateDatumPoint } from '../utils/validation';
-import { convertLine, invertCoords } from '../utils/values';
+import { convertLine, convertPoint, invertCoords } from '../utils/values';
 import { DivariantHandle } from './handle';
 import { LinearScene } from './linearScene';
 
-const { Vec2 } = _Util;
+const { Vec4 } = _ModuleSupport;
+
+export type StartEndHandle = 'start' | 'end';
 
 export abstract class StartEndScene<Datum extends StartEndProperties> extends LinearScene<Datum> {
-    override activeHandle?: 'start' | 'end';
+    override activeHandle?: StartEndHandle;
 
     protected readonly start = new DivariantHandle();
     protected readonly end = new DivariantHandle();
@@ -29,17 +33,18 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         }
 
         this.updateHandles(datum, coords);
-
         this.updateAnchor(datum, coords, context);
     }
 
-    override toggleHandles(show: boolean | Partial<Record<'start' | 'end', boolean>>) {
+    override toggleHandles(show: boolean | Partial<Record<StartEndHandle, boolean>>) {
         if (typeof show === 'boolean') {
-            show = { start: show, end: show };
+            this.start.visible = show;
+            this.end.visible = show;
+        } else {
+            for (const [handle, visible] of Object.entries(show) as [StartEndHandle, boolean][]) {
+                this[handle].visible = visible;
+            }
         }
-
-        this.start.visible = show.start ?? true;
-        this.end.visible = show.end ?? true;
 
         this.start.toggleHovered(this.activeHandle === 'start');
         this.end.toggleHovered(this.activeHandle === 'end');
@@ -51,19 +56,41 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         this.end.toggleActive(active);
     }
 
-    override dragHandle(datum: Datum, target: Coords, context: AnnotationContext) {
-        const { activeHandle, dragState } = this;
+    override dragHandle(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) {
+        const { activeHandle } = this;
 
-        if (!activeHandle || !dragState) return;
+        if (!activeHandle) return;
 
         this[activeHandle].toggleDragging(true);
-        const coords = Vec2.add(dragState.end, Vec2.sub(target, dragState.offset));
-        const point = invertCoords(coords, context);
 
-        if (!validateDatumPoint(context, point)) return;
+        const point = snapping
+            ? this.snapToAngle(datum, target, context)
+            : invertCoords(this[activeHandle].drag(target).point, context);
+
+        if (!point || !validateDatumPoint(context, point)) return;
 
         datum[activeHandle].x = point.x;
         datum[activeHandle].y = point.y;
+    }
+
+    snapToAngle(
+        datum: Datum,
+        target: _ModuleSupport.Vec2,
+        context: AnnotationContext
+    ): Pick<PointProperties, 'x' | 'y'> | undefined {
+        const { activeHandle } = this;
+
+        const handles: StartEndHandle[] = ['start', 'end'];
+        const fixedHandle = handles.find((handle) => handle !== activeHandle);
+
+        if (!activeHandle || !fixedHandle) return;
+
+        this[activeHandle].toggleDragging(true);
+
+        const fixed = convertPoint(datum[fixedHandle], context);
+        const active = this[activeHandle].drag(target).point;
+
+        return invertCoords(snapToAngle(active, fixed, datum.snapToAngle), context);
     }
 
     override stopDragging() {
@@ -76,7 +103,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
     }
 
     override getCursor() {
-        if (this.activeHandle == null) return 'pointer';
+        return 'pointer';
     }
 
     override containsPoint(x: number, y: number) {
@@ -97,7 +124,11 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         return false;
     }
 
-    protected updateHandles(datum: Datum, coords: LineCoords, bbox?: _Scene.BBox) {
+    public getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.start.containsPoint(x, y) || this.end.containsPoint(x, y)) return 'handle';
+    }
+
+    protected updateHandles(datum: Datum, coords: _ModuleSupport.Vec4, bbox?: _Scene.BBox) {
         this.start.update({
             ...this.getHandleStyles(datum, 'start'),
             ...this.getHandleCoords(datum, coords, 'start'),
@@ -111,7 +142,12 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         this.end.toggleLocked(datum.locked ?? false);
     }
 
-    protected updateAnchor(_datum: Datum, coords: LineCoords, context: AnnotationContext, _bbox?: _Scene.BBox) {
+    protected updateAnchor(
+        _datum: Datum,
+        coords: _ModuleSupport.Vec4,
+        context: AnnotationContext,
+        _bbox?: _Scene.BBox
+    ) {
         this.anchor = {
             x: coords.x1 + context.seriesRect.x,
             y: coords.y1 + context.seriesRect.y,
@@ -121,14 +157,11 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
 
     protected getHandleCoords(
         _datum: Datum,
-        coords: LineCoords,
-        handle: 'start' | 'end',
+        coords: _ModuleSupport.Vec4,
+        handle: StartEndHandle,
         _bbox?: _Scene.BBox
-    ): _Util.Vec2 {
-        return {
-            x: handle === 'start' ? coords.x1 : coords.x2,
-            y: handle === 'start' ? coords.y1 : coords.y2,
-        };
+    ): _ModuleSupport.Vec2 {
+        return handle === 'start' ? Vec4.start(coords) : Vec4.end(coords);
     }
 
     protected getHandleStyles(datum: Datum, _handle?: 'start' | 'end'): AgAnnotationHandleStyles {

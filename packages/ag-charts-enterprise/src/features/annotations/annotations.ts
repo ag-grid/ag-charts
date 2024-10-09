@@ -11,14 +11,13 @@ import { Menu, type MenuItem } from '../../components/menu/menu';
 import { buildBounds } from '../../utils/position';
 import { ColorPicker } from '../color-picker/colorPicker';
 import { TextInput } from '../text-input/textInput';
+import { AxesButtons } from './annotationAxesButtons';
 import { AnnotationDefaults } from './annotationDefaults';
 import type {
     AnnotationContext,
     AnnotationOptionsColorPickerType,
-    ChannelAnnotationType,
-    Coords,
     HasFontSizeAnnotationType,
-    LineAnnotationType,
+    HasLineStyleAnnotationType,
     Point,
 } from './annotationTypes';
 import {
@@ -28,18 +27,28 @@ import {
     stringToAnnotationType,
 } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
-import { LINE_STROKE_WIDTH_ITEMS, LINE_STYLE_TYPE_ITEMS, TEXT_SIZE_ITEMS } from './annotationsMenuOptions';
+import {
+    AnnotationOptions,
+    LINE_ANNOTATION_ITEMS,
+    LINE_STROKE_WIDTH_ITEMS,
+    LINE_STYLE_TYPE_ITEMS,
+    MEASURER_ANNOTATION_ITEMS,
+    SHAPE_ANNOTATION_ITEMS,
+    TEXT_ANNOTATION_ITEMS,
+    TEXT_SIZE_ITEMS,
+} from './annotationsMenuOptions';
 import { AnnotationsStateMachine } from './annotationsStateMachine';
 import type { AnnotationProperties, AnnotationScene } from './annotationsSuperTypes';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
-import { AnnotationSettingsDialog } from './settings-dialog/settingsDialog';
+import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
+import { snapToAngle } from './utils/coords';
 import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, hasTextColor } from './utils/has';
 import { getLineStyle } from './utils/line';
-import { isChannelType, isLineType, isTextType } from './utils/types';
+import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
-import { invertCoords } from './utils/values';
+import { convertPoint, invertCoords } from './utils/values';
 
 const {
     BOOLEAN,
@@ -50,10 +59,9 @@ const {
     ToolbarManager,
     Validate,
     REGIONS,
-    UNION,
     ChartAxisDirection,
+    Vec2,
 } = _ModuleSupport;
-const { Vec2 } = _Util;
 
 type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
 
@@ -63,69 +71,6 @@ type AnnotationAxis = {
     bounds: _Scene.BBox;
     button?: AxisButton;
 };
-
-const AXIS_TYPE = UNION(['x', 'y', 'xy'], 'an axis type');
-
-const LINE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
-    {
-        label: 'toolbarAnnotationsTrendLine',
-        icon: 'trend-line-drawing',
-        value: AnnotationType.Line,
-    },
-    {
-        label: 'toolbarAnnotationsHorizontalLine',
-        icon: 'horizontal-line-drawing',
-        value: AnnotationType.HorizontalLine,
-    },
-    {
-        label: 'toolbarAnnotationsVerticalLine',
-        icon: 'vertical-line-drawing',
-        value: AnnotationType.VerticalLine,
-    },
-    {
-        label: 'toolbarAnnotationsParallelChannel',
-        icon: 'parallel-channel-drawing',
-        value: AnnotationType.ParallelChannel,
-    },
-    {
-        label: 'toolbarAnnotationsDisjointChannel',
-        icon: 'disjoint-channel-drawing',
-        value: AnnotationType.DisjointChannel,
-    },
-];
-
-const TEXT_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
-    { label: 'toolbarAnnotationsText', icon: 'text-annotation', value: AnnotationType.Text },
-    { label: 'toolbarAnnotationsComment', icon: 'comment-annotation', value: AnnotationType.Comment },
-    { label: 'toolbarAnnotationsCallout', icon: 'callout-annotation', value: AnnotationType.Callout },
-    { label: 'toolbarAnnotationsNote', icon: 'note-annotation', value: AnnotationType.Note },
-];
-
-const SHAPE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
-    { label: 'toolbarAnnotationsArrow', icon: 'arrow-drawing', value: AnnotationType.Arrow },
-    { label: 'toolbarAnnotationsArrowUp', icon: 'arrow-up-drawing', value: AnnotationType.ArrowUp },
-    { label: 'toolbarAnnotationsArrowDown', icon: 'arrow-down-drawing', value: AnnotationType.ArrowDown },
-];
-
-enum AnnotationOptions {
-    Delete = 'delete',
-    LineStrokeWidth = 'line-stroke-width',
-    LineStyleType = 'line-style-type',
-    LineColor = 'line-color',
-    FillColor = 'fill-color',
-    Lock = 'lock',
-    TextColor = 'text-color',
-    TextSize = 'text-size',
-    Settings = 'settings',
-}
-
-class AxesButtons {
-    @Validate(BOOLEAN)
-    public enabled: boolean = true;
-
-    @Validate(AXIS_TYPE, { optional: true })
-    public axes?: 'x' | 'y' | 'xy' = 'y';
-}
 
 export class Annotations extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ObserveChanges<Annotations>((target, newValue?: boolean, oldValue?: boolean) => {
@@ -196,12 +141,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
                 ctx.tooltipManager.unsuppressTooltip('annotations');
                 this.hideOverlays();
+                this.deleteEphemeralAnnotations();
                 this.resetToolbarButtonStates();
                 this.toggleAnnotationOptionsButtons();
                 this.update();
             },
 
-            hoverAtCoords: (coords: Coords, active?: number) => {
+            hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number) => {
                 let hovered;
 
                 this.annotations.each((annotation, _, index) => {
@@ -216,6 +162,26 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 );
 
                 return hovered;
+            },
+
+            getNodeAtCoords: (coords: _ModuleSupport.Vec2, active: number) => {
+                const node = this.annotations.at(active);
+
+                if (!node) {
+                    return;
+                }
+
+                return node.getNodeAtCoords(coords.x, coords.y);
+            },
+
+            translate: (index: number, translation: _ModuleSupport.Vec2) => {
+                const node = this.annotations.at(index);
+                const datum = getTypedDatum(this.annotationData.at(index));
+                if (!node || !datum) {
+                    return;
+                }
+
+                return this.translateNode({ node, datum, translation });
             },
 
             copy: (index: number) => {
@@ -278,6 +244,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
                 toolbarManager.updateButton('annotations', 'shape-menu', { icon: undefined });
 
+                this.deleteEphemeralAnnotations();
                 this.update();
             },
 
@@ -336,6 +303,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.update();
             },
 
+            addPostUpdateFns: (...fns: (() => void)[]) => {
+                this.postUpdateFns.push(...fns);
+            },
+
             showTextInput: (active: number) => {
                 const datum = getTypedDatum(this.annotationData.at(active));
                 const node = this.annotations.at(active);
@@ -372,6 +343,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         this.state.transition('updateTextInputBBox', bbox);
                     },
                 });
+
+                this.ctx.cursorManager.updateCursor('annotations', undefined);
             },
 
             hideTextInput: () => {
@@ -393,17 +366,21 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
             showAnnotationOptions: (active: number) => {
                 const node = this.annotations.at(active);
-                if (!node) return;
+                if (!node || isEphemeralType(this.annotationData.at(active))) return;
 
                 this.toggleAnnotationOptionsButtons();
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: true });
                 ctx.toolbarManager.changeFloatingAnchor('annotationOptions', node.getAnchor());
             },
 
-            showAnnotationSettings: (active: number, sourceEvent?: Event) => {
+            showAnnotationSettings: (active: number, sourceEvent?: Event, initialTab: 'line' | 'text' = 'line') => {
                 const datum = this.annotationData.at(active);
-                if (!isLineType(datum) && !isChannelType(datum)) return;
-                this.settingsDialog.showLineOrChannel(datum, {
+
+                if (!isLineType(datum) && !isChannelType(datum) && !isMeasurerType(datum)) return;
+                if (isEphemeralType(datum)) return;
+
+                const options: LinearSettingsDialogOptions = {
+                    initialSelectedTab: initialTab,
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
                     sourceEvent,
                     onChangeLine: (props) => {
@@ -430,14 +407,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         );
                         this.update();
                     },
-                    onChangeLineStyleType: (lineStyleType: AgAnnotationLineStyleType) => {
+                    onChangeLineStyleType: (lineStyleType) => {
                         this.setLineStyleTypeAndDefault(datum.type, lineStyleType);
                         this.updateToolbarLineStyleType(
                             LINE_STYLE_TYPE_ITEMS.find((item) => item.value === lineStyleType) ??
                                 LINE_STYLE_TYPE_ITEMS[0]
                         );
                     },
-                    onChangeLineStyleWidth: (strokeWidth: number) => {
+                    onChangeLineStyleWidth: (strokeWidth) => {
                         this.setLineStyleWidthAndDefault(datum.type, strokeWidth);
                         this.updateToolbarStrokeWidth({ strokeWidth, value: strokeWidth, label: String(strokeWidth) });
                     },
@@ -452,10 +429,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         );
                         this.update();
                     },
-                    onChangeTextFontSize: (fontSize: number) => {
+                    onChangeTextFontSize: (fontSize) => {
                         this.setFontSizeAndDefault(datum.type, fontSize);
                     },
-                });
+                };
+
+                this.settingsDialog.show(datum, options);
             },
         });
     }
@@ -489,9 +468,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
             ctx.keyNavManager.addListener('cancel', this.onCancel.bind(this), Default | AnnotationsState),
-            ctx.keyNavManager.addListener('delete', this.onDelete.bind(this), Default | AnnotationsState),
-            ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), AnnotationsState),
-            ctx.interactionManager.addListener('keydown', this.onCopyPaste.bind(this), All),
+            ctx.keyNavManager.addListener('delete', (ev) => this.onDelete(ev), Default | AnnotationsState),
+            ctx.interactionManager.addListener('keydown', this.onTextInput.bind(this), AnnotationsState),
+            ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), All),
+            ctx.interactionManager.addListener('keyup', this.onKeyUp.bind(this), All),
             ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
 
             // Services
@@ -502,6 +482,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
             ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.updateService.addListener('pre-scene-render', this.onPreRender.bind(this)),
+            ctx.zoomManager.addListener('zoom-change', () => this.onZoomChange()),
 
             // DOM
             ctx.annotationManager.attachNode(this.container),
@@ -517,7 +498,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private createAnnotationScene(datum: AnnotationProperties) {
-        return new annotationConfigs[datum.type].scene();
+        if (datum.type in annotationConfigs) {
+            return new annotationConfigs[datum.type].scene();
+        }
+        throw new Error(
+            `AG Charts - Cannot create annotation scene of type [${datum.type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
+        );
     }
 
     private createAnnotationDatum(params: { type: AnnotationType }) {
@@ -525,8 +511,27 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return new annotationConfigs[params.type].datum().set(params);
         }
         throw new Error(
-            `AG Charts - Cannot set property of unknown type [${params.type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
+            `AG Charts - Cannot create annotation datum of unknown type [${params.type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
         );
+    }
+
+    private translateNode({
+        node,
+        datum,
+        translation,
+    }: {
+        node: AnnotationScene;
+        datum: AnnotationProperties;
+        translation: _ModuleSupport.Vec2;
+    }): AnnotationProperties | undefined {
+        const config = this.getAnnotationConfig(datum);
+
+        const context = this.getAnnotationContext();
+        if (!context) {
+            return;
+        }
+
+        config.translate(node, datum, translation, context);
     }
 
     private createAnnotationDatumCopy({
@@ -536,15 +541,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         node: AnnotationScene;
         datum: AnnotationProperties;
     }): AnnotationProperties | undefined {
-        const { type } = datum;
-
-        if (!(type in annotationConfigs)) {
-            throw new Error(
-                `AG Charts - Cannot set property of unknown type [${type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
-            );
-        }
-
-        const config = annotationConfigs[type];
+        const config = this.getAnnotationConfig(datum);
 
         const newDatum = new config.datum();
         newDatum.set(datum.toJson());
@@ -555,6 +552,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         return config.copy(node, datum, newDatum, context);
+    }
+
+    private getAnnotationConfig(datum: AnnotationProperties) {
+        const { type } = datum;
+
+        if (!(type in annotationConfigs)) {
+            throw new Error(
+                `AG Charts - Cannot set property of unknown type [${type}], expected one of [${Object.keys(annotationConfigs)}], ignoring.`
+            );
+        }
+
+        return annotationConfigs[type];
     }
 
     private createAnnotation(type: AnnotationType, datum: AnnotationProperties, applyDefaults: boolean = true) {
@@ -613,6 +622,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (event.value === 'shape-menu') {
             this.onToolbarButtonPressMenu(event, 'toolbarAnnotationsShapeAnnotations', SHAPE_ANNOTATION_ITEMS);
+            return;
+        }
+
+        if (event.value === 'measurer-menu') {
+            this.onToolbarButtonPressMenu(event, 'toolbarAnnotationsMeasurerAnnotations', MEASURER_ANNOTATION_ITEMS);
             return;
         }
 
@@ -1003,16 +1017,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.recordActionAfterNextUpdate(`Change ${datumType} font size to ${fontSize}`, ['annotations', 'defaults']);
     }
 
-    private setLineStyleTypeAndDefault(
-        datumType: LineAnnotationType | ChannelAnnotationType,
-        styleType: AgAnnotationLineStyleType
-    ) {
+    private setLineStyleTypeAndDefault(datumType: HasLineStyleAnnotationType, styleType: AgAnnotationLineStyleType) {
         this.state.transition('lineStyle', { type: styleType });
         this.defaults.setDefaultLineStyleType(datumType, styleType);
         this.recordActionAfterNextUpdate(`Change ${datumType} line style to ${styleType}`, ['annotations', 'defaults']);
     }
 
-    private setLineStyleWidthAndDefault(datumType: LineAnnotationType | ChannelAnnotationType, strokeWidth: number) {
+    private setLineStyleWidthAndDefault(datumType: HasLineStyleAnnotationType, strokeWidth: number) {
         this.state.transition('lineStyle', { strokeWidth });
         this.defaults.setDefaultLineStyleWidth(datumType, strokeWidth);
         this.recordActionAfterNextUpdate(`Change ${datumType} stroke width to ${strokeWidth}`, [
@@ -1026,7 +1037,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             annotationData,
             annotations,
             seriesRect,
-            ctx: { annotationManager, toolbarManager },
+            ctx: { annotationManager, localeManager, toolbarManager },
         } = this;
 
         const context = this.getAnnotationContext();
@@ -1047,6 +1058,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     return;
                 }
 
+                if ('setLocaleManager' in datum) datum.setLocaleManager(localeManager);
                 updateAnnotation(node, datum, context);
             });
 
@@ -1090,8 +1102,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!context) return;
 
+        const shiftKey = (event.sourceEvent as MouseEvent).shiftKey;
+
         const offset = Vec2.from(event);
-        const point = invertCoords(offset, context);
+        const point = (origin?: Point, angleStep: number = 1) =>
+            shiftKey
+                ? invertCoords(
+                      snapToAngle(offset, origin ? convertPoint(origin, context) : Vec2.origin(), angleStep),
+                      context
+                  )
+                : invertCoords(offset, context);
 
         state.transition('hover', { offset, point });
     }
@@ -1103,22 +1123,25 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!context) return;
 
         const offset = Vec2.from(event);
-        const point = invertCoords(offset, context);
+        const point = () => invertCoords(offset, context);
         const textInputValue = this.textInput.getValue();
+        const bbox = this.textInput.getBBox();
 
-        state.transition('click', { offset, point, textInputValue });
+        state.transition('click', { offset, point, textInputValue, bbox });
     }
 
-    private onDoubleClick() {
+    private onDoubleClick(event: _ModuleSupport.RegionEvent<'dblclick'>) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        state.transition('dblclick');
+        const offset = Vec2.from(event);
+
+        state.transition('dblclick', { offset });
     }
 
-    private onAxisButtonClick(coords?: Coords, direction?: Direction) {
+    private onAxisButtonClick(coords?: _ModuleSupport.Vec2, direction?: Direction) {
         this.cancel();
         this.reset();
 
@@ -1141,15 +1164,22 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        const point = invertCoords(coords, context);
+        const point = () => invertCoords(coords, context);
 
-        if (!validateDatumPoint(context, point)) {
+        if (!validateDatumPoint(context, point())) {
             return;
         }
 
         state.transition('click', { point });
 
         this.update();
+    }
+
+    private onZoomChange() {
+        const textInputValue = this.textInput.getValue();
+        const bbox = this.textInput.getBBox();
+
+        this.state.transition('zoomChange', { textInputValue, bbox });
     }
 
     private onDragStart(event: _ModuleSupport.RegionEvent<'drag-start'>) {
@@ -1169,7 +1199,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!context) return;
 
         const offset = Vec2.from(event);
-        const point = invertCoords(offset, context);
+        const point = () => invertCoords(offset, context);
+
         state.transition('drag', { context, offset, point });
     }
 
@@ -1182,14 +1213,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.reset();
     }
 
-    private onDelete() {
+    private onDelete(event: _ModuleSupport.KeyNavEvent<'delete'>) {
+        if (this.textInput.isVisible()) return;
         this.cancel();
         this.delete();
         this.reset();
         this.update();
+
+        // AG-13041 Treat the Backspace/Delete key as a mouse event (iff the user is in "mouse mode").
+        this.ctx.focusIndicator.toggleForceInvisible(event.previousInputDevice === 'mouse');
     }
 
-    private onKeyDown(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
+    private onTextInput(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
@@ -1197,23 +1232,69 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const { key, shiftKey } = event.sourceEvent;
         const textInputValue = this.textInput.getValue();
+        const bbox = this.textInput.getBBox();
 
-        state.transition('keyDown', { key, shiftKey, textInputValue });
+        state.transition('keyDown', { key, shiftKey, textInputValue, bbox });
     }
 
-    private onCopyPaste(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
-        const { sourceEvent } = event;
-        const modifierKey = sourceEvent.ctrlKey || sourceEvent.metaKey;
+    private onKeyDown(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
+        const { state } = this;
+        const context = this.getAnnotationContext();
 
-        if (modifierKey && sourceEvent.key === 'c') {
-            this.state.transition('copy');
-        } else if (modifierKey && sourceEvent.key === 'x') {
-            this.state.transition('cut');
-            this.recordActionAfterNextUpdate('Cut annotation');
-        } else if (modifierKey && sourceEvent.key === 'v') {
-            this.state.transition('paste');
-            this.recordActionAfterNextUpdate('Paste annotation');
+        const { sourceEvent } = event;
+        const { shiftKey, ctrlKey, metaKey } = sourceEvent;
+        const ctrlMeta = ctrlKey || metaKey;
+        const ctrlShift = ctrlKey || shiftKey;
+
+        this.state.transition('keyDown', { shiftKey });
+
+        const translation = { x: 0, y: 0 };
+
+        const xStep = Math.max(context?.xAxis.scaleBandwidth() ?? 0, ctrlShift ? 10 : 1);
+        const yStep = Math.max(context?.yAxis.scaleBandwidth() ?? 0, ctrlShift ? 10 : 1);
+        switch (sourceEvent.key) {
+            case 'ArrowDown':
+                translation.y = yStep;
+                break;
+            case 'ArrowUp':
+                translation.y = -yStep;
+                break;
+            case 'ArrowLeft':
+                translation.x = -xStep;
+                break;
+            case 'ArrowRight':
+                translation.x = xStep;
+                break;
         }
+
+        if (translation.x || translation.y) {
+            state.transition('translate', { translation, context });
+        }
+
+        if (!ctrlMeta) {
+            return;
+        }
+
+        switch (sourceEvent.key) {
+            case 'c':
+                state.transition('copy');
+                return;
+            case 'x':
+                state.transition('cut');
+                this.recordActionAfterNextUpdate('Cut annotation');
+                return;
+            case 'v':
+                state.transition('paste');
+                this.recordActionAfterNextUpdate('Paste annotation');
+                return;
+        }
+    }
+
+    private onKeyUp(event: _ModuleSupport.KeyInteractionEvent<'keyup'>) {
+        const { shiftKey } = event.sourceEvent;
+
+        this.state.transition('keyUp', { shiftKey });
+        this.state.transition('translateEnd');
     }
 
     private beginAnnotationPlacement(annotation: AnnotationType) {
@@ -1315,6 +1396,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private deleteAll() {
         this.state.transition('deleteAll');
+    }
+
+    private deleteEphemeralAnnotations() {
+        for (const [index, datum] of this.annotationData.entries()) {
+            if (isEphemeralType(datum)) {
+                this.annotationData.splice(index, 1);
+            }
+        }
     }
 
     private hideOverlays() {

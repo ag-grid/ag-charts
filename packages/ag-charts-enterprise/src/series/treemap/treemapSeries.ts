@@ -12,7 +12,7 @@ import {
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
-const { TextUtils, TextWrapper } = _ModuleSupport;
+const { TextUtils, TextWrapper, formatValue } = _ModuleSupport;
 const { Rect, Group, BBox, Selection, Text } = _Scene;
 const { Color, Logger, clamp, isEqual, sanitizeHtml } = _Util;
 
@@ -164,17 +164,6 @@ export class TreemapSeries<
             return;
         }
 
-        const defaultLabelFormatter = (value: any) => {
-            if (typeof value === 'number') {
-                // This copies what other series are doing - we should look to provide format customization
-                return value.toFixed(2);
-            } else if (typeof value === 'string') {
-                return value;
-            } else {
-                return '';
-            }
-        };
-
         this.labelData = Array.from(this.rootNode, ({ datum, depth, children }): LabelData | undefined => {
             const isLeaf = children.length === 0;
 
@@ -196,7 +185,7 @@ export class TreemapSeries<
                         sizeName,
                         value,
                     },
-                    defaultLabelFormatter
+                    formatValue
                 );
             }
             if (label === '') {
@@ -220,7 +209,7 @@ export class TreemapSeries<
                         sizeName,
                         value,
                     },
-                    defaultLabelFormatter
+                    formatValue
                 );
             }
             if (secondaryLabel === '') {

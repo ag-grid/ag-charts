@@ -5,9 +5,9 @@ import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
 
 type AgCrosshairLabelRendererResult = any;
 
-const { Group, TranslatableGroup, Line, BBox } = _Scene;
+const { Group, TranslatableLayer, Line, BBox } = _Scene;
 const { createId } = _Util;
-const { POSITIVE_NUMBER, RATIO, BOOLEAN, COLOR_STRING, LINE_DASH, OBJECT, InteractionState, Validate, Layers } =
+const { POSITIVE_NUMBER, RATIO, BOOLEAN, COLOR_STRING, LINE_DASH, OBJECT, InteractionState, Validate, ZIndexMap } =
     _ModuleSupport;
 
 export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
@@ -46,15 +46,14 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     private axisLayout?: _ModuleSupport.AxisLayout;
     private labelFormatter?: (value: any) => string;
 
-    private readonly crosshairGroup: _Scene.TranslatableGroup = new TranslatableGroup({
+    private readonly crosshairGroup: _Scene.TranslatableLayer = new TranslatableLayer({
         name: 'crosshairs',
-        layer: true,
-        zIndex: Layers.SERIES_CROSSHAIR_ZINDEX,
+        zIndex: ZIndexMap.SERIES_CROSSHAIR,
     });
     protected readonly lineGroup = this.crosshairGroup.appendChild(
         new Group({
             name: `${this.id}-crosshair-lines`,
-            zIndex: Layers.SERIES_CROSSHAIR_ZINDEX,
+            zIndex: ZIndexMap.SERIES_CROSSHAIR,
         })
     );
     protected lineGroupSelection = _Scene.Selection.select(this.lineGroup, Line, false);
@@ -76,7 +75,9 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
             seriesRegion.addListener('drag', (event) => this.onMouseMove(event), InteractionState.Annotations),
             seriesRegion.addListener('wheel', () => this.onMouseOut(), InteractionState.Default),
-            seriesRegion.addListener('leave', () => this.onMouseOut(), InteractionState.Default),
+            seriesRegion.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
+            ctx.keyNavManager.addListener('nav-hori', () => this.onKeyPress()),
+            ctx.keyNavManager.addListener('nav-vert', () => this.onKeyPress()),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.onMouseOut()),
             ctx.zoomManager.addListener('zoom-change', () => this.onMouseOut()),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
@@ -215,6 +216,12 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
     }
 
+    private onKeyPress() {
+        if (this.enabled && !this.snap) {
+            this.hideCrosshairs();
+        }
+    }
+
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
         if (!this.enabled) {
             return;
@@ -226,12 +233,9 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         this.activeHighlight = hasCrosshair ? event.currentHighlight : undefined;
 
-        if (this.snap) {
-            if (!this.activeHighlight) {
-                this.hideCrosshairs();
-                return;
-            }
-
+        if (!this.activeHighlight) {
+            this.hideCrosshairs();
+        } else if (this.snap) {
             const activeHighlightData = this.getActiveHighlightData(this.activeHighlight);
 
             this.updatePositions(activeHighlightData);

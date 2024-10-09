@@ -35,7 +35,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { type HistogramNodeDatum, HistogramSeriesProperties } from './histogramSeriesProperties';
-import { addHitTestersToQuadtree, childrenIter, findQuadtreeMatch } from './quadtreeUtil';
+import { addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
 
 const defaultBinCount = 10;
 
@@ -436,7 +436,10 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     }
 
     protected override initQuadTree(quadtree: QuadtreeNearest<HistogramNodeDatum>) {
-        addHitTestersToQuadtree(quadtree, childrenIter<Rect>(this.contentGroup.children[0]));
+        const { value: childNode } = this.contentGroup.children().next();
+        if (childNode) {
+            addHitTestersToQuadtree(quadtree, childNode.children() as Iterable<Rect>);
+        }
     }
 
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {

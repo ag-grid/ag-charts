@@ -265,12 +265,15 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         return this.createButtonElement(type, label, action, disabled);
     }
 
-    private createButtonOnClick<T extends ContextType>(type: T, callback: ContextMenuCallback<T>) {
+    private createButtonOnClick<T extends ContextType>(
+        type: T,
+        callback: ContextMenuCallback<T>
+    ): (event: MouseEvent) => void {
         if (ContextMenuRegistry.checkCallback('legend', type, callback)) {
-            return () => {
+            return (event: Event) => {
                 if (this.pickedLegendItem) {
                     const { seriesId, itemId, enabled } = this.pickedLegendItem;
-                    callback({ type: 'contextmenu', seriesId, itemId, enabled });
+                    callback({ type: 'contextmenu', seriesId, itemId, enabled, event });
                     this.hide();
                 }
             };

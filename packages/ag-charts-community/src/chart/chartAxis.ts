@@ -33,7 +33,7 @@ interface AxisLayoutConstraints {
 
 export interface ChartAxis {
     attachAxis(axisGroup: Node, gridGroup: Node): void;
-    calculateLayout(primaryTickCount?: number): { primaryTickCount?: number; bbox: BBox };
+    calculateLayout(domain?: any[], primaryTickCount?: number): { primaryTickCount?: number; bbox: BBox };
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
     createAxisContext(): AxisContext;

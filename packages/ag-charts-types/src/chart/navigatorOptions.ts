@@ -138,7 +138,7 @@ export type AgMiniChartSeriesOptions =
     | AgCandlestickMiniChartSeriesOptions
     | AgOhlcMiniChartSeriesOptions;
 
-type IgnoredMiniChartSeries = 'bullet';
+type IgnoredMiniChartSeries = 'bullet' | 'funnel' | 'cone-funnel';
 type VerifyAgMiniChartSeriesOptions = Record<NonNullable<AgCartesianSeriesOptions['type']>, string>;
 
 // Verification checks for completeness/correctness.

@@ -6,8 +6,8 @@ import { Rect } from '../../scene/shape/rect';
 import { Text } from '../../scene/shape/text';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
 import { BOOLEAN, COLOR_STRING, OBJECT, STRING, Validate } from '../../util/validation';
-import { Layers } from '../layers';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
+import { ZIndexMap } from '../zIndexMap';
 
 export class Background<TImage = never> extends BaseModuleInstance implements ModuleInstance {
     protected readonly node;
@@ -31,15 +31,10 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
     @ProxyPropertyOnWrite('textNode')
     text?: string;
 
-    constructor(
-        ctx: ModuleContext,
-        private readonly zIndex: number = Layers.SERIES_BACKGROUND_ZINDEX,
-        private readonly layer: boolean = false
-    ) {
+    constructor(protected readonly ctx: ModuleContext) {
         super();
 
-        this.node = new Group({ name: 'background', zIndex: this.zIndex, layer: this.layer });
-
+        this.node = this.createNode();
         this.node.append([this.rectNode, this.textNode]);
 
         this.visible = true;
@@ -48,6 +43,10 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
             ctx.scene.attachNode(this.node),
             ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e))
         );
+    }
+
+    protected createNode() {
+        return new Group({ name: 'background', zIndex: ZIndexMap.SERIES_BACKGROUND });
     }
 
     protected onLayoutComplete(e: LayoutCompleteEvent) {

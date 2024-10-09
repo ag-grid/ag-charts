@@ -20,12 +20,12 @@ const {
     createDatumId,
     DataModelSeries,
     SeriesNodePickMode,
-    Layers,
+    ZIndexMap,
     valueProperty,
     computeMarkerFocusBounds,
 } = _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;
-const { Group, Selection, Text, getMarker } = _Scene;
+const { Layer, Selection, Text, getMarker } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
 
 export interface MapMarkerNodeDataContext
@@ -72,11 +72,9 @@ export class MapMarkerSeries
     private readonly sizeScale = new LinearScale();
 
     private readonly markerGroup = this.contentGroup.appendChild(
-        new Group({
+        new Layer({
             name: 'markerGroup',
-            layer: true,
-            isVirtual: false,
-            zIndex: Layers.SERIES_LAYER_ZINDEX,
+            zIndex: ZIndexMap.SERIES_LAYER,
             zIndexSubOrder: this.getGroupZIndexSubOrder('marker'),
         })
     );

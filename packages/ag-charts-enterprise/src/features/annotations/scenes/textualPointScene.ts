@@ -2,7 +2,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
-import { getBBox, updateTextNode, wrapText } from '../text/util';
+import { getBBox, updateTextNode } from '../text/util';
 import { convertPoint, invertCoords } from '../utils/values';
 import { PointScene } from './pointScene';
 
@@ -21,7 +21,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
 
     public setTextInputBBox(bbox?: _Scene.BBox) {
         this.textInputBBox = bbox;
-        this.markDirty(this, _Scene.RedrawType.MINOR);
+        this.markDirty(_Scene.RedrawType.MINOR);
     }
 
     public override update(datum: Datum, context: AnnotationContext) {
@@ -59,7 +59,13 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         return super.containsPoint(x, y) || (label.visible && label.containsPoint(x, y));
     }
 
-    protected getTextBBox(datum: Datum, coords: _Util.Vec2, _context: AnnotationContext) {
+    override getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.label.visible && this.label.containsPoint(x, y)) return 'text';
+
+        return super.getNodeAtCoords(x, y);
+    }
+
+    protected getTextBBox(datum: Datum, coords: _ModuleSupport.Vec2, _context: AnnotationContext) {
         const { text } = datum.getText();
 
         return getBBox(datum, text, { x: coords.x, y: coords.y }, this.textInputBBox);
@@ -67,13 +73,8 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
 
     protected updateLabel(datum: Datum, bbox: _Scene.BBox) {
         const { text, isPlaceholder } = datum.getText();
-        const wrappedText = wrapText(datum, text, bbox.width);
 
-        if (!isPlaceholder) {
-            datum.set({ text: wrappedText });
-        }
-
-        updateTextNode(this.label, wrappedText, isPlaceholder, datum, this.getLabelCoords(datum, bbox));
+        updateTextNode(this.label, text, isPlaceholder, datum, this.getLabelCoords(datum, bbox));
     }
 
     protected updateShape(_datum: Datum, _bbox: _Scene.BBox) {
@@ -88,11 +89,15 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         };
     }
 
-    protected getLabelCoords(_datum: Datum, bbox: _Scene.BBox): _Util.Vec2 {
+    protected getLabelCoords(_datum: Datum, bbox: _Scene.BBox): _ModuleSupport.Vec2 {
         return bbox;
     }
 
-    protected override getHandleCoords(_datum: Datum, _coords: _Util.Vec2, bbox: _Scene.BBox): _Util.Vec2 {
+    protected override getHandleCoords(
+        _datum: Datum,
+        _coords: _ModuleSupport.Vec2,
+        bbox: _Scene.BBox
+    ): _ModuleSupport.Vec2 {
         return bbox;
     }
 

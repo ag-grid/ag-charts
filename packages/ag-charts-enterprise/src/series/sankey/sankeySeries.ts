@@ -18,10 +18,10 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
-const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, createDatumId, EMPTY_TOOLTIP_CONTENT } =
+const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, TextUtils, createDatumId, EMPTY_TOOLTIP_CONTENT } =
     _ModuleSupport;
-const { sanitizeHtml } = _Util;
-const { Rect, Text, BBox } = _Scene;
+const { sanitizeHtml, Logger } = _Util;
+const { Rect, BBox } = _Scene;
 
 export interface SankeyNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<SankeyDatum, SankeyNodeLabelDatum> {}
@@ -73,35 +73,19 @@ export class SankeySeries extends FlowProportionSeries<
             node: { spacing: nodeSpacing, width: nodeWidth, alignment },
         } = this.properties;
 
-        const defaultLabelFormatter = (v: any) => String(v);
         const {
             nodeGraph: baseNodeGraph,
             links,
             maxPathLength,
         } = this.getNodeGraph(
-            (node) => {
-                const label = this.getLabelText(
-                    this.properties.label,
-                    {
-                        datum: node.datum,
-                        value: node.label,
-                        fromKey,
-                        toKey,
-                        sizeKey,
-                    },
-                    defaultLabelFormatter
-                );
-
-                return {
-                    ...node,
-                    label,
-                    size: 0,
-                    x: NaN,
-                    y: NaN,
-                    width: nodeWidth,
-                    height: NaN,
-                };
-            },
+            (node) => ({
+                ...node,
+                size: 0,
+                x: NaN,
+                y: NaN,
+                width: nodeWidth,
+                height: NaN,
+            }),
             (link) => ({
                 ...link,
                 x1: NaN,
@@ -174,6 +158,22 @@ export class SankeySeries extends FlowProportionSeries<
 
             node.x = column.x;
             node.size = size;
+
+            const defaultLabelFormatter = (v: any) => String(v);
+            const label = this.getLabelText(
+                this.properties.label,
+                {
+                    datum: node.datum,
+                    value: node.label,
+                    fromKey,
+                    toKey,
+                    sizeKey,
+                    size,
+                },
+                defaultLabelFormatter
+            );
+            node.label = String(label);
+
             column.nodes.push(graphNode);
             column.size += size;
 
@@ -218,7 +218,10 @@ export class SankeySeries extends FlowProportionSeries<
             sizeScale,
         });
 
+        let hasNegativeNodeHeight = false;
         nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }) => {
+            hasNegativeNodeHeight ||= node.height < 0;
+
             const bottom = node.y + node.height;
             const sortNodes = (l: typeof linksBefore) => {
                 return l.sort((a, b) => {
@@ -249,6 +252,13 @@ export class SankeySeries extends FlowProportionSeries<
             });
         });
 
+        if (hasNegativeNodeHeight) {
+            Logger.warnOnce(
+                'There was insufficient space to display the Sankey Series. Reduce the node spacing, or provide a larger container.'
+            );
+            return;
+        }
+
         const nodeData: SankeyDatum[] = [];
         const labelData: SankeyNodeLabelDatum[] = [];
         const { fontSize } = this.properties.label;
@@ -272,8 +282,8 @@ export class SankeySeries extends FlowProportionSeries<
                 const y = node.y + node.height / 2;
                 let text: string | undefined;
                 if (!leading && !trailing) {
-                    const y1 = y - fontSize * Text.defaultLineHeightRatio;
-                    const y2 = y + fontSize * Text.defaultLineHeightRatio;
+                    const y1 = y - TextUtils.getLineHeight(fontSize);
+                    const y2 = y + TextUtils.getLineHeight(fontSize);
                     let maxX = seriesRectWidth;
                     nodeGraph.forEach(({ datum }) => {
                         const intersectsLabel =
@@ -423,8 +433,8 @@ export class SankeySeries extends FlowProportionSeries<
 
             rect.x = datum.x;
             rect.y = datum.y;
-            rect.width = datum.width;
-            rect.height = datum.height;
+            rect.width = Math.max(datum.width, 0);
+            rect.height = Math.max(datum.height, 0);
             rect.fill = highlightStyle?.fill ?? format?.fill ?? fill;
             rect.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
             rect.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke;
@@ -522,14 +532,14 @@ export class SankeySeries extends FlowProportionSeries<
         }
 
         const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
-        const { datum, itemId } = nodeDatum;
+        const { datum, itemId, size } = nodeDatum;
 
         let title: string;
         const contentLines: string[] = [];
         let fill: string;
         if (nodeDatum.type === FlowProportionDatumType.Link) {
             const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, itemStyler } = properties.link;
-            const { fromNode, toNode, size } = nodeDatum;
+            const { fromNode, toNode } = nodeDatum;
             title = `${fromNode.label ?? fromNode.id} - ${toNode.label ?? toNode.id}`;
             if (sizeKey != null) {
                 contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
@@ -560,7 +570,7 @@ export class SankeySeries extends FlowProportionSeries<
             fill = format?.fill ?? fill;
         } else {
             const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, itemStyler } = properties.node;
-            const { id, label, size } = nodeDatum;
+            const { id, label } = nodeDatum;
             title = label ?? id;
             if (sizeKey != null) {
                 contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
@@ -601,6 +611,7 @@ export class SankeySeries extends FlowProportionSeries<
             {
                 seriesId,
                 datum,
+                size,
                 title,
                 color,
                 itemId,

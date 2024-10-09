@@ -20,7 +20,7 @@ const {
     animationValidation,
     diff,
     updateClipPath,
-    isFiniteNumber,
+    formatValue,
     computeMarkerFocusBounds,
     plotPath,
     pathRanges,
@@ -87,6 +87,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             moduleCtx,
             hasMarkers: true,
             pathsPerSeries: ['fill', 'stroke'],
+            pickModes: [_ModuleSupport.SeriesNodePickMode.AXIS_ALIGNED],
             directionKeys: {
                 [ChartAxisDirection.X]: ['xKey'],
                 [ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'],
@@ -332,7 +333,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             text: this.getLabelText(
                 label,
                 { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName },
-                (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
+                formatValue
             ),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',

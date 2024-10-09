@@ -14,8 +14,8 @@
     "@carbon/icons-react": "^11.21.0",
     "@nanostores/persistent": "^0.9.0",
     "@nanostores/react": "^0.7.1",
-    "ag-charts-community": "10.2.0-beta.20240922",
-    "ag-charts-enterprise": "10.2.0-beta.20240922",
+    "ag-charts-community": "10.2.0-beta.20241008.1216",
+    "ag-charts-enterprise": "10.2.0-beta.20241008.1216",
     "ag-grid-community": "32.1.0",
     "algoliasearch": "^4.18.0",
     "astro": "^4.7.0",
@@ -63,7 +63,7 @@
     "sass": "^1.77.8"
   },
   "devDependencies": {
-    "@playwright/test": "^1.44.1",
+    "@playwright/test": "^1.47.2",
     "algoliasearch": "4.20.0",
     "puppeteer-core": "7.1.0"
   }

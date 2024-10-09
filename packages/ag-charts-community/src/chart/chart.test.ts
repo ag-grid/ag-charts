@@ -250,7 +250,7 @@ describe('Chart', () => {
         getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
         getTooltipRenderedValues: (params) => [params.datum[params.xKey], params.datum[params.yKey]],
         // Returns a highlighted marker
-        getHighlightNode: (_, series) => series.highlightNode.children[0],
+        getHighlightNode: (_, series) => series.highlightNode.children().next().value,
     } as Parameters<typeof testPointerEvents>[0];
 
     describe(`Line Series Pointer Events`, () => {
@@ -358,9 +358,11 @@ describe('Chart', () => {
             getHighlightNode: (chartInstance, series) => {
                 // Returns a highlighted sector
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                return series.highlightGroup.children.find(
-                    (child: any) => child?.datum?.itemId === highlightedDatum.itemId
-                );
+                for (const child of series.highlightGroup.children()) {
+                    if (child.datum?.itemId === highlightedDatum.itemId) {
+                        return child;
+                    }
+                }
             },
         });
     });
@@ -566,7 +568,7 @@ describe('Chart', () => {
             expect(elements.length).toEqual(1);
 
             expect(elements[0].querySelectorAll('canvas')).toHaveLength(1);
-            expect(elements[0].querySelectorAll('.ag-charts-focus')).toHaveLength(1);
+            expect(elements[0].querySelectorAll('.ag-charts-focus-indicator')).toHaveLength(1);
         });
 
         it('should cleanup DOM on destroy()', async () => {
@@ -576,7 +578,7 @@ describe('Chart', () => {
             expect(elements.length).toEqual(0);
 
             expect(document.querySelectorAll('canvas')).toHaveLength(0);
-            expect(document.querySelectorAll('.ag-charts-focus')).toHaveLength(0);
+            expect(document.querySelectorAll('.ag-charts-focus-indicator')).toHaveLength(0);
             expect(document.querySelectorAll('div')).toHaveLength(0);
         });
 
@@ -599,7 +601,7 @@ describe('Chart', () => {
             expect(elements).toHaveLength(1);
 
             expect(elements[0].querySelectorAll('canvas')).toHaveLength(1);
-            expect(elements[0].querySelectorAll('.ag-charts-focus')).toHaveLength(1);
+            expect(elements[0].querySelectorAll('.ag-charts-focus-indicator')).toHaveLength(1);
             expect(elements[0].querySelectorAll('.ag-charts-toolbar')).toHaveLength(0);
         });
     });
