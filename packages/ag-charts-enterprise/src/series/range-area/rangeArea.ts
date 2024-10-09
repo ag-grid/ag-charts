@@ -20,7 +20,6 @@ const {
     animationValidation,
     diff,
     updateClipPath,
-    formatValue,
     computeMarkerFocusBounds,
     plotPath,
     pathRanges,
@@ -329,11 +328,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             series,
             itemId,
             datum,
-            text: this.getLabelText(
-                label,
-                { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName },
-                formatValue
-            ),
+            text: this.getLabelText(label, {
+                value,
+                datum,
+                itemId,
+                xKey,
+                yLowKey,
+                yHighKey,
+                xName,
+                yLowName,
+                yHighName,
+                yName,
+            }),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
         };

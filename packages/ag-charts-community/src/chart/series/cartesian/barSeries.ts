@@ -9,7 +9,6 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
-import { formatValue } from '../../../util/format.util';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
 import type { RequireOptional } from '../../../util/types';
@@ -378,19 +377,15 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
                 const labelText =
                     yRawValue != null
-                        ? this.getLabelText(
-                              this.properties.label,
-                              {
-                                  datum: seriesDatum[valueIndex],
-                                  value: yFilterValue ?? yRawValue,
-                                  xKey,
-                                  yKey,
-                                  xName,
-                                  yName,
-                                  legendItemName,
-                              },
-                              formatValue
-                          )
+                        ? this.getLabelText(this.properties.label, {
+                              datum: seriesDatum[valueIndex],
+                              value: yFilterValue ?? yRawValue,
+                              xKey,
+                              yKey,
+                              xName,
+                              yName,
+                              legendItemName,
+                          })
                         : undefined;
 
                 const inset = yFilterValue != null && yFilterValue > yRawValue;

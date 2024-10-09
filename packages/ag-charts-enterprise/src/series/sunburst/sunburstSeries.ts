@@ -4,7 +4,7 @@ import type { AgSunburstSeriesStyle, AgTooltipRendererResult } from 'ag-charts-t
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
 
-const { fromToMotion, formatValue } = _ModuleSupport;
+const { fromToMotion } = _ModuleSupport;
 const { Sector, ScalableGroup, Selection, TransformableText } = _Scene;
 const { sanitizeHtml } = _Util;
 
@@ -80,22 +80,18 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             let label: string | undefined;
             if (datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
-                label = this.getLabelText(
-                    this.properties.label,
-                    {
-                        depth,
-                        datum,
-                        childrenKey,
-                        colorKey,
-                        colorName,
-                        labelKey,
-                        secondaryLabelKey,
-                        sizeKey,
-                        sizeName,
-                        value,
-                    },
-                    formatValue
-                );
+                label = this.getLabelText(this.properties.label, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    colorName,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    sizeName,
+                    value,
+                });
             }
             if (label === '') {
                 label = undefined;
@@ -104,22 +100,18 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             let secondaryLabel: string | undefined;
             if (datum != null && depth != null && secondaryLabelKey != null) {
                 const value = (datum as any)[secondaryLabelKey];
-                secondaryLabel = this.getLabelText(
-                    this.properties.secondaryLabel,
-                    {
-                        depth,
-                        datum,
-                        childrenKey,
-                        colorKey,
-                        colorName,
-                        labelKey,
-                        secondaryLabelKey,
-                        sizeKey,
-                        sizeName,
-                        value,
-                    },
-                    formatValue
-                );
+                secondaryLabel = this.getLabelText(this.properties.secondaryLabel, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    colorName,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    sizeName,
+                    value,
+                });
             }
             if (secondaryLabel === '') {
                 secondaryLabel = undefined;

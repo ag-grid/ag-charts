@@ -19,7 +19,6 @@ const {
     seriesLabelFadeOutAnimation,
     valueProperty,
     animationValidation,
-    formatValue,
     SeriesNodePickMode,
 } = _ModuleSupport;
 
@@ -269,11 +268,14 @@ export abstract class RadialColumnSeriesBase<
             x: number,
             y: number
         ): RadialColumnLabelNodeDatum | undefined => {
-            const labelText = this.getLabelText(
-                label,
-                { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName },
-                formatValue
-            );
+            const labelText = this.getLabelText(label, {
+                value: radiusDatum,
+                datum,
+                angleKey,
+                radiusKey,
+                angleName,
+                radiusName,
+            });
 
             if (labelText) {
                 return { x, y, text: labelText, textAlign: 'center', textBaseline: 'middle' };

@@ -127,7 +127,6 @@ export class ChordSeries extends FlowProportionSeries<
             { includeCircularReferences: true }
         );
 
-        const defaultLabelFormatter = (v: any) => String(v);
         let totalSize = 0;
         nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }, id) => {
             const size =
@@ -139,18 +138,14 @@ export class ChordSeries extends FlowProportionSeries<
                 node.size = size;
                 totalSize += node.size;
 
-                const label = this.getLabelText(
-                    this.properties.label,
-                    {
-                        datum: node.datum,
-                        value: node.label,
-                        fromKey,
-                        toKey,
-                        sizeKey,
-                        size: node.size,
-                    },
-                    defaultLabelFormatter
-                );
+                const label = this.getLabelText(this.properties.label, {
+                    datum: node.datum,
+                    value: node.label,
+                    fromKey,
+                    toKey,
+                    sizeKey,
+                    size: node.size,
+                });
                 node.label = String(label);
             }
         });
