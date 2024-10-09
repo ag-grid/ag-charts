@@ -192,7 +192,7 @@ test.describe('toolbar', () => {
         await page.mouse.move(initX, initY);
         await page.mouse.click(initY, initY, { button: 'left' });
 
-        // FIXME: annotation dragging is broken unless the mouse moves after creating an annotation.
+        // AG-13108 annotation dragging is broken unless the mouse moves after creating an annotation.
         await page.mouse.move(0, 0);
         await page.mouse.move(initX, initY);
 
