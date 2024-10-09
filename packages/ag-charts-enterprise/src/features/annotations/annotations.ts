@@ -482,6 +482,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx.toolbarManager.addListener('cancelled', this.onToolbarCancelled.bind(this)),
             ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.updateService.addListener('pre-scene-render', this.onPreRender.bind(this)),
+            ctx.zoomManager.addListener('zoom-change', () => this.onZoomChange()),
 
             // DOM
             ctx.annotationManager.attachNode(this.container),
@@ -1172,6 +1173,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('click', { point });
 
         this.update();
+    }
+
+    private onZoomChange() {
+        const textInputValue = this.textInput.getValue();
+        const bbox = this.textInput.getBBox();
+
+        this.state.transition('zoomChange', { textInputValue, bbox });
     }
 
     private onDragStart(event: _ModuleSupport.RegionEvent<'drag-start'>) {

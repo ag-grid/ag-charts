@@ -34,6 +34,7 @@ type AnnotationEvent =
     | 'hover'
     | 'click'
     | 'dblclick'
+    | 'zoomChange'
     | 'drag'
     | 'dragStart'
     | 'dragEnd'
@@ -476,6 +477,11 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 updateTextInputBBox: {
                     guard: guardActive,
                     action: actionUpdateTextInputBBox,
+                },
+
+                zoomChange: {
+                    target: States.Idle,
+                    action: actionSaveText,
                 },
 
                 click: {
