@@ -1,5 +1,6 @@
 .ag-charts-text-input {
     position: absolute;
+    outline: none;
 }
 
 .ag-charts-text-input__textarea {
