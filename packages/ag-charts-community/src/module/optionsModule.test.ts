@@ -19,7 +19,7 @@ import { ChartOptions } from './optionsModule';
 import type { SeriesType } from './optionsModuleTypes';
 
 function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
-    const chartOptions = new ChartOptions(userOptions);
+    const chartOptions = new ChartOptions(userOptions, {}, {});
     return chartOptions.processedOptions as T;
 }
 

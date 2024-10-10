@@ -53,11 +53,14 @@ export interface AxisOptionModule<M extends ModuleInstance = ModuleInstance> ext
     themeTemplate: {};
 }
 
-interface ChartSpecialOverrides {
+export interface ChartSpecialOverrides {
     document: Document;
     window: Window;
     overrideDevicePixelRatio?: number;
     sceneMode?: 'simple';
+}
+
+export interface ChartInternalOptionMetadata {
     presetType?: string;
 }
 
@@ -89,34 +92,39 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     defaultAxes: T;
     userOptions: Partial<T>;
     specialOverrides: ChartSpecialOverrides;
+    optionMetadata: ChartInternalOptionMetadata;
     annotationThemes: any;
-    presetType?: string;
 
     private readonly debug = Debug.create(true, 'opts');
 
-    constructor(userOptions: T, specialOverrides?: Partial<ChartSpecialOverrides>) {
-        this.presetType = specialOverrides?.presetType;
+    constructor(
+        userOptions: T,
+        specialOverrides: Partial<ChartSpecialOverrides>,
+        metadata: ChartInternalOptionMetadata
+    ) {
+        this.optionMetadata = metadata ?? {};
 
         const cloneOptions = { shallow: ['data'] };
         userOptions = deepClone(userOptions, cloneOptions);
 
         let options = deepClone(userOptions, cloneOptions);
 
-        if (this.presetType != null) {
+        const { presetType } = this.optionMetadata;
+        if (presetType != null) {
             type PresetConstructor = (
                 options: AgPresetOptions,
                 themeOptions: AgPresetOptions | undefined,
                 activeTheme: () => ChartTheme
             ) => T;
 
-            const presetConstructor: PresetConstructor | undefined = (PRESETS as any)[this.presetType];
+            const presetConstructor: PresetConstructor | undefined = (PRESETS as any)[presetType];
 
             const presetParams = options as any as AgPresetOptions;
 
             // Note financial charts defines the theme in its returned options
             // so we need to get the theme before and after applying the preset
-            const presetType = (options as any).type as keyof AgPresetOverrides | undefined;
-            const presetTheme = presetType != null ? getChartTheme(options.theme).presets[presetType] : undefined;
+            const presetSubType = (options as any).type as keyof AgPresetOverrides | undefined;
+            const presetTheme = presetSubType != null ? getChartTheme(options.theme).presets[presetSubType] : undefined;
 
             this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetParams);
             options = presetConstructor?.(presetParams, presetTheme, () => this.activeTheme) ?? options;
@@ -127,7 +135,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         this.activeTheme = getChartTheme(options.theme);
-        if (this.presetType) {
+        if (presetType) {
             options = this.activeTheme.templateTheme(options);
         }
 

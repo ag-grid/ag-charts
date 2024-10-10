@@ -7,7 +7,7 @@ import type {
 } from 'ag-charts-types';
 
 import { CartesianChart } from '../chart/cartesianChart';
-import { Chart, type ChartExtendedOptions } from '../chart/chart';
+import { Chart } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
@@ -28,7 +28,7 @@ import { StandaloneChart } from '../chart/standaloneChart';
 import { TopologyChart } from '../chart/topologyChart';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
-import { ChartOptions } from '../module/optionsModule';
+import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import { Debug } from '../util/debug';
 import { deepClone, jsonWalk } from '../util/json';
 import { mergeDefaults } from '../util/object';
@@ -105,14 +105,17 @@ export abstract class AgCharts {
     /**
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
-    public static create<O extends AgChartOptions>(options: O): AgChartInstance<O> {
+    public static create<O extends AgChartOptions>(
+        options: O,
+        optionsMetadata?: ChartInternalOptionMetadata
+    ): AgChartInstance<O> {
         this.licenseCheck(options);
-        const chart = AgChartsInternal.createOrUpdate(
+        const chart = AgChartsInternal.createOrUpdate({
             options,
-            undefined,
-            this.licenseManager,
-            enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : []
-        );
+            licenseManager: this.licenseManager,
+            styles: enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : [],
+            optionsMetadata,
+        });
 
         if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
             enterpriseModule.injectWatermark?.(chart.chart.ctx.domManager, this.licenseManager.getWatermarkMessage());
@@ -121,15 +124,15 @@ export abstract class AgCharts {
     }
 
     public static createFinancialChart(options: AgFinancialChartOptions): AgChartInstance<AgFinancialChartOptions> {
-        return this.create({ presetType: 'price-volume', ...options } as AgChartOptions) as any;
+        return this.create(options as any, { presetType: 'price-volume' }) as any;
     }
 
     public static createGauge(options: AgGaugeOptions): AgChartInstance<AgGaugeOptions> {
-        return this.create({ presetType: 'gauge', ...(options as any) } as AgChartOptions) as any;
+        return this.create(options as AgChartOptions, { presetType: 'gauge' }) as any;
     }
 
     public static __createSparkline(options: AgSparklineOptions): AgChartInstance<AgSparklineOptions> {
-        return this.create({ presetType: 'sparkline', ...(options as any) } as AgChartOptions) as any;
+        return this.create(options as AgChartOptions, { presetType: 'sparkline' }) as any;
     }
 }
 
@@ -153,39 +156,56 @@ class AgChartsInternal {
 
     static callbackApi: FactoryApi = {
         caretaker: AgChartsInternal.caretaker,
-        createOrUpdate(opts, chart) {
-            return AgChartsInternal.createOrUpdate(opts, chart as AgChartInstanceProxy);
+        create(opts, specialOverrides, optionsMetadata) {
+            return AgChartsInternal.createOrUpdate({ options: opts, specialOverrides, optionsMetadata });
+        },
+        update(opts, chart) {
+            return AgChartsInternal.createOrUpdate({ options: opts, proxy: chart as AgChartInstanceProxy });
         },
         updateUserDelta(chart, deltaOptions) {
             return AgChartsInternal.updateUserDelta(chart as AgChartInstanceProxy, deltaOptions);
         },
     };
 
-    static createOrUpdate(
-        options: ChartExtendedOptions,
-        proxy?: AgChartInstanceProxy,
-        licenseManager?: LicenseManager,
-        styles?: Array<[string, string]>
-    ) {
+    static createOrUpdate(opts: {
+        options: AgChartOptions & Partial<ChartSpecialOverrides>;
+        proxy?: AgChartInstanceProxy;
+        licenseManager?: LicenseManager;
+        styles?: Array<[string, string]>;
+        specialOverrides?: Partial<ChartSpecialOverrides>;
+        optionsMetadata?: ChartInternalOptionMetadata;
+    }) {
+        let { proxy } = opts;
+        const {
+            options,
+            licenseManager,
+            styles,
+            specialOverrides = proxy?.chart.chartOptions.specialOverrides ?? {},
+            optionsMetadata = proxy?.chart.chartOptions.optionMetadata ?? {},
+        } = opts;
+        const { presetType } = optionsMetadata;
+
         AgChartsInternal.initialiseModules();
 
         debug('>>> AgCharts.createOrUpdate() user options', options);
 
-        const { presetType = proxy?.chart.chartOptions.presetType, ...otherOptions } = options;
-
-        let mutableOptions = otherOptions;
+        let mutableOptions = options;
         if (AgCharts.optionsMutationFn) {
             mutableOptions = AgCharts.optionsMutationFn(mutableOptions, presetType);
             debug('>>> AgCharts.createOrUpdate() MUTATED user options', options);
         }
 
         const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = mutableOptions;
-        const chartOptions = new ChartOptions(userOptions, {
-            presetType,
-            document,
-            window: userWindow,
-            overrideDevicePixelRatio,
-        });
+        const chartOptions = new ChartOptions(
+            userOptions,
+            {
+                ...specialOverrides,
+                document,
+                window: userWindow,
+                overrideDevicePixelRatio,
+            },
+            optionsMetadata
+        );
 
         let chart = proxy?.chart;
         if (
@@ -242,7 +262,7 @@ class AgChartsInternal {
         const userOptions = mergeDefaults(deltaOptions, lastUpdateOptions);
         debug('>>> AgCharts.updateUserDelta() user delta', deltaOptions);
         debug('AgCharts.updateUserDelta() - base options', lastUpdateOptions);
-        AgChartsInternal.createOrUpdate(userOptions, proxy);
+        AgChartsInternal.createOrUpdate({ options: userOptions, proxy });
     }
 
     private static createChartInstance(options: ChartOptions, oldChart?: Chart): Chart {

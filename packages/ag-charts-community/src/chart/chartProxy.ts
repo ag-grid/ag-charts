@@ -7,13 +7,14 @@ import type {
 } from 'ag-charts-types';
 
 import type { MementoCaretaker } from '../api/state/memento';
+import type { ChartInternalOptionMetadata, ChartSpecialOverrides } from '../module-support';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { moduleRegistry } from '../module/module';
 import { deepClone } from '../util/json';
 import { mergeDefaults } from '../util/object';
 import { ActionOnSet } from '../util/proxy';
 import type { DeepPartial } from '../util/types';
-import type { Chart, ChartExtendedOptions } from './chart';
+import type { Chart } from './chart';
 import { ChartUpdateType } from './chartUpdateType';
 import { isAgCartesianChartOptions } from './mapping/types';
 
@@ -24,7 +25,12 @@ export interface AgChartProxy extends AgChartInstance {
 export interface FactoryApi {
     caretaker: MementoCaretaker;
 
-    createOrUpdate(opts: AgChartOptions, chart?: AgChartInstance): AgChartProxy;
+    create(
+        opts: AgChartOptions,
+        specialOverrides?: ChartSpecialOverrides,
+        optionsMetadata?: ChartInternalOptionMetadata
+    ): AgChartProxy;
+    update(opts: AgChartOptions, chart?: AgChartInstance, specialOverrides?: ChartSpecialOverrides): AgChartProxy;
     updateUserDelta(chart: AgChartInstance, deltaOptions: DeepPartial<AgChartOptions>): void;
 }
 
@@ -78,7 +84,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     async update(options: AgChartOptions) {
-        this.factoryApi.createOrUpdate(options, this);
+        this.factoryApi.update(options, this);
         await this.chart.waitForUpdate();
     }
 
@@ -199,19 +205,21 @@ export class AgChartInstanceProxy implements AgChartProxy {
             }
         }
 
-        const defaultOpts: ChartExtendedOptions = {
+        const defaultOpts: Partial<AgChartOptions> = {
             container: document.createElement('div'),
             width,
             height,
         };
 
+        const specialOverrides = { ...chart.chartOptions.specialOverrides };
+        const optionsMetadata = { ...chart.chartOptions.optionMetadata };
         if (opts.width != null && opts.height != null) {
-            defaultOpts.overrideDevicePixelRatio = 1;
+            specialOverrides.overrideDevicePixelRatio = 1;
         }
 
-        const options: ChartExtendedOptions = mergeDefaults(defaultOpts, overrideOptions, processedOptions);
+        const options: AgChartOptions = mergeDefaults(defaultOpts, overrideOptions, processedOptions);
 
-        const cloneProxy = await this.factoryApi.createOrUpdate(options);
+        const cloneProxy = await this.factoryApi.create(options, specialOverrides, optionsMetadata);
         await cloneProxy.setState(state);
         cloneProxy.chart.ctx.zoomManager.updateZoom('chartProxy', chart.ctx.zoomManager.getZoom()); // sync zoom
         chart.series.forEach((series, index) => {
