@@ -63,6 +63,7 @@ const FAILURE_THRESHOLD = Number(process.env.SNAPSHOT_FAILURE_THRESHOLD ?? 0);
 export const IMAGE_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
     failureThreshold: FAILURE_THRESHOLD,
     failureThresholdType: 'percent',
+    dumpInlineDiffToConsole: process.env.CI != null,
 };
 
 export async function delay(ms: number): Promise<void> {
