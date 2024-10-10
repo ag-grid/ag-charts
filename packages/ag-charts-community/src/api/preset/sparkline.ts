@@ -110,6 +110,8 @@ const SPARKLINE_THEME: AgChartTheme = {
             },
             axes: crossHairAxes,
             series: {
+                // @ts-expect-error
+                sparklineMode: true,
                 strokeWidth: 1,
                 marker: {
                     enabled: false,
@@ -129,6 +131,8 @@ const SPARKLINE_THEME: AgChartTheme = {
             },
             axes: crossHairAxes,
             series: {
+                // @ts-expect-error
+                sparklineMode: true,
                 strokeWidth: 1,
                 fillOpacity: 0.4,
                 tooltip: crossHairTooltip,

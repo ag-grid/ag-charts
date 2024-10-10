@@ -84,6 +84,10 @@ export class AreaSeries extends CartesianSeries<
 
     override properties = new AreaSeriesProperties();
 
+    override get pickModeAxis() {
+        return this.properties.sparklineMode ? 'main' : 'main-category';
+    }
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,

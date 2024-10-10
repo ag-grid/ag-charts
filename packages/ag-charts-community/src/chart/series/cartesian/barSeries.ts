@@ -89,7 +89,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
     override properties = new BarSeriesProperties();
 
     override get pickModeAxis() {
-        return this.properties.sparklineMode ? ('main' as const) : undefined;
+        return this.properties.sparklineMode ? 'main' : undefined;
     }
 
     constructor(moduleCtx: ModuleContext) {
