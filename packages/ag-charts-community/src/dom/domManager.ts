@@ -216,20 +216,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     private getEventElement<K extends keyof HTMLElementEventMap>(defaultElem: HTMLElement, eventType: K) {
         // For now, the only element managed by DOMManager that is focusable is 'series-area'
-        return ['focus', 'blur'].includes(eventType) ? this.rootElements['series-area'].element : defaultElem;
-    }
-
-    addEventListenerOnElement<K extends keyof HTMLElementEventMap>(
-        elementType: DOMElementClass,
-        type: K,
-        listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
-        options?: boolean | AddEventListenerOptions
-    ) {
-        const element = this.getEventElement(this.rootElements[elementType].element, type);
-        element.addEventListener(type, listener, options);
-        return () => {
-            element.removeEventListener(type, listener, options);
-        };
+        const events = ['focus', 'blur', 'keydown', 'keyup'];
+        return events.includes(eventType) ? this.rootElements['series-area'].element : defaultElem;
     }
 
     addEventListener<K extends keyof HTMLElementEventMap>(

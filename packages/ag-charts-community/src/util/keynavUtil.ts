@@ -232,6 +232,7 @@ export function initMenuKeyNav(opts: {
 }
 
 export function makeAccessibleClickListener(element: HTMLElement, onclick: (event: MouseEvent) => unknown) {
+    // AG-11385 Ignore clicks disabled elements.
     return (event: MouseEvent) => {
         if (element.ariaDisabled === 'true') {
             return event.preventDefault();

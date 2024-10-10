@@ -273,8 +273,6 @@ export class Tooltip extends BaseProperties {
         }
 
         element.style.pointerEvents = meta.enableInteraction ? 'auto' : 'none';
-        element.setAttribute('data-pointer-capture', 'retain');
-
         this.enableInteraction = meta.enableInteraction ?? false;
 
         if (this.delay > 0 && !instantly) {

@@ -75,7 +75,6 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         }
 
         const popover = createElement('div', 'ag-charts-popover');
-        popover.setAttribute('data-pointer-capture', 'exclusive');
 
         if (options.ariaLabel != null) {
             popover.setAttribute('aria-label', options.ariaLabel);

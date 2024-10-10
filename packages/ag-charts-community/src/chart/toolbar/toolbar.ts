@@ -759,7 +759,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             const alignmentElement = createElement('div');
             alignmentElement.role = 'presentation';
             alignmentElement.classList.add(styles.elements.align, styles.modifiers.align[align]);
-            alignmentElement.dataset.pointerCapture = 'exclusive';
             element.appendChild(alignmentElement);
             this.positionAlignments[position][align] = alignmentElement;
         }
