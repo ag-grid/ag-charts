@@ -16,8 +16,6 @@ import {
     LINE_DASH,
     NUMBER,
     OBJECT,
-    OR,
-    PLACEMENT,
     POSITIVE_NUMBER,
     RATIO,
     STRING,
@@ -28,14 +26,26 @@ import { Label } from '../../label';
 import { SeriesTooltip } from '../seriesTooltip';
 import { AbstractBarSeriesProperties } from './abstractBarSeries';
 
-const BAR_LABEL_PLACEMENT = UNION(['inside-start', 'inside-end', 'outside-start', 'outside-end'], 'a placement');
-
 class BarSeriesLabel extends Label<AgBarSeriesLabelFormatterParams> {
-    @Validate(OR(BAR_LABEL_PLACEMENT, PLACEMENT))
-    placement: AgBarSeriesLabelPlacement = 'inside';
+    @Validate(
+        UNION(
+            [
+                'inside-center',
+                'inside-start',
+                'inside-end',
+                'outside-start',
+                'outside-end',
+                // @todo(AG-5950) Deprecate
+                { value: 'inside', deprecatedTo: 'inside-center' },
+                { value: 'outside', deprecatedTo: 'outside-end' },
+            ],
+            'a placement'
+        )
+    )
+    placement: AgBarSeriesLabelPlacement = 'inside-center';
 
     @Validate(NUMBER)
-    spacing: number = 0;
+    padding: number = 0;
 }
 
 export class BarSeriesProperties extends AbstractBarSeriesProperties<AgBarSeriesOptions> {

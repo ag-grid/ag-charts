@@ -219,6 +219,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
         const barWidth = this.getBandwidth(categoryAxis) ?? 10;
         const categoryAxisReversed = categoryAxis.isReversed();
+        const valueAxisReversed = valueAxis.isReversed();
 
         if (this.processedData?.type !== 'ungrouped') return;
 
@@ -388,7 +389,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 label: {
                     text: labelText,
                     ...adjustLabelPlacement({
-                        isPositive: (value ?? -1) >= 0,
+                        isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
                         isVertical: !barAlongX,
                         placement: label.placement,
                         padding: label.padding,
