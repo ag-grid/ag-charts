@@ -21,6 +21,7 @@ const options: AgSparklineOptions = {
         },
     },
     yAxis: {
+        type: 'number',
         min: 125,
         max: 150,
     },
