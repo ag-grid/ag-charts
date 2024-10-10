@@ -210,7 +210,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const dragStartEventType = 'drag-start';
         this.destroyFns.push(
             ctx.scene.attachNode(selectionRect),
-            ctx.regionManager.listenAll('dblclick', (event) => this.onDoubleClick(event), clickableState),
+            ctx.seriesAreaManager.addListener('dblclick', (event) => this.onDoubleClick(event)),
             ctx.keyNavManager.addListener('nav-zoom', (event) => this.onNavZoom(event)),
             region.addListener('drag', (event) => this.onDrag(event), draggableState),
             region.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),

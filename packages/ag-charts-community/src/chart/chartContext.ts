@@ -28,6 +28,7 @@ import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import type { Keyboard } from './keyboard';
 import { LayoutManager } from './layout/layoutManager';
+import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
 import { type UpdateCallback, UpdateService } from './updateService';
@@ -62,9 +63,15 @@ export class ChartContext implements ModuleContext {
     syncManager: SyncManager;
     tooltipManager: TooltipManager;
     updateService: UpdateService;
+    seriesAreaManager: SeriesAreaManager;
 
     constructor(
-        chart: ChartService & { annotationRoot: Group; keyboard: Keyboard; tooltip: Tooltip },
+        chart: ChartService & {
+            annotationRoot: Group;
+            keyboard: Keyboard;
+            tooltip: Tooltip;
+            initSeriesAreaDependencies: () => SeriesAreaChartDependencies;
+        },
         vars: {
             scene?: Scene;
             root: Group;
@@ -106,6 +113,7 @@ export class ChartContext implements ModuleContext {
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.animationManager);
         this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip);
+        this.seriesAreaManager = new SeriesAreaManager(chart.initSeriesAreaDependencies());
 
         this.zoomManager.addLayoutListeners(this.layoutManager);
     }

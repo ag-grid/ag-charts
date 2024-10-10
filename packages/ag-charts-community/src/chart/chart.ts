@@ -55,7 +55,7 @@ import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
 import { type Series, SeriesGroupingChangedEvent } from './series/series';
-import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
+import { type SeriesAreaChartDependencies } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
 import type { ISeries } from './series/seriesTypes';
@@ -232,7 +232,6 @@ export abstract class Chart extends Observable {
     public readonly modulesManager = new ModulesManager();
     public readonly ctx: ChartContext;
     protected readonly seriesLayerManager: SeriesLayerManager;
-    protected readonly seriesAreaManager: SeriesAreaManager;
 
     private readonly processors: UpdateProcessor[] = [];
 
@@ -321,7 +320,6 @@ export abstract class Chart extends Observable {
         // The 'data-animating' is used by e2e tests to wait for the animation to end before starting kbm interactions
         ctx.domManager.setDataBoolean('animating', false);
 
-        this.seriesAreaManager = new SeriesAreaManager(this.initSeriesAreaDependencies());
         this._destroyFns.push(
             ctx.layoutManager.registerElement(LayoutElement.Caption, (e) => {
                 e.layoutBox.shrink(this.padding.toJson());
@@ -354,7 +352,7 @@ export abstract class Chart extends Observable {
         this.parentResize(ctx.domManager.containerSize);
     }
 
-    private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
+    initSeriesAreaDependencies(): SeriesAreaChartDependencies {
         const { ctx, tooltip, highlight, overlays, seriesRoot } = this;
         const chartType = this.getChartType();
         const fireEvent = this.fireEvent.bind(this);
@@ -562,7 +560,7 @@ export abstract class Chart extends Observable {
 
             case ChartUpdateType.PROCESS_DATA:
                 await this.processData();
-                this.seriesAreaManager.dataChanged();
+                this.ctx.seriesAreaManager.dataChanged();
                 updateSplits('🏭');
             // fallthrough
 
@@ -770,7 +768,7 @@ export abstract class Chart extends Observable {
             series.addChartEventListeners();
         }
 
-        this.seriesAreaManager?.seriesChanged(newValue);
+        this.ctx?.seriesAreaManager.seriesChanged(newValue);
     }
 
     protected destroySeries(allSeries: Series<any, any>[]): void {

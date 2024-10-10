@@ -18,6 +18,7 @@ import type { ToolbarManager } from '../chart/interaction/toolbarManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
 import type { ZoomManager } from '../chart/interaction/zoomManager';
 import type { LayoutManager } from '../chart/layout/layoutManager';
+import type { SeriesAreaManager } from '../chart/series/seriesAreaManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
 import type { DOMManager } from '../dom/domManager';
@@ -60,6 +61,7 @@ export interface ModuleContext {
     readonly toolbarManager: ToolbarManager;
     readonly tooltipManager: TooltipManager;
     readonly zoomManager: ZoomManager;
+    readonly seriesAreaManager: SeriesAreaManager;
 }
 
 export interface ModuleContextWithParent<P> extends ModuleContext {

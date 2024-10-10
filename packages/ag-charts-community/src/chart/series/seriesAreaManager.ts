@@ -70,7 +70,7 @@ class ChartMouseEvent<Type extends 'click' | 'doubleClick'> {
     }
 }
 
-export class SeriesAreaManager extends BaseManager {
+export class SeriesAreaManager extends BaseManager<'click' | 'dblclick', RegionEvent> {
     readonly id = createId(this);
 
     private series: Series<any, any>[] = [];
@@ -269,9 +269,9 @@ export class SeriesAreaManager extends BaseManager {
         ) satisfies AgChartClickEvent | AgChartDoubleClickEvent;
         this.chart.fireEvent(newEvent);
 
-        if (newEvent.defaultPrevented) {
-            (event as any).stopImmediatePropagation();
-        }
+        if (newEvent.defaultPrevented) return;
+
+        this.listeners.dispatch(event.type, event);
     }
 
     private onFocus(event: KeyNavEvent<'focus'>): void {

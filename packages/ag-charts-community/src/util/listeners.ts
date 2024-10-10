@@ -1,30 +1,6 @@
 import { Logger } from './logger';
-import { isPlainObject } from './type-guards';
 
 type Handler = (...args: any[]) => void;
-
-const immediatePropagationStoppedKey = Symbol('immediatePropagationStopped');
-
-export interface StoppableEvent {
-    stopImmediatePropagation(): void;
-    [immediatePropagationStoppedKey]: boolean;
-}
-
-export function buildStoppable<T extends object>(obj: T): T & StoppableEvent {
-    const out: T & StoppableEvent = {
-        ...obj,
-        [immediatePropagationStoppedKey]: false,
-        stopImmediatePropagation() {
-            out[immediatePropagationStoppedKey] = true;
-        },
-    };
-
-    return out;
-}
-
-export function immediatePropagationStopped(obj: any): boolean {
-    return isPlainObject(obj) && obj[immediatePropagationStoppedKey] === true;
-}
 
 export type Listener<H extends Handler> = {
     symbol?: Symbol;
@@ -66,8 +42,6 @@ export class Listeners<EventType extends string, EventHandler extends Handler> {
             } catch (e) {
                 Logger.errorOnce(e);
             }
-
-            if (params.length === 1 && immediatePropagationStopped(params[0])) return;
         }
     }
 
