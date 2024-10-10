@@ -42,6 +42,26 @@ describe('priceVolumePreset', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
+    const snapshot = async () => {
+        await waitForChartStability(chart);
+
+        return ctx.nodeCanvas?.toBuffer('raw');
+    };
+
+    const compareImageDataUrl = async () => {
+        await waitForChartStability(chart);
+        const reference = await snapshot();
+
+        const canvasCount = ctx.getActiveCanvasInstances().length;
+
+        const imageURL = await chart.getImageDataURL();
+        const imagePNGData = Buffer.from(imageURL.split(',')[1], 'base64');
+        expect(imagePNGData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+
+        const imageRaw = ctx.getActiveCanvasInstances()[canvasCount];
+        expect(imageRaw.toBuffer('raw')).toMatchImage(reference);
+    };
+
     describe('#createFinancialChart', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
@@ -62,6 +82,17 @@ describe('priceVolumePreset', () => {
 
                 chart = AgCharts.createFinancialChart(options);
                 await compare();
+            }
+        );
+
+        it.each(Object.entries(EXAMPLES))(
+            'for %s it should export image as expected (AG-12985)',
+            async (_exampleName, example) => {
+                const options: AgFinancialChartOptions = { ...example };
+                prepareFinancialTestOptions(options);
+
+                chart = AgCharts.createFinancialChart(options);
+                await compareImageDataUrl();
             }
         );
     });
