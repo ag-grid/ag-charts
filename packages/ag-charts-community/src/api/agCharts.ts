@@ -106,12 +106,12 @@ export abstract class AgCharts {
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
     public static create<O extends AgChartOptions>(
-        options: O,
+        userOptions: O,
         optionsMetadata?: ChartInternalOptionMetadata
     ): AgChartInstance<O> {
-        this.licenseCheck(options);
+        this.licenseCheck(userOptions);
         const chart = AgChartsInternal.createOrUpdate({
-            options,
+            userOptions,
             licenseManager: this.licenseManager,
             styles: enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : [],
             optionsMetadata,
@@ -156,11 +156,16 @@ class AgChartsInternal {
 
     static callbackApi: FactoryApi = {
         caretaker: AgChartsInternal.caretaker,
-        create(opts, specialOverrides, optionsMetadata) {
-            return AgChartsInternal.createOrUpdate({ options: opts, specialOverrides, optionsMetadata });
+        create(userOptions, processedOverrides, specialOverrides, optionsMetadata) {
+            return AgChartsInternal.createOrUpdate({
+                userOptions,
+                processedOverrides,
+                specialOverrides,
+                optionsMetadata,
+            });
         },
         update(opts, chart) {
-            return AgChartsInternal.createOrUpdate({ options: opts, proxy: chart as AgChartInstanceProxy });
+            return AgChartsInternal.createOrUpdate({ userOptions: opts, proxy: chart as AgChartInstanceProxy });
         },
         updateUserDelta(chart, deltaOptions) {
             return AgChartsInternal.updateUserDelta(chart as AgChartInstanceProxy, deltaOptions);
@@ -168,7 +173,8 @@ class AgChartsInternal {
     };
 
     static createOrUpdate(opts: {
-        options: AgChartOptions & Partial<ChartSpecialOverrides>;
+        userOptions: AgChartOptions & Partial<ChartSpecialOverrides>;
+        processedOverrides?: Partial<AgChartOptions>;
         proxy?: AgChartInstanceProxy;
         licenseManager?: LicenseManager;
         styles?: Array<[string, string]>;
@@ -177,9 +183,10 @@ class AgChartsInternal {
     }) {
         let { proxy } = opts;
         const {
-            options,
+            userOptions,
             licenseManager,
             styles,
+            processedOverrides = proxy?.chart.chartOptions.processedOverrides ?? {},
             specialOverrides = proxy?.chart.chartOptions.specialOverrides ?? {},
             optionsMetadata = proxy?.chart.chartOptions.optionMetadata ?? {},
         } = opts;
@@ -187,17 +194,18 @@ class AgChartsInternal {
 
         AgChartsInternal.initialiseModules();
 
-        debug('>>> AgCharts.createOrUpdate() user options', options);
+        debug('>>> AgCharts.createOrUpdate() user options', userOptions);
 
-        let mutableOptions = options;
+        let mutableOptions = userOptions;
         if (AgCharts.optionsMutationFn) {
             mutableOptions = AgCharts.optionsMutationFn(mutableOptions, presetType);
-            debug('>>> AgCharts.createOrUpdate() MUTATED user options', options);
+            debug('>>> AgCharts.createOrUpdate() MUTATED user options', mutableOptions);
         }
 
-        const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = mutableOptions;
+        const { overrideDevicePixelRatio, document, window: userWindow, ...options } = mutableOptions;
         const chartOptions = new ChartOptions(
-            userOptions,
+            options,
+            processedOverrides,
             {
                 ...specialOverrides,
                 document,
@@ -262,7 +270,7 @@ class AgChartsInternal {
         const userOptions = mergeDefaults(deltaOptions, lastUpdateOptions);
         debug('>>> AgCharts.updateUserDelta() user delta', deltaOptions);
         debug('AgCharts.updateUserDelta() - base options', lastUpdateOptions);
-        AgChartsInternal.createOrUpdate({ options: userOptions, proxy });
+        AgChartsInternal.createOrUpdate({ userOptions, proxy });
     }
 
     private static createChartInstance(options: ChartOptions, oldChart?: Chart): Chart {

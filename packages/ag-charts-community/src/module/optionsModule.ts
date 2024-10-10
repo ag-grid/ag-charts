@@ -91,6 +91,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     processedOptions: T;
     defaultAxes: T;
     userOptions: Partial<T>;
+    processedOverrides: Partial<T>;
     specialOverrides: ChartSpecialOverrides;
     optionMetadata: ChartInternalOptionMetadata;
     annotationThemes: any;
@@ -99,13 +100,15 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     constructor(
         userOptions: T,
+        processedOverrides: Partial<T>,
         specialOverrides: Partial<ChartSpecialOverrides>,
         metadata: ChartInternalOptionMetadata
     ) {
         this.optionMetadata = metadata ?? {};
+        this.processedOverrides = processedOverrides ?? {};
 
         const cloneOptions = { shallow: ['data'] };
-        userOptions = deepClone(userOptions, cloneOptions);
+        this.userOptions = deepClone(userOptions, cloneOptions);
 
         let options = deepClone(userOptions, cloneOptions);
 
@@ -126,7 +129,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             const presetSubType = (options as any).type as keyof AgPresetOverrides | undefined;
             const presetTheme = presetSubType != null ? getChartTheme(options.theme).presets[presetSubType] : undefined;
 
-            this.debug('>>> AgCharts.createOrUpdate() - applying preset', options, presetParams);
+            this.debug('>>> AgCharts.createOrUpdate() - applying preset', presetParams);
             options = presetConstructor?.(presetParams, presetTheme, () => this.activeTheme) ?? options;
         }
 
@@ -151,9 +154,9 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             ...themeDefaults
         } = this.getSeriesThemeConfig(chartType);
 
-        this.userOptions = userOptions;
         this.processedOptions = deepClone(
             mergeDefaults(
+                processedOverrides,
                 options,
                 axesButtons != null ? { annotations: { axesButtons } } : {},
                 themeDefaults,
