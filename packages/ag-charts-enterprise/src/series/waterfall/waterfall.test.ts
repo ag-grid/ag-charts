@@ -84,13 +84,13 @@ describe('WaterfallSeries', () => {
                     total: {
                         label: {
                             enabled: true,
-                            placement: 'inside',
+                            placement: 'inside-center',
                         },
                     },
                     positive: {
                         label: {
                             enabled: true,
-                            placement: 'inside',
+                            placement: 'inside-center',
                         },
                         fill: '#91CC75',
                         stroke: '#91CC75',
@@ -99,7 +99,7 @@ describe('WaterfallSeries', () => {
                     negative: {
                         label: {
                             enabled: true,
-                            placement: 'inside',
+                            placement: 'inside-center',
                         },
                         fill: '#D21E75',
                         stroke: '#D21E75',
