@@ -177,6 +177,19 @@ describe('Annotations', () => {
             });
             await compare();
         });
+
+        it('should render a date price range annotation', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'date-price-range',
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 25 },
+                        end: { x: { __type: 'date', value: '2024-09-01' }, y: 75 },
+                    },
+                ],
+            });
+            await compare();
+        });
     });
 
     describe('lines with text', () => {
@@ -338,6 +351,28 @@ describe('Annotations', () => {
                         startHeight: 10,
                         endHeight: 20,
                     } as any;
+                }),
+            });
+            await compare();
+        });
+
+        it('should render date price range annotations with text', async () => {
+            await prepareChart({
+                annotations: annotations.map((annotation, index) => {
+                    let y = 100;
+                    if (index > 2) y = 70;
+                    if (index > 5) y = 40;
+                    const month = [1, 5, 9][index % 3];
+
+                    return {
+                        ...(annotation as any),
+                        type: 'date-price-range',
+                        start: { x: { __type: 'date', value: `2024-${String(month).padStart(2, '0')}-01` }, y: y },
+                        end: {
+                            x: { __type: 'date', value: `2024-${String(month + 3).padStart(2, '0')}-01` },
+                            y: y - 20,
+                        },
+                    };
                 }),
             });
             await compare();
