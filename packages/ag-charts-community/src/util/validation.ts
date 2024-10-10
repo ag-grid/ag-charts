@@ -22,6 +22,13 @@ interface ValidationContext extends ValidateOptions {
     property: string | symbol;
 }
 
+interface UnionOption {
+    value: string;
+    deprecated?: boolean;
+    deprecatedTo?: string;
+    undocumented?: boolean;
+}
+
 export interface ValidatePredicate {
     (value: unknown, ctx: ValidationContext): boolean;
     message?: string | ((ctx: ValidationContext) => string);
@@ -178,9 +185,25 @@ export const PLACEMENT = UNION(['inside', 'outside'], 'a placement');
 export const INTERACTION_RANGE = OR(UNION(['exact', 'nearest'], 'interaction range'), NUMBER);
 export const LABEL_PLACEMENT = UNION(['top', 'bottom', 'left', 'right']);
 
-export function UNION(options: string[], message: string = 'a', undocumentedTypes?: string[]) {
+export function UNION(options: (string | UnionOption)[], message: string = 'a') {
     return predicateWithMessage(
-        (v: any) => options.includes(v) || undocumentedTypes?.includes(v) === true,
+        (v: any, ctx) => {
+            const option = options.find((o) => {
+                const value = typeof o === 'string' ? o : o.value;
+                return v === value;
+            });
+            if (option == null) return false;
+
+            if (typeof option !== 'string' && (option.deprecated === true || option.deprecatedTo != null)) {
+                const messages: string[] = [`Property [%s] with value '${option.value}' is deprecated.`];
+                if (option.deprecatedTo) {
+                    messages.push(`Use ${option.deprecatedTo} instead.`);
+                }
+                Logger.warnOnce(messages.join(' '), ctx.property);
+            }
+
+            return true;
+        },
         `${message} keyword such as ${joinUnionOptions(options)}`
     );
 }
@@ -196,8 +219,10 @@ export function predicateWithMessage(
     return predicate;
 }
 
-function joinUnionOptions(options: string[]) {
-    const values = options.map((option) => `'${option}'`);
+function joinUnionOptions(options: (string | UnionOption)[]) {
+    const values = options
+        .filter((option) => typeof option === 'string' || option.undocumented !== true)
+        .map((option) => `'${typeof option === 'string' ? option : option.value}'`);
     if (values.length === 1) {
         return values[0];
     }

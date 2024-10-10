@@ -35,7 +35,7 @@ const marketCapOptions: AgSparklineOptions = {
     label: {
         enabled: true,
         placement: 'inside-end',
-        spacing: 6,
+        padding: 6,
         formatter: ({ value }) => marketCapFormatter.format(value),
     },
     tooltip: {

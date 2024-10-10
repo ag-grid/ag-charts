@@ -115,9 +115,9 @@ export class TooltipPosition extends BaseProperties {
                 'top-right',
                 'bottom-right',
                 'bottom-left',
+                { value: 'sparkline', undocumented: true },
             ],
-            'a position type',
-            ['sparkline']
+            'a position type'
         )
     )
     /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */

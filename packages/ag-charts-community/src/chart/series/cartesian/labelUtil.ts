@@ -11,14 +11,16 @@ type Bounds = {
 };
 
 type LabelPlacement =
+    | 'inside-center'
+    | 'inside-start'
+    | 'inside-end'
+    | 'outside-start'
+    | 'outside-end'
+    // @todo(AG-5950) Deprecate
     | 'start'
     | 'end'
     | 'inside'
-    | 'inside-start'
-    | 'inside-end'
-    | 'outside'
-    | 'outside-start'
-    | 'outside-end';
+    | 'outside';
 
 type LabelDatum = Point & {
     text: string;
@@ -54,7 +56,7 @@ interface PlacementConfig {
     textAlignment: -1 | 1;
 }
 
-const placements: Record<Exclude<LabelPlacement, 'inside'>, PlacementConfig> = {
+const placements: Record<Exclude<LabelPlacement, 'inside' | 'inside-center'>, PlacementConfig> = {
     'inside-start': { inside: true, direction: -1, textAlignment: 1 },
     'inside-end': { inside: true, direction: 1, textAlignment: -1 },
     'outside-start': { inside: false, direction: -1, textAlignment: -1 },
@@ -66,14 +68,14 @@ const placements: Record<Exclude<LabelPlacement, 'inside'>, PlacementConfig> = {
 };
 
 export function adjustLabelPlacement({
-    isPositive,
+    isUpward,
     isVertical,
     placement,
     padding = 0,
     rect,
 }: {
     placement: LabelPlacement;
-    isPositive: boolean;
+    isUpward: boolean;
     isVertical: boolean;
     padding?: number;
     rect: Bounds;
@@ -83,18 +85,18 @@ export function adjustLabelPlacement({
     let textAlign: CanvasTextAlign = 'center';
     let textBaseline: CanvasTextBaseline = 'middle';
 
-    if (placement !== 'inside') {
-        const barDirection = (isPositive ? 1 : -1) * (isVertical ? -1 : 1);
+    if (placement !== 'inside' && placement !== 'inside-center') {
+        const barDirection = (isUpward ? 1 : -1) * (isVertical ? -1 : 1);
         const { direction, textAlignment } = placements[placement];
         const displacementRatio = (direction + 1) * 0.5;
 
         if (isVertical) {
-            const y0 = isPositive ? rect.y + rect.height : rect.y;
+            const y0 = isUpward ? rect.y + rect.height : rect.y;
             const height = rect.height * barDirection;
             y = y0 + height * displacementRatio + padding * textAlignment * barDirection;
             textBaseline = textAlignment === barDirection ? 'top' : 'bottom';
         } else {
-            const x0 = isPositive ? rect.x : rect.x + rect.width;
+            const x0 = isUpward ? rect.x : rect.x + rect.width;
             const width = rect.width * barDirection;
             x = x0 + width * displacementRatio + padding * textAlignment * barDirection;
             textAlign = textAlignment === barDirection ? 'left' : 'right';

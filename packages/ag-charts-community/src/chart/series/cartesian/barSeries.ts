@@ -355,10 +355,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                         ? {
                               text: labelText,
                               ...adjustLabelPlacement({
-                                  isPositive,
+                                  isUpward: isUpward,
                                   isVertical: !barAlongX,
                                   placement: label.placement,
-                                  padding: label.spacing,
+                                  padding: label.padding,
                                   rect,
                               }),
                           }

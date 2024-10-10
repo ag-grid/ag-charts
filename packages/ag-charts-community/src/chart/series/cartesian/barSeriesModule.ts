@@ -36,7 +36,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
                 fontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
-                placement: 'inside',
+                placement: 'inside-center',
             },
             shadow: {
                 enabled: false,
