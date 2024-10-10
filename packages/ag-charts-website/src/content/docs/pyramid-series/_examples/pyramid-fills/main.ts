@@ -19,7 +19,7 @@ const options: AgChartOptions = {
             type: 'pyramid',
             stageKey: 'group',
             valueKey: 'value',
-            fills: ['#5090DC', '#FFA03A', '#459D55', '#34BFE1'],
+            fills: ['#5C6BC0', '#3F51B5', '#303F9F', '#1A237E'],
         },
     ],
 };

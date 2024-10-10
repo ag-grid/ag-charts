@@ -9,17 +9,6 @@ const numberFormatOptions: Intl.NumberFormatOptions = {
     currency: 'GBP',
 };
 
-const tooltip: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<any>> = {
-    renderer: ({ datum, xName, xKey, yLowKey, yHighKey, yLowName, yHighName }) => {
-        return {
-            content: `<b>${xName}:</b> ${datum[xKey]}<br/><b>${yLowName}: </b>${datum[yLowKey].toLocaleString(
-                'en-GB',
-                numberFormatOptions
-            )}<br/><b>${yHighName}: </b>${datum[yHighKey].toLocaleString('en-GB', numberFormatOptions)}`,
-        };
-    },
-};
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -62,7 +51,6 @@ const options: AgChartOptions = {
             cornerRadius: 4,
             strokeWidth: 1,
             lineDash: [3, 5],
-            tooltip,
         },
     ],
     axes: [
@@ -82,12 +70,6 @@ const options: AgChartOptions = {
             },
             label: {
                 formatter: ({ value }) => Number(value).toLocaleString('en-GB', numberFormatOptions),
-            },
-            crosshair: {
-                snap: true,
-                label: {
-                    format: `s`,
-                },
             },
         },
     ],

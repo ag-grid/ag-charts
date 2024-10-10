@@ -39,19 +39,14 @@ const options: AgChartOptions = {
     axes: [
         {
             type: 'radius-number',
-            innerRadiusRatio: 0,
             shape: 'circle',
             interval: { step: 0.1 },
-            tick: {
-                size: 0,
-            },
             label: {
                 enabled: false,
             },
         },
         {
             type: 'angle-category',
-            paddingInner: 0.4,
             line: {
                 enabled: false,
             },

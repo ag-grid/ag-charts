@@ -14,7 +14,6 @@ const options: AgChartOptions = {
             angleKey: 'department',
             radiusKey: 'efficiency',
             radiusName: 'Efficiency',
-            strokeWidth: 2,
             fillOpacity: 0.2,
         },
     ],
@@ -39,9 +38,6 @@ const options: AgChartOptions = {
                 rotation: 180,
             },
             reverse: true,
-            line: {
-                enabled: false,
-            },
         },
     ],
 };

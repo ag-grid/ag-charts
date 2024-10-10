@@ -7,6 +7,7 @@ const options: AgChartOptions = {
     title: {
         text: 'SOCIAL CIRCLE',
     },
+    animation: { enabled: false },
     series: Object.entries(getData()).map(([relationship, data]) => ({
         data,
         type: 'radar-line',
@@ -26,9 +27,6 @@ const options: AgChartOptions = {
         {
             type: 'angle-number',
             label: {
-                enabled: false,
-            },
-            gridLine: {
                 enabled: false,
             },
             line: {
