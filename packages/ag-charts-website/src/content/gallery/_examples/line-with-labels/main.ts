@@ -61,7 +61,7 @@ const options: AgChartOptions = {
                 size: 20,
             },
             line: {
-                width: 1,
+                enabled: true,
             },
             label: {
                 formatter: ({ value }) => formatTime(value),
@@ -80,13 +80,6 @@ const options: AgChartOptions = {
                     },
                 },
             ],
-            crosshair: {
-                label: {
-                    renderer: ({ value }) => ({
-                        text: formatTime(value),
-                    }),
-                },
-            },
         },
     ],
     seriesArea: {

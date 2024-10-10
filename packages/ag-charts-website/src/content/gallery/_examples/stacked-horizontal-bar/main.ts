@@ -109,9 +109,6 @@ const options: AgChartOptions = {
             label: {
                 enabled: false,
             },
-            tick: {
-                size: 0,
-            },
             gridLine: {
                 width: 2,
             },

@@ -75,9 +75,6 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'right',
             interval: { step: 0.01 },
-            tick: {
-                width: 0,
-            },
             label: {
                 formatter: ({ value }) => Number(value).toFixed(4),
             },
