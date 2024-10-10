@@ -192,7 +192,11 @@ export class LegendMarkerLabel extends Translatable(Group) {
                 translateX: Math.floor(translateX),
                 translateY: Math.floor(translateY),
             });
-            this.bitmap.updateBitmap(sprite, scale, Math.ceil(-translateX), Math.ceil(-translateY));
+            if (sprite != null) {
+                this.bitmap.updateBitmap(sprite, scale, Math.ceil(-translateX), Math.ceil(-translateY));
+            } else {
+                this.bitmap.clearBitmap();
+            }
             this.bitmapDirty = false;
 
             this.refreshVisibilities();

@@ -15,6 +15,10 @@ export class Image extends Node {
         this.markDirty(RedrawType.MAJOR);
     }
 
+    clearBitmap() {
+        this.sourceImage = undefined;
+    }
+
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     x: number = 0;
 
