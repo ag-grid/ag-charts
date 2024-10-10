@@ -18,7 +18,6 @@ import type {
 } from './presets/sparkline/sparklineOptions';
 import type {
     AgBaseCartesianChartOptions,
-    AgCartesianAxisOptions,
     AgCategoryAxisOptions,
     AgGroupedCategoryAxisOptions,
     AgLogAxisOptions,
