@@ -7,9 +7,9 @@ import type {
 } from 'ag-charts-types';
 
 import type { MementoCaretaker } from '../api/state/memento';
-import type { ChartInternalOptionMetadata, ChartSpecialOverrides } from '../module-support';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { moduleRegistry } from '../module/module';
+import type { ChartInternalOptionMetadata, ChartSpecialOverrides } from '../module/optionsModule';
 import { deepClone } from '../util/json';
 import { ActionOnSet } from '../util/proxy';
 import type { DeepPartial } from '../util/types';
