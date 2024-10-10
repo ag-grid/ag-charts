@@ -18,7 +18,7 @@ interface DisjointChannelStateMachineContext extends Omit<AnnotationsStateMachin
 
 export class DisjointChannelStateMachine extends StateMachine<
     'start' | 'end' | 'height',
-    'click' | 'hover' | 'drag' | 'cancel' | 'reset'
+    'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'cancel' | 'reset'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -119,6 +119,8 @@ export class DisjointChannelStateMachine extends StateMachine<
             end: {
                 hover: actionEndUpdate,
                 drag: actionEndUpdate,
+                keyDown: actionEndUpdate,
+                keyUp: actionEndUpdate,
                 click: {
                     // Ensure that a double event of drag before a single click does not trigger an immediate
                     // transition causing the start and end to be at the same point.

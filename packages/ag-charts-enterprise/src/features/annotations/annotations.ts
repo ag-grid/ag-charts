@@ -110,6 +110,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private readonly defaults = new AnnotationDefaults();
     private dataModel?: _ModuleSupport.DataModel<any, any>;
     private processedData?: _ModuleSupport.ProcessedData<any>;
+    private hoverCoords?: _ModuleSupport.Vec2;
 
     // Elements
     private seriesRect?: _Scene.BBox;
@@ -172,6 +173,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 );
 
                 return hovered;
+            },
+
+            getHoverCoords: () => {
+                return this.hoverCoords;
             },
 
             getNodeAtCoords: (coords: _ModuleSupport.Vec2, active: number) => {
@@ -1153,6 +1158,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
+    private getPointFn(shiftKey: boolean, offset: _ModuleSupport.Vec2, context: AnnotationContext) {
+        return (origin?: Point, angleStep: number = 1) =>
+            shiftKey
+                ? invertCoords(
+                      snapToAngle(offset, origin ? convertPoint(origin, context) : Vec2.origin(), angleStep),
+                      context
+                  )
+                : invertCoords(offset, context);
+    }
+
     private onHover(event: _ModuleSupport.RegionEvent<'hover'>) {
         const { state } = this;
 
@@ -1162,13 +1177,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const shiftKey = (event.sourceEvent as MouseEvent).shiftKey;
 
         const offset = Vec2.from(event);
-        const point = (origin?: Point, angleStep: number = 1) =>
-            shiftKey
-                ? invertCoords(
-                      snapToAngle(offset, origin ? convertPoint(origin, context) : Vec2.origin(), angleStep),
-                      context
-                  )
-                : invertCoords(offset, context);
+        this.hoverCoords = offset;
+
+        const point = this.getPointFn(shiftKey, offset, context);
 
         state.transition('hover', { offset, point });
     }
@@ -1246,6 +1257,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!context) return;
 
         const offset = Vec2.from(event);
+        this.hoverCoords = offset;
+
         state.transition('dragStart', { context, offset });
     }
 
@@ -1256,12 +1269,17 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         if (!context) return;
 
         const offset = Vec2.from(event);
-        const point = () => invertCoords(offset, context);
+        this.hoverCoords = offset;
+
+        const shiftKey = (event.sourceEvent as MouseEvent).shiftKey;
+        const point = this.getPointFn(shiftKey, offset, context);
 
         state.transition('drag', { context, offset, point });
     }
 
     private onDragEnd() {
+        this.hoverCoords = undefined;
+
         this.state.transition('dragEnd');
     }
 
@@ -1288,19 +1306,23 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 
-        state.transition('keyDown', { key, shiftKey, textInputValue, bbox });
+        state.transition('keyDown', { key, shiftKey, textInputValue, bbox, context });
     }
 
     private onKeyDown(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
         const { state } = this;
         const context = this.getAnnotationContext();
+        if (!context) {
+            return;
+        }
 
         const { sourceEvent } = event;
         const { shiftKey, ctrlKey, metaKey } = sourceEvent;
         const ctrlMeta = ctrlKey || metaKey;
         const ctrlShift = ctrlKey || shiftKey;
 
-        this.state.transition('keyDown', { shiftKey });
+        const point = this.hoverCoords ? this.getPointFn(shiftKey, this.hoverCoords, context) : undefined;
+        this.state.transition('keyDown', { shiftKey, context, point });
 
         const translation = { x: 0, y: 0 };
 
@@ -1353,8 +1375,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private onKeyUp(event: _ModuleSupport.KeyInteractionEvent<'keyup'>) {
         const { shiftKey } = event.sourceEvent;
+        const context = this.getAnnotationContext();
+        if (!context) {
+            return;
+        }
 
-        this.state.transition('keyUp', { shiftKey });
+        const point = this.hoverCoords ? this.getPointFn(shiftKey, this.hoverCoords, context) : undefined;
+
+        this.state.transition('keyUp', { shiftKey, context, point });
         this.state.transition('translateEnd');
     }
 

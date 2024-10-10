@@ -164,6 +164,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             getSnapping: () => {
                 return this.snapping;
             },
+            getHoverCoords: () => {
+                return ctx.getHoverCoords();
+            },
         };
         const dragStateMachines = Object.fromEntries(
             Object.entries(annotationConfigs).map(([type, config]) => [
