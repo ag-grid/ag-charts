@@ -7,7 +7,6 @@ import { BBox } from '../../scene/bbox';
 import { setAttribute, setAttributes } from '../../util/attributeUtil';
 import { createElement, getWindow } from '../../util/dom';
 import { initToolbarKeyNav, makeAccessibleClickListener } from '../../util/keynavUtil';
-import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, Validate } from '../../util/validation';
@@ -153,8 +152,8 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         this.destroyFns.push(
             ctx.interactionManager.addListener('hover', this.onHover.bind(this), InteractionState.All),
             ctx.interactionManager.addListener('leave', this.onLeave.bind(this), InteractionState.All),
-            seriesRegion.addListener('drag-start', this.onStopPointerEvents.bind(this), dragStates),
-            seriesRegion.addListener('drag-end', this.onResumePointerEvents.bind(this), InteractionState.All),
+            seriesRegion.addListener('drag-start', this.toggleNoPointerEvents.bind(this, true), dragStates),
+            seriesRegion.addListener('drag-end', this.toggleNoPointerEvents.bind(this, false), InteractionState.All),
             ctx.toolbarManager.addListener('button-toggled', this.onButtonToggled.bind(this)),
             ctx.toolbarManager.addListener('button-updated', this.onButtonUpdated.bind(this)),
             ctx.toolbarManager.addListener('group-toggled', this.onGroupToggled.bind(this)),
@@ -229,20 +228,9 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
     // AG-12695 Temporarily set `pointer-events: none` on the annotationOptions when dragging, because the
     // buttons block to mouse from hovering over the canvas.
-    private readonly oldPointerEvents: Map<HTMLButtonElement, string> = new Map();
-    private onStopPointerEvents() {
-        if (this.oldPointerEvents.size !== 0) {
-            Logger.errorOnce('unexpected drag-start event');
-            return;
-        }
-        this.groupButtons['annotationOptions'].forEach((b) => {
-            this.oldPointerEvents.set(b, b.style.pointerEvents);
-            b.style.pointerEvents = 'none';
-        });
-    }
-    private onResumePointerEvents() {
-        this.oldPointerEvents.forEach((oldPointerEvent, b) => (b.style.pointerEvents = oldPointerEvent));
-        this.oldPointerEvents.clear();
+    private toggleNoPointerEvents(on: boolean) {
+        const className = 'ag-charts-toolbar__no-pointer-events' as const;
+        this.groupButtons['annotationOptions'].forEach((b) => b.classList.toggle(className, on));
     }
 
     private onGroupChanged(group: ToolbarGroup) {
