@@ -1,6 +1,7 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from 'ag-charts-types';
 
 import type { DOMManager } from '../../dom/domManager';
+import { enterpriseModule } from '../../module/enterpriseModule';
 import { setAttribute } from '../../util/attributeUtil';
 import { clamp } from '../../util/number';
 import { type Bounds, calculatePlacement } from '../../util/placement';
@@ -32,7 +33,8 @@ type TooltipPositionType =
     | 'top-left'
     | 'top-right'
     | 'bottom-right'
-    | 'bottom-left';
+    | 'bottom-left'
+    | 'sparkline';
 
 export type TooltipEventType = 'hover' | 'drag' | 'keyboard';
 export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = PointerOffsets & { type: T };
@@ -114,7 +116,8 @@ export class TooltipPosition extends BaseProperties {
                 'bottom-right',
                 'bottom-left',
             ],
-            'a position type'
+            'a position type',
+            ['sparkline']
         )
     )
     /** The type of positioning for the tooltip. By default, the tooltip follows the pointer. */
@@ -253,7 +256,10 @@ export class Tooltip extends BaseProperties {
 
         const constrained = left !== position.x || top !== position.y;
         const defaultShowArrow =
-            (positionType === 'node' || positionType === 'pointer') && !constrained && !xOffset && !yOffset;
+            (positionType === 'node' || positionType === 'pointer' || positionType === 'sparkline') &&
+            !constrained &&
+            !xOffset &&
+            !yOffset;
         const showArrow = meta.showArrow ?? this.showArrow ?? defaultShowArrow;
         this.updateShowArrow(showArrow);
 
@@ -388,6 +394,17 @@ export class Tooltip extends BaseProperties {
             case 'bottom-left': {
                 bounds.top = canvasRect.height - tooltipHeight + yOffset;
                 bounds.left = xOffset;
+                return bounds;
+            }
+            case 'sparkline': {
+                if (enterpriseModule.isEnterprise) {
+                    // Crosslines enabled
+                    bounds.top = yOffset - tooltipHeight - 8;
+                } else {
+                    // No cross lines
+                    bounds.top = meta.offsetY + yOffset - tooltipHeight - 8;
+                }
+                bounds.left = meta.offsetX + xOffset - tooltipWidth / 2;
                 return bounds;
             }
         }

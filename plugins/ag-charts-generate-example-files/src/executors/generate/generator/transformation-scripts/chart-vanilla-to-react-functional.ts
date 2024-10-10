@@ -12,6 +12,7 @@ import { toTitleCase } from './string-utils';
 const components: Record<ChartAPI, string> = {
     gauge: 'AgGauge',
     financial: 'AgFinancialCharts',
+    sparkline: 'AgSparkline',
     vanilla: 'AgCharts',
 };
 

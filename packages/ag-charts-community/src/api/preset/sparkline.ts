@@ -5,6 +5,7 @@ import type {
     AgChartTheme,
     AgChartThemeName,
     AgSparklineOptions,
+    AgTooltipPositionType,
 } from 'ag-charts-types';
 
 import { IS_ENTERPRISE } from '../../chart/themes/symbols';
@@ -22,6 +23,8 @@ const commonAxisProperties = {
     },
     crosshair: {
         enabled: false,
+        strokeOpacity: 0.25,
+        lineDash: [0],
         label: {
             enabled: false,
         },
@@ -31,14 +34,6 @@ const commonAxisProperties = {
 const numericAxisProperties = {
     ...commonAxisProperties,
     nice: false,
-    crosshair: {
-        enabled: false,
-        strokeOpacity: 0.25,
-        lineDash: [0],
-        label: {
-            enabled: false,
-        },
-    },
 };
 
 const bottomCrossHairAxisProperties = {
@@ -50,9 +45,16 @@ const bottomCrossHairAxisProperties = {
 };
 
 const crossHairAxes = {
+    category: bottomCrossHairAxisProperties,
     number: bottomCrossHairAxisProperties,
     log: bottomCrossHairAxisProperties,
     time: bottomCrossHairAxisProperties,
+};
+
+const crossHairTooltip = {
+    position: {
+        type: 'sparkline' as any as AgTooltipPositionType,
+    },
 };
 
 const SPARKLINE_THEME: AgChartTheme = {
@@ -113,6 +115,7 @@ const SPARKLINE_THEME: AgChartTheme = {
                     enabled: false,
                     size: 3,
                 },
+                tooltip: crossHairTooltip,
             },
         },
         area: {
@@ -128,6 +131,7 @@ const SPARKLINE_THEME: AgChartTheme = {
             series: {
                 strokeWidth: 1,
                 fillOpacity: 0.4,
+                tooltip: crossHairTooltip,
             },
         },
     },
@@ -168,12 +172,15 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         width,
         theme: baseTheme,
         data,
-        axes,
+        xAxis,
+        yAxis,
         ...optsRest
     } = opts as any as AgBaseSparklinePresetOptions;
     assertEmpty(optsRest);
 
     const seriesOptions = optsRest as any as AgCartesianSeriesOptions;
+
+    const swapAxes = seriesOptions.type !== 'bar' || seriesOptions.direction !== 'horizontal';
 
     const chartOpts: AgCartesianChartOptions = pickProps<AgBaseSparklinePresetOptions>(opts, {
         background,
@@ -186,12 +193,22 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         padding,
         width,
         data,
-        axes,
+        xAxis: IGNORED_PROP,
+        yAxis: IGNORED_PROP,
         theme: IGNORED_PROP,
     });
 
     chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME);
     chartOpts.series = [seriesOptions];
+    chartOpts.axes = swapAxes
+        ? [
+              { type: 'number', ...yAxis, position: 'left' },
+              { type: 'category', ...xAxis, position: 'bottom' },
+          ]
+        : [
+              { type: 'category', ...xAxis, position: 'left' },
+              { type: 'number', ...yAxis, position: 'bottom' },
+          ];
 
     return chartOpts;
 }

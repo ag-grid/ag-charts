@@ -31,8 +31,6 @@ interface Props {
     footerChildren?: ReactElement;
 }
 
-const DEFAULT_HEIGHT = 500;
-
 export const ExampleRunner: FunctionComponent<Props> = ({
     id,
     title,
@@ -43,7 +41,6 @@ export const ExampleRunner: FunctionComponent<Props> = ({
     initialShowCode,
     externalLinks,
     hideExternalLinks,
-    exampleHeight = DEFAULT_HEIGHT,
     exampleFiles,
     initialSelectedFile,
     internalFramework,
@@ -55,13 +52,12 @@ export const ExampleRunner: FunctionComponent<Props> = ({
     const hideFooter = !hideCode && !hideExternalLinks && !footerChildren;
 
     return (
-        <div id={id} className={styles.exampleOuter}>
+        <div id={id} className={styles.exampleOuter} data-mode={showCode ? 'code' : 'preview'}>
             <div className={styles.tabsContainer}>
                 <div
                     className={classnames(chartsStyles.content, styles.content)}
                     role="tabpanel"
                     aria-labelledby={`${showCode ? 'Preview' : 'Code'} tab`}
-                    style={{ height: exampleHeight }}
                 >
                     <ExampleIFrame
                         title={title}
