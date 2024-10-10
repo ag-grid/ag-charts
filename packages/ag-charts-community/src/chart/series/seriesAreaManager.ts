@@ -108,7 +108,8 @@ export class SeriesAreaManager extends BaseManager {
         const seriesRegion = chart.ctx.regionManager.getRegion(REGIONS.SERIES);
         const horizontalAxesRegion = chart.ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
         const verticalAxesRegion = chart.ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
-        const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
+        const mouseMoveStates =
+            InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
         const keyState = InteractionState.Default | InteractionState.Animation;
 
         const labelEl = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label');
@@ -119,7 +120,7 @@ export class SeriesAreaManager extends BaseManager {
             seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All),
             seriesRegion.addListener('drag', (event) => this.onHoverOrDrag(event), mouseMoveStates),
             seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
-            seriesRegion.addListener('leave', () => this.onLeave()),
+            seriesRegion.addListener('leave', () => this.onLeave(), mouseMoveStates),
             horizontalAxesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
             horizontalAxesRegion.addListener('leave', () => this.onLeave()),
             verticalAxesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
@@ -454,7 +455,12 @@ export class SeriesAreaManager extends BaseManager {
         if (!event) return;
 
         const state = this.chart.ctx.interactionManager.getState();
-        if (state !== InteractionState.Default && state !== InteractionState.Annotations) return;
+        if (
+            state !== InteractionState.Default &&
+            state !== InteractionState.Annotations &&
+            state !== InteractionState.AnnotationsSelected
+        )
+            return;
 
         const { offsetX, offsetY } = event;
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(offsetX, offsetY)) {
@@ -481,7 +487,12 @@ export class SeriesAreaManager extends BaseManager {
 
     private handleHoverTooltip(event: RegionEvent<'hover'>, redisplay: boolean) {
         const state = this.chart.ctx.interactionManager.getState();
-        if (state !== InteractionState.Default && state !== InteractionState.Annotations) return;
+        if (
+            state !== InteractionState.Default &&
+            state !== InteractionState.Annotations &&
+            state !== InteractionState.AnnotationsSelected
+        )
+            return;
 
         const { offsetX, offsetY, targetElement, regionOffsetX, regionOffsetY } = event;
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(offsetX, offsetY)) {

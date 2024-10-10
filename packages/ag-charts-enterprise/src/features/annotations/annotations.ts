@@ -226,6 +226,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
 
                 if (selectedNode) {
+                    this.ctx.interactionManager.pushState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
                     tooltipManager.suppressTooltip('annotations');
                     this.toggleAnnotationOptionsButtons();
@@ -236,6 +237,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         toolbarManager.changeFloatingAnchor('annotationOptions', selectedNode.getAnchor());
                     });
                 } else {
+                    this.ctx.interactionManager.popState(InteractionState.AnnotationsSelected);
                     tooltipManager.unsuppressTooltip('annotations');
                 }
 
@@ -249,6 +251,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
 
             selectLast: () => {
+                this.ctx.interactionManager.pushState(InteractionState.AnnotationsSelected);
                 return this.annotationData.length - 1;
             },
 
@@ -441,7 +444,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private setupListeners() {
         const { ctx } = this;
-        const { All, Default, Annotations: AnnotationsState, ZoomDrag } = InteractionState;
+        const { All, Default, Annotations: AnnotationsState, AnnotationsSelected, ZoomDrag } = InteractionState;
 
         const seriesRegion = ctx.regionManager.getRegion(REGIONS.SERIES);
 
@@ -459,17 +462,21 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             )
             .map((region) => ctx.regionManager.getRegion(region));
 
+        const annotationsState = Default | ZoomDrag | AnnotationsState | AnnotationsSelected;
+
         this.destroyFns.push(
             // Interactions
             seriesRegion.addListener('hover', this.onHover.bind(this), All),
             seriesRegion.addListener('click', this.onClick.bind(this), All),
             seriesRegion.addListener('dblclick', this.onDoubleClick.bind(this), All),
-            seriesRegion.addListener('drag-start', this.onDragStart.bind(this), Default | ZoomDrag | AnnotationsState),
-            seriesRegion.addListener('drag', this.onDrag.bind(this), Default | ZoomDrag | AnnotationsState),
+            seriesRegion.addListener('drag-start', this.onDragStart.bind(this), annotationsState),
+            seriesRegion.addListener('drag', this.onDrag.bind(this), annotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
-            ctx.keyNavManager.addListener('cancel', this.onCancel.bind(this), Default | AnnotationsState),
-            ctx.keyNavManager.addListener('delete', (ev) => this.onDelete(ev), Default | AnnotationsState),
-            ctx.interactionManager.addListener('keydown', this.onTextInput.bind(this), AnnotationsState),
+            ctx.interactionManager.addListener(
+                'keydown',
+                this.onTextInput.bind(this),
+                AnnotationsState | AnnotationsSelected
+            ),
             ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), All),
             ctx.interactionManager.addListener('keyup', this.onKeyUp.bind(this), All),
             ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
@@ -1213,15 +1220,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.reset();
     }
 
-    private onDelete(event: _ModuleSupport.KeyNavEvent<'delete'>) {
+    private onDelete() {
         if (this.textInput.isVisible()) return;
         this.cancel();
         this.delete();
         this.reset();
         this.update();
-
-        // AG-13041 Treat the Backspace/Delete key as a mouse event (iff the user is in "mouse mode").
-        this.ctx.focusIndicator.toggleForceInvisible(event.previousInputDevice === 'mouse');
     }
 
     private onTextInput(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
@@ -1265,6 +1269,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             case 'ArrowRight':
                 translation.x = xStep;
                 break;
+            case 'Escape':
+                this.onCancel();
+                return;
+            case 'Backspace':
+            case 'Delete':
+                this.onDelete();
+                return;
         }
 
         if (translation.x || translation.y) {

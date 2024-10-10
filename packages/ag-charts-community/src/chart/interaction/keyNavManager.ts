@@ -36,13 +36,22 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
         readonly interactionManager: InteractionManager
     ) {
         super();
-        const mouseStates = InteractionState.Default | InteractionState.Annotations;
+        const mouseStates =
+            InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
+        const keyStates =
+            InteractionState.Default |
+            InteractionState.ZoomDrag |
+            InteractionState.ContextMenu |
+            InteractionState.Animation;
+        const annotationsStates = InteractionState.Annotations | InteractionState.AnnotationsSelected;
+
         this.destroyFns.push(
             interactionManager.addListener('hover', () => this.onMouse(), mouseStates),
             interactionManager.addListener('drag-start', () => this.onMouse(), mouseStates),
             interactionManager.addListener('blur', (e) => this.onBlur(e), InteractionState.All),
             interactionManager.addListener('focus', (e) => this.onFocus(e), InteractionState.All),
-            interactionManager.addListener('keydown', (e) => this.onKeyDown(e), InteractionState.All)
+            interactionManager.addListener('keydown', (e) => this.onKeyDown(e), keyStates),
+            interactionManager.addListener('keydown', () => this.hideFocusIndicator(), annotationsStates)
         );
     }
 
@@ -69,8 +78,7 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
         this.focusIndicator.toggleForceInvisible(false);
         const { code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
-        if (altKey || shiftKey || metaKey || ctrlKey) return;
-
+        if (altKey || shiftKey || metaKey || ctrlKey) return this.hideFocusIndicator();
         switch (code) {
             case 'ArrowDown':
                 return this.dispatch('nav-vert', 1, event);
@@ -89,11 +97,6 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
             case 'Space':
             case 'Enter':
                 return this.dispatch('submit', 0, event);
-            case 'Escape':
-                return this.dispatch('cancel', 0, event);
-            case 'Backspace':
-            case 'Delete':
-                return this.dispatch('delete', 0, event);
         }
 
         switch (event.sourceEvent.key) {
@@ -102,6 +105,12 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
             case '-':
                 return this.dispatch('nav-zoom', -1, event);
         }
+
+        this.hideFocusIndicator();
+    }
+
+    hideFocusIndicator() {
+        this.focusIndicator.toggleForceInvisible(true);
     }
 
     private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, sourceEvent: InteractionEvent) {
