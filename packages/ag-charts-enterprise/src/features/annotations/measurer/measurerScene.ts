@@ -182,7 +182,17 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             textCoords.y2 = center.y;
         }
 
-        LineWithTextScene.updateLineText.call(this, line, datum, textCoords);
+        const clip = LineWithTextScene.updateLineText.call(this, line, datum, textCoords);
+
+        if (direction === 'both' && clip && this.text) {
+            // Add a secondary clip mask to the vertical line that is pinned to the line's horizontal position and only
+            // considers the height of the text, since we know the text must be axis-aligned.
+            this.verticalLine.setClipMask({
+                x: center.x,
+                y: clip.clipMask.y,
+                radius: this.text.getBBox().height / 2 + Vec2.length(clip.numbers.offset),
+            });
+        }
     }
 
     private updateCaps(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {
@@ -235,7 +245,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     private updateStatistics(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4, context: AnnotationContext) {
         const point = Vec2.add(Vec4.bottomCenter(coords), Vec2.from(0, 10));
-        const statistics: Statistics = { volume: this.getVolume() };
+        const statistics: Statistics = { volume: this.getVolume(datum) };
 
         if (datum.hasPriceRange) {
             statistics.priceRange = {
@@ -362,8 +372,8 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         return datum.end.y - datum.start.y;
     }
 
-    private getVolume() {
-        return 0;
+    private getVolume(datum: MeasurerTypeProperties) {
+        return datum.getVolume?.(datum.start.x, datum.end.x);
     }
 }
 

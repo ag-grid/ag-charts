@@ -725,7 +725,7 @@ export function addGenericInterfaceImport(imports: string[], tData: string, bind
     }
 }
 
-export type ChartAPI = 'financial' | 'gauge' | 'vanilla';
+export type ChartAPI = 'financial' | 'gauge' | 'sparkline' | 'vanilla';
 
 export function chartApi(bindings: any): ChartAPI {
     const typeStr = bindings.optionsTypeInfo?.typeStr;
@@ -737,6 +737,8 @@ export function chartApi(bindings: any): ChartAPI {
         typeStr === 'AgLinearGaugeOptions'
     ) {
         return 'gauge';
+    } else if (typeStr === 'AgSparklineOptions') {
+        return 'sparkline';
     }
     return 'vanilla';
 }

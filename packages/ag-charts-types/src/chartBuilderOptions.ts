@@ -10,8 +10,21 @@ import type { AgFinancialChartPresets } from './presets/financial/financialOptio
 import type { AgGaugePresets } from './presets/gauge/gaugeOptions';
 import type { AgLinearGaugePreset } from './presets/gauge/linearGaugeOptions';
 import type { AgRadialGaugePreset } from './presets/gauge/radialGaugeOptions';
-import type { SparklineBarPreset, SparklineLinePreset } from './presets/sparkline/sparklineOptions';
-import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOptions';
+import type {
+    AgSparklineAreaPreset,
+    AgSparklineBarPreset,
+    AgSparklineLinePreset,
+    AgSparklinePresets,
+} from './presets/sparkline/sparklineOptions';
+import type {
+    AgBaseCartesianChartOptions,
+    AgCategoryAxisOptions,
+    AgGroupedCategoryAxisOptions,
+    AgLogAxisOptions,
+    AgNumberAxisOptions,
+    AgOrdinalTimeAxisOptions,
+    AgTimeAxisOptions,
+} from './series/cartesian/cartesianOptions';
 import type { AgBaseFlowProportionChartOptions } from './series/flow-proportion/flowProportionOptions';
 import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from './series/polar/polarOptions';
@@ -60,6 +73,13 @@ export type AgBaseFinancialPresetOptions = Pick<
     'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title' | 'initialState' | 'data'
 >;
 
+export type AgSparklineAxisOptions =
+    | Omit<AgNumberAxisOptions, 'position'>
+    | Omit<AgLogAxisOptions, 'position'>
+    | Omit<AgCategoryAxisOptions, 'position'>
+    | Omit<AgOrdinalTimeAxisOptions, 'position'>
+    | Omit<AgGroupedCategoryAxisOptions, 'position'>
+    | Omit<AgTimeAxisOptions, 'position'>;
 export type AgBaseSparklinePresetThemeOptions = Pick<
     AgCartesianChartOptions,
     | 'background'
@@ -72,8 +92,10 @@ export type AgBaseSparklinePresetThemeOptions = Pick<
     | 'padding'
     | 'width'
     | 'data'
-    | 'axes'
->;
+> & {
+    xAxis?: AgSparklineAxisOptions;
+    yAxis?: AgSparklineAxisOptions;
+};
 
 export type AgFinancialChartOptions = AgBaseFinancialPresetOptions & AgFinancialChartPresets;
 
@@ -89,12 +111,12 @@ export interface AgBaseSparklinePresetOptions extends AgBaseSparklinePresetTheme
     theme?: AgChartTheme | AgChartThemeName;
 }
 
-export type AgSparklineBarOptions = AgBaseSparklinePresetOptions & SparklineBarPreset;
-export type AgSparklineLineOptions = AgBaseSparklinePresetOptions & SparklineLinePreset;
-export type AgSparklineAreaOptions = AgBaseSparklinePresetOptions & SparklineLinePreset;
-export type AgSparklineOptions = AgBaseSparklinePresetOptions & AgBaseSparklinePresetOptions;
+export type AgSparklineBarOptions = AgBaseSparklinePresetOptions & AgSparklineBarPreset;
+export type AgSparklineLineOptions = AgBaseSparklinePresetOptions & AgSparklineLinePreset;
+export type AgSparklineAreaOptions = AgBaseSparklinePresetOptions & AgSparklineAreaPreset;
+export type AgSparklineOptions = AgBaseSparklinePresetOptions & AgSparklinePresets;
 
-export type AgPresetOptions = AgFinancialChartOptions | AgGaugeOptions;
+export type AgPresetOptions = AgFinancialChartOptions | AgGaugeOptions | AgSparklineOptions;
 
 export type AgChartInstanceOptions = AgChartOptions | AgPresetOptions;
 

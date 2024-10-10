@@ -1,4 +1,5 @@
 import type {
+    AgAnnotationsOptions,
     AgBarSeriesItemStylerParams,
     AgBarSeriesOptions,
     AgBaseFinancialPresetOptions,
@@ -102,6 +103,16 @@ export function priceVolume(
             enabled: navigator,
             ...miniChart,
         } satisfies AgNavigatorOptions,
+    };
+
+    const annotationOpts = {
+        annotations: {
+            enabled: toolbar,
+            // @ts-expect-error
+            data,
+            xKey: dateKey,
+            volumeKey: volume ? volumeKey : undefined,
+        } satisfies AgAnnotationsOptions,
     };
 
     const statusBarOpts = statusBar
@@ -222,11 +233,9 @@ export function priceVolume(
                 },
             },
         ],
-        annotations: {
-            enabled: toolbar,
-        },
         tooltip: { enabled: false },
         data,
+        ...annotationOpts,
         ...navigatorOpts,
         ...statusBarOpts,
         ...zoomOpts,

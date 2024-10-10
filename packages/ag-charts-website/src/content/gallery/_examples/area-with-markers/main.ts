@@ -55,7 +55,6 @@ const options: AgChartOptions = {
             type: 'category',
             position: 'bottom',
             label: {
-                autoRotate: false,
                 rotation: -90,
             },
             crossLines: [

@@ -36,7 +36,6 @@ const options: AgChartOptions = {
     axes: [
         {
             type: 'radius-number',
-            innerRadiusRatio: 0,
             crossLines: [
                 {
                     type: 'range',
