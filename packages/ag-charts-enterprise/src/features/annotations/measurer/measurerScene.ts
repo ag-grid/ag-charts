@@ -235,7 +235,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     private updateStatistics(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4, context: AnnotationContext) {
         const point = Vec2.add(Vec4.bottomCenter(coords), Vec2.from(0, 10));
-        const statistics: Statistics = { volume: this.getVolume() };
+        const statistics: Statistics = { volume: this.getVolume(datum) };
 
         if (datum.hasPriceRange) {
             statistics.priceRange = {
@@ -362,8 +362,8 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         return datum.end.y - datum.start.y;
     }
 
-    private getVolume() {
-        return 0;
+    private getVolume(datum: MeasurerTypeProperties) {
+        return datum.getVolume?.(datum.start.x, datum.end.x);
     }
 }
 

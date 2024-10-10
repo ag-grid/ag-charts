@@ -207,7 +207,7 @@ export function Localisable<T extends Constructor>(Parent: T) {
         localeManager?: _ModuleSupport.ModuleContext['localeManager'];
 
         setLocaleManager(localeManager: _ModuleSupport.ModuleContext['localeManager']) {
-            this.localeManager = localeManager;
+            this.localeManager ??= localeManager;
         }
     }
     return LocalisableInternal;
