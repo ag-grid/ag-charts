@@ -188,8 +188,8 @@ export const LABEL_PLACEMENT = UNION(['top', 'bottom', 'left', 'right']);
 export function UNION(options: (string | UnionOption)[], message: string = 'a') {
     return predicateWithMessage(
         (v: any, ctx) => {
-            const option = options.find((option) => {
-                const value = typeof option === 'string' ? option : option.value;
+            const option = options.find((o) => {
+                const value = typeof o === 'string' ? o : o.value;
                 return v === value;
             });
             if (option == null) return false;
