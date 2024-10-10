@@ -43,17 +43,21 @@ export class LineWithTextScene {
         const { point, textBaseline } = LineWithTextScene.positionAndAlignment(numbers, position, alignment);
         LineWithTextScene.setProperties(this.text, datum.text, point, numbers.angle, textBaseline);
 
+        const { x, y, width, height } = this.text.getBBox();
+        const diameter = Vec2.length(Vec2.from(width, height));
+        const clipMask = {
+            x: x + width / 2,
+            y: y + height / 2,
+            radius: diameter / 2 + Vec2.length(numbers.offset),
+        };
+
         if (position === 'center') {
-            const { x, y, width, height } = this.text.getBBox();
-            const diameter = Vec2.length(Vec2.from(width, height));
-            line.setClipMask({
-                x: x + width / 2,
-                y: y + height / 2,
-                radius: diameter / 2 + Vec2.length(numbers.offset),
-            });
+            line.setClipMask(clipMask);
         } else {
             line.setClipMask();
         }
+
+        return { clipMask, numbers };
     }
 
     static updateChannelText<Datum extends { strokeWidth?: number; text?: ChannelTextProperties }>(
