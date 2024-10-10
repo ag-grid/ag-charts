@@ -212,7 +212,7 @@
     }
 }
 
-.itemIcon {
+.itemIcon:global(.icon) {
     fill: var(--color-fg-secondary);
     margin-right: $spacing-size-2;
     transition: fill $transition-default-timing;
@@ -223,7 +223,7 @@
     }
 }
 
-.enterpriseIcon {
+.enterpriseIcon:global(.icon) {
     width: $spacing-size-5;
     height: $spacing-size-5;
     margin-left: $spacing-size-1;
