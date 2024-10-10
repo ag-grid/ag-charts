@@ -178,13 +178,13 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         const isEnterprise = moduleRegistry.hasEnterpriseModules();
         const overrideOptions: Partial<AgChartOptions> = {};
-        const processedOptions = chart.chartOptions.getOptions();
+        const userOptions = chart.getOptions();
 
         if (isEnterprise) {
             // Disable enterprise features that may interfere with image generation.
             overrideOptions.animation = { enabled: false };
 
-            if (isAgCartesianChartOptions(processedOptions)) {
+            if (isAgCartesianChartOptions(userOptions)) {
                 overrideOptions.toolbar = { enabled: false };
             }
 
@@ -217,7 +217,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             specialOverrides.overrideDevicePixelRatio = 1;
         }
 
-        const options: AgChartOptions = mergeDefaults(defaultOpts, overrideOptions, processedOptions);
+        const options: AgChartOptions = mergeDefaults(defaultOpts, overrideOptions, userOptions);
 
         const cloneProxy = await this.factoryApi.create(options, specialOverrides, optionsMetadata);
         await cloneProxy.setState(state);
