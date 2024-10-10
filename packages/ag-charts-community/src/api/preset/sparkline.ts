@@ -172,8 +172,8 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         width,
         theme: baseTheme,
         data,
-        mainAxis,
-        crossAxis,
+        xAxis,
+        yAxis,
         ...optsRest
     } = opts as any as AgBaseSparklinePresetOptions;
     assertEmpty(optsRest);
@@ -193,22 +193,21 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         padding,
         width,
         data,
-        mainAxis: IGNORED_PROP,
-        crossAxis: IGNORED_PROP,
+        xAxis: IGNORED_PROP,
+        yAxis: IGNORED_PROP,
         theme: IGNORED_PROP,
     });
 
     chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME);
     chartOpts.series = [seriesOptions];
-    // @ts-expect-error The types aren't 100% correct here
     chartOpts.axes = swapAxes
         ? [
-              { type: 'number', ...crossAxis, position: 'left' },
-              { type: 'category', ...mainAxis, position: 'bottom' },
+              { type: 'number', ...yAxis, position: 'left' },
+              { type: 'category', ...xAxis, position: 'bottom' },
           ]
         : [
-              { type: 'category', ...mainAxis, position: 'left' },
-              { type: 'number', ...crossAxis, position: 'bottom' },
+              { type: 'category', ...xAxis, position: 'left' },
+              { type: 'number', ...yAxis, position: 'bottom' },
           ];
 
     return chartOpts;

@@ -19,7 +19,8 @@ const DEFAULT_HEIGHT = 500;
 const { exampleHeight = DEFAULT_HEIGHT, exampleWidth, pageName, exampleName, isInline } = Astro.props as Props;
 const FRAME_WRAPPER_HEIGHT = isInline ? 42 + 16 : 0;
 
-const minHeight = exampleHeight + FRAME_WRAPPER_HEIGHT;
+const height = exampleHeight + FRAME_WRAPPER_HEIGHT;
+const codeHeight = Math.max(DEFAULT_HEIGHT + FRAME_WRAPPER_HEIGHT, height);
 const maxWidth = exampleWidth;
 const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
 ---
@@ -32,7 +33,11 @@ const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
             isInline,
         },
     ]}
-    style={{ minHeight: `${minHeight}px`, maxWidth: maxWidth != null ? `${maxWidth}px` : undefined }}
+    style={{
+        '--height': `${height}px`,
+        '--code-height': `${codeHeight}px`,
+        '--max-width': maxWidth != null ? `${maxWidth}px` : undefined,
+    }}
 >
     <LoadingLogo id={loadingLogoId} />
     <slot />
@@ -43,6 +48,8 @@ const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
 
     .container {
         position: relative;
+        height: var(--height);
+        max-width: var(--max-width);
 
         :global(.logomark) {
             position: absolute;
@@ -50,6 +57,10 @@ const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
             left: 50%;
             transform: translate(-50%, -100%) scale(2);
         }
+    }
+
+    .container:has([data-mode='code']) {
+        height: var(--code-height);
     }
 
     .isInline {

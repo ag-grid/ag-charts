@@ -98,3 +98,50 @@ In this configuration:
 -   `data` defines the [chart data](./quick-start).
 -   `xKey` defines the categories, and is mapped to the [Category Axis](./axes-types/#category).
 -   `yKey` provides the numerical values, corresponding to the [Number Axis](./axes-types/#number).
+
+## Customisation
+
+### Series
+
+{% chartExampleRunner title="Customised Sparkline" name="customised-sparkline" type="generated" options={ "exampleHeight": 100 } /%}
+
+```js
+{
+    type: 'bar',
+    fill: '#5C6BC0',
+    cornerRadius: 3,
+}
+```
+
+Each of the Bar, Line, and Area Sparklines can be customised using the associated series options. Unlike the default chart, there is no array of series. Instead, the series options are put at the top level. See the documentation for [Bar Series](./bar-series), [Line Series](./line-series), and [Area Series](./area-series).
+
+### Axes
+
+{% chartExampleRunner title="Sparkline Axes" name="sparkline-axes" type="generated" options={ "exampleHeight": 100 } /%}
+
+```js
+{
+
+    xAxis: {
+        type: 'time',
+        interval: {
+            step: time.month,
+        },
+        gridLine: {
+            enabled: true,
+        },
+    },
+    yAxis: {
+        min: 125,
+        max: 150,
+    },
+}
+```
+
+In this configuration:
+
+-   `xAxis` and `yAxis` are axis configurations as documented in [Axis Types](./axes-types)
+
+{% note %}
+When using `direction: 'horizontal'` on the Bar Series, the x- and y- axes are flipped so `xAxis` always corresponds to the categories and `yAxis` always corresponds to the values.
+{% /note %}

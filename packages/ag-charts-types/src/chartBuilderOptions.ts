@@ -16,7 +16,16 @@ import type {
     AgSparklineLinePreset,
     AgSparklinePresets,
 } from './presets/sparkline/sparklineOptions';
-import type { AgBaseCartesianChartOptions, AgCartesianAxisOptions } from './series/cartesian/cartesianOptions';
+import type {
+    AgBaseCartesianChartOptions,
+    AgCartesianAxisOptions,
+    AgCategoryAxisOptions,
+    AgGroupedCategoryAxisOptions,
+    AgLogAxisOptions,
+    AgNumberAxisOptions,
+    AgOrdinalTimeAxisOptions,
+    AgTimeAxisOptions,
+} from './series/cartesian/cartesianOptions';
 import type { AgBaseFlowProportionChartOptions } from './series/flow-proportion/flowProportionOptions';
 import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from './series/polar/polarOptions';
@@ -65,6 +74,13 @@ export type AgBaseFinancialPresetOptions = Pick<
     'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title' | 'initialState' | 'data'
 >;
 
+export type AgSparklineAxisOptions =
+    | Omit<AgNumberAxisOptions, 'position'>
+    | Omit<AgLogAxisOptions, 'position'>
+    | Omit<AgCategoryAxisOptions, 'position'>
+    | Omit<AgOrdinalTimeAxisOptions, 'position'>
+    | Omit<AgGroupedCategoryAxisOptions, 'position'>
+    | Omit<AgTimeAxisOptions, 'position'>;
 export type AgBaseSparklinePresetThemeOptions = Pick<
     AgCartesianChartOptions,
     | 'background'
@@ -78,8 +94,8 @@ export type AgBaseSparklinePresetThemeOptions = Pick<
     | 'width'
     | 'data'
 > & {
-    mainAxis?: Omit<AgCartesianAxisOptions, 'position'>;
-    crossAxis?: Omit<AgCartesianAxisOptions, 'position'>;
+    xAxis?: AgSparklineAxisOptions;
+    yAxis?: AgSparklineAxisOptions;
 };
 
 export type AgFinancialChartOptions = AgBaseFinancialPresetOptions & AgFinancialChartPresets;

@@ -1,6 +1,7 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from 'ag-charts-types';
 
 import type { DOMManager } from '../../dom/domManager';
+import { enterpriseModule } from '../../module/enterpriseModule';
 import { setAttribute } from '../../util/attributeUtil';
 import { clamp } from '../../util/number';
 import { type Bounds, calculatePlacement } from '../../util/placement';
@@ -396,7 +397,13 @@ export class Tooltip extends BaseProperties {
                 return bounds;
             }
             case 'sparkline': {
-                bounds.top = yOffset - tooltipHeight - 8;
+                if (enterpriseModule.isEnterprise) {
+                    // Crosslines enabled
+                    bounds.top = yOffset - tooltipHeight - 8;
+                } else {
+                    // No cross lines
+                    bounds.top = meta.offsetY + yOffset - tooltipHeight - 8;
+                }
                 bounds.left = meta.offsetX + xOffset - tooltipWidth / 2;
                 return bounds;
             }
