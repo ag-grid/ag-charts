@@ -124,6 +124,7 @@ export interface AnnotationAxisContext
         | 'continuous'
         | 'direction'
         | 'position'
+        | 'scale'
         | 'scaleBandwidth'
         | 'scaleConvert'
         | 'scaleDomain'
