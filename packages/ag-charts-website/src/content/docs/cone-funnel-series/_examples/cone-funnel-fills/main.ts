@@ -19,7 +19,7 @@ const options: AgChartOptions = {
             type: 'cone-funnel',
             stageKey: 'group',
             valueKey: 'value',
-            fills: ['#9FA8DA', '#7986CB', '#5C6BC0'],
+            fills: ['#5090DC', '#FFA03A', '#459D55'],
         },
     ],
 };

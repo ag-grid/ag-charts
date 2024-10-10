@@ -3,7 +3,8 @@ title: 'Funnel Series'
 description: '$framework Funnel Series shows the change of a value over a set of processes.'
 ---
 
-A Funnel Series shows the change of a value over a set of processes.
+A Funnel Series illustrates how a value changes during a process, with bar widths representing the value at each stage
+and drop-offs denoting the change between them.
 
 ## Simple Funnel
 
@@ -23,8 +24,8 @@ series: [
 
 In this configuration:
 
--   `stageKey` defines the categories, and is mapped to the stages of the funnel.
--   `valueKey` provides the numerical values, corresponding values of each stage.
+-   `stageKey` defines the stages which are used for the bars of the funnel.
+-   `valueKey` provides the numerical values which determine the width of each bar.
 
 ## Horizontal Funnel
 
@@ -54,17 +55,21 @@ To disable the drop offs, set `enabled` to `false` in the `dropOff` configuratio
 }
 ```
 
-## Funnel Fills
+## Customisation
 
 {% chartExampleRunner title="Funnel Fills" name="funnel-fills" type="generated" /%}
 
-The colours in a Funnel Series can be customised with the `fills` property.
-
 ```js
 {
-    fills: ['#5C6BC0', '#3F51B5', '#303F9F', '#1A237E'],
+    fills: ["#5090DC", "#FFA03A", "#459D55", "#34BFE1"],
 }
 ```
+
+In this configuration:
+
+-   The fills for each stage are defined in the `fills` array.
+-   The drop offs use an opacity of the same fills. This can be changed in [the drop off options](#reference-AgFunnelSeriesOptions-dropOff).
+-   The Funnel Series is reversed by providing the data items in the reverse order.
 
 ## API Reference
 

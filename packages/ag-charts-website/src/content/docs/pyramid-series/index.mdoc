@@ -3,7 +3,7 @@ title: 'Pyramid Series'
 description: '$framework Pyramid Series uses the height of sections to show the proportions of a value over a category of values.'
 ---
 
-A Pyramid Series uses the height of sections to show the proportions of a value over a category of values.
+A Pyramid Series is a triangular shaped visualization that uses the height of each segment to represent its value as a proportion of the whole.
 
 ## Simple Pyramid
 
@@ -23,8 +23,8 @@ series: [
 
 In this configuration:
 
--   `stageKey` defines the categories, and is mapped to the stages of the pyramid.
--   `valueKey` provides the numerical values, corresponding values of each stage.
+-   `stageKey` defines the categories, each of which is mapped to segments in the pyramid.
+-   `valueKey` provides the numerical values, determining the height of each segment.
 
 ## Horizontal Pyramid
 
@@ -50,7 +50,9 @@ To reverse a Pyramid Series, set `reverse` to `true`.
 }
 ```
 
-## Pyramid Fills
+## Customisation
+
+### Fills
 
 {% chartExampleRunner title="Pyramid Fills" name="pyramid-fills" type="generated" /%}
 
@@ -58,9 +60,13 @@ The colours in a Pyramid Series can be customised with the `fills` property.
 
 ```js
 {
-    fills: ['#5C6BC0', '#3F51B5', '#303F9F', '#1A237E'],
+    fills: ['#5090DC', '#FFA03A', '#459D55', '#34BFE1'],
 }
 ```
+
+### Shape
+
+The shape of the triangle can be set using the `aspectRatio` property.
 
 ## API Reference
 
