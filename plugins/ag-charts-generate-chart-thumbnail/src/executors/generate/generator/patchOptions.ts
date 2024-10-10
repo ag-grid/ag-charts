@@ -32,6 +32,13 @@ export function patchOptions(
                     },
                 },
             },
+            'radial-gauge': multiple
+                ? {
+                      label: {
+                          fontSize: 36,
+                      },
+                  }
+                : {},
         },
     } as AgChartTheme;
 
@@ -45,10 +52,6 @@ export function patchOptions(
         (options as any).targets?.forEach((target) => {
             delete target.text;
         });
-        (options as any).label = {
-            ...(options as any).label,
-            fontSize: 36,
-        };
     }
 
     if (multiple) {
