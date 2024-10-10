@@ -64,7 +64,7 @@ const options: AgChartOptions = {
                 },
                 total: {
                     label: {
-                        placement: 'inside',
+                        placement: 'inside-center',
                         fontSize: 11,
                         formatter: ({ value }) => `↓${Math.abs(value)}`,
                     },
