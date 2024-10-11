@@ -1330,6 +1330,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (translation.x || translation.y) {
             state.transition('translate', { translation, context });
+
+            sourceEvent.stopPropagation();
+            sourceEvent.preventDefault();
         }
 
         if (!ctrlMeta) {
