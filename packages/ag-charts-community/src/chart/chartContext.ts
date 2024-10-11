@@ -102,7 +102,7 @@ export class ChartContext implements ModuleContext {
         this.gestureDetector = new GestureDetector(this.domManager);
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(this.localeManager, this.domManager);
-        this.historyManager = new HistoryManager(this.domManager);
+        this.historyManager = new HistoryManager(this.keyNavManager);
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.animationManager);
         this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip);
@@ -113,6 +113,7 @@ export class ChartContext implements ModuleContext {
     destroy() {
         // chart.ts handles the destruction of the scene.
         this.animationManager.destroy();
+        this.highlightManager.destroy();
         this.axisManager.destroy();
         this.callbackCache.invalidateCache();
         this.chartEventManager.destroy();

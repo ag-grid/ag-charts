@@ -80,6 +80,18 @@ test.describe('keyboard-nav', () => {
                 await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
                     '3rd-datum-3rd-series-focus-highlight.png'
                 );
+
+                await page.mouse.move(547, 310);
+                await page.mouse.click(547, 310, { button: 'left' });
+                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
+                    'nofocus-4th-datum-2nd-series-highlight.png'
+                );
+
+                await page.keyboard.press('ArrowRight');
+                await page.keyboard.press('ArrowLeft');
+                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
+                    '3rd-datum-3rd-series-focus-highlight.png'
+                );
             });
         });
     }
