@@ -82,7 +82,6 @@ export class LayerNew extends Group {
         }
 
         if (isDirty || isChildDirty || isChildLayerDirty || forceRender) {
-            console.log('Render layer');
             if (forceRender) {
                 this.layer.clear();
             }
@@ -92,9 +91,6 @@ export class LayerNew extends Group {
                 ctx: this.layer.context,
                 forceRender,
             };
-
-            console.log(layerRenderCtx);
-            console.log(this.layer);
 
             super.render(layerRenderCtx, false);
 
