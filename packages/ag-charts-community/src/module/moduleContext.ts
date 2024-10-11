@@ -62,6 +62,8 @@ export interface ModuleContext {
     readonly toolbarManager: ToolbarManager;
     readonly tooltipManager: TooltipManager;
     readonly zoomManager: ZoomManager;
+
+    readonly removeMeAboveOverlayRoot: Group;
 }
 
 export interface ModuleContextWithParent<P> extends ModuleContext {

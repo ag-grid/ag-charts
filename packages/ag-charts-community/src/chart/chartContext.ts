@@ -64,6 +64,8 @@ export class ChartContext implements ModuleContext {
     tooltipManager: TooltipManager;
     updateService: UpdateService;
 
+    removeMeAboveOverlayRoot: Group;
+
     constructor(
         chart: ChartService & { annotationRoot: Group; keyboard: Keyboard; tooltip: Tooltip },
         vars: {
@@ -93,7 +95,7 @@ export class ChartContext implements ModuleContext {
         this.scene.setRoot(root);
 
         this.backgroundRoot = chart.backgroundRoot;
-        this.axisManager = new AxisManager(root);
+        this.axisManager = new AxisManager(chart.axisRoot);
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
         this.cursorManager = new CursorManager(this.domManager);
         this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
@@ -108,6 +110,8 @@ export class ChartContext implements ModuleContext {
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.animationManager);
         this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip);
+
+        this.removeMeAboveOverlayRoot = chart.removeMeAboveOverlayRoot;
 
         this.zoomManager.addLayoutListeners(this.layoutManager);
     }

@@ -116,8 +116,11 @@ export abstract class Chart extends Observable {
 
     className?: string;
 
-    readonly backgroundRoot = new Group({ name: 'background' });
+    readonly backgroundRoot = new Group({ name: 'background-root' });
+    readonly axisRoot = new TranslatableGroup({ name: `${this.id}-axis-root` });
     readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root` });
+    // Only used in StatusBar, needs refactoring
+    readonly removeMeAboveOverlayRoot = new TranslatableGroup({ name: `${this.id}-overlay-root` });
     readonly highlightRoot = new TranslatableLayer({
         name: `${this.id}-highlight-root`,
         zIndex: ZIndexMap.SERIES_HIGHLIGHT,
@@ -264,8 +267,10 @@ export abstract class Chart extends Observable {
         // (before first layout is performed).
         root.visible = false;
         root.append(this.backgroundRoot);
-        root.append(titleGroup);
+        root.append(this.axisRoot);
         root.append(this.seriesRoot);
+        root.append(this.removeMeAboveOverlayRoot);
+        root.append(titleGroup);
         root.append(this.highlightRoot);
         root.append(this.annotationRoot);
 
