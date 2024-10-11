@@ -119,8 +119,6 @@ export abstract class Chart extends Observable {
     readonly backgroundRoot = new Group({ name: 'background-root' });
     readonly axisRoot = new TranslatableGroup({ name: `${this.id}-axis-root` });
     readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root` });
-    // Only used in StatusBar, needs refactoring
-    readonly removeMeAboveOverlayRoot = new TranslatableGroup({ name: `${this.id}-overlay-root` });
     readonly highlightRoot = new TranslatableLayer({
         name: `${this.id}-highlight-root`,
         zIndex: ZIndexMap.SERIES_HIGHLIGHT,
@@ -130,6 +128,7 @@ export abstract class Chart extends Observable {
         name: `${this.id}-annotation-root`,
         zIndex: ZIndexMap.SERIES_ANNOTATION,
     });
+    private readonly titleGroup = new Group({ name: 'titles', zIndex: ZIndexMap.SERIES_LABEL });
 
     readonly tooltip: Tooltip;
     readonly overlays: ChartOverlays;
@@ -262,21 +261,19 @@ export abstract class Chart extends Observable {
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
 
         const root = new Group({ name: 'root' });
-        const titleGroup = new Group({ name: 'titles', zIndex: ZIndexMap.SERIES_LABEL });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;
         root.append(this.backgroundRoot);
         root.append(this.axisRoot);
         root.append(this.seriesRoot);
-        root.append(this.removeMeAboveOverlayRoot);
-        root.append(titleGroup);
+        root.append(this.titleGroup);
         root.append(this.highlightRoot);
         root.append(this.annotationRoot);
 
-        titleGroup.append(this.title.node);
-        titleGroup.append(this.subtitle.node);
-        titleGroup.append(this.footnote.node);
+        this.titleGroup.append(this.title.node);
+        this.titleGroup.append(this.subtitle.node);
+        this.titleGroup.append(this.footnote.node);
 
         this.tooltip = new Tooltip();
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.highlightRoot, this.annotationRoot);
@@ -359,6 +356,15 @@ export abstract class Chart extends Observable {
         );
 
         this.parentResize(ctx.domManager.containerSize);
+    }
+
+    removeMeMoveTitleNode(toLayer: Group | undefined) {
+        const titleNode = this.title.node;
+        const target = toLayer ?? this.titleGroup;
+
+        if (titleNode.parentNode !== target) {
+            target.appendChild(titleNode);
+        }
     }
 
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {

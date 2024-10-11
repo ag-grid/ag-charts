@@ -64,10 +64,8 @@ export class ChartContext implements ModuleContext {
     tooltipManager: TooltipManager;
     updateService: UpdateService;
 
-    removeMeAboveOverlayRoot: Group;
-
     constructor(
-        chart: ChartService & { annotationRoot: Group; keyboard: Keyboard; tooltip: Tooltip },
+        private readonly chart: ChartService & { annotationRoot: Group; keyboard: Keyboard; tooltip: Tooltip },
         vars: {
             scene?: Scene;
             root: Group;
@@ -111,8 +109,6 @@ export class ChartContext implements ModuleContext {
         this.dataService = new DataService<any>(this.animationManager);
         this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip);
 
-        this.removeMeAboveOverlayRoot = chart.removeMeAboveOverlayRoot;
-
         this.zoomManager.addLayoutListeners(this.layoutManager);
     }
 
@@ -133,5 +129,9 @@ export class ChartContext implements ModuleContext {
         this.syncManager.destroy();
         this.tooltipManager.destroy();
         this.zoomManager.destroy();
+    }
+
+    removeMeMoveChartTitleNode(toGroup: Group | undefined) {
+        this.chart.removeMeMoveTitleNode(toGroup);
     }
 }

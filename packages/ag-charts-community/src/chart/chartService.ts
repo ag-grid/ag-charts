@@ -15,5 +15,5 @@ export interface ChartService {
     readonly seriesRoot: Group;
     readonly publicApi?: AgChartInstance;
 
-    readonly removeMeAboveOverlayRoot: Group;
+    removeMeMoveTitleNode(toLayer: Group | undefined): void;
 }

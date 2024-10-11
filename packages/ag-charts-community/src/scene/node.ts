@@ -82,8 +82,8 @@ export abstract class Node {
     protected _dirty: RedrawType = RedrawType.MAJOR;
     protected dirtyZIndex: boolean = false;
 
+    parentNode?: Node;
     private childNodes?: Set<Node>;
-    private parentNode?: Node;
     private virtualChildrenCount: number = 0;
 
     private cachedBBox?: BBox;

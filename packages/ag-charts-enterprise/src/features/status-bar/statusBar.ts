@@ -118,11 +118,12 @@ export class StatusBar
     data?: any[] = undefined;
 
     private readonly highlightManager: _ModuleSupport.HighlightManager;
-    private readonly labelGroup = new _Scene.TranslatableLayer({
+    private readonly layer = new _Scene.Layer({
         name: 'StatusBar',
         zIndex: ZIndexMap.STATUS_BAR,
     });
-    private readonly backgroundNode = new Rect();
+    private readonly labelGroup = this.layer.appendChild(new _Scene.TranslatableGroup());
+    private readonly backgroundNode = this.labelGroup.appendChild(new Rect());
     private readonly labels = [
         {
             label: 'O',
@@ -252,18 +253,12 @@ export class StatusBar
     public constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        const { removeMeAboveOverlayRoot } = ctx;
-
         this.highlightManager = ctx.highlightManager;
 
         this.labelGroup.visible = false;
-        this.backgroundNode.visible = false;
-
-        removeMeAboveOverlayRoot.append(this.backgroundNode);
 
         this.destroyFns.push(
-            () => this.backgroundNode.remove(),
-            ctx.scene.attachNode(this.labelGroup),
+            ctx.scene.attachNode(this.layer),
             ctx.layoutManager.registerElement(LayoutElement.Overlay, (e) => this.startPerformLayout(e)),
             ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.highlightManager.addListener('highlight-change', () => this.updateHighlight())
@@ -388,8 +383,8 @@ export class StatusBar
             left += maxValueWidth + outerSpacing;
         }
 
-        this.backgroundNode.x = this.labelGroup.translationX;
-        this.backgroundNode.y = this.labelGroup.translationY;
+        this.backgroundNode.x = 0;
+        this.backgroundNode.y = 0;
         this.backgroundNode.width = left - outerSpacing;
         this.backgroundNode.height = lineHeight + spacingAbove + spacingBelow;
         this.backgroundNode.fill = this.background.fill;
@@ -398,7 +393,6 @@ export class StatusBar
 
     private onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
         this.labelGroup.translationX = opts.series.rect.x;
-        this.backgroundNode.x = this.labelGroup.translationX;
 
         this.updateHighlight();
     }
@@ -410,13 +404,13 @@ export class StatusBar
         const datum = activeHighlight?.datum ?? this.data?.at(-1);
 
         if (datum == null) {
+            this.ctx.removeMeMoveChartTitleNode(undefined);
             this.labelGroup.visible = false;
-            this.backgroundNode.visible = false;
             return;
         }
 
+        this.ctx.removeMeMoveChartTitleNode(this.layer);
         this.labelGroup.visible = true;
-        this.backgroundNode.visible = true;
 
         const itemId = activeHighlight?.itemId;
 

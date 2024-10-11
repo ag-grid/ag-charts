@@ -63,7 +63,7 @@ export interface ModuleContext {
     readonly tooltipManager: TooltipManager;
     readonly zoomManager: ZoomManager;
 
-    readonly removeMeAboveOverlayRoot: Group;
+    removeMeMoveChartTitleNode(toGroup: Group | undefined): void;
 }
 
 export interface ModuleContextWithParent<P> extends ModuleContext {
