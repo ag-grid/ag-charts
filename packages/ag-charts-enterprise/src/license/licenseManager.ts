@@ -186,14 +186,14 @@ export class LicenseManager {
     }
 
     public getWatermarkMessage(): string {
-        return this.watermarkMessage || '';
+        return this.watermarkMessage ?? '';
     }
 
     private getHostname(): string {
         if (!this.document) {
             return 'localhost';
         }
-        const win = this.document.defaultView || window;
+        const win = this.document.defaultView ?? window;
         if (!win) {
             return 'localhost';
         }
