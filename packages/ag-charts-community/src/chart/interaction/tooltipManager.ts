@@ -3,8 +3,7 @@ import { Transformable } from '../../scene/transformable';
 import { StateTracker } from '../../util/stateTracker';
 import type { SeriesTooltip } from '../series/seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
-import type { Tooltip, TooltipContent, TooltipMeta } from '../tooltip/tooltip';
-import { type TooltipPointerEvent } from '../tooltip/tooltip';
+import type { Tooltip, TooltipContent, TooltipMeta, TooltipPointerEvent } from '../tooltip/tooltip';
 
 interface TooltipState {
     content?: TooltipContent;

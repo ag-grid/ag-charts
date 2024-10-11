@@ -1,6 +1,7 @@
 import type {
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
+    AgChartOptions,
     AgFlowProportionChartOptions,
     AgFlowProportionSeriesOptions,
     AgGaugeChartOptions,
@@ -14,7 +15,6 @@ import type {
     AgTopologyChartOptions,
     AgTopologySeriesOptions,
 } from 'ag-charts-types';
-import type { AgChartOptions } from 'ag-charts-types';
 
 import { Logger } from '../../util/logger';
 import { axisRegistry } from '../factory/axisRegistry';
