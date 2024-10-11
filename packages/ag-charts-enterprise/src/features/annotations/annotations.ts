@@ -129,8 +129,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
 
-    private removeAmbientKeyboardListener?: () => void = undefined;
-
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
         this.state = this.setupStateMachine();
@@ -139,6 +137,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         // Add originators to the history only when this module is enabled to prevent memory increases
         this.ctx.historyManager.addMementoOriginator(ctx.annotationManager);
         this.ctx.historyManager.addMementoOriginator(this.defaults);
+        this.textInput.setKeyDownHandler(this.onTextInput.bind(this));
     }
 
     private setupStateMachine() {
@@ -482,11 +481,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('drag-start', this.onDragStart.bind(this), annotationsState),
             seriesRegion.addListener('drag', this.onDrag.bind(this), annotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
-            ctx.interactionManager.addListener(
-                'keydown',
-                this.onTextInput.bind(this),
-                AnnotationsState | AnnotationsSelected
-            ),
             ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), All),
             ctx.interactionManager.addListener('keyup', this.onKeyUp.bind(this), All),
             ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
@@ -510,8 +504,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     override destroy(): void {
         super.destroy();
-        this.removeAmbientKeyboardListener?.();
-        this.removeAmbientKeyboardListener = undefined;
     }
 
     async processData(dataController: _ModuleSupport.DataController) {
@@ -569,10 +561,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.injectDatumDependencies(datum);
         this.resetToolbarButtonStates();
-
-        this.removeAmbientKeyboardListener?.();
-        this.removeAmbientKeyboardListener = undefined;
-
         this.update();
     }
 
@@ -960,25 +948,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.beginAnnotationPlacement(item.value);
         this.annotationMenu.hide();
-
-        this.removeAmbientKeyboardListener?.();
-        this.removeAmbientKeyboardListener = this.ctx.interactionManager.addListener(
-            'keydown',
-            (e) => this.handleAmbientKeyboardEvent(e),
-            InteractionState.All
-        );
-    }
-
-    private handleAmbientKeyboardEvent(e: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
-        if (e.sourceEvent.key !== 'Escape') return;
-
-        this.cancelPlacementInteraction();
-
-        e.preventDefault();
-        e.sourceEvent.stopPropagation();
-
-        this.removeAmbientKeyboardListener?.();
-        this.removeAmbientKeyboardListener = undefined;
     }
 
     private onToolbarCancelled(event: _ModuleSupport.ToolbarCancelledEvent) {
@@ -1278,13 +1247,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.update();
     }
 
-    private onTextInput(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
+    private onTextInput(event: KeyboardEvent) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const { key, shiftKey } = event.sourceEvent;
+        const { key, shiftKey } = event;
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 

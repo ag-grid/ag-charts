@@ -36,6 +36,11 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, moduleId));
     }
 
+    public setKeyDownHandler(handler: (e: KeyboardEvent) => unknown) {
+        this.element.addEventListener('keydown', handler);
+        this.destroyFns.push(() => this.element.removeEventListener('keydown', handler));
+    }
+
     public show(opts: {
         anchor?: { x: number; y: number };
         text?: string;
