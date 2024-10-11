@@ -81,6 +81,7 @@ export interface AnnotationsStateMachineContext {
     resetToIdle: () => void;
     hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number) => number | undefined;
     getNodeAtCoords: (coords: _ModuleSupport.Vec2, active: number) => string | undefined;
+    getHoverCoords: () => _ModuleSupport.Vec2 | undefined;
     select: (index?: number, previous?: number) => void;
     selectLast: () => number;
 
@@ -148,6 +149,7 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
             setSelectedWithDrag: () => void;
             setSnapping: (snapping: boolean) => void;
             getSnapping: () => boolean;
+            getHoverCoords: () => _ModuleSupport.Vec2 | undefined;
         },
         helpers: AnnotationsStateMachineHelperFns
     ) => _ModuleSupport.StateMachine<any, any>;

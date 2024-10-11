@@ -18,7 +18,7 @@ interface ParallelChannelStateMachineContext extends Omit<AnnotationsStateMachin
 
 export class ParallelChannelStateMachine extends StateMachine<
     'start' | 'end' | 'height',
-    'click' | 'hover' | 'drag' | 'cancel' | 'reset'
+    'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'cancel' | 'reset'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -121,6 +121,8 @@ export class ParallelChannelStateMachine extends StateMachine<
             end: {
                 hover: actionEndUpdate,
                 drag: actionEndUpdate,
+                keyDown: actionEndUpdate,
+                keyUp: actionEndUpdate,
                 click: {
                     guard: ctx.guardDragClickDoubleEvent.guard,
                     target: 'height',
