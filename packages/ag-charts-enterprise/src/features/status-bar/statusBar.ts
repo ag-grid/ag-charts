@@ -257,6 +257,7 @@ export class StatusBar
         this.highlightManager = ctx.highlightManager;
 
         this.labelGroup.visible = false;
+        this.backgroundNode.visible = false;
 
         removeMeAboveOverlayRoot.append(this.backgroundNode);
 
@@ -410,10 +411,12 @@ export class StatusBar
 
         if (datum == null) {
             this.labelGroup.visible = false;
+            this.backgroundNode.visible = false;
             return;
         }
 
         this.labelGroup.visible = true;
+        this.backgroundNode.visible = true;
 
         const itemId = activeHighlight?.itemId;
 
