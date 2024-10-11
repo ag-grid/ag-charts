@@ -120,6 +120,7 @@ export function buildTree(node: Node): BuildTree {
     }
 
     const { parentNode } = node as any;
+    let order = 0;
     return {
         node,
         name: node.name ?? node.id,
@@ -130,7 +131,7 @@ export function buildTree(node: Node): BuildTree {
                   virtualParent: parentNode,
               }
             : {}),
-        ...Array.from(node.children(), (c) => buildTree(c)).reduce<Record<string, {}>>((result, childTree) => {
+        ...Array.from(node.children(false), (c) => buildTree(c)).reduce<Record<string, {}>>((result, childTree) => {
             let { name: treeNodeName } = childTree;
             const {
                 node: {
@@ -155,6 +156,7 @@ export function buildTree(node: Node): BuildTree {
             }
             const subOrder = zIndexSubOrder?.map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v)).join(' / ');
             const key = [
+                `${(order++).toString().padStart(3, '0')}|`,
                 `${treeNodeName ?? '<unknown>'}`,
                 `z: ${zIndex}`,
                 subOrder && `zo: ${subOrder}`,
