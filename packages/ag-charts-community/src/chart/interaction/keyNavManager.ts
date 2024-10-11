@@ -5,8 +5,7 @@ import type {
     InteractionManager,
     KeyInteractionEvent,
 } from './interactionManager';
-import { InteractionState } from './interactionManager';
-import { InteractionStateListener } from './interactionStateListener';
+import { InteractionState, InteractionStateListener } from './interactionStateListener';
 import { type PreventableEvent, dispatchTypedEvent } from './preventableEvent';
 
 export type KeyNavEventType = 'blur' | 'focus' | 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'undo' | 'redo';
