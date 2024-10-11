@@ -138,7 +138,6 @@ test.describe('toolbar', () => {
 
     test('AG-13008 delete annotation', async ({ page }) => {
         await gotoExample(page, url);
-        await locateCanvas(page);
         const point = await canvasToPageTransformer(page);
         const hover = point(200, 200);
         const leave = point(300, 400);
@@ -182,5 +181,25 @@ test.describe('toolbar', () => {
         await page.mouse.click(hover.x, hover.y, { button: 'left' });
         await page.locator(SELECTORS.annotationOptionsDeleteButton).click();
         await expect(page).toHaveScreenshot('delete-annotation-removed-no-crosshair.png', { animations: 'disabled' });
+    });
+
+    test('AG-12695 annotationOptions ignore hovers when dragging annotation', async ({ page }) => {
+        await gotoExample(page, url);
+
+        const [initX, initY] = [400, 300];
+        await page.locator(SELECTORS.lineAnnotationMenu).click();
+        await page.locator(SELECTORS.horizontalLineMenuItem).click();
+        await page.mouse.move(initX, initY);
+        await page.mouse.click(initY, initY, { button: 'left' });
+
+        // AG-13108 annotation dragging is broken unless the mouse moves after creating an annotation.
+        await page.mouse.move(0, 0);
+        await page.mouse.move(initX, initY);
+
+        const bbox = await page.locator(SELECTORS.annotationOptionsSettingsButton).boundingBox();
+        const [dragX, dragY] = [bbox.x + bbox.width / 2, bbox.y + bbox.height / 2];
+        await page.mouse.down({ button: 'left' });
+        await page.mouse.move(dragX, dragY, { steps: 10 });
+        await expect(page).toHaveScreenshot('settings-button-ignored-hover-event.png', { animations: 'disabled' });
     });
 });
