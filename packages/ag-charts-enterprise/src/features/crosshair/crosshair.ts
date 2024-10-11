@@ -65,7 +65,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.axisCtx = ctx.parent;
         this.labels = {};
 
-        const seriesRegion = ctx.regionManager.getRegion('series')!;
+        const seriesRegion = ctx.regionManager.getRegion('series');
         const mouseMoveStates =
             InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
 

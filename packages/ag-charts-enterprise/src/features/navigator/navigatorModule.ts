@@ -11,7 +11,7 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
     themeTemplate: {
         ..._ModuleSupport.NavigatorModule.themeTemplate,
         navigator: {
-            ...(_ModuleSupport.NavigatorModule.themeTemplate as any)?.navigator,
+            ..._ModuleSupport.NavigatorModule.themeTemplate.navigator,
             miniChart: {
                 enabled: false,
                 label: {

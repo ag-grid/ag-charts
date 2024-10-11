@@ -5,7 +5,6 @@ import {
     type FontStyle,
     type FontWeight,
     _ModuleSupport,
-    _Scale,
     _Scene,
     _Util,
 } from 'ag-charts-community';
@@ -789,7 +788,7 @@ export class LinearGaugeSeries
         datumSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => {
-            return createDatumId(opts.nodeData.length, datum.itemId!);
+            return createDatumId(opts.nodeData.length, datum.itemId);
         });
     }
 
@@ -828,7 +827,7 @@ export class LinearGaugeSeries
         scaleSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum>;
     }) {
         return opts.scaleSelection.update(opts.scaleData, undefined, (datum) => {
-            return createDatumId(opts.scaleData.length, datum.itemId!);
+            return createDatumId(opts.scaleData.length, datum.itemId);
         });
     }
 

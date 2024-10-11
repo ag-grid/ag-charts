@@ -1,5 +1,3 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
 import { arrowDownConfig } from './arrow-down/arrowDownConfig';
 import { arrowUpConfig } from './arrow-up/arrowUpConfig';
 import { calloutConfig } from './callout/calloutConfig';

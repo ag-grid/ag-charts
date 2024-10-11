@@ -97,7 +97,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
                 this.append([this.startCap]);
             }
 
-            this.startCap!.update({
+            this.startCap.update({
                 x: start.x,
                 y: start.y,
                 angle: angle - Math.PI,
@@ -113,12 +113,12 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
                 this.endCap = undefined;
             }
 
-            if (this.endCap == null && datum.endCap) {
+            if (this.endCap == null) {
                 this.endCap = new ArrowCapScene();
                 this.append([this.endCap]);
             }
 
-            this.endCap!.update({
+            this.endCap.update({
                 x: end.x,
                 y: end.y,
                 angle,

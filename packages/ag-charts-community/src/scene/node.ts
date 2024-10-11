@@ -46,7 +46,7 @@ export type ChildNodeCounts = {
  * Each node can have zero or one parent and belong to zero or one scene.
  */
 export abstract class Node {
-    static _nextSerialNumber = 0;
+    private static _nextSerialNumber = 0;
 
     static *extractBBoxes(nodes: Iterable<Node>, skipInvisible?: boolean) {
         for (const n of nodes) {

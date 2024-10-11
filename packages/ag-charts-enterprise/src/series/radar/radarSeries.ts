@@ -330,7 +330,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             node.strokeOpacity = marker.strokeOpacity ?? this.properties.strokeOpacity ?? 1;
             node.size = format?.size ?? marker.size;
 
-            const { x, y } = datum.point!;
+            const { x, y } = datum.point;
             node.x = x;
             node.y = y;
             node.visible = visible && node.size > 0 && !isNaN(x) && !isNaN(y);
@@ -573,7 +573,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         let firstValid: RadarNodeDatum | undefined;
 
         data.forEach((datum, index) => {
-            let { x, y } = datum.point!;
+            let { x, y } = datum.point;
 
             const isPointInvalid = isNaN(x) || isNaN(y);
 
@@ -595,7 +595,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         });
 
         if (firstValid !== undefined) {
-            points.push({ x: firstValid.point!.x, y: firstValid.point!.y, moveTo: false });
+            points.push({ x: firstValid.point.x, y: firstValid.point.y, moveTo: false });
         }
 
         return points;

@@ -1,4 +1,4 @@
-import { type TextAlign, _ModuleSupport, _Scene, type _Util } from 'ag-charts-community';
+import { type TextAlign, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { TextWrapper, CachedTextMeasurerPool } = _ModuleSupport;
 const { BBox } = _Scene;

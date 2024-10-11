@@ -193,7 +193,7 @@ export class LicenseManager {
         if (!this.document) {
             return 'localhost';
         }
-        const win = this.document!.defaultView || window;
+        const win = this.document.defaultView || window;
         if (!win) {
             return 'localhost';
         }

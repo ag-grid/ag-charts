@@ -7,7 +7,7 @@ import type {
     AgZoomButtons,
     _Scene,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';

@@ -36,7 +36,7 @@ export function calculateDefaultTimeTickFormat(ticks: any[] = [], domain = ticks
     }
 
     const startYear = new Date(domain[0]).getFullYear();
-    const stopYear = new Date(domain.at(-1)!).getFullYear();
+    const stopYear = new Date(domain.at(-1)).getFullYear();
     const yearChange = stopYear - startYear > 0;
     const timeFormat = isFinite(minInterval)
         ? getIntervalLowestGranularityFormat(minInterval, ticks)
@@ -99,7 +99,7 @@ function hasDuplicateMonth(ticks: any[]) {
 
 function formatStringBuilder(defaultTimeFormat: DefaultTimeFormats, yearChange: boolean, ticks: any[]): string {
     const firstTick = dateToNumber(ticks[0]);
-    const lastTick = dateToNumber(ticks.at(-1)!);
+    const lastTick = dateToNumber(ticks.at(-1));
     const extent = Math.abs(lastTick - firstTick);
 
     const activeYear = yearChange || defaultTimeFormat === DefaultTimeFormats.YEAR;

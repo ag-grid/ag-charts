@@ -274,10 +274,10 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         let targetElement;
 
         if ('relatedTarget' in event && event['relatedTarget'] instanceof HTMLElement) {
-            relatedElement = event['relatedTarget'] as HTMLElement;
+            relatedElement = event['relatedTarget'];
         }
         if ('target' in event && event['target'] instanceof HTMLElement) {
-            targetElement = event['target'] as HTMLElement;
+            targetElement = event['target'];
         }
 
         return { relatedElement, targetElement };

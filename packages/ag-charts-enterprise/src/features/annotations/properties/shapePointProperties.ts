@@ -1,5 +1,3 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
 import { Fill } from '../annotationProperties';
 import { type AnnotationOptionsColorPickerType } from '../annotationTypes';
 import { PointProperties } from './pointProperties';
