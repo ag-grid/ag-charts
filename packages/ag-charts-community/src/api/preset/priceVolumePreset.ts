@@ -349,7 +349,7 @@ function createPriceSeries(
                 } satisfies AgLineSeriesOptions,
             ];
 
-        case 'hlc':
+        case 'hlc': {
             const rangeAreaColors = getThemeColors(RANGE_AREA_TYPE, theme);
 
             return [
@@ -388,7 +388,8 @@ function createPriceSeries(
                     marker: fromTheme(theme, (t) => t.overrides?.line?.series?.marker) ?? { enabled: false },
                 } satisfies AgLineSeriesOptions,
             ];
-        case 'high-low':
+        }
+        case 'high-low': {
             const rangeBarColors = getThemeColors('range-bar', theme);
 
             return [
@@ -407,6 +408,7 @@ function createPriceSeries(
                     },
                 } satisfies AgRangeBarSeriesOptions,
             ];
+        }
         case 'candlestick':
             return [
                 {
@@ -417,7 +419,7 @@ function createPriceSeries(
                     ...keys,
                 } satisfies AgCandlestickSeriesOptions,
             ];
-        case 'hollow-candlestick':
+        case 'hollow-candlestick': {
             const item = fromTheme(theme, (t) => t.overrides?.candlestick?.series?.item);
             return [
                 {
@@ -433,6 +435,7 @@ function createPriceSeries(
                     },
                 } satisfies AgCandlestickSeriesOptions,
             ];
+        }
         default:
             Logger.warnOnce(`unknown chart type: ${chartType}; expected one of: ${chartTypes.join(', ')}`);
             return [

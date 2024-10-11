@@ -410,7 +410,7 @@ export class ExtendedPath2D {
                 case Command.Line:
                     joinPoint(params[pi++], params[pi++], true);
                     break;
-                case Command.Curve:
+                case Command.Curve: {
                     const cp1x = params[pi++];
                     const cp1y = params[pi++];
                     const cp2x = params[pi++];
@@ -428,6 +428,7 @@ export class ExtendedPath2D {
                         joinPoint(px, py);
                     });
                     break;
+                }
                 case Command.Arc: {
                     const cx = params[pi++];
                     const cy = params[pi++];
