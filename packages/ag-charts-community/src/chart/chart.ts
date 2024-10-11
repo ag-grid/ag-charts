@@ -9,7 +9,6 @@ import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import { TranslatableLayer } from '../scene/layer';
-import { LayerNew } from '../scene/layerNew';
 import type { Node } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
@@ -117,6 +116,7 @@ export abstract class Chart extends Observable {
 
     className?: string;
 
+    readonly backgroundRoot = new Group({ name: 'background' });
     readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root` });
     readonly highlightRoot = new TranslatableLayer({
         name: `${this.id}-highlight-root`,
@@ -259,10 +259,11 @@ export abstract class Chart extends Observable {
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
 
         const root = new Group({ name: 'root' });
-        const titleGroup = new LayerNew({ name: 'titles', zIndex: ZIndexMap.SERIES_LABEL });
+        const titleGroup = new Group({ name: 'titles', zIndex: ZIndexMap.SERIES_LABEL });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;
+        root.append(this.backgroundRoot);
         root.append(titleGroup);
         root.append(this.seriesRoot);
         root.append(this.highlightRoot);

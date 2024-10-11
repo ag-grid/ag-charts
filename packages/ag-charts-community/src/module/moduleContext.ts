@@ -24,6 +24,7 @@ import type { DOMManager } from '../dom/domManager';
 import type { FocusIndicator } from '../dom/focusIndicator';
 import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { LocaleManager } from '../locale/localeManager';
+import type { Group } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import type { CallbackCache } from '../util/callbackCache';
 
@@ -42,6 +43,7 @@ export interface ModuleContext {
 
     readonly animationManager: AnimationManager;
     readonly annotationManager: AnnotationManager;
+    readonly backgroundRoot: Group;
     readonly chartEventManager: ChartEventManager;
     readonly contextMenuRegistry: ContextMenuRegistry;
     readonly cursorManager: CursorManager;
