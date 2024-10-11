@@ -117,8 +117,8 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
         this.hideFocusIndicator();
     }
 
-    hideFocusIndicator() {
-        this.focusIndicator.toggleForceInvisible(true);
+    private hideFocusIndicator() {
+        this.focusIndicator.overrideFocusVisible(false);
     }
 
     private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, sourceEvent: InteractionEvent) {
