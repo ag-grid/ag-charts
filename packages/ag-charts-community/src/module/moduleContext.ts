@@ -43,7 +43,6 @@ export interface ModuleContext {
 
     readonly animationManager: AnimationManager;
     readonly annotationManager: AnnotationManager;
-    readonly backgroundRoot: Group;
     readonly chartEventManager: ChartEventManager;
     readonly contextMenuRegistry: ContextMenuRegistry;
     readonly cursorManager: CursorManager;

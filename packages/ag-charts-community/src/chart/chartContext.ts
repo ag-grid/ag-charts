@@ -46,7 +46,6 @@ export class ChartContext implements ModuleContext {
     animationManager: AnimationManager;
     annotationManager: AnnotationManager;
     axisManager: AxisManager;
-    backgroundRoot: Group;
     chartService: ChartService;
     contextMenuRegistry: ContextMenuRegistry;
     cursorManager: CursorManager;
@@ -92,8 +91,7 @@ export class ChartContext implements ModuleContext {
         this.scene = scene ?? new Scene({ pixelRatio, canvasElement });
         this.scene.setRoot(root);
 
-        this.backgroundRoot = chart.backgroundRoot;
-        this.axisManager = new AxisManager(chart.axisRoot);
+        this.axisManager = new AxisManager(root);
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
         this.cursorManager = new CursorManager(this.domManager);
         this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);

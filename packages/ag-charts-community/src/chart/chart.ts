@@ -106,8 +106,6 @@ export abstract class Chart extends Observable {
 
     className?: string;
 
-    readonly backgroundRoot = new Group({ name: 'background-root' });
-    readonly axisRoot = new TranslatableGroup({ name: `${this.id}-axis-root` });
     readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root` });
     readonly highlightRoot = new TranslatableLayer({
         name: `${this.id}-highlight-root`,
@@ -254,8 +252,6 @@ export abstract class Chart extends Observable {
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;
-        root.append(this.backgroundRoot);
-        root.append(this.axisRoot);
         root.append(this.seriesRoot);
         root.append(this.titleGroup);
         root.append(this.highlightRoot);

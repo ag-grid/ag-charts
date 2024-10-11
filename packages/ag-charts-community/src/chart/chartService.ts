@@ -10,8 +10,6 @@ export interface ChartService {
     readonly mode: ChartMode;
     readonly title: CaptionLike;
     readonly series: ISeries<any, any>[];
-    readonly backgroundRoot: Group;
-    readonly axisRoot: Group;
     readonly seriesRoot: Group;
     readonly publicApi?: AgChartInstance;
 

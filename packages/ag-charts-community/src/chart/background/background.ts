@@ -34,17 +34,13 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
     constructor(protected readonly ctx: ModuleContext) {
         super();
 
-        const { backgroundRoot } = ctx;
-
         this.node = this.createNode();
         this.node.append([this.rectNode, this.textNode]);
 
         this.visible = true;
 
-        backgroundRoot.appendChild(this.node);
-
         this.destroyFns.push(
-            () => backgroundRoot.removeChild(this.node),
+            ctx.scene.attachNode(this.node),
             ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e))
         );
     }
