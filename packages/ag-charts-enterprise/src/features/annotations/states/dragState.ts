@@ -30,7 +30,7 @@ export class DragStateMachine<
             getHoverCoords: () => _ModuleSupport.Vec2 | undefined;
         }
     ) {
-        const onKeyChange = ({ shiftKey, context }: { shiftKey: boolean; context: AnnotationContext }) => {
+        const actionKeyChange = ({ shiftKey, context }: { shiftKey: boolean; context: AnnotationContext }) => {
             ctx.setSnapping(shiftKey);
             const datum = ctx.datum()!;
             const offset = ctx.getHoverCoords();
@@ -56,8 +56,8 @@ export class DragStateMachine<
             },
 
             dragging: {
-                keyDown: onKeyChange,
-                keyUp: onKeyChange,
+                keyDown: actionKeyChange,
+                keyUp: actionKeyChange,
 
                 drag: ({ offset, context }) => {
                     this.hasMoved = Vec2.lengthSquared(Vec2.sub(offset, this.dragStart!)) > 0;
