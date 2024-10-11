@@ -129,7 +129,7 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
     private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, sourceEvent: InteractionEvent) {
         const { previousInputDevice } = this;
         dispatchTypedEvent(this.listeners, { type, delta, sourceEvent, previousInputDevice });
-        if (sourceEvent.type === 'keydown') {
+        if (sourceEvent.type === 'keydown' && type !== 'redo' && type !== 'undo') {
             this.previousInputDevice = 'keyboard';
         }
     }
