@@ -36,15 +36,9 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
         readonly interactionManager: InteractionManager
     ) {
         super();
-        const mouseStates =
-            InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
-        const keyStates =
-            InteractionState.Default |
-            InteractionState.ZoomDrag |
-            InteractionState.ContextMenu |
-            InteractionState.Animation;
         const annotationsStates = InteractionState.Annotations | InteractionState.AnnotationsSelected;
-
+        const mouseStates = InteractionState.Default | annotationsStates;
+        const keyStates = InteractionState.All & ~annotationsStates;
         this.destroyFns.push(
             interactionManager.addListener('click', () => this.onClick(), mouseStates),
             interactionManager.addListener('hover', () => this.onMouse(), mouseStates),
@@ -52,6 +46,7 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
             interactionManager.addListener('blur', (e) => this.onBlur(e), InteractionState.All),
             interactionManager.addListener('focus', (e) => this.onFocus(e), InteractionState.All),
             interactionManager.addListener('keydown', (e) => this.onKeyDown(e), keyStates),
+            // Annotations listen for KeyInteractionEvent<'keydown'> instead of KeyNavEvent<T>:
             interactionManager.addListener('keydown', () => this.hideFocusIndicator(), annotationsStates)
         );
     }
@@ -86,7 +81,7 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
         this.focusIndicator.overrideFocusVisible(true);
         const { code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
-        if (altKey || shiftKey || metaKey || ctrlKey) return this.hideFocusIndicator();
+        if (altKey || shiftKey || metaKey || ctrlKey) return;
         switch (code) {
             case 'ArrowDown':
                 return this.dispatch('nav-vert', 1, event);
@@ -113,8 +108,6 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
             case '-':
                 return this.dispatch('nav-zoom', -1, event);
         }
-
-        this.hideFocusIndicator();
     }
 
     private hideFocusIndicator() {
