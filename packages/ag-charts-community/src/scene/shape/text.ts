@@ -21,7 +21,7 @@ export interface TextSizeProperties {
 export class Text extends Shape {
     static readonly className = 'Text';
 
-    static override defaultStyles = Object.assign({}, Shape.defaultStyles, {
+    static override readonly defaultStyles = Object.assign({}, Shape.defaultStyles, {
         textAlign: 'start' as CanvasTextAlign,
         fontStyle: undefined,
         fontWeight: undefined,

@@ -33,7 +33,7 @@ export interface HierarchyAnimationData<TNode extends Node, TDatum> {
 export class HierarchyNode<TDatum = Record<string, any>>
     implements SeriesNodeDatum, Pick<HighlightNodeDatum, 'colorValue'>
 {
-    static Walk = {
+    private static readonly Walk = {
         PreOrder: 0,
         PostOrder: 1,
     };
