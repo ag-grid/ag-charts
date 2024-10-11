@@ -63,6 +63,7 @@ export interface ModuleContext {
     readonly tooltipManager: TooltipManager;
     readonly zoomManager: ZoomManager;
 
+    // @todo(AG-13136)
     removeMeMoveChartTitleNode(toGroup: Group | undefined): void;
 }
 

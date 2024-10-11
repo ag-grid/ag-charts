@@ -358,6 +358,7 @@ export abstract class Chart extends Observable {
         this.parentResize(ctx.domManager.containerSize);
     }
 
+    // @todo(AG-13136)
     removeMeMoveTitleNode(toLayer: Group | undefined) {
         const titleNode = this.title.node;
         const target = toLayer ?? this.titleGroup;

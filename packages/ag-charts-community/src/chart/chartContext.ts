@@ -131,6 +131,7 @@ export class ChartContext implements ModuleContext {
         this.zoomManager.destroy();
     }
 
+    // @todo(AG-13136)
     removeMeMoveChartTitleNode(toGroup: Group | undefined) {
         this.chart.removeMeMoveTitleNode(toGroup);
     }

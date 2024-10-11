@@ -404,11 +404,13 @@ export class StatusBar
         const datum = activeHighlight?.datum ?? this.data?.at(-1);
 
         if (datum == null) {
+            // @todo(AG-13136)
             this.ctx.removeMeMoveChartTitleNode(undefined);
             this.labelGroup.visible = false;
             return;
         }
 
+        // @todo(AG-13136)
         this.ctx.removeMeMoveChartTitleNode(this.layer);
         this.labelGroup.visible = true;
 
