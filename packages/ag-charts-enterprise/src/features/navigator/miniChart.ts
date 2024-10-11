@@ -246,11 +246,12 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
                     axis.gridLength = seriesRect.height;
                     break;
                 case 'right':
-                case 'left':
+                case 'left': {
                     const isCategoryAxis = axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis;
                     axis.range = isCategoryAxis ? [0, seriesRect.height] : [seriesRect.height, 0];
                     axis.gridLength = seriesRect.width;
                     break;
+                }
             }
 
             axis.gridPadding = 0;

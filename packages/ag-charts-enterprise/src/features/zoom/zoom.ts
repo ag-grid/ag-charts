@@ -348,7 +348,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const zoom = this.getZoom();
 
         switch (dragState) {
-            case DragState.Axis:
+            case DragState.Axis: {
                 if (!hoveredAxis) break;
 
                 const { id: axisId, direction } = hoveredAxis;
@@ -357,6 +357,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
                 this.updateAxisZoom(axisId, direction, newZoom);
                 break;
+            }
 
             case DragState.Pan:
                 panner.update(event);
@@ -398,13 +399,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 panner.stop();
                 break;
 
-            case DragState.Select:
+            case DragState.Select: {
                 if (!selector.didUpdate()) break;
                 const zoom = this.getZoom();
                 if (this.isMinZoom(zoom)) break;
                 const newZoom = selector.stop(this.seriesRect, this.paddedRect, zoom);
                 this.updateZoom(newZoom);
                 break;
+            }
         }
 
         this.dragState = DragState.None;

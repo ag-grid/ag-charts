@@ -163,8 +163,7 @@ export class LogScale extends ContinuousScale<number> {
             case 2:
                 return Math.log2;
             default:
-                const logBase = Math.log(base);
-                return (x: number) => Math.log(x) / logBase;
+                return (x: number) => Math.log(x) / Math.log(base);
         }
     }
 

@@ -567,7 +567,7 @@ export abstract class Chart extends Observable {
                 updateSplits('⌖');
             // fallthrough
 
-            case ChartUpdateType.SERIES_UPDATE:
+            case ChartUpdateType.SERIES_UPDATE: {
                 if (this.checkUpdateShortcut(ChartUpdateType.SERIES_UPDATE)) break;
 
                 const { seriesRect } = this;
@@ -576,6 +576,7 @@ export abstract class Chart extends Observable {
                 updateSplits('🤔');
 
                 this.updateAriaLabels();
+            }
             // fallthrough
 
             case ChartUpdateType.PRE_SCENE_RENDER:
