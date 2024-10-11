@@ -241,7 +241,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const { series } = this.ctx.highlightManager?.getActiveHighlight() ?? {};
-        this.highlightGroup.visible = (animationEnabled || this.visible) && !!(series === this);
+        this.highlightGroup.visible = (animationEnabled || this.visible) && series === this;
 
         await this.maybeRefreshNodeData();
 
