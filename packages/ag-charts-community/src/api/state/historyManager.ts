@@ -1,5 +1,6 @@
-import type { DOMManager } from '../../dom/domManager';
+import type { KeyNavManager } from '../../chart/interaction/keyNavManager';
 import { Debug } from '../../util/debug';
+import { DestroyFns } from '../../util/destroy';
 import { VERSION } from '../../version';
 import type { MementoOriginator } from './memento';
 
@@ -18,9 +19,17 @@ export class HistoryManager {
     private readonly maxHistoryLength = 100;
 
     private readonly debug = Debug.create(true, 'history');
+    private readonly destroyFns = new DestroyFns();
 
-    constructor(domManager: DOMManager) {
-        domManager.addEventListener('keydown', this.onKeyDown.bind(this));
+    constructor(keyNavManager: KeyNavManager) {
+        this.destroyFns.setFns([
+            keyNavManager.addListener('undo', this.undo.bind(this)),
+            keyNavManager.addListener('redo', this.redo.bind(this)),
+        ]);
+    }
+
+    destroy() {
+        this.destroyFns.destroy();
     }
 
     addMementoOriginator(originator: MementoOriginator) {
@@ -95,16 +104,6 @@ export class HistoryManager {
         this.historyIndex += 1;
 
         this.debugEvent(`History redo: [${redoAction.label}]`);
-    }
-
-    private onKeyDown(event: KeyboardEvent) {
-        const modifierKey = event.ctrlKey || event.metaKey;
-
-        if (modifierKey && (event.key === 'y' || (event.key === 'z' && event.shiftKey))) {
-            this.redo();
-        } else if (modifierKey && event.key === 'z') {
-            this.undo();
-        }
     }
 
     private findPreviousMemento(mementoOriginatorKey: string) {

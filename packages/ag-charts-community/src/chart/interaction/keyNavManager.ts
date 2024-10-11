@@ -9,45 +9,40 @@ import { InteractionState } from './interactionManager';
 import { InteractionStateListener } from './interactionStateListener';
 import { type PreventableEvent, dispatchTypedEvent } from './preventableEvent';
 
-export type KeyNavEventType = 'blur' | 'focus' | 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'cancel' | 'delete';
+export type KeyNavEventType = 'blur' | 'focus' | 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'undo' | 'redo';
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = PreventableEvent & {
     type: T;
     delta: -1 | 0 | 1;
     sourceEvent: InteractionEvent;
-
-    // This is the "second last" input event. It can be useful for keydown
-    // events that for which don't to set the isFocusVisible state
-    // (e.g. Backspace/Delete key on FC annotations, see AG-13041).
-    //
-    // Use with caution! The focus indicator must ALWAYS be visible for
-    // keyboard-only users.
-    previousInputDevice: 'mouse' | 'keyboard';
 };
 
 // The purpose of this class is to decouple keyboard input events configuration with
 // navigation commands. For example, keybindings might be different on macOS and Windows,
 // or the charts might include options to reconfigure keybindings.
 export class KeyNavManager extends InteractionStateListener<KeyNavEventType, KeyNavEvent> {
-    private previousInputDevice: KeyNavEvent['previousInputDevice'] = 'keyboard';
+    // This is the "second last" input event. It can be useful for keydown
+    // events that for which don't to set the isFocusVisible state
+    // (e.g. Backspace/Delete key on FC annotations, see AG-13041).
+    //
+    // Use with caution! The focus indicator must ALWAYS be visible for
+    // keyboard-only users.
+    private previousInputDevice: 'mouse' | 'keyboard' = 'keyboard';
 
     constructor(
         readonly focusIndicator: FocusIndicator,
         readonly interactionManager: InteractionManager
     ) {
         super();
-        const annotationsStates = InteractionState.Annotations | InteractionState.AnnotationsSelected;
-        const mouseStates = InteractionState.Default | annotationsStates;
-        const keyStates = InteractionState.All & ~annotationsStates;
+        const mouseStates =
+            InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
         this.destroyFns.push(
             interactionManager.addListener('click', () => this.onClick(), mouseStates),
             interactionManager.addListener('hover', () => this.onMouse(), mouseStates),
             interactionManager.addListener('drag-start', () => this.onMouse(), mouseStates),
             interactionManager.addListener('blur', (e) => this.onBlur(e), InteractionState.All),
             interactionManager.addListener('focus', (e) => this.onFocus(e), InteractionState.All),
-            interactionManager.addListener('keydown', (e) => this.onKeyDown(e), keyStates),
-            // Annotations listen for KeyInteractionEvent<'keydown'> instead of KeyNavEvent<T>:
-            interactionManager.addListener('keydown', () => this.hideFocusIndicator(), annotationsStates)
+            interactionManager.addListener('keydown', (e) => this.onKeyDown(e), InteractionState.All)
         );
     }
 
@@ -79,8 +74,29 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
     }
 
     private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
+        const state = this.getState();
+
+        // FIXME: key is localised to it could be non-ASCII text like غ
+        const { key, code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
+
+        if (ctrlKey || metaKey) {
+            if (key === 'y' || (key === 'z' && shiftKey)) {
+                this.focusIndicator.overrideFocusVisible(this.previousInputDevice === 'keyboard');
+                return this.dispatch('redo', 0, event);
+            } else if (key === 'z') {
+                this.focusIndicator.overrideFocusVisible(this.previousInputDevice === 'keyboard');
+                return this.dispatch('undo', 0, event);
+            }
+        }
+
+        // Annotations listen for KeyInteractionEvent<'keydown'> instead of KeyNavEvent<T>:
+        if (state & (InteractionState.Annotations | InteractionState.AnnotationsSelected)) {
+            // TODO: annotations should update the focus indicator bounds to surround the current annotation
+            this.focusIndicator.overrideFocusVisible(false);
+            return;
+        }
+
         this.focusIndicator.overrideFocusVisible(true);
-        const { code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
         if (altKey || shiftKey || metaKey || ctrlKey) return;
         switch (code) {
             case 'ArrowDown':
@@ -102,16 +118,12 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
                 return this.dispatch('submit', 0, event);
         }
 
-        switch (event.sourceEvent.key) {
+        switch (key) {
             case '+':
                 return this.dispatch('nav-zoom', 1, event);
             case '-':
                 return this.dispatch('nav-zoom', -1, event);
         }
-    }
-
-    private hideFocusIndicator() {
-        this.focusIndicator.overrideFocusVisible(false);
     }
 
     private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, sourceEvent: InteractionEvent) {
