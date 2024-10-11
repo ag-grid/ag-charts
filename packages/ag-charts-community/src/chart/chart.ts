@@ -87,16 +87,6 @@ type ObservableLike = {
     clearEventListeners(): void;
 };
 
-export interface ChartSpecialOverrides {
-    document?: Document;
-    window?: Window;
-    overrideDevicePixelRatio?: number;
-    sceneMode?: 'simple';
-    presetType?: string;
-}
-
-export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
-
 class SeriesArea extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
     clip?: boolean;
