@@ -79,7 +79,6 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
                 (event) => this.onMouseMove(event),
                 InteractionState.Annotations | InteractionState.AnnotationsSelected
             ),
-            seriesRegion.addListener('wheel', () => this.onMouseOut(), InteractionState.Default),
             seriesRegion.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
             ctx.keyNavManager.addListener('nav-hori', () => this.onKeyPress()),
             ctx.keyNavManager.addListener('nav-vert', () => this.onKeyPress()),
