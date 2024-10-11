@@ -193,6 +193,21 @@ export abstract class Node {
         }
     }
 
+    protected sortChildren(compareFn?: (a: Node, b: Node) => number) {
+        this.dirtyZIndex = false;
+        if (!this.childNodes) return;
+
+        // Virtual children need to be sorted on the fly.
+        if (this.hasVirtualChildren()) return;
+
+        // Sort children, and re-add in new order (Set preserves insertion order).
+        const sortedChildren = [...this.childNodes].sort(compareFn);
+        this.childNodes.clear();
+        for (const child of sortedChildren) {
+            this.childNodes.add(child);
+        }
+    }
+
     *traverseUp(includeSelf?: boolean) {
         let node: Node | undefined = this;
         if (includeSelf) {

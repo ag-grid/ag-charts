@@ -59,6 +59,20 @@ describe('AgChartV2', () => {
         return ctx.nodeCanvas?.toBuffer('raw');
     };
 
+    const compareImageDataUrl = async () => {
+        await waitForChartStability(chart);
+        const reference = await snapshot();
+
+        const canvasCount = ctx.getActiveCanvasInstances().length;
+
+        const imageURL = await chart.getImageDataURL();
+        const imagePNGData = Buffer.from(imageURL.split(',')[1], 'base64');
+        expect(imagePNGData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+
+        const imageRaw = ctx.getActiveCanvasInstances()[canvasCount];
+        expect(imageRaw.toBuffer('raw')).toMatchImage(reference);
+    };
+
     describe('#create', () => {
         it.each(Object.entries(EXAMPLES))(
             'for %s it should create chart instance as expected',
@@ -163,6 +177,16 @@ describe('AgChartV2', () => {
                     await chart.update(exampleCycle[index]);
                 }
             }
+        });
+    });
+
+    describe('#getImageDataURL', () => {
+        it('should correctly download a stacked bar chart (AG-12985)', async () => {
+            const options: AgChartOptions = { ...examples.STACKED_BAR_CHART_EXAMPLE };
+            prepareTestOptions(options, container);
+
+            chart = AgCharts.create(options);
+            await compareImageDataUrl();
         });
     });
 });
