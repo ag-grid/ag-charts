@@ -88,7 +88,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             region.addListener('hover', (event) => this.onHover(event), dragStates),
             region.addListener('drag-start', (event) => this.onDragStart(event), dragStates),
             region.addListener('drag', (event) => this.onDrag(event), dragStates),
-            region.addListener('drag-end', () => this.onDragEnd(), dragStates),
+            region.addListener('drag-end', (event) => this.onDragEnd(event), dragStates),
             region.addListener('leave', (event) => this.onLeave(event), dragStates),
             this.ctx.localeManager.addListener('locale-changed', () => this.updateZoom()),
             this.ctx.layoutManager.registerElement(LayoutElement.Navigator, (e) => this.onLayoutStart(e)),
@@ -189,6 +189,11 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     private onHover(event: RegionEvent<'hover'>) {
         if (!this.enabled) return;
+        this.updateCursor(event);
+    }
+
+    private updateCursor(event: RegionEvent) {
+        if (!this.enabled) return;
 
         const { mask, minHandle, maxHandle } = this;
         const { regionOffsetX, regionOffsetY } = event;
@@ -207,6 +212,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     private onDragStart(event: RegionEvent<'drag-start'>) {
         if (!this.enabled) return;
+        this.updateCursor(event);
 
         const { mask, minHandle, maxHandle, x, width, _min: min } = this;
         const { regionOffsetX, regionOffsetY } = event;
@@ -258,8 +264,9 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.updateZoom();
     }
 
-    private onDragEnd() {
+    private onDragEnd(event: RegionEvent<'drag-end'>) {
         this.dragging = undefined;
+        this.updateCursor(event);
     }
 
     private onLeave(_event: PointerInteractionEvent<'leave'>) {
