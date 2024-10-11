@@ -201,8 +201,7 @@ export class CrossLineScene extends AnnotationScene {
             ? { axisContext: context.yAxis, translation: y }
             : { axisContext: context.xAxis, translation: x };
 
-        const halfBandwidth = (axisContext.scaleBandwidth() ?? 0) / 2;
-        const translated = convert(datum.value, axisContext) + halfBandwidth + translation;
+        const translated = convert(datum.value, axisContext) + translation;
         const value = invert(translated, axisContext);
 
         if (!isNaN(value)) datum.set({ value });
