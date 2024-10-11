@@ -766,7 +766,7 @@ export class RadialGaugeSeries
         datumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => {
-            return createDatumId(opts.nodeData.length, datum.itemId!);
+            return createDatumId(opts.nodeData.length, datum.itemId);
         });
     }
 
@@ -812,7 +812,7 @@ export class RadialGaugeSeries
         scaleSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
     }) {
         return opts.scaleSelection.update(opts.scaleData, undefined, (datum) => {
-            return createDatumId(opts.scaleData.length, datum.itemId!);
+            return createDatumId(opts.scaleData.length, datum.itemId);
         });
     }
 
@@ -1081,7 +1081,7 @@ export class RadialGaugeSeries
             true,
             this.axes[ChartAxisDirection.X]?.range[0] ?? 0
         );
-        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId!);
+        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId);
         fromToMotion(this.id, 'needle', animationManager, [this.needleSelection], needle, () => 'needle');
 
         fromToMotion(
@@ -1106,7 +1106,7 @@ export class RadialGaugeSeries
             false,
             this.axes[ChartAxisDirection.X]?.range[0] ?? 0
         );
-        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId!);
+        fromToMotion(this.id, 'node', animationManager, [this.datumSelection], node, (_sector, datum) => datum.itemId);
         fromToMotion(this.id, 'needle', animationManager, [this.needleSelection], needle, () => 'needle');
 
         this.animateLabelText();

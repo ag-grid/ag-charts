@@ -1430,7 +1430,7 @@ export abstract class Chart extends Observable {
     }
 
     private createSeries(seriesOptions: SeriesOptionsTypes): Series<any, any> {
-        const seriesInstance = seriesRegistry.create(seriesOptions.type!, this.getModuleContext()) as Series<any, any>;
+        const seriesInstance = seriesRegistry.create(seriesOptions.type, this.getModuleContext()) as Series<any, any>;
         this.applySeriesOptionModules(seriesInstance, seriesOptions);
         this.applySeriesValues(seriesInstance, seriesOptions);
         return seriesInstance;
