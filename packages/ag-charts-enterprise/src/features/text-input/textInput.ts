@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type { FontOptions, TextAlign } from 'ag-charts-types';
 
 import type { AnnotationTextPosition } from '../annotations/text/util';

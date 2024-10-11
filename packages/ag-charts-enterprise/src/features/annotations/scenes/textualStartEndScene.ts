@@ -1,4 +1,4 @@
-import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';

@@ -1,4 +1,4 @@
-import { _ModuleSupport, type _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 const { BaseModuleInstance, createElement, getLastFocus } = _ModuleSupport;
 const canvasOverlay = 'canvas-overlay';

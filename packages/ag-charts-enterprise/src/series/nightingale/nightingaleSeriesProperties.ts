@@ -1,4 +1,4 @@
-import { type AgNightingaleSeriesOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgNightingaleSeriesOptions } from 'ag-charts-community';
 
 import { RadialColumnSeriesBaseProperties } from '../radial-column/radialColumnSeriesBaseProperties';
 

@@ -5,7 +5,6 @@ import {
     type FontStyle,
     type FontWeight,
     _ModuleSupport,
-    _Scale,
     _Scene,
     _Util,
 } from 'ag-charts-community';

@@ -1,4 +1,4 @@
-import type { AgContextMenuOptions, _Scene } from 'ag-charts-community';
+import type { AgContextMenuOptions } from 'ag-charts-community';
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';

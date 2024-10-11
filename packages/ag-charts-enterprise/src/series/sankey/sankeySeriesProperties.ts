@@ -11,7 +11,6 @@ import {
     type Styler,
     _ModuleSupport,
     _Scene,
-    _Util,
 } from 'ag-charts-community';
 
 import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../flow-proportion/flowProportionSeries';
