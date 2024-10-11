@@ -279,8 +279,8 @@ export class ExtendedPath2D {
         const coords: Array<{ x: number; y: number }> = [];
         let pi = 0;
 
-        for (let ci = 0; ci < commands.length; ci++) {
-            switch (commands[ci]) {
+        for (const command of commands) {
+            switch (command) {
                 case Command.Move:
                 case Command.Line:
                     coords.push({ x: params[pi++], y: params[pi++] });
@@ -315,8 +315,8 @@ export class ExtendedPath2D {
         };
 
         let pi = 0;
-        for (let ci = 0; ci < commands.length; ci++) {
-            switch (commands[ci]) {
+        for (const command of commands) {
+            switch (command) {
                 case Command.Move:
                     addCommand('M', params[pi++], params[pi++]);
                     break;
@@ -401,8 +401,8 @@ export class ExtendedPath2D {
         };
 
         let pi = 0;
-        for (let ci = 0; ci < commands.length; ci++) {
-            switch (commands[ci]) {
+        for (const command of commands) {
+            switch (command) {
                 case Command.Move:
                     joinPoint(params[pi++], params[pi++], true);
                     [mx, my] = [sx, sy];
