@@ -55,28 +55,42 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         const noDataShown = !isLoading && !hasData;
         const noVisibleSeriesShown = hasData && !anySeriesVisible;
 
-        this.toggleOverlay(this.overlays.loading, rect, loadingShown);
-        this.toggleOverlay(this.overlays.noData, rect, noDataShown);
-        this.toggleOverlay(this.overlays.noVisibleSeries, rect, noVisibleSeriesShown);
+        if (loadingShown) {
+            this.showOverlay(this.overlays.loading, rect);
+        } else {
+            this.hideOverlay(this.overlays.loading);
+        }
+
+        if (noDataShown) {
+            this.showOverlay(this.overlays.noData, rect);
+        } else {
+            this.hideOverlay(this.overlays.noData);
+        }
+
+        if (noVisibleSeriesShown) {
+            this.showOverlay(this.overlays.noVisibleSeries, rect);
+        } else {
+            this.hideOverlay(this.overlays.noVisibleSeries);
+        }
 
         const shown = loadingShown || noDataShown || noVisibleSeriesShown;
         setAttribute(this.overlayElem, 'aria-hidden', !shown);
     }
 
-    private toggleOverlay(overlay: Overlay, seriesRect: BBox, visible: boolean) {
-        if (visible) {
-            const element = overlay.getElement(this.animationManager, this.localeManager, seriesRect);
-            this.overlayElem.appendChild(element);
-        } else {
-            // AG-11424 Frustratingly, browsers do not reliable announce aria-live changes to overlayElem when
-            // re-adding an identical element. This seems that if, for example, the user toggle the last visible
-            // series off/on/off, then the second "No visible series" overlay announcement may not get fired.
-            // Firefox & Safari seem to handle this correctly, whereas Chromium does not. However setting the
-            // content to a No-Break Space helps the browser to understand that the aria status has changed,
-            // and also tells the no screenreader not to announce anything because it's just whitespace.
-            overlay.removeElement(() => {
-                this.overlayElem.innerText = '\xA0';
-            }, this.animationManager);
-        }
+    private showOverlay(overlay: Overlay, seriesRect: BBox) {
+        const element = overlay.getElement(this.animationManager, this.localeManager, seriesRect);
+        this.overlayElem.appendChild(element);
+    }
+
+    private hideOverlay(overlay: Overlay) {
+        // AG-11424 Frustratingly, browsers do not reliably announce aria-live changes to overlayElem when
+        // re-adding an identical element. This seems that if, for example, the user toggle the last visible
+        // series off/on/off, then the second "No visible series" overlay announcement may not get fired.
+        // Firefox & Safari seem to handle this correctly, whereas Chromium does not. However setting the
+        // content to a No-Break Space helps the browser to understand that the aria status has changed,
+        // and also tells the no screenreader not to announce anything because it's just whitespace.
+        overlay.removeElement(() => {
+            this.overlayElem.innerText = '\xA0';
+        }, this.animationManager);
     }
 }

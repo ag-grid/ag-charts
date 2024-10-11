@@ -215,14 +215,17 @@ export class Group extends Node {
      * Transforms bbox given in the canvas coordinate space to bbox in this group's coordinate space and
      * sets this group's clipRect to the transformed bbox.
      * @param bbox clipRect bbox in the canvas coordinate space.
-     * @param transformToGroupSpace set false to keep provided bbox coordinate space.
      */
-    setClipRect(bbox?: BBox, transformToGroupSpace = true) {
-        if (transformToGroupSpace) {
-            this.clipRect = bbox ? Transformable.fromCanvas(this, bbox) : undefined;
-        } else {
-            this.clipRect = bbox;
-        }
+    setClipRect(bbox?: BBox) {
+        this.clipRect = bbox ? Transformable.fromCanvas(this, bbox) : undefined;
+    }
+
+    /**
+     * Set the clip rect within the canvas coordinate space.
+     * @param bbox clipRect bbox in the canvas coordinate space.
+     */
+    setClipRectCanvasSpace(bbox?: BBox) {
+        this.clipRect = bbox;
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
