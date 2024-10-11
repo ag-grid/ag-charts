@@ -19,8 +19,7 @@ export interface GaugeColorStopDatum {
 
 function stopsAreAscending(fills: GaugeStopProperties[]) {
     let currentStop: number | undefined;
-    for (let i = 0; i < fills.length; i += 1) {
-        const { stop } = fills[i];
+    for (const { stop } of fills) {
         if (stop == null) {
             continue;
         } else if (currentStop != null && stop < currentStop) {
