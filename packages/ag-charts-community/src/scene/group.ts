@@ -120,6 +120,9 @@ export class Group extends Node {
 
         ctx.globalAlpha *= this.opacity;
 
+        if (this.dirtyZIndex) {
+            this.sortChildren(Group.compareChildren);
+        }
         const children = this.sortedChildren();
         const clipBBox = this.renderClip(renderCtx) ?? renderCtx.clipBBox;
         const renderCtxChanged = forceRender !== renderCtx.forceRender || clipBBox !== renderCtx.clipBBox;
@@ -151,9 +154,8 @@ export class Group extends Node {
 
     protected sortedChildren() {
         let children: Iterable<Node> = this.children();
-        if (this.dirtyZIndex || this.hasVirtualChildren()) {
+        if (this.hasVirtualChildren()) {
             children = [...children].sort(Group.compareChildren);
-            this.dirtyZIndex = false;
         }
         return children;
     }
