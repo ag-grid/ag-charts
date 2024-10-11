@@ -189,7 +189,6 @@ export class Tooltip extends BaseProperties {
     setup(domManager: DOMManager) {
         this.element = domManager.addChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
         this.element.classList.add(DEFAULT_TOOLTIP_CLASS);
-        setAttribute(this.element, 'aria-hidden', true);
     }
 
     destroy(domManager: DOMManager) {
