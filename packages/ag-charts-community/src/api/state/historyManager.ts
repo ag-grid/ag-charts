@@ -1,5 +1,5 @@
-import type { KeyNavManager } from '../../chart/interaction/keyNavManager';
 import { InteractionState } from '../../chart/interaction/interactionStateListener';
+import type { KeyNavManager } from '../../chart/interaction/keyNavManager';
 import { Debug } from '../../util/debug';
 import { DestroyFns } from '../../util/destroy';
 import { VERSION } from '../../version';
