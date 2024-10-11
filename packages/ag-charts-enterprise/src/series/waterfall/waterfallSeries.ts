@@ -796,8 +796,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected override async updatePaths(opts: {
-        seriesHighlighted?: boolean | undefined;
-        itemId?: string | undefined;
+        seriesHighlighted?: boolean;
+        itemId?: string;
         contextData: WaterfallContext;
         paths: _Scene.Path[];
         seriesIdx: number;

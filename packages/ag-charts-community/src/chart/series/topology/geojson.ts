@@ -43,7 +43,7 @@ interface MultiPolygon extends GeoJsonObject {
 
 interface GeoJsonObject {
     type: (Geometry | Feature | FeatureCollection)['type'];
-    bbox?: BBox | undefined;
+    bbox?: BBox;
 }
 
 export interface Feature extends GeoJsonObject {

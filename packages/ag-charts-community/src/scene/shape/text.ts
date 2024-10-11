@@ -170,7 +170,7 @@ export class Text extends Shape {
         this.textBaseline = props.textBaseline;
     }
 
-    override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] | undefined } | undefined {
+    override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
         if (!this.visible || !this.text) return;
 
         const element = document.createElementNS('http://www.w3.org/2000/svg', 'text');

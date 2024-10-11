@@ -300,7 +300,7 @@ export abstract class FlowProportionSeries<
         }
     }
 
-    override async update(opts: { seriesRect?: _Scene.BBox | undefined }): Promise<void> {
+    override async update(opts: { seriesRect?: _Scene.BBox }): Promise<void> {
         const { seriesRect } = opts;
         const newNodeDataDependencies = {
             seriesRectWidth: seriesRect?.width ?? 0,
