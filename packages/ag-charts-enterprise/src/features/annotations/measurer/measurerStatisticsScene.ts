@@ -1,7 +1,8 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
+import type { AnnotationContext } from '../annotationTypes';
 import { type PositionedScene, layoutScenesColumn, layoutScenesRow } from '../utils/layout';
-import type { MeasurerTypeProperties } from './measurerProperties';
+import type { MeasurerStatistics } from './measurerProperties';
 
 export interface Statistics {
     dateRange?: { bars: number; value: number };
@@ -42,13 +43,29 @@ export class MeasurerStatisticsScene extends _Scene.Group {
     }
 
     update(
-        datum: MeasurerTypeProperties,
+        datum: MeasurerStatistics,
+        stats: Statistics,
+        anchor: _ModuleSupport.Vec2,
+        context: AnnotationContext,
+        localeManager?: _ModuleSupport.ModuleContext['localeManager']
+    ) {
+        const scenes = this.updateStatistics(datum, stats, anchor, localeManager);
+
+        const bbox = _Scene.Group.computeChildrenBBox(scenes.flat());
+        const padding = 10;
+        bbox.grow(padding);
+
+        this.updateBackground(datum, bbox, padding);
+        this.reposition(scenes, padding, context);
+    }
+
+    private updateStatistics(
+        datum: MeasurerStatistics,
         stats: Statistics,
         anchor: _ModuleSupport.Vec2,
         localeManager?: _ModuleSupport.ModuleContext['localeManager']
     ) {
         const {
-            background,
             dateRangeBarsText,
             dateRangeDivider,
             dateRangeValueText,
@@ -58,22 +75,21 @@ export class MeasurerStatisticsScene extends _Scene.Group {
             volumeText,
         } = this;
 
-        const padding = 10;
         const horizontalGap = 8;
         const verticalGap = 12;
 
         const textStyles = {
-            fontFamily: datum.statistics.fontFamily,
-            fontSize: datum.statistics.fontSize,
-            fontStyle: datum.statistics.fontStyle,
-            fontWeight: datum.statistics.fontWeight,
+            fontFamily: datum.fontFamily,
+            fontSize: datum.fontSize,
+            fontStyle: datum.fontStyle,
+            fontWeight: datum.fontWeight,
             textBaseline: 'top' as const,
         };
 
         const dividerLineStyles = {
-            stroke: datum.statistics.divider.stroke,
-            strokeOpacity: datum.statistics.divider.strokeOpacity,
-            strokeWidth: datum.statistics.divider.strokeWidth,
+            stroke: datum.divider.stroke,
+            strokeOpacity: datum.divider.strokeOpacity,
+            strokeWidth: datum.divider.strokeWidth,
         };
 
         const dateScenes = [dateRangeBarsText, dateRangeDivider, dateRangeValueText];
@@ -121,19 +137,31 @@ export class MeasurerStatisticsScene extends _Scene.Group {
 
         layoutScenesColumn(scenes, anchor.y, verticalGap);
 
-        const bbox = _Scene.Group.computeChildrenBBox(scenes.flat());
-        bbox.grow(padding);
+        return scenes;
+    }
 
-        background.setProperties({
+    private updateBackground(datum: MeasurerStatistics, bbox: _Scene.BBox, padding: number) {
+        this.background.setProperties({
             ...bbox,
             x: bbox.x - bbox.width / 2 + padding,
-            y: bbox.y + padding,
-            fill: datum.statistics.fill,
-            stroke: datum.statistics.stroke,
-            strokeOpacity: datum.statistics.strokeOpacity,
-            strokeWidth: datum.statistics.strokeWidth,
+            y: bbox.y,
+            fill: datum.fill,
+            stroke: datum.stroke,
+            strokeOpacity: datum.strokeOpacity,
+            strokeWidth: datum.strokeWidth,
             cornerRadius: 4,
         });
+    }
+
+    private reposition(
+        scenes: Array<PositionedScene | Array<PositionedScene>>,
+        padding: number,
+        context: AnnotationContext
+    ) {
+        const rectY = context.seriesRect.y + context.seriesRect.height;
+        const bbox = this.background.getBBox();
+        const backgroundY = bbox.y + bbox.height;
+        const offsetY = Math.min(padding, rectY - backgroundY);
 
         // Reposition center and below the anchor
         for (const scene of scenes) {
@@ -141,13 +169,15 @@ export class MeasurerStatisticsScene extends _Scene.Group {
                 const rowWidth = _Scene.Group.computeChildrenBBox(scene).width;
                 for (const scene_ of scene) {
                     scene_.x -= rowWidth / 2;
-                    scene_.y += padding;
+                    scene_.y += offsetY;
                 }
             } else {
                 scene.x -= scene.getBBox().width / 2;
-                scene.y += padding;
+                scene.y += offsetY;
             }
         }
+
+        this.background.y += offsetY;
     }
 
     private formatDateRangeBars(bars: number, localeManager?: _ModuleSupport.ModuleContext['localeManager']) {

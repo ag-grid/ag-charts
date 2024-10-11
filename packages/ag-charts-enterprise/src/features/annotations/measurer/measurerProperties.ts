@@ -23,7 +23,7 @@ const { BOOLEAN, OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleS
 
 class MeasurerStatisticsDivider extends Stroke(BaseProperties) {}
 
-class MeasurerStatistics extends Font(Fill(Stroke(BaseProperties))) {
+export class MeasurerStatistics extends Font(Fill(Stroke(BaseProperties))) {
     @Validate(OBJECT, { optional: true })
     public divider = new MeasurerStatisticsDivider();
 }

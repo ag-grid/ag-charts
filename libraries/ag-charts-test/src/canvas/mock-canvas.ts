@@ -126,6 +126,10 @@ export function setup(opts: {
                 return context2d as any;
             };
 
+            mockedElement.toDataURL = (mimeType?: 'image/png', quality?: any) => {
+                return nextCanvas.toDataURL(mimeType ?? 'image/png');
+            };
+
             return mockedElement;
         } else if (element === 'img') {
             return new Image();

@@ -143,7 +143,7 @@
     }
 }
 
-.groupChevron {
+.groupChevron:global(.icon) {
     position: absolute;
     left: calc(var(--indent-border-offset) * -1 + var(--indent-initial-offset));
     top: 7px;
@@ -212,9 +212,9 @@
     }
 }
 
-.itemIcon:global(.icon) {
+.itemIcon:global(.icon),
+.externalIcon:global(.icon) {
     fill: var(--color-fg-secondary);
-    margin-right: $spacing-size-2;
     transition: fill $transition-default-timing;
 
     .item:hover &,
@@ -223,14 +223,17 @@
     }
 }
 
-.enterpriseIcon:global(.icon) {
+.itemIcon:global(.icon) {
+    margin-right: $spacing-size-2;
+}
+
+.enterpriseIcon:global(.icon),
+.externalIcon:global(.icon) {
     width: $spacing-size-5;
     height: $spacing-size-5;
     margin-left: $spacing-size-1;
-    fill: var(--color-enterprise-icon);
+}
 
-    .groupTitle & {
-        position: relative;
-        top: 1px;
-    }
+.enterpriseIcon:global(.icon) {
+    fill: var(--color-enterprise-icon);
 }

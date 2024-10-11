@@ -9,6 +9,7 @@ import { Group } from './group';
 import { Layer } from './layer';
 import type { LayersManager } from './layersManager';
 import { type Node, RedrawType, type RenderContext } from './node';
+import { SpriteRenderer } from './spriteRenderer';
 import { Transformable } from './transformable';
 
 export enum DebugSelectors {
@@ -49,7 +50,7 @@ export function debugStats(
     const stats = [
         `${time('⏱️', start, end)} (${splits})`,
         `${extras}`,
-        `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : layersManager.size}`,
+        `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : layersManager.size}; Sprites: ${SpriteRenderer.offscreenCanvasCount}`,
         detailedStats ? `Nodes: ${pct(nodesRendered, nodesSkipped)}` : null,
     ].filter(isString);
     const measurer = new SimpleTextMeasurer((t) => ctx.measureText(t));
@@ -57,15 +58,16 @@ export function debugStats(
     const width = Math.max(...Array.from(statsSize.values(), (s) => s.width));
     const height = accumulate(statsSize.values(), (s) => s.height);
 
+    const x = 2 + seriesRect.x;
     ctx.save();
     ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(x, 0, width, height);
 
     ctx.fillStyle = 'black';
     let y = 0;
     for (const [stat, size] of statsSize.entries()) {
         y += size.height;
-        ctx.fillText(stat, 2 + seriesRect.x, y);
+        ctx.fillText(stat, x, y);
     }
     ctx.restore();
 }
@@ -118,6 +120,7 @@ export function buildTree(node: Node): BuildTree {
     }
 
     const { parentNode } = node as any;
+    let order = 0;
     return {
         node,
         name: node.name ?? node.id,
@@ -128,7 +131,7 @@ export function buildTree(node: Node): BuildTree {
                   virtualParent: parentNode,
               }
             : {}),
-        ...Array.from(node.children(), (c) => buildTree(c)).reduce<Record<string, {}>>((result, childTree) => {
+        ...Array.from(node.children(false), (c) => buildTree(c)).reduce<Record<string, {}>>((result, childTree) => {
             let { name: treeNodeName } = childTree;
             const {
                 node: {
@@ -153,6 +156,7 @@ export function buildTree(node: Node): BuildTree {
             }
             const subOrder = zIndexSubOrder?.map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v)).join(' / ');
             const key = [
+                `${(order++).toString().padStart(3, '0')}|`,
                 `${treeNodeName ?? '<unknown>'}`,
                 `z: ${zIndex}`,
                 subOrder && `zo: ${subOrder}`,

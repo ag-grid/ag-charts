@@ -35,10 +35,13 @@ const { data: docsNavData } = await getEntry('docs-nav', 'docsNav');
             <p class={styles.description}>See what's new in recent {name} versions.</p>
             <div class={styles.versions}>
                 {
-                    versionsData.slice(0, 9).map((versionInfo, index) => {
-                        if (versionInfo.highlights) {
+                    versionsData
+                        .filter((version) => version.highlights)
+                        .slice(0, 12)
+                        .map((versionInfo, index) => {
                             const { major, minor } = parseVersion(versionInfo.version);
                             const blogUrl = `${minor ? `${blogPrefix}${major}-${minor}` : `${blogPrefix}${major}`}/`;
+
                             return (
                                 <Version
                                     client:load
@@ -50,8 +53,7 @@ const { data: docsNavData } = await getEntry('docs-nav', 'docsNav');
                                     notesPath={versionInfo.notesPath}
                                 />
                             );
-                        }
-                    })
+                        })
                 }
             </div>
         </div>
