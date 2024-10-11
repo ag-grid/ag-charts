@@ -199,10 +199,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             this.updateAxisZoom.bind(this)
         );
 
-        const { Default, ZoomDrag, Animation, Annotations } = _ModuleSupport.InteractionState;
+        const { Default, ZoomDrag, Animation, Annotations, AnnotationsSelected } = _ModuleSupport.InteractionState;
         const draggableState = Default | Animation | ZoomDrag;
         const clickableState = Default | Animation;
-        const wheelableState = draggableState | Annotations;
+        const wheelableState = draggableState | Annotations | AnnotationsSelected;
         const region = ctx.regionManager.getRegion(REGIONS.SERIES);
         const horizontalAxesRegion = ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
         const verticalAxesRegion = ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
