@@ -187,6 +187,8 @@ export class Scene {
             ctx.save();
             ctx.resetTransform();
             this.layersManager.forEach((layer) => {
+                if (layer.mode !== 'legacy') return;
+
                 if (layer.canvas.enabled && layer.getVisibility()) {
                     ctx.globalAlpha = layer.getComputedOpacity();
                     layer.canvas.drawImage(ctx);

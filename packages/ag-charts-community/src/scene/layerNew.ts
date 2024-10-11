@@ -3,14 +3,14 @@ import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import { nodeCount } from './debug.util';
 import { Group } from './group';
 import type { LayersManager, ZIndexSubOrder } from './layersManager';
-import { type ChildNodeCounts, Node, RedrawType, type RenderContext } from './node';
+import { type ChildNodeCounts, RedrawType, type RenderContext } from './node';
 import { Translatable } from './transformable';
 
-export class Layer extends Group {
-    static override className = 'Layer';
+export class LayerNew extends Group {
+    static override className = 'LayerNew';
 
-    static override is(value: unknown): value is Layer {
-        return value instanceof Layer;
+    static override is(value: unknown): value is LayerNew {
+        return value instanceof LayerNew;
     }
 
     private layer?: HdpiCanvas;
@@ -21,7 +21,6 @@ export class Layer extends Group {
             name?: string;
             zIndex?: number;
             zIndexSubOrder?: ZIndexSubOrder;
-            deriveZIndexFromChildren?: boolean; // TODO remove feature
         }
     ) {
         super(opts);
@@ -34,18 +33,16 @@ export class Layer extends Group {
     override preRender(): ChildNodeCounts {
         const counts = super.preRender();
 
-        if (counts.nonGroups > 0) {
-            this.layer ??= this._layerManager?.addLayer({
+        if (counts.nonGroups > 0 && this.layer == null) {
+            this.layer = this._layerManager?.addLayer({
                 name: this.name,
                 zIndex: this.zIndex,
                 zIndexSubOrder: this.zIndexSubOrder,
                 getComputedOpacity: () => this.getComputedOpacity(),
                 getVisibility: () => this.getVisibility(),
-                mode: 'legacy',
+                mode: 'next',
             });
-            if (this.opts?.deriveZIndexFromChildren) {
-                this.deriveZIndexFromChildren();
-            }
+            this.markDirty();
         }
 
         return counts;
@@ -63,13 +60,15 @@ export class Layer extends Group {
     override render(renderCtx: RenderContext) {
         if (!this.layer) {
             return super.render(renderCtx);
+        } else if (!this.getVisibility()) {
+            return;
         }
 
-        const { opts: { name } = {}, _debug: debug, clipRect } = this;
+        const { opts: { name } = {}, _debug: debug } = this;
         const { isDirty, isChildDirty, isChildLayerDirty } = this.isDirty(renderCtx);
         const { stats } = renderCtx;
 
-        let { forceRender, clipBBox } = renderCtx;
+        let { forceRender } = renderCtx;
 
         // If bounding-box of a layer changes, force re-render.
         const currentBBox = this.getBBox();
@@ -78,61 +77,39 @@ export class Layer extends Group {
             this.lastBBox = currentBBox;
         }
 
-        if (!isDirty && !isChildDirty && !isChildLayerDirty && !forceRender) {
-            this.debugSkip(renderCtx);
-            this.markClean({ recursive: false });
-            return; // Nothing to do.
-        }
-
         if (forceRender !== 'dirtyTransform') {
             forceRender = isChildDirty || this.dirtyZIndex;
         }
 
-        if (forceRender) {
-            this.layer.clear();
+        if (isDirty || isChildDirty || isChildLayerDirty || forceRender) {
+            console.log('Render layer');
+            if (forceRender) {
+                this.layer.clear();
+            }
+
+            const layerRenderCtx: RenderContext = {
+                ...renderCtx,
+                ctx: this.layer.context,
+                forceRender,
+            };
+
+            console.log(layerRenderCtx);
+            console.log(this.layer);
+
+            super.render(layerRenderCtx, false);
+
+            this.layer.context.verifyDepthZero?.(); // Check for save/restore depth of zero!
+        } else {
+            this.debugSkip(renderCtx);
+            this.markClean({ recursive: false });
         }
 
-        const children = this.sortedChildren();
-        const renderCtxTransform = renderCtx.ctx.getTransform();
-        const { context: ctx } = this.layer;
-
+        const { ctx } = renderCtx;
         ctx.save();
-
-        if (clipBBox) {
-            // clipBBox is in the canvas coordinate space, when we hit a layer we
-            // apply the new clipping at which point there are no transforms in play
-            const { width, height, x, y } = clipBBox;
-
-            ctx.beginPath();
-            ctx.rect(x, y, width, height);
-            ctx.clip();
-
-            debug?.(() => ({ name, clipBBox, renderCtx, group: this, ctxTransform: ctx.getTransform() }));
-        }
-
-        ctx.setTransform(renderCtxTransform);
-
-        if (this.clipRect) {
-            clipBBox = this.renderClip({ ...renderCtx, ctx });
-        }
-
-        this.renderChildren(children, { ...renderCtx, ctx, forceRender, clipBBox });
-        super.render(renderCtx, true); // Calls markClean().
-
-        if (clipRect) {
-            ctx.restore();
-        }
-
-        // Mark virtual nodes as clean and their virtual children.
-        // All other nodes have already been visited and marked clean.
-        for (const child of this.virtualChildren()) {
-            child.markClean({ recursive: 'virtual' });
-        }
-
-        if (stats) stats.layersRendered++;
+        ctx.resetTransform();
+        ctx.globalAlpha = this.getComputedOpacity();
+        this.layer.drawImage(ctx);
         ctx.restore();
-
-        ctx.verifyDepthZero?.(); // Check for save/restore depth of zero!
 
         if (name && stats) {
             debug?.({
@@ -144,18 +121,6 @@ export class Layer extends Group {
                 group: this,
             });
         }
-    }
-
-    private deriveZIndexFromChildren() {
-        let lastChild: Node | undefined;
-        for (const child of this.children()) {
-            if (!child.childNodeCounts.nonGroups) continue;
-            if (!lastChild || Group.compareChildren(lastChild, child) < 0) {
-                lastChild = child;
-            }
-        }
-        this.zIndex = lastChild?.zIndex ?? -Infinity;
-        this.zIndexSubOrder = lastChild?.zIndexSubOrder;
     }
 
     override _setLayerManager(layersManager?: LayersManager) {
@@ -199,4 +164,4 @@ export class Layer extends Group {
     }
 }
 
-export class TranslatableLayer extends Translatable(Layer) {}
+export class TranslatableLayerNew extends Translatable(LayerNew) {}

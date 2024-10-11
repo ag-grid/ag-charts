@@ -8,7 +8,8 @@ import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
-import { Layer, TranslatableLayer } from '../scene/layer';
+import { TranslatableLayer } from '../scene/layer';
+import { LayerNew } from '../scene/layerNew';
 import type { Node } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
@@ -258,7 +259,7 @@ export abstract class Chart extends Observable {
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
 
         const root = new Group({ name: 'root' });
-        const titleGroup = new Layer({ name: 'titles', zIndex: ZIndexMap.SERIES_LABEL });
+        const titleGroup = new LayerNew({ name: 'titles', zIndex: ZIndexMap.SERIES_LABEL });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;
