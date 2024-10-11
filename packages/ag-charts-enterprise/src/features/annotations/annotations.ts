@@ -247,6 +247,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     });
                 } else {
                     this.ctx.interactionManager.popState(InteractionState.AnnotationsSelected);
+                    this.ctx.interactionManager.popState(InteractionState.Annotations);
                     tooltipManager.unsuppressTooltip('annotations');
                 }
 
