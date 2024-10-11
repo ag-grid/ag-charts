@@ -33,7 +33,7 @@ export interface AgConeFunnelSeriesTooltipRendererParams<TDatum = any>
         AgSeriesTooltipRendererParams<TDatum> {}
 
 export interface AgConeFunnelSeriesThemeableOptions<TDatum = any>
-    extends AgBaseCartesianThemeableOptions<TDatum>,
+    extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
         LineDashOptions {
     /** The colours to cycle through for the fills of the drop-offs. */
     fills?: CssColor[];
@@ -65,7 +65,7 @@ export interface AgConeFunnelSeriesOptionsKeys {
 export interface AgConeFunnelSeriesOptionsNames {}
 
 export interface AgConeFunnelSeriesOptions<TDatum = any>
-    extends AgBaseSeriesOptions<TDatum>,
+    extends Omit<AgBaseSeriesOptions<TDatum>, 'showInLegend'>,
         AgConeFunnelSeriesOptionsKeys,
         AgConeFunnelSeriesOptionsNames,
         AgConeFunnelSeriesThemeableOptions<TDatum> {

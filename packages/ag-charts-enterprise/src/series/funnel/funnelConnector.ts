@@ -48,7 +48,7 @@ export class FunnelConnector extends Path implements _ModuleSupport.DistantObjec
             _Util.lineDistanceSquared(x, y, x0, y0, x1, y1, Infinity),
             _Util.lineDistanceSquared(x, y, x1, y1, x2, y2, Infinity),
             _Util.lineDistanceSquared(x, y, x2, y2, x3, y3, Infinity),
-            _Util.lineDistanceSquared(x, y, x2, y2, x0, y0, Infinity)
+            _Util.lineDistanceSquared(x, y, x3, y3, x0, y0, Infinity)
         );
     }
 
