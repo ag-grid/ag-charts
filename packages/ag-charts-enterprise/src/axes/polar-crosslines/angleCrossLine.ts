@@ -60,8 +60,14 @@ export class AngleCrossLine extends PolarCrossLine {
 
     private updateLineNode(visible: boolean) {
         const { scale, type, value, lineNode: line } = this;
-        let angle: number;
-        if (!visible || type !== 'line' || !scale || isNaN((angle = scale.convert(value)))) {
+
+        if (!visible || type !== 'line' || !scale) {
+            line.visible = false;
+            return;
+        }
+
+        const angle = scale.convert(value);
+        if (isNaN(angle)) {
             line.visible = false;
             return;
         }
@@ -88,8 +94,13 @@ export class AngleCrossLine extends PolarCrossLine {
 
     private updatePolygonNode(visible: boolean) {
         const { polygonNode: polygon, range, scale, shape, type } = this;
-        let ticks: any[] | undefined;
-        if (!visible || type !== 'range' || shape !== 'polygon' || !scale || !range || !(ticks = scale.ticks?.())) {
+        if (!visible || type !== 'range' || shape !== 'polygon' || !scale || !range) {
+            polygon.visible = false;
+            return;
+        }
+
+        const ticks = scale.ticks?.();
+        if (!ticks) {
             polygon.visible = false;
             return;
         }

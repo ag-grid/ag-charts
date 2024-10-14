@@ -1,9 +1,7 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { buildBounds, calculateAxisLabelPosition } from '../../utils/position';
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
-
-type AgCrosshairLabelRendererResult = any;
 
 const { Group, TranslatableLayer, Line, BBox } = _Scene;
 const { createId } = _Util;
@@ -291,12 +289,13 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         const isVertical = this.isVertical();
         const position = isVertical ? regionOffsetX : regionOffsetY;
-        return {
-            [key]: {
-                position,
-                value: axisCtx.continuous ? axisCtx.scaleInvert(position) : datum?.[isVertical ? xKey : yKey] ?? '',
-            },
-        };
+
+        let value = datum?.[isVertical ? xKey : yKey] ?? '';
+        if (axisCtx.continuous) {
+            value = axisCtx.scaleInvert(position);
+        }
+
+        return { [key]: { position, value } };
     }
 
     private getActiveHighlightData(
