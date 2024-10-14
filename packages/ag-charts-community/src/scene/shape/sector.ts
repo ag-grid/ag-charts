@@ -60,6 +60,9 @@ export class Sector extends Path {
     static override readonly className = 'Sector';
 
     @ScenePathChangeDetection()
+    strokeAlign: 'inside' | 'middle' = 'inside';
+
+    @ScenePathChangeDetection()
     centerX: number = 0;
 
     @ScenePathChangeDetection()
@@ -114,12 +117,21 @@ export class Sector extends Path {
         return sectorBox(this).translate(this.centerX, this.centerY);
     }
 
-    private normalizedRadii() {
-        const { concentricEdgeInset } = this;
-        let { innerRadius, outerRadius } = this;
+    private get strokeInset() {
+        return this.stroke != null && this.strokeAlign === 'inside' ? this.strokeWidth / 2 : 0;
+    }
+
+    private normalizedRadii(insetStroke: boolean) {
+        const { strokeInset } = this;
+        let { innerRadius, outerRadius, concentricEdgeInset, radialEdgeInset } = this;
+        if (insetStroke) {
+            concentricEdgeInset += strokeInset;
+            radialEdgeInset += strokeInset;
+        }
+
         innerRadius = innerRadius > 0 ? innerRadius + concentricEdgeInset : 0;
         outerRadius = Math.max(outerRadius - concentricEdgeInset, 0);
-        return { innerRadius, outerRadius };
+        return { concentricEdgeInset, radialEdgeInset, innerRadius, outerRadius };
     }
 
     private normalizedClipSector() {
@@ -127,7 +139,7 @@ export class Sector extends Path {
         if (clipSector == null) return;
 
         const { startAngle, endAngle } = clockwiseAngles(this.startAngle, this.endAngle);
-        const { innerRadius, outerRadius } = this.normalizedRadii();
+        const { innerRadius, outerRadius } = this.normalizedRadii(true);
         const clipAngles = clockwiseAngles(clipSector.startAngle, clipSector.endAngle, startAngle);
 
         return new SectorBox(
@@ -138,8 +150,8 @@ export class Sector extends Path {
         );
     }
 
-    private getAngleOffset(radius: number) {
-        return radius > 0 ? this.radialEdgeInset / radius : 0;
+    private getAngleOffset(radius: number, insetStroke: boolean) {
+        return radius > 0 ? this.normalizedRadii(insetStroke).radialEdgeInset / radius : 0;
     }
 
     private arc(
@@ -155,15 +167,19 @@ export class Sector extends Path {
         if (r <= 0) return;
 
         const { startAngle, endAngle } = clockwiseAngles(this.startAngle, this.endAngle);
-        const { innerRadius, outerRadius } = this.normalizedRadii();
+        const { innerRadius, outerRadius } = this.normalizedRadii(true);
         const clipSector = this.normalizedClipSector();
 
         if (inner && innerRadius <= 0) return;
 
-        const angleOffset = inner ? this.getAngleOffset(innerRadius + r) : this.getAngleOffset(outerRadius - r);
+        const angleOffset = this.getAngleOffset(
+            inner ? innerRadius + r : outerRadius - r * (1 + Math.sin(angleSweep) / 2),
+            true
+        );
         const angle = start ? startAngle + angleOffset + angleSweep : endAngle - angleOffset - angleSweep;
 
         const radius = inner ? innerRadius + r : outerRadius - r;
+
         const cx = radius * Math.cos(angle);
         const cy = radius * Math.sin(angle);
 
@@ -249,53 +265,18 @@ export class Sector extends Path {
         return arc;
     }
 
-    override updatePath(): void {
-        const delta = 1e-6;
-        const { path, centerX, centerY, concentricEdgeInset, radialEdgeInset } = this;
+    private cornerRadii({
+        sweepAngle,
+        innerAngleExceeded,
+        hasInnerSweep,
+    }: {
+        sweepAngle: number;
+        innerAngleExceeded: boolean;
+        hasInnerSweep: boolean;
+    }) {
+        const { strokeInset } = this;
+        const { innerRadius, outerRadius, radialEdgeInset } = this.normalizedRadii(false);
         let { startOuterCornerRadius, endOuterCornerRadius, startInnerCornerRadius, endInnerCornerRadius } = this;
-        const { startAngle, endAngle } = clockwiseAngles(this.startAngle, this.endAngle);
-        const { innerRadius, outerRadius } = this.normalizedRadii();
-        const clipSector = this.normalizedClipSector();
-        const sweepAngle = endAngle - startAngle;
-        const fullPie = sweepAngle >= 2 * Math.PI - delta;
-
-        path.clear();
-
-        if ((innerRadius === 0 && outerRadius === 0) || innerRadius > outerRadius) {
-            return;
-        } else if ((clipSector?.startAngle ?? startAngle) === (clipSector?.endAngle ?? endAngle)) {
-            return;
-        } else if (
-            fullPie &&
-            this.clipSector == null &&
-            startOuterCornerRadius === 0 &&
-            endOuterCornerRadius === 0 &&
-            startInnerCornerRadius === 0 &&
-            endInnerCornerRadius === 0
-        ) {
-            path.moveTo(centerX + outerRadius * Math.cos(startAngle), centerY + outerRadius * Math.sin(startAngle));
-            path.arc(centerX, centerY, outerRadius, startAngle, endAngle);
-            if (innerRadius > concentricEdgeInset) {
-                path.moveTo(centerX + innerRadius * Math.cos(endAngle), centerY + innerRadius * Math.sin(endAngle));
-                path.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
-            }
-            path.closePath();
-            return;
-        } else if (this.clipSector == null && Math.abs(innerRadius - outerRadius) < 1e-6) {
-            path.arc(centerX, centerY, outerRadius, startAngle, endAngle, false);
-            path.arc(centerX, centerY, outerRadius, endAngle, startAngle, true);
-            path.closePath();
-            return;
-        }
-
-        const innerAngleOffset = this.getAngleOffset(innerRadius);
-        const outerAngleOffset = this.getAngleOffset(outerRadius);
-
-        const outerAngleExceeded = sweepAngle < 2 * outerAngleOffset;
-        if (outerAngleExceeded) return;
-
-        const hasInnerSweep = (clipSector?.innerRadius ?? innerRadius) > concentricEdgeInset;
-        const innerAngleExceeded = innerRadius < concentricEdgeInset || sweepAngle < 2 * innerAngleOffset;
 
         // radiiScalingFactor doesn't find outer radii factors when the corners are larger than the sector radius
         // First, scale everything down so every corner radius individually fits within the sector's radial range
@@ -313,9 +294,10 @@ export class Sector extends Path {
         endInnerCornerRadius *= initialScalingFactor;
 
         // Then scale the both outer corner radii so they both fit within the sector's sweep when placed together
+        const baseOuterRadius = outerRadius;
         const outerScalingFactor = radiiScalingFactor(
-            outerRadius,
-            sweepAngle - 2 * outerAngleOffset,
+            baseOuterRadius,
+            sweepAngle - 2 * this.getAngleOffset(baseOuterRadius, false),
             -startOuterCornerRadius,
             -endOuterCornerRadius
         );
@@ -324,9 +306,10 @@ export class Sector extends Path {
 
         if (!innerAngleExceeded && hasInnerSweep) {
             // ... then the inner corner radii
+            const baseInnerRadius = Math.max(innerRadius, 0);
             const innerScalingFactor = radiiScalingFactor(
-                innerRadius,
-                sweepAngle - 2 * innerAngleOffset,
+                baseInnerRadius,
+                sweepAngle - 2 * this.getAngleOffset(baseInnerRadius, false),
                 startInnerCornerRadius,
                 endInnerCornerRadius
             );
@@ -350,23 +333,92 @@ export class Sector extends Path {
         startInnerCornerRadius *= edgesScalingFactor;
         endInnerCornerRadius *= edgesScalingFactor;
 
-        let startOuterCornerRadiusAngleSweep = 0;
-        let endOuterCornerRadiusAngleSweep = 0;
+        // A 180deg sweep - note we have to take off an additional stroke inset here because it only gets counted once below
+        const maxOuterRadius = (radialLength - radialEdgeInset - strokeInset) / 2;
+        startOuterCornerRadius = Math.min(startOuterCornerRadius, maxOuterRadius);
+        endOuterCornerRadius = Math.min(endOuterCornerRadius, maxOuterRadius);
+
+        startOuterCornerRadius = Math.max(startOuterCornerRadius - strokeInset, 0);
+        endOuterCornerRadius = Math.max(endOuterCornerRadius - strokeInset, 0);
+        startInnerCornerRadius = Math.max(startInnerCornerRadius - strokeInset, 0);
+        endInnerCornerRadius = Math.max(endInnerCornerRadius - strokeInset, 0);
+
+        return {
+            startOuterCornerRadius,
+            endOuterCornerRadius,
+            startInnerCornerRadius,
+            endInnerCornerRadius,
+        };
+    }
+
+    override updatePath(): void {
+        const delta = 1e-6;
+        const { path, centerX, centerY } = this;
+        const { innerRadius, outerRadius, concentricEdgeInset, radialEdgeInset } = this.normalizedRadii(true);
+        const { startAngle, endAngle } = clockwiseAngles(this.startAngle, this.endAngle);
+        const clipSector = this.normalizedClipSector();
+        const sweepAngle = endAngle - startAngle;
+        const fullPie = sweepAngle >= 2 * Math.PI - delta;
+
+        path.clear();
+
+        if ((innerRadius === 0 && outerRadius === 0) || innerRadius > outerRadius) {
+            return;
+        } else if ((clipSector?.startAngle ?? startAngle) === (clipSector?.endAngle ?? endAngle)) {
+            return;
+        } else if (
+            fullPie &&
+            this.clipSector == null &&
+            this.startOuterCornerRadius === 0 &&
+            this.endOuterCornerRadius === 0 &&
+            this.startInnerCornerRadius === 0 &&
+            this.endInnerCornerRadius === 0
+        ) {
+            path.moveTo(centerX + outerRadius * Math.cos(startAngle), centerY + outerRadius * Math.sin(startAngle));
+            path.arc(centerX, centerY, outerRadius, startAngle, endAngle);
+            if (innerRadius > concentricEdgeInset) {
+                path.moveTo(centerX + innerRadius * Math.cos(endAngle), centerY + innerRadius * Math.sin(endAngle));
+                path.arc(centerX, centerY, innerRadius, endAngle, startAngle, true);
+            }
+            path.closePath();
+            return;
+        } else if (this.clipSector == null && Math.abs(innerRadius - outerRadius) < 1e-6) {
+            path.arc(centerX, centerY, outerRadius, startAngle, endAngle, false);
+            path.arc(centerX, centerY, outerRadius, endAngle, startAngle, true);
+            path.closePath();
+            return;
+        }
+
+        const innerAngleOffset = this.getAngleOffset(innerRadius, true);
+        const outerAngleOffset = this.getAngleOffset(outerRadius, true);
+
+        const outerAngleExceeded = sweepAngle < 2 * outerAngleOffset;
+        if (outerAngleExceeded) return;
+
+        const hasInnerSweep = (clipSector?.innerRadius ?? innerRadius) > concentricEdgeInset;
+        const innerAngleExceeded =
+            (clipSector?.innerRadius ?? innerRadius) < concentricEdgeInset || sweepAngle < 2 * innerAngleOffset;
+
+        const { startOuterCornerRadius, startInnerCornerRadius, endOuterCornerRadius, endInnerCornerRadius } =
+            this.cornerRadii({
+                sweepAngle,
+                hasInnerSweep,
+                innerAngleExceeded,
+            });
+
+        let startOuterCornerRadiusAngleSweep = NaN;
+        let endOuterCornerRadiusAngleSweep = NaN;
         const startOuterCornerRadiusSweep = startOuterCornerRadius / (outerRadius - startOuterCornerRadius);
         const endOuterCornerRadiusSweep = endOuterCornerRadius / (outerRadius - endOuterCornerRadius);
         if (startOuterCornerRadiusSweep >= 0 && startOuterCornerRadiusSweep < 1 - delta) {
             startOuterCornerRadiusAngleSweep = Math.asin(startOuterCornerRadiusSweep);
         } else {
-            startOuterCornerRadiusAngleSweep = sweepAngle / 2;
-            const maxStartOuterCornerRadius = outerRadius / (1 / Math.sin(startOuterCornerRadiusAngleSweep) + 1);
-            startOuterCornerRadius = Math.min(maxStartOuterCornerRadius, startOuterCornerRadius);
+            startOuterCornerRadiusAngleSweep = Math.PI / 2;
         }
         if (endOuterCornerRadiusSweep >= 0 && endOuterCornerRadiusSweep < 1 - delta) {
             endOuterCornerRadiusAngleSweep = Math.asin(endOuterCornerRadiusSweep);
         } else {
-            endOuterCornerRadiusAngleSweep = sweepAngle / 2;
-            const maxEndOuterCornerRadius = outerRadius / (1 / Math.sin(endOuterCornerRadiusAngleSweep) + 1);
-            endOuterCornerRadius = Math.min(maxEndOuterCornerRadius, endOuterCornerRadius);
+            endOuterCornerRadiusAngleSweep = Math.PI / 2;
         }
 
         const startInnerCornerRadiusAngleSweep = Math.asin(
@@ -374,8 +426,8 @@ export class Sector extends Path {
         );
         const endInnerCornerRadiusAngleSweep = Math.asin(endInnerCornerRadius / (innerRadius + endInnerCornerRadius));
 
-        const outerArcRadius = clipSector?.outerRadius ?? outerRadius;
-        const outerArcRadiusOffset = this.getAngleOffset(outerArcRadius);
+        const outerArcRadius = (clipSector?.outerRadius ?? this.outerRadius) - concentricEdgeInset;
+        const outerArcRadiusOffset = this.getAngleOffset(outerArcRadius, true);
         const outerArc = new Arc(
             0,
             0,
@@ -383,8 +435,8 @@ export class Sector extends Path {
             startAngle + outerArcRadiusOffset,
             endAngle - outerArcRadiusOffset
         );
-        const innerArcRadius = clipSector?.innerRadius ?? innerRadius;
-        const innerArcRadiusOffset = this.getAngleOffset(innerArcRadius);
+        const innerArcRadius = (clipSector?.innerRadius ?? this.innerRadius) + concentricEdgeInset;
+        const innerArcRadiusOffset = this.getAngleOffset(innerArcRadius, true);
         const innerArc = hasInnerSweep
             ? new Arc(0, 0, innerArcRadius, startAngle + innerArcRadiusOffset, endAngle - innerArcRadiusOffset)
             : undefined;
@@ -437,7 +489,21 @@ export class Sector extends Path {
             true
         );
 
-        if (innerAngleExceeded) {
+        let outerArcsTouchOnInside = false;
+        if (startOuterArc != null && endOuterArc != null) {
+            const p0 = startOuterArc.pointAt(startOuterArc.a0);
+            const p1 = endOuterArc.pointAt(endOuterArc.a1);
+            outerArcsTouchOnInside = Math.hypot(p0.x - p1.x, p0.y - p1.y) < 1;
+        }
+
+        if (
+            !innerAngleExceeded &&
+            (startInnerArc?.isValid() === true || innerArc?.isValid() === true || outerArcsTouchOnInside)
+        ) {
+            // The first point of the path will be the first point on an arc
+            // We don't need to call moveTo here - it's implicit
+            // Not having a moveTo also fixes some issues Chrome has about mitering
+        } else {
             // Draw a wedge on a cartesian co-ordinate with radius `sweep`
             // Inset from bottom - i.e. y = innerRadius
             // Inset the top - i.e. y = (x - x0) * tan(sweep)
@@ -455,7 +521,7 @@ export class Sector extends Path {
             if (x > 0 && x < outerRadius) {
                 // Even within the formula limits, floating point precision isn't always enough,
                 // so ensure we never go less than the inner radius
-                r = Math.max(Math.hypot(radialEdgeInset, x), innerRadius);
+                r = Math.hypot(radialEdgeInset, x);
             } else {
                 // Formula limits exceeded - just use the inner radius
                 r = radialEdgeInset;
@@ -463,15 +529,6 @@ export class Sector extends Path {
             r = Math.max(r, innerRadius);
             const midAngle = startAngle + sweepAngle * 0.5;
             path.moveTo(centerX + r * Math.cos(midAngle), centerY + r * Math.sin(midAngle));
-        } else if (startInnerArc?.isValid() === true || innerArc?.isValid() === true) {
-            // The first point of the path will be the first point on an arc
-            // We don't need to call moveTo here - it's implicit
-            // Not having a moveTo also fixes some issues Chrome has about mitering
-        } else {
-            const midAngle = startAngle + sweepAngle / 2;
-            const cx = innerRadius * Math.cos(midAngle);
-            const cy = innerRadius * Math.sin(midAngle);
-            path.moveTo(centerX + cx, centerY + cy);
         }
 
         if (startOuterArc?.isValid() === true) {

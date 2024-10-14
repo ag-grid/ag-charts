@@ -167,7 +167,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.highlightGroup.translationX = width / 2;
         this.highlightGroup.translationY = height / 2;
 
-        const baseInset = sectorSpacing * 0.5;
+        const inset = sectorSpacing * 0.5;
         const radius = Math.min(width, height) / 2;
         const radiusScale = radius / (maxDepth + 1);
         const angleOffset = -Math.PI / 2;
@@ -231,7 +231,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             sector.outerRadius = (depth + 1) * radiusScale;
             sector.startAngle = angleDatum.start + angleOffset;
             sector.endAngle = angleDatum.end + angleOffset;
-            sector.inset = baseInset + strokeWidth * 0.5;
+            sector.inset = inset;
             sector.cornerRadius = cornerRadius;
         };
 
@@ -255,10 +255,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 return;
             }
 
-            const innerRadius = depth * radiusScale + baseInset;
-            const outerRadius = (depth + 1) * radiusScale - baseInset;
-            const innerAngleOffset = innerRadius > baseInset ? baseInset / innerRadius : baseInset;
-            const outerAngleOffset = outerRadius > baseInset ? baseInset / outerRadius : baseInset;
+            const innerRadius = depth * radiusScale + inset;
+            const outerRadius = (depth + 1) * radiusScale - inset;
+            const innerAngleOffset = innerRadius > inset ? inset / innerRadius : inset;
+            const outerAngleOffset = outerRadius > inset ? inset / outerRadius : inset;
             const innerStartAngle = angleData.start + innerAngleOffset;
             const innerEndAngle = angleData.end + innerAngleOffset;
             const deltaInnerAngle = innerEndAngle - innerStartAngle;

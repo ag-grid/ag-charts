@@ -129,6 +129,7 @@ export class RadiusCrossLine extends PolarCrossLine {
 
         sector.visible = true;
 
+        sector.strokeAlign = 'middle';
         sector.startAngle = 0;
         sector.endAngle = 2 * Math.PI;
 

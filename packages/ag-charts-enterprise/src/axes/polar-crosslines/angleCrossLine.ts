@@ -152,6 +152,7 @@ export class AngleCrossLine extends PolarCrossLine {
 
         sector.centerX = 0;
         sector.centerY = 0;
+        sector.strokeAlign = 'middle';
         sector.innerRadius = axisInnerRadius;
         sector.outerRadius = axisOuterRadius;
         sector.startAngle = angles[0] - padding;

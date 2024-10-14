@@ -405,7 +405,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             node.lineDash = format?.lineDash ?? lineDash;
             node.lineDashOffset = format?.lineDashOffset ?? lineDashOffset;
             node.lineJoin = 'round';
-            node.inset = stroke != null ? (format?.strokeWidth ?? strokeWidth) / 2 : 0;
             node.startInnerCornerRadius = datum.reversed ? format?.cornerRadius ?? cornerRadius : 0;
             node.startOuterCornerRadius = datum.reversed ? format?.cornerRadius ?? cornerRadius : 0;
             node.endInnerCornerRadius = datum.reversed ? 0 : format?.cornerRadius ?? cornerRadius;

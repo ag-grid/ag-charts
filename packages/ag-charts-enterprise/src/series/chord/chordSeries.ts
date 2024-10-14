@@ -424,7 +424,6 @@ export class ChordSeries extends FlowProportionSeries<
             sector.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
             sector.lineDash = highlightStyle?.lineDash ?? format?.lineDash ?? lineDash;
             sector.lineDashOffset = highlightStyle?.lineDashOffset ?? format?.lineDashOffset ?? lineDashOffset;
-            sector.inset = sector.strokeWidth / 2;
         });
     }
 

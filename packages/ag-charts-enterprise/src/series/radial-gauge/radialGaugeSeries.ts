@@ -798,8 +798,7 @@ export class RadialGaugeSeries
             sector.endOuterCornerRadius = endCornerRadius;
             sector.endInnerCornerRadius = endCornerRadius;
 
-            sector.radialEdgeInset = (sectorSpacing + sector.strokeWidth) / 2;
-            sector.concentricEdgeInset = sector.strokeWidth / 2;
+            sector.radialEdgeInset = sectorSpacing / 2;
 
             if (animationDisabled || sector.previousDatum == null) {
                 sector.setProperties(resetRadialGaugeSeriesResetSectorFunction(sector, datum));
@@ -841,8 +840,7 @@ export class RadialGaugeSeries
             sector.endOuterCornerRadius = endCornerRadius;
             sector.endInnerCornerRadius = endCornerRadius;
 
-            sector.radialEdgeInset = (sectorSpacing + sector.strokeWidth) / 2;
-            sector.concentricEdgeInset = sector.strokeWidth / 2;
+            sector.radialEdgeInset = sectorSpacing / 2;
 
             sector.setProperties(resetRadialGaugeSeriesResetSectorFunction(sector, datum));
         });
