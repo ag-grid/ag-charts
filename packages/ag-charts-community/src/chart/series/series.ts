@@ -279,10 +279,10 @@ export abstract class Series<
         const { internalId, type, visible } = this;
 
         if (prev) {
-            this.ctx.seriesStateManager.deregisterSeries({ id: internalId, type });
+            this.ctx.seriesStateManager.deregisterSeries(this);
         }
         if (next) {
-            this.ctx.seriesStateManager.registerSeries({ id: internalId, type, visible, seriesGrouping: next });
+            this.ctx.seriesStateManager.registerSeries({ internalId, type, visible, seriesGrouping: next });
         }
 
         this.fireEvent(new SeriesGroupingChangedEvent(this, next, prev));
@@ -464,7 +464,7 @@ export abstract class Series<
     }
 
     private visibleMaybeChanged() {
-        this.ctx.seriesStateManager.registerSeries(this);
+        this.ctx.seriesStateManager.updateSeries(this);
     }
 
     // Produce data joins and update selection's nodes using node data.
