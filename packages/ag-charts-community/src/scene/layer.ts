@@ -91,7 +91,7 @@ export class Layer extends Group {
             if (this.dirtyZIndex) {
                 this.sortChildren(Group.compareChildren);
             }
-            const children = this.sortedChildren();
+            const children = this.children();
             const renderCtxTransform = renderCtx.ctx.getTransform();
             const { context: layerCtx } = this.layer;
 
@@ -120,12 +120,6 @@ export class Layer extends Group {
 
             if (clipRect) {
                 layerCtx.restore();
-            }
-
-            // Mark virtual nodes as clean and their virtual children.
-            // All other nodes have already been visited and marked clean.
-            for (const child of this.virtualChildren()) {
-                child.markClean({ recursive: 'virtual' });
             }
 
             if (stats) stats.layersRendered++;

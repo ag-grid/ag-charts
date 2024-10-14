@@ -19,7 +19,7 @@ export enum DebugSelectors {
     SCENE_DIRTY_TREE = 'scene:dirtyTree',
 }
 
-type BuildTree = { name?: string; node?: any; dirty?: string; virtualParent?: Node };
+type BuildTree = { name?: string; node?: any; dirty?: string };
 
 export function debugStats(
     layersManager: LayersManager,
@@ -119,24 +119,16 @@ export function buildTree(node: Node): BuildTree {
         return {};
     }
 
-    const { parentNode } = node as any;
     let order = 0;
     return {
         node,
         name: node.name ?? node.id,
         dirty: RedrawType[node.dirty],
-        ...(parentNode?.isVirtual
-            ? {
-                  virtualParentDirty: RedrawType[parentNode.dirty],
-                  virtualParent: parentNode,
-              }
-            : {}),
-        ...Array.from(node.children(false), (c) => buildTree(c)).reduce<Record<string, {}>>((result, childTree) => {
+        ...Array.from(node.children(), (c) => buildTree(c)).reduce<Record<string, {}>>((result, childTree) => {
             let { name: treeNodeName } = childTree;
             const {
                 node: { visible, opacity, zIndex, translationX, translationY, rotation, scalingX, scalingY },
                 node: childNode,
-                virtualParent,
             } = childTree;
             if (!visible || opacity <= 0) {
                 treeNodeName = `(${treeNodeName})`;
@@ -149,7 +141,6 @@ export function buildTree(node: Node): BuildTree {
                 `${(order++).toString().padStart(3, '0')}|`,
                 `${treeNodeName ?? '<unknown>'}`,
                 `z: ${zIndexString}`,
-                virtualParent && `(virtual parent)`,
                 translationX && `x: ${translationX}`,
                 translationY && `y: ${translationY}`,
                 rotation && `r: ${rotation}`,

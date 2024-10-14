@@ -194,7 +194,7 @@ export abstract class Series<
     }
 
     // The group node that contains all the nodes used to render this series.
-    readonly rootGroup: Group = new Group({ name: 'seriesRoot', isVirtual: true });
+    readonly rootGroup: Group = new Group({ name: 'seriesRoot' });
 
     // The group node that contains the series rendering in its default (non-highlighted) state.
     readonly contentGroup: TranslatableGroup;
@@ -296,14 +296,7 @@ export abstract class Series<
     constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
         super();
 
-        const {
-            moduleCtx,
-            pickModes,
-            directionKeys = {},
-            directionNames = {},
-            contentGroupVirtual = true,
-            canHaveAxes = false,
-        } = seriesOpts;
+        const { moduleCtx, pickModes, directionKeys = {}, directionNames = {}, canHaveAxes = false } = seriesOpts;
 
         this.ctx = moduleCtx;
         this.directionKeys = directionKeys;
@@ -313,15 +306,11 @@ export abstract class Series<
         this.contentGroup = this.rootGroup.appendChild(
             new TranslatableGroup({
                 name: `${this.internalId}-content`,
-                isVirtual: contentGroupVirtual,
-                zIndex: ZIndexMap.SERIES_LAYER,
             })
         );
 
         this.highlightGroup = new TranslatableGroup({
             name: `${this.internalId}-highlight`,
-            isVirtual: contentGroupVirtual,
-            zIndex: ZIndexMap.SERIES_LAYER,
         });
         this.highlightNode = this.highlightGroup.appendChild(new Group({ name: 'highlightNode', zIndex: 0 }));
         this.highlightLabel = this.highlightGroup.appendChild(new Group({ name: 'highlightLabel', zIndex: 10 }));
@@ -337,8 +326,6 @@ export abstract class Series<
 
         this.annotationGroup = new Group({
             name: `${this.id}-annotation`,
-            isVirtual: contentGroupVirtual,
-            zIndex: ZIndexMap.SERIES_LAYER,
         });
     }
 
@@ -348,9 +335,9 @@ export abstract class Series<
 
         this._declarationOrder = index;
 
-        this.contentGroup.zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('data')];
-        this.highlightGroup.zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('highlight')];
-        this.annotationGroup.zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('annotation')];
+        this.contentGroup.zIndex = this.getGroupZIndexSubOrder('data');
+        this.highlightGroup.zIndex = this.getGroupZIndexSubOrder('highlight');
+        this.annotationGroup.zIndex = this.getGroupZIndexSubOrder('annotation');
 
         return true;
     }

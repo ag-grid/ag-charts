@@ -36,7 +36,6 @@ export class Group extends Node {
     constructor(
         protected readonly opts?: {
             readonly name?: string;
-            readonly isVirtual?: boolean;
             readonly zIndex?: ZIndex;
             readonly layer?: boolean; // TODO remove
         }
@@ -120,7 +119,7 @@ export class Group extends Node {
         if (this.dirtyZIndex) {
             this.sortChildren(Group.compareChildren);
         }
-        const children = this.sortedChildren();
+        const children = this.children();
         const clipBBox = this.renderClip(renderCtx) ?? renderCtx.clipBBox;
         const renderCtxChanged = forceRender !== renderCtx.forceRender || clipBBox !== renderCtx.clipBBox;
 
@@ -129,12 +128,6 @@ export class Group extends Node {
 
         if (this.clipRect) {
             ctx.restore();
-        }
-
-        // Mark virtual nodes as clean and their virtual children.
-        // All other nodes have already been visited and marked clean.
-        for (const child of this.virtualChildren()) {
-            child.markClean({ recursive: 'virtual' });
         }
 
         if (name && stats) {
@@ -147,14 +140,6 @@ export class Group extends Node {
                 group: this,
             });
         }
-    }
-
-    protected sortedChildren() {
-        let children: Iterable<Node> = this.children();
-        if (this.hasVirtualChildren()) {
-            children = [...children].sort(Group.compareChildren);
-        }
-        return children;
     }
 
     protected renderClip(renderCtx: RenderContext) {
@@ -233,7 +218,7 @@ export class Group extends Node {
         const defs: SVGElement[] = [];
         const elements: SVGElement[] = [];
 
-        for (const child of this.sortedChildren()) {
+        for (const child of this.children()) {
             const svg = child.toSVG();
             if (svg != null) {
                 elements.push(...svg.elements);

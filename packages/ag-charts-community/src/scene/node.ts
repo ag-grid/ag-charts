@@ -30,7 +30,6 @@ export type RenderContext = {
 
 export interface NodeOptions {
     name?: string;
-    isVirtual?: boolean;
     tag?: number;
     zIndex?: ZIndex;
 }
@@ -85,7 +84,6 @@ export abstract class Node {
 
     private childNodes?: Set<Node>;
     private parentNode?: Node;
-    private virtualChildrenCount: number = 0;
 
     private cachedBBox?: BBox;
 
@@ -95,13 +93,6 @@ export abstract class Node {
      * But we still need to distinguish regular leaf nodes from container leafs somehow.
      */
     protected isContainerNode: boolean = false;
-
-    /**
-     * Indicates if this node should be substituted for its children when traversing the scene
-     * graph. This allows intermingling of child-nodes that are managed by different chart classes
-     * without breaking scene-graph encapsulation.
-     */
-    readonly isVirtual: boolean;
 
     @SceneChangeDetection<Node>({
         redraw: RedrawType.MAJOR,
@@ -117,7 +108,6 @@ export abstract class Node {
 
     constructor(options?: NodeOptions) {
         this.name = options?.name;
-        this.isVirtual = options?.isVirtual ?? false;
         this.tag = options?.tag ?? NaN;
         this.zIndex = options?.zIndex ?? 0;
     }
@@ -183,7 +173,7 @@ export abstract class Node {
         this._layerManager = value;
         this._debug = value?.debug;
 
-        for (const child of this.children(false)) {
+        for (const child of this.children()) {
             child._setLayerManager(value);
         }
     }
@@ -191,9 +181,6 @@ export abstract class Node {
     protected sortChildren(compareFn?: (a: Node, b: Node) => number) {
         this.dirtyZIndex = false;
         if (!this.childNodes) return;
-
-        // Virtual children need to be sorted on the fly.
-        if (this.hasVirtualChildren()) return;
 
         // Sort children, and re-add in new order (Set preserves insertion order).
         const sortedChildren = [...this.childNodes].sort(compareFn);
@@ -213,32 +200,11 @@ export abstract class Node {
         }
     }
 
-    *children(flattenVirtual = true): Generator<Node, void, undefined> {
+    *children(): Generator<Node, void, undefined> {
         if (!this.childNodes) return;
-        const virtualChildren = [];
         for (const child of this.childNodes) {
-            if (flattenVirtual && child.isVirtual) {
-                virtualChildren.push(child.children());
-            } else {
-                yield child;
-            }
+            yield child;
         }
-        for (const vChildren of virtualChildren) {
-            yield* vChildren;
-        }
-    }
-
-    *virtualChildren(): Generator<Node, void, undefined> {
-        if (!this.childNodes || !this.virtualChildrenCount) return;
-        for (const child of this.childNodes) {
-            if (child.isVirtual) {
-                yield child;
-            }
-        }
-    }
-
-    hasVirtualChildren() {
-        return this.virtualChildrenCount > 0;
     }
 
     /**
@@ -271,10 +237,6 @@ export abstract class Node {
 
             node.parentNode = this;
             node._setLayerManager(this.layerManager);
-
-            if (node.isVirtual) {
-                this.virtualChildrenCount++;
-            }
         }
 
         this.invalidateCachedBBox();
@@ -295,10 +257,6 @@ export abstract class Node {
         delete node.parentNode;
         node._setLayerManager();
 
-        if (node.isVirtual) {
-            this.virtualChildrenCount--;
-        }
-
         this.invalidateCachedBBox();
         this.dirtyZIndex = true;
         this.markDirty(RedrawType.MAJOR);
@@ -311,13 +269,12 @@ export abstract class Node {
     }
 
     clear() {
-        for (const child of this.children(false)) {
+        for (const child of this.children()) {
             delete child.parentNode;
             child._setLayerManager();
         }
         this.childNodes?.clear();
         this.invalidateCachedBBox();
-        this.virtualChildrenCount = 0;
     }
 
     destroy(): void {
@@ -422,8 +379,8 @@ export abstract class Node {
 
         this._dirty = RedrawType.NONE;
 
-        for (const child of this.children(false)) {
-            if (child.isVirtual ? recursive !== false : recursive === true) {
+        if (recursive === true) {
+            for (const child of this.children()) {
                 child.markClean({ force });
             }
         }
@@ -434,14 +391,11 @@ export abstract class Node {
     }
 
     protected onZIndexChange() {
-        let parentNode = this.parentNode;
-        do {
-            if (parentNode) {
-                parentNode.dirtyZIndex = true;
-            }
+        const { parentNode } = this;
 
-            parentNode = parentNode?.parentNode;
-        } while (parentNode?.isVirtual === true);
+        if (parentNode) {
+            parentNode.dirtyZIndex = true;
+        }
     }
 
     toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
