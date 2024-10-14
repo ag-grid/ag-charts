@@ -433,6 +433,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     this.hovered = undefined;
                     this.active = undefined;
 
+                    ctx.select(this.active, this.active);
+
                     ctx.resetToIdle();
                 },
 
