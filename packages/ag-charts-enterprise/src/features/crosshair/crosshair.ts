@@ -1,9 +1,7 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { buildBounds, calculateAxisLabelPosition } from '../../utils/position';
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
-
-type AgCrosshairLabelRendererResult = any;
 
 const { Group, TranslatableLayer, Line, BBox } = _Scene;
 const { createId } = _Util;
