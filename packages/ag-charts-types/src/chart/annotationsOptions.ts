@@ -89,7 +89,7 @@ export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, 
     statistics?: FontOptions;
 }
 
-export interface AgQuickMeasurerAnnotationStyles extends Extendable, Lockable, Visible {
+export interface AgQuickMeasurerAnnotationStyles extends Extendable, Visible {
     up?: AgQuickMeasurerAnnotationDirectionStyles;
     down?: AgQuickMeasurerAnnotationDirectionStyles;
     statistics?: FontOptions;
