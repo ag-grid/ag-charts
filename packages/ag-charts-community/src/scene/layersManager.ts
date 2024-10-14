@@ -12,6 +12,7 @@ interface SceneLayer {
     canvas: HdpiCanvas;
     getComputedOpacity: () => number;
     getVisibility: () => boolean;
+    mode: 'legacy' | 'next';
 }
 
 export class LayersManager {
@@ -54,9 +55,10 @@ export class LayersManager {
         name?: string;
         getComputedOpacity: () => number;
         getVisibility: () => boolean;
+        mode: SceneLayer['mode'];
     }) {
         const { width, height, pixelRatio } = this.canvas;
-        const { zIndex = this.nextZIndex++, name, zIndexSubOrder, getComputedOpacity, getVisibility } = opts;
+        const { zIndex = this.nextZIndex++, name, zIndexSubOrder, getComputedOpacity, getVisibility, mode } = opts;
         const canvas = new HdpiCanvas({ width, height, pixelRatio });
 
         if (zIndex >= this.nextZIndex) {
@@ -71,6 +73,7 @@ export class LayersManager {
             zIndexSubOrder,
             getComputedOpacity,
             getVisibility,
+            mode,
         });
 
         this.debug('Scene.addLayer() - layers', this.layersMap);

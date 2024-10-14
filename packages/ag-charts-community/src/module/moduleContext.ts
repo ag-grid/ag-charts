@@ -24,6 +24,7 @@ import type { DOMManager } from '../dom/domManager';
 import type { FocusIndicator } from '../dom/focusIndicator';
 import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { LocaleManager } from '../locale/localeManager';
+import type { Group } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import type { CallbackCache } from '../util/callbackCache';
 
@@ -60,6 +61,9 @@ export interface ModuleContext {
     readonly toolbarManager: ToolbarManager;
     readonly tooltipManager: TooltipManager;
     readonly zoomManager: ZoomManager;
+
+    // @todo(AG-13136)
+    removeMeMoveChartTitleNode(toGroup: Group | undefined): void;
 }
 
 export interface ModuleContextWithParent<P> extends ModuleContext {

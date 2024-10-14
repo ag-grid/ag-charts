@@ -19,7 +19,7 @@ export class AxisManager {
     readonly axisGroup: Layer;
 
     public constructor(private readonly sceneRoot: Group) {
-        this.axisGridGroup = new Layer({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID });
+        this.axisGridGroup = new Layer({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID, mode: 'next' });
         this.axisGroup = new Layer({ name: 'Axes', zIndex: ZIndexMap.AXIS });
 
         this.sceneRoot.appendChild(this.axisGroup);

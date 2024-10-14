@@ -8,7 +8,7 @@ import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
-import { Layer, TranslatableLayer } from '../scene/layer';
+import { TranslatableLayer } from '../scene/layer';
 import type { Node } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
@@ -116,6 +116,7 @@ export abstract class Chart extends Observable {
         name: `${this.id}-annotation-root`,
         zIndex: ZIndexMap.SERIES_ANNOTATION,
     });
+    private readonly titleGroup = new Group({ name: 'titles', zIndex: ZIndexMap.SERIES_LABEL });
 
     readonly tooltip: Tooltip;
     readonly overlays: ChartOverlays;
@@ -248,18 +249,17 @@ export abstract class Chart extends Observable {
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
 
         const root = new Group({ name: 'root' });
-        const titleGroup = new Layer({ name: 'titles', zIndex: ZIndexMap.SERIES_LABEL });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;
-        root.append(titleGroup);
         root.append(this.seriesRoot);
+        root.append(this.titleGroup);
         root.append(this.highlightRoot);
         root.append(this.annotationRoot);
 
-        titleGroup.append(this.title.node);
-        titleGroup.append(this.subtitle.node);
-        titleGroup.append(this.footnote.node);
+        this.titleGroup.append(this.title.node);
+        this.titleGroup.append(this.subtitle.node);
+        this.titleGroup.append(this.footnote.node);
 
         this.tooltip = new Tooltip();
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.highlightRoot, this.annotationRoot);
@@ -342,6 +342,16 @@ export abstract class Chart extends Observable {
         );
 
         this.parentResize(ctx.domManager.containerSize);
+    }
+
+    // @todo(AG-13136)
+    removeMeMoveTitleNode(toLayer: Group | undefined) {
+        const titleNode = this.title.node;
+        const target = toLayer ?? this.titleGroup;
+
+        if (titleNode.parentNode !== target) {
+            target.appendChild(titleNode);
+        }
     }
 
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {

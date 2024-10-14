@@ -22,6 +22,7 @@ export class Layer extends Group {
             zIndex?: number;
             zIndexSubOrder?: ZIndexSubOrder;
             deriveZIndexFromChildren?: boolean; // TODO remove feature
+            mode?: 'legacy' | 'next';
         }
     ) {
         super(opts);
@@ -41,6 +42,7 @@ export class Layer extends Group {
                 zIndexSubOrder: this.zIndexSubOrder,
                 getComputedOpacity: () => this.getComputedOpacity(),
                 getVisibility: () => this.getVisibility(),
+                mode: this.opts?.mode ?? 'legacy',
             });
             if (this.opts?.deriveZIndexFromChildren) {
                 this.deriveZIndexFromChildren();
@@ -59,41 +61,19 @@ export class Layer extends Group {
         }
     }
 
-    override render(renderCtx: RenderContext) {
+    private renderLegacy(renderCtx: RenderContext, forceRender: boolean | 'dirtyTransform') {
         if (!this.layer) {
-            return super.render(renderCtx);
+            super.render(renderCtx);
+            return false;
         }
 
         const { opts: { name } = {}, _debug: debug, clipRect } = this;
-        const { isDirty, isChildDirty, isChildLayerDirty } = this.isDirty(renderCtx);
-        const { stats } = renderCtx;
-
-        let { forceRender, clipBBox } = renderCtx;
-
-        // If bounding-box of a layer changes, force re-render.
-        const currentBBox = this.getBBox();
-        if (!this.lastBBox?.equals(currentBBox)) {
-            forceRender = 'dirtyTransform';
-            this.lastBBox = currentBBox;
-        }
-
-        if (!isDirty && !isChildDirty && !isChildLayerDirty && !forceRender) {
-            this.debugSkip(renderCtx);
-            this.markClean({ recursive: false });
-            return; // Nothing to do.
-        }
-
-        if (forceRender !== 'dirtyTransform') {
-            forceRender = isChildDirty || this.dirtyZIndex;
-        }
+        let { clipBBox } = renderCtx;
 
         if (forceRender) {
             this.layer.clear();
         }
 
-        if (this.dirtyZIndex) {
-            this.sortChildren(Group.compareChildren);
-        }
         const children = this.sortedChildren();
         const renderCtxTransform = renderCtx.ctx.getTransform();
         const { context: ctx } = this.layer;
@@ -125,16 +105,95 @@ export class Layer extends Group {
             ctx.restore();
         }
 
+        ctx.restore();
+        ctx.verifyDepthZero?.(); // Check for save/restore depth of zero!
+
+        return true;
+    }
+
+    private renderNext(renderCtx: RenderContext, forceRender: boolean | 'dirtyTransform') {
+        if (!this.getVisibility()) {
+            return true;
+        } else if (!this.layer) {
+            super.render(renderCtx);
+            return false;
+        }
+
+        const { isDirty, isChildDirty, isChildLayerDirty } = this.isDirty(renderCtx);
+
+        if (forceRender) {
+            this.layer.clear();
+        }
+
+        if (isDirty || isChildDirty || isChildLayerDirty || forceRender) {
+            const layerRenderCtx: RenderContext = {
+                ...renderCtx,
+                ctx: this.layer.context,
+                forceRender,
+            };
+
+            super.render(layerRenderCtx, false);
+
+            this.layer.context.verifyDepthZero?.(); // Check for save/restore depth of zero!
+        } else {
+            this.debugSkip(renderCtx);
+            this.markClean({ recursive: false });
+        }
+
+        const { ctx } = renderCtx;
+        ctx.save();
+        ctx.resetTransform();
+        ctx.globalAlpha = this.getComputedOpacity();
+        this.layer.drawImage(ctx);
+        ctx.restore();
+
+        return true;
+    }
+
+    override render(renderCtx: RenderContext) {
+        const { opts: { name, mode } = {}, _debug: debug } = this;
+        const { isDirty, isChildDirty, isChildLayerDirty } = this.isDirty(renderCtx);
+
+        let { forceRender } = renderCtx;
+        const { stats } = renderCtx;
+
+        // If bounding-box of a layer changes, force re-render.
+        const currentBBox = this.getBBox();
+        if (!this.lastBBox?.equals(currentBBox)) {
+            forceRender = 'dirtyTransform';
+            this.lastBBox = currentBBox;
+        }
+
+        if (!isDirty && !isChildDirty && !isChildLayerDirty && !forceRender) {
+            this.debugSkip(renderCtx);
+            this.markClean({ recursive: false });
+            return; // Nothing to do.
+        }
+
+        if (forceRender !== 'dirtyTransform') {
+            forceRender = isChildDirty || this.dirtyZIndex;
+        }
+
+        if (this.dirtyZIndex) {
+            this.sortChildren(Group.compareChildren);
+        }
+
+        let layersRendered: boolean;
+        if (mode === 'next') {
+            layersRendered = this.renderNext(renderCtx, forceRender);
+        } else {
+            layersRendered = this.renderLegacy(renderCtx, forceRender);
+        }
+
         // Mark virtual nodes as clean and their virtual children.
         // All other nodes have already been visited and marked clean.
         for (const child of this.virtualChildren()) {
             child.markClean({ recursive: 'virtual' });
         }
 
-        if (stats) stats.layersRendered++;
-        ctx.restore();
-
-        ctx.verifyDepthZero?.(); // Check for save/restore depth of zero!
+        if (stats && layersRendered) {
+            stats.layersRendered++;
+        }
 
         if (name && stats) {
             debug?.({

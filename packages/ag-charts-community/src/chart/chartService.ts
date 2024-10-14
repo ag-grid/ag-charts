@@ -12,4 +12,7 @@ export interface ChartService {
     readonly series: ISeries<any, any>[];
     readonly seriesRoot: Group;
     readonly publicApi?: AgChartInstance;
+
+    // @todo(AG-13136)
+    removeMeMoveTitleNode(toLayer: Group | undefined): void;
 }
