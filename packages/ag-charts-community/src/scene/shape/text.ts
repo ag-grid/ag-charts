@@ -21,14 +21,15 @@ export interface TextSizeProperties {
 export class Text extends Shape {
     static readonly className = 'Text';
 
-    static override readonly defaultStyles = Object.assign({}, Shape.defaultStyles, {
+    static override readonly defaultStyles = {
+        ...Shape.defaultStyles,
         textAlign: 'start' as CanvasTextAlign,
         fontStyle: undefined,
         fontWeight: undefined,
         fontSize: 10,
         fontFamily: 'sans-serif',
         textBaseline: 'alphabetic' as CanvasTextBaseline,
-    });
+    };
 
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     x: number = 0;

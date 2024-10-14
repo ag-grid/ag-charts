@@ -7,7 +7,7 @@ export function hasConstrainedCanvasMemory() {
         return false;
     }
 
-    const iPhoneOSMatch = navigator.userAgent.match(/\(iPhone; CPU iPhone OS (\d+_\d+_\d+) like Mac OS X\)/);
+    const iPhoneOSMatch = /\(iPhone; CPU iPhone OS (\d+_\d+_\d+) like Mac OS X\)/.exec(navigator.userAgent);
 
     if (iPhoneOSMatch == null) {
         return false;
