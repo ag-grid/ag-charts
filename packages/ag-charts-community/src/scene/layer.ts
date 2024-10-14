@@ -91,6 +91,9 @@ export class Layer extends Group {
             this.layer.clear();
         }
 
+        if (this.dirtyZIndex) {
+            this.sortChildren(Group.compareChildren);
+        }
         const children = this.sortedChildren();
         const renderCtxTransform = renderCtx.ctx.getTransform();
         const { context: ctx } = this.layer;
