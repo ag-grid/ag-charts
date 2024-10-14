@@ -416,8 +416,8 @@ export abstract class CartesianSeries<
         this.markerGroup.zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('marker')];
 
         const { paths } = this;
-        for (let index = 0; index < paths.length; index++) {
-            this.paths[index].zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('paths', index)];
+        for (let i = 0; i < paths.length; i++) {
+            this.paths[i].zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('paths', i)];
         }
 
         return true;

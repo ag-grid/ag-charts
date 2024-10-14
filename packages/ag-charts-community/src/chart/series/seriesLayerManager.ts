@@ -171,14 +171,14 @@ export class SeriesLayerManager {
             // with the same groupIndex, but are otherwise unrelated.
             const leadSeriesConfig = this.series[groupInfo?.seriesIds?.[0]]?.seriesConfig;
             if (leadSeriesConfig != null) {
-                groupInfo.group.zIndex = [ZIndexMap.SERIES_LAYER, ...leadSeriesConfig?.getGroupZIndexSubOrder('data')];
+                groupInfo.group.zIndex = [ZIndexMap.SERIES_LAYER, ...leadSeriesConfig.getGroupZIndexSubOrder('data')];
                 groupInfo.highlight.zIndex = [
                     ZIndexMap.SERIES_LAYER,
-                    ...leadSeriesConfig?.getGroupZIndexSubOrder('highlight'),
+                    ...leadSeriesConfig.getGroupZIndexSubOrder('highlight'),
                 ];
                 groupInfo.annotation.zIndex = [
                     ZIndexMap.SERIES_LAYER,
-                    ...leadSeriesConfig?.getGroupZIndexSubOrder('annotation'),
+                    ...leadSeriesConfig.getGroupZIndexSubOrder('annotation'),
                 ];
             } else {
                 groupInfo.group.zIndex = ZIndexMap.SERIES_LAYER;

@@ -144,10 +144,11 @@ export function buildTree(node: Node): BuildTree {
             if (Layer.is(childNode)) {
                 treeNodeName = `*${treeNodeName}*`;
             }
+            const zIndexString = Array.isArray(zIndex) ? `(${zIndex.join(', ')})` : zIndex;
             const key = [
                 `${(order++).toString().padStart(3, '0')}|`,
                 `${treeNodeName ?? '<unknown>'}`,
-                `z: ${Array.isArray(zIndex) ? `(${zIndex.join(', ')})` : zIndex}`,
+                `z: ${zIndexString}`,
                 virtualParent && `(virtual parent)`,
                 translationX && `x: ${translationX}`,
                 translationY && `y: ${translationY}`,
