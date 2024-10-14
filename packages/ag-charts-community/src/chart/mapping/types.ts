@@ -42,19 +42,18 @@ export type SeriesOptionsTypes =
 
 export type SeriesType = SeriesOptionsTypes['type'];
 
-export function optionsType(input: { series?: { type?: SeriesType }[] }): NonNullable<SeriesType> {
-    return input.series?.[0]?.type ?? 'line';
+export function optionsType(input: { series?: { type?: SeriesType }[] }): SeriesType {
+    const { series } = input;
+    if (series) {
+        return input.series?.[0]?.type ?? 'line';
+    }
+    return undefined;
 }
 
 export function isAgCartesianChartOptions(input: AgChartOptions): input is AgCartesianChartOptions {
     const specifiedType = optionsType(input);
     if (specifiedType == null) {
-        return true;
-    }
-
-    if ((specifiedType as string) === 'cartesian') {
-        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
-        return true;
+        return false;
     }
 
     return chartTypes.isCartesian(specifiedType) || isEnterpriseCartesian(specifiedType);
