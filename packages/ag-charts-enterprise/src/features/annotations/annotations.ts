@@ -1080,7 +1080,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             return;
         }
 
-        annotationManager.updateData(annotationData.toJson() as any);
+        annotationManager.updateData(annotationData.toJson().filter((datum) => !isEphemeralType(datum)) as any);
 
         const clearAllEnabled = annotationData.length > 0;
         toolbarManager.toggleButton('annotations', 'clear', { enabled: clearAllEnabled });
