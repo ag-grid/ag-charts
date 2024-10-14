@@ -1,6 +1,9 @@
 import type { AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
+import type { BBox } from '../../scene/bbox';
+import { Logger } from '../../sparklines-util';
+import type { BBoxValues } from '../../util/bboxinterface';
 import { deepClone } from '../../util/json';
 import { StateTracker } from '../../util/stateTracker';
 import { isFiniteNumber, isObject } from '../../util/type-guards';
@@ -52,6 +55,22 @@ export type ChartAxisLike = {
 };
 
 type ZoomEvents = ZoomChangeEvent | ZoomPanStartEvent | ZoomRestoreEvent;
+
+function calcAxesPanTranslate(viewportMin: number, viewportMax: number, targetMin: number, targetMax: number): number {
+    const mindiff = targetMin - viewportMin;
+    const maxdiff = targetMax - viewportMax;
+    return Math.abs(mindiff) < Math.abs(maxdiff) ? mindiff : maxdiff;
+}
+
+function calcBBoxPanTranslate(viewport: BBox, target: BBoxValues): { dx: number; dy: number } {
+    const dx = calcAxesPanTranslate(viewport.x, viewport.x + viewport.width, target.x, target.x + target.width);
+    const dy = calcAxesPanTranslate(viewport.y, viewport.y + viewport.height, target.y, target.y + target.height);
+    return { dx, dy };
+}
+
+function normalize(screenMin: number, min: number, screenMax: number, max: number, target: number): number {
+    return min + (max - min) * ((target - screenMin) / (screenMax - screenMin));
+}
 
 /**
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
@@ -142,6 +161,37 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         });
 
         this.applyChanges(callerId);
+    }
+
+    panToBBox(callerId: string, seriesRect: BBox, target: BBoxValues) {
+        const { x: zoomX, y: zoomY } = this.getZoom() ?? {};
+        if (!zoomX || !zoomY || seriesRect.containsBBox(target)) return;
+        if (target.width > seriesRect.width || target.height > seriesRect.height) {
+            Logger.errorOnce(`cannot pan to target BBox`);
+            return;
+        }
+
+        const { dx, dy } = calcBBoxPanTranslate(seriesRect, target);
+
+        // This rectangle is our current min/max viewport (in pixel coords.)
+        const [sx0, sx1] = [seriesRect.x, seriesRect.x + seriesRect.width];
+        const [sy0, sy1] = [seriesRect.y, seriesRect.y + seriesRect.height];
+
+        // This is the rectangle that we need to pan to (in pixel coord.)
+        const [tx0, tx1] = [sx0 + dx, sx1 + dx];
+        const [ty0, ty1] = [sy0 + dy, sy1 + dy];
+
+        const newZoom: AxisZoomState = {
+            x: {
+                min: normalize(sx0, zoomX.min, sx1, zoomX.max, tx0),
+                max: normalize(sx0, zoomX.min, sx1, zoomX.max, tx1),
+            },
+            y: {
+                min: normalize(sy0, zoomY.min, sy1, zoomY.max, ty0),
+                max: normalize(sy0, zoomY.min, sy1, zoomY.max, ty1),
+            },
+        };
+        this.updateZoom(callerId, newZoom);
     }
 
     public updateAxisZoom(callerId: string, axisId: string, newZoom?: ZoomState) {
