@@ -379,7 +379,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     (colorType: AnnotationOptionsColorPickerType) =>
                     (colorOpacity: string, color: string, opacity: number) => {
                         this.setColorAndDefault(datum.type, colorType, colorOpacity, color, opacity);
-                        this.updateToolbarColorPickerFill(colorType, color, opacity);
+                        this.optionsToolbar.updateColorPickerFill(colorType, color, opacity);
                     };
                 const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => () => {
                     this.recordActionAfterNextUpdate(
