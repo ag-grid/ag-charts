@@ -17,7 +17,7 @@ const {
     getWindow,
     mapValues,
 } = _ModuleSupport;
-const { setAttribute, setAttributes } = _Util;
+const { Color, setAttribute, setAttributes } = _Util;
 
 export interface DialogOptions extends PopoverOptions {}
 
@@ -44,7 +44,8 @@ interface CheckboxOptions extends _ModuleSupport.CheckboxOptions {
 interface ColorPickerOptions {
     altText: string;
     label: string;
-    value: string | undefined;
+    color?: string;
+    opacity?: number;
     onChange: (colorOpacity: string, color: string, opacity: number) => void;
     onChangeHide: () => void;
 }
@@ -262,7 +263,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    protected createColorPicker({ value, label, altText, onChange, onChangeHide }: ColorPickerOptions) {
+    protected createColorPicker({ color, opacity, label, altText, onChange, onChangeHide }: ColorPickerOptions) {
         const group = this.createInputGroup(label);
 
         const altTextT = this.ctx.localeManager.t(altText);
@@ -276,13 +277,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                     this.colorPicker.show({
                         anchor,
                         fallbackAnchor,
-                        color: defaultColor,
-                        opacity: 1,
+                        color,
+                        opacity,
                         sourceEvent: event,
-                        onChange: (colorOpacity: string, color: string, opacity: number) => {
-                            defaultColor = colorOpacity;
-                            colorEl.style.setProperty('--color', colorOpacity);
-                            onChange(colorOpacity, color, opacity);
+                        onChange: (newColorOpacity: string, newColor: string, newOpacity: number) => {
+                            colorEl.style.setProperty('--color', newColorOpacity);
+                            onChange(newColorOpacity, newColor, newOpacity);
                         },
                         onChangeHide,
                     });
@@ -296,8 +296,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             }
         );
 
-        if (value) colorEl.style.setProperty('--color', value);
-        let defaultColor = value;
+        if (color) {
+            const hex = Color.fromHexString(color);
+            const hexWithOpacity = new Color(hex.r, hex.g, hex.b, opacity);
+            colorEl.style.setProperty('--color', hexWithOpacity.toHexString());
+        }
 
         group.append(colorEl);
 
