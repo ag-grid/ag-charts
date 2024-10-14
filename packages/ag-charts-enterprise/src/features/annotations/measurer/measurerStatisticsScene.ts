@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
-import { type PositionedScene, layoutScenesColumn, layoutScenesRow } from '../utils/layout';
+import { type PositionedScene, layoutAddX, layoutAddY, layoutScenesColumn, layoutScenesRow } from '../utils/layout';
 import type { MeasurerStatistics } from './measurerProperties';
 
 export interface Statistics {
@@ -76,7 +76,9 @@ export class MeasurerStatisticsScene extends _Scene.Group {
         } = this;
 
         const horizontalGap = 8;
-        const verticalGap = 12;
+        const verticalGap = 6;
+        const dividerLineHeight = datum.fontSize + 3;
+        const dividerLineOffset = -2;
 
         const textStyles = {
             fontFamily: datum.fontFamily,
@@ -87,6 +89,10 @@ export class MeasurerStatisticsScene extends _Scene.Group {
         };
 
         const dividerLineStyles = {
+            x1: 0,
+            y1: 0,
+            x2: 0,
+            y2: dividerLineHeight,
             stroke: datum.divider.stroke,
             strokeOpacity: datum.divider.strokeOpacity,
             strokeWidth: datum.divider.strokeWidth,
@@ -137,6 +143,11 @@ export class MeasurerStatisticsScene extends _Scene.Group {
 
         layoutScenesColumn(scenes, anchor.y, verticalGap);
 
+        priceRangeDivider.y1 += dividerLineOffset;
+        priceRangeDivider.y2 += dividerLineOffset;
+        dateRangeDivider.y1 += dividerLineOffset;
+        dateRangeDivider.y2 += dividerLineOffset;
+
         return scenes;
     }
 
@@ -168,12 +179,12 @@ export class MeasurerStatisticsScene extends _Scene.Group {
             if (Array.isArray(scene)) {
                 const rowWidth = _Scene.Group.computeChildrenBBox(scene).width;
                 for (const scene_ of scene) {
-                    scene_.x -= rowWidth / 2;
-                    scene_.y += offsetY;
+                    layoutAddX(scene_, -rowWidth / 2);
+                    layoutAddY(scene_, offsetY);
                 }
             } else {
-                scene.x -= scene.getBBox().width / 2;
-                scene.y += offsetY;
+                layoutAddX(scene, -scene.getBBox().width / 2);
+                layoutAddY(scene, offsetY);
             }
         }
 
