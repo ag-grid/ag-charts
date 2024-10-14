@@ -375,6 +375,20 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 if (!isLineType(datum) && !isChannelType(datum) && !isMeasurerType(datum)) return;
                 if (isEphemeralType(datum)) return;
 
+                const onChangeColor =
+                    (colorType: AnnotationOptionsColorPickerType) =>
+                    (colorOpacity: string, color: string, opacity: number) => {
+                        this.setColorAndDefault(datum.type, colorType, colorOpacity, color, opacity);
+                        this.updateToolbarColorPickerFill(colorType, color, opacity);
+                    };
+                const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => () => {
+                    this.recordActionAfterNextUpdate(
+                        `Change ${datum.type} ${colorType} to ${datum.getDefaultColor(colorType)}`,
+                        ['annotations', 'defaults']
+                    );
+                    this.update();
+                };
+
                 const options: LinearSettingsDialogOptions = {
                     initialSelectedTab: initialTab,
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
@@ -392,17 +406,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                                 .join(', ')}`
                         );
                     },
-                    onChangeLineColor: (colorOpacity, color, opacity) => {
-                        this.setColorAndDefault(datum.type, 'line-color', colorOpacity, color, opacity);
-                        this.optionsToolbar.updateColorPickerFill('line-color', color, opacity);
-                    },
-                    onChangeHideLineColor: () => {
-                        this.recordActionAfterNextUpdate(
-                            `Change ${datum.type} line-color to ${datum.getDefaultColor('line-color')}`,
-                            ['annotations', 'defaults']
-                        );
-                        this.update();
-                    },
+                    onChangeFillColor: onChangeColor('fill-color'),
+                    onChangeHideFillColor: onChangeHideColor('fill-color'),
+                    onChangeLineColor: onChangeColor('line-color'),
+                    onChangeHideLineColor: onChangeHideColor('line-color'),
                     onChangeLineStyleType: (lineStyleType) => {
                         this.setLineStyleTypeAndDefault(datum.type, lineStyleType);
                         this.optionsToolbar.updateLineStyleType(
@@ -418,17 +425,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                             label: String(strokeWidth),
                         });
                     },
-                    onChangeTextColor: (colorOpacity, color, opacity) => {
-                        this.setColorAndDefault(datum.type, 'text-color', colorOpacity, color, opacity);
-                        this.optionsToolbar.updateColorPickerFill('text-color', color, opacity);
-                    },
-                    onChangeHideTextColor: () => {
-                        this.recordActionAfterNextUpdate(
-                            `Change ${datum.type} text-color to ${datum.getDefaultColor('text-color')}`,
-                            ['annotations', 'defaults']
-                        );
-                        this.update();
-                    },
+                    onChangeTextColor: onChangeColor('text-color'),
+                    onChangeHideTextColor: onChangeHideColor('text-color'),
                     onChangeTextFontSize: (fontSize) => {
                         this.setFontSizeAndDefault(datum.type, fontSize);
                     },
@@ -609,6 +607,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private getDatumRangeVolume(from: Point['x'], to: Point['x']) {
         if (!isValidDate(from) || !isValidDate(to) || !this.dataModel || !this.processedData) return 0;
 
+        if (from > to) {
+            [from, to] = [to, from];
+        }
+
         const dateDef = this.dataModel.resolveProcessedDataDefById({ id: 'annotations' }, 'date');
         const volumeDef = this.dataModel.resolveProcessedDataDefById({ id: 'annotations' }, 'volume');
 
@@ -776,7 +778,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!seriesRect || !context) return;
 
-        annotationManager.updateData(annotationData.toJson() as any);
+        annotationManager.updateData(annotationData.toJson().filter((datum) => !isEphemeralType(datum)) as any);
 
         this.toolbar.toggleClearButtonEnabled(annotationData.length > 0);
 

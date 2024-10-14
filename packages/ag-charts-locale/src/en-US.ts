@@ -228,6 +228,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputColorPicker: 'Color',
     // Text for the annotation dialog's color picker alt text
     dialogInputColorPickerAltText: 'Text Color',
+    // Text for the annotation dialog's fill color picker label
+    dialogInputFillColorPicker: 'Fill',
+    // Text for the annotation dialog's fill color picker alt text
+    dialogInputFillColorPickerAltText: 'Fill Color',
     // Text for the annotation dialog's extend channel start checkbox
     dialogInputExtendChannelStart: 'Extend channel start',
     // Text for the annotation dialog's extend channel end checkbox
