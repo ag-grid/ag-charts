@@ -30,11 +30,11 @@ const options: AgChartOptions = {
 const chart = AgCharts.create(options);
 
 function setDirection(direction: 'horizontal' | 'vertical') {
-    (options.series[0] as AgPyramidSeriesOptions).direction = direction;
+    (options.series![0] as AgPyramidSeriesOptions).direction = direction;
     chart.update(options);
 }
 
 function setAspectRatio(aspectRatio: number) {
-    (options.series[0] as AgPyramidSeriesOptions).aspectRatio = aspectRatio;
+    (options.series![0] as AgPyramidSeriesOptions).aspectRatio = aspectRatio;
     chart.update(options);
 }
