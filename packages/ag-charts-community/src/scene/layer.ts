@@ -2,9 +2,10 @@ import { BBox } from './bbox';
 import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import { nodeCount } from './debug.util';
 import { Group } from './group';
-import type { LayersManager, ZIndexSubOrder } from './layersManager';
+import type { LayersManager } from './layersManager';
 import { type ChildNodeCounts, Node, RedrawType, type RenderContext } from './node';
 import { Translatable } from './transformable';
+import type { ZIndex } from './zIndex';
 
 export class Layer extends Group {
     static override className = 'Layer';
@@ -19,8 +20,7 @@ export class Layer extends Group {
     constructor(
         protected override readonly opts?: {
             name?: string;
-            zIndex?: number;
-            zIndexSubOrder?: ZIndexSubOrder;
+            zIndex?: ZIndex;
             deriveZIndexFromChildren?: boolean; // TODO remove feature
         }
     ) {
@@ -38,7 +38,6 @@ export class Layer extends Group {
             this.layer ??= this._layerManager?.addLayer({
                 name: this.name,
                 zIndex: this.zIndex,
-                zIndexSubOrder: this.zIndexSubOrder,
                 getComputedOpacity: () => this.getComputedOpacity(),
                 getVisibility: () => this.getVisibility(),
             });
@@ -165,7 +164,6 @@ export class Layer extends Group {
             }
         }
         this.zIndex = lastChild?.zIndex ?? -Infinity;
-        this.zIndexSubOrder = lastChild?.zIndexSubOrder;
     }
 
     override _setLayerManager(layersManager?: LayersManager) {
@@ -198,13 +196,6 @@ export class Layer extends Group {
     protected override onVisibleChange() {
         if (this.layer) {
             this.layer.enabled = this.visible;
-        }
-    }
-
-    protected override onZIndexChange() {
-        super.onZIndexChange();
-        if (this.layer) {
-            this._layerManager?.moveLayer(this.layer, this.zIndex, this.zIndexSubOrder);
         }
     }
 }

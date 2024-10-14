@@ -167,6 +167,7 @@ export class AngleCrossLine extends PolarCrossLine {
     private updateLabelNode(visible: boolean) {
         const { label, labelNode: node, range, scale, type } = this;
         if (!visible || label.enabled === false || !label.text || !scale || (type === 'range' && !range)) {
+            console.log('Hide?');
             node.visible = true;
             return;
         }

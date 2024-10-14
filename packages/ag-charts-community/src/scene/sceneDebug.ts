@@ -134,17 +134,7 @@ export function buildTree(node: Node): BuildTree {
         ...Array.from(node.children(false), (c) => buildTree(c)).reduce<Record<string, {}>>((result, childTree) => {
             let { name: treeNodeName } = childTree;
             const {
-                node: {
-                    visible,
-                    opacity,
-                    zIndex,
-                    zIndexSubOrder,
-                    translationX,
-                    translationY,
-                    rotation,
-                    scalingX,
-                    scalingY,
-                },
+                node: { visible, opacity, zIndex, translationX, translationY, rotation, scalingX, scalingY },
                 node: childNode,
                 virtualParent,
             } = childTree;
@@ -154,12 +144,10 @@ export function buildTree(node: Node): BuildTree {
             if (Layer.is(childNode)) {
                 treeNodeName = `*${treeNodeName}*`;
             }
-            const subOrder = zIndexSubOrder?.map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v)).join(' / ');
             const key = [
                 `${(order++).toString().padStart(3, '0')}|`,
                 `${treeNodeName ?? '<unknown>'}`,
-                `z: ${zIndex}`,
-                subOrder && `zo: ${subOrder}`,
+                `z: ${Array.isArray(zIndex) ? `(${zIndex.join(', ')})` : zIndex}`,
                 virtualParent && `(virtual parent)`,
                 translationX && `x: ${translationX}`,
                 translationY && `y: ${translationY}`,

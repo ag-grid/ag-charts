@@ -106,11 +106,13 @@ export abstract class Chart extends Observable {
 
     className?: string;
 
-    readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root`, zIndex: ZIndexMap.SERIES_LAYER });
-    readonly highlightRoot = new TranslatableLayer({
+    readonly seriesRoot = new TranslatableGroup({
+        name: `${this.id}-series-root`,
+        zIndex: ZIndexMap.SERIES_LAYER,
+    });
+    readonly highlightRoot = new TranslatableGroup({
         name: `${this.id}-highlight-root`,
         zIndex: ZIndexMap.SERIES_HIGHLIGHT,
-        deriveZIndexFromChildren: true, // TODO remove feature
     });
     readonly annotationRoot = new TranslatableLayer({
         name: `${this.id}-annotation-root`,
@@ -1304,7 +1306,7 @@ export abstract class Chart extends Observable {
     private initSeriesDeclarationOrder(series: Series<any, any>[]) {
         // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
         for (let idx = 0; idx < series.length; idx++) {
-            series[idx]._declarationOrder = idx;
+            series[idx].setSeriesIndex(idx);
         }
     }
 

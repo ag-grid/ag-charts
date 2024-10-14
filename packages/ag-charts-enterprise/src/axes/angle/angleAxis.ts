@@ -87,7 +87,8 @@ export abstract class AngleAxis<
     protected abstract generateAngleTicks(): AngleAxisTickDatum<TDomain>[];
 
     override updatePosition() {
-        const { translation, axisGroup, gridGroup, crossLineLineGroup, crossLineRangeGroup } = this;
+        const { translation, axisGroup, gridGroup, crossLineRangeGroup, crossLineLineGroup, crossLineLabelGroup } =
+            this;
         const translationX = Math.floor(translation.x);
         const translationY = Math.floor(translation.y);
 
@@ -97,11 +98,14 @@ export abstract class AngleAxis<
         gridGroup.translationX = translationX;
         gridGroup.translationY = translationY;
 
+        crossLineRangeGroup.translationX = translationX;
+        crossLineRangeGroup.translationY = translationY;
+
         crossLineLineGroup.translationX = translationX;
         crossLineLineGroup.translationY = translationY;
 
-        crossLineRangeGroup.translationX = translationX;
-        crossLineRangeGroup.translationY = translationY;
+        crossLineLabelGroup.translationX = translationX;
+        crossLineLabelGroup.translationY = translationY;
     }
 
     protected updateRadiusLine() {

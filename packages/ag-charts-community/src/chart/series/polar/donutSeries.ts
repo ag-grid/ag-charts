@@ -117,7 +117,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
-    protected phantomGroup = this.contentGroup.appendChild(new Group());
+    protected phantomGroup = this.rootGroup.appendChild(new Group({ zIndex: ZIndexMap.SERIES_LAYER }));
     private readonly phantomSelection: Selection<Sector, DonutNodeDatum> = Selection.select(
         this.phantomGroup,
         () => this.nodeFactory(),
@@ -175,7 +175,13 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.angleScale.range = [-Math.PI, Math.PI].map((angle) => angle + Math.PI / 2);
 
         this.phantomGroup.opacity = 0.2;
-        this.phantomGroup.zIndexSubOrder = [() => this._declarationOrder, 0];
+    }
+
+    override setSeriesIndex(index: number) {
+        if (!super.setSeriesIndex(index)) return false;
+
+        this.phantomGroup.zIndex = [ZIndexMap.SERIES_LAYER, index];
+        return true;
     }
 
     override addChartEventListeners(): void {

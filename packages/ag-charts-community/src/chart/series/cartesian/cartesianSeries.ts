@@ -4,7 +4,6 @@ import { ContinuousScale } from '../../../scale/continuousScale';
 import { LogScale } from '../../../scale/logScale';
 import { BBox } from '../../../scene/bbox';
 import { Group, TranslatableGroup } from '../../../scene/group';
-import type { ZIndexSubOrder } from '../../../scene/layersManager';
 import type { Node, NodeWithOpacity } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
@@ -14,7 +13,6 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
 import { StateMachine } from '../../../util/stateMachine';
-import { isFunction } from '../../../util/type-guards';
 import { BOOLEAN, STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
@@ -164,21 +162,18 @@ export abstract class CartesianSeries<
         new Group({
             name: `${this.id}-series-dataNodes`,
             zIndex: ZIndexMap.SERIES_LAYER,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
         })
     );
     private readonly markerGroup = this.contentGroup.appendChild(
         new Group({
             name: `${this.id}-series-markers`,
             zIndex: ZIndexMap.SERIES_LAYER,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('marker'),
         })
     );
     override readonly labelGroup = this.contentGroup.appendChild(
         new TranslatableGroup({
             name: `${this.id}-series-labels`,
             zIndex: ZIndexMap.SERIES_LABEL,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('labels'),
         })
     );
     private datumSelection: Selection<TNode, TDatum>;
@@ -248,8 +243,7 @@ export abstract class CartesianSeries<
         this.paths = [];
         for (let index = 0; index < pathsPerSeries.length; index++) {
             this.paths[index] = new Path({ name: `${this.id}-${pathsPerSeries[index]}` });
-            this.paths[index].zIndex = ZIndexMap.SERIES_LAYER;
-            this.paths[index].zIndexSubOrder = this.getGroupZIndexSubOrder('paths', index);
+            this.paths[index].zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('paths', index)];
             this.contentGroup.appendChild(this.paths[index]);
         }
 
@@ -415,12 +409,26 @@ export abstract class CartesianSeries<
         return new MarkerShape();
     }
 
-    override getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
+    override setSeriesIndex(index: number) {
+        if (!super.setSeriesIndex(index)) return false;
+
+        this.dataNodeGroup.zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('data')];
+        this.markerGroup.zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('marker')];
+
+        const { paths } = this;
+        for (let index = 0; index < paths.length; index++) {
+            this.paths[index].zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('paths', index)];
+        }
+
+        return true;
+    }
+
+    override getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): number[] {
         const result = super.getGroupZIndexSubOrder(type, subIndex);
         if (type === 'paths') {
-            const [superFn] = result;
+            const [mainAdjust, declarationOrder, subIndex] = result;
             const pathOffset = this.opts.pathsZIndexSubOrderOffset[subIndex] ?? 0;
-            result[0] = isFunction(superFn) ? () => Number(superFn()) + pathOffset : Number(superFn) + pathOffset;
+            return [mainAdjust + pathOffset, declarationOrder, subIndex];
         }
         return result;
     }
@@ -470,8 +478,6 @@ export abstract class CartesianSeries<
 
         if (hasMarkers) {
             markerGroup.opacity = opacity;
-            markerGroup.zIndex =
-                dataNodeGroup.zIndex >= ZIndexMap.SERIES_LAYER ? dataNodeGroup.zIndex : dataNodeGroup.zIndex + 1;
             markerGroup.visible = visible;
         }
 

@@ -2,10 +2,10 @@ import { ascendingStringNumberUndefined, compoundAscending } from '../util/compa
 import { clamp } from '../util/number';
 import { BBox } from './bbox';
 import { nodeCount } from './debug.util';
-import type { ZIndexSubOrder } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
 import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
+import { type ZIndex, compareZIndex } from './zIndex';
 
 export class Group extends Node {
     static className = 'Group';
@@ -19,10 +19,9 @@ export class Group extends Node {
     }
 
     protected static compareChildren(a: Node, b: Node) {
-        return compoundAscending(
-            [a.zIndex, ...(a.zIndexSubOrder ?? [undefined, undefined]), a.serialNumber],
-            [b.zIndex, ...(b.zIndexSubOrder ?? [undefined, undefined]), b.serialNumber],
-            ascendingStringNumberUndefined
+        return (
+            compareZIndex(a.zIndex, b.zIndex) ||
+            compoundAscending([a.serialNumber], [b.serialNumber], ascendingStringNumberUndefined)
         );
     }
 
@@ -38,14 +37,12 @@ export class Group extends Node {
         protected readonly opts?: {
             readonly name?: string;
             readonly isVirtual?: boolean;
-            readonly zIndex?: number;
-            readonly zIndexSubOrder?: ZIndexSubOrder;
+            readonly zIndex?: ZIndex;
             readonly layer?: boolean; // TODO remove
         }
     ) {
         super(opts);
         this.isContainerNode = true;
-        this.zIndexSubOrder = opts?.zIndexSubOrder;
     }
 
     // We consider a group to be boundless, thus any point belongs to it.

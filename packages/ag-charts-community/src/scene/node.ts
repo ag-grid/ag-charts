@@ -2,7 +2,8 @@ import { createId } from '../util/id';
 import { toIterable } from '../util/iterator';
 import { BBox } from './bbox';
 import { RedrawType, SceneChangeDetection } from './changeDetectable';
-import type { LayersManager, ZIndexSubOrder } from './layersManager';
+import type { LayersManager } from './layersManager';
+import type { ZIndex } from './zIndex';
 
 export { SceneChangeDetection, RedrawType };
 
@@ -31,7 +32,7 @@ export interface NodeOptions {
     name?: string;
     isVirtual?: boolean;
     tag?: number;
-    zIndex?: number;
+    zIndex?: ZIndex;
 }
 
 export type NodeWithOpacity = Node & { opacity: number };
@@ -112,13 +113,7 @@ export abstract class Node {
         redraw: RedrawType.TRIVIAL,
         changeCb: (target) => target.onZIndexChange(),
     })
-    zIndex: number = 0;
-
-    @SceneChangeDetection<Node>({
-        redraw: RedrawType.TRIVIAL,
-        changeCb: (target) => target.onZIndexChange(),
-    })
-    zIndexSubOrder?: ZIndexSubOrder = undefined; // Discriminators for render order within a zIndex
+    zIndex: ZIndex = 0;
 
     constructor(options?: NodeOptions) {
         this.name = options?.name;
@@ -439,9 +434,14 @@ export abstract class Node {
     }
 
     protected onZIndexChange() {
-        if (this.parentNode) {
-            this.parentNode.dirtyZIndex = true;
-        }
+        let parentNode = this.parentNode;
+        do {
+            if (parentNode) {
+                parentNode.dirtyZIndex = true;
+            }
+
+            parentNode = parentNode?.parentNode;
+        } while (parentNode?.isVirtual === true);
     }
 
     toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {

@@ -1,6 +1,5 @@
 import { Group } from '../../scene/group';
 import { Layer } from '../../scene/layer';
-import type { ZIndexSubOrder } from '../../scene/layersManager';
 import { clamp } from '../../util/number';
 import { ZIndexMap } from '../zIndexMap';
 import type { SeriesGrouping } from './seriesStateManager';
@@ -21,7 +20,7 @@ export type SeriesConfig = {
     highlightGroup: Group;
     annotationGroup: Group;
     type: string;
-    getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex?: number): ZIndexSubOrder;
+    getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex?: number): number[];
 };
 
 type LayerState = {
@@ -89,22 +88,19 @@ export class SeriesLayerManager {
             group: this.seriesRoot.appendChild(
                 new Layer({
                     name: `${type}-content`,
-                    zIndex: ZIndexMap.SERIES_LAYER,
-                    zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('data'),
+                    zIndex: [ZIndexMap.SERIES_LAYER, ...seriesConfig.getGroupZIndexSubOrder('data')],
                 })
             ),
             highlight: this.highlightRoot.appendChild(
                 new Group({
                     name: `${type}-highlight`,
-                    zIndex: ZIndexMap.SERIES_LAYER,
-                    zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('highlight'),
+                    zIndex: [ZIndexMap.SERIES_LAYER, ...seriesConfig.getGroupZIndexSubOrder('highlight')],
                 })
             ),
             annotation: this.annotationRoot.appendChild(
                 new Group({
                     name: `${type}-annotation`,
-                    zIndex: ZIndexMap.SERIES_LAYER,
-                    zIndexSubOrder: seriesConfig.getGroupZIndexSubOrder('annotation'),
+                    zIndex: [ZIndexMap.SERIES_LAYER, ...seriesConfig.getGroupZIndexSubOrder('annotation')],
                 })
             ),
         });
@@ -174,9 +170,21 @@ export class SeriesLayerManager {
             // Update zIndexSubOrder to avoid it becoming stale as series are removed and re-added
             // with the same groupIndex, but are otherwise unrelated.
             const leadSeriesConfig = this.series[groupInfo?.seriesIds?.[0]]?.seriesConfig;
-            groupInfo.group.zIndexSubOrder = leadSeriesConfig?.getGroupZIndexSubOrder('data');
-            groupInfo.highlight.zIndexSubOrder = leadSeriesConfig?.getGroupZIndexSubOrder('highlight');
-            groupInfo.annotation.zIndexSubOrder = leadSeriesConfig?.getGroupZIndexSubOrder('annotation');
+            if (leadSeriesConfig != null) {
+                groupInfo.group.zIndex = [ZIndexMap.SERIES_LAYER, ...leadSeriesConfig?.getGroupZIndexSubOrder('data')];
+                groupInfo.highlight.zIndex = [
+                    ZIndexMap.SERIES_LAYER,
+                    ...leadSeriesConfig?.getGroupZIndexSubOrder('highlight'),
+                ];
+                groupInfo.annotation.zIndex = [
+                    ZIndexMap.SERIES_LAYER,
+                    ...leadSeriesConfig?.getGroupZIndexSubOrder('annotation'),
+                ];
+            } else {
+                groupInfo.group.zIndex = ZIndexMap.SERIES_LAYER;
+                groupInfo.highlight.zIndex = ZIndexMap.SERIES_LAYER;
+                groupInfo.annotation.zIndex = ZIndexMap.SERIES_LAYER;
+            }
         }
 
         delete this.series[internalId];

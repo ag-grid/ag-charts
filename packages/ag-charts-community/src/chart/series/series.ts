@@ -11,7 +11,6 @@ import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
 import type { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
-import type { ZIndexSubOrder } from '../../scene/layersManager';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
@@ -292,8 +291,6 @@ export abstract class Series<
         return { inner: 1, outer: 0 };
     }
 
-    _declarationOrder: number = -1;
-
     protected readonly ctx: ModuleContext;
 
     constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
@@ -318,7 +315,6 @@ export abstract class Series<
                 name: `${this.internalId}-content`,
                 isVirtual: contentGroupVirtual,
                 zIndex: ZIndexMap.SERIES_LAYER,
-                zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
             })
         );
 
@@ -326,7 +322,6 @@ export abstract class Series<
             name: `${this.internalId}-highlight`,
             isVirtual: contentGroupVirtual,
             zIndex: ZIndexMap.SERIES_LAYER,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('highlight'),
         });
         this.highlightNode = this.highlightGroup.appendChild(new Group({ name: 'highlightNode', zIndex: 0 }));
         this.highlightLabel = this.highlightGroup.appendChild(new Group({ name: 'highlightLabel', zIndex: 10 }));
@@ -344,11 +339,23 @@ export abstract class Series<
             name: `${this.id}-annotation`,
             isVirtual: contentGroupVirtual,
             zIndex: ZIndexMap.SERIES_LAYER,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('annotation'),
         });
     }
 
-    getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
+    _declarationOrder: number = -1;
+    setSeriesIndex(index: number) {
+        if (index === this._declarationOrder) return false;
+
+        this._declarationOrder = index;
+
+        this.contentGroup.zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('data')];
+        this.highlightGroup.zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('highlight')];
+        this.annotationGroup.zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('annotation')];
+
+        return true;
+    }
+
+    getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): number[] {
         let mainAdjust = 0;
         switch (type) {
             case 'data':
@@ -368,8 +375,8 @@ export abstract class Series<
                 mainAdjust += 15000;
                 break;
         }
-        const main = () => this._declarationOrder + mainAdjust;
-        return [main, subIndex];
+
+        return [mainAdjust, this._declarationOrder, subIndex];
     }
 
     private readonly seriesListeners = new Listeners<SeriesEventType, (event: any) => void>();

@@ -118,7 +118,6 @@ export abstract class BaseFunnelSeries<
         new Group({
             name: `${this.id}-series-connectorNodes`,
             zIndex: ZIndexMap.SERIES_LAYER,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
         })
     );
     protected connectorSelection = Selection.select<FunnelConnector, FunnelConnectorDatum>(
@@ -159,6 +158,14 @@ export abstract class BaseFunnelSeries<
         });
 
         this.connectorNodeGroup.pointerEvents = PointerEvents.None;
+    }
+
+    override setSeriesIndex(index: number): boolean {
+        if (!super.setSeriesIndex(index)) return false;
+
+        this.connectorNodeGroup.zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('data')];
+
+        return true;
     }
 
     protected override isVertical(): boolean {

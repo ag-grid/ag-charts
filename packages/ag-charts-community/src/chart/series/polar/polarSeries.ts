@@ -122,7 +122,6 @@ export abstract class PolarSeries<
             canHaveAxes,
         });
 
-        this.itemGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
         this.animationResetFns = animationResetFns;
 
         this.animationState = new StateMachine<PolarAnimationState, PolarAnimationEvent>(

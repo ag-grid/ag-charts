@@ -75,7 +75,6 @@ export class MapMarkerSeries
         new Layer({
             name: 'markerGroup',
             zIndex: ZIndexMap.SERIES_LAYER,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('marker'),
         })
     );
 
@@ -155,6 +154,14 @@ export class MapMarkerSeries
         if (this.topology === topology) {
             this.nodeDataRefresh = true;
         }
+    }
+
+    override setSeriesIndex(index: number): boolean {
+        if (!super.setSeriesIndex(index)) return false;
+
+        this.markerGroup.zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('marker')];
+
+        return true;
     }
 
     override addChartEventListeners(): void {
