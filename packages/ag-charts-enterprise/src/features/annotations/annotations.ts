@@ -260,6 +260,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 toolbarManager.updateButton('annotations', 'line-menu', { icon: undefined });
                 toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
                 toolbarManager.updateButton('annotations', 'shape-menu', { icon: undefined });
+                toolbarManager.updateButton('annotations', 'measurer-menu', { icon: undefined });
 
                 this.deleteEphemeralAnnotations();
                 this.update();
@@ -397,6 +398,20 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 if (!isLineType(datum) && !isChannelType(datum) && !isMeasurerType(datum)) return;
                 if (isEphemeralType(datum)) return;
 
+                const onChangeColor =
+                    (colorType: AnnotationOptionsColorPickerType) =>
+                    (colorOpacity: string, color: string, opacity: number) => {
+                        this.setColorAndDefault(datum.type, colorType, colorOpacity, color, opacity);
+                        this.updateToolbarColorPickerFill(colorType, color, opacity);
+                    };
+                const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => () => {
+                    this.recordActionAfterNextUpdate(
+                        `Change ${datum.type} ${colorType} to ${datum.getDefaultColor(colorType)}`,
+                        ['annotations', 'defaults']
+                    );
+                    this.update();
+                };
+
                 const options: LinearSettingsDialogOptions = {
                     initialSelectedTab: initialTab,
                     ariaLabel: this.ctx.localeManager.t('ariaLabelAnnotationSettingsDialog'),
@@ -414,17 +429,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                                 .join(', ')}`
                         );
                     },
-                    onChangeLineColor: (colorOpacity, color, opacity) => {
-                        this.setColorAndDefault(datum.type, 'line-color', colorOpacity, color, opacity);
-                        this.updateToolbarColorPickerFill('line-color', color, opacity);
-                    },
-                    onChangeHideLineColor: () => {
-                        this.recordActionAfterNextUpdate(
-                            `Change ${datum.type} line-color to ${datum.getDefaultColor('line-color')}`,
-                            ['annotations', 'defaults']
-                        );
-                        this.update();
-                    },
+                    onChangeFillColor: onChangeColor('fill-color'),
+                    onChangeHideFillColor: onChangeHideColor('fill-color'),
+                    onChangeLineColor: onChangeColor('line-color'),
+                    onChangeHideLineColor: onChangeHideColor('line-color'),
                     onChangeLineStyleType: (lineStyleType) => {
                         this.setLineStyleTypeAndDefault(datum.type, lineStyleType);
                         this.updateToolbarLineStyleType(
@@ -436,17 +444,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         this.setLineStyleWidthAndDefault(datum.type, strokeWidth);
                         this.updateToolbarStrokeWidth({ strokeWidth, value: strokeWidth, label: String(strokeWidth) });
                     },
-                    onChangeTextColor: (colorOpacity, color, opacity) => {
-                        this.setColorAndDefault(datum.type, 'text-color', colorOpacity, color, opacity);
-                        this.updateToolbarColorPickerFill('text-color', color, opacity);
-                    },
-                    onChangeHideTextColor: () => {
-                        this.recordActionAfterNextUpdate(
-                            `Change ${datum.type} text-color to ${datum.getDefaultColor('text-color')}`,
-                            ['annotations', 'defaults']
-                        );
-                        this.update();
-                    },
+                    onChangeTextColor: onChangeColor('text-color'),
+                    onChangeHideTextColor: onChangeHideColor('text-color'),
                     onChangeTextFontSize: (fontSize) => {
                         this.setFontSizeAndDefault(datum.type, fontSize);
                     },
@@ -582,6 +581,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private getDatumRangeVolume(from: Point['x'], to: Point['x']) {
         if (!isValidDate(from) || !isValidDate(to) || !this.dataModel || !this.processedData) return 0;
+
+        if (from > to) {
+            [from, to] = [to, from];
+        }
 
         const dateDef = this.dataModel.resolveProcessedDataDefById({ id: 'annotations' }, 'date');
         const volumeDef = this.dataModel.resolveProcessedDataDefById({ id: 'annotations' }, 'volume');
