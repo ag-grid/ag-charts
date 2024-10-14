@@ -96,21 +96,6 @@ export class MeasurerStatisticsScene extends _Scene.Group {
         const priceScenes = [priceRangeValueText, priceRangeDivider, priceRangePercentageText];
         const scenes: Array<PositionedScene | Array<PositionedScene>> = [];
 
-        if (stats.dateRange) {
-            dateRangeBarsText.setProperties({
-                ...textStyles,
-                text: this.formatDateRangeBars(stats.dateRange.bars, localeManager),
-            });
-            dateRangeDivider.setProperties(dividerLineStyles);
-            dateRangeValueText.setProperties({
-                ...textStyles,
-                text: this.formatDateRangeValue(stats.dateRange.value),
-            });
-
-            layoutScenesRow(dateScenes, anchor.x, horizontalGap);
-            scenes.push(dateScenes);
-        }
-
         if (stats.priceRange) {
             priceRangeValueText.setProperties({
                 ...textStyles,
@@ -124,6 +109,21 @@ export class MeasurerStatisticsScene extends _Scene.Group {
 
             layoutScenesRow(priceScenes, anchor.x, horizontalGap);
             scenes.push(priceScenes);
+        }
+
+        if (stats.dateRange) {
+            dateRangeBarsText.setProperties({
+                ...textStyles,
+                text: this.formatDateRangeBars(stats.dateRange.bars, localeManager),
+            });
+            dateRangeDivider.setProperties(dividerLineStyles);
+            dateRangeValueText.setProperties({
+                ...textStyles,
+                text: this.formatDateRangeValue(stats.dateRange.value),
+            });
+
+            layoutScenesRow(dateScenes, anchor.x, horizontalGap);
+            scenes.push(dateScenes);
         }
 
         if (stats.volume != null) {
