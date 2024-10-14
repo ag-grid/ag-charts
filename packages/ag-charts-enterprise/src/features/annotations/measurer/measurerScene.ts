@@ -339,6 +339,13 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         );
     }
 
+    override getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.text?.containsPoint(x, y)) return 'text';
+        if (this.start.containsPoint(x, y) || this.end.containsPoint(x, y)) return 'handle';
+
+        return 'line';
+    }
+
     private getDateRangeBars(coords: _ModuleSupport.Vec4, context: AnnotationContext) {
         const sign = coords.x1 <= coords.x2 ? 1 : -1;
         return Math.round(Vec4.width(coords) / context.xAxis.scaleStep()) * sign;
