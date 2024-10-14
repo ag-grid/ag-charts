@@ -2,7 +2,7 @@ import type { AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
 import type { BBox } from '../../scene/bbox';
-import { Logger } from '../../sparklines-util';
+import { Logger } from '../../util/logger';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { deepClone } from '../../util/json';
 import { StateTracker } from '../../util/stateTracker';
