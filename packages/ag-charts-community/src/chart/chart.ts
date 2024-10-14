@@ -106,7 +106,7 @@ export abstract class Chart extends Observable {
 
     className?: string;
 
-    readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root` });
+    readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root`, zIndex: ZIndexMap.SERIES_LAYER });
     readonly highlightRoot = new TranslatableLayer({
         name: `${this.id}-highlight-root`,
         zIndex: ZIndexMap.SERIES_HIGHLIGHT,

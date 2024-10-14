@@ -26,6 +26,16 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
     );
     readonly axisGridGroup = this.root.appendChild(new Layer({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID }));
     readonly axisGroup = this.root.appendChild(new Layer({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID }));
+    readonly axisLabelGroup = this.root.appendChild(new Layer({ name: 'Axes-Labels', zIndex: ZIndexMap.SERIES_LABEL }));
+    readonly axisCrosslineRangeGroup = this.root.appendChild(
+        new Layer({ name: 'Axes-Crosslines-Range', zIndex: ZIndexMap.SERIES_CROSSLINE_RANGE })
+    );
+    readonly axisCrosslineLineGroup = this.root.appendChild(
+        new Layer({ name: 'Axes-Crosslines-Line', zIndex: ZIndexMap.SERIES_CROSSLINE_LINE })
+    );
+    readonly axisCrosslineLabelGroup = this.root.appendChild(
+        new Layer({ name: 'Axes-Crosslines-Label', zIndex: ZIndexMap.SERIES_LABEL })
+    );
 
     public data: any = [];
 
@@ -35,16 +45,25 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     @ActionOnSet<MiniChart>({
         changeValue(newValue: _ModuleSupport.ChartAxis[], oldValue: _ModuleSupport.ChartAxis[] = []) {
+            const axisNodes = {
+                axisNode: this.axisGroup,
+                gridNode: this.axisGridGroup,
+                labelNode: this.axisLabelGroup,
+                crossLineLineNode: this.axisCrosslineLineGroup,
+                crossLineRangeNode: this.axisCrosslineRangeGroup,
+                crossLineLabelNode: this.axisCrosslineLabelGroup,
+            };
+
             for (const axis of oldValue) {
                 if (newValue.includes(axis)) continue;
-                axis.detachAxis(this.axisGroup, this.axisGridGroup);
+                axis.detachAxis(axisNodes);
                 axis.destroy();
             }
 
             for (const axis of newValue) {
                 if (oldValue?.includes(axis)) continue;
 
-                axis.attachAxis(this.axisGroup, this.axisGridGroup);
+                axis.attachAxis(axisNodes);
             }
         },
     })

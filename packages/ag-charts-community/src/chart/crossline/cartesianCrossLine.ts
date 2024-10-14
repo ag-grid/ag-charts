@@ -10,7 +10,7 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
-import { Layer } from '../../scene/layer';
+import { Group } from '../../scene/group';
 import { PointerEvents } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import { Range } from '../../scene/shape/range';
@@ -37,7 +37,6 @@ import {
 } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
-import { ZIndexMap } from '../zIndexMap';
 import { type CrossLine, type CrossLineType, MATCHING_CROSSLINE_TYPE, validateCrossLineValues } from './crossLine';
 import type { CrossLineLabelPosition } from './crossLineLabelPosition';
 import {
@@ -114,10 +113,6 @@ class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCross
 type NodeData = number[];
 
 export class CartesianCrossLine extends BaseProperties implements CrossLine<CartesianCrossLineLabel> {
-    protected static readonly LINE_LAYER_ZINDEX = ZIndexMap.SERIES_CROSSLINE_LINE;
-    protected static readonly RANGE_LAYER_ZINDEX = ZIndexMap.SERIES_CROSSLINE_RANGE;
-    protected static readonly LABEL_LAYER_ZINDEX = ZIndexMap.SERIES_LABEL;
-
     static readonly className = 'CrossLine';
     readonly id = createId(this);
 
@@ -164,8 +159,9 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     regularFlipRotation: number = 0;
     direction: ChartAxisDirection = ChartAxisDirection.X;
 
-    readonly group = new Layer({ name: this.id, zIndex: CartesianCrossLine.LINE_LAYER_ZINDEX });
-    readonly labelGroup = new Layer({ name: this.id, zIndex: CartesianCrossLine.LABEL_LAYER_ZINDEX });
+    readonly rangeGroup = new Group({ name: this.id });
+    readonly lineGroup = new Group({ name: this.id });
+    readonly labelGroup = new Group({ name: this.id });
     private readonly crossLineRange = new Range();
     private readonly crossLineLabel = new TransformableText();
     private labelPoint?: Point = undefined;
@@ -178,12 +174,13 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
     constructor() {
         super();
 
-        this.group.append(this.crossLineRange);
+        this.lineGroup.append(this.crossLineRange);
         this.labelGroup.append(this.crossLineLabel);
 
         this.crossLineRange.pointerEvents = PointerEvents.None;
     }
 
+    private _isRange: boolean | undefined = undefined;
     update(visible: boolean) {
         const { enabled, data, type, value, range, scale } = this;
         if (
@@ -194,15 +191,26 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
             !validateCrossLineValues(type, value, range, scale) ||
             data.length === 0
         ) {
-            this.group.visible = false;
+            this.rangeGroup.visible = false;
+            this.lineGroup.visible = false;
             this.labelGroup.visible = false;
             return;
         }
 
-        this.group.visible = visible;
+        this.rangeGroup.visible = visible;
+        this.lineGroup.visible = visible;
         this.labelGroup.visible = visible;
-        this.group.zIndex = this.getZIndex(this.isRange);
         this.updateNodes();
+
+        const { isRange } = this;
+        if (isRange !== this._isRange) {
+            if (isRange) {
+                this.rangeGroup.appendChild(this.crossLineRange);
+            } else {
+                this.lineGroup.appendChild(this.crossLineRange);
+            }
+        }
+        this._isRange = isRange;
     }
 
     calculateLayout(visible: boolean, reversedAxis?: boolean) {
@@ -371,10 +379,6 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         crossLineLabel.translationX = x + xTranslation;
         crossLineLabel.translationY = y + yTranslation;
-    }
-
-    protected getZIndex(isRange: boolean = false): number {
-        return isRange ? CartesianCrossLine.RANGE_LAYER_ZINDEX : CartesianCrossLine.LINE_LAYER_ZINDEX;
     }
 
     private getRange(): [any, any] {

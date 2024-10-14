@@ -35,7 +35,6 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
         super();
 
         this.node = this.createNode();
-        this.node.zIndex = ZIndexMap.CHART_BACKGROUND;
         this.node.append([this.rectNode, this.textNode]);
 
         this.visible = true;
@@ -47,7 +46,7 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
     }
 
     protected createNode() {
-        return new Group({ name: 'background', zIndex: ZIndexMap.SERIES_BACKGROUND });
+        return new Group({ name: 'background', zIndex: ZIndexMap.CHART_BACKGROUND });
     }
 
     protected onLayoutComplete(e: LayoutCompleteEvent) {
