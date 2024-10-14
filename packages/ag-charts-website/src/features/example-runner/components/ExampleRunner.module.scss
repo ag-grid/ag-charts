@@ -44,6 +44,7 @@ iframe {
 
     :global(.icon) {
         --icon-size: #{$spacing-size-6};
+        --color-icon: var(--color-fg-primary);
     }
 }
 
