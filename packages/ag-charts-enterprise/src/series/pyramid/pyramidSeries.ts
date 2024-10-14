@@ -446,7 +446,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         });
     }
 
-    override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {}
+    override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {
+        // Does not reset any animations
+    }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | _Scene.Path | undefined {
         const datum = this.getNodeData()?.[opts.datumIndex];
