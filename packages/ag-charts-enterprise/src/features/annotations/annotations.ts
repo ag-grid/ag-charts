@@ -1131,13 +1131,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private getPointFn(shiftKey: boolean, offset: _ModuleSupport.Vec2, context: AnnotationContext) {
-        return (origin?: Point, angleStep: number = 1) =>
-            shiftKey
-                ? invertCoords(
-                      snapToAngle(offset, origin ? convertPoint(origin, context) : Vec2.origin(), angleStep),
-                      context
-                  )
-                : invertCoords(offset, context);
+        return (origin?: Point, angleStep: number = 1) => {
+            if (shiftKey) {
+                return invertCoords(
+                    snapToAngle(offset, origin ? convertPoint(origin, context) : Vec2.origin(), angleStep),
+                    context
+                );
+            }
+
+            return invertCoords(offset, context);
+        };
     }
 
     private onHover(event: _ModuleSupport.RegionEvent<'hover'>) {
