@@ -260,6 +260,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 toolbarManager.updateButton('annotations', 'line-menu', { icon: undefined });
                 toolbarManager.updateButton('annotations', 'text-menu', { icon: undefined });
                 toolbarManager.updateButton('annotations', 'shape-menu', { icon: undefined });
+                toolbarManager.updateButton('annotations', 'measurer-menu', { icon: undefined });
 
                 this.deleteEphemeralAnnotations();
                 this.update();
