@@ -340,7 +340,8 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
     }
 
     private getDateRangeBars(coords: _ModuleSupport.Vec4, context: AnnotationContext) {
-        return Math.round(Vec4.width(coords) / context.xAxis.scaleStep());
+        const sign = coords.x1 <= coords.x2 ? 1 : -1;
+        return Math.round(Vec4.width(coords) / context.xAxis.scaleStep()) * sign;
     }
 
     private getDateRangeValue(datum: MeasurerTypeProperties) {
@@ -353,7 +354,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             throw new Error('Can not create a date range measurement of non-date x-axis.');
         }
 
-        return Math.abs(datum.end.x.getTime() - datum.start.x.getTime());
+        return datum.end.x.getTime() - datum.start.x.getTime();
     }
 
     private getPriceRangePercentage(datum: MeasurerTypeProperties) {

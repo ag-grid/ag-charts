@@ -583,6 +583,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private getDatumRangeVolume(from: Point['x'], to: Point['x']) {
         if (!isValidDate(from) || !isValidDate(to) || !this.dataModel || !this.processedData) return 0;
 
+        if (from > to) {
+            [from, to] = [to, from];
+        }
+
         const dateDef = this.dataModel.resolveProcessedDataDefById({ id: 'annotations' }, 'date');
         const volumeDef = this.dataModel.resolveProcessedDataDefById({ id: 'annotations' }, 'volume');
 

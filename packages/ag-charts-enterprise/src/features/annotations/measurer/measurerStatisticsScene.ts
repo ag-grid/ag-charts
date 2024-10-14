@@ -198,6 +198,9 @@ export class MeasurerStatisticsScene extends _Scene.Group {
     private formatDateRangeValue(time: number) {
         const range = [];
 
+        const sign = time >= 0 ? '' : '-';
+        time = Math.abs(time);
+
         const MINUTE = 1000 * 60;
         const HOUR = MINUTE * 60;
         const DAY = HOUR * 24;
@@ -212,6 +215,8 @@ export class MeasurerStatisticsScene extends _Scene.Group {
         if (days >= 1) range.push(`${days}d`);
         if (hours >= 1 && (time < DAY || remainderHours !== 0)) range.push(`${remainderHours}h`);
         if (time < HOUR || remainderMinutes !== 0) range.push(`${remainderMinutes}m`);
+
+        range[0] = `${sign}${range[0]}`;
 
         return range.join(' ');
     }
