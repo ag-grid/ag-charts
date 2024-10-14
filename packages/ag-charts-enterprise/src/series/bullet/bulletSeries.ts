@@ -320,8 +320,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
         nodeData: BulletNodeDatum[];
         datumSelection: _Scene.Selection<_Scene.Rect, BulletNodeDatum>;
     }) {
-        this.targetLinesSelection.update(opts.nodeData, undefined, undefined);
-        return opts.datumSelection.update(opts.nodeData, undefined, undefined);
+        this.targetLinesSelection.update(opts.nodeData);
+        return opts.datumSelection.update(opts.nodeData);
     }
 
     protected override async updateDatumNodes(opts: {

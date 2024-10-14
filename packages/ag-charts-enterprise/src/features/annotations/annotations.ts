@@ -362,7 +362,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     },
                 });
 
-                this.ctx.cursorManager.updateCursor('annotations', undefined);
+                this.ctx.cursorManager.updateCursor('annotations');
             },
 
             hideTextInput: () => {
