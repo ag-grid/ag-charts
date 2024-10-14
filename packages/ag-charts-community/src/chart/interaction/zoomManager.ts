@@ -2,7 +2,7 @@ import type { AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
 import type { BBox } from '../../scene/bbox';
-import { Logger } from '../../sparklines-util';
+import { Logger, clamp } from '../../sparklines-util';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { deepClone } from '../../util/json';
 import { StateTracker } from '../../util/stateTracker';
@@ -56,22 +56,64 @@ export type ChartAxisLike = {
 
 type ZoomEvents = ZoomChangeEvent | ZoomPanStartEvent | ZoomRestoreEvent;
 
-function calcAxesPanTranslate(viewportMin: number, viewportMax: number, targetMin: number, targetMax: number): number {
-    const mindiff = targetMin - viewportMin;
-    const maxdiff = targetMax - viewportMax;
-    return Math.abs(mindiff) < Math.abs(maxdiff) ? mindiff : maxdiff;
-}
-
-function calcBBoxPanTranslate(viewport: BBox, target: BBoxValues): { dx: number; dy: number } {
-    const dx = calcAxesPanTranslate(viewport.x, viewport.x + viewport.width, target.x, target.x + target.width);
-    const dy = calcAxesPanTranslate(viewport.y, viewport.y + viewport.height, target.y, target.y + target.height);
-    return { dx, dy };
-}
-
 function normalize(screenMin: number, min: number, screenMax: number, max: number, target: number): number {
     return min + (max - min) * ((target - screenMin) / (screenMax - screenMin));
 }
 
+function unnormalize(screenMin: number, min: number, screenMax: number, max: number, ratio: number): number {
+    return screenMin + (ratio - min) * ((screenMax - screenMin) / (max - min));
+}
+function calcWorld(viewportMin: number, viewportMax: number, ratio: ZoomState): [number, number] {
+    return [
+        unnormalize(viewportMin, ratio.min, viewportMax, ratio.max, 0),
+        unnormalize(viewportMin, ratio.min, viewportMax, ratio.max, 1),
+    ];
+}
+/* Pan viewport min (unnormalised, i.e. pixel coords.) by the smallest amount
+   such that the viewport range includes the input target range but clamped at
+   the world range. The function assumes:
+   1)  worldMin <= viewportMin <= viewportMax <= worldMax
+   2)  (viewportMax - viewportMin) >= (targetMax - targetMin)
+*/
+function panAxesUnnormalized(
+    worldMin: number,
+    worldMax: number,
+    viewportMin: number,
+    viewportMax: number,
+    targetMin: number,
+    targetMax: number
+): number {
+    if (viewportMin <= targetMin && targetMax <= viewportMax) return viewportMin;
+    const mindiff = targetMin - viewportMin;
+    const maxdiff = targetMax - viewportMax;
+    const diff = Math.abs(mindiff) < Math.abs(maxdiff) ? mindiff : maxdiff;
+    return clamp(worldMin, viewportMin + diff, worldMax);
+}
+
+// The calculations of the new desired viewport (i.e. ZoomState) is done in pixel coords (unnormalised).
+// The desired (x, y) for the new viewport is found, the pixel coords are converted into normalized values
+export function calcPanToBBoxRatios(viewport: BBoxValues, ratioX: ZoomState, ratioY: ZoomState, target: BBoxValues): AxisZoomState {
+    const [targetXMin, targetXMax] = [target.x, target.x + target.width];
+    const [targetYMin, targetYMax] = [target.y, target.y + target.height];
+    const [viewportXMin, viewportXMax] = [viewport.x, viewport.x + viewport.width];
+    const [viewportYMin, viewportYMax] = [viewport.y, viewport.y + viewport.height];
+    const [worldXMin, worldXMax] = calcWorld(viewportXMin, viewportXMax, ratioX);
+    const [worldYMin, worldYMax] = calcWorld(viewportYMin, viewportYMax, ratioY);
+
+    const x = panAxesUnnormalized(worldXMin, worldXMax, viewportXMin, viewportXMax, targetXMin, targetXMax);
+    const y = panAxesUnnormalized(worldYMin, worldYMax, viewportYMin, viewportYMax, targetYMin, targetYMax);
+
+    return {
+        x: {
+            min: normalize(viewportXMin, ratioX.min, viewportXMax, ratioX.max, x),
+            max: normalize(viewportXMin, ratioX.min, viewportXMax, ratioX.max, x + viewport.width),
+        },
+        y: {
+            min: normalize(viewportYMin, ratioY.min, viewportYMax, ratioY.max, y),
+            max: normalize(viewportYMin, ratioY.min, viewportYMax, ratioY.max, y + viewport.height),
+        },
+    };
+}
 /**
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.
@@ -165,32 +207,13 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
     panToBBox(callerId: string, seriesRect: BBox, target: BBoxValues) {
         const { x: zoomX, y: zoomY } = this.getZoom() ?? {};
-        if (!zoomX || !zoomY || seriesRect.containsBBox(target)) return;
+        if (!zoomX || !zoomY) return;
         if (target.width > seriesRect.width || target.height > seriesRect.height) {
             Logger.errorOnce(`cannot pan to target BBox`);
             return;
         }
 
-        const { dx, dy } = calcBBoxPanTranslate(seriesRect, target);
-
-        // This rectangle is our current min/max viewport (in pixel coords.)
-        const [sx0, sx1] = [seriesRect.x, seriesRect.x + seriesRect.width];
-        const [sy0, sy1] = [seriesRect.y, seriesRect.y + seriesRect.height];
-
-        // This is the rectangle that we need to pan to (in pixel coord.)
-        const [tx0, tx1] = [sx0 + dx, sx1 + dx];
-        const [ty0, ty1] = [sy0 + dy, sy1 + dy];
-
-        const newZoom: AxisZoomState = {
-            x: {
-                min: normalize(sx0, zoomX.min, sx1, zoomX.max, tx0),
-                max: normalize(sx0, zoomX.min, sx1, zoomX.max, tx1),
-            },
-            y: {
-                min: normalize(sy0, zoomY.min, sy1, zoomY.max, ty0),
-                max: normalize(sy0, zoomY.min, sy1, zoomY.max, ty1),
-            },
-        };
+        const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoomX, zoomY, target);
         this.updateZoom(callerId, newZoom);
     }
 

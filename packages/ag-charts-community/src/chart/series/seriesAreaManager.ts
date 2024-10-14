@@ -19,7 +19,7 @@ import type { KeyNavEvent } from '../interaction/keyNavManager';
 import type { RegionEvent } from '../interaction/regionManager';
 import { REGIONS } from '../interaction/regions';
 import { TooltipManager } from '../interaction/tooltipManager';
-import { makeKeyboardPointerEvent } from '../keyboardUtil';
+import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { DEFAULT_TOOLTIP_CLASS, Tooltip, type TooltipContent } from '../tooltip/tooltip';
@@ -381,7 +381,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private updatePickedFocus(pick: PickFocusOutputs | undefined) {
-        const { focus } = this;
+        const { focus, seriesRect } = this;
         if (pick === undefined || focus.series === undefined) return;
 
         const { datum, datumIndex } = pick;
@@ -389,6 +389,11 @@ export class SeriesAreaManager extends BaseManager {
         focus.datum = datum;
 
         this.chart.ctx.animationManager.reset();
+
+        const focusBBox = getPickedFocusBBox(pick);
+        if (seriesRect && !seriesRect.containsBBox(focusBBox)) {
+            this.chart.ctx.zoomManager.panToBBox(this.id, seriesRect, focusBBox);
+        }
 
         // Update the bounds of the focus indicator:
         const keyboardEvent = makeKeyboardPointerEvent(this.chart.ctx.focusIndicator, pick);
