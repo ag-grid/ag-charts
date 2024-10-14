@@ -147,7 +147,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         return new AnnotationsStateMachine({
             resetToIdle: () => {
                 ctx.cursorManager.updateCursor('annotations');
-                ctx.interactionManager.popState(InteractionState.Annotations);
                 ctx.toolbarManager.toggleGroup('annotations', 'annotationOptions', { visible: false });
                 ctx.tooltipManager.unsuppressTooltip('annotations');
                 this.hideOverlays();
