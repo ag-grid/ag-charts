@@ -235,7 +235,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         this.seriesRect = seriesRect;
         this.seriesRoot.translationY = padding.top;
-        this.seriesRoot.setClipRect(new BBox(0, -padding.top, width, height), false);
+        this.seriesRoot.setClipRectCanvasSpace(new BBox(0, -padding.top, width, height));
 
         this.axes.forEach((axis) => {
             const { position = 'left' } = axis;

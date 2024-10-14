@@ -259,23 +259,21 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
 
         this.data = [clampedYStart, clampedYEnd];
 
-        if (this.label.enabled) {
-            const yDirection = direction === ChartAxisDirection.Y;
+        if (!this.label.enabled) return;
 
-            const { c = POSITION_TOP_COORDINATES } = labelDirectionHandling[position] ?? {};
-            const { x: labelX, y: labelY } = c({
-                yDirection,
-                xStart,
-                xEnd,
-                yStart: clampedYStart,
-                yEnd: clampedYEnd,
-            });
+        const { c = POSITION_TOP_COORDINATES } = labelDirectionHandling[position] ?? {};
+        const { x: labelX, y: labelY } = c({
+            direction,
+            xStart,
+            xEnd,
+            yStart: clampedYStart,
+            yEnd: clampedYEnd,
+        });
 
-            this.labelPoint = {
-                x: labelX,
-                y: labelY,
-            };
-        }
+        this.labelPoint = {
+            x: labelX,
+            y: labelY,
+        };
     }
 
     private updateNodes() {

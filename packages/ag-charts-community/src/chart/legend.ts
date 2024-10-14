@@ -947,9 +947,18 @@ export class Legend extends BaseProperties {
     }
 
     private updateContextMenu() {
-        const { toggleSeries } = this;
-        this.ctx.contextMenuRegistry.setActionVisibility(ID_LEGEND_VISIBILITY, toggleSeries);
-        this.ctx.contextMenuRegistry.setActionVisibility(ID_LEGEND_OTHER_SERIES, toggleSeries);
+        const {
+            toggleSeries,
+            ctx: { contextMenuRegistry },
+        } = this;
+
+        if (toggleSeries) {
+            contextMenuRegistry.hideAction(ID_LEGEND_VISIBILITY);
+            contextMenuRegistry.hideAction(ID_LEGEND_OTHER_SERIES);
+        } else {
+            contextMenuRegistry.showAction(ID_LEGEND_VISIBILITY);
+            contextMenuRegistry.showAction(ID_LEGEND_OTHER_SERIES);
+        }
     }
 
     private getLineStyles(datum: LegendSymbolOptions) {
