@@ -189,7 +189,7 @@ export class Legend extends BaseProperties {
         LegendMarkerLabel
     );
 
-    private readonly spriteRenderer = new SpriteRenderer();
+    private spriteRenderer: SpriteRenderer | undefined = undefined;
 
     private readonly oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
@@ -459,6 +459,7 @@ export class Legend extends BaseProperties {
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
 
         const spriteDims = this.calculateSpriteDimensions();
+        this.spriteRenderer ??= new SpriteRenderer();
         this.spriteRenderer.resize(spriteDims);
 
         this.itemSelection.each((markerLabel, datum) => {
@@ -467,7 +468,7 @@ export class Legend extends BaseProperties {
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
 
-            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, spriteDims);
+            const paddedSymbolWidth = this.updateMarkerLabel(this.spriteRenderer!, markerLabel, datum, spriteDims);
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
@@ -586,6 +587,7 @@ export class Legend extends BaseProperties {
     }
 
     private updateMarkerLabel(
+        spriteRenderer: SpriteRenderer,
         markerLabel: LegendMarkerLabel,
         datum: CategoryLegendDatum,
         spriteDims: SpriteDimensions
@@ -644,7 +646,7 @@ export class Legend extends BaseProperties {
             }
         });
 
-        markerLabel.update(this.spriteRenderer, spriteDims, dimensionProps);
+        markerLabel.update(spriteRenderer, spriteDims, dimensionProps);
         return paddedSymbolWidth;
     }
 
