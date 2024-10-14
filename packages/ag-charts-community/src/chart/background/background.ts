@@ -35,6 +35,7 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
         super();
 
         this.node = this.createNode();
+        this.node.zIndex = ZIndexMap.CHART_BACKGROUND;
         this.node.append([this.rectNode, this.textNode]);
 
         this.visible = true;

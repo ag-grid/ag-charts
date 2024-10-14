@@ -77,64 +77,72 @@ export class Layer extends Group {
             this.lastBBox = currentBBox;
         }
 
-        if (!isDirty && !isChildDirty && !isChildLayerDirty && !forceRender) {
+        if (isDirty || isChildDirty || isChildLayerDirty || forceRender) {
             this.debugSkip(renderCtx);
             this.markClean({ recursive: false });
-            return; // Nothing to do.
+
+            if (forceRender !== 'dirtyTransform') {
+                forceRender = isChildDirty || this.dirtyZIndex;
+            }
+
+            if (forceRender) {
+                this.layer.clear();
+            }
+
+            if (this.dirtyZIndex) {
+                this.sortChildren(Group.compareChildren);
+            }
+            const children = this.sortedChildren();
+            const renderCtxTransform = renderCtx.ctx.getTransform();
+            const { context: layerCtx } = this.layer;
+
+            layerCtx.save();
+
+            if (clipBBox) {
+                // clipBBox is in the canvas coordinate space, when we hit a layer we
+                // apply the new clipping at which point there are no transforms in play
+                const { width, height, x, y } = clipBBox;
+
+                layerCtx.beginPath();
+                layerCtx.rect(x, y, width, height);
+                layerCtx.clip();
+
+                debug?.(() => ({ name, clipBBox, renderCtx, group: this, ctxTransform: layerCtx.getTransform() }));
+            }
+
+            layerCtx.setTransform(renderCtxTransform);
+
+            if (this.clipRect) {
+                clipBBox = this.renderClip({ ...renderCtx, ctx: layerCtx });
+            }
+
+            this.renderChildren(children, { ...renderCtx, ctx: layerCtx, forceRender, clipBBox });
+            super.render(renderCtx, true); // Calls markClean().
+
+            if (clipRect) {
+                layerCtx.restore();
+            }
+
+            // Mark virtual nodes as clean and their virtual children.
+            // All other nodes have already been visited and marked clean.
+            for (const child of this.virtualChildren()) {
+                child.markClean({ recursive: 'virtual' });
+            }
+
+            if (stats) stats.layersRendered++;
+            layerCtx.restore();
+
+            layerCtx.verifyDepthZero?.(); // Check for save/restore depth of zero!
         }
 
-        if (forceRender !== 'dirtyTransform') {
-            forceRender = isChildDirty || this.dirtyZIndex;
-        }
-
-        if (forceRender) {
-            this.layer.clear();
-        }
-
-        if (this.dirtyZIndex) {
-            this.sortChildren(Group.compareChildren);
-        }
-        const children = this.sortedChildren();
-        const renderCtxTransform = renderCtx.ctx.getTransform();
-        const { context: ctx } = this.layer;
-
+        const { ctx } = renderCtx;
         ctx.save();
-
-        if (clipBBox) {
-            // clipBBox is in the canvas coordinate space, when we hit a layer we
-            // apply the new clipping at which point there are no transforms in play
-            const { width, height, x, y } = clipBBox;
-
-            ctx.beginPath();
-            ctx.rect(x, y, width, height);
-            ctx.clip();
-
-            debug?.(() => ({ name, clipBBox, renderCtx, group: this, ctxTransform: ctx.getTransform() }));
+        ctx.resetTransform();
+        if (this.getVisibility()) {
+            ctx.globalAlpha = this.getComputedOpacity();
+            this.layer.drawImage(ctx as any);
         }
-
-        ctx.setTransform(renderCtxTransform);
-
-        if (this.clipRect) {
-            clipBBox = this.renderClip({ ...renderCtx, ctx });
-        }
-
-        this.renderChildren(children, { ...renderCtx, ctx, forceRender, clipBBox });
-        super.render(renderCtx, true); // Calls markClean().
-
-        if (clipRect) {
-            ctx.restore();
-        }
-
-        // Mark virtual nodes as clean and their virtual children.
-        // All other nodes have already been visited and marked clean.
-        for (const child of this.virtualChildren()) {
-            child.markClean({ recursive: 'virtual' });
-        }
-
-        if (stats) stats.layersRendered++;
         ctx.restore();
-
-        ctx.verifyDepthZero?.(); // Check for save/restore depth of zero!
 
         if (name && stats) {
             debug?.({

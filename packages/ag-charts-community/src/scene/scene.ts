@@ -182,20 +182,20 @@ export class Scene {
 
         debugSplitTimes['✍️'] = performance.now() - renderStartTime;
 
-        if (this.layersManager.size && canvasCleared) {
-            const layerRenderStart = performance.now();
-            ctx.save();
-            ctx.resetTransform();
-            this.layersManager.forEach((layer) => {
-                if (layer.canvas.enabled && layer.getVisibility()) {
-                    ctx.globalAlpha = layer.getComputedOpacity();
-                    layer.canvas.drawImage(ctx);
-                }
-            });
-            ctx.restore();
+        // if (this.layersManager.size && canvasCleared) {
+        //     const layerRenderStart = performance.now();
+        //     ctx.save();
+        //     ctx.resetTransform();
+        //     this.layersManager.forEach((layer) => {
+        //         if (layer.canvas.enabled && layer.getVisibility()) {
+        //             ctx.globalAlpha = layer.getComputedOpacity();
+        //             layer.canvas.drawImage(ctx);
+        //         }
+        //     });
+        //     ctx.restore();
 
-            debugSplitTimes['⛙'] = performance.now() - layerRenderStart;
-        }
+        //     debugSplitTimes['⛙'] = performance.now() - layerRenderStart;
+        // }
 
         // Check for save/restore depth of zero!
         ctx.verifyDepthZero?.();
