@@ -187,8 +187,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         }
 
         if (aspectRatio != null && aspectRatio !== 0) {
-            const constrainedWidth = Math.min(bounds.width, bounds.height * aspectRatio);
-            const constrainedHeight = constrainedWidth / aspectRatio;
+            const directionalAspectRatio = direction === 'horizontal' ? 1 / aspectRatio : aspectRatio;
+            const constrainedWidth = Math.min(bounds.width, bounds.height * directionalAspectRatio);
+            const constrainedHeight = constrainedWidth / directionalAspectRatio;
 
             bounds = new BBox(
                 bounds.x + (bounds.width - constrainedWidth) / 2,

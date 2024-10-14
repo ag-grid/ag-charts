@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AgPyramidSeriesOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -20,8 +20,21 @@ const options: AgChartOptions = {
             stageKey: 'group',
             valueKey: 'value',
             aspectRatio: 3 / 2,
+            label: {
+                enabled: false,
+            },
         },
     ],
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function setDirection(direction: 'horizontal' | 'vertical') {
+    (options.series[0] as AgPyramidSeriesOptions).direction = direction;
+    chart.update(options);
+}
+
+function setAspectRatio(aspectRatio: number) {
+    (options.series[0] as AgPyramidSeriesOptions).aspectRatio = aspectRatio;
+    chart.update(options);
+}
