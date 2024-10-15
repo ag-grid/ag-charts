@@ -14,7 +14,7 @@ export interface Scale<D, R, I = number> {
     tickCount?: number;
     interval?: I;
     convert(value: D, clamp?: boolean): R;
-    invert?(value: R): D;
+    invert?(value: R, clamp?: boolean): D;
     invertNearest?(value: R): D;
     ticks?(): D[];
     tickFormat?(params: ScaleTickFormatParams): (x: any) => string;

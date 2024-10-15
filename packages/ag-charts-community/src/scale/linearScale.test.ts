@@ -71,8 +71,11 @@ describe('LinearScale', () => {
         scale.domain = [-100, 100];
         scale.range = [0, 100];
 
-        expect(scale.invert(-50)).toBe(-100);
-        expect(scale.invert(150)).toBe(100);
+        expect(scale.invert(-50, true)).toBe(-100);
+        expect(scale.invert(150, true)).toBe(100);
+
+        expect(scale.invert(-50, false)).toBe(-200);
+        expect(scale.invert(150, false)).toBe(200);
     });
 
     test('invert linear with zero length range', () => {

@@ -107,7 +107,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         return r0 + ((Number(x) - Number(d0)) / (Number(d1) - Number(d0))) * (r1 - r0);
     }
 
-    invert(x: number) {
+    invert(x: number, clamp?: boolean) {
         this.refresh();
         const domain = this.getDomain().map((d) => this.transform(d));
         const [d0, d1] = domain;
@@ -120,12 +120,16 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         const rMin = isReversed ? r1 : r0;
         const rMax = isReversed ? r0 : r1;
 
+        if (clamp ?? this.defaultClamp) {
+            if (x < rMin) {
+                return isReversed ? d1 : d0;
+            } else if (x > rMax) {
+                return isReversed ? d0 : d1;
+            }
+        }
+
         let d: any;
-        if (x < rMin) {
-            return isReversed ? d1 : d0;
-        } else if (x > rMax) {
-            return isReversed ? d0 : d1;
-        } else if (r0 === r1) {
+        if (r0 === r1) {
             d = this.toDomain((Number(d0) + Number(d1)) / 2);
         } else {
             d = this.toDomain(Number(d0) + ((x - r0) / (r1 - r0)) * (Number(d1) - Number(d0)));
