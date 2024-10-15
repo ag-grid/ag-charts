@@ -14,9 +14,6 @@ interface Props {
 
     modifiedTimeMs: number;
     entryFileName: string;
-
-    layout: 'grid' | 'toolbar' | 'none';
-
     /**
      * Extra script file names (not including entry file)
      */
@@ -36,7 +33,6 @@ const {
     modifiedTimeMs,
     appLocation,
     entryFileName,
-    layout,
     scriptFiles = [],
     styleFiles = [],
     boilerplatePath,
