@@ -25,7 +25,6 @@ interface Props {
     appLocation: string;
     boilerplatePath: string;
     ignoreSystemJs?: boolean;
-    extraStyles?: string;
     children?: any;
     headFragment?: string;
     isExternal?: boolean;
@@ -42,7 +41,6 @@ const {
     styleFiles = [],
     boilerplatePath,
     ignoreSystemJs,
-    extraStyles,
     headFragment,
     isExternal,
 } = Astro.props as Props;

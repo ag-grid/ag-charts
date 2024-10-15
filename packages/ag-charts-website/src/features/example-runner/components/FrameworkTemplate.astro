@@ -30,10 +30,6 @@ interface Props {
      */
     ignoreSystemJs?: boolean;
     /**
-     * Extra styles to add to HTML
-     */
-    extraStyles?: string;
-    /**
      * Is an external site e.g. Plunkr, CodeSandbox ect
      */
     isExternal?: boolean;
@@ -48,7 +44,6 @@ const {
     relativePath,
     addInitMessageScript,
     ignoreSystemJs,
-    extraStyles,
     isExternal,
 } = Astro.props as Props;
 
@@ -90,7 +85,6 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             indexFragment={indexFragment}
             headFragment={headFragment}
             appLocation={appLocation}
-            extraStyles={extraStyles}
             isExternal={isExternal}
         />
     ) : internalFramework === 'typescript' ? (
@@ -105,7 +99,6 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             headFragment={headFragment}
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
-            extraStyles={extraStyles}
             isExternal={isExternal}
         />
     ) : ['reactFunctional', 'reactFunctionalTs'].includes(internalFramework) ? (
@@ -120,7 +113,6 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
             ignoreSystemJs={ignoreSystemJs}
-            extraStyles={extraStyles}
             isExternal={isExternal}
             headFragment={headFragment}
         />
@@ -135,7 +127,6 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             scriptFiles={scriptFiles}
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
-            extraStyles={extraStyles}
             isExternal={isExternal}
             headFragment={headFragment}
         />
@@ -150,7 +141,6 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             styleFiles={styleFiles}
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
-            extraStyles={extraStyles}
             isExternal={isExternal}
             headFragment={headFragment}
         />

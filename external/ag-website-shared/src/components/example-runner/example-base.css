@@ -9,6 +9,7 @@ my-app,
     box-sizing: border-box;
 }
 
+/* Only target body when it does not contain  my-app, #root, or #app */
 body:not(:has(:is(my-app, #root, #app))),
 #root,
 #app,
@@ -22,4 +23,9 @@ my-app {
     &:has(.toolbar) {
         grid: 'toolbar' auto 'canvas' minmax(0, 1fr) / 1fr;
     }
+}
+
+/* Hide codesandbox highlighter */
+body > #highlighter {
+    display: none;
 }

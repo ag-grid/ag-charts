@@ -16,7 +16,6 @@ interface Props {
     indexFragment: string;
     headFragment?: string;
     appLocation: string;
-    extraStyles?: string;
     children?: any;
     isExternal?: boolean;
 }
@@ -32,7 +31,6 @@ const {
     scriptFiles,
     indexFragment,
     appLocation,
-    extraStyles,
     headFragment,
     isExternal,
 } = Astro.props as Props;
@@ -76,7 +74,7 @@ const chartScriptLocalePath = getCacheBustingUrl(getChartLocaleScriptPath(siteUr
 
         {!isExternal && <style set:html={exampleControlsStyle} />}
     </head>
-    <body id="root">
+    <body>
         <Fragment set:html={indexFragment} />
         <script src={isEnterprise ? chartScriptEnterprisePath : chartScriptPath}></script>
         {hasLocale && <script src={chartScriptLocalePath} />}

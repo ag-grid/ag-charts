@@ -113,7 +113,7 @@ const domCases = [
 ];
 
 for (const { styles, options: caseOptions } of cases) {
-    for (const [dom, extraStyles] of domCases) {
+    for (const [dom] of domCases) {
         const element = document.createElement('iframe');
         document.body.appendChild(element);
         const docWindow = element.contentWindow;
@@ -132,7 +132,6 @@ for (const { styles, options: caseOptions } of cases) {
                             }
 
                             ${styles}
-                            ${extraStyles ?? ''}
                         `}
                     </style>
                 </head>
