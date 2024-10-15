@@ -10,8 +10,6 @@ import { type PreventableEvent, type Unpreventable, buildPreventable, dispatchTy
 
 export { InteractionState };
 
-const DRAG_COOLDOWN_MS = 50;
-
 export const DRAG_INTERACTION_TYPES = ['drag-start', 'drag', 'drag-end'] as const;
 
 export const POINTER_INTERACTION_TYPES = [
@@ -41,7 +39,6 @@ export type InteractionTypes = PointerInteractionTypes | FocusInteractionTypes |
 type SUPPORTED_EVENTS =
     | 'blur'
     | 'focus'
-    | 'click'
     | 'dblclick'
     | 'contextmenu'
     | 'keydown'
@@ -60,7 +57,6 @@ type SUPPORTED_EVENTS =
 const SHADOW_DOM_HANDLERS: SUPPORTED_EVENTS[] = ['mousemove', 'mouseup'];
 const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide', 'mousemove', 'mouseup'];
 const EVENT_HANDLERS = [
-    'click',
     'dblclick',
     'contextmenu',
     'mousedown',
@@ -153,7 +149,6 @@ export class InteractionManager extends InteractionStateListener<InteractionType
     private touchDown = false;
     private dragPreStartElement?: HTMLElement;
     private dragStartElement?: HTMLElement;
-    private ignoreNextClickBefore = Date.now();
     private readonly clickHistory: [PointerHistoryEvent] = [{ offsetX: NaN, offsetY: NaN, type: 'mousedown' }];
     private readonly dblclickHistory: [PointerHistoryEvent, PointerHistoryEvent, PointerHistoryEvent] = [
         { offsetX: NaN, offsetY: NaN, type: 'mousedown' },
@@ -335,9 +330,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             case 'keyup':
                 return this.keyboardOptions.enabled ? event.type : undefined;
 
-            case 'click':
             case 'dblclick':
-                if (this.ignoreNextClickBefore > Date.now()) return;
                 return event.type;
 
             case 'contextmenu':
@@ -380,11 +373,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
                     return;
                 }
                 this.mouseDown = false;
-                if (this.recordUp(event)) {
-                    this.ignoreNextClickBefore = Date.now() + DRAG_COOLDOWN_MS;
-                    return 'drag-end';
-                }
-                return undefined;
+                return this.recordUp(event) ? 'drag-end' : 'click';
             case 'touchend':
                 if (!this.touchDown && !this.isEventOverElement(event)) {
                     // We only care about these events if the target is the canvas, unless
@@ -392,11 +381,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
                     return;
                 }
                 this.touchDown = false;
-                if (this.recordUp(event)) {
-                    this.ignoreNextClickBefore = Date.now() + DRAG_COOLDOWN_MS;
-                    return 'drag-end';
-                }
-                return undefined;
+                return this.recordUp(event) ? 'drag-end' : 'click';
 
             case 'mouseleave':
             case 'touchcancel':
