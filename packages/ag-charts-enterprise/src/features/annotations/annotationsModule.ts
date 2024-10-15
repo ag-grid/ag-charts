@@ -184,6 +184,11 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                     fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
                     fillOpacity: 0.2,
                     handle: { ...handle },
+                    statistics: {
+                        ...measurerStatistics,
+                        color: '#fff',
+                        fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
+                    },
                 },
                 down: {
                     ...stroke,
@@ -194,8 +199,12 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                         ...handle,
                         stroke: _Theme.PALETTE_DOWN_STROKE,
                     },
+                    statistics: {
+                        ...measurerStatistics,
+                        color: '#fff',
+                        fill: _Theme.PALETTE_DOWN_FILL,
+                    },
                 },
-                statistics: { ...measurerStatistics },
             },
         },
     },
