@@ -44,10 +44,8 @@ export type SeriesType = SeriesOptionsTypes['type'];
 
 export function optionsType(input: { series?: { type?: SeriesType }[] }): SeriesType {
     const { series } = input;
-    if (series) {
-        return input.series?.[0]?.type ?? 'line';
-    }
-    return undefined;
+    if (!series) return;
+    return series[0]?.type ?? 'line';
 }
 
 export function isAgCartesianChartOptions(input: AgChartOptions): input is AgCartesianChartOptions {
