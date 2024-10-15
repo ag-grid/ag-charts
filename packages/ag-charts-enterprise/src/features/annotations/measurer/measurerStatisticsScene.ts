@@ -90,13 +90,11 @@ export class MeasurerStatisticsScene extends _Scene.Group {
         const textStyles = this.getTextStyles(datum);
 
         const dividerLineStyles = {
+            ...this.getDividerStyles(datum),
             x1: 0,
             y1: 0,
             x2: 0,
             y2: dividerLineHeight,
-            stroke: datum.statistics.divider.stroke,
-            strokeOpacity: datum.statistics.divider.strokeOpacity,
-            strokeWidth: datum.statistics.divider.strokeWidth,
         };
 
         const dateScenes = [dateRangeBarsText, dateRangeDivider, dateRangeValueText];
@@ -205,6 +203,14 @@ export class MeasurerStatisticsScene extends _Scene.Group {
         };
     }
 
+    protected getDividerStyles(datum: MeasurerTypeProperties) {
+        return {
+            stroke: datum.statistics.divider.stroke,
+            strokeOpacity: datum.statistics.divider.strokeOpacity,
+            strokeWidth: datum.statistics.divider.strokeWidth,
+        };
+    }
+
     protected getBackgroundStyles(datum: MeasurerTypeProperties) {
         return {
             fill: datum.statistics.fill,
@@ -277,6 +283,16 @@ export class QuickMeasurerStatisticsScene extends MeasurerStatisticsScene {
             fontSize: styles.fontSize,
             fontStyle: styles.fontStyle,
             fontWeight: styles.fontWeight,
+        };
+    }
+
+    override getDividerStyles(datum: QuickDatePriceRangeProperties) {
+        const styles = this.getDirectionStyles(datum);
+
+        return {
+            stroke: styles.divider.stroke,
+            strokeOpacity: styles.divider.strokeOpacity,
+            strokeWidth: styles.divider.strokeWidth,
         };
     }
 

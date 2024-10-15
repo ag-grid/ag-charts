@@ -92,10 +92,11 @@ export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, 
 export interface AgQuickMeasurerAnnotationStyles extends Visible {
     up?: AgQuickMeasurerAnnotationDirectionStyles;
     down?: AgQuickMeasurerAnnotationDirectionStyles;
-    statistics?: AgMeasurerAnnotationStatistics;
 }
 
-export interface AgQuickMeasurerAnnotationDirectionStyles extends FillOptions, StrokeOptions, LineOptions {}
+export interface AgQuickMeasurerAnnotationDirectionStyles extends FillOptions, StrokeOptions, LineOptions {
+    statistics?: AgMeasurerAnnotationStatistics;
+}
 
 // ***********
 // * Options *
