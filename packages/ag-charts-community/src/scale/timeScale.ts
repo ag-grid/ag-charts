@@ -4,7 +4,6 @@ import { TimeInterval } from '../util/time/interval';
 import { buildFormatter } from '../util/timeFormat';
 import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { ContinuousScale } from './continuousScale';
-import type { ScaleConvertParams } from './scale';
 
 export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     readonly type = 'time';
@@ -17,12 +16,12 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         return new Date(d);
     }
 
-    override convert(x: Date, opts?: ScaleConvertParams | undefined): number {
-        return super.convert(new Date(x), opts);
+    override convert(value: Date, clamp?: boolean): number {
+        return super.convert(new Date(value), clamp);
     }
 
-    override invert(y: number): Date {
-        return new Date(super.invert(y));
+    override invert(value: number): Date {
+        return new Date(super.invert(value));
     }
 
     /**

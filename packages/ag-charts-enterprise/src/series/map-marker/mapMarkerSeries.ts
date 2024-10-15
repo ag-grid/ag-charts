@@ -380,7 +380,7 @@ export class MapMarkerSeries
 
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
-            const size = sizeValue != null ? sizeScale.convert(sizeValue, { clampMode: 'clamped' }) : properties.size;
+            const size = sizeValue != null ? sizeScale.convert(sizeValue, true) : properties.size;
 
             const projectedGeometry = idValue != null ? projectedGeometries?.get(idValue) : undefined;
             if (idValue != null && projectGeometry == null) {
