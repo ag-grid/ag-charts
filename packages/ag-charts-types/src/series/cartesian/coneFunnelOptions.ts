@@ -14,7 +14,7 @@ export interface AgConeFunnelSeriesLabelOptions<TDatum, TParams> extends AgChart
 }
 
 export interface AgConeFunnelSeriesStageLabelOptions extends AgBaseAxisLabelOptions {
-    /** Placement of the label in relation to the chart */
+    /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
 }
 

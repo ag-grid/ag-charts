@@ -277,7 +277,7 @@ export class MapLineSeries
 
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
-            const size = sizeValue != null ? sizeScale.convert(sizeValue, { clampMode: 'clamped' }) : undefined;
+            const size = sizeValue != null ? sizeScale.convert(sizeValue, true) : undefined;
 
             const projectedGeometry = projectedGeometries.get(idValue);
             if (projectedGeometry == null) {

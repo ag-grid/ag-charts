@@ -241,7 +241,7 @@ export class ChordSeries extends FlowProportionSeries<
 
             let linkAngle = node.startAngle;
             combinedLinks
-                .sort((a, b) => a.distance - b.distance)
+                .toSorted((a, b) => a.distance - b.distance)
                 .forEach(({ link, after }) => {
                     const linkSweep = link.size * sizeScale;
                     if (after) {

@@ -28,10 +28,12 @@
 }
 
 .ag-charts-series-area {
+    outline: none;
     opacity: 0;
     pointer-events: auto;
     position: absolute;
 }
+
 .ag-charts-series-area:focus-visible {
     /* This `opacity` CSS property is read by FocusIndicator to determine the `:focus-visible` state. */
     opacity: 1;

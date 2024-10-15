@@ -10,17 +10,7 @@ type Bounds = {
     height: number;
 };
 
-type LabelPlacement =
-    | 'inside-center'
-    | 'inside-start'
-    | 'inside-end'
-    | 'outside-start'
-    | 'outside-end'
-    // @todo(AG-5950) Deprecate
-    | 'start'
-    | 'end'
-    | 'inside'
-    | 'outside';
+export type BarLabelPlacement = 'inside-center' | 'inside-start' | 'inside-end' | 'outside-start' | 'outside-end';
 
 type LabelDatum = Point & {
     text: string;
@@ -56,15 +46,11 @@ interface PlacementConfig {
     textAlignment: -1 | 1;
 }
 
-const placements: Record<Exclude<LabelPlacement, 'inside' | 'inside-center'>, PlacementConfig> = {
+const placements: Record<Exclude<BarLabelPlacement, 'inside-center'>, PlacementConfig> = {
     'inside-start': { inside: true, direction: -1, textAlignment: 1 },
     'inside-end': { inside: true, direction: 1, textAlignment: -1 },
     'outside-start': { inside: false, direction: -1, textAlignment: -1 },
     'outside-end': { inside: false, direction: 1, textAlignment: 1 },
-    // Remove these in a breaking release
-    start: { inside: true, direction: -1, textAlignment: 1 },
-    end: { inside: true, direction: 1, textAlignment: -1 },
-    outside: { inside: false, direction: 1, textAlignment: 1 },
 };
 
 export function adjustLabelPlacement({
@@ -74,7 +60,7 @@ export function adjustLabelPlacement({
     padding = 0,
     rect,
 }: {
-    placement: LabelPlacement;
+    placement: BarLabelPlacement;
     isUpward: boolean;
     isVertical: boolean;
     padding?: number;
@@ -85,7 +71,7 @@ export function adjustLabelPlacement({
     let textAlign: CanvasTextAlign = 'center';
     let textBaseline: CanvasTextBaseline = 'middle';
 
-    if (placement !== 'inside' && placement !== 'inside-center') {
+    if (placement !== 'inside-center') {
         const barDirection = (isUpward ? 1 : -1) * (isVertical ? -1 : 1);
         const { direction, textAlignment } = placements[placement];
         const displacementRatio = (direction + 1) * 0.5;

@@ -6,7 +6,19 @@
         "highlights": [
             {
                 "text": "Funnel Series",
-                "path": "./funnel-series/"
+                "path": "./funnel-series"
+            },
+            {
+                "text": "Cone Funnel Series",
+                "path": "./cone-funnel-series"
+            },
+            {
+                "text": "Pyramid Series",
+                "path": "./pyramid-series"
+            },
+            {
+                "text": "Measuring Tools",
+                "path": "./financial-charts-toolbar#measuring-tools"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-10-3"
@@ -18,11 +30,11 @@
         "highlights": [
             {
                 "text": "Radial Gauge",
-                "path": "./radial-gauge/"
+                "path": "./radial-gauge"
             },
             {
                 "text": "Linear Gauge",
-                "path": "./linear-gauge/"
+                "path": "./linear-gauge"
             },
             {
                 "text": "Arrow Drawings",

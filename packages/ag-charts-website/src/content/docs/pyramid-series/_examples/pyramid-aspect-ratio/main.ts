@@ -1,8 +1,8 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCharts, AgStandaloneChartOptions } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgStandaloneChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     title: {
@@ -20,8 +20,21 @@ const options: AgChartOptions = {
             stageKey: 'group',
             valueKey: 'value',
             aspectRatio: 3 / 2,
+            label: {
+                enabled: false,
+            },
         },
     ],
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function setDirection(direction: 'horizontal' | 'vertical') {
+    options.series![0].direction = direction;
+    chart.update(options);
+}
+
+function setAspectRatio(aspectRatio: number) {
+    options.series![0].aspectRatio = aspectRatio;
+    chart.update(options);
+}

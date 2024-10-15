@@ -72,7 +72,7 @@ export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
         const textInputCoords = super.getTextInputCoords(context, height);
         const padding = this.getPadding().top;
 
-        const bbox = getBBox(this, text, textInputCoords, undefined);
+        const bbox = getBBox(this, text, textInputCoords);
 
         bbox.x = clamp(width / 2, bbox.x, seriesRect.width - width / 2);
 

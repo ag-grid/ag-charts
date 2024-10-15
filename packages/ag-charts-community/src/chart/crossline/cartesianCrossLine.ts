@@ -240,8 +240,8 @@ export class CartesianCrossLine extends BaseProperties implements CrossLine<Cart
         const ordinalTimeScalePadding = yEnd === undefined && OrdinalTimeScale.is(scale) ? bandwidth / 2 + padding : 0;
 
         let [clampedYStart, clampedYEnd] = [
-            Number(scale.convert(yStart, { clampMode: 'clamped' })) - padding + ordinalTimeScalePadding,
-            scale.convert(yEnd, { clampMode: 'clamped' }) + bandwidth + padding,
+            Number(scale.convert(yStart, true)) - padding + ordinalTimeScalePadding,
+            scale.convert(yEnd, true) + bandwidth + padding,
         ];
         clampedYStart = clampArray(clampedYStart, clippedRange);
         clampedYEnd = clampArray(clampedYEnd, clippedRange);

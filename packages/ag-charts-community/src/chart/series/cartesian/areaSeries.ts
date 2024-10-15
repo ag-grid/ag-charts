@@ -565,7 +565,8 @@ export class AreaSeries extends CartesianSeries<
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
             fill: undefined,
-            lineJoin: (stroke.lineCap = 'round'),
+            lineCap: 'round',
+            lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             stroke: this.properties.stroke,
             strokeWidth,
