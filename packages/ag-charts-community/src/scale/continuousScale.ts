@@ -1,7 +1,7 @@
 import { Logger } from '../util/logger';
 import { findMinMax } from '../util/number';
 import { Invalidating } from './invalidating';
-import type { Scale, ScaleConvertParams } from './scale';
+import type { Scale } from './scale';
 
 export abstract class ContinuousScale<D extends number | Date, I = number> implements Scale<D, number, I> {
     static is(value: unknown): value is ContinuousScale<any, any> {
@@ -32,6 +32,8 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
 
     // TODO(olegat) should be of type D[]
     niceDomain: any[] = [];
+
+    defaultClamp = false;
 
     protected constructor(domain: D[], range: number[]) {
         this.domain = domain;
@@ -71,10 +73,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         return this.domain;
     }
 
-    defaultClampMode: ScaleConvertParams['clampMode'] = 'raw';
-
-    convert(x: D, opts?: ScaleConvertParams) {
-        const clampMode = opts?.clampMode ?? this.defaultClampMode;
+    convert(x: D, clamp?: boolean) {
         if (!this.domain || this.domain.length < 2) {
             return NaN;
         }
@@ -88,7 +87,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
 
         x = this.transform(x);
 
-        if (clampMode === 'clamped') {
+        if (clamp ?? this.defaultClamp) {
             const [start, stop] = findMinMax(domain.map(Number));
             if (Number(x) < start) {
                 return r0;

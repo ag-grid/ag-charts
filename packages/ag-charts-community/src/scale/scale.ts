@@ -1,7 +1,3 @@
-export interface ScaleConvertParams {
-    clampMode: 'clamped' | 'raw';
-}
-
 interface ScaleTickFormatParams {
     ticks?: any[];
     domain?: any[];
@@ -17,7 +13,7 @@ export interface Scale<D, R, I = number> {
     nice?: boolean;
     tickCount?: number;
     interval?: I;
-    convert(value: D, params?: ScaleConvertParams): R;
+    convert(value: D, clamp?: boolean): R;
     invert?(value: R): D;
     invertNearest?(value: R): D;
     ticks?(): D[];
