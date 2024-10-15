@@ -81,6 +81,7 @@ export class MeasurerStatisticsScene extends _Scene.Group {
         const dividerLineOffset = -2;
 
         const textStyles = {
+            fill: datum.color,
             fontFamily: datum.fontFamily,
             fontSize: datum.fontSize,
             fontStyle: datum.fontStyle,
@@ -233,7 +234,7 @@ export class MeasurerStatisticsScene extends _Scene.Group {
     }
 
     private formatVolume(volume: number, localeManager?: _ModuleSupport.ModuleContext['localeManager']) {
-        const volumeString = this.volumeFormatter.format(volume);
+        const volumeString = isNaN(volume) ? '' : this.volumeFormatter.format(volume);
         return localeManager?.t('measurerVolume', { value: volumeString }) ?? volumeString;
     }
 }

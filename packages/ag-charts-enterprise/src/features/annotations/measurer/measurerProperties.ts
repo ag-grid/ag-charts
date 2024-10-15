@@ -39,7 +39,7 @@ export class MeasurerTypeProperties extends Localisable(Background(Stroke(LineSt
     @Validate(OBJECT, { optional: true })
     public statistics = new MeasurerStatistics();
 
-    public getVolume: (from: Point['x'], to: Point['x']) => number = () => 0;
+    public getVolume: (from: Point['x'], to: Point['x']) => number | undefined = () => 0;
 
     override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
         switch (colorPickerType) {
