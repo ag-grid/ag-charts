@@ -4,6 +4,8 @@ import type { AnnotationContext } from '../annotationTypes';
 import { type PositionedScene, layoutAddX, layoutAddY, layoutScenesColumn, layoutScenesRow } from '../utils/layout';
 import type { MeasurerStatistics } from './measurerProperties';
 
+const { Vec4 } = _ModuleSupport;
+
 export interface Statistics {
     dateRange?: { bars: number; value: number };
     priceRange?: { percentage: number; value: number };
@@ -170,25 +172,29 @@ export class MeasurerStatisticsScene extends _Scene.Group {
         padding: number,
         context: AnnotationContext
     ) {
-        const rectY = context.seriesRect.y + context.seriesRect.height;
-        const bbox = this.background.getBBox();
-        const backgroundY = bbox.y + bbox.height;
-        const offsetY = Math.min(padding, rectY - backgroundY);
+        const { width, height } = context.seriesRect;
+        const background = Vec4.from(this.background.getBBox());
+
+        let offsetX = 0;
+        if (background.x1 < 0) offsetX = -background.x1;
+        if (background.x2 > width) offsetX = width - background.x2;
+        const offsetY = Math.min(padding, height - background.y2);
 
         // Reposition center and below the anchor
         for (const scene of scenes) {
             if (Array.isArray(scene)) {
                 const rowWidth = _Scene.Group.computeChildrenBBox(scene).width;
                 for (const scene_ of scene) {
-                    layoutAddX(scene_, -rowWidth / 2);
+                    layoutAddX(scene_, offsetX - rowWidth / 2);
                     layoutAddY(scene_, offsetY);
                 }
             } else {
-                layoutAddX(scene, -scene.getBBox().width / 2);
+                layoutAddX(scene, offsetX - scene.getBBox().width / 2);
                 layoutAddY(scene, offsetY);
             }
         }
 
+        this.background.x += offsetX;
         this.background.y += offsetY;
     }
 
