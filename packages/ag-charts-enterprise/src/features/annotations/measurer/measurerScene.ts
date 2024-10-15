@@ -207,12 +207,20 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
         if (direction !== 'vertical') {
             const angle = x1 <= x2 ? 0 : Math.PI;
-            horizontalEndCap.update({ ...capStyles, x: x2, y: center.y, angle });
+            let x = x2;
+            if (direction === 'horizontal') {
+                x += x1 <= x2 ? -2 : 2;
+            }
+            horizontalEndCap.update({ ...capStyles, x, y: center.y, angle });
         }
 
         if (direction !== 'horizontal') {
             const angle = y1 <= y2 ? Math.PI / 2 : Math.PI / -2;
-            verticalEndCap.update({ ...capStyles, x: center.x, y: y2, angle });
+            let y = y2;
+            if (direction === 'vertical') {
+                y += y1 <= y2 ? -2 : 2;
+            }
+            verticalEndCap.update({ ...capStyles, x: center.x, y, angle });
         }
     }
 
