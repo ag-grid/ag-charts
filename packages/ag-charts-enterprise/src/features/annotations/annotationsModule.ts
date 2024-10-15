@@ -55,6 +55,17 @@ const measurerStatistics = {
     },
 };
 
+const measurer = {
+    ...stroke,
+    background: {
+        fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
+        fillOpacity: 0.2,
+    },
+    handle: { ...handle },
+    text: { ...lineText },
+    statistics: { ...measurerStatistics },
+};
+
 export const AnnotationsModule: _ModuleSupport.Module = {
     type: 'root',
     optionsKey: 'annotations',
@@ -159,34 +170,13 @@ export const AnnotationsModule: _ModuleSupport.Module = {
 
             // Measurers
             'date-range': {
-                ...stroke,
-                background: {
-                    fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
-                    fillOpacity: 0.2,
-                },
-                handle: { ...handle },
-                text: { ...lineText },
-                statistics: { ...measurerStatistics },
+                ...measurer,
             },
             'price-range': {
-                ...stroke,
-                background: {
-                    fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
-                    fillOpacity: 0.2,
-                },
-                handle: { ...handle },
-                text: { ...lineText },
-                statistics: { ...measurerStatistics },
+                ...measurer,
             },
             'date-price-range': {
-                ...stroke,
-                background: {
-                    fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
-                    fillOpacity: 0.2,
-                },
-                handle: { ...handle },
-                text: { ...lineText },
-                statistics: { ...measurerStatistics },
+                ...measurer,
             },
             'quick-date-price-range': {
                 up: {
