@@ -21,25 +21,13 @@ interface Props {
      */
     ignoreSystemJs?: boolean;
     /**
-     * Extra styles to add to HTML
-     */
-    extraStyles?: string;
-    /**
      * Is an external site e.g. Plunkr, CodeSandbox ect
      */
     isExternal?: boolean;
 }
 
-const {
-    internalFramework,
-    pageName,
-    exampleName,
-    relativePath,
-    addInitMessageScript,
-    ignoreSystemJs,
-    extraStyles,
-    isExternal,
-} = Astro.props as Props;
+const { internalFramework, pageName, exampleName, relativePath, addInitMessageScript, ignoreSystemJs, isExternal } =
+    Astro.props as Props;
 
 const generatedContents = await getGeneratedContents({
     type: 'docs',
@@ -63,6 +51,5 @@ const exampleUrl = getExampleUrl({
     relativePath={relativePath}
     addInitMessageScript={addInitMessageScript}
     ignoreSystemJs={ignoreSystemJs}
-    extraStyles={extraStyles}
     isExternal={isExternal}
 />

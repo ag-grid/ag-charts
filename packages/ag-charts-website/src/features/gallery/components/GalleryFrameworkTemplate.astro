@@ -20,10 +20,6 @@ interface Props {
      * Override to be used for generated contents
      */
     generatedContents?: GeneratedContents;
-    /**
-     * Extra styles to add to HTML
-     */
-    extraStyles?: string;
 }
 
 const {
@@ -31,7 +27,6 @@ const {
     relativePath,
     addInitMessageScript,
     generatedContents: generatedContentsOverride,
-    extraStyles,
 } = Astro.props as Props;
 
 const internalFramework = GALLERY_INTERNAL_FRAMEWORK;
@@ -65,5 +60,4 @@ const displayExampleName = getExampleName({
     generatedContents={generatedContents!}
     relativePath={relativePath}
     addInitMessageScript={addInitMessageScript}
-    extraStyles={extraStyles}
 />

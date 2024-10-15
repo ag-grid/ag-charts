@@ -17,15 +17,6 @@ export async function getStaticPaths() {
 export const partial = !getIsDev();
 
 const { exampleName } = Astro.params;
-
-/**
- * Hide highlighter element that gets added by code sandbox
- */
-const extraStyles = `
-/* Hide codesandbox highlighter */
-body > #highlighter {
-    display: none;
-}`;
 ---
 
-<GalleryFrameworkTemplate exampleName={exampleName!} relativePath={true} extraStyles={extraStyles} />
+<GalleryFrameworkTemplate exampleName={exampleName!} relativePath={true} />

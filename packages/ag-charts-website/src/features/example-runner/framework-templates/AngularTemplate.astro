@@ -24,7 +24,6 @@ interface Props {
     scriptFiles: string[];
     appLocation: string;
     boilerplatePath: string;
-    extraStyles?: string;
     children?: any;
     headFragment?: string;
     isExternal?: boolean;
@@ -43,19 +42,6 @@ const {
     headFragment,
     isExternal,
 } = Astro.props as Props;
-
-const extraStylesArray: string[] = [];
-extraStylesArray.push(css`
-    ag-charts {
-        display: block;
-    }
-`);
-
-if (Astro.props.extraStyles != null) {
-    extraStylesArray.push(Astro.props.extraStyles);
-}
-
-const extraStyles = extraStylesArray.join('\n\n');
 
 const startFile = pathJoin(appLocation, entryFileName);
 ---

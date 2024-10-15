@@ -24,11 +24,6 @@
     color: white;
 }
 
-/* Hide CodeSandbox highlighter */
-body > #highlighter {
-    display: none;
-}
-
 .toolbar {
     --gap-vertical: 6px;
     --gap-horizontal: 8px;

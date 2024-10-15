@@ -22,14 +22,6 @@ export const partial = !getIsDev();
 const { internalFramework, pageName, exampleName } = Astro.params;
 
 const ignoreSystemJs = isReactInternalFramework(internalFramework);
-/**
- * Hide highlighter element that gets added by code sandbox
- */
-const extraStyles = `
-/* Hide codesandbox highlighter */
-body > #highlighter {
-    display: none;
-}`;
 ---
 
 <DocsFrameworkTemplate
@@ -38,6 +30,5 @@ body > #highlighter {
     exampleName={exampleName!}
     relativePath={true}
     ignoreSystemJs={ignoreSystemJs}
-    extraStyles={extraStyles}
     isExternal={true}
 />
