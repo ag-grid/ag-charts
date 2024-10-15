@@ -342,6 +342,7 @@ export function clickAction(
         checkTargetValid(target);
 
         const offsets = { offsetX: x, offsetY: y };
+        target?.dispatchEvent(mouseMoveEvent({ offsetX: x, offsetY: y }));
         target?.dispatchEvent(mouseDownEvent(opts?.mousedown ?? offsets));
         target?.dispatchEvent(mouseUpEvent(offsets));
         target?.dispatchEvent(clickEvent(offsets));
@@ -355,6 +356,7 @@ export function doubleClickAction(canvasX: number, canvasY: number): (chart: Cha
         const { target, x, y } = findTarget(chart, canvasX, canvasY);
         const offsets = { offsetX: x, offsetY: y };
         // A double click is always preceded by two single clicks, simulate here to ensure correct handling
+        target?.dispatchEvent(mouseMoveEvent({ offsetX: x, offsetY: y }));
         target?.dispatchEvent(mouseDownEvent(offsets));
         target?.dispatchEvent(mouseUpEvent(offsets));
         target?.dispatchEvent(clickEvent(offsets));
