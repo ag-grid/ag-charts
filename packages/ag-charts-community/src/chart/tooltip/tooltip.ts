@@ -271,8 +271,15 @@ export class Tooltip extends BaseProperties {
             element.style.transition = '';
         }
 
-        element.style.pointerEvents = meta.enableInteraction ? 'auto' : 'none';
-        this.enableInteraction = meta.enableInteraction ?? false;
+        if (meta.enableInteraction) {
+            this.enableInteraction = true;
+            element.style.pointerEvents = 'auto';
+            setAttribute(element, 'aria-hidden', undefined);
+        } else {
+            this.enableInteraction = false;
+            element.style.pointerEvents = 'none';
+            setAttribute(element, 'aria-hidden', true);
+        }
 
         if (this.delay > 0 && !instantly) {
             this.toggle(false);
