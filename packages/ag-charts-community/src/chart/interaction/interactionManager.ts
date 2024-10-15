@@ -10,6 +10,8 @@ import { type PreventableEvent, type Unpreventable, buildPreventable, dispatchTy
 
 export { InteractionState };
 
+const DRAG_COOLDOWN_MS = 50;
+
 export const DRAG_INTERACTION_TYPES = ['drag-start', 'drag', 'drag-end'] as const;
 
 export const POINTER_INTERACTION_TYPES = [
@@ -151,6 +153,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
     private touchDown = false;
     private dragPreStartElement?: HTMLElement;
     private dragStartElement?: HTMLElement;
+    private ignoreNextClickBefore = Date.now();
     private readonly clickHistory: [PointerHistoryEvent] = [{ offsetX: NaN, offsetY: NaN, type: 'mousedown' }];
     private readonly dblclickHistory: [PointerHistoryEvent, PointerHistoryEvent, PointerHistoryEvent] = [
         { offsetX: NaN, offsetY: NaN, type: 'mousedown' },
@@ -334,6 +337,9 @@ export class InteractionManager extends InteractionStateListener<InteractionType
 
             case 'click':
             case 'dblclick':
+                if (this.ignoreNextClickBefore > Date.now()) return;
+                return event.type;
+
             case 'contextmenu':
             case 'wheel':
                 return event.type;
@@ -374,7 +380,11 @@ export class InteractionManager extends InteractionStateListener<InteractionType
                     return;
                 }
                 this.mouseDown = false;
-                return this.recordUp(event) ? 'drag-end' : undefined;
+                if (this.recordUp(event)) {
+                    this.ignoreNextClickBefore = Date.now() + DRAG_COOLDOWN_MS;
+                    return 'drag-end';
+                }
+                return undefined;
             case 'touchend':
                 if (!this.touchDown && !this.isEventOverElement(event)) {
                     // We only care about these events if the target is the canvas, unless
@@ -382,7 +392,11 @@ export class InteractionManager extends InteractionStateListener<InteractionType
                     return;
                 }
                 this.touchDown = false;
-                return this.recordUp(event) ? 'drag-end' : undefined;
+                if (this.recordUp(event)) {
+                    this.ignoreNextClickBefore = Date.now() + DRAG_COOLDOWN_MS;
+                    return 'drag-end';
+                }
+                return undefined;
 
             case 'mouseleave':
             case 'touchcancel':
