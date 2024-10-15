@@ -185,7 +185,7 @@ describe('RadialGaugeSeries', () => {
         const options: AgRadialGaugeOptions = { ...EXAMPLE_OPTIONS };
         prepareEnterpriseTestOptions(options);
 
-        chart = AgCharts.createFinancialChart(options);
+        chart = AgCharts.createGauge(options);
         await compareImageDataUrl();
     });
 });
