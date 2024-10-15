@@ -218,17 +218,10 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     private updateBoundingLines(datum: MeasurerTypeProperties, extendedCoords: _ModuleSupport.Vec4) {
         const { verticalStartLine, verticalEndLine, horizontalStartLine, horizontalEndLine } = this;
-        const { direction, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        const { direction } = datum;
         const { x1, y1, x2, y2 } = extendedCoords;
 
-        const lineStyles = {
-            lineDash: datum.getLineDash(),
-            lineDashOffset,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            fillOpacity: 0,
-        };
+        const lineStyles = this.getLineStyles(datum);
 
         if (direction === 'horizontal') {
             verticalStartLine.setProperties({ ...lineStyles, x1, y1, x2: x1, y2 });
