@@ -189,6 +189,11 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                         color: '#fff',
                         fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
                         strokeWidth: 0,
+                        divider: {
+                            stroke: '#fff',
+                            strokeWidth: 1,
+                            strokeOpacity: 0.5,
+                        },
                     },
                 },
                 down: {
@@ -205,6 +210,11 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                         color: '#fff',
                         fill: _Theme.PALETTE_DOWN_FILL,
                         strokeWidth: 0,
+                        divider: {
+                            stroke: '#fff',
+                            strokeWidth: 1,
+                            strokeOpacity: 0.5,
+                        },
                     },
                 },
             },
