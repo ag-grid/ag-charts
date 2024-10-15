@@ -309,8 +309,8 @@ export abstract class CartesianSeries<
         );
     }
 
-    override attachSeries(seriesNode: Node, labelNode: Node): void {
-        super.attachSeries(seriesNode, labelNode);
+    override attachSeries(seriesNode: Node, annotationNode: Node | undefined, labelNode: Node | undefined): void {
+        super.attachSeries(seriesNode, annotationNode, labelNode);
 
         this.attachPaths(this.paths);
     }

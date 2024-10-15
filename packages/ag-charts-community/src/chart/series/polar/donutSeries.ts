@@ -174,14 +174,14 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.phantomGroup.opacity = 0.2;
     }
 
-    override attachSeries(seriesNode: Node, labelNode: Node): void {
-        super.attachSeries(seriesNode, labelNode);
+    override attachSeries(seriesNode: Node, annotationNode: Node | undefined, labelNode: Node | undefined): void {
+        super.attachSeries(seriesNode, annotationNode, labelNode);
 
         seriesNode.appendChild(this.backgroundGroup);
     }
 
-    override detachSeries(seriesNode: Node, labelNode: Node): void {
-        super.detachSeries(seriesNode, labelNode);
+    override detachSeries(seriesNode: Node, annotationNode: Node | undefined, labelNode: Node | undefined): void {
+        super.detachSeries(seriesNode, annotationNode, labelNode);
 
         seriesNode.removeChild(this.backgroundGroup);
     }

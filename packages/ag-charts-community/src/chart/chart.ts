@@ -114,6 +114,10 @@ export abstract class Chart extends Observable {
         name: `${this.id}-annotation-root`,
         zIndex: ZIndexMap.SERIES_ANNOTATION,
     });
+    readonly labelRoot = new TranslatableLayer({
+        name: `${this.id}-annotation-label`,
+        zIndex: ZIndexMap.SERIES_LABEL,
+    });
 
     readonly tooltip: Tooltip;
     readonly overlays: ChartOverlays;
@@ -253,6 +257,7 @@ export abstract class Chart extends Observable {
         root.append(titleGroup);
         root.append(this.seriesRoot);
         root.append(this.annotationRoot);
+        root.append(this.labelRoot);
 
         titleGroup.append(this.title.node);
         titleGroup.append(this.subtitle.node);
@@ -736,7 +741,7 @@ export abstract class Chart extends Observable {
             // if (series.rootGroup.isRoot()) {
             //     this.seriesLayerManager.requestGroup(series);
             // }
-            series.attachSeries(this.seriesRoot, this.annotationRoot);
+            series.attachSeries(this.seriesRoot, this.annotationRoot, this.labelRoot);
 
             const chart = this;
             series.chart = {
@@ -769,7 +774,7 @@ export abstract class Chart extends Observable {
             series.removeEventListener('groupingChanged', this.seriesGroupingChanged);
             series.destroy();
             // this.seriesLayerManager.releaseGroup(series);
-            series.detachSeries(this.seriesRoot, this.annotationRoot);
+            series.detachSeries(this.seriesRoot, this.annotationRoot, this.labelRoot);
 
             series.chart = undefined;
         });

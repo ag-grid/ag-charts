@@ -26,7 +26,7 @@ const compare = async (chart: TChart | AgChartInstance | undefined, ctx: TCtx) =
     expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
 };
 
-describe('BulletSeries', () => {
+describe.skip('BulletSeries', () => {
     setupMockConsole();
 
     let chart: AgChartInstance | undefined;

@@ -32,7 +32,6 @@ import type { DataController } from '../data/dataController';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent } from '../tooltip/tooltip';
-import { ZIndexMap } from '../zIndexMap';
 import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
 import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesProperties } from './seriesProperties';
@@ -207,16 +206,18 @@ export abstract class Series<
         zIndex: SeriesZIndexMap.HIGHLIGHT,
     });
 
+    // Error bars etc.
+    readonly annotationGroup = new TranslatableGroup({
+        name: `${this.internalId}-annotation`,
+    });
+
     // Lazily initialised labelGroup for label presentation.
     readonly labelGroup = new TranslatableGroup({
         name: `${this.internalId}-series-labels`,
-        zIndex: ZIndexMap.SERIES_LABEL,
     });
 
     readonly highlightNode: Group;
     readonly highlightLabel: Group;
-
-    readonly annotationGroup: Group;
 
     // Package-level visibility, not meant to be set by the user.
     chart?: {
@@ -317,22 +318,20 @@ export abstract class Series<
         this.highlightLabel = this.highlightGroup.appendChild(new Group({ name: 'highlightLabel', zIndex: 10 }));
 
         this.pickModes = pickModes;
-
-        this.annotationGroup = new Group({
-            name: `${this.id}-annotation`,
-        });
     }
 
-    attachSeries(seriesNode: Node, labelNode: Node) {
+    attachSeries(seriesNode: Node, annotationNode: Node | undefined, labelNode: Node | undefined) {
         seriesNode.appendChild(this.contentGroup);
         seriesNode.appendChild(this.highlightGroup);
-        labelNode.appendChild(this.labelGroup);
+        annotationNode?.appendChild(this.annotationGroup);
+        labelNode?.appendChild(this.labelGroup);
     }
 
-    detachSeries(seriesNode: Node, labelNode: Node) {
+    detachSeries(seriesNode: Node, annotationNode: Node | undefined, labelNode: Node | undefined) {
         seriesNode.removeChild(this.contentGroup);
         seriesNode.removeChild(this.highlightGroup);
-        labelNode.removeChild(this.labelGroup);
+        annotationNode?.removeChild(this.annotationGroup);
+        labelNode?.removeChild(this.labelGroup);
     }
 
     _declarationOrder: number = -1;
@@ -344,6 +343,7 @@ export abstract class Series<
         this.contentGroup.zIndex = [index, SeriesZIndexMap.FOREGROUND];
         this.highlightGroup.zIndex = [index, SeriesZIndexMap.HIGHLIGHT];
         this.annotationGroup.zIndex = index;
+        this.labelGroup.zIndex = index;
 
         return true;
     }

@@ -16,7 +16,7 @@ export class HierarchyChart extends Chart {
     }
 
     protected performLayout(ctx: LayoutContext) {
-        const { seriesRoot, annotationRoot } = this;
+        const { seriesRoot, annotationRoot, labelRoot } = this;
         const { layoutBox } = ctx;
         const seriesRect = layoutBox.clone();
 
@@ -25,7 +25,7 @@ export class HierarchyChart extends Chart {
         this.seriesRect = layoutBox;
         this.animationRect = layoutBox;
 
-        for (const group of [seriesRoot, annotationRoot]) {
+        for (const group of [seriesRoot, annotationRoot, labelRoot]) {
             group.translationX = Math.floor(layoutBox.x);
             group.translationY = Math.floor(layoutBox.y);
         }
