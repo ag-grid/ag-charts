@@ -15,7 +15,7 @@ import {
     PriceRangeProperties,
     QuickDatePriceRangeProperties,
 } from './measurerProperties';
-import { MeasurerStatisticsScene, type Statistics } from './measurerStatisticsScene';
+import { MeasurerStatisticsScene, QuickMeasurerStatisticsScene, type Statistics } from './measurerStatisticsScene';
 
 const { Vec2, Vec4 } = _ModuleSupport;
 
@@ -41,13 +41,14 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
     private readonly verticalEndCap = new ArrowCapScene();
 
     public readonly background = new _Scene.Path({ zIndex: -1 });
-    private readonly statistics = new MeasurerStatisticsScene();
+    private readonly statistics: MeasurerStatisticsScene;
 
     protected verticalDirection?: 'up' | 'down';
 
     constructor() {
         super();
 
+        this.statistics = this.createStatisticsScene();
         this.statistics.zIndex = 1;
 
         this.append([
@@ -64,6 +65,10 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             this.end,
             this.statistics,
         ]);
+    }
+
+    protected createStatisticsScene() {
+        return new MeasurerStatisticsScene();
     }
 
     public override update(datum: MeasurerTypeProperties, context: AnnotationContext) {
@@ -275,7 +280,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             };
         }
 
-        this.statistics.update(datum.statistics, statistics, point, context, datum.localeManager);
+        this.statistics.update(datum, statistics, point, context, this.verticalDirection, datum.localeManager);
     }
 
     override updateAnchor(
@@ -405,6 +410,10 @@ export class QuickMeasurerScene extends MeasurerScene {
     }
 
     override type = 'quick-measurer';
+
+    override createStatisticsScene() {
+        return new QuickMeasurerStatisticsScene();
+    }
 
     private getDirectionStyles(datum: QuickDatePriceRangeProperties) {
         return this.verticalDirection === 'down' ? datum.down : datum.up;
