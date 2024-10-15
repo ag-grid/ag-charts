@@ -5,6 +5,7 @@ import { SystemJs } from './lib/SystemJs';
 import { pathJoin } from '@utils/pathJoin';
 import { getCacheBustingUrl } from '@utils/chartLibraryPaths';
 
+import examplebaseStyle from '@ag-website-shared/components/example-runner/example-base.css?raw';
 import exampleControlsStyle from '@ag-website-shared/components/example-runner/example-controls.css?raw';
 
 interface Props {
@@ -57,6 +58,7 @@ const startFile = pathJoin(appLocation, entryFileName);
         />
         <Fragment set:html={headFragment} />
 
+        <style set:html={examplebaseStyle}></style>
         {!isExternal && <style set:html={exampleControlsStyle} />}
     </head>
     <body>

@@ -7,6 +7,7 @@ import { getCacheBustingUrl } from '@utils/chartLibraryPaths';
 import type { Library } from '@ag-grid-types';
 import { Scripts } from './lib/Scripts';
 
+import examplebaseStyle from '@ag-website-shared/components/example-runner/example-base.css?raw';
 import exampleControlsStyle from '@ag-website-shared/components/example-runner/example-controls.css?raw';
 
 const css = String.raw;
@@ -71,6 +72,7 @@ const startFile = pathJoin(appLocation, entryFileName);
                 : []}
         />
 
+        <style set:html={examplebaseStyle}></style>
         {!isExternal && <style set:html={exampleControlsStyle} />}
 
         <Fragment set:html={headFragment} />

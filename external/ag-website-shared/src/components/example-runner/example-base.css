@@ -1,0 +1,25 @@
+html,
+body,
+my-app,
+#root,
+#app {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+body:not(:has(:is(my-app, #root, #app))),
+#root,
+#app,
+my-app {
+    display: grid;
+    grid-auto-rows: minmax(0, 1fr);
+    grid-auto-columns: minmax(0, 1fr);
+    padding: 1rem;
+    gap: 9px;
+
+    &:has(.toolbar) {
+        grid: 'toolbar' auto 'canvas' minmax(0, 1fr) / 1fr;
+    }
+}
