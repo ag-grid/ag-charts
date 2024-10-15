@@ -2,7 +2,7 @@ import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { type PositionedScene, layoutAddX, layoutAddY, layoutScenesColumn, layoutScenesRow } from '../utils/layout';
-import type { MeasurerStatistics } from './measurerProperties';
+import type { MeasurerTypeProperties, QuickDatePriceRangeProperties } from './measurerProperties';
 
 export interface Statistics {
     dateRange?: { bars: number; value: number };
@@ -28,6 +28,8 @@ export class MeasurerStatisticsScene extends _Scene.Group {
         maximumFractionDigits: 2,
     });
 
+    protected verticalDirection?: 'up' | 'down';
+
     constructor() {
         super();
         this.append([
@@ -43,12 +45,15 @@ export class MeasurerStatisticsScene extends _Scene.Group {
     }
 
     update(
-        datum: MeasurerStatistics,
+        datum: MeasurerTypeProperties,
         stats: Statistics,
         anchor: _ModuleSupport.Vec2,
         context: AnnotationContext,
+        verticalDirection?: 'up' | 'down',
         localeManager?: _ModuleSupport.ModuleContext['localeManager']
     ) {
+        this.verticalDirection = verticalDirection;
+
         const scenes = this.updateStatistics(datum, stats, anchor, localeManager);
 
         const bbox = _Scene.Group.computeChildrenBBox(scenes.flat());
@@ -60,7 +65,7 @@ export class MeasurerStatisticsScene extends _Scene.Group {
     }
 
     private updateStatistics(
-        datum: MeasurerStatistics,
+        datum: MeasurerTypeProperties,
         stats: Statistics,
         anchor: _ModuleSupport.Vec2,
         localeManager?: _ModuleSupport.ModuleContext['localeManager']
@@ -77,26 +82,19 @@ export class MeasurerStatisticsScene extends _Scene.Group {
 
         const horizontalGap = 8;
         const verticalGap = 6;
-        const dividerLineHeight = datum.fontSize + 3;
+        const dividerLineHeight = datum.statistics.fontSize + 3;
         const dividerLineOffset = -2;
 
-        const textStyles = {
-            fill: datum.color,
-            fontFamily: datum.fontFamily,
-            fontSize: datum.fontSize,
-            fontStyle: datum.fontStyle,
-            fontWeight: datum.fontWeight,
-            textBaseline: 'top' as const,
-        };
+        const textStyles = this.getTextStyles(datum);
 
         const dividerLineStyles = {
             x1: 0,
             y1: 0,
             x2: 0,
             y2: dividerLineHeight,
-            stroke: datum.divider.stroke,
-            strokeOpacity: datum.divider.strokeOpacity,
-            strokeWidth: datum.divider.strokeWidth,
+            stroke: datum.statistics.divider.stroke,
+            strokeOpacity: datum.statistics.divider.strokeOpacity,
+            strokeWidth: datum.statistics.divider.strokeWidth,
         };
 
         const dateScenes = [dateRangeBarsText, dateRangeDivider, dateRangeValueText];
@@ -152,16 +150,14 @@ export class MeasurerStatisticsScene extends _Scene.Group {
         return scenes;
     }
 
-    private updateBackground(datum: MeasurerStatistics, bbox: _Scene.BBox, padding: number) {
+    private updateBackground(datum: MeasurerTypeProperties, bbox: _Scene.BBox, padding: number) {
+        const styles = this.getBackgroundStyles(datum);
+
         this.background.setProperties({
+            ...styles,
             ...bbox,
             x: bbox.x - bbox.width / 2 + padding,
             y: bbox.y,
-            fill: datum.fill,
-            stroke: datum.stroke,
-            strokeOpacity: datum.strokeOpacity,
-            strokeWidth: datum.strokeWidth,
-            cornerRadius: 4,
         });
     }
 
@@ -190,6 +186,27 @@ export class MeasurerStatisticsScene extends _Scene.Group {
         }
 
         this.background.y += offsetY;
+    }
+
+    protected getTextStyles(datum: MeasurerTypeProperties) {
+        return {
+            fill: datum.statistics.color,
+            fontFamily: datum.statistics.fontFamily,
+            fontSize: datum.statistics.fontSize,
+            fontStyle: datum.statistics.fontStyle,
+            fontWeight: datum.statistics.fontWeight,
+            textBaseline: 'top' as const,
+        };
+    }
+
+    protected getBackgroundStyles(datum: MeasurerTypeProperties) {
+        return {
+            fill: datum.statistics.fill,
+            stroke: datum.statistics.stroke,
+            strokeOpacity: datum.statistics.strokeOpacity,
+            strokeWidth: datum.statistics.strokeWidth,
+            cornerRadius: 4,
+        };
     }
 
     private formatDateRangeBars(bars: number, localeManager?: _ModuleSupport.ModuleContext['localeManager']) {
@@ -236,5 +253,36 @@ export class MeasurerStatisticsScene extends _Scene.Group {
     private formatVolume(volume: number, localeManager?: _ModuleSupport.ModuleContext['localeManager']) {
         const volumeString = isNaN(volume) ? '' : this.volumeFormatter.format(volume);
         return localeManager?.t('measurerVolume', { value: volumeString }) ?? volumeString;
+    }
+}
+
+export class QuickMeasurerStatisticsScene extends MeasurerStatisticsScene {
+    private getDirectionStyles(datum: QuickDatePriceRangeProperties) {
+        return this.verticalDirection === 'down' ? datum.down.statistics : datum.up.statistics;
+    }
+
+    override getTextStyles(datum: QuickDatePriceRangeProperties) {
+        const styles = this.getDirectionStyles(datum);
+
+        return {
+            ...super.getTextStyles(datum),
+            fill: styles.color,
+            fontFamily: styles.fontFamily,
+            fontSize: styles.fontSize,
+            fontStyle: styles.fontStyle,
+            fontWeight: styles.fontWeight,
+        };
+    }
+
+    override getBackgroundStyles(datum: QuickDatePriceRangeProperties) {
+        const styles = this.getDirectionStyles(datum);
+
+        return {
+            ...super.getBackgroundStyles(datum),
+            fill: styles.fill,
+            stroke: styles.stroke,
+            strokeOpacity: styles.strokeOpacity,
+            strokeWidth: styles.strokeWidth,
+        };
     }
 }
