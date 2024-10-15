@@ -2,7 +2,6 @@ import type { AgTooltipRendererResult, InteractionRange, TextWrap } from 'ag-cha
 
 import type { DOMManager } from '../../dom/domManager';
 import { enterpriseModule } from '../../module/enterpriseModule';
-import { setAttribute } from '../../util/attributeUtil';
 import { clamp } from '../../util/number';
 import { type Bounds, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
