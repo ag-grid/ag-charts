@@ -10,14 +10,14 @@ import { type PreventableEvent, type Unpreventable, buildPreventable, dispatchTy
 
 export { InteractionState };
 
+export const DRAG_INTERACTION_TYPES = ['drag-start', 'drag', 'drag-end'] as const;
+
 export const POINTER_INTERACTION_TYPES = [
+    ...DRAG_INTERACTION_TYPES,
     'click',
     'dblclick',
     'contextmenu',
     'hover',
-    'drag-start',
-    'drag',
-    'drag-end',
     'leave',
     'enter',
     'page-left',
