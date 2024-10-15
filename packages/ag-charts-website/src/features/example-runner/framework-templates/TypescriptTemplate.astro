@@ -1,10 +1,11 @@
 ---
 import { MetaData } from './lib/MetaData';
-import { ExampleStyle } from './lib/ExampleStyle';
 import { Styles } from './lib/Styles';
 import { SystemJs } from './lib/SystemJs';
 import { pathJoin } from '@utils/pathJoin';
 import { getCacheBustingUrl } from '@utils/chartLibraryPaths';
+
+import exampleControlsStyle from '@ag-website-shared/components/example-runner/example-controls.css?raw';
 
 interface Props {
     isDev: boolean;
@@ -22,6 +23,7 @@ interface Props {
     extraStyles?: string;
     children?: any;
     headFragment?: string;
+    isExternal?: boolean;
 }
 
 const {
@@ -36,6 +38,7 @@ const {
     boilerplatePath,
     extraStyles,
     headFragment,
+    isExternal,
 } = Astro.props as Props;
 
 const startFile = pathJoin(appLocation, entryFileName);
@@ -44,7 +47,6 @@ const startFile = pathJoin(appLocation, entryFileName);
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`Typescript Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle layout={layout} extraStyles={extraStyles} />
         <Styles
             baseUrl={appLocation}
             files={isDev && styleFiles
@@ -54,6 +56,8 @@ const startFile = pathJoin(appLocation, entryFileName);
                 : []}
         />
         <Fragment set:html={headFragment} />
+
+        {!isExternal && <style set:html={exampleControlsStyle} />}
     </head>
     <body>
         <Fragment set:html={indexFragment} />

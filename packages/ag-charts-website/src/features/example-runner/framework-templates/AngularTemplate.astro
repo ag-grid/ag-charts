@@ -1,12 +1,13 @@
 ---
 import { MetaData } from './lib/MetaData';
-import { ExampleStyle } from './lib/ExampleStyle';
 import { Styles } from './lib/Styles';
 import { SystemJs } from './lib/SystemJs';
 import { pathJoin } from '@utils/pathJoin';
 import { getCacheBustingUrl } from '@utils/chartLibraryPaths';
 import type { Library } from '@ag-grid-types';
 import { Scripts } from './lib/Scripts';
+
+import exampleControlsStyle from '@ag-website-shared/components/example-runner/example-controls.css?raw';
 
 const css = String.raw;
 interface Props {
@@ -25,6 +26,7 @@ interface Props {
     extraStyles?: string;
     children?: any;
     headFragment?: string;
+    isExternal?: boolean;
 }
 
 const {
@@ -38,6 +40,7 @@ const {
     scriptFiles,
     boilerplatePath,
     headFragment,
+    isExternal,
 } = Astro.props as Props;
 
 const extraStylesArray: string[] = [];
@@ -59,7 +62,6 @@ const startFile = pathJoin(appLocation, entryFileName);
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`Angular Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle rootSelector="my-app" layout={layout} extraStyles={extraStyles} />
         <Styles
             baseUrl={appLocation}
             files={isDev && styleFiles
@@ -68,6 +70,9 @@ const startFile = pathJoin(appLocation, entryFileName);
                       .map((file: string) => getCacheBustingUrl(file, modifiedTimeMs))
                 : []}
         />
+
+        {!isExternal && <style set:html={exampleControlsStyle} />}
+
         <Fragment set:html={headFragment} />
     </head>
     <body>

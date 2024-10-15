@@ -1,10 +1,11 @@
 ---
 import { MetaData } from './lib/MetaData';
-import { ExampleStyle } from './lib/ExampleStyle';
 import { Styles } from './lib/Styles';
 import { SystemJs } from './lib/SystemJs';
 import { Scripts } from './lib/Scripts';
 import { pathJoin } from '@utils/pathJoin';
+
+import exampleControlsStyle from '@ag-website-shared/components/example-runner/example-controls.css?raw';
 
 interface Props {
     isDev: boolean;
@@ -26,6 +27,7 @@ interface Props {
     extraStyles?: string;
     children?: any;
     headFragment?: string;
+    isExternal?: boolean;
 }
 
 const {
@@ -41,6 +43,7 @@ const {
     ignoreSystemJs,
     extraStyles,
     headFragment,
+    isExternal,
 } = Astro.props as Props;
 
 const startFile = pathJoin(appLocation, entryFileName);
@@ -49,9 +52,10 @@ const startFile = pathJoin(appLocation, entryFileName);
 <html lang="en">
     <head>
         <MetaData isDev={isDev} title={`React Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
-        <ExampleStyle rootSelector="#root" layout={layout} extraStyles={extraStyles} />
         <Styles baseUrl={appLocation} files={styleFiles} />
         <Fragment set:html={headFragment} />
+
+        {!isExternal && <style set:html={exampleControlsStyle} />}
     </head>
     <body>
         <div id="root"></div>

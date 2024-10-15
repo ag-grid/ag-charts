@@ -33,6 +33,10 @@ interface Props {
      * Extra styles to add to HTML
      */
     extraStyles?: string;
+    /**
+     * Is an external site e.g. Plunkr, CodeSandbox ect
+     */
+    isExternal?: boolean;
 }
 
 const {
@@ -45,6 +49,7 @@ const {
     addInitMessageScript,
     ignoreSystemJs,
     extraStyles,
+    isExternal,
 } = Astro.props as Props;
 
 const isDev = getIsDev();
@@ -86,6 +91,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             headFragment={headFragment}
             appLocation={appLocation}
             extraStyles={extraStyles}
+            isExternal={isExternal}
         />
     ) : internalFramework === 'typescript' ? (
         <TypescriptTemplate
@@ -100,6 +106,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
             extraStyles={extraStyles}
+            isExternal={isExternal}
         />
     ) : ['reactFunctional', 'reactFunctionalTs'].includes(internalFramework) ? (
         <ReactTemplate
@@ -114,6 +121,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             boilerplatePath={boilerPlateUrl}
             ignoreSystemJs={ignoreSystemJs}
             extraStyles={extraStyles}
+            isExternal={isExternal}
             headFragment={headFragment}
         />
     ) : internalFramework === 'angular' ? (
@@ -128,6 +136,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
             extraStyles={extraStyles}
+            isExternal={isExternal}
             headFragment={headFragment}
         />
     ) : internalFramework === 'vue3' ? (
@@ -142,6 +151,7 @@ const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
             appLocation={appLocation}
             boilerplatePath={boilerPlateUrl}
             extraStyles={extraStyles}
+            isExternal={isExternal}
             headFragment={headFragment}
         />
     ) : null
