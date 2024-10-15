@@ -184,7 +184,6 @@ export class AgChartInstanceProxy implements AgChartProxy {
             height,
         };
         const userOptions = chart.getOptions();
-        const optionsMetadata = { ...chart.chartOptions.optionMetadata };
 
         if (isEnterprise) {
             // Disable enterprise features that may interfere with image generation.
@@ -212,6 +211,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
         }
 
         const specialOverrides = { ...chart.chartOptions.specialOverrides };
+        const optionsMetadata = { ...chart.chartOptions.optionMetadata };
         if (opts.width != null && opts.height != null) {
             specialOverrides.overrideDevicePixelRatio = 1;
         }
