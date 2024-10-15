@@ -86,14 +86,16 @@ export interface AgShapeAnnotationStyles extends Lockable, Visible, FillOptions 
 // Measurers
 export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, Extendable, Lockable, Visible {
     background?: FillOptions;
-    statistics?: FontOptions;
+    statistics?: AgMeasurerAnnotationStatistics;
 }
 
 export interface AgQuickMeasurerAnnotationStyles extends Extendable, Visible {
     up?: AgQuickMeasurerAnnotationDirectionStyles;
     down?: AgQuickMeasurerAnnotationDirectionStyles;
-    statistics?: FontOptions;
+    statistics?: AgMeasurerAnnotationStatistics;
 }
+
+export interface AgQuickMeasurerAnnotationDirectionStyles extends FillOptions, StrokeOptions, LineOptions {}
 
 // ***********
 // * Options *
@@ -322,8 +324,12 @@ export interface AgMeasurerAnnotation
     handle?: AgAnnotationHandle;
     /** Configuration for the line text. */
     text?: AgLineAnnotationText;
-    /** */
-    statistics?: FontOptions;
+    /** Configuration for the statistics. */
+    statistics?: AgMeasurerAnnotationStatistics;
+}
+
+export interface AgMeasurerAnnotationStatistics extends FontOptions, FillOptions, StrokeOptions {
+    divider?: StrokeOptions;
 }
 
 // **************
@@ -377,8 +383,6 @@ export interface AgChannelAnnotationTextOptions extends FontOptions {
     position?: 'top' | 'inside' | 'bottom';
     alignment?: 'left' | 'center' | 'right';
 }
-
-export interface AgQuickMeasurerAnnotationDirectionStyles extends FillOptions, StrokeOptions, LineOptions {}
 
 interface AnnotationLinePoints {
     /** The starting point of a linear annotation. */
