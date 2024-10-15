@@ -65,12 +65,13 @@ function nodeToBBoxProvider(node: RegionNodeType) {
 }
 
 type EventTargetUpcast<K extends keyof HTMLElement> = EventTarget & { [P in K]?: unknown };
-function shouldIgnore(sourceEvent?: { target: EventTargetUpcast<'id' | 'className'> | null }) {
-    const { id, className } = sourceEvent?.target ?? {};
+function shouldIgnore(sourceEvent?: { target: EventTargetUpcast<'id' | 'className' | 'classList'> | null }) {
+    const { id, className, classList } = sourceEvent?.target ?? {};
     return (
         sourceEvent?.target != null && // This case is for pointerHistory events.
         className !== 'ag-charts-series-area' &&
         className !== 'ag-charts-canvas-proxy' &&
+        !(classList instanceof DOMTokenList && classList.contains('ag-charts-annotations__axis-button-icon')) &&
         !(className === 'ag-charts-proxy-elem' && !id?.toString().startsWith('ag-charts-legend-item-')) &&
         !(sourceEvent?.target instanceof HTMLCanvasElement) // This case is for nodeCanvas tests
     );
