@@ -9,9 +9,9 @@ import type { AgBaseSeriesOptions } from '../seriesOptions';
 export interface AgPyramidSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {}
 
 export interface AgPyramidSeriesStageLabelOptions extends AgChartLabelOptions<never, never> {
-    /** Placement of the label in relation to the chart */
+    /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
-    /** Spacing of the label in relation to the chart */
+    /** Spacing of the label in relation to the chart. */
     spacing?: number;
 }
 
@@ -46,7 +46,7 @@ export interface AgPyramidSeriesThemeableOptions<TDatum = any> extends LineDashO
     reverse?: boolean;
     /** Spacing between the stages. */
     spacing?: number;
-    /** Ratio of the triangle width to its height. When unset, the triangle fill available space. */
+    /** Ratio of the triangle width to its height. When unset, the triangle will fill the available space. */
     aspectRatio?: number;
     /** Configuration for the labels shown on stages. */
     label?: AgPyramidSeriesLabelOptions<TDatum, AgPyramidSeriesLabelFormatterParams>;
