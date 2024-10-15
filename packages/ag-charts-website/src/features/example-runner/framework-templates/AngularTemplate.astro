@@ -14,12 +14,8 @@ const css = String.raw;
 interface Props {
     isDev: boolean;
     title: string;
-
     modifiedTimeMs: number;
     entryFileName: string;
-
-    layout: 'grid' | 'toolbar' | 'none';
-
     styleFiles?: string[];
     scriptFiles: string[];
     appLocation: string;
@@ -35,7 +31,6 @@ const {
     modifiedTimeMs,
     appLocation,
     entryFileName,
-    layout,
     styleFiles,
     scriptFiles,
     boilerplatePath,
