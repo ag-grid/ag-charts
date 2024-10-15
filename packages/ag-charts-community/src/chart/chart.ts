@@ -54,7 +54,7 @@ import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/ty
 import { ModulesManager } from './modulesManager';
 import { ChartOverlays } from './overlay/chartOverlays';
 import { getLoadingSpinner } from './overlay/loadingSpinner';
-import { type Series } from './series/series';
+import { type Series, SeriesGroupingChangedEvent } from './series/series';
 import { type SeriesAreaChartDependencies, SeriesAreaManager } from './series/seriesAreaManager';
 import { SeriesLayerManager } from './series/seriesLayerManager';
 import type { SeriesGrouping } from './series/seriesStateManager';
@@ -259,7 +259,7 @@ export abstract class Chart extends Observable {
         titleGroup.append(this.footnote.node);
 
         this.tooltip = new Tooltip();
-        this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.annotationRoot);
+        this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
         const ctx = (this.ctx = new ChartContext(this, {
             scene,
             root,
@@ -733,10 +733,8 @@ export abstract class Chart extends Observable {
         for (const series of newValue) {
             if (oldValue?.includes(series)) continue;
 
-            // if (series.rootGroup.isRoot()) {
-            //     this.seriesLayerManager.requestGroup(series);
-            // }
-            series.attachSeries(this.seriesRoot, this.annotationRoot);
+            const seriesContentNode = this.seriesLayerManager.requestGroup(series);
+            series.attachSeries(seriesContentNode, this.seriesRoot, this.annotationRoot);
 
             const chart = this;
             series.chart = {
@@ -768,8 +766,8 @@ export abstract class Chart extends Observable {
             series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
             series.removeEventListener('groupingChanged', this.seriesGroupingChanged);
             series.destroy();
-            // this.seriesLayerManager.releaseGroup(series);
-            series.detachSeries(this.seriesRoot, this.annotationRoot);
+            this.seriesLayerManager.releaseGroup(series);
+            series.detachSeries(undefined, this.seriesRoot, this.annotationRoot);
 
             series.chart = undefined;
         });
@@ -992,7 +990,21 @@ export abstract class Chart extends Observable {
         this.fireEvent({ ...event, type: 'seriesNodeDoubleClick' });
     };
 
-    private readonly seriesGroupingChanged = (_event: TypedEvent) => {};
+    private readonly seriesGroupingChanged = (event: TypedEvent) => {
+        if (!(event instanceof SeriesGroupingChangedEvent)) return;
+        const { series, seriesGrouping, oldGrouping } = event;
+
+        // Short-circuit if series isn't already attached to the scene-graph yet.
+        if (series.contentGroup.isRoot()) return;
+
+        this.seriesLayerManager.changeGroup({
+            internalId: series.internalId,
+            type: series.type,
+            contentGroup: series.contentGroup,
+            seriesGrouping,
+            oldGrouping,
+        });
+    };
 
     async waitForUpdate(timeoutMs = 10_000, failOnTimeout = false): Promise<void> {
         const start = performance.now();
@@ -1302,8 +1314,9 @@ export abstract class Chart extends Observable {
         const matchResult = matchSeriesOptions(chart.series, optSeries, oldOptSeries);
         if (matchResult.status === 'no-overlap') {
             debug(`Chart.applySeries() - creating new series instances, status: ${matchResult.status}`, matchResult);
-            chart.series = optSeries.map((opts) => this.createSeries(opts));
-            this.initSeriesDeclarationOrder(chart.series);
+            const chartSeries = optSeries.map((opts) => this.createSeries(opts));
+            this.initSeriesDeclarationOrder(chartSeries);
+            chart.series = chartSeries;
             return 'replaced';
         }
 

@@ -55,8 +55,8 @@ export class AxisManager {
             axisNode: this.axisGroup,
             gridNode: this.axisGridGroup,
             labelNode: this.axisLabelGroup,
-            crossLineLineNode: this.axisCrosslineLineGroup,
             crossLineRangeNode: this.axisCrosslineRangeGroup,
+            crossLineLineNode: this.axisCrosslineLineGroup,
             crossLineLabelNode: this.axisCrosslineLabelGroup,
         };
 

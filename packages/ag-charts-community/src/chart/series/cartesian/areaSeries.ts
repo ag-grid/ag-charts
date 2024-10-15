@@ -109,16 +109,20 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    override attachSeries(seriesNode: Node, annotationNode: Node | undefined): void {
-        super.attachSeries(seriesNode, annotationNode);
+    override attachSeries(seriesContentNode: Node, seriesNode: Node, annotationNode: Node | undefined): void {
+        super.attachSeries(seriesContentNode, seriesNode, annotationNode);
 
-        seriesNode.appendChild(this.backgroundGroup);
+        seriesContentNode.appendChild(this.backgroundGroup);
     }
 
-    override detachSeries(seriesNode: Node, annotationNode: Node | undefined): void {
-        super.detachSeries(seriesNode, annotationNode);
+    override detachSeries(
+        seriesContentNode: Node | undefined,
+        seriesNode: Node,
+        annotationNode: Node | undefined
+    ): void {
+        super.detachSeries(seriesContentNode, seriesNode, annotationNode);
 
-        seriesNode.removeChild(this.backgroundGroup);
+        seriesContentNode?.removeChild(this.backgroundGroup);
     }
 
     protected override attachPaths([fill, stroke]: Path[]) {
@@ -128,15 +132,20 @@ export class AreaSeries extends CartesianSeries<
         stroke.zIndex = -1;
     }
 
-    private _stackCount = -1;
-    override setSeriesIndex(index: number) {
+    private isStacked() {
         const stackCount = this.seriesGrouping?.stackCount ?? 1;
+        return stackCount > 1;
+    }
 
-        if (!super.setSeriesIndex(index) && this._stackCount === stackCount) return false;
+    private _isStacked: boolean | undefined = undefined;
+    override setSeriesIndex(index: number) {
+        const isStacked = this.isStacked();
 
-        this._stackCount = stackCount;
+        if (!super.setSeriesIndex(index) && this._isStacked === isStacked) return false;
 
-        if (stackCount > 1) {
+        this._isStacked = isStacked;
+
+        if (isStacked) {
             this.backgroundGroup.zIndex = [SeriesZIndexMap.BACKGROUND, index];
             this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.FOREGROUND];
         } else {

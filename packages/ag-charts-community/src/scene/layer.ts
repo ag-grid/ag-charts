@@ -3,7 +3,7 @@ import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import { nodeCount } from './debug.util';
 import { Group } from './group';
 import type { LayersManager } from './layersManager';
-import { type ChildNodeCounts, Node, RedrawType, type RenderContext } from './node';
+import { type ChildNodeCounts, RedrawType, type RenderContext } from './node';
 import { Translatable } from './transformable';
 import type { ZIndex } from './zIndex';
 
@@ -21,7 +21,6 @@ export class Layer extends Group {
         protected override readonly opts?: {
             name?: string;
             zIndex?: ZIndex;
-            deriveZIndexFromChildren?: boolean; // TODO remove feature
         }
     ) {
         super(opts);
@@ -41,9 +40,6 @@ export class Layer extends Group {
                 getComputedOpacity: () => this.getComputedOpacity(),
                 getVisibility: () => this.getVisibility(),
             });
-            if (this.opts?.deriveZIndexFromChildren) {
-                this.deriveZIndexFromChildren();
-            }
         }
 
         return counts;
@@ -147,17 +143,6 @@ export class Layer extends Group {
                 group: this,
             });
         }
-    }
-
-    private deriveZIndexFromChildren() {
-        let lastChild: Node | undefined;
-        for (const child of this.children()) {
-            if (!child.childNodeCounts.nonGroups) continue;
-            if (!lastChild || Group.compareChildren(lastChild, child) < 0) {
-                lastChild = child;
-            }
-        }
-        this.zIndex = lastChild?.zIndex ?? -Infinity;
     }
 
     override _setLayerManager(layersManager?: LayersManager) {

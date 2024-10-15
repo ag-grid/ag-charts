@@ -298,14 +298,18 @@ export abstract class CartesianSeries<
         );
     }
 
-    override attachSeries(seriesNode: Node, annotationNode: Node | undefined): void {
-        super.attachSeries(seriesNode, annotationNode);
+    override attachSeries(seriesContentNode: Node, seriesNode: Node, annotationNode: Node | undefined): void {
+        super.attachSeries(seriesContentNode, seriesNode, annotationNode);
 
         this.attachPaths(this.paths, seriesNode, annotationNode);
     }
 
-    override detachSeries(seriesNode: Node, annotationNode: Node | undefined): void {
-        super.detachSeries(seriesNode, annotationNode);
+    override detachSeries(
+        seriesContentNode: Node | undefined,
+        seriesNode: Node,
+        annotationNode: Node | undefined
+    ): void {
+        super.detachSeries(seriesContentNode, seriesNode, annotationNode);
 
         this.detachPaths(this.paths, seriesNode, annotationNode);
     }

@@ -33,7 +33,6 @@ import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent } from '../tooltip/tooltip';
 import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
-import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { ISeries, NodeDataDependencies, SeriesNodeDatum } from './seriesTypes';
@@ -320,15 +319,15 @@ export abstract class Series<
         this.pickModes = pickModes;
     }
 
-    attachSeries(seriesNode: Node, annotationNode: Node | undefined) {
-        seriesNode.appendChild(this.contentGroup);
+    attachSeries(seriesContentNode: Node, seriesNode: Node, annotationNode: Node | undefined) {
+        seriesContentNode.appendChild(this.contentGroup);
         seriesNode.appendChild(this.highlightGroup);
         seriesNode.appendChild(this.labelGroup);
         annotationNode?.appendChild(this.annotationGroup);
     }
 
-    detachSeries(seriesNode: Node, annotationNode: Node | undefined) {
-        seriesNode.removeChild(this.contentGroup);
+    detachSeries(seriesContentNode: Node | undefined, seriesNode: Node, annotationNode: Node | undefined) {
+        seriesContentNode?.removeChild(this.contentGroup);
         seriesNode.removeChild(this.highlightGroup);
         seriesNode.removeChild(this.labelGroup);
         annotationNode?.removeChild(this.annotationGroup);
@@ -344,33 +343,8 @@ export abstract class Series<
         this.highlightGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.HIGHLIGHT];
         this.labelGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.LABEL];
         this.annotationGroup.zIndex = index;
-        // this.labelGroup.zIndex = index;
 
         return true;
-    }
-
-    getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): number[] {
-        let mainAdjust = 0;
-        switch (type) {
-            case 'data':
-            case 'paths':
-                break;
-            case 'labels':
-                mainAdjust += 20000;
-                break;
-            case 'marker':
-                mainAdjust += 10000;
-                break;
-            // Following cases are in their own layer, so need to be careful to respect declarationOrder.
-            case 'highlight':
-                subIndex += 15000;
-                break;
-            case 'annotation':
-                mainAdjust += 15000;
-                break;
-        }
-
-        return [mainAdjust, this._declarationOrder, subIndex];
     }
 
     private readonly seriesListeners = new Listeners<SeriesEventType, (event: any) => void>();
