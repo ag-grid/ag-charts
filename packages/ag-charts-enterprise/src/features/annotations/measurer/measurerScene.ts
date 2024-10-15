@@ -184,15 +184,25 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
         const clip = LineWithTextScene.updateLineText.call(this, line, datum, textCoords);
 
+        let verticalClipMask;
+
         if (direction === 'both' && clip && this.text) {
             // Add a secondary clip mask to the vertical line that is pinned to the line's horizontal position and only
             // considers the height of the text, since we know the text must be axis-aligned.
-            this.verticalLine.setClipMask({
-                x: center.x,
-                y: clip.clipMask.y,
-                radius: this.text.getBBox().height / 2 + Vec2.length(clip.numbers.offset),
-            });
+            const textBBox = Vec4.from(this.text.getBBox());
+            const { offset } = clip.numbers;
+            const crossesVerticalLine = textBBox.x1 <= center.x + offset.x && textBBox.x2 >= center.x - offset.x;
+
+            if (crossesVerticalLine) {
+                verticalClipMask = {
+                    x: center.x,
+                    y: clip.clipMask.y,
+                    radius: this.text.getBBox().height / 2 + Vec2.length(offset),
+                };
+            }
         }
+
+        this.verticalLine.setClipMask(verticalClipMask);
     }
 
     private updateCaps(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {
