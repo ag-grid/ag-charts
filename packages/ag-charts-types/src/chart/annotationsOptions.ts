@@ -85,13 +85,16 @@ export interface AgShapeAnnotationStyles extends Lockable, Visible, FillOptions 
 
 // Measurers
 export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, Extendable, Lockable, Visible {
-    background?: FillOptions;
-    statistics?: AgMeasurerAnnotationStatistics;
+    up?: AgMeasurerAnnotationDirectionStyles;
+    down?: AgMeasurerAnnotationDirectionStyles;
 }
 
-export interface AgQuickMeasurerAnnotationStyles extends Extendable, Visible {
-    up?: AgQuickMeasurerAnnotationDirectionStyles;
-    down?: AgQuickMeasurerAnnotationDirectionStyles;
+export interface AgQuickMeasurerAnnotationStyles extends StrokeOptions, LineOptions, Extendable, Visible {
+    up?: AgMeasurerAnnotationDirectionStyles;
+    down?: AgMeasurerAnnotationDirectionStyles;
+}
+
+export interface AgMeasurerAnnotationDirectionStyles extends FillOptions, StrokeOptions, LineOptions {
     statistics?: AgMeasurerAnnotationStatistics;
 }
 
@@ -324,7 +327,13 @@ export interface AgMeasurerAnnotation
     handle?: AgAnnotationHandle;
     /** Configuration for the line text. */
     text?: AgLineAnnotationText;
-    /** Configuration for the statistics. */
+    /** Configuration for ... */
+    up?: AgMeasurerAnnotationDirection;
+    /** Configuration for ... */
+    down?: AgMeasurerAnnotationDirection;
+}
+
+export interface AgMeasurerAnnotationDirection extends FillOptions, StrokeOptions, LineOptions {
     statistics?: AgMeasurerAnnotationStatistics;
 }
 

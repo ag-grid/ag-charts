@@ -21,26 +21,29 @@ import { getLineCap, getLineDash } from '../utils/line';
 
 const { BOOLEAN, OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 
-class MeasurerStatisticsDivider extends Stroke(BaseProperties) {}
+class MeasurerDirectionProperties extends Fill(Stroke(Handle(BaseProperties))) {
+    @Validate(OBJECT, { optional: true })
+    public statistics = new MeasurerStatistics();
+}
 
 export class MeasurerStatistics extends Font(Fill(Stroke(BaseProperties))) {
     @Validate(OBJECT, { optional: true })
     public divider = new MeasurerStatisticsDivider();
 }
 
-class MeasurerDirectionProperties extends Fill(Stroke(Handle(BaseProperties))) {
-    @Validate(OBJECT, { optional: true })
-    public statistics = new MeasurerStatistics();
-}
+class MeasurerStatisticsDivider extends Stroke(BaseProperties) {}
 
-export class MeasurerTypeProperties extends Localisable(Background(Stroke(LineStyle(StartEndProperties)))) {
+export class MeasurerTypeProperties extends Localisable(StartEndProperties) {
     public direction: 'both' | 'horizontal' | 'vertical' = 'both';
 
     public hasDateRange = false;
     public hasPriceRange = false;
 
     @Validate(OBJECT, { optional: true })
-    public statistics = new MeasurerStatistics();
+    public up = new MeasurerDirectionProperties();
+
+    @Validate(OBJECT, { optional: true })
+    public down = new MeasurerDirectionProperties();
 
     public getVolume: (from: Point['x'], to: Point['x']) => number | undefined = () => 0;
 
@@ -154,12 +157,6 @@ export class QuickDatePriceRangeProperties extends DateRange(PriceRange(Measurer
 
     @Validate(STRING)
     type = AnnotationType.QuickDatePriceRange as const;
-
-    @Validate(OBJECT, { optional: true })
-    public up = new MeasurerDirectionProperties();
-
-    @Validate(OBJECT, { optional: true })
-    public down = new MeasurerDirectionProperties();
 
     override direction = 'both' as const;
 }

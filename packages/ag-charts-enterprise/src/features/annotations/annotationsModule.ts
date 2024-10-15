@@ -55,7 +55,7 @@ const measurerStatistics = {
     },
 };
 
-const measurer = {
+const measurerDirection = {
     ...stroke,
     background: {
         fill: _Theme.DEFAULT_ANNOTATION_BACKGROUND_FILL,
@@ -64,6 +64,11 @@ const measurer = {
     handle: { ...handle },
     text: { ...lineText },
     statistics: { ...measurerStatistics },
+};
+
+const measurer = {
+    up: { ...measurerDirection },
+    down: { ...measurerDirection },
 };
 
 export const AnnotationsModule: _ModuleSupport.Module = {
