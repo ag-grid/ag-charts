@@ -16,7 +16,7 @@ export class StandaloneChart extends Chart {
     }
 
     protected performLayout(ctx: LayoutContext) {
-        const { seriesRoot, annotationRoot, labelRoot } = this;
+        const { seriesRoot, annotationRoot } = this;
         const { layoutBox } = ctx;
         const seriesRect = layoutBox.clone();
 
@@ -25,7 +25,7 @@ export class StandaloneChart extends Chart {
         this.seriesRect = layoutBox;
         this.animationRect = layoutBox;
 
-        for (const group of [seriesRoot, annotationRoot, labelRoot]) {
+        for (const group of [seriesRoot, annotationRoot]) {
             group.translationX = Math.floor(layoutBox.x);
             group.translationY = Math.floor(layoutBox.y);
         }

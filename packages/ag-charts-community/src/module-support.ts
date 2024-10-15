@@ -69,6 +69,7 @@ export * from './chart/series/seriesProperties';
 export * from './chart/series/seriesMarker';
 export * from './chart/series/seriesTooltip';
 export * from './chart/series/seriesTypes';
+export * from './chart/series/seriesZIndexMap';
 export * from './chart/series/util';
 export * from './chart/series/cartesian/abstractBarSeries';
 export * from './chart/series/cartesian/cartesianSeries';

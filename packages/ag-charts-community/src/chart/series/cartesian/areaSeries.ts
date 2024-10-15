@@ -38,7 +38,7 @@ import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { SeriesZIndexMap } from '../seriesZIndexMap';
+import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
     type AreaPathSpan,
@@ -109,29 +109,42 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    override attachSeries(seriesNode: Node, annotationNode: Node | undefined, labelNode: Node | undefined): void {
-        super.attachSeries(seriesNode, annotationNode, labelNode);
+    override attachSeries(seriesNode: Node, annotationNode: Node | undefined): void {
+        super.attachSeries(seriesNode, annotationNode);
 
         seriesNode.appendChild(this.backgroundGroup);
     }
 
-    override detachSeries(seriesNode: Node, annotationNode: Node | undefined, labelNode: Node | undefined): void {
-        super.detachSeries(seriesNode, annotationNode, labelNode);
+    override detachSeries(seriesNode: Node, annotationNode: Node | undefined): void {
+        super.detachSeries(seriesNode, annotationNode);
 
         seriesNode.removeChild(this.backgroundGroup);
     }
 
-    override setSeriesIndex(index: number) {
-        if (!super.setSeriesIndex(index)) return false;
+    protected override attachPaths([fill, stroke]: Path[]) {
+        this.backgroundGroup.appendChild(fill);
 
-        this.backgroundGroup.zIndex = [index, SeriesZIndexMap.BACKGROUND];
-
-        return true;
+        this.contentGroup.appendChild(stroke);
+        stroke.zIndex = -1;
     }
 
-    protected override attachPaths([fill, stroke]: Path[]) {
-        this.backgroundGroup.append(fill);
-        this.contentGroup.append(stroke);
+    private _stackCount = -1;
+    override setSeriesIndex(index: number) {
+        const stackCount = this.seriesGrouping?.stackCount ?? 1;
+
+        if (!super.setSeriesIndex(index) && this._stackCount === stackCount) return false;
+
+        this._stackCount = stackCount;
+
+        if (stackCount > 1) {
+            this.backgroundGroup.zIndex = [SeriesZIndexMap.BACKGROUND, index];
+            this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.FOREGROUND];
+        } else {
+            this.backgroundGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.FOREGROUND, 0];
+            this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.FOREGROUND, 1];
+        }
+
+        return true;
     }
 
     override async processData(dataController: DataController) {

@@ -54,7 +54,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     private readonly lineGroup = this.contentGroup.appendChild(
         new Group({
-            zIndex: _ModuleSupport.ZIndexMap.SERIES_CROSSLINE_LINE,
+            name: 'radar-line',
+            zIndex: _ModuleSupport.SeriesZIndexMap.ANY_CONTENT,
         })
     );
     protected lineSelection: _Scene.Selection<_Scene.Path, boolean> = Selection.select(this.lineGroup, Path);
@@ -82,7 +83,12 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     override setSeriesIndex(index: number): boolean {
         if (!super.setSeriesIndex(index)) return false;
 
-        this.lineGroup.zIndex = [_ModuleSupport.ZIndexMap.SERIES_LAYER, 1];
+        this.lineGroup.zIndex = [
+            _ModuleSupport.SeriesZIndexMap.ANY_CONTENT,
+            index,
+            _ModuleSupport.SeriesContentZIndexMap.FOREGROUND,
+            1,
+        ];
 
         return true;
     }

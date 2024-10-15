@@ -162,14 +162,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         this.phantomGroup.opacity = 0.2;
     }
 
-    override attachSeries(seriesNode: Node, annotationNode: Node | undefined, labelNode: Node | undefined): void {
-        super.attachSeries(seriesNode, annotationNode, labelNode);
+    override attachSeries(seriesNode: Node, annotationNode: Node | undefined): void {
+        super.attachSeries(seriesNode, annotationNode);
 
         seriesNode.appendChild(this.backgroundGroup);
     }
 
-    override detachSeries(seriesNode: Node, annotationNode: Node | undefined, labelNode: Node | undefined): void {
-        super.detachSeries(seriesNode, annotationNode, labelNode);
+    override detachSeries(seriesNode: Node, annotationNode: Node | undefined): void {
+        super.detachSeries(seriesNode, annotationNode);
 
         seriesNode.removeChild(this.backgroundGroup);
     }
@@ -748,7 +748,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     private async updateNodes(seriesRect: BBox) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const isVisible = this.visible && this.seriesItemEnabled.includes(true);
-        // this.rootGroup.visible = isVisible;
         this.backgroundGroup.visible = isVisible;
         this.contentGroup.visible = isVisible;
         this.highlightGroup.visible = isVisible && highlightedDatum?.series === this;

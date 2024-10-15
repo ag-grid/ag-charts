@@ -37,7 +37,7 @@ import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { ISeries, NodeDataDependencies, SeriesNodeDatum } from './seriesTypes';
-import { SeriesZIndexMap } from './seriesZIndexMap';
+import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
 export enum SeriesNodePickMode {
@@ -195,7 +195,7 @@ export abstract class Series<
     // The group node that contains the series rendering in its default (non-highlighted) state.
     readonly contentGroup = new TranslatableGroup({
         name: `${this.internalId}-content`,
-        zIndex: SeriesZIndexMap.FOREGROUND,
+        zIndex: SeriesZIndexMap.ANY_CONTENT,
     });
 
     // The group node that contains all highlighted series items. This is a performance optimisation
@@ -203,7 +203,7 @@ export abstract class Series<
     // highlighted node.
     readonly highlightGroup = new TranslatableGroup({
         name: `${this.internalId}-highlight`,
-        zIndex: SeriesZIndexMap.HIGHLIGHT,
+        zIndex: SeriesZIndexMap.ANY_CONTENT,
     });
 
     // Error bars etc.
@@ -320,18 +320,18 @@ export abstract class Series<
         this.pickModes = pickModes;
     }
 
-    attachSeries(seriesNode: Node, annotationNode: Node | undefined, labelNode: Node | undefined) {
+    attachSeries(seriesNode: Node, annotationNode: Node | undefined) {
         seriesNode.appendChild(this.contentGroup);
         seriesNode.appendChild(this.highlightGroup);
+        seriesNode.appendChild(this.labelGroup);
         annotationNode?.appendChild(this.annotationGroup);
-        labelNode?.appendChild(this.labelGroup);
     }
 
-    detachSeries(seriesNode: Node, annotationNode: Node | undefined, labelNode: Node | undefined) {
+    detachSeries(seriesNode: Node, annotationNode: Node | undefined) {
         seriesNode.removeChild(this.contentGroup);
         seriesNode.removeChild(this.highlightGroup);
+        seriesNode.removeChild(this.labelGroup);
         annotationNode?.removeChild(this.annotationGroup);
-        labelNode?.removeChild(this.labelGroup);
     }
 
     _declarationOrder: number = -1;
@@ -340,10 +340,11 @@ export abstract class Series<
 
         this._declarationOrder = index;
 
-        this.contentGroup.zIndex = [index, SeriesZIndexMap.FOREGROUND];
-        this.highlightGroup.zIndex = [index, SeriesZIndexMap.HIGHLIGHT];
+        this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.FOREGROUND];
+        this.highlightGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.HIGHLIGHT];
+        this.labelGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.LABEL];
         this.annotationGroup.zIndex = index;
-        this.labelGroup.zIndex = index;
+        // this.labelGroup.zIndex = index;
 
         return true;
     }
@@ -531,11 +532,9 @@ export abstract class Series<
 
     protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
     pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
-        // const { pickModes, pickModeAxis, visible, rootGroup } = this;
-        const { pickModes, pickModeAxis, visible } = this;
+        const { pickModes, pickModeAxis, visible, contentGroup } = this;
 
-        // if (!visible || !rootGroup.visible) return;
-        if (!visible) return;
+        if (!visible || !contentGroup.visible) return;
         if (intent === 'highlight' && !this.properties.highlight.enabled) return;
         if (intent === 'highlight-tooltip' && !this.properties.highlight.enabled) return;
 
