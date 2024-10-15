@@ -90,7 +90,11 @@ export function countFractionDigits(value: number) {
  */
 export function formatNormalizedPercentage(ratio: number, locale?: string) {
     locale = locale ?? navigator.language;
-    return new Intl.NumberFormat(locale, { style: 'percent' }).format(ratio);
+    return new Intl.NumberFormat(locale, {
+        style: 'percent',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(ratio);
 }
 
 /**
