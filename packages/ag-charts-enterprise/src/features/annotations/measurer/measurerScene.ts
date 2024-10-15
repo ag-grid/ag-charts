@@ -47,6 +47,9 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     constructor() {
         super();
+
+        this.statistics.zIndex = 1;
+
         this.append([
             this.background,
             this.verticalStartLine,
@@ -57,9 +60,9 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             this.verticalLine,
             this.horizontalEndCap,
             this.verticalEndCap,
-            this.statistics,
             this.start,
             this.end,
+            this.statistics,
         ]);
     }
 
