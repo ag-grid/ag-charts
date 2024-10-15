@@ -33,7 +33,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     // TODO(olegat) should be of type D[]
     niceDomain: any[] = [];
 
-    defaultClamp = false;
+    protected defaultClamp = false;
 
     protected constructor(domain: D[], range: number[]) {
         this.domain = domain;
