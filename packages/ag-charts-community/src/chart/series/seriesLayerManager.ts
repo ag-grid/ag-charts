@@ -17,7 +17,6 @@ export type SeriesConfig = {
     internalId: string;
     seriesGrouping?: SeriesGrouping;
     rootGroup: Group;
-    highlightGroup: Group;
     annotationGroup: Group;
     type: string;
     getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex?: number): number[];
@@ -28,7 +27,6 @@ type LayerState = {
     id: string | number;
     seriesIds: string[];
     group: Group;
-    highlight: Group;
     annotation: Group;
 };
 
@@ -47,7 +45,6 @@ export class SeriesLayerManager {
 
     constructor(
         private readonly seriesRoot: Group,
-        private readonly highlightRoot: Group,
         private readonly annotationRoot: Group
     ) {}
 
@@ -60,7 +57,6 @@ export class SeriesLayerManager {
             internalId,
             type,
             rootGroup: seriesRootGroup,
-            highlightGroup: seriesHighlightGroup,
             annotationGroup: seriesAnnotationGroup,
             seriesGrouping,
         } = seriesConfig;
@@ -91,12 +87,6 @@ export class SeriesLayerManager {
                     zIndex: [ZIndexMap.SERIES_LAYER, ...seriesConfig.getGroupZIndexSubOrder('data')],
                 })
             ),
-            highlight: this.highlightRoot.appendChild(
-                new Group({
-                    name: `${type}-highlight`,
-                    zIndex: [ZIndexMap.SERIES_LAYER, ...seriesConfig.getGroupZIndexSubOrder('highlight')],
-                })
-            ),
             annotation: this.annotationRoot.appendChild(
                 new Group({
                     name: `${type}-annotation`,
@@ -109,14 +99,12 @@ export class SeriesLayerManager {
 
         groupInfo.seriesIds.push(internalId);
         groupInfo.group.appendChild(seriesRootGroup);
-        groupInfo.highlight.appendChild(seriesHighlightGroup);
         groupInfo.annotation.appendChild(seriesAnnotationGroup);
         return groupInfo.group;
     }
 
     public changeGroup(seriesConfig: SeriesConfig & { oldGrouping?: SeriesGrouping }) {
-        const { internalId, seriesGrouping, type, rootGroup, highlightGroup, annotationGroup, oldGrouping } =
-            seriesConfig;
+        const { internalId, seriesGrouping, type, rootGroup, annotationGroup, oldGrouping } = seriesConfig;
         const { groupIndex = internalId } = seriesGrouping ?? {};
 
         if (this.groups[type]?.[groupIndex]?.seriesIds.includes(internalId)) {
@@ -130,7 +118,6 @@ export class SeriesLayerManager {
                 seriesGrouping: oldGrouping,
                 type,
                 rootGroup,
-                highlightGroup,
                 annotationGroup,
             });
         }
@@ -140,12 +127,11 @@ export class SeriesLayerManager {
     public releaseGroup(seriesConfig: {
         internalId: string;
         seriesGrouping?: SeriesGrouping;
-        highlightGroup: Group;
         rootGroup: Group;
         annotationGroup: Group;
         type: string;
     }) {
-        const { internalId, rootGroup, highlightGroup, annotationGroup, type } = seriesConfig;
+        const { internalId, rootGroup, annotationGroup, type } = seriesConfig;
 
         if (this.series[internalId] == null) {
             throw new Error(`AG Charts - series doesn't have an allocated layer: ${internalId}`);
@@ -155,14 +141,12 @@ export class SeriesLayerManager {
         if (groupInfo) {
             groupInfo.seriesIds = groupInfo.seriesIds.filter((v) => v !== internalId);
             groupInfo.group.removeChild(rootGroup);
-            groupInfo.highlight.removeChild(highlightGroup);
             groupInfo.annotation.removeChild(annotationGroup);
         }
 
         if (groupInfo?.seriesIds.length === 0) {
             // Last member of the layer, cleanup.
             this.seriesRoot.removeChild(groupInfo.group);
-            this.highlightRoot.removeChild(groupInfo.highlight);
             this.annotationRoot.removeChild(groupInfo.annotation);
             delete this.groups[groupInfo.type][groupInfo.id];
             delete this.groups[type][internalId];
@@ -172,17 +156,12 @@ export class SeriesLayerManager {
             const leadSeriesConfig = this.series[groupInfo?.seriesIds?.[0]]?.seriesConfig;
             if (leadSeriesConfig != null) {
                 groupInfo.group.zIndex = [ZIndexMap.SERIES_LAYER, ...leadSeriesConfig.getGroupZIndexSubOrder('data')];
-                groupInfo.highlight.zIndex = [
-                    ZIndexMap.SERIES_LAYER,
-                    ...leadSeriesConfig.getGroupZIndexSubOrder('highlight'),
-                ];
                 groupInfo.annotation.zIndex = [
                     ZIndexMap.SERIES_LAYER,
                     ...leadSeriesConfig.getGroupZIndexSubOrder('annotation'),
                 ];
             } else {
                 groupInfo.group.zIndex = ZIndexMap.SERIES_LAYER;
-                groupInfo.highlight.zIndex = ZIndexMap.SERIES_LAYER;
                 groupInfo.annotation.zIndex = ZIndexMap.SERIES_LAYER;
             }
         }
@@ -211,7 +190,6 @@ export class SeriesLayerManager {
         for (const groups of Object.values(this.groups)) {
             for (const groupInfo of Object.values(groups)) {
                 this.seriesRoot.removeChild(groupInfo.group);
-                this.highlightRoot.removeChild(groupInfo.highlight);
                 this.annotationRoot.removeChild(groupInfo.annotation);
             }
         }

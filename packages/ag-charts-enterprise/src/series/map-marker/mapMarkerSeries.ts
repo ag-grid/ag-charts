@@ -3,6 +3,7 @@ import { type AgMapShapeSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } fro
 import { extendBbox } from '../map-util/bboxUtil';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
+import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { markerPositions } from '../map-util/markerUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import {
@@ -20,12 +21,11 @@ const {
     createDatumId,
     DataModelSeries,
     SeriesNodePickMode,
-    ZIndexMap,
     valueProperty,
     computeMarkerFocusBounds,
 } = _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;
-const { Layer, Selection, Text, getMarker } = _Scene;
+const { Group, Selection, Text, getMarker } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
 
 export interface MapMarkerNodeDataContext
@@ -71,12 +71,7 @@ export class MapMarkerSeries
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
 
-    private readonly markerGroup = this.contentGroup.appendChild(
-        new Layer({
-            name: 'markerGroup',
-            zIndex: ZIndexMap.SERIES_LAYER,
-        })
-    );
+    private readonly markerGroup = this.contentGroup.appendChild(new Group({ name: 'markerGroup' }));
 
     private labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>> = Selection.select(
         this.labelGroup,
@@ -100,7 +95,6 @@ export class MapMarkerSeries
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            contentGroupVirtual: true,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
@@ -159,7 +153,8 @@ export class MapMarkerSeries
     override setSeriesIndex(index: number): boolean {
         if (!super.setSeriesIndex(index)) return false;
 
-        this.markerGroup.zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('marker')];
+        this.contentGroup.zIndex = [MapZIndexMap.Marker, index];
+        this.highlightGroup.zIndex = [MapZIndexMap.MarkerHighlight, index];
 
         return true;
     }

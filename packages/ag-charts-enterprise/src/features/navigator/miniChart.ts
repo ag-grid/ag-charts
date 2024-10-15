@@ -100,9 +100,9 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         for (const series of newValue) {
             if (oldValue?.includes(series)) continue;
 
-            if (series.rootGroup.isRoot()) {
-                this.seriesRoot.appendChild(series.rootGroup);
-            }
+            // if (series.rootGroup.isRoot()) {
+            //     this.seriesRoot.appendChild(series.rootGroup);
+            // }
 
             const chart = this;
             series.chart = {
@@ -129,7 +129,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
     protected destroySeries(allSeries: _ModuleSupport.Series<any, any>[]): void {
         allSeries?.forEach((series) => {
             series.destroy();
-            series.rootGroup?.remove();
+            // series.rootGroup?.remove();
             series.chart = undefined;
         });
     }

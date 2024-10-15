@@ -47,7 +47,8 @@ export function pickNode(
 
     let result: { series: Series<any, any>; datum: SeriesNodeDatum; distance: number } | undefined;
     for (const series of reverseSeries) {
-        if (!series.visible || !series.rootGroup.visible) {
+        // if (!series.visible || !series.rootGroup.visible) {
+        if (!series.visible) {
             continue;
         }
         const { match, distance } = series.pickNode(point, intent, exactMatchOnly) ?? {};

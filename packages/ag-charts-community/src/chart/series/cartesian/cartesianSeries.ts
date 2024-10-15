@@ -240,12 +240,9 @@ export abstract class CartesianSeries<
             markerSelectionGarbageCollection,
         };
 
-        this.paths = [];
-        for (let index = 0; index < pathsPerSeries.length; index++) {
-            this.paths[index] = new Path({ name: `${this.id}-${pathsPerSeries[index]}` });
-            this.paths[index].zIndex = [ZIndexMap.SERIES_LAYER, ...this.getGroupZIndexSubOrder('paths', index)];
-            this.contentGroup.appendChild(this.paths[index]);
-        }
+        this.paths = pathsPerSeries.map((path) => {
+            return new Path({ name: `${this.id}-${path}` });
+        });
 
         this.datumSelection = Selection.select(
             this.dataNodeGroup,
@@ -310,6 +307,18 @@ export abstract class CartesianSeries<
             },
             () => this.checkProcessedDataAnimatable()
         );
+    }
+
+    override attachSeries(seriesNode: Node, labelNode: Node): void {
+        super.attachSeries(seriesNode, labelNode);
+
+        this.attachPaths(this.paths);
+    }
+
+    protected attachPaths(paths: Path[]) {
+        for (const path of paths) {
+            this.contentGroup.appendChild(path);
+        }
     }
 
     override resetAnimation(phase: ChartAnimationPhase): void {
@@ -446,7 +455,7 @@ export abstract class CartesianSeries<
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const visible = this.visible && this._contextNodeData != null && anySeriesItemEnabled;
-        this.rootGroup.visible = animationEnabled || visible;
+        // this.rootGroup.visible = animationEnabled || visible;
         this.contentGroup.visible = animationEnabled || visible;
         this.highlightGroup.visible = (animationEnabled || visible) && seriesHighlighted;
 

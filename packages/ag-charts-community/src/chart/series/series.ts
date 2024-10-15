@@ -38,6 +38,7 @@ import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { ISeries, NodeDataDependencies, SeriesNodeDatum } from './seriesTypes';
+import { SeriesZIndexMap } from './seriesZIndexMap';
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
 export enum SeriesNodePickMode {
@@ -146,7 +147,6 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     moduleCtx: ModuleContext;
     useLabelLayer?: boolean;
     pickModes: SeriesNodePickMode[];
-    contentGroupVirtual?: boolean;
     directionKeys?: SeriesDirectionKeysMapping<TProps>;
     directionNames?: SeriesDirectionKeysMapping<TProps>;
     canHaveAxes?: boolean;
@@ -193,21 +193,28 @@ export abstract class Series<
         return (this.constructor as any).type ?? '';
     }
 
-    // The group node that contains all the nodes used to render this series.
-    readonly rootGroup: Group = new Group({ name: 'seriesRoot' });
-
     // The group node that contains the series rendering in its default (non-highlighted) state.
-    readonly contentGroup: TranslatableGroup;
+    readonly contentGroup = new TranslatableGroup({
+        name: `${this.internalId}-content`,
+        zIndex: SeriesZIndexMap.FOREGROUND,
+    });
 
     // The group node that contains all highlighted series items. This is a performance optimisation
     // for large-scale data-sets, where the only thing that routinely varies is the currently
     // highlighted node.
-    readonly highlightGroup: TranslatableGroup;
-    readonly highlightNode: Group;
-    readonly highlightLabel: Group;
+    readonly highlightGroup = new TranslatableGroup({
+        name: `${this.internalId}-highlight`,
+        zIndex: SeriesZIndexMap.HIGHLIGHT,
+    });
 
     // Lazily initialised labelGroup for label presentation.
-    readonly labelGroup: TranslatableGroup;
+    readonly labelGroup = new TranslatableGroup({
+        name: `${this.internalId}-series-labels`,
+        zIndex: ZIndexMap.SERIES_LABEL,
+    });
+
+    readonly highlightNode: Group;
+    readonly highlightLabel: Group;
 
     readonly annotationGroup: Group;
 
@@ -303,12 +310,6 @@ export abstract class Series<
         this.directionNames = directionNames;
         this.canHaveAxes = canHaveAxes;
 
-        this.contentGroup = this.rootGroup.appendChild(
-            new TranslatableGroup({
-                name: `${this.internalId}-content`,
-            })
-        );
-
         this.highlightGroup = new TranslatableGroup({
             name: `${this.internalId}-highlight`,
         });
@@ -317,16 +318,21 @@ export abstract class Series<
 
         this.pickModes = pickModes;
 
-        this.labelGroup = this.rootGroup.appendChild(
-            new TranslatableGroup({
-                name: `${this.internalId}-series-labels`,
-                zIndex: ZIndexMap.SERIES_LABEL,
-            })
-        );
-
         this.annotationGroup = new Group({
             name: `${this.id}-annotation`,
         });
+    }
+
+    attachSeries(seriesNode: Node, labelNode: Node) {
+        seriesNode.appendChild(this.contentGroup);
+        seriesNode.appendChild(this.highlightGroup);
+        labelNode.appendChild(this.labelGroup);
+    }
+
+    detachSeries(seriesNode: Node, labelNode: Node) {
+        seriesNode.removeChild(this.contentGroup);
+        seriesNode.removeChild(this.highlightGroup);
+        labelNode.removeChild(this.labelGroup);
     }
 
     _declarationOrder: number = -1;
@@ -335,9 +341,9 @@ export abstract class Series<
 
         this._declarationOrder = index;
 
-        this.contentGroup.zIndex = this.getGroupZIndexSubOrder('data');
-        this.highlightGroup.zIndex = this.getGroupZIndexSubOrder('highlight');
-        this.annotationGroup.zIndex = this.getGroupZIndexSubOrder('annotation');
+        this.contentGroup.zIndex = [index, SeriesZIndexMap.FOREGROUND];
+        this.highlightGroup.zIndex = [index, SeriesZIndexMap.HIGHLIGHT];
+        this.annotationGroup.zIndex = index;
 
         return true;
     }
@@ -525,9 +531,11 @@ export abstract class Series<
 
     protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
     pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
-        const { pickModes, pickModeAxis, visible, rootGroup } = this;
+        // const { pickModes, pickModeAxis, visible, rootGroup } = this;
+        const { pickModes, pickModeAxis, visible } = this;
 
-        if (!visible || !rootGroup.visible) return;
+        // if (!visible || !rootGroup.visible) return;
+        if (!visible) return;
         if (intent === 'highlight' && !this.properties.highlight.enabled) return;
         if (intent === 'highlight-tooltip' && !this.properties.highlight.enabled) return;
 

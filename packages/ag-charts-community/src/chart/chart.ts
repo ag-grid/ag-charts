@@ -110,10 +110,6 @@ export abstract class Chart extends Observable {
         name: `${this.id}-series-root`,
         zIndex: ZIndexMap.SERIES_LAYER,
     });
-    readonly highlightRoot = new TranslatableGroup({
-        name: `${this.id}-highlight-root`,
-        zIndex: ZIndexMap.SERIES_HIGHLIGHT,
-    });
     readonly annotationRoot = new TranslatableLayer({
         name: `${this.id}-annotation-root`,
         zIndex: ZIndexMap.SERIES_ANNOTATION,
@@ -256,7 +252,6 @@ export abstract class Chart extends Observable {
         root.visible = false;
         root.append(titleGroup);
         root.append(this.seriesRoot);
-        root.append(this.highlightRoot);
         root.append(this.annotationRoot);
 
         titleGroup.append(this.title.node);
@@ -264,7 +259,7 @@ export abstract class Chart extends Observable {
         titleGroup.append(this.footnote.node);
 
         this.tooltip = new Tooltip();
-        this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.highlightRoot, this.annotationRoot);
+        this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.annotationRoot);
         const ctx = (this.ctx = new ChartContext(this, {
             scene,
             root,
@@ -738,9 +733,10 @@ export abstract class Chart extends Observable {
         for (const series of newValue) {
             if (oldValue?.includes(series)) continue;
 
-            if (series.rootGroup.isRoot()) {
-                this.seriesLayerManager.requestGroup(series);
-            }
+            // if (series.rootGroup.isRoot()) {
+            //     this.seriesLayerManager.requestGroup(series);
+            // }
+            series.attachSeries(this.seriesRoot, this.annotationRoot);
 
             const chart = this;
             series.chart = {
@@ -772,7 +768,8 @@ export abstract class Chart extends Observable {
             series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
             series.removeEventListener('groupingChanged', this.seriesGroupingChanged);
             series.destroy();
-            this.seriesLayerManager.releaseGroup(series);
+            // this.seriesLayerManager.releaseGroup(series);
+            series.detachSeries(this.seriesRoot, this.annotationRoot);
 
             series.chart = undefined;
         });
@@ -997,21 +994,21 @@ export abstract class Chart extends Observable {
 
     private readonly seriesGroupingChanged = (event: TypedEvent) => {
         if (!(event instanceof SeriesGroupingChangedEvent)) return;
-        const { series, seriesGrouping, oldGrouping } = event;
+        // const { series, seriesGrouping, oldGrouping } = event;
 
         // Short-circuit if series isn't already attached to the scene-graph yet.
-        if (series.rootGroup.isRoot()) return;
+        // if (series.rootGroup.isRoot()) return;
 
-        this.seriesLayerManager.changeGroup({
-            internalId: series.internalId,
-            type: series.type,
-            rootGroup: series.rootGroup,
-            highlightGroup: series.highlightGroup,
-            annotationGroup: series.annotationGroup,
-            getGroupZIndexSubOrder: (type) => series.getGroupZIndexSubOrder(type),
-            seriesGrouping,
-            oldGrouping,
-        });
+        // this.seriesLayerManager.changeGroup({
+        //     internalId: series.internalId,
+        //     type: series.type,
+        //     rootGroup: series.rootGroup,
+        //     highlightGroup: series.highlightGroup,
+        //     annotationGroup: series.annotationGroup,
+        //     getGroupZIndexSubOrder: (type) => series.getGroupZIndexSubOrder(type),
+        //     seriesGrouping,
+        //     oldGrouping,
+        // });
     };
 
     async waitForUpdate(timeoutMs = 10_000, failOnTimeout = false): Promise<void> {

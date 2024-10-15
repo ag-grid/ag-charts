@@ -6,6 +6,7 @@ import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
+import { Node } from '../../../scene/node';
 import { PointerEvents } from '../../../scene/node';
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
@@ -37,6 +38,7 @@ import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { SeriesZIndexMap } from '../seriesZIndexMap';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
     type AreaPathSpan,
@@ -84,6 +86,11 @@ export class AreaSeries extends CartesianSeries<
 
     override properties = new AreaSeriesProperties();
 
+    readonly backgroundGroup = new Group({
+        name: `${this.id}-background`,
+        zIndex: SeriesZIndexMap.BACKGROUND,
+    });
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
@@ -100,6 +107,31 @@ export class AreaSeries extends CartesianSeries<
                 marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
         });
+    }
+
+    override attachSeries(seriesNode: Node, labelNode: Node): void {
+        super.attachSeries(seriesNode, labelNode);
+
+        seriesNode.appendChild(this.backgroundGroup);
+    }
+
+    override detachSeries(seriesNode: Node, labelNode: Node): void {
+        super.detachSeries(seriesNode, labelNode);
+
+        seriesNode.removeChild(this.backgroundGroup);
+    }
+
+    override setSeriesIndex(index: number) {
+        if (!super.setSeriesIndex(index)) return false;
+
+        this.backgroundGroup.zIndex = [index, SeriesZIndexMap.BACKGROUND];
+
+        return true;
+    }
+
+    protected override attachPaths([fill, stroke]: Path[]) {
+        this.backgroundGroup.append(fill);
+        this.contentGroup.append(stroke);
     }
 
     override async processData(dataController: DataController) {

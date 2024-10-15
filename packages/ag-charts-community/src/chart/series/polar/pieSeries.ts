@@ -5,8 +5,8 @@ import { fromToMotion } from '../../../motion/fromToMotion';
 import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
-import { TranslatableLayer } from '../../../scene/layer';
-import { PointerEvents } from '../../../scene/node';
+import { TranslatableGroup } from '../../../scene/group';
+import { Node, PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
@@ -38,7 +38,6 @@ import type { LegendItemClickChartEvent } from '../../interaction/chartEventMana
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import { ZIndexMap } from '../../zIndexMap';
 import { SeriesNodeEvent, type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
@@ -46,6 +45,7 @@ import type { PieTitle } from './pieSeriesProperties';
 import { PieSeriesProperties } from './pieSeriesProperties';
 import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
 import { type PolarAnimationData, PolarSeries } from './polarSeries';
+import { PolarZIndexMap } from './polarZIndexMap';
 
 class PieSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<PieNodeDatum, TEvent> {
     readonly angleKey: string;
@@ -112,9 +112,14 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         return this.phantomNodeData ?? this.nodeData;
     }
 
+    readonly backgroundGroup = new TranslatableGroup({
+        name: `${this.id}-background`,
+        zIndex: PolarZIndexMap.BACKGROUND,
+    });
+
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
-    protected phantomGroup = this.rootGroup.appendChild(new Group({ zIndex: ZIndexMap.SERIES_LAYER }));
+    protected phantomGroup = this.backgroundGroup.appendChild(new Group({ name: 'phantom' }));
     private readonly phantomSelection: Selection<Sector, PieNodeDatum> = Selection.select(
         this.phantomGroup,
         () => this.nodeFactory(),
@@ -124,14 +129,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     private readonly calloutLabelSelection: Selection<Group, PieNodeDatum> = new Selection(
         this.calloutLabelGroup,
         Group
-    );
-
-    // The group node that contains the background graphics.
-    readonly backgroundGroup = this.rootGroup.appendChild(
-        new TranslatableLayer({
-            name: `${this.id}-background`,
-            zIndex: ZIndexMap.SERIES_BACKGROUND,
-        })
     );
 
     // AG-6193 If the sum of all datums is 0, then we'll draw 1 or 2 rings to represent the empty series.
@@ -165,10 +162,23 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         this.phantomGroup.opacity = 0.2;
     }
 
+    override attachSeries(seriesNode: Node, labelNode: Node): void {
+        super.attachSeries(seriesNode, labelNode);
+
+        seriesNode.appendChild(this.backgroundGroup);
+    }
+
+    override detachSeries(seriesNode: Node, labelNode: Node): void {
+        super.detachSeries(seriesNode, labelNode);
+
+        seriesNode.removeChild(this.backgroundGroup);
+    }
+
     override setSeriesIndex(index: number) {
         if (!super.setSeriesIndex(index)) return false;
 
-        this.phantomGroup.zIndex = [ZIndexMap.SERIES_LAYER, index];
+        this.backgroundGroup.zIndex = [PolarZIndexMap.BACKGROUND, index];
+
         return true;
     }
 
@@ -738,7 +748,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     private async updateNodes(seriesRect: BBox) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const isVisible = this.visible && this.seriesItemEnabled.includes(true);
-        this.rootGroup.visible = isVisible;
+        // this.rootGroup.visible = isVisible;
         this.backgroundGroup.visible = isVisible;
         this.contentGroup.visible = isVisible;
         this.highlightGroup.visible = isVisible && highlightedDatum?.series === this;
