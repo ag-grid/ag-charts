@@ -44,11 +44,12 @@ const lineText = {
 const measurerStatistics = {
     ...font,
     fontSize: 12,
-    fill: '#fafafb',
-    stroke: '#dddddd',
+    color: _Theme.DEFAULT_ANNOTATION_STATISTICS_COLOR,
+    fill: _Theme.DEFAULT_ANNOTATION_STATISTICS_FILL,
+    stroke: _Theme.DEFAULT_ANNOTATION_STATISTICS_STROKE,
     strokeWidth: 1,
     divider: {
-        stroke: '#181D1F',
+        stroke: _Theme.DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
         strokeWidth: 1,
         strokeOpacity: 0.5,
     },

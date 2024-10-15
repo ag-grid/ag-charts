@@ -81,6 +81,7 @@ export class MeasurerStatisticsScene extends _Scene.Group {
         const dividerLineOffset = -2;
 
         const textStyles = {
+            fill: datum.color,
             fontFamily: datum.fontFamily,
             fontSize: datum.fontSize,
             fontStyle: datum.fontStyle,
