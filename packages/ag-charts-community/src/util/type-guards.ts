@@ -67,3 +67,10 @@ export function isEnumValue<T extends object>(enumObject: T, enumValue: unknown)
 export function isSymbol(value: unknown): value is symbol {
     return typeof value === 'symbol';
 }
+
+export function excludesType<T extends string, O extends { type: T }, X extends T>(
+    obj: O & { type: T },
+    excluded: X
+): obj is O & { type: Exclude<T, X> } {
+    return obj.type !== excluded;
+}
