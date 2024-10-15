@@ -10,7 +10,7 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 export interface AgFunnelSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {}
 
 export interface AgFunnelSeriesStageLabelOptions extends AgBaseAxisLabelOptions {
-    /** Placement of the label in relation to the chart */
+    /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
 }
 
