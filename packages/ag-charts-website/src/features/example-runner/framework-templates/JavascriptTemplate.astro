@@ -49,6 +49,7 @@ import {
     getChartScriptPath,
 } from '@utils/chartLibraryPaths';
 
+import examplebaseStyle from '@ag-website-shared/components/example-runner/example-base.css?raw';
 import exampleControlsStyle from '@ag-website-shared/components/example-runner/example-controls.css?raw';
 
 const siteUrl = Astro.site ? pathJoin(Astro.site, SITE_BASE_URL) : '/';
@@ -71,9 +72,11 @@ const chartScriptLocalePath = getCacheBustingUrl(getChartLocaleScriptPath(siteUr
         />
         <Fragment set:html={headFragment} />
 
+        <style set:html={examplebaseStyle}></style>
+
         {!isExternal && <style set:html={exampleControlsStyle} />}
     </head>
-    <body>
+    <body id="root">
         <Fragment set:html={indexFragment} />
         <script src={isEnterprise ? chartScriptEnterprisePath : chartScriptPath}></script>
         {hasLocale && <script src={chartScriptLocalePath} />}
