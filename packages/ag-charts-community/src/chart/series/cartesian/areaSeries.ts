@@ -13,7 +13,6 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
-import { formatValue } from '../../../util/format.util';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isDefined, isFiniteNumber } from '../../../util/type-guards';
@@ -349,18 +348,14 @@ export class AreaSeries extends CartesianSeries<
 
                 // label data
                 if (validPoint && label) {
-                    const labelText = this.getLabelText(
-                        label,
-                        {
-                            value: yDatum,
-                            datum: seriesDatum,
-                            xKey,
-                            yKey,
-                            xName: this.properties.xName,
-                            yName: this.properties.yName,
-                        },
-                        formatValue
-                    );
+                    const labelText = this.getLabelText(label, {
+                        value: yDatum,
+                        datum: seriesDatum,
+                        xKey,
+                        yKey,
+                        xName: this.properties.xName,
+                        yName: this.properties.yName,
+                    });
 
                     labelData.push({
                         index: datumIdx,
