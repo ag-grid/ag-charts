@@ -120,6 +120,10 @@ export class TypeMapper {
             }
         }
 
+        if (node.name === 'AgAngleCategoryAxisOptions') {
+            console.log(node);
+        }
+
         for (const h of heritage) {
             node.members ??= [];
             if (typeof h === 'string' || this.nodeMap.has(h.type)) {
@@ -160,7 +164,8 @@ export class TypeMapper {
         if (node.type === 'NonNullable') {
             return this.resolveType(node.typeArguments[0]);
         } else if (node.type === 'Omit' || node.type === 'Pick') {
-            let typeRef = node.typeArguments[0];
+            const firstArgument = node.typeArguments[0];
+            let typeRef = firstArgument;
             if (typeof typeRef !== 'string') {
                 typeRef = typeRef.type;
             }
@@ -190,6 +195,14 @@ export class TypeMapper {
                     ? (m: any) => typeKeys.type.includes(`'${m.name}'`) === expectedFilter
                     : (m: any) => ((typeKeys.type ?? typeKeys) === `'${m.name}'`) === expectedFilter;
             const n = this.resolveType(typeRef);
+
+            if (typeof firstArgument !== 'string') {
+                const size = Math.min(firstArgument.typeArguments?.length, n.typeParams?.length);
+                for (let i = 0; i < size; i++) {
+                    this.genericsMap.set(n.typeParams[i].name, firstArgument.typeArguments[i]);
+                }
+            }
+
             return { ...n, members: n.members.filter(matchType) };
         } else {
             return this.resolveType(node.type, node.type.typeArguments);
