@@ -53,9 +53,9 @@ export abstract class CandlestickBaseGroup<TNodeDatum, TStyles>
         return datum.midPoint;
     }
 
-    override render(renderCtx: _Scene.RenderContext) {
+    override preRender(): _Scene.ChildNodeCounts {
         this.updateCoordinates();
-        super.render(renderCtx);
+        return super.preRender();
     }
 }
 

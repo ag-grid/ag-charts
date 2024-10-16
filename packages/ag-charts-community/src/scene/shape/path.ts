@@ -1,6 +1,6 @@
 import type { DistantObject } from '../../util/nearest';
 import { ExtendedPath2D } from '../extendedPath2D';
-import type { RenderContext } from '../node';
+import type { ChildNodeCounts, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 
@@ -68,6 +68,7 @@ export class Path extends Shape implements DistantObject {
     }
 
     isPointInPath(x: number, y: number): boolean {
+        this.updatePathIfDirty();
         return this.path.closedPath && this.path.isPointInPath(x, y);
     }
 
@@ -84,6 +85,7 @@ export class Path extends Shape implements DistantObject {
     }
 
     protected distanceSquaredTransformedPoint(x: number, y: number): number {
+        this.updatePathIfDirty();
         if (this.path.closedPath && this.path.isPointInPath(x, y)) {
             return 0;
         }
@@ -99,13 +101,20 @@ export class Path extends Shape implements DistantObject {
         // Override point for subclasses.
     }
 
-    override render(renderCtx: RenderContext) {
-        const { ctx } = renderCtx;
-
+    private updatePathIfDirty() {
         if (this.dirtyPath || this.isDirtyPath()) {
             this.updatePath();
             this.dirtyPath = false;
         }
+    }
+
+    override preRender(): ChildNodeCounts {
+        this.updatePathIfDirty();
+        return super.preRender();
+    }
+
+    override render(renderCtx: RenderContext) {
+        const { ctx } = renderCtx;
 
         if (this.clip && !isNaN(this._clipX) && !isNaN(this._clipY)) {
             ctx.save();

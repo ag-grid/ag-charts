@@ -37,13 +37,11 @@ export class Group extends Node {
     private layer: HdpiCanvas | undefined = undefined;
     renderToOffscreenCanvas: boolean = false;
 
-    constructor(
-        protected readonly opts?: {
-            readonly name?: string;
-            readonly zIndex?: ZIndex;
-            readonly renderToOffscreenCanvas?: boolean;
-        }
-    ) {
+    constructor(opts?: {
+        readonly name?: string;
+        readonly zIndex?: ZIndex;
+        readonly renderToOffscreenCanvas?: boolean;
+    }) {
         super(opts);
         this.isContainerNode = true;
         this.renderToOffscreenCanvas = opts?.renderToOffscreenCanvas === true;
@@ -68,17 +66,17 @@ export class Group extends Node {
             if (isChildDirty) break;
         }
 
-        if (this.opts?.name) {
-            this._debug?.({ name: this.opts.name, group: this, isDirty, isChildDirty, renderCtx });
+        if (this.name != null) {
+            this._debug?.({ name: this.name, group: this, isDirty, isChildDirty, renderCtx });
         }
 
         return { isDirty, isChildDirty };
     }
 
     protected debugSkip(renderCtx: RenderContext) {
-        if (renderCtx.stats && this.opts?.name) {
+        if (renderCtx.stats && this.name != null) {
             this._debug?.({
-                name: this.opts.name,
+                name: this.name,
                 group: this,
                 result: 'skipping',
                 counts: nodeCount(this),
@@ -110,11 +108,11 @@ export class Group extends Node {
     }
 
     override render(renderCtx: RenderContext) {
-        if (!this.getVisibility()) {
+        if (!this.visible) {
             return super.render(renderCtx);
         }
 
-        const { opts: { name } = {}, _debug: debug } = this;
+        const { name, _debug: debug } = this;
         const { isDirty, isChildDirty } = this.isDirty(renderCtx);
         const { ctx, stats } = renderCtx;
 
@@ -128,10 +126,9 @@ export class Group extends Node {
 
         if (this.layer != null) {
             const { layer } = this;
-            this.markClean({ recursive: false });
 
             if (isDirty || isChildDirty) {
-                const transform = childRenderCtx.ctx.getTransform();
+                const transform = ctx.getTransform();
 
                 childRenderCtx.ctx = layer.context;
 
@@ -163,7 +160,7 @@ export class Group extends Node {
         }
     }
 
-    protected renderClip(renderCtx: RenderContext, clipRect: BBox) {
+    private renderClip(renderCtx: RenderContext, clipRect: BBox) {
         // clipRect is in the group's coordinate space
         const { x, y, width, height } = clipRect;
         const { ctx } = renderCtx;
@@ -173,7 +170,7 @@ export class Group extends Node {
         ctx.clip();
 
         this._debug?.(() => ({
-            name: this.opts?.name,
+            name: this.name,
             clipRect: clipRect,
             ctxTransform: ctx.getTransform(),
             renderCtx,
@@ -186,7 +183,7 @@ export class Group extends Node {
         return Transformable.toCanvas(this, clipRect);
     }
 
-    protected renderInContext(childRenderCtx: RenderContext) {
+    private renderInContext(childRenderCtx: RenderContext) {
         const { ctx, stats } = childRenderCtx;
 
         if (this.dirtyZIndex) {
@@ -195,7 +192,7 @@ export class Group extends Node {
 
         for (const child of this.children()) {
             // Skip invisible children, but make sure their dirty flag is reset.
-            if (!child.visible || !this.visible) {
+            if (!child.visible) {
                 child.markClean();
                 if (stats) {
                     stats.nodesSkipped += nodeCount(child).count;

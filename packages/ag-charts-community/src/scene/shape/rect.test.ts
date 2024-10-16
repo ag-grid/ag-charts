@@ -191,6 +191,7 @@ describe('Rect', () => {
 
                     // Render.
                     ctx.save();
+                    rect.preRender();
                     rect.render({
                         ctx,
                         resized: false,

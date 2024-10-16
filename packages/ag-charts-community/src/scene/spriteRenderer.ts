@@ -50,6 +50,7 @@ export class SpriteRenderer {
         ctx.beginPath();
         ctx.setTransform(scale, 0, 0, scale, translateX, translateY);
         for (const node of nodes) {
+            node.preRender();
             node.render(renderCtx);
         }
         ctx.closePath();

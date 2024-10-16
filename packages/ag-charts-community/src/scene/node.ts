@@ -93,9 +93,7 @@ export abstract class Node {
      */
     protected isContainerNode: boolean = false;
 
-    @SceneChangeDetection<Node>({
-        changeCb: (target) => target.onVisibleChange(),
-    })
+    @SceneChangeDetection<Node>()
     visible: boolean = true;
 
     @SceneChangeDetection<Node>({
@@ -376,10 +374,6 @@ export abstract class Node {
                 child.markClean({ force });
             }
         }
-    }
-
-    protected onVisibleChange() {
-        // Override point for subclasses to react to visibility changes.
     }
 
     protected onZIndexChange() {
