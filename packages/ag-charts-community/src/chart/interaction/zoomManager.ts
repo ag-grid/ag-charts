@@ -2,15 +2,15 @@ import type { AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
 import type { BBox } from '../../scene/bbox';
-import { Logger } from '../../util/logger';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { deepClone } from '../../util/json';
+import { Logger } from '../../util/logger';
+import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
 import { isFiniteNumber, isObject } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { LayoutCompleteEvent, LayoutManager } from '../layout/layoutManager';
-import { calcPanToBBoxRatios } from '../../util/panToBBox';
 
 export interface ZoomState {
     min: number;
