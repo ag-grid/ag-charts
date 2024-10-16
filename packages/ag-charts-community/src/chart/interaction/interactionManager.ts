@@ -39,7 +39,6 @@ export type InteractionTypes = PointerInteractionTypes | FocusInteractionTypes |
 type SUPPORTED_EVENTS =
     | 'blur'
     | 'focus'
-    | 'click'
     | 'dblclick'
     | 'contextmenu'
     | 'keydown'
@@ -58,7 +57,6 @@ type SUPPORTED_EVENTS =
 const SHADOW_DOM_HANDLERS: SUPPORTED_EVENTS[] = ['mousemove', 'mouseup'];
 const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide', 'mousemove', 'mouseup'];
 const EVENT_HANDLERS = [
-    'click',
     'dblclick',
     'contextmenu',
     'mousedown',
@@ -332,8 +330,9 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             case 'keyup':
                 return this.keyboardOptions.enabled ? event.type : undefined;
 
-            case 'click':
             case 'dblclick':
+                return event.type;
+
             case 'contextmenu':
             case 'wheel':
                 return event.type;
@@ -374,7 +373,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
                     return;
                 }
                 this.mouseDown = false;
-                return this.recordUp(event) ? 'drag-end' : undefined;
+                return this.recordUp(event) ? 'drag-end' : 'click';
             case 'touchend':
                 if (!this.touchDown && !this.isEventOverElement(event)) {
                     // We only care about these events if the target is the canvas, unless
@@ -382,7 +381,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
                     return;
                 }
                 this.touchDown = false;
-                return this.recordUp(event) ? 'drag-end' : undefined;
+                return this.recordUp(event) ? 'drag-end' : 'click';
 
             case 'mouseleave':
             case 'touchcancel':
