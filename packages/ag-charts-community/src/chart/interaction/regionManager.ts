@@ -84,12 +84,11 @@ function shouldIgnore(event: EventUpcast<'id' | 'className' | 'classList' | 'ari
     const { type, sourceEvent } = event;
     const { id, className, classList, ariaHidden } = sourceEvent?.target ?? {};
     if (!(classList instanceof DOMTokenList)) return 'leave';
-    if (classList.contains('ag-charts-annotations__axis-button-icon')) {
-        return DRAG_INTERACTION_TYPES.includes(type as any) ? 'leave' : 'none';
-    }
 
+    const dragTypes: readonly string[] = DRAG_INTERACTION_TYPES;
     if (
         // Handle drag event on the axis 'add horizontal line annotation' button as canvas events.
+        (classList.contains('ag-charts-annotations__axis-button-icon') && dragTypes.includes(type)) ||
         className === 'ag-charts-series-area' ||
         className === 'ag-charts-canvas-proxy' ||
         (className === 'ag-charts-proxy-elem' && !id?.toString().startsWith('ag-charts-legend-item-')) || // legend <buttons>
