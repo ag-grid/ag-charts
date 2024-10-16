@@ -139,7 +139,9 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Text for the annotation toolbar's text annotations menu button
     toolbarAnnotationsTextAnnotations: 'Text Annotations',
     // Text for the annotation toolbar's shapes menu button
-    toolbarAnnotationsShapeAnnotations: 'Shapes',
+    toolbarAnnotationsShapeAnnotations: 'Arrows',
+    // Text for the annotation toolbar's measurers menu button
+    toolbarAnnotationsMeasurerAnnotations: 'Measurers',
     // Text for the annotation toolbar's callout button
     toolbarAnnotationsCallout: 'Callout',
     // Text for the annotation toolbar's comment button

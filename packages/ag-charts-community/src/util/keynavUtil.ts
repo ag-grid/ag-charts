@@ -255,3 +255,14 @@ export function getLastFocus(sourceEvent: Event | undefined): HTMLElement | unde
     }
     return undefined;
 }
+
+export function stopPageScrolling(element: HTMLElement) {
+    const handler = (event: KeyboardEvent) => {
+        if (event.defaultPrevented) return;
+        if (!event.defaultPrevented && matchesKey(event, 'ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp')) {
+            event.preventDefault();
+        }
+    };
+    element.addEventListener('keydown', handler);
+    return () => element.removeEventListener('keydown', handler);
+}

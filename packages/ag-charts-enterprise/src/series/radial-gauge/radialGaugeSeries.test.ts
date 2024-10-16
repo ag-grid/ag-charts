@@ -42,6 +42,26 @@ describe('RadialGaugeSeries', () => {
         expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
     };
 
+    const snapshot = async () => {
+        await waitForChartStability(chart);
+
+        return ctx.nodeCanvas?.toBuffer('raw');
+    };
+
+    const compareImageDataUrl = async () => {
+        await waitForChartStability(chart);
+        const reference = await snapshot();
+
+        const canvasCount = ctx.getActiveCanvasInstances().length;
+
+        const imageURL = await chart.getImageDataURL();
+        const imagePNGData = Buffer.from(imageURL.split(',')[1], 'base64');
+        expect(imagePNGData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
+
+        const imageRaw = ctx.getActiveCanvasInstances()[canvasCount];
+        expect(imageRaw.toBuffer('raw')).toMatchImage(reference);
+    };
+
     describe('basic chart', () => {
         it('should render a gauge', async () => {
             const options: AgRadialGaugeOptions = { ...EXAMPLE_OPTIONS };
@@ -159,5 +179,13 @@ describe('RadialGaugeSeries', () => {
             chart = deproxy(AgCharts.createGauge(options));
             await compare();
         });
+    });
+
+    it('it should export image as expected (AG-12985)', async () => {
+        const options: AgRadialGaugeOptions = { ...EXAMPLE_OPTIONS };
+        prepareEnterpriseTestOptions(options);
+
+        chart = AgCharts.createGauge(options);
+        await compareImageDataUrl();
     });
 });
