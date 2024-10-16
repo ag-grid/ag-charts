@@ -10,10 +10,6 @@
         sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
-:root[data-dark-mode='false'] {
-    background: white;
-}
-
 :root[data-dark-mode='true'] {
     --button-text-color: #f8f9fa;
     --button-color-border-primary: rgba(255, 255, 255, 0.2);
@@ -22,6 +18,14 @@
 
     background: #192232;
     color: white;
+
+    .toolbar {
+        color-scheme: dark;
+    }
+}
+
+:root[data-dark-mode='false'] {
+    background: white;
 }
 
 .toolbar {
