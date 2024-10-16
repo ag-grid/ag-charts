@@ -160,11 +160,6 @@ export class TypeMapper {
         if (node.type === 'NonNullable') {
             return this.resolveType(node.typeArguments[0]);
         } else if (node.type === 'Omit' || node.type === 'Pick') {
-            let typeRef = node.typeArguments[0];
-            if (typeof typeRef !== 'string') {
-                typeRef = typeRef.type;
-            }
-
             const resolveTypeKeyType = (typeKey) => {
                 if (typeof typeKey === 'string' && !typeKey.match(/^'.*'$/)) {
                     return this.resolveType(typeKey).type;
@@ -189,7 +184,16 @@ export class TypeMapper {
                 typeKeys.kind === 'union'
                     ? (m: any) => typeKeys.type.includes(`'${m.name}'`) === expectedFilter
                     : (m: any) => ((typeKeys.type ?? typeKeys) === `'${m.name}'`) === expectedFilter;
-            const n = this.resolveType(typeRef);
+            const typeArgument = node.typeArguments[0];
+            const n = this.resolveType(typeof typeArgument === 'string' ? typeArgument : typeArgument.type);
+
+            if (typeof typeArgument !== 'string') {
+                const size = Math.min(typeArgument.typeArguments?.length, n.typeParams?.length);
+                for (let i = 0; i < size; i++) {
+                    this.genericsMap.set(n.typeParams[i].name, typeArgument.typeArguments[i]);
+                }
+            }
+
             return { ...n, members: n.members.filter(matchType) };
         } else {
             return this.resolveType(node.type, node.type.typeArguments);
