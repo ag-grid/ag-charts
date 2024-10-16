@@ -178,6 +178,32 @@ describe('Annotations', () => {
             await compare();
         });
 
+        it('should render a date range annotation', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'date-range',
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 25 },
+                        end: { x: { __type: 'date', value: '2024-09-01' }, y: 75 },
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('should render a price range annotation', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'price-range',
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 25 },
+                        end: { x: { __type: 'date', value: '2024-09-01' }, y: 75 },
+                    },
+                ],
+            });
+            await compare();
+        });
+
         it('should render a date price range annotation', async () => {
             await prepareChart({
                 annotations: [

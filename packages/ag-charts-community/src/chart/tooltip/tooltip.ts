@@ -36,7 +36,7 @@ type TooltipPositionType =
     | 'bottom-left'
     | 'sparkline';
 
-export type TooltipEventType = 'hover' | 'drag' | 'keyboard';
+export type TooltipEventType = 'hover' | 'click' | 'dblclick' | 'keyboard';
 export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = PointerOffsets & { type: T };
 
 export type TooltipMeta = PointerOffsets & {

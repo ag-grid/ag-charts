@@ -30,14 +30,13 @@ export class ParallelChannelProperties extends Annotation(
     @Validate(NUMBER)
     height!: number;
 
-    @Validate(NUMBER)
-    snapToAngle: number = 45;
-
     @Validate(OBJECT, { optional: true })
     middle = new ChannelAnnotationMiddleProperties();
 
     @Validate(OBJECT, { optional: true })
     text = new ChannelTextProperties();
+
+    snapToAngle: number = 45;
 
     get bottom() {
         const bottom = {
