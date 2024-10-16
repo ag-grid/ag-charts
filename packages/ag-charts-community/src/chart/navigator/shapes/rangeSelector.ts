@@ -1,5 +1,4 @@
 import { BBox } from '../../../scene/bbox';
-import { RedrawType } from '../../../scene/changeDetectable';
 import { Group, TranslatableGroup } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import { ZIndexMap } from '../../zIndexMap';
@@ -30,7 +29,7 @@ export class RangeSelector extends Group {
 
         this.background.translationX = x;
         this.background.translationY = y;
-        this.markDirty(RedrawType.MAJOR);
+        this.markDirty();
     }
 
     updateBackground(oldGroup?: Group, newGroup?: Group) {
@@ -41,7 +40,7 @@ export class RangeSelector extends Group {
         if (newGroup != null) {
             this.background.appendChild(newGroup);
         }
-        this.markDirty(RedrawType.MAJOR);
+        this.markDirty();
     }
 
     protected override computeBBox() {

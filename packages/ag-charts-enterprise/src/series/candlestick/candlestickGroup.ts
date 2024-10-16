@@ -9,7 +9,7 @@ export enum GroupTags {
     HighWick,
 }
 
-const { SceneChangeDetection, BBox, RedrawType } = _Scene;
+const { SceneChangeDetection, BBox } = _Scene;
 
 export abstract class CandlestickBaseGroup<TNodeDatum, TStyles>
     extends _Scene.Group
@@ -18,25 +18,25 @@ export abstract class CandlestickBaseGroup<TNodeDatum, TStyles>
     abstract updateDatumStyles(datum: TNodeDatum, activeStyles: TStyles): void;
     abstract updateCoordinates(): void;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     x: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     y: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     yBottom: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     yHigh: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     yLow: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     width: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     height: number = 0;
 
     distanceSquared(x: number, y: number): number {

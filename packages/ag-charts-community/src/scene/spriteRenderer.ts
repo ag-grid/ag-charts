@@ -25,7 +25,6 @@ export class SpriteRenderer {
         this.renderCtx = {
             ctx,
             devicePixelRatio: 1,
-            forceRender: true,
             resized: false,
             debugNodes: {},
         };

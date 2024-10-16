@@ -7,7 +7,7 @@ import { isString } from '../util/type-guards';
 import { BBox } from './bbox';
 import { Group } from './group';
 import type { LayersManager } from './layersManager';
-import { type Node, RedrawType, type RenderContext } from './node';
+import { type Node, type RenderContext } from './node';
 import { SpriteRenderer } from './spriteRenderer';
 import { Transformable } from './transformable';
 
@@ -18,7 +18,7 @@ export enum DebugSelectors {
     SCENE_DIRTY_TREE = 'scene:dirtyTree',
 }
 
-type BuildTree = { name?: string; node?: any; dirty?: string };
+type BuildTree = { name?: string; node?: any; dirty?: boolean };
 
 export function debugStats(
     layersManager: LayersManager,
@@ -122,7 +122,7 @@ export function buildTree(node: Node): BuildTree {
     return {
         node,
         name: node.name ?? node.id,
-        dirty: RedrawType[node.dirty],
+        dirty: node.dirty,
         ...Array.from(node.children(), (c) => buildTree(c)).reduce<Record<string, {}>>((result, childTree) => {
             let { name: treeNodeName } = childTree;
             const {
@@ -161,10 +161,10 @@ export function buildTree(node: Node): BuildTree {
 }
 
 export function buildDirtyTree(node: Node): {
-    dirtyTree: { name?: string; node?: any; dirty?: string };
+    dirtyTree: { name?: string; node?: any; dirty?: boolean };
     paths: string[];
 } {
-    if (node.dirty === RedrawType.NONE) {
+    if (!node.dirty) {
         return { dirtyTree: {}, paths: [] };
     }
 
@@ -178,7 +178,7 @@ export function buildDirtyTree(node: Node): {
         dirtyTree: {
             name,
             node,
-            dirty: RedrawType[node.dirty],
+            dirty: node.dirty,
             ...childrenDirtyTree
                 .map((c) => c.dirtyTree)
                 .filter((t) => t.dirty != null)

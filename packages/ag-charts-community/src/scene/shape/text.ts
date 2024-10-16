@@ -4,7 +4,7 @@ import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../ut
 import { BBox } from '../bbox';
 import { nodeCount } from '../debug.util';
 import type { RenderContext } from '../node';
-import { RedrawType, SceneChangeDetection } from '../node';
+import {  SceneChangeDetection } from '../node';
 import { Rotatable, Translatable } from '../transformable';
 import { Shape } from './shape';
 
@@ -31,10 +31,10 @@ export class Text extends Shape {
         textBaseline: 'alphabetic' as CanvasTextBaseline,
     };
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     x: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     y: number = 0;
 
     private lines: string[] = [];
@@ -42,7 +42,7 @@ export class Text extends Shape {
         this.lines = this.text?.split('\n').map((s) => s.trim()) ?? [];
     }
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR, changeCb: (o: Text) => o.onTextChange() })
+    @SceneChangeDetection({ changeCb: (o: Text) => o.onTextChange() })
     text?: string = undefined;
 
     @SceneChangeDetection()
@@ -57,14 +57,14 @@ export class Text extends Shape {
     @SceneChangeDetection()
     fontFamily?: string = 'sans-serif';
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     textAlign: CanvasTextAlign = Text.defaultStyles.textAlign;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     textBaseline: CanvasTextBaseline = Text.defaultStyles.textBaseline;
 
     // TextMetrics are used if lineHeight is not defined.
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     lineHeight?: number;
 
     static computeBBox(lines: string | string[], x: number, y: number, opts: MeasureOptions): BBox {
@@ -84,12 +84,7 @@ export class Text extends Shape {
     }
 
     override render(renderCtx: RenderContext): void {
-        const { ctx, forceRender, stats } = renderCtx;
-
-        if (this.dirty === RedrawType.NONE && !forceRender) {
-            if (stats) stats.nodesSkipped += nodeCount(this).count;
-            return;
-        }
+        const { ctx, stats } = renderCtx;
 
         if (!this.lines.length || !this.layerManager) {
             if (stats) stats.nodesSkipped += nodeCount(this).count;

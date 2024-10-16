@@ -5,7 +5,7 @@ import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import { nodeCount } from './debug.util';
 import type { LayersManager } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
-import { Node, RedrawType, SceneChangeDetection } from './node';
+import { Node, SceneChangeDetection } from './node';
 import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
 import { type ZIndex, compareZIndex } from './zIndex';
 
@@ -30,7 +30,6 @@ export class Group extends Node {
     protected clipRect?: BBox;
 
     @SceneChangeDetection({
-        redraw: RedrawType.MAJOR,
         convertor: (v: number) => clamp(0, v, 1),
     })
     opacity: number = 1;
@@ -59,37 +58,13 @@ export class Group extends Node {
         return Group.computeChildrenBBox(this.children());
     }
 
-    override preRender(): ChildNodeCounts {
-        const counts = super.preRender();
-
-        // Correct counts for this group.
-        counts.groups += 1;
-        counts.nonGroups -= 1;
-
-        if (this.renderToOffscreenCanvas && counts.nonGroups > 0) {
-            this.layer ??= this._layerManager?.addLayer({
-                name: this.name,
-                zIndex: this.zIndex,
-                getComputedOpacity: () => this.getComputedOpacity(),
-                getVisibility: () => this.getVisibility(),
-            });
-        } else if (!this.renderToOffscreenCanvas && this.layer != null) {
-            this._layerManager?.removeLayer(this.layer);
-            this.layer = undefined;
-        }
-
-        return counts;
-    }
-
     protected isDirty(renderCtx: RenderContext) {
         const { resized } = renderCtx;
         const { dirty, dirtyZIndex } = this;
-        const isDirty = dirty >= RedrawType.MINOR || dirtyZIndex || resized;
+        const isDirty = dirty || dirtyZIndex || resized;
         let isChildDirty = isDirty;
-        let isChildLayerDirty = false;
         for (const child of this.children()) {
-            isChildDirty ||= child.layerManager == null && child.dirty >= RedrawType.TRIVIAL;
-            isChildLayerDirty ||= child.layerManager != null && child.dirty >= RedrawType.TRIVIAL;
+            isChildDirty ||= child.dirty;
             if (isChildDirty) break;
         }
 
@@ -97,7 +72,7 @@ export class Group extends Node {
             this._debug?.({ name: this.opts.name, group: this, isDirty, isChildDirty, renderCtx });
         }
 
-        return { isDirty, isChildDirty, isChildLayerDirty };
+        return { isDirty, isChildDirty };
     }
 
     protected debugSkip(renderCtx: RenderContext) {
@@ -112,83 +87,69 @@ export class Group extends Node {
         }
     }
 
-    private renderOffscreen(renderCtx: RenderContext, layer: HdpiCanvas, forceRender: boolean | 'dirtyTransform') {
-        if (forceRender) {
-            layer.clear();
+    override preRender(): ChildNodeCounts {
+        const counts = super.preRender();
+
+        // Correct counts for this group.
+        counts.groups += 1;
+        counts.nonGroups -= 1;
+
+        if (this.renderToOffscreenCanvas && counts.nonGroups > 0 && this.getVisibility()) {
+            this.layer ??= this._layerManager?.addLayer({
+                name: this.name,
+                zIndex: this.zIndex,
+                getComputedOpacity: () => this.getComputedOpacity(),
+                getVisibility: () => this.getVisibility(),
+            });
+        } else if (this.layer != null) {
+            this._layerManager?.removeLayer(this.layer);
+            this.layer = undefined;
         }
 
-        const renderCtxTransform = renderCtx.ctx.getTransform();
-        const { context: layerCtx } = layer;
-
-        layerCtx.save();
-        layerCtx.setTransform(renderCtxTransform);
-
-        const layerRenderCtx = { ...renderCtx, ctx: layerCtx, forceRender };
-        if (this.clipRect != null) {
-            layerRenderCtx.clipBBox = this.renderClip(layerRenderCtx, this.clipRect);
-        }
-
-        this.renderInContext(layerRenderCtx);
-
-        layerCtx.restore();
-
-        layerCtx.verifyDepthZero?.(); // Check for save/restore depth of zero!
+        return counts;
     }
 
-    override render(renderCtx: RenderContext, skip?: boolean) {
-        if (skip) {
+    override render(renderCtx: RenderContext) {
+        if (!this.getVisibility()) {
             return super.render(renderCtx);
         }
 
         const { opts: { name } = {}, _debug: debug } = this;
-        const { isDirty, isChildDirty, isChildLayerDirty } = this.isDirty(renderCtx);
+        const { isDirty, isChildDirty } = this.isDirty(renderCtx);
         const { ctx, stats } = renderCtx;
-        let { forceRender } = renderCtx;
 
-        if (!isDirty && !isChildDirty && !isChildLayerDirty && !forceRender) {
-            this.debugSkip(renderCtx);
-            this.markClean({ recursive: false });
-            return; // Nothing to do.
+        const childRenderCtx: RenderContext = { ...renderCtx };
+
+        ctx.save();
+
+        if (this.clipRect != null) {
+            childRenderCtx.clipBBox = this.renderClip(childRenderCtx, this.clipRect);
         }
 
-        if (forceRender !== 'dirtyTransform') {
-            forceRender ||= this.dirtyZIndex;
-        }
-
-        if (this.renderToOffscreenCanvas && this.layer != null) {
+        if (this.layer != null) {
+            const { layer } = this;
             this.markClean({ recursive: false });
 
-            if (forceRender !== 'dirtyTransform') {
-                forceRender ||= isChildDirty;
+            if (isDirty || isChildDirty) {
+                const transform = childRenderCtx.ctx.getTransform();
+
+                childRenderCtx.ctx = layer.context;
+
+                layer.clear();
+                layer.context.setTransform(transform);
+                this.renderInContext(childRenderCtx);
+                layer.context.verifyDepthZero?.(); // Check for save/restore depth of zero!
             }
 
-            if (this.getVisibility()) {
-                if (isDirty || isChildDirty || isChildLayerDirty || forceRender) {
-                    this.renderOffscreen(renderCtx, this.layer, forceRender);
-                }
-
-                ctx.save();
-                ctx.resetTransform();
-                ctx.globalAlpha = this.getComputedOpacity();
-                this.layer.drawImage(ctx as any);
-                ctx.restore();
-            }
+            ctx.globalAlpha = this.getComputedOpacity();
+            ctx.resetTransform();
+            layer.drawImage(ctx as any);
         } else {
             ctx.globalAlpha *= this.opacity;
-
-            const childRenderCtx = { ...renderCtx, forceRender };
-
-            if (this.clipRect != null) {
-                ctx.save();
-                childRenderCtx.clipBBox = this.renderClip(renderCtx, this.clipRect);
-            }
-
             this.renderInContext(childRenderCtx);
-
-            if (this.clipRect != null) {
-                ctx.restore();
-            }
         }
+
+        ctx.restore();
 
         if (name && stats) {
             debug?.({
@@ -225,8 +186,8 @@ export class Group extends Node {
         return Transformable.toCanvas(this, clipRect);
     }
 
-    protected renderInContext(renderCtx: RenderContext) {
-        const { ctx, forceRender, stats } = renderCtx;
+    protected renderInContext(childRenderCtx: RenderContext) {
+        const { ctx, stats } = childRenderCtx;
 
         if (this.dirtyZIndex) {
             this.sortChildren(Group.compareChildren);
@@ -242,21 +203,13 @@ export class Group extends Node {
                 continue;
             }
 
-            // Skip children that don't need to be redrawn.
-            if (!forceRender && child.dirty === RedrawType.NONE) {
-                if (stats) {
-                    stats.nodesSkipped += nodeCount(child).count;
-                }
-                continue;
-            }
-
             // Render marks this node (and children) as clean - no need to explicitly markClean().
             ctx.save();
-            child.render(renderCtx);
+            child.render(childRenderCtx);
             ctx.restore();
         }
 
-        super.render(renderCtx); // Calls markClean().
+        super.render(childRenderCtx); // Calls markClean().
     }
 
     /**

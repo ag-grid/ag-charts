@@ -69,7 +69,8 @@ export class SeriesLayerManager {
                     new Group({
                         name: `${seriesConfig.contentGroup.name ?? type}-managed-layer`,
                         zIndex: seriesConfig.contentGroup.zIndex,
-                        renderToOffscreenCanvas: true,
+                        // Set in updateLayerCompositing
+                        renderToOffscreenCanvas: false,
                     })
                 ),
             };

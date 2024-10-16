@@ -7,7 +7,7 @@ export { DropShadow } from './scene/dropShadow';
 export { ChangeDetectableProperties } from './scene/util/changeDetectableProperties';
 export { Group, ScalableGroup, RotatableGroup, TranslatableGroup } from './scene/group';
 export { Scene } from './scene/scene';
-export { Node, PointerEvents, RedrawType, SceneChangeDetection } from './scene/node';
+export { Node, PointerEvents, SceneChangeDetection } from './scene/node';
 export type { RenderContext } from './scene/node';
 export { Rotatable, Translatable, Transformable, Scalable } from './scene/transformable';
 export { Selection } from './scene/selection';

@@ -193,7 +193,6 @@ describe('Rect', () => {
                     ctx.save();
                     rect.render({
                         ctx,
-                        forceRender: true,
                         resized: false,
                         debugNodes: {},
                         devicePixelRatio: 1,

@@ -1,18 +1,13 @@
 import type { DistantObject } from '../../util/nearest';
-import { nodeCount } from '../debug.util';
 import { ExtendedPath2D } from '../extendedPath2D';
 import type { RenderContext } from '../node';
-import { RedrawType, SceneChangeDetection } from '../node';
+import { SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 
-export function ScenePathChangeDetection(opts?: {
-    redraw?: RedrawType;
-    convertor?: (o: any) => any;
-    changeCb?: (t: any) => any;
-}) {
-    const { redraw = RedrawType.MAJOR, changeCb, convertor } = opts ?? {};
+export function ScenePathChangeDetection(opts?: { convertor?: (o: any) => any; changeCb?: (t: any) => any }) {
+    const { changeCb, convertor } = opts ?? {};
 
-    return SceneChangeDetection({ redraw, type: 'path', convertor, changeCb });
+    return SceneChangeDetection({ type: 'path', convertor, changeCb });
 }
 
 export class Path extends Shape implements DistantObject {
@@ -55,7 +50,7 @@ export class Path extends Shape implements DistantObject {
         if (this._dirtyPath !== value) {
             this._dirtyPath = value;
             if (value) {
-                this.markDirty(RedrawType.MAJOR);
+                this.markDirty();
             }
         }
     }
@@ -105,12 +100,7 @@ export class Path extends Shape implements DistantObject {
     }
 
     override render(renderCtx: RenderContext) {
-        const { ctx, forceRender, stats } = renderCtx;
-
-        if (this.dirty === RedrawType.NONE && !forceRender) {
-            if (stats) stats.nodesSkipped += nodeCount(this).count;
-            return;
-        }
+        const { ctx } = renderCtx;
 
         if (this.dirtyPath || this.isDirtyPath()) {
             this.updatePath();

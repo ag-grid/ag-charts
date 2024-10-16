@@ -1,5 +1,5 @@
 import { BBox } from '../../../scene/bbox';
-import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
+import { SceneChangeDetection } from '../../../scene/changeDetectable';
 import { Path } from '../../../scene/shape/path';
 import { POSITIVE_NUMBER, Validate } from '../../../util/validation';
 
@@ -12,19 +12,19 @@ export class RangeHandle extends Path {
     private centerY: number = 0;
 
     @Validate(POSITIVE_NUMBER)
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR, type: 'path' })
+    @SceneChangeDetection({ type: 'path' })
     width: number = 8;
 
     @Validate(POSITIVE_NUMBER)
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR, type: 'path' })
+    @SceneChangeDetection({ type: 'path' })
     height: number = 16;
 
     @Validate(POSITIVE_NUMBER)
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR, type: 'path' })
+    @SceneChangeDetection({ type: 'path' })
     gripLineGap: number = 2;
 
     @Validate(POSITIVE_NUMBER)
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR, type: 'path' })
+    @SceneChangeDetection({ type: 'path' })
     gripLineLength: number = 8;
 
     setCenter(x: number, y: number) {
@@ -32,7 +32,7 @@ export class RangeHandle extends Path {
         if (this.centerX !== x || this.centerY !== y) {
             this.centerX = x;
             this.centerY = y;
-            this.markDirty(RedrawType.MAJOR);
+            this.markDirty();
         }
     }
 

@@ -16,7 +16,6 @@ import type { LayoutContext } from '../module/baseModule';
 import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
-import { RedrawType } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
@@ -363,7 +362,7 @@ export class Legend extends BaseProperties {
 
     public onMarkerShapeChange() {
         this.itemSelection.clear();
-        this.group.markDirty(RedrawType.MINOR);
+        this.group.markDirty();
     }
 
     private getOrientation(): AgChartLegendOrientation {

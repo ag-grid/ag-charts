@@ -16,10 +16,7 @@ export class LayersManager {
 
     private nextLayerId = 0;
 
-    constructor(
-        public readonly canvas: HdpiCanvas,
-        public readonly markDirty: () => void
-    ) {}
+    constructor(public readonly canvas: HdpiCanvas) {}
 
     get size() {
         return this.layersMap.size;
@@ -57,7 +54,6 @@ export class LayersManager {
         if (this.layersMap.has(canvas)) {
             this.layersMap.delete(canvas);
             canvas.destroy();
-            this.markDirty();
 
             this.debug('Scene.removeLayer() -  layers', this.layersMap);
         }

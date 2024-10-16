@@ -1,11 +1,11 @@
 import { createId } from '../util/id';
 import { toIterable } from '../util/iterator';
 import { BBox } from './bbox';
-import { RedrawType, SceneChangeDetection } from './changeDetectable';
+import { SceneChangeDetection } from './changeDetectable';
 import type { LayersManager } from './layersManager';
 import type { ZIndex } from './zIndex';
 
-export { SceneChangeDetection, RedrawType };
+export { SceneChangeDetection };
 
 export enum PointerEvents {
     All,
@@ -15,7 +15,6 @@ export enum PointerEvents {
 export type RenderContext = {
     ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
     devicePixelRatio: number;
-    forceRender: boolean | 'dirtyTransform';
     resized: boolean;
     clipBBox?: BBox;
     stats?: {
@@ -79,7 +78,7 @@ export abstract class Node {
     protected _debug?: (...args: any[]) => void;
     protected _layerManager?: LayersManager;
 
-    protected _dirty: RedrawType = RedrawType.MAJOR;
+    protected _dirty: boolean = true;
     protected dirtyZIndex: boolean = false;
 
     private parentNode?: Node;
@@ -95,13 +94,11 @@ export abstract class Node {
     protected isContainerNode: boolean = false;
 
     @SceneChangeDetection<Node>({
-        redraw: RedrawType.MAJOR,
         changeCb: (target) => target.onVisibleChange(),
     })
     visible: boolean = true;
 
     @SceneChangeDetection<Node>({
-        redraw: RedrawType.TRIVIAL,
         changeCb: (target) => target.onZIndexChange(),
     })
     zIndex: ZIndex = 0;
@@ -155,7 +152,7 @@ export abstract class Node {
     render(renderCtx: RenderContext): void {
         const { stats } = renderCtx;
 
-        this._dirty = RedrawType.NONE;
+        this._dirty = false;
 
         if (renderCtx.debugNodeSearch) {
             const idOrName = this.name ?? this.id;
@@ -241,7 +238,7 @@ export abstract class Node {
 
         this.invalidateCachedBBox();
         this.dirtyZIndex = true;
-        this.markDirty(RedrawType.MAJOR);
+        this.markDirty();
     }
 
     appendChild<T extends Node>(node: T): T {
@@ -259,7 +256,7 @@ export abstract class Node {
 
         this.invalidateCachedBBox();
         this.dirtyZIndex = true;
-        this.markDirty(RedrawType.MAJOR);
+        this.markDirty();
 
         return true;
     }
@@ -354,30 +351,25 @@ export abstract class Node {
         return;
     }
 
-    markDirty(type = RedrawType.TRIVIAL, parentType = type) {
+    markDirty() {
         const { _dirty } = this;
-        // Short-circuit case to avoid needing to percolate all dirty flag changes if redundant.
-        const dirtyTypeBelowHighWatermark = _dirty > type || (_dirty === type && type === parentType);
-        // If parent node cached a bbox previously, this node will have a cached bbox too. Therefore,
-        // if this node has no cached bbox, we don't need to force clearing of parents cached bbox.
+
         const noParentCachedBBox = this.cachedBBox == null;
-        if (noParentCachedBBox && dirtyTypeBelowHighWatermark) return;
+        if (noParentCachedBBox && _dirty) return;
 
         this.invalidateCachedBBox();
-        this._dirty = Math.max(_dirty, type);
+        this._dirty = true;
         if (this.parentNode) {
-            this.parentNode.markDirty(parentType);
-        } else if (this.layerManager) {
-            this.layerManager.markDirty();
+            this.parentNode.markDirty();
         }
     }
 
     markClean(opts?: { force?: boolean; recursive?: boolean | 'virtual' }) {
         const { force = false, recursive = true } = opts ?? {};
 
-        if (this._dirty === RedrawType.NONE && !force) return;
+        if (!this._dirty && !force) return;
 
-        this._dirty = RedrawType.NONE;
+        this._dirty = false;
 
         if (recursive === true) {
             for (const child of this.children()) {
