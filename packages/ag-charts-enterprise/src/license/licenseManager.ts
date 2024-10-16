@@ -315,7 +315,7 @@ export class LicenseManager {
         }
 
         const isTrial = matches.filter((match) => match === 'TRIAL').length === 1;
-        const rawVersion = matches.filter((match) => match.indexOf('v') === 0)[0];
+        const rawVersion = matches.filter((match) => match.startsWith('v'))[0];
         const version = rawVersion ? rawVersion.replace('v', '') : 'legacy';
         const type = (LICENSE_TYPES as any)[matches.filter((match) => (LICENSE_TYPES as any)[match])[0]];
 
