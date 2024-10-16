@@ -497,8 +497,6 @@ export class ChordSeries extends FlowProportionSeries<
         });
     }
 
-    override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {}
-
     override getTooltipHtml(nodeDatum: ChordDatum): _ModuleSupport.TooltipContent {
         const {
             id: seriesId,
