@@ -15,8 +15,7 @@ import type { ListSwitch } from '../dom/proxyInteractionService';
 import type { LayoutContext } from '../module/baseModule';
 import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
-import { Group } from '../scene/group';
-import { TranslatableLayer } from '../scene/layer';
+import { Group, TranslatableGroup } from '../scene/group';
 import { RedrawType } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
@@ -182,7 +181,7 @@ export class Legend extends BaseProperties {
 
     readonly id = createId(this);
 
-    private readonly group = new TranslatableLayer({ name: 'legend', zIndex: ZIndexMap.LEGEND });
+    private readonly group = new TranslatableGroup({ name: 'legend', zIndex: ZIndexMap.LEGEND });
 
     private readonly itemSelection: Selection<LegendMarkerLabel, CategoryLegendDatum> = Selection.select(
         this.group,

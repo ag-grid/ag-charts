@@ -1,7 +1,9 @@
 import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
 import { clamp } from '../util/number';
 import { BBox } from './bbox';
+import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import { nodeCount } from './debug.util';
+import type { LayersManager } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
 import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
@@ -33,15 +35,19 @@ export class Group extends Node {
     })
     opacity: number = 1;
 
+    private layer: HdpiCanvas | undefined = undefined;
+    renderToOffscreenCanvas: boolean = false;
+
     constructor(
         protected readonly opts?: {
             readonly name?: string;
             readonly zIndex?: ZIndex;
-            readonly layer?: boolean; // TODO remove
+            readonly renderToOffscreenCanvas?: boolean;
         }
     ) {
         super(opts);
         this.isContainerNode = true;
+        this.renderToOffscreenCanvas = opts?.renderToOffscreenCanvas === true;
     }
 
     // We consider a group to be boundless, thus any point belongs to it.
@@ -59,6 +65,18 @@ export class Group extends Node {
         // Correct counts for this group.
         counts.groups += 1;
         counts.nonGroups -= 1;
+
+        if (this.renderToOffscreenCanvas && counts.nonGroups > 0) {
+            this.layer ??= this._layerManager?.addLayer({
+                name: this.name,
+                zIndex: this.zIndex,
+                getComputedOpacity: () => this.getComputedOpacity(),
+                getVisibility: () => this.getVisibility(),
+            });
+        } else if (!this.renderToOffscreenCanvas && this.layer != null) {
+            this._layerManager?.removeLayer(this.layer);
+            this.layer = undefined;
+        }
 
         return counts;
     }
@@ -94,6 +112,35 @@ export class Group extends Node {
         }
     }
 
+    private renderOffscreen(renderCtx: RenderContext, layer: HdpiCanvas, forceRender: boolean | 'dirtyTransform') {
+        if (forceRender) {
+            layer.clear();
+        }
+
+        const children = this.children();
+        const renderCtxTransform = renderCtx.ctx.getTransform();
+        const { context: layerCtx } = layer;
+
+        layerCtx.save();
+
+        layerCtx.setTransform(renderCtxTransform);
+
+        const layerRenderCtx = { ...renderCtx, ctx: layerCtx, forceRender };
+        if (this.clipRect != null) {
+            layerCtx.save();
+            layerRenderCtx.clipBBox = this.renderClip(layerRenderCtx, this.clipRect);
+        }
+
+        this.renderChildren(children, layerRenderCtx);
+
+        if (this.clipRect) {
+            layerCtx.restore();
+        }
+
+        layerCtx.restore();
+        layerCtx.verifyDepthZero?.(); // Check for save/restore depth of zero!
+    }
+
     override render(renderCtx: RenderContext, skip?: boolean) {
         if (skip) {
             return super.render(renderCtx);
@@ -110,24 +157,50 @@ export class Group extends Node {
             return; // Nothing to do.
         }
 
+        if (this.dirtyZIndex) {
+            this.sortChildren(Group.compareChildren);
+        }
+
         if (forceRender !== 'dirtyTransform') {
             forceRender ||= this.dirtyZIndex;
         }
 
-        ctx.globalAlpha *= this.opacity;
+        if (this.renderToOffscreenCanvas && this.layer != null) {
+            this.markClean({ recursive: false });
 
-        if (this.dirtyZIndex) {
-            this.sortChildren(Group.compareChildren);
-        }
-        const children = this.children();
-        const clipBBox = this.renderClip(renderCtx) ?? renderCtx.clipBBox;
-        const renderCtxChanged = forceRender !== renderCtx.forceRender || clipBBox !== renderCtx.clipBBox;
+            if (forceRender !== 'dirtyTransform') {
+                forceRender ||= isChildDirty;
+            }
 
-        this.renderChildren(children, renderCtxChanged ? { ...renderCtx, forceRender, clipBBox } : renderCtx);
-        super.render(renderCtx); // Calls markClean().
+            if (this.getVisibility()) {
+                if (isDirty || isChildDirty || isChildLayerDirty || forceRender) {
+                    this.renderOffscreen(renderCtx, this.layer, forceRender);
+                }
 
-        if (this.clipRect) {
-            ctx.restore();
+                ctx.save();
+                ctx.resetTransform();
+                ctx.globalAlpha = this.getComputedOpacity();
+                this.layer.drawImage(ctx as any);
+                ctx.restore();
+            }
+        } else {
+            ctx.globalAlpha *= this.opacity;
+
+            const children = this.children();
+
+            const childRenderCtx = { ...renderCtx, forceRender };
+
+            if (this.clipRect != null) {
+                ctx.save();
+                childRenderCtx.clipBBox = this.renderClip(renderCtx, this.clipRect);
+            }
+
+            this.renderChildren(children, childRenderCtx);
+            super.render(renderCtx); // Calls markClean().
+
+            if (this.clipRect != null) {
+                ctx.restore();
+            }
         }
 
         if (name && stats) {
@@ -142,21 +215,18 @@ export class Group extends Node {
         }
     }
 
-    protected renderClip(renderCtx: RenderContext) {
-        if (!this.clipRect) return;
-
+    protected renderClip(renderCtx: RenderContext, clipRect: BBox) {
         // clipRect is in the group's coordinate space
-        const { x, y, width, height } = this.clipRect;
+        const { x, y, width, height } = clipRect;
         const { ctx } = renderCtx;
 
-        ctx.save();
         ctx.beginPath();
         ctx.rect(x, y, width, height);
         ctx.clip();
 
         this._debug?.(() => ({
             name: this.opts?.name,
-            clipRect: this.clipRect,
+            clipRect: clipRect,
             ctxTransform: ctx.getTransform(),
             renderCtx,
             group: this,
@@ -165,7 +235,7 @@ export class Group extends Node {
         // clipBBox is in the canvas coordinate space,
         // when we hit a layer we apply the new clipping
         // at which point there are no transforms in play
-        return Transformable.toCanvas(this, this.clipRect);
+        return Transformable.toCanvas(this, clipRect);
     }
 
     protected renderChildren(children: Iterable<Node>, renderCtx: RenderContext) {
@@ -210,6 +280,33 @@ export class Group extends Node {
      */
     setClipRectCanvasSpace(bbox?: BBox) {
         this.clipRect = bbox;
+    }
+
+    override _setLayerManager(layersManager?: LayersManager) {
+        if (this.layer) {
+            this._layerManager?.removeLayer(this.layer);
+            this.layer = undefined;
+        }
+        super._setLayerManager(layersManager);
+    }
+
+    private getComputedOpacity() {
+        let opacity = 1;
+        for (const node of this.traverseUp(true)) {
+            if (node instanceof Group) {
+                opacity *= node.opacity;
+            }
+        }
+        return opacity;
+    }
+
+    private getVisibility() {
+        for (const node of this.traverseUp(true)) {
+            if (!node.visible) {
+                return false;
+            }
+        }
+        return true;
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {

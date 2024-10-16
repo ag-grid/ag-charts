@@ -14,7 +14,7 @@ const {
     valueProperty,
     TextUtils,
 } = _ModuleSupport;
-const { Label, Rect, Text } = _Scene;
+const { Group, Label, Rect, Text } = _Scene;
 
 enum LabelConfiguration {
     Open = 1 << 1,
@@ -118,7 +118,7 @@ export class StatusBar
     data?: any[] = undefined;
 
     private readonly highlightManager: _ModuleSupport.HighlightManager;
-    private readonly layer = new _Scene.Layer({
+    private readonly layer = new Group({
         name: 'StatusBar',
         zIndex: ZIndexMap.STATUS_BAR,
     });

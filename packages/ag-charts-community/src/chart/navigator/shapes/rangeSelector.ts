@@ -1,11 +1,10 @@
 import { BBox } from '../../../scene/bbox';
 import { RedrawType } from '../../../scene/changeDetectable';
 import { Group, TranslatableGroup } from '../../../scene/group';
-import { Layer } from '../../../scene/layer';
 import type { Node } from '../../../scene/node';
 import { ZIndexMap } from '../../zIndexMap';
 
-export class RangeSelector extends Layer {
+export class RangeSelector extends Group {
     private readonly background: TranslatableGroup;
 
     private x = 0;

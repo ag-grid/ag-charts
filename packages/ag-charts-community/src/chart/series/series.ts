@@ -347,6 +347,10 @@ export abstract class Series<
         return true;
     }
 
+    renderToOffscreenCanvas() {
+        return false;
+    }
+
     private readonly seriesListeners = new Listeners<SeriesEventType, (event: any) => void>();
 
     public addListener<T extends SeriesEventType, E extends BaseSeriesEvent<T>>(type: T, listener: (event: E) => void) {

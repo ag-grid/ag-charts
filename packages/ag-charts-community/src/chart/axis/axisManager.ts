@@ -1,6 +1,5 @@
 import type { AxisContext } from '../../module/axisContext';
 import { Group } from '../../scene/group';
-import { Layer } from '../../scene/layer';
 import { Node } from '../../scene/node';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import { ZIndexMap } from '../zIndexMap';
@@ -25,18 +24,18 @@ interface Axis {
 export class AxisManager {
     private readonly axes: Map<ChartAxisDirection, AxisContext[]> = new Map();
 
-    readonly axisGridGroup = new Layer({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID });
-    readonly axisGroup = new Layer({ name: 'Axes', zIndex: ZIndexMap.AXIS });
-    readonly axisLabelGroup = new Layer({ name: 'Axes-Labels', zIndex: ZIndexMap.SERIES_LABEL });
-    readonly axisCrosslineRangeGroup = new Layer({
+    readonly axisGridGroup = new Group({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID });
+    readonly axisGroup = new Group({ name: 'Axes', zIndex: ZIndexMap.AXIS });
+    readonly axisLabelGroup = new Group({ name: 'Axes-Labels', zIndex: ZIndexMap.SERIES_LABEL });
+    readonly axisCrosslineRangeGroup = new Group({
         name: 'Axes-Crosslines-Range',
         zIndex: ZIndexMap.SERIES_CROSSLINE_RANGE,
     });
-    readonly axisCrosslineLineGroup = new Layer({
+    readonly axisCrosslineLineGroup = new Group({
         name: 'Axes-Crosslines-Line',
         zIndex: ZIndexMap.SERIES_CROSSLINE_LINE,
     });
-    readonly axisCrosslineLabelGroup = new Layer({
+    readonly axisCrosslineLabelGroup = new Group({
         name: 'Axes-Crosslines-Label',
         zIndex: ZIndexMap.SERIES_LABEL,
     });

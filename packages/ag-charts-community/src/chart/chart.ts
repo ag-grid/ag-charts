@@ -8,7 +8,6 @@ import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
-import { TranslatableLayer } from '../scene/layer';
 import type { Node } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
@@ -110,7 +109,7 @@ export abstract class Chart extends Observable {
         name: `${this.id}-series-root`,
         zIndex: ZIndexMap.SERIES_LAYER,
     });
-    readonly annotationRoot = new TranslatableLayer({
+    readonly annotationRoot = new TranslatableGroup({
         name: `${this.id}-annotation-root`,
         zIndex: ZIndexMap.SERIES_ANNOTATION,
     });
@@ -576,6 +575,7 @@ export abstract class Chart extends Observable {
                 updateSplits('🤔');
 
                 this.updateAriaLabels();
+                this.seriesLayerManager.updateLayerCompositing();
             }
             // fallthrough
 
@@ -1004,6 +1004,7 @@ export abstract class Chart extends Observable {
             internalId: series.internalId,
             type: series.type,
             contentGroup: series.contentGroup,
+            renderToOffscreenCanvas: () => series.renderToOffscreenCanvas(),
             seriesGrouping,
             oldGrouping,
         });
