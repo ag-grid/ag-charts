@@ -57,6 +57,19 @@ class SeriesAreaAriaLabel {
     }
 }
 
+class ChartMouseEvent<Type extends 'click' | 'doubleClick'> {
+    defaultPrevented = false;
+
+    constructor(
+        public type: Type,
+        public event: Event
+    ) {}
+
+    preventDefault() {
+        this.defaultPrevented = true;
+    }
+}
+
 export class SeriesAreaManager extends BaseManager {
     readonly id = createId(this);
 
@@ -251,10 +264,15 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         // Fallback to Chart-level event dispatch.
-        const newEvent = { type: event.type === 'click' ? 'click' : 'doubleClick', event: event.sourceEvent } satisfies
-            | AgChartClickEvent
-            | AgChartDoubleClickEvent;
+        const newEvent = new ChartMouseEvent(
+            event.type === 'click' ? 'click' : 'doubleClick',
+            event.sourceEvent
+        ) satisfies AgChartClickEvent | AgChartDoubleClickEvent;
         this.chart.fireEvent(newEvent);
+
+        if (newEvent.defaultPrevented) {
+            (event as any).stopImmediatePropagation();
+        }
     }
 
     private onFocus(event: KeyNavEvent<'focus'>): void {
@@ -288,10 +306,7 @@ export class SeriesAreaManager extends BaseManager {
         if (series !== undefined && datum !== undefined) {
             series.fireNodeClickEvent(sourceEvent, datum);
         } else {
-            this.chart.fireEvent<AgChartClickEvent>({
-                type: 'click',
-                event: sourceEvent,
-            });
+            this.chart.fireEvent<AgChartClickEvent>(new ChartMouseEvent('click', sourceEvent));
         }
         event.preventDefault();
     }
