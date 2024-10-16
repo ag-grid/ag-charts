@@ -432,7 +432,9 @@ export abstract class FlowProportionSeries<
         isHighlight: boolean;
     }): Promise<void>;
 
-    override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {}
+    override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {
+        // Does not reset any animations
+    }
 
     override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
         return [];
