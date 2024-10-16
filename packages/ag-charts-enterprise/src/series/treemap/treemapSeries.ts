@@ -12,7 +12,7 @@ import {
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
-const { TextUtils, TextWrapper, formatValue } = _ModuleSupport;
+const { TextUtils, TextWrapper } = _ModuleSupport;
 const { Rect, Group, BBox, Selection, Text } = _Scene;
 const { Color, Logger, clamp, isEqual, sanitizeHtml } = _Util;
 
@@ -171,22 +171,18 @@ export class TreemapSeries<
             let label: string | undefined;
             if (datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
-                label = this.getLabelText(
-                    labelStyle,
-                    {
-                        depth,
-                        datum,
-                        childrenKey,
-                        colorKey,
-                        colorName,
-                        labelKey,
-                        secondaryLabelKey,
-                        sizeKey,
-                        sizeName,
-                        value,
-                    },
-                    formatValue
-                );
+                label = this.getLabelText(labelStyle, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    colorName,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    sizeName,
+                    value,
+                });
             }
             if (label === '') {
                 label = undefined;
@@ -195,22 +191,18 @@ export class TreemapSeries<
             let secondaryLabel: string | undefined;
             if (isLeaf && datum != null && depth != null && secondaryLabelKey != null) {
                 const value = (datum as any)[secondaryLabelKey];
-                secondaryLabel = this.getLabelText(
-                    tile.secondaryLabel,
-                    {
-                        depth,
-                        datum,
-                        childrenKey,
-                        colorKey,
-                        colorName,
-                        labelKey,
-                        secondaryLabelKey,
-                        sizeKey,
-                        sizeName,
-                        value,
-                    },
-                    formatValue
-                );
+                secondaryLabel = this.getLabelText(tile.secondaryLabel, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    colorName,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    sizeName,
+                    value,
+                });
             }
             if (secondaryLabel === '') {
                 secondaryLabel = undefined;
