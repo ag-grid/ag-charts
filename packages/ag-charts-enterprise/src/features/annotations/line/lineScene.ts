@@ -31,12 +31,14 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
     }
 
     public override update(datum: LineTypeProperties, context: AnnotationContext) {
-        const coords = convertLine(datum, context);
+        let coords = convertLine(datum, context);
 
         if (coords == null) {
             this.visible = false;
             return;
         }
+
+        coords = Vec4.round(coords);
 
         this.visible = datum.visible ?? true;
         if (!this.visible) return;

@@ -17,6 +17,7 @@ export const Vec2 = {
     origin,
     required,
     rotate,
+    round,
     sub,
 };
 
@@ -120,7 +121,7 @@ function angle(a: Vec2, b: Vec2 = origin()) {
  * Rotate vector `a` by the angle `theta` around the origin `b`.
  * This rotation is not cumulative, i.e. `rotate(rotate(a, Math.PI), Math.PI) !== a`.
  */
-function rotate(a: Vec2, theta: number, b: Vec2 = origin()) {
+function rotate(a: Vec2, theta: number, b: Vec2 = origin()): Vec2 {
     const l = length(a);
     return { x: b.x + l * Math.cos(theta), y: b.y + l * Math.sin(theta) };
 }
@@ -150,7 +151,7 @@ function intercept(a: Vec2, gradient: number, reflection?: number) {
  * Optionally reflect the line about the y-axis when the coordinate system has y = 0 at the top.
  */
 // eslint-disable-next-line @typescript-eslint/no-shadow
-function intersectAtY(gradient: number, coefficient: number, y: number = 0, reflection?: number) {
+function intersectAtY(gradient: number, coefficient: number, y: number = 0, reflection?: number): Vec2 {
     return {
         x: gradient === Infinity ? Infinity : (y - coefficient) / gradient,
         y: reflection == null ? y : reflection - y,
@@ -162,9 +163,16 @@ function intersectAtY(gradient: number, coefficient: number, y: number = 0, refl
  * Optionally reflect the line about the y-axis when the coordinate system has y = 0 at the top.
  */
 // eslint-disable-next-line @typescript-eslint/no-shadow
-function intersectAtX(gradient: number, coefficient: number, x: number = 0, reflection?: number) {
+function intersectAtX(gradient: number, coefficient: number, x: number = 0, reflection?: number): Vec2 {
     const y = gradient === Infinity ? Infinity : gradient * x + coefficient;
     return { x: x, y: reflection == null ? y : reflection - y };
+}
+
+/**
+ * Round each component of the vector to the nearest integer.
+ */
+function round(a: Vec2): Vec2 {
+    return { x: Math.round(a.x), y: Math.round(a.y) };
 }
 
 /**
