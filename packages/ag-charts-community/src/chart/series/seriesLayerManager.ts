@@ -186,7 +186,7 @@ export class SeriesLayerManager {
             });
         });
 
-        (this as any).groups = new Map();
-        (this as any).series = new Map();
+        this.groups.clear();
+        this.series.clear();
     }
 }
