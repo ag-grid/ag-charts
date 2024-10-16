@@ -16,6 +16,7 @@ import { extractImageData, setupMockCanvas } from '../src/util/test/mockCanvas';
 
 export interface BenchmarkExpectations {
     expectedMaxMemoryMB: number;
+    runCount?: number;
 }
 
 export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
@@ -26,6 +27,8 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
     public constructor(readonly canvasCtx: ReturnType<typeof setupMockCanvas>) {}
 
     async create() {
+        if (this.chart) this.chart.destroy();
+
         this.chart = AgCharts.create(this.options);
         await this.waitForUpdate();
     }
@@ -56,8 +59,11 @@ export function benchmark(
             global.gc?.();
             const memoryUsageBefore = process.memoryUsage();
             const start = performance.now();
-            await callback();
-            const duration = performance.now() - start;
+            const { runCount = 1 } = expectations;
+            for (let i = 0; i < runCount; i++) {
+                await callback();
+            }
+            const duration = (performance.now() - start) / runCount;
             const memoryUsageAfter = process.memoryUsage();
             const canvasInstances = ctx.canvasCtx.getActiveCanvasInstances();
             const { currentTestName, testPath } = expect.getState();
@@ -68,6 +74,7 @@ export function benchmark(
 
             const memoryUse = recordTiming(testPath, currentTestName, {
                 timeMs: duration,
+                runCount,
                 memory: {
                     before: memoryUsageBefore,
                     after: memoryUsageAfter,

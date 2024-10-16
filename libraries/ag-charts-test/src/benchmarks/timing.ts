@@ -4,6 +4,7 @@ import * as path from 'path';
 
 export interface BenchmarkMeasurement {
     timeMs: number;
+    runCount: number;
     memory: {
         before: NodeJS.MemoryUsage;
         after: NodeJS.MemoryUsage;
