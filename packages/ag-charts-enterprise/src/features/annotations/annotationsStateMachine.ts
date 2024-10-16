@@ -263,6 +263,10 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             [States.Idle]: {
                 onEnter: () => {
                     ctx.select(this.active, this.active);
+                    const hoverCoords = ctx.getHoverCoords();
+                    if (hoverCoords) {
+                        this.hovered = ctx.hoverAtCoords(hoverCoords, this.active);
+                    }
                 },
 
                 hover: ({ offset }: { offset: _ModuleSupport.Vec2 }) => {
