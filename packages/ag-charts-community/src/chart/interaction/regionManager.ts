@@ -64,25 +64,45 @@ function nodeToBBoxProvider(node: RegionNodeType) {
     return new NodeRegionBBoxProvider(node.node, node.id);
 }
 
-type EventTargetUpcast<K extends keyof HTMLElement> = EventTarget & { [P in K]?: unknown };
-function shouldIgnore({
-    type,
-    sourceEvent,
-}: {
-    type: string;
-    sourceEvent: { target: EventTargetUpcast<'id' | 'className' | 'classList'> | null };
-}) {
-    const { id, className, classList } = sourceEvent?.target ?? {};
-    if (classList instanceof DOMTokenList && classList.contains('ag-charts-annotations__axis-button-icon')) {
-        return DRAG_INTERACTION_TYPES.some((t) => t === type);
+function getTooltipContainer(target: EventTarget | null): HTMLElement | undefined {
+    if (target == null || !(target instanceof HTMLElement)) return undefined;
+    let current: HTMLElement | null = target;
+    while (current != null && !current?.classList.contains('ag-charts-wrapper')) {
+        if (current.classList.contains('ag-chart-tooltip')) {
+            return current;
+        }
+        current = current.parentElement;
     }
-    return (
-        sourceEvent?.target != null && // This case is for pointerHistory events.
-        className !== 'ag-charts-series-area' &&
-        className !== 'ag-charts-canvas-proxy' &&
-        !(className === 'ag-charts-proxy-elem' && !id?.toString().startsWith('ag-charts-legend-item-')) &&
-        !(sourceEvent?.target instanceof HTMLCanvasElement) // This case is for nodeCanvas tests
-    );
+    return undefined;
+}
+
+type EventUpcast<K extends keyof HTMLElement> = PointerInteractionEvent & {
+    sourceEvent: RegionEvent['sourceEvent'] & { target: (EventTarget & { [P in K]?: unknown }) | null };
+};
+
+function shouldIgnore(event: EventUpcast<'id' | 'className' | 'classList' | 'ariaHidden'>): 'none' | 'leave' | 'wait' {
+    const { type, sourceEvent } = event;
+    const { id, className, classList, ariaHidden } = sourceEvent?.target ?? {};
+    if (!(classList instanceof DOMTokenList)) return 'leave';
+
+    const dragTypes: readonly string[] = DRAG_INTERACTION_TYPES;
+    if (
+        // Handle drag event on the axis 'add horizontal line annotation' button as canvas events.
+        (classList.contains('ag-charts-annotations__axis-button-icon') && dragTypes.includes(type)) ||
+        className === 'ag-charts-series-area' ||
+        className === 'ag-charts-canvas-proxy' ||
+        (className === 'ag-charts-proxy-elem' && !id?.toString().startsWith('ag-charts-legend-item-')) || // legend <buttons>
+        sourceEvent?.target instanceof HTMLCanvasElement // This case is for nodeCanvas tests
+    ) {
+        return 'none';
+    }
+
+    // Ignore events on interactive tooltips, but don't fire a 'leave' event
+    if (getTooltipContainer(sourceEvent.target) && ariaHidden !== 'true') {
+        return 'wait';
+    }
+
+    return 'leave';
 }
 
 export class RegionManager {
@@ -166,7 +186,7 @@ export class RegionManager {
 
     private checkPointerHistory(targetRegion: Region, event: PointerInteractionEvent): boolean {
         for (const historyEvent of event.pointerHistory) {
-            const { region: historyRegion } = this.pickRegion(historyEvent.offsetX, historyEvent.offsetY, event) ?? {};
+            const { region: historyRegion } = this.pickRegion(historyEvent.offsetX, historyEvent.offsetY) ?? {};
             if (targetRegion.properties.name !== historyRegion?.properties.name) {
                 return false;
             }
@@ -259,7 +279,19 @@ export class RegionManager {
 
         const { current } = this;
 
-        const newCurrent = this.pickRegion(event.offsetX, event.offsetY, event);
+        const ignore = shouldIgnore(event);
+        let newCurrent: ReturnType<RegionManager['pickRegion']>;
+        switch (ignore) {
+            case 'wait':
+                return;
+            case 'none':
+                newCurrent = this.pickRegion(event.offsetX, event.offsetY);
+                break;
+            case 'leave':
+                newCurrent = undefined;
+                break;
+        }
+
         const newRegion = newCurrent?.region;
         if (current !== undefined && newRegion?.properties.name !== current.region.properties.name) {
             this.dispatch(current, { ...event, type: 'leave' });
@@ -273,9 +305,7 @@ export class RegionManager {
         this.current = newCurrent;
     }
 
-    private pickRegion(x: number, y: number, event: PointerInteractionEvent) {
-        if (shouldIgnore(event)) return undefined;
-
+    private pickRegion(x: number, y: number) {
         // Sort matches by area.
         // This ensure that we prioritise smaller regions are contained inside larger regions.
         let currentArea = Infinity;

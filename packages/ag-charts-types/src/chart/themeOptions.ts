@@ -139,10 +139,10 @@ export interface AgRangeAreaSeriesThemeOverrides extends AgBaseCartesianThemeOpt
 export interface AgBulletSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgBulletSeriesThemeableOptions;
 }
-export interface AgDonutSeriesThemeOverrides extends AgBasePolarThemeOptions {
+export interface AgDonutSeriesThemeOverrides extends AgBaseThemeableChartOptions {
     series?: AgDonutSeriesThemeableOptions;
 }
-export interface AgPieSeriesThemeOverrides extends AgBasePolarThemeOptions {
+export interface AgPieSeriesThemeOverrides extends AgBaseThemeableChartOptions {
     series?: AgPieSeriesThemeableOptions;
 }
 export interface AgRadarLineSeriesThemeOverrides extends AgBasePolarThemeOptions {
