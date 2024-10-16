@@ -34,7 +34,7 @@ import { CachedTextMeasurerPool, type TextMeasurer, TextUtils } from '../../util
 import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
-import type { ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
+import type { AxisGroups, ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
@@ -187,25 +187,31 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     interactionEnabled = true;
 
-    readonly axisGroup = new TransformableGroup({ name: `${this.id}-axis`, zIndex: ZIndexMap.AXIS });
+    readonly axisGroup = new TransformableGroup({ name: `${this.id}-axis` });
 
     protected lineNode = this.axisGroup.appendChild(new TranslatableLine({ name: `${this.id}-Axis-line` }));
-    protected readonly tickLineGroup = this.axisGroup.appendChild(
-        new Group({ name: `${this.id}-Axis-tick-lines`, zIndex: ZIndexMap.AXIS })
-    );
-    protected readonly tickLabelGroup = this.axisGroup.appendChild(
-        new Group({ name: `${this.id}-Axis-tick-labels`, zIndex: ZIndexMap.AXIS })
-    );
-    protected readonly crossLineGroup = new TransformableGroup({ name: `${this.id}-CrossLines` });
-    protected readonly labelGroup = new Group({ name: `${this.id}-Labels`, zIndex: ZIndexMap.SERIES_ANNOTATION });
+    protected readonly tickLineGroup = this.axisGroup.appendChild(new Group({ name: `${this.id}-Axis-tick-lines` }));
+    protected readonly tickLabelGroup = this.axisGroup.appendChild(new Group({ name: `${this.id}-Axis-tick-labels` }));
+    protected readonly labelGroup = new Group({
+        name: `${this.id}-Labels`,
+        zIndex: ZIndexMap.SERIES_ANNOTATION,
+    });
 
-    readonly gridGroup = new TransformableGroup({ name: `${this.id}-Axis-grid` });
-    protected readonly gridLineGroup = this.gridGroup.appendChild(
-        new Group({
-            name: `${this.id}-gridLines`,
-            zIndex: ZIndexMap.AXIS_GRID,
-        })
-    );
+    readonly gridGroup = new TransformableGroup({ name: `${this.id}-Axis-grid`, zIndex: ZIndexMap.AXIS_GRID });
+    protected readonly gridLineGroup = this.gridGroup.appendChild(new Group({ name: `${this.id}-gridLines` }));
+
+    protected readonly crossLineRangeGroup = new TransformableGroup({
+        name: `${this.id}-CrossLines-Range`,
+        zIndex: ZIndexMap.SERIES_CROSSLINE_RANGE,
+    });
+    protected readonly crossLineLineGroup = new TransformableGroup({
+        name: `${this.id}-CrossLines-Line`,
+        zIndex: ZIndexMap.SERIES_CROSSLINE_LINE,
+    });
+    protected readonly crossLineLabelGroup = new TransformableGroup({
+        name: `${this.id}-CrossLines-Label`,
+        zIndex: ZIndexMap.SERIES_LABEL,
+    });
 
     protected tickLineGroupSelection = Selection.select(this.tickLineGroup, TranslatableLine, false);
     protected tickLabelGroupSelection = Selection.select<TransformableText, LabelNodeDatum>(
@@ -303,13 +309,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     private attachCrossLine(crossLine: CrossLine) {
-        this.crossLineGroup.appendChild(crossLine.group);
-        this.crossLineGroup.appendChild(crossLine.labelGroup);
+        this.crossLineRangeGroup.appendChild(crossLine.rangeGroup);
+        this.crossLineLineGroup.appendChild(crossLine.lineGroup);
+        this.crossLineLabelGroup.appendChild(crossLine.labelGroup);
     }
 
     private detachCrossLine(crossLine: CrossLine) {
-        this.crossLineGroup.removeChild(crossLine.group);
-        this.crossLineGroup.removeChild(crossLine.labelGroup);
+        this.crossLineRangeGroup.removeChild(crossLine.rangeGroup);
+        this.crossLineLineGroup.removeChild(crossLine.lineGroup);
+        this.crossLineLabelGroup.removeChild(crossLine.labelGroup);
     }
 
     destroy() {
@@ -331,25 +339,31 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     setCrossLinesVisible(visible: boolean) {
-        this.crossLineGroup.visible = visible;
+        this.crossLineRangeGroup.visible = visible;
+        this.crossLineLineGroup.visible = visible;
+        this.crossLineLabelGroup.visible = visible;
     }
 
-    attachAxis(axisNode: Node, gridNode: Node) {
-        gridNode.appendChild(this.gridGroup);
-        axisNode.appendChild(this.axisGroup);
-        axisNode.appendChild(this.crossLineGroup);
-        axisNode.appendChild(this.labelGroup);
+    attachAxis(groups: AxisGroups) {
+        groups.gridNode.appendChild(this.gridGroup);
+        groups.axisNode.appendChild(this.axisGroup);
+        groups.labelNode.appendChild(this.labelGroup);
+        groups.crossLineRangeNode.appendChild(this.crossLineRangeGroup);
+        groups.crossLineLineNode.appendChild(this.crossLineLineGroup);
+        groups.crossLineLabelNode.appendChild(this.crossLineLabelGroup);
+    }
+
+    detachAxis(groups: AxisGroups) {
+        groups.gridNode.removeChild(this.gridGroup);
+        groups.axisNode.removeChild(this.axisGroup);
+        groups.labelNode.removeChild(this.labelGroup);
+        groups.crossLineRangeNode.removeChild(this.crossLineRangeGroup);
+        groups.crossLineLineNode.removeChild(this.crossLineLineGroup);
+        groups.crossLineLabelNode.removeChild(this.crossLineLabelGroup);
     }
 
     attachLabel(axisLabelNode: Node) {
         this.labelGroup.append(axisLabelNode);
-    }
-
-    detachAxis(axisNode: Node, gridNode: Node) {
-        gridNode.removeChild(this.gridGroup);
-        axisNode.removeChild(this.axisGroup);
-        axisNode.removeChild(this.crossLineGroup);
-        axisNode.removeChild(this.labelGroup);
     }
 
     range: [number, number] = [0, 1];
@@ -1172,12 +1186,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     updatePosition() {
-        const { crossLineGroup, axisGroup, gridGroup, translation } = this;
+        const { crossLineRangeGroup, crossLineLineGroup, crossLineLabelGroup, axisGroup, gridGroup, translation } =
+            this;
         const { rotation } = this.calculateRotations();
         const translationX = Math.floor(translation.x);
         const translationY = Math.floor(translation.y);
 
-        crossLineGroup.setProperties({ rotation, translationX, translationY });
+        crossLineRangeGroup.setProperties({ rotation, translationX, translationY });
+        crossLineLineGroup.setProperties({ rotation, translationX, translationY });
+        crossLineLabelGroup.setProperties({ rotation, translationX, translationY });
         gridGroup.setProperties({ rotation, translationX, translationY });
         axisGroup.datum = this.getAxisTransform();
     }

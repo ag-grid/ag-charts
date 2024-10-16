@@ -64,7 +64,7 @@ export class ChartContext implements ModuleContext {
     updateService: UpdateService;
 
     constructor(
-        private readonly chart: ChartService & { annotationRoot: Group; keyboard: Keyboard; tooltip: Tooltip },
+        chart: ChartService & { annotationRoot: Group; keyboard: Keyboard; tooltip: Tooltip },
         vars: {
             scene?: Scene;
             root: Group;
@@ -128,10 +128,5 @@ export class ChartContext implements ModuleContext {
         this.syncManager.destroy();
         this.tooltipManager.destroy();
         this.zoomManager.destroy();
-    }
-
-    // @todo(AG-13136)
-    removeMeMoveChartTitleNode(toGroup: Group | undefined) {
-        this.chart.removeMeMoveTitleNode(toGroup);
     }
 }

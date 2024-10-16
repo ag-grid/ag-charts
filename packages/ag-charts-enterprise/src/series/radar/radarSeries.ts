@@ -52,7 +52,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     protected override readonly NodeEvent = RadarSeriesNodeEvent;
 
-    protected lineSelection: _Scene.Selection<_Scene.Path, boolean>;
+    private readonly lineGroup = this.contentGroup.appendChild(
+        new Group({
+            name: 'radar-line',
+            zIndex: _ModuleSupport.SeriesZIndexMap.ANY_CONTENT,
+        })
+    );
+    protected lineSelection: _Scene.Selection<_Scene.Path, boolean> = Selection.select(this.lineGroup, Path);
 
     protected resetInvalidToZero: boolean = false;
 
@@ -66,17 +72,25 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 item: resetMarkerFn,
             },
         });
-
-        const lineGroup = new Group();
-        this.contentGroup.append(lineGroup);
-        this.lineSelection = Selection.select(lineGroup, Path);
-        lineGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
     }
 
     protected override nodeFactory(): _Scene.Marker {
         const { shape } = this.properties.marker;
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
+    }
+
+    override setSeriesIndex(index: number): boolean {
+        if (!super.setSeriesIndex(index)) return false;
+
+        this.lineGroup.zIndex = [
+            _ModuleSupport.SeriesZIndexMap.ANY_CONTENT,
+            index,
+            _ModuleSupport.SeriesContentZIndexMap.FOREGROUND,
+            1,
+        ];
+
+        return true;
     }
 
     override addChartEventListeners(): void {

@@ -7,7 +7,7 @@ import { prepareConnectorAnimationFunctions, resetConnectorSelectionsFn } from '
 
 const {
     SeriesNodePickMode,
-    ZIndexMap,
+    SeriesZIndexMap,
     valueProperty,
     keyProperty,
     ChartAxisDirection,
@@ -117,8 +117,7 @@ export abstract class BaseFunnelSeries<
     protected readonly connectorNodeGroup = this.contentGroup.appendChild(
         new Group({
             name: `${this.id}-series-connectorNodes`,
-            zIndex: ZIndexMap.SERIES_LAYER,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
+            zIndex: SeriesZIndexMap.BACKGROUND,
         })
     );
     protected connectorSelection = Selection.select<FunnelConnector, FunnelConnectorDatum>(
@@ -159,6 +158,14 @@ export abstract class BaseFunnelSeries<
         });
 
         this.connectorNodeGroup.pointerEvents = PointerEvents.None;
+    }
+
+    override setSeriesIndex(index: number): boolean {
+        if (!super.setSeriesIndex(index)) return false;
+
+        this.connectorNodeGroup.zIndex = [SeriesZIndexMap.BACKGROUND, index];
+
+        return true;
     }
 
     protected override isVertical(): boolean {
