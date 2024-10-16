@@ -118,7 +118,7 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         return nearestSquared(x, y, boxes);
     }
 
-    clip(clipRect: BBox | undefined): BBox {
+    clip(clipRect: BBox | undefined): this {
         if (clipRect === undefined) return this;
 
         const x1 = Math.max(this.x, clipRect.x);
