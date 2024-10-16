@@ -157,8 +157,6 @@ export class SeriesLayerManager {
                     renderToOffscreenCanvas = series?.seriesConfig.renderToOffscreenCanvas() === true;
                 }
 
-                console.log({ renderToOffscreenCanvas });
-
                 group.renderToOffscreenCanvas = renderToOffscreenCanvas;
             });
         });
