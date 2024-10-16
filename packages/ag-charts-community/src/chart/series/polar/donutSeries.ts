@@ -14,12 +14,12 @@ import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
 import { normalizeAngle180, toRadians } from '../../../util/angle';
+import { formatValue } from '../../../util/format.util';
 import { jsonDiff } from '../../../util/json';
 import { Logger } from '../../../util/logger';
-import { mod, toFixed } from '../../../util/number';
+import { mod } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { isFiniteNumber } from '../../../util/type-guards';
 import type { Has } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { ChartUpdateType } from '../../chartUpdateType';
@@ -1373,7 +1373,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         } = nodeDatum;
 
         const title = sanitizeHtml(this.properties.title?.text);
-        const content = isFiniteNumber(angleValue) ? toFixed(angleValue) : String(angleValue);
+        const content = formatValue(angleValue);
         const labelText = this.getDatumLegendName(nodeDatum);
 
         return this.properties.tooltip.toTooltipHtml(

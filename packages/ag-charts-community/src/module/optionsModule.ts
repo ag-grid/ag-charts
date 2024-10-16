@@ -257,7 +257,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     protected processSeriesOptions(options: T) {
-        const defaultSeriesType = this.getDefaultSeriesType(options);
         const defaultTooltipPosition = this.getTooltipPositionDefaults(options);
         const userPalette = isObject(options.theme) ? paletteType(options.theme?.palette) : 'inbuilt';
         const paletteOptions = {
@@ -266,7 +265,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         };
 
         const processedSeries = (options.series as SeriesOptionsTypes[])?.map((series) => {
-            series.type ??= defaultSeriesType;
+            series.type ??= this.getDefaultSeriesType(options);
             const { innerLabels: innerLabelsTheme, ...seriesTheme } =
                 this.getSeriesThemeConfig(series.type).series ?? {};
             // Don't advance series index for background series

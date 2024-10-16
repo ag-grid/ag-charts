@@ -8,7 +8,8 @@ import { EXPECTED_ENTERPRISE_MODULES } from './expectedEnterpriseModules';
 export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(options: T, silent?: boolean) {
     let usedOptions: string[] = [];
     const isGaugeChart = isAgGaugeChartOptions(options);
-    const optionsChartType = chartTypes.get(optionsType(options));
+    const type = optionsType(options);
+    const optionsChartType = type ? chartTypes.get(type) : 'unknown';
     for (const {
         type,
         chartTypes: moduleChartTypes,

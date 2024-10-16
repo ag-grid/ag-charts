@@ -3,7 +3,7 @@ import type { BBoxProvider } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
 import { Listeners } from '../../util/listeners';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
-import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
+import { DRAG_INTERACTION_TYPES, InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import { type Unpreventable, buildPreventable } from './preventableEvent';
 import { NodeRegionBBoxProvider, type RegionBBoxProvider, type RegionName } from './regions';
 
@@ -65,8 +65,17 @@ function nodeToBBoxProvider(node: RegionNodeType) {
 }
 
 type EventTargetUpcast<K extends keyof HTMLElement> = EventTarget & { [P in K]?: unknown };
-function shouldIgnore(sourceEvent?: { target: EventTargetUpcast<'id' | 'className'> | null }) {
-    const { id, className } = sourceEvent?.target ?? {};
+function shouldIgnore({
+    type,
+    sourceEvent,
+}: {
+    type: string;
+    sourceEvent: { target: EventTargetUpcast<'id' | 'className' | 'classList'> | null };
+}) {
+    const { id, className, classList } = sourceEvent?.target ?? {};
+    if (classList instanceof DOMTokenList && classList.contains('ag-charts-annotations__axis-button-icon')) {
+        return DRAG_INTERACTION_TYPES.some((t) => t === type);
+    }
     return (
         sourceEvent?.target != null && // This case is for pointerHistory events.
         className !== 'ag-charts-series-area' &&
@@ -157,7 +166,7 @@ export class RegionManager {
 
     private checkPointerHistory(targetRegion: Region, event: PointerInteractionEvent): boolean {
         for (const historyEvent of event.pointerHistory) {
-            const { region: historyRegion } = this.pickRegion(historyEvent.offsetX, historyEvent.offsetY) ?? {};
+            const { region: historyRegion } = this.pickRegion(historyEvent.offsetX, historyEvent.offsetY, event) ?? {};
             if (targetRegion.properties.name !== historyRegion?.properties.name) {
                 return false;
             }
@@ -250,7 +259,7 @@ export class RegionManager {
 
         const { current } = this;
 
-        const newCurrent = this.pickRegion(event.offsetX, event.offsetY, event.sourceEvent);
+        const newCurrent = this.pickRegion(event.offsetX, event.offsetY, event);
         const newRegion = newCurrent?.region;
         if (current !== undefined && newRegion?.properties.name !== current.region.properties.name) {
             this.dispatch(current, { ...event, type: 'leave' });
@@ -264,8 +273,8 @@ export class RegionManager {
         this.current = newCurrent;
     }
 
-    private pickRegion(x: number, y: number, sourceEvent?: Event) {
-        if (shouldIgnore(sourceEvent)) return undefined;
+    private pickRegion(x: number, y: number, event: PointerInteractionEvent) {
+        if (shouldIgnore(event)) return undefined;
 
         // Sort matches by area.
         // This ensure that we prioritise smaller regions are contained inside larger regions.

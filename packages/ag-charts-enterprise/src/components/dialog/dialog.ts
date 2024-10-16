@@ -154,13 +154,14 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 }
             )
         );
-        const tablist = createElement('div');
-        setAttributes(tablist, { role: 'tablist', 'aria-label': this.ctx.localeManager.t(tablistLabel) });
-        tablist.append(...Object.values(tabButtons));
+
+        const tabList = createElement('div', 'ag-charts-dialog__tab-list');
+        setAttributes(tabList, { role: 'tablist', 'aria-label': this.ctx.localeManager.t(tablistLabel) });
+        tabList.append(...Object.values(tabButtons));
 
         const closeButton = this.createHeaderCloseButton();
 
-        header.append(dragHandle, tablist, closeButton);
+        header.append(dragHandle, tabList, closeButton);
         element.append(header, ...Object.values(tabs).map((t) => t.panel));
 
         onPressTab(initial);

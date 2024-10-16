@@ -20,7 +20,6 @@ const {
     seriesLabelFadeInAnimation,
     seriesLabelFadeOutAnimation,
     animationValidation,
-    formatValue,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -257,11 +256,14 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             x: number,
             y: number
         ): RadialBarLabelNodeDatum | undefined => {
-            const labelText = this.getLabelText(
-                label,
-                { value: angleDatum, datum, angleKey, radiusKey, angleName, radiusName },
-                formatValue
-            );
+            const labelText = this.getLabelText(label, {
+                value: angleDatum,
+                datum,
+                angleKey,
+                radiusKey,
+                angleName,
+                radiusName,
+            });
             if (labelText) {
                 return { x, y, text: labelText, textAlign: 'center', textBaseline: 'middle' };
             }

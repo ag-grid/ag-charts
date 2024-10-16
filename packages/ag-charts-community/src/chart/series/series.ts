@@ -15,6 +15,7 @@ import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
+import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
 import { Listeners } from '../../util/listeners';
@@ -633,7 +634,7 @@ export abstract class Series<
     protected getLabelText<TParams>(
         label: AgChartLabelOptions<any, TParams>,
         params: TParams & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>,
-        defaultFormatter: (value: any) => string = String
+        defaultFormatter: (value: any) => string = formatValue
     ) {
         if (label.formatter) {
             return (
