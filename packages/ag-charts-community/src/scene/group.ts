@@ -117,27 +117,21 @@ export class Group extends Node {
             layer.clear();
         }
 
-        const children = this.children();
         const renderCtxTransform = renderCtx.ctx.getTransform();
         const { context: layerCtx } = layer;
 
         layerCtx.save();
-
         layerCtx.setTransform(renderCtxTransform);
 
         const layerRenderCtx = { ...renderCtx, ctx: layerCtx, forceRender };
         if (this.clipRect != null) {
-            layerCtx.save();
             layerRenderCtx.clipBBox = this.renderClip(layerRenderCtx, this.clipRect);
         }
 
-        this.renderChildren(children, layerRenderCtx);
-
-        if (this.clipRect) {
-            layerCtx.restore();
-        }
+        this.renderInContext(layerRenderCtx);
 
         layerCtx.restore();
+
         layerCtx.verifyDepthZero?.(); // Check for save/restore depth of zero!
     }
 
@@ -155,10 +149,6 @@ export class Group extends Node {
             this.debugSkip(renderCtx);
             this.markClean({ recursive: false });
             return; // Nothing to do.
-        }
-
-        if (this.dirtyZIndex) {
-            this.sortChildren(Group.compareChildren);
         }
 
         if (forceRender !== 'dirtyTransform') {
@@ -186,8 +176,6 @@ export class Group extends Node {
         } else {
             ctx.globalAlpha *= this.opacity;
 
-            const children = this.children();
-
             const childRenderCtx = { ...renderCtx, forceRender };
 
             if (this.clipRect != null) {
@@ -195,8 +183,7 @@ export class Group extends Node {
                 childRenderCtx.clipBBox = this.renderClip(renderCtx, this.clipRect);
             }
 
-            this.renderChildren(children, childRenderCtx);
-            super.render(renderCtx); // Calls markClean().
+            this.renderInContext(childRenderCtx);
 
             if (this.clipRect != null) {
                 ctx.restore();
@@ -238,9 +225,14 @@ export class Group extends Node {
         return Transformable.toCanvas(this, clipRect);
     }
 
-    protected renderChildren(children: Iterable<Node>, renderCtx: RenderContext) {
+    protected renderInContext(renderCtx: RenderContext) {
         const { ctx, forceRender, stats } = renderCtx;
-        for (const child of children) {
+
+        if (this.dirtyZIndex) {
+            this.sortChildren(Group.compareChildren);
+        }
+
+        for (const child of this.children()) {
             // Skip invisible children, but make sure their dirty flag is reset.
             if (!child.visible || !this.visible) {
                 child.markClean();
@@ -263,6 +255,8 @@ export class Group extends Node {
             child.render(renderCtx);
             ctx.restore();
         }
+
+        super.render(renderCtx); // Calls markClean().
     }
 
     /**

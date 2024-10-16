@@ -67,7 +67,7 @@ export class SeriesLayerManager {
                 seriesIds: [],
                 group: this.seriesRoot.appendChild(
                     new Group({
-                        name: `${type}-managed-layer`,
+                        name: `${seriesConfig.contentGroup.name ?? type}-managed-layer`,
                         zIndex: seriesConfig.contentGroup.zIndex,
                         renderToOffscreenCanvas: true,
                     })
