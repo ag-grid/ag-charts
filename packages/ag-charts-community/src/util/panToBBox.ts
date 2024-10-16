@@ -11,6 +11,7 @@ function normalize(screenMin: number, min: number, screenMax: number, max: numbe
 function unnormalize(screenMin: number, min: number, screenMax: number, max: number, ratio: number): number {
     return screenMin + (ratio - min) * ((screenMax - screenMin) / (max - min));
 }
+
 function calcWorld(viewportMin: number, viewportMax: number, ratio: Ratios): [number, number] {
     return [
         unnormalize(viewportMin, ratio.min, viewportMax, ratio.max, 0),
@@ -32,9 +33,9 @@ function panAxesUnnormalized(
     targetMax: number
 ): number {
     if (viewportMin <= targetMin && targetMax <= viewportMax) return viewportMin;
-    const mindiff = targetMin - viewportMin;
-    const maxdiff = targetMax - viewportMax;
-    const diff = Math.abs(mindiff) < Math.abs(maxdiff) ? mindiff : maxdiff;
+    const minDiff = targetMin - viewportMin;
+    const maxDiff = targetMax - viewportMax;
+    const diff = Math.abs(minDiff) < Math.abs(maxDiff) ? minDiff : maxDiff;
     return clamp(worldMin, viewportMin + diff, worldMax);
 }
 

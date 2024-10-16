@@ -148,7 +148,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         this.applyChanges(callerId);
     }
 
-    panToBBox(callerId: string, seriesRect: BBox, target: BBoxValues) {
+    public panToBBox(callerId: string, seriesRect: BBox, target: BBoxValues) {
         const { x: zoomX, y: zoomY } = this.getZoom() ?? {};
         if (!zoomX || !zoomY) return;
         if (target.width > seriesRect.width || target.height > seriesRect.height) {

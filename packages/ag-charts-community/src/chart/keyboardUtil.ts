@@ -23,7 +23,7 @@ function drawPickedFocus(focusIndicator: FocusIndicator | undefined, pick: PickP
 
 export function getPickedFocusBBox({ bounds }: PickProperties): BBox {
     if (bounds instanceof BBox) return bounds;
-    else if (bounds != null) return bounds.getBBox();
+    if (bounds != null) return bounds.getBBox();
     return BBox.NaN;
 }
 
