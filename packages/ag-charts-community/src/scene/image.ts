@@ -34,10 +34,10 @@ export class Image extends Node {
         const { ctx } = renderCtx;
 
         const image = this.sourceImage;
-        if (!image) return;
-
-        ctx.globalAlpha = this.opacity;
-        ctx.drawImage(image, 0, 0, image.width, image.height, this.x, this.y, this.width, this.height);
+        if (image) {
+            ctx.globalAlpha = this.opacity;
+            ctx.drawImage(image, 0, 0, image.width, image.height, this.x, this.y, this.width, this.height);
+        }
 
         super.render(renderCtx);
     }

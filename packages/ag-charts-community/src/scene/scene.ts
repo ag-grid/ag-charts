@@ -124,7 +124,7 @@ export class Scene {
             return;
         }
 
-        if (root != null && !root.dirty && !this.isDirty) {
+        if (root?.dirty === false && !this.isDirty) {
             if (this.debug.check()) {
                 this.debug('Scene.render() - no-op', {
                     tree: buildTree(root),
@@ -149,7 +149,7 @@ export class Scene {
         prepareSceneNodeHighlight(renderCtx);
 
         let canvasCleared = false;
-        if (!root || root.dirty) {
+        if (root?.dirty !== false) {
             // start with a blank canvas, clear previous drawing
             canvasCleared = true;
             canvas.clear();

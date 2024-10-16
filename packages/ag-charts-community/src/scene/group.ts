@@ -20,14 +20,14 @@ export class Group extends Node {
         return BBox.merge(Node.extractBBoxes(nodes, skipInvisible));
     }
 
-    protected static compareChildren(a: Node, b: Node) {
+    private static compareChildren(a: Node, b: Node) {
         return (
             compareZIndex(a.zIndex, b.zIndex) ||
             compoundAscending([a.serialNumber], [b.serialNumber], ascendingStringNumberUndefined)
         );
     }
 
-    protected clipRect?: BBox;
+    private clipRect?: BBox;
 
     @SceneChangeDetection({
         convertor: (v: number) => clamp(0, v, 1),
@@ -56,33 +56,17 @@ export class Group extends Node {
         return Group.computeChildrenBBox(this.children());
     }
 
-    protected isDirty(renderCtx: RenderContext) {
+    private isDirty(renderCtx: RenderContext) {
         const { resized } = renderCtx;
         const { dirty, dirtyZIndex } = this;
         const isDirty = dirty || dirtyZIndex || resized;
-        let isChildDirty = isDirty;
+        if (isDirty) return true;
+
         for (const child of this.children()) {
-            isChildDirty ||= child.dirty;
-            if (isChildDirty) break;
+            if (child.dirty) return true;
         }
 
-        if (this.name != null) {
-            this._debug?.({ name: this.name, group: this, isDirty, isChildDirty, renderCtx });
-        }
-
-        return { isDirty, isChildDirty };
-    }
-
-    protected debugSkip(renderCtx: RenderContext) {
-        if (renderCtx.stats && this.name != null) {
-            this._debug?.({
-                name: this.name,
-                group: this,
-                result: 'skipping',
-                counts: nodeCount(this),
-                renderCtx,
-            });
-        }
+        return false;
     }
 
     override preRender(): ChildNodeCounts {
@@ -93,12 +77,7 @@ export class Group extends Node {
         counts.nonGroups -= 1;
 
         if (this.renderToOffscreenCanvas && counts.nonGroups > 0 && this.getVisibility()) {
-            this.layer ??= this._layerManager?.addLayer({
-                name: this.name,
-                zIndex: this.zIndex,
-                getComputedOpacity: () => this.getComputedOpacity(),
-                getVisibility: () => this.getVisibility(),
-            });
+            this.layer ??= this._layerManager?.addLayer({ name: this.name });
         } else if (this.layer != null) {
             this._layerManager?.removeLayer(this.layer);
             this.layer = undefined;
@@ -112,52 +91,38 @@ export class Group extends Node {
             return super.render(renderCtx);
         }
 
-        const { name, _debug: debug } = this;
-        const { isDirty, isChildDirty } = this.isDirty(renderCtx);
-        const { ctx, stats } = renderCtx;
-
         const childRenderCtx: RenderContext = { ...renderCtx };
 
-        ctx.save();
-
-        if (this.clipRect != null) {
-            childRenderCtx.clipBBox = this.renderClip(childRenderCtx, this.clipRect);
-        }
-
-        if (this.layer != null) {
-            const { layer } = this;
-
-            if (isDirty || isChildDirty) {
-                const transform = ctx.getTransform();
-
-                childRenderCtx.ctx = layer.context;
-
-                layer.clear();
-                layer.context.setTransform(transform);
-                this.renderInContext(childRenderCtx);
-                layer.context.verifyDepthZero?.(); // Check for save/restore depth of zero!
-            }
-
-            ctx.globalAlpha = this.getComputedOpacity();
-            ctx.resetTransform();
-            layer.drawImage(ctx as any);
-        } else {
-            ctx.globalAlpha *= this.opacity;
+        if (this.layer == null) {
             this.renderInContext(childRenderCtx);
+            return;
         }
 
+        const { layer } = this;
+        const { ctx } = renderCtx;
+
+        if (this.isDirty(renderCtx)) {
+            const transform = ctx.getTransform();
+            const { globalAlpha } = ctx;
+
+            const layerCtx = layer.context;
+            childRenderCtx.ctx = layerCtx;
+
+            layer.clear();
+            layerCtx.save();
+            layerCtx.setTransform(transform);
+            layerCtx.globalAlpha = globalAlpha;
+            this.renderInContext(childRenderCtx);
+            layerCtx.restore();
+            layerCtx.verifyDepthZero?.(); // Check for save/restore depth of zero!
+        } else {
+            this.skipRender(childRenderCtx);
+        }
+
+        ctx.save();
+        ctx.resetTransform();
+        layer.drawImage(ctx as any);
         ctx.restore();
-
-        if (name && stats) {
-            debug?.({
-                name,
-                renderCtx,
-                result: 'rendered',
-                skipped: stats.nodesSkipped,
-                counts: nodeCount(this),
-                group: this,
-            });
-        }
     }
 
     private renderClip(renderCtx: RenderContext, clipRect: BBox) {
@@ -169,18 +134,24 @@ export class Group extends Node {
         ctx.rect(x, y, width, height);
         ctx.clip();
 
-        this._debug?.(() => ({
-            name: this.name,
-            clipRect: clipRect,
-            ctxTransform: ctx.getTransform(),
-            renderCtx,
-            group: this,
-        }));
-
         // clipBBox is in the canvas coordinate space,
         // when we hit a layer we apply the new clipping
         // at which point there are no transforms in play
         return Transformable.toCanvas(this, clipRect);
+    }
+
+    private skipRender(childRenderCtx: RenderContext) {
+        const { stats } = childRenderCtx;
+
+        for (const child of this.children()) {
+            // Skip invisible children, but make sure their dirty flag is reset.
+            child.markClean();
+            if (stats) {
+                stats.nodesSkipped += nodeCount(child).count;
+            }
+        }
+
+        super.render(childRenderCtx); // Calls markClean().
     }
 
     private renderInContext(childRenderCtx: RenderContext) {
@@ -188,6 +159,14 @@ export class Group extends Node {
 
         if (this.dirtyZIndex) {
             this.sortChildren(Group.compareChildren);
+        }
+
+        ctx.save();
+
+        ctx.globalAlpha *= this.opacity;
+
+        if (this.clipRect != null) {
+            childRenderCtx.clipBBox = this.renderClip(childRenderCtx, this.clipRect);
         }
 
         for (const child of this.children()) {
@@ -205,6 +184,8 @@ export class Group extends Node {
             child.render(childRenderCtx);
             ctx.restore();
         }
+
+        ctx.restore();
 
         super.render(childRenderCtx); // Calls markClean().
     }
@@ -232,16 +213,6 @@ export class Group extends Node {
             this.layer = undefined;
         }
         super._setLayerManager(layersManager);
-    }
-
-    private getComputedOpacity() {
-        let opacity = 1;
-        for (const node of this.traverseUp(true)) {
-            if (node instanceof Group) {
-                opacity *= node.opacity;
-            }
-        }
-        return opacity;
     }
 
     private getVisibility() {

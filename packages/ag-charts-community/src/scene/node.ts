@@ -362,17 +362,13 @@ export abstract class Node {
         }
     }
 
-    markClean(opts?: { force?: boolean; recursive?: boolean | 'virtual' }) {
-        const { force = false, recursive = true } = opts ?? {};
-
-        if (!this._dirty && !force) return;
+    markClean() {
+        if (!this._dirty) return;
 
         this._dirty = false;
 
-        if (recursive === true) {
-            for (const child of this.children()) {
-                child.markClean({ force });
-            }
+        for (const child of this.children()) {
+            child.markClean();
         }
     }
 

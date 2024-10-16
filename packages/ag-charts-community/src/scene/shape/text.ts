@@ -4,7 +4,7 @@ import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../ut
 import { BBox } from '../bbox';
 import { nodeCount } from '../debug.util';
 import type { RenderContext } from '../node';
-import {  SceneChangeDetection } from '../node';
+import { SceneChangeDetection } from '../node';
 import { Rotatable, Translatable } from '../transformable';
 import { Shape } from './shape';
 
@@ -88,7 +88,7 @@ export class Text extends Shape {
 
         if (!this.lines.length || !this.layerManager) {
             if (stats) stats.nodesSkipped += nodeCount(this).count;
-            return;
+            return super.render(renderCtx);
         }
 
         const { fill, stroke, strokeWidth } = this;
