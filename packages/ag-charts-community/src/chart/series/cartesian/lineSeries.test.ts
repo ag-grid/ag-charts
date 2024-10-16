@@ -437,12 +437,10 @@ describe('LineSeries', () => {
                         ],
                     };
 
-                    console.group(ratio);
                     prepareTestOptions(options);
 
                     chart = AgCharts.create(options);
                     await waitForChartStability(chart);
-                    console.groupEnd();
                     await compare();
                 });
             }
