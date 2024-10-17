@@ -131,7 +131,7 @@ export class Scene {
             if (this.debug.check()) {
                 this.debug('Scene.render() - no-op', {
                     redrawType: RedrawType[root.dirty],
-                    tree: buildTree(root),
+                    tree: buildTree(root, 'console'),
                 });
             }
 
@@ -166,14 +166,24 @@ export class Scene {
         }
 
         if (root && canvasCleared) {
-            this.debug('Scene.render() - before', {
-                redrawType: RedrawType[root.dirty],
-                canvasCleared,
-                tree: buildTree(root),
-            });
+            if (root.visible) {
+                // Pre-render before building debug tree, so state matches that used in rendering.
+                root.preRender();
+            }
+
+            if (this.debug.check()) {
+                const tree = buildTree(root, 'console');
+                this.debug('Scene.render() - before', {
+                    redrawType: RedrawType[root.dirty],
+                    canvasCleared,
+                    tree,
+                });
+                // Uncomment to write tree to filesystem from tests / Node.js.
+                // require('fs').writeFileSync('scene.json', JSON.stringify(buildTree(root, 'json')));
+                // console.log('Skipped properties', skippedProperties);
+            }
 
             if (root.visible) {
-                root.preRender();
                 ctx.save();
                 root.render(renderCtx);
                 ctx.restore();
@@ -193,7 +203,7 @@ export class Scene {
         if (root && this.debug.check()) {
             this.debug('Scene.render() - after', {
                 redrawType: RedrawType[root.dirty],
-                tree: buildTree(root),
+                tree: buildTree(root, 'console'),
                 canvasCleared,
             });
         }
