@@ -149,14 +149,15 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     }
 
     public panToBBox(callerId: string, seriesRect: BBox, target: BBoxValues) {
-        const { x: zoomX, y: zoomY } = this.getZoom() ?? {};
-        if (!zoomX || !zoomY) return;
+        const zoom = this.getZoom();
+        if (zoom === undefined || (!zoom.x && !zoom.y)) return;
+
         if (target.width > seriesRect.width || target.height > seriesRect.height) {
             Logger.errorOnce(`cannot pan to target BBox`);
             return;
         }
 
-        const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoomX, zoomY, target);
+        const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
         this.updateZoom(callerId, newZoom);
     }
 

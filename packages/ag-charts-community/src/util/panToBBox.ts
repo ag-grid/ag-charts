@@ -51,10 +51,11 @@ function panAxesUnnormalized(
 // The desired (x, y) for the new viewport is found, the pixel coords are converted into normalized values
 export function calcPanToBBoxRatios(
     viewportBBox: BBoxValues,
-    ratioX: Ratios,
-    ratioY: Ratios,
+    ratios: Partial<XYRatios>,
     targetBBox: BBoxValues
 ): XYRatios {
+    const { x: ratioX = { min: 0, max: 1 }, y: ratioY = { min: 0, max: 1 } } = ratios;
+
     const target = Vec4.from(targetBBox);
     const viewport = Vec4.from(viewportBBox);
     const world = calcWorldVec4(viewport, ratioX, ratioY);
