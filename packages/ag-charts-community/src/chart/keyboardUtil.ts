@@ -14,11 +14,17 @@ function computeCenter(bboxOrPath: Path | BBox | undefined) {
 
 type PickProperties = { bounds: Path | BBox | undefined; showFocusBox: boolean };
 
-export function drawPickedFocus(focusIndicator: FocusIndicator | undefined, pick: PickProperties) {
+function drawPickedFocus(focusIndicator: FocusIndicator | undefined, pick: PickProperties) {
     const { bounds, showFocusBox } = pick;
     if (showFocusBox) {
         focusIndicator?.updateBounds(bounds);
     }
+}
+
+export function getPickedFocusBBox({ bounds }: PickProperties): BBox {
+    if (bounds instanceof BBox) return bounds;
+    if (bounds != null) return bounds.getBBox();
+    return BBox.NaN;
 }
 
 export function makeKeyboardPointerEvent(
