@@ -95,8 +95,6 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
             return;
         }
 
-        this.focusIndicator.overrideFocusVisible(true);
-
         // We must read the key before the modifiers, because the text value can typed using modifiers.
         switch (key) {
             case '+':
@@ -104,8 +102,9 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
             case '-':
                 return this.dispatch('nav-zoom', -1, event);
         }
-
         if (altKey || shiftKey || metaKey || ctrlKey) return;
+
+        this.focusIndicator.overrideFocusVisible(true);
         switch (code) {
             case 'ArrowDown':
                 return this.dispatch('nav-vert', 1, event);
@@ -130,7 +129,8 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
     private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, sourceEvent: InteractionEvent) {
         const { previousInputDevice } = this;
         dispatchTypedEvent(this.listeners, { type, delta, sourceEvent, previousInputDevice });
-        if (sourceEvent.type === 'keydown' && type !== 'redo' && type !== 'undo') {
+        const sharedKbmTypes: readonly (typeof type)[] = ['redo', 'undo', 'nav-zoom'];
+        if (sourceEvent.type === 'keydown' && !sharedKbmTypes.includes(type)) {
             this.previousInputDevice = 'keyboard';
         }
     }
