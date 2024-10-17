@@ -198,17 +198,17 @@ export const AnnotationsModule: _ModuleSupport.Module = {
                 },
                 down: {
                     ...stroke,
-                    stroke: _Theme.PALETTE_DOWN_STROKE,
-                    fill: _Theme.PALETTE_DOWN_FILL,
+                    stroke: _Theme.DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
+                    fill: _Theme.DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL,
                     fillOpacity: 0.2,
                     handle: {
                         ...handle,
-                        stroke: _Theme.PALETTE_DOWN_STROKE,
+                        stroke: _Theme.DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
                     },
                     statistics: {
                         ...measurerStatistics,
                         color: '#fff',
-                        fill: _Theme.PALETTE_DOWN_FILL,
+                        fill: _Theme.DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL,
                         strokeWidth: 0,
                         divider: {
                             stroke: '#fff',
