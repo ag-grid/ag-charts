@@ -145,12 +145,6 @@ export type AnnotationContext = {
     yAxis: AnnotationAxisContext;
 };
 
-export interface GuardDragClickDoubleEvent {
-    guard: () => boolean;
-    hover: () => void;
-    reset: () => void;
-}
-
 export type AnnotationOptionsColorPickerType = 'line-color' | 'fill-color' | 'text-color';
 
 export type AnnotationLineStyle = {

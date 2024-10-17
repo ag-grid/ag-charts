@@ -1,11 +1,6 @@
 import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 
-import {
-    type AnnotationLineStyle,
-    type AnnotationOptionsColorPickerType,
-    AnnotationType,
-    type GuardDragClickDoubleEvent,
-} from './annotationTypes';
+import { type AnnotationLineStyle, type AnnotationOptionsColorPickerType, AnnotationType } from './annotationTypes';
 import { annotationConfigs, getTypedDatum } from './annotationsConfig';
 import type {
     AnnotationProperties,
@@ -76,24 +71,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
     private copied?: AnnotationProperties;
 
     constructor(ctx: AnnotationsStateMachineContext) {
-        // A `click` is preceeded by the `dragStart` and `dragEnd` events, since `dragStart` also selects the annotation we
-        // need to differentiate when the second time the annotation is clicked was not the first `click` event after
-        // the `dragStart.
-        let selectedWithDrag = false;
-
-        // Ensure that a double event of drag before a single click does not trigger an immediate transition causing
-        // the start and end to be at the same point.
-        let hoverEventsCount = 0;
-        const guardDragClickDoubleEvent: GuardDragClickDoubleEvent = {
-            guard: () => hoverEventsCount > 0,
-            hover: () => {
-                hoverEventsCount++;
-            },
-            reset: () => {
-                hoverEventsCount = 0;
-            },
-        };
-
         const getDatum =
             <T>(is: (value: unknown) => value is T) =>
             () => {
@@ -132,7 +109,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
         const createStateMachineContext = {
             ...ctx,
             delete: deleteDatum,
-            guardDragClickDoubleEvent,
             showTextInput: () => {
                 if (this.active != null) ctx.showTextInput(this.active);
             },
@@ -155,9 +131,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
         const dragStateMachineContext = {
             ...ctx,
-            setSelectedWithDrag: () => {
-                selectedWithDrag = true;
-            },
             setSnapping: (snapping: boolean) => {
                 this.snapping = snapping;
             },
@@ -328,7 +301,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 click: [
                     {
                         guard: () => {
-                            if (this.active == null || this.hovered !== this.active || selectedWithDrag) return false;
+                            if (this.active == null || this.hovered !== this.active) return false;
                             const datum = ctx.datum(this.active);
                             if (!datum) return false;
                             return isTextType(datum) && !datum.locked;
@@ -340,7 +313,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                             const prevActive = this.active;
                             this.active = this.hovered;
                             ctx.select(this.hovered, prevActive);
-                            selectedWithDrag = false;
                         },
                     },
                 ],
@@ -349,17 +321,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     guard: guardActiveHasLineText,
                     action: ({ offset }) => {
                         const nodeAtCoords = ctx.getNodeAtCoords(offset, this.active!) === 'text' ? 'text' : 'line';
-
                         ctx.showAnnotationSettings(this.active!, undefined, nodeAtCoords);
-                    },
-                },
-
-                drag: {
-                    guard: guardHovered,
-                    action: () => {
-                        const prevActive = this.active;
-                        this.active = this.hovered;
-                        ctx.select(this.hovered, prevActive);
                     },
                 },
 
@@ -367,7 +329,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     guard: guardHovered,
                     target: States.Dragging,
                     action: () => {
-                        selectedWithDrag = this.active == null || this.hovered != this.active;
                         const prevActive = this.active;
                         this.active = this.hovered;
                         ctx.select(this.hovered, prevActive);

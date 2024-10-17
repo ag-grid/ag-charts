@@ -30,6 +30,8 @@ export abstract class TextualStartEndStateMachine<
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit' | 'end',
     | 'click'
+    | 'drag'
+    | 'dragEnd'
     | 'zoomChange'
     | 'cancel'
     | 'hover'
@@ -144,6 +146,10 @@ export abstract class TextualStartEndStateMachine<
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },
+                drag: {
+                    target: 'waiting-first-render',
+                    action: actionCreate,
+                },
                 cancel: StateMachine.parent,
                 reset: StateMachine.parent,
             },
@@ -155,7 +161,12 @@ export abstract class TextualStartEndStateMachine<
             },
             end: {
                 hover: onEndHover,
+                drag: onEndHover,
                 click: {
+                    target: 'edit',
+                    action: onEndClick,
+                },
+                dragEnd: {
                     target: 'edit',
                     action: onEndClick,
                 },
@@ -186,6 +197,10 @@ export abstract class TextualStartEndStateMachine<
                     },
                 ],
                 click: {
+                    target: StateMachine.parent,
+                    action: actionSave,
+                },
+                drag: {
                     target: StateMachine.parent,
                     action: actionSave,
                 },
