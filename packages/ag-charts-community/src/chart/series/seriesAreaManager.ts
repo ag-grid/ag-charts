@@ -390,9 +390,11 @@ export class SeriesAreaManager extends BaseManager {
 
         this.chart.ctx.animationManager.reset();
 
-        const focusBBox = getPickedFocusBBox(pick);
-        if (seriesRect && !seriesRect.containsBBox(focusBBox)) {
-            this.chart.ctx.zoomManager.panToBBox(this.id, seriesRect, focusBBox);
+        if (this.chart.ctx.focusIndicator.isFocusVisible() && seriesRect) {
+            const focusBBox = getPickedFocusBBox(pick);
+            if (!seriesRect.containsBBox(focusBBox)) {
+                this.chart.ctx.zoomManager.panToBBox(this.id, seriesRect, focusBBox);
+            }
         }
 
         // Update the bounds of the focus indicator:
