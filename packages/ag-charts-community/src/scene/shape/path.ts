@@ -94,7 +94,7 @@ export class Path extends Shape implements DistantObject {
         return false;
     }
 
-    protected updatePath() {
+    updatePath() {
         // Override point for subclasses.
     }
 

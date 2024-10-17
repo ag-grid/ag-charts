@@ -148,16 +148,6 @@ export class Matrix {
         return new Matrix([d, -b, -c, a, c * f - d * e, b * e - a * f]);
     }
 
-    invertible(): boolean {
-        const el = this.elements;
-        let a = el[0],
-            b = el[1],
-            c = el[2],
-            d = el[3];
-        const D = a * d - b * c;
-        return D !== 0;
-    }
-
     /**
      * Save the inverse of this matrix to the given matrix.
      */

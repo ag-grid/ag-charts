@@ -123,8 +123,6 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
 
             const matrix = this[TRANSFORM_MATRIX];
 
-            if (!matrix.invertible()) return;
-
             let performRestore = false;
             if (!matrix.identity) {
                 ctx.save();
