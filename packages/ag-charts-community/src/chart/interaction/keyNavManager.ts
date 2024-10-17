@@ -96,6 +96,15 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
         }
 
         this.focusIndicator.overrideFocusVisible(true);
+
+        // We must read the key before the modifiers, because the text value can typed using modifiers.
+        switch (key) {
+            case '+':
+                return this.dispatch('nav-zoom', 1, event);
+            case '-':
+                return this.dispatch('nav-zoom', -1, event);
+        }
+
         if (altKey || shiftKey || metaKey || ctrlKey) return;
         switch (code) {
             case 'ArrowDown':
@@ -115,13 +124,6 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
             case 'Space':
             case 'Enter':
                 return this.dispatch('submit', 0, event);
-        }
-
-        switch (key) {
-            case '+':
-                return this.dispatch('nav-zoom', 1, event);
-            case '-':
-                return this.dispatch('nav-zoom', -1, event);
         }
     }
 
