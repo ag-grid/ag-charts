@@ -2,6 +2,7 @@ import { type Direction, _ModuleSupport, _Util } from 'ag-charts-community';
 
 import { AnnotationType, type Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
+import type { AnnotationStateEvents } from '../states/stateTypes';
 import { type CrossLineProperties, HorizontalLineProperties, VerticalLineProperties } from './crossLineProperties';
 import type { CrossLineScene } from './crossLineScene';
 
@@ -19,7 +20,7 @@ interface CrossLineStateMachineContext extends Omit<AnnotationsStateMachineConte
 
 export class CrossLineStateMachine extends StateMachine<
     'start' | 'waiting-first-render',
-    'click' | 'cancel' | 'render' | 'reset'
+    Pick<AnnotationStateEvents, 'click' | 'cancel' | 'render' | 'reset'>
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 

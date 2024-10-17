@@ -92,16 +92,22 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
 }
 
 type CartesianAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing' | 'disabled';
-type CartesianAnimationEvent =
-    | 'update'
-    | 'updateData'
-    | 'highlight'
-    | 'highlightMarkers'
-    | 'resize'
-    | 'clear'
-    | 'reset'
-    | 'skip'
-    | 'disable';
+type CartesianAnimationEvent<
+    TNode extends Node,
+    TDatum extends CartesianSeriesNodeDatum,
+    TLabel extends SeriesNodeDatum = TDatum,
+    TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
+> = {
+    update: CartesianAnimationData<TNode, TDatum, TLabel, TContext>;
+    updateData: undefined;
+    highlight: Selection<TNode, TDatum>;
+    highlightMarkers: Selection<Marker, TDatum>;
+    resize: CartesianAnimationData<TNode, TDatum, TLabel, TContext>;
+    clear: CartesianAnimationData<TNode, TDatum, TLabel, TContext>;
+    reset: undefined;
+    skip: undefined;
+    disable: undefined;
+};
 
 export interface CartesianAnimationData<
     TNode extends Node,
@@ -192,7 +198,10 @@ export abstract class CartesianSeries<
 
     protected quadtree?: QuadtreeNearest<TDatum>;
 
-    protected animationState: StateMachine<CartesianAnimationState, CartesianAnimationEvent>;
+    protected animationState: StateMachine<
+        CartesianAnimationState,
+        CartesianAnimationEvent<TNode, TDatum, TLabel, TContext>
+    >;
 
     protected constructor({
         pathsPerSeries = ['path'],
@@ -246,7 +255,10 @@ export abstract class CartesianSeries<
             markerSelectionGarbageCollection
         );
 
-        this.animationState = new StateMachine<CartesianAnimationState, CartesianAnimationEvent>(
+        this.animationState = new StateMachine<
+            CartesianAnimationState,
+            CartesianAnimationEvent<TNode, TDatum, TLabel, TContext>
+        >(
             'empty',
             {
                 empty: {
@@ -448,7 +460,7 @@ export abstract class CartesianSeries<
                 markerSelection: highlightSelection as any,
                 isHighlight: true,
             });
-            this.animationState.transition('highlightMarkers', highlightSelection);
+            this.animationState.transition('highlightMarkers', highlightSelection as any);
         } else {
             await this.updateDatumNodes({
                 datumSelection: highlightSelection,

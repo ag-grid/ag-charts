@@ -18,15 +18,16 @@ import type { SeriesNodeDatum } from '../seriesTypes';
 import { PolarZIndexMap } from './polarZIndexMap';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
-export type PolarAnimationEvent =
-    | 'update'
-    | 'updateData'
-    | 'highlight'
-    | 'highlightMarkers'
-    | 'resize'
-    | 'clear'
-    | 'reset'
-    | 'skip';
+export type PolarAnimationEvent = {
+    update: PolarAnimationData;
+    updateData: undefined;
+    highlight: undefined;
+    highlightMarkers: undefined;
+    resize: PolarAnimationData;
+    clear: { seriesRect?: BBox };
+    reset: undefined;
+    skip: undefined;
+};
 export type PolarAnimationData = { duration?: number };
 
 type PolarSeriesProperties = {

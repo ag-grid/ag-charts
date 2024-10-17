@@ -12,10 +12,8 @@ import type {
     AnnotationsStateMachineContext,
     AnnotationsStateMachineHelperFns,
 } from './annotationsSuperTypes';
-import type {
-    LinearSettingsDialogLineChangeProps,
-    LinearSettingsDialogTextChangeProps,
-} from './settings-dialog/settingsDialog';
+import type { LinearSettingsDialogTextChangeProps } from './settings-dialog/settingsDialog';
+import type { AnnotationStateEvents } from './states/stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
 import { wrapText } from './text/util';
 import { hasLineStyle, hasLineText } from './utils/has';
@@ -29,41 +27,8 @@ enum States {
     Dragging = 'dragging',
     TextInput = 'text-input',
 }
-type AnnotationEvent =
-    // Interaction events
-    | 'hover'
-    | 'click'
-    | 'dblclick'
-    | 'zoomChange'
-    | 'drag'
-    | 'dragStart'
-    | 'dragEnd'
-    | 'keyDown'
-    | 'keyUp'
-    // Data events
-    | 'selectLast'
-    | 'translate'
-    | 'translateEnd'
-    | 'copy'
-    | 'cut'
-    | 'paste'
-    | 'cancel'
-    | 'reset'
-    | 'delete'
-    | 'deleteAll'
-    // Annotation properties events
-    | 'color'
-    | 'fontSize'
-    | 'lineProps'
-    | 'lineStyle'
-    | 'lineText'
-    | 'updateTextInputBBox'
-    // Toolbar events
-    | 'toolbarPressSettings'
-    // Process events
-    | 'render';
 
-export class AnnotationsStateMachine extends StateMachine<States, AnnotationType | AnnotationEvent> {
+export class AnnotationsStateMachine extends StateMachine<States, AnnotationStateEvents> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
@@ -220,16 +185,16 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             ctx.update();
         };
 
-        const actionUpdateTextInputBBox = (bbox: _Scene.BBox) => {
+        const actionUpdateTextInputBBox = (bbox?: _Scene.BBox) => {
             const node = ctx.node(this.active!);
             if (!node || !('setTextInputBBox' in node)) return;
             node.setTextInputBBox(bbox);
             ctx.update();
         };
 
-        const actionSaveText = ({ textInputValue, bbox }: { textInputValue?: string; bbox: _Scene.BBox }) => {
+        const actionSaveText = ({ textInputValue, bbox }: { textInputValue?: string; bbox?: _Scene.BBox }) => {
             const datum = ctx.datum(this.active!);
-            if (textInputValue != null && textInputValue.length > 0) {
+            if (bbox != null && textInputValue != null && textInputValue.length > 0) {
                 if (!isTextType(datum)) {
                     return;
                 }
@@ -269,21 +234,21 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     }
                 },
 
-                hover: ({ offset }: { offset: _ModuleSupport.Vec2 }) => {
+                hover: ({ offset }) => {
                     this.hovered = ctx.hoverAtCoords(offset, this.active);
                 },
 
-                keyDown: ({ shiftKey }: { shiftKey: boolean }) => {
+                keyDown: ({ shiftKey }) => {
                     this.snapping = shiftKey;
                 },
 
-                keyUp: ({ shiftKey }: { shiftKey: boolean }) => {
+                keyUp: ({ shiftKey }) => {
                     this.snapping = shiftKey;
                 },
 
                 translate: {
                     guard: guardActive,
-                    action: ({ translation }: { translation: _ModuleSupport.Vec2 }) => {
+                    action: ({ translation }) => {
                         ctx.startInteracting();
                         ctx.translate(this.active!, translation);
                         ctx.update();
@@ -387,7 +352,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
 
                 lineProps: {
                     guard: guardActive,
-                    action: (props: LinearSettingsDialogLineChangeProps) => {
+                    action: (props) => {
                         const datum = getTypedDatum(ctx.datum(this.active!));
                         datum?.set(props);
                         ctx.update();
@@ -498,7 +463,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     action: actionSaveText,
                 },
 
-                keyDown: [
+                textInput: [
                     {
                         guard: guardCancelAndExit,
                         target: States.Idle,
