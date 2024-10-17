@@ -247,8 +247,9 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onClick(event: RegionEvent<'click' | 'dblclick'>) {
+        this.hoverDevice = 'mouse';
+        this.onHoverLikeEvent(event);
         if (this.seriesRect?.containsPoint(event.offsetX, event.offsetY) && this.checkSeriesNodeClick(event)) {
-            this.onHoverLikeEvent(event);
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.preventDefault();
             return;
