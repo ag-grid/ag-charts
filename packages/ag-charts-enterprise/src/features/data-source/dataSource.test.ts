@@ -19,6 +19,10 @@ describe('DataSource', () => {
     let chart: any;
     const ctx = setupMockCanvas();
 
+    // Note: We set crosshair: { enabled: false } and make the highlight styling match the unhighlighted
+    // styling because there is a race condition with the clickAction and data-update handling, which
+    // sometimes triggers the highlight rendering, and sometimes doesn't. We're not explicitly testing
+    // highlight rendering, so this allows us to treat highlighted & unhighlighted charts as equal.
     const EXAMPLE_OPTIONS: AgCartesianChartOptions = {
         dataSource: {
             // @ts-expect-error Set undocumented options to instantly resolve for tests
@@ -30,6 +34,7 @@ describe('DataSource', () => {
             {
                 type: 'number',
                 position: 'left',
+                crosshair: { enabled: false },
             },
             {
                 type: 'time',
@@ -37,6 +42,7 @@ describe('DataSource', () => {
                 nice: false,
                 min: new Date('2024-01-01 00:00:00'),
                 max: new Date('2024-01-07 00:00:00'),
+                crosshair: { enabled: false },
             },
         ],
         series: [
@@ -53,6 +59,21 @@ describe('DataSource', () => {
             scrollingStep: 0.5, // Make sure we zoom enough in a single step so we can detect it
             minVisibleItemsX: 1,
             minVisibleItemsY: 1,
+        },
+        theme: {
+            overrides: {
+                line: {
+                    series: {
+                        highlightStyle: {
+                            item: {
+                                fill: '#f3622d',
+                                stroke: '#aa4520',
+                                strokeWidth: 0,
+                            },
+                        },
+                    },
+                },
+            },
         },
     };
 
@@ -78,7 +99,6 @@ describe('DataSource', () => {
         // event is triggered.
         await waitForChartStability(chart);
         await clickAction(cx, cy)(chart);
-        await delay(1000); // FIXME: temporary fix to work around race-condition with click & data-update handling
     }
 
     afterEach(() => {
