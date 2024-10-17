@@ -104,4 +104,21 @@ test.describe('zoom', () => {
         await expect(page.locator(xAxisLabel)).not.toBeVisible();
         await expect(page.locator(yAxisLabel)).not.toBeVisible();
     });
+
+    test('AG-13166 zoom keynav focus-visible', async ({ page }) => {
+        const { url } = toExamplePageUrl('financial-charts-configuration', 'default-configuration', 'vanilla');
+        await gotoExample(            page,url        );
+        await page.mouse.click(20, 20);
+
+        await page.keyboard.type('+');
+        await expect(page).toHaveScreenshot('zoom-pluskey-no-focus-visible.png', { animations: 'disabled' });
+        await page.keyboard.type('-');
+        await expect(page).toHaveScreenshot('zoom-minuskey-no-focus-visible.png', { animations: 'disabled' });
+
+        await page.keyboard.press('ArrowLeft');
+        await page.keyboard.type('+');
+        await expect(page).toHaveScreenshot('zoom-pluskey-focus-visible.png', { animations: 'disabled' });
+        await page.keyboard.type('-');
+        await expect(page).toHaveScreenshot('zoom-minuskey-focus-visible.png', { animations: 'disabled' });
+    });
 });
