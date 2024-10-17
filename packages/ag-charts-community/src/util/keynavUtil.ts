@@ -1,4 +1,4 @@
-import { setAttribute } from './attributeUtil';
+import { getAttribute, setAttribute } from './attributeUtil';
 
 function addRemovableEventListener<K extends keyof WindowEventMap>(
     destroyFns: (() => void)[],
@@ -259,7 +259,8 @@ export function getLastFocus(sourceEvent: Event | undefined): HTMLElement | unde
 export function stopPageScrolling(element: HTMLElement) {
     const handler = (event: KeyboardEvent) => {
         if (event.defaultPrevented) return;
-        if (!event.defaultPrevented && matchesKey(event, 'ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp')) {
+        const shouldPrevent = getAttribute(event.target, 'data-preventdefault', true);
+        if (shouldPrevent && matchesKey(event, 'ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp')) {
             event.preventDefault();
         }
     };
