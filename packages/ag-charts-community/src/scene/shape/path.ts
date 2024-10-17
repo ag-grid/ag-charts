@@ -77,10 +77,7 @@ export class Path extends Shape implements DistantObject {
     }
 
     svgPathData(transform?: (x: number, y: number) => { x: number; y: number }): string {
-        if (this.dirtyPath) {
-            this.updatePath();
-            this.dirtyPath = false;
-        }
+        this.updatePathIfDirty();
         return this.path.toSVG(transform);
     }
 
@@ -97,11 +94,11 @@ export class Path extends Shape implements DistantObject {
         return false;
     }
 
-    updatePath() {
+    protected updatePath() {
         // Override point for subclasses.
     }
 
-    private updatePathIfDirty() {
+    protected updatePathIfDirty() {
         if (this.dirtyPath || this.isDirtyPath()) {
             this.updatePath();
             this.dirtyPath = false;

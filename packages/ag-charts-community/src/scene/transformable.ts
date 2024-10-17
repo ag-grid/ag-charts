@@ -119,18 +119,23 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
                 this.computeTransformMatrix();
             }
 
+            const { ctx } = renderCtx;
+
             const matrix = this[TRANSFORM_MATRIX];
+
+            if (!matrix.invertible()) return;
+
             let performRestore = false;
             if (!matrix.identity) {
-                renderCtx.ctx.save();
+                ctx.save();
                 performRestore = true;
-                matrix.toContext(renderCtx.ctx);
+                matrix.toContext(ctx);
             }
 
             super.render(renderCtx);
 
             if (performRestore) {
-                renderCtx.ctx.restore();
+                ctx.restore();
             }
         }
 

@@ -1,5 +1,5 @@
 import { BBox } from '../../../scene/bbox';
-import { SceneChangeDetection } from '../../../scene/changeDetectable';
+import { ScenePathChangeDetection } from '../../../scene/shape/path';
 import { Path } from '../../../scene/shape/path';
 import { POSITIVE_NUMBER, Validate } from '../../../util/validation';
 
@@ -12,19 +12,19 @@ export class RangeHandle extends Path {
     private centerY: number = 0;
 
     @Validate(POSITIVE_NUMBER)
-    @SceneChangeDetection({ type: 'path' })
+    @ScenePathChangeDetection()
     width: number = 8;
 
     @Validate(POSITIVE_NUMBER)
-    @SceneChangeDetection({ type: 'path' })
+    @ScenePathChangeDetection()
     height: number = 16;
 
     @Validate(POSITIVE_NUMBER)
-    @SceneChangeDetection({ type: 'path' })
+    @ScenePathChangeDetection()
     gripLineGap: number = 2;
 
     @Validate(POSITIVE_NUMBER)
-    @SceneChangeDetection({ type: 'path' })
+    @ScenePathChangeDetection()
     gripLineLength: number = 8;
 
     setCenter(x: number, y: number) {

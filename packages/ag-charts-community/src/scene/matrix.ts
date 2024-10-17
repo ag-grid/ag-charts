@@ -1,6 +1,6 @@
 import { BBox } from './bbox';
 
-export const IDENTITY_MATRIX_ELEMENTS = Object.freeze([1, 0, 0, 1, 0, 0]);
+export const IDENTITY_MATRIX_ELEMENTS: readonly number[] = [1, 0, 0, 1, 0, 0];
 
 function closeValue(val: number, ref: number, errorMargin = 1e-8) {
     return val === ref || Math.abs(ref - val) < errorMargin;
@@ -146,6 +146,16 @@ export class Matrix {
         d *= rD;
 
         return new Matrix([d, -b, -c, a, c * f - d * e, b * e - a * f]);
+    }
+
+    invertible(): boolean {
+        const el = this.elements;
+        let a = el[0],
+            b = el[1],
+            c = el[2],
+            d = el[3];
+        const D = a * d - b * c;
+        return D !== 0;
     }
 
     /**

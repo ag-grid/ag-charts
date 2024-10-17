@@ -543,7 +543,6 @@ export class Legend extends BaseProperties {
         // Calculate the marker size of a custom marker shape:
         if (this.isCustomMarker(markerEnabled, shape)) {
             const tmpShape = new shape();
-            tmpShape.updatePath();
             const bbox = tmpShape.getBBox();
             customMarkerSize = Math.max(bbox.width, bbox.height);
         }

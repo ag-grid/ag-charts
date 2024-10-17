@@ -29,9 +29,7 @@ export class Group extends Node {
 
     private clipRect?: BBox;
 
-    @SceneChangeDetection({
-        convertor: (v: number) => clamp(0, v, 1),
-    })
+    @SceneChangeDetection({ convertor: (v: number) => clamp(0, v, 1) })
     opacity: number = 1;
 
     private layer: HdpiCanvas | undefined = undefined;
@@ -59,8 +57,7 @@ export class Group extends Node {
     private isDirty(renderCtx: RenderContext) {
         const { resized } = renderCtx;
         const { dirty, dirtyZIndex } = this;
-        const isDirty = dirty || dirtyZIndex || resized;
-        if (isDirty) return true;
+        if (dirty || dirtyZIndex || resized) return true;
 
         for (const child of this.children()) {
             if (child.dirty) return true;
@@ -95,6 +92,7 @@ export class Group extends Node {
 
         if (this.layer == null) {
             this.renderInContext(childRenderCtx);
+            super.render(childRenderCtx); // Calls markClean().
             return;
         }
 
@@ -123,6 +121,8 @@ export class Group extends Node {
         ctx.resetTransform();
         layer.drawImage(ctx as any);
         ctx.restore();
+
+        super.render(childRenderCtx); // Calls markClean().
     }
 
     private renderClip(renderCtx: RenderContext, clipRect: BBox) {
@@ -150,8 +150,6 @@ export class Group extends Node {
                 stats.nodesSkipped += nodeCount(child).count;
             }
         }
-
-        super.render(childRenderCtx); // Calls markClean().
     }
 
     private renderInContext(childRenderCtx: RenderContext) {
@@ -186,8 +184,6 @@ export class Group extends Node {
         }
 
         ctx.restore();
-
-        super.render(childRenderCtx); // Calls markClean().
     }
 
     /**

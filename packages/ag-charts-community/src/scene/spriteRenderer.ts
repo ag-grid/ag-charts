@@ -44,9 +44,9 @@ export class SpriteRenderer {
         } = this;
         const { scale = 1, translateX = 0, translateY = 0 } = opts ?? {};
 
+        ctx.save();
         ctx.resetTransform();
         ctx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-        ctx.save();
         ctx.beginPath();
         ctx.setTransform(scale, 0, 0, scale, translateX, translateY);
         for (const node of nodes) {

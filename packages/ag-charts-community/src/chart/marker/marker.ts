@@ -1,3 +1,4 @@
+import type { RenderContext } from '../../integrated-charts-scene';
 import { BBox } from '../../scene/bbox';
 import type { Point } from '../../scene/point';
 import { Path, ScenePathChangeDetection } from '../../scene/shape/path';
@@ -37,6 +38,7 @@ class InternalMarker extends Path {
 
     protected override computeBBox(): BBox {
         if (!this.isBuiltIn()) {
+            this.updatePathIfDirty();
             return this.path.computeBBox();
         }
 
