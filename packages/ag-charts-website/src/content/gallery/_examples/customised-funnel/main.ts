@@ -2,8 +2,9 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const data = getData();
+type ValueKey = keyof Omit<(typeof data)[number], 'group'>;
 
+const data = getData();
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     theme: {
@@ -52,19 +53,19 @@ const options: AgChartOptions = {
     ],
 };
 
-function getOpacity(value, key, minOpacity, maxOpacity) {
+function getOpacity(value: number, key: ValueKey, minOpacity: number, maxOpacity: number) {
     const [min, max] = getDomain(key);
     let alpha = Math.round(((value - min) / (max - min)) * 10) / 10;
     return map(alpha, 0, 1, minOpacity, maxOpacity);
 }
 
-function getDomain(key) {
+function getDomain(key: ValueKey) {
     const min = Math.min(...data.map((d) => d[key]));
     const max = Math.max(...data.map((d) => d[key]));
     return [min, max];
 }
 
-const map = (value, start1, end1, start2, end2) => {
+const map = (value: number, start1: number, end1: number, start2: number, end2: number) => {
     return ((value - start1) / (end1 - start1)) * (end2 - start2) + start2;
 };
 
