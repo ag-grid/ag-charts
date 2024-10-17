@@ -45,6 +45,11 @@
                     "children": [
                         {
                             "type": "item",
+                            "title": "Security",
+                            "path": "security"
+                        },
+                        {
+                            "type": "item",
                             "title": "Supported Browsers",
                             "path": "supported-browsers"
                         },
@@ -52,11 +57,6 @@
                             "type": "item",
                             "title": "Supported Frameworks",
                             "path": "supported-frameworks"
-                        },
-                        {
-                            "type": "item",
-                            "title": "Security",
-                            "path": "security"
                         }
                     ]
                 }
@@ -91,13 +91,13 @@
                         },
                         {
                             "type": "item",
-                            "title": "Secondary Axes",
-                            "path": "axes-secondary"
+                            "title": "Grid Lines",
+                            "path": "axes-grid-lines"
                         },
                         {
                             "type": "item",
-                            "title": "Grid Lines",
-                            "path": "axes-grid-lines"
+                            "title": "Secondary Axes",
+                            "path": "axes-secondary"
                         }
                     ]
                 },
@@ -107,22 +107,27 @@
                     "isPricingFeature": true,
                     "children": [
                         {
-                            "title": "item",
-                            "title": "Legend",
-                            "path": "legend"
-                        },
-                        {
-                            "title": "item",
-                            "title": "Series Markers",
-                            "path": "markers"
-                        },
-                        {
-                            "title": "item",
+                            "type": "item",
                             "title": "Cross Lines",
                             "path": "axes-cross-lines"
                         },
                         {
-                            "title": "item",
+                            "type": "item",
+                            "title": "Legend",
+                            "path": "legend"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Stylers",
+                            "path": "stylers"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Series Markers",
+                            "path": "markers"
+                        },
+                        {
+                            "type": "item",
                             "title": "Error Bars",
                             "path": "error-bars",
                             "isEnterprise": true
@@ -134,6 +139,16 @@
                     "title": "Interactivity",
                     "isPricingFeature": true,
                     "children": [
+                        {
+                            "type": "item",
+                            "title": "Accessibility",
+                            "path": "accessibility"
+                        },
+                        {
+                            "type": "item",
+                            "title": "Localisation",
+                            "path": "localisation"
+                        },
                         {
                             "type": "item",
                             "title": "Series Highlighting",
@@ -170,25 +185,15 @@
                         },
                         {
                             "type": "item",
-                            "title": "Zoom",
-                            "path": "zoom",
-                            "isEnterprise": true
-                        },
-                        {
-                            "type": "item",
                             "title": "Synchronization",
                             "path": "sync",
                             "isEnterprise": true
                         },
                         {
                             "type": "item",
-                            "title": "Accessibility",
-                            "path": "accessibility"
-                        },
-                        {
-                            "type": "item",
-                            "title": "Localisation",
-                            "path": "localisation"
+                            "title": "Zoom",
+                            "path": "zoom",
+                            "isEnterprise": true
                         }
                     ]
                 },
@@ -198,8 +203,8 @@
                     "children": [
                         {
                             "type": "item",
-                            "title": "Themes",
-                            "path": "themes"
+                            "title": "Background",
+                            "path": "background"
                         },
                         {
                             "type": "item",
@@ -208,24 +213,19 @@
                         },
                         {
                             "type": "item",
-                            "title": "Stylers",
-                            "path": "stylers"
+                            "title": "Overlays",
+                            "path": "overlays"
                         },
                         {
                             "type": "item",
-                            "title": "Background",
-                            "path": "background"
+                            "title": "Themes",
+                            "path": "themes"
                         },
                         {
                             "type": "item",
                             "title": "Background Image",
                             "path": "background-image",
                             "isEnterprise": true
-                        },
-                        {
-                            "type": "item",
-                            "title": "Overlays",
-                            "path": "overlays"
                         }
                     ]
                 }
@@ -489,6 +489,13 @@
                     "title": "Cone Funnel",
                     "path": "cone-funnel-series",
                     "icon": "chartsConeFunnel",
+                    "isEnterprise": true
+                },
+                {
+                    "type": "item",
+                    "title": "Pyramid",
+                    "path": "pyramid-series",
+                    "icon": "chartsPyramid",
                     "isEnterprise": true
                 }
             ]

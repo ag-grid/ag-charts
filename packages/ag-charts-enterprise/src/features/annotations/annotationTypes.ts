@@ -22,6 +22,12 @@ export enum AnnotationType {
     Arrow = 'arrow',
     ArrowUp = 'arrow-up',
     ArrowDown = 'arrow-down',
+
+    // Measurers
+    DateRange = 'date-range',
+    PriceRange = 'price-range',
+    DatePriceRange = 'date-price-range',
+    QuickDatePriceRange = 'quick-date-price-range',
 }
 
 export type TextualAnnotationType =
@@ -38,13 +44,30 @@ export type LineAnnotationType =
 
 export type ChannelAnnotationType = AnnotationType.DisjointChannel | AnnotationType.ParallelChannel;
 
+export type MeasurerAnnotationType =
+    | AnnotationType.DateRange
+    | AnnotationType.PriceRange
+    | AnnotationType.DatePriceRange
+    | AnnotationType.QuickDatePriceRange;
+
+export type EphemeralAnnotationType = AnnotationType.QuickDatePriceRange;
+
 export type HasColorAnnotationType = AnnotationType;
-export type HasLineStyleAnnotationType = LineAnnotationType | ChannelAnnotationType;
-export type HasLineTextAnnotationType = LineAnnotationType | ChannelAnnotationType;
-export type HasFontSizeAnnotationType =
+export type HasLineStyleAnnotationType = Exclude<
+    LineAnnotationType | ChannelAnnotationType | MeasurerAnnotationType,
+    EphemeralAnnotationType
+>;
+export type HasLineTextAnnotationType = Exclude<
+    LineAnnotationType | ChannelAnnotationType | MeasurerAnnotationType,
+    EphemeralAnnotationType
+>;
+export type HasFontSizeAnnotationType = Exclude<
     | Exclude<TextualAnnotationType, AnnotationType.Note>
     | LineAnnotationType
-    | ChannelAnnotationType;
+    | ChannelAnnotationType
+    | MeasurerAnnotationType,
+    EphemeralAnnotationType
+>;
 
 export const ANNOTATION_TYPES = Object.values(AnnotationType);
 export const ANNOTATION_BUTTONS = [
@@ -68,24 +91,12 @@ export const ANNOTATION_BUTTONS = [
     AnnotationType.ArrowUp,
     AnnotationType.ArrowDown,
 ] as const;
-export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu', 'shape-menu'] as const;
+export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu', 'shape-menu', 'measurer-menu'] as const;
 
 export function stringToAnnotationType(value: string) {
     for (const t of ANNOTATION_TYPES) {
         if (t === value) return t;
     }
-}
-
-export interface Coords {
-    x: number;
-    y: number;
-}
-
-export interface LineCoords {
-    x1: number;
-    y1: number;
-    x2: number;
-    y2: number;
 }
 
 export interface Bounds {
@@ -113,11 +124,13 @@ export interface AnnotationAxisContext
         | 'continuous'
         | 'direction'
         | 'position'
+        | 'scale'
         | 'scaleBandwidth'
         | 'scaleConvert'
         | 'scaleDomain'
         | 'scaleInvert'
         | 'scaleInvertNearest'
+        | 'scaleStep'
         | 'scaleValueFormatter'
         | 'attachLabel'
         | 'inRange'

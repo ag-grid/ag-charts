@@ -21,17 +21,15 @@ export interface TextSizeProperties {
 export class Text extends Shape {
     static readonly className = 'Text';
 
-    // The default line spacing for document editors is usually 1.15
-    static defaultLineHeightRatio = 1.15;
-
-    static override defaultStyles = Object.assign({}, Shape.defaultStyles, {
+    static override readonly defaultStyles = {
+        ...Shape.defaultStyles,
         textAlign: 'start' as CanvasTextAlign,
         fontStyle: undefined,
         fontWeight: undefined,
         fontSize: 10,
         fontFamily: 'sans-serif',
         textBaseline: 'alphabetic' as CanvasTextBaseline,
-    });
+    };
 
     @SceneChangeDetection({ redraw: RedrawType.MAJOR })
     x: number = 0;
@@ -173,7 +171,7 @@ export class Text extends Shape {
         this.textBaseline = props.textBaseline;
     }
 
-    override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] | undefined } | undefined {
+    override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
         if (!this.visible || !this.text) return;
 
         const element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -208,9 +206,7 @@ export class Text extends Shape {
 
         element.textContent = this.text ?? '';
 
-        return {
-            elements: [element],
-        };
+        return { elements: [element] };
     }
 }
 

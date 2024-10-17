@@ -22,6 +22,7 @@ export abstract class AnnotationScene extends _Scene.Group {
     public abstract stopDragging(): void;
     public abstract getAnchor(): _ModuleSupport.ToolbarAnchor;
     public abstract getCursor(): string | undefined;
+    public abstract getNodeAtCoords(x: number, y: number): string | undefined;
 
     public toggleHovered(hovered: boolean) {
         this.toggleHandles(hovered);

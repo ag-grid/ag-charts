@@ -137,7 +137,7 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
             }
         }
 
-        override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] | undefined } | undefined {
+        override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
             const svg = super.toSVG();
 
             const matrix = this[TRANSFORM_MATRIX];

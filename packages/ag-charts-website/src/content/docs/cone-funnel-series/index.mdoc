@@ -3,40 +3,56 @@ title: 'Cone Funnel Series'
 description: '$framework Cone Funnel Series shows the change of a value over a set of processes.'
 ---
 
-A Cone Funnel Series shows the change of a value over a set of processes.
+A Funnel Series illustrates how a value changes during a process, with a line representing the value at each stage
+and filled areas denoting the change between them.
 
 ## Simple Cone Funnel
 
 {% chartExampleRunner title="Cone Funnel Chart" name="simple-cone-funnel" type="generated" /%}
 
-To create a Funnel Series, use the `cone-funnel` series type.
+To create a Cone Funnel Series, use the `cone-funnel` series type.
 
 ```js
 series: [
     {
         type: 'cone-funnel',
-        xKey: 'group',
-        yKey: 'value'
+        stageKey: 'group',
+        valueKey: 'value'
     },
 ],
 ```
 
 In this configuration:
 
--   `xKey` defines the categories, and is mapped to the stages of the funnel.
--   `yKey` provides the numerical values, corresponding values of each stage.
+-   `stageKey` defines the stages which are used for the the lines of the cone funnel.
+-   `valueKey` provides the numerical values which determine the width of line.
 
 ## Horizontal Cone Funnel
 
 {% chartExampleRunner title="Horizontal Cone Funnel Chart" name="horizontal-cone-funnel" type="generated" /%}
 
-To create a horizontal Funnel Series, set the `direction` to `horizontal`.
+To create a horizontal Cone Funnel Series, set the `direction` to `horizontal`.
 
 ```js
 {
     direction: 'horizontal',
 }
 ```
+
+### Customisation
+
+{% chartExampleRunner title="Cone Funnel Fills" name="cone-funnel-fills" type="generated" /%}
+
+```js
+{
+    fills: ["#5090DC", "#FFA03A", "#459D55"],
+}
+```
+
+In this configuration:
+
+-   The fills for each drop off area are defined in the `fills` array.
+-   The Cone Funnel series is reversed by providing the data items in the reverse order.
 
 ## API Reference
 

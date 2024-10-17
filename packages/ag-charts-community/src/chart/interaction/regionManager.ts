@@ -3,7 +3,7 @@ import type { BBoxProvider } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
 import { Listeners } from '../../util/listeners';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
-import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
+import { DRAG_INTERACTION_TYPES, InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import { type Unpreventable, buildPreventable } from './preventableEvent';
 import { NodeRegionBBoxProvider, type RegionBBoxProvider, type RegionName } from './regions';
 
@@ -62,6 +62,47 @@ function nodeToBBoxProvider(node: RegionNodeType) {
     }
 
     return new NodeRegionBBoxProvider(node.node, node.id);
+}
+
+function getTooltipContainer(target: EventTarget | null): HTMLElement | undefined {
+    if (target == null || !(target instanceof HTMLElement)) return undefined;
+    let current: HTMLElement | null = target;
+    while (current != null && !current?.classList.contains('ag-charts-wrapper')) {
+        if (current.classList.contains('ag-chart-tooltip')) {
+            return current;
+        }
+        current = current.parentElement;
+    }
+    return undefined;
+}
+
+type EventUpcast<K extends keyof HTMLElement> = PointerInteractionEvent & {
+    sourceEvent: RegionEvent['sourceEvent'] & { target: (EventTarget & { [P in K]?: unknown }) | null };
+};
+
+function shouldIgnore(event: EventUpcast<'id' | 'className' | 'classList' | 'ariaHidden'>): 'none' | 'leave' | 'wait' {
+    const { type, sourceEvent } = event;
+    const { id, className, classList, ariaHidden } = sourceEvent?.target ?? {};
+    if (!(classList instanceof DOMTokenList)) return 'leave';
+
+    const dragTypes: readonly string[] = DRAG_INTERACTION_TYPES;
+    if (
+        // Handle drag event on the axis 'add horizontal line annotation' button as canvas events.
+        (classList.contains('ag-charts-annotations__axis-button-icon') && dragTypes.includes(type)) ||
+        className === 'ag-charts-series-area' ||
+        className === 'ag-charts-canvas-proxy' ||
+        (className === 'ag-charts-proxy-elem' && !id?.toString().startsWith('ag-charts-legend-item-')) || // legend <buttons>
+        sourceEvent?.target instanceof HTMLCanvasElement // This case is for nodeCanvas tests
+    ) {
+        return 'none';
+    }
+
+    // Ignore events on interactive tooltips, but don't fire a 'leave' event
+    if (getTooltipContainer(sourceEvent.target) && ariaHidden !== 'true') {
+        return 'wait';
+    }
+
+    return 'leave';
 }
 
 export class RegionManager {
@@ -153,18 +194,17 @@ export class RegionManager {
         return true;
     }
 
-    public toRegionOffsets(regionName: RegionName, offsetX?: number, offsetY?: number) {
-        const region = this.regions.get(regionName);
-        if (!region) throw new Error(`AG Charts - cannot find region '${regionName}'`);
-        return this.getRegionOffsets(region, { offsetX, offsetY });
-    }
+    // Create and dispatch a copy of the InteractionEvent.
+    private dispatch(
+        current: { region: Region; bboxProvider?: BBoxProvider } | undefined,
+        partialEvent: Unpreventable<PointerInteractionEvent>
+    ) {
+        if (current == null) return;
 
-    public getRegionOffsets(region: Region, partialEvent: { offsetX?: number; offsetY?: number }) {
-        const mainBBoxProvider = region.properties.bboxproviders[0];
-
+        const mainBBoxProvider = current.region.properties.bboxproviders[0];
         let regionOffsetX = 0;
         let regionOffsetY = 0;
-        if (partialEvent.offsetX !== undefined && partialEvent.offsetY !== undefined) {
+        if ('offsetX' in partialEvent && 'offsetY' in partialEvent) {
             ({ x: regionOffsetX, y: regionOffsetY } = mainBBoxProvider.fromCanvasPoint(
                 partialEvent.offsetX,
                 partialEvent.offsetY
@@ -174,17 +214,7 @@ export class RegionManager {
             regionOffsetX = regionBBox.width / 2;
             regionOffsetY = regionBBox.height / 2;
         }
-        return { regionOffsetX, regionOffsetY };
-    }
 
-    // Create and dispatch a copy of the InteractionEvent.
-    private dispatch(
-        current: { region: Region; bboxProvider?: BBoxProvider } | undefined,
-        partialEvent: Unpreventable<PointerInteractionEvent>
-    ) {
-        if (current == null) return;
-
-        const { regionOffsetX, regionOffsetY } = this.getRegionOffsets(current.region, partialEvent);
         const event: RegionEvent = buildPreventable({
             ...partialEvent,
             region: current.region.properties.name,
@@ -249,13 +279,19 @@ export class RegionManager {
 
         const { current } = this;
 
-        if (event.type === 'leave') {
-            this.dispatch(current, { ...event, type: 'leave' });
-            this.current = undefined;
-            return;
+        const ignore = shouldIgnore(event);
+        let newCurrent: ReturnType<RegionManager['pickRegion']>;
+        switch (ignore) {
+            case 'wait':
+                return;
+            case 'none':
+                newCurrent = this.pickRegion(event.offsetX, event.offsetY);
+                break;
+            case 'leave':
+                newCurrent = undefined;
+                break;
         }
 
-        const newCurrent = this.pickRegion(event.offsetX, event.offsetY);
         const newRegion = newCurrent?.region;
         if (current !== undefined && newRegion?.properties.name !== current.region.properties.name) {
             this.dispatch(current, { ...event, type: 'leave' });

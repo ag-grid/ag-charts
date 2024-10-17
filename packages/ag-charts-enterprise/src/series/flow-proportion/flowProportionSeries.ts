@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
@@ -300,7 +300,7 @@ export abstract class FlowProportionSeries<
         }
     }
 
-    override async update(opts: { seriesRect?: _Scene.BBox | undefined }): Promise<void> {
+    override async update(opts: { seriesRect?: _Scene.BBox }): Promise<void> {
         const { seriesRect } = opts;
         const newNodeDataDependencies = {
             seriesRectWidth: seriesRect?.width ?? 0,
@@ -432,7 +432,9 @@ export abstract class FlowProportionSeries<
         isHighlight: boolean;
     }): Promise<void>;
 
-    override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {}
+    override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {
+        // Does not reset any animations
+    }
 
     override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
         return [];

@@ -143,16 +143,15 @@
     }
 }
 
-// TODO: Refactor icons in buttons so !important not nessisary
-.groupChevron {
-    position: absolute !important;
+.groupChevron:global(.icon) {
+    position: absolute;
     left: calc(var(--indent-border-offset) * -1 + var(--indent-initial-offset));
     top: 7px;
-    bottom: auto !important;
-    width: $spacing-size-5 !important;
-    height: $spacing-size-5 !important;
-    margin: 0 !important;
-    fill: var(--item-chevron-color) !important;
+    bottom: auto;
+    width: $spacing-size-5;
+    height: $spacing-size-5;
+    margin: 0;
+    fill: var(--item-chevron-color);
     transition:
         transform $transition-default-timing,
         fill $transition-default-timing;
@@ -162,7 +161,7 @@
     }
 
     .group.isOpen & {
-        fill: var(--color-fg-primary) !important;
+        fill: var(--color-fg-primary);
         transform: rotate(90deg) translate(0, 2px);
     }
 }
@@ -187,7 +186,7 @@
         border-color $transition-default-timing;
 
     &:hover,
-    &.isIsActive {
+    &.isActive {
         background-color: var(--item-active-bg-color);
         color: var(--item-active-color);
     }
@@ -207,33 +206,38 @@
         padding-left: calc(var(--indent-initial-offset) + var(--indent-border-offset));
         border-left: 1px solid var(--item-border-color);
 
-        &.isIsActive {
+        &:not(:hover, .isActive) {
+            color: var(--color-fg-secondary);
+        }
+
+        &.isActive {
             border-left: 1px solid var(--item-active-border-color);
         }
     }
 }
 
-// TODO: Refactor icons in links so don't need to override icon CSS vars
-.itemIcon {
-    fill: var(--color-fg-secondary) !important;
-    margin-right: $spacing-size-2;
+.itemIcon:global(.icon),
+.externalIcon:global(.icon) {
+    fill: var(--color-fg-secondary);
     transition: fill $transition-default-timing;
 
     .item:hover &,
-    .item.isIsActive & {
-        fill: var(--item-active-color) !important;
+    .item.isActive & {
+        fill: var(--item-active-color);
     }
 }
 
-// TODO: Refactor icons in links/buttons so we don't require !important/overrides
-.enterpriseIcon {
-    width: $spacing-size-5 !important;
-    height: $spacing-size-5 !important;
-    margin-left: $spacing-size-1 !important;
-    fill: var(--color-enterprise-icon) !important;
+.itemIcon:global(.icon) {
+    margin-right: $spacing-size-2;
+}
 
-    .groupTitle & {
-        position: relative;
-        top: 1px;
-    }
+.enterpriseIcon:global(.icon),
+.externalIcon:global(.icon) {
+    width: $spacing-size-5;
+    height: $spacing-size-5;
+    margin-left: $spacing-size-1;
+}
+
+.enterpriseIcon:global(.icon) {
+    fill: var(--color-enterprise-icon);
 }

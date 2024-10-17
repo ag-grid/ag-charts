@@ -245,7 +245,7 @@ export class RadialGaugeNeedleProperties extends BaseProperties {
     enabled = true;
 
     @Validate(RATIO, { optional: true })
-    radiusRatio?: number | undefined;
+    radiusRatio?: number;
 
     @Validate(NUMBER)
     spacing: number = 0;

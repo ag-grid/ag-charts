@@ -4,6 +4,7 @@ import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import type { TextualStartEndScene } from '../scenes/textualStartEndScene';
+import { wrapText } from '../text/util';
 import { setColor } from '../utils/styles';
 import { isTextType } from '../utils/types';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
@@ -28,7 +29,16 @@ export abstract class TextualStartEndStateMachine<
     Node extends TextualStartEndScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit' | 'end',
-    'click' | 'cancel' | 'hover' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'fontSize' | 'render' | 'reset'
+    | 'click'
+    | 'zoomChange'
+    | 'cancel'
+    | 'hover'
+    | 'keyDown'
+    | 'updateTextInputBBox'
+    | 'color'
+    | 'fontSize'
+    | 'render'
+    | 'reset'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -110,9 +120,17 @@ export abstract class TextualStartEndStateMachine<
             ctx.delete();
         };
 
-        const actionSave = ({ textInputValue }: { textInputValue?: string }) => {
+        const actionSave = ({ textInputValue, bbox }: { textInputValue?: string; bbox: _Scene.BBox }) => {
             if (textInputValue != null && textInputValue.length > 0) {
-                ctx.datum()?.set({ text: textInputValue });
+                const datum = ctx.datum();
+
+                if (!isTextType(datum)) {
+                    return;
+                }
+
+                const wrappedText = wrapText(datum, textInputValue, bbox.width);
+                datum?.set({ text: wrappedText });
+
                 ctx.update();
                 ctx.recordAction(`Create ${ctx.node()?.type} annotation`);
             } else {
@@ -168,6 +186,10 @@ export abstract class TextualStartEndStateMachine<
                     },
                 ],
                 click: {
+                    target: StateMachine.parent,
+                    action: actionSave,
+                },
+                zoomChange: {
                     target: StateMachine.parent,
                     action: actionSave,
                 },

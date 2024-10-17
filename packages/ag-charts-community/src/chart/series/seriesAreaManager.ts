@@ -8,6 +8,7 @@ import { createId } from '../../util/id';
 import { clamp } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
+import { excludesType } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
@@ -57,6 +58,9 @@ class SeriesAreaAriaLabel {
     }
 }
 
+type TooltipEventTypes = 'hover' | 'click' | 'dblclick';
+type HighlightEventTypes = 'hover' | 'drag' | 'click' | 'dblclick';
+
 export class SeriesAreaManager extends BaseManager {
     readonly id = createId(this);
 
@@ -67,16 +71,32 @@ export class SeriesAreaManager extends BaseManager {
 
     private readonly highlight = {
         /** Last received event that still needs to be applied. */
-        pendingHoverEvent: undefined as RegionEvent<'hover' | 'drag'> | undefined,
+        pendingHoverEvent: undefined as RegionEvent<HighlightEventTypes> | undefined,
         /** Last applied event. */
-        appliedHoverEvent: undefined as RegionEvent<'hover' | 'drag'> | undefined,
+        appliedHoverEvent: undefined as RegionEvent<HighlightEventTypes> | undefined,
         /** Last applied event, which has been temporarily stashed during the main chart update cycle. */
-        stashedHoverEvent: undefined as RegionEvent<'hover' | 'drag'> | undefined,
+        stashedHoverEvent: undefined as RegionEvent<HighlightEventTypes> | undefined,
     };
 
     private readonly tooltip = {
-        lastHover: undefined as RegionEvent<'hover'> | undefined,
+        lastHover: undefined as RegionEvent<TooltipEventTypes> | undefined,
     };
+
+    /**
+     * A11y Requirements for Tooltip/Highlight (see AG-13051 for details):
+     *
+     *   -   When the series-area is blurred, always the mouse to update the tooltip/highlight.
+     *
+     *   -   When the series-area receives a `focus` event, use `:focus-visible` to guess the input device.
+     *       (this is decided by the browser).
+     *
+     *   -   For keyboard users, `focus` and `keydown` events always updates & shows the tooltip/highlight on
+     *       the currently (or newly) focused datum.
+     *
+     *   -   For keyboard users, `mousemove` events update the tooltip/highlight iff `pickNode` finds a match
+     *       for the mouse event offsets.
+     */
+    private hoverDevice: 'mouse' | 'keyboard' = 'mouse';
 
     private readonly focus = {
         sortedSeries: [] as Series<SeriesNodeDatum, SeriesProperties<object>>[],
@@ -92,7 +112,9 @@ export class SeriesAreaManager extends BaseManager {
         const seriesRegion = chart.ctx.regionManager.getRegion(REGIONS.SERIES);
         const horizontalAxesRegion = chart.ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
         const verticalAxesRegion = chart.ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
-        const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
+        const mouseMoveStates =
+            InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
+        const keyState = InteractionState.Default | InteractionState.Animation;
 
         const labelEl = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label');
         this.ariaLabel = new SeriesAreaAriaLabel(labelEl, `${this.id}-aria-label`);
@@ -100,21 +122,21 @@ export class SeriesAreaManager extends BaseManager {
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label'),
             seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All),
-            seriesRegion.addListener('drag', (event) => this.onHoverOrDrag(event), mouseMoveStates),
-            seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
-            seriesRegion.addListener('leave', () => this.onLeave()),
-            horizontalAxesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
+            seriesRegion.addListener('drag', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
+            seriesRegion.addListener('hover', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
+            seriesRegion.addListener('leave', () => this.onLeave(), mouseMoveStates),
+            horizontalAxesRegion.addListener('hover', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
             horizontalAxesRegion.addListener('leave', () => this.onLeave()),
-            verticalAxesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
+            verticalAxesRegion.addListener('hover', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
             verticalAxesRegion.addListener('leave', () => this.onLeave()),
             chart.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
             chart.ctx.domManager.addListener('resize', () => this.clearAll()),
             chart.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            chart.ctx.keyNavManager.addListener('blur', () => this.clearAll()),
-            chart.ctx.keyNavManager.addListener('focus', (event) => this.onFocus(event)),
-            chart.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event)),
-            chart.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event)),
-            chart.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event)),
+            chart.ctx.keyNavManager.addListener('blur', () => this.onBlur()),
+            chart.ctx.keyNavManager.addListener('focus', (event) => this.onFocus(event), keyState),
+            chart.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event), keyState),
+            chart.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event), keyState),
+            chart.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event), keyState),
             chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             chart.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
@@ -206,11 +228,10 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.chart.ctx.focusIndicator.isFocusVisible()) this.clearAll();
     }
 
-    private onHover(event: RegionEvent<'hover'>): void {
-        this.tooltip.lastHover = event;
-        this.onHoverOrDrag(event);
-    }
-    private onHoverOrDrag(event: RegionEvent<'hover' | 'drag'>): void {
+    private onHoverLikeEvent(event: RegionEvent<HighlightEventTypes>): void {
+        if (excludesType(event, 'drag')) {
+            this.tooltip.lastHover = event;
+        }
         this.highlight.pendingHoverEvent = event;
         this.hoverScheduler.schedule();
 
@@ -227,6 +248,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onClick(event: RegionEvent<'click' | 'dblclick'>) {
         if (this.seriesRect?.containsPoint(event.offsetX, event.offsetY) && this.checkSeriesNodeClick(event)) {
+            this.onHoverLikeEvent(event);
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.preventDefault();
             return;
@@ -240,17 +262,25 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onFocus(event: KeyNavEvent<'focus'>): void {
+        this.hoverDevice = this.chart.ctx.focusIndicator.isFocusVisible() ? 'keyboard' : 'mouse';
         this.handleFocus(0, 0);
         event.preventDefault();
     }
 
+    private onBlur() {
+        this.hoverDevice = 'mouse';
+        this.clearAll();
+    }
+
     private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
+        this.hoverDevice = 'keyboard';
         this.focus.seriesIndex += event.delta;
         this.handleFocus(event.delta, 0);
         event.preventDefault();
     }
 
     private onNavHori(event: KeyNavEvent<'nav-hori'>): void {
+        this.hoverDevice = 'keyboard';
         this.focus.datumIndex += event.delta;
         this.handleFocus(0, event.delta);
         event.preventDefault();
@@ -357,12 +387,20 @@ export class SeriesAreaManager extends BaseManager {
         focus.datumIndex = datumIndex;
         focus.datum = datum;
 
-        // Only update the highlight/tooltip/status if this is a keyboard user.
-        if (!this.chart.ctx.focusIndicator.isFocusVisible()) return;
+        this.chart.ctx.animationManager.reset();
 
-        // Update user interaction/interface:
+        // Update the bounds of the focus indicator:
         const keyboardEvent = makeKeyboardPointerEvent(this.chart.ctx.focusIndicator, pick);
-        if (keyboardEvent !== undefined) {
+
+        // Update highlight/tooltip for keyboard users:
+        if (keyboardEvent !== undefined && this.hoverDevice === 'keyboard') {
+            // Stop pending async mouse events from updating the highlight/tooltip. At this point, the most recent event came
+            // from the keyboard so that's what we should honour.
+            this.tooltip.lastHover = undefined;
+            this.highlight.appliedHoverEvent = undefined;
+            this.highlight.pendingHoverEvent = undefined;
+            this.highlight.stashedHoverEvent = undefined;
+
             const html = focus.series.getTooltipHtml(datum);
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, datum);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
@@ -421,7 +459,12 @@ export class SeriesAreaManager extends BaseManager {
         if (!event) return;
 
         const state = this.chart.ctx.interactionManager.getState();
-        if (state !== InteractionState.Default && state !== InteractionState.Annotations) return;
+        if (
+            state !== InteractionState.Default &&
+            state !== InteractionState.Annotations &&
+            state !== InteractionState.AnnotationsSelected
+        )
+            return;
 
         const { offsetX, offsetY } = event;
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(offsetX, offsetY)) {
@@ -439,21 +482,25 @@ export class SeriesAreaManager extends BaseManager {
         const found = pickNode(this.series, pickCoords, intent);
         if (found) {
             this.chart.ctx.highlightManager.updateHighlight(this.id, found.datum);
+            this.hoverDevice = 'mouse';
             return;
         }
 
         this.chart.ctx.highlightManager.updateHighlight(this.id); // FIXME: clearHighlight?
     }
 
-    private handleHoverTooltip(event: RegionEvent<'hover'>, redisplay: boolean) {
-        if (this.chart.ctx.focusIndicator.isFocusVisible()) return;
-
+    private handleHoverTooltip(event: RegionEvent<TooltipEventTypes>, redisplay: boolean) {
         const state = this.chart.ctx.interactionManager.getState();
-        if (state !== InteractionState.Default && state !== InteractionState.Annotations) return;
+        if (
+            state !== InteractionState.Default &&
+            state !== InteractionState.Annotations &&
+            state !== InteractionState.AnnotationsSelected
+        )
+            return;
 
         const { offsetX, offsetY, targetElement, regionOffsetX, regionOffsetY } = event;
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(offsetX, offsetY)) {
-            this.clearTooltip();
+            if (this.hoverDevice == 'mouse') this.clearTooltip();
             return;
         }
 
@@ -473,10 +520,11 @@ export class SeriesAreaManager extends BaseManager {
 
         const pick = pickNode(this.series, pickCoords, 'tooltip');
         if (!pick) {
-            this.clearTooltip();
+            if (this.hoverDevice == 'mouse') this.clearTooltip();
             return;
         }
 
+        this.hoverDevice = 'mouse';
         const html = pick.series.getTooltipHtml(pick.datum);
         const tooltipEnabled = this.chart.tooltip.enabled && pick.series.tooltipEnabled;
         const shouldUpdateTooltip = tooltipEnabled && html != null;

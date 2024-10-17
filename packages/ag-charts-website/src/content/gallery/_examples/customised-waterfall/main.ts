@@ -64,7 +64,7 @@ const options: AgChartOptions = {
                 },
                 total: {
                     label: {
-                        placement: 'inside',
+                        placement: 'inside-center',
                         fontSize: 11,
                         formatter: ({ value }) => `↓${Math.abs(value)}`,
                     },
@@ -95,6 +95,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             label: {
+                autoRotate: false,
                 padding: 20,
                 formatter: ({ value }) =>
                     `${
@@ -105,12 +106,6 @@ const options: AgChartOptions = {
                                   day: 'numeric',
                               })
                     }`,
-            },
-            interval: {
-                minSpacing: 100,
-            },
-            tick: {
-                size: 0,
             },
         },
     ],

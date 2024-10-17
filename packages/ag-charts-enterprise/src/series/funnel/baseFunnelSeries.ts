@@ -7,7 +7,7 @@ import { prepareConnectorAnimationFunctions, resetConnectorSelectionsFn } from '
 
 const {
     SeriesNodePickMode,
-    ZIndexMap,
+    SeriesZIndexMap,
     valueProperty,
     keyProperty,
     ChartAxisDirection,
@@ -87,8 +87,8 @@ export class FunnelSeriesNodeEvent<
 
     constructor(type: TEvent, nativeEvent: Event, datum: FunnelNodeDatum, series: BaseFunnelSeries<any>) {
         super(type, nativeEvent, datum, series);
-        this.xKey = series.properties.xKey;
-        this.yKey = series.properties.yKey;
+        this.xKey = series.properties.stageKey;
+        this.yKey = series.properties.valueKey;
     }
 }
 
@@ -111,19 +111,23 @@ export abstract class BaseFunnelSeries<
     FunnelNodeLabelDatum,
     FunnelContext
 > {
+    // @ts-expect-error xKey/yKey renamed
     protected override readonly NodeEvent = FunnelSeriesNodeEvent;
 
     protected readonly connectorNodeGroup = this.contentGroup.appendChild(
         new Group({
             name: `${this.id}-series-connectorNodes`,
-            zIndex: ZIndexMap.SERIES_LAYER,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
+            zIndex: SeriesZIndexMap.BACKGROUND,
         })
     );
     protected connectorSelection = Selection.select<FunnelConnector, FunnelConnectorDatum>(
         this.connectorNodeGroup,
         () => this.connectionFactory()
     );
+
+    override get pickModeAxis() {
+        return 'main-category' as const;
+    }
 
     constructor({
         moduleCtx,
@@ -136,15 +140,15 @@ export abstract class BaseFunnelSeries<
     }) {
         super({
             moduleCtx,
-            pickModes: [SeriesNodePickMode.NEAREST_BY_MAIN_AXIS_FIRST, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [SeriesNodePickMode.AXIS_ALIGNED, SeriesNodePickMode.EXACT_SHAPE_MATCH],
             hasHighlightedLabels: true,
             directionKeys: {
-                x: ['xKey'],
-                y: ['yKey'],
+                x: ['stageKey'],
+                y: ['valueKey'],
             },
             directionNames: {
-                x: ['xName'],
-                y: ['yName'],
+                x: [],
+                y: [],
             },
             datumSelectionGarbageCollection: false,
             animationResetFns: {
@@ -154,6 +158,14 @@ export abstract class BaseFunnelSeries<
         });
 
         this.connectorNodeGroup.pointerEvents = PointerEvents.None;
+    }
+
+    override setSeriesIndex(index: number): boolean {
+        if (!super.setSeriesIndex(index)) return false;
+
+        this.connectorNodeGroup.zIndex = [SeriesZIndexMap.BACKGROUND, index];
+
+        return true;
     }
 
     protected override isVertical(): boolean {
@@ -175,7 +187,7 @@ export abstract class BaseFunnelSeries<
             return;
         }
 
-        const { xKey, yKey } = this.properties;
+        const { stageKey, valueKey } = this.properties;
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
@@ -192,8 +204,8 @@ export abstract class BaseFunnelSeries<
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                keyProperty(xKey, xScaleType, { id: 'xValue' }),
-                valueProperty(yKey, yScaleType, { id: `yValue`, ...visibleProps }),
+                keyProperty(stageKey, xScaleType, { id: 'xValue' }),
+                valueProperty(valueKey, yScaleType, { id: `yValue`, ...visibleProps }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL, LARGEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
@@ -248,10 +260,10 @@ export abstract class BaseFunnelSeries<
         const yScale = yAxis.scale;
 
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
-        const { xKey, yKey, fills, strokes } = this.properties;
+        const { stageKey, valueKey, fills, strokes } = this.properties;
         const { strokeWidth } = this.barStyle();
 
-        const itemId = `${yKey}`;
+        const itemId = `${valueKey}`;
 
         const context: FunnelContext = {
             itemId,
@@ -317,8 +329,8 @@ export abstract class BaseFunnelSeries<
                     datum: datum[valueIndex],
                     xValue: xDatum,
                     yValue: yDatum,
-                    yKey,
-                    xKey,
+                    xKey: valueKey,
+                    yKey: stageKey,
                     x: rect.x,
                     y: rect.y,
                     width: rect.width,
@@ -477,7 +489,7 @@ export abstract class BaseFunnelSeries<
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { xKey, yKey, xName, yName, itemStyler, tooltip, legendItemName } = this.properties;
+        const { stageKey, valueKey, itemStyler, tooltip } = this.properties;
         const { strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.barStyle();
         const { datum, xValue, yValue, fill, stroke } = nodeDatum;
 
@@ -487,8 +499,8 @@ export abstract class BaseFunnelSeries<
                 highlighted: false,
                 seriesId,
                 datum,
-                xKey,
-                yKey,
+                stageKey,
+                valueKey,
                 fill,
                 fillOpacity,
                 stroke,
@@ -516,14 +528,11 @@ export abstract class BaseFunnelSeries<
         return tooltip.toTooltipHtml(defaults, {
             itemId: undefined,
             datum,
-            xKey,
-            xName,
-            yKey,
-            yName,
+            stageKey,
+            valueKey,
             color,
             seriesId,
             title,
-            legendItemName,
         });
     }
 
@@ -537,17 +546,16 @@ export abstract class BaseFunnelSeries<
         const {
             fills: [fill],
             strokes: [stroke],
-            yName,
-            yKey,
+            valueKey,
         } = this.properties;
         const { strokeWidth, fillOpacity, strokeOpacity } = this.barStyle();
-        const legendItemText = yName ?? yKey;
+        const legendItemText = valueKey;
 
         return [
             {
                 legendType: 'category',
                 id,
-                itemId: yKey,
+                itemId: valueKey,
                 seriesId: id,
                 enabled: visible,
                 label: { text: `${legendItemText}` },

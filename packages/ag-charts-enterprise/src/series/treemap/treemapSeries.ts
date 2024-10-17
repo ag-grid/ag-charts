@@ -164,17 +164,6 @@ export class TreemapSeries<
             return;
         }
 
-        const defaultLabelFormatter = (value: any) => {
-            if (typeof value === 'number') {
-                // This copies what other series are doing - we should look to provide format customization
-                return value.toFixed(2);
-            } else if (typeof value === 'string') {
-                return value;
-            } else {
-                return '';
-            }
-        };
-
         this.labelData = Array.from(this.rootNode, ({ datum, depth, children }): LabelData | undefined => {
             const isLeaf = children.length === 0;
 
@@ -182,22 +171,18 @@ export class TreemapSeries<
             let label: string | undefined;
             if (datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
-                label = this.getLabelText(
-                    labelStyle,
-                    {
-                        depth,
-                        datum,
-                        childrenKey,
-                        colorKey,
-                        colorName,
-                        labelKey,
-                        secondaryLabelKey,
-                        sizeKey,
-                        sizeName,
-                        value,
-                    },
-                    defaultLabelFormatter
-                );
+                label = this.getLabelText(labelStyle, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    colorName,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    sizeName,
+                    value,
+                });
             }
             if (label === '') {
                 label = undefined;
@@ -206,22 +191,18 @@ export class TreemapSeries<
             let secondaryLabel: string | undefined;
             if (isLeaf && datum != null && depth != null && secondaryLabelKey != null) {
                 const value = (datum as any)[secondaryLabelKey];
-                secondaryLabel = this.getLabelText(
-                    tile.secondaryLabel,
-                    {
-                        depth,
-                        datum,
-                        childrenKey,
-                        colorKey,
-                        colorName,
-                        labelKey,
-                        secondaryLabelKey,
-                        sizeKey,
-                        sizeName,
-                        value,
-                    },
-                    defaultLabelFormatter
-                );
+                secondaryLabel = this.getLabelText(tile.secondaryLabel, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    colorName,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    sizeName,
+                    value,
+                });
             }
             if (secondaryLabel === '') {
                 secondaryLabel = undefined;

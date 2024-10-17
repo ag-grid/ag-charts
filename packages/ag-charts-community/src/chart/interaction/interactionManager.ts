@@ -10,14 +10,14 @@ import { type PreventableEvent, type Unpreventable, buildPreventable, dispatchTy
 
 export { InteractionState };
 
+export const DRAG_INTERACTION_TYPES = ['drag-start', 'drag', 'drag-end'] as const;
+
 export const POINTER_INTERACTION_TYPES = [
+    ...DRAG_INTERACTION_TYPES,
     'click',
     'dblclick',
     'contextmenu',
     'hover',
-    'drag-start',
-    'drag',
-    'drag-end',
     'leave',
     'enter',
     'page-left',
@@ -39,7 +39,6 @@ export type InteractionTypes = PointerInteractionTypes | FocusInteractionTypes |
 type SUPPORTED_EVENTS =
     | 'blur'
     | 'focus'
-    | 'click'
     | 'dblclick'
     | 'contextmenu'
     | 'keydown'
@@ -58,7 +57,6 @@ type SUPPORTED_EVENTS =
 const SHADOW_DOM_HANDLERS: SUPPORTED_EVENTS[] = ['mousemove', 'mouseup'];
 const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide', 'mousemove', 'mouseup'];
 const EVENT_HANDLERS = [
-    'click',
     'dblclick',
     'contextmenu',
     'mousedown',
@@ -125,16 +123,6 @@ interface Coords {
 
 type SupportedEvent = MouseEvent | TouchEvent | Event;
 
-// Setting data-pointer-capture on an element will stop the interaction manager
-// sending mouse events to the canvas while the mouse is over one of these elements
-enum PointerCapture {
-    // Keep the mouse cursor in the last position on the canvas
-    Retain = 'retain',
-    // Treat the mouse cursor as exiting the canvas
-    Exclusive = 'exclusive',
-}
-const pointerCaptures = new Set(Object.values(PointerCapture));
-
 function isPointerEvent(type: InteractionTypes): type is PointerInteractionTypes {
     return POINTER_INTERACTION_TYPES.includes(type as any);
 }
@@ -157,11 +145,8 @@ export class InteractionManager extends InteractionStateListener<InteractionType
     private rootElement: HTMLElement | undefined;
 
     private readonly eventHandler = (event: SupportedEvent) => this.processEvent(event);
-    private readonly overlayEventHandler = (event: SupportedEvent) => this.processCanvasOverlayEvent(event);
-
     private mouseDown = false;
     private touchDown = false;
-    private pointerCaptureCanvasElement?: HTMLElement = undefined;
     private dragPreStartElement?: HTMLElement;
     private dragStartElement?: HTMLElement;
     private readonly clickHistory: [PointerHistoryEvent] = [{ offsetX: NaN, offsetY: NaN, type: 'mousedown' }];
@@ -192,11 +177,6 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         for (const type of WINDOW_EVENT_HANDLERS) {
             getWindow().addEventListener(type, this.eventHandler);
         }
-
-        this.destroyFns.push(
-            this.domManager.addEventListenerOnElement('canvas-overlay', 'mouseover', this.overlayEventHandler),
-            this.domManager.addEventListenerOnElement('canvas-overlay', 'mouseout', this.overlayEventHandler)
-        );
 
         this.containerChanged(true);
         this.domManager.addListener('container-changed', () => this.containerChanged());
@@ -247,42 +227,6 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         return this.stateQueue & -this.stateQueue;
     }
 
-    private processCanvasOverlayEvent(event: SupportedEvent) {
-        const coords = this.calculateCoordinates(event);
-        if (coords == null) return;
-
-        let target = event.target as HTMLElement | null;
-        let pointerCapture: PointerCapture | null = null;
-        while (target != null) {
-            pointerCapture = target.getAttribute('data-pointer-capture') as PointerCapture | null;
-
-            if (pointerCapture == null) {
-                target = target.parentElement;
-            } else {
-                break;
-            }
-        }
-
-        if (target == null || pointerCapture == null || !pointerCaptures.has(pointerCapture)) return;
-
-        const isOverCanvasOverlay = event.type === 'mouseover';
-        const pointerCaptureCanvasElement = isOverCanvasOverlay ? target : undefined;
-
-        if (this.pointerCaptureCanvasElement === pointerCaptureCanvasElement) return;
-
-        this.pointerCaptureCanvasElement = pointerCaptureCanvasElement;
-
-        if (pointerCapture === PointerCapture.Exclusive) {
-            const pointerEvent = this.buildPointerEvent({
-                type: isOverCanvasOverlay ? 'leave' : 'enter',
-                event,
-                ...coords,
-            });
-            this.debug('Dispatching canvas overlay event', pointerEvent, this.getState());
-            dispatchTypedEvent(this.listeners, pointerEvent);
-        }
-    }
-
     private processEvent(event: SupportedEvent) {
         this.debug('Received raw event', event);
 
@@ -291,33 +235,10 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             types = [types];
         }
 
-        // AG-11385 Ignore clicks on focusable & disabled elements.
-        const target: (EventTarget & { ariaDisabled?: string; tagName?: string; role?: string }) | null = event.target;
-        if (event.type === 'click' && target?.ariaDisabled === 'true') {
-            event.preventDefault();
-            return;
-        }
-
         for (const type of types ?? []) {
-            if (this.ignoreEvent(type, target)) continue;
-
             // Async dispatch to avoid blocking the event-processing thread.
             this.dispatchEvent(event, type).catch((e) => Logger.errorOnce(e));
         }
-    }
-
-    private ignoreEvent(
-        type: InteractionTypes | undefined,
-        target: (EventTarget & { ariaDisabled?: string; tagName?: string; role?: string }) | null
-    ) {
-        // AG-12824 Don't ignore contextmenu events.
-        if (type === 'contextmenu') return false;
-
-        // AG-12037 Interacting with HTML buttons can also fire events on the series, which we don't want.
-        // AG-12604 Same thing with <input> tags
-        const ignoredTags: (string | undefined)[] = ['button', 'input'];
-        const targetTags = [target?.tagName?.toLowerCase(), target?.role];
-        return targetTags.some((tag) => ignoredTags.includes(tag));
     }
 
     private async dispatchEvent(event: SupportedEvent, type: InteractionTypes) {
@@ -351,10 +272,10 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         let targetElement;
 
         if ('relatedTarget' in event && event['relatedTarget'] instanceof HTMLElement) {
-            relatedElement = event['relatedTarget'] as HTMLElement;
+            relatedElement = event['relatedTarget'];
         }
         if ('target' in event && event['target'] instanceof HTMLElement) {
-            targetElement = event['target'] as HTMLElement;
+            targetElement = event['target'];
         }
 
         return { relatedElement, targetElement };
@@ -402,15 +323,6 @@ export class InteractionManager extends InteractionStateListener<InteractionType
     private decideInteractionEventTypes(event: SupportedEvent): InteractionTypes | InteractionTypes[] | undefined {
         const dragStart = 'drag-start';
 
-        if (this.pointerCaptureCanvasElement?.isConnected === false) {
-            this.pointerCaptureCanvasElement = undefined;
-        }
-
-        if (this.pointerCaptureCanvasElement != null) {
-            // Ignore events while inside overlays
-            return;
-        }
-
         switch (event.type) {
             case 'blur':
             case 'focus':
@@ -418,8 +330,9 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             case 'keyup':
                 return this.keyboardOptions.enabled ? event.type : undefined;
 
-            case 'click':
             case 'dblclick':
+                return event.type;
+
             case 'contextmenu':
             case 'wheel':
                 return event.type;
@@ -460,7 +373,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
                     return;
                 }
                 this.mouseDown = false;
-                return this.recordUp(event) ? 'drag-end' : undefined;
+                return this.recordUp(event) ? 'drag-end' : 'click';
             case 'touchend':
                 if (!this.touchDown && !this.isEventOverElement(event)) {
                     // We only care about these events if the target is the canvas, unless
@@ -468,7 +381,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
                     return;
                 }
                 this.touchDown = false;
-                return this.recordUp(event) ? 'drag-end' : undefined;
+                return this.recordUp(event) ? 'drag-end' : 'click';
 
             case 'mouseleave':
             case 'touchcancel':

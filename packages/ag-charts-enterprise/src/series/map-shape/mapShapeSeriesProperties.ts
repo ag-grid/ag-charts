@@ -6,7 +6,7 @@ import type {
     AgMapShapeSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { AutoSizedSecondaryLabel } from '../util/autoSizedLabel';

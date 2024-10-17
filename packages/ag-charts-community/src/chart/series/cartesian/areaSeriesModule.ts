@@ -1,6 +1,6 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { markerPaletteFactory } from '../../../module/theme';
-import { CARTESIAN_AXIS_TYPE, POSITION } from '../../themes/constants';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { AreaSeries } from './areaSeries';
 
@@ -17,11 +17,11 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
-            position: POSITION.LEFT,
+            position: CARTESIAN_POSITION.LEFT,
         },
         {
             type: CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: POSITION.BOTTOM,
+            position: CARTESIAN_POSITION.BOTTOM,
         },
     ],
     themeTemplate: {

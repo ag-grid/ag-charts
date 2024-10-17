@@ -15,7 +15,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         return AnnotationScene.isCheck(value, AnnotationType.Note);
     }
 
-    override type = AnnotationType.Note;
+    type = AnnotationType.Note;
 
     private readonly shape = new _Scene.Rect();
     private readonly iconBackground = new _Scene.SvgPath(
@@ -35,7 +35,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
 
         this.iconBackground.fillShadow = new _Scene.DropShadow();
 
-        this.append([this.shape, this.label, this.iconLines, this.iconBackground, this.handle]);
+        this.append([this.shape, this.label, this.iconBackground, this.iconLines, this.handle]);
     }
 
     override update(datum: NoteProperties, context: AnnotationContext): void {
@@ -43,13 +43,13 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         super.update(datum, context);
     }
 
-    override getTextBBox(datum: NoteProperties, coords: _Util.Vec2, context: AnnotationContext) {
+    override getTextBBox(datum: NoteProperties, coords: _ModuleSupport.Vec2, context: AnnotationContext) {
         const bbox = super.getTextBBox(datum, coords, context);
 
         const { seriesRect } = context;
 
         bbox.x -= datum.width / 2;
-        bbox.x = clamp(0, bbox.x, seriesRect.width - bbox.width);
+        bbox.x = clamp(0, bbox.x, seriesRect.width - datum.width);
 
         const padding = datum.getPadding().top;
         const topY = bbox.y - LABEL_OFFSET - padding * 2;
@@ -142,7 +142,11 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         };
     }
 
-    protected override getHandleCoords(_datum: NoteProperties, coords: _Util.Vec2, _bbox: _Scene.BBox): _Util.Vec2 {
+    protected override getHandleCoords(
+        _datum: NoteProperties,
+        coords: _ModuleSupport.Vec2,
+        _bbox: _Scene.BBox
+    ): _ModuleSupport.Vec2 {
         return {
             x: coords.x,
             y: coords.y + DivariantHandle.HANDLE_SIZE / 2 + 4,

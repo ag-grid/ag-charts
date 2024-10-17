@@ -14,8 +14,8 @@ export const BulletModule: _ModuleSupport.SeriesModule<'bullet'> = {
     tooltipDefaults: { range: 'exact' },
     defaultAxes: _Theme.swapAxisCondition(
         [
-            { type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER, position: _Theme.POSITION.LEFT },
-            { type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY, position: _Theme.POSITION.BOTTOM },
+            { type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER, position: _Theme.CARTESIAN_POSITION.LEFT },
+            { type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY, position: _Theme.CARTESIAN_POSITION.BOTTOM },
         ],
         (series) => series?.direction === 'horizontal'
     ),

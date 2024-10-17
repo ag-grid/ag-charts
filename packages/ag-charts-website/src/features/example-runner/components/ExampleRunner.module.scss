@@ -3,6 +3,8 @@
 .exampleOuter {
     --example-border-color: color-mix(in srgb, var(--color-border-secondary), var(--color-border-primary));
 
+    height: 100%;
+
     #{$selector-darkmode} & {
         --example-border-color: color-mix(in srgb, var(--color-bg-primary), white 10%);
     }
@@ -22,6 +24,9 @@ iframe {
 }
 
 .tabsContainer {
+    height: 100%;
+    display: grid;
+    grid: 'preview' 1fr 'footer' auto / 1fr;
     container-type: inline-size;
 }
 
@@ -39,6 +44,7 @@ iframe {
 
     :global(.icon) {
         --icon-size: #{$spacing-size-6};
+        --color-icon: var(--color-fg-primary);
     }
 }
 

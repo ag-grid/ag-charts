@@ -1,7 +1,7 @@
 import type { DistantObject } from '../../util/nearest';
 import { nodeCount } from '../debug.util';
 import { ExtendedPath2D } from '../extendedPath2D';
-import type { RenderContext } from '../node';
+import type { ChildNodeCounts, RenderContext } from '../node';
 import { RedrawType, SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 
@@ -73,6 +73,7 @@ export class Path extends Shape implements DistantObject {
     }
 
     isPointInPath(x: number, y: number): boolean {
+        this.updatePathIfDirty();
         return this.path.closedPath && this.path.isPointInPath(x, y);
     }
 
@@ -89,6 +90,7 @@ export class Path extends Shape implements DistantObject {
     }
 
     protected distanceSquaredTransformedPoint(x: number, y: number): number {
+        this.updatePathIfDirty();
         if (this.path.closedPath && this.path.isPointInPath(x, y)) {
             return 0;
         }
@@ -104,17 +106,24 @@ export class Path extends Shape implements DistantObject {
         // Override point for subclasses.
     }
 
+    private updatePathIfDirty() {
+        if (this.dirtyPath || this.isDirtyPath()) {
+            this.updatePath();
+            this.dirtyPath = false;
+        }
+    }
+
+    override preRender(): ChildNodeCounts {
+        this.updatePathIfDirty();
+        return super.preRender();
+    }
+
     override render(renderCtx: RenderContext) {
         const { ctx, forceRender, stats } = renderCtx;
 
         if (this.dirty === RedrawType.NONE && !forceRender) {
             if (stats) stats.nodesSkipped += nodeCount(this).count;
             return;
-        }
-
-        if (this.dirtyPath || this.isDirtyPath()) {
-            this.updatePath();
-            this.dirtyPath = false;
         }
 
         if (this.clip && !isNaN(this._clipX) && !isNaN(this._clipY)) {

@@ -1,4 +1,6 @@
-export const IS_DARK_THEME = Symbol('is-dark-theme') as unknown as string;
+export const IS_DARK_THEME = Symbol('is-dark-theme') as unknown as boolean;
+export const IS_COMMUNITY = Symbol('is-community') as unknown as boolean;
+export const IS_ENTERPRISE = Symbol('is-enterprise') as unknown as boolean;
 export const DEFAULT_FONT_FAMILY = Symbol('default-font') as unknown as string;
 export const DEFAULT_LABEL_COLOUR = Symbol('default-label-colour') as unknown as string;
 export const DEFAULT_INVERTED_LABEL_COLOUR = Symbol('default-inverted-label-colour') as unknown as string;
@@ -38,6 +40,12 @@ export const DEFAULT_ANNOTATION_COLOR = Symbol('default-annotation-stroke') as u
 export const DEFAULT_TEXT_ANNOTATION_COLOR = Symbol('default-text-annotation-color') as unknown as string;
 export const DEFAULT_ANNOTATION_BACKGROUND_FILL = Symbol('default-annotation-background-fill') as unknown as string;
 export const DEFAULT_ANNOTATION_HANDLE_FILL = Symbol('default-annotation-handle-fill') as unknown as string;
+export const DEFAULT_ANNOTATION_STATISTICS_FILL = Symbol('default-annotation-statistics-fill') as unknown as string;
+export const DEFAULT_ANNOTATION_STATISTICS_STROKE = Symbol('default-annotation-statistics-stroke') as unknown as string;
+export const DEFAULT_ANNOTATION_STATISTICS_COLOR = Symbol('default-annotation-statistics-color') as unknown as string;
+export const DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE = Symbol(
+    'default-annotation-statistics-divider-stroke'
+) as unknown as string;
 export const DEFAULT_TEXTBOX_FILL = Symbol('default-textbox-fill') as unknown as string;
 export const DEFAULT_TEXTBOX_STROKE = Symbol('default-textbox-stroke') as unknown as string;
 export const DEFAULT_TEXTBOX_COLOR = Symbol('default-textbox-color') as unknown as string;

@@ -38,37 +38,46 @@ function getLinkUrl({ framework, path, url }: { framework: Framework; path?: str
 }
 
 function Item({ itemData, framework, pageName }: { itemData?: any; framework: Framework; pageName: string }) {
-    const linkUrl = getLinkUrl({ framework, path: itemData.path });
+    const linkUrl = itemData.path ? getLinkUrl({ framework, path: itemData.path }) : itemData.url;
+    const isExternalURL = itemData.url;
+    const isCorrectFramework = !itemData.frameworks
+        ? true
+        : itemData.frameworks.filter((f) => {
+              return f === framework;
+          }).length > 0;
     const isActive = pageName === itemData.path;
 
-    const className = classnames(styles.item, itemData.icon ? styles.hasIcon : '', isActive ? styles.isIsActive : '');
+    const className = classnames(styles.item, itemData.icon ? styles.hasIcon : '', isActive ? styles.isActive : '');
 
     return (
-        <>
-            {!itemData.children ? (
-                <a href={linkUrl} className={className}>
+        isCorrectFramework && (
+            <>
+                <a href={linkUrl} className={className} {...(isExternalURL && { target: '_blank' })}>
                     {itemData.icon && <Icon name={itemData.icon} svgClasses={styles.itemIcon} />}
 
                     <span>
                         {itemData.title}
                         {itemData.isEnterprise && <Icon name="enterprise" svgClasses={styles.enterpriseIcon} />}
+                        {isExternalURL && <Icon name="newTab" svgClasses={styles.externalIcon} />}
                     </span>
                 </a>
-            ) : (
-                <div className={styles.nestedItems}>
-                    {itemData.children.map((childData) => {
-                        return (
-                            <Item
-                                key={childData.title}
-                                itemData={childData}
-                                framework={framework}
-                                pageName={pageName}
-                            />
-                        );
-                    })}
-                </div>
-            )}
-        </>
+
+                {itemData.children && (
+                    <div className={styles.nestedItems}>
+                        {itemData.children.map((childData) => {
+                            return (
+                                <Item
+                                    key={childData.title}
+                                    itemData={childData}
+                                    framework={framework}
+                                    pageName={pageName}
+                                />
+                            );
+                        })}
+                    </div>
+                )}
+            </>
+        )
     );
 }
 
@@ -102,8 +111,6 @@ function Group({
                 <Icon name="chevronRight" svgClasses={styles.groupChevron} />
 
                 <span>{groupData.title}</span>
-
-                {groupData.isEnterprise && <Icon name="enterprise" svgClasses={styles.enterpriseIcon} />}
             </button>
 
             <Collapsible id={groupData.title} isOpen={isOpen}>
@@ -139,7 +146,7 @@ function Section({
 }) {
     return (
         <div className={styles.section}>
-            <h5 className={styles.sectionTitle}>{sectionData.title}</h5>
+            {sectionData.hideTitle ?? <h5 className={styles.sectionTitle}>{sectionData.title}</h5>}
 
             {sectionData.children.map((childData) => {
                 return (
@@ -163,7 +170,17 @@ function Section({
     );
 }
 
-export function DocsNav({ menuData, framework, pageName }: { menuData?: any; framework: Framework; pageName: string }) {
+export function DocsNav({
+    menuData,
+    framework,
+    pageName,
+    showWhatsNew = true,
+}: {
+    menuData?: any;
+    framework: Framework;
+    pageName: string;
+    showWhatsNew?: boolean;
+}) {
     const pageOpenGroup = getOpenGroup({ menuData, pageName });
 
     const [openGroup, setOpenGroup] = useState(pageOpenGroup);
@@ -187,9 +204,11 @@ export function DocsNav({ menuData, framework, pageName }: { menuData?: any; fra
         <Collapsible id="docs-mobile-nav-collapser" isOpen={mobileNavOpen}>
             <div className={styles.docsNavOuter}>
                 <div className={styles.docsNavInner}>
-                    <div className={styles.whatsNewLink}>
-                        <a href={urlWithBaseUrl('/whats-new')}>What's New</a>
-                    </div>
+                    {showWhatsNew && (
+                        <div className={styles.whatsNewLink}>
+                            <a href={urlWithBaseUrl('/whats-new')}>What's New</a>
+                        </div>
+                    )}
 
                     {menuData.sections.map((sectionData, i) => {
                         return (

@@ -119,6 +119,11 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         // Buttons have no visible rendering change
         'interaction-range': { skipCanvasUpdateCheck: true },
     },
+
+    sparklines: {
+        // FWs not ready yet
+        '*': { frameworks: ['vanilla'] },
+    },
 };
 
 function convertPageUrls(path: string) {

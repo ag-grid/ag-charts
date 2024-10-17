@@ -33,7 +33,7 @@ export interface HierarchyAnimationData<TNode extends Node, TDatum> {
 export class HierarchyNode<TDatum = Record<string, any>>
     implements SeriesNodeDatum, Pick<HighlightNodeDatum, 'colorValue'>
 {
-    static Walk = {
+    private static readonly Walk = {
         PreOrder: 0,
         PostOrder: 1,
     };
@@ -129,7 +129,6 @@ export abstract class HierarchySeries<
         super({
             moduleCtx,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
-            contentGroupVirtual: false,
         });
 
         this.animationState = new StateMachine<HierarchyAnimationState, HierarchyAnimationEvent>(

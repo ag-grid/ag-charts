@@ -23,6 +23,8 @@ const options: AgChartOptions = {
         yName: platform,
         yLowKey: 'shareLow',
         yHighKey: 'shareHigh',
+        yLowName: 'Lowest Share',
+        yHighName: 'Highest Share',
         strokeWidth: 0,
         fillOpacity: 0.5,
         marker: {
@@ -33,15 +35,9 @@ const options: AgChartOptions = {
         {
             type: 'number',
             position: 'left',
-            interval: { values: [0, 25, 50, 75, 100] },
+            interval: { step: 25 },
             label: {
                 formatter: ({ value }) => `${value}%`,
-            },
-            crosshair: {
-                label: {
-                    renderer: ({ value }) =>
-                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${formatter.format(value)}%</div>`,
-                },
             },
             crossLines: [
                 {
@@ -100,12 +96,6 @@ const options: AgChartOptions = {
         },
     },
     legend: {
-        item: {
-            marker: {
-                shape: 'circle',
-                strokeWidth: 2,
-            },
-        },
         position: 'top',
     },
 };

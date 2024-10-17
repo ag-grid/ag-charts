@@ -1,4 +1,8 @@
-import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
+import type {
+    AgBarSeriesLabelPlacement,
+    AgBarSeriesStyle,
+    AgErrorBoundSeriesTooltipRendererParams,
+} from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -50,7 +54,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
+import { type BarLabelPlacement, adjustLabelPlacement, updateLabelNode } from './labelUtil';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -81,18 +85,36 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
 
 type BarAnimationData = CartesianAnimationData<Rect, BarNodeDatum>;
 
+const labelPlacements: Record<AgBarSeriesLabelPlacement, BarLabelPlacement> = {
+    'inside-center': 'inside-center',
+    'inside-start': 'inside-start',
+    'inside-end': 'inside-end',
+    'outside-start': 'outside-start',
+    'outside-end': 'outside-end',
+    inside: 'inside-center',
+    outside: 'outside-end',
+};
+
 export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarNodeDatum> {
     static readonly className = 'BarSeries';
     static readonly type = 'bar' as const;
 
     override properties = new BarSeriesProperties();
 
+    override get pickModeAxis() {
+        return this.properties.sparklineMode ? ('main' as const) : undefined;
+    }
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
             directionKeys: DEFAULT_CARTESIAN_DIRECTION_KEYS,
             directionNames: DEFAULT_CARTESIAN_DIRECTION_NAMES,
-            pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
+            pickModes: [
+                SeriesNodePickMode.AXIS_ALIGNED, // Only used in sparklineMode
+                SeriesNodePickMode.NEAREST_NODE,
+                SeriesNodePickMode.EXACT_SHAPE_MATCH,
+            ],
             pathsPerSeries: [],
             hasHighlightedLabels: true,
             datumSelectionGarbageCollection: false,
@@ -346,9 +368,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                         ? {
                               text: labelText,
                               ...adjustLabelPlacement({
-                                  isPositive,
+                                  isUpward: isUpward,
                                   isVertical: !barAlongX,
-                                  placement: label.placement,
+                                  placement: labelPlacements[label.placement],
+                                  padding: label.padding,
                                   rect,
                               }),
                           }
@@ -377,19 +400,15 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
                 const labelText =
                     yRawValue != null
-                        ? this.getLabelText(
-                              this.properties.label,
-                              {
-                                  datum: seriesDatum[valueIndex],
-                                  value: yFilterValue ?? yRawValue,
-                                  xKey,
-                                  yKey,
-                                  xName,
-                                  yName,
-                                  legendItemName,
-                              },
-                              (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
-                          )
+                        ? this.getLabelText(this.properties.label, {
+                              datum: seriesDatum[valueIndex],
+                              value: yFilterValue ?? yRawValue,
+                              xKey,
+                              yKey,
+                              xName,
+                              yName,
+                              legendItemName,
+                          })
                         : undefined;
 
                 const inset = yFilterValue != null && yFilterValue > yRawValue;

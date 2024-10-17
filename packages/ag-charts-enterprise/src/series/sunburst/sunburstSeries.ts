@@ -63,8 +63,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     override properties = new SunburstSeriesProperties();
 
     groupSelection = Selection.select(this.contentGroup, ScalableGroup);
-    private readonly highlightSelection: _Scene.Selection<_Scene.Group, _ModuleSupport.HierarchyNode> =
-        Selection.select(this.highlightGroup, ScalableGroup);
+    private readonly highlightSelection = Selection.select(this.highlightGroup, ScalableGroup);
 
     private angleData: Array<{ start: number; end: number } | undefined> = [];
 
@@ -76,38 +75,22 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         await super.processData();
 
         this.angleData = getAngleData(this.rootNode);
-
-        const defaultLabelFormatter = (value: any) => {
-            if (typeof value === 'number') {
-                // This copies what other series are doing - we should look to provide format customization
-                return value.toFixed(2);
-            } else if (typeof value === 'string') {
-                return value;
-            } else {
-                return '';
-            }
-        };
-
         this.labelData = Array.from(this.rootNode, ({ datum, depth }) => {
             let label: string | undefined;
             if (datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
-                label = this.getLabelText(
-                    this.properties.label,
-                    {
-                        depth,
-                        datum,
-                        childrenKey,
-                        colorKey,
-                        colorName,
-                        labelKey,
-                        secondaryLabelKey,
-                        sizeKey,
-                        sizeName,
-                        value,
-                    },
-                    defaultLabelFormatter
-                );
+                label = this.getLabelText(this.properties.label, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    colorName,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    sizeName,
+                    value,
+                });
             }
             if (label === '') {
                 label = undefined;
@@ -116,22 +99,18 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             let secondaryLabel: string | undefined;
             if (datum != null && depth != null && secondaryLabelKey != null) {
                 const value = (datum as any)[secondaryLabelKey];
-                secondaryLabel = this.getLabelText(
-                    this.properties.secondaryLabel,
-                    {
-                        depth,
-                        datum,
-                        childrenKey,
-                        colorKey,
-                        colorName,
-                        labelKey,
-                        secondaryLabelKey,
-                        sizeKey,
-                        sizeName,
-                        value,
-                    },
-                    defaultLabelFormatter
-                );
+                secondaryLabel = this.getLabelText(this.properties.secondaryLabel, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    colorName,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    sizeName,
+                    value,
+                });
             }
             if (secondaryLabel === '') {
                 secondaryLabel = undefined;

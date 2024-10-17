@@ -278,6 +278,8 @@ function add() {
 }
 
 function remove() {
+    if (options.series?.[0].type === 'pie') offset--;
+
     length = Math.max(0, length - 1);
     options.data = getGeneratedData();
     chart.update(options);
@@ -290,7 +292,9 @@ function update() {
 }
 
 function addRemoveUpdate() {
-    offset++;
+    if (options.series?.[0].type === 'pie') offset--;
+    if (options.series?.[0].type !== 'pie') offset++;
+
     seed = Math.floor(random() * 1000);
     options.data = getGeneratedData();
     chart.update(options);

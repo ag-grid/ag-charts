@@ -6,10 +6,10 @@ const numberFormatter = new Intl.NumberFormat('en-US', { useGrouping: true });
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
-        text: 'What technologies developers want to learn',
+        text: 'Technologies Developers Want to Learn',
     },
     subtitle: {
-        text: 'StackOverflow survey results',
+        text: 'StackOverflow Survey Results',
     },
     data: [
         { from: 'Angular', to: 'Angular', frequency: 6363 },

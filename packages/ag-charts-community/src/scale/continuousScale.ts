@@ -1,7 +1,7 @@
 import { Logger } from '../util/logger';
 import { findMinMax } from '../util/number';
 import { Invalidating } from './invalidating';
-import type { Scale, ScaleConvertParams } from './scale';
+import type { Scale } from './scale';
 
 export abstract class ContinuousScale<D extends number | Date, I = number> implements Scale<D, number, I> {
     static is(value: unknown): value is ContinuousScale<any, any> {
@@ -32,6 +32,8 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
 
     // TODO(olegat) should be of type D[]
     niceDomain: any[] = [];
+
+    protected defaultClamp = false;
 
     protected constructor(domain: D[], range: number[]) {
         this.domain = domain;
@@ -71,10 +73,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         return this.domain;
     }
 
-    defaultClampMode: ScaleConvertParams['clampMode'] = 'raw';
-
-    convert(x: D, opts?: ScaleConvertParams) {
-        const clampMode = opts?.clampMode ?? this.defaultClampMode;
+    convert(x: D, clamp?: boolean) {
         if (!this.domain || this.domain.length < 2) {
             return NaN;
         }
@@ -88,7 +87,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
 
         x = this.transform(x);
 
-        if (clampMode === 'clamped') {
+        if (clamp ?? this.defaultClamp) {
             const [start, stop] = findMinMax(domain.map(Number));
             if (Number(x) < start) {
                 return r0;
@@ -108,7 +107,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         return r0 + ((Number(x) - Number(d0)) / (Number(d1) - Number(d0))) * (r1 - r0);
     }
 
-    invert(x: number) {
+    invert(x: number, clamp?: boolean) {
         this.refresh();
         const domain = this.getDomain().map((d) => this.transform(d));
         const [d0, d1] = domain;
@@ -121,12 +120,16 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         const rMin = isReversed ? r1 : r0;
         const rMax = isReversed ? r0 : r1;
 
+        if (clamp ?? this.defaultClamp) {
+            if (x < rMin) {
+                return isReversed ? d1 : d0;
+            } else if (x > rMax) {
+                return isReversed ? d0 : d1;
+            }
+        }
+
         let d: any;
-        if (x < rMin) {
-            return isReversed ? d1 : d0;
-        } else if (x > rMax) {
-            return isReversed ? d0 : d1;
-        } else if (r0 === r1) {
+        if (r0 === r1) {
             d = this.toDomain((Number(d0) + Number(d1)) / 2);
         } else {
             d = this.toDomain(Number(d0) + ((x - r0) / (r1 - r0)) * (Number(d1) - Number(d0)));

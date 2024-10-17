@@ -147,9 +147,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
         }
         this.toggleVisibilities();
 
+        const dragStates = InteractionState.Default | InteractionState.Annotations;
+        const seriesRegion = ctx.regionManager.getRegion('series');
         this.destroyFns.push(
             ctx.interactionManager.addListener('hover', this.onHover.bind(this), InteractionState.All),
             ctx.interactionManager.addListener('leave', this.onLeave.bind(this), InteractionState.All),
+            seriesRegion.addListener('drag-start', this.toggleNoPointerEvents.bind(this, true), dragStates),
+            seriesRegion.addListener('drag-end', this.toggleNoPointerEvents.bind(this, false), InteractionState.All),
             ctx.toolbarManager.addListener('button-toggled', this.onButtonToggled.bind(this)),
             ctx.toolbarManager.addListener('button-updated', this.onButtonUpdated.bind(this)),
             ctx.toolbarManager.addListener('group-toggled', this.onGroupToggled.bind(this)),
@@ -220,6 +224,13 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
 
         this.translateFloatingElements(FloatingBottom, false);
         this.translateFloatingElements(FloatingTop, false);
+    }
+
+    // AG-12695 Temporarily set `pointer-events: none` on the annotationOptions when dragging, because the
+    // buttons block to mouse from hovering over the canvas.
+    private toggleNoPointerEvents(on: boolean) {
+        const className = 'ag-charts-toolbar__no-pointer-events';
+        this.groupButtons['annotationOptions'].forEach((b) => b.classList.toggle(className, on));
     }
 
     private onGroupChanged(group: ToolbarGroup) {
@@ -748,7 +759,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             const alignmentElement = createElement('div');
             alignmentElement.role = 'presentation';
             alignmentElement.classList.add(styles.elements.align, styles.modifiers.align[align]);
-            alignmentElement.dataset.pointerCapture = 'exclusive';
             element.appendChild(alignmentElement);
             this.positionAlignments[position][align] = alignmentElement;
         }

@@ -25,7 +25,6 @@ const {
     animationValidation,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
-    isFiniteNumber,
     computeBarFocusBounds,
 } = _ModuleSupport;
 const { Rect, motion } = _Scene;
@@ -66,6 +65,17 @@ type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
     WaterfallNodeDatum,
     WaterfallContext
 >;
+
+const labelPlacements = {
+    'inside-center': 'inside-center' as const,
+    'inside-start': 'inside-start' as const,
+    'inside-end': 'inside-end' as const,
+    'outside-start': 'outside-start' as const,
+    'outside-end': 'outside-end' as const,
+    inside: 'inside-center' as const,
+    start: 'outside-start' as const,
+    end: 'outside-end' as const,
+};
 
 export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     _Scene.Rect,
@@ -219,6 +229,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
         const barWidth = this.getBandwidth(categoryAxis) ?? 10;
         const categoryAxisReversed = categoryAxis.isReversed();
+        const valueAxisReversed = valueAxis.isReversed();
 
         if (this.processedData?.type !== 'ungrouped') return;
 
@@ -364,9 +375,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             pointData.push(pathPoint);
 
             const itemId = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
-            const labelText = this.getLabelText(label, { itemId, value, datum, xKey, yKey, xName, yName }, (v) =>
-                isFiniteNumber(v) ? v.toFixed(2) : String(v)
-            );
+            const labelText = this.getLabelText(label, { itemId, value, datum, xKey, yKey, xName, yName });
 
             const nodeDatum: WaterfallNodeDatum = {
                 index: dataIndex,
@@ -390,9 +399,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 label: {
                     text: labelText,
                     ...adjustLabelPlacement({
-                        isPositive: (value ?? -1) >= 0,
+                        isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
                         isVertical: !barAlongX,
-                        placement: label.placement,
+                        placement: labelPlacements[label.placement],
                         padding: label.padding,
                         rect,
                     }),
@@ -561,9 +570,10 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             return labelSelection.update([]);
         }
 
-        const itemId = labelData[0].itemId;
-        const { label } = this.getItemConfig(itemId);
-        const data = label.enabled ? labelData : [];
+        const data = labelData.filter((labelDatum) => {
+            const { label } = this.getItemConfig(labelDatum.itemId);
+            return label.enabled;
+        });
 
         return labelSelection.update(data);
     }
@@ -796,8 +806,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected override async updatePaths(opts: {
-        seriesHighlighted?: boolean | undefined;
-        itemId?: string | undefined;
+        seriesHighlighted?: boolean;
+        itemId?: string;
         contextData: WaterfallContext;
         paths: _Scene.Path[];
         seriesIdx: number;

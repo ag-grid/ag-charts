@@ -19,7 +19,6 @@ const {
     seriesLabelFadeOutAnimation,
     valueProperty,
     animationValidation,
-    isFiniteNumber,
     SeriesNodePickMode,
 } = _ModuleSupport;
 
@@ -195,7 +194,7 @@ export abstract class RadialColumnSeriesBase<
         const cx = this.centerX;
         const cy = this.centerY;
         const cache = this.circleCache;
-        if (!(r === cache.r && cx === cache.cx && cy === cache.cy)) {
+        if (r !== cache.r || cx !== cache.cx || cy !== cache.cy) {
             this.circleCache = { r, cx, cy };
             return true;
         }
@@ -269,11 +268,14 @@ export abstract class RadialColumnSeriesBase<
             x: number,
             y: number
         ): RadialColumnLabelNodeDatum | undefined => {
-            const labelText = this.getLabelText(
-                label,
-                { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName },
-                (value) => (isFiniteNumber(value) ? value.toFixed(2) : String(value))
-            );
+            const labelText = this.getLabelText(label, {
+                value: radiusDatum,
+                datum,
+                angleKey,
+                radiusKey,
+                angleName,
+                radiusName,
+            });
 
             if (labelText) {
                 return { x, y, text: labelText, textAlign: 'center', textBaseline: 'middle' };

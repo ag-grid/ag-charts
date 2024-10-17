@@ -7,7 +7,7 @@ import type {
     AgZoomButtons,
     _Scene,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
@@ -199,10 +199,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             this.updateAxisZoom.bind(this)
         );
 
-        const { Default, ZoomDrag, Animation, Annotations } = _ModuleSupport.InteractionState;
+        const { Default, ZoomDrag, Animation, Annotations, AnnotationsSelected } = _ModuleSupport.InteractionState;
         const draggableState = Default | Animation | ZoomDrag;
         const clickableState = Default | Animation;
-        const wheelableState = draggableState | Annotations;
+        const wheelableState = draggableState | Annotations | AnnotationsSelected;
         const region = ctx.regionManager.getRegion(REGIONS.SERIES);
         const horizontalAxesRegion = ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
         const verticalAxesRegion = ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
@@ -348,7 +348,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const zoom = this.getZoom();
 
         switch (dragState) {
-            case DragState.Axis:
+            case DragState.Axis: {
                 if (!hoveredAxis) break;
 
                 const { id: axisId, direction } = hoveredAxis;
@@ -357,6 +357,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
                 this.updateAxisZoom(axisId, direction, newZoom);
                 break;
+            }
 
             case DragState.Pan:
                 panner.update(event);
@@ -398,13 +399,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 panner.stop();
                 break;
 
-            case DragState.Select:
+            case DragState.Select: {
                 if (!selector.didUpdate()) break;
                 const zoom = this.getZoom();
                 if (this.isMinZoom(zoom)) break;
                 const newZoom = selector.stop(this.seriesRect, this.paddedRect, zoom);
                 this.updateZoom(newZoom);
                 break;
+            }
         }
 
         this.dragState = DragState.None;

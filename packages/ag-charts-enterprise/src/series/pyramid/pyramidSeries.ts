@@ -3,8 +3,8 @@ import { type AgTooltipRendererResult, _ModuleSupport, _Scene, _Util } from 'ag-
 import { FunnelConnector } from '../funnel/funnelConnector';
 import { PyramidProperties } from './pyramidProperties';
 
-const { valueProperty, SeriesNodePickMode, CachedTextMeasurerPool } = _ModuleSupport;
-const { Group, Selection, Text, PointerEvents } = _Scene;
+const { valueProperty, SeriesNodePickMode, CachedTextMeasurerPool, TextUtils } = _ModuleSupport;
+const { BBox, Group, Selection, Text, PointerEvents } = _Scene;
 const { sanitizeHtml } = _Util;
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
@@ -30,7 +30,7 @@ export interface PyramidNodeDatum extends _ModuleSupport.SeriesNodeDatum, Readon
 
 export interface PyramidNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<PyramidNodeDatum, PyramidNodeLabelDatum> {
-    stageLabelData: PyramidNodeLabelDatum[];
+    stageLabelData: PyramidNodeLabelDatum[] | undefined;
 }
 
 export class PyramidSeries extends _ModuleSupport.DataModelSeries<
@@ -86,7 +86,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             return;
         }
 
-        const { xKey, yKey } = this.properties;
+        const { stageKey, valueKey } = this.properties;
 
         const xScaleType = 'band';
         const yScaleType = 'number';
@@ -94,15 +94,26 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
-                valueProperty(xKey, xScaleType, { id: 'xValue' }),
-                valueProperty(yKey, yScaleType, { id: `yValue`, ...visibleProps }),
+                valueProperty(stageKey, xScaleType, { id: 'xValue' }),
+                valueProperty(valueKey, yScaleType, { id: `yValue`, ...visibleProps }),
             ],
         });
     }
 
     override async createNodeData(): Promise<PyramidNodeDataContext | undefined> {
         const { id: seriesId, dataModel, processedData, properties } = this;
-        const { xKey, yKey, xName, yName, fills, strokes, direction, reverse, spacing, label, stageLabel } = properties;
+        const {
+            stageKey,
+            valueKey,
+            fills,
+            strokes,
+            direction,
+            reverse = direction === 'horizontal',
+            spacing,
+            aspectRatio,
+            label,
+            stageLabel,
+        } = properties;
 
         if (dataModel == null || processedData == null) return;
 
@@ -123,20 +134,23 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             textBaseline = 'middle';
         }
 
-        const stageLabelData: PyramidNodeLabelDatum[] = [];
+        const stageLabelData: PyramidNodeLabelDatum[] | undefined = stageLabel.enabled ? [] : undefined;
         let maxLabelWidth = 0;
         let maxLabelHeight = 0;
         let yTotal = 0;
+
         processedData.data.forEach(({ values }) => {
             const xValue: string = values[xIdx];
             const yValue = Number(values[yIdx]);
 
             yTotal += yValue;
 
+            if (stageLabelData == null) return;
+
             const text = xValue;
 
             const { width } = textMeasurer.measureText(text);
-            const height = text.split('\n').length * label.fontSize * Text.defaultLineHeightRatio;
+            const height = text.split('\n').length * TextUtils.getLineHeight(label.fontSize);
             maxLabelWidth = Math.max(maxLabelWidth, width);
             maxLabelHeight = Math.max(maxLabelHeight, height);
 
@@ -154,30 +168,55 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const totalSpacing = spacing * (processedData.data.length - 1);
 
         let bounds: _Scene.BBox;
-        let labelX: number | undefined;
-        let labelY: number | undefined;
         if (horizontal) {
             const verticalInset = maxLabelHeight + stageLabel.spacing;
-            bounds = new _Scene.BBox(
+            bounds = new BBox(
                 0,
                 stageLabel.placement === 'before' ? verticalInset : 0,
                 seriesRectWidth,
                 seriesRectHeight - verticalInset
             );
-            labelY = stageLabel.placement === 'before' ? maxLabelHeight : seriesRectHeight - maxLabelHeight;
         } else {
             const horizontalInset = maxLabelWidth + stageLabel.spacing;
-            bounds = new _Scene.BBox(
+            bounds = new BBox(
                 stageLabel.placement === 'after' ? 0 : horizontalInset,
                 0,
                 seriesRectWidth - horizontalInset,
                 seriesRectHeight
             );
-            labelX = stageLabel.placement === 'after' ? seriesRectWidth - maxLabelWidth : maxLabelWidth;
+        }
+
+        if (aspectRatio != null && aspectRatio !== 0) {
+            const directionalAspectRatio = direction === 'horizontal' ? 1 / aspectRatio : aspectRatio;
+            const constrainedWidth = Math.min(bounds.width, bounds.height * directionalAspectRatio);
+            const constrainedHeight = constrainedWidth / directionalAspectRatio;
+
+            bounds = new BBox(
+                bounds.x + (bounds.width - constrainedWidth) / 2,
+                bounds.y + (bounds.height - constrainedHeight) / 2,
+                constrainedWidth,
+                constrainedHeight
+            );
+        }
+
+        let labelX: number | undefined;
+        let labelY: number | undefined;
+        if (horizontal) {
+            labelY =
+                stageLabel.placement === 'before'
+                    ? bounds.y - stageLabel.spacing
+                    : bounds.y + bounds.height + stageLabel.spacing;
+        } else {
+            labelX =
+                stageLabel.placement === 'after'
+                    ? bounds.x + bounds.width + stageLabel.spacing
+                    : bounds.x - stageLabel.spacing;
         }
 
         const availableWidth = bounds.width - (horizontal ? totalSpacing : 0);
         const availableHeight = bounds.height - (horizontal ? 0 : totalSpacing);
+
+        if (availableWidth < 0 || availableHeight < 0) return;
 
         const nodeData: PyramidNodeDatum[] = [];
         const labelData: PyramidNodeLabelDatum[] = [];
@@ -191,12 +230,17 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             const yMidRatio = (yStart + yEnd) / (2 * yTotal);
             const yRangeRatio = (yEnd - yStart) / yTotal;
 
-            const x = bounds.x + (horizontal ? availableWidth * yMidRatio + spacing * index : availableWidth * 0.5);
-            const y = bounds.y + (horizontal ? availableHeight * 0.5 : availableHeight * yMidRatio + spacing * index);
+            const xOffset = horizontal ? availableWidth * yMidRatio + spacing * index : availableWidth * 0.5;
+            const yOffset = horizontal ? availableHeight * 0.5 : availableHeight * yMidRatio + spacing * index;
 
-            const stageLabelDatum = stageLabelData[index] as Writeable<PyramidNodeLabelDatum>;
-            stageLabelDatum.x = labelX ?? x;
-            stageLabelDatum.y = labelY ?? y;
+            const x = bounds.x + xOffset;
+            const y = bounds.y + yOffset;
+
+            if (stageLabelData != null) {
+                const stageLabelDatum = stageLabelData[index] as Writeable<PyramidNodeLabelDatum>;
+                stageLabelDatum.x = labelX ?? x;
+                stageLabelDatum.y = labelY ?? y;
+            }
 
             let top: number;
             let right: number;
@@ -207,8 +251,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 top = barWidth;
                 bottom = barWidth;
 
-                const y0 = (x + barWidth / 2) * (availableHeight / bounds.width);
-                const y1 = (x - barWidth / 2) * (availableHeight / bounds.width);
+                const y0 = (xOffset + barWidth / 2) * (availableHeight / bounds.width);
+                const y1 = (xOffset - barWidth / 2) * (availableHeight / bounds.width);
                 right = reverse ? bounds.height - y0 : y0;
                 left = reverse ? bounds.height - y1 : y1;
             } else {
@@ -216,8 +260,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 right = barHeight;
                 left = barHeight;
 
-                const x0 = (y - barHeight / 2) * (availableWidth / bounds.height);
-                const x1 = (y + barHeight / 2) * (availableWidth / bounds.height);
+                const x0 = (yOffset - barHeight / 2) * (availableWidth / bounds.height);
+                const x1 = (yOffset + barHeight / 2) * (availableWidth / bounds.height);
                 top = reverse ? bounds.width - x0 : x0;
                 bottom = reverse ? bounds.width - x1 : x1;
             }
@@ -225,10 +269,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             const text = this.getLabelText(label, {
                 datum,
                 value: yValue,
-                xKey,
-                yKey,
-                xName,
-                yName,
+                stageKey,
+                valueKey,
             });
             const labelDatum: PyramidNodeLabelDatum = {
                 x,
@@ -245,7 +287,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             nodeData.push({
                 series: this,
-                itemId: yKey,
+                itemId: valueKey,
                 datum,
                 index,
                 xValue,
@@ -326,7 +368,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
+        const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, shadow } = this.properties;
         const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
 
         datumSelection.each((connector, { x, y, top, right, bottom, left, fill, stroke }) => {
@@ -347,6 +389,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             connector.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
             connector.lineDash = highlightStyle?.lineDash ?? lineDash;
             connector.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
+            connector.fillShadow = shadow;
         });
     }
 
@@ -354,7 +397,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         labelData: PyramidNodeLabelDatum[];
         labelSelection: _Scene.Selection<_Scene.Text, PyramidNodeLabelDatum>;
     }) {
-        return opts.labelSelection.update(opts.labelData);
+        return opts.labelSelection.update(this.properties.label.enabled ? opts.labelData : []);
     }
 
     private async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, PyramidNodeLabelDatum> }) {
@@ -404,7 +447,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         });
     }
 
-    override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {}
+    override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {
+        // Does not reset any animations
+    }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | _Scene.Path | undefined {
         const datum = this.getNodeData()?.[opts.datumIndex];
@@ -427,7 +472,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
-        const { xKey, yKey, xName, yName, itemStyler, tooltip } = this.properties;
+        const { stageKey, valueKey, itemStyler, tooltip } = this.properties;
         const { strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
         const { datum, xValue, yValue, fill, stroke } = nodeDatum;
 
@@ -437,8 +482,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 highlighted: false,
                 seriesId,
                 datum,
-                xKey,
-                yKey,
+                stageKey,
+                valueKey,
                 fill,
                 fillOpacity,
                 stroke,
@@ -463,10 +508,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return tooltip.toTooltipHtml(defaults, {
             itemId: undefined,
             datum,
-            xKey,
-            xName,
-            yKey,
-            yName,
+            stageKey,
+            valueKey,
             color,
             seriesId,
             title,
@@ -479,6 +522,21 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     override getSeriesDomain(_direction: _ModuleSupport.ChartAxisDirection): any[] {
         return [NaN, NaN];
+    }
+
+    override pickNodeClosestDatum({ x, y }: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+        let minDistanceSquared = Infinity;
+        let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
+
+        this.datumSelection.each((node, datum) => {
+            const distanceSquared = node.distanceSquared(x, y);
+            if (distanceSquared < minDistanceSquared) {
+                minDistanceSquared = distanceSquared;
+                minDatum = datum;
+            }
+        });
+
+        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
     }
 
     override getLegendData(

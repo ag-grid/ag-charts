@@ -1,6 +1,7 @@
 import type {
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
+    AgChartOptions,
     AgFlowProportionChartOptions,
     AgFlowProportionSeriesOptions,
     AgGaugeChartOptions,
@@ -14,7 +15,6 @@ import type {
     AgTopologyChartOptions,
     AgTopologySeriesOptions,
 } from 'ag-charts-types';
-import type { AgChartOptions } from 'ag-charts-types';
 
 import { Logger } from '../../util/logger';
 import { axisRegistry } from '../factory/axisRegistry';
@@ -42,19 +42,16 @@ export type SeriesOptionsTypes =
 
 export type SeriesType = SeriesOptionsTypes['type'];
 
-export function optionsType(input: { series?: { type?: SeriesType }[] }): NonNullable<SeriesType> {
-    return input.series?.[0]?.type ?? 'line';
+export function optionsType(input: { series?: { type?: SeriesType }[] }): SeriesType {
+    const { series } = input;
+    if (!series) return;
+    return series[0]?.type ?? 'line';
 }
 
 export function isAgCartesianChartOptions(input: AgChartOptions): input is AgCartesianChartOptions {
     const specifiedType = optionsType(input);
     if (specifiedType == null) {
-        return true;
-    }
-
-    if ((specifiedType as string) === 'cartesian') {
-        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
-        return true;
+        return false;
     }
 
     return chartTypes.isCartesian(specifiedType) || isEnterpriseCartesian(specifiedType);

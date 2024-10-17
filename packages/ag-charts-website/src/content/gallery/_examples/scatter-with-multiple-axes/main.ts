@@ -59,6 +59,7 @@ const options: AgChartOptions = {
             nice: false,
             min: 1762,
             max: 2030,
+            label: { format: 'd' },
         },
         {
             type: 'number',
@@ -72,7 +73,7 @@ const options: AgChartOptions = {
                     })} Deaths`,
             },
             line: {
-                width: 1,
+                enabled: true,
             },
         },
         {
@@ -84,7 +85,7 @@ const options: AgChartOptions = {
             keys: ['lifeExpectancy'],
             interval: { values: [81.77, 29.22] },
             line: {
-                width: 1,
+                enabled: true,
             },
             label: {
                 formatter: ({ value }) =>

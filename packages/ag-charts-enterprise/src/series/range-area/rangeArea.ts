@@ -20,7 +20,6 @@ const {
     animationValidation,
     diff,
     updateClipPath,
-    isFiniteNumber,
     computeMarkerFocusBounds,
     plotPath,
     pathRanges,
@@ -87,6 +86,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             moduleCtx,
             hasMarkers: true,
             pathsPerSeries: ['fill', 'stroke'],
+            pickModes: [_ModuleSupport.SeriesNodePickMode.AXIS_ALIGNED],
             directionKeys: {
                 [ChartAxisDirection.X]: ['xKey'],
                 [ChartAxisDirection.Y]: ['yLowKey', 'yHighKey'],
@@ -329,11 +329,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             series,
             itemId,
             datum,
-            text: this.getLabelText(
-                label,
-                { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName },
-                (v) => (isFiniteNumber(v) ? v.toFixed(2) : String(v))
-            ),
+            text: this.getLabelText(label, {
+                value,
+                datum,
+                itemId,
+                xKey,
+                yLowKey,
+                yHighKey,
+                xName,
+                yLowName,
+                yHighName,
+                yName,
+            }),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
         };
@@ -356,7 +363,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
             fill: undefined,
-            lineJoin: (stroke.lineCap = 'round'),
+            lineCap: 'round',
+            lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             stroke: this.properties.stroke,
             strokeWidth,

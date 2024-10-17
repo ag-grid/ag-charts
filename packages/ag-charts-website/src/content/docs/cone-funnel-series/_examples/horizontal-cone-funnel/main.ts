@@ -17,8 +17,8 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'cone-funnel',
-            xKey: 'group',
-            yKey: 'value',
+            stageKey: 'group',
+            valueKey: 'value',
             direction: 'horizontal',
         },
     ],

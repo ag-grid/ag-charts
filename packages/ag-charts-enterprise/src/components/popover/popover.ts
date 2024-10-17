@@ -1,4 +1,4 @@
-import { _ModuleSupport, type _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 const { BaseModuleInstance, createElement, getLastFocus } = _ModuleSupport;
 const canvasOverlay = 'canvas-overlay';
@@ -75,7 +75,6 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         }
 
         const popover = createElement('div', 'ag-charts-popover');
-        popover.setAttribute('data-pointer-capture', 'exclusive');
 
         if (options.ariaLabel != null) {
             popover.setAttribute('aria-label', options.ariaLabel);
@@ -108,7 +107,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         return this.element.firstElementChild as HTMLDivElement | undefined;
     }
 
-    protected updatePosition(position: _Util.Vec2) {
+    protected updatePosition(position: _ModuleSupport.Vec2) {
         const popover = this.getPopoverElement();
         if (!popover) return;
 

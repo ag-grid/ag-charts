@@ -1,5 +1,5 @@
 import type { AgOhlcSeriesItemOptions } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { CandlestickBaseGroup } from '../candlestick/candlestickGroup';
 import type { OhlcNodeDatum } from './ohlcTypes';

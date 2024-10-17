@@ -16,8 +16,8 @@ const options: AgChartOptions = {
     series: [
         {
             type: 'funnel',
-            xKey: 'group',
-            yKey: 'value',
+            stageKey: 'group',
+            valueKey: 'value',
             direction: 'vertical',
             dropOff: {
                 enabled: false,

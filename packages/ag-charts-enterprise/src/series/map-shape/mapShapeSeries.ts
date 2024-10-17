@@ -4,6 +4,7 @@ import type { AgMapShapeSeriesStyle } from 'ag-charts-types';
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestPolygon, projectGeometry } from '../map-util/geometryUtil';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
+import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
@@ -97,7 +98,6 @@ export class MapShapeSeries
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            contentGroupVirtual: false,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
@@ -110,6 +110,15 @@ export class MapShapeSeries
         if (this.topology === topology) {
             this.nodeDataRefresh = true;
         }
+    }
+
+    override setSeriesIndex(index: number): boolean {
+        if (!super.setSeriesIndex(index)) return false;
+
+        this.contentGroup.zIndex = [MapZIndexMap.ShapeLine, index];
+        this.highlightGroup.zIndex = [MapZIndexMap.ShapeLineHighlight, index];
+
+        return true;
     }
 
     override addChartEventListeners(): void {
@@ -549,18 +558,18 @@ export class MapShapeSeries
     }
 
     override pickNodeClosestDatum({ x, y }: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
-        let minDistance = Infinity;
+        let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
 
         this.datumSelection.each((node, datum) => {
-            const distance = node.distanceToPoint(x, y);
-            if (distance < minDistance) {
-                minDistance = distance;
+            const distanceSquared = node.distanceSquared(x, y);
+            if (distanceSquared < minDistanceSquared) {
+                minDistanceSquared = distanceSquared;
                 minDatum = datum;
             }
         });
 
-        return minDatum != null ? { datum: minDatum, distance: minDistance } : undefined;
+        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
     }
 
     private _previousDatumMidPoint:

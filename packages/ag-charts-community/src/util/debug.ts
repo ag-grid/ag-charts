@@ -34,7 +34,7 @@ export const Debug = {
         if (debugSelectors.length === 0) {
             debugSelectors.push(true);
         }
-        const chartDebug = toArray(getWindow('agChartsDebug')) as Array<boolean | string>;
+        const chartDebug = toArray(getWindow<boolean | string>('agChartsDebug'));
         return chartDebug.some((selector) => debugSelectors.includes(selector));
     },
 };

@@ -4,6 +4,7 @@ import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
 import { lineStringCenter } from '../map-util/lineStringUtil';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
+import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
@@ -71,10 +72,18 @@ export class MapLineSeries
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            contentGroupVirtual: false,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
+    }
+
+    override setSeriesIndex(index: number): boolean {
+        if (!super.setSeriesIndex(index)) return false;
+
+        this.contentGroup.zIndex = [MapZIndexMap.ShapeLine, index];
+        this.highlightGroup.zIndex = [MapZIndexMap.ShapeLineHighlight, index];
+
+        return true;
     }
 
     setChartTopology(topology: any): void {
@@ -268,7 +277,7 @@ export class MapLineSeries
 
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
-            const size = sizeValue != null ? sizeScale.convert(sizeValue, { clampMode: 'clamped' }) : undefined;
+            const size = sizeValue != null ? sizeScale.convert(sizeValue, true) : undefined;
 
             const projectedGeometry = projectedGeometries.get(idValue);
             if (projectedGeometry == null) {
@@ -475,18 +484,18 @@ export class MapLineSeries
     }
 
     override pickNodeClosestDatum({ x, y }: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
-        let minDistance = Infinity;
+        let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
 
         this.datumSelection.each((node, datum) => {
-            const distance = node.distanceToPoint(x, y);
-            if (distance < minDistance) {
-                minDistance = distance;
+            const distanceSquared = node.distanceSquared(x, y);
+            if (distanceSquared < minDistanceSquared) {
+                minDistanceSquared = distanceSquared;
                 minDatum = datum;
             }
         });
 
-        return minDatum != null ? { datum: minDatum, distance: minDistance } : undefined;
+        return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
     }
 
     private _previousDatumMidPoint:

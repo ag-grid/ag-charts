@@ -19,7 +19,7 @@ interface LineStateMachineContext<Datum extends ArrowProperties | LineProperties
 
 abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperties> extends StateMachine<
     'start' | 'end',
-    'click' | 'hover' | 'drag' | 'reset' | 'cancel'
+    'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'reset' | 'cancel'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -54,7 +54,7 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
         const onExitEnd = () => {
             ctx.guardDragClickDoubleEvent.reset();
             ctx.showAnnotationOptions();
-            ctx.recordAction(`Create ${ctx.node()?.type} annotation`);
+            ctx.recordAction(`Create ${ctx.datum()?.type} annotation`);
         };
 
         super('start', {
@@ -71,6 +71,8 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
             },
             end: {
                 hover: actionEndUpdate,
+                keyDown: actionEndUpdate,
+                keyUp: actionEndUpdate,
                 click: {
                     guard: ctx.guardDragClickDoubleEvent.guard,
                     target: StateMachine.parent,

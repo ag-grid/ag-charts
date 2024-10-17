@@ -9,7 +9,7 @@ type BaseAttributeTypeMap = {
     'aria-expanded': boolean;
     'aria-haspopup': boolean;
     'aria-hidden': boolean;
-    'aria-label': string | undefined;
+    'aria-label': string;
     'aria-labelledby': ElementID;
     'aria-live': 'assertive' | 'polite';
     'aria-selected': boolean;
@@ -29,19 +29,19 @@ export type InputAttributeSet = Partial<{ [K in keyof InputAttributeTypeMap]: In
 export function setAttribute<A extends keyof BaseAttributeTypeMap>(
     e: Nullable<HTMLElement>,
     qualifiedName: A,
-    value: BaseAttributeTypeMap[A]
+    value: BaseAttributeTypeMap[A] | undefined
 ): void;
 
 export function setAttribute<A extends keyof InputAttributeTypeMap>(
     e: Nullable<HTMLTextAreaElement>,
     qualifiedName: A,
-    value: InputAttributeTypeMap[A]
+    value: InputAttributeTypeMap[A] | undefined
 ): void;
 
 export function setAttribute<A extends keyof BaseAttributeTypeMap>(
     e: Nullable<HTMLElement>,
     qualifiedName: A,
-    value: BaseAttributeTypeMap[A]
+    value: BaseAttributeTypeMap[A] | undefined
 ) {
     if (value === undefined || value === '') {
         e?.removeAttribute(qualifiedName);

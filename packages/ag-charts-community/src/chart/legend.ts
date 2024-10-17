@@ -33,6 +33,7 @@ import { BaseProperties } from '../util/properties';
 import { ObserveChanges } from '../util/proxy';
 import { CachedTextMeasurerPool, TextUtils } from '../util/textMeasurer';
 import { TextWrapper } from '../util/textWrapper';
+import { isDefined } from '../util/type-guards';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -160,6 +161,22 @@ class LegendListeners extends BaseProperties implements AgChartLegendListeners {
 const ID_LEGEND_VISIBILITY = 'legend-visibility';
 const ID_LEGEND_OTHER_SERIES = 'legend-other-series';
 
+class LegendItemEvent<Type extends 'click' | 'dblclick'> {
+    defaultPrevented = false;
+
+    constructor(
+        readonly type: Type,
+        readonly enabled: boolean,
+        readonly itemId: string,
+        readonly seriesId: string,
+        readonly event: Event
+    ) {}
+
+    preventDefault() {
+        this.defaultPrevented = true;
+    }
+}
+
 export class Legend extends BaseProperties {
     static readonly className = 'Legend';
 
@@ -172,7 +189,7 @@ export class Legend extends BaseProperties {
         LegendMarkerLabel
     );
 
-    private readonly spriteRenderer = new SpriteRenderer();
+    private spriteRenderer: SpriteRenderer | undefined = undefined;
 
     private readonly oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
@@ -338,7 +355,7 @@ export class Legend extends BaseProperties {
         const buttons: HTMLButtonElement[] = this.itemSelection
             .nodes()
             .map((markerLabel) => markerLabel.proxyButton?.button)
-            .filter((button): button is HTMLButtonElement => !!button);
+            .filter(isDefined);
         const orientation = this.getOrientation();
         this.proxyLegendToolbarDestroyFns.setFns(initRovingTabIndex({ orientation, buttons }));
         this.proxyLegendToolbar.ariaOrientation = orientation;
@@ -442,6 +459,7 @@ export class Legend extends BaseProperties {
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
 
         const spriteDims = this.calculateSpriteDimensions();
+        this.spriteRenderer ??= new SpriteRenderer();
         this.spriteRenderer.resize(spriteDims);
 
         this.itemSelection.each((markerLabel, datum) => {
@@ -450,7 +468,7 @@ export class Legend extends BaseProperties {
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
 
-            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, spriteDims);
+            const paddedSymbolWidth = this.updateMarkerLabel(this.spriteRenderer!, markerLabel, datum, spriteDims);
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
@@ -569,6 +587,7 @@ export class Legend extends BaseProperties {
     }
 
     private updateMarkerLabel(
+        spriteRenderer: SpriteRenderer,
         markerLabel: LegendMarkerLabel,
         datum: CategoryLegendDatum,
         spriteDims: SpriteDimensions
@@ -627,7 +646,7 @@ export class Legend extends BaseProperties {
             }
         });
 
-        markerLabel.update(this.spriteRenderer, spriteDims, dimensionProps);
+        markerLabel.update(spriteRenderer, spriteDims, dimensionProps);
         return paddedSymbolWidth;
     }
 
@@ -928,9 +947,18 @@ export class Legend extends BaseProperties {
     }
 
     private updateContextMenu() {
-        const { toggleSeries } = this;
-        this.ctx.contextMenuRegistry.setActionVisiblity(ID_LEGEND_VISIBILITY, toggleSeries);
-        this.ctx.contextMenuRegistry.setActionVisiblity(ID_LEGEND_OTHER_SERIES, toggleSeries);
+        const {
+            toggleSeries,
+            ctx: { contextMenuRegistry },
+        } = this;
+
+        if (toggleSeries) {
+            contextMenuRegistry.hideAction(ID_LEGEND_VISIBILITY);
+            contextMenuRegistry.hideAction(ID_LEGEND_OTHER_SERIES);
+        } else {
+            contextMenuRegistry.showAction(ID_LEGEND_VISIBILITY);
+            contextMenuRegistry.showAction(ID_LEGEND_OTHER_SERIES);
+        }
     }
 
     private getLineStyles(datum: LegendSymbolOptions) {
@@ -980,11 +1008,11 @@ export class Legend extends BaseProperties {
 
     private contextToggleVisibility(params: AgChartLegendContextMenuEvent) {
         const { datum, proxyButton } = this.findNode(params);
-        this.doClick(datum, proxyButton.button);
+        this.doClick(params.event, datum, proxyButton.button);
     }
 
     private contextToggleOtherSeries(params: AgChartLegendContextMenuEvent) {
-        this.doDoubleClick(this.findNode(params).datum);
+        this.doDoubleClick(params.event, this.findNode(params).datum);
     }
 
     private onContextClick(sourceEvent: MouseEvent, node: LegendMarkerLabel) {
@@ -1013,8 +1041,8 @@ export class Legend extends BaseProperties {
         this.ctx.contextMenuRegistry.dispatchContext('legend', event, { legendItem });
     }
 
-    private onClick(event: MouseEvent, datum: CategoryLegendDatum, proxyButton: HTMLButtonElement) {
-        if (this.doClick(datum, proxyButton)) {
+    private onClick(event: Event, datum: CategoryLegendDatum, proxyButton: HTMLButtonElement) {
+        if (this.doClick(event, datum, proxyButton)) {
             event.preventDefault();
         }
     }
@@ -1023,7 +1051,7 @@ export class Legend extends BaseProperties {
         return this.ctx.chartService.series.flatMap((s) => s.getLegendData('category')).filter((d) => d.enabled).length;
     }
 
-    private doClick(datum: CategoryLegendDatum, proxyButton: HTMLButtonElement): boolean {
+    private doClick(event: Event, datum: CategoryLegendDatum, proxyButton: HTMLButtonElement): boolean {
         const {
             listeners: { legendItemClick },
             ctx: { chartService, highlightManager },
@@ -1042,18 +1070,10 @@ export class Legend extends BaseProperties {
         }
 
         let newEnabled = enabled;
-        let defaultPrevented = false;
-        legendItemClick?.({
-            type: 'click',
-            enabled: newEnabled,
-            itemId,
-            seriesId: series.id,
-            preventDefault() {
-                defaultPrevented = true;
-            },
-        });
+        const clickEvent = new LegendItemEvent('click', newEnabled, itemId, series.id, event);
+        legendItemClick?.(clickEvent);
 
-        if (defaultPrevented) return true;
+        if (clickEvent.defaultPrevented) return true;
 
         if (toggleSeries) {
             newEnabled = !enabled;
@@ -1085,12 +1105,12 @@ export class Legend extends BaseProperties {
     }
 
     private onDoubleClick(event: MouseEvent, datum: CategoryLegendDatum) {
-        if (this.doDoubleClick(datum)) {
+        if (this.doDoubleClick(event, datum)) {
             event.preventDefault();
         }
     }
 
-    private doDoubleClick(datum: CategoryLegendDatum | undefined): boolean {
+    private doDoubleClick(event: Event, datum: CategoryLegendDatum | undefined): boolean {
         const {
             listeners: { legendItemDoubleClick },
             ctx: { chartService },
@@ -1112,18 +1132,10 @@ export class Legend extends BaseProperties {
             return false;
         }
 
-        let defaultPrevented = false;
-        legendItemDoubleClick?.({
-            type: 'dblclick',
-            enabled: true,
-            itemId,
-            seriesId: series.id,
-            preventDefault() {
-                defaultPrevented = true;
-            },
-        });
+        const doubleClickEvent = new LegendItemEvent('dblclick', true, itemId, series.id, event);
+        legendItemDoubleClick?.(doubleClickEvent);
 
-        if (defaultPrevented) return true;
+        if (doubleClickEvent.defaultPrevented) return true;
 
         if (toggleSeries) {
             const legendData = chartService.series.flatMap((s) => s.getLegendData('category'));
@@ -1295,7 +1307,7 @@ export class Legend extends BaseProperties {
 
         switch (this.position) {
             case 'top':
-            case 'bottom':
+            case 'bottom': {
                 // A horizontal legend should take maximum between 20 and 50 percent of the chart height if height is larger than width
                 // and maximum 20 percent of the chart height if height is smaller than width.
                 const heightCoefficient =
@@ -1307,16 +1319,18 @@ export class Legend extends BaseProperties {
                     ? Math.min(this.maxHeight, height)
                     : Math.round(height * heightCoefficient);
                 break;
+            }
 
             case 'left':
             case 'right':
-            default:
+            default: {
                 // A vertical legend should take maximum between 25 and 50 percent of the chart width if width is larger than height
                 // and maximum 25 percent of the chart width if width is smaller than height.
                 const widthCoefficient =
                     aspectRatio > 1 ? Math.min(maxCoefficient, minWidthCoefficient * aspectRatio) : minWidthCoefficient;
                 legendWidth = this.maxWidth ? Math.min(this.maxWidth, width) : Math.round(width * widthCoefficient);
                 legendHeight = this.maxHeight ? Math.min(this.maxHeight, height) : height;
+            }
         }
 
         return [legendWidth, legendHeight];

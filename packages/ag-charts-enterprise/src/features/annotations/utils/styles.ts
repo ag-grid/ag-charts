@@ -1,5 +1,10 @@
 import type { AnnotationLineStyle, AnnotationOptionsColorPickerType } from '../annotationTypes';
-import type { AnnotationProperties, ChannelPropertiesType, LinePropertiesType } from '../annotationsSuperTypes';
+import type {
+    AnnotationProperties,
+    ChannelPropertiesType,
+    LinePropertiesType,
+    MeasurerPropertiesType,
+} from '../annotationsSuperTypes';
 import { hasIconColor, hasLineText } from './has';
 import { getComputedLineDash, getLineStyle } from './line';
 
@@ -8,7 +13,10 @@ export function setFontSize(datum: AnnotationProperties, fontSize: number) {
     if (hasLineText(datum)) datum.text.fontSize = fontSize;
 }
 
-export function setLineStyle(datum: LinePropertiesType | ChannelPropertiesType, style?: AnnotationLineStyle) {
+export function setLineStyle(
+    datum: LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType,
+    style?: AnnotationLineStyle
+) {
     const strokeWidth = style?.strokeWidth ?? datum.strokeWidth ?? 1;
     const lineType = style?.type ?? datum.lineStyle;
     const lineStyle = lineType ?? getLineStyle(datum.lineDash, lineType);

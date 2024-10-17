@@ -5,6 +5,7 @@ import { ColorPicker } from '../../features/color-picker/colorPicker';
 import { Popover, type PopoverOptions } from '../popover/popover';
 
 const {
+    Vec2,
     createButton,
     createCheckbox,
     createElement,
@@ -16,7 +17,7 @@ const {
     getWindow,
     mapValues,
 } = _ModuleSupport;
-const { Vec2, setAttribute, setAttributes } = _Util;
+const { Color, setAttribute, setAttributes } = _Util;
 
 export interface DialogOptions extends PopoverOptions {}
 
@@ -43,7 +44,8 @@ interface CheckboxOptions extends _ModuleSupport.CheckboxOptions {
 interface ColorPickerOptions {
     altText: string;
     label: string;
-    value: string | undefined;
+    color?: string;
+    opacity?: number;
     onChange: (colorOpacity: string, color: string, opacity: number) => void;
     onChangeHide: () => void;
 }
@@ -60,7 +62,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
     private readonly colorPicker = new ColorPicker(this.ctx, { detached: true });
     private colorPickerAnchorElement?: HTMLElement;
-    private dragStartState?: { client: _Util.Vec2; position: _Util.Vec2 };
+    private dragStartState?: { client: _ModuleSupport.Vec2; position: _ModuleSupport.Vec2 };
     private seriesRect?: _Scene.BBox;
     private initialFocus?: HTMLElement;
 
@@ -90,7 +92,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return popover;
     }
 
-    protected override updatePosition(position: _Util.Vec2): void {
+    protected override updatePosition(position: _ModuleSupport.Vec2): void {
         super.updatePosition(position);
 
         const { anchor, fallbackAnchor } = this.getColorPickerAnchors() ?? {};
@@ -152,13 +154,14 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 }
             )
         );
-        const tablist = createElement('div');
-        setAttributes(tablist, { role: 'tablist', 'aria-label': this.ctx.localeManager.t(tablistLabel) });
-        tablist.append(...Object.values(tabButtons));
+
+        const tabList = createElement('div', 'ag-charts-dialog__tab-list');
+        setAttributes(tabList, { role: 'tablist', 'aria-label': this.ctx.localeManager.t(tablistLabel) });
+        tabList.append(...Object.values(tabButtons));
 
         const closeButton = this.createHeaderCloseButton();
 
-        header.append(dragHandle, tablist, closeButton);
+        header.append(dragHandle, tabList, closeButton);
         element.append(header, ...Object.values(tabs).map((t) => t.panel));
 
         onPressTab(initial);
@@ -261,7 +264,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    protected createColorPicker({ value, label, altText, onChange, onChangeHide }: ColorPickerOptions) {
+    protected createColorPicker({ color, opacity, label, altText, onChange, onChangeHide }: ColorPickerOptions) {
         const group = this.createInputGroup(label);
 
         const altTextT = this.ctx.localeManager.t(altText);
@@ -275,13 +278,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                     this.colorPicker.show({
                         anchor,
                         fallbackAnchor,
-                        color: defaultColor,
-                        opacity: 1,
+                        color,
+                        opacity,
                         sourceEvent: event,
-                        onChange: (colorOpacity: string, color: string, opacity: number) => {
-                            defaultColor = colorOpacity;
-                            colorEl.style.setProperty('--color', colorOpacity);
-                            onChange(colorOpacity, color, opacity);
+                        onChange: (newColorOpacity: string, newColor: string, newOpacity: number) => {
+                            colorEl.style.setProperty('--color', newColorOpacity);
+                            onChange(newColorOpacity, newColor, newOpacity);
                         },
                         onChangeHide,
                     });
@@ -295,8 +297,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             }
         );
 
-        if (value) colorEl.style.setProperty('--color', value);
-        let defaultColor = value;
+        if (color) {
+            const hex = Color.fromHexString(color);
+            const hexWithOpacity = new Color(hex.r, hex.g, hex.b, opacity);
+            colorEl.style.setProperty('--color', hexWithOpacity.toHexString());
+        }
 
         group.append(colorEl);
 
@@ -415,7 +420,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const popoverSize = Vec2.from(popover);
         const halfWidth = Vec2.from(0.5, 1);
 
-        let position: _Util.Vec2;
+        let position: _ModuleSupport.Vec2;
         if (seriesRect.width > 1000) {
             const bottomCenter = Vec2.sub(
                 Vec2.add(outerOffset, Vec2.multiply(outerSize, halfWidth)),

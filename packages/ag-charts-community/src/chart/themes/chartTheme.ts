@@ -10,6 +10,7 @@ import type {
 } from 'ag-charts-types';
 
 import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
+import { enterpriseModule } from '../../module/enterpriseModule';
 import { deepClone, jsonWalk } from '../../util/json';
 import { mergeDefaults } from '../../util/object';
 import { isArray } from '../../util/type-guards';
@@ -17,12 +18,16 @@ import { axisRegistry } from '../factory/axisRegistry';
 import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
 import { legendRegistry } from '../factory/legendRegistry';
 import { seriesRegistry } from '../factory/seriesRegistry';
-import { CARTESIAN_AXIS_TYPE, FONT_SIZE, FONT_WEIGHT, POLAR_AXIS_TYPE, POSITION } from './constants';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE, FONT_WEIGHT, POLAR_AXIS_TYPE } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_COLOR,
     DEFAULT_ANNOTATION_HANDLE_FILL,
+    DEFAULT_ANNOTATION_STATISTICS_COLOR,
+    DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
+    DEFAULT_ANNOTATION_STATISTICS_FILL,
+    DEFAULT_ANNOTATION_STATISTICS_STROKE,
     DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_AXIS_LINE_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
@@ -48,7 +53,9 @@ import {
     DEFAULT_TEXTBOX_STROKE,
     DEFAULT_TEXT_ANNOTATION_COLOR,
     DEFAULT_TOOLBAR_POSITION,
+    IS_COMMUNITY,
     IS_DARK_THEME,
+    IS_ENTERPRISE,
     PALETTE_ALT_DOWN_FILL,
     PALETTE_ALT_DOWN_STROKE,
     PALETTE_ALT_NEUTRAL_FILL,
@@ -214,7 +221,7 @@ export class ChartTheme {
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
             },
             legend: {
-                position: POSITION.BOTTOM,
+                position: CARTESIAN_POSITION.BOTTOM,
                 spacing: 30,
                 listeners: {},
                 toggleSeries: true,
@@ -423,8 +430,12 @@ export class ChartTheme {
     }
 
     getTemplateParameters() {
+        const { isEnterprise } = enterpriseModule;
+
         const params = new Map();
         params.set(IS_DARK_THEME, false);
+        params.set(IS_ENTERPRISE, isEnterprise);
+        params.set(IS_COMMUNITY, !isEnterprise);
         params.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');
         params.set(DEFAULT_LABEL_COLOUR, 'rgb(70, 70, 70)');
         params.set(DEFAULT_INVERTED_LABEL_COLOUR, 'white');
@@ -462,6 +473,10 @@ export class ChartTheme {
         params.set(DEFAULT_TEXT_ANNOTATION_COLOR, DEFAULT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_BACKGROUND_FILL);
+        params.set(DEFAULT_ANNOTATION_STATISTICS_FILL, '#fafafa');
+        params.set(DEFAULT_ANNOTATION_STATISTICS_STROKE, '#dddddd');
+        params.set(DEFAULT_ANNOTATION_STATISTICS_COLOR, '#000000');
+        params.set(DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE, '#181d1f');
 
         params.set(DEFAULT_TEXTBOX_FILL, '#fafafa');
         params.set(DEFAULT_TEXTBOX_STROKE, '#dddddd');

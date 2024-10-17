@@ -3,48 +3,89 @@ title: 'Pyramid Series'
 description: '$framework Pyramid Series uses the height of sections to show the proportions of a value over a category of values.'
 ---
 
-A Pyramid Series uses the height of sections to show the proportions of a value over a category of values.
+A Pyramid Series is a triangular shaped visualization that uses the height of each segment to represent its value as a proportion of the whole.
 
 ## Simple Pyramid
 
 {% chartExampleRunner title="Pyramid Chart" name="simple-pyramid" type="generated" /%}
 
-To create a Funnel Series, use the `pyramid` series type.
+To create a Pyramid Series, use the `pyramid` series type.
 
 ```js
 series: [
     {
         type: 'pyramid',
-        xKey: 'group',
-        yKey: 'value'
+        stageKey: 'group',
+        valueKey: 'value'
     },
 ],
 ```
 
 In this configuration:
 
--   `xKey` defines the categories, and is mapped to the stages of the funnel.
--   `yKey` provides the numerical values, corresponding values of each stage.
+-   `stageKey` defines the categories, each of which is mapped to segments in the pyramid.
+-   `valueKey` provides the numerical values, determining the height of each segment.
 
 ## Horizontal Pyramid
 
 {% chartExampleRunner title="Horizontal Pyramid Chart" name="horizontal-pyramid" type="generated" /%}
 
-To create a horizontal Funnel Series, set the `direction` to `horizontal`.
+To create a horizontal Pyramid Series, set the `direction` to `horizontal`.
 
 ```js
 {
     direction: 'horizontal',
-    reverse: true,
 }
 ```
+
+## Reverse Pyramid
+
+{% chartExampleRunner title="Reverse Pyramid Chart" name="reverse-pyramid" type="generated" /%}
+
+To reverse a Pyramid Series, set `reverse` to `true`.
+
+```js
+{
+    reverse: 'true',
+}
+```
+
+## Customisation
+
+### Fills
+
+{% chartExampleRunner title="Pyramid Fills" name="pyramid-fills" type="generated" /%}
+
+The colours in a Pyramid Series can be customised with the `fills` property.
+
+```js
+{
+    fills: ['#5C6BC0', '#3F51B5', '#303F9F', '#1A237E'],
+}
+```
+
+### Shape
+
+{% chartExampleRunner title="Pyramid Aspect Ratio" name="pyramid-aspect-ratio" type="generated" /%}
+
+The shape of the triangle can be set using the `aspectRatio` property.
+
+```js
+{
+    aspectRatio: 3 / 2,
+}
+```
+
+In this configuration:
+
+-   `aspectRatio` is set such that width will grow `3px` for every `2px` of height.
 
 ## API Reference
 
 {% tabs %}
 
-{% tabItem id="AgConeFunnelSeriesOptions" label="Pyramid Series" %}
-{% apiReference id="AgConeFunnelSeriesOptions" /%}
+{% tabItem id="AgPyramidSeriesOptions" label="Pyramid Series" %}
+{% apiReference id="AgPyramidSeriesOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}

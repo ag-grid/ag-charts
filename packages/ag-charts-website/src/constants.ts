@@ -90,12 +90,12 @@ export const ASTRO_ALGOLIA_APP_ID = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_APP_ID
 
 export const ASTRO_ALGOLIA_SEARCH_KEY = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_SEARCH_KEY;
 
-export const PRODUCTION_GRID_SITE_URL = 'https://ag-grid.com';
+export const PRODUCTION_GRID_SITE_URL = 'https://www.ag-grid.com';
 
 function calculateGridUrl() {
     if (SITE_URL == null) return;
 
-    if (SITE_URL?.includes('localhost:4600')) {
+    if (SITE_URL?.includes('localhost')) {
         return 'https://localhost:4610';
     } else if (SITE_URL?.includes(STAGING_SITE_URL)) {
         return 'https://grid-staging.ag-grid.com';
@@ -107,7 +107,7 @@ export const GRID_URL = calculateGridUrl();
 
 export const GALLERY_IMAGE_DPR_ENHANCEMENT = import.meta.env?.PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT === 'true';
 
-export const PRODUCTION_CHARTS_SITE_URL = 'https://ag-grid.com/charts';
+export const PRODUCTION_CHARTS_SITE_URL = 'https://www.ag-grid.com/charts';
 export const LEGACY_CHARTS_SITE_URL = 'https://charts.ag-grid.com';
 
 /*
@@ -116,8 +116,8 @@ export const LEGACY_CHARTS_SITE_URL = 'https://charts.ag-grid.com';
 function getChartsUrl() {
     if (SITE_URL == null) return;
 
-    if (SITE_URL?.includes('localhost:4600')) {
-        return 'https://localhost:4600/charts';
+    if (SITE_URL?.includes('localhost')) {
+        return `${SITE_URL}/charts`;
     } else if (SITE_URL?.includes(STAGING_SITE_URL)) {
         return 'https://charts-staging.ag-grid.com';
     }

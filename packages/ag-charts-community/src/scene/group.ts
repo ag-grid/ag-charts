@@ -2,10 +2,10 @@ import { ascendingStringNumberUndefined, compoundAscending } from '../util/compa
 import { clamp } from '../util/number';
 import { BBox } from './bbox';
 import { nodeCount } from './debug.util';
-import type { ZIndexSubOrder } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, RedrawType, SceneChangeDetection } from './node';
 import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
+import { type ZIndex, compareZIndex } from './zIndex';
 
 export class Group extends Node {
     static className = 'Group';
@@ -19,10 +19,9 @@ export class Group extends Node {
     }
 
     protected static compareChildren(a: Node, b: Node) {
-        return compoundAscending(
-            [a.zIndex, ...(a.zIndexSubOrder ?? [undefined, undefined]), a.serialNumber],
-            [b.zIndex, ...(b.zIndexSubOrder ?? [undefined, undefined]), b.serialNumber],
-            ascendingStringNumberUndefined
+        return (
+            compareZIndex(a.zIndex, b.zIndex) ||
+            compoundAscending([a.serialNumber], [b.serialNumber], ascendingStringNumberUndefined)
         );
     }
 
@@ -37,15 +36,12 @@ export class Group extends Node {
     constructor(
         protected readonly opts?: {
             readonly name?: string;
-            readonly isVirtual?: boolean;
-            readonly zIndex?: number;
-            readonly zIndexSubOrder?: ZIndexSubOrder;
+            readonly zIndex?: ZIndex;
             readonly layer?: boolean; // TODO remove
         }
     ) {
         super(opts);
         this.isContainerNode = true;
-        this.zIndexSubOrder = opts?.zIndexSubOrder;
     }
 
     // We consider a group to be boundless, thus any point belongs to it.
@@ -120,7 +116,10 @@ export class Group extends Node {
 
         ctx.globalAlpha *= this.opacity;
 
-        const children = this.sortedChildren();
+        if (this.dirtyZIndex) {
+            this.sortChildren(Group.compareChildren);
+        }
+        const children = this.children();
         const clipBBox = this.renderClip(renderCtx) ?? renderCtx.clipBBox;
         const renderCtxChanged = forceRender !== renderCtx.forceRender || clipBBox !== renderCtx.clipBBox;
 
@@ -129,12 +128,6 @@ export class Group extends Node {
 
         if (this.clipRect) {
             ctx.restore();
-        }
-
-        // Mark virtual nodes as clean and their virtual children.
-        // All other nodes have already been visited and marked clean.
-        for (const child of this.virtualChildren()) {
-            child.markClean({ recursive: 'virtual' });
         }
 
         if (name && stats) {
@@ -147,15 +140,6 @@ export class Group extends Node {
                 group: this,
             });
         }
-    }
-
-    protected sortedChildren() {
-        let children: Iterable<Node> = this.children();
-        if (this.dirtyZIndex || this.hasVirtualChildren()) {
-            children = [...children].sort(Group.compareChildren);
-            this.dirtyZIndex = false;
-        }
-        return children;
     }
 
     protected renderClip(renderCtx: RenderContext) {
@@ -215,14 +199,17 @@ export class Group extends Node {
      * Transforms bbox given in the canvas coordinate space to bbox in this group's coordinate space and
      * sets this group's clipRect to the transformed bbox.
      * @param bbox clipRect bbox in the canvas coordinate space.
-     * @param transformToGroupSpace set false to keep provided bbox coordinate space.
      */
-    setClipRect(bbox?: BBox, transformToGroupSpace = true) {
-        if (transformToGroupSpace) {
-            this.clipRect = bbox ? Transformable.fromCanvas(this, bbox) : undefined;
-        } else {
-            this.clipRect = bbox;
-        }
+    setClipRect(bbox?: BBox) {
+        this.clipRect = bbox ? Transformable.fromCanvas(this, bbox) : undefined;
+    }
+
+    /**
+     * Set the clip rect within the canvas coordinate space.
+     * @param bbox clipRect bbox in the canvas coordinate space.
+     */
+    setClipRectCanvasSpace(bbox?: BBox) {
+        this.clipRect = bbox;
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
@@ -231,7 +218,7 @@ export class Group extends Node {
         const defs: SVGElement[] = [];
         const elements: SVGElement[] = [];
 
-        for (const child of this.sortedChildren()) {
+        for (const child of this.children()) {
             const svg = child.toSVG();
             if (svg != null) {
                 elements.push(...svg.elements);

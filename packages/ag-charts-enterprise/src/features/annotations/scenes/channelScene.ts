@@ -1,13 +1,14 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { ChannelTextProperties } from '../annotationProperties';
-import type { AnnotationContext, Coords, LineCoords, Point } from '../annotationTypes';
+import type { AnnotationContext, Point } from '../annotationTypes';
 import { snapToAngle } from '../utils/coords';
 import { convertLine, invertCoords } from '../utils/values';
 import { CollidableLine } from './collidableLineScene';
 import type { CollidableText } from './collidableTextScene';
 import type { Handle } from './handle';
 import { LinearScene } from './linearScene';
+import { WithBackgroundScene } from './withBackgroundScene';
 
 type ChannelHandle = Partial<'topLeft' | 'topRight' | 'bottomLeft' | 'bottomRight' | 'topMiddle' | 'bottomMiddle'>;
 
@@ -27,7 +28,7 @@ export abstract class ChannelScene<
 
     protected topLine = new CollidableLine();
     protected bottomLine = new CollidableLine();
-    protected background = new _Scene.Path({ zIndex: -1 });
+    public background = new _Scene.Path({ zIndex: -1 });
     public text?: CollidableText;
     private readonly anchor: _ModuleSupport.ToolbarAnchor = { x: 0, y: 0 };
 
@@ -59,7 +60,7 @@ export abstract class ChannelScene<
     }
 
     snapToAngle(
-        target: Coords,
+        target: _ModuleSupport.Vec2,
         context: AnnotationContext,
         handle: ChannelHandle,
         originHandle: ChannelHandle,
@@ -131,51 +132,32 @@ export abstract class ChannelScene<
         return topLine.containsPoint(x, y) || bottomLine.containsPoint(x, y) || Boolean(text?.containsPoint(x, y));
     }
 
-    protected abstract updateLines(
-        datum: Datum,
-        top: LineCoords,
-        bottom: LineCoords,
-        context: AnnotationContext,
-        naturalTop: LineCoords,
-        naturalBottom: LineCoords
-    ): void;
+    public getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.text?.containsPoint(x, y)) return 'text';
 
-    protected abstract updateHandles(datum: Datum, top: LineCoords, bottom: LineCoords): void;
+        if (this.topLine.containsPoint(x, y) || this.bottomLine.containsPoint(x, y)) return 'line';
 
-    protected abstract updateText(datum: Datum, top: LineCoords, bottom: LineCoords): void;
-
-    protected updateBackground(datum: Datum, top: LineCoords, bottom: LineCoords, context: AnnotationContext) {
-        const { background } = this;
-        const { seriesRect } = context;
-
-        background.path.clear(true);
-
-        const bounds = {
-            x1: 0,
-            y1: 0,
-            x2: seriesRect.width,
-            y2: seriesRect.height,
-        };
-
-        const points = this.getBackgroundPoints(datum, top, bottom, bounds);
-        for (let i = 0; i < points.length; i++) {
-            const point = points[i];
-            if (i === 0) {
-                background.path.moveTo(point.x, point.y);
-            } else {
-                background.path.lineTo(point.x, point.y);
-            }
+        for (const [_, child] of Object.entries(this.handles)) {
+            if (child.containsPoint(x, y)) return 'handle';
         }
-
-        background.path.closePath();
-        background.checkPathDirty();
-        background.setProperties({
-            fill: datum.background.fill,
-            fillOpacity: datum.background.fillOpacity,
-        });
     }
 
-    protected updateAnchor(top: LineCoords, bottom: LineCoords) {
+    protected abstract updateLines(
+        datum: Datum,
+        top: _ModuleSupport.Vec4,
+        bottom: _ModuleSupport.Vec4,
+        context: AnnotationContext,
+        naturalTop: _ModuleSupport.Vec4,
+        naturalBottom: _ModuleSupport.Vec4
+    ): void;
+
+    protected abstract updateHandles(datum: Datum, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4): void;
+
+    protected abstract updateText(datum: Datum, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4): void;
+
+    protected readonly updateBackground = WithBackgroundScene.updateBackground.bind(this);
+
+    protected updateAnchor(top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
         const { x, y } = _Scene.Transformable.toCanvasPoint(
             this.topLine,
             (top.x1 + top.x2) / 2,
@@ -186,10 +168,10 @@ export abstract class ChannelScene<
         this.anchor.y = y;
     }
 
-    protected abstract getBackgroundPoints(
+    public abstract getBackgroundPoints(
         datum: Datum,
-        top: LineCoords,
-        bottom: LineCoords,
-        bounds: LineCoords
-    ): Array<_Util.Vec2>;
+        top: _ModuleSupport.Vec4,
+        bottom: _ModuleSupport.Vec4,
+        bounds: _ModuleSupport.Vec4
+    ): Array<_ModuleSupport.Vec2>;
 }

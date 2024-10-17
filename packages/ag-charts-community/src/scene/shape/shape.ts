@@ -15,6 +15,18 @@ export type CanvasContext = CanvasFillStrokeStyles &
     CanvasTransform &
     CanvasState;
 
+interface DefaultStyles {
+    fill?: string;
+    stroke?: string;
+    strokeWidth: number;
+    lineDash?: number[];
+    lineDashOffset: number;
+    lineCap?: ShapeLineCap;
+    lineJoin?: ShapeLineJoin;
+    opacity: number;
+    fillShadow?: DropShadow;
+}
+
 const LINEAR_GRADIENT_REGEXP = /^linear-gradient\((-?[\d.]+)deg,(.*?)\)$/i;
 
 export abstract class Shape extends Node {
@@ -26,7 +38,7 @@ export abstract class Shape extends Node {
      * has been applied (using the `restoreOwnStyles` method).
      * These static defaults are meant to be inherited by subclasses.
      */
-    protected static defaultStyles = {
+    protected static readonly defaultStyles: DefaultStyles = {
         fill: 'black',
         stroke: undefined,
         strokeWidth: 0,

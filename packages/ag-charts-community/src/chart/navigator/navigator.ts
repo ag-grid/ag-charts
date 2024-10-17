@@ -5,9 +5,10 @@ import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { BBoxProvider } from '../../util/bboxinterface';
 import { setElementBBox } from '../../util/dom';
+import { formatPercent } from '../../util/format.util';
 import { initToolbarKeyNav } from '../../util/keynavUtil';
 import { Logger } from '../../util/logger';
-import { clamp, formatPercentage } from '../../util/number';
+import { clamp } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
@@ -88,7 +89,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             region.addListener('hover', (event) => this.onHover(event), dragStates),
             region.addListener('drag-start', (event) => this.onDragStart(event), dragStates),
             region.addListener('drag', (event) => this.onDrag(event), dragStates),
-            region.addListener('drag-end', () => this.onDragEnd(), dragStates),
+            region.addListener('drag-end', (event) => this.onDragEnd(event), dragStates),
             region.addListener('leave', (event) => this.onLeave(event), dragStates),
             this.ctx.localeManager.addListener('locale-changed', () => this.updateZoom()),
             this.ctx.layoutManager.registerElement(LayoutElement.Navigator, (e) => this.onLayoutStart(e)),
@@ -189,6 +190,11 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     private onHover(event: RegionEvent<'hover'>) {
         if (!this.enabled) return;
+        this.updateCursor(event);
+    }
+
+    private updateCursor(event: RegionEvent) {
+        if (!this.enabled) return;
 
         const { mask, minHandle, maxHandle } = this;
         const { regionOffsetX, regionOffsetY } = event;
@@ -207,6 +213,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     private onDragStart(event: RegionEvent<'drag-start'>) {
         if (!this.enabled) return;
+        this.updateCursor(event);
 
         const { mask, minHandle, maxHandle, x, width, _min: min } = this;
         const { regionOffsetX, regionOffsetY } = event;
@@ -258,8 +265,9 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.updateZoom();
     }
 
-    private onDragEnd() {
+    private onDragEnd(event: RegionEvent<'drag-end'>) {
         this.dragging = undefined;
+        this.updateCursor(event);
     }
 
     private onLeave(_event: PointerInteractionEvent<'leave'>) {
@@ -315,7 +323,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private setSliderRatio(slider: HTMLInputElement, ratio: number) {
         const value = Math.round(ratio * 100);
         slider.value = `${value}`;
-        slider.ariaValueText = formatPercentage(value);
+        slider.ariaValueText = formatPercent(value / 100);
     }
 
     private getSliderRatio(slider: HTMLInputElement) {

@@ -1,6 +1,7 @@
 import type {
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
+    AgChartOptions,
     AgChartThemeOverrides,
     AgFlowProportionSeriesOptions,
     AgHierarchySeriesOptions,
@@ -11,7 +12,6 @@ import type {
     AgStandaloneSeriesOptions,
     AgTopologySeriesOptions,
 } from 'ag-charts-types';
-import type { AgChartOptions } from 'ag-charts-types';
 
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { Series } from '../chart/series/series';

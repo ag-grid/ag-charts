@@ -5,6 +5,7 @@ import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
 import { setAttribute } from '../util/attributeUtil';
 import { createElement, getDocument, getWindow } from '../util/dom';
+import { stopPageScrolling } from '../util/keynavUtil';
 import { type Size, SizeMonitor } from '../util/sizeMonitor';
 // TODO move to utils
 import BASE_DOM from './domLayout.html';
@@ -117,6 +118,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         if (container) {
             this.setContainer(container);
         }
+
+        this.destroyFns.push(stopPageScrolling(this.element));
     }
 
     override destroy() {
@@ -216,20 +219,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     private getEventElement<K extends keyof HTMLElementEventMap>(defaultElem: HTMLElement, eventType: K) {
         // For now, the only element managed by DOMManager that is focusable is 'series-area'
-        return ['focus', 'blur'].includes(eventType) ? this.rootElements['series-area'].element : defaultElem;
-    }
-
-    addEventListenerOnElement<K extends keyof HTMLElementEventMap>(
-        elementType: DOMElementClass,
-        type: K,
-        listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
-        options?: boolean | AddEventListenerOptions
-    ) {
-        const element = this.getEventElement(this.rootElements[elementType].element, type);
-        element.addEventListener(type, listener, options);
-        return () => {
-            element.removeEventListener(type, listener, options);
-        };
+        const events = ['focus', 'blur', 'keydown', 'keyup'];
+        return events.includes(eventType) ? this.rootElements['series-area'].element : defaultElem;
     }
 
     addEventListener<K extends keyof HTMLElementEventMap>(

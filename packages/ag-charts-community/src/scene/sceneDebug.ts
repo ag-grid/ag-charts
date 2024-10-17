@@ -9,6 +9,7 @@ import { Group } from './group';
 import { Layer } from './layer';
 import type { LayersManager } from './layersManager';
 import { type Node, RedrawType, type RenderContext } from './node';
+import { SpriteRenderer } from './spriteRenderer';
 import { Transformable } from './transformable';
 
 export enum DebugSelectors {
@@ -18,7 +19,7 @@ export enum DebugSelectors {
     SCENE_DIRTY_TREE = 'scene:dirtyTree',
 }
 
-type BuildTree = { name?: string; node?: any; dirty?: string; virtualParent?: Node };
+type BuildTree = { name?: string; node?: any; dirty?: string };
 
 export function debugStats(
     layersManager: LayersManager,
@@ -49,7 +50,7 @@ export function debugStats(
     const stats = [
         `${time('⏱️', start, end)} (${splits})`,
         `${extras}`,
-        `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : layersManager.size}`,
+        `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : layersManager.size}; Sprites: ${SpriteRenderer.offscreenCanvasCount}`,
         detailedStats ? `Nodes: ${pct(nodesRendered, nodesSkipped)}` : null,
     ].filter(isString);
     const measurer = new SimpleTextMeasurer((t) => ctx.measureText(t));
@@ -57,15 +58,16 @@ export function debugStats(
     const width = Math.max(...Array.from(statsSize.values(), (s) => s.width));
     const height = accumulate(statsSize.values(), (s) => s.height);
 
+    const x = 2 + seriesRect.x;
     ctx.save();
     ctx.fillStyle = 'white';
-    ctx.fillRect(0, 0, width, height);
+    ctx.fillRect(x, 0, width, height);
 
     ctx.fillStyle = 'black';
     let y = 0;
     for (const [stat, size] of statsSize.entries()) {
         y += size.height;
-        ctx.fillText(stat, 2 + seriesRect.x, y);
+        ctx.fillText(stat, x, y);
     }
     ctx.restore();
 }
@@ -117,33 +119,16 @@ export function buildTree(node: Node): BuildTree {
         return {};
     }
 
-    const { parentNode } = node as any;
+    let order = 0;
     return {
         node,
         name: node.name ?? node.id,
         dirty: RedrawType[node.dirty],
-        ...(parentNode?.isVirtual
-            ? {
-                  virtualParentDirty: RedrawType[parentNode.dirty],
-                  virtualParent: parentNode,
-              }
-            : {}),
         ...Array.from(node.children(), (c) => buildTree(c)).reduce<Record<string, {}>>((result, childTree) => {
             let { name: treeNodeName } = childTree;
             const {
-                node: {
-                    visible,
-                    opacity,
-                    zIndex,
-                    zIndexSubOrder,
-                    translationX,
-                    translationY,
-                    rotation,
-                    scalingX,
-                    scalingY,
-                },
+                node: { visible, opacity, zIndex, translationX, translationY, rotation, scalingX, scalingY },
                 node: childNode,
-                virtualParent,
             } = childTree;
             if (!visible || opacity <= 0) {
                 treeNodeName = `(${treeNodeName})`;
@@ -151,12 +136,11 @@ export function buildTree(node: Node): BuildTree {
             if (Layer.is(childNode)) {
                 treeNodeName = `*${treeNodeName}*`;
             }
-            const subOrder = zIndexSubOrder?.map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v)).join(' / ');
+            const zIndexString = Array.isArray(zIndex) ? `(${zIndex.join(', ')})` : zIndex;
             const key = [
+                `${(order++).toString().padStart(3, '0')}|`,
                 `${treeNodeName ?? '<unknown>'}`,
-                `z: ${zIndex}`,
-                subOrder && `zo: ${subOrder}`,
-                virtualParent && `(virtual parent)`,
+                `z: ${zIndexString}`,
                 translationX && `x: ${translationX}`,
                 translationY && `y: ${translationY}`,
                 rotation && `r: ${rotation}`,

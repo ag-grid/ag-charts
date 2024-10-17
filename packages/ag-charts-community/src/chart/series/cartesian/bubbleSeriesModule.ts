@@ -1,6 +1,6 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { singleSeriesPaletteFactory } from '../../../module/theme';
-import { CARTESIAN_AXIS_TYPE, POSITION } from '../../themes/constants';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } from '../../themes/symbols';
 import { BubbleSeries } from './bubbleSeries';
 
@@ -16,11 +16,11 @@ export const BubbleSeriesModule: SeriesModule<'bubble'> = {
     defaultAxes: [
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
-            position: POSITION.BOTTOM,
+            position: CARTESIAN_POSITION.BOTTOM,
         },
         {
             type: CARTESIAN_AXIS_TYPE.NUMBER,
-            position: POSITION.LEFT,
+            position: CARTESIAN_POSITION.LEFT,
         },
     ],
     themeTemplate: {

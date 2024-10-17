@@ -60,7 +60,7 @@ export class CartesianChart extends Chart {
     }
 
     protected performLayout(ctx: LayoutContext) {
-        const { firstSeriesTranslation, seriesRoot, annotationRoot, highlightRoot } = this;
+        const { firstSeriesTranslation, seriesRoot, annotationRoot } = this;
         const { seriesRect, visibility, clipSeries } = this.axesManager.updateAxes(
             this.axes,
             ctx.layoutBox,
@@ -80,7 +80,7 @@ export class CartesianChart extends Chart {
         const { x, y } = seriesRect;
         if (firstSeriesTranslation) {
             // For initial rendering, don't animate.
-            for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
+            for (const group of [seriesRoot, annotationRoot]) {
                 group.translationX = Math.floor(x);
                 group.translationY = Math.floor(y);
             }
@@ -92,7 +92,7 @@ export class CartesianChart extends Chart {
                 this.id,
                 'seriesRect',
                 this.ctx.animationManager,
-                [seriesRoot, highlightRoot, annotationRoot],
+                [seriesRoot, annotationRoot],
                 { translationX, translationY },
                 { translationX: Math.floor(x), translationY: Math.floor(y) },
                 { phase: 'update' }
@@ -134,7 +134,6 @@ export class CartesianChart extends Chart {
 
     private setRootClipRects(clipRect?: BBox) {
         this.seriesRoot.setClipRect(clipRect);
-        this.highlightRoot.setClipRect(clipRect);
         this.annotationRoot.setClipRect(clipRect);
     }
 

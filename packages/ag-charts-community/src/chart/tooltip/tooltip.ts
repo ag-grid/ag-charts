@@ -1,6 +1,7 @@
 import type { AgTooltipRendererResult, InteractionRange, TextWrap } from 'ag-charts-types';
 
 import type { DOMManager } from '../../dom/domManager';
+import { enterpriseModule } from '../../module/enterpriseModule';
 import { setAttribute } from '../../util/attributeUtil';
 import { clamp } from '../../util/number';
 import { type Bounds, calculatePlacement } from '../../util/placement';
@@ -32,9 +33,10 @@ type TooltipPositionType =
     | 'top-left'
     | 'top-right'
     | 'bottom-right'
-    | 'bottom-left';
+    | 'bottom-left'
+    | 'sparkline';
 
-export type TooltipEventType = 'hover' | 'drag' | 'keyboard';
+export type TooltipEventType = 'hover' | 'click' | 'dblclick' | 'keyboard';
 export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = PointerOffsets & { type: T };
 
 export type TooltipMeta = PointerOffsets & {
@@ -113,6 +115,7 @@ export class TooltipPosition extends BaseProperties {
                 'top-right',
                 'bottom-right',
                 'bottom-left',
+                { value: 'sparkline', undocumented: true },
             ],
             'a position type'
         )
@@ -186,7 +189,6 @@ export class Tooltip extends BaseProperties {
     setup(domManager: DOMManager) {
         this.element = domManager.addChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
         this.element.classList.add(DEFAULT_TOOLTIP_CLASS);
-        setAttribute(this.element, 'aria-hidden', true);
     }
 
     destroy(domManager: DOMManager) {
@@ -253,7 +255,10 @@ export class Tooltip extends BaseProperties {
 
         const constrained = left !== position.x || top !== position.y;
         const defaultShowArrow =
-            (positionType === 'node' || positionType === 'pointer') && !constrained && !xOffset && !yOffset;
+            (positionType === 'node' || positionType === 'pointer' || positionType === 'sparkline') &&
+            !constrained &&
+            !xOffset &&
+            !yOffset;
         const showArrow = meta.showArrow ?? this.showArrow ?? defaultShowArrow;
         this.updateShowArrow(showArrow);
 
@@ -266,10 +271,15 @@ export class Tooltip extends BaseProperties {
             element.style.transition = '';
         }
 
-        element.style.pointerEvents = meta.enableInteraction ? 'auto' : 'none';
-        element.setAttribute('data-pointer-capture', 'retain');
-
-        this.enableInteraction = meta.enableInteraction ?? false;
+        if (meta.enableInteraction) {
+            this.enableInteraction = true;
+            element.style.pointerEvents = 'auto';
+            setAttribute(element, 'aria-hidden', undefined);
+        } else {
+            this.enableInteraction = false;
+            element.style.pointerEvents = 'none';
+            setAttribute(element, 'aria-hidden', true);
+        }
 
         if (this.delay > 0 && !instantly) {
             this.toggle(false);
@@ -388,6 +398,17 @@ export class Tooltip extends BaseProperties {
             case 'bottom-left': {
                 bounds.top = canvasRect.height - tooltipHeight + yOffset;
                 bounds.left = xOffset;
+                return bounds;
+            }
+            case 'sparkline': {
+                if (enterpriseModule.isEnterprise) {
+                    // Crosslines enabled
+                    bounds.top = yOffset - tooltipHeight - 8;
+                } else {
+                    // No cross lines
+                    bounds.top = meta.offsetY + yOffset - tooltipHeight - 8;
+                }
+                bounds.left = meta.offsetX + xOffset - tooltipWidth / 2;
                 return bounds;
             }
         }

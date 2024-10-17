@@ -135,12 +135,12 @@ export class ContextMenuRegistry {
         this.disabledActions.add(actionId);
     }
 
-    public setActionVisiblity(actionId: string, visible: boolean) {
-        if (visible) {
-            this.hiddenActions.delete(actionId);
-        } else {
-            this.hiddenActions.add(actionId);
-        }
+    public showAction(actionId: string) {
+        this.hiddenActions.add(actionId);
+    }
+
+    public hideAction(actionId: string) {
+        this.hiddenActions.delete(actionId);
     }
 
     public isDisabled(actionId: string): boolean {

@@ -1,6 +1,6 @@
 import { type PixelSize, _ModuleSupport, type _Scene } from 'ag-charts-community';
 
-import { Cappable, Extendable, LineStyle, LineTextProperties, Stroke } from '../annotationProperties';
+import { Cappable, Extendable, LineStyle, LineTextProperties, Localisable, Stroke } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
 import { StartEndProperties } from '../properties/startEndProperties';
 import { getLineCap, getLineDash } from '../utils/line';
@@ -8,12 +8,11 @@ import { validateDatumLine } from '../utils/validation';
 
 const { OBJECT, STRING, Validate, isObject } = _ModuleSupport;
 
-export abstract class LineTypeProperties extends Cappable(Extendable(Stroke(LineStyle(StartEndProperties)))) {
+export abstract class LineTypeProperties extends Localisable(
+    Cappable(Extendable(Stroke(LineStyle(StartEndProperties))))
+) {
     @Validate(OBJECT, { optional: true })
     text = new LineTextProperties();
-
-    lineCap?: _Scene.ShapeLineCap = undefined;
-    computedLineDash?: PixelSize[] = undefined;
 
     override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
         return super.isValid(warningPrefix) && validateDatumLine(context, this, warningPrefix);

@@ -3,14 +3,13 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 import type { AnnotationContext } from '../annotationTypes';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 
-const { StateMachine } = _ModuleSupport;
-const { Vec2 } = _Util;
+const { StateMachine, Vec2 } = _ModuleSupport;
 
 export class DragStateMachine<
     D extends AnnotationProperties,
     N extends {
-        dragStart: (datum: D, offset: _Util.Vec2, context: AnnotationContext) => void;
-        drag: (datum: D, offset: _Util.Vec2, context: AnnotationContext, snapping: boolean) => void;
+        dragStart: (datum: D, offset: _ModuleSupport.Vec2, context: AnnotationContext) => void;
+        drag: (datum: D, offset: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) => void;
         stopDragging: () => void;
     },
 > extends StateMachine<'idle' | 'dragging', 'keyDown' | 'keyUp' | 'drag' | 'dragStart' | 'dragEnd'> {
@@ -19,7 +18,7 @@ export class DragStateMachine<
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private hasMoved = false;
     // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private dragStart?: _Util.Vec2;
+    private dragStart?: _ModuleSupport.Vec2;
 
     constructor(
         ctx: AnnotationsStateMachineContext & {
@@ -28,8 +27,22 @@ export class DragStateMachine<
             setSelectedWithDrag: () => void;
             setSnapping: (snapping: boolean) => void;
             getSnapping: () => boolean;
+            getHoverCoords: () => _ModuleSupport.Vec2 | undefined;
         }
     ) {
+        const actionKeyChange = ({ shiftKey, context }: { shiftKey: boolean; context: AnnotationContext }) => {
+            ctx.setSnapping(shiftKey);
+            const datum = ctx.datum()!;
+            const offset = ctx.getHoverCoords();
+
+            if (!offset) {
+                return;
+            }
+
+            ctx.node()?.drag(datum, offset, context, shiftKey);
+            ctx.update();
+        };
+
         super('idle', {
             idle: {
                 dragStart: {
@@ -43,13 +56,8 @@ export class DragStateMachine<
             },
 
             dragging: {
-                keyDown: ({ shiftKey }: { shiftKey: boolean }) => {
-                    ctx.setSnapping(shiftKey);
-                },
-
-                keyUp: ({ shiftKey }: { shiftKey: boolean }) => {
-                    ctx.setSnapping(shiftKey);
-                },
+                keyDown: actionKeyChange,
+                keyUp: actionKeyChange,
 
                 drag: ({ offset, context }) => {
                     this.hasMoved = Vec2.lengthSquared(Vec2.sub(offset, this.dragStart!)) > 0;

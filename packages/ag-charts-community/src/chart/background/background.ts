@@ -46,7 +46,7 @@ export class Background<TImage = never> extends BaseModuleInstance implements Mo
     }
 
     protected createNode() {
-        return new Group({ name: 'background', zIndex: ZIndexMap.SERIES_BACKGROUND });
+        return new Group({ name: 'background', zIndex: ZIndexMap.CHART_BACKGROUND });
     }
 
     protected onLayoutComplete(e: LayoutCompleteEvent) {

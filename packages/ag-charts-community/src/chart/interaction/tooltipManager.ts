@@ -1,9 +1,9 @@
 import type { DOMManager } from '../../dom/domManager';
 import { Transformable } from '../../scene/transformable';
 import { StateTracker } from '../../util/stateTracker';
+import type { SeriesTooltip } from '../series/seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
-import type { Tooltip, TooltipContent, TooltipMeta } from '../tooltip/tooltip';
-import { type TooltipPointerEvent } from '../tooltip/tooltip';
+import type { Tooltip, TooltipContent, TooltipMeta, TooltipPointerEvent } from '../tooltip/tooltip';
 
 interface TooltipState {
     content?: TooltipContent;
@@ -81,11 +81,11 @@ export class TooltipManager {
     }
 
     public static makeTooltipMeta(
-        event: TooltipPointerEvent<'hover' | 'drag' | 'keyboard'>,
+        event: TooltipPointerEvent<'hover' | 'click' | 'dblclick' | 'keyboard'>,
         datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
     ): TooltipMeta {
         const { offsetX, offsetY } = event;
-        const { tooltip } = datum.series.properties;
+        const tooltip = datum.series.properties.tooltip as SeriesTooltip<any>;
         const meta: TooltipMeta = {
             offsetX,
             offsetY,
@@ -103,7 +103,7 @@ export class TooltipManager {
         // Using datum.yBar.upperPoint renders the tooltip higher up.
         const refPoint = datum.yBar?.upperPoint ?? datum.midPoint ?? datum.series.datumMidPoint?.(datum);
 
-        if (tooltip.position.type === 'node' && refPoint) {
+        if ((tooltip.position.type === 'node' || tooltip.position.type === 'sparkline') && refPoint) {
             const { x, y } = refPoint;
             const point = Transformable.toCanvasPoint(datum.series.contentGroup, x, y);
             return {

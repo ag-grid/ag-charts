@@ -1,4 +1,4 @@
-import { _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 const { BBox, Path, ScenePathChangeDetection } = _Scene;
 
@@ -7,7 +7,7 @@ function pointsEq([ax, ay]: readonly [number, number], [bx, by]: readonly [numbe
     return Math.abs(ax - bx) <= delta && Math.abs(ay - by) <= delta;
 }
 
-export class FunnelConnector extends Path {
+export class FunnelConnector extends Path implements _ModuleSupport.DistantObject {
     @ScenePathChangeDetection()
     x0: number = 0;
 
@@ -38,6 +38,18 @@ export class FunnelConnector extends Path {
             x: (x0 + x1 + x2 + x3) / 4,
             y: (y0 + y1 + y2 + y3) / 4,
         };
+    }
+
+    override distanceSquared(x: number, y: number): number {
+        if (this.containsPoint(x, y)) return 0;
+
+        const { x0, y0, x1, y1, x2, y2, x3, y3 } = this;
+        return Math.min(
+            _Util.lineDistanceSquared(x, y, x0, y0, x1, y1, Infinity),
+            _Util.lineDistanceSquared(x, y, x1, y1, x2, y2, Infinity),
+            _Util.lineDistanceSquared(x, y, x2, y2, x3, y3, Infinity),
+            _Util.lineDistanceSquared(x, y, x3, y3, x0, y0, Infinity)
+        );
     }
 
     protected override computeBBox(): _Scene.BBox | undefined {

@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type { FontOptions, TextAlign } from 'ag-charts-types';
 
 import type { AnnotationTextPosition } from '../annotations/text/util';
@@ -10,7 +10,7 @@ const moduleId = 'text-input';
 const canvasOverlay = 'canvas-overlay';
 
 interface Layout {
-    getTextInputCoords: (height: number) => _Util.Vec2;
+    getTextInputCoords: (height: number) => _ModuleSupport.Vec2;
     getTextPosition: () => AnnotationTextPosition;
     alignment: 'left' | 'center' | 'right';
     textAlign: TextAlign;
@@ -34,6 +34,11 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.element.classList.add('ag-charts-text-input');
 
         this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, moduleId));
+    }
+
+    public setKeyDownHandler(handler: (e: KeyboardEvent) => unknown) {
+        this.element.addEventListener('keydown', handler);
+        this.destroyFns.push(() => this.element.removeEventListener('keydown', handler));
     }
 
     public show(opts: {
@@ -165,7 +170,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         textArea.style.setProperty('text-align', textAlign);
     }
 
-    private getBBox() {
+    public getBBox() {
         const { left, top, width, height } = this.element.getBoundingClientRect();
         return new _Scene.BBox(left, top, width, height);
     }

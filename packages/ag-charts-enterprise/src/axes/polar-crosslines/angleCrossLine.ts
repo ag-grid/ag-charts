@@ -3,8 +3,9 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { PolarCrossLine } from './polarCrossLine';
 
 const { ChartAxisDirection, validateCrossLineValues } = _ModuleSupport;
-const { Path, Sector, RotatableText, ContinuousScale } = _Scene;
+const { Group, Path, Sector, RotatableText, ContinuousScale } = _Scene;
 const { normalizeAngle360, isNumberEqual } = _Util;
+
 export class AngleCrossLine extends PolarCrossLine {
     static readonly className = 'AngleCrossLine';
 
@@ -13,14 +14,15 @@ export class AngleCrossLine extends PolarCrossLine {
     private readonly polygonNode = new Path();
     private readonly sectorNode = new Sector();
     private readonly lineNode = new Path();
+    private readonly crossLineRange = new Group();
     private readonly labelNode = new RotatableText();
 
     constructor() {
         super();
 
-        this.group.append(this.polygonNode);
-        this.group.append(this.sectorNode);
-        this.group.append(this.lineNode);
+        this.crossLineRange.append(this.polygonNode);
+        this.crossLineRange.append(this.sectorNode);
+        this.crossLineRange.append(this.lineNode);
         this.labelGroup.append(this.labelNode);
     }
 
@@ -39,12 +41,14 @@ export class AngleCrossLine extends PolarCrossLine {
         };
 
         if (!scale || !type || !validateCrossLineValues(type, value, range, scale, visibilityCheck)) {
-            this.group.visible = false;
+            this.rangeGroup.visible = false;
+            this.lineGroup.visible = false;
             this.labelGroup.visible = false;
             return;
         }
 
-        this.group.visible = visible;
+        this.rangeGroup.visible = visible;
+        this.lineGroup.visible = visible;
         this.labelGroup.visible = visible;
 
         if (type === 'line' && shape === 'circle' && scale instanceof _Scale.BandScale) {
@@ -60,8 +64,14 @@ export class AngleCrossLine extends PolarCrossLine {
 
     private updateLineNode(visible: boolean) {
         const { scale, type, value, lineNode: line } = this;
-        let angle: number;
-        if (!visible || type !== 'line' || !scale || isNaN((angle = scale.convert(value)))) {
+
+        if (!visible || type !== 'line' || !scale) {
+            line.visible = false;
+            return;
+        }
+
+        const angle = scale.convert(value);
+        if (isNaN(angle)) {
             line.visible = false;
             return;
         }
@@ -83,13 +93,18 @@ export class AngleCrossLine extends PolarCrossLine {
         line.path.moveTo(x0, y0);
         line.path.lineTo(x, y);
 
-        this.group.zIndex = AngleCrossLine.LINE_LAYER_ZINDEX;
+        this.assignCrossLineGroup(false, this.crossLineRange);
     }
 
     private updatePolygonNode(visible: boolean) {
         const { polygonNode: polygon, range, scale, shape, type } = this;
-        let ticks: any[] | undefined;
-        if (!visible || type !== 'range' || shape !== 'polygon' || !scale || !range || !(ticks = scale.ticks?.())) {
+        if (!visible || type !== 'range' || shape !== 'polygon' || !scale || !range) {
+            polygon.visible = false;
+            return;
+        }
+
+        const ticks = scale.ticks?.();
+        if (!ticks) {
             polygon.visible = false;
             return;
         }
@@ -131,7 +146,7 @@ export class AngleCrossLine extends PolarCrossLine {
         }
         polygon.path.closePath();
 
-        this.group.zIndex = AngleCrossLine.RANGE_LAYER_ZINDEX;
+        this.assignCrossLineGroup(true, this.crossLineRange);
     }
 
     private updateSectorNode(visible: boolean) {
@@ -157,7 +172,7 @@ export class AngleCrossLine extends PolarCrossLine {
         sector.startAngle = angles[0] - padding;
         sector.endAngle = angles[1] + padding;
 
-        this.group.zIndex = AngleCrossLine.RANGE_LAYER_ZINDEX;
+        this.assignCrossLineGroup(true, this.crossLineRange);
     }
 
     private updateLabelNode(visible: boolean) {

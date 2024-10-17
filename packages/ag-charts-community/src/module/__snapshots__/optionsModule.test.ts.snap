@@ -465,6 +465,13 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
           "value": "shape-menu",
         },
         {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -821,7 +828,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -862,7 +869,7 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -1073,6 +1080,13 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -1831,6 +1845,13 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
           "value": "shape-menu",
         },
         {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -2138,7 +2159,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -2180,7 +2201,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -2222,7 +2243,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -2264,7 +2285,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -2306,7 +2327,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -2348,7 +2369,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -2390,7 +2411,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -2432,7 +2453,7 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -2588,6 +2609,13 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -3034,6 +3062,13 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -3629,6 +3664,13 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -4347,6 +4389,13 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
           "value": "shape-menu",
         },
         {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -4653,7 +4702,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_EXAMPLE it should prepare op
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -4805,6 +4854,13 @@ by Occupation",
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -5119,7 +5175,7 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
         "fontSize": 12,
         "fontWeight": "bold",
         "formatter": [Function],
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -5262,6 +5318,13 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -5706,6 +5769,13 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -6154,6 +6224,13 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
           "value": "shape-menu",
         },
         {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -6465,7 +6542,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -6511,7 +6588,7 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -6677,6 +6754,13 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -6991,7 +7075,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -7038,7 +7122,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -7206,6 +7290,13 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -7524,7 +7615,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -7573,7 +7664,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -7622,7 +7713,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -7671,7 +7762,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -7720,7 +7811,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -7769,7 +7860,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -7818,7 +7909,7 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -7978,6 +8069,13 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -9169,6 +9267,13 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
           "value": "shape-menu",
         },
         {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -9617,6 +9722,13 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -10485,6 +10597,13 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
           "value": "shape-menu",
         },
         {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -10799,7 +10918,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -10847,7 +10966,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -10895,7 +11014,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -11066,6 +11185,13 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -11380,7 +11506,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -11427,7 +11553,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -11474,7 +11600,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -11521,7 +11647,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -11568,7 +11694,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -11615,7 +11741,7 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -11791,6 +11917,13 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -12421,6 +12554,13 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
           "value": "shape-menu",
         },
         {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -12729,7 +12869,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
         "fontSize": 12,
         "fontWeight": "normal",
         "formatter": [Function],
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -12872,6 +13012,13 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -13615,6 +13762,13 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
           "value": "shape-menu",
         },
         {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -14248,6 +14402,13 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -15077,6 +15238,13 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
           "value": "shape-menu",
         },
         {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
+        },
+        {
           "icon": "delete",
           "section": "tools",
           "tooltip": "toolbarAnnotationsClearAll",
@@ -15390,7 +15558,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -15437,7 +15605,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -15484,7 +15652,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -15531,7 +15699,7 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -15687,6 +15855,13 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",
@@ -16003,7 +16178,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -16051,7 +16226,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -16099,7 +16274,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -16147,7 +16322,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -16195,7 +16370,7 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
         "fontFamily": "Verdana, sans-serif",
         "fontSize": 12,
         "fontWeight": "normal",
-        "placement": "inside",
+        "placement": "inside-center",
       },
       "lineDash": [
         0,
@@ -16369,6 +16544,13 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
           "section": "shape-annotations",
           "tooltip": "toolbarAnnotationsShapeAnnotations",
           "value": "shape-menu",
+        },
+        {
+          "haspopup": true,
+          "icon": "measurer-drawing",
+          "section": "measure-annotations",
+          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
+          "value": "measurer-menu",
         },
         {
           "icon": "delete",

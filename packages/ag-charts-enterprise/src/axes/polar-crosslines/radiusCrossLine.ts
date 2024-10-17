@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
 import { PolarCrossLine, PolarCrossLineLabel } from './polarCrossLine';
 
 const { ChartAxisDirection, Validate, DEGREE, validateCrossLineValues } = _ModuleSupport;
-const { Path, Sector, RotatableText } = _Scene;
+const { Group, Path, Sector, RotatableText } = _Scene;
 const { normalizeAngle360, toRadians, isNumberEqual } = _Util;
 
 class RadiusCrossLineLabel extends PolarCrossLineLabel {
@@ -21,6 +21,7 @@ export class RadiusCrossLine extends PolarCrossLine {
 
     private readonly polygonNode = new Path();
     private readonly sectorNode = new Sector();
+    private readonly crossLineRange = new Group();
     private readonly labelNode = new RotatableText();
 
     private outerRadius = 0;
@@ -29,15 +30,16 @@ export class RadiusCrossLine extends PolarCrossLine {
     constructor() {
         super();
 
-        this.group.append(this.polygonNode);
-        this.group.append(this.sectorNode);
+        this.crossLineRange.append(this.polygonNode);
+        this.crossLineRange.append(this.sectorNode);
         this.labelGroup.append(this.labelNode);
     }
 
     update(visible: boolean) {
         const { scale, type, value, range } = this;
         if (!scale || !type || !validateCrossLineValues(type, value, range, scale)) {
-            this.group.visible = false;
+            this.rangeGroup.visible = false;
+            this.lineGroup.visible = false;
             this.labelGroup.visible = false;
             return;
         }
@@ -52,14 +54,15 @@ export class RadiusCrossLine extends PolarCrossLine {
         const { innerRadius, outerRadius } = this;
         visible &&= innerRadius >= this.axisInnerRadius && outerRadius <= this.axisOuterRadius;
 
-        this.group.visible = visible;
+        this.rangeGroup.visible = visible;
+        this.lineGroup.visible = visible;
         this.labelGroup.visible = visible;
 
         this.updatePolygonNode(visible);
         this.updateSectorNode(visible);
         this.updateLabelNode(visible);
-        this.group.zIndex =
-            this.type === 'line' ? RadiusCrossLine.LINE_LAYER_ZINDEX : RadiusCrossLine.RANGE_LAYER_ZINDEX;
+
+        this.assignCrossLineGroup(this.type === 'range', this.crossLineRange);
     }
 
     private updateRadii() {

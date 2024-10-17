@@ -1,16 +1,12 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { buildBounds, calculateAxisLabelPosition } from '../../utils/position';
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
-
-type AgCrosshairLabelRendererResult = any;
 
 const { Group, TranslatableLayer, Line, BBox } = _Scene;
 const { createId } = _Util;
 const { POSITIVE_NUMBER, RATIO, BOOLEAN, COLOR_STRING, LINE_DASH, OBJECT, InteractionState, Validate, ZIndexMap } =
     _ModuleSupport;
-
-type CrosshairOffsets = { offsetX: number; offsetY: number; regionOffsetX: number; regionOffsetY: number };
 
 export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     readonly id = createId(this);
@@ -67,19 +63,23 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.axisCtx = ctx.parent;
         this.labels = {};
 
-        const seriesRegion = ctx.regionManager.getRegion('series')!;
-        const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
+        const seriesRegion = ctx.regionManager.getRegion('series');
+        const mouseMoveStates =
+            InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
 
         this.hideCrosshairs();
 
         this.destroyFns.push(
             ctx.scene.attachNode(this.crosshairGroup),
-            ctx.keyNavManager.addListener('nav-hori', (event) => this.onKeyPress(event), InteractionState.Default),
-            ctx.keyNavManager.addListener('nav-vert', (event) => this.onKeyPress(event), InteractionState.Default),
             seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
-            seriesRegion.addListener('drag', (event) => this.onMouseMove(event), InteractionState.Annotations),
-            seriesRegion.addListener('wheel', () => this.onMouseOut(), InteractionState.Default),
+            seriesRegion.addListener(
+                'drag',
+                (event) => this.onMouseMove(event),
+                InteractionState.Annotations | InteractionState.AnnotationsSelected
+            ),
             seriesRegion.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
+            ctx.keyNavManager.addListener('nav-hori', () => this.onKeyPress()),
+            ctx.keyNavManager.addListener('nav-vert', () => this.onKeyPress()),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.onMouseOut()),
             ctx.zoomManager.addListener('zoom-change', () => this.onMouseOut()),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
@@ -192,22 +192,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         return typeof val === 'number' ? val.toFixed(fractionDigits) : String(val);
     }
 
-    private onKeyPress(_event: _ModuleSupport.KeyNavEvent<'nav-hori' | 'nav-vert'>) {
-        if (!this.enabled || this.snap) {
-            return;
-        }
-
-        // AG-13040 When snapping is disabled, use the highlighted mid-point to mimic a mouse event.
-        const highlight = this.ctx.highlightManager.getActiveHighlight();
-        if (highlight?.midPoint !== undefined) {
-            const offsetX = highlight.midPoint.x + this.hoverRect.x;
-            const offsetY = highlight.midPoint.y + this.hoverRect.y;
-            const { regionOffsetX, regionOffsetY } = this.ctx.regionManager.toRegionOffsets('series', offsetX, offsetY);
-            this.onMouseMove({ offsetX, offsetY, regionOffsetX, regionOffsetY });
-        }
-    }
-
-    private onMouseMove(event: CrosshairOffsets) {
+    private onMouseMove(event: _ModuleSupport.RegionEvent<'hover' | 'drag'>) {
         if (!this.enabled || this.snap) {
             return;
         }
@@ -233,6 +218,12 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
     }
 
+    private onKeyPress() {
+        if (this.enabled && !this.snap) {
+            this.hideCrosshairs();
+        }
+    }
+
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
         if (!this.enabled) {
             return;
@@ -244,12 +235,9 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         this.activeHighlight = hasCrosshair ? event.currentHighlight : undefined;
 
-        if (this.snap) {
-            if (!this.activeHighlight) {
-                this.hideCrosshairs();
-                return;
-            }
-
+        if (!this.activeHighlight) {
+            this.hideCrosshairs();
+        } else if (this.snap) {
             const activeHighlightData = this.getActiveHighlightData(this.activeHighlight);
 
             this.updatePositions(activeHighlightData);
@@ -291,7 +279,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         });
     }
 
-    private getData(event: CrosshairOffsets): {
+    private getData(event: _ModuleSupport.RegionEvent<'hover' | 'drag'>): {
         [key: string]: { position: number; value: any };
     } {
         const { axisCtx } = this;
@@ -301,12 +289,13 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         const isVertical = this.isVertical();
         const position = isVertical ? regionOffsetX : regionOffsetY;
-        return {
-            [key]: {
-                position,
-                value: axisCtx.continuous ? axisCtx.scaleInvert(position) : datum?.[isVertical ? xKey : yKey] ?? '',
-            },
-        };
+
+        let value = datum?.[isVertical ? xKey : yKey] ?? '';
+        if (axisCtx.continuous) {
+            value = axisCtx.scaleInvert(position);
+        }
+
+        return { [key]: { position, value } };
     }
 
     private getActiveHighlightData(

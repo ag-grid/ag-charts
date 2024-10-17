@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import {
     BaseFunnelSeries,
@@ -79,19 +79,17 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
         yDatum: number;
         datum: any;
     }): FunnelNodeLabelDatum | undefined {
-        const { xKey, yKey, xName, yName, legendItemName, label } = this.properties;
+        const { valueKey, stageKey, label } = this.properties;
 
         return {
             x: rect.x + rect.width / 2,
             y: rect.y + rect.height / 2,
             textAlign: 'center',
             textBaseline: 'middle',
-            text: this.getLabelText(
-                label,
-                { itemId: yKey, value: yDatum, legendItemName, datum, xKey, yKey, xName, yName },
-                (v) => (isFiniteNumber(v) ? v.toFixed(0) : String(v))
+            text: this.getLabelText(label, { itemId: stageKey, value: yDatum, datum, valueKey, stageKey }, (v) =>
+                isFiniteNumber(v) ? v.toFixed(0) : String(v)
             ),
-            itemId: yKey,
+            itemId: stageKey,
             datum,
             series: this,
         };
@@ -104,7 +102,8 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
         const { datumSelection, isHighlight } = opts;
         const { id: seriesId, ctx } = this;
         const {
-            yKey,
+            stageKey,
+            valueKey,
             highlightStyle: { item: itemHighlightStyle },
             fillOpacity,
             strokeOpacity,
@@ -146,7 +145,8 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
                 itemStyler,
                 seriesId,
                 ctx,
-                yKey,
+                stageKey,
+                valueKey,
             });
             config.crisp = crisp;
             config.visible = visible;

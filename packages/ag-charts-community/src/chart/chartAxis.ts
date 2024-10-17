@@ -31,15 +31,24 @@ interface AxisLayoutConstraints {
     unit: 'percent' | 'px';
 }
 
+export interface AxisGroups {
+    axisNode: Node;
+    gridNode: Node;
+    crossLineRangeNode: Node;
+    crossLineLineNode: Node;
+    crossLineLabelNode: Node;
+    labelNode: Node;
+}
+
 export interface ChartAxis {
-    attachAxis(axisGroup: Node, gridGroup: Node): void;
+    attachAxis(opts: AxisGroups): void;
     calculateLayout(domain?: any[], primaryTickCount?: number): { primaryTickCount?: number; bbox: BBox };
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
     createAxisContext(): AxisContext;
     createModuleContext(): ModuleContextWithParent<AxisContext>;
     destroy(): void;
-    detachAxis(axisGroup: Node, gridGroup: Node): void;
+    detachAxis(opts: AxisGroups): void;
     formatDatum(datum: any): string;
     getBBox(): BBox;
     getLayoutState(): AxisLayout;

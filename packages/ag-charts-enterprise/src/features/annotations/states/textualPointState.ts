@@ -4,6 +4,7 @@ import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
 import type { TextualPointScene } from '../scenes/textualPointScene';
+import { wrapText } from '../text/util';
 import { setColor } from '../utils/styles';
 import { isTextType } from '../utils/types';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
@@ -26,7 +27,7 @@ export abstract class TextualPointStateMachine<
     Node extends TextualPointScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit',
-    'click' | 'cancel' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'fontSize' | 'render' | 'reset'
+    'click' | 'zoomChange' | 'cancel' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'fontSize' | 'render' | 'reset'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -100,9 +101,17 @@ export abstract class TextualPointStateMachine<
             ctx.delete();
         };
 
-        const actionSave = ({ textInputValue }: { textInputValue?: string }) => {
+        const actionSave = ({ textInputValue, bbox }: { textInputValue?: string; bbox: _Scene.BBox }) => {
             if (textInputValue != null && textInputValue.length > 0) {
-                ctx.datum()?.set({ text: textInputValue });
+                const datum = ctx.datum();
+
+                if (!isTextType(datum)) {
+                    return;
+                }
+
+                const wrappedText = wrapText(datum, textInputValue, bbox.width);
+                datum?.set({ text: wrappedText });
+
                 ctx.update();
                 ctx.recordAction(`Create ${ctx.node()?.type} annotation`);
             } else {
@@ -143,6 +152,10 @@ export abstract class TextualPointStateMachine<
                     },
                 ],
                 click: {
+                    target: StateMachine.parent,
+                    action: actionSave,
+                },
+                zoomChange: {
                     target: StateMachine.parent,
                     action: actionSave,
                 },

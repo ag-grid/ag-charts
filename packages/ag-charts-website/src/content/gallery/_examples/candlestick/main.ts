@@ -93,9 +93,6 @@ const options: AgChartOptions = {
             type: 'number',
             position: 'right',
             interval: { step: 500 },
-            tick: {
-                width: 0,
-            },
             label: {
                 formatter: ({ value }) => Number(value).toLocaleString(),
             },

@@ -54,7 +54,7 @@ const options: AgChartOptions = {
                 total: {
                     fillOpacity: 0.3,
                     label: {
-                        placement: 'inside',
+                        placement: 'inside-center',
                         formatter: ({ value }) => `${value < 0 ? '-' : '+'}£${Math.abs(value).toFixed(0)} bn`,
                     },
                 },

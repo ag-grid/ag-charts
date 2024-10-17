@@ -53,6 +53,14 @@ const annotations: AgToolbarOptions['annotations'] = {
             haspopup: true,
         },
         {
+            icon: 'measurer-drawing',
+            tooltip: 'toolbarAnnotationsMeasurerAnnotations',
+            value: 'measurer-menu',
+            section: 'measure-annotations',
+            // @ts-expect-error
+            haspopup: true,
+        },
+        {
             icon: 'delete',
             tooltip: 'toolbarAnnotationsClearAll',
             value: 'clear',
