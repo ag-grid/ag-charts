@@ -91,6 +91,10 @@ export class AreaSeries extends CartesianSeries<
         zIndex: SeriesZIndexMap.BACKGROUND,
     });
 
+    override get pickModeAxis() {
+        return this.properties.sparklineMode ? 'main' : 'main-category';
+    }
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,

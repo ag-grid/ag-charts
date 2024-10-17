@@ -79,4 +79,7 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
 
     @Validate(BOOLEAN)
     connectMissingData: boolean = false;
+
+    @Validate(BOOLEAN)
+    sparklineMode: boolean = false;
 }
