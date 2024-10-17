@@ -130,7 +130,7 @@ interface TickGenerationResult {
 }
 
 type AxisAnimationState = 'empty' | 'ready';
-type AxisAnimationEvent = 'update' | 'resize' | 'reset';
+type AxisAnimationEvent = { reset: undefined; resize: undefined; update: FromToDiff };
 
 export type AxisModuleMap = ModuleMap<AxisOptionModule, ModuleInstance, ModuleContextWithParent<AxisContext>>;
 

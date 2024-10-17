@@ -24,7 +24,15 @@ type Mutable<T> = {
 };
 
 type HierarchyAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
-type HierarchyAnimationEvent = 'update' | 'updateData' | 'highlight' | 'resize' | 'clear' | 'reset' | 'skip';
+type HierarchyAnimationEvent<TNode extends Node, TDatum> = {
+    update: HierarchyAnimationData<TNode, TDatum>;
+    updateData: undefined;
+    highlight: Selection<TNode, HierarchyNode<TDatum>>;
+    resize: HierarchyAnimationData<TNode, TDatum>;
+    clear: HierarchyAnimationData<TNode, TDatum>;
+    reset: undefined;
+    skip: undefined;
+};
 
 export interface HierarchyAnimationData<TNode extends Node, TDatum> {
     datumSelections: Selection<TNode, HierarchyNode<TDatum>>[];
@@ -117,7 +125,7 @@ export abstract class HierarchySeries<
     colorDomain: number[] = [0, 0];
     maxDepth = 0;
 
-    protected animationState: StateMachine<HierarchyAnimationState, HierarchyAnimationEvent>;
+    protected animationState: StateMachine<HierarchyAnimationState, HierarchyAnimationEvent<TNode, TDatum>>;
 
     protected abstract groupSelection: Selection<TNode, HierarchyNode<TDatum>>;
 
@@ -131,7 +139,7 @@ export abstract class HierarchySeries<
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
 
-        this.animationState = new StateMachine<HierarchyAnimationState, HierarchyAnimationEvent>(
+        this.animationState = new StateMachine<HierarchyAnimationState, HierarchyAnimationEvent<TNode, TDatum>>(
             'empty',
             {
                 empty: {

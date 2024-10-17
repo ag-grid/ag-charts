@@ -4,6 +4,7 @@ import type { Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { PointProperties } from '../properties/pointProperties';
 import type { PointScene } from '../scenes/pointScene';
+import type { AnnotationStateEvents } from './stateTypes';
 
 const { StateMachine } = _ModuleSupport;
 
@@ -17,7 +18,10 @@ interface PointStateMachineContext<Datum extends PointProperties, Node extends P
 export abstract class PointStateMachine<
     Datum extends PointProperties,
     Node extends PointScene<Datum>,
-> extends StateMachine<'start' | 'waiting-first-render', 'click' | 'cancel' | 'render' | 'reset'> {
+> extends StateMachine<
+    'start' | 'waiting-first-render',
+    Pick<AnnotationStateEvents, 'click' | 'cancel' | 'render' | 'reset'>
+> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: PointStateMachineContext<Datum, Node>) {

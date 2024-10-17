@@ -868,7 +868,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 
-        state.transition('click', { offset, point, textInputValue, bbox });
+        state.transition('click', { point, textInputValue, bbox });
     }
 
     private onDoubleClick(event: _ModuleSupport.RegionEvent<'dblclick'>) {
@@ -979,7 +979,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 
-        state.transition('keyDown', { key, shiftKey, textInputValue, bbox, context });
+        state.transition('textInput', { key, shiftKey, textInputValue, bbox, context });
     }
 
     private onKeyDown(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
@@ -1024,7 +1024,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         if (translation.x || translation.y) {
-            state.transition('translate', { translation, context });
+            state.transition('translate', { translation });
 
             sourceEvent.stopPropagation();
             sourceEvent.preventDefault();
