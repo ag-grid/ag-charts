@@ -114,7 +114,43 @@ export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNode
     ctx.restore();
 }
 
-export function buildTree(node: Node): BuildTree {
+export const skippedProperties = new Set<string>();
+const allowedProperties = new Set([
+    'gradient',
+    // '_datum',
+    'zIndex',
+    'clipRect',
+    'cachedBBox',
+    'childNodeCounts',
+    'path',
+    '__zIndex',
+    'name',
+    '__scalingCenterX',
+    '__scalingCenterY',
+    '__rotationCenterX',
+    '__rotationCenterY',
+    '_previousDatum',
+    '__fill',
+    '__lineDash',
+    'borderPath',
+    'borderClipPath',
+    '_clipPath',
+]);
+
+function nodeProps(node: Node) {
+    const { ...allProps } = node as any;
+    for (const prop in allProps) {
+        if (allowedProperties.has(prop)) continue;
+        if (typeof allProps[prop] === 'number') continue;
+        if (typeof allProps[prop] === 'string') continue;
+        if (typeof allProps[prop] === 'boolean') continue;
+        skippedProperties.add(prop);
+        delete allProps[prop];
+    }
+    return allProps;
+}
+
+export function buildTree(node: Node, mode: 'json' | 'console'): BuildTree {
     if (!Debug.check(true, DebugSelectors.SCENE)) {
         return {};
     }
@@ -122,7 +158,7 @@ export function buildTree(node: Node): BuildTree {
     const { parentNode } = node as any;
     let order = 0;
     return {
-        node,
+        node: mode === 'json' ? nodeProps(node) : node,
         name: node.name ?? node.id,
         dirty: RedrawType[node.dirty],
         ...(parentNode?.isVirtual
@@ -131,53 +167,58 @@ export function buildTree(node: Node): BuildTree {
                   virtualParent: parentNode,
               }
             : {}),
-        ...Array.from(node.children(false), (c) => buildTree(c)).reduce<Record<string, {}>>((result, childTree) => {
-            let { name: treeNodeName } = childTree;
-            const {
-                node: {
-                    visible,
-                    opacity,
-                    zIndex,
-                    zIndexSubOrder,
-                    translationX,
-                    translationY,
-                    rotation,
-                    scalingX,
-                    scalingY,
-                },
-                node: childNode,
-                virtualParent,
-            } = childTree;
-            if (!visible || opacity <= 0) {
-                treeNodeName = `(${treeNodeName})`;
-            }
-            if (Layer.is(childNode)) {
-                treeNodeName = `*${treeNodeName}*`;
-            }
-            const subOrder = zIndexSubOrder?.map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v)).join(' / ');
-            const key = [
-                `${(order++).toString().padStart(3, '0')}|`,
-                `${treeNodeName ?? '<unknown>'}`,
-                `z: ${zIndex}`,
-                subOrder && `zo: ${subOrder}`,
-                virtualParent && `(virtual parent)`,
-                translationX && `x: ${translationX}`,
-                translationY && `y: ${translationY}`,
-                rotation && `r: ${rotation}`,
-                scalingX != null && scalingX !== 1 && `sx: ${scalingX}`,
-                scalingY != null && scalingY !== 1 && `sy: ${scalingY}`,
-            ]
-                .filter((v) => !!v)
-                .join(' ');
+        ...Array.from(node.children(false), (c) => buildTree(c, mode)).reduce<Record<string, {}>>(
+            (result, childTree) => {
+                let { name: treeNodeName } = childTree;
+                const {
+                    node: {
+                        visible,
+                        opacity,
+                        zIndex,
+                        zIndexSubOrder,
+                        translationX,
+                        translationY,
+                        rotation,
+                        scalingX,
+                        scalingY,
+                    },
+                    node: childNode,
+                    virtualParent,
+                } = childTree;
+                if (!visible || opacity <= 0) {
+                    treeNodeName = `(${treeNodeName})`;
+                }
+                if (Layer.is(childNode)) {
+                    treeNodeName = `*${treeNodeName}*`;
+                }
+                const subOrder = zIndexSubOrder
+                    ?.map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v))
+                    .join(' / ');
+                const key = [
+                    `${(order++).toString().padStart(3, '0')}|`,
+                    `${treeNodeName ?? '<unknown>'}`,
+                    `z: ${zIndex}`,
+                    subOrder && `zo: ${subOrder}`,
+                    virtualParent && `(virtual parent)`,
+                    translationX && `x: ${translationX}`,
+                    translationY && `y: ${translationY}`,
+                    rotation && `r: ${rotation}`,
+                    scalingX != null && scalingX !== 1 && `sx: ${scalingX}`,
+                    scalingY != null && scalingY !== 1 && `sy: ${scalingY}`,
+                ]
+                    .filter((v) => !!v)
+                    .join(' ');
 
-            let selectedKey = key;
-            let index = 1;
-            while (result[selectedKey] != null && index < 100) {
-                selectedKey = `${key} (${index++})`;
-            }
-            result[selectedKey] = childTree;
-            return result;
-        }, {}),
+                let selectedKey = key;
+                let index = 1;
+                while (result[selectedKey] != null && index < 100) {
+                    selectedKey = `${key} (${index++})`;
+                }
+                result[selectedKey] = childTree;
+                return result;
+            },
+            {}
+        ),
     };
 }
 
