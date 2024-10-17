@@ -19,11 +19,13 @@ describe('DataSource', () => {
     let chart: any;
     const ctx = setupMockCanvas();
 
-    // Note: We set crosshair: { enabled: false } and make the highlight styling match the unhighlighted
-    // styling because there is a race condition with the clickAction and data-update handling, which
-    // sometimes triggers the highlight rendering, and sometimes doesn't. We're not explicitly testing
-    // highlight rendering, so this allows us to treat highlighted & unhighlighted charts as equal.
+    // Note: We set crosshair: { enabled: false } and tooltip: { range: 'exact'} to avoid the highlight
+    // styling from being rendered styling because there is a race condition with the clickAction and
+    // data-update handling, which sometimes triggers the highlight rendering, and sometimes doesn't. We're
+    // not explicitly testing highlight rendering, so this allows us to treat highlighted & unhighlighted
+    // charts as equal.
     const EXAMPLE_OPTIONS: AgCartesianChartOptions = {
+        tooltip: { range: 'exact' },
         dataSource: {
             // @ts-expect-error Set undocumented options to instantly resolve for tests
             requestThrottle: 0,
@@ -59,21 +61,6 @@ describe('DataSource', () => {
             scrollingStep: 0.5, // Make sure we zoom enough in a single step so we can detect it
             minVisibleItemsX: 1,
             minVisibleItemsY: 1,
-        },
-        theme: {
-            overrides: {
-                line: {
-                    series: {
-                        highlightStyle: {
-                            item: {
-                                fill: '#f3622d',
-                                stroke: '#aa4520',
-                                strokeWidth: 0,
-                            },
-                        },
-                    },
-                },
-            },
         },
     };
 
