@@ -39,7 +39,7 @@ const options: AgChartOptions = {
             strokeOpacity: 0,
             itemStyler: ({ datum, valueKey, stroke }) => ({
                 fill: stroke,
-                fillOpacity: getOpacity(datum[valueKey], valueKey, 0.4, 1),
+                fillOpacity: getOpacity(datum[valueKey], valueKey as ValueKey, 0.4, 1),
             }),
             label: {
                 formatter({ value }) {
