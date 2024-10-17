@@ -51,6 +51,7 @@ import {
     CartesianSeries,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
+    RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD,
 } from './cartesianSeries';
 import { type Span, SpanJoin, linearPoints, smoothPoints, stepPoints } from './lineInterpolation';
 import { plotSpan } from './lineInterpolationPlotting';
@@ -106,6 +107,15 @@ export class AreaSeries extends CartesianSeries<
                 marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
         });
+    }
+
+    override renderToOffscreenCanvas(): boolean {
+        return (
+            super.renderToOffscreenCanvas() ||
+            (this.contextNodeData != null &&
+                (this.contextNodeData.fillData.spans.length > RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD ||
+                    this.contextNodeData.strokeData.spans.length > RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD))
+        );
     }
 
     override attachSeries(seriesContentNode: Node, seriesNode: Node, annotationNode: Node | undefined): void {

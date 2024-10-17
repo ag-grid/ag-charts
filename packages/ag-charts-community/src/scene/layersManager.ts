@@ -5,8 +5,6 @@ interface SceneLayer {
     id: number;
     name?: string;
     canvas: HdpiCanvas;
-    getComputedOpacity: () => number;
-    getVisibility: () => boolean;
 }
 
 export class LayersManager {
@@ -16,10 +14,7 @@ export class LayersManager {
 
     private nextLayerId = 0;
 
-    constructor(
-        public readonly canvas: HdpiCanvas,
-        public readonly markDirty: () => void
-    ) {}
+    constructor(public readonly canvas: HdpiCanvas) {}
 
     get size() {
         return this.layersMap.size;
@@ -30,22 +25,15 @@ export class LayersManager {
         this.layersMap.forEach(({ canvas }) => canvas.resize(width, height));
     }
 
-    addLayer(opts: {
-        zIndex?: number | number[];
-        name?: string;
-        getComputedOpacity: () => number;
-        getVisibility: () => boolean;
-    }) {
+    addLayer(opts: { name?: string }) {
         const { width, height, pixelRatio } = this.canvas;
-        const { name, getComputedOpacity, getVisibility } = opts;
+        const { name } = opts;
         const canvas = new HdpiCanvas({ width, height, pixelRatio });
 
         this.layersMap.set(canvas, {
             id: this.nextLayerId++,
             name,
             canvas,
-            getComputedOpacity,
-            getVisibility,
         });
 
         this.debug('Scene.addLayer() - layers', this.layersMap);
@@ -57,7 +45,6 @@ export class LayersManager {
         if (this.layersMap.has(canvas)) {
             this.layersMap.delete(canvas);
             canvas.destroy();
-            this.markDirty();
 
             this.debug('Scene.removeLayer() -  layers', this.layersMap);
         }

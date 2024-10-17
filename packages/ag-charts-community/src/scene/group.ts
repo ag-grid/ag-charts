@@ -1,9 +1,11 @@
 import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
 import { clamp } from '../util/number';
 import { BBox } from './bbox';
+import type { HdpiCanvas } from './canvas/hdpiCanvas';
 import { nodeCount } from './debug.util';
+import type { LayersManager } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
-import { Node, RedrawType, SceneChangeDetection } from './node';
+import { Node, SceneChangeDetection } from './node';
 import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
 import { type ZIndex, compareZIndex } from './zIndex';
 
@@ -18,30 +20,29 @@ export class Group extends Node {
         return BBox.merge(Node.extractBBoxes(nodes, skipInvisible));
     }
 
-    protected static compareChildren(a: Node, b: Node) {
+    private static compareChildren(a: Node, b: Node) {
         return (
             compareZIndex(a.zIndex, b.zIndex) ||
             compoundAscending([a.serialNumber], [b.serialNumber], ascendingStringNumberUndefined)
         );
     }
 
-    protected clipRect?: BBox;
+    private clipRect?: BBox;
 
-    @SceneChangeDetection({
-        redraw: RedrawType.MAJOR,
-        convertor: (v: number) => clamp(0, v, 1),
-    })
+    @SceneChangeDetection({ convertor: (v: number) => clamp(0, v, 1) })
     opacity: number = 1;
 
-    constructor(
-        protected readonly opts?: {
-            readonly name?: string;
-            readonly zIndex?: ZIndex;
-            readonly layer?: boolean; // TODO remove
-        }
-    ) {
+    private layer: HdpiCanvas | undefined = undefined;
+    renderToOffscreenCanvas: boolean = false;
+
+    constructor(opts?: {
+        readonly name?: string;
+        readonly zIndex?: ZIndex;
+        readonly renderToOffscreenCanvas?: boolean;
+    }) {
         super(opts);
         this.isContainerNode = true;
+        this.renderToOffscreenCanvas = opts?.renderToOffscreenCanvas === true;
     }
 
     // We consider a group to be boundless, thus any point belongs to it.
@@ -53,6 +54,18 @@ export class Group extends Node {
         return Group.computeChildrenBBox(this.children());
     }
 
+    private isDirty(renderCtx: RenderContext) {
+        const { resized } = renderCtx;
+        const { dirty, dirtyZIndex } = this;
+        if (dirty || dirtyZIndex || resized) return true;
+
+        for (const child of this.children()) {
+            if (child.dirty) return true;
+        }
+
+        return false;
+    }
+
     override preRender(): ChildNodeCounts {
         const counts = super.preRender();
 
@@ -60,128 +73,104 @@ export class Group extends Node {
         counts.groups += 1;
         counts.nonGroups -= 1;
 
+        if (this.renderToOffscreenCanvas && counts.nonGroups > 0 && this.getVisibility()) {
+            this.layer ??= this._layerManager?.addLayer({ name: this.name });
+        } else if (this.layer != null) {
+            this._layerManager?.removeLayer(this.layer);
+            this.layer = undefined;
+        }
+
         return counts;
     }
 
-    protected isDirty(renderCtx: RenderContext) {
-        const { resized } = renderCtx;
-        const { dirty, dirtyZIndex } = this;
-        const isDirty = dirty >= RedrawType.MINOR || dirtyZIndex || resized;
-        let isChildDirty = isDirty;
-        let isChildLayerDirty = false;
-        for (const child of this.children()) {
-            isChildDirty ||= child.layerManager == null && child.dirty >= RedrawType.TRIVIAL;
-            isChildLayerDirty ||= child.layerManager != null && child.dirty >= RedrawType.TRIVIAL;
-            if (isChildDirty) break;
-        }
-
-        if (this.opts?.name) {
-            this._debug?.({ name: this.opts.name, group: this, isDirty, isChildDirty, renderCtx });
-        }
-
-        return { isDirty, isChildDirty, isChildLayerDirty };
-    }
-
-    protected debugSkip(renderCtx: RenderContext) {
-        if (renderCtx.stats && this.opts?.name) {
-            this._debug?.({
-                name: this.opts.name,
-                group: this,
-                result: 'skipping',
-                counts: nodeCount(this),
-                renderCtx,
-            });
-        }
-    }
-
-    override render(renderCtx: RenderContext, skip?: boolean) {
-        if (skip) {
+    override render(renderCtx: RenderContext) {
+        if (!this.visible) {
             return super.render(renderCtx);
         }
 
-        const { opts: { name } = {}, _debug: debug } = this;
-        const { isDirty, isChildDirty, isChildLayerDirty } = this.isDirty(renderCtx);
-        const { ctx, stats } = renderCtx;
-        let { forceRender } = renderCtx;
+        const childRenderCtx: RenderContext = { ...renderCtx };
 
-        if (!isDirty && !isChildDirty && !isChildLayerDirty && !forceRender) {
-            this.debugSkip(renderCtx);
-            this.markClean({ recursive: false });
-            return; // Nothing to do.
+        if (this.layer == null) {
+            this.renderInContext(childRenderCtx);
+            super.render(childRenderCtx); // Calls markClean().
+            return;
         }
 
-        if (forceRender !== 'dirtyTransform') {
-            forceRender ||= this.dirtyZIndex;
-        }
-
-        ctx.globalAlpha *= this.opacity;
-
-        if (this.dirtyZIndex) {
-            this.sortChildren(Group.compareChildren);
-        }
-        const children = this.children();
-        const clipBBox = this.renderClip(renderCtx) ?? renderCtx.clipBBox;
-        const renderCtxChanged = forceRender !== renderCtx.forceRender || clipBBox !== renderCtx.clipBBox;
-
-        this.renderChildren(children, renderCtxChanged ? { ...renderCtx, forceRender, clipBBox } : renderCtx);
-        super.render(renderCtx); // Calls markClean().
-
-        if (this.clipRect) {
-            ctx.restore();
-        }
-
-        if (name && stats) {
-            debug?.({
-                name,
-                renderCtx,
-                result: 'rendered',
-                skipped: stats.nodesSkipped,
-                counts: nodeCount(this),
-                group: this,
-            });
-        }
-    }
-
-    protected renderClip(renderCtx: RenderContext) {
-        if (!this.clipRect) return;
-
-        // clipRect is in the group's coordinate space
-        const { x, y, width, height } = this.clipRect;
+        const { layer } = this;
         const { ctx } = renderCtx;
 
+        if (this.isDirty(renderCtx)) {
+            const transform = ctx.getTransform();
+            const { globalAlpha } = ctx;
+
+            const layerCtx = layer.context;
+            childRenderCtx.ctx = layerCtx;
+
+            layer.clear();
+            layerCtx.save();
+            layerCtx.setTransform(transform);
+            layerCtx.globalAlpha = globalAlpha;
+            this.renderInContext(childRenderCtx);
+            layerCtx.restore();
+            layerCtx.verifyDepthZero?.(); // Check for save/restore depth of zero!
+        } else {
+            this.skipRender(childRenderCtx);
+        }
+
         ctx.save();
+        ctx.resetTransform();
+        layer.drawImage(ctx as any);
+        ctx.restore();
+
+        super.render(childRenderCtx); // Calls markClean().
+    }
+
+    private renderClip(renderCtx: RenderContext, clipRect: BBox) {
+        // clipRect is in the group's coordinate space
+        const { x, y, width, height } = clipRect;
+        const { ctx } = renderCtx;
+
         ctx.beginPath();
         ctx.rect(x, y, width, height);
         ctx.clip();
 
-        this._debug?.(() => ({
-            name: this.opts?.name,
-            clipRect: this.clipRect,
-            ctxTransform: ctx.getTransform(),
-            renderCtx,
-            group: this,
-        }));
-
         // clipBBox is in the canvas coordinate space,
         // when we hit a layer we apply the new clipping
         // at which point there are no transforms in play
-        return Transformable.toCanvas(this, this.clipRect);
+        return Transformable.toCanvas(this, clipRect);
     }
 
-    protected renderChildren(children: Iterable<Node>, renderCtx: RenderContext) {
-        const { ctx, forceRender, stats } = renderCtx;
-        for (const child of children) {
-            // Skip invisible children, but make sure their dirty flag is reset.
-            if (!child.visible || !this.visible) {
-                child.markClean();
-                if (stats) {
-                    stats.nodesSkipped += nodeCount(child).count;
-                }
-                continue;
-            }
+    private skipRender(childRenderCtx: RenderContext) {
+        const { stats } = childRenderCtx;
 
-            // Skip children that don't need to be redrawn.
-            if (!forceRender && child.dirty === RedrawType.NONE) {
+        for (const child of this.children()) {
+            // Skip invisible children, but make sure their dirty flag is reset.
+            child.markClean();
+            if (stats) {
+                stats.nodesSkipped += nodeCount(child).count;
+            }
+        }
+    }
+
+    private renderInContext(childRenderCtx: RenderContext) {
+        const { ctx, stats } = childRenderCtx;
+
+        if (this.dirtyZIndex) {
+            this.sortChildren(Group.compareChildren);
+        }
+
+        ctx.save();
+
+        ctx.globalAlpha *= this.opacity;
+
+        if (this.clipRect != null) {
+            childRenderCtx.clipBBox = this.renderClip(childRenderCtx, this.clipRect);
+        }
+
+        for (const child of this.children()) {
+            // Skip invisible children, but make sure their dirty flag is reset.
+            if (!child.visible) {
+                child.markClean();
                 if (stats) {
                     stats.nodesSkipped += nodeCount(child).count;
                 }
@@ -190,9 +179,11 @@ export class Group extends Node {
 
             // Render marks this node (and children) as clean - no need to explicitly markClean().
             ctx.save();
-            child.render(renderCtx);
+            child.render(childRenderCtx);
             ctx.restore();
         }
+
+        ctx.restore();
     }
 
     /**
@@ -210,6 +201,23 @@ export class Group extends Node {
      */
     setClipRectCanvasSpace(bbox?: BBox) {
         this.clipRect = bbox;
+    }
+
+    override _setLayerManager(layersManager?: LayersManager) {
+        if (this.layer) {
+            this._layerManager?.removeLayer(this.layer);
+            this.layer = undefined;
+        }
+        super._setLayerManager(layersManager);
+    }
+
+    private getVisibility() {
+        for (const node of this.traverseUp(true)) {
+            if (!node.visible) {
+                return false;
+            }
+        }
+        return true;
     }
 
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {

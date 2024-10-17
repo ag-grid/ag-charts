@@ -9,7 +9,7 @@ import type {
     Styler,
 } from 'ag-charts-types';
 
-import { RedrawType, SceneChangeDetection } from '../../../scene/changeDetectable';
+import { SceneChangeDetection } from '../../../scene/changeDetectable';
 import type { SizedPoint } from '../../../scene/point';
 import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { ProxyProperty } from '../../../util/proxy';
@@ -46,11 +46,11 @@ class BubbleSeriesMarker extends SeriesMarker<AgBubbleSeriesOptionsKeys> {
      * lowest to the `size`.
      */
     @Validate(POSITIVE_NUMBER)
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     maxSize = 30;
 
     @Validate(NUMBER_ARRAY, { optional: true })
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     domain?: [number, number];
 }
 

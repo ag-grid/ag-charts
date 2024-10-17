@@ -3,7 +3,7 @@ import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Scene, _Util } fr
 import { buildBounds, calculateAxisLabelPosition } from '../../utils/position';
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
 
-const { Group, TranslatableLayer, Line, BBox } = _Scene;
+const { Group, TranslatableGroup, Line, BBox } = _Scene;
 const { createId } = _Util;
 const { POSITIVE_NUMBER, RATIO, BOOLEAN, COLOR_STRING, LINE_DASH, OBJECT, InteractionState, Validate, ZIndexMap } =
     _ModuleSupport;
@@ -44,7 +44,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     private axisLayout?: _ModuleSupport.AxisLayout;
     private labelFormatter?: (value: any) => string;
 
-    private readonly crosshairGroup: _Scene.TranslatableLayer = new TranslatableLayer({
+    private readonly crosshairGroup = new TranslatableGroup({
         name: 'crosshairs',
         zIndex: ZIndexMap.SERIES_CROSSHAIR,
     });

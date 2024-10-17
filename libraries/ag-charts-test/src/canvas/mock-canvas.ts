@@ -27,6 +27,23 @@ Object.defineProperty(NodeCanvasRenderingContext2D.prototype, 'createConicGradie
     configurable: true,
 });
 
+// https://github.com/Automattic/node-canvas/issues/1852
+const context2dTransform = NodeCanvasRenderingContext2D.prototype.transform;
+Object.defineProperty(NodeCanvasRenderingContext2D.prototype, 'transform', {
+    value: function transform(...args: any[]) {
+        if (args[0] === 0) {
+            context2dTransform.call(this, 1e-6, 0, 0, 1e-6, 0, 0);
+            return;
+        }
+
+        // @ts-ignore
+        context2dTransform.call(this, ...args);
+    },
+    enumerable: false,
+    writable: true,
+    configurable: true,
+});
+
 export class MockContext {
     document: Document;
     realCreateElement: Document['createElement'];

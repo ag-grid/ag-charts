@@ -1,5 +1,5 @@
 import { Group } from '../../scene/group';
-import { Layer } from '../../scene/layer';
+import { type ZIndex, compareZIndex } from '../../scene/zIndex';
 import { clamp } from '../../util/number';
 import type { SeriesGrouping } from './seriesStateManager';
 import { SeriesZIndexMap } from './seriesZIndexMap';
@@ -8,6 +8,7 @@ export interface SeriesConfig {
     internalId: string;
     seriesGrouping?: SeriesGrouping;
     contentGroup: Group;
+    renderToOffscreenCanvas(): boolean;
     type: string;
 }
 
@@ -21,12 +22,8 @@ type LayerState = {
 const SERIES_THRESHOLD_FOR_AGGRESSIVE_LAYER_REDUCTION = 30;
 
 export class SeriesLayerManager {
-    private readonly groups: {
-        [type: string]: {
-            [id: string]: LayerState;
-        };
-    } = {};
-    private readonly series: { [id: string]: { layerState: LayerState; seriesConfig: SeriesConfig } } = {};
+    private readonly groups = new Map<string, Map<string | number, LayerState>>();
+    private readonly series = new Map<string, { layerState: LayerState; seriesConfig: SeriesConfig }>();
 
     private expectedSeriesCount = 1;
     private mode: 'normal' | 'aggressive-grouping' = 'normal';
@@ -41,34 +38,46 @@ export class SeriesLayerManager {
         const { internalId, type, contentGroup: seriesContentGroup, seriesGrouping } = seriesConfig;
         const { groupIndex = internalId } = seriesGrouping ?? {};
 
-        if (this.series[internalId] != null) {
-            throw new Error(`AG Charts - series already has an allocated layer: ${this.series[internalId]}`);
+        const seriesInfo = this.series.get(internalId);
+        if (seriesInfo != null) {
+            throw new Error(`AG Charts - series already has an allocated layer: ${seriesInfo}`);
         }
 
         // Re-evaluate mode only on first series addition - we can't swap strategy mid-setup.
-        if (Object.keys(this.series).length === 0) {
+        if (this.series.size === 0) {
             this.mode =
                 this.expectedSeriesCount >= SERIES_THRESHOLD_FOR_AGGRESSIVE_LAYER_REDUCTION
                     ? 'aggressive-grouping'
                     : 'normal';
         }
 
-        this.groups[type] ??= {};
+        let group = this.groups.get(type);
+        if (group == null) {
+            group = new Map<string, LayerState>();
+            this.groups.set(type, group);
+        }
 
         const lookupIndex = this.lookupIdx(groupIndex);
-        const groupInfo = (this.groups[type][lookupIndex] ??= {
-            type,
-            id: lookupIndex,
-            seriesIds: [],
-            group: this.seriesRoot.appendChild(
-                new Layer({
-                    name: `${type}-managed-layer`,
-                    zIndex: seriesConfig.contentGroup.zIndex,
-                })
-            ),
-        });
 
-        this.series[internalId] = { layerState: groupInfo, seriesConfig };
+        let groupInfo = group.get(lookupIndex);
+        if (groupInfo == null) {
+            groupInfo = {
+                type,
+                id: lookupIndex,
+                seriesIds: [],
+                group: this.seriesRoot.appendChild(
+                    new Group({
+                        name: `${seriesConfig.contentGroup.name ?? type}-managed-layer`,
+                        zIndex: seriesConfig.contentGroup.zIndex,
+                        // Set in updateLayerCompositing
+                        renderToOffscreenCanvas: false,
+                    })
+                ),
+            };
+            group.set(lookupIndex, groupInfo);
+        }
+
+        this.series.set(internalId, { layerState: groupInfo, seriesConfig });
 
         groupInfo.seriesIds.push(internalId);
         groupInfo.group.appendChild(seriesContentGroup);
@@ -79,12 +88,12 @@ export class SeriesLayerManager {
         const { internalId, seriesGrouping, type, contentGroup, oldGrouping } = seriesConfig;
         const { groupIndex = internalId } = seriesGrouping ?? {};
 
-        if (this.groups[type]?.[groupIndex]?.seriesIds.includes(internalId)) {
+        if (this.groups.get(type)?.get(groupIndex)?.seriesIds.includes(internalId)) {
             // Already in the right group, nothing to do.
             return;
         }
 
-        if (this.series[internalId] != null) {
+        if (this.series.has(internalId)) {
             this.releaseGroup({
                 internalId,
                 seriesGrouping: oldGrouping,
@@ -103,11 +112,11 @@ export class SeriesLayerManager {
     }) {
         const { internalId, contentGroup, type } = seriesConfig;
 
-        if (this.series[internalId] == null) {
+        if (!this.series.has(internalId)) {
             throw new Error(`AG Charts - series doesn't have an allocated layer: ${internalId}`);
         }
 
-        const groupInfo = this.series[internalId]?.layerState;
+        const groupInfo = this.series.get(internalId)?.layerState;
         if (groupInfo) {
             groupInfo.seriesIds = groupInfo.seriesIds.filter((v) => v !== internalId);
             groupInfo.group.removeChild(contentGroup);
@@ -116,20 +125,42 @@ export class SeriesLayerManager {
         if (groupInfo?.seriesIds.length === 0) {
             // Last member of the layer, cleanup.
             this.seriesRoot.removeChild(groupInfo.group);
-            delete this.groups[groupInfo.type][groupInfo.id];
-            delete this.groups[type][internalId];
-        } else if (groupInfo?.seriesIds.length > 0) {
+            this.groups.get(groupInfo.type)?.delete(groupInfo.id);
+            this.groups.get(type)?.delete(internalId);
+        } else if (groupInfo != null && groupInfo.seriesIds.length > 0) {
             // Update zIndexSubOrder to avoid it becoming stale as series are removed and re-added
             // with the same groupIndex, but are otherwise unrelated.
-            const leadSeriesConfig = this.series[groupInfo?.seriesIds?.[0]]?.seriesConfig;
-            if (leadSeriesConfig != null) {
-                groupInfo.group.zIndex = leadSeriesConfig.contentGroup.zIndex;
-            } else {
-                groupInfo.group.zIndex = [SeriesZIndexMap.ANY_CONTENT];
-            }
+            const lowestSeriesZIndex = groupInfo.seriesIds.reduce<ZIndex | undefined>((currentLowest, seriesId) => {
+                const series = this.series.get(seriesId);
+                const zIndex = series?.seriesConfig.contentGroup.zIndex;
+                if (currentLowest == null || zIndex == null) return zIndex;
+
+                return compareZIndex(currentLowest, zIndex) <= 0 ? currentLowest : zIndex;
+            }, undefined);
+            groupInfo.group.zIndex = lowestSeriesZIndex ?? SeriesZIndexMap.ANY_CONTENT;
         }
 
-        delete this.series[internalId];
+        this.series.delete(internalId);
+    }
+
+    public updateLayerCompositing() {
+        this.groups.forEach((groups) => {
+            groups.forEach((groupInfo) => {
+                const { group, seriesIds } = groupInfo;
+
+                let renderToOffscreenCanvas: boolean;
+                if (seriesIds.length === 0) {
+                    renderToOffscreenCanvas = false;
+                } else if (seriesIds.length > 1) {
+                    renderToOffscreenCanvas = true;
+                } else {
+                    const series = this.series.get(seriesIds[0]);
+                    renderToOffscreenCanvas = series?.seriesConfig.renderToOffscreenCanvas() === true;
+                }
+
+                group.renderToOffscreenCanvas = renderToOffscreenCanvas;
+            });
+        });
     }
 
     private lookupIdx(groupIndex: number | string) {
@@ -150,12 +181,13 @@ export class SeriesLayerManager {
     }
 
     public destroy() {
-        for (const groups of Object.values(this.groups)) {
-            for (const groupInfo of Object.values(groups)) {
+        this.groups.forEach((groups) => {
+            groups.forEach((groupInfo) => {
                 this.seriesRoot.removeChild(groupInfo.group);
-            }
-        }
-        (this as any).groups = {};
-        (this as any).series = {};
+            });
+        });
+
+        this.groups.clear();
+        this.series.clear();
     }
 }

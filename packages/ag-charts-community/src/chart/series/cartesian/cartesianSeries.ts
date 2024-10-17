@@ -137,6 +137,8 @@ export interface CartesianSeriesNodeDataContext<
     visible: boolean;
 }
 
+export const RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD = 10;
+
 export abstract class CartesianSeries<
     TNode extends Node,
     TProps extends CartesianSeriesProperties<any>,
@@ -321,6 +323,11 @@ export abstract class CartesianSeries<
     }
 
     protected detachPaths(_paths: Path[], _seriesNode: Node, _annotationNode: Node | undefined) {}
+
+    override renderToOffscreenCanvas(): boolean {
+        const nodeData = this.getNodeData();
+        return nodeData != null && nodeData.length > RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD;
+    }
 
     override resetAnimation(phase: ChartAnimationPhase): void {
         if (phase === 'initial') {

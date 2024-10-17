@@ -4,7 +4,7 @@ const { Validate, BOOLEAN, POSITIVE_NUMBER, ZIndexMap, ActionOnSet, CategoryAxis
     _ModuleSupport;
 
 const { Padding, Logger } = _Util;
-const { Group, BBox, TranslatableLayer, Layer } = _Scene;
+const { Group, TranslatableGroup, BBox } = _Scene;
 
 class MiniChartPadding {
     @Validate(POSITIVE_NUMBER)
@@ -22,19 +22,19 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     readonly root = new Group({ name: 'root' });
     readonly seriesRoot = this.root.appendChild(
-        new TranslatableLayer({ name: 'Series-root', zIndex: ZIndexMap.SERIES_LAYER })
+        new TranslatableGroup({ name: 'Series-root', zIndex: ZIndexMap.SERIES_LAYER, renderToOffscreenCanvas: true })
     );
-    readonly axisGridGroup = this.root.appendChild(new Layer({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID }));
-    readonly axisGroup = this.root.appendChild(new Layer({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID }));
-    readonly axisLabelGroup = this.root.appendChild(new Layer({ name: 'Axes-Labels', zIndex: ZIndexMap.SERIES_LABEL }));
+    readonly axisGridGroup = this.root.appendChild(new Group({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID }));
+    readonly axisGroup = this.root.appendChild(new Group({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID }));
+    readonly axisLabelGroup = this.root.appendChild(new Group({ name: 'Axes-Labels', zIndex: ZIndexMap.SERIES_LABEL }));
     readonly axisCrosslineRangeGroup = this.root.appendChild(
-        new Layer({ name: 'Axes-Crosslines-Range', zIndex: ZIndexMap.SERIES_CROSSLINE_RANGE })
+        new Group({ name: 'Axes-Crosslines-Range', zIndex: ZIndexMap.SERIES_CROSSLINE_RANGE })
     );
     readonly axisCrosslineLineGroup = this.root.appendChild(
-        new Layer({ name: 'Axes-Crosslines-Line', zIndex: ZIndexMap.SERIES_CROSSLINE_LINE })
+        new Group({ name: 'Axes-Crosslines-Line', zIndex: ZIndexMap.SERIES_CROSSLINE_LINE })
     );
     readonly axisCrosslineLabelGroup = this.root.appendChild(
-        new Layer({ name: 'Axes-Crosslines-Label', zIndex: ZIndexMap.SERIES_LABEL })
+        new Group({ name: 'Axes-Crosslines-Label', zIndex: ZIndexMap.SERIES_LABEL })
     );
 
     public data: any = [];

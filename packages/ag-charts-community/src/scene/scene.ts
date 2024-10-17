@@ -5,7 +5,6 @@ import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
 import { LayersManager } from './layersManager';
 import type { Node, RenderContext } from './node';
-import { RedrawType } from './node';
 import {
     DebugSelectors,
     buildDirtyTree,
@@ -30,9 +29,7 @@ export class Scene {
 
     constructor(canvasOptions: CanvasOptions) {
         this.canvas = new HdpiCanvas(canvasOptions);
-        this.layersManager = new LayersManager(this.canvas, () => {
-            this.isDirty = true;
-        });
+        this.layersManager = new LayersManager(this.canvas);
     }
 
     get width(): number {
@@ -127,10 +124,9 @@ export class Scene {
             return;
         }
 
-        if (root && !this.isDirty) {
+        if (root?.dirty === false && !this.isDirty) {
             if (this.debug.check()) {
                 this.debug('Scene.render() - no-op', {
-                    redrawType: RedrawType[root.dirty],
                     tree: buildTree(root, 'console'),
                 });
             }
@@ -142,7 +138,6 @@ export class Scene {
         const renderCtx: RenderContext = {
             ctx,
             devicePixelRatio: this.canvas.pixelRatio ?? 1,
-            forceRender: true,
             resized: Boolean(pendingSize),
             debugNodes: {},
         };
@@ -154,7 +149,7 @@ export class Scene {
         prepareSceneNodeHighlight(renderCtx);
 
         let canvasCleared = false;
-        if (!root || root.dirty >= RedrawType.TRIVIAL) {
+        if (root?.dirty !== false) {
             // start with a blank canvas, clear previous drawing
             canvasCleared = true;
             canvas.clear();
@@ -174,7 +169,6 @@ export class Scene {
             if (this.debug.check()) {
                 const tree = buildTree(root, 'console');
                 this.debug('Scene.render() - before', {
-                    redrawType: RedrawType[root.dirty],
                     canvasCleared,
                     tree,
                 });
@@ -202,7 +196,6 @@ export class Scene {
 
         if (root && this.debug.check()) {
             this.debug('Scene.render() - after', {
-                redrawType: RedrawType[root.dirty],
                 tree: buildTree(root, 'console'),
                 canvasCleared,
             });

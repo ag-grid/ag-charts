@@ -2,7 +2,6 @@ import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ListSwitch } from '../dom/proxyInteractionService';
 import { BBox } from '../scene/bbox';
-import { RedrawType } from '../scene/changeDetectable';
 import { Group } from '../scene/group';
 import { Image } from '../scene/image';
 import type { Line } from '../scene/shape/line';
@@ -164,7 +163,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
                 line.x2 = shift + length;
                 line.y1 = 0;
                 line.y2 = 0;
-                line.markDirty(RedrawType.MAJOR);
+                line.markDirty();
                 lineTop = -line.strokeWidth / 2;
                 lineX1 = line.x1;
                 lineX2 = line.x2;
