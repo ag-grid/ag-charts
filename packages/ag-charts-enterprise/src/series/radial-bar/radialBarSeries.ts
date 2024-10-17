@@ -20,7 +20,6 @@ const {
     seriesLabelFadeInAnimation,
     seriesLabelFadeOutAnimation,
     animationValidation,
-    formatValue,
 } = _ModuleSupport;
 
 const { BandScale } = _Scale;
@@ -257,11 +256,14 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             x: number,
             y: number
         ): RadialBarLabelNodeDatum | undefined => {
-            const labelText = this.getLabelText(
-                label,
-                { value: angleDatum, datum, angleKey, radiusKey, angleName, radiusName },
-                formatValue
-            );
+            const labelText = this.getLabelText(label, {
+                value: angleDatum,
+                datum,
+                angleKey,
+                radiusKey,
+                angleName,
+                radiusName,
+            });
             if (labelText) {
                 return { x, y, text: labelText, textAlign: 'center', textBaseline: 'middle' };
             }
@@ -282,11 +284,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             const angleRange = aggValues?.[angleRangeIndex][isPositive ? 1 : 0] ?? 0;
             const reversed = isPositive === angleAxisReversed;
 
-            let startAngle = angleScale.convert(angleStartDatum, { clampMode: 'clamped' });
-            let endAngle = angleScale.convert(angleEndDatum, { clampMode: 'clamped' });
+            let startAngle = angleScale.convert(angleStartDatum, true);
+            let endAngle = angleScale.convert(angleEndDatum, true);
 
-            let rangeStartAngle = angleScale.convert(0, { clampMode: 'clamped' });
-            let rangeEndAngle = angleScale.convert(angleRange, { clampMode: 'clamped' });
+            let rangeStartAngle = angleScale.convert(0, true);
+            let rangeEndAngle = angleScale.convert(angleRange, true);
 
             if (reversed) {
                 [rangeStartAngle, rangeEndAngle] = [rangeEndAngle, rangeStartAngle];

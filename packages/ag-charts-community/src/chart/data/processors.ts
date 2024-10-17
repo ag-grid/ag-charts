@@ -112,7 +112,7 @@ export function trailingAccumulatedValueProperty<K>(
 export function groupAccumulativeValueProperty<K>(
     propName: K,
     mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
-    sum: 'current' | 'last' = 'current',
+    sum: 'current' | 'last',
     opts: Partial<DatumPropertyDefinition<K>> & { rangeId?: string; groupId: string },
     scaleType?: ScaleType
 ) {

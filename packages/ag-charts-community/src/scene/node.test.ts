@@ -1,7 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
 import { BBox } from './bbox';
-import { Node, RedrawType } from './node';
+import { Node } from './node';
 
 class TestNode extends Node {
     protected override computeBBox(): BBox | undefined {
@@ -36,7 +36,7 @@ describe('Node', () => {
 
             expect(result).not.toBe(bboxRef);
 
-            testee.markDirty(RedrawType.TRIVIAL);
+            testee.markDirty();
             expect(testee.getBBox()).not.toBe(result);
         });
 
@@ -44,10 +44,10 @@ describe('Node', () => {
             const bboxRef = BBox.zero.clone().grow(20);
             const testee = new FixedTestNode(bboxRef);
             testee.getBBox(); // Populate cache.
-            testee.markDirty(RedrawType.TRIVIAL);
+            testee.markDirty();
 
             const result = testee.getBBox();
-            testee.markDirty(RedrawType.TRIVIAL);
+            testee.markDirty();
             expect(testee.getBBox()).not.toBe(result);
         });
 
@@ -87,7 +87,7 @@ describe('Node', () => {
                 expect(result).not.toBe(bboxRef);
                 expect(testee.getBBox()).toBe(result);
 
-                child.markDirty(RedrawType.TRIVIAL);
+                child.markDirty();
                 expect(testee.getBBox()).not.toBe(result);
             });
 
@@ -100,11 +100,11 @@ describe('Node', () => {
                 expect(result).not.toBe(bboxRef);
                 expect(testee.getBBox()).toBe(result);
 
-                child.markDirty(RedrawType.TRIVIAL);
+                child.markDirty();
                 const result2 = testee.getBBox();
                 expect(result2).not.toBe(result);
 
-                child.markDirty(RedrawType.TRIVIAL);
+                child.markDirty();
                 expect(testee.getBBox()).not.toBe(result);
                 expect(testee.getBBox()).not.toBe(result2);
             });

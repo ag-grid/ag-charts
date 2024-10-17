@@ -2,6 +2,7 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
+import type { AnnotationStateEvents } from '../states/stateTypes';
 import { ArrowProperties, LineProperties } from './lineProperties';
 import type { LineScene } from './lineScene';
 
@@ -18,7 +19,7 @@ interface LineStateMachineContext<Datum extends ArrowProperties | LineProperties
 
 abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperties> extends StateMachine<
     'start' | 'end',
-    'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'reset' | 'cancel'
+    Pick<AnnotationStateEvents, 'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'reset' | 'cancel'>
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -34,7 +35,9 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
             );
         };
 
-        const actionEndUpdate = ({ point }: { point: (origin?: Point, snapToAngle?: number) => Point }) => {
+        const actionEndUpdate = ({ point }: { point?: (origin?: Point, snapToAngle?: number) => Point }) => {
+            if (!point) return;
+
             const datum = ctx.datum();
             datum?.set({ end: point(datum?.start, datum?.snapToAngle) });
 

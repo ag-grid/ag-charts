@@ -407,7 +407,7 @@ describe('Chart', () => {
                     xKey: datasets.economy.categoryKey,
                     yKey: datasets.economy.valueKey,
                 },
-                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].rootGroup, Circle),
+                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].contentGroup, Circle),
             });
         });
 
@@ -418,7 +418,7 @@ describe('Chart', () => {
                     xKey: datasets.economy.categoryKey,
                     yKey: datasets.economy.valueKey,
                 },
-                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].rootGroup, Rect),
+                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].contentGroup, Rect),
             });
         });
 
@@ -432,7 +432,7 @@ describe('Chart', () => {
                         enabled: true,
                     },
                 },
-                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].rootGroup, Circle),
+                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].contentGroup, Circle),
             });
         });
 
@@ -443,7 +443,7 @@ describe('Chart', () => {
                     xKey: datasets.economy.valueKey,
                     yKey: datasets.economy.valueKey,
                 },
-                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].rootGroup, Circle),
+                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].contentGroup, Circle),
             });
         });
 

@@ -60,8 +60,8 @@ export class TextWrapper {
         const wrapHyphenate = options.textWrap === 'hyphenate';
         const wrapOnSpace = options.textWrap == null || options.textWrap === 'on-space';
 
-        for (let line of lines) {
-            line = line.trimEnd();
+        for (const untrimmedLine of lines) {
+            let line = untrimmedLine.trimEnd();
 
             if (line === '') {
                 result.push(line);

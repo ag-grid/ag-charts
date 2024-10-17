@@ -281,6 +281,23 @@ function createVolumeSeries(
 // eslint-disable-next-line sonarjs/no-duplicate-string
 const RANGE_AREA_TYPE = 'range-area';
 
+interface PriceSeriesCommon {
+    pickOutsideVisibleMinorAxis: boolean;
+}
+
+interface PriceSeriesKeys {
+    xKey: string;
+    openKey: string;
+    closeKey: string;
+    highKey: string;
+    lowKey: string;
+}
+
+interface PriceSeriesSingleKeys {
+    xKey: string;
+    yKey: string;
+}
+
 function createPriceSeries(
     theme: AgChartThemeName | AgChartTheme | undefined,
     chartType: AgPriceVolumePreset['chartType'],
@@ -295,159 +312,196 @@ function createPriceSeries(
         chartType = 'hlc';
     }
 
-    const keys = {
+    const keys: PriceSeriesKeys = {
         xKey,
         openKey,
         closeKey,
         highKey,
         lowKey,
     };
-    const singleKeys = {
+    const singleKeys: PriceSeriesSingleKeys = {
         xKey,
         yKey: closeKey,
     };
-    const common = {
+    const common: PriceSeriesCommon = {
         pickOutsideVisibleMinorAxis: true,
     };
 
     switch (chartType ?? 'candlestick') {
         case 'ohlc':
-            return [
-                {
-                    type: 'ohlc',
-                    // @ts-expect-error
-                    focusPriority: 0,
-                    ...common,
-                    ...keys,
-                } satisfies AgOhlcSeriesOptions,
-            ];
+            return createPriceSeriesOHLC(common, keys);
         case 'line':
-            return [
-                {
-                    type: 'line',
-                    // @ts-expect-error
-                    focusPriority: 0,
-                    ...common,
-                    ...singleKeys,
-                    stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_NEUTRAL_STROKE,
-                    marker: fromTheme(theme, (t) => t.overrides?.line?.series?.marker) ?? { enabled: false },
-                } satisfies AgLineSeriesOptions,
-            ];
+            return createPriceSeriesLine(common, theme, singleKeys);
         case 'step-line':
-            return [
-                {
-                    type: 'line',
-                    // @ts-expect-error
-                    focusPriority: 0,
-                    ...common,
-                    ...singleKeys,
-                    stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_NEUTRAL_STROKE,
-                    interpolation: fromTheme(theme, (t) => t.overrides?.line?.series?.interpolation) ?? {
-                        type: 'step',
-                    },
-                    marker: fromTheme(theme, (t) => t.overrides?.line?.series?.marker) ?? { enabled: false },
-                } satisfies AgLineSeriesOptions,
-            ];
-
-        case 'hlc': {
-            const rangeAreaColors = getThemeColors(RANGE_AREA_TYPE, theme);
-
-            return [
-                {
-                    type: RANGE_AREA_TYPE,
-                    // @ts-expect-error
-                    focusPriority: 0,
-                    ...common,
-                    xKey,
-                    yHighKey: highKey,
-                    yLowKey: closeKey,
-                    fill: rangeAreaColors.fill ?? PALETTE_UP_FILL,
-                    stroke: rangeAreaColors.stroke ?? PALETTE_UP_STROKE,
-                    fillOpacity: fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.fillOpacity) ?? 0.3,
-                    strokeWidth: fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.strokeWidth) ?? 2,
-                } satisfies AgRangeAreaSeriesOptions,
-                {
-                    type: RANGE_AREA_TYPE,
-                    // @ts-expect-error
-                    focusPriority: 0,
-                    ...common,
-                    xKey,
-                    yHighKey: closeKey,
-                    yLowKey: lowKey,
-                    fill: rangeAreaColors.fill ?? PALETTE_DOWN_FILL,
-                    stroke: rangeAreaColors.stroke ?? PALETTE_DOWN_STROKE,
-                    fillOpacity: fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.fillOpacity) ?? 0.3,
-                    strokeWidth: fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.strokeWidth) ?? 2,
-                } satisfies AgRangeAreaSeriesOptions,
-                {
-                    type: 'line',
-                    ...common,
-                    ...singleKeys,
-                    stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_ALT_NEUTRAL_STROKE,
-                    strokeWidth: fromTheme(theme, (t) => t.overrides?.line?.series?.strokeWidth) ?? 2,
-                    marker: fromTheme(theme, (t) => t.overrides?.line?.series?.marker) ?? { enabled: false },
-                } satisfies AgLineSeriesOptions,
-            ];
-        }
-        case 'high-low': {
-            const rangeBarColors = getThemeColors('range-bar', theme);
-
-            return [
-                {
-                    type: 'range-bar',
-                    // @ts-expect-error
-                    focusPriority: 0,
-                    ...common,
-                    xKey,
-                    yHighKey: highKey,
-                    yLowKey: lowKey,
-                    fill: rangeBarColors.fill ?? PALETTE_NEUTRAL_FILL,
-                    stroke: rangeBarColors.stroke ?? PALETTE_NEUTRAL_STROKE,
-                    tooltip: {
-                        range: 'nearest',
-                    },
-                } satisfies AgRangeBarSeriesOptions,
-            ];
-        }
+            return createPriceSeriesStepLine(common, theme, singleKeys);
+        case 'hlc':
+            return createPriceSeriesHLC(common, theme, singleKeys, keys);
+        case 'high-low':
+            return createPriceSeriesHighLow(common, theme, keys);
         case 'candlestick':
-            return [
-                {
-                    type: 'candlestick',
-                    // @ts-expect-error
-                    focusPriority: 0,
-                    ...common,
-                    ...keys,
-                } satisfies AgCandlestickSeriesOptions,
-            ];
-        case 'hollow-candlestick': {
-            const item = fromTheme(theme, (t) => t.overrides?.candlestick?.series?.item);
-            return [
-                {
-                    type: 'candlestick',
-                    // @ts-expect-error
-                    focusPriority: 0,
-                    ...common,
-                    ...keys,
-                    item: {
-                        up: {
-                            fill: item?.up?.fill ?? 'transparent',
-                        },
-                    },
-                } satisfies AgCandlestickSeriesOptions,
-            ];
-        }
+            return createPriceSeriesCandlestick(common, keys);
+        case 'hollow-candlestick':
+            return createPriceSeriesHollowCandlestick(common, theme, keys);
         default:
             Logger.warnOnce(`unknown chart type: ${chartType}; expected one of: ${chartTypes.join(', ')}`);
-            return [
-                {
-                    type: 'candlestick',
-                    // @ts-expect-error
-                    focusPriority: 0,
-                    ...common,
-                    ...keys,
-                } satisfies AgCandlestickSeriesOptions,
-            ];
+            return createPriceSeriesCandlestick(common, keys);
     }
+}
+
+function createPriceSeriesOHLC(common: PriceSeriesCommon, keys: PriceSeriesKeys) {
+    return [
+        {
+            type: 'ohlc',
+            // @ts-expect-error
+            focusPriority: 0,
+            ...common,
+            ...keys,
+        } satisfies AgOhlcSeriesOptions,
+    ];
+}
+
+function createPriceSeriesLine(
+    common: PriceSeriesCommon,
+    theme: AgChartThemeName | AgChartTheme | undefined,
+    singleKeys: PriceSeriesSingleKeys
+) {
+    return [
+        {
+            type: 'line',
+            // @ts-expect-error
+            focusPriority: 0,
+            ...common,
+            ...singleKeys,
+            stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_NEUTRAL_STROKE,
+            marker: fromTheme(theme, (t) => t.overrides?.line?.series?.marker) ?? { enabled: false },
+        } satisfies AgLineSeriesOptions,
+    ];
+}
+
+function createPriceSeriesStepLine(
+    common: PriceSeriesCommon,
+    theme: AgChartThemeName | AgChartTheme | undefined,
+    singleKeys: PriceSeriesSingleKeys
+) {
+    return [
+        {
+            type: 'line',
+            // @ts-expect-error
+            focusPriority: 0,
+            ...common,
+            ...singleKeys,
+            stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_NEUTRAL_STROKE,
+            interpolation: fromTheme(theme, (t) => t.overrides?.line?.series?.interpolation) ?? {
+                type: 'step',
+            },
+            marker: fromTheme(theme, (t) => t.overrides?.line?.series?.marker) ?? { enabled: false },
+        } satisfies AgLineSeriesOptions,
+    ];
+}
+
+function createPriceSeriesHLC(
+    common: PriceSeriesCommon,
+    theme: AgChartThemeName | AgChartTheme | undefined,
+    singleKeys: PriceSeriesSingleKeys,
+    { xKey, highKey, closeKey, lowKey }: PriceSeriesKeys
+) {
+    const rangeAreaColors = getThemeColors(RANGE_AREA_TYPE, theme);
+
+    return [
+        {
+            type: RANGE_AREA_TYPE,
+            // @ts-expect-error
+            focusPriority: 0,
+            ...common,
+            xKey,
+            yHighKey: highKey,
+            yLowKey: closeKey,
+            fill: rangeAreaColors.fill ?? PALETTE_UP_FILL,
+            stroke: rangeAreaColors.stroke ?? PALETTE_UP_STROKE,
+            fillOpacity: fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.fillOpacity) ?? 0.3,
+            strokeWidth: fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.strokeWidth) ?? 2,
+        } satisfies AgRangeAreaSeriesOptions,
+        {
+            type: RANGE_AREA_TYPE,
+            // @ts-expect-error
+            focusPriority: 0,
+            ...common,
+            xKey,
+            yHighKey: closeKey,
+            yLowKey: lowKey,
+            fill: rangeAreaColors.fill ?? PALETTE_DOWN_FILL,
+            stroke: rangeAreaColors.stroke ?? PALETTE_DOWN_STROKE,
+            fillOpacity: fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.fillOpacity) ?? 0.3,
+            strokeWidth: fromTheme(theme, (t) => t.overrides?.['range-area']?.series?.strokeWidth) ?? 2,
+        } satisfies AgRangeAreaSeriesOptions,
+        {
+            type: 'line',
+            ...common,
+            ...singleKeys,
+            stroke: fromTheme(theme, (t) => t.overrides?.line?.series?.stroke) ?? PALETTE_ALT_NEUTRAL_STROKE,
+            strokeWidth: fromTheme(theme, (t) => t.overrides?.line?.series?.strokeWidth) ?? 2,
+            marker: fromTheme(theme, (t) => t.overrides?.line?.series?.marker) ?? { enabled: false },
+        } satisfies AgLineSeriesOptions,
+    ];
+}
+
+function createPriceSeriesHighLow(
+    common: PriceSeriesCommon,
+    theme: AgChartThemeName | AgChartTheme | undefined,
+    { xKey, highKey, lowKey }: PriceSeriesKeys
+) {
+    const rangeBarColors = getThemeColors('range-bar', theme);
+
+    return [
+        {
+            type: 'range-bar',
+            // @ts-expect-error
+            focusPriority: 0,
+            ...common,
+            xKey,
+            yHighKey: highKey,
+            yLowKey: lowKey,
+            fill: rangeBarColors.fill ?? PALETTE_NEUTRAL_FILL,
+            stroke: rangeBarColors.stroke ?? PALETTE_NEUTRAL_STROKE,
+            tooltip: {
+                range: 'nearest',
+            },
+        } satisfies AgRangeBarSeriesOptions,
+    ];
+}
+
+function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeriesKeys) {
+    return [
+        {
+            type: 'candlestick',
+            // @ts-expect-error
+            focusPriority: 0,
+            ...common,
+            ...keys,
+        } satisfies AgCandlestickSeriesOptions,
+    ];
+}
+
+function createPriceSeriesHollowCandlestick(
+    common: PriceSeriesCommon,
+    theme: AgChartThemeName | AgChartTheme | undefined,
+    keys: PriceSeriesKeys
+) {
+    const item = fromTheme(theme, (t) => t.overrides?.candlestick?.series?.item);
+    return [
+        {
+            type: 'candlestick',
+            // @ts-expect-error
+            focusPriority: 0,
+            ...common,
+            ...keys,
+            item: {
+                up: {
+                    fill: item?.up?.fill ?? 'transparent',
+                },
+            },
+        } satisfies AgCandlestickSeriesOptions,
+    ];
 }
 
 function getThemeColors(seriesType: 'range-area' | 'range-bar', theme: AgChartThemeName | AgChartTheme | undefined) {

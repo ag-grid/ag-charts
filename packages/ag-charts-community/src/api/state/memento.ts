@@ -1,7 +1,7 @@
 import { Logger } from '../../util/logger';
 import { isDate, isObject } from '../../util/type-guards';
 
-export interface MementoOriginator<Memento extends any = any> {
+export interface MementoOriginator<Memento = any> {
     mementoOriginatorKey: string;
     createMemento(): Memento;
     guardMemento(blob: unknown): blob is Memento;

@@ -43,16 +43,15 @@ export class LicenseManager {
         const currentLicenseName = `AG ${
             licenseDetails.currentLicenseType === 'BOTH' ? 'Grid and ' : ''
         }Charts Enterprise`;
-        const suppliedLicenseName =
-            licenseDetails.suppliedLicenseType === undefined
-                ? ''
-                : `AG ${
-                      licenseDetails.suppliedLicenseType === 'BOTH'
-                          ? 'Grid and AG Charts'
-                          : licenseDetails.suppliedLicenseType === 'GRID'
-                            ? 'Grid'
-                            : 'Charts'
-                  } Enterprise`;
+
+        let suppliedLicenseName = '';
+        if (licenseDetails.suppliedLicenseType === 'BOTH') {
+            suppliedLicenseName = 'AG Grid and AG Charts Enterprise';
+        } else if (licenseDetails.suppliedLicenseType === 'GRID') {
+            suppliedLicenseName = 'AG Grid Enterprise';
+        } else if (licenseDetails.suppliedLicenseType !== undefined) {
+            suppliedLicenseName = 'AG Charts Enterprise';
+        }
 
         if (licenseDetails.missing) {
             if (!this.isWebsiteUrl() || this.isForceWatermark()) {

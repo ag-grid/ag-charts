@@ -74,7 +74,7 @@ export class ZoomContextMenu {
         const rect = this.getRect();
         const { enabled, isScalingX, isScalingY, minRatioX, minRatioY } = this.getModuleProperties();
 
-        if (!enabled || !rect || !event || !event.target || !(event instanceof MouseEvent)) return;
+        if (!enabled || !rect || !event?.target || !(event instanceof MouseEvent)) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
         const origin = pointToRatio(rect, event.offsetX, event.offsetX);
@@ -100,7 +100,7 @@ export class ZoomContextMenu {
         const rect = this.getRect();
         const { enabled } = this.getModuleProperties();
 
-        if (!enabled || !rect || !event || !event.target || !(event instanceof MouseEvent)) return;
+        if (!enabled || !rect || !event?.target || !(event instanceof MouseEvent)) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
         const origin = pointToRatio(rect, event.offsetX, event.offsetY);

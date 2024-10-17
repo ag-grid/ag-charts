@@ -1,7 +1,6 @@
 import { BBox } from '../bbox';
-import { nodeCount } from '../debug.util';
 import type { NodeOptions, RenderContext } from '../node';
-import { RedrawType, SceneChangeDetection } from '../node';
+import { SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 
 export class Range extends Shape {
@@ -17,25 +16,25 @@ export class Range extends Shape {
         this.restoreOwnStyles();
     }
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     x1: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     y1: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     x2: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     y2: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     startLine: boolean = false;
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     endLine: boolean = false;
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     isRange: boolean = false;
 
     protected override computeBBox(): BBox {
@@ -47,12 +46,7 @@ export class Range extends Shape {
     }
 
     override render(renderCtx: RenderContext) {
-        const { ctx, forceRender, stats } = renderCtx;
-
-        if (this.dirty === RedrawType.NONE && !forceRender) {
-            if (stats) stats.nodesSkipped += nodeCount(this).count;
-            return;
-        }
+        const { ctx } = renderCtx;
 
         let { x1, y1, x2, y2 } = this;
 

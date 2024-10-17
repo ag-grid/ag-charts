@@ -156,7 +156,7 @@ export function tickFormat(ticks: any[], format?: string): (n: number | { valueO
             options.precision = Math.max(
                 ...ticks.map((x) => {
                     if (!Number.isFinite(x)) return 0;
-                    const [integer, decimal] = x.toExponential((options.type ? 6 : 12) - 1).split(/\.|e/g);
+                    const [integer, decimal] = x.toExponential((options.type ? 6 : 12) - 1).split(/[.e]/g);
                     return (integer !== '1' && integer !== '-1' ? 1 : 0) + decimalPlaces(decimal) + 1;
                 })
             );
@@ -166,7 +166,7 @@ export function tickFormat(ticks: any[], format?: string): (n: number | { valueO
                     if (!Number.isFinite(x) || x === 0) return 0;
                     const l = Math.floor(Math.log10(Math.abs(x)));
                     const digits = options.type ? 6 : 12;
-                    const decimal = x.toExponential(digits - 1).split(/\.|e/g)[1];
+                    const decimal = x.toExponential(digits - 1).split(/[.e]/g)[1];
                     const decimalLength = decimalPlaces(decimal);
                     return Math.max(0, decimalLength - l);
                 })

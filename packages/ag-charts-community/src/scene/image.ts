@@ -1,5 +1,5 @@
 import type { RenderContext } from './node';
-import { Node, RedrawType, SceneChangeDetection } from './node';
+import { Node, SceneChangeDetection } from './node';
 
 export class Image extends Node {
     constructor(private sourceImage?: HTMLImageElement | ImageBitmap) {
@@ -12,36 +12,32 @@ export class Image extends Node {
         this.height = newBitmap.height / bitmapPixelRatio;
         this.x = x / bitmapPixelRatio;
         this.y = y / bitmapPixelRatio;
-        this.markDirty(RedrawType.MAJOR);
+        this.markDirty();
     }
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     x: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     y: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     width: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     height: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     opacity: number = 1;
 
     override render(renderCtx: RenderContext): void {
-        const { ctx, forceRender, stats } = renderCtx;
+        const { ctx } = renderCtx;
 
-        if (this.dirty === RedrawType.NONE && !forceRender) {
-            if (stats) stats.nodesSkipped++;
-            return;
-        }
         const image = this.sourceImage;
-        if (!image) return;
-
-        ctx.globalAlpha = this.opacity;
-        ctx.drawImage(image, 0, 0, image.width, image.height, this.x, this.y, this.width, this.height);
+        if (image) {
+            ctx.globalAlpha = this.opacity;
+            ctx.drawImage(image, 0, 0, image.width, image.height, this.x, this.y, this.width, this.height);
+        }
 
         super.render(renderCtx);
     }
