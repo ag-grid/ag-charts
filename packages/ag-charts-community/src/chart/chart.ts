@@ -798,8 +798,8 @@ export abstract class Chart extends Observable {
         // This method has to run before `assignSeriesToAxes`.
         const directionToAxesMap = groupBy(this.axes, (axis) => axis.direction);
 
-        this.series.forEach((series) => {
-            series.directions.forEach((direction) => {
+        for (const series of this.series) {
+            for (const direction of series.directions) {
                 const directionAxes = directionToAxesMap[direction];
                 if (!directionAxes) {
                     Logger.warnOnce(
@@ -820,8 +820,8 @@ export abstract class Chart extends Observable {
                 }
 
                 series.axes[direction] = newAxis;
-            });
-        });
+            }
+        }
     }
 
     private parentResize(size: { width: number; height: number } | undefined) {
