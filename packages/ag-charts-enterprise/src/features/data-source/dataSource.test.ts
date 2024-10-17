@@ -78,6 +78,7 @@ describe('DataSource', () => {
         // event is triggered.
         await waitForChartStability(chart);
         await clickAction(cx, cy)(chart);
+        await delay(1000); // FIXME: temporary fix to work around race-condition with click & data-update handling
     }
 
     afterEach(() => {
