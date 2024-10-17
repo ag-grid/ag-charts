@@ -20,7 +20,7 @@ export class CartesianChart extends Chart {
     private lastUpdateClipRect?: BBox;
     private firstSeriesTranslation = true;
 
-    protected axesManager = new CartesianAxesManager(this.ctx);
+    protected axesManager = new CartesianAxesManager(this.ctx, this);
 
     override destroySeries(series: Series<any, any>[]) {
         this.firstSeriesTranslation = true;

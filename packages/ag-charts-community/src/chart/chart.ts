@@ -216,7 +216,7 @@ export abstract class Chart extends Observable {
     private readonly _destroyFns: (() => void)[] = [];
 
     // Used to prevent infinite update loops when syncing charts.
-    protected skipSync = false;
+    skipSync = false;
 
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
@@ -266,6 +266,7 @@ export abstract class Chart extends Observable {
             scene,
             root,
             container,
+            modulesManager: this.modulesManager,
             syncManager: new SyncManager(this),
             pixelRatio: options.specialOverrides.overrideDevicePixelRatio,
             updateCallback: (type, opts) => this.update(type, opts),

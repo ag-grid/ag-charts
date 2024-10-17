@@ -9,6 +9,7 @@ import { findMinMax } from '../util/number';
 import type { Padding } from '../util/padding';
 import { CategoryAxis } from './axis/categoryAxis';
 import { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
+import type { CartesianChart } from './cartesianChart';
 import type { ChartAxis } from './chartAxis';
 import { ChartAxisDirection } from './chartAxisDirection';
 import type { ChartContext } from './chartContext';
@@ -31,7 +32,10 @@ export class CartesianAxesManager {
         visibility: true,
     };
 
-    constructor(protected ctx: ChartContext) {}
+    constructor(
+        protected ctx: ChartContext,
+        protected chart: CartesianChart
+    ) {}
 
     updateAxes(axes: ChartAxis[], layoutBox: BBox, seriesPadding: Padding, seriesRect?: BBox) {
         // Start with a good approximation from the last update.
@@ -203,7 +207,7 @@ export class CartesianAxesManager {
     }
 
     private getSyncedDomain(axis: ChartAxis) {
-        const syncModule = this.modulesManager.getModule<SyncModule>('sync');
+        const syncModule = this.ctx.modulesManager.getModule<SyncModule>('sync');
         if (!syncModule?.enabled) return;
         const syncedDomain = syncModule.getSyncedDomain(axis);
 
@@ -217,7 +221,7 @@ export class CartesianAxesManager {
             } else {
                 shouldUpdate = !arraysEqual(syncedDomain, domain);
             }
-            if (shouldUpdate && !this.skipSync) {
+            if (shouldUpdate && !this.chart.skipSync) {
                 syncModule.updateSiblings();
             }
         }
