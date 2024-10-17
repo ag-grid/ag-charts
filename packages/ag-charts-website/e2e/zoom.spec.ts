@@ -107,7 +107,7 @@ test.describe('zoom', () => {
 
     test('AG-13166 zoom keynav focus-visible', async ({ page }) => {
         const { url } = toExamplePageUrl('financial-charts-configuration', 'default-configuration', 'vanilla');
-        await gotoExample(            page,url        );
+        await gotoExample(page, url);
         await page.mouse.click(20, 20);
 
         await page.keyboard.type('+');
