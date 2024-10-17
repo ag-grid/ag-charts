@@ -47,7 +47,6 @@ import { SyncManager } from './interaction/syncManager';
 import { Keyboard } from './keyboard';
 import { LayoutElement } from './layout/layoutManager';
 import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
-import { guessInvalidPositions } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
 import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/types';
 import { ModulesManager } from './modulesManager';
@@ -216,7 +215,7 @@ export abstract class Chart extends Observable {
     private readonly _destroyFns: (() => void)[] = [];
 
     // Used to prevent infinite update loops when syncing charts.
-    protected skipSync = false;
+    skipSync = false;
 
     chartAnimationPhase: ChartAnimationPhase = 'initial';
 
@@ -240,7 +239,7 @@ export abstract class Chart extends Observable {
         return this.queuedUserOptions.at(-1) ?? this.chartOptions.userOptions;
     }
 
-    protected constructor(options: ChartOptions, resources?: TransferableResources) {
+    constructor(options: ChartOptions, resources?: TransferableResources) {
         super();
 
         this.chartOptions = options;
@@ -266,6 +265,7 @@ export abstract class Chart extends Observable {
             scene,
             root,
             container,
+            modulesManager: this.modulesManager,
             syncManager: new SyncManager(this),
             pixelRatio: options.specialOverrides.overrideDevicePixelRatio,
             updateCallback: (type, opts) => this.update(type, opts),
@@ -726,6 +726,7 @@ export abstract class Chart extends Observable {
         if (oldValue == null && newValue.length === 0) return;
 
         this.ctx.axisManager.updateAxes(oldValue ?? [], newValue);
+        this.ctx?.zoomManager.updateAxes(newValue);
     }
 
     protected onSeriesChange(newValue: Series<any, any>[], oldValue?: Series<any, any>[]) {
@@ -1482,7 +1483,7 @@ export abstract class Chart extends Observable {
         }
     }
 
-    private createAxis(options: AgBaseAxisOptions[], skip: string[]): ChartAxis[] {
+    protected createAxis(options: AgBaseAxisOptions[], skip: string[]): ChartAxis[] {
         const newAxes: ChartAxis[] = [];
         const moduleContext = this.getModuleContext();
 
@@ -1494,8 +1495,6 @@ export abstract class Chart extends Observable {
 
             newAxes.push(axis);
         }
-
-        guessInvalidPositions(newAxes);
 
         return newAxes;
     }

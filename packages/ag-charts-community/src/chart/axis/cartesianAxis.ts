@@ -25,7 +25,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return this.position === 'top' || this.position === 'bottom' ? ChartAxisDirection.X : ChartAxisDirection.Y;
     }
 
-    protected updateDirection() {
+    updateDirection() {
         switch (this.position) {
             case 'top':
                 this.rotation = -90;
