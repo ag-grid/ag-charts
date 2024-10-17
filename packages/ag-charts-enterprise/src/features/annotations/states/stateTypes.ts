@@ -21,7 +21,13 @@ export type AnnotationStateEvents = InteractionEvents &
 type InteractionEvents = {
     click: { textInputValue?: string; bbox?: _Scene.BBox; point: () => Point };
     dblclick: { offset: _ModuleSupport.Vec2 };
-    drag: { offset: _ModuleSupport.Vec2; context: AnnotationContext; point: () => Point };
+    drag: {
+        offset: _ModuleSupport.Vec2;
+        context: AnnotationContext;
+        point: () => Point;
+        textInputValue?: string;
+        bbox?: _Scene.BBox;
+    };
     dragStart: { offset: _ModuleSupport.Vec2; context: AnnotationContext };
     dragEnd: undefined;
     hover: { offset: _ModuleSupport.Vec2; point: () => Point };

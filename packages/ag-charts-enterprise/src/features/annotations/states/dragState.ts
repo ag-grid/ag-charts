@@ -28,7 +28,6 @@ export class DragStateMachine<
         ctx: AnnotationsStateMachineContext & {
             datum: () => D | undefined;
             node: () => N | undefined;
-            setSelectedWithDrag: () => void;
             setSnapping: (snapping: boolean) => void;
             getSnapping: () => boolean;
             getHoverCoords: () => _ModuleSupport.Vec2 | undefined;
@@ -65,7 +64,6 @@ export class DragStateMachine<
 
                 drag: ({ offset, context }) => {
                     this.hasMoved = Vec2.lengthSquared(Vec2.sub(offset, this.dragStart!)) > 0;
-                    ctx.setSelectedWithDrag();
                     const datum = ctx.datum()!;
                     const snapping = ctx.getSnapping();
                     ctx.node()?.drag(datum, offset, context, snapping);

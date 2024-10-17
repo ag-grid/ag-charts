@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import { AnnotationType, type GuardDragClickDoubleEvent, type Point } from '../annotationTypes';
+import { AnnotationType, type Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
 import { DisjointChannelProperties } from './disjointChannelProperties';
@@ -14,12 +14,11 @@ interface DisjointChannelStateMachineContext extends Omit<AnnotationsStateMachin
     datum: () => DisjointChannelProperties | undefined;
     node: () => DisjointChannelScene | undefined;
     showAnnotationOptions: () => void;
-    guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
 }
 
 export class DisjointChannelStateMachine extends StateMachine<
     'start' | 'end' | 'height',
-    Pick<AnnotationStateEvents, 'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'cancel' | 'reset'>
+    Pick<AnnotationStateEvents, 'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'cancel' | 'reset'>
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -42,12 +41,10 @@ export class DisjointChannelStateMachine extends StateMachine<
         };
 
         const actionEndUpdate = ({ point }: { point?: (origin?: Point, snapToAngle?: number) => Point }) => {
-            ctx.guardDragClickDoubleEvent.hover();
+            if (!point) return;
 
-            if (point) {
-                const datum = ctx.datum();
-                datum?.set({ end: point(datum?.start, datum?.snapToAngle) });
-            }
+            const datum = ctx.datum();
+            datum?.set({ end: point(datum?.start, datum?.snapToAngle) });
 
             ctx.update();
         };
@@ -125,9 +122,10 @@ export class DisjointChannelStateMachine extends StateMachine<
                 keyDown: actionEndUpdate,
                 keyUp: actionEndUpdate,
                 click: {
-                    // Ensure that a double event of drag before a single click does not trigger an immediate
-                    // transition causing the start and end to be at the same point.
-                    guard: ctx.guardDragClickDoubleEvent.guard,
+                    target: 'height',
+                    action: actionEndFinish,
+                },
+                dragEnd: {
                     target: 'height',
                     action: actionEndFinish,
                 },
@@ -139,11 +137,14 @@ export class DisjointChannelStateMachine extends StateMachine<
                     target: StateMachine.parent,
                     action: actionCancel,
                 },
-                onExit: ctx.guardDragClickDoubleEvent.reset,
             },
             height: {
                 hover: actionHeightUpdate,
                 click: {
+                    target: StateMachine.parent,
+                    action: actionHeightFinish,
+                },
+                drag: {
                     target: StateMachine.parent,
                     action: actionHeightFinish,
                 },

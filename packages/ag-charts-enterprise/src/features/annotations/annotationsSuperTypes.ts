@@ -1,12 +1,6 @@
 import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type {
-    AnnotationContext,
-    AnnotationType,
-    Constructor,
-    GuardDragClickDoubleEvent,
-    Point,
-} from './annotationTypes';
+import type { AnnotationContext, AnnotationType, Constructor, Point } from './annotationTypes';
 import type { ArrowDownProperties } from './arrow-down/arrowDownProperties';
 import type { ArrowDownScene } from './arrow-down/arrowDownScene';
 import type { ArrowUpProperties } from './arrow-up/arrowUpProperties';
@@ -137,7 +131,6 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
     createState: (
         ctx: AnnotationsStateMachineContext & {
             delete: () => void;
-            guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
             deselect: () => void;
             showAnnotationOptions: () => void;
             showTextInput: () => void;
@@ -146,7 +139,6 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
     ) => _ModuleSupport.StateMachine<any, any>;
     dragState: (
         ctx: AnnotationsStateMachineContext & {
-            setSelectedWithDrag: () => void;
             setSnapping: (snapping: boolean) => void;
             getSnapping: () => boolean;
             getHoverCoords: () => _ModuleSupport.Vec2 | undefined;

@@ -20,7 +20,7 @@ export abstract class PointStateMachine<
     Node extends PointScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render',
-    Pick<AnnotationStateEvents, 'click' | 'cancel' | 'render' | 'reset'>
+    Pick<AnnotationStateEvents, 'click' | 'drag' | 'cancel' | 'render' | 'reset'>
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -41,6 +41,10 @@ export abstract class PointStateMachine<
         super('start', {
             start: {
                 click: {
+                    target: 'waiting-first-render',
+                    action: actionCreate,
+                },
+                drag: {
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },

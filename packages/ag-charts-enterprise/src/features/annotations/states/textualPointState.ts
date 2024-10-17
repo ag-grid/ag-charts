@@ -31,6 +31,7 @@ export abstract class TextualPointStateMachine<
     Pick<
         AnnotationStateEvents,
         | 'click'
+        | 'drag'
         | 'zoomChange'
         | 'cancel'
         | 'textInput'
@@ -134,6 +135,10 @@ export abstract class TextualPointStateMachine<
         super('start', {
             start: {
                 click: {
+                    target: 'waiting-first-render',
+                    action: actionCreate,
+                },
+                drag: {
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },

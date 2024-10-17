@@ -947,7 +947,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const shiftKey = (event.sourceEvent as MouseEvent).shiftKey;
         const point = this.getPointFn(shiftKey, offset, context);
 
-        state.transition('drag', { context, offset, point });
+        const textInputValue = this.textInput.getValue();
+        const bbox = this.textInput.getBBox();
+
+        state.transition('drag', { context, offset, point, textInputValue, bbox });
     }
 
     private onDragEnd() {
