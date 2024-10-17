@@ -3,7 +3,7 @@ import type { LegendModule, RootModule } from '../module/coreModules';
 import type { ModuleContext } from '../module/moduleContext';
 import { ModuleMap } from '../module/moduleMap';
 import { isProperties } from '../util/properties';
-import type { ChartLegend, ChartLegendType } from './legendDatum';
+import type { ChartLegend } from './legendDatum';
 
 export class ModulesManager extends ModuleMap<RootModule | LegendModule, ModuleInstance, ModuleContext> {
     applyOptions(options: object) {
@@ -18,7 +18,7 @@ export class ModulesManager extends ModuleMap<RootModule | LegendModule, ModuleI
         for (const { module, moduleInstance } of this.moduleMap.values()) {
             if (module.type !== 'legend') continue;
             yield {
-                legendType: module.identifier as ChartLegendType,
+                legendType: module.identifier,
                 legend: moduleInstance as ChartLegend,
             };
         }

@@ -6,7 +6,7 @@ import { isButtonClickEvent } from '../util/keynavUtil';
 
 // These types force a compilation error if the developer tries to add an icon-only
 // menu item without an accessible text alternative.
-type LabelAndIcon = { label: string; icon?: AgIconName; altText?: undefined };
+type LabelAndIcon = { label: string; icon?: AgIconName };
 type IconOnly = { label?: undefined; icon: AgIconName; altText: string };
 export type LabelIcon = LabelAndIcon | IconOnly;
 
@@ -60,6 +60,7 @@ export function createSelect(options: SelectOptions, attrs?: AttributeSet) {
             return optionEl;
         })
     );
+    setAttribute(select, 'data-preventdefault', false);
     select.value = options.value;
     select.addEventListener('change', (event) => options.onChange(select.value, event));
     setAttributes(select, attrs);

@@ -52,7 +52,7 @@ const LABEL_PLACEMENT = UNION(
         'outside-start',
         'inside-end',
         'outside-end',
-        'inside',
+        'inside-center',
         'bar-inside',
         'bar-inside-end',
         'bar-outside-end',
@@ -266,7 +266,7 @@ export class LinearGaugeLabelProperties extends AutoSizedLabel<AgLinearGaugeLabe
     text?: string;
 
     @Validate(LABEL_PLACEMENT)
-    placement: AgLinearGaugeLabelPlacement = 'inside';
+    placement: AgLinearGaugeLabelPlacement = 'inside-center';
 
     @Validate(BOOLEAN)
     avoidCollisions: boolean = true;

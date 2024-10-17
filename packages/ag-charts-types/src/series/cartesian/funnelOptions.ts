@@ -10,7 +10,7 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 export interface AgFunnelSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {}
 
 export interface AgFunnelSeriesStageLabelOptions extends AgBaseAxisLabelOptions {
-    /** Placement of the label in relation to the chart */
+    /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
 }
 
@@ -34,7 +34,7 @@ export interface AgFunnelSeriesDropOff extends FillOptions, StrokeOptions, LineD
 }
 
 export interface AgFunnelSeriesThemeableOptions<TDatum = any>
-    extends AgBaseCartesianThemeableOptions<TDatum>,
+    extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
         LineDashOptions {
     /** The colours to cycle through for the fills of the bars. */
     fills?: CssColor[];
@@ -76,7 +76,7 @@ export interface AgFunnelSeriesOptionsKeys {
 export interface AgFunnelSeriesOptionsNames {}
 
 export interface AgFunnelSeriesOptions<TDatum = any>
-    extends AgBaseSeriesOptions<TDatum>,
+    extends Omit<AgBaseSeriesOptions<TDatum>, 'showInLegend'>,
         AgFunnelSeriesOptionsKeys,
         AgFunnelSeriesOptionsNames,
         AgFunnelSeriesThemeableOptions<TDatum> {

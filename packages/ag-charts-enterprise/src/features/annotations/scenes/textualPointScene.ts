@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
@@ -21,7 +21,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
 
     public setTextInputBBox(bbox?: _Scene.BBox) {
         this.textInputBBox = bbox;
-        this.markDirty(_Scene.RedrawType.MINOR);
+        this.markDirty();
     }
 
     public override update(datum: Datum, context: AnnotationContext) {

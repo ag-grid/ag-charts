@@ -8,6 +8,7 @@ import { createId } from '../../util/id';
 import { clamp } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
+import { excludesType } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
@@ -57,6 +58,9 @@ class SeriesAreaAriaLabel {
     }
 }
 
+type TooltipEventTypes = 'hover' | 'click' | 'dblclick';
+type HighlightEventTypes = 'hover' | 'drag' | 'click' | 'dblclick';
+
 export class SeriesAreaManager extends BaseManager {
     readonly id = createId(this);
 
@@ -67,15 +71,15 @@ export class SeriesAreaManager extends BaseManager {
 
     private readonly highlight = {
         /** Last received event that still needs to be applied. */
-        pendingHoverEvent: undefined as RegionEvent<'hover' | 'drag'> | undefined,
+        pendingHoverEvent: undefined as RegionEvent<HighlightEventTypes> | undefined,
         /** Last applied event. */
-        appliedHoverEvent: undefined as RegionEvent<'hover' | 'drag'> | undefined,
+        appliedHoverEvent: undefined as RegionEvent<HighlightEventTypes> | undefined,
         /** Last applied event, which has been temporarily stashed during the main chart update cycle. */
-        stashedHoverEvent: undefined as RegionEvent<'hover' | 'drag'> | undefined,
+        stashedHoverEvent: undefined as RegionEvent<HighlightEventTypes> | undefined,
     };
 
     private readonly tooltip = {
-        lastHover: undefined as RegionEvent<'hover'> | undefined,
+        lastHover: undefined as RegionEvent<TooltipEventTypes> | undefined,
     };
 
     /**
@@ -118,12 +122,12 @@ export class SeriesAreaManager extends BaseManager {
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label'),
             seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All),
-            seriesRegion.addListener('drag', (event) => this.onHoverOrDrag(event), mouseMoveStates),
-            seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
+            seriesRegion.addListener('drag', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
+            seriesRegion.addListener('hover', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
             seriesRegion.addListener('leave', () => this.onLeave(), mouseMoveStates),
-            horizontalAxesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
+            horizontalAxesRegion.addListener('hover', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
             horizontalAxesRegion.addListener('leave', () => this.onLeave()),
-            verticalAxesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
+            verticalAxesRegion.addListener('hover', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
             verticalAxesRegion.addListener('leave', () => this.onLeave()),
             chart.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
             chart.ctx.domManager.addListener('resize', () => this.clearAll()),
@@ -224,11 +228,10 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.chart.ctx.focusIndicator.isFocusVisible()) this.clearAll();
     }
 
-    private onHover(event: RegionEvent<'hover'>): void {
-        this.tooltip.lastHover = event;
-        this.onHoverOrDrag(event);
-    }
-    private onHoverOrDrag(event: RegionEvent<'hover' | 'drag'>): void {
+    private onHoverLikeEvent(event: RegionEvent<HighlightEventTypes>): void {
+        if (excludesType(event, 'drag')) {
+            this.tooltip.lastHover = event;
+        }
         this.highlight.pendingHoverEvent = event;
         this.hoverScheduler.schedule();
 
@@ -244,6 +247,8 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onClick(event: RegionEvent<'click' | 'dblclick'>) {
+        this.hoverDevice = 'mouse';
+        this.onHoverLikeEvent(event);
         if (this.seriesRect?.containsPoint(event.offsetX, event.offsetY) && this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.preventDefault();
@@ -485,7 +490,7 @@ export class SeriesAreaManager extends BaseManager {
         this.chart.ctx.highlightManager.updateHighlight(this.id); // FIXME: clearHighlight?
     }
 
-    private handleHoverTooltip(event: RegionEvent<'hover'>, redisplay: boolean) {
+    private handleHoverTooltip(event: RegionEvent<TooltipEventTypes>, redisplay: boolean) {
         const state = this.chart.ctx.interactionManager.getState();
         if (
             state !== InteractionState.Default &&

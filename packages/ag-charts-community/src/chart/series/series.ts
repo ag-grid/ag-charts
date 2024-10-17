@@ -11,11 +11,11 @@ import { ModuleMap } from '../../module/moduleMap';
 import type { SeriesOptionInstance, SeriesOptionModule, SeriesType } from '../../module/optionsModuleTypes';
 import type { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
-import type { ZIndexSubOrder } from '../../scene/layersManager';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
+import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
 import { Listeners } from '../../util/listeners';
@@ -33,12 +33,11 @@ import type { DataController } from '../data/dataController';
 import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent } from '../tooltip/tooltip';
-import { ZIndexMap } from '../zIndexMap';
 import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
-import type { SeriesGroupZIndexSubOrderType } from './seriesLayerManager';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { ISeries, NodeDataDependencies, SeriesNodeDatum } from './seriesTypes';
+import { SeriesContentZIndexMap, SeriesZIndexMap } from './seriesZIndexMap';
 
 /** Modes of matching user interactions to rendered nodes (e.g. hover or click) */
 export enum SeriesNodePickMode {
@@ -147,7 +146,6 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     moduleCtx: ModuleContext;
     useLabelLayer?: boolean;
     pickModes: SeriesNodePickMode[];
-    contentGroupVirtual?: boolean;
     directionKeys?: SeriesDirectionKeysMapping<TProps>;
     directionNames?: SeriesDirectionKeysMapping<TProps>;
     canHaveAxes?: boolean;
@@ -194,23 +192,32 @@ export abstract class Series<
         return (this.constructor as any).type ?? '';
     }
 
-    // The group node that contains all the nodes used to render this series.
-    readonly rootGroup: Group = new Group({ name: 'seriesRoot', isVirtual: true });
-
     // The group node that contains the series rendering in its default (non-highlighted) state.
-    readonly contentGroup: TranslatableGroup;
+    readonly contentGroup = new TranslatableGroup({
+        name: `${this.internalId}-content`,
+        zIndex: SeriesZIndexMap.ANY_CONTENT,
+    });
 
     // The group node that contains all highlighted series items. This is a performance optimisation
     // for large-scale data-sets, where the only thing that routinely varies is the currently
     // highlighted node.
-    readonly highlightGroup: TranslatableGroup;
-    readonly highlightNode: Group;
-    readonly highlightLabel: Group;
+    readonly highlightGroup = new TranslatableGroup({
+        name: `${this.internalId}-highlight`,
+        zIndex: SeriesZIndexMap.ANY_CONTENT,
+    });
+
+    // Error bars etc.
+    readonly annotationGroup = new TranslatableGroup({
+        name: `${this.internalId}-annotation`,
+    });
 
     // Lazily initialised labelGroup for label presentation.
-    readonly labelGroup: TranslatableGroup;
+    readonly labelGroup = new TranslatableGroup({
+        name: `${this.internalId}-series-labels`,
+    });
 
-    readonly annotationGroup: Group;
+    readonly highlightNode: Group;
+    readonly highlightLabel: Group;
 
     // Package-level visibility, not meant to be set by the user.
     chart?: {
@@ -279,10 +286,10 @@ export abstract class Series<
         const { internalId, type, visible } = this;
 
         if (prev) {
-            this.ctx.seriesStateManager.deregisterSeries({ id: internalId, type });
+            this.ctx.seriesStateManager.deregisterSeries(this);
         }
         if (next) {
-            this.ctx.seriesStateManager.registerSeries({ id: internalId, type, visible, seriesGrouping: next });
+            this.ctx.seriesStateManager.registerSeries({ internalId, type, visible, seriesGrouping: next });
         }
 
         this.fireEvent(new SeriesGroupingChangedEvent(this, next, prev));
@@ -292,84 +299,57 @@ export abstract class Series<
         return { inner: 1, outer: 0 };
     }
 
-    _declarationOrder: number = -1;
-
     protected readonly ctx: ModuleContext;
 
     constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
         super();
 
-        const {
-            moduleCtx,
-            pickModes,
-            directionKeys = {},
-            directionNames = {},
-            contentGroupVirtual = true,
-            canHaveAxes = false,
-        } = seriesOpts;
+        const { moduleCtx, pickModes, directionKeys = {}, directionNames = {}, canHaveAxes = false } = seriesOpts;
 
         this.ctx = moduleCtx;
         this.directionKeys = directionKeys;
         this.directionNames = directionNames;
         this.canHaveAxes = canHaveAxes;
 
-        this.contentGroup = this.rootGroup.appendChild(
-            new TranslatableGroup({
-                name: `${this.internalId}-content`,
-                isVirtual: contentGroupVirtual,
-                zIndex: ZIndexMap.SERIES_LAYER,
-                zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
-            })
-        );
-
         this.highlightGroup = new TranslatableGroup({
             name: `${this.internalId}-highlight`,
-            isVirtual: contentGroupVirtual,
-            zIndex: ZIndexMap.SERIES_LAYER,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('highlight'),
         });
         this.highlightNode = this.highlightGroup.appendChild(new Group({ name: 'highlightNode', zIndex: 0 }));
         this.highlightLabel = this.highlightGroup.appendChild(new Group({ name: 'highlightLabel', zIndex: 10 }));
 
         this.pickModes = pickModes;
-
-        this.labelGroup = this.rootGroup.appendChild(
-            new TranslatableGroup({
-                name: `${this.internalId}-series-labels`,
-                zIndex: ZIndexMap.SERIES_LABEL,
-            })
-        );
-
-        this.annotationGroup = new Group({
-            name: `${this.id}-annotation`,
-            isVirtual: contentGroupVirtual,
-            zIndex: ZIndexMap.SERIES_LAYER,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('annotation'),
-        });
     }
 
-    getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
-        let mainAdjust = 0;
-        switch (type) {
-            case 'data':
-            case 'paths':
-                break;
-            case 'labels':
-                mainAdjust += 20000;
-                break;
-            case 'marker':
-                mainAdjust += 10000;
-                break;
-            // Following cases are in their own layer, so need to be careful to respect declarationOrder.
-            case 'highlight':
-                subIndex += 15000;
-                break;
-            case 'annotation':
-                mainAdjust += 15000;
-                break;
-        }
-        const main = () => this._declarationOrder + mainAdjust;
-        return [main, subIndex];
+    attachSeries(seriesContentNode: Node, seriesNode: Node, annotationNode: Node | undefined) {
+        seriesContentNode.appendChild(this.contentGroup);
+        seriesNode.appendChild(this.highlightGroup);
+        seriesNode.appendChild(this.labelGroup);
+        annotationNode?.appendChild(this.annotationGroup);
+    }
+
+    detachSeries(seriesContentNode: Node | undefined, seriesNode: Node, annotationNode: Node | undefined) {
+        seriesContentNode?.removeChild(this.contentGroup);
+        seriesNode.removeChild(this.highlightGroup);
+        seriesNode.removeChild(this.labelGroup);
+        annotationNode?.removeChild(this.annotationGroup);
+    }
+
+    _declarationOrder: number = -1;
+    setSeriesIndex(index: number) {
+        if (index === this._declarationOrder) return false;
+
+        this._declarationOrder = index;
+
+        this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.FOREGROUND];
+        this.highlightGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.HIGHLIGHT];
+        this.labelGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.LABEL];
+        this.annotationGroup.zIndex = index;
+
+        return true;
+    }
+
+    renderToOffscreenCanvas() {
+        return false;
     }
 
     private readonly seriesListeners = new Listeners<SeriesEventType, (event: any) => void>();
@@ -464,7 +444,7 @@ export abstract class Series<
     }
 
     private visibleMaybeChanged() {
-        this.ctx.seriesStateManager.registerSeries(this);
+        this.ctx.seriesStateManager.updateSeries(this);
     }
 
     // Produce data joins and update selection's nodes using node data.
@@ -531,9 +511,9 @@ export abstract class Series<
 
     protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
     pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {
-        const { pickModes, pickModeAxis, visible, rootGroup } = this;
+        const { pickModes, pickModeAxis, visible, contentGroup } = this;
 
-        if (!visible || !rootGroup.visible) return;
+        if (!visible || !contentGroup.visible) return;
         if (intent === 'highlight' && !this.properties.highlight.enabled) return;
         if (intent === 'highlight-tooltip' && !this.properties.highlight.enabled) return;
 
@@ -654,7 +634,7 @@ export abstract class Series<
     protected getLabelText<TParams>(
         label: AgChartLabelOptions<any, TParams>,
         params: TParams & Omit<AgChartLabelFormatterParams<any>, 'seriesId'>,
-        defaultFormatter: (value: any) => string = String
+        defaultFormatter: (value: any) => string = formatValue
     ) {
         if (label.formatter) {
             return (

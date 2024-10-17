@@ -28,7 +28,10 @@ export class MeasurerStatistics extends Font(Fill(Stroke(BaseProperties))) {
     public divider = new MeasurerStatisticsDivider();
 }
 
-class MeasurerDirectionProperties extends Fill(Stroke(Handle(BaseProperties))) {}
+class MeasurerDirectionProperties extends Fill(Stroke(Handle(BaseProperties))) {
+    @Validate(OBJECT, { optional: true })
+    public statistics = new MeasurerStatistics();
+}
 
 export class MeasurerTypeProperties extends Localisable(Background(Stroke(LineStyle(StartEndProperties)))) {
     public direction: 'both' | 'horizontal' | 'vertical' = 'both';
@@ -39,7 +42,7 @@ export class MeasurerTypeProperties extends Localisable(Background(Stroke(LineSt
     @Validate(OBJECT, { optional: true })
     public statistics = new MeasurerStatistics();
 
-    public getVolume: (from: Point['x'], to: Point['x']) => number = () => 0;
+    public getVolume: (from: Point['x'], to: Point['x']) => number | undefined = () => 0;
 
     override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
         switch (colorPickerType) {

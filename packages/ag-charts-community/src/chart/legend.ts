@@ -15,9 +15,7 @@ import type { ListSwitch } from '../dom/proxyInteractionService';
 import type { LayoutContext } from '../module/baseModule';
 import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
-import { Group } from '../scene/group';
-import { TranslatableLayer } from '../scene/layer';
-import { RedrawType } from '../scene/node';
+import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
@@ -182,14 +180,14 @@ export class Legend extends BaseProperties {
 
     readonly id = createId(this);
 
-    private readonly group = new TranslatableLayer({ name: 'legend', zIndex: ZIndexMap.LEGEND });
+    private readonly group = new TranslatableGroup({ name: 'legend', zIndex: ZIndexMap.LEGEND });
 
     private readonly itemSelection: Selection<LegendMarkerLabel, CategoryLegendDatum> = Selection.select(
         this.group,
         LegendMarkerLabel
     );
 
-    private readonly spriteRenderer = new SpriteRenderer();
+    private spriteRenderer: SpriteRenderer | undefined = undefined;
 
     private readonly oldSize: [number, number] = [0, 0];
     private pages: Page[] = [];
@@ -364,7 +362,7 @@ export class Legend extends BaseProperties {
 
     public onMarkerShapeChange() {
         this.itemSelection.clear();
-        this.group.markDirty(RedrawType.MINOR);
+        this.group.markDirty();
     }
 
     private getOrientation(): AgChartLegendOrientation {
@@ -459,6 +457,7 @@ export class Legend extends BaseProperties {
         const maxItemWidth = maxWidth ?? width * itemMaxWidthPercentage;
 
         const spriteDims = this.calculateSpriteDimensions();
+        this.spriteRenderer ??= new SpriteRenderer();
         this.spriteRenderer.resize(spriteDims);
 
         this.itemSelection.each((markerLabel, datum) => {
@@ -467,7 +466,7 @@ export class Legend extends BaseProperties {
             markerLabel.fontSize = fontSize;
             markerLabel.fontFamily = fontFamily;
 
-            const paddedSymbolWidth = this.updateMarkerLabel(markerLabel, datum, spriteDims);
+            const paddedSymbolWidth = this.updateMarkerLabel(this.spriteRenderer!, markerLabel, datum, spriteDims);
             const id = datum.itemId ?? datum.id;
             const labelText = this.getItemLabel(datum);
             const text = (labelText ?? '<unknown>').replace(/\r?\n/g, ' ');
@@ -586,6 +585,7 @@ export class Legend extends BaseProperties {
     }
 
     private updateMarkerLabel(
+        spriteRenderer: SpriteRenderer,
         markerLabel: LegendMarkerLabel,
         datum: CategoryLegendDatum,
         spriteDims: SpriteDimensions
@@ -644,7 +644,7 @@ export class Legend extends BaseProperties {
             }
         });
 
-        markerLabel.update(this.spriteRenderer, spriteDims, dimensionProps);
+        markerLabel.update(spriteRenderer, spriteDims, dimensionProps);
         return paddedSymbolWidth;
     }
 
@@ -945,9 +945,18 @@ export class Legend extends BaseProperties {
     }
 
     private updateContextMenu() {
-        const { toggleSeries } = this;
-        this.ctx.contextMenuRegistry.setActionVisibility(ID_LEGEND_VISIBILITY, toggleSeries);
-        this.ctx.contextMenuRegistry.setActionVisibility(ID_LEGEND_OTHER_SERIES, toggleSeries);
+        const {
+            toggleSeries,
+            ctx: { contextMenuRegistry },
+        } = this;
+
+        if (toggleSeries) {
+            contextMenuRegistry.hideAction(ID_LEGEND_VISIBILITY);
+            contextMenuRegistry.hideAction(ID_LEGEND_OTHER_SERIES);
+        } else {
+            contextMenuRegistry.showAction(ID_LEGEND_VISIBILITY);
+            contextMenuRegistry.showAction(ID_LEGEND_OTHER_SERIES);
+        }
     }
 
     private getLineStyles(datum: LegendSymbolOptions) {
@@ -1296,7 +1305,7 @@ export class Legend extends BaseProperties {
 
         switch (this.position) {
             case 'top':
-            case 'bottom':
+            case 'bottom': {
                 // A horizontal legend should take maximum between 20 and 50 percent of the chart height if height is larger than width
                 // and maximum 20 percent of the chart height if height is smaller than width.
                 const heightCoefficient =
@@ -1308,16 +1317,18 @@ export class Legend extends BaseProperties {
                     ? Math.min(this.maxHeight, height)
                     : Math.round(height * heightCoefficient);
                 break;
+            }
 
             case 'left':
             case 'right':
-            default:
+            default: {
                 // A vertical legend should take maximum between 25 and 50 percent of the chart width if width is larger than height
                 // and maximum 25 percent of the chart width if width is smaller than height.
                 const widthCoefficient =
                     aspectRatio > 1 ? Math.min(maxCoefficient, minWidthCoefficient * aspectRatio) : minWidthCoefficient;
                 legendWidth = this.maxWidth ? Math.min(this.maxWidth, width) : Math.round(width * widthCoefficient);
                 legendHeight = this.maxHeight ? Math.min(this.maxHeight, height) : height;
+            }
         }
 
         return [legendWidth, legendHeight];

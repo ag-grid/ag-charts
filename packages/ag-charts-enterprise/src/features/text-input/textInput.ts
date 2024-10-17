@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 import type { FontOptions, TextAlign } from 'ag-charts-types';
 
 import type { AnnotationTextPosition } from '../annotations/text/util';
@@ -34,6 +34,11 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.element.classList.add('ag-charts-text-input');
 
         this.destroyFns.push(() => ctx.domManager.removeChild(canvasOverlay, moduleId));
+    }
+
+    public setKeyDownHandler(handler: (e: KeyboardEvent) => unknown) {
+        this.element.addEventListener('keydown', handler);
+        this.destroyFns.push(() => this.element.removeEventListener('keydown', handler));
     }
 
     public show(opts: {

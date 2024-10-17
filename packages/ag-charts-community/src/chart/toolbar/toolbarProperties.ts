@@ -103,7 +103,7 @@ export class ToolbarGroupProperties extends BaseProperties {
         let overrides: any = this.buttonOverrides.get(id);
         if (overrides == null) {
             overrides = Object.create(null);
-            this.buttonOverrides.set(id, overrides!);
+            this.buttonOverrides.set(id, overrides);
         }
 
         for (const key in options) {

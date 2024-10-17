@@ -16,10 +16,7 @@ enum ArcType {
 export class Arc extends Path {
     static override readonly className = 'Arc';
 
-    protected static override defaultStyles = Object.assign({}, Shape.defaultStyles, {
-        lineWidth: 1,
-        fillStyle: null,
-    });
+    protected static override defaultStyles = { ...Shape.defaultStyles, lineWidth: 1, fillStyle: null };
 
     constructor() {
         super();

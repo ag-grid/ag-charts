@@ -1,4 +1,4 @@
-import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
@@ -22,7 +22,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
 
     public setTextInputBBox(bbox?: _Scene.BBox) {
         this.textInputBBox = bbox;
-        this.markDirty(_Scene.RedrawType.MINOR);
+        this.markDirty();
     }
 
     public override update(datum: Datum, context: AnnotationContext) {

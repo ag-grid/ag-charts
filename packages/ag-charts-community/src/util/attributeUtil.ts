@@ -9,10 +9,11 @@ type BaseAttributeTypeMap = {
     'aria-expanded': boolean;
     'aria-haspopup': boolean;
     'aria-hidden': boolean;
-    'aria-label': string | undefined;
+    'aria-label': string;
     'aria-labelledby': ElementID;
     'aria-live': 'assertive' | 'polite';
     'aria-selected': boolean;
+    'data-preventdefault': boolean;
     class: string;
     id: ElementID;
     tabindex: 0 | -1;
@@ -29,19 +30,19 @@ export type InputAttributeSet = Partial<{ [K in keyof InputAttributeTypeMap]: In
 export function setAttribute<A extends keyof BaseAttributeTypeMap>(
     e: Nullable<HTMLElement>,
     qualifiedName: A,
-    value: BaseAttributeTypeMap[A]
+    value: BaseAttributeTypeMap[A] | undefined
 ): void;
 
 export function setAttribute<A extends keyof InputAttributeTypeMap>(
     e: Nullable<HTMLTextAreaElement>,
     qualifiedName: A,
-    value: InputAttributeTypeMap[A]
+    value: InputAttributeTypeMap[A] | undefined
 ): void;
 
 export function setAttribute<A extends keyof BaseAttributeTypeMap>(
     e: Nullable<HTMLElement>,
     qualifiedName: A,
-    value: BaseAttributeTypeMap[A]
+    value: BaseAttributeTypeMap[A] | undefined
 ) {
     if (value === undefined || value === '') {
         e?.removeAttribute(qualifiedName);
@@ -60,4 +61,35 @@ export function setAttributes(e: Nullable<HTMLElement>, attrs: AttributeSet | un
         if (key === 'class') continue;
         setAttribute(e as HTMLElement, key, attrs[key]);
     }
+}
+
+export function getAttribute<A extends keyof BaseAttributeTypeMap>(
+    e: Nullable<HTMLElement | EventTarget>,
+    qualifiedName: A,
+    defaultValue?: BaseAttributeTypeMap[A]
+): BaseAttributeTypeMap[A] | undefined;
+
+export function getAttribute<A extends keyof InputAttributeTypeMap>(
+    e: Nullable<HTMLTextAreaElement>,
+    qualifiedName: A,
+    defaultValue?: InputAttributeTypeMap[A]
+): InputAttributeTypeMap[A] | undefined;
+
+export function getAttribute<A extends keyof BaseAttributeTypeMap>(
+    e: Nullable<EventTarget>,
+    qualifiedName: A,
+    defaultValue?: BaseAttributeTypeMap[A]
+): BaseAttributeTypeMap[A] | undefined {
+    if (!(e instanceof HTMLElement)) return undefined;
+
+    const value = e.getAttribute(qualifiedName);
+    if (value === null) return defaultValue;
+
+    // Do not validate value. Tthis function assumes that setAttribute would be used.
+    const type = typeof ({} as BaseAttributeTypeMap)[qualifiedName];
+    if (type === 'boolean') return (value === 'true') as BaseAttributeTypeMap[A];
+    if (type === 'number') return Number(value) as BaseAttributeTypeMap[A];
+    if (type === 'string') return value as BaseAttributeTypeMap[A];
+
+    return undefined;
 }

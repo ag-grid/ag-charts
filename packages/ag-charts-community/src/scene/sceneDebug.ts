@@ -6,9 +6,8 @@ import { SimpleTextMeasurer } from '../util/textMeasurer';
 import { isString } from '../util/type-guards';
 import { BBox } from './bbox';
 import { Group } from './group';
-import { Layer } from './layer';
 import type { LayersManager } from './layersManager';
-import { type Node, RedrawType, type RenderContext } from './node';
+import { type Node, type RenderContext } from './node';
 import { SpriteRenderer } from './spriteRenderer';
 import { Transformable } from './transformable';
 
@@ -19,7 +18,7 @@ export enum DebugSelectors {
     SCENE_DIRTY_TREE = 'scene:dirtyTree',
 }
 
-type BuildTree = { name?: string; node?: any; dirty?: string; virtualParent?: Node };
+type BuildTree = { name?: string; node?: any; dirty?: boolean };
 
 export function debugStats(
     layersManager: LayersManager,
@@ -114,53 +113,69 @@ export function debugSceneNodeHighlight(ctx: CanvasRenderingContext2D, debugNode
     ctx.restore();
 }
 
-export function buildTree(node: Node): BuildTree {
+export const skippedProperties = new Set<string>();
+const allowedProperties = new Set([
+    'gradient',
+    // '_datum',
+    'zIndex',
+    'clipRect',
+    'cachedBBox',
+    'childNodeCounts',
+    'path',
+    '__zIndex',
+    'name',
+    '__scalingCenterX',
+    '__scalingCenterY',
+    '__rotationCenterX',
+    '__rotationCenterY',
+    '_previousDatum',
+    '__fill',
+    '__lineDash',
+    'borderPath',
+    'borderClipPath',
+    '_clipPath',
+]);
+
+function nodeProps(node: Node) {
+    const { ...allProps } = node as any;
+    for (const prop in allProps) {
+        if (allowedProperties.has(prop)) continue;
+        if (typeof allProps[prop] === 'number') continue;
+        if (typeof allProps[prop] === 'string') continue;
+        if (typeof allProps[prop] === 'boolean') continue;
+        skippedProperties.add(prop);
+        delete allProps[prop];
+    }
+    return allProps;
+}
+
+export function buildTree(node: Node, mode: 'json' | 'console'): BuildTree {
     if (!Debug.check(true, DebugSelectors.SCENE)) {
         return {};
     }
 
-    const { parentNode } = node as any;
     let order = 0;
     return {
-        node,
+        node: mode === 'json' ? nodeProps(node) : node,
         name: node.name ?? node.id,
-        dirty: RedrawType[node.dirty],
-        ...(parentNode?.isVirtual
-            ? {
-                  virtualParentDirty: RedrawType[parentNode.dirty],
-                  virtualParent: parentNode,
-              }
-            : {}),
-        ...Array.from(node.children(false), (c) => buildTree(c)).reduce<Record<string, {}>>((result, childTree) => {
+        dirty: node.dirty,
+        ...Array.from(node.children(), (c) => buildTree(c, mode)).reduce<Record<string, {}>>((result, childTree) => {
             let { name: treeNodeName } = childTree;
             const {
-                node: {
-                    visible,
-                    opacity,
-                    zIndex,
-                    zIndexSubOrder,
-                    translationX,
-                    translationY,
-                    rotation,
-                    scalingX,
-                    scalingY,
-                },
+                node: { visible, opacity, zIndex, translationX, translationY, rotation, scalingX, scalingY },
                 node: childNode,
-                virtualParent,
             } = childTree;
             if (!visible || opacity <= 0) {
                 treeNodeName = `(${treeNodeName})`;
             }
-            if (Layer.is(childNode)) {
+            if (Group.is(childNode) && childNode.renderToOffscreenCanvas) {
                 treeNodeName = `*${treeNodeName}*`;
             }
-            const subOrder = zIndexSubOrder?.map((v: any) => (typeof v === 'function' ? `${v()} (fn)` : v)).join(' / ');
+            const zIndexString = Array.isArray(zIndex) ? `(${zIndex.join(', ')})` : zIndex;
             const key = [
                 `${(order++).toString().padStart(3, '0')}|`,
                 `${treeNodeName ?? '<unknown>'}`,
-                `z: ${zIndex}`,
-                subOrder && `zo: ${subOrder}`,
-                virtualParent && `(virtual parent)`,
+                `z: ${zIndexString}`,
                 translationX && `x: ${translationX}`,
                 translationY && `y: ${translationY}`,
                 rotation && `r: ${rotation}`,
@@ -182,10 +197,10 @@ export function buildTree(node: Node): BuildTree {
 }
 
 export function buildDirtyTree(node: Node): {
-    dirtyTree: { name?: string; node?: any; dirty?: string };
+    dirtyTree: { name?: string; node?: any; dirty?: boolean };
     paths: string[];
 } {
-    if (node.dirty === RedrawType.NONE) {
+    if (!node.dirty) {
         return { dirtyTree: {}, paths: [] };
     }
 
@@ -199,7 +214,7 @@ export function buildDirtyTree(node: Node): {
         dirtyTree: {
             name,
             node,
-            dirty: RedrawType[node.dirty],
+            dirty: node.dirty,
             ...childrenDirtyTree
                 .map((c) => c.dirtyTree)
                 .filter((t) => t.dirty != null)

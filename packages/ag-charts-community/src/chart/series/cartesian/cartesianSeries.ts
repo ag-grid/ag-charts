@@ -4,7 +4,6 @@ import { ContinuousScale } from '../../../scale/continuousScale';
 import { LogScale } from '../../../scale/logScale';
 import { BBox } from '../../../scene/bbox';
 import { Group, TranslatableGroup } from '../../../scene/group';
-import type { ZIndexSubOrder } from '../../../scene/layersManager';
 import type { Node, NodeWithOpacity } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
@@ -14,7 +13,6 @@ import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
 import { StateMachine } from '../../../util/stateMachine';
-import { isFunction } from '../../../util/type-guards';
 import { BOOLEAN, STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
@@ -22,7 +20,6 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../../interaction/chartEventManager';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { ZIndexMap } from '../../zIndexMap';
 import { DataModelSeries } from '../dataModelSeries';
 import type {
     SeriesConstructorOpts,
@@ -32,7 +29,6 @@ import type {
     SeriesNodePickMatch,
 } from '../series';
 import { SeriesNodeEvent } from '../series';
-import type { SeriesGroupZIndexSubOrderType } from '../seriesLayerManager';
 import { SeriesProperties } from '../seriesProperties';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
 import type { Scaling } from './scaling';
@@ -96,16 +92,22 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
 }
 
 type CartesianAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing' | 'disabled';
-type CartesianAnimationEvent =
-    | 'update'
-    | 'updateData'
-    | 'highlight'
-    | 'highlightMarkers'
-    | 'resize'
-    | 'clear'
-    | 'reset'
-    | 'skip'
-    | 'disable';
+type CartesianAnimationEvent<
+    TNode extends Node,
+    TDatum extends CartesianSeriesNodeDatum,
+    TLabel extends SeriesNodeDatum = TDatum,
+    TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
+> = {
+    update: CartesianAnimationData<TNode, TDatum, TLabel, TContext>;
+    updateData: undefined;
+    highlight: Selection<TNode, TDatum>;
+    highlightMarkers: Selection<Marker, TDatum>;
+    resize: CartesianAnimationData<TNode, TDatum, TLabel, TContext>;
+    clear: CartesianAnimationData<TNode, TDatum, TLabel, TContext>;
+    reset: undefined;
+    skip: undefined;
+    disable: undefined;
+};
 
 export interface CartesianAnimationData<
     TNode extends Node,
@@ -141,6 +143,8 @@ export interface CartesianSeriesNodeDataContext<
     visible: boolean;
 }
 
+export const RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD = 10;
+
 export abstract class CartesianSeries<
     TNode extends Node,
     TProps extends CartesianSeriesProperties<any>,
@@ -160,26 +164,14 @@ export abstract class CartesianSeries<
     protected override readonly NodeEvent = CartesianSeriesNodeEvent;
 
     private readonly paths: Path[];
-    private readonly dataNodeGroup = this.contentGroup.appendChild(
-        new Group({
-            name: `${this.id}-series-dataNodes`,
-            zIndex: ZIndexMap.SERIES_LAYER,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('data'),
-        })
+    protected readonly dataNodeGroup = this.contentGroup.appendChild(
+        new Group({ name: `${this.id}-series-dataNodes`, zIndex: 0 })
     );
-    private readonly markerGroup = this.contentGroup.appendChild(
-        new Group({
-            name: `${this.id}-series-markers`,
-            zIndex: ZIndexMap.SERIES_LAYER,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('marker'),
-        })
+    protected readonly markerGroup = this.contentGroup.appendChild(
+        new Group({ name: `${this.id}-series-markers`, zIndex: 1 })
     );
     override readonly labelGroup = this.contentGroup.appendChild(
-        new TranslatableGroup({
-            name: `${this.id}-series-labels`,
-            zIndex: ZIndexMap.SERIES_LABEL,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('labels'),
-        })
+        new TranslatableGroup({ name: `${this.id}-series-labels` })
     );
     private datumSelection: Selection<TNode, TDatum>;
     private markerSelection: Selection<Marker, TDatum>;
@@ -206,7 +198,10 @@ export abstract class CartesianSeries<
 
     protected quadtree?: QuadtreeNearest<TDatum>;
 
-    protected animationState: StateMachine<CartesianAnimationState, CartesianAnimationEvent>;
+    protected animationState: StateMachine<
+        CartesianAnimationState,
+        CartesianAnimationEvent<TNode, TDatum, TLabel, TContext>
+    >;
 
     protected constructor({
         pathsPerSeries = ['path'],
@@ -245,13 +240,9 @@ export abstract class CartesianSeries<
             markerSelectionGarbageCollection,
         };
 
-        this.paths = [];
-        for (let index = 0; index < pathsPerSeries.length; index++) {
-            this.paths[index] = new Path({ name: `${this.id}-${pathsPerSeries[index]}` });
-            this.paths[index].zIndex = ZIndexMap.SERIES_LAYER;
-            this.paths[index].zIndexSubOrder = this.getGroupZIndexSubOrder('paths', index);
-            this.contentGroup.appendChild(this.paths[index]);
-        }
+        this.paths = pathsPerSeries.map((path) => {
+            return new Path({ name: `${this.id}-${path}` });
+        });
 
         this.datumSelection = Selection.select(
             this.dataNodeGroup,
@@ -264,7 +255,10 @@ export abstract class CartesianSeries<
             markerSelectionGarbageCollection
         );
 
-        this.animationState = new StateMachine<CartesianAnimationState, CartesianAnimationEvent>(
+        this.animationState = new StateMachine<
+            CartesianAnimationState,
+            CartesianAnimationEvent<TNode, TDatum, TLabel, TContext>
+        >(
             'empty',
             {
                 empty: {
@@ -316,6 +310,35 @@ export abstract class CartesianSeries<
             },
             () => this.checkProcessedDataAnimatable()
         );
+    }
+
+    override attachSeries(seriesContentNode: Node, seriesNode: Node, annotationNode: Node | undefined): void {
+        super.attachSeries(seriesContentNode, seriesNode, annotationNode);
+
+        this.attachPaths(this.paths, seriesNode, annotationNode);
+    }
+
+    override detachSeries(
+        seriesContentNode: Node | undefined,
+        seriesNode: Node,
+        annotationNode: Node | undefined
+    ): void {
+        super.detachSeries(seriesContentNode, seriesNode, annotationNode);
+
+        this.detachPaths(this.paths, seriesNode, annotationNode);
+    }
+
+    protected attachPaths(paths: Path[], _seriesNode: Node, _annotationNode: Node | undefined) {
+        for (const path of paths) {
+            this.contentGroup.appendChild(path);
+        }
+    }
+
+    protected detachPaths(_paths: Path[], _seriesNode: Node, _annotationNode: Node | undefined) {}
+
+    override renderToOffscreenCanvas(): boolean {
+        const nodeData = this.getNodeData();
+        return nodeData != null && nodeData.length > RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD;
     }
 
     override resetAnimation(phase: ChartAnimationPhase): void {
@@ -415,16 +438,6 @@ export abstract class CartesianSeries<
         return new MarkerShape();
     }
 
-    override getGroupZIndexSubOrder(type: SeriesGroupZIndexSubOrderType, subIndex = 0): ZIndexSubOrder {
-        const result = super.getGroupZIndexSubOrder(type, subIndex);
-        if (type === 'paths') {
-            const [superFn] = result;
-            const pathOffset = this.opts.pathsZIndexSubOrderOffset[subIndex] ?? 0;
-            result[0] = isFunction(superFn) ? () => Number(superFn()) + pathOffset : Number(superFn) + pathOffset;
-        }
-        return result;
-    }
-
     protected async updateNodes(
         highlightedItems: TDatum[] | undefined,
         seriesHighlighted: boolean,
@@ -438,7 +451,6 @@ export abstract class CartesianSeries<
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const visible = this.visible && this._contextNodeData != null && anySeriesItemEnabled;
-        this.rootGroup.visible = animationEnabled || visible;
         this.contentGroup.visible = animationEnabled || visible;
         this.highlightGroup.visible = (animationEnabled || visible) && seriesHighlighted;
 
@@ -448,7 +460,7 @@ export abstract class CartesianSeries<
                 markerSelection: highlightSelection as any,
                 isHighlight: true,
             });
-            this.animationState.transition('highlightMarkers', highlightSelection);
+            this.animationState.transition('highlightMarkers', highlightSelection as any);
         } else {
             await this.updateDatumNodes({
                 datumSelection: highlightSelection,
@@ -470,8 +482,6 @@ export abstract class CartesianSeries<
 
         if (hasMarkers) {
             markerGroup.opacity = opacity;
-            markerGroup.zIndex =
-                dataNodeGroup.zIndex >= ZIndexMap.SERIES_LAYER ? dataNodeGroup.zIndex : dataNodeGroup.zIndex + 1;
             markerGroup.visible = visible;
         }
 

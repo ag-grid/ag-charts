@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
+import { _Scale } from 'ag-charts-community';
 
 const { ColorScale } = _Scale;
 

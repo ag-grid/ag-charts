@@ -154,7 +154,7 @@ class AgChartsInternal {
         AgChartsInternal.initialised = true;
     }
 
-    static callbackApi: FactoryApi = {
+    private static readonly callbackApi: FactoryApi = {
         caretaker: AgChartsInternal.caretaker,
         create(userOptions, processedOverrides, specialOverrides, optionsMetadata) {
             return AgChartsInternal.createOrUpdate({

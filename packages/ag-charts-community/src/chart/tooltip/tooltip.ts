@@ -36,7 +36,7 @@ type TooltipPositionType =
     | 'bottom-left'
     | 'sparkline';
 
-export type TooltipEventType = 'hover' | 'drag' | 'keyboard';
+export type TooltipEventType = 'hover' | 'click' | 'dblclick' | 'keyboard';
 export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = PointerOffsets & { type: T };
 
 export type TooltipMeta = PointerOffsets & {
@@ -189,7 +189,6 @@ export class Tooltip extends BaseProperties {
     setup(domManager: DOMManager) {
         this.element = domManager.addChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
         this.element.classList.add(DEFAULT_TOOLTIP_CLASS);
-        setAttribute(this.element, 'aria-hidden', true);
     }
 
     destroy(domManager: DOMManager) {
@@ -272,10 +271,15 @@ export class Tooltip extends BaseProperties {
             element.style.transition = '';
         }
 
-        element.style.pointerEvents = meta.enableInteraction ? 'auto' : 'none';
-        element.setAttribute('data-pointer-capture', 'retain');
-
-        this.enableInteraction = meta.enableInteraction ?? false;
+        if (meta.enableInteraction) {
+            this.enableInteraction = true;
+            element.style.pointerEvents = 'auto';
+            setAttribute(element, 'aria-hidden', undefined);
+        } else {
+            this.enableInteraction = false;
+            element.style.pointerEvents = 'none';
+            setAttribute(element, 'aria-hidden', true);
+        }
 
         if (this.delay > 0 && !instantly) {
             this.toggle(false);

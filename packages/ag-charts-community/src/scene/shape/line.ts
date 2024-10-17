@@ -1,34 +1,30 @@
 import { lineDistanceSquared } from '../../util/distance';
 import type { DistantObject } from '../../util/nearest';
 import { BBox } from '../bbox';
-import { nodeCount } from '../debug.util';
 import type { NodeOptions, RenderContext } from '../node';
-import { RedrawType, SceneChangeDetection } from '../node';
+import { SceneChangeDetection } from '../node';
 import { Shape } from './shape';
 
 export class Line extends Shape implements DistantObject {
     static readonly className = 'Line';
 
-    protected static override defaultStyles = Object.assign({}, Shape.defaultStyles, {
-        fill: undefined,
-        strokeWidth: 1,
-    });
+    protected static override defaultStyles = { ...Shape.defaultStyles, fill: undefined, strokeWidth: 1 };
 
     constructor(opts: NodeOptions = {}) {
         super(opts);
         this.restoreOwnStyles();
     }
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     x1: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     y1: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     x2: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     y2: number = 0;
 
     set x(value: number) {
@@ -70,12 +66,7 @@ export class Line extends Shape implements DistantObject {
     }
 
     override render(renderCtx: RenderContext) {
-        const { ctx, forceRender, stats, devicePixelRatio } = renderCtx;
-
-        if (this.dirty === RedrawType.NONE && !forceRender) {
-            if (stats) stats.nodesSkipped += nodeCount(this).count;
-            return;
-        }
+        const { ctx, devicePixelRatio } = renderCtx;
 
         let { x1, y1, x2, y2 } = this;
 

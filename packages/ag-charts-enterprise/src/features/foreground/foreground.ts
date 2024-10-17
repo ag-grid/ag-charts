@@ -27,7 +27,7 @@ export class Foreground extends _ModuleSupport.Background<Image> {
     fillOpacity?: number = undefined;
 
     protected override createNode() {
-        return new _Scene.Layer({ name: 'foreground', zIndex: ZIndexMap.FOREGROUND });
+        return new _Scene.Group({ name: 'foreground', zIndex: ZIndexMap.FOREGROUND });
     }
 
     protected override onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {

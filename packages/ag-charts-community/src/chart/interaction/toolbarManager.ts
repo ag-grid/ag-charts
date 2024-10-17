@@ -68,9 +68,9 @@ export interface ToolbarButtonToggledEvent<_T = any> extends ToolbarBaseEvent<'b
 
 export interface ToolbarButtonUpdatedEvent extends ToolbarBaseEvent<'button-updated'> {
     id: string;
-    label?: string | undefined;
-    icon?: AgIconName | undefined;
-    fill?: string | undefined;
+    label?: string;
+    icon?: AgIconName;
+    fill?: string;
 }
 
 export interface ToolbarButtonMovedEvent<T = any> extends ToolbarBaseEvent<'button-moved'> {

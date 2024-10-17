@@ -17,7 +17,7 @@ const {
 } = _ModuleSupport;
 
 const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
-const { extent, isNumberEqual, sanitizeHtml, toFixed } = _Util;
+const { extent, isNumberEqual, sanitizeHtml } = _Util;
 
 export interface RadarPathPoint {
     x: number;
@@ -52,7 +52,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
     protected override readonly NodeEvent = RadarSeriesNodeEvent;
 
-    protected lineSelection: _Scene.Selection<_Scene.Path, boolean>;
+    private readonly lineGroup = this.contentGroup.appendChild(
+        new Group({
+            name: 'radar-line',
+            zIndex: _ModuleSupport.SeriesZIndexMap.ANY_CONTENT,
+        })
+    );
+    protected lineSelection: _Scene.Selection<_Scene.Path, boolean> = Selection.select(this.lineGroup, Path);
 
     protected resetInvalidToZero: boolean = false;
 
@@ -66,17 +72,25 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 item: resetMarkerFn,
             },
         });
-
-        const lineGroup = new Group();
-        this.contentGroup.append(lineGroup);
-        this.lineSelection = Selection.select(lineGroup, Path);
-        lineGroup.zIndexSubOrder = [() => this._declarationOrder, 1];
     }
 
     protected override nodeFactory(): _Scene.Marker {
         const { shape } = this.properties.marker;
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
+    }
+
+    override setSeriesIndex(index: number): boolean {
+        if (!super.setSeriesIndex(index)) return false;
+
+        this.lineGroup.zIndex = [
+            _ModuleSupport.SeriesZIndexMap.ANY_CONTENT,
+            index,
+            _ModuleSupport.SeriesContentZIndexMap.FOREGROUND,
+            1,
+        ];
+
+        return true;
     }
 
     override addChartEventListeners(): void {
@@ -190,11 +204,14 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
             let labelNodeDatum: RadarNodeDatum['label'];
             if (label.enabled) {
-                const labelText = this.getLabelText(
-                    label,
-                    { value: radiusDatum, datum, angleKey, radiusKey, angleName, radiusName },
-                    formatValue
-                );
+                const labelText = this.getLabelText(label, {
+                    value: radiusDatum,
+                    datum,
+                    angleKey,
+                    radiusKey,
+                    angleName,
+                    radiusName,
+                });
 
                 if (labelText) {
                     let textAlign: CanvasTextAlign = 'right';
@@ -241,7 +258,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         const { series } = this.ctx.highlightManager?.getActiveHighlight() ?? {};
-        this.highlightGroup.visible = (animationEnabled || this.visible) && !!(series === this);
+        this.highlightGroup.visible = (animationEnabled || this.visible) && series === this;
 
         await this.maybeRefreshNodeData();
 
@@ -330,7 +347,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             node.strokeOpacity = marker.strokeOpacity ?? this.properties.strokeOpacity ?? 1;
             node.size = format?.size ?? marker.size;
 
-            const { x, y } = datum.point!;
+            const { x, y } = datum.point;
             node.x = x;
             node.y = y;
             node.visible = visible && node.size > 0 && !isNaN(x) && !isNaN(y);
@@ -370,8 +387,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const { angleKey, radiusKey, angleName, radiusName, marker, tooltip } = this.properties;
         const { datum, angleValue, radiusValue, itemId } = nodeDatum;
 
-        const formattedAngleValue = typeof angleValue === 'number' ? toFixed(angleValue) : String(angleValue);
-        const formattedRadiusValue = typeof radiusValue === 'number' ? toFixed(radiusValue) : String(radiusValue);
+        const formattedAngleValue = formatValue(angleValue);
+        const formattedRadiusValue = formatValue(radiusValue);
         const title = sanitizeHtml(radiusName);
         const content = sanitizeHtml(`${formattedAngleValue}: ${formattedRadiusValue}`);
 
@@ -573,7 +590,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         let firstValid: RadarNodeDatum | undefined;
 
         data.forEach((datum, index) => {
-            let { x, y } = datum.point!;
+            let { x, y } = datum.point;
 
             const isPointInvalid = isNaN(x) || isNaN(y);
 
@@ -595,7 +612,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         });
 
         if (firstValid !== undefined) {
-            points.push({ x: firstValid.point!.x, y: firstValid.point!.y, moveTo: false });
+            points.push({ x: firstValid.point.x, y: firstValid.point.y, moveTo: false });
         }
 
         return points;

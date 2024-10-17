@@ -2,7 +2,7 @@ import { clamp } from '../../util/number';
 import type { DropShadow } from '../dropShadow';
 import { Gradient } from '../gradient/gradient';
 import { LinearGradient } from '../gradient/linearGradient';
-import { Node, RedrawType, SceneChangeDetection } from '../node';
+import { Node, SceneChangeDetection } from '../node';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
@@ -15,6 +15,18 @@ export type CanvasContext = CanvasFillStrokeStyles &
     CanvasTransform &
     CanvasState;
 
+interface DefaultStyles {
+    fill?: string;
+    stroke?: string;
+    strokeWidth: number;
+    lineDash?: number[];
+    lineDashOffset: number;
+    lineCap?: ShapeLineCap;
+    lineJoin?: ShapeLineJoin;
+    opacity: number;
+    fillShadow?: DropShadow;
+}
+
 const LINEAR_GRADIENT_REGEXP = /^linear-gradient\((-?[\d.]+)deg,(.*?)\)$/i;
 
 export abstract class Shape extends Node {
@@ -26,7 +38,7 @@ export abstract class Shape extends Node {
      * has been applied (using the `restoreOwnStyles` method).
      * These static defaults are meant to be inherited by subclasses.
      */
-    protected static defaultStyles = {
+    protected static readonly defaultStyles: DefaultStyles = {
         fill: 'black',
         stroke: undefined,
         strokeWidth: 0,
@@ -46,13 +58,13 @@ export abstract class Shape extends Node {
         Object.assign(this, defaultStyles);
     }
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     fillOpacity: number = 1;
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     strokeOpacity: number = 1;
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR, changeCb: (s: Shape) => s.onFillChange() })
+    @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
     fill?: string | Gradient = Shape.defaultStyles.fill;
 
     protected onFillChange() {
@@ -92,10 +104,10 @@ export abstract class Shape extends Node {
      * The preferred way of making the stroke invisible is setting the `lineWidth` to zero,
      * unless specific looks that is achieved by having an invisible stroke is desired.
      */
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     stroke?: string = Shape.defaultStyles.stroke;
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     strokeWidth: number = Shape.defaultStyles.strokeWidth;
 
     /**
@@ -121,28 +133,25 @@ export abstract class Shape extends Node {
         return Math.round((length + start) * pixelRatio) / pixelRatio - alignedStart;
     }
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     lineDash?: number[] = Shape.defaultStyles.lineDash;
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     lineDashOffset: number = Shape.defaultStyles.lineDashOffset;
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     lineCap?: ShapeLineCap = Shape.defaultStyles.lineCap;
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     lineJoin?: ShapeLineJoin = Shape.defaultStyles.lineJoin;
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR })
+    @SceneChangeDetection()
     miterLimit?: number = undefined;
 
-    @SceneChangeDetection({
-        redraw: RedrawType.MINOR,
-        convertor: (v: number) => clamp(0, v, 1),
-    })
+    @SceneChangeDetection({ convertor: (v: number) => clamp(0, v, 1) })
     opacity: number = Shape.defaultStyles.opacity;
 
-    @SceneChangeDetection({ redraw: RedrawType.MINOR, checkDirtyOnAssignment: true })
+    @SceneChangeDetection({ checkDirtyOnAssignment: true })
     fillShadow: DropShadow | undefined = Shape.defaultStyles.fillShadow;
 
     protected fillStroke(ctx: CanvasContext, path?: Path2D) {

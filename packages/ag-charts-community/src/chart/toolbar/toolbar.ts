@@ -229,7 +229,7 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
     // AG-12695 Temporarily set `pointer-events: none` on the annotationOptions when dragging, because the
     // buttons block to mouse from hovering over the canvas.
     private toggleNoPointerEvents(on: boolean) {
-        const className = 'ag-charts-toolbar__no-pointer-events' as const;
+        const className = 'ag-charts-toolbar__no-pointer-events';
         this.groupButtons['annotationOptions'].forEach((b) => b.classList.toggle(className, on));
     }
 
@@ -759,7 +759,6 @@ export class Toolbar extends BaseModuleInstance implements ModuleInstance {
             const alignmentElement = createElement('div');
             alignmentElement.role = 'presentation';
             alignmentElement.classList.add(styles.elements.align, styles.modifiers.align[align]);
-            alignmentElement.dataset.pointerCapture = 'exclusive';
             element.appendChild(alignmentElement);
             this.positionAlignments[position][align] = alignmentElement;
         }

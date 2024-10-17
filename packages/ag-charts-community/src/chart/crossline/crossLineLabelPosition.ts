@@ -2,6 +2,7 @@ import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { BBox } from '../../scene/bbox';
 import type { Point } from '../../scene/point';
+import { ChartAxisDirection } from '../chartAxisDirection';
 
 export type CrossLineLabelPosition =
     | 'top'
@@ -22,9 +23,9 @@ export type CrossLineLabelPosition =
     | 'insideTopRight'
     | 'insideBottomRight';
 
-type CoordinatesFnOpts = { yDirection: boolean; xStart: number; xEnd: number; yStart: number; yEnd: number };
+type CoordinatesFnOpts = { direction: ChartAxisDirection; xStart: number; xEnd: number; yStart: number; yEnd: number };
 
-type CoordinatesFn = ({ yDirection, xStart, xEnd, yStart, yEnd }: CoordinatesFnOpts) => Point;
+type CoordinatesFn = ({ direction, xStart, xEnd, yStart, yEnd }: CoordinatesFnOpts) => Point;
 
 type PositionCalcFns = {
     c: CoordinatesFn;
@@ -127,32 +128,32 @@ export function calculateLabelChartPadding({
     return chartPadding;
 }
 
-export const POSITION_TOP_COORDINATES: CoordinatesFn = ({ yDirection, xEnd, yStart, yEnd }) => {
-    if (yDirection) {
+export const POSITION_TOP_COORDINATES: CoordinatesFn = ({ direction, xEnd, yStart, yEnd }) => {
+    if (direction === ChartAxisDirection.Y) {
         return { x: xEnd / 2, y: yStart };
     } else {
         return { x: xEnd, y: isNaN(yEnd) ? yStart : (yStart + yEnd) / 2 };
     }
 };
 
-const POSITION_LEFT_COORDINATES: CoordinatesFn = ({ yDirection, xStart, xEnd, yStart, yEnd }) => {
-    if (yDirection) {
+const POSITION_LEFT_COORDINATES: CoordinatesFn = ({ direction, xStart, xEnd, yStart, yEnd }) => {
+    if (direction === ChartAxisDirection.Y) {
         return { x: xStart, y: isNaN(yEnd) ? yStart : (yStart + yEnd) / 2 };
     } else {
         return { x: xEnd / 2, y: yStart };
     }
 };
 
-const POSITION_RIGHT_COORDINATES: CoordinatesFn = ({ yDirection, xEnd, yStart, yEnd }) => {
-    if (yDirection) {
+const POSITION_RIGHT_COORDINATES: CoordinatesFn = ({ direction, xEnd, yStart, yEnd }) => {
+    if (direction === ChartAxisDirection.Y) {
         return { x: xEnd, y: isNaN(yEnd) ? yStart : (yStart + yEnd) / 2 };
     } else {
         return { x: xEnd / 2, y: isNaN(yEnd) ? yStart : yEnd };
     }
 };
 
-const POSITION_BOTTOM_COORDINATES: CoordinatesFn = ({ yDirection, xStart, xEnd, yStart, yEnd }) => {
-    if (yDirection) {
+const POSITION_BOTTOM_COORDINATES: CoordinatesFn = ({ direction, xStart, xEnd, yStart, yEnd }) => {
+    if (direction === ChartAxisDirection.Y) {
         return { x: xEnd / 2, y: isNaN(yEnd) ? yStart : yEnd };
     } else {
         return { x: xStart, y: isNaN(yEnd) ? yStart : (yStart + yEnd) / 2 };
@@ -163,32 +164,32 @@ const POSITION_INSIDE_COORDINATES: CoordinatesFn = ({ xEnd, yStart, yEnd }) => {
     return { x: xEnd / 2, y: isNaN(yEnd) ? yStart : (yStart + yEnd) / 2 };
 };
 
-const POSITION_TOP_LEFT_COORDINATES: CoordinatesFn = ({ yDirection, xStart, xEnd, yStart }) => {
-    if (yDirection) {
+const POSITION_TOP_LEFT_COORDINATES: CoordinatesFn = ({ direction, xStart, xEnd, yStart }) => {
+    if (direction === ChartAxisDirection.Y) {
         return { x: xStart / 2, y: yStart };
     } else {
         return { x: xEnd, y: yStart };
     }
 };
 
-const POSITION_BOTTOM_LEFT_COORDINATES: CoordinatesFn = ({ yDirection, xStart, yStart, yEnd }) => {
-    if (yDirection) {
+const POSITION_BOTTOM_LEFT_COORDINATES: CoordinatesFn = ({ direction, xStart, yStart, yEnd }) => {
+    if (direction === ChartAxisDirection.Y) {
         return { x: xStart, y: isNaN(yEnd) ? yStart : yEnd };
     } else {
         return { x: xStart, y: yStart };
     }
 };
 
-const POSITION_TOP_RIGHT_COORDINATES: CoordinatesFn = ({ yDirection, xEnd, yStart, yEnd }) => {
-    if (yDirection) {
+const POSITION_TOP_RIGHT_COORDINATES: CoordinatesFn = ({ direction, xEnd, yStart, yEnd }) => {
+    if (direction === ChartAxisDirection.Y) {
         return { x: xEnd, y: yStart };
     } else {
         return { x: xEnd, y: isNaN(yEnd) ? yStart : yEnd };
     }
 };
 
-const POSITION_BOTTOM_RIGHT_COORDINATES: CoordinatesFn = ({ yDirection, xStart, xEnd, yStart, yEnd }) => {
-    if (yDirection) {
+const POSITION_BOTTOM_RIGHT_COORDINATES: CoordinatesFn = ({ direction, xStart, xEnd, yStart, yEnd }) => {
+    if (direction === ChartAxisDirection.Y) {
         return { x: xEnd, y: isNaN(yEnd) ? yStart : yEnd };
     } else {
         return { x: xStart, y: isNaN(yEnd) ? yStart : yEnd };

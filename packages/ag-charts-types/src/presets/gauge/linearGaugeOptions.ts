@@ -105,7 +105,7 @@ export type AgLinearGaugeLabelPlacement =
     | 'outside-start'
     | 'inside-end'
     | 'outside-end'
-    | 'inside'
+    | 'inside-center'
     | 'bar-inside'
     | 'bar-inside-end'
     | 'bar-outside-end'

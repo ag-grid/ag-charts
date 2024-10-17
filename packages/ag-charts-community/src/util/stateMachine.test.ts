@@ -11,7 +11,7 @@ describe('State Machine', () => {
         beforeEach(() => {
             initialEventNext = jest.fn();
             nextEnter = jest.fn();
-            state = new StateMachine<'initial' | 'next', 'event'>('initial', {
+            state = new StateMachine<'initial' | 'next', { event: undefined }>('initial', {
                 initial: {
                     event: {
                         target: 'next',
@@ -48,7 +48,7 @@ describe('State Machine', () => {
         let child: any;
 
         beforeEach(() => {
-            child = new StateMachine<'child-initial' | 'child-next', 'event'>('child-initial', {
+            child = new StateMachine<'child-initial' | 'child-next', { event: undefined }>('child-initial', {
                 'child-initial': {
                     event: {
                         target: 'child-next',
@@ -60,7 +60,7 @@ describe('State Machine', () => {
                     },
                 },
             });
-            state = new StateMachine<'initial', 'event'>('initial', {
+            state = new StateMachine<'initial', { event: undefined }>('initial', {
                 initial: {
                     event: {
                         target: child,

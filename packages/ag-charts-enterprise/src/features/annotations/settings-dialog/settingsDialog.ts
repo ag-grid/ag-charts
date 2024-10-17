@@ -3,6 +3,7 @@ import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-commun
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
 import type { ColorPickerOptions } from '../../color-picker/colorPicker';
 import {
+    type AnnotationOptionsColorPickerType,
     AnnotationType,
     type ChannelTextPosition,
     type LineTextAlignment,
@@ -23,6 +24,8 @@ export interface LinearSettingsDialogOptions extends DialogOptions {
     initialSelectedTab: 'line' | 'text';
     onChangeLine: (props: LinearSettingsDialogLineChangeProps) => void;
     onChangeText: (props: LinearSettingsDialogTextChangeProps) => void;
+    onChangeFillColor: Required<ColorPickerOptions>['onChange'];
+    onChangeHideFillColor: Required<ColorPickerOptions>['onChangeHide'];
     onChangeLineColor: Required<ColorPickerOptions>['onChange'];
     onChangeHideLineColor: Required<ColorPickerOptions>['onChangeHide'];
     onChangeLineStyleType: (lineStyleType: AgAnnotationLineStyleType) => void;
@@ -94,18 +97,37 @@ export class AnnotationSettingsDialog extends Dialog {
     ) {
         const panel = this.createTabPanel();
 
-        const colorAndStrokeWidth = this.createInputGroupLine();
-        const colorPicker = this.createColorPickerInput(
+        const groupOne = this.createInputGroupLine();
+        const groupTwo = this.createInputGroupLine();
+
+        const lineColorPicker = this.createColorPickerInput(
+            'line-color',
             datum.getDefaultColor('line-color'),
+            datum.getDefaultOpacity('line-color'),
             options.onChangeLineColor,
             options.onChangeHideLineColor
         );
-        const strokeWidth = this.createStrokeWidthSelect(datum.strokeWidth ?? 2, options.onChangeLineStyleWidth);
-        colorAndStrokeWidth.append(colorPicker, strokeWidth);
 
+        const strokeWidth = this.createStrokeWidthSelect(datum.strokeWidth ?? 2, options.onChangeLineStyleWidth);
         const lineStyle = this.createLineStyleRadioGroup(datum.lineStyle ?? 'solid', options.onChangeLineStyleType);
 
-        panel.append(colorAndStrokeWidth, lineStyle);
+        if ('background' in datum) {
+            const fillColorPicker = this.createColorPickerInput(
+                'fill-color',
+                datum.getDefaultColor('fill-color'),
+                datum.getDefaultOpacity('fill-color'),
+                options.onChangeFillColor,
+                options.onChangeHideFillColor
+            );
+
+            groupOne.append(lineColorPicker, fillColorPicker);
+            groupTwo.append(strokeWidth, lineStyle);
+        } else {
+            groupOne.append(lineColorPicker, strokeWidth);
+            groupTwo.append(lineStyle);
+        }
+
+        panel.append(groupOne, groupTwo);
 
         if ('extendStart' in datum && 'extendEnd' in datum) {
             panel.append(
@@ -167,7 +189,9 @@ export class AnnotationSettingsDialog extends Dialog {
         const fontSizeAndColor = this.createInputGroupLine();
         const fontSize = this.createFontSizeSelect(datum.text.fontSize, options.onChangeTextFontSize);
         const colorPicker = this.createColorPickerInput(
+            'text-color',
             datum.text.color,
+            1,
             options.onChangeTextColor,
             options.onChangeHideTextColor
         );
@@ -189,14 +213,20 @@ export class AnnotationSettingsDialog extends Dialog {
     }
 
     private createColorPickerInput(
+        colorType: AnnotationOptionsColorPickerType,
         color: string | undefined,
+        opacity: number | undefined,
         onChange: Required<ColorPickerOptions>['onChange'],
         onChangeHide: Required<ColorPickerOptions>['onChangeHide']
     ) {
+        const label = colorType === 'fill-color' ? 'dialogInputFillColorPicker' : 'dialogInputColorPicker';
+        const altText =
+            colorType === 'fill-color' ? 'dialogInputFillColorPickerAltText' : 'dialogInputColorPickerAltText';
         return this.createColorPicker({
-            label: 'dialogInputColorPicker',
-            altText: 'dialogInputColorPickerAltText',
-            value: color,
+            label,
+            altText,
+            color: color,
+            opacity,
             onChange,
             onChangeHide,
         });

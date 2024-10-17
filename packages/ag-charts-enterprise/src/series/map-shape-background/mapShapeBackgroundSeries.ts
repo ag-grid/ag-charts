@@ -1,7 +1,8 @@
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
+import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import {
     type MapShapeBackgroundNodeDatum,
@@ -64,7 +65,6 @@ export class MapShapeBackgroundSeries
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            contentGroupVirtual: false,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
@@ -75,6 +75,15 @@ export class MapShapeBackgroundSeries
         if (this.topology === topology) {
             this.nodeDataRefresh = true;
         }
+    }
+
+    override setSeriesIndex(index: number): boolean {
+        if (!super.setSeriesIndex(index)) return false;
+
+        this.contentGroup.zIndex = [MapZIndexMap.ShapeLineBackground, index, 0];
+        this.highlightGroup.zIndex = [MapZIndexMap.ShapeLineBackground, index, 1];
+
+        return true;
     }
 
     private nodeFactory(): GeoGeometry {

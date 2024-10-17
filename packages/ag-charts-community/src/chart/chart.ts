@@ -8,7 +8,6 @@ import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
-import { Layer, TranslatableLayer } from '../scene/layer';
 import type { Node } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
@@ -106,15 +105,17 @@ export abstract class Chart extends Observable {
 
     className?: string;
 
-    readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root` });
-    readonly highlightRoot = new TranslatableLayer({
-        name: `${this.id}-highlight-root`,
-        zIndex: ZIndexMap.SERIES_HIGHLIGHT,
-        deriveZIndexFromChildren: true, // TODO remove feature
+    readonly seriesRoot = new TranslatableGroup({
+        name: `${this.id}-series-root`,
+        zIndex: ZIndexMap.SERIES_LAYER,
     });
-    readonly annotationRoot = new TranslatableLayer({
+    readonly annotationRoot = new TranslatableGroup({
         name: `${this.id}-annotation-root`,
         zIndex: ZIndexMap.SERIES_ANNOTATION,
+    });
+    private readonly titleGroup = new Group({
+        name: 'titles',
+        zIndex: ZIndexMap.SERIES_LABEL,
     });
 
     readonly tooltip: Tooltip;
@@ -248,28 +249,26 @@ export abstract class Chart extends Observable {
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
 
         const root = new Group({ name: 'root' });
-        const titleGroup = new Layer({ name: 'titles', zIndex: ZIndexMap.SERIES_LABEL });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;
-        root.append(titleGroup);
         root.append(this.seriesRoot);
-        root.append(this.highlightRoot);
         root.append(this.annotationRoot);
+        root.append(this.titleGroup);
 
-        titleGroup.append(this.title.node);
-        titleGroup.append(this.subtitle.node);
-        titleGroup.append(this.footnote.node);
+        this.titleGroup.append(this.title.node);
+        this.titleGroup.append(this.subtitle.node);
+        this.titleGroup.append(this.footnote.node);
 
         this.tooltip = new Tooltip();
-        this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.highlightRoot, this.annotationRoot);
+        this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
         const ctx = (this.ctx = new ChartContext(this, {
             scene,
             root,
             container,
             syncManager: new SyncManager(this),
             pixelRatio: options.specialOverrides.overrideDevicePixelRatio,
-            updateCallback: (type = ChartUpdateType.FULL, opts) => this.update(type, opts),
+            updateCallback: (type, opts) => this.update(type, opts),
             updateMutex: this.updateMutex,
         }));
 
@@ -567,7 +566,7 @@ export abstract class Chart extends Observable {
                 updateSplits('⌖');
             // fallthrough
 
-            case ChartUpdateType.SERIES_UPDATE:
+            case ChartUpdateType.SERIES_UPDATE: {
                 if (this.checkUpdateShortcut(ChartUpdateType.SERIES_UPDATE)) break;
 
                 const { seriesRect } = this;
@@ -576,6 +575,8 @@ export abstract class Chart extends Observable {
                 updateSplits('🤔');
 
                 this.updateAriaLabels();
+                this.seriesLayerManager.updateLayerCompositing();
+            }
             // fallthrough
 
             case ChartUpdateType.PRE_SCENE_RENDER:
@@ -735,9 +736,8 @@ export abstract class Chart extends Observable {
         for (const series of newValue) {
             if (oldValue?.includes(series)) continue;
 
-            if (series.rootGroup.isRoot()) {
-                this.seriesLayerManager.requestGroup(series);
-            }
+            const seriesContentNode = this.seriesLayerManager.requestGroup(series);
+            series.attachSeries(seriesContentNode, this.seriesRoot, this.annotationRoot);
 
             const chart = this;
             series.chart = {
@@ -770,6 +770,7 @@ export abstract class Chart extends Observable {
             series.removeEventListener('groupingChanged', this.seriesGroupingChanged);
             series.destroy();
             this.seriesLayerManager.releaseGroup(series);
+            series.detachSeries(undefined, this.seriesRoot, this.annotationRoot);
 
             series.chart = undefined;
         });
@@ -997,15 +998,13 @@ export abstract class Chart extends Observable {
         const { series, seriesGrouping, oldGrouping } = event;
 
         // Short-circuit if series isn't already attached to the scene-graph yet.
-        if (series.rootGroup.isRoot()) return;
+        if (series.contentGroup.isRoot()) return;
 
         this.seriesLayerManager.changeGroup({
             internalId: series.internalId,
             type: series.type,
-            rootGroup: series.rootGroup,
-            highlightGroup: series.highlightGroup,
-            annotationGroup: series.annotationGroup,
-            getGroupZIndexSubOrder: (type) => series.getGroupZIndexSubOrder(type),
+            contentGroup: series.contentGroup,
+            renderToOffscreenCanvas: () => series.renderToOffscreenCanvas(),
             seriesGrouping,
             oldGrouping,
         });
@@ -1303,7 +1302,7 @@ export abstract class Chart extends Observable {
     private initSeriesDeclarationOrder(series: Series<any, any>[]) {
         // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
         for (let idx = 0; idx < series.length; idx++) {
-            series[idx]._declarationOrder = idx;
+            series[idx].setSeriesIndex(idx);
         }
     }
 
@@ -1319,8 +1318,9 @@ export abstract class Chart extends Observable {
         const matchResult = matchSeriesOptions(chart.series, optSeries, oldOptSeries);
         if (matchResult.status === 'no-overlap') {
             debug(`Chart.applySeries() - creating new series instances, status: ${matchResult.status}`, matchResult);
-            chart.series = optSeries.map((opts) => this.createSeries(opts));
-            this.initSeriesDeclarationOrder(chart.series);
+            const chartSeries = optSeries.map((opts) => this.createSeries(opts));
+            this.initSeriesDeclarationOrder(chartSeries);
+            chart.series = chartSeries;
             return 'replaced';
         }
 
@@ -1430,7 +1430,7 @@ export abstract class Chart extends Observable {
     }
 
     private createSeries(seriesOptions: SeriesOptionsTypes): Series<any, any> {
-        const seriesInstance = seriesRegistry.create(seriesOptions.type!, this.getModuleContext()) as Series<any, any>;
+        const seriesInstance = seriesRegistry.create(seriesOptions.type, this.getModuleContext()) as Series<any, any>;
         this.applySeriesOptionModules(seriesInstance, seriesOptions);
         this.applySeriesValues(seriesInstance, seriesOptions);
         return seriesInstance;

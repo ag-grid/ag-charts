@@ -2,6 +2,7 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { GuardDragClickDoubleEvent, Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
+import type { AnnotationStateEvents } from '../states/stateTypes';
 import { ArrowProperties, LineProperties } from './lineProperties';
 import type { LineScene } from './lineScene';
 
@@ -19,7 +20,7 @@ interface LineStateMachineContext<Datum extends ArrowProperties | LineProperties
 
 abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperties> extends StateMachine<
     'start' | 'end',
-    'click' | 'hover' | 'drag' | 'reset' | 'cancel'
+    Pick<AnnotationStateEvents, 'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'reset' | 'cancel'>
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -35,11 +36,13 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
             );
         };
 
-        const actionEndUpdate = ({ point }: { point: (origin?: Point, snapToAngle?: number) => Point }) => {
+        const actionEndUpdate = ({ point }: { point?: (origin?: Point, snapToAngle?: number) => Point }) => {
             ctx.guardDragClickDoubleEvent.hover();
 
-            const datum = ctx.datum();
-            datum?.set({ end: point(datum?.start, datum?.snapToAngle) });
+            if (point) {
+                const datum = ctx.datum();
+                datum?.set({ end: point(datum?.start, datum?.snapToAngle) });
+            }
 
             ctx.update();
         };
@@ -71,6 +74,8 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
             },
             end: {
                 hover: actionEndUpdate,
+                keyDown: actionEndUpdate,
+                keyUp: actionEndUpdate,
                 click: {
                     guard: ctx.guardDragClickDoubleEvent.guard,
                     target: StateMachine.parent,

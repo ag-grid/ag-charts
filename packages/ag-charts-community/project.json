@@ -112,6 +112,7 @@
       },
       "dependsOn": [
         "build",
+        "ag-charts-website-benchmarks_simple-chart_main.ts:generate-example",
         "ag-charts-website-benchmarks_integrated-large-scale_main.ts:generate-example",
         "ag-charts-website-benchmarks_large-dataset_main.ts:generate-example",
         "ag-charts-website-benchmarks_large-scale-multi-series_main.ts:generate-example",

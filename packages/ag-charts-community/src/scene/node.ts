@@ -1,10 +1,11 @@
 import { createId } from '../util/id';
 import { toIterable } from '../util/iterator';
 import { BBox } from './bbox';
-import { RedrawType, SceneChangeDetection } from './changeDetectable';
-import type { LayersManager, ZIndexSubOrder } from './layersManager';
+import { SceneChangeDetection } from './changeDetectable';
+import type { LayersManager } from './layersManager';
+import type { ZIndex } from './zIndex';
 
-export { SceneChangeDetection, RedrawType };
+export { SceneChangeDetection };
 
 export enum PointerEvents {
     All,
@@ -14,7 +15,6 @@ export enum PointerEvents {
 export type RenderContext = {
     ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
     devicePixelRatio: number;
-    forceRender: boolean | 'dirtyTransform';
     resized: boolean;
     clipBBox?: BBox;
     stats?: {
@@ -29,9 +29,8 @@ export type RenderContext = {
 
 export interface NodeOptions {
     name?: string;
-    isVirtual?: boolean;
     tag?: number;
-    zIndex?: number;
+    zIndex?: ZIndex;
 }
 
 export type NodeWithOpacity = Node & { opacity: number };
@@ -46,7 +45,7 @@ export type ChildNodeCounts = {
  * Each node can have zero or one parent and belong to zero or one scene.
  */
 export abstract class Node {
-    static _nextSerialNumber = 0;
+    private static _nextSerialNumber = 0;
 
     static *extractBBoxes(nodes: Iterable<Node>, skipInvisible?: boolean) {
         for (const n of nodes) {
@@ -79,12 +78,11 @@ export abstract class Node {
     protected _debug?: (...args: any[]) => void;
     protected _layerManager?: LayersManager;
 
-    protected _dirty: RedrawType = RedrawType.MAJOR;
+    protected _dirty: boolean = true;
     protected dirtyZIndex: boolean = false;
 
-    private childNodes?: Set<Node>;
     private parentNode?: Node;
-    private virtualChildrenCount: number = 0;
+    private childNodes?: Set<Node>;
 
     private cachedBBox?: BBox;
 
@@ -95,34 +93,16 @@ export abstract class Node {
      */
     protected isContainerNode: boolean = false;
 
-    /**
-     * Indicates if this node should be substituted for its children when traversing the scene
-     * graph. This allows intermingling of child-nodes that are managed by different chart classes
-     * without breaking scene-graph encapsulation.
-     */
-    readonly isVirtual: boolean;
-
-    @SceneChangeDetection<Node>({
-        redraw: RedrawType.MAJOR,
-        changeCb: (target) => target.onVisibleChange(),
-    })
+    @SceneChangeDetection<Node>()
     visible: boolean = true;
 
     @SceneChangeDetection<Node>({
-        redraw: RedrawType.TRIVIAL,
         changeCb: (target) => target.onZIndexChange(),
     })
-    zIndex: number = 0;
-
-    @SceneChangeDetection<Node>({
-        redraw: RedrawType.TRIVIAL,
-        changeCb: (target) => target.onZIndexChange(),
-    })
-    zIndexSubOrder?: ZIndexSubOrder = undefined; // Discriminators for render order within a zIndex
+    zIndex: ZIndex = 0;
 
     constructor(options?: NodeOptions) {
         this.name = options?.name;
-        this.isVirtual = options?.isVirtual ?? false;
         this.tag = options?.tag ?? NaN;
         this.zIndex = options?.zIndex ?? 0;
     }
@@ -170,7 +150,7 @@ export abstract class Node {
     render(renderCtx: RenderContext): void {
         const { stats } = renderCtx;
 
-        this._dirty = RedrawType.NONE;
+        this._dirty = false;
 
         if (renderCtx.debugNodeSearch) {
             const idOrName = this.name ?? this.id;
@@ -188,8 +168,20 @@ export abstract class Node {
         this._layerManager = value;
         this._debug = value?.debug;
 
-        for (const child of this.children(false)) {
+        for (const child of this.children()) {
             child._setLayerManager(value);
+        }
+    }
+
+    protected sortChildren(compareFn?: (a: Node, b: Node) => number) {
+        this.dirtyZIndex = false;
+        if (!this.childNodes) return;
+
+        // Sort children, and re-add in new order (Set preserves insertion order).
+        const sortedChildren = [...this.childNodes].sort(compareFn);
+        this.childNodes.clear();
+        for (const child of sortedChildren) {
+            this.childNodes.add(child);
         }
     }
 
@@ -203,32 +195,11 @@ export abstract class Node {
         }
     }
 
-    *children(flattenVirtual = true): Generator<Node, void, undefined> {
+    *children(): Generator<Node, void, undefined> {
         if (!this.childNodes) return;
-        const virtualChildren = [];
         for (const child of this.childNodes) {
-            if (flattenVirtual && child.isVirtual) {
-                virtualChildren.push(child.children());
-            } else {
-                yield child;
-            }
+            yield child;
         }
-        for (const vChildren of virtualChildren) {
-            yield* vChildren;
-        }
-    }
-
-    *virtualChildren(): Generator<Node, void, undefined> {
-        if (!this.childNodes || !this.virtualChildrenCount) return;
-        for (const child of this.childNodes) {
-            if (child.isVirtual) {
-                yield child;
-            }
-        }
-    }
-
-    hasVirtualChildren() {
-        return this.virtualChildrenCount > 0;
     }
 
     /**
@@ -261,15 +232,11 @@ export abstract class Node {
 
             node.parentNode = this;
             node._setLayerManager(this.layerManager);
-
-            if (node.isVirtual) {
-                this.virtualChildrenCount++;
-            }
         }
 
         this.invalidateCachedBBox();
         this.dirtyZIndex = true;
-        this.markDirty(RedrawType.MAJOR);
+        this.markDirty();
     }
 
     appendChild<T extends Node>(node: T): T {
@@ -285,13 +252,9 @@ export abstract class Node {
         delete node.parentNode;
         node._setLayerManager();
 
-        if (node.isVirtual) {
-            this.virtualChildrenCount--;
-        }
-
         this.invalidateCachedBBox();
         this.dirtyZIndex = true;
-        this.markDirty(RedrawType.MAJOR);
+        this.markDirty();
 
         return true;
     }
@@ -301,13 +264,12 @@ export abstract class Node {
     }
 
     clear() {
-        for (const child of this.children(false)) {
+        for (const child of this.children()) {
             delete child.parentNode;
             child._setLayerManager();
         }
         this.childNodes?.clear();
         this.invalidateCachedBBox();
-        this.virtualChildrenCount = 0;
     }
 
     destroy(): void {
@@ -387,45 +349,34 @@ export abstract class Node {
         return;
     }
 
-    markDirty(type = RedrawType.TRIVIAL, parentType = type) {
+    markDirty() {
         const { _dirty } = this;
-        // Short-circuit case to avoid needing to percolate all dirty flag changes if redundant.
-        const dirtyTypeBelowHighWatermark = _dirty > type || (_dirty === type && type === parentType);
-        // If parent node cached a bbox previously, this node will have a cached bbox too. Therefore,
-        // if this node has no cached bbox, we don't need to force clearing of parents cached bbox.
+
         const noParentCachedBBox = this.cachedBBox == null;
-        if (noParentCachedBBox && dirtyTypeBelowHighWatermark) return;
+        if (noParentCachedBBox && _dirty) return;
 
         this.invalidateCachedBBox();
-        this._dirty = Math.max(_dirty, type);
+        this._dirty = true;
         if (this.parentNode) {
-            this.parentNode.markDirty(parentType);
-        } else if (this.layerManager) {
-            this.layerManager.markDirty();
+            this.parentNode.markDirty();
         }
     }
 
-    markClean(opts?: { force?: boolean; recursive?: boolean | 'virtual' }) {
-        const { force = false, recursive = true } = opts ?? {};
+    markClean() {
+        if (!this._dirty) return;
 
-        if (this._dirty === RedrawType.NONE && !force) return;
+        this._dirty = false;
 
-        this._dirty = RedrawType.NONE;
-
-        for (const child of this.children(false)) {
-            if (child.isVirtual ? recursive !== false : recursive === true) {
-                child.markClean({ force });
-            }
+        for (const child of this.children()) {
+            child.markClean();
         }
-    }
-
-    protected onVisibleChange() {
-        // Override point for subclasses to react to visibility changes.
     }
 
     protected onZIndexChange() {
-        if (this.parentNode) {
-            this.parentNode.dirtyZIndex = true;
+        const { parentNode } = this;
+
+        if (parentNode) {
+            parentNode.dirtyZIndex = true;
         }
     }
 

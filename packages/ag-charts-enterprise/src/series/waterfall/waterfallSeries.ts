@@ -25,7 +25,6 @@ const {
     animationValidation,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
-    formatValue,
     computeBarFocusBounds,
 } = _ModuleSupport;
 const { Rect, motion } = _Scene;
@@ -66,6 +65,17 @@ type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
     WaterfallNodeDatum,
     WaterfallContext
 >;
+
+const labelPlacements = {
+    'inside-center': 'inside-center' as const,
+    'inside-start': 'inside-start' as const,
+    'inside-end': 'inside-end' as const,
+    'outside-start': 'outside-start' as const,
+    'outside-end': 'outside-end' as const,
+    inside: 'inside-center' as const,
+    start: 'outside-start' as const,
+    end: 'outside-end' as const,
+};
 
 export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     _Scene.Rect,
@@ -365,7 +375,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             pointData.push(pathPoint);
 
             const itemId = seriesItemType === 'subtotal' ? 'total' : seriesItemType;
-            const labelText = this.getLabelText(label, { itemId, value, datum, xKey, yKey, xName, yName }, formatValue);
+            const labelText = this.getLabelText(label, { itemId, value, datum, xKey, yKey, xName, yName });
 
             const nodeDatum: WaterfallNodeDatum = {
                 index: dataIndex,
@@ -391,7 +401,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     ...adjustLabelPlacement({
                         isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
                         isVertical: !barAlongX,
-                        placement: label.placement,
+                        placement: labelPlacements[label.placement],
                         padding: label.padding,
                         rect,
                     }),
@@ -796,8 +806,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected override async updatePaths(opts: {
-        seriesHighlighted?: boolean | undefined;
-        itemId?: string | undefined;
+        seriesHighlighted?: boolean;
+        itemId?: string;
         contextData: WaterfallContext;
         paths: _Scene.Path[];
         seriesIdx: number;

@@ -171,8 +171,8 @@ export class Sector extends Path {
             const delta = 1e-6;
             if (!start && !(angle >= startAngle - delta && angle <= clipSector.endAngle - delta)) return;
             if (start && !(angle >= clipSector.startAngle + delta && angle <= endAngle - delta)) return;
-            if (inner && !(radius >= clipSector.innerRadius - delta)) return;
-            if (!inner && !(radius <= clipSector.outerRadius + delta)) return;
+            if (inner && radius < clipSector.innerRadius - delta) return;
+            if (!inner && radius > clipSector.outerRadius + delta) return;
         }
 
         const arc = new Arc(cx, cy, r, a0, a1);

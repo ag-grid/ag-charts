@@ -37,6 +37,7 @@ class InternalMarker extends Path {
 
     protected override computeBBox(): BBox {
         if (!this.isBuiltIn()) {
+            this.updatePathIfDirty();
             return this.path.computeBBox();
         }
 
@@ -78,5 +79,5 @@ class InternalMarker extends Path {
 
 // Needed to ensure correct order of operations WRT computeBBox().
 export class Marker extends Rotatable(Scalable(Translatable(InternalMarker))) {
-    public static center: Point = DEFAULT_CENTER_POINT;
+    public static readonly center: Point = DEFAULT_CENTER_POINT;
 }
