@@ -92,6 +92,9 @@ test.describe('keyboard-nav', () => {
                 await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
                     '3rd-datum-3rd-series-focus-highlight.png'
                 );
+
+                await page.mouse.click(100, 100, { button: 'left' });
+                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('nofocus-nohighlight.png');
             });
         });
     }
