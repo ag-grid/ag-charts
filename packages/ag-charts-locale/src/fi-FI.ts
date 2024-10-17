@@ -143,5 +143,5 @@ export const AG_CHARTS_LOCALE_FI_FI: Record<string, string> = {
     toolbarZoomPanStart: 'Panoroi alkuun',
     toolbarZoomReset: 'Palauta zoomaus',
     toolbarZoomZoomIn: 'Lähennä',
-    toolbarZoomZoomOut: 'Loitonna'
+    toolbarZoomZoomOut: 'Loitonna',
 };

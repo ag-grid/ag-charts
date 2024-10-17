@@ -143,5 +143,5 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     toolbarZoomPanStart: 'التحريك إلى البداية',
     toolbarZoomReset: 'إعادة تعيين التكبير',
     toolbarZoomZoomIn: 'تكبير',
-    toolbarZoomZoomOut: 'تصغير'
+    toolbarZoomZoomOut: 'تصغير',
 };

@@ -143,5 +143,5 @@ export const AG_CHARTS_LOCALE_ZH_TW: Record<string, string> = {
     toolbarZoomPanStart: '移動到起點',
     toolbarZoomReset: '重設縮放',
     toolbarZoomZoomIn: '放大',
-    toolbarZoomZoomOut: '縮小'
+    toolbarZoomZoomOut: '縮小',
 };

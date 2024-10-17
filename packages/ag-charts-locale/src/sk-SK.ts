@@ -143,5 +143,5 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     toolbarZoomPanStart: 'Posun na začiatok',
     toolbarZoomReset: 'Obnoviť priblíženie',
     toolbarZoomZoomIn: 'Priblížiť',
-    toolbarZoomZoomOut: 'Oddialiť'
+    toolbarZoomZoomOut: 'Oddialiť',
 };

@@ -42,7 +42,7 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     contextMenuZoomToCursor: 'התקרב לכאן',
     dialogHeaderChannel: 'ערוץ',
     dialogHeaderDatePriceRange: 'תאריך ומחיר',
-    dialogHeaderDateRange: ' \'טווח תאריכים\'',
+    dialogHeaderDateRange: " 'טווח תאריכים'",
     dialogHeaderLine: 'קו',
     dialogHeaderPriceRange: 'טווח מחירים',
     dialogHeaderText: 'טקסט',
@@ -143,5 +143,5 @@ export const AG_CHARTS_LOCALE_HE_IL: Record<string, string> = {
     toolbarZoomPanStart: 'גלול להתחלה',
     toolbarZoomReset: 'אפס זום',
     toolbarZoomZoomIn: 'התקרב',
-    toolbarZoomZoomOut: 'התרחק'
+    toolbarZoomZoomOut: 'התרחק',
 };
