@@ -32,6 +32,7 @@ interface Props {
 }
 
 const DEFAULT_HEIGHT = 500;
+const MIN_HEIGHT = 320;
 export const ExampleRunner: FunctionComponent<Props> = ({
     id,
     title,
@@ -60,7 +61,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                     className={classnames(chartsStyles.content, styles.content)}
                     role="tabpanel"
                     aria-labelledby={`${showCode ? 'Preview' : 'Code'} tab`}
-                    style={{ height: exampleHeight }}
+                    style={{ height: Math.max(exampleHeight, MIN_HEIGHT) }}
                 >
                     <ExampleIFrame
                         title={title}
