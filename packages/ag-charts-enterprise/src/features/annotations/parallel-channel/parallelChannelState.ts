@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import { AnnotationType, type GuardDragClickDoubleEvent, type Point } from '../annotationTypes';
+import { AnnotationType, type Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import { ParallelChannelProperties } from './parallelChannelProperties';
 import type { ParallelChannelScene } from './parallelChannelScene';
@@ -13,12 +13,11 @@ interface ParallelChannelStateMachineContext extends Omit<AnnotationsStateMachin
     datum: () => ParallelChannelProperties | undefined;
     node: () => ParallelChannelScene | undefined;
     showAnnotationOptions: () => void;
-    guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
 }
 
 export class ParallelChannelStateMachine extends StateMachine<
     'start' | 'end' | 'height',
-    'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'cancel' | 'reset'
+    'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'cancel' | 'reset'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -43,8 +42,6 @@ export class ParallelChannelStateMachine extends StateMachine<
         };
 
         const actionEndUpdate = ({ point }: { point: (origin?: Point, snapToAngle?: number) => Point }) => {
-            ctx.guardDragClickDoubleEvent.hover();
-
             const datum = ctx.datum();
             datum?.set({ end: point(datum?.start, datum?.snapToAngle), height: 0 });
 
@@ -124,7 +121,10 @@ export class ParallelChannelStateMachine extends StateMachine<
                 keyDown: actionEndUpdate,
                 keyUp: actionEndUpdate,
                 click: {
-                    guard: ctx.guardDragClickDoubleEvent.guard,
+                    target: 'height',
+                    action: actionEndFinish,
+                },
+                dragEnd: {
                     target: 'height',
                     action: actionEndFinish,
                 },
@@ -136,11 +136,14 @@ export class ParallelChannelStateMachine extends StateMachine<
                     target: StateMachine.parent,
                     action: actionCancel,
                 },
-                onExit: ctx.guardDragClickDoubleEvent.reset,
             },
             height: {
                 hover: actionHeightUpdate,
                 click: {
+                    target: StateMachine.parent,
+                    action: actionHeightFinish,
+                },
+                drag: {
                     target: StateMachine.parent,
                     action: actionHeightFinish,
                 },

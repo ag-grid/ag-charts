@@ -27,7 +27,16 @@ export abstract class TextualPointStateMachine<
     Node extends TextualPointScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit',
-    'click' | 'zoomChange' | 'cancel' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'fontSize' | 'render' | 'reset'
+    | 'click'
+    | 'drag'
+    | 'zoomChange'
+    | 'cancel'
+    | 'keyDown'
+    | 'updateTextInputBBox'
+    | 'color'
+    | 'fontSize'
+    | 'render'
+    | 'reset'
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -122,6 +131,10 @@ export abstract class TextualPointStateMachine<
         super('start', {
             start: {
                 click: {
+                    target: 'waiting-first-render',
+                    action: actionCreate,
+                },
+                drag: {
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },

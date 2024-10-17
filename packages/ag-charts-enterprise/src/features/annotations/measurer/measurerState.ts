@@ -1,6 +1,6 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { GuardDragClickDoubleEvent, Point } from '../annotationTypes';
+import type { Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext, MeasurerPropertiesType } from '../annotationsSuperTypes';
 import {
     DatePriceRangeProperties,
@@ -19,7 +19,6 @@ interface MeasurerStateMachineContext<Datum extends MeasurerPropertiesType>
     datum: () => Datum | undefined;
     node: () => MeasurerScene | undefined;
     showAnnotationOptions: () => void;
-    guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
 }
 
 abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> extends StateMachine<
@@ -37,8 +36,6 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
         };
 
         const actionEndUpdate = ({ point }: { point: () => Point }) => {
-            ctx.guardDragClickDoubleEvent.hover();
-
             const datum = ctx.datum();
             datum?.set({ end: point() });
 
@@ -54,7 +51,6 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
         const actionCancel = () => ctx.delete();
 
         const onExitEnd = () => {
-            ctx.guardDragClickDoubleEvent.reset();
             ctx.showAnnotationOptions();
             ctx.recordAction(`Create ${ctx.node()?.type} annotation`);
         };
@@ -74,7 +70,6 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
             end: {
                 hover: actionEndUpdate,
                 click: {
-                    guard: ctx.guardDragClickDoubleEvent.guard,
                     target: StateMachine.parent,
                     action: actionEndFinish,
                 },

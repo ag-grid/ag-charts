@@ -17,7 +17,7 @@ interface PointStateMachineContext<Datum extends PointProperties, Node extends P
 export abstract class PointStateMachine<
     Datum extends PointProperties,
     Node extends PointScene<Datum>,
-> extends StateMachine<'start' | 'waiting-first-render', 'click' | 'cancel' | 'render' | 'reset'> {
+> extends StateMachine<'start' | 'waiting-first-render', 'click' | 'drag' | 'cancel' | 'render' | 'reset'> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     constructor(ctx: PointStateMachineContext<Datum, Node>) {
@@ -37,6 +37,10 @@ export abstract class PointStateMachine<
         super('start', {
             start: {
                 click: {
+                    target: 'waiting-first-render',
+                    action: actionCreate,
+                },
+                drag: {
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },
