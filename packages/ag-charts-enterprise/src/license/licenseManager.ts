@@ -217,12 +217,12 @@ export class LicenseManager {
 
     private isWebsiteUrl(): boolean {
         const hostname = this.getHostname();
-        return hostname.match(/^((?:[\w-]+\.)?ag-grid\.com)$/) !== null;
+        return /^((?:[\w-]+\.)?ag-grid\.com)$/.exec(hostname) !== null;
     }
 
     private isLocalhost(): boolean {
         const hostname = this.getHostname();
-        return hostname.match(/^(?:127\.0\.0\.1|localhost)$/) !== null;
+        return /^(?:127\.0\.0\.1|localhost)$/.exec(hostname) !== null;
     }
 
     private static formatDate(date: any): string {
@@ -315,7 +315,7 @@ export class LicenseManager {
         }
 
         const isTrial = matches.filter((match) => match === 'TRIAL').length === 1;
-        const rawVersion = matches.filter((match) => match.indexOf('v') === 0)[0];
+        const rawVersion = matches.filter((match) => match.startsWith('v'))[0];
         const version = rawVersion ? rawVersion.replace('v', '') : 'legacy';
         const type = (LICENSE_TYPES as any)[matches.filter((match) => (LICENSE_TYPES as any)[match])[0]];
 

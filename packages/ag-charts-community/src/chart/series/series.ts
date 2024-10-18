@@ -86,13 +86,11 @@ interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends Typed
     readonly seriesId: string;
 }
 
-export interface INodeEventConstructor<
+export type INodeEventConstructor<
     TDatum extends SeriesNodeDatum,
     TSeries extends Series<TDatum, any>,
     TEvent extends string = SeriesNodeEventTypes,
-> {
-    new <T extends TEvent>(type: T, event: Event, { datum }: TDatum, series: TSeries): INodeEvent<T>;
-}
+> = new <T extends TEvent>(type: T, event: Event, { datum }: TDatum, series: TSeries) => INodeEvent<T>;
 
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
 const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
