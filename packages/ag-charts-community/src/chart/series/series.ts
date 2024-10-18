@@ -552,7 +552,7 @@ export abstract class Series<
 
                 case SeriesNodePickMode.AXIS_ALIGNED:
                     match =
-                        pickMode != null
+                        pickModeAxis != null
                             ? this.pickNodeMainAxisFirst(point, pickModeAxis === 'main-category')
                             : undefined;
                     break;

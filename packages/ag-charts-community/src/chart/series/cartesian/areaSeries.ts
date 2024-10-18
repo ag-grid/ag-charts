@@ -92,7 +92,7 @@ export class AreaSeries extends CartesianSeries<
     });
 
     override get pickModeAxis() {
-        return this.properties.sparklineMode ? 'main' : 'main-category';
+        return 'main' as const;
     }
 
     constructor(moduleCtx: ModuleContext) {
