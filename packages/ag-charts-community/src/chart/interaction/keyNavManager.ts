@@ -1,4 +1,5 @@
 import type { FocusIndicator } from '../../dom/focusIndicator';
+import type { ChartMode } from '../chartMode';
 import type {
     FocusInteractionEvent,
     InteractionEvent,
@@ -30,7 +31,8 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
 
     constructor(
         readonly focusIndicator: FocusIndicator,
-        readonly interactionManager: InteractionManager
+        readonly interactionManager: InteractionManager,
+        mode: ChartMode
     ) {
         super();
         const mouseStates =
@@ -43,6 +45,8 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
             interactionManager.addListener('focus', (e) => this.onFocus(e), InteractionState.All),
             interactionManager.addListener('keydown', (e) => this.onKeyDown(e), InteractionState.All)
         );
+
+        this.focusIndicator.overrideFocusVisible(mode === 'integrated' ? false : undefined); // AG-13197
     }
 
     protected override getState() {
@@ -68,7 +72,6 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
     }
 
     private onFocus(event: FocusInteractionEvent<'focus'>) {
-        this.focusIndicator.overrideFocusVisible(undefined);
         this.dispatch('focus', 0, event);
     }
 

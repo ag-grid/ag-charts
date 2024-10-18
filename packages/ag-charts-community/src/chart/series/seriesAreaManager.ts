@@ -388,7 +388,9 @@ export class SeriesAreaManager extends BaseManager {
         focus.datumIndex = datumIndex;
         focus.datum = datum;
 
-        this.chart.ctx.animationManager.reset();
+        if (this.chart.ctx.focusIndicator.isFocusVisible()) {
+            this.chart.ctx.animationManager.reset();
+        }
 
         if (this.chart.ctx.focusIndicator.isFocusVisible() && seriesRect) {
             const focusBBox = getPickedFocusBBox(pick);

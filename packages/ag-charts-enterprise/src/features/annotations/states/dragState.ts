@@ -76,6 +76,7 @@ export class DragStateMachine<
                         ctx.node()?.stopDragging();
                         ctx.stopInteracting();
                         if (this.hasMoved) ctx.recordAction('Move annotation');
+                        ctx.update();
                     },
                 },
             },
