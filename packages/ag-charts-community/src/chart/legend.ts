@@ -23,8 +23,7 @@ import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Transformable } from '../scene/transformable';
 import { setElementStyle } from '../util/attributeUtil';
 import type { BBoxValues } from '../util/bboxinterface';
-import { DestroyFns } from '../util/destroy';
-import { createElement, getWindow, setElementBBox } from '../util/dom';
+import { getWindow, setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
 import { initRovingTabIndex } from '../util/keynavUtil';
 import { Logger } from '../util/logger';
@@ -53,6 +52,7 @@ import { gridLayout } from './gridLayout';
 import type { HighlightNodeDatum } from './interaction/highlightManager';
 import { InteractionState, type PointerInteractionEvent } from './interaction/interactionManager';
 import { LayoutElement } from './layout/layoutManager';
+import { LegendDOMProxy } from './legendDOMProxy';
 import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
 import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { Marker } from './marker/marker';
@@ -229,7 +229,6 @@ export class Legend extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
-    @ObserveChanges<Legend>((target) => (target.proxyLegendDirty = true))
     @Validate(POSITION)
     position: AgChartLegendPosition = 'bottom';
 
@@ -259,13 +258,7 @@ export class Legend extends BaseProperties {
 
     private readonly destroyFns: Function[] = [];
 
-    private proxyLegendDirty = true;
-    private readonly proxyLegendToolbar: HTMLDivElement;
-    private readonly proxyLegendPagination: HTMLDivElement;
-    private readonly proxyLegendItemDescription: HTMLParagraphElement;
-    private readonly proxyLegendToolbarDestroyFns: DestroyFns = new DestroyFns();
-    private proxyPrevButton?: HTMLButtonElement;
-    private proxyNextButton?: HTMLButtonElement;
+    private domProxy: LegendDOMProxy;
     private pendingHighlightDatum?: HighlightNodeDatum;
 
     constructor(private readonly ctx: ModuleContext) {
@@ -299,26 +292,8 @@ export class Legend extends BaseProperties {
             () => this.group.remove()
         );
 
-        this.proxyLegendToolbar = this.ctx.proxyInteractionService.createProxyContainer({
-            type: 'list',
-            id: `${this.id}-toolbar`,
-            classList: ['ag-charts-proxy-legend-toolbar'],
-            ariaLabel: { id: 'ariaLabelLegend' },
-            ariaHidden: true,
-        });
-        this.proxyLegendPagination = this.ctx.proxyInteractionService.createProxyContainer({
-            type: 'group',
-            id: `${this.id}-pagination`,
-            classList: ['ag-charts-proxy-legend-pagination'],
-            ariaLabel: { id: 'ariaLabelLegendPagination' },
-            ariaOrientation: 'horizontal',
-            ariaHidden: true,
-        });
-        this.proxyLegendItemDescription = createElement('p');
-        this.proxyLegendItemDescription.style.display = 'none';
-        this.proxyLegendItemDescription.id = `${this.id}-ariaDescription`;
-        this.proxyLegendItemDescription.textContent = this.getItemAriaDescription();
-        this.proxyLegendToolbar.append(this.proxyLegendItemDescription);
+        this.domProxy = new LegendDOMProxy(this.ctx, this.id);
+        this.domProxy.itemDescription.textContent = this.getItemAriaDescription();
     }
 
     public destroy() {
@@ -328,11 +303,11 @@ export class Legend extends BaseProperties {
 
         this.pagination.destroy();
         this.itemSelection.clear();
-        this.proxyLegendToolbarDestroyFns.destroy();
+        this.domProxy.destroy();
     }
 
     private initLegendItemToolbar() {
-        if (!this.proxyLegendDirty) return;
+        if (!this.domProxy.dirty) return;
 
         this.itemSelection.each((markerLabel, _, i) => {
             // Create the hidden CSS button.
@@ -342,8 +317,8 @@ export class Legend extends BaseProperties {
                 id: `ag-charts-legend-item-${i}`,
                 textContent: this.getItemAriaText(i),
                 ariaChecked: !!markerLabel.datum.enabled,
-                ariaDescribedBy: this.proxyLegendItemDescription.id,
-                parent: this.proxyLegendToolbar,
+                ariaDescribedBy: this.domProxy.itemDescription.id,
+                parent: this.domProxy.itemList,
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
@@ -361,16 +336,18 @@ export class Legend extends BaseProperties {
             .nodes()
             .map((markerLabel) => markerLabel.proxyButton?.button)
             .filter(isDefined);
-        this.proxyLegendToolbarDestroyFns.setFns([
+        const orientation = this.getOrientation();
+        this.domProxy.destroyFns.setFns([
             ...initRovingTabIndex({ orientation: 'horizontal', buttons }),
             ...initRovingTabIndex({ orientation: 'vertical', buttons }),
         ]);
-        this.proxyLegendToolbar.ariaHidden = (buttons.length === 0).toString();
-        this.proxyLegendDirty = false;
+        this.domProxy.itemList.ariaOrientation = orientation;
+        this.domProxy.itemList.ariaHidden = (buttons.length === 0).toString();
+        this.domProxy.dirty = false;
     }
 
     private onDataUpdate(oldData: CategoryLegendDatum[], newData: CategoryLegendDatum[]) {
-        this.proxyLegendDirty =
+        this.domProxy.dirty =
             oldData.length !== newData.length ||
             oldData.some((_v, index, _a) => {
                 const [newValue, oldValue] = [newData[index], oldData[index]];
@@ -765,48 +742,50 @@ export class Legend extends BaseProperties {
     }
 
     private updatePaginationProxyButtons(oldPages: Page[] | undefined) {
-        this.proxyLegendPagination.style.display = this.pagination.visible ? 'absolute' : 'none';
+        this.domProxy.paginationGroup.style.display = this.pagination.visible ? 'absolute' : 'none';
 
         const oldNeedsButtons = (oldPages?.length ?? this.pages.length) > 1;
         const newNeedsButtons = this.pages.length > 1;
 
         if (oldNeedsButtons !== newNeedsButtons) {
             if (newNeedsButtons) {
-                this.proxyPrevButton = this.ctx.proxyInteractionService.createProxyElement({
+                this.domProxy.prevButton = this.ctx.proxyInteractionService.createProxyElement({
                     type: 'button',
                     id: `${this.id}-prev-page`,
                     textContent: { id: 'ariaLabelLegendPagePrevious' },
                     tabIndex: 0,
-                    parent: this.proxyLegendPagination,
+                    parent: this.domProxy.paginationGroup,
                     onclick: (ev) => this.pagination.onClick(ev, 'previous'),
                     onmouseenter: () => this.pagination.onMouseHover('previous'),
                     onmouseleave: () => this.pagination.onMouseHover(undefined),
                 });
-                this.proxyNextButton ??= this.ctx.proxyInteractionService.createProxyElement({
+                this.domProxy.nextButton ??= this.ctx.proxyInteractionService.createProxyElement({
                     type: 'button',
                     id: `${this.id}-next-page`,
                     textContent: { id: 'ariaLabelLegendPageNext' },
                     tabIndex: 0,
-                    parent: this.proxyLegendPagination,
+                    parent: this.domProxy.paginationGroup,
                     onclick: (ev) => this.pagination.onClick(ev, 'next'),
                     onmouseenter: () => this.pagination.onMouseHover('next'),
                     onmouseleave: () => this.pagination.onMouseHover(undefined),
                 });
-                this.proxyLegendPagination.ariaHidden = 'false';
+                this.domProxy.paginationGroup.ariaHidden = 'false';
             } else {
-                this.proxyNextButton?.remove();
-                this.proxyPrevButton?.remove();
-                [this.proxyNextButton, this.proxyPrevButton] = [undefined, undefined];
-                this.proxyLegendPagination.ariaHidden = 'true';
+                this.domProxy.nextButton?.remove();
+                this.domProxy.prevButton?.remove();
+                this.domProxy.nextButton = undefined;
+                this.domProxy.prevButton = undefined;
+                this.domProxy.paginationGroup.ariaHidden = 'true';
             }
         }
 
         const { prev, next } = this.pagination.computeCSSBounds();
-        setElementBBox(this.proxyPrevButton, prev);
-        setElementBBox(this.proxyNextButton, next);
 
-        setElementStyle(this.proxyNextButton, 'cursor', this.pagination.getCursor('next'));
-        setElementStyle(this.proxyPrevButton, 'cursor', this.pagination.getCursor('previous'));
+        setElementBBox(this.domProxy.prevButton, prev);
+        setElementBBox(this.domProxy.nextButton, next);
+
+        setElementStyle(this.domProxy.nextButton, 'cursor', this.pagination.getCursor('next'));
+        setElementStyle(this.domProxy.prevButton, 'cursor', this.pagination.getCursor('previous'));
     }
 
     private calculatePagination(bboxes: BBox[], width: number, height: number) {
@@ -950,8 +929,8 @@ export class Legend extends BaseProperties {
 
         this.updatePositions(pageNumber);
 
-        setElementStyle(this.proxyNextButton, 'cursor', this.pagination.getCursor('next'));
-        setElementStyle(this.proxyPrevButton, 'cursor', this.pagination.getCursor('previous'));
+        setElementStyle(this.domProxy.nextButton, 'cursor', this.pagination.getCursor('next'));
+        setElementStyle(this.domProxy.prevButton, 'cursor', this.pagination.getCursor('previous'));
         this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
 
@@ -1238,7 +1217,7 @@ export class Legend extends BaseProperties {
                 proxyButton.button.textContent = this.getItemAriaText(i);
             }
         });
-        this.proxyLegendItemDescription.textContent = this.getItemAriaDescription();
+        this.domProxy.itemDescription.textContent = this.getItemAriaDescription();
     }
 
     private getItemAriaText(nodeIndex: number): string {
@@ -1258,7 +1237,7 @@ export class Legend extends BaseProperties {
     }
 
     private positionLegend(ctx: LayoutContext) {
-        setElementStyle(this.proxyLegendToolbar, 'display', this.visible && this.enabled ? undefined : 'none');
+        setElementStyle(this.domProxy.itemList, 'display', this.visible && this.enabled ? undefined : 'none');
 
         if (!this.enabled || !this.data.length) return;
 
@@ -1308,7 +1287,7 @@ export class Legend extends BaseProperties {
             this.group.translationX = Math.floor(x + translationX - legendBBox.x);
             this.group.translationY = Math.floor(y + translationY - legendBBox.y);
 
-            this.proxyLegendToolbar.ariaOrientation = this.getOrientation();
+            this.domProxy.itemList.ariaOrientation = this.getOrientation();
         }
 
         this.updateItemProxyButtons();
