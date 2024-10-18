@@ -46,6 +46,12 @@ export const DEFAULT_ANNOTATION_STATISTICS_COLOR = Symbol('default-annotation-st
 export const DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE = Symbol(
     'default-annotation-statistics-divider-stroke'
 ) as unknown as string;
+export const DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL = Symbol(
+    'default-annotation-statistics-fill'
+) as unknown as string;
+export const DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE = Symbol(
+    'default-annotation-statistics-stroke'
+) as unknown as string;
 export const DEFAULT_TEXTBOX_FILL = Symbol('default-textbox-fill') as unknown as string;
 export const DEFAULT_TEXTBOX_STROKE = Symbol('default-textbox-stroke') as unknown as string;
 export const DEFAULT_TEXTBOX_COLOR = Symbol('default-textbox-color') as unknown as string;

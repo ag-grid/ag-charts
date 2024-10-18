@@ -24,7 +24,7 @@ interface MeasurerStateMachineContext<Datum extends MeasurerPropertiesType>
 
 abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> extends StateMachine<
     'start' | 'end',
-    Pick<AnnotationStateEvents, 'click' | 'hover' | 'drag' | 'reset' | 'cancel'>
+    Pick<AnnotationStateEvents, 'click' | 'hover' | 'drag' | 'dragEnd' | 'reset' | 'cancel'>
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -71,6 +71,10 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
             end: {
                 hover: actionEndUpdate,
                 click: {
+                    target: StateMachine.parent,
+                    action: actionEndFinish,
+                },
+                dragEnd: {
                     target: StateMachine.parent,
                     action: actionEndFinish,
                 },

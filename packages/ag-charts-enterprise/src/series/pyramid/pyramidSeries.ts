@@ -1,4 +1,10 @@
-import { type AgTooltipRendererResult, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import {
+    type AgPyramidSeriesStyle,
+    type AgTooltipRendererResult,
+    _ModuleSupport,
+    _Scene,
+    _Util,
+} from 'ag-charts-community';
 
 import { FunnelConnector } from '../funnel/funnelConnector';
 import { PyramidProperties } from './pyramidProperties';
@@ -368,10 +374,12 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, shadow } = this.properties;
+        const { properties } = this;
+        const { stageKey, valueKey, shadow, itemStyler } = this.properties;
         const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
 
-        datumSelection.each((connector, { x, y, top, right, bottom, left, fill, stroke }) => {
+        datumSelection.each((connector, nodeDatum) => {
+            const { x, y, top, right, bottom, left } = nodeDatum;
             connector.x0 = x - top / 2;
             connector.x1 = x + top / 2;
             connector.x2 = x + bottom / 2;
@@ -382,13 +390,39 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             connector.y2 = y + right / 2;
             connector.y3 = y + left / 2;
 
-            connector.fill = highlightStyle?.fill ?? fill;
-            connector.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
-            connector.stroke = highlightStyle?.stroke ?? stroke;
-            connector.strokeOpacity = highlightStyle?.strokeOpacity ?? strokeOpacity;
-            connector.strokeWidth = highlightStyle?.strokeWidth ?? strokeWidth;
-            connector.lineDash = highlightStyle?.lineDash ?? lineDash;
-            connector.lineDashOffset = highlightStyle?.lineDashOffset ?? lineDashOffset;
+            const fill = highlightStyle?.fill ?? nodeDatum.fill;
+            const fillOpacity = highlightStyle?.fillOpacity ?? properties.fillOpacity;
+            const stroke = highlightStyle?.stroke ?? nodeDatum.stroke;
+            const strokeOpacity = highlightStyle?.strokeOpacity ?? properties.strokeOpacity;
+            const strokeWidth = highlightStyle?.strokeWidth ?? properties.strokeWidth;
+            const lineDash = highlightStyle?.lineDash ?? properties.lineDash;
+            const lineDashOffset = highlightStyle?.lineDashOffset ?? properties.lineDashOffset;
+
+            let itemStyle: AgPyramidSeriesStyle | undefined;
+            if (itemStyler != null) {
+                itemStyle = itemStyler({
+                    datum: nodeDatum.datum,
+                    seriesId: this.id,
+                    highlighted: isHighlight,
+                    stageKey,
+                    valueKey,
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeOpacity,
+                    strokeWidth,
+                    lineDash,
+                    lineDashOffset,
+                });
+            }
+
+            connector.fill = itemStyle?.fill ?? fill;
+            connector.fillOpacity = itemStyle?.fillOpacity ?? fillOpacity;
+            connector.stroke = itemStyle?.stroke ?? stroke;
+            connector.strokeOpacity = itemStyle?.strokeOpacity ?? strokeOpacity;
+            connector.strokeWidth = itemStyle?.strokeWidth ?? strokeWidth;
+            connector.lineDash = itemStyle?.lineDash ?? lineDash;
+            connector.lineDashOffset = itemStyle?.lineDashOffset ?? lineDashOffset;
             connector.fillShadow = shadow;
         });
     }

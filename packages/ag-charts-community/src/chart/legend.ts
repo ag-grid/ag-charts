@@ -202,6 +202,7 @@ export class Legend extends BaseProperties {
     set data(value: CategoryLegendDatum[]) {
         this._data = value;
         this._symbolsDirty = true;
+        this.proxyLegendDirty = true;
         this.updateGroupVisibility();
     }
     get data() {
@@ -241,6 +242,7 @@ export class Legend extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
     reverseOrder?: boolean;
 
+    @ObserveChanges<Legend>((target) => (target.proxyLegendDirty = true))
     @Validate(UNION(['horizontal', 'vertical'], 'an orientation'), { optional: true })
     orientation?: AgChartLegendOrientation;
 
@@ -255,6 +257,7 @@ export class Legend extends BaseProperties {
 
     private readonly destroyFns: Function[] = [];
 
+    private proxyLegendDirty = true;
     private readonly proxyLegendToolbar: HTMLDivElement;
     private readonly proxyLegendPagination: HTMLDivElement;
     private readonly proxyLegendItemDescription: HTMLParagraphElement;
@@ -327,8 +330,11 @@ export class Legend extends BaseProperties {
     }
 
     private initLegendItemToolbar() {
+        if (!this.proxyLegendDirty) return;
+
         this.itemSelection.each((markerLabel, _, i) => {
             // Create the hidden CSS button.
+            markerLabel.destroyProxyButton();
             markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
                 type: 'listswitch',
                 id: `ag-charts-legend-item-${i}`,
@@ -358,6 +364,7 @@ export class Legend extends BaseProperties {
         this.proxyLegendToolbarDestroyFns.setFns(initRovingTabIndex({ orientation, buttons }));
         this.proxyLegendToolbar.ariaOrientation = orientation;
         this.proxyLegendToolbar.ariaHidden = (buttons.length === 0).toString();
+        this.proxyLegendDirty = false;
     }
 
     public onMarkerShapeChange() {
@@ -437,16 +444,8 @@ export class Legend extends BaseProperties {
         if (this.reverseOrder) {
             data.reverse();
         }
-        const orientationChange = this.proxyLegendToolbar.ariaOrientation !== this.getOrientation();
-        const proxyToolbarNeedsUpdate = orientationChange || this.itemSelection.nodes().length === 0;
         this.itemSelection.update(data);
-
-        if (proxyToolbarNeedsUpdate) {
-            if (orientationChange) {
-                this.itemSelection.each((markerLabel) => markerLabel.destroyProxyButton());
-            }
-            this.initLegendItemToolbar();
-        }
+        this.initLegendItemToolbar();
 
         // Update properties that affect the size of the legend items and measure them.
         const bboxes: BBox[] = [];
