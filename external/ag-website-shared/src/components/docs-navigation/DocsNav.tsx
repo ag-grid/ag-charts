@@ -212,7 +212,7 @@ export function DocsNav({
 
                     {menuData.sections.map((sectionData, i) => {
                         return (
-                            <Fragment key={sectionData.title}>
+                            <Fragment key={`${sectionData.title}-${i}`}>
                                 <Section
                                     sectionData={sectionData}
                                     framework={framework}
