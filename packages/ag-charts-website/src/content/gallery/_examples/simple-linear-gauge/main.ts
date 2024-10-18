@@ -43,28 +43,28 @@ const options: AgLinearGaugeOptions = {
     targets: [
         {
             value: 20,
-            text: 'Low',
+            text: 'Low 0-20 mol/L',
             ...targetMarkerStyles,
         },
         {
             value: 33,
-            text: 'Suboptimal Concentration',
+            text: 'Suboptimal Concentration 21-33 mol/L',
             ...targetMarkerStyles,
         },
         {
-            value: 66,
-            text: 'Operational Range',
+            value: 65,
+            text: 'Operational Range 34-65 mol/L',
             ...targetMarkerStyles,
         },
         {
             value: 80,
-            text: 'Optimal',
+            text: 'Optimal 66-80 mol/L',
             ...targetMarkerStyles,
             stroke: 'green',
         },
         {
             value: 88,
-            text: 'Threshold Limit',
+            text: 'Threshold Limit >80 mol/L',
             ...targetMarkerStyles,
             fillOpacity: 1,
             stroke: 'red',
