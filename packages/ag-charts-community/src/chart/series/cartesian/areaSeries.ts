@@ -91,6 +91,10 @@ export class AreaSeries extends CartesianSeries<
         zIndex: SeriesZIndexMap.BACKGROUND,
     });
 
+    override get pickModeAxis() {
+        return 'main' as const;
+    }
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
