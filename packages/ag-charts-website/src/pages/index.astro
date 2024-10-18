@@ -12,7 +12,7 @@ import ImageCarousel from '../features/homepage/components/hero/ImageCarousel';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { Version } from '@ag-website-shared/components/whats-new/components/Version';
 import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
-import { getIsProduction, getIsArchive, GRID_STAGING_SITE_URL } from '@utils/env';
+import { getIsProduction, getIsArchive } from '@utils/env';
 import { agGridVersion } from '@constants';
 import { HomepageGalleryExamples } from '@features/homepage/components/HomepageGalleryExamples';
 import HomepageDocsExample from '@features/homepage/components/HomepageDocsExample.astro';
@@ -105,10 +105,13 @@ const isProduction = getIsProduction();
 const isArchive = getIsArchive();
 
 const AG_GRID_CHARTS_CDN_URL = isArchive
-    ? `https://www.ag-grid.com/archive/${agGridVersion}/files/ag-grid-enterprise/dist/ag-grid-enterprise.min.js`
+    ? `https://www.ag-grid.com/archive/${agGridVersion}/files/ag-grid-charts-enterprise/dist/ag-grid-charts-enterprise.min.js`
     : isProduction
-      ? `https://cdn.jsdelivr.net/npm/ag-grid-enterprise@${agGridVersion}/dist/ag-grid-enterprise.min.js`
-      : `${GRID_STAGING_SITE_URL}/files/ag-grid-enterprise/dist/ag-grid-enterprise.min.js`;
+      ? `https://cdn.jsdelivr.net/npm/ag-grid-charts-enterprise@${agGridVersion}/dist/ag-grid-charts-enterprise.min.js`
+      : // NOTE: Use archive until v33.0.0
+        `https://www.ag-grid.com/archive/${agGridVersion}/files/ag-grid-charts-enterprise/dist/ag-grid-charts-enterprise.min.js`;
+// From v33.0.0, we can update to use `ag-grid-enterprise`
+//   : `${GRID_STAGING_SITE_URL}/files/ag-grid-enterprise/dist/ag-grid-enterprise.min.js`;
 ---
 
 <script is:inline src={AG_GRID_CHARTS_CDN_URL}></script>
