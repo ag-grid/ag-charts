@@ -263,8 +263,8 @@ export abstract class Chart extends Observable {
 
         this.tooltip = new Tooltip();
         this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.highlightRoot, this.annotationRoot);
-        const mode: ChartMode = (options.userOptions as { mode?: ChartMode }).mode ?? this.mode;
-        const ctx = (this.ctx = new ChartContext(this, mode, {
+        this.mode = (options.userOptions as { mode?: ChartMode }).mode ?? this.mode;
+        const ctx = (this.ctx = new ChartContext(this, {
             scene,
             root,
             container,

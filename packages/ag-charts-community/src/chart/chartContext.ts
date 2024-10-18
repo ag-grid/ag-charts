@@ -66,7 +66,6 @@ export class ChartContext implements ModuleContext {
 
     constructor(
         chart: ChartService & { annotationRoot: Group; keyboard: Keyboard; tooltip: Tooltip },
-        mode: ChartMode,
         vars: {
             scene?: Scene;
             root: Group;
@@ -98,7 +97,7 @@ export class ChartContext implements ModuleContext {
         this.cursorManager = new CursorManager(this.domManager);
         this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
         this.focusIndicator = new FocusIndicator(this.domManager);
-        this.keyNavManager = new KeyNavManager(this.focusIndicator, this.interactionManager, mode);
+        this.keyNavManager = new KeyNavManager(this.focusIndicator, this.interactionManager, chart.mode);
         this.regionManager = new RegionManager(this.interactionManager);
         this.contextMenuRegistry = new ContextMenuRegistry(this.regionManager);
         this.gestureDetector = new GestureDetector(this.domManager);
