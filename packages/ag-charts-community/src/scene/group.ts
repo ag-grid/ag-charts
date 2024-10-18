@@ -1,7 +1,7 @@
-import { ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
+import { ascendingStringNumberUndefined } from '../util/compare';
 import { clamp } from '../util/number';
 import { BBox } from './bbox';
-import type { HdpiCanvas } from './canvas/hdpiCanvas';
+import type { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import { nodeCount } from './debug.util';
 import type { LayersManager } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
@@ -21,10 +21,7 @@ export class Group extends Node {
     }
 
     private static compareChildren(a: Node, b: Node) {
-        return (
-            compareZIndex(a.zIndex, b.zIndex) ||
-            compoundAscending([a.serialNumber], [b.serialNumber], ascendingStringNumberUndefined)
-        );
+        return compareZIndex(a.zIndex, b.zIndex) || ascendingStringNumberUndefined(a.serialNumber, b.serialNumber);
     }
 
     private clipRect?: BBox;
@@ -32,7 +29,7 @@ export class Group extends Node {
     @SceneChangeDetection({ convertor: (v: number) => clamp(0, v, 1) })
     opacity: number = 1;
 
-    private layer: HdpiCanvas | undefined = undefined;
+    private layer: HdpiOffscreenCanvas | undefined = undefined;
     renderToOffscreenCanvas: boolean = false;
 
     constructor(opts?: {
@@ -84,19 +81,15 @@ export class Group extends Node {
     }
 
     override render(renderCtx: RenderContext) {
-        if (!this.visible) {
-            return super.render(renderCtx);
-        }
-
+        const { layer } = this;
         const childRenderCtx: RenderContext = { ...renderCtx };
 
-        if (this.layer == null) {
+        if (layer == null) {
             this.renderInContext(childRenderCtx);
             super.render(childRenderCtx); // Calls markClean().
             return;
         }
 
-        const { layer } = this;
         const { ctx } = renderCtx;
 
         if (this.isDirty(renderCtx)) {
@@ -125,21 +118,6 @@ export class Group extends Node {
         super.render(childRenderCtx); // Calls markClean().
     }
 
-    private renderClip(renderCtx: RenderContext, clipRect: BBox) {
-        // clipRect is in the group's coordinate space
-        const { x, y, width, height } = clipRect;
-        const { ctx } = renderCtx;
-
-        ctx.beginPath();
-        ctx.rect(x, y, width, height);
-        ctx.clip();
-
-        // clipBBox is in the canvas coordinate space,
-        // when we hit a layer we apply the new clipping
-        // at which point there are no transforms in play
-        return Transformable.toCanvas(this, clipRect);
-    }
-
     private skipRender(childRenderCtx: RenderContext) {
         const { stats } = childRenderCtx;
 
@@ -164,7 +142,17 @@ export class Group extends Node {
         ctx.globalAlpha *= this.opacity;
 
         if (this.clipRect != null) {
-            childRenderCtx.clipBBox = this.renderClip(childRenderCtx, this.clipRect);
+            // clipRect is in the group's coordinate space
+            const { x, y, width, height } = this.clipRect;
+
+            ctx.beginPath();
+            ctx.rect(x, y, width, height);
+            ctx.clip();
+
+            // clipBBox is in the canvas coordinate space,
+            // when we hit a layer we apply the new clipping
+            // at which point there are no transforms in play
+            childRenderCtx.clipBBox = Transformable.toCanvas(this, this.clipRect);
         }
 
         for (const child of this.children()) {
