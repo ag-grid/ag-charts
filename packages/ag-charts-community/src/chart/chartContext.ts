@@ -28,6 +28,7 @@ import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import type { Keyboard } from './keyboard';
 import { LayoutManager } from './layout/layoutManager';
+import type { ModulesManager } from './modulesManager';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
 import { type UpdateCallback, UpdateService } from './updateService';
@@ -56,6 +57,7 @@ export class ChartContext implements ModuleContext {
     historyManager: HistoryManager;
     interactionManager: InteractionManager;
     keyNavManager: KeyNavManager;
+    modulesManager: ModulesManager;
     proxyInteractionService: ProxyInteractionService;
     regionManager: RegionManager;
     scene: Scene;
@@ -68,6 +70,7 @@ export class ChartContext implements ModuleContext {
         vars: {
             scene?: Scene;
             root: Group;
+            modulesManager: ModulesManager;
             syncManager: SyncManager;
             container?: HTMLElement;
             updateCallback: UpdateCallback;
@@ -75,11 +78,12 @@ export class ChartContext implements ModuleContext {
             pixelRatio?: number;
         }
     ) {
-        const { scene, root, syncManager, container, updateCallback, updateMutex, pixelRatio } = vars;
+        const { scene, root, modulesManager, syncManager, container, updateCallback, updateMutex, pixelRatio } = vars;
 
         this.chartService = chart;
         this.syncManager = syncManager;
         this.domManager = new DOMManager(container);
+        this.modulesManager = modulesManager;
 
         // Sets canvas element if scene exists, otherwise use return value with scene constructor
         const canvasElement = this.domManager.addChild(
