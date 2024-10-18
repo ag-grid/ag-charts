@@ -317,6 +317,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     },
                 ],
 
+                drag: {
+                    action: () => {
+                        const prevActive = this.active;
+                        this.active = this.hovered;
+                        ctx.select(this.hovered, prevActive);
+                    },
+                },
+
                 dblclick: {
                     guard: guardActiveHasLineText,
                     action: ({ offset }) => {
