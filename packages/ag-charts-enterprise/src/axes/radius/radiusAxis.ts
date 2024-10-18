@@ -31,10 +31,6 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
 
     protected gridPathSelection = Selection.select(this.gridPathGroup, Path);
 
-    constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: _Scale.Scale<any, any>) {
-        super(moduleCtx, scale);
-    }
-
     get direction() {
         return ChartAxisDirection.Y;
     }

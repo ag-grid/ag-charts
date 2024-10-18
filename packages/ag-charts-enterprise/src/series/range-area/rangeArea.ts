@@ -20,7 +20,6 @@ const {
     animationValidation,
     diff,
     updateClipPath,
-    formatValue,
     computeMarkerFocusBounds,
     plotPath,
     pathRanges,
@@ -330,11 +329,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             series,
             itemId,
             datum,
-            text: this.getLabelText(
-                label,
-                { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName },
-                formatValue
-            ),
+            text: this.getLabelText(label, {
+                value,
+                datum,
+                itemId,
+                xKey,
+                yLowKey,
+                yHighKey,
+                xName,
+                yLowName,
+                yHighName,
+                yName,
+            }),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
         };
@@ -357,7 +363,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
             fill: undefined,
-            lineJoin: (stroke.lineCap = 'round'),
+            lineCap: 'round',
+            lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             stroke: this.properties.stroke,
             strokeWidth,

@@ -19,7 +19,6 @@ export class RadarAreaSeries extends RadarSeries {
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx);
         const areaGroup = new Group();
-        areaGroup.zIndexSubOrder = [() => this._declarationOrder, 0];
         this.contentGroup.append(areaGroup);
         this.areaSelection = Selection.select(areaGroup, Path);
     }

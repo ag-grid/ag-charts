@@ -1,7 +1,11 @@
 import type { AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
+import type { BBox } from '../../scene/bbox';
+import type { BBoxValues } from '../../util/bboxinterface';
 import { deepClone } from '../../util/json';
+import { Logger } from '../../util/logger';
+import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
 import { isFiniteNumber, isObject } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
@@ -142,6 +146,19 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         });
 
         this.applyChanges(callerId);
+    }
+
+    public panToBBox(callerId: string, seriesRect: BBox, target: BBoxValues) {
+        const zoom = this.getZoom();
+        if (zoom === undefined || (!zoom.x && !zoom.y)) return;
+
+        if (target.width > seriesRect.width || target.height > seriesRect.height) {
+            Logger.errorOnce(`cannot pan to target BBox`);
+            return;
+        }
+
+        const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
+        this.updateZoom(callerId, newZoom);
     }
 
     public updateAxisZoom(callerId: string, axisId: string, newZoom?: ZoomState) {

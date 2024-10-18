@@ -93,7 +93,7 @@ describe('Range', () => {
 
                     // Render.
                     ctx.save();
-                    range.render({ ctx, devicePixelRatio: 1, forceRender: true, resized: false, debugNodes: {} });
+                    range.render({ ctx, devicePixelRatio: 1, resized: false, debugNodes: {} });
                     ctx.restore();
 
                     // Prepare for next case.

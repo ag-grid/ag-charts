@@ -14,7 +14,7 @@ const {
     valueProperty,
     TextUtils,
 } = _ModuleSupport;
-const { Label, Rect, Text } = _Scene;
+const { Group, Label, Rect, Text } = _Scene;
 
 enum LabelConfiguration {
     Open = 1 << 1,
@@ -118,10 +118,11 @@ export class StatusBar
     data?: any[] = undefined;
 
     private readonly highlightManager: _ModuleSupport.HighlightManager;
-    private readonly labelGroup = new _Scene.TranslatableLayer({
+    private readonly layer = new Group({
         name: 'StatusBar',
         zIndex: ZIndexMap.STATUS_BAR,
     });
+    private readonly labelGroup = this.layer.appendChild(new _Scene.TranslatableGroup());
     private readonly backgroundNode = this.labelGroup.appendChild(new Rect());
     private readonly labels = [
         {
@@ -257,7 +258,7 @@ export class StatusBar
         this.labelGroup.visible = false;
 
         this.destroyFns.push(
-            ctx.scene.attachNode(this.labelGroup),
+            ctx.scene.attachNode(this.layer),
             ctx.layoutManager.registerElement(LayoutElement.Overlay, (e) => this.startPerformLayout(e)),
             ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.highlightManager.addListener('highlight-change', () => this.updateHighlight())

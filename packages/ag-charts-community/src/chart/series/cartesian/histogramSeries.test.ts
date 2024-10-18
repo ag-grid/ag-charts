@@ -150,7 +150,7 @@ describe('HistogramSeries', () => {
             const context: SeriesNodeDataContext<any, any> = (series as any)['contextNodeData'];
             const item = context.nodeData.find((n) => n.datum['weight'] === 65.6 && n.datum['age'] === 21);
 
-            const { x, y } = Transformable.toCanvasPoint(series.rootGroup, item.point.x, item.point.y);
+            const { x, y } = Transformable.toCanvasPoint(series.contentGroup, item.point.x, item.point.y);
 
             await hoverAction(x, y)(chart);
             await waitForChartStability(chart);

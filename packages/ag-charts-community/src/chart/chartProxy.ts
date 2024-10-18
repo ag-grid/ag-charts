@@ -216,12 +216,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             specialOverrides.overrideDevicePixelRatio = 1;
         }
 
-        const cloneProxy = await this.factoryApi.create(
-            userOptions,
-            processedOverrides,
-            specialOverrides,
-            optionsMetadata
-        );
+        const cloneProxy = this.factoryApi.create(userOptions, processedOverrides, specialOverrides, optionsMetadata);
         await cloneProxy.setState(state);
         cloneProxy.chart.ctx.zoomManager.updateZoom('chartProxy', chart.ctx.zoomManager.getZoom()); // sync zoom
         chart.series.forEach((series, index) => {
