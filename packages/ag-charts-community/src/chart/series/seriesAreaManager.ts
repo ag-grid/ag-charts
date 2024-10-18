@@ -388,7 +388,9 @@ export class SeriesAreaManager extends BaseManager {
         focus.datumIndex = datumIndex;
         focus.datum = datum;
 
-        this.chart.ctx.animationManager.reset();
+        if (this.chart.ctx.focusIndicator.isFocusVisible()) {
+            this.chart.ctx.animationManager.reset();
+        }
 
         // Update the bounds of the focus indicator:
         const keyboardEvent = makeKeyboardPointerEvent(this.chart.ctx.focusIndicator, pick);
