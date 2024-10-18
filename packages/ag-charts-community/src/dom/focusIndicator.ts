@@ -48,7 +48,7 @@ export class FocusIndicator {
 
     private getFocusableElement(): HTMLElement {
         const focusable = this.element.parentElement;
-        if (focusable == null || focusable?.tabIndex !== 0)
+        if (focusable == null || (focusable.tabIndex !== 0 && focusable.tabIndex !== -1))
             throw new Error('AG Charts - the focus indicator must be a child of a focusable element');
         return focusable;
     }
