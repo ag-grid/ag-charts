@@ -1,3 +1,4 @@
+import { initRovingTabIndex } from '../util/keynavUtil';
 import type { ModuleContext } from '../module/moduleContext';
 import { DestroyFns } from '../util/destroy';
 import { createElement } from '../util/dom';
@@ -36,5 +37,14 @@ export class LegendDOMProxy {
 
     public destroy() {
         this.destroyFns.destroy();
+    }
+
+    public initKeyNav(buttons: HTMLButtonElement[]) {
+        this.destroyFns.setFns([
+            ...initRovingTabIndex({ orientation: 'horizontal', buttons }),
+            ...initRovingTabIndex({ orientation: 'vertical', buttons }),
+        ]);
+        this.itemList.ariaHidden = (buttons.length === 0).toString();
+        this.dirty = false;
     }
 }

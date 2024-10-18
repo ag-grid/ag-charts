@@ -25,7 +25,6 @@ import { setElementStyle } from '../util/attributeUtil';
 import type { BBoxValues } from '../util/bboxinterface';
 import { getWindow, setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
-import { initRovingTabIndex } from '../util/keynavUtil';
 import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
 import { BaseProperties } from '../util/properties';
@@ -336,14 +335,7 @@ export class Legend extends BaseProperties {
             .nodes()
             .map((markerLabel) => markerLabel.proxyButton?.button)
             .filter(isDefined);
-        const orientation = this.getOrientation();
-        this.domProxy.destroyFns.setFns([
-            ...initRovingTabIndex({ orientation: 'horizontal', buttons }),
-            ...initRovingTabIndex({ orientation: 'vertical', buttons }),
-        ]);
-        this.domProxy.itemList.ariaOrientation = orientation;
-        this.domProxy.itemList.ariaHidden = (buttons.length === 0).toString();
-        this.domProxy.dirty = false;
+        this.domProxy.initKeyNav(buttons);
     }
 
     private onDataUpdate(oldData: CategoryLegendDatum[], newData: CategoryLegendDatum[]) {
