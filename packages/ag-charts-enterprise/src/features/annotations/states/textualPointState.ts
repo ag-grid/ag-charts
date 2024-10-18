@@ -168,6 +168,10 @@ export abstract class TextualPointStateMachine<
                     target: StateMachine.parent,
                     action: actionSave,
                 },
+                drag: {
+                    target: StateMachine.parent,
+                    action: actionSave,
+                },
                 zoomChange: {
                     target: StateMachine.parent,
                     action: actionSave,

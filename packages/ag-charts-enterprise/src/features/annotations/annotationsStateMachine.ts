@@ -317,6 +317,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     },
                 ],
 
+                drag: {
+                    action: () => {
+                        const prevActive = this.active;
+                        this.active = this.hovered;
+                        ctx.select(this.hovered, prevActive);
+                    },
+                },
+
                 dblclick: {
                     guard: guardActiveHasLineText,
                     action: ({ offset }) => {
@@ -459,6 +467,11 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     action: actionSaveText,
                 },
 
+                drag: {
+                    target: States.Idle,
+                    action: actionSaveText,
+                },
+
                 keyDown: [
                     {
                         guard: guardCancelAndExit,
@@ -492,9 +505,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     ctx.hideTextInput();
 
                     const wasActive = this.active;
-                    const prevActive = this.active;
                     this.active = this.hovered = undefined;
-                    ctx.select(this.active, prevActive);
+                    ctx.select(this.active, wasActive);
 
                     if (wasActive == null) return;
 
