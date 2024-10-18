@@ -11,7 +11,6 @@ import { CallbackCache } from '../util/callbackCache';
 import type { Mutex } from '../util/mutex';
 import { AnnotationManager } from './annotation/annotationManager';
 import { AxisManager } from './axis/axisManager';
-import type { ChartMode } from './chartMode';
 import type { ChartService } from './chartService';
 import { DataService } from './data/dataService';
 import { AnimationManager } from './interaction/animationManager';
