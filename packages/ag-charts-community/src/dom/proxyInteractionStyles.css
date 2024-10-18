@@ -3,7 +3,7 @@
     position: absolute;
 }
 
-.ag-charts-proxy-container .proxy-elem {
+.ag-charts-proxy-elem {
     -webkit-appearance: none;
     appearance: none;
     background: none;
@@ -14,17 +14,17 @@
     position: absolute;
 }
 
-.ag-charts-proxy-container .proxy-elem::-moz-range-thumb,
-.ag-charts-proxy-container .proxy-elem::-moz-range-track {
+.ag-charts-proxy-elem::-moz-range-thumb,
+.ag-charts-proxy-elem::-moz-range-track {
     opacity: 0;
 }
 
-.ag-charts-proxy-container .proxy-elem::-webkit-slider-runnable-track,
-.ag-charts-proxy-container .proxy-elem::-webkit-slider-thumb {
+.ag-charts-proxy-elem::-webkit-slider-runnable-track,
+.ag-charts-proxy-elem::-webkit-slider-thumb {
     opacity: 0;
 }
 
-.ag-charts-proxy-container .proxy-elem:focus-visible {
+.ag-charts-proxy-elem:focus-visible {
     outline: var(--ag-charts-focus-border);
     box-shadow: var(--ag-charts-focus-border-shadow);
 }
