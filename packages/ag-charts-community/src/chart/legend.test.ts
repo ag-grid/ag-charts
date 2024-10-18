@@ -218,7 +218,7 @@ describe('Legend', () => {
 
             chart = deproxy(AgCharts.create(options));
 
-            const legendButtons = document.querySelectorAll('button.ag-charts-proxy-elem[role="switch"]');
+            const legendButtons = document.querySelectorAll('button.proxy-elem[role="switch"]');
             for (const button of Array.from(legendButtons) as HTMLElement[]) {
                 expect(button).toBeInstanceOf(HTMLButtonElement);
                 expect(button.style.cursor).toBe('pointer');

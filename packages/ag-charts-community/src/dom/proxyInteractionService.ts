@@ -211,7 +211,7 @@ export class ProxyInteractionService {
     private initElement<T extends ProxyElementType, TElem extends HTMLElement>(params: ElemParams<T>, element: TElem) {
         const { id, cursor } = params;
         element.id = id;
-        element.classList.toggle('ag-charts-proxy-elem', true);
+        element.classList.toggle('proxy-elem', true);
         if (cursor) {
             element.style.cursor = cursor;
         }

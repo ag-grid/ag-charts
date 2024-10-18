@@ -91,7 +91,7 @@ function shouldIgnore(event: EventUpcast<'id' | 'className' | 'classList' | 'ari
         (classList.contains('ag-charts-annotations__axis-button-icon') && !dragTypes.includes(type)) ||
         className === 'ag-charts-series-area' ||
         className === 'ag-charts-canvas-proxy' ||
-        (className === 'ag-charts-proxy-elem' && !id?.toString().startsWith('ag-charts-legend-item-')) || // legend <buttons>
+        (className === 'proxy-elem' && !id?.toString().startsWith('ag-charts-legend-item-')) || // legend <buttons>
         sourceEvent?.target instanceof HTMLCanvasElement // This case is for nodeCanvas tests
     ) {
         return 'none';
