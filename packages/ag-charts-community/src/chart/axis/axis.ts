@@ -1296,8 +1296,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return this.axisGroup.getBBox();
     }
 
-    getRegionNode() {
-        return this.axisGroup;
+    getRegionNode(): Node | undefined {
+        return undefined;
     }
 
     initCrossLine(crossLine: CrossLine) {
