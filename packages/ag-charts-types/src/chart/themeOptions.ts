@@ -112,7 +112,7 @@ export interface AgBoxPlotSeriesThemeOverrides extends AgBaseCartesianThemeOptio
 export interface AgCandlestickSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgCandlestickSeriesThemeableOptions;
 }
-export interface AConeFunnelSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
+export interface AgConeFunnelSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgConeFunnelSeriesThemeableOptions;
 }
 export interface AgFunnelSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
@@ -249,7 +249,7 @@ export interface AgChartThemeOverrides {
     /** Candlestick series theme overrides. */
     candlestick?: AgCandlestickSeriesThemeOverrides;
     /** Cone Funnel series theme overrides. */
-    'cone-funnel'?: AConeFunnelSeriesThemeOverrides;
+    'cone-funnel'?: AgConeFunnelSeriesThemeOverrides;
     /** Funnel series theme overrides. */
     funnel?: AgFunnelSeriesThemeOverrides;
     /** ohlc series theme overrides. */
