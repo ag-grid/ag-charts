@@ -14,9 +14,6 @@ const first: AgGaugeOptions = {
     scale: {
         min: 0,
         max: 250,
-        interval: {
-            count: 5,
-        },
     },
     bar: {
         fillMode: 'discrete',
@@ -52,9 +49,6 @@ const second: AgGaugeOptions = {
     scale: {
         min: 0,
         max: 250,
-        interval: {
-            count: 5,
-        },
     },
     bar: {
         fillMode: 'discrete',
@@ -90,9 +84,6 @@ const third: AgGaugeOptions = {
     scale: {
         min: 0,
         max: 250,
-        interval: {
-            count: 5,
-        },
     },
     bar: {
         fillMode: 'discrete',
@@ -128,9 +119,6 @@ const fourth: AgGaugeOptions = {
     scale: {
         min: 0,
         max: 250,
-        interval: {
-            count: 5,
-        },
     },
     bar: {
         fillMode: 'discrete',
@@ -166,9 +154,6 @@ const fifth: AgGaugeOptions = {
     scale: {
         min: 0,
         max: 250,
-        interval: {
-            count: 5,
-        },
     },
     bar: {
         fillMode: 'discrete',
