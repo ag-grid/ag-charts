@@ -3,7 +3,7 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
-import { setAttribute } from '../../sparklines-util';
+import { setAttribute } from '../../util/attributeUtil';
 import type { BBoxProvider } from '../../util/bboxinterface';
 import { setElementBBox } from '../../util/dom';
 import { initToolbarKeyNav } from '../../util/keynavUtil';
