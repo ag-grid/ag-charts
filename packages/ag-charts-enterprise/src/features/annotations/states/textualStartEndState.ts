@@ -32,6 +32,7 @@ export abstract class TextualStartEndStateMachine<
     | 'click'
     | 'drag'
     | 'dragEnd'
+    | 'dragStart'
     | 'zoomChange'
     | 'cancel'
     | 'hover'
@@ -146,7 +147,7 @@ export abstract class TextualStartEndStateMachine<
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },
-                drag: {
+                dragStart: {
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },
@@ -200,7 +201,7 @@ export abstract class TextualStartEndStateMachine<
                     target: StateMachine.parent,
                     action: actionSave,
                 },
-                drag: {
+                dragStart: {
                     target: StateMachine.parent,
                     action: actionSave,
                 },
