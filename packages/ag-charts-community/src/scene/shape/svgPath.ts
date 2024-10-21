@@ -23,7 +23,7 @@ export class SvgPath extends Path {
             this.commands.push([command, params]);
         }
 
-        this.dirtyPath = true;
+        this.checkPathDirty();
     }
 
     constructor(d: string = '') {
@@ -44,7 +44,6 @@ export class SvgPath extends Path {
                 case 'M':
                     path.moveTo(x + params[0], y + params[1]);
                     lastX = x + params[0];
-                    lastY = y + params[0];
                     break;
 
                 case 'C':
