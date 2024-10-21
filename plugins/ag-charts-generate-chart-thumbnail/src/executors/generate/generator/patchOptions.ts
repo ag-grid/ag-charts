@@ -12,7 +12,7 @@ export function patchOptions(
 
     options.legend = { enabled: false };
 
-    if (options.series?.some((s) => ['treemap', 'heatmap'].includes(s.type))) {
+    if (options.series?.some((s) => ['treemap', 'heatmap', 'sunburst'].includes(s.type))) {
         options.gradientLegend = { enabled: false };
     }
 
