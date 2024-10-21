@@ -3,6 +3,7 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
+import { setAttribute } from '../../sparklines-util';
 import type { BBoxProvider } from '../../util/bboxinterface';
 import { setElementBBox } from '../../util/dom';
 import { initToolbarKeyNav } from '../../util/keynavUtil';
@@ -131,6 +132,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 onchange: (ev) => this.onMaxSliderChange(ev),
             }),
         ];
+        this.proxyNavigatorElements.forEach((slider) => setAttribute(slider, 'data-preventdefault', false));
         initToolbarKeyNav({
             orientation: 'vertical',
             toolbar: this.proxyNavigatorToolbar,
