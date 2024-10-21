@@ -24,6 +24,7 @@ import { Line } from '../scene/shape/line';
 import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Transformable } from '../scene/transformable';
 import { setElementStyle } from '../util/attributeUtil';
+import type { BBoxValues } from '../util/bboxinterface';
 import { DestroyFns } from '../util/destroy';
 import { createElement, getWindow, setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
@@ -745,14 +746,21 @@ export class Legend extends BaseProperties {
 
     private updateItemProxyButtons() {
         const pointer = this.toggleSeries ? 'pointer' : undefined;
+        const maxHeight = Math.max(...this.itemSelection.nodes().map((l) => l.getBBox().height));
         this.itemSelection.each((l) => {
             if (l.proxyButton) {
                 const { listitem, button } = l.proxyButton;
                 const visible = l.pageIndex === this.pagination.currentPage;
+                let bbox: BBoxValues = Transformable.toCanvas(l);
+                if (bbox.height !== maxHeight) {
+                    // CRT-543 Give the legend items the same heights for a better look.
+                    const margin = (maxHeight - bbox.height) / 2;
+                    bbox = { x: bbox.x, y: bbox.y - margin, height: maxHeight, width: bbox.width };
+                }
                 // TODO(olegat) this should be part of CSS once all element types support pointer events.
                 setElementStyle(button, 'pointer-events', visible ? 'auto' : 'none');
                 setElementStyle(button, 'cursor', pointer);
-                setElementBBox(listitem, Transformable.toCanvas(l));
+                setElementBBox(listitem, bbox);
             }
         });
     }
