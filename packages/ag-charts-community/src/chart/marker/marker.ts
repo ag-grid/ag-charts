@@ -37,6 +37,7 @@ class InternalMarker extends Path {
 
     protected override computeBBox(): BBox {
         if (!this.isBuiltIn()) {
+            this.updatePathIfDirty();
             return this.path.computeBBox();
         }
 

@@ -3,6 +3,7 @@ import { type AgMapShapeSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } fro
 import { extendBbox } from '../map-util/bboxUtil';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
+import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { markerPositions } from '../map-util/markerUtil';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import {
@@ -20,19 +21,26 @@ const {
     createDatumId,
     DataModelSeries,
     SeriesNodePickMode,
-    ZIndexMap,
     valueProperty,
     computeMarkerFocusBounds,
 } = _ModuleSupport;
 const { ColorScale, LinearScale } = _Scale;
-const { Layer, Selection, Text, getMarker } = _Scene;
+const { Group, Selection, Text, getMarker } = _Scene;
 const { sanitizeHtml, Logger } = _Util;
 
 export interface MapMarkerNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapMarkerNodeDatum, MapMarkerNodeLabelDatum> {}
 
 type MapMarkerAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
-type MapMarkerAnimationEvent = 'update' | 'updateData' | 'highlight' | 'resize' | 'clear' | 'reset' | 'skip';
+type MapMarkerAnimationEvent = {
+    update: undefined;
+    updateData: undefined;
+    highlight: undefined;
+    resize: undefined;
+    clear: undefined;
+    reset: undefined;
+    skip: undefined;
+};
 
 export class MapMarkerSeries
     extends DataModelSeries<
@@ -71,13 +79,7 @@ export class MapMarkerSeries
     private readonly colorScale = new ColorScale();
     private readonly sizeScale = new LinearScale();
 
-    private readonly markerGroup = this.contentGroup.appendChild(
-        new Layer({
-            name: 'markerGroup',
-            zIndex: ZIndexMap.SERIES_LAYER,
-            zIndexSubOrder: this.getGroupZIndexSubOrder('marker'),
-        })
-    );
+    private readonly markerGroup = this.contentGroup.appendChild(new Group({ name: 'markerGroup' }));
 
     private labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>> = Selection.select(
         this.labelGroup,
@@ -101,7 +103,6 @@ export class MapMarkerSeries
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            contentGroupVirtual: true,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
@@ -155,6 +156,15 @@ export class MapMarkerSeries
         if (this.topology === topology) {
             this.nodeDataRefresh = true;
         }
+    }
+
+    override setSeriesIndex(index: number): boolean {
+        if (!super.setSeriesIndex(index)) return false;
+
+        this.contentGroup.zIndex = [MapZIndexMap.Marker, index];
+        this.highlightGroup.zIndex = [MapZIndexMap.MarkerHighlight, index];
+
+        return true;
     }
 
     override addChartEventListeners(): void {
@@ -380,7 +390,7 @@ export class MapMarkerSeries
 
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
-            const size = sizeValue != null ? sizeScale.convert(sizeValue, { clampMode: 'clamped' }) : properties.size;
+            const size = sizeValue != null ? sizeScale.convert(sizeValue, true) : properties.size;
 
             const projectedGeometry = idValue != null ? projectedGeometries?.get(idValue) : undefined;
             if (idValue != null && projectGeometry == null) {

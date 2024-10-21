@@ -189,7 +189,7 @@ describe('Sector', () => {
                     // Render.
                     ctx.save();
                     sector.preRender();
-                    sector.render({ ctx, devicePixelRatio: 1, forceRender: true, resized: false, debugNodes: {} });
+                    sector.render({ ctx, devicePixelRatio: 1, resized: false, debugNodes: {} });
                     ctx.restore();
 
                     // Prepare for next case.
@@ -332,7 +332,7 @@ describe('Sector', () => {
                     // Render.
                     ctx.save();
                     sector.preRender();
-                    sector.render({ ctx, devicePixelRatio: 1, forceRender: true, resized: false, debugNodes: {} });
+                    sector.render({ ctx, devicePixelRatio: 1, resized: false, debugNodes: {} });
                     ctx.restore();
 
                     // Prepare for next case.

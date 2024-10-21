@@ -189,7 +189,7 @@ export class GaugeChart extends Chart {
     }
 
     protected performLayout(ctx: LayoutContext) {
-        const { seriesRoot, annotationRoot, highlightRoot, series, seriesArea } = this;
+        const { seriesRoot, annotationRoot, series, seriesArea } = this;
         const { layoutBox } = ctx;
         const seriesRect = layoutBox.clone();
 
@@ -208,7 +208,7 @@ export class GaugeChart extends Chart {
         this.animationRect = layoutBox;
         seriesRoot.visible = series.some((s) => s.visible);
 
-        for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
+        for (const group of [seriesRoot, annotationRoot]) {
             group.translationX = Math.floor(layoutBox.x);
             group.translationY = Math.floor(layoutBox.y);
         }

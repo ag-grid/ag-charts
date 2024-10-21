@@ -460,16 +460,7 @@ export class DataModel<
             this.postProcessData(processedData);
         }
 
-        if (data.length > 0) {
-            for (const def of iterate(this.keys, this.values)) {
-                for (const [scope, missCount] of def.missing) {
-                    if (missCount >= data.length) {
-                        const scopeHint = scope == null ? '' : ` for ${scope}`;
-                        Logger.warnOnce(`the key '${def.property}' was not found in any data element${scopeHint}.`);
-                    }
-                }
-            }
-        }
+        this.warnDataMissingProperties(data);
 
         const end = performance.now();
         processedData.time = end - start;
@@ -478,6 +469,24 @@ export class DataModel<
             logProcessedData(processedData);
         }
 
+        this.processScopeCache();
+
+        return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
+    }
+
+    private warnDataMissingProperties(data: D[]) {
+        if (data.length === 0) return;
+
+        for (const def of iterate(this.keys, this.values)) {
+            for (const [scope, missCount] of def.missing) {
+                if (missCount < data.length) continue;
+                const scopeHint = scope == null ? '' : ` for ${scope}`;
+                Logger.warnOnce(`the key '${def.property}' was not found in any data element${scopeHint}.`);
+            }
+        }
+    }
+
+    private processScopeCache() {
         this.scopeCache.clear();
         for (const def of iterate(this.keys, this.values, this.aggregates)) {
             if (!def.idsMap) continue;
@@ -493,8 +502,6 @@ export class DataModel<
                 }
             }
         }
-
-        return processedData as Grouped extends true ? GroupedData<D> : UngroupedData<D>;
     }
 
     private valueGroupIdxLookup({ matchGroupIds }: PropertySelectors) {

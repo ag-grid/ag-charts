@@ -23,7 +23,6 @@ const {
     resetLabelFn,
     animationValidation,
     createDatumId,
-    formatValue,
     computeBarFocusBounds,
 } = _ModuleSupport;
 const { Rect, PointerEvents, motion } = _Scene;
@@ -323,7 +322,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText(label, { itemId: 'low', value: yLowValue, ...labelParams }, formatValue),
+            text: this.getLabelText(label, { itemId: 'low', value: yLowValue, ...labelParams }),
             itemId: 'low',
             datum,
             series,
@@ -333,7 +332,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
             textAlign: barAlongX ? 'right' : 'center',
             textBaseline: barAlongX ? 'middle' : 'top',
-            text: this.getLabelText(label, { itemId: 'high', value: yHighValue, ...labelParams }, formatValue),
+            text: this.getLabelText(label, { itemId: 'high', value: yHighValue, ...labelParams }),
             itemId: 'high',
             datum,
             series,

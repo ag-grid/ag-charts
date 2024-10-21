@@ -56,7 +56,7 @@ export class HdpiCanvas {
         HdpiCanvas.debugContext(this.context);
     }
 
-    drawImage(context: CanvasRenderingContext2D, dx = 0, dy = 0) {
+    drawImage(context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, dx = 0, dy = 0) {
         return context.drawImage(this.context.canvas, dx, dy);
     }
 

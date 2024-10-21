@@ -11,7 +11,6 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
-import { formatValue } from '../../../util/format.util';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isDefined } from '../../../util/type-guards';
@@ -264,11 +263,15 @@ export class LineSeries extends CartesianSeries<
                 crossFiltering = true;
             }
 
-            const labelText = this.getLabelText(
-                label,
-                { value: yDatum, datum, xKey, yKey, xName, yName, legendItemName },
-                formatValue
-            );
+            const labelText = this.getLabelText(label, {
+                value: yDatum,
+                datum,
+                xKey,
+                yKey,
+                xName,
+                yName,
+                legendItemName,
+            });
 
             nodeData.push({
                 series: this,

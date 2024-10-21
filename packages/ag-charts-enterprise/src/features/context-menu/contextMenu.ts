@@ -27,8 +27,7 @@ function getChildrenOfType<TElem extends Element>(parent: Element, ctor: new () 
     if (!children) return [];
 
     const result: TElem[] = [];
-    for (let i = 0; i < children.length; i++) {
-        const child = children[i];
+    for (const child of Array.from(children)) {
         if (child instanceof ctor) {
             result.push(child);
         }

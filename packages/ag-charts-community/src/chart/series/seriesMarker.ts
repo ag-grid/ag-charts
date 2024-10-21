@@ -1,6 +1,6 @@
 import type { AgSeriesMarkerStyle, AgSeriesMarkerStylerParams, ISeriesMarker, Styler } from 'ag-charts-types';
 
-import { RedrawType, SceneChangeDetection } from '../../scene/changeDetectable';
+import { SceneChangeDetection } from '../../scene/changeDetectable';
 import { ChangeDetectableProperties } from '../../scene/util/changeDetectableProperties';
 import type { RequireOptional } from '../../util/types';
 import {
@@ -28,40 +28,40 @@ export class SeriesMarker<TParams = never>
     implements ISeriesMarker<RequireOptional<TParams>>
 {
     @Validate(BOOLEAN)
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     enabled = true;
 
     /** One of the predefined marker names, or a marker constructor function (for user-defined markers). */
     @Validate(MARKER_SHAPE)
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     shape: MarkerShape = Circle;
 
     @Validate(POSITIVE_NUMBER)
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     size: number = 6;
 
     @Validate(COLOR_STRING, { optional: true })
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     fill?: string;
 
     @Validate(RATIO)
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     fillOpacity: number = 1;
 
     @Validate(COLOR_STRING, { optional: true })
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     stroke?: string;
 
     @Validate(POSITIVE_NUMBER)
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     strokeWidth: number = 1;
 
     @Validate(RATIO)
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     strokeOpacity: number = 1;
 
     @Validate(FUNCTION, { optional: true })
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     itemStyler?: Styler<AgSeriesMarkerStylerParams<unknown> & RequireOptional<TParams>, AgSeriesMarkerStyle>;
 
     getStyle(): AgSeriesMarkerStyle {

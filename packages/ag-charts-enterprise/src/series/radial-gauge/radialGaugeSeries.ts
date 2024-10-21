@@ -73,15 +73,16 @@ interface Target {
 }
 
 export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
-export type GaugeAnimationEvent =
-    | 'update'
-    | 'updateData'
-    | 'highlight'
-    | 'highlightMarkers'
-    | 'resize'
-    | 'clear'
-    | 'reset'
-    | 'skip';
+export type GaugeAnimationEvent = {
+    update: undefined;
+    updateData: undefined;
+    highlight: undefined;
+    highlightMarkers: undefined;
+    resize: undefined;
+    clear: undefined;
+    reset: undefined;
+    skip: undefined;
+};
 export type GaugeAnimationData = { duration?: number };
 
 interface RadialGaugeNeedleDatum {
@@ -190,7 +191,6 @@ export class RadialGaugeSeries
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            contentGroupVirtual: false,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });

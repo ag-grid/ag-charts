@@ -229,7 +229,6 @@ const insetCornerRadiusRect = (
     }
     if (drawBottomLeftCorner && bottomLeftCorner != null) {
         drawCorner(path, bottomLeftCorner, bottomLeftCornerRadius, !didMove);
-        didMove ||= true;
     }
     path.closePath();
 };
