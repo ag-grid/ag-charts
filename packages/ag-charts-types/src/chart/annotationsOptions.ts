@@ -334,13 +334,7 @@ export interface AgDatePriceRangeAnnotation extends AgMeasurerAnnotation {
     type: 'date-price-range';
 }
 
-export interface AgMeasurerAnnotation
-    extends AnnotationLinePoints,
-        Extendable,
-        Lockable,
-        Visible,
-        StrokeOptions,
-        LineOptions {
+export interface AgMeasurerAnnotation extends AnnotationLinePoints, Lockable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the drag handles. */
     handle?: AgAnnotationHandle;
     /** Configuration for the line text. */
