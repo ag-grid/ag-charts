@@ -1,3 +1,5 @@
+import { getWindow } from './dom';
+
 export function clamp(min: number, value: number, max: number) {
     return Math.min(max, Math.max(min, value));
 }
@@ -89,7 +91,7 @@ export function countFractionDigits(value: number) {
  * @param locale The locale to use to format the number.
  */
 export function formatNormalizedPercentage(ratio: number, locale?: string) {
-    locale = locale ?? navigator.language;
+    locale = locale ?? getWindow('navigator').language;
     return new Intl.NumberFormat(locale, {
         style: 'percent',
         minimumFractionDigits: 2,
