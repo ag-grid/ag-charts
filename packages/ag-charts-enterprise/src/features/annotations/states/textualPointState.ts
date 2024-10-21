@@ -28,7 +28,7 @@ export abstract class TextualPointStateMachine<
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit',
     | 'click'
-    | 'drag'
+    | 'dragStart'
     | 'zoomChange'
     | 'cancel'
     | 'keyDown'
@@ -134,7 +134,7 @@ export abstract class TextualPointStateMachine<
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },
-                drag: {
+                dragStart: {
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },
@@ -168,7 +168,7 @@ export abstract class TextualPointStateMachine<
                     target: StateMachine.parent,
                     action: actionSave,
                 },
-                drag: {
+                dragStart: {
                     target: StateMachine.parent,
                     action: actionSave,
                 },

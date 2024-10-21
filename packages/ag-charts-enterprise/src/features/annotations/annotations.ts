@@ -1231,7 +1231,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const offset = Vec2.from(event);
         this.hoverCoords = offset;
 
-        state.transition('dragStart', { context, offset });
+        const shiftKey = (event.sourceEvent as MouseEvent).shiftKey;
+        const point = this.getPointFn(shiftKey, offset, context);
+
+        const textInputValue = this.textInput.getValue();
+        const bbox = this.textInput.getBBox();
+
+        state.transition('dragStart', { context, offset, point, textInputValue, bbox });
     }
 
     private onDrag(event: _ModuleSupport.RegionEvent<'drag'>) {
@@ -1246,10 +1252,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const shiftKey = (event.sourceEvent as MouseEvent).shiftKey;
         const point = this.getPointFn(shiftKey, offset, context);
 
-        const textInputValue = this.textInput.getValue();
-        const bbox = this.textInput.getBBox();
-
-        state.transition('drag', { context, offset, point, textInputValue, bbox });
+        state.transition('drag', { context, offset, point });
     }
 
     private onDragEnd() {
