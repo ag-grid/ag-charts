@@ -15,7 +15,7 @@ import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils
 import { wrapText } from './text/util';
 import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setLineStyle } from './utils/styles';
-import { isChannelType, isTextType } from './utils/types';
+import { isChannelType, isEphemeralType, isTextType } from './utils/types';
 
 const { StateMachine } = _ModuleSupport;
 
@@ -230,6 +230,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
             if (!datum) return false;
             return hasLineText(datum) && !datum.locked;
         };
+        const guardActiveNotEphemeral = () => this.active != null && !isEphemeralType(ctx.datum(this.active));
         const guardHovered = () => this.hovered != null;
 
         super(States.Idle, {
@@ -271,14 +272,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 },
 
                 copy: {
-                    guard: guardActive,
+                    guard: guardActiveNotEphemeral,
                     action: () => {
                         this.copied = ctx.copy(this.active!);
                     },
                 },
 
                 cut: {
-                    guard: guardActive,
+                    guard: guardActiveNotEphemeral,
                     action: () => {
                         this.copied = ctx.copy(this.active!);
                         deleteDatum();
