@@ -123,11 +123,11 @@ export class SeriesAreaManager extends BaseManager {
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label'),
             seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All),
             seriesRegion.addListener('drag', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
-            seriesRegion.addListener('hover', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
+            seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
             seriesRegion.addListener('leave', () => this.onLeave(), mouseMoveStates),
-            horizontalAxesRegion.addListener('hover', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
+            horizontalAxesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
             horizontalAxesRegion.addListener('leave', () => this.onLeave()),
-            verticalAxesRegion.addListener('hover', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
+            verticalAxesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
             verticalAxesRegion.addListener('leave', () => this.onLeave()),
             chart.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
             chart.ctx.domManager.addListener('resize', () => this.clearAll()),
@@ -227,6 +227,11 @@ export class SeriesAreaManager extends BaseManager {
     private onLeave(): void {
         this.chart.ctx.cursorManager.updateCursor(this.id);
         if (!this.chart.ctx.focusIndicator.isFocusVisible()) this.clearAll();
+    }
+
+    private onHover(event: RegionEvent<'hover'>): void {
+        this.hoverDevice = 'mouse';
+        this.onHoverLikeEvent(event);
     }
 
     private onHoverLikeEvent(event: RegionEvent<HighlightEventTypes>): void {
