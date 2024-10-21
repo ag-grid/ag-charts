@@ -27,6 +27,10 @@ type InputAttributeTypeMap = BaseAttributeTypeMap & {
 export type AttributeSet = Partial<{ [K in keyof BaseAttributeTypeMap]: BaseAttributeTypeMap[K] }>;
 export type InputAttributeSet = Partial<{ [K in keyof InputAttributeTypeMap]: InputAttributeTypeMap[K] }>;
 
+type BaseStyleTypeMap = {
+    cursor: 'pointer';
+};
+
 export function setAttribute<A extends keyof BaseAttributeTypeMap>(
     e: Nullable<HTMLElement>,
     qualifiedName: A,
@@ -92,4 +96,18 @@ export function getAttribute<A extends keyof BaseAttributeTypeMap>(
     if (type === 'string') return value as BaseAttributeTypeMap[A];
 
     return undefined;
+}
+
+export function setElementStyle<P extends keyof BaseStyleTypeMap>(
+    e: Nullable<Pick<HTMLElement, 'style'>>,
+    property: P,
+    value: BaseStyleTypeMap[P] | undefined
+) {
+    if (e == null) return;
+
+    if (value == null) {
+        e.style.removeProperty(property);
+    } else {
+        e.style.setProperty(property, value);
+    }
 }
