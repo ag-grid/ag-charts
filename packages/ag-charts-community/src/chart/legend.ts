@@ -245,7 +245,6 @@ export class Legend extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
     reverseOrder?: boolean;
 
-    @ObserveChanges<Legend>((target) => (target.proxyLegendDirty = true))
     @Validate(UNION(['horizontal', 'vertical'], 'an orientation'), { optional: true })
     orientation?: AgChartLegendOrientation;
 
@@ -362,9 +361,10 @@ export class Legend extends BaseProperties {
             .nodes()
             .map((markerLabel) => markerLabel.proxyButton?.button)
             .filter(isDefined);
-        const orientation = this.getOrientation();
-        this.proxyLegendToolbarDestroyFns.setFns(initRovingTabIndex({ orientation, buttons }));
-        this.proxyLegendToolbar.ariaOrientation = orientation;
+        this.proxyLegendToolbarDestroyFns.setFns([
+            ...initRovingTabIndex({ orientation: 'horizontal', buttons }),
+            ...initRovingTabIndex({ orientation: 'vertical', buttons }),
+        ]);
         this.proxyLegendToolbar.ariaHidden = (buttons.length === 0).toString();
         this.proxyLegendDirty = false;
     }
