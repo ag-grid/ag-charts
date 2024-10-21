@@ -318,14 +318,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     },
                 ],
 
-                drag: {
-                    action: () => {
-                        const prevActive = this.active;
-                        this.active = this.hovered;
-                        ctx.select(this.hovered, prevActive);
-                    },
-                },
-
                 dblclick: {
                     guard: guardActiveHasLineText,
                     action: ({ offset }) => {
@@ -334,16 +326,25 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                     },
                 },
 
-                dragStart: {
-                    guard: guardHovered,
-                    target: States.Dragging,
-                    action: () => {
-                        const prevActive = this.active;
-                        this.active = this.hovered;
-                        ctx.select(this.hovered, prevActive);
-                        ctx.startInteracting();
+                dragStart: [
+                    {
+                        guard: guardHovered,
+                        target: States.Dragging,
+                        action: () => {
+                            const prevActive = this.active;
+                            this.active = this.hovered;
+                            ctx.select(this.hovered, prevActive);
+                            ctx.startInteracting();
+                        },
                     },
-                },
+                    {
+                        action: () => {
+                            const prevActive = this.active;
+                            this.active = this.hovered;
+                            ctx.select(this.hovered, prevActive);
+                        },
+                    },
+                ],
 
                 color: {
                     guard: guardActive,
