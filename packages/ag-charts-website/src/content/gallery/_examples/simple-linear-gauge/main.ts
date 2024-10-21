@@ -11,8 +11,7 @@ const options: AgLinearGaugeOptions = {
                     size: 10,
                     fillOpacity: 0,
                     shape: 'circle',
-                    strokeWidth: 1,
-                    strokeOpacity: 0.5,
+                    strokeWidth: 2,
                     stroke: 'orange',
                 },
             },
@@ -22,7 +21,7 @@ const options: AgLinearGaugeOptions = {
         text: 'Assessment of Chemical Concentration Levels',
         spacing: 50,
     },
-    value: 88,
+    value: 84,
     segmentation: {
         interval: {
             count: 2,
@@ -44,7 +43,7 @@ const options: AgLinearGaugeOptions = {
         fillMode: 'discrete',
         strokeWidth: 1,
         strokeOpacity: 0.2,
-        fillOpacity: 0.6,
+        fillOpacity: 0.7,
     },
     targets: [
         {
@@ -65,11 +64,12 @@ const options: AgLinearGaugeOptions = {
             stroke: 'green',
         },
         {
-            value: 88,
+            value: 89,
             text: 'Threshold Limit >80 mol/L',
-            fillOpacity: 1,
             stroke: 'red',
-            fill: 'red',
+            placement: 'after',
+            shape: 'line',
+            size: 20,
         },
     ],
     label: {
