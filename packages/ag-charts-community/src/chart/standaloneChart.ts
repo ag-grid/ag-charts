@@ -31,7 +31,6 @@ export class StandaloneChart extends Chart {
         }
 
         seriesRoot.visible = this.series[0].visible;
-        seriesRoot.setClipRect(layoutBox.clone());
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
             series: { visible: true, rect: seriesRect, paddedRect: layoutBox },
