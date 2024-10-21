@@ -23,6 +23,7 @@ import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
 import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Transformable } from '../scene/transformable';
+import { setElementStyle } from '../util/attributeUtil';
 import { DestroyFns } from '../util/destroy';
 import { createElement, getWindow, setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
@@ -769,7 +770,6 @@ export class Legend extends BaseProperties {
                     textContent: { id: 'ariaLabelLegendPagePrevious' },
                     tabIndex: 0,
                     parent: this.proxyLegendPagination,
-                    cursor: this.pagination.getCursor('previous'),
                     onclick: (ev) => this.pagination.onClick(ev, 'previous'),
                     onmouseenter: () => this.pagination.onMouseHover('previous'),
                     onmouseleave: () => this.pagination.onMouseHover(undefined),
@@ -780,7 +780,6 @@ export class Legend extends BaseProperties {
                     textContent: { id: 'ariaLabelLegendPageNext' },
                     tabIndex: 0,
                     parent: this.proxyLegendPagination,
-                    cursor: this.pagination.getCursor('next'),
                     onclick: (ev) => this.pagination.onClick(ev, 'next'),
                     onmouseenter: () => this.pagination.onMouseHover('next'),
                     onmouseleave: () => this.pagination.onMouseHover(undefined),
@@ -797,6 +796,9 @@ export class Legend extends BaseProperties {
         const { prev, next } = this.pagination.computeCSSBounds();
         setElementBBox(this.proxyPrevButton, prev);
         setElementBBox(this.proxyNextButton, next);
+
+        setElementStyle(this.proxyNextButton, 'cursor', this.pagination.getCursor('next'));
+        setElementStyle(this.proxyPrevButton, 'cursor', this.pagination.getCursor('previous'));
     }
 
     private calculatePagination(bboxes: BBox[], width: number, height: number) {
@@ -939,6 +941,9 @@ export class Legend extends BaseProperties {
         this.pagination.updateMarkers();
 
         this.updatePositions(pageNumber);
+
+        setElementStyle(this.proxyNextButton, 'cursor', this.pagination.getCursor('next'));
+        setElementStyle(this.proxyPrevButton, 'cursor', this.pagination.getCursor('previous'));
         this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
 
