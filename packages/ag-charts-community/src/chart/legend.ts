@@ -345,7 +345,6 @@ export class Legend extends BaseProperties {
                 ariaChecked: !!markerLabel.datum.enabled,
                 ariaDescribedBy: this.proxyLegendItemDescription.id,
                 parent: this.proxyLegendToolbar,
-                cursor: 'pointer',
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
@@ -745,12 +744,14 @@ export class Legend extends BaseProperties {
     }
 
     private updateItemProxyButtons() {
+        const pointer = this.toggleSeries ? 'pointer' : undefined;
         this.itemSelection.each((l) => {
             if (l.proxyButton) {
                 const { listitem, button } = l.proxyButton;
                 const visible = l.pageIndex === this.pagination.currentPage;
                 // TODO(olegat) this should be part of CSS once all element types support pointer events.
-                button.style.pointerEvents = visible ? 'auto' : 'none';
+                setElementStyle(button, 'pointer-events', visible ? 'auto' : 'none');
+                setElementStyle(button, 'cursor', pointer);
                 setElementBBox(listitem, Transformable.toCanvas(l));
             }
         });
