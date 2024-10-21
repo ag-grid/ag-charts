@@ -7,19 +7,6 @@ type ValueKey = keyof Omit<(typeof data)[number], 'group'>;
 const data = getData();
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
-    theme: {
-        overrides: {
-            funnel: {
-                axes: {
-                    category: {
-                        line: {
-                            enabled: true,
-                        },
-                    },
-                },
-            },
-        },
-    },
     data,
     title: {
         text: 'CUSTOMER JOURNEY',
