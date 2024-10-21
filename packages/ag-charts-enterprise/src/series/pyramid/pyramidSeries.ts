@@ -145,7 +145,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         let maxLabelHeight = 0;
         let yTotal = 0;
 
-        processedData.data.forEach(({ values }) => {
+        processedData.data.forEach(({ datum, values }) => {
             const xValue: string = values[xIdx];
             const yValue = Number(values[yIdx]);
 
@@ -153,7 +153,12 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             if (stageLabelData == null) return;
 
-            const text = xValue;
+            const text = this.getLabelText(this.properties.stageLabel, {
+                datum,
+                value: xValue,
+                stageKey,
+                valueKey,
+            });
 
             const { width } = textMeasurer.measureText(text);
             const height = text.split('\n').length * TextUtils.getLineHeight(label.fontSize);
