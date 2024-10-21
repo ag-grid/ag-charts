@@ -206,10 +206,11 @@ export class SeriesAreaManager extends BaseManager {
         if (this.chart.ctx.focusIndicator.isFocusVisible()) {
             pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
             if (pickedNode && this.seriesRect && pickedNode.midPoint) {
-                position = {
-                    x: this.seriesRect.x + pickedNode.midPoint.x,
-                    y: this.seriesRect.y + pickedNode.midPoint.y,
-                };
+                position = Transformable.toCanvasPoint(
+                    pickedNode.series.contentGroup,
+                    pickedNode.midPoint.x,
+                    pickedNode.midPoint.y
+                );
             }
         } else if (this.chart.ctx.interactionManager.getState() & (Default | ContextMenu)) {
             const match = pickNode(this.series, { x: event.regionOffsetX, y: event.regionOffsetY }, 'context-menu');
