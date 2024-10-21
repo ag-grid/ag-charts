@@ -15,7 +15,7 @@ import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils
 import { wrapText } from './text/util';
 import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setLineStyle } from './utils/styles';
-import { isChannelType, isTextType } from './utils/types';
+import { isChannelType, isEphemeralType, isTextType } from './utils/types';
 
 const { StateMachine } = _ModuleSupport;
 
@@ -414,7 +414,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationType
                 delete: () => {
                     if (this.active == null) return;
                     ctx.delete(this.active);
-                    ctx.recordAction(`Delete ${ctx.datum(this.active)?.type} annotation`);
+                    const datum = ctx.datum(this.active);
+                    if (isEphemeralType(datum)) return;
+                    ctx.recordAction(`Delete ${datum?.type} annotation`);
                 },
 
                 deleteAll: () => {
