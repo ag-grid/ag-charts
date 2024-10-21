@@ -10,7 +10,7 @@ const options: AgChartOptions = {
             type: 'pyramid',
             stageKey: 'incomeBracket',
             valueKey: 'adults',
-            spacing: 10,
+            spacing: 4,
             fillOpacity: 1,
             aspectRatio: 1.2,
             label: {

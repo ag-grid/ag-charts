@@ -1,6 +1,6 @@
 export function getData() {
     return [
-        { group: 'Top 1%', adults: 52_000_000, percentage: '1%', incomeBracket: '' },
+        { group: 'Top 1%', adults: 99_000_000, percentage: '1%', incomeBracket: '' },
         { group: 'High Net Worth', adults: 200_000_000, percentage: '4%', incomeBracket: '$100,000 - $1,000,000 →' },
         { group: 'Upper Middle Class', adults: 800_000_000, percentage: '16%', incomeBracket: '$50,000 - $100,000  →' },
         {
