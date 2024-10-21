@@ -70,6 +70,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
 
         const button = createElement('button');
         button.classList.add(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
+        button.tabIndex = -1;
 
         wrapper.appendChild(button);
 
