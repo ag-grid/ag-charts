@@ -49,6 +49,9 @@ export function patchOptions(
     if (api === 'createGauge') {
         delete options.title;
         delete options.legend;
+    }
+
+    if (api === 'createGauge' && multiple) {
         (options as any).targets?.forEach((target) => {
             delete target.text;
         });
