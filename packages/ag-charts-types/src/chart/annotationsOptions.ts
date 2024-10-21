@@ -298,14 +298,34 @@ export interface AgArrowDownAnnotation extends AgArrowMarkAnnotation {
 export interface AgDateRangeAnnotation extends AgMeasurerAnnotation {
     /** Configuration for the date range annotation.*/
     type: 'date-range';
+    /**
+     * Whether the annotation should be extended up above.
+     *
+     * Default: `false`
+     */
     extendAbove?: boolean;
+    /**
+     * Whether the annotation should be extended down below.
+     *
+     * Default: `false`
+     */
     extendBelow?: boolean;
 }
 
 export interface AgPriceRangeAnnotation extends AgMeasurerAnnotation {
     /** Configuration for the price range annotation.*/
     type: 'price-range';
+    /**
+     * Whether the annotation should be extended to the left.
+     *
+     * Default: `false`
+     */
     extendLeft?: boolean;
+    /**
+     * Whether the annotation should be extended to the right.
+     *
+     * Default: `false`
+     */
     extendRight?: boolean;
 }
 
