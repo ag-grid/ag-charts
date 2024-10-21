@@ -211,13 +211,15 @@ export type AgBaseGaugePresetThemeOptions = Pick<
 
 // Interface needed for docs generation, but listeners conflicts using the extends clause
 type AgRadialGaugeTheme = AgBaseGaugePresetThemeOptions & AgRadialGaugeThemeableOptions;
+export interface AgRadialGaugeTargetTheme extends Omit<AgRadialGaugeTarget, 'value' | 'text'> {}
 export interface AgRadialGaugeThemeOverrides extends AgRadialGaugeTheme {
-    targets?: AgRadialGaugeTarget;
+    targets?: AgRadialGaugeTargetTheme;
 }
 
 type AgLinearGaugeTheme = AgBaseGaugePresetThemeOptions & AgLinearGaugeThemeableOptions;
+export interface AgLinearGaugeTargetTheme extends Omit<AgLinearGaugeTarget, 'value' | 'text'> {}
 export interface AgLinearGaugeThemeOverrides extends AgLinearGaugeTheme {
-    targets?: AgLinearGaugeTarget;
+    targets?: AgLinearGaugeTargetTheme;
 }
 
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
