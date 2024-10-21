@@ -29,6 +29,7 @@ export type InputAttributeSet = Partial<{ [K in keyof InputAttributeTypeMap]: In
 
 type BaseStyleTypeMap = {
     cursor: 'pointer';
+    'pointer-events': 'auto' | 'none';
 };
 
 export function setAttribute<A extends keyof BaseAttributeTypeMap>(

@@ -11,7 +11,6 @@ type ElemParams<T extends ProxyElementType> = {
     readonly type: T;
     readonly id: string;
     readonly parent: HTMLElement | 'beforebegin' | 'afterend';
-    readonly cursor?: 'pointer';
 };
 
 type InteractParams<T extends ProxyElementType> = ElemParams<T> & {
@@ -209,12 +208,9 @@ export class ProxyInteractionService {
     }
 
     private initElement<T extends ProxyElementType, TElem extends HTMLElement>(params: ElemParams<T>, element: TElem) {
-        const { id, cursor } = params;
+        const { id } = params;
         element.id = id;
         element.classList.toggle('ag-charts-proxy-elem', true);
-        if (cursor) {
-            element.style.cursor = cursor;
-        }
     }
 
     private initInteract<T extends ProxyElementType, TElem extends HTMLElement>(
