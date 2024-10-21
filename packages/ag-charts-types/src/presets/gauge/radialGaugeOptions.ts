@@ -105,13 +105,13 @@ export interface AgRadialGaugeSecondaryLabelOptions
 
 export interface AgRadialGaugeThemeableOptions extends AgRadialGaugeStyle, AgBaseGaugeThemeableOptions {
     /** Outer radius of the gauge. */
-    outerRadius?: number;
+    outerRadius?: PixelSize;
     /** Inner radius of the gauge. */
     innerRadius?: PixelSize;
     /** Ratio of the outer radius of the gauge. */
     outerRadiusRatio?: Ratio;
     /** Ratio of the inner radius of the gauge. */
-    innerRadiusRatio?: PixelSize;
+    innerRadiusRatio?: Ratio;
     /** Angle in degrees of the start of the gauge. */
     startAngle?: Degree;
     /** Angle in degrees of the end of the gauge. */
