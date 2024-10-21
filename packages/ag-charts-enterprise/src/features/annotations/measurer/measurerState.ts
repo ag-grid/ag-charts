@@ -70,6 +70,7 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
             },
             end: {
                 hover: actionEndUpdate,
+                drag: actionEndUpdate,
                 click: {
                     target: StateMachine.parent,
                     action: actionEndFinish,
@@ -78,7 +79,6 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
                     target: StateMachine.parent,
                     action: actionEndFinish,
                 },
-                drag: actionEndUpdate,
                 reset: {
                     target: StateMachine.parent,
                     action: actionCancel,

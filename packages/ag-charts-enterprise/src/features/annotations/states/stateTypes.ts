@@ -7,10 +7,19 @@ import type {
     AnnotationType,
     Point,
 } from '../annotationTypes';
+import type { AnnotationProperties } from '../annotationsSuperTypes';
 import type {
     LinearSettingsDialogLineChangeProps,
     LinearSettingsDialogTextChangeProps,
 } from '../settings-dialog/settingsDialog';
+
+export type AnnotationHierarchyData = {
+    hovered?: number;
+    hoverCoords?: _ModuleSupport.Vec2;
+    active?: number;
+    snapping: boolean;
+    copied?: AnnotationProperties;
+};
 
 export type AnnotationStateEvents = InteractionEvents &
     ActionEvents &

@@ -8,14 +8,14 @@ import type {
     AnnotationsStateMachineHelperFns,
 } from './annotationsSuperTypes';
 import type { LinearSettingsDialogTextChangeProps } from './settings-dialog/settingsDialog';
-import type { AnnotationStateEvents } from './states/stateTypes';
+import type { AnnotationHierarchyData, AnnotationStateEvents } from './states/stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils';
 import { wrapText } from './text/util';
 import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setLineStyle } from './utils/styles';
 import { isChannelType, isTextType } from './utils/types';
 
-const { StateMachine } = _ModuleSupport;
+const { StateMachine, StateMachineProperty } = _ModuleSupport;
 
 enum States {
     Idle = 'idle',
@@ -23,32 +23,30 @@ enum States {
     TextInput = 'text-input',
 }
 
-export class AnnotationsStateMachine extends StateMachine<States, AnnotationStateEvents> {
+export class AnnotationsStateMachine extends StateMachine<States, AnnotationStateEvents, AnnotationHierarchyData> {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private hovered?: number;
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private active?: number;
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private snapping: boolean = false;
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private copied?: AnnotationProperties;
+    @StateMachineProperty()
+    protected active?: number;
+
+    override hierarchyData: AnnotationHierarchyData = {
+        snapping: false,
+    };
 
     constructor(ctx: AnnotationsStateMachineContext) {
         const getDatum =
             <T>(is: (value: unknown) => value is T) =>
             () => {
-                if (this.active == null) return;
-                const datum = ctx.datum(this.active);
+                if (this.hierarchyData.active == null) return;
+                const datum = ctx.datum(this.hierarchyData.active);
                 if (is(datum)) return datum;
             };
 
         const getNode =
             <T>(is: (value: unknown) => value is T) =>
             () => {
-                if (this.active == null) return;
-                const node = ctx.node(this.active);
+                if (this.hierarchyData.active == null) return;
+                const node = ctx.node(this.hierarchyData.active);
                 if (is(node)) return node;
             };
 
@@ -56,12 +54,12 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
             <T extends AnnotationProperties>(type: AnnotationType) =>
             (datum: T) => {
                 ctx.create(type, datum);
-                this.active = ctx.selectLast();
+                this.hierarchyData.active = ctx.selectLast();
             };
 
         const deleteDatum = () => {
-            if (this.active != null) ctx.delete(this.active);
-            this.active = undefined;
+            if (this.hierarchyData.active != null) ctx.delete(this.hierarchyData.active);
+            this.hierarchyData.active = undefined;
             ctx.select();
         };
 
@@ -75,16 +73,16 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
             ...ctx,
             delete: deleteDatum,
             showTextInput: () => {
-                if (this.active != null) ctx.showTextInput(this.active);
+                if (this.hierarchyData.active != null) ctx.showTextInput(this.hierarchyData.active);
             },
             deselect: () => {
-                const prevActive = this.active;
-                this.active = undefined;
-                this.hovered = undefined;
-                ctx.select(this.active, prevActive);
+                const prevActive = this.hierarchyData.active;
+                this.hierarchyData.active = undefined;
+                this.hierarchyData.hovered = undefined;
+                ctx.select(this.hierarchyData.active, prevActive);
             },
             showAnnotationOptions: () => {
-                if (this.active != null) ctx.showAnnotationOptions(this.active);
+                if (this.hierarchyData.active != null) ctx.showAnnotationOptions(this.hierarchyData.active);
             },
         };
         const createStateMachines = Object.fromEntries(
@@ -97,13 +95,10 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
         const dragStateMachineContext = {
             ...ctx,
             setSnapping: (snapping: boolean) => {
-                this.snapping = snapping;
+                this.hierarchyData.snapping = snapping;
             },
             getSnapping: () => {
-                return this.snapping;
-            },
-            getHoverCoords: () => {
-                return ctx.getHoverCoords();
+                return this.hierarchyData.snapping;
             },
         };
         const dragStateMachines = Object.fromEntries(
@@ -124,7 +119,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
             color: string;
             opacity: number;
         }) => {
-            const datum = ctx.datum(this.active!);
+            const datum = ctx.datum(this.hierarchyData.active!);
             if (!datum) return;
 
             if (colorPickerType === 'text-color') {
@@ -135,8 +130,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
         };
 
         const actionFontSize = (fontSize: number) => {
-            const datum = ctx.datum(this.active!);
-            const node = ctx.node(this.active!);
+            const datum = ctx.datum(this.hierarchyData.active!);
+            const node = ctx.node(this.hierarchyData.active!);
             if (!datum || !node) return;
 
             if (isTextType(datum)) {
@@ -150,8 +145,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
         };
 
         const actionLineStyle = (lineStyle: AnnotationLineStyle) => {
-            const datum = ctx.datum(this.active!);
-            const node = ctx.node(this.active!);
+            const datum = ctx.datum(this.hierarchyData.active!);
+            const node = ctx.node(this.hierarchyData.active!);
             if (!datum || !node || !hasLineStyle(datum)) return;
 
             setLineStyle(datum, lineStyle);
@@ -159,14 +154,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
         };
 
         const actionUpdateTextInputBBox = (bbox?: _Scene.BBox) => {
-            const node = ctx.node(this.active!);
+            const node = ctx.node(this.hierarchyData.active!);
             if (!node || !('setTextInputBBox' in node)) return;
             node.setTextInputBBox(bbox);
             ctx.update();
         };
 
         const actionSaveText = ({ textInputValue, bbox }: { textInputValue?: string; bbox?: _Scene.BBox }) => {
-            const datum = ctx.datum(this.active!);
+            const datum = ctx.datum(this.hierarchyData.active!);
             if (bbox != null && textInputValue != null && textInputValue.length > 0) {
                 if (!isTextType(datum)) {
                     return;
@@ -178,7 +173,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                 ctx.update();
                 ctx.recordAction(`Change ${datum.type} annotation text`);
             } else {
-                ctx.delete(this.active!);
+                ctx.delete(this.hierarchyData.active!);
                 ctx.recordAction(`Delete ${datum?.type} annotation`);
             }
         };
@@ -187,43 +182,48 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
             ctx.updateTextInputBBox(undefined);
         };
 
-        const guardActive = () => this.active != null;
-        const guardCopied = () => this.copied != null;
+        const guardActive = () => this.hierarchyData.active != null;
+        const guardCopied = () => this.hierarchyData.copied != null;
         const guardActiveHasLineText = () => {
-            if (this.active == null) return false;
-            const datum = ctx.datum(this.active);
+            if (this.hierarchyData.active == null) return false;
+            const datum = ctx.datum(this.hierarchyData.active);
             if (!datum) return false;
             return hasLineText(datum) && !datum.locked;
         };
-        const guardHovered = () => this.hovered != null;
+        const guardHovered = () => this.hierarchyData.hovered != null;
 
         super(States.Idle, {
             [States.Idle]: {
                 onEnter: () => {
-                    ctx.select(this.active, this.active);
-                    const hoverCoords = ctx.getHoverCoords();
-                    if (hoverCoords) {
-                        this.hovered = ctx.hoverAtCoords(hoverCoords, this.active);
+                    this.active = 2;
+                    console.log(this.active);
+                    ctx.select(this.hierarchyData.active, this.hierarchyData.active);
+                    if (this.hierarchyData.hoverCoords) {
+                        this.hierarchyData.hovered = ctx.hoverAtCoords(
+                            this.hierarchyData.hoverCoords,
+                            this.hierarchyData.active
+                        );
                     }
                 },
 
                 hover: ({ offset }) => {
-                    this.hovered = ctx.hoverAtCoords(offset, this.active);
+                    this.hierarchyData.hovered = ctx.hoverAtCoords(offset, this.hierarchyData.active);
+                    this.hierarchyData.hoverCoords = offset;
                 },
 
                 keyDown: ({ shiftKey }) => {
-                    this.snapping = shiftKey;
+                    this.hierarchyData.snapping = shiftKey;
                 },
 
                 keyUp: ({ shiftKey }) => {
-                    this.snapping = shiftKey;
+                    this.hierarchyData.snapping = shiftKey;
                 },
 
                 translate: {
                     guard: guardActive,
                     action: ({ translation }) => {
                         ctx.startInteracting();
-                        ctx.translate(this.active!, translation);
+                        ctx.translate(this.hierarchyData.active!, translation);
                         ctx.update();
                     },
                 },
@@ -238,14 +238,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                 copy: {
                     guard: guardActive,
                     action: () => {
-                        this.copied = ctx.copy(this.active!);
+                        this.hierarchyData.copied = ctx.copy(this.hierarchyData.active!);
                     },
                 },
 
                 cut: {
                     guard: guardActive,
                     action: () => {
-                        this.copied = ctx.copy(this.active!);
+                        this.hierarchyData.copied = ctx.copy(this.hierarchyData.active!);
                         deleteDatum();
                     },
                 },
@@ -253,21 +253,25 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                 paste: {
                     guard: guardCopied,
                     action: () => {
-                        ctx.paste(this.copied!);
+                        ctx.paste(this.hierarchyData.copied!);
                     },
                 },
 
                 selectLast: () => {
-                    const previousActive = this.active;
-                    this.active = ctx.selectLast();
-                    ctx.select(this.active, previousActive);
+                    const previousActive = this.hierarchyData.active;
+                    this.hierarchyData.active = ctx.selectLast();
+                    ctx.select(this.hierarchyData.active, previousActive);
                 },
 
                 click: [
                     {
                         guard: () => {
-                            if (this.active == null || this.hovered !== this.active) return false;
-                            const datum = ctx.datum(this.active);
+                            if (
+                                this.hierarchyData.active == null ||
+                                this.hierarchyData.hovered !== this.hierarchyData.active
+                            )
+                                return false;
+                            const datum = ctx.datum(this.hierarchyData.active);
                             if (!datum) return false;
                             return isTextType(datum) && !datum.locked;
                         },
@@ -275,9 +279,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                     },
                     {
                         action: () => {
-                            const prevActive = this.active;
-                            this.active = this.hovered;
-                            ctx.select(this.hovered, prevActive);
+                            const prevActive = this.hierarchyData.active;
+                            this.hierarchyData.active = this.hierarchyData.hovered;
+                            ctx.select(this.hierarchyData.hovered, prevActive);
                         },
                     },
                 ],
@@ -293,8 +297,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                 dblclick: {
                     guard: guardActiveHasLineText,
                     action: ({ offset }) => {
-                        const nodeAtCoords = ctx.getNodeAtCoords(offset, this.active!) === 'text' ? 'text' : 'line';
-                        ctx.showAnnotationSettings(this.active!, undefined, nodeAtCoords);
+                        const nodeAtCoords =
+                            ctx.getNodeAtCoords(offset, this.hierarchyData.active!) === 'text' ? 'text' : 'line';
+                        ctx.showAnnotationSettings(this.hierarchyData.active!, undefined, nodeAtCoords);
                     },
                 },
 
@@ -302,9 +307,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                     guard: guardHovered,
                     target: States.Dragging,
                     action: () => {
-                        const prevActive = this.active;
-                        this.active = this.hovered;
-                        ctx.select(this.hovered, prevActive);
+                        const prevActive = this.hierarchyData.active;
+                        this.hierarchyData.active = this.hierarchyData.hovered;
+                        ctx.select(this.hierarchyData.hovered, prevActive);
                         ctx.startInteracting();
                     },
                 },
@@ -322,7 +327,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                 lineProps: {
                     guard: guardActive,
                     action: (props) => {
-                        const datum = getTypedDatum(ctx.datum(this.active!));
+                        const datum = getTypedDatum(ctx.datum(this.hierarchyData.active!));
                         datum?.set(props);
                         ctx.update();
                         ctx.recordAction(
@@ -341,7 +346,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                 lineText: {
                     guard: guardActive,
                     action: (props: LinearSettingsDialogTextChangeProps) => {
-                        const datum = getTypedDatum(ctx.datum(this.active!));
+                        const datum = getTypedDatum(ctx.datum(this.hierarchyData.active!));
                         if (!hasLineText(datum)) return;
                         if (isChannelType(datum) && props.position === 'center') {
                             props.position = 'inside';
@@ -359,27 +364,27 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                 toolbarPressSettings: {
                     guard: guardActiveHasLineText,
                     action: (sourceEvent: Event) => {
-                        ctx.showAnnotationSettings(this.active!, sourceEvent);
+                        ctx.showAnnotationSettings(this.hierarchyData.active!, sourceEvent);
                     },
                 },
 
                 reset: () => {
-                    if (this.active != null) {
-                        ctx.node(this.active)?.toggleActive(false);
+                    if (this.hierarchyData.active != null) {
+                        ctx.node(this.hierarchyData.active)?.toggleActive(false);
                     }
 
-                    this.hovered = undefined;
-                    this.active = undefined;
+                    this.hierarchyData.hovered = undefined;
+                    this.hierarchyData.active = undefined;
 
-                    ctx.select(this.active, this.active);
+                    ctx.select(this.hierarchyData.active, this.hierarchyData.active);
 
                     ctx.resetToIdle();
                 },
 
                 delete: () => {
-                    if (this.active == null) return;
-                    ctx.delete(this.active);
-                    ctx.recordAction(`Delete ${ctx.datum(this.active)?.type} annotation`);
+                    if (this.hierarchyData.active == null) return;
+                    ctx.delete(this.hierarchyData.active);
+                    ctx.recordAction(`Delete ${ctx.datum(this.hierarchyData.active)?.type} annotation`);
                 },
 
                 deleteAll: () => {
@@ -391,9 +396,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
 
             [States.Dragging]: {
                 onEnter: (_, data: any) => {
-                    if (this.active == null) return;
+                    if (this.hierarchyData.active == null) return;
 
-                    const type = ctx.getAnnotationType(this.active);
+                    const type = ctx.getAnnotationType(this.hierarchyData.active);
                     if (!type) return;
 
                     this.transition(type);
@@ -405,13 +410,13 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
 
             [States.TextInput]: {
                 onEnter: () => {
-                    if (this.active == null) return;
+                    if (this.hierarchyData.active == null) return;
 
-                    const datum = getTypedDatum(ctx.datum(this.active));
+                    const datum = getTypedDatum(ctx.datum(this.hierarchyData.active));
                     if (!datum || !('getTextInputCoords' in datum)) return;
 
                     ctx.startInteracting();
-                    ctx.showTextInput(this.active);
+                    ctx.showTextInput(this.hierarchyData.active);
                     datum.visible = false;
 
                     ctx.update();
@@ -469,9 +474,16 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                     ctx.stopInteracting();
                     ctx.hideTextInput();
 
+<<<<<<< Updated upstream
                     const wasActive = this.active;
                     this.active = this.hovered = undefined;
                     ctx.select(this.active, wasActive);
+=======
+                    const wasActive = this.hierarchyData.active;
+                    const prevActive = this.hierarchyData.active;
+                    this.hierarchyData.active = this.hierarchyData.hovered = undefined;
+                    ctx.select(this.hierarchyData.active, prevActive);
+>>>>>>> Stashed changes
 
                     if (wasActive == null) return;
 
@@ -487,11 +499,11 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
 
     // TODO: remove this leak
     public getActive() {
-        return this.active;
+        return this.hierarchyData.active;
     }
 
     // TODO: remove this leak
     public isActive(index: number) {
-        return index === this.active;
+        return index === this.hierarchyData.active;
     }
 }

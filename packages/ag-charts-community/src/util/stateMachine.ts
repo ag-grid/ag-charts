@@ -29,18 +29,34 @@ type HierarchyState = '__parent' | '__child';
 const debugColor = 'color: green';
 const debugQuietColor = 'color: grey';
 
+export function StateMachineProperty() {
+    return (target: any, key: any) => {
+        let value: any;
+        Object.defineProperty(target, key, {
+            get: () => value,
+            set: (newValue) => (value = newValue),
+        });
+    };
+}
+
 /**
  * A Hierarchical Finite State Machine is a system that must be in exactly one of a list of states, where those states
  * can also be other state machines. It can only transition between one state and another if a transition event is
  * provided between the two states.
  */
-export class StateMachine<State extends string, Events extends Record<string, any>> {
+export class StateMachine<
+    State extends string,
+    Events extends Record<string, any>,
+    HierarchyData extends object = object,
+> {
     static readonly child = '__child' as const;
     static readonly parent = '__parent' as const;
 
     protected readonly debug = Debug.create(true, 'animation');
     private state: State | HierarchyState;
-    private childState?: StateMachine<any, any>;
+    private childState?: StateMachine<any, Events, HierarchyData>;
+
+    protected hierarchyData = {} as HierarchyData;
 
     constructor(
         private readonly defaultState: State,
@@ -51,6 +67,15 @@ export class StateMachine<State extends string, Events extends Record<string, an
 
         this.debug(`%c${this.constructor.name} | init -> ${defaultState}`, debugColor);
     }
+
+    // set<K extends keyof HierarchyData>(key: K, value: HierarchyData[K]) {
+    //     this.hierarchyData[key] = value;
+    //     this.childState?.set(key, value);
+    // }
+
+    // get<K extends keyof HierarchyData>(key: K): HierarchyData[K] {
+    //     return this.hierarchyData[key];
+    // }
 
     // TODO: handle events which do not require data without requiring `undefined` to be passed as as parameter, while
     // also still requiring data to be passed to those events which do require it.
@@ -160,7 +185,7 @@ export class StateMachine<State extends string, Events extends Record<string, an
             | StateTransitionAction<Data>
             | State
             | HierarchyState
-            | StateMachine<any, any>
+            | StateMachine<any, any, any>
     ) {
         let state: State | HierarchyState = this.state;
 
@@ -168,10 +193,11 @@ export class StateMachine<State extends string, Events extends Record<string, an
             state = destination as State;
         } else if (destination instanceof StateMachine) {
             this.childState = destination;
+            this.childState.hierarchyData = this.hierarchyData;
             state = StateMachine.child;
         } else if (typeof destination === 'object') {
             if (destination.target instanceof StateMachine) {
-                this.childState = destination.target;
+                this.childState = destination.target as any;
                 state = StateMachine.child;
             } else if (destination.target != null) {
                 state = destination.target;

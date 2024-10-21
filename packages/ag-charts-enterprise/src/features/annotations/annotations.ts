@@ -154,10 +154,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 return hovered;
             },
 
-            getHoverCoords: () => {
-                return this.hoverCoords;
-            },
-
             getNodeAtCoords: (coords: _ModuleSupport.Vec2, active: number) => {
                 const node = this.annotations.at(active);
 

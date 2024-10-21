@@ -2,7 +2,7 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from '../annotationsSuperTypes';
-import type { AnnotationStateEvents } from './stateTypes';
+import type { AnnotationHierarchyData, AnnotationStateEvents } from './stateTypes';
 
 const { StateMachine, Vec2 } = _ModuleSupport;
 
@@ -15,7 +15,8 @@ export class DragStateMachine<
     },
 > extends StateMachine<
     'idle' | 'dragging',
-    Pick<AnnotationStateEvents, 'keyDown' | 'keyUp' | 'drag' | 'dragStart' | 'dragEnd'>
+    Pick<AnnotationStateEvents, 'keyDown' | 'keyUp' | 'drag' | 'dragStart' | 'dragEnd'>,
+    AnnotationHierarchyData
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -30,13 +31,13 @@ export class DragStateMachine<
             node: () => N | undefined;
             setSnapping: (snapping: boolean) => void;
             getSnapping: () => boolean;
-            getHoverCoords: () => _ModuleSupport.Vec2 | undefined;
         }
     ) {
         const actionKeyChange = ({ shiftKey, context }: { shiftKey: boolean; context: AnnotationContext }) => {
             ctx.setSnapping(shiftKey);
             const datum = ctx.datum()!;
-            const offset = ctx.getHoverCoords();
+            console.log(this.hierarchyData);
+            const offset = this.hierarchyData.hoverCoords;
 
             if (!offset) {
                 return;
