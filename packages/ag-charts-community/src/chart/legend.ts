@@ -230,6 +230,7 @@ export class Legend extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
+    @ObserveChanges<Legend>((target) => (target.proxyLegendDirty = true))
     @Validate(POSITION)
     position: AgChartLegendPosition = 'bottom';
 
