@@ -12,6 +12,10 @@ export function patchOptions(
 
     options.legend = { enabled: false };
 
+    if (options.series?.some((s) => ['treemap', 'heatmap'].includes(s.type))) {
+        options.gradientLegend = { enabled: false };
+    }
+
     const optionsTheme = typeof options.theme === 'object' ? options.theme : null;
     options.theme = {
         ...optionsTheme,
