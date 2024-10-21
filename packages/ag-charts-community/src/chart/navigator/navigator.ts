@@ -133,6 +133,9 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
             }),
         ];
         this.proxyNavigatorElements.forEach((slider) => setAttribute(slider, 'data-preventdefault', false));
+        this.setSliderRatio(this.proxyNavigatorElements[0], this._min);
+        this.setSliderRatio(this.proxyNavigatorElements[2], this._max);
+        this.setPanSliderValue(this._min, this._max);
         initToolbarKeyNav({
             orientation: 'vertical',
             toolbar: this.proxyNavigatorToolbar,
