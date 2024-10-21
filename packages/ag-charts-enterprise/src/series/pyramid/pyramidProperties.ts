@@ -29,7 +29,7 @@ const {
 
 class PyramidSeriesLabel extends Label<AgPyramidSeriesLabelFormatterParams> {}
 
-class PyramidSeriesStageLabel extends Label {
+class PyramidSeriesStageLabel extends Label<AgPyramidSeriesLabelFormatterParams> {
     @Validate(NUMBER)
     spacing: number = 0;
 
