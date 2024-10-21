@@ -1251,6 +1251,8 @@ export class Legend extends BaseProperties {
     }
 
     private positionLegend(ctx: LayoutContext) {
+        setElementStyle(this.proxyLegendToolbar, 'display', this.visible && this.enabled ? undefined : 'none');
+
         if (!this.enabled || !this.data.length) return;
 
         const { layoutBox } = ctx;
@@ -1299,10 +1301,7 @@ export class Legend extends BaseProperties {
             this.group.translationX = Math.floor(x + translationX - legendBBox.x);
             this.group.translationY = Math.floor(y + translationY - legendBBox.y);
 
-            this.proxyLegendToolbar.style.removeProperty('display');
             this.proxyLegendToolbar.ariaOrientation = this.getOrientation();
-        } else {
-            this.proxyLegendToolbar.style.display = 'none';
         }
 
         this.updateItemProxyButtons();
