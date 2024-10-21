@@ -148,8 +148,6 @@ export interface AgLinearGaugeThemeableOptions extends AgLinearGaugeStyle, AgBas
      * Default: `container`
      **/
     cornerMode?: AgGaugeCornerMode;
-    /** Configuration for all targets. */
-    target?: AgLinearGaugeTargetOptions;
     /** Configuration for the bar. */
     bar?: AgLinearGaugeBarStyle;
     /** Configuration for the labels shown inside the shape. */
