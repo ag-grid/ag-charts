@@ -45,6 +45,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
                 InteractionState.Annotations | InteractionState.AnnotationsSelected
             ),
             seriesRegion.addListener('leave', () => this.hide(), mouseMoveStates),
+            ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             ctx.keyNavManager.addListener('nav-hori', () => this.onKeyPress()),
             ctx.keyNavManager.addListener('nav-vert', () => this.onKeyPress()),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.hide()),
@@ -99,6 +100,11 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
 
     private hide() {
         this.toggleVisibility(false);
+    }
+
+    private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
+        if (event.currentHighlight) return;
+        this.hide();
     }
 
     private onKeyPress() {
