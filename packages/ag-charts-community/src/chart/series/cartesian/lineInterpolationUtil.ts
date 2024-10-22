@@ -249,8 +249,9 @@ function zeroDataSpan(spanDatum: SpanDatum, zeroData: SpanDatum[] | undefined) {
     const newSpanXValue0 = toAxisValue(spanDatum.xValue0);
     const newSpanXValue1 = toAxisValue(spanDatum.xValue1);
     return zeroData.find(
-        (spanDatum) =>
-            toAxisValue(spanDatum.xValue0) === newSpanXValue0 && toAxisValue(spanDatum.xValue1) === newSpanXValue1
+        (zeroSpanDatum) =>
+            toAxisValue(zeroSpanDatum.xValue0) === newSpanXValue0 &&
+            toAxisValue(zeroSpanDatum.xValue1) === newSpanXValue1
     )?.span;
 }
 
