@@ -1147,15 +1147,9 @@ export class Legend extends BaseProperties {
         return oldPages;
     }
     private positionLegendDOM(oldPages: Page[] | undefined) {
-        this.domProxy.update(
-            this.visible && this.enabled,
-            this.ctx.proxyInteractionService,
-            this.itemSelection,
-            this.pagination,
-            oldPages,
-            this.pages,
-            this.toggleSeries
-        );
+        const { ctx, itemSelection, pagination, pages: newPages, toggleSeries: interactive } = this;
+        const visible = this.visible && this.enabled;
+        this.domProxy.update({ visible, interactive, ctx, itemSelection, pagination, oldPages, newPages });
     }
 
     private calculateLegendDimensions(shrinkRect: BBox): [number, number] {

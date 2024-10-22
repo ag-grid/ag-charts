@@ -25,6 +25,16 @@ interface ButtonListener {
     onContextClick(sourceEvent: MouseEvent, node: LegendMarkerLabel): void;
 }
 
+type LegendDOMProxyUpdateParams = {
+    visible: boolean;
+    interactive: boolean;
+    ctx: { proxyInteractionService: ProxyInteractionService };
+    itemSelection: ItemSelection;
+    pagination: Pagination;
+    oldPages: Page[] | undefined;
+    newPages: Page[];
+};
+
 export class LegendDOMProxy {
     private dirty = true;
 
@@ -105,19 +115,12 @@ export class LegendDOMProxy {
         this.initKeyNav(buttons);
     }
 
-    public update(
-        visible: boolean,
-        proxyInteractionService: ProxyInteractionService,
-        itemSelection: ItemSelection,
-        pagination: Pagination,
-        oldPages: Page[] | undefined,
-        newPages: Page[],
-        interactive: boolean
-    ) {
+    public update(params: LegendDOMProxyUpdateParams) {
+        const { visible, interactive, itemSelection, pagination } = params;
         this.updateVisibility(visible);
         if (visible) {
             this.updateItemProxyButtons(itemSelection, pagination, interactive);
-            this.updatePaginationProxyButtons(proxyInteractionService, pagination, oldPages, newPages);
+            this.updatePaginationProxyButtons(params);
         }
     }
 
@@ -146,12 +149,8 @@ export class LegendDOMProxy {
         });
     }
 
-    private updatePaginationProxyButtons(
-        proxyInteractionService: ProxyInteractionService,
-        pagination: Pagination,
-        oldPages: Page[] | undefined,
-        newPages: Page[]
-    ) {
+    private updatePaginationProxyButtons(params: LegendDOMProxyUpdateParams) {
+        const { ctx, pagination, oldPages, newPages } = params;
         this.paginationGroup.style.display = pagination.visible ? 'absolute' : 'none';
 
         const oldNeedsButtons = (oldPages?.length ?? newPages.length) > 1;
@@ -159,7 +158,7 @@ export class LegendDOMProxy {
 
         if (oldNeedsButtons !== newNeedsButtons) {
             if (newNeedsButtons) {
-                this.prevButton = proxyInteractionService.createProxyElement({
+                this.prevButton = ctx.proxyInteractionService.createProxyElement({
                     type: 'button',
                     id: `${this.idPrefix}-prev-page`,
                     textContent: { id: 'ariaLabelLegendPagePrevious' },
@@ -169,7 +168,7 @@ export class LegendDOMProxy {
                     onmouseenter: () => pagination.onMouseHover('previous'),
                     onmouseleave: () => pagination.onMouseHover(undefined),
                 });
-                this.nextButton ??= proxyInteractionService.createProxyElement({
+                this.nextButton ??= ctx.proxyInteractionService.createProxyElement({
                     type: 'button',
                     id: `${this.idPrefix}-next-page`,
                     textContent: { id: 'ariaLabelLegendPageNext' },
