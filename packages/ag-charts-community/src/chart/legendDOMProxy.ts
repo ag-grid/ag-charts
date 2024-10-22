@@ -29,7 +29,7 @@ export class LegendDOMProxy {
     public prevButton?: HTMLButtonElement;
     public nextButton?: HTMLButtonElement;
 
-    public constructor(ctx: ModuleContext, idPrefix: string) {
+    public constructor(ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>, idPrefix: string) {
         this.itemList = ctx.proxyInteractionService.createProxyContainer({
             type: 'list',
             id: `${idPrefix}-toolbar`,
@@ -48,6 +48,7 @@ export class LegendDOMProxy {
         this.itemDescription = createElement('p');
         this.itemDescription.style.display = 'none';
         this.itemDescription.id = `${idPrefix}-ariaDescription`;
+        this.itemDescription.textContent = this.getItemAriaDescription(ctx.localeManager);
         this.itemList.append(this.itemDescription);
     }
 
@@ -119,7 +120,7 @@ export class LegendDOMProxy {
         this.dirty = false;
     }
 
-    public getItemAriaText(
+    private getItemAriaText(
         localeManager: LocaleManager,
         label: string | undefined,
         index: number,
@@ -132,7 +133,7 @@ export class LegendDOMProxy {
         return localeManager.t('ariaLabelLegendItemUnknown');
     }
 
-    public getItemAriaDescription(localeManager: LocaleManager): string {
+    private getItemAriaDescription(localeManager: LocaleManager): string {
         return localeManager.t('ariaDescriptionLegendItem');
     }
 }

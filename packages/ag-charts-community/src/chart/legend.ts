@@ -291,7 +291,6 @@ export class Legend extends BaseProperties {
         );
 
         this.domProxy = new LegendDOMProxy(this.ctx, this.id);
-        this.domProxy.itemDescription.textContent = this.domProxy.getItemAriaDescription(this.ctx.localeManager);
     }
 
     public destroy() {
