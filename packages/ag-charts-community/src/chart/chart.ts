@@ -70,6 +70,7 @@ const debug = Debug.create(true, 'opts');
 
 export type TransferableResources = {
     container?: HTMLElement;
+    styleContainer?: HTMLElement;
     scene: Scene;
 };
 
@@ -246,6 +247,7 @@ export abstract class Chart extends Observable {
 
         const scene: Scene | undefined = resources?.scene;
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
+        const styleContainer = resources?.styleContainer ?? options.processedOptions.styleContainer ?? undefined;
 
         const root = new Group({ name: 'root' });
         const titleGroup = new Layer({ name: 'titles', zIndex: ZIndexMap.SERIES_LABEL });
@@ -268,6 +270,7 @@ export abstract class Chart extends Observable {
             scene,
             root,
             container,
+            styleContainer,
             syncManager: new SyncManager(this),
             pixelRatio: options.specialOverrides.overrideDevicePixelRatio,
             updateCallback: (type = ChartUpdateType.FULL, opts) => this.update(type, opts),
@@ -1099,6 +1102,7 @@ export abstract class Chart extends Observable {
             'topology',
             'nodes',
             'initialState',
+            'styleContainer',
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added

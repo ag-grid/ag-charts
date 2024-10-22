@@ -25,6 +25,9 @@ export class ChartProperties extends BaseProperties {
     @Validate(OBJECT.restrict(HTMLElement), { optional: true })
     container?: HTMLElement;
 
+    @Validate(OBJECT.restrict(HTMLElement), { optional: true })
+    styleContainer?: HTMLElement;
+
     @Validate(POSITIVE_NUMBER, { optional: true })
     width?: number;
 

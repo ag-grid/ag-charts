@@ -70,16 +70,17 @@ export class ChartContext implements ModuleContext {
             root: Group;
             syncManager: SyncManager;
             container?: HTMLElement;
+            styleContainer?: HTMLElement;
             updateCallback: UpdateCallback;
             updateMutex: Mutex;
             pixelRatio?: number;
         }
     ) {
-        const { scene, root, syncManager, container, updateCallback, updateMutex, pixelRatio } = vars;
+        const { scene, root, syncManager, container, updateCallback, updateMutex, pixelRatio, styleContainer } = vars;
 
         this.chartService = chart;
         this.syncManager = syncManager;
-        this.domManager = new DOMManager(container);
+        this.domManager = new DOMManager(container, styleContainer);
 
         // Sets canvas element if scene exists, otherwise use return value with scene constructor
         const canvasElement = this.domManager.addChild(

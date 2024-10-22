@@ -219,6 +219,11 @@ export interface AgBaseChartOptions<TDatum = any> extends AgBaseThemeableChartOp
     data?: TDatum[];
     /** The element to place the rendered chart into. */
     container?: HTMLElement | null;
+    /**
+     * Overrides the internal heuristics of where to attach CSS styles. Useful if creating a Chart in a detached DOM
+     * where the heuristics make the wrong decision.
+     */
+    styleContainer?: HTMLElement;
     /** The initial state of the chart. This must be a serializable value. */
     initialState?: AgInitialStateOptions;
 }
