@@ -31,7 +31,6 @@ import { BaseProperties } from '../util/properties';
 import { ObserveChanges } from '../util/proxy';
 import { CachedTextMeasurerPool, TextUtils } from '../util/textMeasurer';
 import { TextWrapper } from '../util/textWrapper';
-import { isDefined } from '../util/type-guards';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -305,41 +304,6 @@ export class Legend extends BaseProperties {
         this.domProxy.destroy();
     }
 
-    private initLegendItemToolbar() {
-        if (!this.domProxy.dirty) return;
-
-        const lm = this.ctx.localeManager;
-        const count = this.itemSelection.length;
-        this.itemSelection.each((markerLabel, datum, index) => {
-            // Create the hidden CSS button.
-            markerLabel.destroyProxyButton();
-            markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
-                type: 'listswitch',
-                id: `ag-charts-legend-item-${index}`,
-                textContent: this.domProxy.getItemAriaText(lm, this.getItemLabel(datum), index, count),
-                ariaChecked: !!markerLabel.datum.enabled,
-                ariaDescribedBy: this.domProxy.itemDescription.id,
-                parent: this.domProxy.itemList,
-                // Retrieve the datum from the node rather than from the method parameter.
-                // The method parameter `datum` gets destroyed when the data is refreshed
-                // using Series.getLegendData(). But the scene node will stay the same.
-                onclick: (ev) => this.onClick(ev, markerLabel.datum, markerLabel.proxyButton!.button),
-                ondblclick: (ev) => this.onDoubleClick(ev, markerLabel.datum),
-                onmouseenter: (ev) => this.onHover(ev, markerLabel),
-                onmouseleave: () => this.onLeave(),
-                oncontextmenu: (ev) => this.onContextClick(ev, markerLabel),
-                onblur: () => this.onLeave(),
-                onfocus: (ev) => this.onHover(ev, markerLabel),
-            });
-        });
-
-        const buttons: HTMLButtonElement[] = this.itemSelection
-            .nodes()
-            .map((markerLabel) => markerLabel.proxyButton?.button)
-            .filter(isDefined);
-        this.domProxy.initKeyNav(buttons);
-    }
-
     private onDataUpdate(oldData: CategoryLegendDatum[], newData: CategoryLegendDatum[]) {
         this.domProxy.dirty =
             oldData.length !== newData.length ||
@@ -387,7 +351,7 @@ export class Legend extends BaseProperties {
         scene.appendChild(this.group);
     }
 
-    private getItemLabel(datum: CategoryLegendDatum) {
+    getItemLabel(datum: CategoryLegendDatum) {
         const {
             ctx: { callbackCache },
         } = this;
@@ -427,7 +391,7 @@ export class Legend extends BaseProperties {
             data.reverse();
         }
         this.itemSelection.update(data);
-        this.initLegendItemToolbar();
+        this.domProxy.initLegendList(this.ctx, this.itemSelection, this, this);
 
         // Update properties that affect the size of the legend items and measure them.
         const bboxes: BBox[] = [];
@@ -1009,7 +973,7 @@ export class Legend extends BaseProperties {
         this.doDoubleClick(params.event, this.findNode(params).datum);
     }
 
-    private onContextClick(sourceEvent: MouseEvent, node: LegendMarkerLabel) {
+    onContextClick(sourceEvent: MouseEvent, node: LegendMarkerLabel) {
         const legendItem: CategoryLegendDatum = node.datum;
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
             this.ctx.contextMenuRegistry.disableAction(ID_LEGEND_VISIBILITY);
@@ -1035,7 +999,7 @@ export class Legend extends BaseProperties {
         this.ctx.contextMenuRegistry.dispatchContext('legend', event, { legendItem });
     }
 
-    private onClick(event: Event, datum: CategoryLegendDatum, proxyButton: HTMLButtonElement) {
+    onClick(event: Event, datum: CategoryLegendDatum, proxyButton: HTMLButtonElement) {
         if (this.doClick(event, datum, proxyButton)) {
             event.preventDefault();
         }
@@ -1098,7 +1062,7 @@ export class Legend extends BaseProperties {
         return true;
     }
 
-    private onDoubleClick(event: MouseEvent, datum: CategoryLegendDatum) {
+    onDoubleClick(event: MouseEvent, datum: CategoryLegendDatum) {
         if (this.doDoubleClick(event, datum)) {
             event.preventDefault();
         }
@@ -1165,7 +1129,7 @@ export class Legend extends BaseProperties {
         return { offsetX, offsetY, lastPointerEvent, showArrow: false };
     }
 
-    private onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel) {
+    onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel) {
         if (!this.enabled) throw new Error('AG Charts - onHover handler called on disabled legend');
 
         this.pagination.setPage(node.pageIndex);
@@ -1186,7 +1150,7 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private onLeave() {
+    onLeave() {
         this.ctx.tooltipManager.removeTooltip(this.id);
         this.updateHighlight();
     }
