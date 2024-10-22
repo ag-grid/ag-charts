@@ -47,6 +47,15 @@ validateCommonDist()
   fi
 
   local expected_count=4
+  if [[ "$directory" == "dist/packages/contents/ag-charts-community/package" ]]
+  then
+      expected_count=8
+  fi
+  if [[ "$directory" == "dist/packages/contents/ag-charts-enterprise/package" ]]
+  then
+      expected_count=8
+  fi
+  
   local count=`find "$directory/dist/package" -type f | wc -l | tr -d ' '`;
   if [[ $count -ne $expected_count ]]
   then
@@ -143,4 +152,5 @@ validateExpectedDirs "dist/packages/contents" 8
 validateExpectedDirs "dist/packages" 9
 validateModules "dist/packages/contents"
 validateLocale "dist/packages/contents/ag-charts-locale/package"
+
 
