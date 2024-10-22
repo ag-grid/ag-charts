@@ -379,7 +379,6 @@ export class Legend extends BaseProperties {
             data.reverse();
         }
         this.itemSelection.update(data);
-        this.domProxy.initLegendList(this.ctx, this.itemSelection, this, this);
 
         // Update properties that affect the size of the legend items and measure them.
         const bboxes: BBox[] = [];
@@ -1149,7 +1148,17 @@ export class Legend extends BaseProperties {
     private positionLegendDOM(oldPages: Page[] | undefined) {
         const { ctx, itemSelection, pagination, pages: newPages, toggleSeries: interactive } = this;
         const visible = this.visible && this.enabled;
-        this.domProxy.update({ visible, interactive, ctx, itemSelection, pagination, oldPages, newPages });
+        this.domProxy.update({
+            visible,
+            interactive,
+            ctx,
+            itemSelection,
+            pagination,
+            oldPages,
+            newPages,
+            datumReader: this,
+            itemListener: this,
+        });
     }
 
     private calculateLegendDimensions(shrinkRect: BBox): [number, number] {

@@ -28,11 +28,13 @@ interface ButtonListener {
 type LegendDOMProxyUpdateParams = {
     visible: boolean;
     interactive: boolean;
-    ctx: { proxyInteractionService: ProxyInteractionService };
+    ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>;
     itemSelection: ItemSelection;
     pagination: Pagination;
     oldPages: Page[] | undefined;
     newPages: Page[];
+    datumReader: CategoryLegendDatumReader;
+    itemListener: ButtonListener;
 };
 
 export class LegendDOMProxy {
@@ -75,14 +77,10 @@ export class LegendDOMProxy {
         this.destroyFns.destroy();
     }
 
-    public initLegendList(
-        ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>,
-        itemSelection: ItemSelection,
-        datumReader: CategoryLegendDatumReader,
-        buttonListener: ButtonListener
-    ) {
+    private initLegendList(params: LegendDOMProxyUpdateParams) {
         if (!this.dirty) return;
 
+        const { ctx, itemSelection, datumReader, itemListener } = params;
         const lm = ctx.localeManager;
         const count = itemSelection.length;
         itemSelection.each((markerLabel, datum, index) => {
@@ -98,13 +96,13 @@ export class LegendDOMProxy {
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
-                onclick: (ev) => buttonListener.onClick(ev, markerLabel.datum, markerLabel.proxyButton!.button),
-                ondblclick: (ev) => buttonListener.onDoubleClick(ev, markerLabel.datum),
-                onmouseenter: (ev) => buttonListener.onHover(ev, markerLabel),
-                onmouseleave: () => buttonListener.onLeave(),
-                oncontextmenu: (ev) => buttonListener.onContextClick(ev, markerLabel),
-                onblur: () => buttonListener.onLeave(),
-                onfocus: (ev) => buttonListener.onHover(ev, markerLabel),
+                onclick: (ev) => itemListener.onClick(ev, markerLabel.datum, markerLabel.proxyButton!.button),
+                ondblclick: (ev) => itemListener.onDoubleClick(ev, markerLabel.datum),
+                onmouseenter: (ev) => itemListener.onHover(ev, markerLabel),
+                onmouseleave: () => itemListener.onLeave(),
+                oncontextmenu: (ev) => itemListener.onContextClick(ev, markerLabel),
+                onblur: () => itemListener.onLeave(),
+                onfocus: (ev) => itemListener.onHover(ev, markerLabel),
             });
         });
 
@@ -112,13 +110,19 @@ export class LegendDOMProxy {
             .nodes()
             .map((markerLabel) => markerLabel.proxyButton?.button)
             .filter(isDefined);
-        this.initKeyNav(buttons);
+        this.destroyFns.setFns([
+            ...initRovingTabIndex({ orientation: 'horizontal', buttons }),
+            ...initRovingTabIndex({ orientation: 'vertical', buttons }),
+        ]);
+        this.itemList.ariaHidden = (buttons.length === 0).toString();
+        this.dirty = false;
     }
 
     public update(params: LegendDOMProxyUpdateParams) {
         const { visible, interactive, itemSelection, pagination } = params;
         this.updateVisibility(visible);
         if (visible) {
+            this.initLegendList(params);
             this.updateItemProxyButtons(itemSelection, pagination, interactive);
             this.updatePaginationProxyButtons(params);
         }
@@ -227,15 +231,6 @@ export class LegendDOMProxy {
     public onPageChange(itemSelection: ItemSelection, pagination: Pagination, interactive: boolean) {
         this.updateItemProxyButtons(itemSelection, pagination, interactive);
         this.updatePaginationCursors(pagination);
-    }
-
-    private initKeyNav(buttons: HTMLButtonElement[]) {
-        this.destroyFns.setFns([
-            ...initRovingTabIndex({ orientation: 'horizontal', buttons }),
-            ...initRovingTabIndex({ orientation: 'vertical', buttons }),
-        ]);
-        this.itemList.ariaHidden = (buttons.length === 0).toString();
-        this.dirty = false;
     }
 
     private getItemAriaText(
