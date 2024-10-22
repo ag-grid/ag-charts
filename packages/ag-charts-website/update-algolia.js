@@ -16,7 +16,7 @@ const { JSDOM } = require('jsdom');
 const algoliasearch = require('algoliasearch');
 const commander = require('commander');
 
-const menu = require('./src/content/menu/data.json');
+const menu = require('./src/content/docs-nav/docsNav.json');
 const supportedFrameworks = ['javascript', 'react', 'angular', 'vue'];
 const puppeteer = require('puppeteer-core');
 
@@ -288,7 +288,7 @@ const processIndexForFramework = async (framework) => {
                 rank -= 10;
             }
 
-            await iterateItems(item.items, breadcrumb, parentTitle);
+            await iterateItems(item.children, breadcrumb, parentTitle);
         }
     };
 
@@ -296,7 +296,7 @@ const processIndexForFramework = async (framework) => {
     for (const item of highLevelItems) {
         if (filter(item)) continue;
 
-        await iterateItems(item.items);
+        await iterateItems(item.children);
     }
 
     if (debug) {

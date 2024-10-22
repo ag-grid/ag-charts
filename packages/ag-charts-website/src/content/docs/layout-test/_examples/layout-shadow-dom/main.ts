@@ -19,7 +19,15 @@ const options: AgCartesianChartOptions = {
         { month: 'Nov', avgTemp: 8.9, iceCreamSales: 200000 },
     ],
     // Series: Defines which chart type and data to use
-    series: [{ type: 'bar', xKey: 'month', yKey: 'iceCreamSales' }],
+    series: [
+        { type: 'bar', xKey: 'month', yKey: 'iceCreamSales' },
+        { type: 'line', xKey: 'month', yKey: 'avgTemp' },
+    ],
+    axes: [
+        { type: 'category', position: 'bottom' },
+        { type: 'number', position: 'left', keys: ['iceCreamSales'] },
+        { type: 'number', position: 'right', keys: ['avgTemp'] },
+    ],
 };
 
 AgCharts.create(options);
