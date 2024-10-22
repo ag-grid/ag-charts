@@ -1164,7 +1164,7 @@ export class Legend extends BaseProperties {
     }
 
     private positionLegend(ctx: LayoutContext) {
-        setElementStyle(this.domProxy.itemList, 'display', this.visible && this.enabled ? undefined : 'none');
+        this.domProxy.updateVisibility(this.visible && this.enabled);
 
         if (!this.enabled || !this.data.length) return;
 
@@ -1213,8 +1213,6 @@ export class Legend extends BaseProperties {
             // Round off for pixel grid alignment to work properly.
             this.group.translationX = Math.floor(x + translationX - legendBBox.x);
             this.group.translationY = Math.floor(y + translationY - legendBBox.y);
-
-            this.domProxy.itemList.ariaOrientation = this.getOrientation();
         }
 
         this.updateItemProxyButtons();

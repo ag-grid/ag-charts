@@ -1,6 +1,7 @@
 import type { LocaleManager } from '../locale/localeManager';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Selection } from '../scene/selection';
+import { setElementStyle } from '../util/attributeUtil';
 import { DestroyFns } from '../util/destroy';
 import { createElement } from '../util/dom';
 import { initRovingTabIndex } from '../util/keynavUtil';
@@ -22,8 +23,8 @@ interface ButtonListener {
 export class LegendDOMProxy {
     private dirty = true;
 
-    public readonly itemList: HTMLDivElement;
-    public readonly itemDescription: HTMLParagraphElement;
+    private readonly itemList: HTMLDivElement;
+    private readonly itemDescription: HTMLParagraphElement;
     public readonly paginationGroup: HTMLDivElement;
     public readonly destroyFns: DestroyFns = new DestroyFns();
     public prevButton?: HTMLButtonElement;
@@ -94,6 +95,10 @@ export class LegendDOMProxy {
             .map((markerLabel) => markerLabel.proxyButton?.button)
             .filter(isDefined);
         this.initKeyNav(buttons);
+    }
+
+    public updateVisibility(visible: boolean) {
+        setElementStyle(this.itemList, 'display', visible ? undefined : 'none');
     }
 
     public onDataUpdate(oldData: CategoryLegendDatum[], newData: CategoryLegendDatum[]) {
