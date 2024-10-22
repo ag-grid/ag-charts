@@ -58,6 +58,7 @@ export interface ChartSpecialOverrides {
     window: Window;
     overrideDevicePixelRatio?: number;
     sceneMode?: 'simple';
+    styleContainer?: HTMLElement;
 }
 
 export interface ChartInternalOptionMetadata {
