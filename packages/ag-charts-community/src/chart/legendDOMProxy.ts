@@ -35,7 +35,10 @@ export class LegendDOMProxy {
     private prevButton?: HTMLButtonElement;
     private nextButton?: HTMLButtonElement;
 
-    public constructor(ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>, idPrefix: string) {
+    public constructor(
+        ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>,
+        private readonly idPrefix: string
+    ) {
         this.itemList = ctx.proxyInteractionService.createProxyContainer({
             type: 'list',
             id: `${idPrefix}-toolbar`,
@@ -104,7 +107,6 @@ export class LegendDOMProxy {
 
     public update(
         visible: boolean,
-        idPrefix: string,
         proxyInteractionService: ProxyInteractionService,
         itemSelection: ItemSelection,
         pagination: Pagination,
@@ -115,7 +117,7 @@ export class LegendDOMProxy {
         this.updateVisibility(visible);
         if (visible) {
             this.updateItemProxyButtons(itemSelection, pagination, interactive);
-            this.updatePaginationProxyButtons(idPrefix, proxyInteractionService, pagination, oldPages, newPages);
+            this.updatePaginationProxyButtons(proxyInteractionService, pagination, oldPages, newPages);
         }
     }
 
@@ -145,7 +147,6 @@ export class LegendDOMProxy {
     }
 
     private updatePaginationProxyButtons(
-        idPrefix: string,
         proxyInteractionService: ProxyInteractionService,
         pagination: Pagination,
         oldPages: Page[] | undefined,
@@ -160,7 +161,7 @@ export class LegendDOMProxy {
             if (newNeedsButtons) {
                 this.prevButton = proxyInteractionService.createProxyElement({
                     type: 'button',
-                    id: `${idPrefix}-prev-page`,
+                    id: `${this.idPrefix}-prev-page`,
                     textContent: { id: 'ariaLabelLegendPagePrevious' },
                     tabIndex: 0,
                     parent: this.paginationGroup,
@@ -170,7 +171,7 @@ export class LegendDOMProxy {
                 });
                 this.nextButton ??= proxyInteractionService.createProxyElement({
                     type: 'button',
-                    id: `${idPrefix}-next-page`,
+                    id: `${this.idPrefix}-next-page`,
                     textContent: { id: 'ariaLabelLegendPageNext' },
                     tabIndex: 0,
                     parent: this.paginationGroup,

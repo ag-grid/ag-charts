@@ -1149,7 +1149,6 @@ export class Legend extends BaseProperties {
     private positionLegendDOM(oldPages: Page[] | undefined) {
         this.domProxy.update(
             this.visible && this.enabled,
-            this.id,
             this.ctx.proxyInteractionService,
             this.itemSelection,
             this.pagination,
