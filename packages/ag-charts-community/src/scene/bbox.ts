@@ -187,6 +187,13 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
             Object.entries(amount).forEach(([pos, amt]) => apply(pos as ShrinkOrGrowPosition, amt));
         }
 
+        if (this.width < 0) {
+            this.width = 0;
+        }
+        if (this.height < 0) {
+            this.height = 0;
+        }
+
         return this;
     }
 
