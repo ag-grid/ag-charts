@@ -1,20 +1,17 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import type { Point } from '../annotationTypes';
-import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
+import type { AnnotationContext, Point } from '../annotationTypes';
+import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
+import { snapPoint } from '../utils/coords';
 import { ArrowProperties, LineProperties } from './lineProperties';
 import type { LineScene } from './lineScene';
 
-const { StateMachine } = _ModuleSupport;
+const { StateMachine, StateMachineProperty } = _ModuleSupport;
 
 interface LineStateMachineContext<Datum extends ArrowProperties | LineProperties>
-    extends Omit<AnnotationsStateMachineContext, 'create'> {
+    extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: Datum) => void;
-    delete: () => void;
-    datum: () => Datum | undefined;
-    node: () => LineScene | undefined;
-    showAnnotationOptions: () => void;
 }
 
 abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperties> extends StateMachine<
@@ -23,29 +20,37 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
+    @StateMachineProperty()
+    protected datum?: Datum;
+
+    @StateMachineProperty()
+    protected node?: LineScene;
+
+    @StateMachineProperty()
+    protected snapping: boolean = false;
+
     constructor(ctx: LineStateMachineContext<Datum>) {
-        const actionCreate = ({ point }: { point: () => Point }) => {
+        const actionCreate = ({ point, shiftKey }: { point: Point; shiftKey: boolean }) => {
+            ctx.setSnapping(shiftKey);
             const datum = this.createDatum();
-            const origin = point();
-            datum.set({ start: origin, end: origin });
+            datum.set({ start: point, end: point });
             ctx.create(datum);
             ctx.addPostUpdateFns(
-                () => ctx.node()?.toggleActive(true),
-                () => ctx.node()?.toggleHandles({ start: true, end: false })
+                () => this.node?.toggleActive(true),
+                () => this.node?.toggleHandles({ start: true, end: false })
             );
         };
 
-        const actionEndUpdate = ({ point }: { point?: (origin?: Point, snapToAngle?: number) => Point }) => {
-            if (!point) return;
+        const actionEndUpdate = ({ offset, context }: { offset: _ModuleSupport.Vec2; context: AnnotationContext }) => {
+            const { datum, snapping } = this;
+            if (!datum) return;
 
-            const datum = ctx.datum();
-            datum?.set({ end: point(datum?.start, datum?.snapToAngle) });
-
+            datum.set({ end: snapPoint(offset, context, snapping, datum.start, datum.snapToAngle) });
             ctx.update();
         };
 
         const actionEndFinish = () => {
-            ctx.node()?.toggleHandles({ end: true });
+            this.node?.toggleHandles({ end: true });
             ctx.update();
         };
 
@@ -53,7 +58,7 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
 
         const onExitEnd = () => {
             ctx.showAnnotationOptions();
-            ctx.recordAction(`Create ${ctx.datum()?.type} annotation`);
+            ctx.recordAction(`Create ${this.datum?.type} annotation`);
         };
 
         super('start', {
@@ -70,8 +75,8 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
             },
             end: {
                 hover: actionEndUpdate,
-                keyDown: actionEndUpdate,
-                keyUp: actionEndUpdate,
+                keyDown: ({ shiftKey }) => ctx.setSnapping(shiftKey),
+                keyUp: ({ shiftKey }) => ctx.setSnapping(shiftKey),
                 click: {
                     target: StateMachine.parent,
                     action: actionEndFinish,

@@ -1,4 +1,5 @@
 import { Debug } from './debug';
+import { addObserverToInstanceProperty, extractDecoratedProperties, listDecoratedProperties } from './decorator';
 
 type StateDefinition<State extends string, Events extends Record<string, any>> = {
     [key in keyof Events]?: Destination<State, Events[key]>;
@@ -29,6 +30,12 @@ type HierarchyState = '__parent' | '__child';
 const debugColor = 'color: green';
 const debugQuietColor = 'color: grey';
 
+export function StateMachineProperty() {
+    return addObserverToInstanceProperty(() => {
+        // do nothing
+    });
+}
+
 /**
  * A Hierarchical Finite State Machine is a system that must be in exactly one of a list of states, where those states
  * can also be other state machines. It can only transition between one state and another if a transition event is
@@ -40,7 +47,7 @@ export class StateMachine<State extends string, Events extends Record<string, an
 
     protected readonly debug = Debug.create(true, 'animation');
     private state: State | HierarchyState;
-    private childState?: StateMachine<any, any>;
+    private childState?: StateMachine<any, Events>;
 
     constructor(
         private readonly defaultState: State,
@@ -142,6 +149,13 @@ export class StateMachine<State extends string, Events extends Record<string, an
     private transitionChild<Event extends keyof Events & string>(event: Event, data?: Events[Event]) {
         if (this.state !== StateMachine.child || !this.childState) return true;
 
+        const childProperties = listDecoratedProperties(this.childState);
+        if (childProperties.length > 0) {
+            const properties = extractDecoratedProperties(this);
+            for (const property of childProperties) {
+                (this.childState as any)[property] = properties[property];
+            }
+        }
         this.childState.transition(event, data);
 
         if (!this.childState.is(StateMachine.parent)) return true;

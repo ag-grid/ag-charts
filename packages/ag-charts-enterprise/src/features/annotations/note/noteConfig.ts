@@ -23,17 +23,10 @@ export const noteConfig: AnnotationTypeConfig<NoteProperties, NoteScene> = {
             node.update(datum, context);
         }
     },
-    createState: (ctx, { createDatum, getDatum, getNode }) =>
+    createState: (ctx, { createDatum }) =>
         new NoteStateMachine({
             ...ctx,
             create: createDatum(AnnotationType.Note),
-            datum: getDatum(NoteProperties.is),
-            node: getNode(NoteScene.is),
         }),
-    dragState: (ctx, { getDatum, getNode }) =>
-        new DragStateMachine<NoteProperties, NoteScene>({
-            ...ctx,
-            datum: getDatum(NoteProperties.is),
-            node: getNode(NoteScene.is),
-        }),
+    dragState: (ctx) => new DragStateMachine<NoteProperties, NoteScene>(ctx),
 };

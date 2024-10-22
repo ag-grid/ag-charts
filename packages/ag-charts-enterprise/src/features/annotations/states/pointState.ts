@@ -1,18 +1,16 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { Point } from '../annotationTypes';
-import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
+import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { PointProperties } from '../properties/pointProperties';
 import type { PointScene } from '../scenes/pointScene';
 import type { AnnotationStateEvents } from './stateTypes';
 
-const { StateMachine } = _ModuleSupport;
+const { StateMachine, StateMachineProperty } = _ModuleSupport;
 
-interface PointStateMachineContext<Datum extends PointProperties, Node extends PointScene<Datum>>
-    extends Omit<AnnotationsStateMachineContext, 'create' | 'node'> {
+interface PointStateMachineContext<Datum extends PointProperties>
+    extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: Datum) => void;
-    node: () => Node | undefined;
-    showAnnotationOptions: () => void;
 }
 
 export abstract class PointStateMachine<
@@ -24,16 +22,18 @@ export abstract class PointStateMachine<
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    constructor(ctx: PointStateMachineContext<Datum, Node>) {
-        const actionCreate = ({ point }: { point: () => Point }) => {
+    @StateMachineProperty()
+    protected node?: Node;
+
+    constructor(ctx: PointStateMachineContext<Datum>) {
+        const actionCreate = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
-            const { x, y } = point();
-            datum.set({ x, y });
+            datum.set({ x: point.x, y: point.y });
             ctx.create(datum);
         };
 
         const actionFirstRender = () => {
-            ctx.node()?.toggleActive(true);
+            this.node?.toggleActive(true);
             ctx.showAnnotationOptions();
             ctx.update();
         };

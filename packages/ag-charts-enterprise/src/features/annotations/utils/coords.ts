@@ -1,6 +1,23 @@
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
+import type { AnnotationContext, Point } from '../annotationTypes';
+import { convertPoint, invertCoords } from './values';
+
+const { Vec2 } = _ModuleSupport;
 const { toRadians } = _Scene;
+
+export function snapPoint(
+    offset: _ModuleSupport.Vec2,
+    context: AnnotationContext,
+    snapping: boolean = false,
+    origin?: Point,
+    angleStep: number = 1
+) {
+    if (!snapping) return invertCoords(offset, context);
+
+    const center = origin ? convertPoint(origin, context) : Vec2.origin();
+    return invertCoords(snapToAngle(offset, center, angleStep), context);
+}
 
 export function snapToAngle(
     { x, y }: _ModuleSupport.Vec2,

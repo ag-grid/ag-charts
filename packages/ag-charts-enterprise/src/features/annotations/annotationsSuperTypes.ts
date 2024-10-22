@@ -75,7 +75,6 @@ export interface AnnotationsStateMachineContext {
     resetToIdle: () => void;
     hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number) => number | undefined;
     getNodeAtCoords: (coords: _ModuleSupport.Vec2, active: number) => string | undefined;
-    getHoverCoords: () => _ModuleSupport.Vec2 | undefined;
     select: (index?: number, previous?: number) => void;
     selectLast: () => number;
 
@@ -129,19 +128,12 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
         context: AnnotationContext
     ) => Datum | undefined;
     createState: (
-        ctx: AnnotationsStateMachineContext & {
-            delete: () => void;
-            deselect: () => void;
-            showAnnotationOptions: () => void;
-            showTextInput: () => void;
-        },
+        ctx: AnnotationsCreateStateMachineContext,
         helpers: AnnotationsStateMachineHelperFns
     ) => _ModuleSupport.StateMachine<any, any>;
     dragState: (
         ctx: AnnotationsStateMachineContext & {
             setSnapping: (snapping: boolean) => void;
-            getSnapping: () => boolean;
-            getHoverCoords: () => _ModuleSupport.Vec2 | undefined;
         },
         helpers: AnnotationsStateMachineHelperFns
     ) => _ModuleSupport.StateMachine<any, any>;
@@ -149,6 +141,12 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
 
 export interface AnnotationsStateMachineHelperFns {
     createDatum: <T extends AnnotationProperties>(type: AnnotationType) => (datum: T) => void;
-    getDatum: <T>(is: (value: unknown) => value is T) => () => T;
-    getNode: <T>(is: (value: unknown) => value is T) => () => T;
 }
+
+export type AnnotationsCreateStateMachineContext = AnnotationsStateMachineContext & {
+    delete: () => void;
+    deselect: () => void;
+    showAnnotationOptions: () => void;
+    showTextInput: () => void;
+    setSnapping: (snapping: boolean) => void;
+};

@@ -23,19 +23,12 @@ export const lineConfig: AnnotationTypeConfig<LineProperties, LineScene> = {
             node.update(datum, context);
         }
     },
-    createState: (ctx, { createDatum, getDatum, getNode }) =>
+    createState: (ctx, { createDatum }) =>
         new LineStateMachine({
             ...ctx,
             create: createDatum(AnnotationType.Line),
-            datum: getDatum(LineProperties.is),
-            node: getNode(LineScene.is),
         }),
-    dragState: (ctx, { getDatum, getNode }) =>
-        new DragStateMachine<LineProperties, LineScene>({
-            ...ctx,
-            datum: getDatum(LineProperties.is),
-            node: getNode(LineScene.is),
-        }),
+    dragState: (ctx) => new DragStateMachine<LineProperties, LineScene>(ctx),
 };
 
 export const arrowConfig: AnnotationTypeConfig<ArrowProperties, LineScene> = {
@@ -56,17 +49,10 @@ export const arrowConfig: AnnotationTypeConfig<ArrowProperties, LineScene> = {
             node.update(datum, context);
         }
     },
-    createState: (ctx, { createDatum, getDatum, getNode }) =>
+    createState: (ctx, { createDatum }) =>
         new ArrowStateMachine({
             ...ctx,
             create: createDatum(AnnotationType.Arrow),
-            datum: getDatum(ArrowProperties.is),
-            node: getNode(LineScene.is),
         }),
-    dragState: (ctx, { getDatum, getNode }) =>
-        new DragStateMachine<ArrowProperties, LineScene>({
-            ...ctx,
-            datum: getDatum(ArrowProperties.is),
-            node: getNode(LineScene.is),
-        }),
+    dragState: (ctx) => new DragStateMachine<ArrowProperties, LineScene>(ctx),
 };

@@ -4,13 +4,13 @@ import type { AnnotationContext } from '../annotationTypes';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from './stateTypes';
 
-const { StateMachine, Vec2 } = _ModuleSupport;
+const { StateMachine, StateMachineProperty, Vec2 } = _ModuleSupport;
 
 export class DragStateMachine<
-    D extends AnnotationProperties,
-    N extends {
-        dragStart: (datum: D, offset: _ModuleSupport.Vec2, context: AnnotationContext) => void;
-        drag: (datum: D, offset: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) => void;
+    Datum extends AnnotationProperties,
+    Node extends {
+        dragStart: (datum: Datum, offset: _ModuleSupport.Vec2, context: AnnotationContext) => void;
+        drag: (datum: Datum, offset: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) => void;
         stopDragging: () => void;
     },
 > extends StateMachine<
@@ -19,30 +19,34 @@ export class DragStateMachine<
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private hasMoved = false;
-    // eslint-disable-next-line @typescript-eslint/prefer-readonly
-    private dragStart?: _ModuleSupport.Vec2;
+    protected hasMoved = false;
+    protected dragStart?: _ModuleSupport.Vec2;
+
+    @StateMachineProperty()
+    protected hoverCoords?: _ModuleSupport.Vec2;
+
+    @StateMachineProperty()
+    protected snapping: boolean = false;
+
+    @StateMachineProperty()
+    protected datum?: Datum;
+
+    @StateMachineProperty()
+    protected node?: Node;
 
     constructor(
         ctx: AnnotationsStateMachineContext & {
-            datum: () => D | undefined;
-            node: () => N | undefined;
             setSnapping: (snapping: boolean) => void;
-            getSnapping: () => boolean;
-            getHoverCoords: () => _ModuleSupport.Vec2 | undefined;
         }
     ) {
         const actionKeyChange = ({ shiftKey, context }: { shiftKey: boolean; context: AnnotationContext }) => {
+            const { datum, node, hoverCoords } = this;
+
+            if (!datum || !node || !hoverCoords) return;
+
             ctx.setSnapping(shiftKey);
-            const datum = ctx.datum()!;
-            const offset = ctx.getHoverCoords();
 
-            if (!offset) {
-                return;
-            }
-
-            ctx.node()?.drag(datum, offset, context, shiftKey);
+            node?.drag(datum, hoverCoords, context, shiftKey);
             ctx.update();
         };
 
@@ -53,7 +57,7 @@ export class DragStateMachine<
                     action: ({ offset, context }) => {
                         this.hasMoved = false;
                         this.dragStart = offset;
-                        ctx.node()?.dragStart(ctx.datum()!, offset, context);
+                        this.node?.dragStart(this.datum!, offset, context);
                     },
                 },
             },
@@ -64,16 +68,14 @@ export class DragStateMachine<
 
                 drag: ({ offset, context }) => {
                     this.hasMoved = Vec2.lengthSquared(Vec2.sub(offset, this.dragStart!)) > 0;
-                    const datum = ctx.datum()!;
-                    const snapping = ctx.getSnapping();
-                    ctx.node()?.drag(datum, offset, context, snapping);
+                    this.node?.drag(this.datum!, offset, context, this.snapping);
                     ctx.update();
                 },
 
                 dragEnd: {
                     target: StateMachine.parent,
                     action: () => {
-                        ctx.node()?.stopDragging();
+                        this.node?.stopDragging();
                         ctx.stopInteracting();
                         if (this.hasMoved) ctx.recordAction('Move annotation');
                         ctx.update();

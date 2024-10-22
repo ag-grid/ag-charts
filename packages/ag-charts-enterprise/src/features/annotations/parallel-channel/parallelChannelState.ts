@@ -1,19 +1,16 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
-import { AnnotationType, type Point } from '../annotationTypes';
-import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
+import { type AnnotationContext, AnnotationType, type Point } from '../annotationTypes';
+import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
+import { snapPoint } from '../utils/coords';
 import { ParallelChannelProperties } from './parallelChannelProperties';
 import type { ParallelChannelScene } from './parallelChannelScene';
 
-const { StateMachine } = _ModuleSupport;
+const { StateMachine, StateMachineProperty } = _ModuleSupport;
 
-interface ParallelChannelStateMachineContext extends Omit<AnnotationsStateMachineContext, 'create'> {
+interface ParallelChannelStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: ParallelChannelProperties) => void;
-    delete: () => void;
-    datum: () => ParallelChannelProperties | undefined;
-    node: () => ParallelChannelScene | undefined;
-    showAnnotationOptions: () => void;
 }
 
 export class ParallelChannelStateMachine extends StateMachine<
@@ -22,16 +19,25 @@ export class ParallelChannelStateMachine extends StateMachine<
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
+    @StateMachineProperty()
+    protected datum?: ParallelChannelProperties;
+
+    @StateMachineProperty()
+    protected node?: ParallelChannelScene;
+
+    @StateMachineProperty()
+    protected snapping: boolean = false;
+
     constructor(ctx: ParallelChannelStateMachineContext) {
-        const actionCreate = ({ point }: { point: () => Point }) => {
+        const actionCreate = ({ point, shiftKey }: { point: Point; shiftKey: boolean }) => {
+            ctx.setSnapping(shiftKey);
             const datum = new ParallelChannelProperties();
-            const origin = point();
-            datum.set({ start: origin, end: origin, height: 0 });
+            datum.set({ start: point, end: point, height: 0 });
             ctx.create(datum);
             ctx.addPostUpdateFns(
-                () => ctx.node()?.toggleActive(true),
+                () => this.node?.toggleActive(true),
                 () =>
-                    ctx.node()?.toggleHandles({
+                    this.node?.toggleHandles({
                         topLeft: true,
                         topMiddle: false,
                         topRight: false,
@@ -42,36 +48,34 @@ export class ParallelChannelStateMachine extends StateMachine<
             );
         };
 
-        const actionEndUpdate = ({ point }: { point?: (origin?: Point, snapToAngle?: number) => Point }) => {
-            if (!point) return;
+        const actionEndUpdate = ({ offset, context }: { offset: _ModuleSupport.Vec2; context: AnnotationContext }) => {
+            const { datum, snapping } = this;
+            if (!datum) return;
 
-            const datum = ctx.datum();
-            datum?.set({ end: point(datum?.start, datum?.snapToAngle), height: 0 });
-
+            datum.set({ end: snapPoint(offset, context, snapping, datum.start, datum.snapToAngle) });
             ctx.update();
         };
 
         const actionEndFinish = () => {
-            ctx.node()?.toggleHandles({
+            this.node?.toggleHandles({
                 topRight: true,
             });
             ctx.update();
         };
 
-        const actionHeightUpdate = ({ point }: { point: () => Point }) => {
-            const datum = ctx.datum();
+        const actionHeightUpdate = ({ point }: { point: Point }) => {
+            const { datum, node } = this;
 
             if (datum?.start.y == null || datum?.end.y == null) return;
 
-            const y = point().y;
-            const height = datum.end.y - (y ?? 0);
+            const height = datum.end.y - (point.y ?? 0);
             const bottomStartY = datum.start.y - height;
 
-            ctx.node()?.toggleHandles({ bottomLeft: true, bottomRight: true });
+            node?.toggleHandles({ bottomLeft: true, bottomRight: true });
 
             if (
                 !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }) ||
-                !ctx.validatePoint({ x: datum.end.x, y })
+                !ctx.validatePoint({ x: datum.end.x, y: point.y })
             ) {
                 return;
             }
@@ -80,20 +84,19 @@ export class ParallelChannelStateMachine extends StateMachine<
             ctx.update();
         };
 
-        const actionHeightFinish = ({ point }: { point: () => Point }) => {
-            const datum = ctx.datum();
+        const actionHeightFinish = ({ point }: { point: Point }) => {
+            const { datum, node } = this;
 
             if (datum?.start.y == null || datum?.end.y == null) return;
 
-            const y = point().y;
-            const height = datum.end.y - (y ?? 0);
+            const height = datum.end.y - (point.y ?? 0);
             const bottomStartY = datum.start.y - height;
 
-            ctx.node()?.toggleHandles(true);
+            node?.toggleHandles(true);
 
             if (
                 !ctx.validatePoint({ x: datum.start.x, y: bottomStartY }) ||
-                !ctx.validatePoint({ x: datum.end.x, y })
+                !ctx.validatePoint({ x: datum.end.x, y: point.y })
             ) {
                 return;
             }
@@ -121,8 +124,8 @@ export class ParallelChannelStateMachine extends StateMachine<
             end: {
                 hover: actionEndUpdate,
                 drag: actionEndUpdate,
-                keyDown: actionEndUpdate,
-                keyUp: actionEndUpdate,
+                keyDown: ({ shiftKey }) => ctx.setSnapping(shiftKey),
+                keyUp: ({ shiftKey }) => ctx.setSnapping(shiftKey),
                 click: {
                     target: 'height',
                     action: actionEndFinish,
