@@ -1,6 +1,6 @@
 import type { BBox } from './bbox';
 import { IDENTITY_MATRIX_ELEMENTS, Matrix } from './matrix';
-import { Node, RedrawType, type RenderContext, SceneChangeDetection } from './node';
+import { Node, type RenderContext, SceneChangeDetection } from './node';
 
 type Constructor<T> = new (...args: any[]) => T;
 
@@ -55,7 +55,7 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
         private _dirtyTransform = true;
         markDirtyTransform() {
             this._dirtyTransform = true;
-            super.markDirty(RedrawType.MAJOR);
+            super.markDirty();
         }
 
         updateMatrix(_matrix: Matrix) {
@@ -117,23 +117,23 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
         override render(renderCtx: RenderContext): void {
             if (this._dirtyTransform) {
                 this.computeTransformMatrix();
-                if (!renderCtx.forceRender) {
-                    renderCtx = { ...renderCtx, forceRender: 'dirtyTransform' };
-                }
             }
 
+            const { ctx } = renderCtx;
+
             const matrix = this[TRANSFORM_MATRIX];
+
             let performRestore = false;
             if (!matrix.identity) {
-                renderCtx.ctx.save();
+                ctx.save();
                 performRestore = true;
-                matrix.toContext(renderCtx.ctx);
+                matrix.toContext(ctx);
             }
 
             super.render(renderCtx);
 
             if (performRestore) {
-                renderCtx.ctx.restore();
+                ctx.restore();
             }
         }
 

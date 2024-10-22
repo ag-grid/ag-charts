@@ -194,7 +194,6 @@ describe('Rect', () => {
                     rect.preRender();
                     rect.render({
                         ctx,
-                        forceRender: true,
                         resized: false,
                         debugNodes: {},
                         devicePixelRatio: 1,

@@ -4,8 +4,8 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
-import { Group } from '../../../scene/group';
-import { TranslatableLayer } from '../../../scene/layer';
+import { Group, TranslatableGroup } from '../../../scene/group';
+import { Node } from '../../../scene/node';
 import { PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
@@ -14,12 +14,12 @@ import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
 import { normalizeAngle180, toRadians } from '../../../util/angle';
+import { formatValue } from '../../../util/format.util';
 import { jsonDiff } from '../../../util/json';
 import { Logger } from '../../../util/logger';
-import { mod, toFixed } from '../../../util/number';
+import { mod } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
-import { isFiniteNumber } from '../../../util/type-guards';
 import type { Has } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { ChartUpdateType } from '../../chartUpdateType';
@@ -38,7 +38,6 @@ import type { LegendItemClickChartEvent } from '../../interaction/chartEventMana
 import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
 import { Circle } from '../../marker/circle';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
-import { ZIndexMap } from '../../zIndexMap';
 import { SeriesNodeEvent, type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
 import type { SeriesNodeDatum } from '../seriesTypes';
@@ -46,6 +45,7 @@ import type { DonutInnerLabel, DonutTitle } from './donutSeriesProperties';
 import { DonutSeriesProperties } from './donutSeriesProperties';
 import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
 import { type PolarAnimationData, PolarSeries } from './polarSeries';
+import { PolarZIndexMap } from './polarZIndexMap';
 
 class DonutSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<
     DonutNodeDatum,
@@ -115,9 +115,14 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         return this.phantomNodeData ?? this.nodeData;
     }
 
+    readonly backgroundGroup = new TranslatableGroup({
+        name: `${this.id}-background`,
+        zIndex: PolarZIndexMap.BACKGROUND,
+    });
+
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
-    protected phantomGroup = this.contentGroup.appendChild(new Group());
+    protected phantomGroup = this.backgroundGroup.appendChild(new Group({ name: 'phantom' }));
     private readonly phantomSelection: Selection<Sector, DonutNodeDatum> = Selection.select(
         this.phantomGroup,
         () => this.nodeFactory(),
@@ -127,14 +132,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     private readonly calloutLabelSelection: Selection<Group, DonutNodeDatum> = new Selection(
         this.calloutLabelGroup,
         Group
-    );
-
-    // The group node that contains the background graphics.
-    readonly backgroundGroup = this.rootGroup.appendChild(
-        new TranslatableLayer({
-            name: `${this.id}-background`,
-            zIndex: ZIndexMap.SERIES_BACKGROUND,
-        })
     );
 
     // AG-6193 If the sum of all datums is 0, then we'll draw 1 or 2 rings to represent the empty series.
@@ -175,7 +172,30 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.angleScale.range = [-Math.PI, Math.PI].map((angle) => angle + Math.PI / 2);
 
         this.phantomGroup.opacity = 0.2;
-        this.phantomGroup.zIndexSubOrder = [() => this._declarationOrder, 0];
+    }
+
+    override attachSeries(seriesContentNode: Node, seriesNode: Node, annotationNode: Node | undefined): void {
+        super.attachSeries(seriesContentNode, seriesNode, annotationNode);
+
+        seriesContentNode?.appendChild(this.backgroundGroup);
+    }
+
+    override detachSeries(
+        seriesContentNode: Node | undefined,
+        seriesNode: Node,
+        annotationNode: Node | undefined
+    ): void {
+        super.detachSeries(seriesContentNode, seriesNode, annotationNode);
+
+        seriesContentNode?.removeChild(this.backgroundGroup);
+    }
+
+    override setSeriesIndex(index: number) {
+        if (!super.setSeriesIndex(index)) return false;
+
+        this.backgroundGroup.zIndex = [PolarZIndexMap.BACKGROUND, index];
+
+        return true;
     }
 
     override addChartEventListeners(): void {
@@ -783,7 +803,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     private async updateNodes(seriesRect: BBox) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
         const isVisible = this.visible && this.seriesItemEnabled.includes(true);
-        this.rootGroup.visible = isVisible;
         this.backgroundGroup.visible = isVisible;
         this.contentGroup.visible = isVisible;
         this.highlightGroup.visible = isVisible && highlightedDatum?.series === this;
@@ -1354,7 +1373,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         } = nodeDatum;
 
         const title = sanitizeHtml(this.properties.title?.text);
-        const content = isFiniteNumber(angleValue) ? toFixed(angleValue) : String(angleValue);
+        const content = formatValue(angleValue);
         const labelText = this.getDatumLegendName(nodeDatum);
 
         return this.properties.tooltip.toTooltipHtml(

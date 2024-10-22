@@ -6,9 +6,10 @@ import type { Group } from '../../scene/group';
 import { setAttribute } from '../../util/attributeUtil';
 import type { BBoxProvider } from '../../util/bboxinterface';
 import { setElementBBox } from '../../util/dom';
+import { formatPercent } from '../../util/format.util';
 import { initToolbarKeyNav } from '../../util/keynavUtil';
 import { Logger } from '../../util/logger';
-import { clamp, formatPercentage } from '../../util/number';
+import { clamp } from '../../util/number';
 import { ActionOnSet, ObserveChanges } from '../../util/proxy';
 import { AND, BOOLEAN, GREATER_THAN, LESS_THAN, OBJECT, POSITIVE_NUMBER, RATIO, Validate } from '../../util/validation';
 import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
@@ -327,7 +328,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private setSliderRatio(slider: HTMLInputElement, ratio: number) {
         const value = Math.round(ratio * 100);
         slider.value = `${value}`;
-        slider.ariaValueText = formatPercentage(value);
+        slider.ariaValueText = formatPercent(value / 100);
     }
 
     private getSliderRatio(slider: HTMLInputElement) {

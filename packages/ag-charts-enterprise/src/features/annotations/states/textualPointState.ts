@@ -7,6 +7,7 @@ import type { TextualPointScene } from '../scenes/textualPointScene';
 import { wrapText } from '../text/util';
 import { setColor } from '../utils/styles';
 import { isTextType } from '../utils/types';
+import type { AnnotationStateEvents } from './stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 
 const { StateMachine } = _ModuleSupport;
@@ -27,16 +28,20 @@ export abstract class TextualPointStateMachine<
     Node extends TextualPointScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit',
-    | 'click'
-    | 'dragStart'
-    | 'zoomChange'
-    | 'cancel'
-    | 'keyDown'
-    | 'updateTextInputBBox'
-    | 'color'
-    | 'fontSize'
-    | 'render'
-    | 'reset'
+    Pick<
+        AnnotationStateEvents,
+        | 'click'
+        | 'dragStart'
+        | 'zoomChange'
+        | 'cancel'
+        | 'keyDown'
+        | 'textInput'
+        | 'updateTextInputBBox'
+        | 'color'
+        | 'fontSize'
+        | 'render'
+        | 'reset'
+    >
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -69,7 +74,7 @@ export abstract class TextualPointStateMachine<
             ctx.deselect();
         };
 
-        const actionUpdateTextInputBBox = (bbox: _Scene.BBox) => {
+        const actionUpdateTextInputBBox = (bbox?: _Scene.BBox) => {
             const node = ctx.node();
             node?.setTextInputBBox(bbox);
             ctx.update();
@@ -110,8 +115,8 @@ export abstract class TextualPointStateMachine<
             ctx.delete();
         };
 
-        const actionSave = ({ textInputValue, bbox }: { textInputValue?: string; bbox: _Scene.BBox }) => {
-            if (textInputValue != null && textInputValue.length > 0) {
+        const actionSave = ({ textInputValue, bbox }: { textInputValue?: string; bbox?: _Scene.BBox }) => {
+            if (bbox != null && textInputValue != null && textInputValue.length > 0) {
                 const datum = ctx.datum();
 
                 if (!isTextType(datum)) {
@@ -152,7 +157,7 @@ export abstract class TextualPointStateMachine<
                 updateTextInputBBox: actionUpdateTextInputBBox,
                 color: actionColor,
                 fontSize: actionFontSize,
-                keyDown: [
+                textInput: [
                     {
                         guard: guardCancelAndExit,
                         target: StateMachine.parent,

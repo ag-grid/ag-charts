@@ -2,6 +2,7 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { AnnotationProperties, AnnotationsStateMachineContext } from '../annotationsSuperTypes';
+import type { AnnotationStateEvents } from './stateTypes';
 
 const { StateMachine, Vec2 } = _ModuleSupport;
 
@@ -12,7 +13,10 @@ export class DragStateMachine<
         drag: (datum: D, offset: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) => void;
         stopDragging: () => void;
     },
-> extends StateMachine<'idle' | 'dragging', 'keyDown' | 'keyUp' | 'drag' | 'dragStart' | 'dragEnd'> {
+> extends StateMachine<
+    'idle' | 'dragging',
+    Pick<AnnotationStateEvents, 'keyDown' | 'keyUp' | 'drag' | 'dragStart' | 'dragEnd'>
+> {
     override debug = _Util.Debug.create(true, 'annotations');
 
     // eslint-disable-next-line @typescript-eslint/prefer-readonly

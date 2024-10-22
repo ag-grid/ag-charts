@@ -67,7 +67,7 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
                           y: handles.bottomLeft.handle.y + offset.y * -direction,
                       });
 
-                if (!start || start.y == null || !bottomStart || bottomStart.y == null || datum.start.y == null) return;
+                if (start?.y == null || bottomStart?.y == null || datum.start.y == null) return;
 
                 const startHeight = datum.startHeight + (start.y - datum.start.y) * 2;
 

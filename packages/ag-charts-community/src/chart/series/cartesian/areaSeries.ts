@@ -6,13 +6,13 @@ import { pathMotion } from '../../../motion/pathMotion';
 import { resetMotion } from '../../../motion/resetMotion';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
+import { Node } from '../../../scene/node';
 import { PointerEvents } from '../../../scene/node';
 import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
-import { formatValue } from '../../../util/format.util';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isDefined, isFiniteNumber } from '../../../util/type-guards';
@@ -37,6 +37,7 @@ import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
     type AreaPathSpan,
@@ -50,6 +51,7 @@ import {
     CartesianSeries,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
+    RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD,
 } from './cartesianSeries';
 import { SpanJoin } from './lineInterpolation';
 import { plotSpan } from './lineInterpolationPlotting';
@@ -85,6 +87,11 @@ export class AreaSeries extends CartesianSeries<
 
     override properties = new AreaSeriesProperties();
 
+    readonly backgroundGroup = new Group({
+        name: `${this.id}-background`,
+        zIndex: SeriesZIndexMap.BACKGROUND,
+    });
+
     constructor(moduleCtx: ModuleContext) {
         super({
             moduleCtx,
@@ -101,6 +108,62 @@ export class AreaSeries extends CartesianSeries<
                 marker: (node, datum) => ({ ...resetMarkerFn(node), ...resetMarkerPositionFn(node, datum) }),
             },
         });
+    }
+
+    override renderToOffscreenCanvas(): boolean {
+        return (
+            super.renderToOffscreenCanvas() ||
+            (this.contextNodeData != null &&
+                (this.contextNodeData.fillData.spans.length > RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD ||
+                    this.contextNodeData.strokeData.spans.length > RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD))
+        );
+    }
+
+    override attachSeries(seriesContentNode: Node, seriesNode: Node, annotationNode: Node | undefined): void {
+        super.attachSeries(seriesContentNode, seriesNode, annotationNode);
+
+        seriesContentNode.appendChild(this.backgroundGroup);
+    }
+
+    override detachSeries(
+        seriesContentNode: Node | undefined,
+        seriesNode: Node,
+        annotationNode: Node | undefined
+    ): void {
+        super.detachSeries(seriesContentNode, seriesNode, annotationNode);
+
+        seriesContentNode?.removeChild(this.backgroundGroup);
+    }
+
+    protected override attachPaths([fill, stroke]: Path[]) {
+        this.backgroundGroup.appendChild(fill);
+
+        this.contentGroup.appendChild(stroke);
+        stroke.zIndex = -1;
+    }
+
+    private isStacked() {
+        const stackCount = this.seriesGrouping?.stackCount ?? 1;
+        return stackCount > 1;
+    }
+
+    private _isStacked: boolean | undefined = undefined;
+    override setSeriesIndex(index: number) {
+        const isStacked = this.isStacked();
+
+        if (!super.setSeriesIndex(index) && this._isStacked === isStacked) return false;
+
+        this._isStacked = isStacked;
+
+        if (isStacked) {
+            this.backgroundGroup.zIndex = [SeriesZIndexMap.BACKGROUND, index];
+            this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.FOREGROUND];
+        } else {
+            this.backgroundGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.FOREGROUND, 0];
+            this.contentGroup.zIndex = [SeriesZIndexMap.ANY_CONTENT, index, SeriesContentZIndexMap.FOREGROUND, 1];
+        }
+
+        return true;
     }
 
     override async processData(dataController: DataController) {
@@ -297,18 +360,14 @@ export class AreaSeries extends CartesianSeries<
 
                 // label data
                 if (validPoint && label) {
-                    const labelText = this.getLabelText(
-                        label,
-                        {
-                            value: yDatum,
-                            datum: seriesDatum,
-                            xKey,
-                            yKey,
-                            xName: this.properties.xName,
-                            yName: this.properties.yName,
-                        },
-                        formatValue
-                    );
+                    const labelText = this.getLabelText(label, {
+                        value: yDatum,
+                        datum: seriesDatum,
+                        xKey,
+                        yKey,
+                        xName: this.properties.xName,
+                        yName: this.properties.yName,
+                    });
 
                     labelData.push({
                         index: datumIdx,
@@ -484,7 +543,8 @@ export class AreaSeries extends CartesianSeries<
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
             fill: undefined,
-            lineJoin: (stroke.lineCap = 'round'),
+            lineCap: 'round',
+            lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             stroke: this.properties.stroke,
             strokeWidth,

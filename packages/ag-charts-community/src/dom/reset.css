@@ -1,11 +1,8 @@
 .ag-charts-wrapper,
-.ag-charts-wrapper:focus,
 .ag-charts-wrapper:after,
 .ag-charts-wrapper:before,
 .ag-charts-wrapper *,
-.ag-charts-wrapper *:focus,
 .ag-charts-wrapper *:after,
 .ag-charts-wrapper *:before {
     box-sizing: border-box;
-    outline: none;
 }

@@ -2,6 +2,7 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import { AnnotationType, type Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
+import type { AnnotationStateEvents } from '../states/stateTypes';
 import { DisjointChannelProperties } from './disjointChannelProperties';
 import type { DisjointChannelScene } from './disjointChannelScene';
 
@@ -17,7 +18,7 @@ interface DisjointChannelStateMachineContext extends Omit<AnnotationsStateMachin
 
 export class DisjointChannelStateMachine extends StateMachine<
     'start' | 'end' | 'height',
-    'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'cancel' | 'reset'
+    Pick<AnnotationStateEvents, 'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'cancel' | 'reset'>
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -39,7 +40,9 @@ export class DisjointChannelStateMachine extends StateMachine<
             );
         };
 
-        const actionEndUpdate = ({ point }: { point: (origin?: Point, snapToAngle?: number) => Point }) => {
+        const actionEndUpdate = ({ point }: { point?: (origin?: Point, snapToAngle?: number) => Point }) => {
+            if (!point) return;
+
             const datum = ctx.datum();
             datum?.set({ end: point(datum?.start, datum?.snapToAngle) });
 

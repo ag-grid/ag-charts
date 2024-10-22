@@ -15,27 +15,20 @@ import type { ListSwitch } from '../dom/proxyInteractionService';
 import type { LayoutContext } from '../module/baseModule';
 import type { ModuleContext } from '../module/moduleContext';
 import { BBox } from '../scene/bbox';
-import { Group } from '../scene/group';
-import { TranslatableLayer } from '../scene/layer';
-import { RedrawType } from '../scene/node';
+import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
 import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Transformable } from '../scene/transformable';
-import { setElementStyle } from '../util/attributeUtil';
-import type { BBoxValues } from '../util/bboxinterface';
-import { DestroyFns } from '../util/destroy';
-import { createElement, getWindow, setElementBBox } from '../util/dom';
+import { getWindow } from '../util/dom';
 import { createId } from '../util/id';
-import { initRovingTabIndex } from '../util/keynavUtil';
 import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
 import { BaseProperties } from '../util/properties';
 import { ObserveChanges } from '../util/proxy';
 import { CachedTextMeasurerPool, TextUtils } from '../util/textMeasurer';
 import { TextWrapper } from '../util/textWrapper';
-import { isDefined } from '../util/type-guards';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -55,6 +48,7 @@ import { gridLayout } from './gridLayout';
 import type { HighlightNodeDatum } from './interaction/highlightManager';
 import { InteractionState, type PointerInteractionEvent } from './interaction/interactionManager';
 import { LayoutElement } from './layout/layoutManager';
+import { LegendDOMProxy } from './legendDOMProxy';
 import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
 import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { Marker } from './marker/marker';
@@ -184,7 +178,7 @@ export class Legend extends BaseProperties {
 
     readonly id = createId(this);
 
-    private readonly group = new TranslatableLayer({ name: 'legend', zIndex: ZIndexMap.LEGEND });
+    private readonly group = new TranslatableGroup({ name: 'legend', zIndex: ZIndexMap.LEGEND });
 
     private readonly itemSelection: Selection<LegendMarkerLabel, CategoryLegendDatum> = Selection.select(
         this.group,
@@ -204,7 +198,7 @@ export class Legend extends BaseProperties {
     private _data: CategoryLegendDatum[] = [];
     private _symbolsDirty = true;
     set data(value: CategoryLegendDatum[]) {
-        this.onDataUpdate(this._data, value);
+        this.domProxy.onDataUpdate(this._data, value);
         this._data = value;
         this._symbolsDirty = true;
         this.updateGroupVisibility();
@@ -231,7 +225,6 @@ export class Legend extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
-    @ObserveChanges<Legend>((target) => (target.proxyLegendDirty = true))
     @Validate(POSITION)
     position: AgChartLegendPosition = 'bottom';
 
@@ -261,13 +254,7 @@ export class Legend extends BaseProperties {
 
     private readonly destroyFns: Function[] = [];
 
-    private proxyLegendDirty = true;
-    private readonly proxyLegendToolbar: HTMLDivElement;
-    private readonly proxyLegendPagination: HTMLDivElement;
-    private readonly proxyLegendItemDescription: HTMLParagraphElement;
-    private readonly proxyLegendToolbarDestroyFns: DestroyFns = new DestroyFns();
-    private proxyPrevButton?: HTMLButtonElement;
-    private proxyNextButton?: HTMLButtonElement;
+    private readonly domProxy: LegendDOMProxy;
     private pendingHighlightDatum?: HighlightNodeDatum;
 
     constructor(private readonly ctx: ModuleContext) {
@@ -301,26 +288,7 @@ export class Legend extends BaseProperties {
             () => this.group.remove()
         );
 
-        this.proxyLegendToolbar = this.ctx.proxyInteractionService.createProxyContainer({
-            type: 'list',
-            id: `${this.id}-toolbar`,
-            classList: ['ag-charts-proxy-legend-toolbar'],
-            ariaLabel: { id: 'ariaLabelLegend' },
-            ariaHidden: true,
-        });
-        this.proxyLegendPagination = this.ctx.proxyInteractionService.createProxyContainer({
-            type: 'group',
-            id: `${this.id}-pagination`,
-            classList: ['ag-charts-proxy-legend-pagination'],
-            ariaLabel: { id: 'ariaLabelLegendPagination' },
-            ariaOrientation: 'horizontal',
-            ariaHidden: true,
-        });
-        this.proxyLegendItemDescription = createElement('p');
-        this.proxyLegendItemDescription.style.display = 'none';
-        this.proxyLegendItemDescription.id = `${this.id}-ariaDescription`;
-        this.proxyLegendItemDescription.textContent = this.getItemAriaDescription();
-        this.proxyLegendToolbar.append(this.proxyLegendItemDescription);
+        this.domProxy = new LegendDOMProxy(this.ctx, this.id);
     }
 
     public destroy() {
@@ -330,59 +298,12 @@ export class Legend extends BaseProperties {
 
         this.pagination.destroy();
         this.itemSelection.clear();
-        this.proxyLegendToolbarDestroyFns.destroy();
-    }
-
-    private initLegendItemToolbar() {
-        if (!this.proxyLegendDirty) return;
-
-        this.itemSelection.each((markerLabel, _, i) => {
-            // Create the hidden CSS button.
-            markerLabel.destroyProxyButton();
-            markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
-                type: 'listswitch',
-                id: `ag-charts-legend-item-${i}`,
-                textContent: this.getItemAriaText(i),
-                ariaChecked: !!markerLabel.datum.enabled,
-                ariaDescribedBy: this.proxyLegendItemDescription.id,
-                parent: this.proxyLegendToolbar,
-                // Retrieve the datum from the node rather than from the method parameter.
-                // The method parameter `datum` gets destroyed when the data is refreshed
-                // using Series.getLegendData(). But the scene node will stay the same.
-                onclick: (ev) => this.onClick(ev, markerLabel.datum, markerLabel.proxyButton!.button),
-                ondblclick: (ev) => this.onDoubleClick(ev, markerLabel.datum),
-                onmouseenter: (ev) => this.onHover(ev, markerLabel),
-                onmouseleave: () => this.onLeave(),
-                oncontextmenu: (ev) => this.onContextClick(ev, markerLabel),
-                onblur: () => this.onLeave(),
-                onfocus: (ev) => this.onHover(ev, markerLabel),
-            });
-        });
-
-        const buttons: HTMLButtonElement[] = this.itemSelection
-            .nodes()
-            .map((markerLabel) => markerLabel.proxyButton?.button)
-            .filter(isDefined);
-        this.proxyLegendToolbarDestroyFns.setFns([
-            ...initRovingTabIndex({ orientation: 'horizontal', buttons }),
-            ...initRovingTabIndex({ orientation: 'vertical', buttons }),
-        ]);
-        this.proxyLegendToolbar.ariaHidden = (buttons.length === 0).toString();
-        this.proxyLegendDirty = false;
-    }
-
-    private onDataUpdate(oldData: CategoryLegendDatum[], newData: CategoryLegendDatum[]) {
-        this.proxyLegendDirty =
-            oldData.length !== newData.length ||
-            oldData.some((_v, index, _a) => {
-                const [newValue, oldValue] = [newData[index], oldData[index]];
-                return newValue.id !== oldValue.id;
-            });
+        this.domProxy.destroy();
     }
 
     public onMarkerShapeChange() {
         this.itemSelection.clear();
-        this.group.markDirty(RedrawType.MINOR);
+        this.group.markDirty();
     }
 
     private getOrientation(): AgChartLegendOrientation {
@@ -418,7 +339,7 @@ export class Legend extends BaseProperties {
         scene.appendChild(this.group);
     }
 
-    private getItemLabel(datum: CategoryLegendDatum) {
+    getItemLabel(datum: CategoryLegendDatum) {
         const {
             ctx: { callbackCache },
         } = this;
@@ -458,7 +379,6 @@ export class Legend extends BaseProperties {
             data.reverse();
         }
         this.itemSelection.update(data);
-        this.initLegendItemToolbar();
 
         // Update properties that affect the size of the legend items and measure them.
         const bboxes: BBox[] = [];
@@ -745,72 +665,6 @@ export class Legend extends BaseProperties {
         };
     }
 
-    private updateItemProxyButtons() {
-        const pointer = this.toggleSeries ? 'pointer' : undefined;
-        const maxHeight = Math.max(...this.itemSelection.nodes().map((l) => l.getBBox().height));
-        this.itemSelection.each((l) => {
-            if (l.proxyButton) {
-                const { listitem, button } = l.proxyButton;
-                const visible = l.pageIndex === this.pagination.currentPage;
-                let bbox: BBoxValues = Transformable.toCanvas(l);
-                if (bbox.height !== maxHeight) {
-                    // CRT-543 Give the legend items the same heights for a better look.
-                    const margin = (maxHeight - bbox.height) / 2;
-                    bbox = { x: bbox.x, y: bbox.y - margin, height: maxHeight, width: bbox.width };
-                }
-                // TODO(olegat) this should be part of CSS once all element types support pointer events.
-                setElementStyle(button, 'pointer-events', visible ? 'auto' : 'none');
-                setElementStyle(button, 'cursor', pointer);
-                setElementBBox(listitem, bbox);
-            }
-        });
-    }
-
-    private updatePaginationProxyButtons(oldPages: Page[] | undefined) {
-        this.proxyLegendPagination.style.display = this.pagination.visible ? 'absolute' : 'none';
-
-        const oldNeedsButtons = (oldPages?.length ?? this.pages.length) > 1;
-        const newNeedsButtons = this.pages.length > 1;
-
-        if (oldNeedsButtons !== newNeedsButtons) {
-            if (newNeedsButtons) {
-                this.proxyPrevButton = this.ctx.proxyInteractionService.createProxyElement({
-                    type: 'button',
-                    id: `${this.id}-prev-page`,
-                    textContent: { id: 'ariaLabelLegendPagePrevious' },
-                    tabIndex: 0,
-                    parent: this.proxyLegendPagination,
-                    onclick: (ev) => this.pagination.onClick(ev, 'previous'),
-                    onmouseenter: () => this.pagination.onMouseHover('previous'),
-                    onmouseleave: () => this.pagination.onMouseHover(undefined),
-                });
-                this.proxyNextButton ??= this.ctx.proxyInteractionService.createProxyElement({
-                    type: 'button',
-                    id: `${this.id}-next-page`,
-                    textContent: { id: 'ariaLabelLegendPageNext' },
-                    tabIndex: 0,
-                    parent: this.proxyLegendPagination,
-                    onclick: (ev) => this.pagination.onClick(ev, 'next'),
-                    onmouseenter: () => this.pagination.onMouseHover('next'),
-                    onmouseleave: () => this.pagination.onMouseHover(undefined),
-                });
-                this.proxyLegendPagination.ariaHidden = 'false';
-            } else {
-                this.proxyNextButton?.remove();
-                this.proxyPrevButton?.remove();
-                [this.proxyNextButton, this.proxyPrevButton] = [undefined, undefined];
-                this.proxyLegendPagination.ariaHidden = 'true';
-            }
-        }
-
-        const { prev, next } = this.pagination.computeCSSBounds();
-        setElementBBox(this.proxyPrevButton, prev);
-        setElementBBox(this.proxyNextButton, next);
-
-        setElementStyle(this.proxyNextButton, 'cursor', this.pagination.getCursor('next'));
-        setElementStyle(this.proxyPrevButton, 'cursor', this.pagination.getCursor('previous'));
-    }
-
     private calculatePagination(bboxes: BBox[], width: number, height: number) {
         const { paddingX: itemPaddingX, paddingY: itemPaddingY } = this.item;
 
@@ -928,7 +782,6 @@ export class Legend extends BaseProperties {
             markerLabel.translationX = x;
             markerLabel.translationY = y;
         });
-        this.updateItemProxyButtons();
     }
 
     private updatePageNumber(pageNumber: number) {
@@ -951,9 +804,8 @@ export class Legend extends BaseProperties {
         this.pagination.updateMarkers();
 
         this.updatePositions(pageNumber);
+        this.domProxy.onPageChange(this.itemSelection, this.pagination, this.toggleSeries);
 
-        setElementStyle(this.proxyNextButton, 'cursor', this.pagination.getCursor('next'));
-        setElementStyle(this.proxyPrevButton, 'cursor', this.pagination.getCursor('previous'));
         this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
 
@@ -1038,7 +890,7 @@ export class Legend extends BaseProperties {
         this.doDoubleClick(params.event, this.findNode(params).datum);
     }
 
-    private onContextClick(sourceEvent: MouseEvent, node: LegendMarkerLabel) {
+    onContextClick(sourceEvent: MouseEvent, node: LegendMarkerLabel) {
         const legendItem: CategoryLegendDatum = node.datum;
         if (this.preventHidingAll && this.contextMenuDatum?.enabled && this.getVisibleItemCount() <= 1) {
             this.ctx.contextMenuRegistry.disableAction(ID_LEGEND_VISIBILITY);
@@ -1064,7 +916,7 @@ export class Legend extends BaseProperties {
         this.ctx.contextMenuRegistry.dispatchContext('legend', event, { legendItem });
     }
 
-    private onClick(event: Event, datum: CategoryLegendDatum, proxyButton: HTMLButtonElement) {
+    onClick(event: Event, datum: CategoryLegendDatum, proxyButton: HTMLButtonElement) {
         if (this.doClick(event, datum, proxyButton)) {
             event.preventDefault();
         }
@@ -1127,7 +979,7 @@ export class Legend extends BaseProperties {
         return true;
     }
 
-    private onDoubleClick(event: MouseEvent, datum: CategoryLegendDatum) {
+    onDoubleClick(event: MouseEvent, datum: CategoryLegendDatum) {
         if (this.doDoubleClick(event, datum)) {
             event.preventDefault();
         }
@@ -1194,7 +1046,7 @@ export class Legend extends BaseProperties {
         return { offsetX, offsetY, lastPointerEvent, showArrow: false };
     }
 
-    private onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel) {
+    onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel) {
         if (!this.enabled) throw new Error('AG Charts - onHover handler called on disabled legend');
 
         this.pagination.setPage(node.pageIndex);
@@ -1215,7 +1067,7 @@ export class Legend extends BaseProperties {
         }
     }
 
-    private onLeave() {
+    onLeave() {
         this.ctx.tooltipManager.removeTooltip(this.id);
         this.updateHighlight();
     }
@@ -1235,33 +1087,14 @@ export class Legend extends BaseProperties {
     }
 
     private onLocaleChanged() {
-        this.itemSelection.each(({ proxyButton }, _, i) => {
-            if (proxyButton?.button != null) {
-                proxyButton.button.textContent = this.getItemAriaText(i);
-            }
-        });
-        this.proxyLegendItemDescription.textContent = this.getItemAriaDescription();
-    }
-
-    private getItemAriaText(nodeIndex: number): string {
-        const datum = this.data[nodeIndex];
-        const label = datum && this.getItemLabel(datum);
-        const lm = this.ctx.localeManager;
-        if (nodeIndex >= 0 && label) {
-            const index = nodeIndex + 1;
-            const count = this.data.length;
-            return lm.t('ariaLabelLegendItem', { label, index, count });
-        }
-        return lm.t('ariaLabelLegendItemUnknown');
-    }
-
-    private getItemAriaDescription(): string {
-        return this.ctx.localeManager.t('ariaDescriptionLegendItem');
+        this.domProxy.onLocaleChanged(this.ctx.localeManager, this.itemSelection, this);
     }
 
     private positionLegend(ctx: LayoutContext) {
-        setElementStyle(this.proxyLegendToolbar, 'display', this.visible && this.enabled ? undefined : 'none');
-
+        const oldPages = this.positionLegendScene(ctx);
+        this.positionLegendDOM(oldPages);
+    }
+    private positionLegendScene(ctx: LayoutContext) {
         if (!this.enabled || !this.data.length) return;
 
         const { layoutBox } = ctx;
@@ -1309,12 +1142,23 @@ export class Legend extends BaseProperties {
             // Round off for pixel grid alignment to work properly.
             this.group.translationX = Math.floor(x + translationX - legendBBox.x);
             this.group.translationY = Math.floor(y + translationY - legendBBox.y);
-
-            this.proxyLegendToolbar.ariaOrientation = this.getOrientation();
         }
-
-        this.updateItemProxyButtons();
-        this.updatePaginationProxyButtons(oldPages);
+        return oldPages;
+    }
+    private positionLegendDOM(oldPages: Page[] | undefined) {
+        const { ctx, itemSelection, pagination, pages: newPages, toggleSeries: interactive } = this;
+        const visible = this.visible && this.enabled;
+        this.domProxy.update({
+            visible,
+            interactive,
+            ctx,
+            itemSelection,
+            pagination,
+            oldPages,
+            newPages,
+            datumReader: this,
+            itemListener: this,
+        });
     }
 
     private calculateLegendDimensions(shrinkRect: BBox): [number, number] {

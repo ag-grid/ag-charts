@@ -81,12 +81,12 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
         });
         this.colorRangesGroup = new _Scene.Group({ name: `${this.id}-colorRanges` });
         this.colorRangesSelection = _Scene.Selection.select(this.colorRangesGroup, _Scene.Rect, false);
-        this.rootGroup.append(this.colorRangesGroup);
+        // this.rootGroup.append(this.colorRangesGroup);
         this.targetLinesSelection = _Scene.Selection.select(this.annotationGroup, _Scene.Line, false);
     }
 
     override destroy() {
-        this.rootGroup.removeChild(this.colorRangesGroup);
+        // this.rootGroup.removeChild(this.colorRangesGroup);
         super.destroy();
     }
 
@@ -320,8 +320,8 @@ export class BulletSeries extends _ModuleSupport.AbstractBarSeries<
         nodeData: BulletNodeDatum[];
         datumSelection: _Scene.Selection<_Scene.Rect, BulletNodeDatum>;
     }) {
-        this.targetLinesSelection.update(opts.nodeData, undefined, undefined);
-        return opts.datumSelection.update(opts.nodeData, undefined, undefined);
+        this.targetLinesSelection.update(opts.nodeData);
+        return opts.datumSelection.update(opts.nodeData);
     }
 
     protected override async updateDatumNodes(opts: {

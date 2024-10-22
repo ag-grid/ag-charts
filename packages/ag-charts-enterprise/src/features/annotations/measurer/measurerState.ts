@@ -2,6 +2,7 @@ import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { Point } from '../annotationTypes';
 import type { AnnotationsStateMachineContext, MeasurerPropertiesType } from '../annotationsSuperTypes';
+import type { AnnotationStateEvents } from '../states/stateTypes';
 import { isEphemeralType } from '../utils/types';
 import {
     DatePriceRangeProperties,
@@ -24,7 +25,7 @@ interface MeasurerStateMachineContext<Datum extends MeasurerPropertiesType>
 
 abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> extends StateMachine<
     'start' | 'end',
-    'click' | 'hover' | 'drag' | 'dragEnd' | 'reset' | 'cancel'
+    Pick<AnnotationStateEvents, 'click' | 'hover' | 'drag' | 'dragEnd' | 'reset' | 'cancel'>
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
