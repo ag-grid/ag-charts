@@ -75,7 +75,7 @@ export class AnnotationSettingsDialog extends Dialog {
             lineLabel = 'dialogHeaderDatePriceRange';
         }
 
-        const tabs = this.createTabs('ariaLabelSettingsTabBar', options.initialSelectedTab, {
+        const { tabs, initialFocus } = this.createTabs('ariaLabelSettingsTabBar', options.initialSelectedTab, {
             line: {
                 label: lineLabel,
                 panel: lineTab,
@@ -86,6 +86,7 @@ export class AnnotationSettingsDialog extends Dialog {
                 onShow: textTab.onShow,
             },
         });
+        options.initialFocus = initialFocus;
 
         const popover = this.showWithChildren([tabs], options);
         popover.classList.add('ag-charts-dialog--annotation-settings');
