@@ -102,11 +102,8 @@ export class LegendDOMProxy {
         this.initKeyNav(buttons);
     }
 
-    public updateVisibility(visible: boolean) {
-        setElementStyle(this.itemList, 'display', visible ? undefined : 'none');
-    }
-
     public update(
+        visible: boolean,
         idPrefix: string,
         proxyInteractionService: ProxyInteractionService,
         itemSelection: ItemSelection,
@@ -115,8 +112,15 @@ export class LegendDOMProxy {
         newPages: Page[],
         interactive: boolean
     ) {
-        this.updateItemProxyButtons(itemSelection, pagination, interactive);
-        this.updatePaginationProxyButtons(idPrefix, proxyInteractionService, pagination, oldPages, newPages);
+        this.updateVisibility(visible);
+        if (visible) {
+            this.updateItemProxyButtons(itemSelection, pagination, interactive);
+            this.updatePaginationProxyButtons(idPrefix, proxyInteractionService, pagination, oldPages, newPages);
+        }
+    }
+
+    private updateVisibility(visible: boolean) {
+        setElementStyle(this.itemList, 'display', visible ? undefined : 'none');
     }
 
     private updateItemProxyButtons(itemSelection: ItemSelection, pagination: Pagination, interactive: boolean) {

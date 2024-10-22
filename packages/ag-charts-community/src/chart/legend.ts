@@ -1092,8 +1092,10 @@ export class Legend extends BaseProperties {
     }
 
     private positionLegend(ctx: LayoutContext) {
-        this.domProxy.updateVisibility(this.visible && this.enabled);
-
+        const oldPages = this.positionLegendScene(ctx);
+        this.positionLegendDOM(oldPages);
+    }
+    private positionLegendScene(ctx: LayoutContext) {
         if (!this.enabled || !this.data.length) return;
 
         const { layoutBox } = ctx;
@@ -1142,8 +1144,11 @@ export class Legend extends BaseProperties {
             this.group.translationX = Math.floor(x + translationX - legendBBox.x);
             this.group.translationY = Math.floor(y + translationY - legendBBox.y);
         }
-
+        return oldPages;
+    }
+    private positionLegendDOM(oldPages: Page[] | undefined) {
         this.domProxy.update(
+            this.visible && this.enabled,
             this.id,
             this.ctx.proxyInteractionService,
             this.itemSelection,
