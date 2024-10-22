@@ -21,8 +21,7 @@ import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
 import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Transformable } from '../scene/transformable';
-import { setElementStyle } from '../util/attributeUtil';
-import { getWindow, setElementBBox } from '../util/dom';
+import { getWindow } from '../util/dom';
 import { createId } from '../util/id';
 import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
@@ -667,51 +666,6 @@ export class Legend extends BaseProperties {
         };
     }
 
-    private updatePaginationProxyButtons(oldPages: Page[] | undefined) {
-        this.domProxy.paginationGroup.style.display = this.pagination.visible ? 'absolute' : 'none';
-
-        const oldNeedsButtons = (oldPages?.length ?? this.pages.length) > 1;
-        const newNeedsButtons = this.pages.length > 1;
-
-        if (oldNeedsButtons !== newNeedsButtons) {
-            if (newNeedsButtons) {
-                this.domProxy.prevButton = this.ctx.proxyInteractionService.createProxyElement({
-                    type: 'button',
-                    id: `${this.id}-prev-page`,
-                    textContent: { id: 'ariaLabelLegendPagePrevious' },
-                    tabIndex: 0,
-                    parent: this.domProxy.paginationGroup,
-                    onclick: (ev) => this.pagination.onClick(ev, 'previous'),
-                    onmouseenter: () => this.pagination.onMouseHover('previous'),
-                    onmouseleave: () => this.pagination.onMouseHover(undefined),
-                });
-                this.domProxy.nextButton ??= this.ctx.proxyInteractionService.createProxyElement({
-                    type: 'button',
-                    id: `${this.id}-next-page`,
-                    textContent: { id: 'ariaLabelLegendPageNext' },
-                    tabIndex: 0,
-                    parent: this.domProxy.paginationGroup,
-                    onclick: (ev) => this.pagination.onClick(ev, 'next'),
-                    onmouseenter: () => this.pagination.onMouseHover('next'),
-                    onmouseleave: () => this.pagination.onMouseHover(undefined),
-                });
-                this.domProxy.paginationGroup.ariaHidden = 'false';
-            } else {
-                this.domProxy.nextButton?.remove();
-                this.domProxy.prevButton?.remove();
-                this.domProxy.nextButton = undefined;
-                this.domProxy.prevButton = undefined;
-                this.domProxy.paginationGroup.ariaHidden = 'true';
-            }
-        }
-
-        const { prev, next } = this.pagination.computeCSSBounds();
-
-        setElementBBox(this.domProxy.prevButton, prev);
-        setElementBBox(this.domProxy.nextButton, next);
-        this.domProxy.updatePaginationCursors(this.pagination);
-    }
-
     private calculatePagination(bboxes: BBox[], width: number, height: number) {
         const { paddingX: itemPaddingX, paddingY: itemPaddingY } = this.item;
 
@@ -1189,8 +1143,15 @@ export class Legend extends BaseProperties {
             this.group.translationY = Math.floor(y + translationY - legendBBox.y);
         }
 
-        this.domProxy.update(this.itemSelection, this.pagination, this.toggleSeries);
-        this.updatePaginationProxyButtons(oldPages);
+        this.domProxy.update(
+            this.id,
+            this.ctx.proxyInteractionService,
+            this.itemSelection,
+            this.pagination,
+            oldPages,
+            this.pages,
+            this.toggleSeries
+        );
     }
 
     private calculateLegendDimensions(shrinkRect: BBox): [number, number] {

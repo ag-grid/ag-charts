@@ -1,3 +1,4 @@
+import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { LocaleManager } from '../locale/localeManager';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Selection } from '../scene/selection';
@@ -8,6 +9,7 @@ import { DestroyFns } from '../util/destroy';
 import { createElement, setElementBBox } from '../util/dom';
 import { initRovingTabIndex } from '../util/keynavUtil';
 import { isDefined } from '../util/type-guards';
+import type { Page } from './gridLayout';
 import type { CategoryLegendDatum } from './legendDatum';
 import type { LegendMarkerLabel } from './legendMarkerLabel';
 import type { Pagination } from './pagination/pagination';
@@ -104,8 +106,17 @@ export class LegendDOMProxy {
         setElementStyle(this.itemList, 'display', visible ? undefined : 'none');
     }
 
-    public update(itemSelection: ItemSelection, pagination: Pagination, interactive: boolean) {
+    public update(
+        idPrefix: string,
+        proxyInteractionService: ProxyInteractionService,
+        itemSelection: ItemSelection,
+        pagination: Pagination,
+        oldPages: Page[] | undefined,
+        newPages: Page[],
+        interactive: boolean
+    ) {
         this.updateItemProxyButtons(itemSelection, pagination, interactive);
+        this.updatePaginationProxyButtons(idPrefix, proxyInteractionService, pagination, oldPages, newPages);
     }
 
     private updateItemProxyButtons(itemSelection: ItemSelection, pagination: Pagination, interactive: boolean) {
@@ -129,7 +140,58 @@ export class LegendDOMProxy {
         });
     }
 
-    public updatePaginationCursors(pagination: Pagination) {
+    private updatePaginationProxyButtons(
+        idPrefix: string,
+        proxyInteractionService: ProxyInteractionService,
+        pagination: Pagination,
+        oldPages: Page[] | undefined,
+        newPages: Page[]
+    ) {
+        this.paginationGroup.style.display = pagination.visible ? 'absolute' : 'none';
+
+        const oldNeedsButtons = (oldPages?.length ?? newPages.length) > 1;
+        const newNeedsButtons = newPages.length > 1;
+
+        if (oldNeedsButtons !== newNeedsButtons) {
+            if (newNeedsButtons) {
+                this.prevButton = proxyInteractionService.createProxyElement({
+                    type: 'button',
+                    id: `${idPrefix}-prev-page`,
+                    textContent: { id: 'ariaLabelLegendPagePrevious' },
+                    tabIndex: 0,
+                    parent: this.paginationGroup,
+                    onclick: (ev) => pagination.onClick(ev, 'previous'),
+                    onmouseenter: () => pagination.onMouseHover('previous'),
+                    onmouseleave: () => pagination.onMouseHover(undefined),
+                });
+                this.nextButton ??= proxyInteractionService.createProxyElement({
+                    type: 'button',
+                    id: `${idPrefix}-next-page`,
+                    textContent: { id: 'ariaLabelLegendPageNext' },
+                    tabIndex: 0,
+                    parent: this.paginationGroup,
+                    onclick: (ev) => pagination.onClick(ev, 'next'),
+                    onmouseenter: () => pagination.onMouseHover('next'),
+                    onmouseleave: () => pagination.onMouseHover(undefined),
+                });
+                this.paginationGroup.ariaHidden = 'false';
+            } else {
+                this.nextButton?.remove();
+                this.prevButton?.remove();
+                this.nextButton = undefined;
+                this.prevButton = undefined;
+                this.paginationGroup.ariaHidden = 'true';
+            }
+        }
+
+        const { prev, next } = pagination.computeCSSBounds();
+
+        setElementBBox(this.prevButton, prev);
+        setElementBBox(this.nextButton, next);
+        this.updatePaginationCursors(pagination);
+    }
+
+    private updatePaginationCursors(pagination: Pagination) {
         setElementStyle(this.nextButton, 'cursor', pagination.getCursor('next'));
         setElementStyle(this.prevButton, 'cursor', pagination.getCursor('previous'));
     }
