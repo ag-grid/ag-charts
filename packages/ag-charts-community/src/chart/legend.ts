@@ -309,7 +309,7 @@ export class Legend extends BaseProperties {
         if (!this.domProxy.dirty) return;
 
         const lm = this.ctx.localeManager;
-        const count = this.itemSelection.nodes().length;
+        const count = this.itemSelection.length;
         this.itemSelection.each((markerLabel, datum, index) => {
             // Create the hidden CSS button.
             markerLabel.destroyProxyButton();
@@ -1207,7 +1207,7 @@ export class Legend extends BaseProperties {
 
     private onLocaleChanged() {
         const lm = this.ctx.localeManager;
-        const count = this.itemSelection.nodes().length;
+        const count = this.itemSelection.length;
         this.itemSelection.each(({ proxyButton }, datum, index) => {
             if (proxyButton?.button != null) {
                 const label = this.getItemLabel(datum);
