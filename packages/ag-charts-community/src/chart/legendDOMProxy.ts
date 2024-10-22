@@ -1,7 +1,8 @@
-import { initRovingTabIndex } from '../util/keynavUtil';
+import type { LocaleManager } from '../locale/localeManager';
 import type { ModuleContext } from '../module/moduleContext';
 import { DestroyFns } from '../util/destroy';
 import { createElement } from '../util/dom';
+import { initRovingTabIndex } from '../util/keynavUtil';
 
 export class LegendDOMProxy {
     public dirty = true;
@@ -46,5 +47,22 @@ export class LegendDOMProxy {
         ]);
         this.itemList.ariaHidden = (buttons.length === 0).toString();
         this.dirty = false;
+    }
+
+    public getItemAriaText(
+        localeManager: LocaleManager,
+        label: string | undefined,
+        index: number,
+        count: number
+    ): string {
+        if (index >= 0 && label) {
+            index++;
+            return localeManager.t('ariaLabelLegendItem', { label, index, count });
+        }
+        return localeManager.t('ariaLabelLegendItemUnknown');
+    }
+
+    public getItemAriaDescription(localeManager: LocaleManager): string {
+        return localeManager.t('ariaDescriptionLegendItem');
     }
 }

@@ -292,7 +292,7 @@ export class Legend extends BaseProperties {
         );
 
         this.domProxy = new LegendDOMProxy(this.ctx, this.id);
-        this.domProxy.itemDescription.textContent = this.getItemAriaDescription();
+        this.domProxy.itemDescription.textContent = this.domProxy.getItemAriaDescription(this.ctx.localeManager);
     }
 
     public destroy() {
@@ -308,13 +308,15 @@ export class Legend extends BaseProperties {
     private initLegendItemToolbar() {
         if (!this.domProxy.dirty) return;
 
-        this.itemSelection.each((markerLabel, _, i) => {
+        const lm = this.ctx.localeManager;
+        const count = this.itemSelection.nodes().length;
+        this.itemSelection.each((markerLabel, datum, index) => {
             // Create the hidden CSS button.
             markerLabel.destroyProxyButton();
             markerLabel.proxyButton ??= this.ctx.proxyInteractionService.createProxyElement({
                 type: 'listswitch',
-                id: `ag-charts-legend-item-${i}`,
-                textContent: this.getItemAriaText(i),
+                id: `ag-charts-legend-item-${index}`,
+                textContent: this.domProxy.getItemAriaText(lm, this.getItemLabel(datum), index, count),
                 ariaChecked: !!markerLabel.datum.enabled,
                 ariaDescribedBy: this.domProxy.itemDescription.id,
                 parent: this.domProxy.itemList,
@@ -1204,28 +1206,15 @@ export class Legend extends BaseProperties {
     }
 
     private onLocaleChanged() {
-        this.itemSelection.each(({ proxyButton }, _, i) => {
+        const lm = this.ctx.localeManager;
+        const count = this.itemSelection.nodes().length;
+        this.itemSelection.each(({ proxyButton }, datum, index) => {
             if (proxyButton?.button != null) {
-                proxyButton.button.textContent = this.getItemAriaText(i);
+                const label = this.getItemLabel(datum);
+                proxyButton.button.textContent = this.domProxy.getItemAriaText(lm, label, index, count);
             }
         });
-        this.domProxy.itemDescription.textContent = this.getItemAriaDescription();
-    }
-
-    private getItemAriaText(nodeIndex: number): string {
-        const datum = this.data[nodeIndex];
-        const label = datum && this.getItemLabel(datum);
-        const lm = this.ctx.localeManager;
-        if (nodeIndex >= 0 && label) {
-            const index = nodeIndex + 1;
-            const count = this.data.length;
-            return lm.t('ariaLabelLegendItem', { label, index, count });
-        }
-        return lm.t('ariaLabelLegendItemUnknown');
-    }
-
-    private getItemAriaDescription(): string {
-        return this.ctx.localeManager.t('ariaDescriptionLegendItem');
+        this.domProxy.itemDescription.textContent = this.domProxy.getItemAriaDescription(lm);
     }
 
     private positionLegend(ctx: LayoutContext) {
