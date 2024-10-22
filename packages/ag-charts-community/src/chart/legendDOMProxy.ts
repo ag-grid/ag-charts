@@ -9,6 +9,7 @@ import type { CategoryLegendDatum } from './legendDatum';
 import type { LegendMarkerLabel } from './legendMarkerLabel';
 
 type ItemSelection = Selection<LegendMarkerLabel, CategoryLegendDatum>;
+type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): string | undefined };
 
 interface ButtonListener {
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: HTMLButtonElement): void;
@@ -57,7 +58,7 @@ export class LegendDOMProxy {
     public initLegendList(
         ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>,
         itemSelection: ItemSelection,
-        datumReader: { getItemLabel(datum: CategoryLegendDatum): string | undefined },
+        datumReader: CategoryLegendDatumReader,
         buttonListener: ButtonListener
     ) {
         if (!this.dirty) return;
@@ -92,6 +93,21 @@ export class LegendDOMProxy {
             .map((markerLabel) => markerLabel.proxyButton?.button)
             .filter(isDefined);
         this.initKeyNav(buttons);
+    }
+
+    public onLocaleChanged(
+        localeManager: LocaleManager,
+        itemSelection: ItemSelection,
+        datumReader: CategoryLegendDatumReader
+    ) {
+        const count = itemSelection.length;
+        itemSelection.each(({ proxyButton }, datum, index) => {
+            if (proxyButton?.button != null) {
+                const label = datumReader.getItemLabel(datum);
+                proxyButton.button.textContent = this.getItemAriaText(localeManager, label, index, count);
+            }
+        });
+        this.itemDescription.textContent = this.getItemAriaDescription(localeManager);
     }
 
     private initKeyNav(buttons: HTMLButtonElement[]) {

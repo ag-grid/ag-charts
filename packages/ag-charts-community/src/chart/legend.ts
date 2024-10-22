@@ -1170,15 +1170,7 @@ export class Legend extends BaseProperties {
     }
 
     private onLocaleChanged() {
-        const lm = this.ctx.localeManager;
-        const count = this.itemSelection.length;
-        this.itemSelection.each(({ proxyButton }, datum, index) => {
-            if (proxyButton?.button != null) {
-                const label = this.getItemLabel(datum);
-                proxyButton.button.textContent = this.domProxy.getItemAriaText(lm, label, index, count);
-            }
-        });
-        this.domProxy.itemDescription.textContent = this.domProxy.getItemAriaDescription(lm);
+        this.domProxy.onLocaleChanged(this.ctx.localeManager, this.itemSelection, this);
     }
 
     private positionLegend(ctx: LayoutContext) {
