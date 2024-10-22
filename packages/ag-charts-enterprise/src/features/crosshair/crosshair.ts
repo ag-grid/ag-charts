@@ -305,7 +305,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const { datum, series, xKey = '', aggregatedValue, cumulativeValue, midPoint } = activeHighlight;
         const seriesKeyProperties = series.getKeyProperties(axisCtx.direction);
 
-        const halfBandwidth = axisCtx.scaleBandwidth() / 2;
+        const halfBandwidth = (axisCtx.scale.bandwidth ?? 0) / 2;
 
         const matchingAxisId = series.axes[axisCtx.direction]?.id === axisCtx.axisId;
         const isYKey = seriesKeyProperties.indexOf('yKey') > -1 && matchingAxisId;
@@ -313,7 +313,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         const datumValue = aggregatedValue ?? cumulativeValue;
         if (isYKey && datumValue !== undefined) {
-            const position = axisCtx.scaleConvert(datumValue) + halfBandwidth;
+            const position = axisCtx.scale.convert(datumValue) + halfBandwidth;
             const isInRange = this.isInRange(position);
             return isInRange
                 ? {
@@ -341,7 +341,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         seriesKeyProperties.forEach((key) => {
             const keyValue = series.properties[key];
             const value = datum[keyValue];
-            const position = axisCtx.scaleConvert(value) + halfBandwidth;
+            const position = axisCtx.scale.convert(value) + halfBandwidth;
             const isInRange = this.isInRange(position);
 
             if (isInRange) {

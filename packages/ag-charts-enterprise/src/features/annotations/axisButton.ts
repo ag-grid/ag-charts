@@ -31,7 +31,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.toggleVisibility(false);
         this.updateButtonElement();
 
-        this.snap = axisCtx.scaleBandwidth() > 0;
+        this.snap = Boolean(axisCtx.scale.bandwidth);
 
         const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
         const mouseMoveStates =

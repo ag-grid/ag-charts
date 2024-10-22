@@ -366,8 +366,9 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
     }
 
     private getDateRangeBars(coords: _ModuleSupport.Vec4, context: AnnotationContext) {
+        const { step } = context.xAxis.scale;
         const sign = coords.x1 <= coords.x2 ? 1 : -1;
-        return Math.round(Vec4.width(coords) / context.xAxis.scaleStep()) * sign;
+        return step ? Math.round(Vec4.width(coords) / step) * sign : 0;
     }
 
     private getDateRangeValue(datum: MeasurerTypeProperties) {
