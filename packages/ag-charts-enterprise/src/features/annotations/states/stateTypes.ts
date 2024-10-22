@@ -28,7 +28,13 @@ type InteractionEvents = {
         textInputValue?: string;
         bbox?: _Scene.BBox;
     };
-    dragStart: { offset: _ModuleSupport.Vec2; context: AnnotationContext };
+    dragStart: {
+        offset: _ModuleSupport.Vec2;
+        context: AnnotationContext;
+        point: () => Point;
+        textInputValue: string | undefined;
+        bbox: _Scene.BBox | undefined;
+    };
     dragEnd: undefined;
     hover: { offset: _ModuleSupport.Vec2; point: () => Point };
     keyDown: {
