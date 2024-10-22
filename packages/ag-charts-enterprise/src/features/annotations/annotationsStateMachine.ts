@@ -16,7 +16,7 @@ import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setLineStyle } from './utils/styles';
 import { isChannelType, isEphemeralType, isTextType } from './utils/types';
 
-const { ActionOnSet, StateMachine, StateMachineProperty } = _ModuleSupport;
+const { ActionOnSet, ParallelStateMachine, StateMachine, StateMachineProperty } = _ModuleSupport;
 
 enum States {
     Idle = 'idle',
@@ -24,13 +24,86 @@ enum States {
     TextInput = 'text-input',
 }
 
-export class AnnotationsStateMachine extends StateMachine<States, AnnotationStateEvents> {
+export class AnnotationsStateMachine extends ParallelStateMachine<States, AnnotationStateEvents> {
+    // TODO: remove this leak
+    private active?: number;
+
+    @StateMachineProperty()
+    protected snapping: boolean = false;
+
+    @StateMachineProperty()
+    protected datum?: AnnotationProperties;
+
+    @StateMachineProperty()
+    protected node?: AnnotationScene;
+
+    constructor(ctx: AnnotationsStateMachineContext) {
+        super(
+            new SnappingStateMachine((snapping) => {
+                this.snapping = snapping;
+            }),
+            new UpdateMachine(() => {
+                this.node = this.active == null ? undefined : ctx.node(this.active);
+            }),
+            new AnnotationsMainStateMachine(ctx, (index) => {
+                this.active = index;
+                this.datum = this.active == null ? undefined : ctx.datum(this.active);
+                this.node = this.active == null ? undefined : ctx.node(this.active);
+            })
+        );
+    }
+
+    // TODO: remove this leak
+    public getActive() {
+        return this.active;
+    }
+
+    // TODO: remove this leak
+    public isActive(index: number) {
+        return index === this.active;
+    }
+}
+
+class SnappingStateMachine extends StateMachine<States, AnnotationStateEvents> {
+    constructor(setSnapping: (snapping: boolean) => void) {
+        super(States.Idle, {
+            [States.Idle]: {
+                hover: ({ shiftKey }) => setSnapping(shiftKey),
+                keyDown: ({ shiftKey }) => setSnapping(shiftKey),
+                keyUp: ({ shiftKey }) => setSnapping(shiftKey),
+                click: ({ shiftKey }) => setSnapping(shiftKey),
+                drag: ({ shiftKey }) => setSnapping(shiftKey),
+            },
+            [States.Dragging]: {},
+            [States.TextInput]: {},
+        });
+    }
+}
+
+class UpdateMachine extends StateMachine<States, AnnotationStateEvents> {
+    constructor(update: () => void) {
+        super(States.Idle, {
+            [States.Idle]: {
+                onEnter: update,
+                render: update,
+            },
+            [States.Dragging]: {
+                onEnter: update,
+                render: update,
+            },
+            [States.TextInput]: {
+                render: update,
+            },
+        });
+    }
+}
+
+class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEvents> {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    @ActionOnSet<AnnotationsStateMachine>({
+    @ActionOnSet<AnnotationsMainStateMachine>({
         changeValue(newValue?: number) {
-            this.datum = newValue == null ? undefined : this.ctx.datum(newValue);
-            this.node = newValue == null ? undefined : this.ctx.node(newValue);
+            this.setActive(newValue);
         },
     })
     @StateMachineProperty()
@@ -46,8 +119,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
     protected copied?: AnnotationProperties;
 
     @StateMachineProperty()
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    private snapping: boolean = false;
+    protected snapping: boolean = false;
 
     @StateMachineProperty()
     protected datum?: AnnotationProperties;
@@ -55,7 +127,10 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
     @StateMachineProperty()
     protected node?: AnnotationScene;
 
-    constructor(private readonly ctx: AnnotationsStateMachineContext) {
+    constructor(
+        ctx: AnnotationsStateMachineContext,
+        private readonly setActive: (index?: number) => void
+    ) {
         const createDatum =
             <T extends AnnotationProperties>(type: AnnotationType) =>
             (datum: T) => {
@@ -88,9 +163,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
             showAnnotationOptions: () => {
                 if (this.active != null) ctx.showAnnotationOptions(this.active);
             },
-            setSnapping: (snapping: boolean) => {
-                this.snapping = snapping;
-            },
         };
         const createStateMachines = Object.fromEntries(
             Object.entries(annotationConfigs).map(([type, config]) => [
@@ -99,16 +171,10 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
             ])
         ) as Record<AnnotationType, _ModuleSupport.StateMachine<any, any>>;
 
-        const dragStateMachineContext = {
-            ...ctx,
-            setSnapping: (snapping: boolean) => {
-                this.snapping = snapping;
-            },
-        };
         const dragStateMachines = Object.fromEntries(
             Object.entries(annotationConfigs).map(([type, config]) => [
                 type,
-                config.dragState(dragStateMachineContext, stateMachineHelpers),
+                config.dragState(ctx, stateMachineHelpers),
             ])
         ) as Record<Partial<AnnotationType>, _ModuleSupport.StateMachine<any, any>>;
 
@@ -199,27 +265,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                 onEnter: () => {
                     ctx.select(this.active, this.active);
 
-                    // TODO
-                    this.datum = this.active == null ? undefined : this.ctx.datum(this.active);
-                    this.node = this.active == null ? undefined : this.ctx.node(this.active);
-
                     if (this.hoverCoords) {
                         this.hovered = ctx.hoverAtCoords(this.hoverCoords, this.active);
                     }
                 },
 
-                hover: ({ offset, shiftKey }) => {
+                hover: ({ offset }) => {
                     this.hovered = ctx.hoverAtCoords(offset, this.active);
                     this.hoverCoords = offset;
-                    this.snapping = shiftKey;
-                },
-
-                keyDown: ({ shiftKey }) => {
-                    this.snapping = shiftKey;
-                },
-
-                keyUp: ({ shiftKey }) => {
-                    this.snapping = shiftKey;
                 },
 
                 translate: {
@@ -280,7 +333,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                         action: () => {
                             const prevActive = this.active;
                             this.active = this.hovered;
-                            ctx.select(this.hovered, prevActive);
+                            ctx.select(this.active, prevActive);
                         },
                     },
                 ],
@@ -300,7 +353,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                         action: () => {
                             const prevActive = this.active;
                             this.active = this.hovered;
-                            ctx.select(this.hovered, prevActive);
+                            ctx.select(this.active, prevActive);
                             ctx.startInteracting();
                         },
                     },
@@ -308,7 +361,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                         action: () => {
                             const prevActive = this.active;
                             this.active = this.hovered;
-                            ctx.select(this.hovered, prevActive);
+                            ctx.select(this.active, prevActive);
                         },
                     },
                 ],
@@ -401,8 +454,8 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                     const type = ctx.getAnnotationType(this.active);
                     if (!type) return;
 
-                    this.transition(type);
-                    this.transition('dragStart', data);
+                    this.transitionRoot(type);
+                    this.transitionRoot('dragStart', data);
                 },
 
                 ...dragStateMachines,
@@ -488,15 +541,5 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                 },
             },
         });
-    }
-
-    // TODO: remove this leak
-    public getActive() {
-        return this.active;
-    }
-
-    // TODO: remove this leak
-    public isActive(index: number) {
-        return index === this.active;
     }
 }

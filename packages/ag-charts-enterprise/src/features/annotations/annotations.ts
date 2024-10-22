@@ -21,11 +21,10 @@ import { AnnotationsToolbar } from './annotationsToolbar';
 import { AxisButton, DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS } from './axisButton';
 import { AnnotationSettingsDialog, type LinearSettingsDialogOptions } from './settings-dialog/settingsDialog';
 import { calculateAxisLabelPadding } from './utils/axis';
-import { snapToAngle } from './utils/coords';
 import { isChannelType, isEphemeralType, isLineType, isMeasurerType } from './utils/types';
 import { updateAnnotation } from './utils/update';
 import { validateDatumPoint } from './utils/validation';
-import { convertPoint, invertCoords } from './utils/values';
+import { invertCoords } from './utils/values';
 
 const {
     BOOLEAN,
@@ -292,10 +291,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     this.optionsToolbar.setAnchorScene(node);
                 });
                 this.update();
-            },
-
-            addPostUpdateFns: (...fns: (() => void)[]) => {
-                this.postUpdateFns.push(...fns);
             },
 
             showTextInput: (active: number) => {

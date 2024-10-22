@@ -23,9 +23,6 @@ export class DragStateMachine<
     protected dragStart?: _ModuleSupport.Vec2;
 
     @StateMachineProperty()
-    protected hoverCoords?: _ModuleSupport.Vec2;
-
-    @StateMachineProperty()
     protected snapping: boolean = false;
 
     @StateMachineProperty()
@@ -34,22 +31,7 @@ export class DragStateMachine<
     @StateMachineProperty()
     protected node?: Node;
 
-    constructor(
-        ctx: AnnotationsStateMachineContext & {
-            setSnapping: (snapping: boolean) => void;
-        }
-    ) {
-        const actionKeyChange = ({ shiftKey, context }: { shiftKey: boolean; context: AnnotationContext }) => {
-            const { datum, node, hoverCoords } = this;
-
-            if (!datum || !node || !hoverCoords) return;
-
-            ctx.setSnapping(shiftKey);
-
-            node?.drag(datum, hoverCoords, context, shiftKey);
-            ctx.update();
-        };
-
+    constructor(ctx: AnnotationsStateMachineContext) {
         super('idle', {
             idle: {
                 dragStart: {
@@ -63,9 +45,6 @@ export class DragStateMachine<
             },
 
             dragging: {
-                keyDown: actionKeyChange,
-                keyUp: actionKeyChange,
-
                 drag: ({ offset, context }) => {
                     this.hasMoved = Vec2.lengthSquared(Vec2.sub(offset, this.dragStart!)) > 0;
                     this.node?.drag(this.datum!, offset, context, this.snapping);

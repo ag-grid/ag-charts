@@ -14,8 +14,11 @@ interface DisjointChannelStateMachineContext extends Omit<AnnotationsCreateState
 }
 
 export class DisjointChannelStateMachine extends StateMachine<
-    'start' | 'end' | 'height',
-    Pick<AnnotationStateEvents, 'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'cancel' | 'reset'>
+    'start' | 'waiting-first-render' | 'end' | 'height',
+    Pick<
+        AnnotationStateEvents,
+        'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'cancel' | 'reset' | 'render'
+    >
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -29,21 +32,16 @@ export class DisjointChannelStateMachine extends StateMachine<
     protected snapping: boolean = false;
 
     constructor(ctx: DisjointChannelStateMachineContext) {
-        const actionCreate = ({ point, shiftKey }: { point: Point; shiftKey: boolean }) => {
-            ctx.setSnapping(shiftKey);
+        const actionCreate = ({ point }: { point: Point }) => {
             const datum = new DisjointChannelProperties();
             datum.set({ start: point, end: point, startHeight: 0, endHeight: 0 });
             ctx.create(datum);
-            ctx.addPostUpdateFns(
-                () => this.node?.toggleActive(true),
-                () =>
-                    this.node?.toggleHandles({
-                        topLeft: true,
-                        topRight: false,
-                        bottomLeft: false,
-                        bottomRight: false,
-                    })
-            );
+        };
+
+        const actionFirstRender = () => {
+            const { node } = this;
+            node?.toggleActive(true);
+            node?.toggleHandles({ topLeft: true, topRight: false, bottomLeft: false, bottomRight: false });
         };
 
         const actionEndUpdate = ({ offset, context }: { offset: _ModuleSupport.Vec2; context: AnnotationContext }) => {
@@ -55,9 +53,7 @@ export class DisjointChannelStateMachine extends StateMachine<
         };
 
         const actionEndFinish = () => {
-            this.node?.toggleHandles({
-                topRight: true,
-            });
+            this.node?.toggleHandles({ topRight: true });
             ctx.update();
         };
 
@@ -110,20 +106,24 @@ export class DisjointChannelStateMachine extends StateMachine<
         super('start', {
             start: {
                 click: {
-                    target: 'end',
+                    target: 'waiting-first-render',
                     action: actionCreate,
                 },
                 drag: {
-                    target: 'end',
+                    target: 'waiting-first-render',
                     action: actionCreate,
                 },
                 reset: StateMachine.parent,
             },
+            'waiting-first-render': {
+                render: {
+                    target: 'end',
+                    action: actionFirstRender,
+                },
+            },
             end: {
                 hover: actionEndUpdate,
                 drag: actionEndUpdate,
-                keyDown: ({ shiftKey }) => ctx.setSnapping(shiftKey),
-                keyUp: ({ shiftKey }) => ctx.setSnapping(shiftKey),
                 click: {
                     target: 'height',
                     action: actionEndFinish,

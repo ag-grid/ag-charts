@@ -104,7 +104,6 @@ export interface AnnotationsStateMachineContext {
     showAnnotationSettings: (index: number, sourceEvent?: Event, initialTab?: 'line' | 'text') => void;
 
     recordAction: (label: string) => void;
-    addPostUpdateFns: (...fns: (() => void)[]) => void;
 
     update: () => void;
 }
@@ -132,9 +131,7 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
         helpers: AnnotationsStateMachineHelperFns
     ) => _ModuleSupport.StateMachine<any, any>;
     dragState: (
-        ctx: AnnotationsStateMachineContext & {
-            setSnapping: (snapping: boolean) => void;
-        },
+        ctx: AnnotationsStateMachineContext,
         helpers: AnnotationsStateMachineHelperFns
     ) => _ModuleSupport.StateMachine<any, any>;
 }
@@ -148,5 +145,4 @@ export type AnnotationsCreateStateMachineContext = AnnotationsStateMachineContex
     deselect: () => void;
     showAnnotationOptions: () => void;
     showTextInput: () => void;
-    setSnapping: (snapping: boolean) => void;
 };

@@ -14,8 +14,11 @@ interface ParallelChannelStateMachineContext extends Omit<AnnotationsCreateState
 }
 
 export class ParallelChannelStateMachine extends StateMachine<
-    'start' | 'end' | 'height',
-    Pick<AnnotationStateEvents, 'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'cancel' | 'reset'>
+    'start' | 'waiting-first-render' | 'end' | 'height',
+    Pick<
+        AnnotationStateEvents,
+        'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'cancel' | 'reset' | 'render'
+    >
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -29,23 +32,23 @@ export class ParallelChannelStateMachine extends StateMachine<
     protected snapping: boolean = false;
 
     constructor(ctx: ParallelChannelStateMachineContext) {
-        const actionCreate = ({ point, shiftKey }: { point: Point; shiftKey: boolean }) => {
-            ctx.setSnapping(shiftKey);
+        const actionCreate = ({ point }: { point: Point }) => {
             const datum = new ParallelChannelProperties();
             datum.set({ start: point, end: point, height: 0 });
             ctx.create(datum);
-            ctx.addPostUpdateFns(
-                () => this.node?.toggleActive(true),
-                () =>
-                    this.node?.toggleHandles({
-                        topLeft: true,
-                        topMiddle: false,
-                        topRight: false,
-                        bottomLeft: false,
-                        bottomMiddle: false,
-                        bottomRight: false,
-                    })
-            );
+        };
+
+        const actionFirstRender = () => {
+            const { node } = this;
+            node?.toggleActive(true);
+            node?.toggleHandles({
+                topLeft: true,
+                topMiddle: false,
+                topRight: false,
+                bottomLeft: false,
+                bottomMiddle: false,
+                bottomRight: false,
+            });
         };
 
         const actionEndUpdate = ({ offset, context }: { offset: _ModuleSupport.Vec2; context: AnnotationContext }) => {
@@ -112,20 +115,24 @@ export class ParallelChannelStateMachine extends StateMachine<
         super('start', {
             start: {
                 click: {
-                    target: 'end',
+                    target: 'waiting-first-render',
                     action: actionCreate,
                 },
                 drag: {
-                    target: 'end',
+                    target: 'waiting-first-render',
                     action: actionCreate,
                 },
                 reset: StateMachine.parent,
             },
+            'waiting-first-render': {
+                render: {
+                    target: 'end',
+                    action: actionFirstRender,
+                },
+            },
             end: {
                 hover: actionEndUpdate,
                 drag: actionEndUpdate,
-                keyDown: ({ shiftKey }) => ctx.setSnapping(shiftKey),
-                keyUp: ({ shiftKey }) => ctx.setSnapping(shiftKey),
                 click: {
                     target: 'height',
                     action: actionEndFinish,

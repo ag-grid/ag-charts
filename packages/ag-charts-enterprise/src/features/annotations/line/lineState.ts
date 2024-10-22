@@ -15,8 +15,11 @@ interface LineStateMachineContext<Datum extends ArrowProperties | LineProperties
 }
 
 abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperties> extends StateMachine<
-    'start' | 'end',
-    Pick<AnnotationStateEvents, 'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'reset' | 'cancel'>
+    'start' | 'waiting-first-render' | 'end',
+    Pick<
+        AnnotationStateEvents,
+        'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'reset' | 'cancel' | 'render'
+    >
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
@@ -30,15 +33,16 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
     protected snapping: boolean = false;
 
     constructor(ctx: LineStateMachineContext<Datum>) {
-        const actionCreate = ({ point, shiftKey }: { point: Point; shiftKey: boolean }) => {
-            ctx.setSnapping(shiftKey);
+        const actionCreate = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
             datum.set({ start: point, end: point });
             ctx.create(datum);
-            ctx.addPostUpdateFns(
-                () => this.node?.toggleActive(true),
-                () => this.node?.toggleHandles({ start: true, end: false })
-            );
+        };
+
+        const actionFirstRender = () => {
+            const { node } = this;
+            node?.toggleActive(true);
+            node?.toggleHandles({ start: true, end: false });
         };
 
         const actionEndUpdate = ({ offset, context }: { offset: _ModuleSupport.Vec2; context: AnnotationContext }) => {
@@ -63,20 +67,24 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
 
         super('start', {
             start: {
-                reset: StateMachine.parent,
                 click: {
-                    target: 'end',
+                    target: 'waiting-first-render',
                     action: actionCreate,
                 },
                 drag: {
-                    target: 'end',
+                    target: 'waiting-first-render',
                     action: actionCreate,
+                },
+                reset: StateMachine.parent,
+            },
+            'waiting-first-render': {
+                render: {
+                    target: 'end',
+                    action: actionFirstRender,
                 },
             },
             end: {
                 hover: actionEndUpdate,
-                keyDown: ({ shiftKey }) => ctx.setSnapping(shiftKey),
-                keyUp: ({ shiftKey }) => ctx.setSnapping(shiftKey),
                 click: {
                     target: StateMachine.parent,
                     action: actionEndFinish,

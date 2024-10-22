@@ -60,7 +60,9 @@ export abstract class TextualStartEndStateMachine<
         };
 
         const actionFirstRender = () => {
-            this.node?.toggleActive(true);
+            const { node } = this;
+            node?.toggleActive(true);
+            node?.toggleHandles({ start: true });
         };
 
         const onStartEditing = () => {
