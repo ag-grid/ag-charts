@@ -1,4 +1,3 @@
-import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { LocaleManager } from '../locale/localeManager';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Selection } from '../scene/selection';
