@@ -189,6 +189,19 @@ export function plotSpan(path: ExtendedPath2D, span: Span, moveTo: SpanJoin, rev
     }
 }
 
+export function interpolatedSpanRange(a: Span, b: Span, ratio: number) {
+    const [aStart, aEnd] = spanRange(a);
+    const [bStart, bEnd] = spanRange(b);
+    const x0 = lerp(aStart.x, bStart.x, ratio);
+    const y0 = lerp(aStart.y, bStart.y, ratio);
+    const x1 = lerp(aEnd.x, bEnd.x, ratio);
+    const y1 = lerp(aEnd.y, bEnd.y, ratio);
+    return [
+        { x: x0, y: y0 },
+        { x: x1, y: y1 },
+    ];
+}
+
 export function plotInterpolatedSpans(
     path: ExtendedPath2D,
     a: Span,
@@ -197,12 +210,7 @@ export function plotInterpolatedSpans(
     moveTo: SpanJoin,
     reversed: boolean
 ) {
-    const [aStart, aEnd] = spanRange(a);
-    const [bStart, bEnd] = spanRange(b);
-    const x0 = lerp(aStart.x, bStart.x, ratio);
-    const y0 = lerp(aStart.y, bStart.y, ratio);
-    const x1 = lerp(aEnd.x, bEnd.x, ratio);
-    const y1 = lerp(aEnd.y, bEnd.y, ratio);
+    const [{ x: x0, y: y0 }, { x: x1, y: y1 }] = interpolatedSpanRange(a, b, ratio);
     plotStart(path, moveTo, x0, y0, x1, y1, reversed);
 
     if (a.type === 'cubic' && b.type === 'cubic') {

@@ -7,7 +7,7 @@ import { resetMotion } from '../../../motion/resetMotion';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
 import { PointerEvents } from '../../../scene/node';
-import type { Point, SizedPoint } from '../../../scene/point';
+import type { SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
@@ -51,8 +51,9 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { type Span, SpanJoin, linearPoints, smoothPoints, stepPoints } from './lineInterpolation';
+import { SpanJoin } from './lineInterpolation';
 import { plotSpan } from './lineInterpolationPlotting';
+import { type LineSpanPointDatum, interpolatePoints, plotStroke } from './lineUtil';
 import {
     computeMarkerFocusBounds,
     markerFadeInAnimation,
@@ -209,6 +210,7 @@ export class AreaSeries extends CartesianSeries<
             fill: seriesFill,
             stroke: seriesStroke,
             connectMissingData,
+            interpolation,
         } = this.properties;
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
@@ -321,38 +323,9 @@ export class AreaSeries extends CartesianSeries<
             });
         });
 
-        type AreaSpanPointDatum = {
-            point: Point;
-            xDatum: any;
-            yDatum: any;
-        };
-        const { interpolation } = this.properties;
-        const interpolatePoints = (points: AreaSpanPointDatum[]): Array<AreaPathSpan> => {
-            let spans: Span[];
-            const pointsIter = points.map((point) => point.point);
-            switch (interpolation.type) {
-                case 'linear':
-                    spans = linearPoints(pointsIter);
-                    break;
-                case 'smooth':
-                    spans = smoothPoints(pointsIter, interpolation.tension);
-                    break;
-                case 'step':
-                    spans = stepPoints(pointsIter, interpolation.position);
-                    break;
-            }
-            return spans.map((span, i) => ({
-                span,
-                xValue0: points[i].xDatum,
-                yValue0: points[i].yDatum,
-                xValue1: points[i + 1].xDatum,
-                yValue1: points[i + 1].yDatum,
-            }));
-        };
-
-        const spansForPoints = (points: Array<AreaSpanPointDatum[] | { skip: number }>): Array<AreaPathSpan | null> => {
+        const spansForPoints = (points: Array<LineSpanPointDatum[] | { skip: number }>): Array<AreaPathSpan | null> => {
             return points.flatMap((p): Array<AreaPathSpan | null> => {
-                return Array.isArray(p) ? interpolatePoints(p) : new Array(p.skip).fill(null);
+                return Array.isArray(p) ? interpolatePoints(p, interpolation) : new Array(p.skip).fill(null);
             });
         };
 
@@ -364,7 +337,7 @@ export class AreaSeries extends CartesianSeries<
             return valuesArray.map((values) => ({ xDatum, values }));
         });
 
-        const createPoint = (xDatum: any, yDatum: any): AreaSpanPointDatum => ({
+        const createPoint = (xDatum: any, yDatum: any): LineSpanPointDatum => ({
             point: {
                 x: xScale.convert(xDatum) + xOffset,
                 y: yScale.convert(yDatum),
@@ -374,7 +347,7 @@ export class AreaSeries extends CartesianSeries<
         });
 
         const getSeriesSpans = (index: number) => {
-            const points: Array<AreaSpanPointDatum[] | { skip: number }> = [];
+            const points: Array<LineSpanPointDatum[] | { skip: number }> = [];
 
             if (dataValues == null) return [];
 
@@ -408,7 +381,7 @@ export class AreaSeries extends CartesianSeries<
                     }
                 }
 
-                const currentPoints: AreaSpanPointDatum[] | { skip: number } | undefined = points[points.length - 1];
+                const currentPoints: LineSpanPointDatum[] | { skip: number } | undefined = points[points.length - 1];
                 if (!connectMissingData && (yValueEndBackwards !== yValueEndForwards || !yDatumIsFinite)) {
                     if (!yDatumIsFinite && Array.isArray(currentPoints) && currentPoints.length === 1) {
                         points[points.length - 1] = { skip: 1 };
@@ -446,16 +419,16 @@ export class AreaSeries extends CartesianSeries<
         const getAxisSpans = () => {
             if (dataValues == null) return [];
             const yValueZeroPoints = dataValues
-                .map<AreaSpanPointDatum | undefined>(({ xDatum, values }) => {
+                .map<LineSpanPointDatum | undefined>(({ xDatum, values }) => {
                     const yValueStack: number[] = values[yValueStackIndex];
                     const yDatum = yValueStack[stackIndex];
 
                     if (connectMissingData && !Number.isFinite(yDatum)) return;
                     return createPoint(xDatum, 0);
                 })
-                .filter((x): x is AreaSpanPointDatum => x != null);
+                .filter((x): x is LineSpanPointDatum => x != null);
 
-            return interpolatePoints(yValueZeroPoints);
+            return interpolatePoints(yValueZeroPoints, interpolation);
         };
 
         const currentSeriesSpans = getSeriesSpans(stackIndex);
@@ -579,9 +552,7 @@ export class AreaSeries extends CartesianSeries<
         const { path } = stroke;
 
         path.clear(true);
-        for (const { span } of spans) {
-            plotSpan(path, span, SpanJoin.MoveTo, false);
-        }
+        plotStroke(stroke, spans);
         stroke.checkPathDirty();
     }
 

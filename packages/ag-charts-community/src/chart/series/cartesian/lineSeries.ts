@@ -35,14 +35,22 @@ import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import type { CartesianAnimationData, CartesianSeriesNodeDataContext } from './cartesianSeries';
+import type { CartesianAnimationData } from './cartesianSeries';
 import {
     CartesianSeries,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { type LineNodeDatum, LineSeriesProperties } from './lineSeriesProperties';
-import { pathRangePoints, pathRanges, prepareLinePathAnimation } from './lineUtil';
+import { LineSeriesProperties } from './lineSeriesProperties';
+import {
+    type LineNodeDatum,
+    type LinePathSpan,
+    type LineSeriesNodeDataContext,
+    type LineSpanPointDatum,
+    interpolatePoints,
+    plotStroke,
+    prepareLinePathAnimation,
+} from './lineUtil';
 import {
     computeMarkerFocusBounds,
     markerFadeInAnimation,
@@ -50,13 +58,9 @@ import {
     resetMarkerFn,
     resetMarkerPositionFn,
 } from './markerUtil';
-import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, plotPath, updateClipPath } from './pathUtil';
+import { buildResetPathFn, pathFadeInAnimation, pathSwipeInAnimation, updateClipPath } from './pathUtil';
 
 const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
-
-interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContext<LineNodeDatum> {
-    crossFiltering: boolean;
-}
 
 type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
 
@@ -211,23 +215,33 @@ export class LineSeries extends CartesianSeries<
     }
 
     async createNodeData() {
-        const { processedData, dataModel, axes } = this;
+        const { dataModel, axes } = this;
+        const ungroupedData = this.processedData?.data;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!processedData || !dataModel || !xAxis || !yAxis) {
+        if (!ungroupedData || !dataModel || !xAxis || !yAxis) {
             return;
         }
 
-        const { xKey, yKey, yFilterKey, xName, yName, marker, label, connectMissingData, legendItemName } =
-            this.properties;
+        const {
+            xKey,
+            yKey,
+            yFilterKey,
+            xName,
+            yName,
+            marker,
+            label,
+            connectMissingData,
+            interpolation,
+            legendItemName,
+        } = this.properties;
         const stacked = (this.seriesGrouping?.stackCount ?? 1) > 1;
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
-        const nodeData: LineNodeDatum[] = [];
         const size = marker.enabled ? marker.size : 0;
 
         const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
@@ -237,26 +251,16 @@ export class LineSeries extends CartesianSeries<
         const yCumulativeIdx = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValueCumulative`) : yIdx;
         const yEndIdx = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValueEnd`) : undefined;
 
-        let moveTo = true;
+        const nodeData: LineNodeDatum[] = [];
+        const spanPoints: Array<LineSpanPointDatum[] | { skip: number }> = [];
         let crossFiltering = false;
-        // let nextPoint: UngroupedDataItem<any, any> | undefined;
-        processedData.data?.forEach(({ datum, values }) => {
+        ungroupedData.forEach(({ datum, values }) => {
             const xDatum = values[xIdx];
             const yDatum = values[yIdx];
             const yCumulativeDatum = values[yCumulativeIdx];
             const yEndDatum = yEndIdx != null ? values[yEndIdx] : undefined;
 
-            if (yDatum == null) {
-                moveTo ||= !connectMissingData;
-                return;
-            }
-
             const x = xScale.convert(xDatum) + xOffset;
-            if (isNaN(x)) {
-                moveTo ||= !connectMissingData;
-                return;
-            }
-
             const y = yScale.convert(yCumulativeDatum) + yOffset;
 
             const selected = ySelectionIdx != null ? values[ySelectionIdx] === yDatum : undefined;
@@ -270,30 +274,59 @@ export class LineSeries extends CartesianSeries<
                 formatValue
             );
 
-            nodeData.push({
-                series: this,
-                datum,
-                yKey,
-                xKey,
-                point: { x, y, moveTo, size },
-                midPoint: { x, y },
-                cumulativeValue: yEndDatum,
-                yValue: yDatum,
-                xValue: xDatum,
-                capDefaults: {
-                    lengthRatioMultiplier: this.properties.marker.getDiameter(),
-                    lengthMax: Infinity,
-                },
-                labelText,
-                selected,
-            });
-            moveTo = false;
+            const currentSpanPoints: LineSpanPointDatum[] | { skip: number } | undefined =
+                spanPoints[spanPoints.length - 1];
+            if (yDatum != null && Number.isFinite(x)) {
+                nodeData.push({
+                    series: this,
+                    datum,
+                    yKey,
+                    xKey,
+                    point: { x, y, size },
+                    midPoint: { x, y },
+                    cumulativeValue: yEndDatum,
+                    yValue: yDatum,
+                    xValue: xDatum,
+                    capDefaults: {
+                        lengthRatioMultiplier: this.properties.marker.getDiameter(),
+                        lengthMax: Infinity,
+                    },
+                    labelText,
+                    selected,
+                });
+
+                const spanPoint: LineSpanPointDatum = {
+                    point: { x, y },
+                    xDatum,
+                    yDatum,
+                };
+
+                if (Array.isArray(currentSpanPoints)) {
+                    currentSpanPoints.push(spanPoint);
+                } else if (currentSpanPoints != null) {
+                    currentSpanPoints.skip += 1;
+                    spanPoints.push([spanPoint]);
+                } else {
+                    spanPoints.push([spanPoint]);
+                }
+            } else if (!connectMissingData) {
+                if (Array.isArray(currentSpanPoints) || currentSpanPoints == null) {
+                    spanPoints.push({ skip: 0 });
+                } else {
+                    currentSpanPoints.skip += 1;
+                }
+            }
+        });
+
+        const strokeSpans = spanPoints.flatMap((p): LinePathSpan[] => {
+            return Array.isArray(p) ? interpolatePoints(p, interpolation) : [];
         });
 
         return {
             itemId: yKey,
             nodeData,
             labelData: nodeData,
+            strokeData: { itemId: yKey, spans: strokeSpans },
             scales: this.calculateScaling(),
             visible: this.visible,
             crossFiltering,
@@ -499,22 +532,16 @@ export class LineSeries extends CartesianSeries<
         ];
     }
 
-    protected override async updatePaths(opts: {
-        contextData: CartesianSeriesNodeDataContext<LineNodeDatum>;
-        paths: Path[];
-    }) {
+    protected override async updatePaths(opts: { contextData: LineSeriesNodeDataContext; paths: Path[] }) {
         this.updateLinePaths(opts.paths, opts.contextData);
     }
 
-    private updateLinePaths(paths: Path[], contextData: CartesianSeriesNodeDataContext<LineNodeDatum>) {
-        const { interpolation } = this.properties;
-        const { nodeData } = contextData;
+    private updateLinePaths(paths: Path[], contextData: LineSeriesNodeDataContext) {
+        const { spans } = contextData.strokeData;
         const [lineNode] = paths;
 
         lineNode.path.clear(true);
-        for (const range of pathRanges(nodeData)) {
-            plotPath(pathRangePoints(nodeData, range), lineNode, interpolation);
-        }
+        plotStroke(lineNode, spans);
         lineNode.checkPathDirty();
     }
 
@@ -577,18 +604,7 @@ export class LineSeries extends CartesianSeries<
             return;
         }
 
-        let fns: ReturnType<typeof prepareLinePathAnimation>;
-        try {
-            fns = prepareLinePathAnimation(
-                contextData,
-                previousContextData,
-                this.processedData?.reduced?.diff,
-                this.properties.interpolation
-            );
-        } catch {
-            // @todo(CRT-468) - this code will likely be replaced with area-series implementation
-            fns = undefined;
-        }
+        const fns = prepareLinePathAnimation(contextData, previousContextData, this.processedData?.reduced?.diff);
 
         if (fns === undefined) {
             skip();
@@ -598,14 +614,14 @@ export class LineSeries extends CartesianSeries<
         }
 
         markerFadeInAnimation(this, animationManager, undefined, markerSelections);
-        fromToMotion(this.id, 'path_properties', animationManager, [path], fns.pathProperties);
+        fromToMotion(this.id, 'path_properties', animationManager, [path], fns.stroke.pathProperties);
 
         if (fns.status === 'added') {
             this.updateLinePaths(paths, contextData);
         } else if (fns.status === 'removed') {
             this.updateLinePaths(paths, previousContextData);
         } else {
-            pathMotion(this.id, 'path_update', animationManager, [path], fns.path);
+            pathMotion(this.id, 'path_update', animationManager, [path], fns.stroke.path);
         }
 
         if (fns.hasMotion) {

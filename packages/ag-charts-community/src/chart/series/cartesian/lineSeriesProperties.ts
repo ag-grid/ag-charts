@@ -18,17 +18,8 @@ import {
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
-import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
-import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
+import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
-
-export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
-    readonly point: CartesianSeriesNodeDatum['point'] & {
-        readonly moveTo: boolean;
-    };
-    readonly labelText?: string;
-    readonly selected: boolean | undefined;
-}
 
 export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeriesOptions> {
     @Validate(STRING)
