@@ -29,7 +29,7 @@ export class LegendDOMProxy {
     private readonly itemList: HTMLDivElement;
     private readonly itemDescription: HTMLParagraphElement;
     public readonly paginationGroup: HTMLDivElement;
-    public readonly destroyFns: DestroyFns = new DestroyFns();
+    private readonly destroyFns: DestroyFns = new DestroyFns();
     public prevButton?: HTMLButtonElement;
     public nextButton?: HTMLButtonElement;
 
