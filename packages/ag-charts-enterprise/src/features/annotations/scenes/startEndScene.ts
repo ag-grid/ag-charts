@@ -9,7 +9,7 @@ import { convertLine, convertPoint, invertCoords } from '../utils/values';
 import { DivariantHandle } from './handle';
 import { LinearScene } from './linearScene';
 
-const { Vec4 } = _ModuleSupport;
+const { Vec2, Vec4 } = _ModuleSupport;
 
 export type StartEndHandle = 'start' | 'end';
 
@@ -57,15 +57,13 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
     }
 
     override dragHandle(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) {
-        const { activeHandle } = this;
+        const { activeHandle, dragState } = this;
 
-        if (!activeHandle) return;
+        if (!activeHandle || !dragState) return;
 
         this[activeHandle].toggleDragging(true);
-
-        const point = snapping
-            ? this.snapToAngle(datum, target, context)
-            : invertCoords(this[activeHandle].drag(target).point, context);
+        const coords = Vec2.add(dragState.end, Vec2.sub(target, dragState.offset));
+        const point = snapping ? this.snapToAngle(datum, coords, context) : invertCoords(coords, context);
 
         if (!point || !validateDatumPoint(context, point)) return;
 
@@ -75,7 +73,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
 
     snapToAngle(
         datum: Datum,
-        target: _ModuleSupport.Vec2,
+        coords: _ModuleSupport.Vec2,
         context: AnnotationContext
     ): Pick<PointProperties, 'x' | 'y'> | undefined {
         const { activeHandle } = this;
@@ -88,9 +86,8 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         this[activeHandle].toggleDragging(true);
 
         const fixed = convertPoint(datum[fixedHandle], context);
-        const active = this[activeHandle].drag(target).point;
 
-        return invertCoords(snapToAngle(active, fixed, datum.snapToAngle), context);
+        return invertCoords(snapToAngle(coords, fixed, datum.snapToAngle), context);
     }
 
     override stopDragging() {

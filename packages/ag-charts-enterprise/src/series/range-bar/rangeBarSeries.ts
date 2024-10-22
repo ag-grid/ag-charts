@@ -145,8 +145,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 keyProperty(xKey, xScaleType, { id: 'xValue' }),
-                valueProperty(yLowKey, yScaleType, { id: `yLowValue`, ...visibleProps }),
-                valueProperty(yHighKey, yScaleType, { id: `yHighValue`, ...visibleProps }),
+                valueProperty(yLowKey, yScaleType, { id: `yLowValue`, invalidValue: null, ...visibleProps }),
+                valueProperty(yHighKey, yScaleType, { id: `yHighValue`, invalidValue: null, ...visibleProps }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL, LARGEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],

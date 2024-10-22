@@ -8,7 +8,7 @@ import type { AgBaseSeriesOptions } from '../seriesOptions';
 
 export interface AgPyramidSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {}
 
-export interface AgPyramidSeriesStageLabelOptions extends AgChartLabelOptions<never, never> {
+export interface AgPyramidSeriesStageLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
     /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
     /** Spacing of the label in relation to the chart. */
@@ -51,7 +51,7 @@ export interface AgPyramidSeriesThemeableOptions<TDatum = any> extends LineDashO
     /** Configuration for the labels shown on stages. */
     label?: AgPyramidSeriesLabelOptions<TDatum, AgPyramidSeriesLabelFormatterParams>;
     /** Configuration for the stage labels. */
-    stageLabel?: AgPyramidSeriesStageLabelOptions;
+    stageLabel?: AgPyramidSeriesStageLabelOptions<TDatum, AgPyramidSeriesLabelFormatterParams>;
     /** Configuration for the shadow used behind the series items. */
     shadow?: AgDropShadowOptions;
     /** Series-specific tooltip configuration. */

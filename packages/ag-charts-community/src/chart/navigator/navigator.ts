@@ -3,6 +3,7 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
+import { setAttribute } from '../../util/attributeUtil';
 import type { BBoxProvider } from '../../util/bboxinterface';
 import { setElementBBox } from '../../util/dom';
 import { formatPercent } from '../../util/format.util';
@@ -132,6 +133,10 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
                 onchange: (ev) => this.onMaxSliderChange(ev),
             }),
         ];
+        this.proxyNavigatorElements.forEach((slider) => setAttribute(slider, 'data-preventdefault', false));
+        this.setSliderRatio(this.proxyNavigatorElements[0], this._min);
+        this.setSliderRatio(this.proxyNavigatorElements[2], this._max);
+        this.setPanSliderValue(this._min, this._max);
         initToolbarKeyNav({
             orientation: 'vertical',
             toolbar: this.proxyNavigatorToolbar,

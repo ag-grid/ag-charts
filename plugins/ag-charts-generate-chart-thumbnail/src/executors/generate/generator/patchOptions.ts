@@ -12,6 +12,10 @@ export function patchOptions(
 
     options.legend = { enabled: false };
 
+    if (options.series?.some((s) => ['treemap', 'heatmap', 'sunburst'].includes(s.type))) {
+        options.gradientLegend = { enabled: false };
+    }
+
     const optionsTheme = typeof options.theme === 'object' ? options.theme : null;
     options.theme = {
         ...optionsTheme,
@@ -49,6 +53,9 @@ export function patchOptions(
     if (api === 'createGauge') {
         delete options.title;
         delete options.legend;
+    }
+
+    if (api === 'createGauge' && multiple) {
         (options as any).targets?.forEach((target) => {
             delete target.text;
         });

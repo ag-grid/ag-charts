@@ -13,7 +13,7 @@ import { guardCancelAndExit, guardSaveAndExit } from './states/textualStateUtils
 import { wrapText } from './text/util';
 import { hasLineStyle, hasLineText } from './utils/has';
 import { setColor, setLineStyle } from './utils/styles';
-import { isChannelType, isTextType } from './utils/types';
+import { isChannelType, isEphemeralType, isTextType } from './utils/types';
 
 const { StateMachine } = _ModuleSupport;
 
@@ -195,6 +195,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
             if (!datum) return false;
             return hasLineText(datum) && !datum.locked;
         };
+        const guardActiveNotEphemeral = () => this.active != null && !isEphemeralType(ctx.datum(this.active));
         const guardHovered = () => this.hovered != null;
 
         super(States.Idle, {
@@ -236,14 +237,14 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                 },
 
                 copy: {
-                    guard: guardActive,
+                    guard: guardActiveNotEphemeral,
                     action: () => {
                         this.copied = ctx.copy(this.active!);
                     },
                 },
 
                 cut: {
-                    guard: guardActive,
+                    guard: guardActiveNotEphemeral,
                     action: () => {
                         this.copied = ctx.copy(this.active!);
                         deleteDatum();
@@ -282,14 +283,6 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                     },
                 ],
 
-                drag: {
-                    action: () => {
-                        const prevActive = this.active;
-                        this.active = this.hovered;
-                        ctx.select(this.hovered, prevActive);
-                    },
-                },
-
                 dblclick: {
                     guard: guardActiveHasLineText,
                     action: ({ offset }) => {
@@ -298,16 +291,25 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                     },
                 },
 
-                dragStart: {
-                    guard: guardHovered,
-                    target: States.Dragging,
-                    action: () => {
-                        const prevActive = this.active;
-                        this.active = this.hovered;
-                        ctx.select(this.hovered, prevActive);
-                        ctx.startInteracting();
+                dragStart: [
+                    {
+                        guard: guardHovered,
+                        target: States.Dragging,
+                        action: () => {
+                            const prevActive = this.active;
+                            this.active = this.hovered;
+                            ctx.select(this.hovered, prevActive);
+                            ctx.startInteracting();
+                        },
                     },
-                },
+                    {
+                        action: () => {
+                            const prevActive = this.active;
+                            this.active = this.hovered;
+                            ctx.select(this.hovered, prevActive);
+                        },
+                    },
+                ],
 
                 color: {
                     guard: guardActive,
@@ -379,7 +381,9 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                 delete: () => {
                     if (this.active == null) return;
                     ctx.delete(this.active);
-                    ctx.recordAction(`Delete ${ctx.datum(this.active)?.type} annotation`);
+                    const datum = ctx.datum(this.active);
+                    if (isEphemeralType(datum)) return;
+                    ctx.recordAction(`Delete ${datum?.type} annotation`);
                 },
 
                 deleteAll: () => {

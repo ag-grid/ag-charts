@@ -99,6 +99,10 @@ function useSearch(searchData: SearchDatum[], onItemClick: SelectionHandler, ini
 
     const handleInput: FormEventHandler<HTMLInputElement> = (event) => {
         const searchQuery = event.currentTarget.value.trim().toLowerCase();
+        if (searchQuery.length < 2) {
+            return;
+        }
+
         setFilteredData(
             searchData
                 .filter((item) => item.searchable.includes(searchQuery))

@@ -1420,7 +1420,13 @@ export abstract class Chart extends Observable {
             [ChartAxisDirection.Y]: [],
         };
 
-        chart.axes.forEach((axis) => axisGroups[axis.direction].push({ id: axis.id, node: axis.getRegionNode() }));
+        chart.axes.forEach((axis) => {
+            const { id } = axis;
+            const node = axis.getRegionNode();
+            if (node != null) {
+                axisGroups[axis.direction].push({ id, node });
+            }
+        });
 
         if (registerRegions) {
             this.ctx.regionManager.updateRegion(REGIONS.HORIZONTAL_AXES, ...axisGroups[ChartAxisDirection.X]);

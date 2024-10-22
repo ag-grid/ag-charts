@@ -5,22 +5,6 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    theme: {
-        overrides: {
-            'cone-funnel': {
-                axes: {
-                    category: {
-                        line: {
-                            enabled: true,
-                        },
-                        tick: {
-                            enabled: true,
-                        },
-                    },
-                },
-            },
-        },
-    },
     series: [
         {
             type: 'cone-funnel',

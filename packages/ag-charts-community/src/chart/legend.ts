@@ -21,6 +21,8 @@ import { Selection } from '../scene/selection';
 import { Line } from '../scene/shape/line';
 import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Transformable } from '../scene/transformable';
+import { setElementStyle } from '../util/attributeUtil';
+import type { BBoxValues } from '../util/bboxinterface';
 import { DestroyFns } from '../util/destroy';
 import { createElement, getWindow, setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
@@ -227,6 +229,7 @@ export class Legend extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
+    @ObserveChanges<Legend>((target) => (target.proxyLegendDirty = true))
     @Validate(POSITION)
     position: AgChartLegendPosition = 'bottom';
 
@@ -242,7 +245,6 @@ export class Legend extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
     reverseOrder?: boolean;
 
-    @ObserveChanges<Legend>((target) => (target.proxyLegendDirty = true))
     @Validate(UNION(['horizontal', 'vertical'], 'an orientation'), { optional: true })
     orientation?: AgChartLegendOrientation;
 
@@ -342,7 +344,6 @@ export class Legend extends BaseProperties {
                 ariaChecked: !!markerLabel.datum.enabled,
                 ariaDescribedBy: this.proxyLegendItemDescription.id,
                 parent: this.proxyLegendToolbar,
-                cursor: 'pointer',
                 // Retrieve the datum from the node rather than from the method parameter.
                 // The method parameter `datum` gets destroyed when the data is refreshed
                 // using Series.getLegendData(). But the scene node will stay the same.
@@ -360,9 +361,10 @@ export class Legend extends BaseProperties {
             .nodes()
             .map((markerLabel) => markerLabel.proxyButton?.button)
             .filter(isDefined);
-        const orientation = this.getOrientation();
-        this.proxyLegendToolbarDestroyFns.setFns(initRovingTabIndex({ orientation, buttons }));
-        this.proxyLegendToolbar.ariaOrientation = orientation;
+        this.proxyLegendToolbarDestroyFns.setFns([
+            ...initRovingTabIndex({ orientation: 'horizontal', buttons }),
+            ...initRovingTabIndex({ orientation: 'vertical', buttons }),
+        ]);
         this.proxyLegendToolbar.ariaHidden = (buttons.length === 0).toString();
         this.proxyLegendDirty = false;
     }
@@ -742,13 +744,22 @@ export class Legend extends BaseProperties {
     }
 
     private updateItemProxyButtons() {
+        const pointer = this.toggleSeries ? 'pointer' : undefined;
+        const maxHeight = Math.max(...this.itemSelection.nodes().map((l) => l.getBBox().height));
         this.itemSelection.each((l) => {
             if (l.proxyButton) {
                 const { listitem, button } = l.proxyButton;
                 const visible = l.pageIndex === this.pagination.currentPage;
+                let bbox: BBoxValues = Transformable.toCanvas(l);
+                if (bbox.height !== maxHeight) {
+                    // CRT-543 Give the legend items the same heights for a better look.
+                    const margin = (maxHeight - bbox.height) / 2;
+                    bbox = { x: bbox.x, y: bbox.y - margin, height: maxHeight, width: bbox.width };
+                }
                 // TODO(olegat) this should be part of CSS once all element types support pointer events.
-                button.style.pointerEvents = visible ? 'auto' : 'none';
-                setElementBBox(listitem, Transformable.toCanvas(l));
+                setElementStyle(button, 'pointer-events', visible ? 'auto' : 'none');
+                setElementStyle(button, 'cursor', pointer);
+                setElementBBox(listitem, bbox);
             }
         });
     }
@@ -767,7 +778,6 @@ export class Legend extends BaseProperties {
                     textContent: { id: 'ariaLabelLegendPagePrevious' },
                     tabIndex: 0,
                     parent: this.proxyLegendPagination,
-                    cursor: this.pagination.getCursor('previous'),
                     onclick: (ev) => this.pagination.onClick(ev, 'previous'),
                     onmouseenter: () => this.pagination.onMouseHover('previous'),
                     onmouseleave: () => this.pagination.onMouseHover(undefined),
@@ -778,7 +788,6 @@ export class Legend extends BaseProperties {
                     textContent: { id: 'ariaLabelLegendPageNext' },
                     tabIndex: 0,
                     parent: this.proxyLegendPagination,
-                    cursor: this.pagination.getCursor('next'),
                     onclick: (ev) => this.pagination.onClick(ev, 'next'),
                     onmouseenter: () => this.pagination.onMouseHover('next'),
                     onmouseleave: () => this.pagination.onMouseHover(undefined),
@@ -795,6 +804,9 @@ export class Legend extends BaseProperties {
         const { prev, next } = this.pagination.computeCSSBounds();
         setElementBBox(this.proxyPrevButton, prev);
         setElementBBox(this.proxyNextButton, next);
+
+        setElementStyle(this.proxyNextButton, 'cursor', this.pagination.getCursor('next'));
+        setElementStyle(this.proxyPrevButton, 'cursor', this.pagination.getCursor('previous'));
     }
 
     private calculatePagination(bboxes: BBox[], width: number, height: number) {
@@ -937,6 +949,9 @@ export class Legend extends BaseProperties {
         this.pagination.updateMarkers();
 
         this.updatePositions(pageNumber);
+
+        setElementStyle(this.proxyNextButton, 'cursor', this.pagination.getCursor('next'));
+        setElementStyle(this.proxyPrevButton, 'cursor', this.pagination.getCursor('previous'));
         this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
 
@@ -1243,6 +1258,8 @@ export class Legend extends BaseProperties {
     }
 
     private positionLegend(ctx: LayoutContext) {
+        setElementStyle(this.proxyLegendToolbar, 'display', this.visible && this.enabled ? undefined : 'none');
+
         if (!this.enabled || !this.data.length) return;
 
         const { layoutBox } = ctx;
@@ -1291,10 +1308,7 @@ export class Legend extends BaseProperties {
             this.group.translationX = Math.floor(x + translationX - legendBBox.x);
             this.group.translationY = Math.floor(y + translationY - legendBBox.y);
 
-            this.proxyLegendToolbar.style.removeProperty('display');
             this.proxyLegendToolbar.ariaOrientation = this.getOrientation();
-        } else {
-            this.proxyLegendToolbar.style.display = 'none';
         }
 
         this.updateItemProxyButtons();

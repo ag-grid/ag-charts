@@ -17,4 +17,4 @@ NEW_VERSION=$(node ./tools/calculate-next-version.js)
 node ./tools/readme/sync-readme.js
 
 git commit -a -m "BRANCH prep for ${NEW_VERSION}"
-git push
+git push --set-upstream origin $BRANCH

@@ -1,7 +1,7 @@
 {
   "name": "ag-charts-vue3",
   "description": "AG Charts Vue 3 Component",
-  "version": "10.2.0-beta.20241018",
+  "version": "10.3.0-beta.20241021.1635",
   "author": "AG Grid <info@ag-grid.com>",
   "license": "MIT",
   "main": "./dist/package/index.cjs.js",
@@ -41,7 +41,7 @@
     "lint": "# vue-cli-service lint"
   },
   "devDependencies": {
-    "ag-charts-community": "10.2.0-beta.20241018",
+    "ag-charts-community": "10.3.0-beta.20241021.1635",
     "@types/node": "18.18.11",
     "typescript": "^5.4.5",
     "vue": "^3.0.0",
@@ -49,7 +49,7 @@
     "rimraf": "3.0.2"
   },
   "peerDependencies": {
-    "ag-charts-community": "10.2.0-beta.20241018",
+    "ag-charts-community": "10.3.0-beta.20241021.1635",
     "vue": "^3.0.0"
   },
   "publishConfig": {

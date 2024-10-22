@@ -31,9 +31,10 @@ export abstract class TextualPointStateMachine<
     Pick<
         AnnotationStateEvents,
         | 'click'
-        | 'drag'
+        | 'dragStart'
         | 'zoomChange'
         | 'cancel'
+        | 'keyDown'
         | 'textInput'
         | 'updateTextInputBBox'
         | 'color'
@@ -138,7 +139,7 @@ export abstract class TextualPointStateMachine<
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },
-                drag: {
+                dragStart: {
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },
@@ -172,7 +173,7 @@ export abstract class TextualPointStateMachine<
                     target: StateMachine.parent,
                     action: actionSave,
                 },
-                drag: {
+                dragStart: {
                     target: StateMachine.parent,
                     action: actionSave,
                 },
