@@ -129,6 +129,11 @@ export class LegendDOMProxy {
         });
     }
 
+    public updatePaginationCursors(pagination: Pagination) {
+        setElementStyle(this.nextButton, 'cursor', pagination.getCursor('next'));
+        setElementStyle(this.prevButton, 'cursor', pagination.getCursor('previous'));
+    }
+
     public onDataUpdate(oldData: CategoryLegendDatum[], newData: CategoryLegendDatum[]) {
         this.dirty =
             oldData.length !== newData.length ||
@@ -155,6 +160,7 @@ export class LegendDOMProxy {
 
     public onPageChange(itemSelection: ItemSelection, pagination: Pagination, interactive: boolean) {
         this.updateItemProxyButtons(itemSelection, pagination, interactive);
+        this.updatePaginationCursors(pagination);
     }
 
     private initKeyNav(buttons: HTMLButtonElement[]) {

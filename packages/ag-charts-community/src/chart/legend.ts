@@ -709,9 +709,7 @@ export class Legend extends BaseProperties {
 
         setElementBBox(this.domProxy.prevButton, prev);
         setElementBBox(this.domProxy.nextButton, next);
-
-        setElementStyle(this.domProxy.nextButton, 'cursor', this.pagination.getCursor('next'));
-        setElementStyle(this.domProxy.prevButton, 'cursor', this.pagination.getCursor('previous'));
+        this.domProxy.updatePaginationCursors(this.pagination);
     }
 
     private calculatePagination(bboxes: BBox[], width: number, height: number) {
@@ -855,8 +853,6 @@ export class Legend extends BaseProperties {
         this.updatePositions(pageNumber);
         this.domProxy.onPageChange(this.itemSelection, this.pagination, this.toggleSeries);
 
-        setElementStyle(this.domProxy.nextButton, 'cursor', this.pagination.getCursor('next'));
-        setElementStyle(this.domProxy.prevButton, 'cursor', this.pagination.getCursor('previous'));
         this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
 
