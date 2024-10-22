@@ -22,7 +22,6 @@ import { Line } from '../scene/shape/line';
 import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
 import { Transformable } from '../scene/transformable';
 import { setElementStyle } from '../util/attributeUtil';
-import type { BBoxValues } from '../util/bboxinterface';
 import { getWindow, setElementBBox } from '../util/dom';
 import { createId } from '../util/id';
 import { Logger } from '../util/logger';
@@ -668,27 +667,6 @@ export class Legend extends BaseProperties {
         };
     }
 
-    private updateItemProxyButtons() {
-        const pointer = this.toggleSeries ? 'pointer' : undefined;
-        const maxHeight = Math.max(...this.itemSelection.nodes().map((l) => l.getBBox().height));
-        this.itemSelection.each((l) => {
-            if (l.proxyButton) {
-                const { listitem, button } = l.proxyButton;
-                const visible = l.pageIndex === this.pagination.currentPage;
-                let bbox: BBoxValues = Transformable.toCanvas(l);
-                if (bbox.height !== maxHeight) {
-                    // CRT-543 Give the legend items the same heights for a better look.
-                    const margin = (maxHeight - bbox.height) / 2;
-                    bbox = { x: bbox.x, y: bbox.y - margin, height: maxHeight, width: bbox.width };
-                }
-                // TODO(olegat) this should be part of CSS once all element types support pointer events.
-                setElementStyle(button, 'pointer-events', visible ? 'auto' : 'none');
-                setElementStyle(button, 'cursor', pointer);
-                setElementBBox(listitem, bbox);
-            }
-        });
-    }
-
     private updatePaginationProxyButtons(oldPages: Page[] | undefined) {
         this.domProxy.paginationGroup.style.display = this.pagination.visible ? 'absolute' : 'none';
 
@@ -853,7 +831,6 @@ export class Legend extends BaseProperties {
             markerLabel.translationX = x;
             markerLabel.translationY = y;
         });
-        this.updateItemProxyButtons();
     }
 
     private updatePageNumber(pageNumber: number) {
@@ -876,6 +853,7 @@ export class Legend extends BaseProperties {
         this.pagination.updateMarkers();
 
         this.updatePositions(pageNumber);
+        this.domProxy.onPageChange(this.itemSelection, this.pagination, this.toggleSeries);
 
         setElementStyle(this.domProxy.nextButton, 'cursor', this.pagination.getCursor('next'));
         setElementStyle(this.domProxy.prevButton, 'cursor', this.pagination.getCursor('previous'));
@@ -1215,7 +1193,7 @@ export class Legend extends BaseProperties {
             this.group.translationY = Math.floor(y + translationY - legendBBox.y);
         }
 
-        this.updateItemProxyButtons();
+        this.domProxy.update(this.itemSelection, this.pagination, this.toggleSeries);
         this.updatePaginationProxyButtons(oldPages);
     }
 

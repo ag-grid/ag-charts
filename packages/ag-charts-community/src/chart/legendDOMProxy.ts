@@ -1,13 +1,16 @@
 import type { LocaleManager } from '../locale/localeManager';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Selection } from '../scene/selection';
+import { Transformable } from '../scene/transformable';
 import { setElementStyle } from '../util/attributeUtil';
+import type { BBoxValues } from '../util/bboxinterface';
 import { DestroyFns } from '../util/destroy';
-import { createElement } from '../util/dom';
+import { createElement, setElementBBox } from '../util/dom';
 import { initRovingTabIndex } from '../util/keynavUtil';
 import { isDefined } from '../util/type-guards';
 import type { CategoryLegendDatum } from './legendDatum';
 import type { LegendMarkerLabel } from './legendMarkerLabel';
+import type { Pagination } from './pagination/pagination';
 
 type ItemSelection = Selection<LegendMarkerLabel, CategoryLegendDatum>;
 type CategoryLegendDatumReader = { getItemLabel(datum: CategoryLegendDatum): string | undefined };
@@ -101,6 +104,31 @@ export class LegendDOMProxy {
         setElementStyle(this.itemList, 'display', visible ? undefined : 'none');
     }
 
+    public update(itemSelection: ItemSelection, pagination: Pagination, interactive: boolean) {
+        this.updateItemProxyButtons(itemSelection, pagination, interactive);
+    }
+
+    private updateItemProxyButtons(itemSelection: ItemSelection, pagination: Pagination, interactive: boolean) {
+        const pointer = interactive ? 'pointer' : undefined;
+        const maxHeight = Math.max(...itemSelection.nodes().map((l) => l.getBBox().height));
+        itemSelection.each((l) => {
+            if (l.proxyButton) {
+                const { listitem, button } = l.proxyButton;
+                const visible = l.pageIndex === pagination.currentPage;
+                let bbox: BBoxValues = Transformable.toCanvas(l);
+                if (bbox.height !== maxHeight) {
+                    // CRT-543 Give the legend items the same heights for a better look.
+                    const margin = (maxHeight - bbox.height) / 2;
+                    bbox = { x: bbox.x, y: bbox.y - margin, height: maxHeight, width: bbox.width };
+                }
+                // TODO(olegat) this should be part of CSS once all element types support pointer events.
+                setElementStyle(button, 'pointer-events', visible ? 'auto' : 'none');
+                setElementStyle(button, 'cursor', pointer);
+                setElementBBox(listitem, bbox);
+            }
+        });
+    }
+
     public onDataUpdate(oldData: CategoryLegendDatum[], newData: CategoryLegendDatum[]) {
         this.dirty =
             oldData.length !== newData.length ||
@@ -123,6 +151,10 @@ export class LegendDOMProxy {
             }
         });
         this.itemDescription.textContent = this.getItemAriaDescription(localeManager);
+    }
+
+    public onPageChange(itemSelection: ItemSelection, pagination: Pagination, interactive: boolean) {
+        this.updateItemProxyButtons(itemSelection, pagination, interactive);
     }
 
     private initKeyNav(buttons: HTMLButtonElement[]) {
