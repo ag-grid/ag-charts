@@ -254,7 +254,7 @@ export class Legend extends BaseProperties {
 
     private readonly destroyFns: Function[] = [];
 
-    private domProxy: LegendDOMProxy;
+    private readonly domProxy: LegendDOMProxy;
     private pendingHighlightDatum?: HighlightNodeDatum;
 
     constructor(private readonly ctx: ModuleContext) {
