@@ -20,7 +20,7 @@ interface ButtonListener {
 }
 
 export class LegendDOMProxy {
-    public dirty = true;
+    private dirty = true;
 
     public readonly itemList: HTMLDivElement;
     public readonly itemDescription: HTMLParagraphElement;
@@ -94,6 +94,15 @@ export class LegendDOMProxy {
             .map((markerLabel) => markerLabel.proxyButton?.button)
             .filter(isDefined);
         this.initKeyNav(buttons);
+    }
+
+    public onDataUpdate(oldData: CategoryLegendDatum[], newData: CategoryLegendDatum[]) {
+        this.dirty =
+            oldData.length !== newData.length ||
+            oldData.some((_v, index, _a) => {
+                const [newValue, oldValue] = [newData[index], oldData[index]];
+                return newValue.id !== oldValue.id;
+            });
     }
 
     public onLocaleChanged(

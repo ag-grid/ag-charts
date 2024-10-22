@@ -200,7 +200,7 @@ export class Legend extends BaseProperties {
     private _data: CategoryLegendDatum[] = [];
     private _symbolsDirty = true;
     set data(value: CategoryLegendDatum[]) {
-        this.onDataUpdate(this._data, value);
+        this.domProxy.onDataUpdate(this._data, value);
         this._data = value;
         this._symbolsDirty = true;
         this.updateGroupVisibility();
@@ -301,15 +301,6 @@ export class Legend extends BaseProperties {
         this.pagination.destroy();
         this.itemSelection.clear();
         this.domProxy.destroy();
-    }
-
-    private onDataUpdate(oldData: CategoryLegendDatum[], newData: CategoryLegendDatum[]) {
-        this.domProxy.dirty =
-            oldData.length !== newData.length ||
-            oldData.some((_v, index, _a) => {
-                const [newValue, oldValue] = [newData[index], oldData[index]];
-                return newValue.id !== oldValue.id;
-            });
     }
 
     public onMarkerShapeChange() {
