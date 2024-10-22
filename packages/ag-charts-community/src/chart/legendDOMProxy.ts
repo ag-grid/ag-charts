@@ -30,10 +30,10 @@ export class LegendDOMProxy {
 
     private readonly itemList: HTMLDivElement;
     private readonly itemDescription: HTMLParagraphElement;
-    public readonly paginationGroup: HTMLDivElement;
+    private readonly paginationGroup: HTMLDivElement;
     private readonly destroyFns: DestroyFns = new DestroyFns();
-    public prevButton?: HTMLButtonElement;
-    public nextButton?: HTMLButtonElement;
+    private prevButton?: HTMLButtonElement;
+    private nextButton?: HTMLButtonElement;
 
     public constructor(ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>, idPrefix: string) {
         this.itemList = ctx.proxyInteractionService.createProxyContainer({
