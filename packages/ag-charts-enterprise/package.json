@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-enterprise",
-  "version": "10.3.1-beta.20241023",
+  "version": "10.3.1-beta.20241023.1156",
   "description": "Advanced Charting / Charts supporting Javascript / Typescript / React / Angular / Vue",
   "main": "./dist/package/main.cjs.js",
   "types": "./dist/types/src/main.d.ts",
@@ -69,8 +69,8 @@
     "@types/pngjs": "^6.0.1",
     "@typescript-eslint/eslint-plugin": "^5.51.0",
     "@typescript-eslint/parser": "^5.51.0",
-    "ag-charts-community": "10.3.1-beta.20241023",
-    "ag-charts-test": "10.3.1-beta.20241023",
+    "ag-charts-community": "10.3.1-beta.20241023.1156",
+    "ag-charts-test": "10.3.1-beta.20241023.1156",
     "canvas": "^2.10.2",
     "del": "^6.0.0",
     "eslint": "^8.56.0",
@@ -90,7 +90,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
-    "ag-charts-community": "10.3.1-beta.20241023"
+    "ag-charts-community": "10.3.1-beta.20241023.1156"
   },
   "publishConfig": {
     "access": "public"
