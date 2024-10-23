@@ -66,17 +66,6 @@ type WaterfallAnimationData = _ModuleSupport.CartesianAnimationData<
     WaterfallContext
 >;
 
-const labelPlacements = {
-    'inside-center': 'inside-center' as const,
-    'inside-start': 'inside-start' as const,
-    'inside-end': 'inside-end' as const,
-    'outside-start': 'outside-start' as const,
-    'outside-end': 'outside-end' as const,
-    inside: 'inside-center' as const,
-    start: 'outside-start' as const,
-    end: 'outside-end' as const,
-};
-
 export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     _Scene.Rect,
     WaterfallSeriesProperties,
@@ -401,7 +390,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                     ...adjustLabelPlacement({
                         isUpward: (value ?? -1) >= 0 !== valueAxisReversed,
                         isVertical: !barAlongX,
-                        placement: labelPlacements[label.placement],
+                        placement: label.placement,
                         padding: label.padding,
                         rect,
                     }),

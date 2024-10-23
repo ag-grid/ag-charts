@@ -27,21 +27,7 @@ import { SeriesTooltip } from '../seriesTooltip';
 import { AbstractBarSeriesProperties } from './abstractBarSeries';
 
 class BarSeriesLabel extends Label<AgBarSeriesLabelFormatterParams> {
-    @Validate(
-        UNION(
-            [
-                'inside-center',
-                'inside-start',
-                'inside-end',
-                'outside-start',
-                'outside-end',
-                // @todo(AG-5950) Deprecate
-                { value: 'inside', deprecatedTo: 'inside-center' },
-                { value: 'outside', deprecatedTo: 'outside-end' },
-            ],
-            'a placement'
-        )
-    )
+    @Validate(UNION(['inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'], 'a placement'))
     placement: AgBarSeriesLabelPlacement = 'inside-center';
 
     @Validate(NUMBER)

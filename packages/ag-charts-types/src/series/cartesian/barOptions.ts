@@ -13,10 +13,7 @@ export type AgBarSeriesLabelPlacement =
     | 'inside-start'
     | 'inside-end'
     | 'outside-start'
-    | 'outside-end'
-    // @todo(AG-5950) Deprecate
-    | 'inside'
-    | 'outside';
+    | 'outside-end';
 
 export interface AgBarSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
     /** Where to render series labels relative to the segments. */
