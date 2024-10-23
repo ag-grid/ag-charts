@@ -180,7 +180,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const currentSpanPoints: RangeAreaSpanPointDatum[] | { skip: number } | undefined =
                 spanPoints[spanPoints.length - 1];
             if (yHighValue != null || yLowValue != null) {
-                const appendMarker = (itemId: 'high' | 'low', y: number) => {
+                const appendMarker = (itemId: 'high' | 'low', yValue: any, y: number) => {
                     markerData.push({
                         index: datumIdx,
                         series: this,
@@ -198,7 +198,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                     });
                     const highLabelDatum: RangeAreaLabelDatum = this.createLabelData({
                         point: { x, y },
-                        value: y,
+                        value: yValue,
                         yLowValue,
                         yHighValue,
                         itemId: itemId,
@@ -215,8 +215,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 const yLowCoordinate = yScale.convert(yLowValue);
                 const { size } = marker;
 
-                appendMarker('high', yHighCoordinate);
-                appendMarker('low', yLowCoordinate);
+                appendMarker('high', yHighValue, yHighCoordinate);
+                appendMarker('low', yLowValue, yLowCoordinate);
 
                 const spanPoint: RangeAreaSpanPointDatum = {
                     high: {
