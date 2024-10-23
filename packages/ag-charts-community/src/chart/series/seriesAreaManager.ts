@@ -1,9 +1,9 @@
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
+import { FocusSwapChain } from '../../dom/focusSwapChain';
 import type { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
 import { Transformable } from '../../scene/transformable';
-import { setAttribute } from '../../util/attributeUtil';
 import { createId } from '../../util/id';
 import { clamp } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
@@ -40,24 +40,6 @@ export interface SeriesAreaChartDependencies {
     overlays: ChartOverlays;
 }
 
-class SeriesAreaAriaLabel {
-    constructor(
-        private readonly element: HTMLElement,
-        public readonly id: string
-    ) {
-        element.id = id;
-        element.style.display = 'none';
-        setAttribute(element.parentElement, 'aria-labelledby', id);
-    }
-    layoutComplete(event: LayoutCompleteEvent) {
-        this.element.parentElement!.style.width = `${event.chart.width}px`;
-        this.element.parentElement!.style.height = `${event.chart.height}px`;
-    }
-    set text(text: string) {
-        this.element.textContent = text;
-    }
-}
-
 type TooltipEventTypes = 'hover' | 'click' | 'dblclick';
 type HighlightEventTypes = 'hover' | 'drag' | 'click' | 'dblclick';
 
@@ -67,7 +49,7 @@ export class SeriesAreaManager extends BaseManager {
     private series: Series<any, any>[] = [];
     private seriesRect?: BBox;
     private hoverRect?: BBox;
-    private readonly ariaLabel: SeriesAreaAriaLabel;
+    private readonly swapChain: FocusSwapChain;
 
     private readonly highlight = {
         /** Last received event that still needs to be applied. */
@@ -117,7 +99,7 @@ export class SeriesAreaManager extends BaseManager {
         const keyState = InteractionState.Default | InteractionState.Animation;
 
         const labelEl = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label');
-        this.ariaLabel = new SeriesAreaAriaLabel(labelEl, `${this.id}-aria-label`);
+        this.swapChain = new FocusSwapChain(labelEl, `${this.id}-focus`);
 
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label'),
@@ -192,7 +174,7 @@ export class SeriesAreaManager extends BaseManager {
     private layoutComplete(event: LayoutCompleteEvent): void {
         this.seriesRect = event.series.rect;
         this.hoverRect = event.series.paddedRect;
-        this.ariaLabel.layoutComplete(event);
+        this.swapChain.resizeContainer(event.chart);
     }
 
     private onContextMenu(event: RegionEvent<'contextmenu'>): void {
@@ -421,7 +403,7 @@ export class SeriesAreaManager extends BaseManager {
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, datum);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
             this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, html);
-            this.ariaLabel.text = this.getDatumAriaText(datum, html);
+            this.swapChain.update(this.getDatumAriaText(datum, html));
         }
     }
 

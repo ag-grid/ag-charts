@@ -30,8 +30,13 @@ export type InputAttributeSet = Partial<{ [K in keyof InputAttributeTypeMap]: In
 type BaseStyleTypeMap = {
     cursor: 'pointer';
     display: 'none';
+    position: 'absolute';
     'pointer-events': 'auto' | 'none';
+    width: '100%';
+    height: '100%';
 };
+
+type StyleSet = Partial<{ [K in keyof BaseStyleTypeMap]: BaseStyleTypeMap[K] }>;
 
 export function setAttribute<A extends keyof BaseAttributeTypeMap>(
     e: Nullable<HTMLElement>,
@@ -110,6 +115,12 @@ export function setElementStyle<P extends keyof BaseStyleTypeMap>(
     if (value == null) {
         e.style.removeProperty(property);
     } else {
-        e.style.setProperty(property, value);
+        e.style.setProperty(property, value.toString());
+    }
+}
+export function setElementStyles(e: Nullable<HTMLElement>, styles: StyleSet) {
+    let key: keyof typeof styles;
+    for (key in styles) {
+        setElementStyle(e as HTMLElement, key, styles[key]);
     }
 }
