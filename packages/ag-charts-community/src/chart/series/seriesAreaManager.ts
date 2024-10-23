@@ -137,7 +137,11 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private preSceneRender() {
-        this.refreshFocus();
+        if (this.chart.ctx.focusIndicator.isFocusVisible()) {
+            // This function is called when something in the scene is redrawn such as a resize, or zoompan change.
+            // Therefore we need to update the bounds of the focus indicator, but not aria-label. Hence refresh=true.
+            this.handleSeriesFocus(0, 0, true);
+        }
 
         if (this.highlight.stashedHoverEvent != null) {
             this.highlight.pendingHoverEvent = this.highlight.stashedHoverEvent;
@@ -322,12 +326,6 @@ export class SeriesAreaManager extends BaseManager {
         return false;
     }
 
-    private refreshFocus() {
-        if (this.chart.ctx.focusIndicator.isFocusVisible()) {
-            this.handleSeriesFocus(0, 0);
-        }
-    }
-
     private handleFocus(seriesIndexDelta: number, datumIndexDelta: number) {
         const overlayFocus = this.chart.overlays.getFocusInfo(this.chart.ctx.localeManager);
         if (overlayFocus == null) {
@@ -337,9 +335,9 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number) {
+    private handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number, refresh = false) {
         if (this.chart.chartType === 'hierarchy') {
-            this.handleHierarchySeriesFocus(otherIndexDelta, datumIndexDelta);
+            this.handleHierarchySeriesFocus(otherIndexDelta, datumIndexDelta, refresh);
             return;
         }
         const { focus, seriesRect } = this;
@@ -353,10 +351,10 @@ export class SeriesAreaManager extends BaseManager {
         // Update focused datum:
         const { datumIndex, seriesIndex: otherIndex } = focus;
         const pick = focus.series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
-        this.updatePickedFocus(pick);
+        this.updatePickedFocus(pick, refresh);
     }
 
-    private handleHierarchySeriesFocus(otherIndexDelta: number, datumIndexDelta: number) {
+    private handleHierarchySeriesFocus(otherIndexDelta: number, datumIndexDelta: number, refresh: boolean) {
         // Hierarchial charts (treemap, sunburst) can only have 1 series. So we'll repurpose the focus.seriesIndex
         // value to control the focused depth. This allows the hierarchial charts to piggy-back on the base keyboard
         // handling implementation.
@@ -367,10 +365,10 @@ export class SeriesAreaManager extends BaseManager {
         } = this;
         if (series === undefined) return;
         const pick = series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
-        this.updatePickedFocus(pick);
+        this.updatePickedFocus(pick, refresh);
     }
 
-    private updatePickedFocus(pick: PickFocusOutputs | undefined) {
+    private updatePickedFocus(pick: PickFocusOutputs | undefined, refreshBoundsOnly: boolean) {
         const { focus, seriesRect } = this;
         if (pick === undefined || focus.series === undefined) return;
 
@@ -393,7 +391,7 @@ export class SeriesAreaManager extends BaseManager {
         const keyboardEvent = makeKeyboardPointerEvent(this.chart.ctx.focusIndicator, pick);
 
         // Update highlight/tooltip for keyboard users:
-        if (keyboardEvent !== undefined && this.hoverDevice === 'keyboard') {
+        if (!refreshBoundsOnly && keyboardEvent !== undefined && this.hoverDevice === 'keyboard') {
             // Stop pending async mouse events from updating the highlight/tooltip. At this point, the most recent event came
             // from the keyboard so that's what we should honour.
             this.tooltip.lastHover = undefined;
