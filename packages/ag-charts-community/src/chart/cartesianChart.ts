@@ -5,7 +5,7 @@ import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import { ContinuousScale } from '../scale/continuousScale';
 import type { BBox } from '../scene/bbox';
-import { arraysEqual } from '../util/array';
+import { arraysEqual, groupBy } from '../util/array';
 import { Logger } from '../util/logger';
 import { findMinMax } from '../util/number';
 import { CategoryAxis } from './axis/categoryAxis';
@@ -274,7 +274,6 @@ export class CartesianChart extends Chart {
 
     private updateAxesPass(axisAreaWidths: AreaWidthMap, bounds: BBox, lastPassSeriesRect?: BBox) {
         const axisWidths: Map<string, number> = new Map();
-        const axisGroups: Map<AgCartesianAxisPosition, ChartAxis[]> = new Map();
 
         const visibility: Partial<VisibilityMap> = {
             series: true,
@@ -285,35 +284,52 @@ export class CartesianChart extends Chart {
 
         const primaryTickCounts: Partial<Record<ChartAxisDirection, number>> = {};
         const crossLinePadding = lastPassSeriesRect ? this.buildCrossLinePadding(axisAreaWidths) : {};
-        const axisAreaBound = this.buildAxisBound(bounds.clone(), axisAreaWidths, crossLinePadding, visibility);
+
+        const axisAreaBound = this.applySeriesPadding(bounds.clone());
+        const { top = 0, right = 0, bottom = 0, left = 0 } = crossLinePadding;
+        const horizontalPadding = left + right;
+        const verticalPadding = top + bottom;
+        const totalWidth = (axisAreaWidths.get('left') ?? 0) + (axisAreaWidths.get('right') ?? 0) + horizontalPadding;
+        const totalHeight = (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0) + verticalPadding;
+
+        if (axisAreaBound.width <= totalWidth || axisAreaBound.height <= totalHeight) {
+            // Not enough space for crossLines and series
+            visibility.crossLines = false;
+            visibility.series = false;
+        } else {
+            axisAreaBound.shrink(crossLinePadding);
+        }
 
         // const overflows = this.isAxisOverflow(axisAreaBound, axisAreaWidths);
         const seriesRect = axisAreaBound.clone().shrink(Object.fromEntries(axisAreaWidths.entries()));
 
         // Step 1) Calculate individual axis widths.
         for (const axis of this.axes) {
-            const { position = 'left' } = axis;
+            const { position = 'left', direction } = axis;
 
-            const { clipSeries: newClipSeries, axisThickness } = this.calculateAxisDimensions({
-                axis,
-                seriesRect,
-                primaryTickCounts,
-                clipSeries,
-            });
-            axisWidths.set(axis.id, axisThickness);
+            this.sizeAxis(axis, seriesRect, position);
 
-            if (!axisGroups.has(position)) axisGroups.set(position, []);
-            axisGroups.get(position)?.push(axis);
+            const syncedDomain = this.getSyncedDomain(axis);
+            const layout = axis.calculateLayout(syncedDomain, axis.nice ? primaryTickCounts[direction] : undefined);
+            const isVertical = direction === ChartAxisDirection.Y;
 
-            clipSeries = clipSeries || newClipSeries;
+            primaryTickCounts[direction] ??= layout.primaryTickCount;
+            clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
+
+            axisWidths.set(axis.id, Math.ceil(axis.thickness || isVertical ? layout.bbox.width : layout.bbox.height));
         }
+
+        const axisGroups = Object.entries(groupBy(this.axes, (axis) => axis.position ?? 'left')) as [
+            AgCartesianAxisPosition,
+            ChartAxis[],
+        ][];
 
         // Step 2) calculate axis offsets and total depth for each position.
         const { width, height, canvas } = this.ctx.scene;
         const newAxisAreaWidths: AreaWidthMap = new Map();
         const axisOffsets = new Map<string, number>();
 
-        for (const [position, axes] of axisGroups.entries()) {
+        for (const [position, axes] of axisGroups) {
             const isVertical = position === 'left' || position === 'right';
 
             // Adjust offset for pixel ratio to prevent alignment issues with series rendering.
@@ -335,7 +351,7 @@ export class CartesianChart extends Chart {
         }
 
         // Step 3) position all axes taking adjacent positions into account.
-        for (const [position, axes] of axisGroups.entries()) {
+        for (const [position, axes] of axisGroups) {
             this.positionAxes({
                 axes,
                 position,
@@ -380,33 +396,6 @@ export class CartesianChart extends Chart {
         return bounds;
     }
 
-    private buildAxisBound(
-        bounds: BBox,
-        axisAreaWidths: AreaWidthMap,
-        crossLinePadding: Partial<Record<AgCartesianAxisPosition, number>>,
-        visibility: Partial<VisibilityMap>
-    ) {
-        const result = this.applySeriesPadding(bounds);
-        const { top = 0, right = 0, bottom = 0, left = 0 } = crossLinePadding;
-        const horizontalPadding = left + right;
-        const verticalPadding = top + bottom;
-        const totalWidth = (axisAreaWidths.get('left') ?? 0) + (axisAreaWidths.get('right') ?? 0) + horizontalPadding;
-        const totalHeight = (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0) + verticalPadding;
-        if (result.width <= totalWidth || result.height <= totalHeight) {
-            // Not enough space for crossLines and series
-            visibility.crossLines = false;
-            visibility.series = false;
-            return result;
-        }
-
-        result.x += left;
-        result.y += top;
-        result.width -= horizontalPadding;
-        result.height -= verticalPadding;
-
-        return result;
-    }
-
     isAxisOverflow(boundaries: BBox, axisWidths: AreaWidthMap) {
         const totalHorizontalWidth = (axisWidths.get('left') ?? 0) + (axisWidths.get('right') ?? 0);
         const totalVerticalHeight = (axisWidths.get('top') ?? 0) + (axisWidths.get('bottom') ?? 0);
@@ -419,37 +408,6 @@ export class CartesianChart extends Chart {
         const size = dimension === 'x' ? seriesRect.width : seriesRect.height;
 
         return direction === 1 ? Math.min(value, bound + size) : Math.max(value, bound);
-    }
-
-    private calculateAxisDimensions(opts: {
-        axis: ChartAxis;
-        seriesRect: BBox;
-        primaryTickCounts: Partial<Record<ChartAxisDirection, number>>;
-        clipSeries: boolean;
-    }) {
-        const { axis, seriesRect, primaryTickCounts } = opts;
-        let { clipSeries } = opts;
-        const { position = 'left', direction } = axis;
-
-        this.sizeAxis(axis, seriesRect, position);
-
-        const syncedDomain = this.getSyncedDomain(axis);
-        const layout = axis.calculateLayout(syncedDomain, axis.nice ? primaryTickCounts[direction] : undefined);
-        const isVertical = direction === ChartAxisDirection.Y;
-
-        primaryTickCounts[direction] ??= layout.primaryTickCount;
-        clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
-
-        let axisThickness;
-        if (axis.thickness != null && axis.thickness > 0) {
-            axisThickness = axis.thickness;
-        } else {
-            axisThickness = isVertical ? layout.bbox.width : layout.bbox.height;
-        }
-
-        axisThickness = Math.ceil(axisThickness);
-
-        return { clipSeries, axisThickness };
     }
 
     private getSyncedDomain(axis: ChartAxis) {
