@@ -89,7 +89,7 @@ function shouldIgnore(event: EventUpcast<'id' | 'className' | 'classList' | 'ari
     if (
         // Handle drag event on the axis 'add horizontal line annotation' button as canvas events.
         (classList.contains('ag-charts-annotations__axis-button-icon') && !dragTypes.includes(type)) ||
-        className === 'ag-charts-series-area' ||
+        className === 'ag-charts-swapchain' ||
         className === 'ag-charts-canvas-proxy' ||
         (className === 'ag-charts-proxy-elem' && !id?.toString().startsWith('ag-charts-legend-item-')) || // legend <buttons>
         sourceEvent?.target instanceof HTMLCanvasElement // This case is for nodeCanvas tests

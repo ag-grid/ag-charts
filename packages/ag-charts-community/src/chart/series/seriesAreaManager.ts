@@ -104,12 +104,14 @@ export class SeriesAreaManager extends BaseManager {
 
         const label1 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label1');
         const label2 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label2');
+        if (label1.parentElement == null) throw new Error('AG Charts - error initialising series area focus indicator');
 
-        this.focusIndicator = new FocusIndicator(chart.ctx.domManager);
-        this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
-        this.swapChain = new FocusSwapChain(label1, label2, 'series-area-aria', 'img');
+        this.swapChain = new FocusSwapChain(label1, label2, this.id, 'img');
         this.swapChain.addListener('blur', () => this.onBlur());
         this.swapChain.addListener('focus', () => this.onFocus());
+        this.focusIndicator = new FocusIndicator(label1.parentElement);
+        this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
+        this.focusIndicator.move(this.swapChain.update(''));
         this.chart.ctx.keyNavManager.focusIndicator = this.focusIndicator;
 
         this.destroyFns.push(
@@ -416,7 +418,7 @@ export class SeriesAreaManager extends BaseManager {
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, datum);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
             this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, html);
-            this.swapChain.update(this.getDatumAriaText(datum, html));
+            this.focusIndicator.move(this.swapChain.update(this.getDatumAriaText(datum, html)));
         }
     }
 

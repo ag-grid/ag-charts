@@ -1,10 +1,4 @@
-import {
-    type BaseAttributeTypeMap,
-    setAttribute,
-    setAttributes,
-    setElementStyle,
-    setElementStyles,
-} from '../util/attributeUtil';
+import { type BaseAttributeTypeMap, setAttribute, setAttributes, setElementStyle } from '../util/attributeUtil';
 import { createElement } from '../util/dom';
 
 /**
@@ -23,10 +17,10 @@ export class FocusSwapChain {
     private readonly onBlur = (e: FocusEvent) => !this.skipDispatch && this.dispatch('blur', e);
     private readonly onFocus = (e: FocusEvent) => !this.skipDispatch && this.dispatch('focus', e);
 
-    private createAnnouncer(announcerId: string, labelId: string, role: BaseAttributeTypeMap['role']) {
+    private createAnnouncer(initialLabel: HTMLElement, role: BaseAttributeTypeMap['role']) {
         const announcer = createElement('div');
-        setAttributes(announcer, { role, id: announcerId, 'aria-labelledby': labelId });
-        setElementStyles(announcer, { position: 'absolute', width: '100%', height: '100%' });
+        announcer.className = 'ag-charts-swapchain';
+        setAttributes(announcer, { role, 'aria-labelledby': initialLabel.id });
         announcer.addEventListener('blur', this.onBlur);
         announcer.addEventListener('focus', this.onFocus);
         return announcer;
@@ -43,8 +37,8 @@ export class FocusSwapChain {
         setElementStyle(this.label1, 'display', 'none');
         setElementStyle(this.label2, 'display', 'none');
 
-        this.activeAnnouncer = this.createAnnouncer(`${id}-announcer1`, this.label1.id, announcerRole);
-        this.inactiveAnnouncer = this.createAnnouncer(`${id}-announcer2`, this.label2.id, announcerRole);
+        this.activeAnnouncer = this.createAnnouncer(this.label1, announcerRole);
+        this.inactiveAnnouncer = this.createAnnouncer(this.label1, announcerRole);
 
         this.label2.insertAdjacentElement('afterend', this.activeAnnouncer);
         this.label2.insertAdjacentElement('afterend', this.inactiveAnnouncer);
@@ -82,6 +76,7 @@ export class FocusSwapChain {
             this.activeAnnouncer.focus();
         }
         this.skipDispatch = false;
+        return this.activeAnnouncer;
     }
 
     addListener(type: 'focus' | 'blur', handler: (event: FocusEvent) => unknown): void {

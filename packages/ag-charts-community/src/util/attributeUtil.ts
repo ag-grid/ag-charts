@@ -30,10 +30,7 @@ export type InputAttributeSet = Partial<{ [K in keyof InputAttributeTypeMap]: In
 type BaseStyleTypeMap = {
     cursor: 'pointer';
     display: 'none';
-    position: 'absolute';
     'pointer-events': 'auto' | 'none';
-    width: '100%';
-    height: '100%';
 };
 
 type StyleSet = Partial<{ [K in keyof BaseStyleTypeMap]: BaseStyleTypeMap[K] }>;
