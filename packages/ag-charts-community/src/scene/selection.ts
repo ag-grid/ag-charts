@@ -183,4 +183,8 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     at(index: number) {
         return this._nodes.at(index);
     }
+
+    get length() {
+        return this._nodes.length;
+    }
 }

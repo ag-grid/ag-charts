@@ -73,6 +73,10 @@ export class MapLineBackgroundSeries
         });
     }
 
+    override renderToOffscreenCanvas(): boolean {
+        return true;
+    }
+
     setChartTopology(topology: any): void {
         this._chartTopology = topology;
         if (this.topology === topology) {

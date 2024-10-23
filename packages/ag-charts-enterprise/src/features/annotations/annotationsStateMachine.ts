@@ -426,7 +426,7 @@ export class AnnotationsStateMachine extends StateMachine<States, AnnotationStat
                     action: actionUpdateTextInputBBox,
                 },
 
-                zoomChange: {
+                resize: {
                     target: States.Idle,
                     action: actionSaveText,
                 },
