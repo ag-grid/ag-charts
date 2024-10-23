@@ -60,10 +60,11 @@ export class AxisLabelScene extends _Scene.Group {
 
         const labelBBox = label.getBBox()?.clone();
 
-        const horizontalPadding = 8;
-        const verticalPadding = 5;
-        labelBBox.grow(padding ?? horizontalPadding, 'horizontal');
-        labelBBox.grow(padding ?? verticalPadding, 'vertical');
+        const horizontalPadding = padding ?? 8;
+        const verticalPadding = padding ?? 5;
+
+        labelBBox.grow(horizontalPadding, 'horizontal');
+        labelBBox.grow(verticalPadding, 'vertical');
 
         const shift = context.direction === ChartAxisDirection.X ? verticalPadding / 2 : horizontalPadding;
 

@@ -221,11 +221,11 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             return padding;
         }
 
-        this.axes.forEach(({ position, thickness = 0, line, label }) => {
+        this.axes.forEach(({ position, thickness, line, label }) => {
             if (position == null) return;
 
             let size: number;
-            if (thickness > 0) {
+            if (thickness) {
                 size = thickness;
             } else {
                 // Because of the rotation technique used by axes rendering labels are padded 5px off,

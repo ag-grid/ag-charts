@@ -200,8 +200,8 @@ export class CartesianChart extends Chart {
         const crossLinePadding = this.buildCrossLinePadding(axisAreaWidths);
 
         if (
-            axisAreaBound.width <= totalWidth + crossLinePadding.horizontal ||
-            axisAreaBound.height <= totalHeight + crossLinePadding.vertical
+            axisAreaBound.width <= totalWidth + crossLinePadding.hPadding ||
+            axisAreaBound.height <= totalHeight + crossLinePadding.vPadding
         ) {
             // Not enough space for rendering
             overflows = true;
@@ -224,7 +224,7 @@ export class CartesianChart extends Chart {
             primaryTickCounts[direction] ??= layout.primaryTickCount;
             clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
 
-            axisWidths.set(axis.id, Math.ceil(axis.thickness || (isVertical ? layout.bbox.width : layout.bbox.height)));
+            axisWidths.set(axis.id, Math.ceil(axis.thickness ?? (isVertical ? layout.bbox.width : layout.bbox.height)));
         }
 
         const axisGroups = Object.entries(groupBy(this.axes, (axis) => axis.position ?? 'left')) as [
@@ -275,7 +275,7 @@ export class CartesianChart extends Chart {
     }
 
     private buildCrossLinePadding(axisAreaSize: AreaWidthMap) {
-        const crossLinePadding = { top: 0, right: 0, bottom: 0, left: 0, horizontal: 0, vertical: 0 };
+        const crossLinePadding = { top: 0, right: 0, bottom: 0, left: 0, hPadding: 0, vPadding: 0 };
 
         this.axes.forEach((axis) => {
             axis.crossLines?.forEach((crossLine) => {
@@ -287,8 +287,8 @@ export class CartesianChart extends Chart {
             crossLinePadding[side] = Math.max(padding - (axisAreaSize.get(side) ?? 0), 0);
         }
 
-        crossLinePadding.horizontal = crossLinePadding.left + crossLinePadding.right;
-        crossLinePadding.vertical = crossLinePadding.top + crossLinePadding.bottom;
+        crossLinePadding.hPadding = crossLinePadding.left + crossLinePadding.right;
+        crossLinePadding.vPadding = crossLinePadding.top + crossLinePadding.bottom;
 
         return crossLinePadding;
     }

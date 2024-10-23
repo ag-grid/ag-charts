@@ -213,6 +213,16 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
                 this.width -= value;
                 break;
 
+            case 'vertical':
+                this.y += value;
+                this.height -= value * 2;
+                break;
+
+            case 'horizontal':
+                this.x += value;
+                this.width -= value * 2;
+                break;
+
             case undefined:
                 this.x += value;
                 this.y += value;
