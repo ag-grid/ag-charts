@@ -4,9 +4,10 @@ import type { AnnotationContext } from '../annotationTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
 import { StartEndScene } from '../scenes/startEndScene';
 import { getBBox, updateTextNode } from '../text/util';
-import { convertLine } from '../utils/values';
+import { validateDatumPoint } from '../utils/validation';
+import { convertLine, invertCoords } from '../utils/values';
 
-const { Vec4 } = _ModuleSupport;
+const { Vec2, Vec4 } = _ModuleSupport;
 
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends StartEndScene<Datum> {
     override activeHandle?: 'start' | 'end';
@@ -38,6 +39,21 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         this.updateHandles(datum, coords, bbox);
         this.updateShape(datum, bbox, coords);
         this.updateAnchor(datum, coords, context, bbox);
+    }
+
+    override dragHandle(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) {
+        const { activeHandle, dragState } = this;
+
+        if (!activeHandle || !dragState) return;
+
+        this[activeHandle].toggleDragging(true);
+        const coords = Vec2.add(dragState.end, Vec2.sub(target, dragState.offset));
+        const point = snapping ? this.snapToAngle(datum, coords, context) : invertCoords(coords, context);
+
+        if (!point || !validateDatumPoint(context, point)) return;
+
+        datum[activeHandle].x = point.x;
+        datum[activeHandle].y = point.y;
     }
 
     override containsPoint(x: number, y: number) {
