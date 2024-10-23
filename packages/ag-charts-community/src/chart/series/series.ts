@@ -63,7 +63,7 @@ export type PickFocusInputs = {
     // 'other' means 'depth' for hierarchical charts, or 'series' for all other charts
     readonly otherIndex: number;
     readonly otherIndexDelta: number;
-    readonly seriesRect?: Readonly<BBox>;
+    readonly seriesRect?: BBox;
 };
 
 export type PickFocusOutputs = {

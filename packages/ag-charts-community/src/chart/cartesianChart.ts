@@ -327,29 +327,32 @@ export class CartesianChart extends Chart {
         const isCategory = axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis;
         const isLeftRight = position === 'left' || position === 'right';
 
-        let { min, max } = this.ctx.zoomManager.getAxisZoom(axis.id);
         const { width, height } = seriesRect;
-
-        const minStart = 0;
         const maxEnd = isLeftRight ? height : width;
-        let start = minStart;
+
+        let start = 0;
         let end = maxEnd;
+        let { min, max } = this.ctx.zoomManager.getAxisZoom(axis.id);
 
         const { width: axisWidth, unit, align } = axis.layoutConstraints;
+
         if (unit === 'px') {
             end = start + axisWidth;
         } else {
             end = (end * axisWidth) / 100;
         }
+
         if (align === 'end') {
             start = maxEnd - (end - start);
             end = maxEnd;
         }
 
-        if (isCategory && isLeftRight) {
-            [min, max] = [1 - max, 1 - min];
-        } else if (isLeftRight) {
-            [start, end] = [end, start];
+        if (isLeftRight) {
+            if (isCategory) {
+                [min, max] = [1 - max, 1 - min];
+            } else {
+                [start, end] = [end, start];
+            }
         }
 
         axis.range = [start, end];

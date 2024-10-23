@@ -22,24 +22,45 @@ type Padding = {
 type ShrinkOrGrowPosition = 'top' | 'left' | 'bottom' | 'right' | 'vertical' | 'horizontal';
 
 export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Interpolating<BBox> {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-
-    static readonly zero: Readonly<BBox> = Object.freeze(new BBox(0, 0, 0, 0));
-    static readonly NaN: Readonly<BBox> = Object.freeze(new BBox(NaN, NaN, NaN, NaN));
-
-    constructor(x: number, y: number, width: number, height: number) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-    }
+    static readonly zero = Object.freeze(new BBox(0, 0, 0, 0)) as BBox;
+    static readonly NaN = Object.freeze(new BBox(NaN, NaN, NaN, NaN)) as BBox;
 
     static fromDOMRect({ x, y, width, height }: DOMRect) {
         return new BBox(x, y, width, height);
     }
+
+    static merge(boxes: Iterable<BBox>) {
+        let left = Infinity;
+        let top = Infinity;
+        let right = -Infinity;
+        let bottom = -Infinity;
+        for (const box of boxes) {
+            if (box.x < left) {
+                left = box.x;
+            }
+            if (box.y < top) {
+                top = box.y;
+            }
+            if (box.x + box.width > right) {
+                right = box.x + box.width;
+            }
+            if (box.y + box.height > bottom) {
+                bottom = box.y + box.height;
+            }
+        }
+        return new BBox(left, top, right - left, bottom - top);
+    }
+
+    static nearestBox(x: number, y: number, boxes: BBox[]): NearestResult<BBox> {
+        return nearestSquared(x, y, boxes);
+    }
+
+    constructor(
+        public x: number,
+        public y: number,
+        public width: number,
+        public height: number
+    ) {}
 
     toDOMRect(): DOMRect {
         return {
@@ -125,10 +146,6 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         const dy = y - clamp(this.y, y, this.y + this.height);
 
         return dx * dx + dy * dy;
-    }
-
-    static nearestBox(x: number, y: number, boxes: BBox[]): NearestResult<BBox> {
-        return nearestSquared(x, y, boxes);
     }
 
     clip(clipRect: BBox | undefined): this {
@@ -217,28 +234,6 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         this.y = Math.min(y, other.y);
         this.width = Math.max(x + width, other.x + other.width) - this.x;
         this.height = Math.max(y + height, other.y + other.height) - this.y;
-    }
-
-    static merge(boxes: Iterable<BBox>) {
-        let left = Infinity;
-        let top = Infinity;
-        let right = -Infinity;
-        let bottom = -Infinity;
-        for (const box of boxes) {
-            if (box.x < left) {
-                left = box.x;
-            }
-            if (box.y < top) {
-                top = box.y;
-            }
-            if (box.x + box.width > right) {
-                right = box.x + box.width;
-            }
-            if (box.y + box.height > bottom) {
-                bottom = box.y + box.height;
-            }
-        }
-        return new BBox(left, top, right - left, bottom - top);
     }
 
     [interpolate](other: BBox, d: number) {
