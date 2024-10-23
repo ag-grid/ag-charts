@@ -76,17 +76,17 @@ function pointsEq(a: Point, b: Point, delta = 1e-3) {
     return Math.abs(a.x - b.x) < delta && Math.abs(a.y - b.y) < delta;
 }
 
-export function plotStroke(path: Path, spans: LinePathSpan[]) {
+export function plotLinePathStroke({ path }: Path, spans: LinePathSpan[]) {
     let lastPoint: Point | undefined;
     for (const { span } of spans) {
         const [start, end] = spanRange(span);
         const join = lastPoint != null && pointsEq(lastPoint, start) ? SpanJoin.LineTo : SpanJoin.MoveTo;
-        plotSpan(path.path, span, join, false);
+        plotSpan(path, span, join, false);
         lastPoint = end;
     }
 }
 
-export function plotInterpolatedStroke(ratio: number, path: Path, spans: SpanInterpolation[]) {
+export function plotInterpolatedLinePathStroke(ratio: number, path: Path, spans: SpanInterpolation[]) {
     let lastPoint: Point | undefined;
     for (const span of spans) {
         const [start, end] = interpolatedSpanRange(span.from, span.to, ratio);
@@ -96,14 +96,14 @@ export function plotInterpolatedStroke(ratio: number, path: Path, spans: SpanInt
     }
 }
 
-export function prepareStrokeAnimationFns(
+export function prepareLinePathStrokeAnimationFns(
     status: NodeUpdateState,
     spans: SpanAnimation,
     visibleToggleMode: 'fade' | 'none'
 ) {
-    const removePhaseFn = (ratio: number, path: Path) => plotInterpolatedStroke(ratio, path, spans.removed);
-    const updatePhaseFn = (ratio: number, path: Path) => plotInterpolatedStroke(ratio, path, spans.moved);
-    const addPhaseFn = (ratio: number, path: Path) => plotInterpolatedStroke(ratio, path, spans.added);
+    const removePhaseFn = (ratio: number, path: Path) => plotInterpolatedLinePathStroke(ratio, path, spans.removed);
+    const updatePhaseFn = (ratio: number, path: Path) => plotInterpolatedLinePathStroke(ratio, path, spans.moved);
+    const addPhaseFn = (ratio: number, path: Path) => plotInterpolatedLinePathStroke(ratio, path, spans.added);
     const pathProperties = prepareLinePathPropertyAnimation(status, visibleToggleMode);
 
     return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
@@ -172,7 +172,7 @@ export function prepareLinePathAnimation(
         CollapseMode.Split
     );
 
-    const stroke = prepareStrokeAnimationFns(status, strokeSpans, 'fade');
+    const stroke = prepareLinePathStrokeAnimationFns(status, strokeSpans, 'fade');
 
     const hasMotion =
         (diff?.changed ?? true) ||
