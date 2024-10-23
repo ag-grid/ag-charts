@@ -139,7 +139,7 @@ export class CartesianChart extends Chart {
     }
 
     updateAxes(layoutBox: BBox) {
-        const { axisAreaWidths, seriesRect, clipSeries, overflows } = this.resolveAxesLayout(layoutBox);
+        const { clipSeries, seriesRect, overflows } = this.resolveAxesLayout(layoutBox);
 
         for (const axis of this.axes) {
             axis.update();
@@ -147,8 +147,6 @@ export class CartesianChart extends Chart {
 
             this.clipAxis(axis, seriesRect, layoutBox);
         }
-
-        this.lastAreaWidths = axisAreaWidths;
 
         return { clipSeries, seriesRect, visible: !overflows };
     }
@@ -174,17 +172,28 @@ export class CartesianChart extends Chart {
             }
         } while (!this.isLayoutStable(newState, prevState));
 
+        this.lastAreaWidths = newState.axisAreaWidths;
+
         return newState;
     }
 
-    private updateAxesPass(axisAreaWidths: AreaWidthMap, bounds: BBox) {
+    private updateAxesPass(axisAreaWidths: AreaWidthMap, axisAreaBound: BBox) {
         const axisWidths: Map<string, number> = new Map();
+        const primaryTickCounts: Partial<Record<ChartAxisDirection, number>> = {};
 
         let overflows = false;
         let clipSeries = false;
 
-        const primaryTickCounts: Partial<Record<ChartAxisDirection, number>> = {};
-        const axisAreaBound = this.applySeriesPadding(bounds.clone());
+        for (const dir of directions) {
+            const padding = this.seriesArea.padding[dir];
+            const axis = this.axes.findLast((a) => a.position === dir);
+
+            if (axis) {
+                axis.seriesAreaPadding = padding;
+            } else {
+                axisAreaBound.shrink(padding, dir);
+            }
+        }
 
         const crossLinePadding = this.buildCrossLinePadding(axisAreaWidths);
         const { top = 0, right = 0, bottom = 0, left = 0 } = crossLinePadding;
@@ -201,7 +210,7 @@ export class CartesianChart extends Chart {
             axisAreaBound.shrink(crossLinePadding);
         }
 
-        const seriesRect = axisAreaBound.clone().shrink(Object.fromEntries(axisAreaWidths.entries()));
+        const seriesRect = axisAreaBound.clone().shrink(Object.fromEntries(axisAreaWidths));
 
         // Step 1) Calculate individual axis widths.
         for (const axis of this.axes) {
@@ -267,7 +276,7 @@ export class CartesianChart extends Chart {
     }
 
     private buildCrossLinePadding(axisAreaSize: AreaWidthMap) {
-        const crossLinePadding: Partial<Record<AgCartesianAxisPosition, number>> = {};
+        const crossLinePadding = { top: 0, right: 0, bottom: 0, left: 0, horizontal: 0, vertical: 0 };
 
         this.axes.forEach((axis) => {
             axis.crossLines?.forEach((crossLine) => {
@@ -279,21 +288,10 @@ export class CartesianChart extends Chart {
             crossLinePadding[side] = Math.max(padding - (axisAreaSize.get(side) ?? 0), 0);
         }
 
+        crossLinePadding.horizontal = crossLinePadding.left + crossLinePadding.right;
+        crossLinePadding.vertical = crossLinePadding.top + crossLinePadding.bottom;
+
         return crossLinePadding;
-    }
-
-    private applySeriesPadding(bounds: BBox) {
-        for (const dir of directions) {
-            const padding = this.seriesArea.padding[dir];
-            const axis = this.axes.findLast((a) => a.position === dir);
-
-            if (axis) {
-                axis.seriesAreaPadding = padding;
-            } else {
-                bounds.shrink(padding, dir);
-            }
-        }
-        return bounds;
     }
 
     private clampToOutsideSeriesRect(seriesRect: BBox, value: number, dimension: Dimension, direction: Direction) {

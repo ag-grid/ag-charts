@@ -148,43 +148,12 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
     shrink(amounts: Partial<Padding>): this;
     shrink(amount: number, position?: ShrinkOrGrowPosition): this;
     shrink(amount: number | Partial<Padding>, position?: ShrinkOrGrowPosition) {
-        const apply = (pos: typeof position, amt: number) => {
-            switch (pos) {
-                case 'top':
-                    this.y += amt;
-                // eslint-disable-next-line no-fallthrough
-                case 'bottom':
-                    this.height -= amt;
-                    break;
-                case 'left':
-                    this.x += amt;
-                // eslint-disable-next-line no-fallthrough
-                case 'right':
-                    this.width -= amt;
-                    break;
-                case 'vertical':
-                    this.y += amt;
-                    this.height -= amt * 2;
-                    break;
-                case 'horizontal':
-                    this.x += amt;
-                    this.width -= amt * 2;
-                    break;
-                case undefined:
-                    this.x += amt;
-                    this.width -= amt * 2;
-                    this.y += amt;
-                    this.height -= amt * 2;
-                    break;
-                default:
-                // Unknown position - do nothing.
-            }
-        };
-
         if (typeof amount === 'number') {
-            apply(position, amount);
-        } else if (typeof amount === 'object') {
-            Object.entries(amount).forEach(([pos, amt]) => apply(pos as ShrinkOrGrowPosition, amt));
+            this.applyMargin(amount, position);
+        } else {
+            for (const [key, value] of Object.entries(amount)) {
+                this.applyMargin(value, key as ShrinkOrGrowPosition);
+            }
         }
 
         if (this.width < 0) {
@@ -201,18 +170,39 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
     grow(amount: number, position?: ShrinkOrGrowPosition): this;
     grow(amount: number | Partial<Padding>, position?: ShrinkOrGrowPosition) {
         if (typeof amount === 'number') {
-            this.shrink(-amount, position);
+            this.applyMargin(-amount, position);
         } else {
-            const paddingCopy = { ...amount };
-
-            for (const key in paddingCopy) {
-                (paddingCopy as any)[key] *= -1;
+            for (const [key, value] of Object.entries(amount)) {
+                this.applyMargin(-value, key as ShrinkOrGrowPosition);
             }
-
-            this.shrink(paddingCopy);
         }
 
         return this;
+    }
+
+    private applyMargin(value: number, position?: ShrinkOrGrowPosition) {
+        switch (position) {
+            case 'top':
+                this.y += value;
+            // fallthrough
+            case 'bottom':
+                this.height -= value;
+                break;
+
+            case 'left':
+                this.x += value;
+            // fallthrough
+            case 'right':
+                this.width -= value;
+                break;
+
+            case undefined:
+                this.x += value;
+                this.y += value;
+                this.width -= value * 2;
+                this.height -= value * 2;
+                break;
+        }
     }
 
     translate(x: number, y: number) {
