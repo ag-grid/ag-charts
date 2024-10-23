@@ -37,17 +37,21 @@ export class FocusSwapChain {
     }
 
     constructor(
-        private readonly label: HTMLElement,
+        private label1: HTMLElement,
+        private label2: HTMLElement,
         id: string
     ) {
-        this.activeAnnouncer = this.createAnnouncer(`${id}-announcer1`, id);
-        this.inactiveAnnouncer = this.createAnnouncer(`${id}-announcer2`, id);
+        setAttribute(this.label1, 'id', `${id}-label1`);
+        setAttribute(this.label2, 'id', `${id}-label2`);
+        setElementStyle(this.label1, 'display', 'none');
+        setElementStyle(this.label2, 'display', 'none');
 
-        setAttribute(this.label, 'id', id);
-        setElementStyle(this.label, 'display', 'none');
-        this.label.insertAdjacentElement('afterend', this.activeAnnouncer);
-        this.label.insertAdjacentElement('afterend', this.inactiveAnnouncer);
-        this.swap();
+        this.activeAnnouncer = this.createAnnouncer(`${id}-announcer1`, this.label1.id);
+        this.inactiveAnnouncer = this.createAnnouncer(`${id}-announcer2`, this.label2.id);
+
+        this.label2.insertAdjacentElement('afterend', this.activeAnnouncer);
+        this.label2.insertAdjacentElement('afterend', this.inactiveAnnouncer);
+        this.swap('');
     }
 
     destroy() {
@@ -59,7 +63,7 @@ export class FocusSwapChain {
     }
 
     resizeContainer(dims: { width: number; height: number }) {
-        const parent = this.label.parentElement!;
+        const parent = this.label1.parentElement!;
         if (parent) {
             parent.style.width = `${dims.width}px`;
             parent.style.height = `${dims.height}px`;
@@ -71,9 +75,8 @@ export class FocusSwapChain {
     }
 
     update(newLabel?: string) {
-        if (newLabel && this.label.textContent !== newLabel) {
-            this.label.textContent = newLabel;
-            this.swap();
+        if (newLabel && this.label1.textContent !== newLabel) {
+            this.swap(newLabel);
         }
         if (this.focusedAnnouncer) {
             this.activeAnnouncer.focus();
@@ -88,9 +91,11 @@ export class FocusSwapChain {
         this.listeners[type].forEach((fn) => fn(event));
     }
 
-    private swap() {
+    private swap(newLabel: string) {
+        this.label2.textContent = newLabel;
         [this.inactiveAnnouncer, this.activeAnnouncer] = [this.activeAnnouncer, this.inactiveAnnouncer];
-        setAttribute(this.inactiveAnnouncer, 'tabindex', -1);
-        setAttribute(this.activeAnnouncer, 'tabindex', 0);
+        [this.label1, this.label2] = [this.label2, this.label1];
+        setAttributes(this.inactiveAnnouncer, { tabindex: -1, 'aria-labelledby': this.label1.id });
+        setAttributes(this.activeAnnouncer, { tabindex: 0, 'aria-labelledby': this.label1.id });
     }
 }
