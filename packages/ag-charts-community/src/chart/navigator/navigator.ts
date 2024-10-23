@@ -48,6 +48,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     @ActionOnSet<Navigator>({
         newValue(min) {
+            Logger.warnOnce(`Property [navigator.min] is deprecated. Use [initialState.zoom.ratioX] instead.`);
             this._min = min;
             this.updateZoom();
         },
@@ -57,6 +58,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     @ActionOnSet<Navigator>({
         newValue(max) {
+            Logger.warnOnce(`Property [navigator.max] is deprecated. Use [initialState.zoom.ratioX] instead.`);
             this._max = max;
             this.updateZoom();
         },
