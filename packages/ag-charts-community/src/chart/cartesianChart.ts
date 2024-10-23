@@ -17,7 +17,11 @@ import { ChartAxisDirection } from './chartAxisDirection';
 import { CartesianSeries } from './series/cartesian/cartesianSeries';
 import type { Series } from './series/series';
 
+type Dimension = 'x' | 'y';
+type Direction = -1 | 1;
+type AreaWidthMap = Map<AgCartesianAxisPosition, number>;
 type VisibilityMap = { crossLines: boolean; series: boolean };
+
 const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
 
 interface SyncModule extends ModuleInstance {
@@ -126,7 +130,7 @@ export class CartesianChart extends Chart {
     }
 
     private _lastCrossLineIds?: string[] = undefined;
-    private _lastAxisAreaWidths: Map<AgCartesianAxisPosition, number> = new Map();
+    private _lastAxisAreaWidths: AreaWidthMap = new Map();
     private _lastClipSeries: boolean = false;
     private _lastVisibility: VisibilityMap = {
         crossLines: true,
@@ -228,47 +232,12 @@ export class CartesianChart extends Chart {
             }
         } while (!stableOutputs(lastPassAxisAreaWidths, lastPassClipSeries, lastPassVisibility));
 
-        this.axes.forEach((axis) => {
+        for (const axis of this.axes) {
             axis.update();
-        });
-
-        const clipRectPadding = 5;
-        this.axes.forEach((axis) => {
-            // update visibility of crosslines
             axis.setCrossLinesVisible(visibility.crossLines);
 
-            if (!seriesRect) {
-                return;
-            }
-
-            axis.clipGrid(
-                seriesRect.x,
-                seriesRect.y,
-                seriesRect.width + clipRectPadding,
-                seriesRect.height + clipRectPadding
-            );
-
-            switch (axis.position) {
-                case 'left':
-                case 'right':
-                    axis.clipTickLines(
-                        layoutBox.x,
-                        seriesRect.y,
-                        layoutBox.width + clipRectPadding,
-                        seriesRect.height + clipRectPadding
-                    );
-                    break;
-                case 'top':
-                case 'bottom':
-                    axis.clipTickLines(
-                        seriesRect.x,
-                        layoutBox.y,
-                        seriesRect.width + clipRectPadding,
-                        layoutBox.height + clipRectPadding
-                    );
-                    break;
-            }
-        });
+            this.clipAxis(axis, seriesRect, layoutBox);
+        }
 
         this._lastAxisAreaWidths = axisAreaWidths;
         this._lastVisibility = visibility;
@@ -277,11 +246,7 @@ export class CartesianChart extends Chart {
         return { seriesRect, visibility, clipSeries };
     }
 
-    private updateAxesPass(
-        axisAreaWidths: Map<AgCartesianAxisPosition, number>,
-        bounds: BBox,
-        lastPassSeriesRect?: BBox
-    ) {
+    private updateAxesPass(axisAreaWidths: AreaWidthMap, bounds: BBox, lastPassSeriesRect?: BBox) {
         const axisWidths: Map<string, number> = new Map();
         const axisGroups: Map<AgCartesianAxisPosition, ChartAxis[]> = new Map();
         const visibility: Partial<VisibilityMap> = {
@@ -316,11 +281,29 @@ export class CartesianChart extends Chart {
         }
 
         // Step 2) calculate axis offsets and total depth for each position.
-        const newAxisAreaWidths = new Map<AgCartesianAxisPosition, number>();
+        const { width, height, canvas } = this.ctx.scene;
+        const newAxisAreaWidths: AreaWidthMap = new Map();
         const axisOffsets = new Map<string, number>();
+
         for (const [position, axes] of axisGroups.entries()) {
             const isVertical = position === 'left' || position === 'right';
-            newAxisAreaWidths.set(position, this.calculateAxisArea(axes, axisWidths, axisOffsets, isVertical));
+
+            // Adjust offset for pixel ratio to prevent alignment issues with series rendering.
+            let currentOffset = isVertical ? height % canvas.pixelRatio : width % canvas.pixelRatio;
+            let totalAxisWidth = 0;
+
+            for (const axis of axes) {
+                axisOffsets.set(axis.id, currentOffset);
+
+                const axisThickness = axisWidths.get(axis.id) ?? 0;
+                totalAxisWidth = Math.max(totalAxisWidth, currentOffset + axisThickness);
+                if (axis.layoutConstraints.stacked) {
+                    // for multiple axes in the same direction and position, apply padding at the top of each inner axis (i.e. between axes).
+                    currentOffset += axisThickness + 15;
+                }
+            }
+
+            newAxisAreaWidths.set(position, totalAxisWidth);
         }
 
         // Step 3) position all axes taking adjacent positions into account.
@@ -339,7 +322,7 @@ export class CartesianChart extends Chart {
         return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, visibility };
     }
 
-    private buildCrossLinePadding(axisAreaSize: Map<AgCartesianAxisPosition, number>) {
+    private buildCrossLinePadding(axisAreaSize: AreaWidthMap) {
         const crossLinePadding: Partial<Record<AgCartesianAxisPosition, number>> = {};
 
         this.axes.forEach((axis) => {
@@ -371,7 +354,7 @@ export class CartesianChart extends Chart {
 
     private buildAxisBound(
         bounds: BBox,
-        axisAreaWidths: Map<AgCartesianAxisPosition, number>,
+        axisAreaWidths: AreaWidthMap,
         crossLinePadding: Partial<Record<AgCartesianAxisPosition, number>>,
         visibility: Partial<VisibilityMap>
     ) {
@@ -396,7 +379,7 @@ export class CartesianChart extends Chart {
         return result;
     }
 
-    private buildSeriesRect(axisBound: BBox, axisAreaWidths: Map<AgCartesianAxisPosition, number>) {
+    private buildSeriesRect(axisBound: BBox, axisAreaWidths: AreaWidthMap) {
         const result = axisBound.clone();
         result.x += axisAreaWidths.get('left') ?? 0;
         result.y += axisAreaWidths.get('top') ?? 0;
@@ -410,7 +393,7 @@ export class CartesianChart extends Chart {
         return result;
     }
 
-    private clampToOutsideSeriesRect(seriesRect: BBox, value: number, dimension: 'x' | 'y', direction: -1 | 1) {
+    private clampToOutsideSeriesRect(seriesRect: BBox, value: number, dimension: Dimension, direction: Direction) {
         const { x, y, width, height } = seriesRect;
         const clampBounds = [x, y, x + width, y + height];
         const compareTo = clampBounds[(dimension === 'x' ? 0 : 1) + (direction === 1 ? 0 : 2)];
@@ -507,54 +490,29 @@ export class CartesianChart extends Chart {
         axis.gridLength = isLeftRight ? width : height;
     }
 
-    private calculateAxisArea(
-        axes: ChartAxis[],
-        axisWidths: Map<string, number>,
-        axisOffsets: Map<string, number>,
-        isVertical: boolean
-    ) {
-        const { width, height, canvas } = this.ctx.scene;
-        // Adjust offset for pixel ratio to prevent alignment issues with series rendering.
-        let currentOffset = isVertical ? height % canvas.pixelRatio : width % canvas.pixelRatio;
-        let totalAxisWidth = 0;
-
-        for (const axis of axes) {
-            axisOffsets.set(axis.id, currentOffset);
-
-            const axisThickness = axisWidths.get(axis.id) ?? 0;
-            totalAxisWidth = Math.max(totalAxisWidth, currentOffset + axisThickness);
-            if (axis.layoutConstraints.stacked) {
-                // for multiple axes in the same direction and position, apply padding at the top of each inner axis (i.e. between axes).
-                currentOffset += axisThickness + 15;
-            }
-        }
-
-        return totalAxisWidth;
-    }
-
     private positionAxes(opts: {
         axes: ChartAxis[];
         position: AgCartesianAxisPosition;
         axisBound: BBox;
         axisWidths: Map<string, number>;
         axisOffsets: Map<string, number>;
-        axisAreaWidths: Map<AgCartesianAxisPosition, number>;
+        axisAreaWidths: AreaWidthMap;
         seriesRect: BBox;
     }) {
         const { axes, axisBound, axisWidths, axisOffsets, axisAreaWidths, seriesRect, position } = opts;
         const axisAreaWidth = axisAreaWidths.get(position) ?? 0;
 
-        let mainDimension: 'x' | 'y' = 'x';
-        let minorDimension: 'x' | 'y' = 'y';
-        let direction: -1 | 1 = 1;
-        let axisBoundMainOffset = 0;
+        let mainDimension: Dimension = 'x';
+        let minorDimension: Dimension = 'y';
+        let direction: Direction = 1;
+
         if (position === 'top' || position === 'bottom') {
             mainDimension = 'y';
             minorDimension = 'x';
-            axisBoundMainOffset += 1; // TODO: Not sure we need this extra 1px!
         }
 
-        axisBoundMainOffset += axisBound[mainDimension];
+        let axisBoundMainOffset = axisBound[mainDimension];
+
         if (position === 'right' || position === 'bottom') {
             direction = -1;
             axisBoundMainOffset += mainDimension === 'x' ? axisBound.width : axisBound.height;
@@ -582,5 +540,38 @@ export class CartesianChart extends Chart {
     private shouldFlipXY() {
         // Only flip the xy axes if all the series agree on flipping
         return this.series.every((series) => series instanceof CartesianSeries && series.shouldFlipXY());
+    }
+
+    private clipAxis(axis: ChartAxis, seriesRect: BBox, layoutBBox: BBox) {
+        const gridLinePadding = Math.ceil((axis.gridLine?.width ?? 0) / 2);
+        const axisLinePadding = Math.ceil(axis.line?.width ?? 0);
+
+        let { width, height } = seriesRect;
+
+        width += axis.direction === ChartAxisDirection.X ? gridLinePadding : axisLinePadding;
+        height += axis.direction === ChartAxisDirection.Y ? gridLinePadding : axisLinePadding;
+
+        axis.clipGrid(seriesRect.x, seriesRect.y, width, height);
+
+        switch (axis.position) {
+            case 'left':
+            case 'right':
+                axis.clipTickLines(
+                    layoutBBox.x,
+                    seriesRect.y,
+                    layoutBBox.width + gridLinePadding,
+                    seriesRect.height + gridLinePadding
+                );
+                break;
+            case 'top':
+            case 'bottom':
+                axis.clipTickLines(
+                    seriesRect.x,
+                    layoutBBox.y,
+                    seriesRect.width + gridLinePadding,
+                    layoutBBox.height + gridLinePadding
+                );
+                break;
+        }
     }
 }
