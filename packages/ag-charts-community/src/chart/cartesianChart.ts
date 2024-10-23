@@ -195,15 +195,14 @@ export class CartesianChart extends Chart {
             }
         }
 
+        const totalWidth = (axisAreaWidths.get('left') ?? 0) + (axisAreaWidths.get('right') ?? 0);
+        const totalHeight = (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0);
         const crossLinePadding = this.buildCrossLinePadding(axisAreaWidths);
-        const { top = 0, right = 0, bottom = 0, left = 0 } = crossLinePadding;
-        const horizontalPadding = left + right;
-        const verticalPadding = top + bottom;
 
-        const totalWidth = (axisAreaWidths.get('left') ?? 0) + (axisAreaWidths.get('right') ?? 0) + horizontalPadding;
-        const totalHeight = (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0) + verticalPadding;
-
-        if (axisAreaBound.width <= totalWidth || axisAreaBound.height <= totalHeight) {
+        if (
+            axisAreaBound.width <= totalWidth + crossLinePadding.horizontal ||
+            axisAreaBound.height <= totalHeight + crossLinePadding.vertical
+        ) {
             // Not enough space for rendering
             overflows = true;
         } else {
@@ -219,13 +218,13 @@ export class CartesianChart extends Chart {
             this.sizeAxis(axis, seriesRect, position);
 
             const syncedDomain = this.getSyncedDomain(axis);
-            const layout = axis.calculateLayout(syncedDomain, axis.nice ? primaryTickCounts[direction] : undefined);
             const isVertical = direction === ChartAxisDirection.Y;
+            const layout = axis.calculateLayout(syncedDomain, axis.nice ? primaryTickCounts[direction] : undefined);
 
             primaryTickCounts[direction] ??= layout.primaryTickCount;
             clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
 
-            axisWidths.set(axis.id, Math.ceil(axis.thickness || isVertical ? layout.bbox.width : layout.bbox.height));
+            axisWidths.set(axis.id, Math.ceil(axis.thickness || (isVertical ? layout.bbox.width : layout.bbox.height)));
         }
 
         const axisGroups = Object.entries(groupBy(this.axes, (axis) => axis.position ?? 'left')) as [
