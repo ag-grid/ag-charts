@@ -64,7 +64,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private colorPickerAnchorElement?: HTMLElement;
     private dragStartState?: { client: _ModuleSupport.Vec2; position: _ModuleSupport.Vec2 };
     private seriesRect?: _Scene.BBox;
-    private initialFocus?: HTMLElement;
 
     constructor(ctx: _ModuleSupport.ModuleContext, id: string) {
         super(ctx, id);
@@ -72,8 +71,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     }
 
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
-        options.initialFocus ??= this.initialFocus;
-
         const popover = super.showWithChildren(children, options);
         popover.classList.add('ag-charts-dialog');
         popover.setAttribute('role', 'dialog');
@@ -167,9 +164,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         onPressTab(initial);
         initRovingTabIndex({ orientation: 'horizontal', buttons: Object.values(tabButtons) });
 
-        this.initialFocus = tabButtons[initial];
-
-        return element;
+        return { tabs: element, initialFocus: tabButtons[initial] };
     }
 
     protected createTabPanel() {

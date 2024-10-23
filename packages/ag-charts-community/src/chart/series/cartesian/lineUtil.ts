@@ -1,355 +1,112 @@
 import { type FromToFns, NODE_UPDATE_STATE_TO_PHASE_MAPPING, type NodeUpdateState } from '../../../motion/fromToMotion';
+import type { Point } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
-import { transformIntegratedCategoryValue } from '../../../util/value';
 import type { ProcessedOutputDiff } from '../../data/dataModel';
-import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
+import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
+import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import type { InterpolationProperties } from './interpolationProperties';
-import { prepareMarkerAnimation } from './markerUtil';
-import type {
-    BackfillSplitMode,
-    PartialPathPoint,
-    PathNodeDatumLike,
-    PathPoint,
-    PathPointChange,
-    PathPointMap,
-} from './pathUtil';
-import { backfillPathPointData, minMax, renderPartialPath } from './pathUtil';
-import { type Scaling, areScalingEqual, isScaleValid } from './scaling';
+import { type Span, SpanJoin, linearPoints, smoothPoints, spanRange, stepPoints } from './lineInterpolation';
+import { interpolatedSpanRange, plotInterpolatedSpans, plotSpan } from './lineInterpolationPlotting';
+import { CollapseMode, type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
+import { areScalingEqual, isScaleValid } from './scaling';
 
-export function* pathRanges<T extends { point: PartialPathPoint }>(points: T[]) {
-    let start = -1;
-    let end = 0;
-    for (const { point } of points) {
-        if (point.moveTo) {
-            const range = start >= 0 ? { start, end } : undefined;
-            start = end;
-            end = start;
-
-            if (range !== undefined) {
-                yield range;
-            }
-        }
-
-        end += 1;
-    }
-
-    if (start !== -1) {
-        yield { start, end };
-    }
-}
-
-export function* pathRangePoints<T extends { point: PartialPathPoint }>(
-    points: T[],
-    { start, end }: { start: number; end: number }
-) {
-    for (let i = start; i < end; i += 1) {
-        yield points[i].point;
-    }
-}
-
-export function* pathRangePointsReverse<T extends { point: PartialPathPoint }>(
-    points: T[],
-    { start, end }: { start: number; end: number }
-) {
-    for (let i = end - 1; i >= start; i -= 1) {
-        yield points[i].point;
-    }
-}
-
-function integratedCategoryMatch(a: unknown, b: unknown) {
-    if (a == null || b == null) return false;
-    if (typeof a !== 'object' || typeof b !== 'object') return false;
-
-    if ('id' in a && 'id' in b) {
-        return a.id === b.id;
-    }
-
-    return a.toString() === b.toString();
-}
-
-export function scale(val: number | string | Date, scaling?: Scaling) {
-    if (!scaling) return NaN;
-
-    if (val instanceof Date) {
-        val = val.getTime();
-    }
-    if (scaling.type === 'continuous' && typeof val === 'number') {
-        const domainRatio = (val - scaling.domain[0]) / (scaling.domain[1] - scaling.domain[0]);
-        return domainRatio * (scaling.range[1] - scaling.range[0]) + scaling.range[0];
-    }
-    if (scaling.type === 'log' && typeof val === 'number') {
-        return scaling.convert(val);
-    }
-
-    // Category axis case.
-    const matchingIndex = scaling.domain.findIndex((d) => d === val);
-    if (matchingIndex >= 0) {
-        return scaling.range[matchingIndex];
-    }
-
-    // Integrated Charts category case.
-    const matchingIntegratedIndex = scaling.domain.findIndex((d) => integratedCategoryMatch(val, d));
-    if (matchingIntegratedIndex >= 0) {
-        return scaling.range[matchingIntegratedIndex];
-    }
-
-    // We failed to convert using the scale.
-    return NaN;
-}
-
-function scalesChanged(newData: LineContextLike, oldData: LineContextLike) {
-    return !areScalingEqual(newData.scales.x, oldData.scales.x) || !areScalingEqual(newData.scales.y, oldData.scales.y);
-}
-
-function closeMatch<T extends number | string>(a: T, b: T) {
-    const an = Number(a);
-    const bn = Number(b);
-    if (!isNaN(an) && !isNaN(bn)) {
-        return Math.abs(bn - an) < 0.25;
-    }
-    return a === b;
-}
-
-function calculateMoveTo(from = false, to = false): PathPoint['moveTo'] {
-    if (from === to) {
-        return Boolean(from);
-    }
-
-    return from ? 'in' : 'out';
-}
-
-type LineContextLike = {
-    scales: CartesianSeriesNodeDataContext['scales'];
-    nodeData: PathNodeDatumLike[];
-    visible: boolean;
+export type LinePathSpan = {
+    span: Span;
+    xValue0: any;
+    yValue0: any;
+    xValue1: any;
+    yValue1: any;
 };
 
-export function pairContinuousData(
-    newData: LineContextLike,
-    oldData: LineContextLike,
-    opts: {
-        backfillSplitMode?: BackfillSplitMode;
-    } = {}
-) {
-    const { backfillSplitMode = 'intersect' } = opts;
+export type LineStrokePathDatum = {
+    readonly spans: LinePathSpan[];
+    readonly itemId: string;
+};
 
-    const result: PathPoint[] = [];
-    const resultMap: {
-        [key in 'moved' | 'added' | 'removed']: { [key: string | number]: PathPoint };
-    } = {
-        added: {},
-        moved: {},
-        removed: {},
-    };
-
-    const pairUp = (
-        from?: PathNodeDatumLike,
-        to?: PathNodeDatumLike,
-        xValue?: any,
-        change: PathPointChange = 'move'
-    ) => {
-        if (from && (isNaN(from.point.x) || isNaN(from.point.y))) {
-            // Default to 'to' position if 'from' is invalid.
-            from = to;
-        }
-        const resultPoint = {
-            from: from?.point,
-            to: to?.point,
-            moveTo: calculateMoveTo(from?.point.moveTo, to?.point.moveTo),
-            change,
-        };
-        if (change === 'move') {
-            resultMap.moved[xValue] = resultPoint;
-            oldIdx++;
-            newIdx++;
-        } else if (change === 'in') {
-            resultMap.added[xValue] = resultPoint;
-            newIdx++;
-        } else if (change === 'out') {
-            resultMap.removed[xValue] = resultPoint;
-            oldIdx++;
-        }
-        result.push(resultPoint);
-    };
-
-    const { min: minFromNode, max: maxFromNode } = minMax(oldData.nodeData);
-    const { min: minToNode, max: maxToNode } = minMax(newData.nodeData);
-
-    let oldIdx = 0;
-    let newIdx = 0;
-    while (oldIdx < oldData.nodeData.length || newIdx < newData.nodeData.length) {
-        const from = oldData.nodeData[oldIdx];
-        const to = newData.nodeData[newIdx];
-
-        const fromShifted = from ? scale(from.xValue ?? NaN, newData.scales.x) : undefined;
-        const toUnshifted = to ? scale(to.xValue ?? NaN, oldData.scales.x) : undefined;
-
-        const NA = undefined;
-        if (fromShifted != null && closeMatch(fromShifted, to?.point.x)) {
-            pairUp(from, to, to.xValue, 'move');
-        } else if (fromShifted != null && fromShifted < (minToNode?.point.x ?? -Infinity)) {
-            pairUp(from, NA, from.xValue, 'out');
-        } else if (fromShifted != null && fromShifted > (maxToNode?.point.x ?? Infinity)) {
-            pairUp(from, NA, from.xValue, 'out');
-        } else if (toUnshifted != null && toUnshifted < (minFromNode?.point.x ?? -Infinity)) {
-            pairUp(NA, to, to.xValue, 'in');
-        } else if (toUnshifted != null && toUnshifted > (maxFromNode?.point.x ?? Infinity)) {
-            pairUp(NA, to, to.xValue, 'in');
-        } else if (fromShifted != null && fromShifted < to?.point.x) {
-            pairUp(from, NA, from.xValue, 'out');
-        } else if (toUnshifted != null && toUnshifted < from?.point.x) {
-            pairUp(NA, to, to.xValue, 'in');
-        } else if (from) {
-            pairUp(from, NA, from.xValue, 'out');
-        } else if (to) {
-            pairUp(NA, to, to.xValue, 'in');
-        } else {
-            throw new Error('Unable to process points');
-        }
-    }
-
-    backfillPathPointData(result, backfillSplitMode);
-    return { result, resultMap };
+export interface SpanAnimation {
+    added: SpanInterpolation[];
+    moved: SpanInterpolation[];
+    removed: SpanInterpolation[];
 }
 
-export function pairCategoryData(
-    newData: LineContextLike,
-    oldData: LineContextLike,
-    diff: ProcessedOutputDiff | undefined,
-    opts: {
-        backfillSplitMode?: BackfillSplitMode;
-        multiDatum?: boolean;
-    } = {}
-) {
-    const { backfillSplitMode = 'intersect', multiDatum = false } = opts;
-    const result: PathPoint[] = [];
-    const resultMapSingle: PathPointMap<false> = {
-        added: {},
-        moved: {},
-        removed: {},
-    };
-    const resultMapMulti: PathPointMap<true> = {
-        added: {},
-        moved: {},
-        removed: {},
-    };
-    const pointResultMapping: Record<PathPoint['change'], keyof PathPointMap<any>> = {
-        in: 'added',
-        move: 'moved',
-        out: 'removed',
-    };
+export type LineSpanPointDatum = {
+    point: Point;
+    xDatum: any;
+    yDatum: any;
+};
 
-    let previousResultPoint: PathPoint | undefined = undefined;
-    let previousXValue = undefined;
-    const addToResultMap = (xValue: string, newPoint: PathPoint) => {
-        const type = pointResultMapping[newPoint.change];
-        if (multiDatum) {
-            resultMapMulti[type][xValue] ??= [];
-            resultMapMulti[type][xValue].push(newPoint);
-        } else {
-            resultMapSingle[type][xValue] = newPoint;
-        }
+export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
+    readonly point: NonNullable<CartesianSeriesNodeDatum['point']>;
+    readonly labelText?: string;
+    readonly selected: boolean | undefined;
+}
 
-        previousResultPoint = newPoint;
-        previousXValue = transformIntegratedCategoryValue(xValue);
-    };
+export interface LineSeriesNodeDataContext extends CartesianSeriesNodeDataContext<LineNodeDatum> {
+    strokeData: LineStrokePathDatum;
+    crossFiltering: boolean;
+}
 
-    let oldIndex = 0;
-    let newIndex = 0;
-    let isXUnordered = false;
-    while (oldIndex < oldData.nodeData.length || newIndex < newData.nodeData.length) {
-        const before = oldData.nodeData[oldIndex];
-        const after = newData.nodeData[newIndex];
-        const bXValue = transformIntegratedCategoryValue(before?.xValue);
-        const aXValue = transformIntegratedCategoryValue(after?.xValue);
-
-        let resultPoint: PathPoint;
-        if (bXValue === aXValue) {
-            resultPoint = {
-                change: 'move',
-                moveTo: calculateMoveTo(before.point.moveTo ?? false, after.point.moveTo),
-                from: before.point,
-                to: after.point,
-            };
-            addToResultMap(before?.xValue, resultPoint);
-            oldIndex++;
-            newIndex++;
-        } else if (diff?.removed.has(String(bXValue))) {
-            resultPoint = {
-                change: 'out',
-                moveTo: before.point.moveTo ?? false,
-                from: before.point,
-            };
-            addToResultMap(before?.xValue, resultPoint);
-            oldIndex++;
-        } else if (diff?.added.has(String(aXValue))) {
-            resultPoint = {
-                change: 'in',
-                moveTo: after.point.moveTo ?? false,
-                to: after.point,
-            };
-            addToResultMap(after?.xValue, resultPoint);
-            newIndex++;
-        } else if (multiDatum && previousResultPoint && previousXValue === bXValue) {
-            resultPoint = {
-                ...(previousResultPoint as PathPoint),
-            };
-            addToResultMap(before?.xValue, resultPoint);
-            oldIndex++;
-        } else if (multiDatum && previousResultPoint && previousXValue === aXValue) {
-            resultPoint = {
-                ...(previousResultPoint as PathPoint),
-            };
-            addToResultMap(after?.xValue, resultPoint);
-            newIndex++;
-        } else {
-            isXUnordered = true;
+export function interpolatePoints(
+    points: LineSpanPointDatum[],
+    interpolation: InterpolationProperties
+): LinePathSpan[] {
+    let spans: Span[];
+    const pointsIter = points.map((point) => point.point);
+    switch (interpolation.type) {
+        case 'linear':
+            spans = linearPoints(pointsIter);
             break;
-        }
-
-        result.push(resultPoint);
+        case 'smooth':
+            spans = smoothPoints(pointsIter, interpolation.tension);
+            break;
+        case 'step':
+            spans = stepPoints(pointsIter, interpolation.position);
+            break;
     }
-
-    let previousX = -Infinity;
-    isXUnordered ||= result.some((pathPoint) => {
-        const { change: marker, to: { x = -Infinity } = {} } = pathPoint;
-
-        if (marker === 'out') return;
-        const unordered = x < previousX;
-        previousX = x;
-        return unordered;
-    });
-    if (isXUnordered) {
-        return { result: undefined, resultMap: undefined };
-    }
-
-    backfillPathPointData(result, backfillSplitMode);
-
-    return { result, resultMap: multiDatum ? resultMapMulti : resultMapSingle };
+    return spans.map((span, i) => ({
+        span,
+        xValue0: points[i].xDatum,
+        yValue0: points[i].yDatum,
+        xValue1: points[i + 1].xDatum,
+        yValue1: points[i + 1].yDatum,
+    }));
 }
 
-export function determinePathStatus(newData: LineContextLike, oldData: LineContextLike, pairData: PathPoint[]) {
-    let status: NodeUpdateState = 'updated';
+function pointsEq(a: Point, b: Point, delta = 1e-3) {
+    return Math.abs(a.x - b.x) < delta && Math.abs(a.y - b.y) < delta;
+}
 
-    const visible = (data: LineContextLike) => {
-        return data.visible;
-    };
-
-    if (!visible(oldData) && visible(newData)) {
-        status = 'added';
-    } else if (visible(oldData) && !visible(newData)) {
-        status = 'removed';
-    } else {
-        // Verify some points are actually moving.
-        for (let i = 0; i < pairData.length; i++) {
-            if (pairData[i].change !== 'move') break;
-            if (pairData[i].from?.x !== pairData[i].to?.x) break;
-            if (pairData[i].from?.y !== pairData[i].to?.y) break;
-
-            if (i === pairData.length - 1) return 'no-op';
-        }
+export function plotLinePathStroke({ path }: Path, spans: LinePathSpan[]) {
+    let lastPoint: Point | undefined;
+    for (const { span } of spans) {
+        const [start, end] = spanRange(span);
+        const join = lastPoint != null && pointsEq(lastPoint, start) ? SpanJoin.LineTo : SpanJoin.MoveTo;
+        plotSpan(path, span, join, false);
+        lastPoint = end;
     }
-    return status;
+}
+
+export function plotInterpolatedLinePathStroke(ratio: number, path: Path, spans: SpanInterpolation[]) {
+    let lastPoint: Point | undefined;
+    for (const span of spans) {
+        const [start, end] = interpolatedSpanRange(span.from, span.to, ratio);
+        const join = lastPoint != null && pointsEq(lastPoint, start) ? SpanJoin.LineTo : SpanJoin.MoveTo;
+        plotInterpolatedSpans(path.path, span.from, span.to, ratio, join, false);
+        lastPoint = end;
+    }
+}
+
+export function prepareLinePathStrokeAnimationFns(
+    status: NodeUpdateState,
+    spans: SpanAnimation,
+    visibleToggleMode: 'fade' | 'none'
+) {
+    const removePhaseFn = (ratio: number, path: Path) => plotInterpolatedLinePathStroke(ratio, path, spans.removed);
+    const updatePhaseFn = (ratio: number, path: Path) => plotInterpolatedLinePathStroke(ratio, path, spans.moved);
+    const addPhaseFn = (ratio: number, path: Path) => plotInterpolatedLinePathStroke(ratio, path, spans.added);
+    const pathProperties = prepareLinePathPropertyAnimation(status, visibleToggleMode);
+
+    return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
 }
 
 export function prepareLinePathPropertyAnimation(
@@ -391,39 +148,10 @@ export function prepareLinePathPropertyAnimation(
     return result;
 }
 
-export function prepareLinePathAnimationFns(
-    newData: LineContextLike,
-    oldData: LineContextLike,
-    pairData: PathPoint[],
-    visibleToggleMode: 'fade' | 'none',
-    interpolation: InterpolationProperties | undefined,
-    render: (
-        pairData: PathPoint[],
-        ratios: Partial<Record<PathPointChange, number>>,
-        path: Path,
-        interpolation: InterpolationProperties | undefined
-    ) => void
-) {
-    const status: NodeUpdateState = determinePathStatus(newData, oldData, pairData);
-    const removePhaseFn = (ratio: number, path: Path) => {
-        render(pairData, { move: 0, out: ratio }, path, interpolation);
-    };
-    const updatePhaseFn = (ratio: number, path: Path) => {
-        render(pairData, { move: ratio }, path, interpolation);
-    };
-    const addPhaseFn = (ratio: number, path: Path) => {
-        render(pairData, { move: 1, in: ratio }, path, interpolation);
-    };
-    const pathProperties = prepareLinePathPropertyAnimation(status, visibleToggleMode);
-
-    return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
-}
-
 export function prepareLinePathAnimation(
-    newData: LineContextLike,
-    oldData: LineContextLike,
-    diff: ProcessedOutputDiff | undefined,
-    interpolation: InterpolationProperties | undefined
+    newData: LineSeriesNodeDataContext,
+    oldData: LineSeriesNodeDataContext,
+    diff: ProcessedOutputDiff | undefined
 ) {
     const isCategoryBased = newData.scales.x?.type === 'category';
     const wasCategoryBased = oldData.scales.x?.type === 'category';
@@ -431,24 +159,26 @@ export function prepareLinePathAnimation(
         // Not comparable.
         return;
     }
-
-    const { result: pairData, resultMap: pairMap } = isCategoryBased
-        ? pairCategoryData(newData, oldData, diff)
-        : pairContinuousData(newData, oldData);
-
-    let status: NodeUpdateState = 'updated';
+    let status: NodeUpdateState = 'updated' as NodeUpdateState;
     if (oldData.visible && !newData.visible) {
         status = 'removed';
     } else if (!oldData.visible && newData.visible) {
         status = 'added';
     }
 
-    if (pairData === undefined || pairMap === undefined) {
-        return;
-    }
+    const strokeSpans = pairUpSpans(
+        { scales: newData.scales, data: newData.strokeData.spans },
+        { scales: oldData.scales, data: oldData.strokeData.spans },
+        CollapseMode.Split
+    );
 
-    const hasMotion = (diff?.changed ?? true) || scalesChanged(newData, oldData) || status !== 'updated';
-    const pathFns = prepareLinePathAnimationFns(newData, oldData, pairData, 'fade', interpolation, renderPartialPath);
-    const marker = prepareMarkerAnimation(pairMap, status);
-    return { ...pathFns, marker, hasMotion };
+    const stroke = prepareLinePathStrokeAnimationFns(status, strokeSpans, 'fade');
+
+    const hasMotion =
+        (diff?.changed ?? true) ||
+        !areScalingEqual(newData.scales.x, oldData.scales.x) ||
+        !areScalingEqual(newData.scales.y, oldData.scales.y) ||
+        status !== 'updated';
+
+    return { status, stroke, hasMotion };
 }

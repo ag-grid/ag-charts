@@ -77,6 +77,10 @@ export class MapLineSeries
         });
     }
 
+    override renderToOffscreenCanvas(): boolean {
+        return true;
+    }
+
     override setSeriesIndex(index: number): boolean {
         if (!super.setSeriesIndex(index)) return false;
 

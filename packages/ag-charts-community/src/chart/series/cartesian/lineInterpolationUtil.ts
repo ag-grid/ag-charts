@@ -1,7 +1,7 @@
 import { transformIntegratedCategoryValue } from '../../../util/value';
 import type { CartesianSeriesNodeDataContext } from './cartesianSeries';
-import { type Span, clipSpanX, rescaleSpan, spanRange } from './lineInterpolation';
-import { scale } from './lineUtil';
+import { type Span, clipSpanX, collapseSpanToPoint, rescaleSpan, spanRange } from './lineInterpolation';
+import type { Scaling } from './scaling';
 
 type AxisValue = string | number;
 
@@ -16,7 +16,6 @@ export interface SpanDatum {
 export interface SpanContext {
     scales: CartesianSeriesNodeDataContext['scales'];
     data: SpanDatum[];
-    visible: boolean;
     zeroData?: SpanDatum[];
 }
 
@@ -43,22 +42,73 @@ interface SpanIndices {
     datumIndex: number;
 }
 
+export enum CollapseMode {
+    Zero,
+    Split,
+}
+
+function integratedCategoryMatch(a: unknown, b: unknown) {
+    if (a == null || b == null) return false;
+    if (typeof a !== 'object' || typeof b !== 'object') return false;
+
+    if ('id' in a && 'id' in b) {
+        return a.id === b.id;
+    }
+
+    return a.toString() === b.toString();
+}
+
+export function scale(val: number | string | Date, scaling?: Scaling) {
+    if (!scaling) return NaN;
+
+    if (val instanceof Date) {
+        val = val.getTime();
+    }
+    if (scaling.type === 'continuous' && typeof val === 'number') {
+        const domainRatio = (val - scaling.domain[0]) / (scaling.domain[1] - scaling.domain[0]);
+        return domainRatio * (scaling.range[1] - scaling.range[0]) + scaling.range[0];
+    }
+    if (scaling.type === 'log' && typeof val === 'number') {
+        return scaling.convert(val);
+    }
+
+    // Category axis case.
+    const matchingIndex = scaling.domain.findIndex((d) => d === val);
+    if (matchingIndex >= 0) {
+        return scaling.range[matchingIndex];
+    }
+
+    // Integrated Charts category case.
+    const matchingIntegratedIndex = scaling.domain.findIndex((d) => integratedCategoryMatch(val, d));
+    if (matchingIntegratedIndex >= 0) {
+        return scaling.range[matchingIntegratedIndex];
+    }
+
+    // We failed to convert using the scale.
+    return NaN;
+}
+
+interface ValueEntry {
+    axisValue: AxisValue;
+    value: any;
+}
+
 function toAxisValue(value: any) {
     return transformIntegratedCategoryValue(value).valueOf();
 }
 
-function getAxisIndices({ data }: SpanContext, axisValues: any[]): SpanIndices[] {
+function getAxisIndices({ data }: SpanContext, values: any[]): SpanIndices[] {
     return data.map((datum, datumIndex) => ({
-        xValue0Index: axisValues.indexOf(toAxisValue(datum.xValue0)),
-        xValue1Index: axisValues.indexOf(toAxisValue(datum.xValue1)),
+        xValue0Index: values.indexOf(toAxisValue(datum.xValue0)),
+        xValue1Index: values.indexOf(toAxisValue(datum.xValue1)),
         datumIndex,
     }));
 }
 
-function validateAxisValuesOrder(axisValues: any[], data: SpanContext) {
+function validateAxisEntriesOrder(axisValues: ValueEntry[], data: SpanContext) {
     let x0 = -Infinity;
     for (const axisValue of axisValues) {
-        const x = scale(axisValue, data.scales.x);
+        const x = scale(axisValue.value, data.scales.x);
         if (!Number.isFinite(x)) {
             continue;
         } else if (x < x0) {
@@ -75,53 +125,55 @@ function validateAxisValuesOrder(axisValues: any[], data: SpanContext) {
 function getAxisValues(newData: SpanContext, oldData: SpanContext): AxisContext | undefined {
     // Old and new axis values might not be directly comparable
     // Array.sort does not handle this case
-    const allAxisValues = new Set<AxisValue>();
+    const allAxisEntries = new Map<AxisValue, any>();
     for (const { xValue0, xValue1 } of newData.data) {
         const xValue0Value = toAxisValue(xValue0);
         const xValue1Value = toAxisValue(xValue1);
-        allAxisValues.add(xValue0Value).add(xValue1Value);
+        allAxisEntries.set(xValue0Value, xValue0).set(xValue1Value, xValue1);
     }
 
-    const newAxisValues = Array.from(allAxisValues).sort((a, b) => {
-        return scale(a, newData.scales.x) - scale(b, newData.scales.x);
+    const newAxisEntries = Array.from(allAxisEntries, ([axisValue, value]): ValueEntry => ({ axisValue, value }));
+    newAxisEntries.sort((a, b) => {
+        return scale(a.value, newData.scales.x) - scale(b.value, newData.scales.x);
     });
 
-    const exclusivelyOldAxisValues = [];
+    const exclusivelyOldAxisEntries: ValueEntry[] = [];
     for (const { xValue0, xValue1 } of oldData.data) {
         const xValue0Value = toAxisValue(xValue0);
         const xValue1Value = toAxisValue(xValue1);
-        if (!allAxisValues.has(xValue0Value)) {
-            allAxisValues.add(xValue0Value);
-            exclusivelyOldAxisValues.push(xValue0Value);
+        if (!allAxisEntries.has(xValue0Value)) {
+            allAxisEntries.set(xValue0Value, xValue0);
+            exclusivelyOldAxisEntries.push({ axisValue: xValue0Value, value: xValue0 });
         }
-        if (!allAxisValues.has(xValue1Value)) {
-            allAxisValues.add(xValue1Value);
-            exclusivelyOldAxisValues.push(xValue1Value);
+        if (!allAxisEntries.has(xValue1Value)) {
+            allAxisEntries.set(xValue1Value, xValue1);
+            exclusivelyOldAxisEntries.push({ axisValue: xValue1Value, value: xValue1 });
         }
     }
 
-    exclusivelyOldAxisValues.sort((a, b) => {
-        return scale(a, oldData.scales.x) - scale(b, oldData.scales.x);
+    exclusivelyOldAxisEntries.sort((a, b) => {
+        return scale(a.value, oldData.scales.x) - scale(b.value, oldData.scales.x);
     });
 
-    const axisValues = newAxisValues;
+    const axisEntries = newAxisEntries;
     let insertionIndex = 0;
-    for (const oldValue of exclusivelyOldAxisValues) {
-        inner: for (let i = axisValues.length; i > insertionIndex; i -= 1) {
-            const oldValueX = scale(oldValue, oldData.scales.x);
-            const newValueX = scale(axisValues[i], oldData.scales.x);
+    for (const oldAxisEntries of exclusivelyOldAxisEntries) {
+        inner: for (let i = axisEntries.length - 1; i > insertionIndex; i -= 1) {
+            const oldValueX = scale(oldAxisEntries.value, oldData.scales.x);
+            const newValueX = scale(axisEntries[i].value, oldData.scales.x);
             if (oldValueX > newValueX) {
                 insertionIndex = i + 1;
                 break inner;
             }
         }
 
-        axisValues.splice(insertionIndex, 0, oldValue);
+        axisEntries.splice(insertionIndex, 0, oldAxisEntries);
         insertionIndex += 1;
     }
 
-    if (!validateAxisValuesOrder(axisValues, oldData)) return;
+    if (!validateAxisEntriesOrder(axisEntries, oldData)) return;
 
+    const axisValues = axisEntries.map((axisEntry) => axisEntry.axisValue);
     const oldDataAxisIndices = getAxisIndices(oldData, axisValues);
     const newDataAxisIndices = getAxisIndices(newData, axisValues);
 
@@ -144,8 +196,17 @@ function axisZeroSpan(span: Span, data: SpanContext) {
     return rescaleSpan(span, { x: r0.x, y: y0 }, { x: r1.x, y: y0 });
 }
 
+function collapseSpanToMidpoint(span: Span) {
+    const [r0, r1] = spanRange(span);
+    return collapseSpanToPoint(span, {
+        x: (r0.x + r1.x) / 2,
+        y: (r0.y + r1.y) / 2,
+    });
+}
+
 function collapseSpan(
     span: Span,
+    collapseMode: CollapseMode,
     data: SpanContext,
     axisIndices: SpanIndices[],
     indices: SpanIndices,
@@ -167,7 +228,12 @@ function collapseSpan(
     }
 
     if (xValue == null || yValue == null) {
-        return axisZeroSpan(span, data);
+        switch (collapseMode) {
+            case CollapseMode.Zero:
+                return axisZeroSpan(span, data);
+            case CollapseMode.Split:
+                return collapseSpanToMidpoint(span);
+        }
     }
 
     const x = scale(xValue, data.scales.x);
@@ -178,15 +244,20 @@ function collapseSpan(
 }
 
 function zeroDataSpan(spanDatum: SpanDatum, zeroData: SpanDatum[] | undefined) {
+    if (zeroData == null) return;
+
     const newSpanXValue0 = toAxisValue(spanDatum.xValue0);
     const newSpanXValue1 = toAxisValue(spanDatum.xValue1);
-    return zeroData?.find(
-        (span) => toAxisValue(span.xValue0) === newSpanXValue0 && toAxisValue(span.xValue1) === newSpanXValue1
+    return zeroData.find(
+        (zeroSpanDatum) =>
+            toAxisValue(zeroSpanDatum.xValue0) === newSpanXValue0 &&
+            toAxisValue(zeroSpanDatum.xValue1) === newSpanXValue1
     )?.span;
 }
 
 function addSpan(
     newData: SpanContext,
+    collapseMode: CollapseMode,
     newAxisIndices: SpanIndices[],
     newIndices: SpanIndices,
     oldZeroData: SpanDatum[] | undefined,
@@ -202,13 +273,14 @@ function addSpan(
         out.moved.push({ from: zeroSpan, to: newSpan });
         out.added.push({ from: newSpan, to: newSpan });
     } else {
-        const oldSpan = collapseSpan(newSpan, newData, newAxisIndices, newIndices, range);
+        const oldSpan = collapseSpan(newSpan, collapseMode, newData, newAxisIndices, newIndices, range);
         out.added.push({ from: oldSpan, to: newSpan });
     }
 }
 
 function removeSpan(
     oldData: SpanContext,
+    collapseMode: CollapseMode,
     oldAxisIndices: SpanIndices[],
     oldIndices: SpanIndices,
     newZeroData: SpanDatum[] | undefined,
@@ -224,7 +296,7 @@ function removeSpan(
         out.moved.push({ from: oldSpan, to: zeroSpan });
         out.added.push({ from: zeroSpan, to: zeroSpan });
     } else {
-        const newSpan = collapseSpan(oldSpan, oldData, oldAxisIndices, oldIndices, range);
+        const newSpan = collapseSpan(oldSpan, collapseMode, oldData, oldAxisIndices, oldIndices, range);
         out.removed.push({ from: oldSpan, to: newSpan });
     }
 }
@@ -260,6 +332,7 @@ function alignSpanToContainingSpan(
 function appendSpanPhases(
     newData: SpanContext,
     oldData: SpanContext,
+    collapseMode: CollapseMode,
     axisValues: AxisValue[],
     xValue0Index: number,
     newAxisIndices: SpanIndices[],
@@ -276,10 +349,10 @@ function appendSpanPhases(
     const newZeroData = newData.zeroData;
 
     if (oldIndices == null && newIndices != null) {
-        addSpan(newData, newAxisIndices, newIndices, oldZeroData, range, out);
+        addSpan(newData, collapseMode, newAxisIndices, newIndices, oldZeroData, range, out);
         return;
     } else if (oldIndices != null && newIndices == null) {
-        removeSpan(oldData, oldAxisIndices, oldIndices, newZeroData, range, out);
+        removeSpan(oldData, collapseMode, oldAxisIndices, oldIndices, newZeroData, range, out);
         return;
     } else if (oldIndices == null || newIndices == null) {
         return;
@@ -326,7 +399,7 @@ function appendSpanPhases(
             out.moved.push({ from: clippedPostRemoveOldSpanOldScale, to: clippedNewSpanNewScale });
             out.added.push({ from: clippedNewSpanNewScale, to: clippedNewSpanNewScale });
         } else {
-            removeSpan(oldData, oldAxisIndices, oldIndices, newZeroData, range, out);
+            removeSpan(oldData, collapseMode, oldAxisIndices, oldIndices, newZeroData, range, out);
         }
     } else if (ordering === -1) {
         // Added
@@ -342,7 +415,7 @@ function appendSpanPhases(
             out.moved.push({ from: clippedOldSpanOldScale, to: clippedPreAddedNewSpanNewScale });
             out.added.push({ from: clippedPreAddedNewSpanNewScale, to: clippedNewSpanNewScale });
         } else {
-            addSpan(newData, newAxisIndices, newIndices, oldZeroData, range, out);
+            addSpan(newData, collapseMode, newAxisIndices, newIndices, oldZeroData, range, out);
         }
     } else {
         // Updated
@@ -356,6 +429,7 @@ function phaseAnimation(
     axisContext: AxisContext,
     newData: SpanContext,
     oldData: SpanContext,
+    collapseMode: CollapseMode,
     out: SpanInterpolationResult
 ) {
     const { axisValues, oldDataAxisIndices, newDataAxisIndices } = axisContext;
@@ -373,6 +447,7 @@ function phaseAnimation(
         appendSpanPhases(
             newData,
             oldData,
+            collapseMode,
             axisValues,
             xValue0Index,
             newDataAxisIndices,
@@ -397,7 +472,7 @@ function resetAnimation(newData: SpanContext, oldData: SpanContext, out: SpanInt
     }
 }
 
-export function pairUpSpans(newData: SpanContext, oldData: SpanContext) {
+export function pairUpSpans(newData: SpanContext, oldData: SpanContext, collapseMode: CollapseMode) {
     const out: SpanInterpolationResult = {
         removed: [],
         moved: [],
@@ -408,7 +483,7 @@ export function pairUpSpans(newData: SpanContext, oldData: SpanContext) {
     if (axisContext == null) {
         resetAnimation(newData, oldData, out);
     } else {
-        phaseAnimation(axisContext, newData, oldData, out);
+        phaseAnimation(axisContext, newData, oldData, collapseMode, out);
     }
 
     return out;

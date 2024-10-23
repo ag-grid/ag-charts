@@ -1,7 +1,7 @@
-import { Debug } from '../../util/debug';
 import { createElement, getWindow } from '../../util/dom';
 import { ObserveChanges } from '../../util/proxy';
 import { hasConstrainedCanvasMemory } from '../../util/userAgent';
+import { clearContext, debugContext } from './canvasUtil';
 
 // Work-around for typing issues with Angular 13+ (see AG-6969),
 type OffscreenCanvasRenderingContext2D = any;
@@ -19,10 +19,6 @@ export interface CanvasOptions {
  * provide resolution independent rendering based on `window.devicePixelRatio`.
  */
 export class HdpiCanvas {
-    static is(value: unknown): value is HdpiCanvas {
-        return value instanceof HdpiCanvas;
-    }
-
     readonly element: HTMLCanvasElement;
     readonly context: CanvasRenderingContext2D & { verifyDepthZero?: () => void };
 
@@ -53,7 +49,7 @@ export class HdpiCanvas {
         this.onEnabledChange(); // Force `display: block` style
         this.resize(width ?? 0, height ?? 0);
 
-        HdpiCanvas.debugContext(this.context);
+        debugContext(this.context);
     }
 
     drawImage(context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, dx = 0, dy = 0) {
@@ -80,10 +76,7 @@ export class HdpiCanvas {
     }
 
     clear() {
-        this.context.save();
-        this.context.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-        this.context.clearRect(0, 0, this.width, this.height);
-        this.context.restore();
+        clearContext(this);
     }
 
     destroy() {
@@ -101,33 +94,6 @@ export class HdpiCanvas {
     private onEnabledChange() {
         if (this.element) {
             this.element.style.display = this.enabled ? '' : 'none';
-        }
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-    static debugContext(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
-        if (Debug.check('canvas')) {
-            const save = ctx.save.bind(ctx);
-            const restore = ctx.restore.bind(ctx);
-            let depth = 0;
-            Object.assign(ctx, {
-                save() {
-                    save();
-                    depth++;
-                },
-                restore() {
-                    if (depth === 0) {
-                        throw new Error('AG Charts - Unable to restore() past depth 0');
-                    }
-                    restore();
-                    depth--;
-                },
-                verifyDepthZero() {
-                    if (depth !== 0) {
-                        throw new Error(`AG Charts - Save/restore depth is non-zero: ${depth}`);
-                    }
-                },
-            });
         }
     }
 }

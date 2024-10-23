@@ -32,7 +32,7 @@ export abstract class TextualPointStateMachine<
         AnnotationStateEvents,
         | 'click'
         | 'dragStart'
-        | 'zoomChange'
+        | 'resize'
         | 'cancel'
         | 'keyDown'
         | 'textInput'
@@ -177,7 +177,7 @@ export abstract class TextualPointStateMachine<
                     target: StateMachine.parent,
                     action: actionSave,
                 },
-                zoomChange: {
+                resize: {
                     target: StateMachine.parent,
                     action: actionSave,
                 },

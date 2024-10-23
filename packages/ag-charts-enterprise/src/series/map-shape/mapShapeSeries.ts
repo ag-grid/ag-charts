@@ -105,6 +105,10 @@ export class MapShapeSeries
         this.itemLabelGroup.pointerEvents = PointerEvents.None;
     }
 
+    override renderToOffscreenCanvas(): boolean {
+        return true;
+    }
+
     setChartTopology(topology: any): void {
         this._chartTopology = topology;
         if (this.topology === topology) {

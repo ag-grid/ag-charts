@@ -3,40 +3,25 @@ import type { Point, SizedPoint } from '../../../scene/point';
 import type { Path } from '../../../scene/shape/path';
 import type { SeriesNodeDatum } from '../seriesTypes';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
-import { type Span, SpanJoin } from './lineInterpolation';
-import { plotInterpolatedSpans } from './lineInterpolationPlotting';
-import { type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
-import { prepareLinePathPropertyAnimation } from './lineUtil';
+import { SpanJoin } from './lineInterpolation';
+import { plotInterpolatedSpans, plotSpan } from './lineInterpolationPlotting';
+import { CollapseMode, type SpanInterpolation, pairUpSpans } from './lineInterpolationUtil';
+import {
+    type LinePathSpan,
+    type SpanAnimation,
+    prepareLinePathPropertyAnimation,
+    prepareLinePathStrokeAnimationFns,
+} from './lineUtil';
 import { isScaleValid } from './scaling';
 
-export interface AreaPathPoint {
-    point: {
-        x: number;
-        y: number;
-        moveTo: boolean;
-    };
-    size?: number;
-    xValue?: string | number;
-    yValue?: number;
-    itemId?: string;
-}
-
-export type AreaPathSpan = {
-    span: Span;
-    xValue0: any;
-    yValue0: any;
-    xValue1: any;
-    yValue1: any;
-};
-
 export type AreaFillPathDatum = {
-    readonly spans: AreaPathSpan[];
-    readonly phantomSpans: AreaPathSpan[];
+    readonly spans: LinePathSpan[];
+    readonly phantomSpans: LinePathSpan[];
     readonly itemId: string;
 };
 
 export type AreaStrokePathDatum = {
-    readonly spans: AreaPathSpan[];
+    readonly spans: LinePathSpan[];
     readonly itemId: string;
 };
 
@@ -65,60 +50,44 @@ export interface AreaSeriesNodeDataContext
     crossFiltering: boolean;
 }
 
-interface SpanAnimation {
-    added: SpanInterpolation[];
-    moved: SpanInterpolation[];
-    removed: SpanInterpolation[];
+export function plotAreaPathFill({ path }: Path, { spans, phantomSpans }: AreaFillPathDatum) {
+    for (let i = 0; i < spans.length; i += 1) {
+        const { span } = spans[i];
+        const phantomSpan = phantomSpans[i].span;
+        plotSpan(path, span, SpanJoin.MoveTo, false);
+        plotSpan(path, phantomSpan, SpanJoin.LineTo, true);
+        path.closePath();
+    }
 }
 
-function plotFillSpans(ratio: number, path: Path, spans: SpanInterpolation[], fillPhantomSpans: SpanInterpolation[]) {
+export function plotInterpolatedAreaSeriesFillSpans(
+    ratio: number,
+    { path }: Path,
+    spans: SpanInterpolation[],
+    fillPhantomSpans: SpanInterpolation[]
+) {
     for (let i = 0; i < spans.length; i += 1) {
         const span = spans[i];
         const reversedPhantomSpan = fillPhantomSpans[i];
 
-        plotInterpolatedSpans(path.path, span.from, span.to, ratio, SpanJoin.MoveTo, false);
-        plotInterpolatedSpans(
-            path.path,
-            reversedPhantomSpan.from,
-            reversedPhantomSpan.to,
-            ratio,
-            SpanJoin.LineTo,
-            true
-        );
-        path.path.closePath();
+        plotInterpolatedSpans(path, span.from, span.to, ratio, SpanJoin.MoveTo, false);
+        plotInterpolatedSpans(path, reversedPhantomSpan.from, reversedPhantomSpan.to, ratio, SpanJoin.LineTo, true);
+        path.closePath();
     }
 }
 
-function prepareAreaFillAnimationFns(
+export function prepareAreaFillAnimationFns(
     status: NodeUpdateState,
     spans: SpanAnimation,
     fillPhantomSpans: SpanAnimation,
     visibleToggleMode: 'fade' | 'none'
 ) {
     const removePhaseFn = (ratio: number, path: Path) =>
-        plotFillSpans(ratio, path, spans.removed, fillPhantomSpans.removed);
+        plotInterpolatedAreaSeriesFillSpans(ratio, path, spans.removed, fillPhantomSpans.removed);
     const updatePhaseFn = (ratio: number, path: Path) =>
-        plotFillSpans(ratio, path, spans.moved, fillPhantomSpans.moved);
-    const addPhaseFn = (ratio: number, path: Path) => plotFillSpans(ratio, path, spans.added, fillPhantomSpans.added);
-    const pathProperties = prepareLinePathPropertyAnimation(status, visibleToggleMode);
-
-    return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
-}
-
-function plotStrokeSpans(ratio: number, path: Path, spans: SpanInterpolation[]) {
-    for (const span of spans) {
-        plotInterpolatedSpans(path.path, span.from, span.to, ratio, SpanJoin.MoveTo, false);
-    }
-}
-
-function prepareAreaStrokeAnimationFns(
-    status: NodeUpdateState,
-    spans: SpanAnimation,
-    visibleToggleMode: 'fade' | 'none'
-) {
-    const removePhaseFn = (ratio: number, path: Path) => plotStrokeSpans(ratio, path, spans.removed);
-    const updatePhaseFn = (ratio: number, path: Path) => plotStrokeSpans(ratio, path, spans.moved);
-    const addPhaseFn = (ratio: number, path: Path) => plotStrokeSpans(ratio, path, spans.added);
+        plotInterpolatedAreaSeriesFillSpans(ratio, path, spans.moved, fillPhantomSpans.moved);
+    const addPhaseFn = (ratio: number, path: Path) =>
+        plotInterpolatedAreaSeriesFillSpans(ratio, path, spans.added, fillPhantomSpans.added);
     const pathProperties = prepareLinePathPropertyAnimation(status, visibleToggleMode);
 
     return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
@@ -139,30 +108,31 @@ export function prepareAreaPathAnimation(newData: AreaSeriesNodeDataContext, old
     }
 
     const fillSpans = pairUpSpans(
-        { scales: newData.scales, data: newData.fillData.spans, visible: newData.visible },
-        { scales: oldData.scales, data: oldData.fillData.spans, visible: oldData.visible }
+        { scales: newData.scales, data: newData.fillData.spans },
+        { scales: oldData.scales, data: oldData.fillData.spans },
+        CollapseMode.Zero
     );
     const fillPhantomSpans = pairUpSpans(
-        { scales: newData.scales, data: newData.fillData.phantomSpans, visible: newData.visible },
-        { scales: oldData.scales, data: oldData.fillData.phantomSpans, visible: oldData.visible }
+        { scales: newData.scales, data: newData.fillData.phantomSpans },
+        { scales: oldData.scales, data: oldData.fillData.phantomSpans },
+        CollapseMode.Zero
     );
     const strokeSpans = pairUpSpans(
         {
             scales: newData.scales,
             data: newData.strokeData.spans,
-            visible: newData.visible,
             zeroData: newData.fillData.phantomSpans,
         },
         {
             scales: oldData.scales,
             data: oldData.strokeData.spans,
-            visible: oldData.visible,
             zeroData: oldData.fillData.phantomSpans,
-        }
+        },
+        CollapseMode.Zero
     );
 
     const fadeMode = 'none';
     const fill = prepareAreaFillAnimationFns(status, fillSpans, fillPhantomSpans, fadeMode);
-    const stroke = prepareAreaStrokeAnimationFns(status, strokeSpans, fadeMode);
+    const stroke = prepareLinePathStrokeAnimationFns(status, strokeSpans, fadeMode);
     return { status, fill, stroke };
 }
