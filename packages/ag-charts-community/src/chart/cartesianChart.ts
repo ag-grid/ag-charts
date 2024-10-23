@@ -25,7 +25,6 @@ interface State {
     axisAreaWidths: AreaWidthMap;
     clipSeries: boolean;
     overflows: boolean;
-    seriesRect: BBox;
 }
 
 const directions: AgCartesianAxisPosition[] = ['top', 'right', 'bottom', 'left'];
@@ -78,7 +77,7 @@ export class CartesianChart extends Chart {
 
     protected performLayout(ctx: LayoutContext) {
         const { firstSeriesTranslation, seriesRoot, annotationRoot } = this;
-        const { seriesRect, visible, clipSeries } = this.updateAxes(ctx.layoutBox);
+        const { clipSeries, seriesRect, visible } = this.updateAxes(ctx.layoutBox);
 
         this.seriesRoot.visible = visible;
         this.seriesRect = seriesRect;
@@ -140,128 +139,68 @@ export class CartesianChart extends Chart {
     }
 
     updateAxes(layoutBox: BBox) {
-        // Start with a good approximation from the last update - this should mean that in many resize
-        // cases that only a single pass is needed \o/.
-        let axisAreaWidths: AreaWidthMap = new Map(this.lastAreaWidths);
-        let clipSeries = false;
-        let visibility = true;
-
-        // Clean any positions which aren't valid with the current axis status (otherwise we end up
-        // never being able to find a stable result).
-        const liveAxisWidths = new Set(this.axes.map((a) => a.position));
-        for (const position of axisAreaWidths.keys()) {
-            if (!liveAxisWidths.has(position)) {
-                axisAreaWidths.delete(position);
-            }
-        }
-
-        const stableOutputs = <T extends typeof axisAreaWidths>(
-            otherAxisWidths: T,
-            otherClipSeries: boolean,
-            otherVisibility: boolean
-        ) => {
-            // Check for new axis positions.
-            if ([...otherAxisWidths.keys()].some((k) => !axisAreaWidths.has(k))) {
-                return false;
-            }
-            if (visibility !== otherVisibility || clipSeries !== otherClipSeries) {
-                return false;
-            }
-            // Check for existing axis positions and equality.
-            for (const [p, w] of axisAreaWidths.entries()) {
-                const otherW = otherAxisWidths.get(p);
-                if ((w != null || otherW != null) && w !== otherW) {
-                    return false;
-                }
-            }
-            return true;
-        };
-
-        // Iteratively try to resolve axis widths - since X axis width affects Y axis range,
-        // and vice-versa, we need to iteratively try and find a fit for the axes and their
-        // ticks/labels.
-        let lastPassAxisAreaWidths: typeof axisAreaWidths = new Map();
-        let lastPassVisibility = visibility;
-        let lastPassClipSeries = false;
-        let seriesRect = this.seriesRect?.clone();
-        let count = 0;
-        do {
-            axisAreaWidths = new Map(lastPassAxisAreaWidths.entries());
-            clipSeries = lastPassClipSeries;
-            visibility = lastPassVisibility;
-
-            const result = this.updateAxesPass(axisAreaWidths, layoutBox.clone(), seriesRect);
-            lastPassAxisAreaWidths = result.axisAreaWidths;
-            lastPassVisibility = result.visibility;
-            lastPassClipSeries = result.clipSeries;
-            ({ seriesRect } = result);
-
-            if (count++ > 10) {
-                Logger.warn('unable to find stable axis layout.');
-                break;
-            }
-        } while (!stableOutputs(lastPassAxisAreaWidths, lastPassClipSeries, lastPassVisibility));
+        const { axisAreaWidths, seriesRect, clipSeries, overflows } = this.resolveAxesLayout(layoutBox);
 
         for (const axis of this.axes) {
             axis.update();
-            axis.setCrossLinesVisible(visibility);
+            axis.setCrossLinesVisible(!overflows);
 
             this.clipAxis(axis, seriesRect, layoutBox);
         }
 
         this.lastAreaWidths = axisAreaWidths;
 
-        return { clipSeries, seriesRect, visible: visibility };
+        return { clipSeries, seriesRect, visible: !overflows };
     }
 
     // Iteratively try to resolve axis widths - since X axis width affects Y axis range,
     // and vice-versa, we need to iteratively try and find a fit for the axes and their
     // ticks/labels.
-    // private resolveAxesLayout(axes: ChartAxis[], layoutBox: BBox) {
-    //     let newState;
-    //     let prevState;
-    //     let iterations = 0;
-    //     const maxIterations = 10;
-    //
-    //     do {
-    //         // Start with a good approximation from the last update.
-    //         // This should mean that in many resize cases that only a single pass is needed.
-    //         prevState = newState ?? this.getDefaultState(axes);
-    //         newState = this.updateAxesPass(axes, new Map(prevState.axisAreaWidths), layoutBox.clone());
-    //
-    //         if (iterations++ > maxIterations) {
-    //             Logger.warn('Max iterations reached. Unable to stabilize axes layout.');
-    //             break;
-    //         }
-    //     } while (!this.isLayoutStable(newState, prevState));
-    //
-    //     return newState;
-    // }
+    private resolveAxesLayout(layoutBox: BBox) {
+        let newState;
+        let prevState;
+        let iterations = 0;
+        const maxIterations = 10;
 
-    private updateAxesPass(axisAreaWidths: AreaWidthMap, bounds: BBox, lastPassSeriesRect?: BBox) {
+        do {
+            // Start with a good approximation from the last update.
+            // This should mean that in many resize cases that only a single pass is needed.
+            prevState = newState ?? this.getDefaultState();
+            newState = this.updateAxesPass(new Map(prevState.axisAreaWidths), layoutBox.clone());
+
+            if (iterations++ > maxIterations) {
+                Logger.warn('Max iterations reached. Unable to stabilize axes layout.');
+                break;
+            }
+        } while (!this.isLayoutStable(newState, prevState));
+
+        return newState;
+    }
+
+    private updateAxesPass(axisAreaWidths: AreaWidthMap, bounds: BBox) {
         const axisWidths: Map<string, number> = new Map();
 
-        let visibility = true;
+        let overflows = false;
         let clipSeries = false;
 
         const primaryTickCounts: Partial<Record<ChartAxisDirection, number>> = {};
-        const crossLinePadding = lastPassSeriesRect ? this.buildCrossLinePadding(axisAreaWidths) : {};
-
         const axisAreaBound = this.applySeriesPadding(bounds.clone());
+
+        const crossLinePadding = this.buildCrossLinePadding(axisAreaWidths);
         const { top = 0, right = 0, bottom = 0, left = 0 } = crossLinePadding;
         const horizontalPadding = left + right;
         const verticalPadding = top + bottom;
+
         const totalWidth = (axisAreaWidths.get('left') ?? 0) + (axisAreaWidths.get('right') ?? 0) + horizontalPadding;
         const totalHeight = (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0) + verticalPadding;
 
         if (axisAreaBound.width <= totalWidth || axisAreaBound.height <= totalHeight) {
             // Not enough space for rendering
-            visibility = false;
+            overflows = true;
         } else {
             axisAreaBound.shrink(crossLinePadding);
         }
 
-        // const overflows = this.isAxisOverflow(axisAreaBound, axisAreaWidths);
         const seriesRect = axisAreaBound.clone().shrink(Object.fromEntries(axisAreaWidths.entries()));
 
         // Step 1) Calculate individual axis widths.
@@ -324,7 +263,7 @@ export class CartesianChart extends Chart {
             });
         }
 
-        return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, visibility };
+        return { clipSeries, seriesRect, axisAreaWidths: newAxisAreaWidths, overflows };
     }
 
     private buildCrossLinePadding(axisAreaSize: AreaWidthMap) {
@@ -355,13 +294,6 @@ export class CartesianChart extends Chart {
             }
         }
         return bounds;
-    }
-
-    isAxisOverflow(boundaries: BBox, axisWidths: AreaWidthMap) {
-        const totalHorizontalWidth = (axisWidths.get('left') ?? 0) + (axisWidths.get('right') ?? 0);
-        const totalVerticalHeight = (axisWidths.get('top') ?? 0) + (axisWidths.get('bottom') ?? 0);
-
-        return boundaries.width <= totalHorizontalWidth || boundaries.height <= totalVerticalHeight;
     }
 
     private clampToOutsideSeriesRect(seriesRect: BBox, value: number, dimension: Dimension, direction: Direction) {
@@ -480,23 +412,24 @@ export class CartesianChart extends Chart {
         return this.series.every((series) => series instanceof CartesianSeries && series.shouldFlipXY());
     }
 
-    getDefaultState(axes: ChartAxis[]) {
-        const axisAreaWidths = new Map();
+    private getDefaultState(): State {
+        const axisAreaWidths: AreaWidthMap = new Map();
 
         if (this.lastAreaWidths) {
             // Clean any positions which aren't valid with the current axis status,
             // Otherwise we end up never being able to find a stable result.
-            for (const { position } of axes) {
-                if (position && this.lastAreaWidths.has(position)) {
-                    axisAreaWidths.set(position, this.lastAreaWidths.get(position));
+            for (const { position = 'left' } of this.axes) {
+                const areaWidth = this.lastAreaWidths.get(position);
+                if (areaWidth != null) {
+                    axisAreaWidths.set(position, areaWidth);
                 }
             }
         }
 
-        return { axisAreaWidths, clipSeries: false } as State;
+        return { axisAreaWidths, clipSeries: false, overflows: false };
     }
 
-    isLayoutStable(newState: State, prevState: State) {
+    private isLayoutStable(newState: State, prevState: State) {
         if (prevState.overflows !== newState.overflows || prevState.clipSeries !== newState.clipSeries) {
             return false;
         }
