@@ -1,16 +1,17 @@
 import { Debug } from '../util/debug';
 import { HdpiCanvas } from './canvas/hdpiCanvas';
+import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 
 interface SceneLayer {
     id: number;
     name?: string;
-    canvas: HdpiCanvas;
+    canvas: HdpiOffscreenCanvas;
 }
 
 export class LayersManager {
     readonly debug = Debug.create(true, 'scene');
 
-    private readonly layersMap = new Map<HdpiCanvas, SceneLayer>();
+    private readonly layersMap = new Map<HdpiOffscreenCanvas, SceneLayer>();
 
     private nextLayerId = 0;
 
@@ -28,7 +29,7 @@ export class LayersManager {
     addLayer(opts: { name?: string }) {
         const { width, height, pixelRatio } = this.canvas;
         const { name } = opts;
-        const canvas = new HdpiCanvas({ width, height, pixelRatio });
+        const canvas = new HdpiOffscreenCanvas({ width, height, pixelRatio });
 
         this.layersMap.set(canvas, {
             id: this.nextLayerId++,
@@ -41,7 +42,7 @@ export class LayersManager {
         return canvas;
     }
 
-    removeLayer(canvas: HdpiCanvas) {
+    removeLayer(canvas: HdpiOffscreenCanvas) {
         if (this.layersMap.has(canvas)) {
             this.layersMap.delete(canvas);
             canvas.destroy();
