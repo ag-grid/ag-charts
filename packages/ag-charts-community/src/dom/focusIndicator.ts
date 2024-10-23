@@ -53,6 +53,7 @@ export class FocusIndicator {
 
     // Get the `:focus-visible` CSS state.
     public isFocusVisible(): boolean {
-        return getWindow().getComputedStyle(this.container).opacity === '1';
+        const parent = this.element.parentElement;
+        return parent != null && getWindow().getComputedStyle(parent).opacity === '1';
     }
 }
