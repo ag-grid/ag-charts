@@ -163,7 +163,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const { xKey, yLowKey, yHighKey, connectMissingData, marker, interpolation } = this.properties;
 
-        const itemId = `${yLowKey}-${yHighKey}`;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
         const defs = dataModel.resolveProcessedDataDefsByIds(this, [`xValue`, `yHighValue`, `yLowValue`]);
@@ -180,11 +179,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const currentSpanPoints: RangeAreaSpanPointDatum[] | { skip: number } | undefined =
                 spanPoints[spanPoints.length - 1];
             if (yHighValue != null || yLowValue != null) {
-                const appendMarker = (itemId: 'high' | 'low', yValue: any, y: number) => {
+                const appendMarker = (id: 'high' | 'low', yValue: any, y: number) => {
                     markerData.push({
                         index: datumIdx,
                         series: this,
-                        itemId: itemId,
+                        itemId: id,
                         datum,
                         midPoint: { x, y },
                         yHighValue,
@@ -201,7 +200,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                         value: yValue,
                         yLowValue,
                         yHighValue,
-                        itemId: itemId,
+                        itemId: id,
                         inverted,
                         datum,
                         series: this,
@@ -260,7 +259,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
 
         const context: RangeAreaContext = {
-            itemId,
+            itemId: `${yLowKey}-${yHighKey}`,
             labelData,
             nodeData: markerData,
             fillData: { itemId: 'high', spans: highSpans, phantomSpans: lowSpans },
