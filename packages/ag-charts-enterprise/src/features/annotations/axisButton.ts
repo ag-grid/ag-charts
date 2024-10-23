@@ -1,9 +1,10 @@
-import { _ModuleSupport, type _Scene } from 'ag-charts-community';
+import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
 
 import { convert, invert } from './utils/values';
 
 const { BaseModuleInstance, InteractionState, Validate, BOOLEAN, createElement, REGIONS, ChartAxisDirection } =
     _ModuleSupport;
+const { setAttributes } = _Util;
 
 export const DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS = `ag-charts-annotations__axis-button`;
 
@@ -70,7 +71,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
 
         const button = createElement('button');
         button.classList.add(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
-        button.tabIndex = -1;
+        setAttributes(button, { tabindex: -1, 'aria-label': this.ctx.localeManager.t('ariaLabelAddHorizontalLine') });
 
         wrapper.appendChild(button);
 
