@@ -2,7 +2,7 @@ import type { Nullable } from './types';
 
 type ElementID = string;
 
-type BaseAttributeTypeMap = {
+export type BaseAttributeTypeMap = {
     role: 'figure' | 'img' | 'radio' | 'radiogroup' | 'status' | 'switch' | 'tab' | 'tablist' | 'tabpanel';
     'aria-checked': boolean;
     'aria-controls': ElementID;

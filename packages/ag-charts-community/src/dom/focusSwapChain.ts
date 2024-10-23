@@ -1,4 +1,10 @@
-import { setAttribute, setAttributes, setElementStyle, setElementStyles } from '../util/attributeUtil';
+import {
+    type BaseAttributeTypeMap,
+    setAttribute,
+    setAttributes,
+    setElementStyle,
+    setElementStyles,
+} from '../util/attributeUtil';
 import { createElement } from '../util/dom';
 
 /**
@@ -28,9 +34,9 @@ export class FocusSwapChain {
         }
     };
 
-    private createAnnouncer(announcerId: string, labelId: string) {
+    private createAnnouncer(announcerId: string, labelId: string, role: BaseAttributeTypeMap['role']) {
         const announcer = createElement('div');
-        setAttributes(announcer, { id: announcerId, 'aria-labelledby': labelId });
+        setAttributes(announcer, { role, id: announcerId, 'aria-labelledby': labelId });
         setElementStyles(announcer, { position: 'absolute', width: '100%', height: '100%' });
         announcer.addEventListener('blur', this.onBlur);
         announcer.addEventListener('focus', this.onFocus);
@@ -40,15 +46,16 @@ export class FocusSwapChain {
     constructor(
         private label1: HTMLElement,
         private label2: HTMLElement,
-        id: string
+        id: string,
+        announcerRole: BaseAttributeTypeMap['role']
     ) {
         setAttribute(this.label1, 'id', `${id}-label1`);
         setAttribute(this.label2, 'id', `${id}-label2`);
         setElementStyle(this.label1, 'display', 'none');
         setElementStyle(this.label2, 'display', 'none');
 
-        this.activeAnnouncer = this.createAnnouncer(`${id}-announcer1`, this.label1.id);
-        this.inactiveAnnouncer = this.createAnnouncer(`${id}-announcer2`, this.label2.id);
+        this.activeAnnouncer = this.createAnnouncer(`${id}-announcer1`, this.label1.id, announcerRole);
+        this.inactiveAnnouncer = this.createAnnouncer(`${id}-announcer2`, this.label2.id, announcerRole);
 
         this.label2.insertAdjacentElement('afterend', this.activeAnnouncer);
         this.label2.insertAdjacentElement('afterend', this.inactiveAnnouncer);
