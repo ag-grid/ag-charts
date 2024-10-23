@@ -35,6 +35,7 @@ export class FocusIndicator {
     }
 
     move(newParent: HTMLElement) {
+        if (newParent === this.element.parentElement) return;
         this.element.remove();
         newParent.appendChild(this.element);
     }
