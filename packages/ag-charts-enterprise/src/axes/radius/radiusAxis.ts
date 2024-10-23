@@ -179,7 +179,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
     }
 
     protected override updateCrossLines() {
-        this.crossLines?.forEach((crossLine) => {
+        this.crossLines.forEach((crossLine) => {
             if (crossLine instanceof RadiusCrossLine) {
                 const { shape, gridAngles, range, innerRadiusRatio } = this;
                 const radius = range[0];
@@ -189,7 +189,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
                 crossLine.axisInnerRadius = radius * innerRadiusRatio;
             }
         });
-        super.updateCrossLines({ rotation: 0, parallelFlipRotation: 0, regularFlipRotation: 0 });
+        super.updateCrossLines();
     }
 
     protected override createLabel() {

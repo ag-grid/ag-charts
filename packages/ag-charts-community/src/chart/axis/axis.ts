@@ -391,7 +391,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 ? String
                 : (x: any) => (typeof x === 'number' ? x.toFixed(fractionDigits + formatOffset) : String(x));
 
-        if (format && scale && scale.tickFormat) {
+        if (format && scale.tickFormat) {
             try {
                 const formatter = scale.tickFormat({ ticks, specifier: format });
                 this.labelFormatter = formatter;
@@ -446,16 +446,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
      * Creates/removes/updates the scene graph nodes that constitute the axis.
      */
     update(animated = true): number | undefined {
-        if (!this.tickGenerationResult) {
-            return;
-        }
-        const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
-        const sideFlag = this.label.getSideFlag();
+        if (!this.tickGenerationResult) return;
+
         this.updatePosition();
 
+        const sideFlag = this.label.getSideFlag();
         const lineData = this.getAxisLineCoordinates();
         const { tickData, combinedRotation, textBaseline, textAlign, primaryTickCount } = this.tickGenerationResult;
         const previousTicks = this.tickLabelGroupSelection.nodes().map((node) => node.datum.tickId);
+
         this.updateSelections(lineData, tickData.ticks, {
             combinedRotation,
             textAlign,
@@ -470,14 +469,23 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             this.animationState.transition('update', diff);
         }
 
-        this.updateAxisLine();
+        this.tickLineGroup.visible = this.tick.enabled;
+        this.gridLineGroup.visible = this.gridLine.enabled;
+        this.tickLabelGroup.visible = this.label.enabled;
+
+        const { enabled, stroke, width } = this.line;
+        // Without this the layout isn't consistent when enabling/disabling the line, padding configurations are not respected.
+        this.lineNode.setProperties({ stroke, strokeWidth: enabled ? width : 0 });
+
         this.updateLabels();
-        this.updateVisibility();
+
         this.updateGridLines(sideFlag);
+
         this.updateTickLines();
-        this.updateTitle({ anyTickVisible: tickData.ticks.length > 0 });
-        this.updateCrossLines({ rotation, parallelFlipRotation, regularFlipRotation });
-        this.updateLayoutState(tickData.fractionDigits);
+
+        this.updateTitle(!tickData.ticks.length);
+
+        this.updateCrossLines();
 
         return primaryTickCount;
     }
@@ -1088,35 +1096,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return { minTickCount, maxTickCount, defaultTickCount };
     }
 
-    private updateVisibility() {
-        if (this.moduleCtx.animationManager.isSkipped()) {
-            this.resetSelectionNodes();
-        }
-
-        this.tickLineGroup.visible = this.tick.enabled;
-        this.gridLineGroup.visible = this.gridLine.enabled;
-        this.tickLabelGroup.visible = this.label.enabled;
-    }
-
-    protected updateCrossLines({
-        rotation,
-        parallelFlipRotation,
-        regularFlipRotation,
-    }: {
-        rotation: number;
-        parallelFlipRotation: number;
-        regularFlipRotation: number;
-    }) {
-        const sideFlag = this.label.getSideFlag();
+    protected updateCrossLines() {
         const anySeriesActive = this.isAnySeriesActive();
         this.crossLines.forEach((crossLine) => {
-            crossLine.sideFlag = -sideFlag as ChartAxisLabelFlipFlag;
-            crossLine.direction = rotation === -Math.PI / 2 ? ChartAxisDirection.X : ChartAxisDirection.Y;
-            if (crossLine instanceof CartesianCrossLine) {
-                crossLine.label.parallel ??= this.label.parallel;
-            }
-            crossLine.parallelFlipRotation = parallelFlipRotation;
-            crossLine.regularFlipRotation = regularFlipRotation;
             crossLine.update(anySeriesActive);
         });
     }
@@ -1196,12 +1178,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         this.tickLabelGroupSelection.update(labelsData, undefined, getDatumId);
     }
 
-    private updateAxisLine() {
-        const { enabled, stroke, width } = this.line;
-        // Without this the layout isn't consistent when enabling/disabling the line, padding configurations are not respected.
-        this.lineNode.setProperties({ stroke, strokeWidth: enabled ? width : 0 });
-    }
-
     protected updateGridLines(sideFlag: ChartAxisLabelFlipFlag) {
         const {
             gridLine: { style, width },
@@ -1242,11 +1218,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
     }
 
-    protected updateTitle(params: { anyTickVisible: boolean }): void {
+    protected updateTitle(noVisibleTicks?: boolean): void {
         const { title, lineNode, tickLineGroup, tickLabelGroup } = this;
 
         let spacing = 0;
-        if (title.enabled && params.anyTickVisible) {
+        if (title.enabled && !noVisibleTicks) {
             const tickBBox = Group.computeChildrenBBox([tickLineGroup, tickLabelGroup, lineNode]);
             spacing += tickBBox.width + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
         }
