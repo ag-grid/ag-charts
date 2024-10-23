@@ -36,7 +36,7 @@ export abstract class TextualStartEndStateMachine<
         | 'drag'
         | 'dragEnd'
         | 'dragStart'
-        | 'zoomChange'
+        | 'resize'
         | 'cancel'
         | 'hover'
         | 'textInput'
@@ -210,7 +210,7 @@ export abstract class TextualStartEndStateMachine<
                     target: StateMachine.parent,
                     action: actionSave,
                 },
-                zoomChange: {
+                resize: {
                     target: StateMachine.parent,
                     action: actionSave,
                 },

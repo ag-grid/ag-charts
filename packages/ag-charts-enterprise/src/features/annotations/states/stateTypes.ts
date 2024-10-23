@@ -50,7 +50,7 @@ type InteractionEvents = {
         bbox: _Scene.BBox | undefined;
         context: AnnotationContext;
     };
-    zoomChange: { textInputValue?: string; bbox: _Scene.BBox };
+    resize: { textInputValue?: string; bbox: _Scene.BBox };
 };
 
 type ActionEvents = {

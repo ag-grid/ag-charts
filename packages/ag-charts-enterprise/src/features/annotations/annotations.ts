@@ -475,7 +475,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
             ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             ctx.updateService.addListener('pre-scene-render', this.onPreRender.bind(this)),
-            ctx.zoomManager.addListener('zoom-change', () => this.onZoomChange()),
+            ctx.zoomManager.addListener('zoom-change', () => this.onResize()),
+            ctx.domManager.addListener('resize', () => this.onResize()),
 
             // Toolbar
             toolbar.addListener('cancel-create-annotation', () => {
@@ -916,11 +917,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.update();
     }
 
-    private onZoomChange() {
+    private onResize() {
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
 
-        this.state.transition('zoomChange', { textInputValue, bbox });
+        this.state.transition('resize', { textInputValue, bbox });
     }
 
     private onDragStart(event: _ModuleSupport.RegionEvent<'drag-start'>) {
