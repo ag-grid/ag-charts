@@ -339,7 +339,7 @@ export abstract class Node {
 
     getBBox(): BBox {
         if (this.cachedBBox == null) {
-            this.cachedBBox = Object.freeze(this.computeBBox());
+            this.cachedBBox = Object.freeze(this.computeBBox()) as BBox;
         }
 
         return this.cachedBBox!;

@@ -1171,9 +1171,7 @@ export abstract class Chart extends Observable {
     }
 
     private applyInitialState(initialState?: AgInitialStateOptions) {
-        const {
-            ctx: { annotationManager, historyManager, stateManager },
-        } = this;
+        const { annotationManager, historyManager, stateManager } = this.ctx;
 
         if (initialState?.annotations != null) {
             const annotations = initialState.annotations.map((annotation) => {
