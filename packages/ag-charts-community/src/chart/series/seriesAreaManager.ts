@@ -269,6 +269,7 @@ export class SeriesAreaManager extends BaseManager {
     private onBlur() {
         this.hoverDevice = 'mouse';
         this.clearAll();
+        this.chart.ctx.focusIndicator.overrideFocusVisible(undefined);
     }
 
     private onNavVert(event: KeyNavEvent<'nav-vert'>): void {

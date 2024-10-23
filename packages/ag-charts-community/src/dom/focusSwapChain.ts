@@ -15,24 +15,13 @@ import { createElement } from '../util/dom';
 export class FocusSwapChain {
     private inactiveAnnouncer: HTMLElement;
     private activeAnnouncer: HTMLElement;
-    private focusedAnnouncer?: EventTarget;
+
+    private hasFocus = false;
+    private skipDispatch = false;
 
     private readonly listeners: { [K in 'blur' | 'focus']: ((e: FocusEvent) => unknown)[] } = { blur: [], focus: [] };
-    private stopOnFocusReentrance = false;
-
-    private readonly onBlur = (e: FocusEvent) => {
-        this.focusedAnnouncer = undefined;
-        if (e.relatedTarget !== this.activeAnnouncer) {
-            this.dispatch('blur', e);
-        }
-    };
-    private readonly onFocus = (e: FocusEvent) => {
-        const skipDispatch = this.stopOnFocusReentrance || this.focusedAnnouncer !== undefined;
-        this.focusedAnnouncer = e.target ?? undefined;
-        if (!skipDispatch) {
-            this.dispatch('focus', e);
-        }
-    };
+    private readonly onBlur = (e: FocusEvent) => !this.skipDispatch && this.dispatch('blur', e);
+    private readonly onFocus = (e: FocusEvent) => !this.skipDispatch && this.dispatch('focus', e);
 
     private createAnnouncer(announcerId: string, labelId: string, role: BaseAttributeTypeMap['role']) {
         const announcer = createElement('div');
@@ -87,12 +76,12 @@ export class FocusSwapChain {
     }
 
     update(newLabel: string) {
-        this.stopOnFocusReentrance = true;
+        this.skipDispatch = true;
         this.swap(newLabel);
-        if (this.focusedAnnouncer) {
+        if (this.hasFocus) {
             this.activeAnnouncer.focus();
         }
-        this.stopOnFocusReentrance = false;
+        this.skipDispatch = false;
     }
 
     addListener(type: 'focus' | 'blur', handler: (event: FocusEvent) => unknown): void {
@@ -100,6 +89,7 @@ export class FocusSwapChain {
     }
 
     private dispatch(type: 'focus' | 'blur', event: FocusEvent): void {
+        this.hasFocus = type === 'focus';
         this.listeners[type].forEach((fn) => fn(event));
     }
 
