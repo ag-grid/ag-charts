@@ -70,6 +70,10 @@ export class FocusSwapChain {
         }
     }
 
+    setTabIndex(tabIndex: number) {
+        this.activeAnnouncer.tabIndex = tabIndex;
+    }
+
     resizeContainer(dims: { width: number; height: number }) {
         const parent = this.label1.parentElement!;
         if (parent) {
@@ -100,10 +104,13 @@ export class FocusSwapChain {
     }
 
     private swap(newLabel: string) {
+        const userTabIndex = this.activeAnnouncer.tabIndex;
         this.label2.textContent = newLabel;
+
         [this.inactiveAnnouncer, this.activeAnnouncer] = [this.activeAnnouncer, this.inactiveAnnouncer];
         [this.label1, this.label2] = [this.label2, this.label1];
         setAttributes(this.inactiveAnnouncer, { tabindex: -1, 'aria-labelledby': this.label1.id });
-        setAttributes(this.activeAnnouncer, { tabindex: 0, 'aria-labelledby': this.label1.id });
+        setAttribute(this.activeAnnouncer, 'aria-labelledby', this.label1.id);
+        this.activeAnnouncer.tabIndex = userTabIndex;
     }
 }

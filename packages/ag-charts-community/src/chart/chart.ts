@@ -658,7 +658,7 @@ export abstract class Chart extends Observable {
         this.updateThemeClassName();
 
         const { enabled, tabIndex } = this.keyboard;
-        this.ctx.domManager.setTabIndex(enabled ? tabIndex ?? 0 : -1);
+        this.seriesAreaManager.setTabIndex(enabled ? tabIndex ?? 0 : -1);
     }
 
     private updateAriaLabels() {
