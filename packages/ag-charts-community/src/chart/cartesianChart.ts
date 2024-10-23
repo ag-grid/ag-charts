@@ -20,7 +20,6 @@ import type { Series } from './series/series';
 type Dimension = 'x' | 'y';
 type Direction = -1 | 1;
 type AreaWidthMap = Map<AgCartesianAxisPosition, number>;
-type VisibilityMap = { crossLines: boolean; series: boolean };
 
 interface State {
     axisAreaWidths: AreaWidthMap;
@@ -140,37 +139,12 @@ export class CartesianChart extends Chart {
         });
     }
 
-    private _lastCrossLineIds?: string[] = undefined;
-    private _lastAxisAreaWidths: AreaWidthMap = new Map();
-    private _lastClipSeries: boolean = false;
-    private _lastVisibility: VisibilityMap = {
-        crossLines: true,
-        series: true,
-    };
     updateAxes(layoutBox: BBox) {
-        // FIXME - the crosslines get regenerated when switching between light/dark mode.
-        // Ideally, even in this case this updateAxes logic would still work. But there's more work to make that happen.
-        const crossLineIds = this.axes.flatMap((axis) => axis.crossLines ?? []).map((crossLine) => crossLine.id);
-        const axesValid =
-            this._lastCrossLineIds != null &&
-            this._lastCrossLineIds.length === crossLineIds.length &&
-            this._lastCrossLineIds.every((id, index) => crossLineIds[index] === id);
-
-        let axisAreaWidths: typeof this._lastAxisAreaWidths;
-        let clipSeries: boolean;
-        let visibility: VisibilityMap;
-        if (axesValid) {
-            // Start with a good approximation from the last update - this should mean that in many resize
-            // cases that only a single pass is needed \o/.
-            axisAreaWidths = new Map(this._lastAxisAreaWidths.entries());
-            clipSeries = this._lastClipSeries;
-            visibility = { ...this._lastVisibility };
-        } else {
-            axisAreaWidths = new Map();
-            clipSeries = false;
-            visibility = { crossLines: true, series: true };
-            this._lastCrossLineIds = crossLineIds;
-        }
+        // Start with a good approximation from the last update - this should mean that in many resize
+        // cases that only a single pass is needed \o/.
+        let axisAreaWidths: AreaWidthMap = new Map(this.lastAreaWidths);
+        let clipSeries = false;
+        let visibility = true;
 
         // Clean any positions which aren't valid with the current axis status (otherwise we end up
         // never being able to find a stable result).
@@ -184,17 +158,13 @@ export class CartesianChart extends Chart {
         const stableOutputs = <T extends typeof axisAreaWidths>(
             otherAxisWidths: T,
             otherClipSeries: boolean,
-            otherVisibility: Partial<VisibilityMap>
+            otherVisibility: boolean
         ) => {
             // Check for new axis positions.
             if ([...otherAxisWidths.keys()].some((k) => !axisAreaWidths.has(k))) {
                 return false;
             }
-            if (
-                visibility.crossLines !== otherVisibility.crossLines ||
-                visibility.series !== otherVisibility.series ||
-                clipSeries !== otherClipSeries
-            ) {
+            if (visibility !== otherVisibility || clipSeries !== otherClipSeries) {
                 return false;
             }
             // Check for existing axis positions and equality.
@@ -211,14 +181,14 @@ export class CartesianChart extends Chart {
         // and vice-versa, we need to iteratively try and find a fit for the axes and their
         // ticks/labels.
         let lastPassAxisAreaWidths: typeof axisAreaWidths = new Map();
-        let lastPassVisibility: Partial<VisibilityMap> = {};
+        let lastPassVisibility = visibility;
         let lastPassClipSeries = false;
         let seriesRect = this.seriesRect?.clone();
         let count = 0;
         do {
             axisAreaWidths = new Map(lastPassAxisAreaWidths.entries());
             clipSeries = lastPassClipSeries;
-            Object.assign(visibility, lastPassVisibility);
+            visibility = lastPassVisibility;
 
             const result = this.updateAxesPass(axisAreaWidths, layoutBox.clone(), seriesRect);
             lastPassAxisAreaWidths = result.axisAreaWidths;
@@ -234,18 +204,14 @@ export class CartesianChart extends Chart {
 
         for (const axis of this.axes) {
             axis.update();
-            axis.setCrossLinesVisible(visibility.crossLines);
+            axis.setCrossLinesVisible(visibility);
 
             this.clipAxis(axis, seriesRect, layoutBox);
         }
 
-        this._lastAxisAreaWidths = axisAreaWidths;
-        this._lastVisibility = visibility;
-        this._lastClipSeries = clipSeries;
-
         this.lastAreaWidths = axisAreaWidths;
 
-        return { clipSeries, seriesRect, visible: visibility.series };
+        return { clipSeries, seriesRect, visible: visibility };
     }
 
     // Iteratively try to resolve axis widths - since X axis width affects Y axis range,
@@ -275,11 +241,7 @@ export class CartesianChart extends Chart {
     private updateAxesPass(axisAreaWidths: AreaWidthMap, bounds: BBox, lastPassSeriesRect?: BBox) {
         const axisWidths: Map<string, number> = new Map();
 
-        const visibility: Partial<VisibilityMap> = {
-            series: true,
-            crossLines: true,
-        };
-
+        let visibility = true;
         let clipSeries = false;
 
         const primaryTickCounts: Partial<Record<ChartAxisDirection, number>> = {};
@@ -293,9 +255,8 @@ export class CartesianChart extends Chart {
         const totalHeight = (axisAreaWidths.get('top') ?? 0) + (axisAreaWidths.get('bottom') ?? 0) + verticalPadding;
 
         if (axisAreaBound.width <= totalWidth || axisAreaBound.height <= totalHeight) {
-            // Not enough space for crossLines and series
-            visibility.crossLines = false;
-            visibility.series = false;
+            // Not enough space for rendering
+            visibility = false;
         } else {
             axisAreaBound.shrink(crossLinePadding);
         }
