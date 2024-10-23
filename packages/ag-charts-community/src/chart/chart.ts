@@ -348,11 +348,11 @@ export abstract class Chart extends Observable {
     }
 
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
-        const { ctx, tooltip, highlight, overlays, seriesRoot } = this;
+        const { ctx, tooltip, highlight, overlays, seriesRoot, mode } = this;
         const chartType = this.getChartType();
         const fireEvent = this.fireEvent.bind(this);
         const getUpdateType = () => this.performUpdateType;
-        return { fireEvent, getUpdateType, chartType, ctx, tooltip, highlight, overlays, seriesRoot };
+        return { fireEvent, getUpdateType, chartType, ctx, tooltip, highlight, overlays, seriesRoot, mode };
     }
 
     getModuleContext(): ModuleContext {

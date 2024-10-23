@@ -1,7 +1,6 @@
 import { HistoryManager } from '../api/state/historyManager';
 import { StateManager } from '../api/state/stateManager';
 import { DOMManager } from '../dom/domManager';
-import { FocusIndicator } from '../dom/focusIndicator';
 import { ProxyInteractionService } from '../dom/proxyInteractionService';
 import { LocaleManager } from '../locale/localeManager';
 import type { ModuleContext } from '../module/moduleContext';
@@ -51,7 +50,6 @@ export class ChartContext implements ModuleContext {
     cursorManager: CursorManager;
     dataService: DataService<any>;
     domManager: DOMManager;
-    focusIndicator: FocusIndicator;
     gestureDetector: GestureDetector;
     historyManager: HistoryManager;
     interactionManager: InteractionManager;
@@ -96,8 +94,7 @@ export class ChartContext implements ModuleContext {
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
         this.cursorManager = new CursorManager(this.domManager);
         this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
-        this.focusIndicator = new FocusIndicator(this.domManager);
-        this.keyNavManager = new KeyNavManager(this.focusIndicator, this.interactionManager, chart.mode);
+        this.keyNavManager = new KeyNavManager(this.interactionManager);
         this.regionManager = new RegionManager(this.interactionManager);
         this.contextMenuRegistry = new ContextMenuRegistry(this.regionManager);
         this.gestureDetector = new GestureDetector(this.domManager);
@@ -123,7 +120,6 @@ export class ChartContext implements ModuleContext {
         this.highlightManager.destroy();
         this.interactionManager.destroy();
         this.keyNavManager.destroy();
-        this.focusIndicator.destroy();
         this.proxyInteractionService.destroy();
         this.regionManager.destroy();
         this.syncManager.destroy();

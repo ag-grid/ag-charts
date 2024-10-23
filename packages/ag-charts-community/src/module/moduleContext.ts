@@ -21,7 +21,6 @@ import type { LayoutManager } from '../chart/layout/layoutManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
 import type { DOMManager } from '../dom/domManager';
-import type { FocusIndicator } from '../dom/focusIndicator';
 import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { LocaleManager } from '../locale/localeManager';
 import type { Scene } from '../scene/scene';
@@ -46,7 +45,6 @@ export interface ModuleContext {
     readonly contextMenuRegistry: ContextMenuRegistry;
     readonly cursorManager: CursorManager;
     readonly domManager: DOMManager;
-    readonly focusIndicator: FocusIndicator;
     readonly highlightManager: HighlightManager;
     readonly historyManager: HistoryManager;
     readonly interactionManager: InteractionManager;

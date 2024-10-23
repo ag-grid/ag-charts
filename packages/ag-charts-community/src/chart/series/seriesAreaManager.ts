@@ -1,5 +1,6 @@
 import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types';
 
+import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
 import type { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
@@ -12,6 +13,7 @@ import { excludesType } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
+import type { ChartMode } from '../chartMode';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
@@ -38,6 +40,7 @@ export interface SeriesAreaChartDependencies {
     tooltip: Tooltip;
     highlight: ChartHighlight;
     overlays: ChartOverlays;
+    mode: ChartMode;
 }
 
 type TooltipEventTypes = 'hover' | 'click' | 'dblclick';
@@ -49,6 +52,7 @@ export class SeriesAreaManager extends BaseManager {
     private series: Series<any, any>[] = [];
     private seriesRect?: BBox;
     private hoverRect?: BBox;
+    private readonly focusIndicator: FocusIndicator;
     private readonly swapChain: FocusSwapChain;
 
     private readonly highlight = {
@@ -100,9 +104,13 @@ export class SeriesAreaManager extends BaseManager {
 
         const label1 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label1');
         const label2 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label2');
+
+        this.focusIndicator = new FocusIndicator(chart.ctx.domManager);
+        this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
         this.swapChain = new FocusSwapChain(label1, label2, 'series-area-aria', 'img');
         this.swapChain.addListener('blur', () => this.onBlur());
         this.swapChain.addListener('focus', () => this.onFocus());
+        this.chart.ctx.keyNavManager.focusIndicator = this.focusIndicator;
 
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label'),
@@ -132,12 +140,12 @@ export class SeriesAreaManager extends BaseManager {
     public dataChanged() {
         this.highlight.stashedHoverEvent ??= this.highlight.appliedHoverEvent;
         this.chart.ctx.tooltipManager.removeTooltip(this.id);
-        this.chart.ctx.focusIndicator.updateBounds(undefined);
+        this.focusIndicator.updateBounds(undefined);
         this.clearHighlight();
     }
 
     private preSceneRender() {
-        if (this.chart.ctx.focusIndicator.isFocusVisible()) {
+        if (this.focusIndicator.isFocusVisible()) {
             // This function is called when something in the scene is redrawn such as a resize, or zoompan change.
             // Therefore we need to update the bounds of the focus indicator, but not aria-label. Hence refresh=true.
             this.handleSeriesFocus(0, 0, true);
@@ -194,7 +202,7 @@ export class SeriesAreaManager extends BaseManager {
 
         let pickedNode: SeriesNodeDatum | undefined;
         let position: { x: number; y: number } | undefined;
-        if (this.chart.ctx.focusIndicator.isFocusVisible()) {
+        if (this.focusIndicator.isFocusVisible()) {
             pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
             if (pickedNode && this.seriesRect && pickedNode.midPoint) {
                 position = Transformable.toCanvasPoint(
@@ -217,7 +225,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onLeave(): void {
         this.chart.ctx.cursorManager.updateCursor(this.id);
-        if (!this.chart.ctx.focusIndicator.isFocusVisible()) this.clearAll();
+        if (!this.focusIndicator.isFocusVisible()) this.clearAll();
     }
 
     private onHover(event: RegionEvent<'hover'>): void {
@@ -262,14 +270,14 @@ export class SeriesAreaManager extends BaseManager {
     private onFocus(): void {
         const keyState = InteractionState.Default | InteractionState.Animation;
         if (!(this.chart.ctx.interactionManager.getState() & keyState)) return;
-        this.hoverDevice = this.chart.ctx.focusIndicator.isFocusVisible() ? 'keyboard' : 'mouse';
+        this.hoverDevice = this.focusIndicator.isFocusVisible() ? 'keyboard' : 'mouse';
         this.handleFocus(0, 0);
     }
 
     private onBlur() {
         this.hoverDevice = 'mouse';
         this.clearAll();
-        this.chart.ctx.focusIndicator.overrideFocusVisible(undefined);
+        this.focusIndicator.overrideFocusVisible(undefined);
     }
 
     private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
@@ -336,7 +344,7 @@ export class SeriesAreaManager extends BaseManager {
         if (overlayFocus == null) {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
-            this.chart.ctx.focusIndicator.updateBounds(overlayFocus.rect);
+            this.focusIndicator.updateBounds(overlayFocus.rect);
         }
     }
 
@@ -381,11 +389,11 @@ export class SeriesAreaManager extends BaseManager {
         focus.datumIndex = datumIndex;
         focus.datum = datum;
 
-        if (this.chart.ctx.focusIndicator.isFocusVisible()) {
+        if (this.focusIndicator.isFocusVisible()) {
             this.chart.ctx.animationManager.reset();
         }
 
-        if (this.chart.ctx.focusIndicator.isFocusVisible() && seriesRect) {
+        if (this.focusIndicator.isFocusVisible() && seriesRect) {
             const focusBBox = getPickedFocusBBox(pick);
             if (!seriesRect.containsBBox(focusBBox)) {
                 this.chart.ctx.zoomManager.panToBBox(this.id, seriesRect, focusBBox);
@@ -393,7 +401,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         // Update the bounds of the focus indicator:
-        const keyboardEvent = makeKeyboardPointerEvent(this.chart.ctx.focusIndicator, pick);
+        const keyboardEvent = makeKeyboardPointerEvent(this.focusIndicator, pick);
 
         // Update highlight/tooltip for keyboard users:
         if (!refreshBoundsOnly && keyboardEvent !== undefined && this.hoverDevice === 'keyboard') {
@@ -433,7 +441,7 @@ export class SeriesAreaManager extends BaseManager {
     private clearAll() {
         this.clearHighlight();
         this.clearTooltip();
-        this.chart.ctx.focusIndicator.updateBounds(undefined);
+        this.focusIndicator.updateBounds(undefined);
     }
 
     private readonly hoverScheduler = debouncedAnimationFrame(() => {
