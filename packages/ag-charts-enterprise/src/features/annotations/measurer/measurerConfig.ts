@@ -35,19 +35,12 @@ export const dateRangeConfig: AnnotationTypeConfig<DateRangeProperties, Measurer
             node.update(datum, context);
         }
     },
-    createState: (ctx, { createDatum, getDatum, getNode }) =>
+    createState: (ctx, { createDatum }) =>
         new DateRangeStateMachine({
             ...ctx,
             create: createDatum(AnnotationType.DateRange),
-            datum: getDatum(DateRangeProperties.is),
-            node: getNode(MeasurerScene.is),
         }),
-    dragState: (ctx, { getDatum, getNode }) =>
-        new DragStateMachine<DateRangeProperties, MeasurerScene>({
-            ...ctx,
-            datum: getDatum(DateRangeProperties.is),
-            node: getNode(MeasurerScene.is),
-        }),
+    dragState: (ctx) => new DragStateMachine<DateRangeProperties, MeasurerScene>(ctx),
 };
 
 export const priceRangeConfig: AnnotationTypeConfig<PriceRangeProperties, MeasurerScene> = {
@@ -70,19 +63,12 @@ export const priceRangeConfig: AnnotationTypeConfig<PriceRangeProperties, Measur
             node.update(datum, context);
         }
     },
-    createState: (ctx, { createDatum, getDatum, getNode }) =>
+    createState: (ctx, { createDatum }) =>
         new PriceRangeStateMachine({
             ...ctx,
             create: createDatum(AnnotationType.DateRange),
-            datum: getDatum(PriceRangeProperties.is),
-            node: getNode(MeasurerScene.is),
         }),
-    dragState: (ctx, { getDatum, getNode }) =>
-        new DragStateMachine<PriceRangeProperties, MeasurerScene>({
-            ...ctx,
-            datum: getDatum(PriceRangeProperties.is),
-            node: getNode(MeasurerScene.is),
-        }),
+    dragState: (ctx) => new DragStateMachine<PriceRangeProperties, MeasurerScene>(ctx),
 };
 
 export const datePriceRangeConfig: AnnotationTypeConfig<DatePriceRangeProperties, MeasurerScene> = {
@@ -105,19 +91,12 @@ export const datePriceRangeConfig: AnnotationTypeConfig<DatePriceRangeProperties
             node.update(datum, context);
         }
     },
-    createState: (ctx, { createDatum, getDatum, getNode }) =>
+    createState: (ctx, { createDatum }) =>
         new DatePriceRangeStateMachine({
             ...ctx,
             create: createDatum(AnnotationType.DateRange),
-            datum: getDatum(DatePriceRangeProperties.is),
-            node: getNode(MeasurerScene.is),
         }),
-    dragState: (ctx, { getDatum, getNode }) =>
-        new DragStateMachine<DatePriceRangeProperties, MeasurerScene>({
-            ...ctx,
-            datum: getDatum(DatePriceRangeProperties.is),
-            node: getNode(MeasurerScene.is),
-        }),
+    dragState: (ctx) => new DragStateMachine<DatePriceRangeProperties, MeasurerScene>(ctx),
 };
 
 export const quickDatePriceRangeConfig: AnnotationTypeConfig<QuickDatePriceRangeProperties, QuickMeasurerScene> = {
@@ -144,17 +123,10 @@ export const quickDatePriceRangeConfig: AnnotationTypeConfig<QuickDatePriceRange
             node.update(datum, context);
         }
     },
-    createState: (ctx, { createDatum, getDatum, getNode }) =>
+    createState: (ctx, { createDatum }) =>
         new QuickDatePriceRangeStateMachine({
             ...ctx,
             create: createDatum(AnnotationType.QuickDatePriceRange),
-            datum: getDatum(QuickDatePriceRangeProperties.is),
-            node: getNode(QuickMeasurerScene.is),
         }),
-    dragState: (ctx, { getDatum, getNode }) =>
-        new DragStateMachine<QuickDatePriceRangeProperties, QuickMeasurerScene>({
-            ...ctx,
-            datum: getDatum(QuickDatePriceRangeProperties.is),
-            node: getNode(QuickMeasurerScene.is),
-        }),
+    dragState: (ctx) => new DragStateMachine<QuickDatePriceRangeProperties, QuickMeasurerScene>(ctx),
 };

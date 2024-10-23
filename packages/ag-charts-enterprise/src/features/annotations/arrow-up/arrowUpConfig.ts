@@ -23,16 +23,10 @@ export const arrowUpConfig: AnnotationTypeConfig<ArrowUpProperties, ArrowUpScene
             node.update(datum, context);
         }
     },
-    createState: (ctx, { createDatum, getNode }) =>
+    createState: (ctx, { createDatum }) =>
         new ArrowUpStateMachine({
             ...ctx,
             create: createDatum(AnnotationType.ArrowUp),
-            node: getNode(ArrowUpScene.is),
         }),
-    dragState: (ctx, { getDatum, getNode }) =>
-        new DragStateMachine<ArrowUpProperties, ArrowUpScene>({
-            ...ctx,
-            datum: getDatum(ArrowUpProperties.is),
-            node: getNode(ArrowUpScene.is),
-        }),
+    dragState: (ctx) => new DragStateMachine<ArrowUpProperties, ArrowUpScene>(ctx),
 };

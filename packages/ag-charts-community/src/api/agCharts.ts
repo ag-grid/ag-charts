@@ -202,7 +202,7 @@ class AgChartsInternal {
             debug('>>> AgCharts.createOrUpdate() MUTATED user options', mutableOptions);
         }
 
-        const { overrideDevicePixelRatio, document, window: userWindow, ...options } = mutableOptions;
+        const { overrideDevicePixelRatio, document, window: userWindow, styleContainer, ...options } = mutableOptions;
         const chartOptions = new ChartOptions(
             options,
             processedOverrides,
@@ -211,6 +211,7 @@ class AgChartsInternal {
                 document,
                 window: userWindow,
                 overrideDevicePixelRatio,
+                styleContainer,
             },
             optionsMetadata
         );

@@ -23,17 +23,10 @@ export const calloutConfig: AnnotationTypeConfig<CalloutProperties, CalloutScene
             node.update(datum, context);
         }
     },
-    createState: (ctx, { createDatum, getDatum, getNode }) =>
+    createState: (ctx, { createDatum }) =>
         new CalloutStateMachine({
             ...ctx,
             create: createDatum(AnnotationType.Callout),
-            datum: getDatum(CalloutProperties.is),
-            node: getNode(CalloutScene.is),
         }),
-    dragState: (ctx, { getDatum, getNode }) =>
-        new DragStateMachine<CalloutProperties, CalloutScene>({
-            ...ctx,
-            datum: getDatum(CalloutProperties.is),
-            node: getNode(CalloutScene.is),
-        }),
+    dragState: (ctx) => new DragStateMachine<CalloutProperties, CalloutScene>(ctx),
 };

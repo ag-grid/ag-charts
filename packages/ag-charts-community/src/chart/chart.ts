@@ -69,6 +69,7 @@ const debug = Debug.create(true, 'opts');
 
 export type TransferableResources = {
     container?: HTMLElement;
+    styleContainer?: HTMLElement;
     scene: Scene;
 };
 
@@ -247,6 +248,7 @@ export abstract class Chart extends Observable {
 
         const scene: Scene | undefined = resources?.scene;
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
+        const styleContainer = resources?.styleContainer ?? options.specialOverrides.styleContainer;
 
         const root = new Group({ name: 'root' });
         // Prevent the scene from rendering chart components in an invalid state
@@ -267,6 +269,7 @@ export abstract class Chart extends Observable {
             scene,
             root,
             container,
+            styleContainer,
             syncManager: new SyncManager(this),
             pixelRatio: options.specialOverrides.overrideDevicePixelRatio,
             updateCallback: (type, opts) => this.update(type, opts),
@@ -1097,6 +1100,7 @@ export abstract class Chart extends Observable {
             'topology',
             'nodes',
             'initialState',
+            'styleContainer',
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added

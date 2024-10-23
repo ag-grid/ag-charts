@@ -28,17 +28,10 @@ export const disjointChannelConfig: AnnotationTypeConfig<DisjointChannelProperti
             node.update(datum, context);
         }
     },
-    createState: (ctx, { createDatum, getDatum, getNode }) =>
+    createState: (ctx, { createDatum }) =>
         new DisjointChannelStateMachine({
             ...ctx,
             create: createDatum(AnnotationType.DisjointChannel),
-            datum: getDatum(DisjointChannelProperties.is),
-            node: getNode(DisjointChannelScene.is),
         }),
-    dragState: (ctx, { getDatum, getNode }) =>
-        new DragStateMachine<DisjointChannelProperties, DisjointChannelScene>({
-            ...ctx,
-            datum: getDatum(DisjointChannelProperties.is),
-            node: getNode(DisjointChannelScene.is),
-        }),
+    dragState: (ctx) => new DragStateMachine<DisjointChannelProperties, DisjointChannelScene>(ctx),
 };
