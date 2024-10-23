@@ -284,7 +284,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         }
     }
 
-    getShadowDocumentRoot(current = this.container, usecase: 'styles' | 'NA' = 'NA') {
+    getShadowDocumentRoot(current = this.container) {
         const docRoot = current?.ownerDocument?.body ?? getDocument('body');
 
         // For shadow-DOM cases, the root node of the shadow-DOM has no parent - we need
@@ -301,11 +301,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             current = current.parentNode as HTMLElement;
         }
 
-        // Container is disconnected from the DOM, default to the
-        if (usecase === 'styles') {
-            return this.container;
-        }
-        return undefined;
+        // Container is disconnected from the DOM, default to the container.
+        return this.container;
     }
 
     getChildBoundingClientRect(type: DOMElementClass) {
@@ -370,7 +367,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             styleElement = addStyleElement(this.styleRootElement);
         } else {
             // Heuristic detection of enclosing shadow DOM root.
-            const documentRoot = this.getShadowDocumentRoot(this.container, 'styles');
+            const documentRoot = this.getShadowDocumentRoot(this.container);
             if (documentRoot != null) {
                 // Add to our DOM tree to avoid contaminating outside of the shadow DOM.
                 styleElement = this.addChild('styles', id);
