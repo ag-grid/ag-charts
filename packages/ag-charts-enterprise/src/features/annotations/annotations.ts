@@ -1006,8 +1006,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const translation = { x: 0, y: 0 };
 
-        const xStep = Math.max(context?.xAxis.scaleBandwidth() ?? 0, ctrlShift ? 10 : 1);
-        const yStep = Math.max(context?.yAxis.scaleBandwidth() ?? 0, ctrlShift ? 10 : 1);
+        const xStep = Math.max(context?.xAxis.scale.bandwidth ?? 0, ctrlShift ? 10 : 1);
+        const yStep = Math.max(context?.yAxis.scale.bandwidth ?? 0, ctrlShift ? 10 : 1);
         switch (sourceEvent.key) {
             case 'ArrowDown':
                 translation.y = yStep;

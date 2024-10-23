@@ -30,6 +30,7 @@ import { Logger } from '../../util/logger';
 import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
 import { StateMachine } from '../../util/stateMachine';
+import { createIdsGenerator } from '../../util/tempUtils';
 import { CachedTextMeasurerPool, type TextMeasurer, TextUtils } from '../../util/textMeasurer';
 import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
@@ -966,6 +967,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         primaryTickCount?: number;
     }) {
         const { range, scale, visibleRange } = this;
+        const idGenerator = createIdsGenerator();
 
         let rawTicks: any[];
 
@@ -1002,7 +1004,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const ticks: TickDatum[] = [];
 
         let labelCount = 0;
-        const tickIdCounts = new Map<string, number>();
 
         // Only get the ticks within a sliding window of the visible range to improve performance
         const start = Math.max(0, Math.floor(visibleRange[0] * rawTicks.length));
@@ -1023,16 +1024,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             const tickLabel = this.formatTick(tick, fractionDigits, start + i);
 
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank
-            let tickId = tickLabel;
-            if (tickIdCounts.has(tickId)) {
-                const count = tickIdCounts.get(tickId)!;
-                tickIdCounts.set(tickId, count + 1);
-                tickId = `${tickId}_${count}`;
-            } else {
-                tickIdCounts.set(tickId, 1);
-            }
-
-            ticks.push({ tick, tickId, tickLabel, translationY: Math.floor(translationY) });
+            ticks.push({ tick, tickId: idGenerator(tickLabel), tickLabel, translationY: Math.floor(translationY) });
 
             if (tickLabel === '' || tickLabel == null) {
                 continue;
@@ -1067,20 +1059,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         maxTickCount: number;
         defaultTickCount: number;
     } {
-        if (!this.label.avoidCollisions) {
-            return {
-                minTickCount: ContinuousScale.defaultMaxTickCount,
-                maxTickCount: ContinuousScale.defaultMaxTickCount,
-                defaultTickCount: ContinuousScale.defaultMaxTickCount,
-            };
-        }
-
         const rangeWithBleed = this.calculateRangeWithBleed();
         const defaultMinSpacing = Math.max(
             this.defaultTickMinSpacing,
             rangeWithBleed / ContinuousScale.defaultMaxTickCount
         );
-        let clampMaxTickCount = !isNaN(maxSpacing);
 
         if (isNaN(minSpacing)) {
             minSpacing = defaultMinSpacing;
@@ -1098,16 +1081,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             }
         }
 
-        // Clamps the min spacing between ticks to a sensible datum spacing.
-        const minRectDistance = 2;
-        clampMaxTickCount &&= minRectDistance < defaultMinSpacing;
-
-        // TODO: Remove clamping to hardcoded 100 max tick count, this is a temp fix for zooming
-        const maxTickCount = clamp(
-            1,
-            Math.floor(rangeWithBleed / minSpacing),
-            clampMaxTickCount ? Math.min(Math.floor(rangeWithBleed / minRectDistance), 100) : 100
-        );
+        const maxTickCount = Math.max(1, Math.floor(rangeWithBleed / minSpacing));
         const minTickCount = Math.min(maxTickCount, Math.ceil(rangeWithBleed / maxSpacing));
         const defaultTickCount = clamp(minTickCount, ContinuousScale.defaultTickCount, maxTickCount);
 
@@ -1383,7 +1357,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             scale: this.scale,
             direction: this.direction,
             continuous: ContinuousScale.is(scale) || OrdinalTimeScale.is(scale),
-            keys: () => this.boundSeries.flatMap((s) => s.getKeys(this.direction)),
             seriesKeyProperties: () =>
                 this.boundSeries.reduce((keys, series) => {
                     const seriesKeys = series.getKeyProperties(this.direction);
@@ -1397,14 +1370,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                     return keys;
                 }, [] as string[]),
             scaleValueFormatter: (specifier?: string) => this.getScaleValueFormatter(specifier),
-            scaleBandwidth: () => scale.bandwidth ?? 0,
-            scaleDomain: () => scale.getDomain?.(),
-            scaleConvert: (val) => scale.convert(val),
             scaleInvert: OrdinalTimeScale.is(scale)
                 ? (val) => scale.invertNearest?.(val)
                 : (val) => scale.invert?.(val),
             scaleInvertNearest: (val) => scale.invertNearest?.(val),
-            scaleStep: () => scale.step ?? 0,
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (x, tolerance) => this.inRange(x, tolerance),
         };

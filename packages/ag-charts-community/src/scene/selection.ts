@@ -1,6 +1,7 @@
 import { Debug } from '../util/debug';
 import { Node } from './node';
 
+type ValidId = string | number;
 type NodeConstructor<TNode extends Node> = new () => TNode;
 type NodeFactory<TNode extends Node, TDatum> = (datum: TDatum) => TNode;
 type NodeConstructorOrFactory<TNode extends Node, TDatum> = NodeConstructor<TNode> | NodeFactory<TNode, TDatum>;
@@ -39,7 +40,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     private readonly nodeFactory: NodeFactory<TChild, TDatum>;
     private readonly garbageBin = new Set<TChild>();
 
-    protected _nodesMap = new Map<TChild, string | number>();
+    protected _nodesMap = new Map<TChild, ValidId>();
     protected _nodes: TChild[] = [];
     protected data: TDatum[] = [];
 
@@ -73,13 +74,13 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
      * the nodes. Otherwise, take the more efficient route of simply creating and destroying nodes at the end
      * of the array.
      */
-    update(data: TDatum[], initializer?: (node: TChild) => void, getDatumId?: (datum: TDatum) => string | number) {
+    update(data: TDatum[], initializer?: (node: TChild) => void, getDatumId?: (datum: TDatum) => ValidId) {
         if (this.garbageBin.size > 0) {
             this.debug(`Selection - update() called with pending garbage: ${data}`);
         }
 
         if (getDatumId) {
-            const dataMap = new Map<string | number, [TDatum, number]>(
+            const dataMap = new Map<ValidId, [TDatum, number]>(
                 data.map((datum, idx) => [getDatumId(datum), [datum, idx]])
             );
             for (const [node, datumId] of this._nodesMap.entries()) {

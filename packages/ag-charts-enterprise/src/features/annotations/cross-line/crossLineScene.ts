@@ -274,16 +274,15 @@ export class CrossLineScene extends AnnotationScene {
         let y1 = 0;
         let y2 = 0;
 
-        const { bounds, scaleConvert, scaleBandwidth } = context;
-        const halfBandwidth = (scaleBandwidth() ?? 0) / 2;
+        const { bounds, scale } = context;
+        const halfBandwidth = (scale.bandwidth ?? 0) / 2;
+        const scaledValue = scale.convert(datum.value) + halfBandwidth;
 
         if (HorizontalLineProperties.is(datum)) {
-            const scaledValue = scaleConvert(datum.value) + halfBandwidth;
             x2 = bounds.width;
             y1 = scaledValue;
             y2 = scaledValue;
         } else {
-            const scaledValue = scaleConvert(datum.value) + halfBandwidth;
             x1 = scaledValue;
             x2 = scaledValue;
             y2 = bounds.height;
