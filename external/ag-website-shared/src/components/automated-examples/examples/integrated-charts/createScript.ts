@@ -1,19 +1,14 @@
-import { isMobile } from '@ag-website-shared/components/automated-examples/lib/isMobile';
-import { mouseClick } from '@ag-website-shared/components/automated-examples/lib/scriptActions/mouseClick';
-import { waitFor } from '@ag-website-shared/components/automated-examples/lib/scriptActions/waitFor';
 import type { Group } from '@tweenjs/tween.js';
 
 import type { GridApi } from 'ag-grid-community';
 
 import { createAgElementFinder } from '../../lib/agElements';
-import type { AgElement } from '../../lib/agElements';
 import type { Mouse } from '../../lib/createMouse';
 import { getBottomMidPos, getOffset, getScrollOffset } from '../../lib/dom';
 import { addPoints, scalePoint } from '../../lib/geometry';
-import type { Point } from '../../lib/geometry';
 import { clearAllRowHighlights } from '../../lib/scriptActions/clearAllRowHighlights';
 import { dragRange } from '../../lib/scriptActions/dragRange';
-import { moveTarget, moveTo } from '../../lib/scriptActions/move';
+import { moveTarget } from '../../lib/scriptActions/move';
 import type { ScriptDebugger } from '../../lib/scriptDebugger';
 import type { ScriptAction } from '../../lib/scriptRunner';
 
@@ -30,26 +25,10 @@ interface Params {
     scriptDebugger?: ScriptDebugger;
 }
 
-function getLegendOffset({
-    chartsCanvas,
-    offsetX,
-    offsetY,
-}: {
-    chartsCanvas: AgElement;
-    offsetX: number;
-    offsetY: number;
-}) {
-    const { clientHeight } = chartsCanvas.get() as HTMLElement;
-    const { x, y } = chartsCanvas.getPos() as Point;
-
-    return { x: x + offsetX, y: Math.round(clientHeight / 2 + y) + offsetY };
-}
-
 export const createScript = ({
     containerEl,
     getContainerScale = () => 1,
     mouse,
-    getOverlay,
     tweenGroup,
     gridApi,
     scriptDebugger,

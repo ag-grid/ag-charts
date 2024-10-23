@@ -7,12 +7,8 @@ a#{$selector-exclude-grid} {
     transition: color $transition-default-timing;
     font-weight: var(--text-semibold);
 
-    &:where([href]):hover {
+    &[href]:hover {
         color: var(--color-link-hover);
-
-        > :where(.icon) {
-            --color-icon: var(--color-link-hover);
-        }
     }
 
     > :where(.icon) {

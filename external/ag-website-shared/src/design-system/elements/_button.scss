@@ -84,6 +84,8 @@ input[type='submit']#{$selector-exclude-grid},
 
 // Fix hover issues for links with .button class
 a.button:hover {
+    --color-icon: var(--color-button-primary-fg);
+
     color: var(--color-button-primary-fg);
 }
 

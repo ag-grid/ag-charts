@@ -100,6 +100,7 @@ const columnDefs: ColDef[] = [
 ];
 let api: GridApi;
 const gridOptions: GridOptions = {
+    theme: 'legacy',
     columnDefs,
     loading: false,
     suppressNoRowsOverlay: true,
@@ -120,7 +121,7 @@ const gridOptions: GridOptions = {
         },
     },
     enableCharts: true,
-    selection: { mode: 'cell' },
+    cellSelection: true,
     suppressAggFuncInHeader: true,
     getRowId: (params) => String(params.data.id),
     rowGroupPanelShow: 'always',
