@@ -74,7 +74,7 @@ export * from './chart/series/seriesZIndexMap';
 export * from './chart/series/util';
 export * from './chart/series/cartesian/abstractBarSeries';
 export * from './chart/series/cartesian/cartesianSeries';
-export * from './chart/series/cartesian/lineUtil';
+export * from './chart/series/cartesian/lineUtilLegacy';
 export * from './chart/series/cartesian/barUtil';
 export * from './chart/series/cartesian/areaUtil';
 export * from './chart/series/cartesian/markerUtil';

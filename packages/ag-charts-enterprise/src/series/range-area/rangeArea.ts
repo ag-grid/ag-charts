@@ -40,8 +40,8 @@ type RangeAreaLabelDatum = Readonly<_Scene.Point> & {
 
 interface RangeAreaContext
     extends _ModuleSupport.CartesianSeriesNodeDataContext<RangeAreaMarkerDatum, RangeAreaLabelDatum> {
-    fillData: RadarAreaPathDatum;
-    strokeData: RadarAreaPathDatum;
+    fillData: RangeAreaPathDatum;
+    strokeData: RangeAreaPathDatum;
 }
 
 class RangeAreaSeriesNodeEvent<
@@ -59,11 +59,22 @@ class RangeAreaSeriesNodeEvent<
     }
 }
 
-type RadarAreaPoint = _ModuleSupport.AreaPathPoint & { size: number; enabled: boolean };
+interface RangeAreaPoint {
+    point: {
+        x: number;
+        y: number;
+        moveTo: boolean;
+    };
+    size?: number;
+    xValue?: string | number;
+    yValue?: number;
+    itemId?: string;
+    enabled: boolean;
+}
 
-type RadarAreaPathDatum = {
-    readonly highPoints: RadarAreaPoint[];
-    readonly lowPoints: RadarAreaPoint[];
+type RangeAreaPathDatum = {
+    readonly highPoints: RangeAreaPoint[];
+    readonly lowPoints: RangeAreaPoint[];
     readonly itemId: string;
 };
 
@@ -187,7 +198,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             yHigh: number,
             yLow: number,
             moveTo: boolean
-        ): [RadarAreaPoint, RadarAreaPoint] => {
+        ): [RangeAreaPoint, RangeAreaPoint] => {
             const x = xScale.convert(xValue) + xOffset;
             const yHighCoordinate = yScale.convert(yHigh);
             const yLowCoordinate = yScale.convert(yLow);
@@ -215,8 +226,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const labelData: RangeAreaLabelDatum[] = [];
         const markerData: RangeAreaMarkerDatum[] = [];
-        const strokeData: RadarAreaPathDatum = { itemId, highPoints: [], lowPoints: [] };
-        const fillData: RadarAreaPathDatum = { itemId, highPoints: [], lowPoints: [] };
+        const strokeData: RangeAreaPathDatum = { itemId, highPoints: [], lowPoints: [] };
+        const fillData: RangeAreaPathDatum = { itemId, highPoints: [], lowPoints: [] };
         const context: RangeAreaContext = {
             itemId,
             labelData,
@@ -242,7 +253,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             const points = invalidRange ? [] : createCoordinates(xValue, yHighValue, yLowValue, false);
 
             const inverted = yLowValue > yHighValue;
-            points.forEach(({ point: { x, y }, enabled, size, itemId: datumItemId = '', yValue }) => {
+            points.forEach(({ point: { x, y }, enabled, size = 0, itemId: datumItemId = '', yValue }) => {
                 // marker data
                 markerData.push({
                     index: datumIdx,
