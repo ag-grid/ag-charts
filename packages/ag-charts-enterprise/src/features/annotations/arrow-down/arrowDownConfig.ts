@@ -23,16 +23,10 @@ export const arrowDownConfig: AnnotationTypeConfig<ArrowDownProperties, ArrowDow
             node.update(datum, context);
         }
     },
-    createState: (ctx, { createDatum, getNode }) =>
+    createState: (ctx, { createDatum }) =>
         new ArrowDownStateMachine({
             ...ctx,
             create: createDatum(AnnotationType.ArrowDown),
-            node: getNode(ArrowDownScene.is),
         }),
-    dragState: (ctx, { getDatum, getNode }) =>
-        new DragStateMachine<ArrowDownProperties, ArrowDownScene>({
-            ...ctx,
-            datum: getDatum(ArrowDownProperties.is),
-            node: getNode(ArrowDownScene.is),
-        }),
+    dragState: (ctx) => new DragStateMachine<ArrowDownProperties, ArrowDownScene>(ctx),
 };

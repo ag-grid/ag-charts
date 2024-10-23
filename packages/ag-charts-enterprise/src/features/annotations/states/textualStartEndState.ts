@@ -10,16 +10,12 @@ import { isTextType } from '../utils/types';
 import type { AnnotationStateEvents } from './stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 
-const { StateMachine } = _ModuleSupport;
+const { StateMachine, StateMachineProperty } = _ModuleSupport;
 
-interface TextualStartEndStateMachineContext<
-    Datum extends TextualStartEndProperties,
-    Node extends TextualStartEndScene<Datum>,
-> extends Omit<AnnotationsStateMachineContext, 'create' | 'delete' | 'datum' | 'node' | 'showTextInput'> {
+interface TextualStartEndStateMachineContext<Datum extends TextualStartEndProperties>
+    extends Omit<AnnotationsStateMachineContext, 'create' | 'delete' | 'datum' | 'node' | 'showTextInput'> {
     create: (datum: Datum) => void;
     delete: () => void;
-    datum: () => Datum | undefined;
-    node: () => Node | undefined;
     showTextInput: () => void;
     deselect: () => void;
     showAnnotationOptions: () => void;
@@ -50,47 +46,52 @@ export abstract class TextualStartEndStateMachine<
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
-    constructor(ctx: TextualStartEndStateMachineContext<Datum, Node>) {
-        const actionCreate = ({ point }: { point: () => Point }) => {
+    @StateMachineProperty()
+    protected datum?: Datum;
+
+    @StateMachineProperty()
+    protected node?: Node;
+
+    constructor(ctx: TextualStartEndStateMachineContext<Datum>) {
+        const actionCreate = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
-            const origin = point();
-            datum.set({ start: origin, end: origin, visible: true });
+            datum.set({ start: point, end: point, visible: true });
             ctx.create(datum);
         };
 
         const actionFirstRender = () => {
-            ctx.node()?.toggleActive(true);
+            const { node } = this;
+            node?.toggleActive(true);
+            node?.toggleHandles({ start: true });
         };
 
         const onStartEditing = () => {
             ctx.showTextInput();
-            const datum = ctx.datum();
-            if (datum) datum.visible = false;
+            if (this.datum) this.datum.visible = false;
         };
 
         const onStopEditing = () => {
             ctx.hideTextInput();
-            const datum = ctx.datum();
-            if (datum) datum.visible = true;
+            if (this.datum) this.datum.visible = true;
             ctx.deselect();
         };
 
         const actionUpdateTextInputBBox = (bbox?: _Scene.BBox) => {
-            const node = ctx.node();
-            node?.setTextInputBBox(bbox);
+            this.node?.setTextInputBBox(bbox);
             ctx.update();
         };
 
-        const onEndHover = ({ point }: { point: () => Point }) => {
-            ctx.datum()?.set({ end: point() });
-            ctx.node()?.toggleActive(true);
-            ctx.node()?.toggleHandles({ end: false });
+        const onEndHover = ({ point }: { point: Point }) => {
+            const { datum, node } = this;
+            datum?.set({ end: point });
+            node?.toggleActive(true);
+            node?.toggleHandles({ end: false });
             ctx.update();
         };
 
         const onEndClick = () => {
             ctx.showAnnotationOptions();
-            ctx.node()?.toggleHandles({ end: true });
+            this.node?.toggleHandles({ end: true });
         };
 
         const actionColor = ({
@@ -104,7 +105,7 @@ export abstract class TextualStartEndStateMachine<
             color: string;
             opacity: number;
         }) => {
-            const datum = ctx.datum();
+            const { datum } = this;
             if (!datum) return;
 
             if (colorPickerType === 'text-color') {
@@ -115,8 +116,7 @@ export abstract class TextualStartEndStateMachine<
         };
 
         const actionFontSize = (fontSize: number) => {
-            const datum = ctx.datum();
-            const node = ctx.node();
+            const { datum, node } = this;
             if (!datum || !node || !isTextType(datum)) return;
 
             datum.fontSize = fontSize;
@@ -129,9 +129,8 @@ export abstract class TextualStartEndStateMachine<
         };
 
         const actionSave = ({ textInputValue, bbox }: { textInputValue?: string; bbox?: _Scene.BBox }) => {
+            const { datum } = this;
             if (bbox != null && textInputValue != null && textInputValue.length > 0) {
-                const datum = ctx.datum();
-
                 if (!isTextType(datum)) {
                     return;
                 }
@@ -140,7 +139,7 @@ export abstract class TextualStartEndStateMachine<
                 datum?.set({ text: wrappedText });
 
                 ctx.update();
-                ctx.recordAction(`Create ${ctx.node()?.type} annotation`);
+                ctx.recordAction(`Create ${datum?.type} annotation`);
             } else {
                 ctx.delete();
             }

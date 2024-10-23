@@ -1,7 +1,7 @@
 import { _ModuleSupport, _Util } from 'ag-charts-community';
 
 import type { Point } from '../annotationTypes';
-import type { AnnotationsStateMachineContext, MeasurerPropertiesType } from '../annotationsSuperTypes';
+import type { AnnotationsCreateStateMachineContext, MeasurerPropertiesType } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
 import { isEphemeralType } from '../utils/types';
 import {
@@ -12,15 +12,11 @@ import {
 } from './measurerProperties';
 import type { MeasurerScene } from './measurerScene';
 
-const { StateMachine } = _ModuleSupport;
+const { StateMachine, StateMachineProperty } = _ModuleSupport;
 
 interface MeasurerStateMachineContext<Datum extends MeasurerPropertiesType>
-    extends Omit<AnnotationsStateMachineContext, 'create'> {
+    extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: Datum) => void;
-    delete: () => void;
-    datum: () => Datum | undefined;
-    node: () => MeasurerScene | undefined;
-    showAnnotationOptions: () => void;
 }
 
 abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> extends StateMachine<
@@ -29,33 +25,38 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
 > {
     override debug = _Util.Debug.create(true, 'annotations');
 
+    @StateMachineProperty()
+    protected datum?: Datum;
+
+    @StateMachineProperty()
+    protected node?: MeasurerScene;
+
     constructor(ctx: MeasurerStateMachineContext<Datum>) {
-        const actionCreate = ({ point }: { point: () => Point }) => {
+        const actionCreate = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
-            const origin = point();
-            datum.set({ start: origin, end: origin });
+            datum.set({ start: point, end: point });
             ctx.create(datum);
         };
 
-        const actionEndUpdate = ({ point }: { point: () => Point }) => {
-            const datum = ctx.datum();
-            datum?.set({ end: point() });
+        const actionEndUpdate = ({ point }: { point: Point }) => {
+            const { datum, node } = this;
+            datum?.set({ end: point });
 
-            ctx.node()?.toggleActive(true);
-            ctx.node()?.toggleHandles({ end: false });
+            node?.toggleActive(true);
+            node?.toggleHandles({ end: false });
             ctx.update();
         };
 
         const actionEndFinish = () => {
-            ctx.node()?.toggleHandles({ end: true });
+            this.node?.toggleHandles({ end: true });
         };
 
         const actionCancel = () => ctx.delete();
 
         const onExitEnd = () => {
             ctx.showAnnotationOptions();
-            if (isEphemeralType(ctx.datum())) return;
-            ctx.recordAction(`Create ${ctx.node()?.type} annotation`);
+            if (isEphemeralType(this.datum)) return;
+            ctx.recordAction(`Create ${this.node?.type} annotation`);
         };
 
         super('start', {
@@ -72,6 +73,7 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
             },
             end: {
                 hover: actionEndUpdate,
+                drag: actionEndUpdate,
                 click: {
                     target: StateMachine.parent,
                     action: actionEndFinish,
@@ -80,7 +82,6 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
                     target: StateMachine.parent,
                     action: actionEndFinish,
                 },
-                drag: actionEndUpdate,
                 reset: {
                     target: StateMachine.parent,
                     action: actionCancel,

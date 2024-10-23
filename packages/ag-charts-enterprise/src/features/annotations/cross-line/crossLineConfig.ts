@@ -23,18 +23,12 @@ export const horizontalLineConfig: AnnotationTypeConfig<HorizontalLineProperties
             node.update(datum, context);
         }
     },
-    createState: (ctx, { createDatum, getNode }) =>
+    createState: (ctx, { createDatum }) =>
         new CrossLineStateMachine('horizontal', {
             ...ctx,
             create: createDatum(AnnotationType.HorizontalLine),
-            node: getNode(CrossLineScene.is),
         }),
-    dragState: (ctx, { getDatum, getNode }) =>
-        new DragStateMachine<HorizontalLineProperties, CrossLineScene>({
-            ...ctx,
-            datum: getDatum(HorizontalLineProperties.is),
-            node: getNode(CrossLineScene.is),
-        }),
+    dragState: (ctx) => new DragStateMachine<HorizontalLineProperties, CrossLineScene>(ctx),
 };
 
 export const verticalLineConfig: AnnotationTypeConfig<VerticalLineProperties, CrossLineScene> = {
@@ -55,16 +49,10 @@ export const verticalLineConfig: AnnotationTypeConfig<VerticalLineProperties, Cr
             node.update(datum, context);
         }
     },
-    createState: (ctx, { createDatum, getNode }) =>
+    createState: (ctx, { createDatum }) =>
         new CrossLineStateMachine('vertical', {
             ...ctx,
             create: createDatum(AnnotationType.VerticalLine),
-            node: getNode(CrossLineScene.is),
         }),
-    dragState: (ctx, { getDatum, getNode }) =>
-        new DragStateMachine<VerticalLineProperties, CrossLineScene>({
-            ...ctx,
-            datum: getDatum(VerticalLineProperties.is),
-            node: getNode(CrossLineScene.is),
-        }),
+    dragState: (ctx) => new DragStateMachine<VerticalLineProperties, CrossLineScene>(ctx),
 };

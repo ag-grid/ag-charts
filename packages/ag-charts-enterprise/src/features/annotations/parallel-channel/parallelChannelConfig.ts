@@ -28,17 +28,10 @@ export const parallelChannelConfig: AnnotationTypeConfig<ParallelChannelProperti
             node.update(datum, context);
         }
     },
-    createState: (ctx, { createDatum, getDatum, getNode }) =>
+    createState: (ctx, { createDatum }) =>
         new ParallelChannelStateMachine({
             ...ctx,
             create: createDatum(AnnotationType.ParallelChannel),
-            datum: getDatum(ParallelChannelProperties.is),
-            node: getNode(ParallelChannelScene.is),
         }),
-    dragState: (ctx, { getDatum, getNode }) =>
-        new DragStateMachine<ParallelChannelProperties, ParallelChannelScene>({
-            ...ctx,
-            datum: getDatum(ParallelChannelProperties.is),
-            node: getNode(ParallelChannelScene.is),
-        }),
+    dragState: (ctx) => new DragStateMachine<ParallelChannelProperties, ParallelChannelScene>(ctx),
 };

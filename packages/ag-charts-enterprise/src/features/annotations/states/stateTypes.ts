@@ -19,30 +19,30 @@ export type AnnotationStateEvents = InteractionEvents &
     Record<AnnotationType, undefined>;
 
 type InteractionEvents = {
-    click: { textInputValue?: string; bbox?: _Scene.BBox; point: () => Point };
+    click: { textInputValue?: string; bbox?: _Scene.BBox; point: Point; shiftKey: boolean };
     dblclick: { offset: _ModuleSupport.Vec2 };
     drag: {
+        shiftKey: boolean;
         offset: _ModuleSupport.Vec2;
+        point: Point;
         context: AnnotationContext;
-        point: () => Point;
         textInputValue?: string;
         bbox?: _Scene.BBox;
     };
     dragStart: {
         offset: _ModuleSupport.Vec2;
+        point: Point;
         context: AnnotationContext;
-        point: () => Point;
         textInputValue: string | undefined;
         bbox: _Scene.BBox | undefined;
     };
     dragEnd: undefined;
-    hover: { offset: _ModuleSupport.Vec2; point: () => Point };
+    hover: { context: AnnotationContext; offset: _ModuleSupport.Vec2; shiftKey: boolean; point: Point };
     keyDown: {
         shiftKey: boolean;
         context: AnnotationContext;
-        point?: () => Point;
     };
-    keyUp: { shiftKey: boolean; context: AnnotationContext; point?: () => Point };
+    keyUp: { shiftKey: boolean; context: AnnotationContext };
     textInput: {
         key: string;
         shiftKey: boolean;

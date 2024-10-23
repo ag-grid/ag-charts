@@ -75,7 +75,6 @@ export interface AnnotationsStateMachineContext {
     resetToIdle: () => void;
     hoverAtCoords: (coords: _ModuleSupport.Vec2, active?: number) => number | undefined;
     getNodeAtCoords: (coords: _ModuleSupport.Vec2, active: number) => string | undefined;
-    getHoverCoords: () => _ModuleSupport.Vec2 | undefined;
     select: (index?: number, previous?: number) => void;
     selectLast: () => number;
 
@@ -105,7 +104,6 @@ export interface AnnotationsStateMachineContext {
     showAnnotationSettings: (index: number, sourceEvent?: Event, initialTab?: 'line' | 'text') => void;
 
     recordAction: (label: string) => void;
-    addPostUpdateFns: (...fns: (() => void)[]) => void;
 
     update: () => void;
 }
@@ -129,26 +127,22 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
         context: AnnotationContext
     ) => Datum | undefined;
     createState: (
-        ctx: AnnotationsStateMachineContext & {
-            delete: () => void;
-            deselect: () => void;
-            showAnnotationOptions: () => void;
-            showTextInput: () => void;
-        },
+        ctx: AnnotationsCreateStateMachineContext,
         helpers: AnnotationsStateMachineHelperFns
     ) => _ModuleSupport.StateMachine<any, any>;
     dragState: (
-        ctx: AnnotationsStateMachineContext & {
-            setSnapping: (snapping: boolean) => void;
-            getSnapping: () => boolean;
-            getHoverCoords: () => _ModuleSupport.Vec2 | undefined;
-        },
+        ctx: AnnotationsStateMachineContext,
         helpers: AnnotationsStateMachineHelperFns
     ) => _ModuleSupport.StateMachine<any, any>;
 }
 
 export interface AnnotationsStateMachineHelperFns {
     createDatum: <T extends AnnotationProperties>(type: AnnotationType) => (datum: T) => void;
-    getDatum: <T>(is: (value: unknown) => value is T) => () => T;
-    getNode: <T>(is: (value: unknown) => value is T) => () => T;
 }
+
+export type AnnotationsCreateStateMachineContext = AnnotationsStateMachineContext & {
+    delete: () => void;
+    deselect: () => void;
+    showAnnotationOptions: () => void;
+    showTextInput: () => void;
+};
