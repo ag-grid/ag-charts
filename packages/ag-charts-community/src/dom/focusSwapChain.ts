@@ -12,6 +12,7 @@ export class FocusSwapChain {
     private focusedAnnouncer?: EventTarget;
 
     private readonly listeners: { [K in 'blur' | 'focus']: ((e: FocusEvent) => unknown)[] } = { blur: [], focus: [] };
+    private stopOnFocusReentrance = false;
 
     private readonly onBlur = (e: FocusEvent) => {
         this.focusedAnnouncer = undefined;
@@ -20,9 +21,9 @@ export class FocusSwapChain {
         }
     };
     private readonly onFocus = (e: FocusEvent) => {
-        const shouldDispatch = this.focusedAnnouncer === undefined;
+        const skipDispatch = this.stopOnFocusReentrance || this.focusedAnnouncer !== undefined;
         this.focusedAnnouncer = e.target ?? undefined;
-        if (shouldDispatch) {
+        if (!skipDispatch) {
             this.dispatch('focus', e);
         }
     };
@@ -74,13 +75,13 @@ export class FocusSwapChain {
         this.activeAnnouncer.focus();
     }
 
-    update(newLabel?: string) {
-        if (newLabel && this.label1.textContent !== newLabel) {
-            this.swap(newLabel);
-        }
+    update(newLabel: string) {
+        this.stopOnFocusReentrance = true;
+        this.swap(newLabel);
         if (this.focusedAnnouncer) {
             this.activeAnnouncer.focus();
         }
+        this.stopOnFocusReentrance = false;
     }
 
     addListener(type: 'focus' | 'blur', handler: (event: FocusEvent) => unknown): void {
