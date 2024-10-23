@@ -47,7 +47,7 @@ import {
     type LineSeriesNodeDataContext,
     type LineSpanPointDatum,
     interpolatePoints,
-    plotStroke,
+    plotLinePathStroke,
     prepareLinePathAnimation,
 } from './lineUtil';
 import {
@@ -544,7 +544,7 @@ export class LineSeries extends CartesianSeries<
         const [lineNode] = paths;
 
         lineNode.path.clear(true);
-        plotStroke(lineNode, spans);
+        plotLinePathStroke(lineNode, spans);
         lineNode.checkPathDirty();
     }
 

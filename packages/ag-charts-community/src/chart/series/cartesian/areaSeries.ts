@@ -40,10 +40,10 @@ import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
-    type AreaPathSpan,
     type AreaSeriesNodeDataContext,
     type LabelSelectionDatum,
     type MarkerSelectionDatum,
+    plotAreaPathFill,
     prepareAreaPathAnimation,
 } from './areaUtil';
 import type { CartesianAnimationData } from './cartesianSeries';
@@ -53,9 +53,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     RENDER_TO_OFFSCREEN_CANVAS_THRESHOLD,
 } from './cartesianSeries';
-import { SpanJoin } from './lineInterpolation';
-import { plotSpan } from './lineInterpolationPlotting';
-import { type LineSpanPointDatum, interpolatePoints, plotStroke } from './lineUtil';
+import { type LinePathSpan, type LineSpanPointDatum, interpolatePoints, plotLinePathStroke } from './lineUtil';
 import {
     computeMarkerFocusBounds,
     markerFadeInAnimation,
@@ -382,8 +380,8 @@ export class AreaSeries extends CartesianSeries<
             });
         });
 
-        const spansForPoints = (points: Array<LineSpanPointDatum[] | { skip: number }>): Array<AreaPathSpan | null> => {
-            return points.flatMap((p): Array<AreaPathSpan | null> => {
+        const spansForPoints = (points: Array<LineSpanPointDatum[] | { skip: number }>): Array<LinePathSpan | null> => {
+            return points.flatMap((p): Array<LinePathSpan | null> => {
                 return Array.isArray(p) ? interpolatePoints(p, interpolation) : new Array(p.skip).fill(null);
             });
         };
@@ -492,9 +490,9 @@ export class AreaSeries extends CartesianSeries<
 
         const currentSeriesSpans = getSeriesSpans(stackIndex);
 
-        const phantomSpans = currentSeriesSpans.map((): AreaPathSpan => null!);
+        const phantomSpans = currentSeriesSpans.map((): LinePathSpan => null!);
         for (let j = stackIndex - 1; j >= -1; j -= 1) {
-            let spans: Array<AreaPathSpan | null> | undefined; // lazily init
+            let spans: Array<LinePathSpan | null> | undefined; // lazily init
             for (let i = 0; i < phantomSpans.length; i += 1) {
                 if (phantomSpans[i] != null) continue;
                 spans ??= j !== -1 ? getSeriesSpans(j) : getAxisSpans();
@@ -503,7 +501,7 @@ export class AreaSeries extends CartesianSeries<
         }
 
         const fillSpans = currentSeriesSpans.map((span, index) => span ?? phantomSpans[index]);
-        const strokeSpans = currentSeriesSpans.filter((span): span is AreaPathSpan => span != null);
+        const strokeSpans = currentSeriesSpans.filter((span): span is LinePathSpan => span != null);
 
         const context: AreaSeriesNodeDataContext = {
             itemId,
@@ -591,18 +589,11 @@ export class AreaSeries extends CartesianSeries<
     }
 
     private updateFillPath(paths: Path[], contextData: AreaSeriesNodeDataContext) {
-        const { spans, phantomSpans } = contextData.fillData;
         const [fill] = paths;
         const { path } = fill;
 
         path.clear(true);
-        for (let i = 0; i < spans.length; i += 1) {
-            const { span } = spans[i];
-            const phantomSpan = phantomSpans[i].span;
-            plotSpan(path, span, SpanJoin.MoveTo, false);
-            plotSpan(path, phantomSpan, SpanJoin.LineTo, true);
-            path.closePath();
-        }
+        plotAreaPathFill(fill, contextData.fillData);
         fill.checkPathDirty();
     }
 
@@ -612,7 +603,7 @@ export class AreaSeries extends CartesianSeries<
         const { path } = stroke;
 
         path.clear(true);
-        plotStroke(stroke, spans);
+        plotLinePathStroke(stroke, spans);
         stroke.checkPathDirty();
     }
 
