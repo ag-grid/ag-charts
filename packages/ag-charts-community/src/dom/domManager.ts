@@ -212,7 +212,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     }
 
     setTabIndex(tabIndex: number /* FIXME: type should be 0 | -1 */) {
-        this.rootElements['series-area'].element.tabIndex = tabIndex;
+        this.rootElements['series-area'].element.tabIndex = -1;
+        tabIndex;
     }
 
     updateCanvasLabel(ariaLabel: string) {

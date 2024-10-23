@@ -100,6 +100,8 @@ export class SeriesAreaManager extends BaseManager {
 
         const labelEl = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label');
         this.swapChain = new FocusSwapChain(labelEl, `${this.id}-focus`);
+        this.swapChain.addListener('blur', () => this.onBlur());
+        this.swapChain.addListener('focus', () => this.onFocus());
 
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label'),
@@ -114,8 +116,6 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
             chart.ctx.domManager.addListener('resize', () => this.clearAll()),
             chart.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            chart.ctx.keyNavManager.addListener('blur', () => this.onBlur()),
-            chart.ctx.keyNavManager.addListener('focus', (event) => this.onFocus(event), keyState),
             chart.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event), keyState),
             chart.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event), keyState),
             chart.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event), keyState),
@@ -250,10 +250,11 @@ export class SeriesAreaManager extends BaseManager {
         this.chart.fireEvent(newEvent);
     }
 
-    private onFocus(event: KeyNavEvent<'focus'>): void {
+    private onFocus(): void {
+        const keyState = InteractionState.Default | InteractionState.Animation;
+        if (!(this.chart.ctx.interactionManager.getState() & keyState)) return;
         this.hoverDevice = this.chart.ctx.focusIndicator.isFocusVisible() ? 'keyboard' : 'mouse';
         this.handleFocus(0, 0);
-        event.preventDefault();
     }
 
     private onBlur() {
