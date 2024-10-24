@@ -91,8 +91,6 @@ const options: AgCartesianChartOptions = {
     },
     navigator: {
         enabled: true,
-        min: 0.9,
-        max: 1.0,
         miniChart: {
             enabled: true,
             label: {
@@ -103,6 +101,11 @@ const options: AgCartesianChartOptions = {
     },
     zoom: {
         enabled: true,
+    },
+    initialState: {
+        zoom: {
+            ratioX: { start: 0.9, end: 1 },
+        },
     },
 };
 

@@ -1171,7 +1171,7 @@ export abstract class Chart extends Observable {
     }
 
     private applyInitialState(initialState?: AgInitialStateOptions) {
-        const { annotationManager, historyManager, stateManager } = this.ctx;
+        const { annotationManager, historyManager, stateManager, zoomManager } = this.ctx;
 
         if (initialState?.annotations != null) {
             const annotations = initialState.annotations.map((annotation) => {
@@ -1182,9 +1182,9 @@ export abstract class Chart extends Observable {
             stateManager.setState(annotationManager, annotations);
         }
 
-        // if (initialState?.zoom != null) {
-        //     stateManager.setState(zoomManager, initialState.zoom);
-        // }
+        if (initialState?.zoom != null) {
+            stateManager.setState(zoomManager, initialState.zoom);
+        }
 
         if (initialState != null) {
             historyManager.clear();

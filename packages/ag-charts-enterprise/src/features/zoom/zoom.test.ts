@@ -6,7 +6,6 @@ import {
     clickAction,
     doubleClickAction,
     dragAction,
-    expectWarningsCalls,
     extractImageData,
     hoverAction,
     scrollAction,
@@ -49,12 +48,12 @@ describe('Zoom', () => {
 
     async function prepareChart(
         zoomOptions?: AgChartOptions['zoom'],
-        // initialState?: NonNullable<AgChartOptions['initialState']>['zoom'],
+        initialState?: NonNullable<AgChartOptions['initialState']>['zoom'],
         baseOptions = EXAMPLE_OPTIONS
     ) {
         const options: AgChartOptions = {
             ...baseOptions,
-            // initialState: { zoom: initialState },
+            initialState: { zoom: initialState },
             zoom: { ...baseOptions.zoom, ...(zoomOptions ?? {}) },
         };
         prepareEnterpriseTestOptions(options);
@@ -70,7 +69,7 @@ describe('Zoom', () => {
     }
 
     async function prepareHorizontalBarChart(zoomOptions?: AgChartOptions['zoom']) {
-        await prepareChart(zoomOptions, {
+        await prepareChart(zoomOptions, undefined, {
             ...EXAMPLE_OPTIONS,
             series: [{ type: 'bar', xKey: 'x', yKey: 'y', direction: 'horizontal' }],
         } as AgChartOptions);
@@ -237,64 +236,27 @@ describe('Zoom', () => {
         });
     });
 
-    describe('ratio', () => {
-        it('should start at the given zoom', async () => {
-            await prepareChart({ ratioX: { start: 0.2, end: 0.8 }, ratioY: { start: 0.1, end: 0.9 } });
-            await compare();
-            expectWarningsCalls().toMatchInlineSnapshot(`
-[
-  [
-    "AG Charts - Property [zoom.ratioX] is deprecated. Use [initialState.zoom.ratioX] instead.",
-  ],
-  [
-    "AG Charts - Property [zoom.ratioY] is deprecated. Use [initialState.zoom.ratioY] instead.",
-  ],
-]
-`);
-        });
-    });
-
-    describe('range', () => {
+    describe('initialState', () => {
         it('should start with the given range', async () => {
-            await prepareChart({ rangeX: { start: 3, end: 6 }, rangeY: { start: 30, end: 70 } });
+            await prepareChart({}, { rangeX: { start: 3, end: 6 }, rangeY: { start: 30, end: 70 } });
             await compare();
-            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
         it('should extend the range to the start', async () => {
-            await prepareChart({ rangeX: { end: 6 } });
+            await prepareChart({}, { rangeX: { start: undefined, end: 6 } });
             await compare();
-            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
 
         it('should extend the range to the end', async () => {
-            await prepareChart({ rangeX: { start: 3 } });
+            await prepareChart({}, { rangeX: { start: 3, end: undefined } });
             await compare();
-            expectWarningsCalls().toMatchInlineSnapshot(`[]`);
         });
     });
-
-    // describe('initialState', () => {
-    //     it('should start with the given range', async () => {
-    //         await prepareChart({}, { rangeX: { start: 3, end: 6 }, rangeY: { start: 30, end: 70 } });
-    //         await compare();
-    //     });
-
-    //     it('should extend the range to the start', async () => {
-    //         await prepareChart({}, { rangeX: { start: undefined, end: 6 } });
-    //         await compare();
-    //     });
-
-    //     it('should extend the range to the end', async () => {
-    //         await prepareChart({}, { rangeX: { start: 3, end: undefined } });
-    //         await compare();
-    //     });
-    // });
 
     describe('listeners', () => {
         it('should fire series click listeners', async () => {
             let clickCount: number = 0;
-            await prepareChart({}, { ...EXAMPLE_OPTIONS, listeners: { click: () => clickCount++ } });
+            await prepareChart({}, undefined, { ...EXAMPLE_OPTIONS, listeners: { click: () => clickCount++ } });
             expect(clickCount).toBe(1);
             await scrollAction(cx, cy, -1)(chart);
             await clickAction(cx, cy)(chart);
@@ -303,13 +265,10 @@ describe('Zoom', () => {
 
         it('should fire series dblclick listeners', async () => {
             let dblclickCount: number = 0;
-            await prepareChart(
-                {},
-                {
-                    ...EXAMPLE_OPTIONS,
-                    listeners: { doubleClick: () => dblclickCount++ },
-                }
-            );
+            await prepareChart({}, undefined, {
+                ...EXAMPLE_OPTIONS,
+                listeners: { doubleClick: () => dblclickCount++ },
+            });
             await scrollAction(cx, cy, -1)(chart);
             await doubleClickAction(cx, cy)(chart);
             expect(dblclickCount).toBe(1);
