@@ -309,10 +309,10 @@ jobs:
                         issue_number: context.issue.number,
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        body: `Snaspshots automatically updated, please review before merge: [diff](https://github.com/ag-grid/ag-charts/compare/${{github.head_ref}}...${{steps.push.outputs.branch}})`
+                        body: `Snapshots automatically updated, please review before merge: [diff](https://github.com/ag-grid/ag-charts/compare/${{github.head_ref}}...${{steps.push.outputs.branch}})`
                       })
 
-            - name: Raise PR with Snaspshot Changes on latest
+            - name: Raise PR with Snapshot Changes on latest
               id: raise-pr
               if: matrix.shard == 0 && steps.test-no-shard.outputs.updates == 'true' && github.ref == 'refs/heads/latest'
               env:
