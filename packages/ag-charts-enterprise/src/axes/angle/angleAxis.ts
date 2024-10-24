@@ -79,7 +79,7 @@ export abstract class AngleAxis<
         this.range = [startAngle, endAngle];
     }
 
-    protected override calculateAvailableRange(): number {
+    override calculateAvailableRange(): number {
         const { range, gridLength: radius } = this;
         return angleBetween(range[0], range[1]) * radius;
     }

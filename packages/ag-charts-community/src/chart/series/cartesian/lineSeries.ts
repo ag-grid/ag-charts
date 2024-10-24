@@ -17,7 +17,7 @@ import { isDefined } from '../../../util/type-guards';
 import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import type { DataModelOptions, DatumPropertyDefinition } from '../../data/dataModel';
+import type { DataModelOptions, DatumPropertyDefinition, UngroupedDataItem } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import {
     animationValidation,
@@ -63,6 +63,11 @@ const CROSS_FILTER_LINE_STROKE_OPACITY_FACTOR = 0.25;
 
 type LineAnimationData = CartesianAnimationData<Group, LineNodeDatum, LineNodeDatum, LineSeriesNodeDataContext>;
 
+export interface LineSeriesDataAggregationFilter {
+    indices: number[];
+    maxRange: number;
+}
+
 export class LineSeries extends CartesianSeries<
     Group,
     LineSeriesProperties,
@@ -74,6 +79,8 @@ export class LineSeries extends CartesianSeries<
     static readonly type = 'line' as const;
 
     override properties = new LineSeriesProperties();
+
+    private dataAggregationFilters: LineSeriesDataAggregationFilter[] | undefined = undefined;
 
     override get pickModeAxis() {
         return this.properties.sparklineMode ? 'main' : 'main-category';
@@ -188,6 +195,8 @@ export class LineSeries extends CartesianSeries<
 
         await this.requestDataModel<any>(dataController, data, { props });
 
+        this.dataAggregationFilters = this.aggregateData();
+
         this.animationState.transition('updateData');
     }
 
@@ -213,8 +222,21 @@ export class LineSeries extends CartesianSeries<
         }
     }
 
+    protected aggregateData(): LineSeriesDataAggregationFilter[] | undefined {
+        return;
+    }
+
+    protected visibleRange(
+        length: number,
+        _x0: number,
+        _x1: number,
+        _xFor: (index: number) => number
+    ): [number, number] {
+        return [0, length];
+    }
+
     async createNodeData() {
-        const { dataModel, axes } = this;
+        const { dataModel, axes, dataAggregationFilters } = this;
         const ungroupedData = this.processedData?.data;
 
         const xAxis = axes[ChartAxisDirection.X];
@@ -252,34 +274,30 @@ export class LineSeries extends CartesianSeries<
 
         const nodeData: LineNodeDatum[] = [];
         const spanPoints: Array<LineSpanPointDatum[] | { skip: number }> = [];
-        let crossFiltering = false;
-        ungroupedData.forEach(({ datum, values }) => {
+        const handleDatum = ({ datum, values }: UngroupedDataItem<any, any[]>) => {
             const xDatum = values[xIdx];
             const yDatum = values[yIdx];
-            const yCumulativeDatum = values[yCumulativeIdx];
             const yEndDatum = yEndIdx != null ? values[yEndIdx] : undefined;
+            const yCumulativeDatum = values[yCumulativeIdx];
+            const selected = ySelectionIdx != null ? values[ySelectionIdx] === yDatum : undefined;
 
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yCumulativeDatum) + yOffset;
 
-            const selected = ySelectionIdx != null ? values[ySelectionIdx] === yDatum : undefined;
-            if (selected === false) {
-                crossFiltering = true;
-            }
-
-            const labelText = this.getLabelText(label, {
-                value: yDatum,
-                datum,
-                xKey,
-                yKey,
-                xName,
-                yName,
-                legendItemName,
-            });
-
             const currentSpanPoints: LineSpanPointDatum[] | { skip: number } | undefined =
                 spanPoints[spanPoints.length - 1];
+
             if (yDatum != null && Number.isFinite(x)) {
+                const labelText = this.getLabelText(label, {
+                    value: yDatum,
+                    datum,
+                    xKey,
+                    yKey,
+                    xName,
+                    yName,
+                    legendItemName,
+                });
+
                 nodeData.push({
                     series: this,
                     datum,
@@ -319,11 +337,45 @@ export class LineSeries extends CartesianSeries<
                     currentSpanPoints.skip += 1;
                 }
             }
-        });
+        };
 
+        const x0 = 0;
+        const x1 = xAxis.calculateAvailableRange();
+        const xFor = (index: number) => {
+            const { values } = ungroupedData[index];
+            const xDatum = values[xIdx];
+            return xScale.convert(xDatum) + xOffset;
+        };
+
+        const [r0, r1] = xScale.range;
+        const range = r1 - r0;
+        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
+
+        if (dataAggregationFilter != null) {
+            const { indices } = dataAggregationFilter;
+            const [start, end] = this.visibleRange(indices.length, x0, x1, (index) => xFor(indices[index]));
+
+            for (let i = start; i < end; i += 1) {
+                handleDatum(ungroupedData[indices[i]]);
+            }
+        } else {
+            const [start, end] = this.visibleRange(ungroupedData.length, x0, x1, xFor);
+
+            for (let i = start; i < end; i += 1) {
+                handleDatum(ungroupedData[i]);
+            }
+        }
         const strokeSpans = spanPoints.flatMap((p): LinePathSpan[] => {
             return Array.isArray(p) ? interpolatePoints(p, interpolation) : [];
         });
+
+        const crossFiltering =
+            ySelectionIdx != null &&
+            ungroupedData.some(({ values }) => {
+                const yDatum = values[yIdx];
+                const selected = values[ySelectionIdx] === yDatum;
+                return selected;
+            });
 
         return {
             itemId: yKey,
@@ -543,9 +595,9 @@ export class LineSeries extends CartesianSeries<
         const { spans } = contextData.strokeData;
         const [lineNode] = paths;
 
-        lineNode.path.clear(true);
+        lineNode.path.clear();
         plotLinePathStroke(lineNode, spans);
-        lineNode.checkPathDirty();
+        lineNode.markDirty();
     }
 
     protected override animateEmptyUpdateReady(animationData: LineAnimationData) {

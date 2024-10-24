@@ -386,7 +386,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         } else {
             for (const path of paths) {
                 path.path.clear();
-                path.checkPathDirty();
+                path.markDirty();
             }
         }
     }
@@ -395,15 +395,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const [fill] = paths;
         fill.path.clear();
         plotAreaPathFill(fill, contextData.fillData);
-        fill.checkPathDirty();
+        fill.markDirty();
     }
 
     private updateStrokePath(paths: _Scene.Path[], contextData: RangeAreaContext) {
         const [, stroke] = paths;
-        stroke.path.clear(true);
+        stroke.path.clear();
         plotLinePathStroke(stroke, contextData.highStrokeData.spans);
         plotLinePathStroke(stroke, contextData.lowStrokeData.spans);
-        stroke.checkPathDirty();
+        stroke.markDirty();
     }
 
     protected override async updateMarkerSelection(opts: {

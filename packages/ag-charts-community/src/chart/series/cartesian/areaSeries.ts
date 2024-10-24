@@ -587,28 +587,26 @@ export class AreaSeries extends CartesianSeries<
         } else {
             for (const path of paths) {
                 path.path.clear();
-                path.checkPathDirty();
+                path.markDirty();
             }
         }
     }
 
     private updateFillPath(paths: Path[], contextData: AreaSeriesNodeDataContext) {
         const [fill] = paths;
-        const { path } = fill;
 
-        path.clear(true);
+        fill.path.clear();
         plotAreaPathFill(fill, contextData.fillData);
-        fill.checkPathDirty();
+        fill.markDirty();
     }
 
     private updateStrokePath(paths: Path[], contextData: AreaSeriesNodeDataContext) {
         const { spans } = contextData.strokeData;
         const [, stroke] = paths;
-        const { path } = stroke;
 
-        path.clear(true);
+        stroke.path.clear();
         plotLinePathStroke(stroke, spans);
-        stroke.checkPathDirty();
+        stroke.markDirty();
     }
 
     protected override async updateMarkerSelection(opts: {

@@ -1132,7 +1132,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
     }
 
-    protected calculateAvailableRange(): number {
+    calculateAvailableRange(): number {
         return findRangeExtent(this.range);
     }
 

@@ -56,6 +56,7 @@ export interface ChartAxis {
     getRegionNode(): Node | undefined;
     inRange(x: number, width?: number, tolerance?: number): boolean;
     isReversed(): boolean;
+    calculateAvailableRange(): number;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
     setCrossLinesVisible(visible: boolean): void;
     update(animated?: boolean): number | undefined;
