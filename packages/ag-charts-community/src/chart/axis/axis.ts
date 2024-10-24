@@ -23,6 +23,7 @@ import { Translatable } from '../../scene/transformable';
 import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
+import { diffArrays } from '../../util/diff.util';
 import { areArrayNumbersEqual } from '../../util/equal';
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
@@ -453,7 +454,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const sideFlag = this.label.getSideFlag();
         const lineData = this.getAxisLineCoordinates();
         const { tickData, combinedRotation, textBaseline, textAlign, primaryTickCount } = this.tickGenerationResult;
-        const previousTicks = this.tickLabelGroupSelection.nodes().map((node) => node.datum.tickId);
+        const previousTicks = this.tickLabelGroupSelection.nodes().slice(); // Clone before update to diff with.
 
         this.updateSelections(lineData, tickData.ticks, {
             combinedRotation,
@@ -465,7 +466,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         if (!animated || this.animationManager.isSkipped()) {
             this.resetSelectionNodes();
         } else {
-            const diff = this.calculateUpdateDiff(previousTicks, tickData);
+            const diff = diffArrays(
+                previousTicks.map((node) => node.datum.tickId),
+                tickData.ticks.map((datum) => datum.tickId)
+            );
             this.animationState.transition('update', diff);
         }
 
@@ -1403,39 +1407,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         resetMotion([gridLineGroupSelection, tickLineGroupSelection], resetAxisSelectionFn(selectionCtx));
         resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn());
         resetMotion([lineNode], resetAxisLineSelectionFn());
-    }
-
-    private calculateUpdateDiff(previous: string[], tickData: TickData) {
-        const added = new Set<string>();
-        const removed = new Set<string>();
-        const tickMap: Record<string, TickData['ticks'][number]> = {};
-        const tickCount = Math.max(previous.length, tickData.ticks.length);
-
-        for (let i = 0; i < tickCount; i++) {
-            const tickDatum = tickData.ticks[i];
-            const prev = previous[i];
-            const tick = tickDatum?.tickId;
-
-            tickMap[tick ?? prev] = tickDatum;
-
-            if (prev === tick) {
-                continue;
-            }
-
-            if (removed.has(tick)) {
-                removed.delete(tick);
-            } else if (tick) {
-                added.add(tick);
-            }
-
-            if (added.has(prev)) {
-                added.delete(prev);
-            } else if (prev) {
-                removed.add(prev);
-            }
-        }
-
-        return { changed: added.size > 0 || removed.size > 0, added, removed };
     }
 
     isReversed() {
