@@ -1,6 +1,5 @@
 import { beforeEach, describe } from '@jest/globals';
 
-import { hoverAction } from '../src/chart/test/utils';
 import { AgCartesianChartOptions } from '../src/main';
 import { benchmark, setupBenchmark } from './benchmark';
 
