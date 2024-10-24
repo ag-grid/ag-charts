@@ -763,7 +763,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const initialRotation = configuredRotation + defaultRotation;
         const labelMatrix = new Matrix();
 
-        const { maxTickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
+        const { maxTickCount } = this.estimateTickCount(minSpacing, maxSpacing);
 
         const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
@@ -891,7 +891,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     ): TickStrategyResult {
         const { scale } = this;
         const { step, values, minSpacing, maxSpacing } = this.interval;
-        const { maxTickCount, minTickCount, tickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
+        const { maxTickCount, minTickCount, tickCount } = this.estimateTickCount(minSpacing, maxSpacing);
 
         const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
@@ -1049,7 +1049,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return scale.ticks?.() ?? [];
     }
 
-    private estimateTickCount({ minSpacing, maxSpacing }: { minSpacing: number; maxSpacing: number }) {
+    private estimateTickCount(minSpacing: number, maxSpacing: number) {
         return estimateTickCount(
             this.calculateRangeWithBleed(),
             minSpacing,
@@ -1086,8 +1086,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
      * the visible range is only a portion of the axis.
      */
     protected calculateRangeWithBleed() {
-        const visibleScale = 1 / findRangeExtent(this.visibleRange);
-        return round(this.calculateAvailableRange() * visibleScale, 2);
+        return round(this.calculateAvailableRange() / findRangeExtent(this.visibleRange), 2);
     }
 
     protected calculateDomain() {
@@ -1204,22 +1203,22 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     getFormatter(index: number = 0, isTickLabel?: boolean): (datum: any, fractionDigits?: number) => string {
         const {
-            label,
             labelFormatter,
             datumFormatter,
+            label: { formatter },
             moduleCtx: { callbackCache },
         } = this;
 
-        if (label.formatter) {
+        if (formatter) {
             return (datum, fractionDigits) =>
-                callbackCache.call(label.formatter!, { value: datum, index, fractionDigits }) ?? datum;
+                callbackCache.call(formatter, { value: datum, index, fractionDigits }) ?? String(datum);
         } else if (!isTickLabel && datumFormatter) {
             return (datum) => callbackCache.call(datumFormatter, datum) ?? String(datum);
         } else if (labelFormatter) {
             return (datum) => callbackCache.call(labelFormatter, datum) ?? String(datum);
         }
         // The axis is using a logScale or the`datum` is an integer, a string or an object
-        return (datum) => String(datum);
+        return String;
     }
 
     getBBox(): BBox {
