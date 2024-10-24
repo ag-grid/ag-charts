@@ -1,6 +1,8 @@
 import { type BaseAttributeTypeMap, setAttribute, setAttributes, setElementStyle } from '../util/attributeUtil';
 import { createElement } from '../util/dom';
 
+type SwapChainEventMap = { focus: FocusEvent; blur: FocusEvent; swap: HTMLElement };
+
 /**
  * The most reliable way to assertively announcer label changes on an element is
  * to fire a focus() change.  Therefore, this class uses a roving tab index on
@@ -13,7 +15,11 @@ export class FocusSwapChain {
     private hasFocus = false;
     private skipDispatch = false;
 
-    private readonly listeners: { [K in 'blur' | 'focus']: ((e: FocusEvent) => unknown)[] } = { blur: [], focus: [] };
+    private readonly listeners: { [K in keyof SwapChainEventMap]: ((e: SwapChainEventMap[K]) => unknown)[] } = {
+        blur: [],
+        focus: [],
+        swap: [],
+    };
     private readonly onBlur = (e: FocusEvent) => !this.skipDispatch && this.dispatch('blur', e);
     private readonly onFocus = (e: FocusEvent) => !this.skipDispatch && this.dispatch('focus', e);
 
@@ -76,16 +82,16 @@ export class FocusSwapChain {
             this.activeAnnouncer.focus();
         }
         this.skipDispatch = false;
-        return this.activeAnnouncer;
     }
 
-    addListener(type: 'focus' | 'blur', handler: (event: FocusEvent) => unknown): void {
+    addListener<T extends keyof SwapChainEventMap>(type: T, handler: (param: SwapChainEventMap[T]) => unknown): void {
         this.listeners[type].push(handler);
     }
 
-    private dispatch(type: 'focus' | 'blur', event: FocusEvent): void {
-        this.hasFocus = type === 'focus';
-        this.listeners[type].forEach((fn) => fn(event));
+    private dispatch<T extends keyof SwapChainEventMap>(type: T, param: SwapChainEventMap[T]) {
+        if (type === 'focus') this.hasFocus = true;
+        else if (type === 'blur') this.hasFocus = false;
+        this.listeners[type].forEach((fn) => fn(param));
     }
 
     private swap(newLabel: string) {
@@ -100,5 +106,6 @@ export class FocusSwapChain {
         setElementStyle(this.activeAnnouncer, 'pointer-events', undefined);
 
         this.activeAnnouncer.tabIndex = userTabIndex;
+        this.dispatch('swap', this.activeAnnouncer);
     }
 }

@@ -105,14 +105,12 @@ export class SeriesAreaManager extends BaseManager {
         const domElementClass = 'series-area';
         const label1 = chart.ctx.domManager.addChild(domElementClass, 'series-area-aria-label1');
         const label2 = chart.ctx.domManager.addChild(domElementClass, 'series-area-aria-label2');
-        if (label1.parentElement == null) throw new Error('AG Charts - error initialising series area focus indicator');
 
         this.swapChain = new FocusSwapChain(label1, label2, this.id, 'img');
         this.swapChain.addListener('blur', () => this.onBlur(keyState));
         this.swapChain.addListener('focus', () => this.onFocus(keyState));
-        this.focusIndicator = new FocusIndicator(label1.parentElement);
+        this.focusIndicator = new FocusIndicator(this.swapChain);
         this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
-        this.focusIndicator.move(this.swapChain.update(''));
         this.chart.ctx.keyNavManager.focusIndicator = this.focusIndicator;
 
         this.destroyFns.push(
@@ -421,7 +419,7 @@ export class SeriesAreaManager extends BaseManager {
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
             this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, html);
             if (!refresh) {
-                this.focusIndicator.move(this.swapChain.update(this.getDatumAriaText(datum, html)));
+                this.swapChain.update(this.getDatumAriaText(datum, html));
             }
         }
     }
