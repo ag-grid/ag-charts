@@ -108,8 +108,8 @@ export class SeriesAreaManager extends BaseManager {
         if (label1.parentElement == null) throw new Error('AG Charts - error initialising series area focus indicator');
 
         this.swapChain = new FocusSwapChain(label1, label2, this.id, 'img');
-        this.swapChain.addListener('blur', () => this.onBlur());
-        this.swapChain.addListener('focus', () => this.onFocus());
+        this.swapChain.addListener('blur', () => this.onBlur(keyState));
+        this.swapChain.addListener('focus', () => this.onFocus(keyState));
         this.focusIndicator = new FocusIndicator(label1.parentElement);
         this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
         this.focusIndicator.move(this.swapChain.update(''));
@@ -271,14 +271,14 @@ export class SeriesAreaManager extends BaseManager {
         this.chart.fireEvent(newEvent);
     }
 
-    private onFocus(): void {
-        const keyState = InteractionState.Default | InteractionState.Animation;
-        if (!(this.chart.ctx.interactionManager.getState() & keyState)) return;
+    private onFocus(allowedStates: InteractionState): void {
+        if (!(this.chart.ctx.interactionManager.getState() & allowedStates)) return;
         this.hoverDevice = this.focusIndicator.isFocusVisible() ? 'keyboard' : 'mouse';
         this.handleFocus(0, 0);
     }
 
-    private onBlur() {
+    private onBlur(allowedStates: InteractionState) {
+        if (!(this.chart.ctx.interactionManager.getState() & allowedStates)) return;
         this.hoverDevice = 'mouse';
         this.clearAll();
         this.focusIndicator.overrideFocusVisible(undefined);
