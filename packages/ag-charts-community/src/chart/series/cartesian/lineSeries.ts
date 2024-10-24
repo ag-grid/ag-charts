@@ -370,12 +370,7 @@ export class LineSeries extends CartesianSeries<
         });
 
         const crossFiltering =
-            ySelectionIdx != null &&
-            ungroupedData.some(({ values }) => {
-                const yDatum = values[yIdx];
-                const selected = values[ySelectionIdx] === yDatum;
-                return selected;
-            });
+            ySelectionIdx != null && ungroupedData.some(({ values }) => values[ySelectionIdx] === values[yIdx]);
 
         return {
             itemId: yKey,
