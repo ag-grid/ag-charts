@@ -11,6 +11,7 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
+import { findMinMax } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isDefined } from '../../../util/type-guards';
@@ -339,8 +340,7 @@ export class LineSeries extends CartesianSeries<
             }
         };
 
-        const x0 = 0;
-        const x1 = xAxis.calculateAvailableRange();
+        const [x0, x1] = findMinMax(xAxis.range);
         const xFor = (index: number) => {
             const { values } = ungroupedData[index];
             const xDatum = values[xIdx];
