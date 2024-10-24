@@ -2,7 +2,6 @@ import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
 import type { Scale } from '../../scale/scale';
-import type { Node } from '../../scene/node';
 import { POSITION, POSITIVE_NUMBER, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { Axis } from './axis';
@@ -72,9 +71,5 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     protected override createLabel() {
         return new CartesianAxisLabel();
-    }
-
-    override getRegionNode(): Node | undefined {
-        return this.axisGroup;
     }
 }

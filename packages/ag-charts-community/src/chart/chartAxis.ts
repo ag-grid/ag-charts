@@ -53,7 +53,6 @@ export interface ChartAxis {
     getBBox(): BBox;
     getLayoutState(): AxisLayout;
     getModuleMap(): ModuleMap<any, any, any>;
-    getRegionNode(): Node | undefined;
     inRange(x: number, width?: number, tolerance?: number): boolean;
     isReversed(): boolean;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;

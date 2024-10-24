@@ -1267,10 +1267,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return this.axisGroup.getBBox();
     }
 
-    getRegionNode(): Node | undefined {
-        return undefined;
-    }
-
     initCrossLine(crossLine: CrossLine) {
         crossLine.scale = this.scale;
         crossLine.gridLength = this.gridLength;
@@ -1325,7 +1321,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return this.moduleMap;
     }
 
-    public createModuleContext(): ModuleContextWithParent<AxisContext> {
+    createModuleContext(): ModuleContextWithParent<AxisContext> {
         this.axisContext ??= this.createAxisContext();
         return { ...this.moduleCtx, parent: this.axisContext };
     }
@@ -1360,15 +1356,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     private getScaleValueFormatter(format?: string) {
-        const { scale } = this;
-        if (format && scale && scale.tickFormat) {
+        if (format && this.scale.tickFormat) {
             try {
-                return scale.tickFormat({ specifier: format });
+                return this.scale.tickFormat({ specifier: format });
             } catch (e) {
                 Logger.warnOnce(`the format string ${format} is invalid, ignoring.`);
             }
         }
-
         return this.getFormatter();
     }
 
