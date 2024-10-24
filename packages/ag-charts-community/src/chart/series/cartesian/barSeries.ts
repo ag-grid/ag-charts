@@ -1,8 +1,4 @@
-import type {
-    AgBarSeriesLabelPlacement,
-    AgBarSeriesStyle,
-    AgErrorBoundSeriesTooltipRendererParams,
-} from 'ag-charts-types';
+import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -54,7 +50,7 @@ import {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
-import { type BarLabelPlacement, adjustLabelPlacement, updateLabelNode } from './labelUtil';
+import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -84,16 +80,6 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
 }
 
 type BarAnimationData = CartesianAnimationData<Rect, BarNodeDatum>;
-
-const labelPlacements: Record<AgBarSeriesLabelPlacement, BarLabelPlacement> = {
-    'inside-center': 'inside-center',
-    'inside-start': 'inside-start',
-    'inside-end': 'inside-end',
-    'outside-start': 'outside-start',
-    'outside-end': 'outside-end',
-    inside: 'inside-center',
-    outside: 'outside-end',
-};
 
 export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarNodeDatum> {
     static readonly className = 'BarSeries';
@@ -370,7 +356,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                               ...adjustLabelPlacement({
                                   isUpward: isUpward,
                                   isVertical: !barAlongX,
-                                  placement: labelPlacements[label.placement],
+                                  placement: label.placement,
                                   padding: label.padding,
                                   rect,
                               }),

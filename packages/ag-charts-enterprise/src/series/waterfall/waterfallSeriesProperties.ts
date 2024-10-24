@@ -47,22 +47,7 @@ class WaterfallSeriesItemTooltip extends BaseProperties {
 }
 
 class WaterfallSeriesLabel extends Label<AgWaterfallSeriesLabelFormatterParams> {
-    @Validate(
-        UNION(
-            [
-                'inside-center',
-                'inside-start',
-                'inside-end',
-                'outside-start',
-                'outside-end',
-                // @todo(AG-5950) Deprecate
-                { value: 'inside', deprecatedTo: 'inside-center' },
-                { value: 'start', deprecatedTo: 'outside-start' },
-                { value: 'end', deprecatedTo: 'outside-end' },
-            ],
-            'a placement'
-        )
-    )
+    @Validate(UNION(['inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'], 'a placement'))
     placement: AgWaterfallSeriesLabelPlacement = 'outside-end';
 
     @Validate(POSITIVE_NUMBER)
