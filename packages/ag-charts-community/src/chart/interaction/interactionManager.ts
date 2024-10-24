@@ -24,21 +24,15 @@ export const POINTER_INTERACTION_TYPES = [
     'wheel',
 ] as const;
 
-const FOCUS_INTERACTION_TYPES = ['blur', 'focus'] as const;
-
 const KEY_INTERACTION_TYPES = ['keydown', 'keyup'] as const;
 
 export type PointerInteractionTypes = (typeof POINTER_INTERACTION_TYPES)[number];
 
-export type FocusInteractionTypes = (typeof FOCUS_INTERACTION_TYPES)[number];
-
 export type KeyInteractionTypes = (typeof KEY_INTERACTION_TYPES)[number];
 
-export type InteractionTypes = PointerInteractionTypes | FocusInteractionTypes | KeyInteractionTypes;
+export type InteractionTypes = PointerInteractionTypes | KeyInteractionTypes;
 
 type SUPPORTED_EVENTS =
-    | 'blur'
-    | 'focus'
     | 'dblclick'
     | 'contextmenu'
     | 'keydown'
@@ -67,8 +61,6 @@ const EVENT_HANDLERS = [
     'touchend',
     'touchcancel',
     'wheel',
-    'blur',
-    'focus',
     'keydown',
     'keyup',
 ] as const;
@@ -97,11 +89,6 @@ export type PointerInteractionEvent<T extends PointerInteractionTypes = PointerI
         pointerHistory: PointerHistoryEvent[];
     };
 
-export type FocusInteractionEvent<T extends FocusInteractionTypes = FocusInteractionTypes> = BaseInteractionEvent<
-    T,
-    FocusEvent
->;
-
 export type KeyInteractionEvent<T extends KeyInteractionTypes = KeyInteractionTypes> = BaseInteractionEvent<
     T,
     KeyboardEvent
@@ -109,7 +96,6 @@ export type KeyInteractionEvent<T extends KeyInteractionTypes = KeyInteractionTy
 
 export type InteractionEvent =
     | PointerInteractionEvent<PointerInteractionTypes>
-    | FocusInteractionEvent<FocusInteractionTypes>
     | KeyInteractionEvent<KeyInteractionTypes>;
 
 interface Coords {
@@ -125,10 +111,6 @@ type SupportedEvent = MouseEvent | TouchEvent | Event;
 
 function isPointerEvent(type: InteractionTypes): type is PointerInteractionTypes {
     return POINTER_INTERACTION_TYPES.includes(type as any);
-}
-
-function isFocusEvent(type: InteractionTypes): type is FocusInteractionTypes {
-    return FOCUS_INTERACTION_TYPES.includes(type as any);
 }
 
 function isKeyEvent(type: InteractionTypes): type is KeyInteractionTypes {
@@ -248,10 +230,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         }
 
         const { relatedElement, targetElement } = this.extractElements(event);
-        if (isFocusEvent(type)) {
-            const sourceEvent = event as FocusEvent;
-            this.dispatchTypedEvent(this.listeners, { type, sourceEvent, relatedElement, targetElement });
-        } else if (isKeyEvent(type)) {
+        if (isKeyEvent(type)) {
             const sourceEvent = event as KeyboardEvent;
             this.dispatchTypedEvent(this.listeners, { type, sourceEvent, relatedElement, targetElement });
         }
@@ -324,8 +303,6 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         const dragStart = 'drag-start';
 
         switch (event.type) {
-            case 'blur':
-            case 'focus':
             case 'keydown':
             case 'keyup':
                 return this.keyboardOptions.enabled ? event.type : undefined;

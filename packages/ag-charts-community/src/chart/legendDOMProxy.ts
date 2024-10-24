@@ -1,5 +1,6 @@
 import type { LocaleManager } from '../locale/localeManager';
 import type { ModuleContext } from '../module/moduleContext';
+import type { Node } from '../scene/node';
 import type { Selection } from '../scene/selection';
 import { Transformable } from '../scene/transformable';
 import { setElementStyle } from '../util/attributeUtil';
@@ -29,12 +30,18 @@ type LegendDOMProxyUpdateParams = {
     interactive: boolean;
     ctx: Pick<ModuleContext, 'proxyInteractionService' | 'localeManager'>;
     itemSelection: ItemSelection;
+    group: Node;
     pagination: Pagination;
     oldPages: Page[] | undefined;
     newPages: Page[];
     datumReader: CategoryLegendDatumReader;
     itemListener: ButtonListener;
 };
+
+type LegendDOMProxyPageChangeParams = Pick<
+    LegendDOMProxyUpdateParams,
+    'itemSelection' | 'group' | 'pagination' | 'interactive'
+>;
 
 export class LegendDOMProxy {
     private dirty = true;
@@ -118,11 +125,10 @@ export class LegendDOMProxy {
     }
 
     public update(params: LegendDOMProxyUpdateParams) {
-        const { visible, interactive, itemSelection, pagination } = params;
-        this.updateVisibility(visible);
-        if (visible) {
+        this.updateVisibility(params.visible);
+        if (params.visible) {
             this.initLegendList(params);
-            this.updateItemProxyButtons(itemSelection, pagination, interactive);
+            this.updateItemProxyButtons(params);
             this.updatePaginationProxyButtons(params);
         }
     }
@@ -131,19 +137,21 @@ export class LegendDOMProxy {
         setElementStyle(this.itemList, 'display', visible ? undefined : 'none');
     }
 
-    private updateItemProxyButtons(itemSelection: ItemSelection, pagination: Pagination, interactive: boolean) {
+    private updateItemProxyButtons({ itemSelection, group, pagination, interactive }: LegendDOMProxyPageChangeParams) {
+        const groupBBox = Transformable.toCanvas(group);
+        setElementBBox(this.itemList, groupBBox);
+
         const pointer = interactive ? 'pointer' : undefined;
         const maxHeight = Math.max(...itemSelection.nodes().map((l) => l.getBBox().height));
         itemSelection.each((l) => {
             if (l.proxyButton) {
                 const { listitem, button } = l.proxyButton;
                 const visible = l.pageIndex === pagination.currentPage;
-                let bbox: BBoxValues = Transformable.toCanvas(l);
-                if (bbox.height !== maxHeight) {
-                    // CRT-543 Give the legend items the same heights for a better look.
-                    const margin = (maxHeight - bbox.height) / 2;
-                    bbox = { x: bbox.x, y: bbox.y - margin, height: maxHeight, width: bbox.width };
-                }
+
+                const { x, y, height, width } = Transformable.toCanvas(l);
+                const margin = (maxHeight - height) / 2; // CRT-543 Give the legend items the same heights for a better look.
+                const bbox: BBoxValues = { x: x - groupBBox.x, y: y - margin - groupBBox.y, height: maxHeight, width };
+
                 // TODO(olegat) this should be part of CSS once all element types support pointer events.
                 setElementStyle(button, 'pointer-events', visible ? 'auto' : 'none');
                 setElementStyle(button, 'cursor', pointer);
@@ -195,10 +203,10 @@ export class LegendDOMProxy {
 
         setElementBBox(this.prevButton, prev);
         setElementBBox(this.nextButton, next);
-        this.updatePaginationCursors(pagination);
+        this.updatePaginationCursors(params);
     }
 
-    private updatePaginationCursors(pagination: Pagination) {
+    private updatePaginationCursors({ pagination }: LegendDOMProxyPageChangeParams) {
         setElementStyle(this.nextButton, 'cursor', pagination.getCursor('next'));
         setElementStyle(this.prevButton, 'cursor', pagination.getCursor('previous'));
     }
@@ -227,9 +235,9 @@ export class LegendDOMProxy {
         this.itemDescription.textContent = this.getItemAriaDescription(localeManager);
     }
 
-    public onPageChange(itemSelection: ItemSelection, pagination: Pagination, interactive: boolean) {
-        this.updateItemProxyButtons(itemSelection, pagination, interactive);
-        this.updatePaginationCursors(pagination);
+    public onPageChange(params: LegendDOMProxyPageChangeParams) {
+        this.updateItemProxyButtons(params);
+        this.updatePaginationCursors(params);
     }
 
     private getItemAriaText(

@@ -348,11 +348,11 @@ export abstract class Chart extends Observable {
     }
 
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
-        const { ctx, tooltip, highlight, overlays, seriesRoot } = this;
+        const { ctx, tooltip, highlight, overlays, seriesRoot, mode } = this;
         const chartType = this.getChartType();
         const fireEvent = this.fireEvent.bind(this);
         const getUpdateType = () => this.performUpdateType;
-        return { fireEvent, getUpdateType, chartType, ctx, tooltip, highlight, overlays, seriesRoot };
+        return { fireEvent, getUpdateType, chartType, ctx, tooltip, highlight, overlays, seriesRoot, mode };
     }
 
     getModuleContext(): ModuleContext {
@@ -658,7 +658,7 @@ export abstract class Chart extends Observable {
         this.updateThemeClassName();
 
         const { enabled, tabIndex } = this.keyboard;
-        this.ctx.domManager.setTabIndex(enabled ? tabIndex ?? 0 : -1);
+        this.seriesAreaManager.setTabIndex(enabled ? tabIndex ?? 0 : -1);
     }
 
     private updateAriaLabels() {

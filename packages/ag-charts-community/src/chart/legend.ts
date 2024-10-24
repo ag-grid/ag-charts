@@ -785,7 +785,7 @@ export class Legend extends BaseProperties {
     }
 
     private updatePageNumber(pageNumber: number) {
-        const { pages } = this;
+        const { itemSelection, group, pagination, pages, toggleSeries: interactive } = this;
 
         // Track an item on the page in re-pagination cases (e.g. resize).
         const { startIndex, endIndex } = pages[pageNumber];
@@ -804,7 +804,7 @@ export class Legend extends BaseProperties {
         this.pagination.updateMarkers();
 
         this.updatePositions(pageNumber);
-        this.domProxy.onPageChange(this.itemSelection, this.pagination, this.toggleSeries);
+        this.domProxy.onPageChange({ itemSelection, group, pagination, interactive });
 
         this.ctx.updateService.update(ChartUpdateType.SCENE_RENDER);
     }
@@ -1146,13 +1146,14 @@ export class Legend extends BaseProperties {
         return oldPages;
     }
     private positionLegendDOM(oldPages: Page[] | undefined) {
-        const { ctx, itemSelection, pagination, pages: newPages, toggleSeries: interactive } = this;
+        const { ctx, itemSelection, pagination, pages: newPages, toggleSeries: interactive, group } = this;
         const visible = this.visible && this.enabled;
         this.domProxy.update({
             visible,
             interactive,
             ctx,
             itemSelection,
+            group,
             pagination,
             oldPages,
             newPages,

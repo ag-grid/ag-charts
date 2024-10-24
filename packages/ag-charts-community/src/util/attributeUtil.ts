@@ -2,7 +2,7 @@ import type { Nullable } from './types';
 
 type ElementID = string;
 
-type BaseAttributeTypeMap = {
+export type BaseAttributeTypeMap = {
     role: 'figure' | 'img' | 'radio' | 'radiogroup' | 'status' | 'switch' | 'tab' | 'tablist' | 'tabpanel';
     'aria-checked': boolean;
     'aria-controls': ElementID;
@@ -32,6 +32,8 @@ type BaseStyleTypeMap = {
     display: 'none';
     'pointer-events': 'auto' | 'none';
 };
+
+type StyleSet = Partial<{ [K in keyof BaseStyleTypeMap]: BaseStyleTypeMap[K] }>;
 
 export function setAttribute<A extends keyof BaseAttributeTypeMap>(
     e: Nullable<HTMLElement>,
@@ -110,6 +112,12 @@ export function setElementStyle<P extends keyof BaseStyleTypeMap>(
     if (value == null) {
         e.style.removeProperty(property);
     } else {
-        e.style.setProperty(property, value);
+        e.style.setProperty(property, value.toString());
+    }
+}
+export function setElementStyles(e: Nullable<HTMLElement>, styles: StyleSet) {
+    let key: keyof typeof styles;
+    for (key in styles) {
+        setElementStyle(e as HTMLElement, key, styles[key]);
     }
 }

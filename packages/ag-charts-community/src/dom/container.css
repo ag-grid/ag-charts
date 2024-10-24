@@ -29,12 +29,20 @@
 
 .ag-charts-series-area {
     outline: none;
-    opacity: 0;
-    pointer-events: auto;
+    pointer-events: none;
     position: absolute;
 }
 
-.ag-charts-series-area:focus-visible {
+.ag-charts-swapchain {
+    outline: none;
+    opacity: 0;
+    pointer-events: auto;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.ag-charts-swapchain:focus-visible {
     /* This `opacity` CSS property is read by FocusIndicator to determine the `:focus-visible` state. */
     opacity: 1;
 }
