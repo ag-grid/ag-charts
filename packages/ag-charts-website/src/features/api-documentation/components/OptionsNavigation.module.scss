@@ -154,7 +154,7 @@ pre.navContainer {
 
 .propertyExpander {
     --icon-size: 1em;
-    --color-icon: var(--color-fg-primary);
+    --icon-color: var(--color-fg-primary);
 
     position: absolute;
     top: 0;
@@ -219,7 +219,7 @@ pre.navContainer {
 
 .searchIcon {
     --icon-size: 1.25em;
-    --color-icon: var(--color-fg-secondary);
+    --icon-color: var(--color-fg-secondary);
 
     position: absolute;
     left: 0.625em;

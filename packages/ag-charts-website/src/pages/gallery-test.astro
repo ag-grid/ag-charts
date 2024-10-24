@@ -81,7 +81,7 @@ const { series } = galleryData;
     }
 
     .enterpriseIcon {
-        --color-icon: var(--color-enterprise-icon);
+        --icon-color: var(--color-enterprise-icon);
     }
 
     .gallery-outer {
@@ -158,13 +158,13 @@ const { series } = galleryData;
             background: rgba(56, 146, 249, 0.06);
 
             .seriesIcon {
-                --color-icon: var(--color-link-hover);
+                --icon-color: var(--color-link-hover);
             }
         }
     }
 
     .seriesIcon {
-        --color-icon: color-mix(in srgb, var(--color-fg-secondary) 75%, transparent);
+        --icon-color: color-mix(in srgb, var(--color-fg-secondary) 75%, transparent);
 
         transition: fill $transition-default-timing;
     }

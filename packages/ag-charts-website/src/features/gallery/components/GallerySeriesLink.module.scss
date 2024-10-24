@@ -8,7 +8,7 @@
     align-items: center;
 
     &:hover .arrowIcon {
-        --color-icon: var(--color-link-hover);
+        --icon-color: var(--color-link-hover);
 
         transform: translateX(2px);
     }
