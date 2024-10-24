@@ -1,6 +1,5 @@
 import {
     type AgAxisGridLineOptions,
-    type AgAxisLineOptions,
     type AgBaseSparklinePresetOptions,
     type AgCartesianAxisOptions,
     type AgCartesianChartOptions,
@@ -170,13 +169,26 @@ function setInitialBaseTheme(
     return initialBaseTheme;
 }
 
-function axis(opts: AgSparklineAxisOptions): AgCartesianAxisOptions {
-    switch (opts.type) {
+function axis(
+    opts: AgSparklineAxisOptions | undefined,
+    defaultType: AgCartesianAxisOptions['type']
+): AgCartesianAxisOptions {
+    switch (opts?.type) {
         case 'number': {
-            const { type, visible: _visible, stroke: _stroke, strokeWidth: _strokeWidth, min, max, ...optsRest } = opts;
-            assertEmpty(optsRest);
-            return pickProps<Pick<AgNumberAxisOptions, 'type' | 'min' | 'max'>>(opts, {
+            const {
                 type,
+                reverse,
+                visible: _visible,
+                stroke: _stroke,
+                strokeWidth: _strokeWidth,
+                min,
+                max,
+                ...optsRest
+            } = opts;
+            assertEmpty(optsRest);
+            return pickProps<Pick<AgNumberAxisOptions, 'type' | 'reverse' | 'min' | 'max'>>(opts, {
+                type,
+                reverse,
                 min,
                 max,
             });
@@ -184,6 +196,7 @@ function axis(opts: AgSparklineAxisOptions): AgCartesianAxisOptions {
         case 'log': {
             const {
                 type,
+                reverse,
                 visible: _visible,
                 stroke: _stroke,
                 strokeWidth: _strokeWidth,
@@ -193,18 +206,29 @@ function axis(opts: AgSparklineAxisOptions): AgCartesianAxisOptions {
                 ...optsRest
             } = opts;
             assertEmpty(optsRest);
-            return pickProps<Pick<AgLogAxisOptions, 'type' | 'min' | 'max' | 'base'>>(opts, {
+            return pickProps<Pick<AgLogAxisOptions, 'type' | 'reverse' | 'min' | 'max' | 'base'>>(opts, {
                 type,
+                reverse,
                 min,
                 max,
                 base,
             });
         }
         case 'time': {
-            const { type, visible: _visible, stroke: _stroke, strokeWidth: _strokeWidth, min, max, ...optsRest } = opts;
-            assertEmpty(optsRest);
-            return pickProps<Pick<AgTimeAxisOptions, 'type' | 'min' | 'max'>>(opts, {
+            const {
                 type,
+                reverse,
+                visible: _visible,
+                stroke: _stroke,
+                strokeWidth: _strokeWidth,
+                min,
+                max,
+                ...optsRest
+            } = opts;
+            assertEmpty(optsRest);
+            return pickProps<Pick<AgTimeAxisOptions, 'type' | 'reverse' | 'min' | 'max'>>(opts, {
+                type,
+                reverse,
                 min,
                 max,
             });
@@ -212,6 +236,7 @@ function axis(opts: AgSparklineAxisOptions): AgCartesianAxisOptions {
         case 'category': {
             const {
                 type,
+                reverse,
                 visible: _visible,
                 stroke: _stroke,
                 strokeWidth: _strokeWidth,
@@ -220,8 +245,9 @@ function axis(opts: AgSparklineAxisOptions): AgCartesianAxisOptions {
                 ...optsRest
             } = opts;
             assertEmpty(optsRest);
-            return pickProps<Pick<AgCategoryAxisOptions, 'type' | 'paddingInner' | 'paddingOuter'>>(opts, {
+            return pickProps<Pick<AgCategoryAxisOptions, 'type' | 'reverse' | 'paddingInner' | 'paddingOuter'>>(opts, {
                 type,
+                reverse,
                 paddingInner,
                 paddingOuter,
             });
@@ -229,6 +255,7 @@ function axis(opts: AgSparklineAxisOptions): AgCartesianAxisOptions {
         case 'ordinal-time': {
             const {
                 type,
+                reverse,
                 visible: _visible,
                 stroke: _stroke,
                 strokeWidth: _strokeWidth,
@@ -238,35 +265,22 @@ function axis(opts: AgSparklineAxisOptions): AgCartesianAxisOptions {
                 ...optsRest
             } = opts;
             assertEmpty(optsRest);
-            return pickProps<Pick<AgOrdinalTimeAxisOptions, 'type' | 'paddingInner' | 'paddingOuter' | 'interval'>>(
-                opts,
-                {
-                    type,
-                    paddingInner,
-                    paddingOuter,
-                    interval,
-                }
-            );
+            return pickProps<
+                Pick<AgOrdinalTimeAxisOptions, 'type' | 'reverse' | 'paddingInner' | 'paddingOuter' | 'interval'>
+            >(opts, {
+                type,
+                reverse,
+                paddingInner,
+                paddingOuter,
+                interval,
+            });
         }
     }
+
+    return { type: defaultType };
 }
 
-function axisLineOptions(opts: AgSparklineAxisOptions | undefined, defaultEnabled: boolean): AgAxisLineOptions {
-    const lineOpts: AgAxisLineOptions = {};
-    lineOpts.enabled = opts?.visible;
-    if (opts?.stroke != null) {
-        lineOpts.stroke = opts?.stroke;
-        lineOpts.enabled ??= true;
-    }
-    if (opts?.strokeWidth != null) {
-        lineOpts.width = opts?.strokeWidth;
-        lineOpts.enabled ??= true;
-    }
-    lineOpts.enabled ??= defaultEnabled;
-    return lineOpts;
-}
-
-function axisGridLineOptions(opts: AgSparklineAxisOptions | undefined, defaultEnabled: boolean): AgAxisGridLineOptions {
+function gridLine(opts: AgSparklineAxisOptions | undefined, defaultEnabled: boolean): AgAxisGridLineOptions {
     const gridLineOpts: AgAxisGridLineOptions = {};
     gridLineOpts.enabled = opts?.visible;
     if (opts?.stroke != null) {
@@ -279,34 +293,6 @@ function axisGridLineOptions(opts: AgSparklineAxisOptions | undefined, defaultEn
     }
     gridLineOpts.enabled ??= defaultEnabled;
     return gridLineOpts;
-}
-
-function seriesAxisTheme(
-    seriesType: AgCartesianSeriesOptions['type'],
-    xAxisOpts: AgSparklineAxisOptions | undefined,
-    yAxisOpts: AgSparklineAxisOptions | undefined
-): { x: Omit<AgCartesianAxisOptions, 'type'>; y: Omit<AgCartesianAxisOptions, 'type'> } | undefined {
-    switch (seriesType) {
-        case 'bar':
-            return {
-                x: {
-                    line: axisLineOptions(xAxisOpts, true),
-                },
-                y: {
-                    line: axisLineOptions(yAxisOpts, false),
-                },
-            };
-        case 'line':
-        case 'area':
-            return {
-                x: {
-                    gridLine: axisGridLineOptions(yAxisOpts, false),
-                },
-                y: {
-                    gridLine: axisGridLineOptions(xAxisOpts, false),
-                },
-            };
-    }
 }
 
 export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
@@ -351,25 +337,20 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME);
     chartOpts.series = [seriesOptions];
 
-    const axisTheme = seriesAxisTheme(seriesOptions.type ?? 'line', xAxis, yAxis);
+    const [xAxisPosition, yAxisPosition] = swapAxes ? (['bottom', 'left'] as const) : (['left', 'bottom'] as const);
+
     const xAxisBase: AgCartesianAxisOptions = {
-        ...(xAxis != null ? axis(xAxis) : { type: 'category' }),
-        ...axisTheme?.x,
+        ...axis(xAxis, 'category'),
+        gridLine: gridLine(yAxis, false),
+        position: xAxisPosition,
     };
     const yAxisBase: AgCartesianAxisOptions = {
-        ...(yAxis != null ? axis(yAxis) : { type: 'number' }),
-        ...axisTheme?.y,
+        ...axis(yAxis, 'number'),
+        gridLine: gridLine(xAxis, true),
+        position: yAxisPosition,
     };
 
-    chartOpts.axes = swapAxes
-        ? [
-              { ...yAxisBase, position: 'left' },
-              { ...xAxisBase, position: 'bottom' },
-          ]
-        : [
-              { ...xAxisBase, position: 'left' },
-              { ...yAxisBase, position: 'bottom' },
-          ];
+    chartOpts.axes = swapAxes ? [yAxisBase, xAxisBase] : [xAxisBase, yAxisBase];
 
     return chartOpts;
 }

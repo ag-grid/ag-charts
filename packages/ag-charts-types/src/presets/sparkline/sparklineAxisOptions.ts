@@ -8,6 +8,8 @@ export interface AgSparklineBaseAxisOptions {
     stroke?: CssColor;
     /** The width in pixels of the axis line. */
     strokeWidth?: PixelSize;
+    /** Reverse the axis scale domain if `true`. */
+    reverse?: boolean;
 }
 
 interface AgSparklineBaseCategoryAxisOptions extends AgSparklineBaseAxisOptions {
