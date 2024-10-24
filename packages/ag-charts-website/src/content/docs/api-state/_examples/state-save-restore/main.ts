@@ -37,12 +37,7 @@ let state: AgChartState = {
     ],
     zoom: {
         rangeX: {
-            start: { __type: 'date', value: 'Thu Mar 21 2024 18:28:00 GMT+0000 (Greenwich Mean Time)' },
-            end: { __type: 'date', value: 'Thu Mar 21 2024 19:14:00 GMT+0000 (Greenwich Mean Time)' },
-        },
-        rangeY: {
-            start: 39810,
-            end: 39842,
+            start: { __type: 'date', value: 'Thu Mar 21 2024 18:43:00 GMT+0000 (Greenwich Mean Time)' },
         },
     },
 };

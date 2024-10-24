@@ -108,26 +108,6 @@ export interface AgZoomOptions {
      */
     panKey?: AgZoomPanKey;
     /**
-     * The initial x-axis range of the zoom, as values of the axis type.
-     * @deprecated v10.2.0 use `initialState.zoom.rangeX` instead.
-     */
-    rangeX?: AgZoomRange;
-    /**
-     * The initial y-axis range of the zoom, as values of the axis type.
-     * @deprecated v10.2.0 use `initialState.zoom.rangeY` instead.
-     */
-    rangeY?: AgZoomRange;
-    /**
-     * The initial x-axis range of the zoom, as a ratio between 0 to 1.
-     * @deprecated v10.2.0 use `initialState.zoom.ratioX` instead.
-     */
-    ratioX?: AgZoomRatio;
-    /**
-     * The initial y-axis range of the zoom, as a ratio between 0 to 1.
-     * @deprecated v10.2.0 use `initialState.zoom.ratioY` instead.
-     */
-    ratioY?: AgZoomRatio;
-    /**
      * The amount to zoom when scrolling with the mouse wheel, as a ratio of the full chart.
      *
      * Default: `0.1`
