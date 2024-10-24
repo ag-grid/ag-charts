@@ -1,6 +1,3 @@
-import { ICONS_LEGACY } from 'ag-charts-types';
-
-import { Logger } from '../../util/logger';
 import { BaseProperties } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import { ARRAY, BOOLEAN, UNION, Validate } from '../../util/validation';
