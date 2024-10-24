@@ -75,4 +75,7 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
 
     @Validate(BOOLEAN)
     connectMissingData: boolean = false;
+
+    @Validate(BOOLEAN)
+    sparklineMode: boolean = false;
 }

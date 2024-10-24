@@ -76,7 +76,7 @@ export class LineSeries extends CartesianSeries<
     override properties = new LineSeriesProperties();
 
     override get pickModeAxis() {
-        return 'main-category' as const;
+        return this.properties.sparklineMode ? 'main' : 'main-category';
     }
 
     constructor(moduleCtx: ModuleContext) {
