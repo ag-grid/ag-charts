@@ -385,7 +385,7 @@ export class SeriesAreaManager extends BaseManager {
         this.updatePickedFocus(pick, refresh);
     }
 
-    private updatePickedFocus(pick: PickFocusOutputs | undefined, refreshBoundsOnly: boolean) {
+    private updatePickedFocus(pick: PickFocusOutputs | undefined, refresh: boolean) {
         const { focus, seriesRect } = this;
         if (pick === undefined || focus.series === undefined) return;
 
@@ -408,7 +408,7 @@ export class SeriesAreaManager extends BaseManager {
         const keyboardEvent = makeKeyboardPointerEvent(this.focusIndicator, pick);
 
         // Update highlight/tooltip for keyboard users:
-        if (!refreshBoundsOnly && keyboardEvent !== undefined && this.hoverDevice === 'keyboard') {
+        if (keyboardEvent !== undefined && this.hoverDevice === 'keyboard') {
             // Stop pending async mouse events from updating the highlight/tooltip. At this point, the most recent event came
             // from the keyboard so that's what we should honour.
             this.tooltip.lastHover = undefined;
@@ -420,7 +420,9 @@ export class SeriesAreaManager extends BaseManager {
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, datum);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
             this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, html);
-            this.focusIndicator.move(this.swapChain.update(this.getDatumAriaText(datum, html)));
+            if (!refresh) {
+                this.focusIndicator.move(this.swapChain.update(this.getDatumAriaText(datum, html)));
+            }
         }
     }
 
