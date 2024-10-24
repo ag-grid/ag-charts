@@ -17,10 +17,10 @@ export class FocusSwapChain {
     private readonly onBlur = (e: FocusEvent) => !this.skipDispatch && this.dispatch('blur', e);
     private readonly onFocus = (e: FocusEvent) => !this.skipDispatch && this.dispatch('focus', e);
 
-    private createAnnouncer(initialLabel: HTMLElement, role: BaseAttributeTypeMap['role']) {
+    private createAnnouncer(role: BaseAttributeTypeMap['role']) {
         const announcer = createElement('div');
+        announcer.role = role;
         announcer.className = 'ag-charts-swapchain';
-        setAttributes(announcer, { role, 'aria-labelledby': initialLabel.id });
         announcer.addEventListener('blur', this.onBlur);
         announcer.addEventListener('focus', this.onFocus);
         return announcer;
@@ -37,8 +37,8 @@ export class FocusSwapChain {
         setElementStyle(this.label1, 'display', 'none');
         setElementStyle(this.label2, 'display', 'none');
 
-        this.activeAnnouncer = this.createAnnouncer(this.label1, announcerRole);
-        this.inactiveAnnouncer = this.createAnnouncer(this.label1, announcerRole);
+        this.activeAnnouncer = this.createAnnouncer(announcerRole);
+        this.inactiveAnnouncer = this.createAnnouncer(announcerRole);
 
         this.label2.insertAdjacentElement('afterend', this.activeAnnouncer);
         this.label2.insertAdjacentElement('afterend', this.inactiveAnnouncer);
@@ -94,8 +94,11 @@ export class FocusSwapChain {
 
         [this.inactiveAnnouncer, this.activeAnnouncer] = [this.activeAnnouncer, this.inactiveAnnouncer];
         [this.label1, this.label2] = [this.label2, this.label1];
-        setAttributes(this.inactiveAnnouncer, { tabindex: -1, 'aria-labelledby': this.label1.id });
-        setAttribute(this.activeAnnouncer, 'aria-labelledby', this.label1.id);
+        setAttributes(this.inactiveAnnouncer, { 'aria-labelledby': this.label1.id, tabindex: -1 });
+        setAttributes(this.activeAnnouncer, { 'aria-labelledby': this.label1.id });
+        setElementStyle(this.inactiveAnnouncer, 'display', 'none');
+        setElementStyle(this.activeAnnouncer, 'display', undefined);
+
         this.activeAnnouncer.tabIndex = userTabIndex;
     }
 }
