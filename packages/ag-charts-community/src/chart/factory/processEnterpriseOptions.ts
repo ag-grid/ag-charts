@@ -16,6 +16,7 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
         optionsKey,
         optionsInnerKey,
         identifier,
+        community,
     } of EXPECTED_ENTERPRISE_MODULES) {
         if (optionsChartType !== 'unknown' && !moduleChartTypes.includes(optionsChartType)) continue;
 
@@ -45,6 +46,7 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
                 }
             });
         } else if (type === 'series') {
+            if (community) continue;
             if (!options.series?.some((series) => series.type === identifier)) continue;
 
             usedOptions.push(`series[type=${identifier}]`);
