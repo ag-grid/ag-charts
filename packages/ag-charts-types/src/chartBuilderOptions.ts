@@ -1,4 +1,4 @@
-import type { AgAnnotationsOptions } from './chart/annotationsOptions';
+import type { AgAnnotation } from './chart/annotationsOptions';
 import type { AgBaseChartOptions } from './chart/chartOptions';
 import type {
     AgBaseChartThemeOptions,
@@ -203,6 +203,6 @@ export interface ImageDataUrlOptions {
 
 export interface AgChartState {
     version: string;
-    annotations?: AgAnnotationsOptions;
+    annotations?: AgAnnotation[];
     // zoom?: AgChartSerializableState;
 }
