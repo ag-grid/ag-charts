@@ -173,49 +173,75 @@ function setInitialBaseTheme(
 function axis(opts: AgSparklineAxisOptions): AgCartesianAxisOptions {
     switch (opts.type) {
         case 'number': {
-            const { type, visible, stroke, strokeWidth, min, max, ...optsRest } = opts;
+            const { type, visible: _visible, stroke: _stroke, strokeWidth: _strokeWidth, min, max, ...optsRest } = opts;
             assertEmpty(optsRest);
             return pickProps<Pick<AgNumberAxisOptions, 'type' | 'min' | 'max'>>(opts, {
-                type: 'number',
+                type,
                 min,
                 max,
             });
         }
         case 'log': {
-            const { type, visible, stroke, strokeWidth, min, max, base, ...optsRest } = opts;
+            const {
+                type,
+                visible: _visible,
+                stroke: _stroke,
+                strokeWidth: _strokeWidth,
+                min,
+                max,
+                base,
+                ...optsRest
+            } = opts;
             assertEmpty(optsRest);
             return pickProps<Pick<AgLogAxisOptions, 'type' | 'min' | 'max' | 'base'>>(opts, {
-                type: 'log',
+                type,
                 min,
                 max,
                 base,
             });
         }
         case 'time': {
-            const { type, visible, stroke, strokeWidth, min, max, ...optsRest } = opts;
+            const { type, visible: _visible, stroke: _stroke, strokeWidth: _strokeWidth, min, max, ...optsRest } = opts;
             assertEmpty(optsRest);
             return pickProps<Pick<AgTimeAxisOptions, 'type' | 'min' | 'max'>>(opts, {
-                type: 'time',
+                type,
                 min,
                 max,
             });
         }
         case 'category': {
-            const { type, visible, stroke, strokeWidth, paddingInner, paddingOuter, ...optsRest } = opts;
+            const {
+                type,
+                visible: _visible,
+                stroke: _stroke,
+                strokeWidth: _strokeWidth,
+                paddingInner,
+                paddingOuter,
+                ...optsRest
+            } = opts;
             assertEmpty(optsRest);
             return pickProps<Pick<AgCategoryAxisOptions, 'type' | 'paddingInner' | 'paddingOuter'>>(opts, {
-                type: 'category',
+                type,
                 paddingInner,
                 paddingOuter,
             });
         }
         case 'ordinal-time': {
-            const { type, visible, stroke, strokeWidth, paddingInner, paddingOuter, interval, ...optsRest } = opts;
+            const {
+                type,
+                visible: _visible,
+                stroke: _stroke,
+                strokeWidth: _strokeWidth,
+                paddingInner,
+                paddingOuter,
+                interval,
+                ...optsRest
+            } = opts;
             assertEmpty(optsRest);
             return pickProps<Pick<AgOrdinalTimeAxisOptions, 'type' | 'paddingInner' | 'paddingOuter' | 'interval'>>(
                 opts,
                 {
-                    type: 'ordinal-time',
+                    type,
                     paddingInner,
                     paddingOuter,
                     interval,
