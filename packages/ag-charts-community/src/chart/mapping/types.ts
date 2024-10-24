@@ -16,7 +16,6 @@ import type {
     AgTopologySeriesOptions,
 } from 'ag-charts-types';
 
-import { Logger } from '../../util/logger';
 import { axisRegistry } from '../factory/axisRegistry';
 import { chartTypes } from '../factory/chartTypes';
 import {
