@@ -8,6 +8,7 @@ type EnterpriseModuleStub = {
     chartTypes: ('cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'standalone' | 'gauge')[];
     useCount?: number;
     optionsInnerKey?: string;
+    community?: boolean;
 };
 
 export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
@@ -58,6 +59,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'angle-number' },
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'radius-category' },
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'radius-number' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'line', community: true },
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['cartesian'], identifier: 'ordinal-time' },
     { type: 'axis-option', optionsKey: 'crosshair', chartTypes: ['cartesian'] },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'box-plot' },
@@ -65,7 +67,6 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'cone-funnel' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'funnel' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'ohlc' },
-    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'line' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'bullet' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'heatmap' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'range-area' },
