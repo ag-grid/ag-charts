@@ -4,7 +4,7 @@ const days = 1000000;
 
 // https://github.com/mikolalysenko/hash-int
 const A = new Uint32Array(1);
-function hashInt(x) {
+function hashInt(x: number) {
     A[0] = x | 0;
     A[0] -= A[0] << 6;
     A[0] ^= A[0] >>> 17;
