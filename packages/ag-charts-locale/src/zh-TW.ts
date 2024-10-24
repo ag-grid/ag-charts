@@ -88,7 +88,6 @@ export const AG_CHARTS_LOCALE_ZH_TW: Record<string, string> = {
     toolbarAnnotationsArrowUp: '向上箭頭',
     toolbarAnnotationsCallout: '注釋',
     toolbarAnnotationsClearAll: '全部清除',
-    toolbarAnnotationsColor: '顏色',
     toolbarAnnotationsComment: '註解',
     toolbarAnnotationsDatePriceRange: '日期和價格',
     toolbarAnnotationsDateRange: '日期範圍',

@@ -113,7 +113,6 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
      * Text for the annotation toolbar's color picker annotation button
      * @deprecated v10.1.0 use `toolbarAnnotationsLineColor` instead.
      */
-    toolbarAnnotationsColor: 'Color',
     // Text for the annotation toolbar's fill color picker annotation button
     toolbarAnnotationsFillColor: 'Fill Color',
     // Text for the annotation toolbar's line color picker annotation button

@@ -88,7 +88,6 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Pijl Omhoog',
     toolbarAnnotationsCallout: 'Tekstballon',
     toolbarAnnotationsClearAll: 'Alles wissen',
-    toolbarAnnotationsColor: 'Kleur',
     toolbarAnnotationsComment: 'Opmerking',
     toolbarAnnotationsDatePriceRange: 'Datum en Prijs',
     toolbarAnnotationsDateRange: 'Datumbereik',

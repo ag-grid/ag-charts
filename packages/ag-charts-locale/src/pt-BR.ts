@@ -88,7 +88,6 @@ export const AG_CHARTS_LOCALE_PT_BR: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Seta para cima',
     toolbarAnnotationsCallout: 'Anotação',
     toolbarAnnotationsClearAll: 'Limpar Tudo',
-    toolbarAnnotationsColor: 'Cor',
     toolbarAnnotationsComment: 'Comentar',
     toolbarAnnotationsDatePriceRange: 'Data e Preço',
     toolbarAnnotationsDateRange: 'Intervalo de Datas',

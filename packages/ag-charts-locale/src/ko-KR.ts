@@ -88,7 +88,6 @@ export const AG_CHARTS_LOCALE_KO_KR: Record<string, string> = {
     toolbarAnnotationsArrowUp: '위쪽 화살표',
     toolbarAnnotationsCallout: '콜아웃',
     toolbarAnnotationsClearAll: '모두 지우기',
-    toolbarAnnotationsColor: '색상',
     toolbarAnnotationsComment: '댓글',
     toolbarAnnotationsDatePriceRange: '날짜 및 가격',
     toolbarAnnotationsDateRange: '날짜 범위',

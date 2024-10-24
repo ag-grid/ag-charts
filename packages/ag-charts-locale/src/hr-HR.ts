@@ -88,7 +88,6 @@ export const AG_CHARTS_LOCALE_HR_HR: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Strelica gore',
     toolbarAnnotationsCallout: 'Poziv',
     toolbarAnnotationsClearAll: 'Očisti sve',
-    toolbarAnnotationsColor: 'Boja',
     toolbarAnnotationsComment: 'Komentar',
     toolbarAnnotationsDatePriceRange: 'Datum i cijena',
     toolbarAnnotationsDateRange: 'Raspon datuma',
