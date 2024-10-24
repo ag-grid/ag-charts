@@ -26,7 +26,7 @@ enum States {
 
 export class AnnotationsStateMachine extends ParallelStateMachine<States, AnnotationStateEvents> {
     // TODO: remove this leak
-    private active?: number;
+    private readonly active?: number;
 
     @StateMachineProperty()
     protected snapping: boolean = false;
