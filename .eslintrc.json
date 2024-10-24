@@ -1,6 +1,5 @@
 {
   "root": true,
-  "extends": ["plugin:diff/ci"],
   "ignorePatterns": ["**/*"],
   "plugins": ["@nx", "sonarjs", "check-file", "@typescript-eslint"],
   "env": {
