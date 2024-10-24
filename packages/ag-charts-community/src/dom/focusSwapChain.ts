@@ -86,6 +86,10 @@ export class FocusSwapChain {
 
     addListener<T extends keyof SwapChainEventMap>(type: T, handler: (param: SwapChainEventMap[T]) => unknown): void {
         this.listeners[type].push(handler);
+        if (type === 'swap') {
+            const swapHandler = handler as (p: SwapChainEventMap['swap']) => unknown;
+            swapHandler(this.activeAnnouncer);
+        }
     }
 
     private dispatch<T extends keyof SwapChainEventMap>(type: T, param: SwapChainEventMap[T]) {
