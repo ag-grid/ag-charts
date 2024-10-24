@@ -73,7 +73,6 @@
     "ag-charts-test": "10.3.1-beta.20241023.1156",
     "canvas": "^2.10.2",
     "del": "^6.0.0",
-    "eslint": "^8.56.0",
     "glob": "8.0.3",
     "jest": "^29.5.0",
     "jest-environment-jsdom": "^29.5.0",
