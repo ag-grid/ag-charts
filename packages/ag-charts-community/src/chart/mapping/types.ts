@@ -16,7 +16,6 @@ import type {
     AgTopologySeriesOptions,
 } from 'ag-charts-types';
 
-import { Logger } from '../../util/logger';
 import { axisRegistry } from '../factory/axisRegistry';
 import { chartTypes } from '../factory/chartTypes';
 import {
@@ -63,11 +62,6 @@ export function isAgPolarChartOptions(input: AgChartOptions): input is AgPolarCh
         return false;
     }
 
-    if ((specifiedType as string) === 'polar') {
-        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
-        return true;
-    }
-
     return chartTypes.isPolar(specifiedType) || isEnterprisePolar(specifiedType);
 }
 
@@ -75,11 +69,6 @@ export function isAgHierarchyChartOptions(input: AgChartOptions): input is AgHie
     const specifiedType = optionsType(input);
     if (specifiedType == null) {
         return false;
-    }
-
-    if ((specifiedType as string) === 'hierarchy') {
-        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
-        return true;
     }
 
     return chartTypes.isHierarchy(specifiedType) || isEnterpriseHierarchy(specifiedType);
@@ -91,11 +80,6 @@ export function isAgTopologyChartOptions(input: AgChartOptions): input is AgTopo
         return false;
     }
 
-    if ((specifiedType as string) === 'topology') {
-        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
-        return true;
-    }
-
     return chartTypes.isTopology(specifiedType) || isEnterpriseTopology(specifiedType);
 }
 
@@ -103,11 +87,6 @@ export function isAgFlowProportionChartOptions(input: AgChartOptions): input is 
     const specifiedType = optionsType(input);
     if (specifiedType == null) {
         return false;
-    }
-
-    if ((specifiedType as string) === 'flow-proportion') {
-        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
-        return true;
     }
 
     return chartTypes.isFlowProportion(specifiedType) || isEnterpriseFlowProportion(specifiedType);
@@ -119,11 +98,6 @@ export function isAgStandaloneChartOptions(input: AgChartOptions): input is AgSt
         return false;
     }
 
-    if ((specifiedType as string) === 'standalone') {
-        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
-        return true;
-    }
-
     return chartTypes.isStandalone(specifiedType) || isEnterpriseStandalone(specifiedType);
 }
 
@@ -131,11 +105,6 @@ export function isAgGaugeChartOptions(input: any): input is AgGaugeChartOptions 
     const specifiedType = optionsType(input);
     if (specifiedType == null) {
         return false;
-    }
-
-    if ((specifiedType as string) === 'gauge') {
-        Logger.warnOnce(`type '${specifiedType}' is deprecated, use a series type instead`);
-        return true;
     }
 
     return chartTypes.isGauge(specifiedType) || isEnterpriseGauge(specifiedType);

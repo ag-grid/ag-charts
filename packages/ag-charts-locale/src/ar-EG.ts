@@ -88,7 +88,6 @@ export const AG_CHARTS_LOCALE_AR_EG: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'سهم لأعلى',
     toolbarAnnotationsCallout: 'تعليق',
     toolbarAnnotationsClearAll: 'امسح الكل',
-    toolbarAnnotationsColor: 'لون',
     toolbarAnnotationsComment: 'تعليق',
     toolbarAnnotationsDatePriceRange: 'التاريخ والسعر',
     toolbarAnnotationsDateRange: 'نطاق التاريخ',

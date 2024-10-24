@@ -88,7 +88,6 @@ export const AG_CHARTS_LOCALE_SK_SK: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Šípka hore',
     toolbarAnnotationsCallout: 'Popis',
     toolbarAnnotationsClearAll: 'Vymazať všetko',
-    toolbarAnnotationsColor: 'Farba',
     toolbarAnnotationsComment: 'Komentár',
     toolbarAnnotationsDatePriceRange: 'Dátum a cena',
     toolbarAnnotationsDateRange: 'Časové obdobie',

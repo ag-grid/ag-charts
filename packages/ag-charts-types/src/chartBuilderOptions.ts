@@ -1,3 +1,4 @@
+import type { AgInitialStateOptions } from './api/initialStateOptions';
 import type { AgBaseChartOptions } from './chart/chartOptions';
 import type {
     AgBaseChartThemeOptions,
@@ -184,19 +185,6 @@ export interface ImageDataUrlOptions {
     fileFormat?: string;
 }
 
-export interface AgChartState {
+export interface AgChartState extends AgInitialStateOptions {
     version: string;
-    annotations?: AgChartSerializableState;
-    // zoom?: AgChartSerializableState;
 }
-
-/**
- * @deprecated v10.2.0 use `AgAnnotationsOptions` instead.
- *
- * ```
- * export interface AgChartState extends AgInitialStateOptions {
- *     version: string;
- * }
- * ```
- */
-export type AgChartSerializableState = any;

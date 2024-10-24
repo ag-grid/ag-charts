@@ -215,7 +215,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     protected sanityCheckAndCleanup(options: Partial<T>) {
         // output warnings and correct options when required
-        this.deprecationWarnings(options);
         this.axesTypeIntegrity(options);
         this.seriesTypeIntegrity(options);
         this.soloSeriesIntegrity(options);
@@ -496,17 +495,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 range: options.tooltip?.range ?? seriesRegistry.getTooltipDefauls(seriesType)?.range,
             },
         };
-    }
-
-    private deprecationWarnings(options: Partial<T>) {
-        const deprecatedArrayProps = { yKeys: 'yKey', yNames: 'yName' };
-        Object.entries(deprecatedArrayProps).forEach(([oldProp, newProp]) => {
-            if (options.series?.some((s: any) => s[oldProp] != null)) {
-                Logger.warnOnce(
-                    `Property [series.${oldProp}] is deprecated, please use [series.${newProp}] and multiple series instead.`
-                );
-            }
-        });
     }
 
     private axesTypeIntegrity(options: Partial<T>) {

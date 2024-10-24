@@ -88,7 +88,6 @@ export const AG_CHARTS_LOCALE_FA_IR: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'پیکان بالا',
     toolbarAnnotationsCallout: 'یادداشت',
     toolbarAnnotationsClearAll: 'پاک کردن همه',
-    toolbarAnnotationsColor: 'رنگ',
     toolbarAnnotationsComment: 'نظر',
     toolbarAnnotationsDatePriceRange: 'تاریخ و قیمت',
     toolbarAnnotationsDateRange: 'بازه زمانی',

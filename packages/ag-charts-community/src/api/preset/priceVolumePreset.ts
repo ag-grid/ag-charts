@@ -49,8 +49,7 @@ export function priceVolume(
     getTheme: () => ChartTheme
 ): AgCartesianChartOptions {
     const {
-        xKey,
-        dateKey = xKey ?? 'date',
+        dateKey = 'date',
         highKey = 'high',
         openKey = 'open',
         lowKey = 'low',
@@ -59,26 +58,14 @@ export function priceVolume(
         chartType = 'candlestick',
         navigator = false,
         volume = true,
-        rangeToolbar,
-        rangeButtons = rangeToolbar ?? true,
+        rangeButtons = true,
         statusBar = true,
-        annotations,
-        toolbar = annotations ?? true,
+        toolbar = true,
         zoom = true,
         theme,
         data,
         ...unusedOpts
     } = opts;
-
-    if (xKey != null) {
-        Logger.warnOnce('Property [xKey] is deprecated, use [dateKey] instead.');
-    }
-    if (rangeToolbar != null) {
-        Logger.warnOnce('Property [rangeToolbar] is deprecated, use [rangeButtons] instead.');
-    }
-    if (annotations != null) {
-        Logger.warnOnce('Property [annotations] is deprecated, use [toolbar] instead.');
-    }
 
     const priceSeries = createPriceSeries(theme, chartType, dateKey, highKey, lowKey, openKey, closeKey);
     const volumeSeries = createVolumeSeries(theme, getTheme, openKey, closeKey, volume, volumeKey);
@@ -307,11 +294,6 @@ function createPriceSeries(
     openKey: string,
     closeKey: string
 ) {
-    if ((chartType as string) === RANGE_AREA_TYPE) {
-        Logger.warnOnce(`type '${chartType}' is deprecated, use 'hlc' chart type instead`);
-        chartType = 'hlc';
-    }
-
     const keys: PriceSeriesKeys = {
         xKey,
         openKey,

@@ -88,7 +88,6 @@ export const AG_CHARTS_LOCALE_ZH_CN: Record<string, string> = {
     toolbarAnnotationsArrowUp: '向上箭头',
     toolbarAnnotationsCallout: '标注',
     toolbarAnnotationsClearAll: '清除所有',
-    toolbarAnnotationsColor: '颜色',
     toolbarAnnotationsComment: '评论',
     toolbarAnnotationsDatePriceRange: '日期和价格',
     toolbarAnnotationsDateRange: '日期范围',
