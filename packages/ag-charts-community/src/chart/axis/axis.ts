@@ -877,7 +877,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             const autoRotateStrategy = ({ index, tickData, labelOverlap, terminate }: TickStrategyParams) => ({
                 index,
                 tickData,
-                autoRotation: this.getAutoRotation(labelOverlap),
+                autoRotation: labelOverlap ? normalizeAngle360(toRadians(this.label.autoRotateAngle ?? 0)) : 0,
                 terminate,
             });
 
@@ -957,10 +957,6 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         }
 
         return labelData;
-    }
-
-    private getAutoRotation(labelOverlap: boolean): number {
-        return labelOverlap ? normalizeAngle360(toRadians(this.label.autoRotateAngle ?? 0)) : 0;
     }
 
     private getTicks({
