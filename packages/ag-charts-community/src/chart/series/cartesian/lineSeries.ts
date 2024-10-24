@@ -18,7 +18,13 @@ import { isDefined } from '../../../util/type-guards';
 import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import type { DataModelOptions, DatumPropertyDefinition, UngroupedDataItem } from '../../data/dataModel';
+import type {
+    DataModel,
+    DataModelOptions,
+    DatumPropertyDefinition,
+    UngroupedData,
+    UngroupedDataItem,
+} from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import {
     animationValidation,
@@ -194,9 +200,11 @@ export class LineSeries extends CartesianSeries<
             }
         }
 
-        await this.requestDataModel<any>(dataController, data, { props });
+        const { dataModel, processedData } = await this.requestDataModel<any>(dataController, data, {
+            props,
+        });
 
-        this.dataAggregationFilters = this.aggregateData();
+        this.dataAggregationFilters = this.aggregateData(dataModel, processedData as any as UngroupedData<any>);
 
         this.animationState.transition('updateData');
     }
@@ -223,7 +231,10 @@ export class LineSeries extends CartesianSeries<
         }
     }
 
-    protected aggregateData(): LineSeriesDataAggregationFilter[] | undefined {
+    protected aggregateData(
+        _dataModel: DataModel<any, any, any>,
+        _processedData: UngroupedData<any>
+    ): LineSeriesDataAggregationFilter[] | undefined {
         return;
     }
 

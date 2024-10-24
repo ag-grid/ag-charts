@@ -1,8 +1,9 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Scale } from 'ag-charts-community';
 
 import { aggregateData } from './lineAggregation';
 
 const { ChartAxisDirection, findMinValue, findMaxValue } = _ModuleSupport;
+const { ContinuousScale } = _Scale;
 
 export class LineSeries extends _ModuleSupport.LineSeries {
     protected override visibleRange(
@@ -25,18 +26,17 @@ export class LineSeries extends _ModuleSupport.LineSeries {
         return [start, end];
     }
 
-    protected override aggregateData() {
-        const { dataModel, axes } = this;
-        const ungroupedData = this.processedData as any as _ModuleSupport.UngroupedData<any> | undefined;
+    protected override aggregateData(
+        dataModel: _ModuleSupport.DataModel<any, any, false>,
+        processedData: _ModuleSupport.UngroupedData<any>
+    ) {
+        const xAxis = this.axes[ChartAxisDirection.X];
+        if (xAxis == null || !ContinuousScale.is(xAxis.scale)) return;
 
-        const xAxis = axes[ChartAxisDirection.X];
-
-        if (dataModel == null || ungroupedData == null || xAxis == null) return;
-
-        const domain = dataModel.getDomain(this, `xValue`, 'value', ungroupedData);
+        const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
         const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
         const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValueRaw`);
 
-        return aggregateData(ungroupedData, xAxis, { domain, xIdx, yIdx });
+        return aggregateData(processedData, domain, xIdx, yIdx);
     }
 }

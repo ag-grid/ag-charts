@@ -1,7 +1,6 @@
 import { _ModuleSupport, _Scale } from 'ag-charts-community';
 
 const { findMinMax } = _ModuleSupport;
-const { ContinuousScale } = _Scale;
 
 const AGGREGATION_THRESHOLD = 1e3;
 const MAX_POINTS = 10;
@@ -123,15 +122,13 @@ function aggregationContainsIndex(
 
 export function aggregateData(
     processedData: _ModuleSupport.UngroupedData<any>,
-    xAxis: _ModuleSupport.ChartAxis,
-    dataModel: { domain: number[]; xIdx: number; yIdx: number }
+    domain: number[],
+    xIdx: number,
+    yIdx: number
 ): _ModuleSupport.LineSeriesDataAggregationFilter[] | undefined {
-    if (!ContinuousScale.is(xAxis.scale)) return;
-
     const ungroupedData = processedData.data;
     if (ungroupedData.length < AGGREGATION_THRESHOLD) return;
 
-    const { domain, xIdx, yIdx } = dataModel;
     const [d0, d1] = findMinMax(domain);
 
     let maxRange = (2 ** Math.ceil(Math.log2(ungroupedData.length / MAX_POINTS))) | 0;
