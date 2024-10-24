@@ -148,7 +148,7 @@ export class LegendDOMProxy {
                 const { listitem, button } = l.proxyButton;
                 const visible = l.pageIndex === pagination.currentPage;
 
-                let { x, y, height, width } = Transformable.toCanvas(l);
+                const { x, y, height, width } = Transformable.toCanvas(l);
                 const margin = (maxHeight - height) / 2; // CRT-543 Give the legend items the same heights for a better look.
                 const bbox: BBoxValues = { x: x - groupBBox.x, y: y - margin - groupBBox.y, height: maxHeight, width };
 

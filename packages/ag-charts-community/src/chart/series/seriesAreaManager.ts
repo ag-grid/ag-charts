@@ -102,8 +102,9 @@ export class SeriesAreaManager extends BaseManager {
             InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
         const keyState = InteractionState.Default | InteractionState.Animation;
 
-        const label1 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label1');
-        const label2 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label2');
+        const domElementClass = 'series-area';
+        const label1 = chart.ctx.domManager.addChild(domElementClass, 'series-area-aria-label1');
+        const label2 = chart.ctx.domManager.addChild(domElementClass, 'series-area-aria-label2');
         if (label1.parentElement == null) throw new Error('AG Charts - error initialising series area focus indicator');
 
         this.swapChain = new FocusSwapChain(label1, label2, this.id, 'img');
@@ -115,7 +116,8 @@ export class SeriesAreaManager extends BaseManager {
         this.chart.ctx.keyNavManager.focusIndicator = this.focusIndicator;
 
         this.destroyFns.push(
-            () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label'),
+            () => chart.ctx.domManager.removeChild(domElementClass, 'series-area-aria-label1'),
+            () => chart.ctx.domManager.removeChild(domElementClass, 'series-area-aria-label2'),
             seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All),
             seriesRegion.addListener('drag', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
             seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
