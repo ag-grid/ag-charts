@@ -15,17 +15,10 @@ import type {
     AgAreaSparklinePreset,
     AgBarSparklinePreset,
     AgLineSparklinePreset,
+    AgSparklineBaseThemeableOptions,
     AgSparklinePresets,
 } from './presets/sparkline/sparklineOptions';
-import type {
-    AgBaseCartesianChartOptions,
-    AgCategoryAxisOptions,
-    AgGroupedCategoryAxisOptions,
-    AgLogAxisOptions,
-    AgNumberAxisOptions,
-    AgOrdinalTimeAxisOptions,
-    AgTimeAxisOptions,
-} from './series/cartesian/cartesianOptions';
+import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOptions';
 import type { AgBaseFlowProportionChartOptions } from './series/flow-proportion/flowProportionOptions';
 import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
 import type { AgBasePolarChartOptions } from './series/polar/polarOptions';
@@ -74,29 +67,20 @@ export type AgBaseFinancialPresetOptions = Pick<
     'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title' | 'initialState' | 'data'
 >;
 
-export type AgSparklineAxisOptions =
-    | Omit<AgNumberAxisOptions, 'position'>
-    | Omit<AgLogAxisOptions, 'position'>
-    | Omit<AgCategoryAxisOptions, 'position'>
-    | Omit<AgOrdinalTimeAxisOptions, 'position'>
-    | Omit<AgGroupedCategoryAxisOptions, 'position'>
-    | Omit<AgTimeAxisOptions, 'position'>;
-export type AgBaseSparklinePresetThemeOptions = Pick<
-    AgCartesianChartOptions,
-    | 'background'
-    | 'container'
-    | 'height'
-    | 'listeners'
-    | 'locale'
-    | 'minHeight'
-    | 'minWidth'
-    | 'padding'
-    | 'width'
-    | 'data'
-> & {
-    xAxis?: AgSparklineAxisOptions;
-    yAxis?: AgSparklineAxisOptions;
-};
+export type AgBaseSparklinePresetThemeOptions = AgSparklineBaseThemeableOptions &
+    Pick<
+        AgCartesianChartOptions,
+        | 'background'
+        | 'container'
+        | 'height'
+        | 'listeners'
+        | 'locale'
+        | 'minHeight'
+        | 'minWidth'
+        | 'padding'
+        | 'width'
+        | 'data'
+    >;
 
 export type AgFinancialChartOptions = AgBaseFinancialPresetOptions & AgFinancialChartPresets;
 

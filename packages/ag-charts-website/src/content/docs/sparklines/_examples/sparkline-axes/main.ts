@@ -10,20 +10,18 @@ const options: AgSparklineOptions = {
     data: data,
     type: 'line',
     xKey: 'date',
-    yKey: 'price',
+    yKey: 'change',
     xAxis: {
         type: 'time',
-        interval: {
-            step: time.month,
-        },
-        gridLine: {
-            enabled: true,
-        },
+        visible: true,
+        stroke: '#66A4',
+        strokeWidth: 1,
     },
     yAxis: {
         type: 'number',
-        min: 125,
-        max: 150,
+        visible: false,
+        min: -3,
+        max: 3,
     },
 };
 
