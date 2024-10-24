@@ -1,4 +1,3 @@
-import type { AgAnnotation } from './chart/annotationsOptions';
 import type { AgBaseChartOptions } from './chart/chartOptions';
 import type {
     AgBaseChartThemeOptions,
@@ -7,6 +6,7 @@ import type {
     AgChartThemeName,
 } from './chart/themeOptions';
 import type { PixelSize } from './chart/types';
+import type { AgInitialStateOptions } from './main';
 import type { AgFinancialChartPresets } from './presets/financial/financialOptions';
 import type { AgGaugePresets } from './presets/gauge/gaugeOptions';
 import type { AgLinearGaugePreset } from './presets/gauge/linearGaugeOptions';
@@ -201,8 +201,6 @@ export interface ImageDataUrlOptions {
     fileFormat?: string;
 }
 
-export interface AgChartState {
+export interface AgChartState extends AgInitialStateOptions {
     version: string;
-    annotations?: AgAnnotation[];
-    // zoom?: AgChartSerializableState;
 }
