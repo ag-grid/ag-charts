@@ -1,3 +1,4 @@
+import type { AgInitialStateOptions } from './api/initialStateOptions';
 import type { AgBaseChartOptions } from './chart/chartOptions';
 import type {
     AgBaseChartThemeOptions,
@@ -6,7 +7,6 @@ import type {
     AgChartThemeName,
 } from './chart/themeOptions';
 import type { PixelSize } from './chart/types';
-import type { AgInitialStateOptions } from './main';
 import type { AgFinancialChartPresets } from './presets/financial/financialOptions';
 import type { AgGaugePresets } from './presets/gauge/gaugeOptions';
 import type { AgLinearGaugePreset } from './presets/gauge/linearGaugeOptions';
