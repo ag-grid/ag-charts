@@ -17,11 +17,19 @@ const marketCapFormatter = new Intl.NumberFormat('en-US', {
 const marketCapOptions: AgSparklineOptions = {
     width: 250,
     height: 30,
-    type: 'bar',
-    xAxis: { type: 'category', paddingOuter: 0 },
-    yAxis: { type: 'number', min: 0, max: 2500000000000 },
     background: {
         fill: 'transparent',
+    },
+    type: 'bar',
+    xAxis: {
+        type: 'category',
+        visible: false,
+        paddingOuter: 0,
+    },
+    yAxis: {
+        type: 'number',
+        min: 0,
+        max: 2500000000000,
     },
     xKey: 'index',
     yKey: 'marketCap',
@@ -85,7 +93,11 @@ const priceChangeOptions: AgSparklineOptions = {
     type: 'area',
     xKey: 'date',
     yKey: 'change',
-    yAxis: { type: 'number', min: -10, max: 10 },
+    yAxis: {
+        type: 'number',
+        min: -10,
+        max: 10,
+    },
     tooltip: {
         renderer: ({ datum, yKey }) => ({ content: priceChangeFormatter.format(datum[yKey]) }),
     },

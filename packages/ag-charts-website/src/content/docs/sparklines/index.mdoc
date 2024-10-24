@@ -121,15 +121,9 @@ Each of the Bar, Line, and Area Sparklines can be customised using the associate
 
 ```js
 {
-
     xAxis: {
         type: 'time',
-        interval: {
-            step: time.month,
-        },
-        gridLine: {
-            enabled: true,
-        },
+        visible: false,
     },
     yAxis: {
         type: 'number',
@@ -141,7 +135,8 @@ Each of the Bar, Line, and Area Sparklines can be customised using the associate
 
 In this configuration:
 
--   `xAxis` and `yAxis` are axis configurations as documented in [Axis Types](./axes-types)
+-   `type` are corresponds to an axis type as documented in [Axis Types](./axes-types)
+-   `visible` hides
 
 {% note %}
 When using `direction: 'horizontal'` on the Bar Series, the x- and y- axes are flipped so `xAxis` always corresponds to the categories and `yAxis` always corresponds to the values.
