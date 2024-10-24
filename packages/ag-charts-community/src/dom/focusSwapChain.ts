@@ -94,10 +94,10 @@ export class FocusSwapChain {
 
         [this.inactiveAnnouncer, this.activeAnnouncer] = [this.activeAnnouncer, this.inactiveAnnouncer];
         [this.label1, this.label2] = [this.label2, this.label1];
-        setAttributes(this.inactiveAnnouncer, { 'aria-labelledby': this.label1.id, tabindex: -1 });
-        setAttributes(this.activeAnnouncer, { 'aria-labelledby': this.label1.id });
-        setElementStyle(this.inactiveAnnouncer, 'display', 'none');
-        setElementStyle(this.activeAnnouncer, 'display', undefined);
+        setAttributes(this.inactiveAnnouncer, { 'aria-labelledby': this.label1.id, 'aria-hidden': true, tabindex: -1 });
+        setAttributes(this.activeAnnouncer, { 'aria-labelledby': this.label1.id, 'aria-hidden': false });
+        setElementStyle(this.inactiveAnnouncer, 'pointer-events', 'none');
+        setElementStyle(this.activeAnnouncer, 'pointer-events', undefined);
 
         this.activeAnnouncer.tabIndex = userTabIndex;
     }
