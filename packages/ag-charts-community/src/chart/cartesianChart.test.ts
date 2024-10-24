@@ -216,8 +216,8 @@ describe('CartesianChart', () => {
         ['Area Series Highlighting', examples.AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE],
     ])(`%s`, (_name, tcOptions: AgCartesianChartOptions) => {
         const YKEYS =
-            tcOptions.series?.reduce((r, s: any) => {
-                return r.concat(s.yKey ? [s.yKey] : s.yKeys);
+            tcOptions.series?.reduce((r: string[], s: any) => {
+                return r.concat(s.yKey ? [s.yKey] : []);
             }, []) ?? [];
 
         const buildChart = async (chartOptions: AgChartOptions, yKey: string) => {

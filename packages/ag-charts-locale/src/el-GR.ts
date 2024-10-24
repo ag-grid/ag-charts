@@ -88,7 +88,6 @@ export const AG_CHARTS_LOCALE_EL_GR: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Βέλος Πάνω',
     toolbarAnnotationsCallout: 'Επισημείωση',
     toolbarAnnotationsClearAll: 'Καθαρισμός Όλων',
-    toolbarAnnotationsColor: 'Χρώμα',
     toolbarAnnotationsComment: 'Σχόλιο',
     toolbarAnnotationsDatePriceRange: 'Ημερομηνία και Τιμή',
     toolbarAnnotationsDateRange: 'Εύρος Ημερομηνιών',

@@ -88,7 +88,6 @@ export const AG_CHARTS_LOCALE_CS_CZ: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Šipka nahoru',
     toolbarAnnotationsCallout: 'Poznámka pod čarou',
     toolbarAnnotationsClearAll: 'Vymazat vše',
-    toolbarAnnotationsColor: 'Barva',
     toolbarAnnotationsComment: 'Komentář',
     toolbarAnnotationsDatePriceRange: 'Datum a cena',
     toolbarAnnotationsDateRange: 'Časový rozsah',

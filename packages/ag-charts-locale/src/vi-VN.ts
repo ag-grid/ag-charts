@@ -88,7 +88,6 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     toolbarAnnotationsArrowUp: 'Mũi tên lên',
     toolbarAnnotationsCallout: 'Chú thích',
     toolbarAnnotationsClearAll: 'Xóa tất cả',
-    toolbarAnnotationsColor: 'Màu',
     toolbarAnnotationsComment: 'Bình luận',
     toolbarAnnotationsDatePriceRange: 'Ngày và Giá',
     toolbarAnnotationsDateRange: 'Khoảng thời gian',

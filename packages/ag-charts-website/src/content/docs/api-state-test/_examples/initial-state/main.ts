@@ -48,8 +48,8 @@ const options: AgFinancialChartOptions = {
 
 const chart = AgCharts.createFinancialChart(options);
 
-let state: Pick<AgChartState, 'version'> & AgInitialStateOptions = {
-    version: '10.0.0',
+let state: AgChartState = {
+    version: '11.0.0',
 };
 
 function saveState() {

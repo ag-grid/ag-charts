@@ -49,7 +49,6 @@ const chartConfigurations: Record<AgPriceVolumeChartType, LabelConfiguration> = 
         LabelConfiguration.Volume,
     line: LabelConfiguration.UnlabelledClose | LabelConfiguration.Volume,
     'step-line': LabelConfiguration.UnlabelledClose | LabelConfiguration.Volume,
-    'range-area': LabelConfiguration.Open | LabelConfiguration.Close | LabelConfiguration.Low | LabelConfiguration.High,
     hlc: LabelConfiguration.NeutralClose | LabelConfiguration.Low | LabelConfiguration.High | LabelConfiguration.Volume,
     'high-low': LabelConfiguration.NeutralLow | LabelConfiguration.NeutralHigh | LabelConfiguration.Volume,
 };
