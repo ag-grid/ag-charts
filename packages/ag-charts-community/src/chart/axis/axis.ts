@@ -23,16 +23,17 @@ import { Translatable } from '../../scene/transformable';
 import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
+import { arraysEqual } from '../../util/array';
 import { diffArrays } from '../../util/diff.util';
-import { areArrayNumbersEqual } from '../../util/equal';
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
 import { Logger } from '../../util/logger';
-import { clamp, countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
+import { countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
 import { StateMachine } from '../../util/stateMachine';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { CachedTextMeasurerPool, type TextMeasurer, TextUtils } from '../../util/textMeasurer';
+import { estimateTickCount } from '../../util/ticks';
 import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
@@ -782,9 +783,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         };
 
         let tickData: TickData = {
+            ticks: [],
             rawTicks: [],
             fractionDigits: 0,
-            ticks: [],
             labelCount: 0,
         };
 
@@ -794,9 +795,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         let labelData: PlacedLabelDatum[] = [];
         let terminate = false;
         while (labelOverlap && index <= maxIterations) {
-            if (terminate) {
-                break;
-            }
+            if (terminate) break;
+
             autoRotation = 0;
             textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
 
@@ -869,18 +869,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             strategies.push(tickFilterStrategy);
         }
 
-        if (!avoidLabelCollisions) {
-            return strategies;
-        }
-
-        if (autoRotate) {
+        if (avoidLabelCollisions && autoRotate) {
             const autoRotateStrategy = ({ index, tickData, labelOverlap, terminate }: TickStrategyParams) => ({
                 index,
                 tickData,
                 autoRotation: labelOverlap ? normalizeAngle360(toRadians(this.label.autoRotateAngle ?? 0)) : 0,
                 terminate,
             });
-
             strategies.push(autoRotateStrategy);
         }
 
@@ -896,45 +891,37 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     ): TickStrategyResult {
         const { scale } = this;
         const { step, values, minSpacing, maxSpacing } = this.interval;
-        const { maxTickCount, minTickCount, defaultTickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
+        const { maxTickCount, minTickCount, tickCount } = this.estimateTickCount({ minSpacing, maxSpacing });
 
         const continuous = ContinuousScale.is(scale) || OrdinalTimeScale.is(scale);
         const maxIterations = !continuous || isNaN(maxTickCount) ? 10 : maxTickCount;
 
-        let tickCount = continuous ? Math.max(defaultTickCount - index, minTickCount) : maxTickCount;
+        const countTicks = (i: number) => (continuous ? Math.max(tickCount - i, minTickCount) : maxTickCount);
 
         const regenerateTicks =
-            step === undefined &&
-            values === undefined &&
-            tickCount > minTickCount &&
+            step == null &&
+            values == null &&
+            countTicks(index) > minTickCount &&
             (continuous || tickGenerationType === TickGenerationType.FILTER);
 
-        let unchanged = true;
-        while (unchanged && index <= maxIterations) {
-            const prevTicks = tickData.rawTicks;
-            tickCount = continuous ? Math.max(defaultTickCount - index, minTickCount) : maxTickCount;
+        while (index <= maxIterations) {
+            const previousTicks = tickData.rawTicks;
 
-            const { rawTicks, fractionDigits, ticks, labelCount } = this.getTicks({
+            tickData = this.getTicks({
                 tickGenerationType,
-                previousTicks: prevTicks,
-                tickCount,
+                previousTicks,
                 minTickCount,
                 maxTickCount,
                 primaryTickCount,
+                tickCount: countTicks(index),
             });
 
-            tickData.rawTicks = rawTicks;
-            tickData.fractionDigits = fractionDigits;
-            tickData.ticks = ticks;
-            tickData.labelCount = labelCount;
-
-            unchanged = regenerateTicks ? areArrayNumbersEqual(rawTicks, prevTicks) : false;
             index++;
+
+            if (!regenerateTicks || !arraysEqual(tickData.rawTicks, previousTicks)) break;
         }
 
-        const shouldTerminate = step !== undefined || values !== undefined;
-
-        terminate ||= shouldTerminate;
+        terminate ||= step != null || values != null;
 
         return { tickData, index, autoRotation: 0, terminate };
     }
@@ -1062,38 +1049,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return scale.ticks?.() ?? [];
     }
 
-    protected estimateTickCount({ minSpacing, maxSpacing }: { minSpacing: number; maxSpacing: number }): {
-        minTickCount: number;
-        maxTickCount: number;
-        defaultTickCount: number;
-    } {
-        const rangeWithBleed = this.calculateRangeWithBleed();
-        const defaultMinSpacing = Math.max(
-            this.defaultTickMinSpacing,
-            rangeWithBleed / ContinuousScale.defaultMaxTickCount
+    private estimateTickCount({ minSpacing, maxSpacing }: { minSpacing: number; maxSpacing: number }) {
+        return estimateTickCount(
+            this.calculateRangeWithBleed(),
+            minSpacing,
+            maxSpacing,
+            ContinuousScale.defaultTickCount,
+            this.defaultTickMinSpacing
         );
-
-        if (isNaN(minSpacing)) {
-            minSpacing = defaultMinSpacing;
-        }
-
-        if (isNaN(maxSpacing)) {
-            maxSpacing = rangeWithBleed;
-        }
-
-        if (minSpacing > maxSpacing) {
-            if (minSpacing === defaultMinSpacing) {
-                minSpacing = maxSpacing;
-            } else {
-                maxSpacing = minSpacing;
-            }
-        }
-
-        const maxTickCount = Math.max(1, Math.floor(rangeWithBleed / minSpacing));
-        const minTickCount = Math.min(maxTickCount, Math.ceil(rangeWithBleed / maxSpacing));
-        const defaultTickCount = clamp(minTickCount, ContinuousScale.defaultTickCount, maxTickCount);
-
-        return { minTickCount, maxTickCount, defaultTickCount };
     }
 
     protected updateCrossLines() {
