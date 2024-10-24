@@ -26,6 +26,7 @@ enum States {
 
 export class AnnotationsStateMachine extends ParallelStateMachine<States, AnnotationStateEvents> {
     // TODO: remove this leak
+    // eslint-disable-next-line @typescript-eslint/prefer-readonly
     private active?: number;
 
     @StateMachineProperty()
