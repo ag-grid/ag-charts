@@ -48,7 +48,8 @@ export class FocusIndicator {
     // Use with caution! The focus must be visible when using the keyboard.
     overrideFocusVisible(focusVisible: boolean | undefined) {
         const opacity = { true: '1', false: '0', undefined: '' } as const;
-        this.container.style.setProperty('opacity', opacity[`${focusVisible}`]);
+        const parent = this.element.parentElement;
+        parent?.style.setProperty('opacity', opacity[`${focusVisible}`]);
     }
 
     // Get the `:focus-visible` CSS state.
