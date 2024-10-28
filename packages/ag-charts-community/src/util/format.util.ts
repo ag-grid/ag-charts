@@ -1,4 +1,7 @@
-const defaultNumberFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
+const defaultNumberFormatter = new Intl.NumberFormat('en-US', {
+    maximumFractionDigits: 2,
+    roundingMode: 'floor',
+} as object);
 const percentFormatter = new Intl.NumberFormat('en-US', { style: 'percent' });
 
 /**
@@ -46,7 +49,10 @@ export function formatNumber(value: number, fractionOrSignificantDigits: number)
         const numberFormatter =
             fractionOrSignificantDigits === 2
                 ? defaultNumberFormatter
-                : new Intl.NumberFormat(undefined, { maximumFractionDigits: fractionOrSignificantDigits });
+                : new Intl.NumberFormat('en-US', {
+                      maximumFractionDigits: fractionOrSignificantDigits,
+                      roundingMode: 'floor',
+                  } as object);
         return numberFormatter.format(value);
     }
     const decimalPlaces = Math.abs(Math.floor(Math.log(absValue) / Math.LN10)) - 1;
