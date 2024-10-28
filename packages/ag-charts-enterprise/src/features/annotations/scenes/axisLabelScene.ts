@@ -1,4 +1,4 @@
-import { type Formatter, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { AxisLabelProperties } from '../annotationProperties';
 import type { AnnotationAxisContext } from '../annotationTypes';
@@ -35,16 +35,28 @@ export class AxisLabelScene extends _Scene.Group {
     update(opts: UpdateOpts) {
         this.updateLabel(opts);
         this.updateRect(opts);
-
         this.updatePosition(opts);
     }
 
     private updateLabel({ value, styles, context }: UpdateOpts) {
-        const { label } = this;
-
-        const { fontWeight, fontSize, fontStyle, fontFamily, textAlign, color = 'white', formatter } = styles;
-        label.setProperties({ fontWeight, fontSize, fontStyle, fontFamily, textAlign, fill: color });
-        label.text = this.getFormattedValue(value, formatter ?? context.scaleValueFormatter());
+        const {
+            fontWeight,
+            fontSize,
+            fontStyle,
+            fontFamily,
+            textAlign,
+            color = 'white',
+            formatter = context.scaleValueFormatter(),
+        } = styles;
+        this.label.setProperties({
+            fontWeight,
+            fontSize,
+            fontStyle,
+            fontFamily,
+            textAlign,
+            fill: color,
+            text: formatter(value),
+        });
     }
 
     private updateRect({ styles }: UpdateOpts) {
@@ -85,9 +97,5 @@ export class AxisLabelScene extends _Scene.Group {
         rect.y = translationY - labelBBox.height / 2;
         rect.height = labelBBox.height;
         rect.width = labelBBox.width;
-    }
-
-    private getFormattedValue(value: any, formatter?: Formatter<any>) {
-        return formatter?.(value) ?? String(value);
     }
 }

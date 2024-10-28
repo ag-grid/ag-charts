@@ -28,6 +28,7 @@ import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
 import { isDefined, isFiniteNumber, isFunction } from '../util/type-guards';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
+import { CartesianAxis } from './axis/cartesianAxis';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
@@ -1417,20 +1418,18 @@ export abstract class Chart extends Observable {
         debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
         chart.axes = this.createAxis(axes, skip);
 
-        const axisGroups: { [Key in ChartAxisDirection]: { id: string; node: Node }[] } = {
-            [ChartAxisDirection.X]: [],
-            [ChartAxisDirection.Y]: [],
-        };
-
-        chart.axes.forEach((axis) => {
-            const { id } = axis;
-            const node = axis.getRegionNode();
-            if (node != null) {
-                axisGroups[axis.direction].push({ id, node });
-            }
-        });
-
         if (registerRegions) {
+            const axisGroups: { [Key in ChartAxisDirection]: { id: string; node: Node }[] } = {
+                [ChartAxisDirection.X]: [],
+                [ChartAxisDirection.Y]: [],
+            };
+
+            for (const axis of chart.axes) {
+                if (axis instanceof CartesianAxis) {
+                    axisGroups[axis.direction].push({ id: axis.id, node: axis.axisGroup });
+                }
+            }
+
             this.ctx.regionManager.updateRegion(REGIONS.HORIZONTAL_AXES, ...axisGroups[ChartAxisDirection.X]);
             this.ctx.regionManager.updateRegion(REGIONS.VERTICAL_AXES, ...axisGroups[ChartAxisDirection.Y]);
         }

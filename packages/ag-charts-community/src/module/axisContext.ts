@@ -13,7 +13,7 @@ export interface AxisContext {
     seriesKeyProperties(): string[];
     scaleInvert(position: number): any;
     scaleInvertNearest(position: number): any;
-    scaleValueFormatter(specifier?: string): ((x: any) => string) | undefined;
+    scaleValueFormatter(specifier?: string): (x: any) => string;
     attachLabel(node: Node): void;
     inRange(x: number, tolerance?: number): boolean;
 }

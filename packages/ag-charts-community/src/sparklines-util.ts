@@ -1,7 +1,6 @@
 export * from './util/angle';
 export * from './util/attributeUtil';
 export * from './util/distance';
-export * from './util/equal';
 export * from './util/id';
 export * from './util/interpolate';
 export * from './util/json';

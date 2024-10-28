@@ -155,10 +155,8 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
      * but this extra level of async indirection will not just introduce an unwanted delay,
      * it will also make it harder to reason about the program.
      */
-    override update(): number | undefined {
-        if (!this.computedLayout) {
-            return;
-        }
+    override update() {
+        if (!this.computedLayout) return;
 
         this.updatePosition();
 

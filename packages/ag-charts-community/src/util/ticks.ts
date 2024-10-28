@@ -178,20 +178,19 @@ export function tickFormat(ticks: any[], format?: string): (n: number | { valueO
 }
 
 export function range(start: number, end: number, step: number): number[] {
-    if (!Number.isFinite(step) || step <= 0) return [];
+    if (!Number.isFinite(step) || step <= 0) {
+        return [];
+    }
 
     const f = 10 ** countFractionDigits(step);
     const d0 = Math.min(start, end);
     const d1 = Math.max(start, end);
-
     const out: number[] = [];
+
     for (let i = 0; ; i += 1) {
         const p = Math.round((d0 + step * i) * f) / f;
-        if (p <= d1) {
-            out.push(p);
-        } else {
-            break;
-        }
+        if (p > d1) break;
+        out.push(p);
     }
 
     return out;
@@ -249,7 +248,7 @@ export function estimateTickCount(
         }
     }
 
-    const maxTickCount = clamp(1, Math.floor(rangeExtent / minSpacing), Math.min(Math.floor(rangeExtent), 100));
+    const maxTickCount = Math.max(1, Math.floor(rangeExtent / minSpacing));
     const minTickCount = Math.min(maxTickCount, Math.ceil(rangeExtent / maxSpacing));
     const tickCount = clamp(minTickCount, defaultTickCount, maxTickCount);
 

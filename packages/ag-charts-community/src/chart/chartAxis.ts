@@ -53,12 +53,11 @@ export interface ChartAxis {
     getBBox(): BBox;
     getLayoutState(): AxisLayout;
     getModuleMap(): ModuleMap<any, any, any>;
-    getRegionNode(): Node | undefined;
     inRange(x: number, width?: number, tolerance?: number): boolean;
     isReversed(): boolean;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
     setCrossLinesVisible(visible: boolean): void;
-    update(animated?: boolean): number | undefined;
+    update(animated?: boolean): void;
     updatePosition(): void;
     boundSeries: ISeries<unknown, unknown>[];
     crossLines?: CrossLine[];

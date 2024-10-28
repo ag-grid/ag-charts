@@ -339,9 +339,9 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         if (d0 <= d1) {
             start = axis.scale.invert?.(0); // 0 is the start of the visible axis
-            end = axis.scale.invert?.(d1 * ratio.max);
+            end = axis.scale.invert?.(d0 + (d1 - d0) * ratio.max);
         } else {
-            start = axis.scale.invert?.(d1 * ratio.min);
+            start = axis.scale.invert?.(d0 - (d0 - d1) * ratio.min);
             end = axis.scale.invert?.(0);
         }
 

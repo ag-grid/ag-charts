@@ -51,36 +51,25 @@ export class LinearScale extends ContinuousScale<number> {
      */
     protected updateNiceDomain() {
         const count = this.tickCount;
-        if (count < 1) {
-            this.niceDomain = [...this.domain];
-            return;
-        }
-
         let [start, stop] = this.domain;
 
         if (count === 1) {
             [start, stop] = niceTicksDomain(start, stop);
-        } else {
+        } else if (count > 1) {
             const roundStart = start > stop ? Math.ceil : Math.floor;
-            const roundStop = stop < start ? Math.floor : Math.ceil;
+            const roundStop = start > stop ? Math.floor : Math.ceil;
             const maxAttempts = 4;
+
             for (let i = 0; i < maxAttempts; i++) {
                 const prev0 = start;
                 const prev1 = stop;
                 const step = this.getTickStep(start, stop);
                 const [d0, d1] = this.domain;
-                if (step >= 1) {
-                    start = roundStart(d0 / step) * step;
-                    stop = roundStop(d1 / step) * step;
-                } else {
-                    // Prevent floating point error
-                    const s = 1 / step;
-                    start = roundStart(d0 * s) / s;
-                    stop = roundStop(d1 * s) / s;
-                }
-                if (start === prev0 && stop === prev1) {
-                    break;
-                }
+
+                start = roundStart(d0 / step) * step;
+                stop = roundStop(d1 / step) * step;
+
+                if (start === prev0 && stop === prev1) break;
             }
         }
 

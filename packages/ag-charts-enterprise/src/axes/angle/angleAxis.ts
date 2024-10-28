@@ -67,7 +67,6 @@ export abstract class AngleAxis<
         this.updateLabels();
         this.updateRadiusLine();
         this.updateCrossLines();
-        return this.tickData.length;
     }
 
     override computeRange() {
@@ -437,7 +436,7 @@ export abstract class AngleAxis<
     }
 
     protected override updateCrossLines() {
-        this.crossLines?.forEach((crossLine) => {
+        this.crossLines.forEach((crossLine) => {
             if (crossLine instanceof AngleCrossLine) {
                 const { shape, gridLength: radius, innerRadiusRatio } = this;
                 crossLine.shape = shape;
@@ -445,6 +444,6 @@ export abstract class AngleAxis<
                 crossLine.axisInnerRadius = radius * innerRadiusRatio;
             }
         });
-        super.updateCrossLines({ rotation: 0, parallelFlipRotation: 0, regularFlipRotation: 0 });
+        super.updateCrossLines();
     }
 }
