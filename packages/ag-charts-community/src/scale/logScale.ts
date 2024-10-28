@@ -1,6 +1,6 @@
 import { identity } from '../util/function';
 import { Logger } from '../util/logger';
-import { findRangeExtent } from '../util/number';
+import { findRangeExtent, isInteger } from '../util/number';
 import { numberFormat } from '../util/numberFormat';
 import { createTicks, isDenseInterval, range } from '../util/ticks';
 import { isString } from '../util/type-guards';
@@ -103,12 +103,8 @@ export class LogScale extends ContinuousScale<number> {
             }
         }
 
-        const isBaseInteger = base % 1 === 0;
-        const isDiffLarge = p1 - p0 >= count;
-
-        if (!isBaseInteger || isDiffLarge) {
+        if (!isInteger(base) || p1 - p0 >= count) {
             // Returns [10^1, 10^2, 10^3, 10^4, ...]
-            // eslint-disable-next-line prefer-const
             return createTicks(p0, p1, Math.min(p1 - p0, count)).map(this.pow);
         }
 

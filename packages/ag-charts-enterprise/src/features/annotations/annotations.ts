@@ -1,6 +1,5 @@
-import { type AgAnnotationLineStyleType, type Direction, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type AgAnnotationLineStyleType, type Direction, _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import { buildBounds } from '../../utils/position';
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';
 import { AnnotationDefaults } from './annotationDefaults';
@@ -690,7 +689,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const { position: axisPosition = 'bottom', direction } = axisCtx;
         const padding = axisLayout.gridPadding + axisLayout.seriesAreaPadding;
-        const bounds = buildBounds(new _Scene.BBox(0, 0, seriesRect.width, seriesRect.height), axisPosition, padding);
+        const bounds = new _Scene.BBox(0, 0, seriesRect.width, seriesRect.height).grow(padding, axisPosition);
 
         const lineDirection = axisCtx.direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
 

@@ -24,6 +24,7 @@ import type { PlacedLabelDatum } from '../../scene/util/labelPlacement';
 import { axisLabelsOverlap } from '../../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { areArrayNumbersEqual } from '../../util/equal';
+import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
 import { Logger } from '../../util/logger';
@@ -386,25 +387,18 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { scale } = this;
         const logScale = scale instanceof LogScale;
 
-        const defaultFormatter = (formatOffset: number) =>
-            logScale
-                ? String
-                : (x: any) => (typeof x === 'number' ? x.toFixed(fractionDigits + formatOffset) : String(x));
-
-        if (format && scale && scale.tickFormat) {
+        if (format && scale?.tickFormat) {
             try {
                 const formatter = scale.tickFormat({ ticks, specifier: format });
                 this.labelFormatter = formatter;
                 this.datumFormatter = formatter;
+                return;
             } catch (e) {
-                this.labelFormatter = defaultFormatter(0);
-                this.datumFormatter = defaultFormatter(1);
                 Logger.warnOnce(`the axis label format string ${format} is invalid. No formatting will be applied`);
             }
-        } else {
-            this.labelFormatter = defaultFormatter(0);
-            this.datumFormatter = defaultFormatter(1);
         }
+        this.labelFormatter = logScale ? String : (x: unknown) => formatValue(x, fractionDigits);
+        this.datumFormatter = logScale ? String : (x: unknown) => formatValue(x, fractionDigits + 1);
     }
 
     @Validate(OBJECT)

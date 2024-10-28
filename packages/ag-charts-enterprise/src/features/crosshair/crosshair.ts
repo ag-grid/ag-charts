@@ -1,12 +1,23 @@
 import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-import { buildBounds, calculateAxisLabelPosition } from '../../utils/position';
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
 
 const { Group, TranslatableGroup, Line, BBox } = _Scene;
 const { createId } = _Util;
-const { POSITIVE_NUMBER, RATIO, BOOLEAN, COLOR_STRING, LINE_DASH, OBJECT, InteractionState, Validate, ZIndexMap } =
-    _ModuleSupport;
+const {
+    POSITIVE_NUMBER,
+    RATIO,
+    BOOLEAN,
+    COLOR_STRING,
+    LINE_DASH,
+    OBJECT,
+    InteractionState,
+    Validate,
+    ZIndexMap,
+    formatNumber,
+    isInteger,
+    ChartAxisDirection,
+} = _ModuleSupport;
 
 export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     readonly id = createId(this);
@@ -89,9 +100,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private layout({ series: { rect, paddedRect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
-        if (!(visible && axes && this.enabled)) {
-            return;
-        }
+        if (!visible || !axes || !this.enabled) return;
 
         this.seriesRect = rect;
         this.hoverRect = paddedRect;
@@ -100,13 +109,10 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         const axisLayout = axes.find((a) => a.id === axisId);
 
-        if (!axisLayout) {
-            return;
-        }
+        if (!axisLayout) return;
 
         this.axisLayout = axisLayout;
-        const padding = axisLayout.gridPadding + axisLayout.seriesAreaPadding;
-        this.bounds = buildBounds(rect, axisPosition, padding);
+        this.bounds = rect.clone().grow(axisLayout.gridPadding + axisLayout.seriesAreaPadding, axisPosition);
 
         const { crosshairGroup, bounds } = this;
         crosshairGroup.translationX = Math.round(bounds.x);
@@ -150,9 +156,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const { lineGroupSelection, bounds, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, axisLayout } =
             this;
 
-        if (!axisLayout) {
-            return;
-        }
+        if (!axisLayout) return;
 
         const isVertical = this.isVertical();
 
@@ -174,7 +178,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         return this.axisCtx.direction === 'x';
     }
 
-    private formatValue(val: any): string {
+    private formatValue(value: unknown): string {
         const {
             labelFormatter,
             axisLayout,
@@ -182,20 +186,20 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         } = this;
 
         if (labelFormatter) {
-            const result = callbackCache.call(labelFormatter, val);
-            if (result !== undefined) return result;
+            const result = callbackCache.call(labelFormatter, value);
+            if (result != null) {
+                return result;
+            }
         }
-
-        const isInteger = val % 1 === 0;
-        const fractionDigits = (axisLayout?.label.fractionDigits ?? 0) + (isInteger ? 0 : 1);
-
-        return typeof val === 'number' ? val.toFixed(fractionDigits) : String(val);
+        if (typeof value === 'number') {
+            const fractionDigits = (axisLayout?.label.fractionDigits ?? 0) + (isInteger(value) ? 0 : 1);
+            return formatNumber(value, fractionDigits);
+        }
+        return String(value ?? '');
     }
 
     private onMouseMove(event: _ModuleSupport.RegionEvent<'hover' | 'drag'>) {
-        if (!this.enabled || this.snap) {
-            return;
-        }
+        if (!this.enabled || this.snap) return;
 
         const { crosshairGroup, hoverRect } = this;
         const { offsetX, offsetY } = event;
@@ -225,9 +229,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
-        if (!this.enabled) {
-            return;
-        }
+        if (!this.enabled) return;
 
         const { crosshairGroup, axisCtx } = this;
         const { datum, series } = event.currentHighlight ?? {};
@@ -325,15 +327,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         if (isXKey) {
             const position = (this.isVertical() ? midPoint?.x : midPoint?.y) ?? 0;
             const value = axisCtx.continuous ? axisCtx.scaleInvert(position) : datum[xKey];
-            const isInRange = this.isInRange(position);
-            return isInRange
-                ? {
-                      xKey: {
-                          value,
-                          position,
-                      },
-                  }
-                : {};
+            return this.isInRange(position) ? { xKey: { value, position } } : {};
         }
 
         const activeHighlightData: Record<string, { position: number; value: any }> = {};
@@ -353,61 +347,40 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private getLabelHtml(value: any, label: CrosshairLabel): string {
-        const {
-            label: { renderer: labelRenderer },
-            axisLayout: { label: { fractionDigits = 0 } = {} } = {},
-        } = this;
-        const defaults: AgCrosshairLabelRendererResult = {
-            text: this.formatValue(value),
-        };
-
-        if (labelRenderer) {
-            const params = {
-                value,
-                fractionDigits,
-            };
-            return label.toLabelHtml(labelRenderer(params), defaults);
+        const fractionDigits = this.axisLayout?.label?.fractionDigits ?? 0;
+        const defaults: AgCrosshairLabelRendererResult = { text: this.formatValue(value) };
+        if (this.label.renderer) {
+            return label.toLabelHtml(this.label.renderer({ value, fractionDigits }), defaults);
         }
-
         return label.toLabelHtml(defaults);
     }
 
     private showLabel(x: number, y: number, value: any, key: string) {
-        const {
-            axisCtx: { position: axisPosition, direction: axisDirection },
-            bounds,
-            axisLayout,
-        } = this;
+        if (!this.axisLayout) return;
 
-        if (!axisLayout) {
-            return;
-        }
-
-        const {
-            label: { padding: labelPadding },
-            tickSize,
-        } = axisLayout;
-
-        const padding = labelPadding + tickSize;
-
+        const { bounds } = this;
         const label = this.labels[key];
-
         const html = this.getLabelHtml(value, label);
 
         label.setLabelHtml(html);
-        const labelBBox = label.getBBox();
 
-        const labelMeta = calculateAxisLabelPosition({
-            x,
-            y,
-            labelBBox,
-            bounds,
-            axisPosition,
-            axisDirection,
-            padding,
-        });
+        const { width, height } = label.getBBox();
+        const axisPosition = this.axisCtx.position;
+        let padding = this.axisLayout.label.padding + this.axisLayout.tickSize;
 
-        label.show(labelMeta);
+        if (this.axisCtx.direction === ChartAxisDirection.X) {
+            padding -= 4;
+            label.show({
+                x: x - width / 2,
+                y: axisPosition === 'bottom' ? bounds.y + bounds.height + padding : bounds.y - height - padding,
+            });
+        } else {
+            padding -= 8;
+            label.show({
+                x: axisPosition === 'right' ? bounds.x + bounds.width + padding : bounds.x - width - padding,
+                y: y - height / 2,
+            });
+        }
     }
 
     private hideCrosshairs() {

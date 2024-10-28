@@ -1,16 +1,17 @@
-const defaultNumberFormatter = new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 });
-const percentFormatter = new Intl.NumberFormat(undefined, { style: 'percent' });
+const defaultNumberFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 });
+const percentFormatter = new Intl.NumberFormat('en-US', { style: 'percent' });
 
 /**
  * Formats a value as a string. If the value is a number, it formats it with two fraction digits.
  * If the value is not a number, it returns an empty string or the string representation of the value.
  *
  * @param value - The value to format.
+ * @param fractionOrSignificantDigits - Number of fraction digits (if >= 1) or significant digits (if < 1).
  * @returns A formatted string.
  */
-export function formatValue(value: unknown): string {
+export function formatValue(value: unknown, fractionOrSignificantDigits: number = 2): string {
     if (typeof value === 'number') {
-        return formatNumber(value, 2);
+        return formatNumber(value, fractionOrSignificantDigits);
     }
     return String(value ?? '');
 }

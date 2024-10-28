@@ -19,7 +19,7 @@ const {
     prepareBarAnimationFunctions,
     midpointStartingBarPosition,
     createDatumId,
-    isFiniteNumber,
+    formatValue,
 } = _ModuleSupport;
 const { Rect, motion } = _Scene;
 
@@ -88,8 +88,8 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
             y: rect.y + rect.height / 2,
             textAlign: 'center',
             textBaseline: 'middle',
-            text: this.getLabelText(label, { itemId: stageKey, value: yDatum, datum, valueKey, stageKey }, (v) =>
-                isFiniteNumber(v) ? v.toFixed(0) : String(v)
+            text: this.getLabelText(label, { itemId: stageKey, value: yDatum, datum, valueKey, stageKey }, (value) =>
+                formatValue(value, 0)
             ),
             itemId: stageKey,
             datum,

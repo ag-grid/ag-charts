@@ -6,12 +6,12 @@ import { TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Selection } from '../../scene/selection';
 import { Text } from '../../scene/shape/text';
+import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
 import { countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { CachedTextMeasurerPool } from '../../util/textMeasurer';
 import { estimateTickCount } from '../../util/ticks';
-import { isNumber } from '../../util/type-guards';
 import { ZIndexMap } from '../zIndexMap';
 import { AxisInterval } from './axisInterval';
 import { AxisLabel } from './axisLabel';
@@ -189,8 +189,7 @@ export class AxisTicks {
 
         const labelFormatter = this.label.format
             ? this.scale.tickFormat({ ticks: rawTicks, specifier: this.label.format })
-            : (x: unknown) => (isNumber(x) ? x.toFixed(fractionDigits) : String(x));
-
+            : (x: unknown) => formatValue(x, fractionDigits);
         for (let index = 0; index < rawTicks.length; index++) {
             const tick = rawTicks[index];
             const translate = this.scale.convert(tick);

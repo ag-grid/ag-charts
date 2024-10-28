@@ -32,6 +32,10 @@ export function isNegative(value: number) {
     return Math.sign(value) === -1 || Object.is(value, -0);
 }
 
+export function isInteger(value: number) {
+    return value % 1 === 0;
+}
+
 export function round(value: number, decimals: number = 2) {
     const base = 10 ** decimals;
     return Math.round(value * base) / base;

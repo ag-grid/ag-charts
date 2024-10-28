@@ -10,7 +10,7 @@ import {
 import { ConeFunnelProperties } from './coneFunnelProperties';
 import { resetLineSelectionsFn } from './coneFunnelUtil';
 
-const { isFiniteNumber } = _ModuleSupport;
+const { formatValue } = _ModuleSupport;
 const { Line } = _Scene;
 
 export class ConeFunnelSeries extends BaseFunnelSeries<_Scene.Line> {
@@ -126,8 +126,8 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_Scene.Line> {
             y,
             textAlign,
             textBaseline,
-            text: this.getLabelText(label, { itemId: valueKey, value: yDatum, datum, stageKey, valueKey }, (v) =>
-                isFiniteNumber(v) ? v.toFixed(0) : String(v)
+            text: this.getLabelText(label, { itemId: valueKey, value: yDatum, datum, stageKey, valueKey }, (value) =>
+                formatValue(value, 0)
             ),
             itemId: valueKey,
             datum,
