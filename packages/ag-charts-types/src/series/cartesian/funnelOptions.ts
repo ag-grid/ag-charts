@@ -76,7 +76,7 @@ export interface AgFunnelSeriesOptionsKeys {
 export interface AgFunnelSeriesOptionsNames {}
 
 export interface AgFunnelSeriesOptions<TDatum = any>
-    extends Omit<AgBaseSeriesOptions<TDatum>, 'showInLegend'>,
+    extends AgBaseSeriesOptions<TDatum>,
         AgFunnelSeriesOptionsKeys,
         AgFunnelSeriesOptionsNames,
         AgFunnelSeriesThemeableOptions<TDatum> {

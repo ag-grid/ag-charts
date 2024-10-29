@@ -70,7 +70,7 @@ export interface AgPyramidSeriesOptionsKeys {
 export interface AgPyramidSeriesOptionsNames {}
 
 export interface AgPyramidSeriesOptions<TDatum = any>
-    extends Omit<AgBaseSeriesOptions<TDatum>, 'showInLegend'>,
+    extends AgBaseSeriesOptions<TDatum>,
         AgPyramidSeriesOptionsKeys,
         AgPyramidSeriesOptionsNames,
         AgPyramidSeriesThemeableOptions<TDatum> {

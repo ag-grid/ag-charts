@@ -52,10 +52,11 @@ export type TooltipMeta = PointerOffsets & {
 
 export type TooltipContent = {
     html: string;
+    class: string | undefined;
     ariaLabel: string;
 };
 
-export const EMPTY_TOOLTIP_CONTENT: Readonly<TooltipContent> = { html: '', ariaLabel: '' };
+export const EMPTY_TOOLTIP_CONTENT: Readonly<TooltipContent> = { html: '', class: undefined, ariaLabel: '' };
 
 function toAccessibleText(inputHtml: string): string {
     const lineConverter = (_match: unknown, offset: number, str: string) => {
@@ -78,7 +79,7 @@ export function toTooltipHtml(
     defaults?: AgTooltipRendererResult
 ): TooltipContent {
     if (typeof input === 'string') {
-        return { html: input, ariaLabel: input };
+        return { html: input, class: undefined, ariaLabel: input };
     }
 
     const {
@@ -86,6 +87,7 @@ export function toTooltipHtml(
         title = defaults?.title,
         color = defaults?.color ?? 'white',
         backgroundColor = defaults?.backgroundColor ?? '#888',
+        class: className = defaults?.class,
     } = input;
 
     const titleHtml = title
@@ -98,6 +100,7 @@ export function toTooltipHtml(
 
     return {
         html: `${titleHtml}${contentHtml}`,
+        class: className,
         ariaLabel: toAccessibleText(`${titleAria}${content}`),
     };
 }
@@ -139,14 +142,7 @@ export class Tooltip extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
     showArrow?: boolean;
 
-    @ObserveChanges<Tooltip>((target, newValue, oldValue) => {
-        if (newValue) {
-            target.element?.classList.add(newValue);
-        }
-        if (oldValue) {
-            target.element?.classList.remove(oldValue);
-        }
-    })
+    @ObserveChanges<Tooltip>((target) => target.resetClass())
     @Validate(STRING, { optional: true })
     class?: string;
 
@@ -188,7 +184,8 @@ export class Tooltip extends BaseProperties {
 
     setup(domManager: DOMManager) {
         this.element = domManager.addChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
-        this.element.classList.add(DEFAULT_TOOLTIP_CLASS);
+
+        this.resetClass();
     }
 
     destroy(domManager: DOMManager) {
@@ -197,6 +194,17 @@ export class Tooltip extends BaseProperties {
 
     isVisible(): boolean {
         return !this.element?.classList.contains(DEFAULT_TOOLTIP_CLASS + '-hidden');
+    }
+
+    private resetClass() {
+        const { element } = this;
+        if (element == null) return;
+
+        element.className = DEFAULT_TOOLTIP_CLASS;
+
+        if (this.class != null) {
+            element.classList.add(this.class);
+        }
     }
 
     /**
@@ -214,9 +222,14 @@ export class Tooltip extends BaseProperties {
 
         const existingPosition = element?.getBoundingClientRect();
 
-        if (content != null && element != null) {
+        if (element != null && content != null) {
+            this.resetClass();
+            if (content.class != null) {
+                element.classList.add(content.class);
+            }
+
             element.innerHTML = content.html;
-        } else if (!element?.innerHTML) {
+        } else if (element == null || element.innerHTML === '') {
             this.toggle(false);
             return;
         }

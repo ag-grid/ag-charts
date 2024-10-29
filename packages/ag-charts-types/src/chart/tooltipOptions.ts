@@ -57,6 +57,8 @@ export interface AgTooltipRendererResult {
     color?: CssColor;
     /** Tooltip title background colour. */
     backgroundColor?: CssColor;
+    /** Tooltip CSS class. */
+    class?: CssColor;
 }
 
 export interface AgSeriesTooltipRendererParams<TDatum> extends AgChartCallbackParams<TDatum> {

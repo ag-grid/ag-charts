@@ -338,6 +338,10 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 left,
                 label: labelDatum,
                 enabled,
+                midPoint: {
+                    x,
+                    y,
+                },
             });
 
             yStart = yEnd;

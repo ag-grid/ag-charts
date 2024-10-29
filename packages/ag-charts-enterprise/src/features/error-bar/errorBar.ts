@@ -196,7 +196,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private getNodeData(): ErrorBarNodeDatum[] | undefined {
-        return this.cartesianSeries.contextNodeData?.nodeData;
+        return this.hasErrorBars() ? this.cartesianSeries.contextNodeData?.nodeData : undefined;
     }
 
     private createNodeData() {
@@ -204,7 +204,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         const xScale = this.cartesianSeries.axes[ChartAxisDirection.X]?.scale;
         const yScale = this.cartesianSeries.axes[ChartAxisDirection.Y]?.scale;
 
-        if (!this.hasErrorBars() || !xScale || !yScale || !nodeData) {
+        if (!xScale || !yScale || !nodeData) {
             return;
         }
 
