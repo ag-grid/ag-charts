@@ -1,6 +1,7 @@
 const defaultNumberFormatter = new Intl.NumberFormat('en-US', {
     maximumFractionDigits: 2,
     roundingMode: 'floor',
+    useGrouping: false,
 } as object);
 const percentFormatter = new Intl.NumberFormat('en-US', { style: 'percent' });
 
@@ -52,6 +53,7 @@ export function formatNumber(value: number, fractionOrSignificantDigits: number)
                 : new Intl.NumberFormat('en-US', {
                       maximumFractionDigits: fractionOrSignificantDigits,
                       roundingMode: 'floor',
+                      useGrouping: false,
                   } as object);
         return numberFormatter.format(value);
     }
