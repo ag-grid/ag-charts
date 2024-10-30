@@ -132,7 +132,7 @@
         "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
-        "target": "es2020",
+        "target": "es2022",
         "format": ["cjs", "esm"],
         "sourcemap": true
       },
@@ -160,7 +160,7 @@
         "tsConfig": "{projectRoot}/tsconfig.lib.json",
         "esbuildConfig": "esbuild.config.cjs",
         "platform": "browser",
-        "target": "es2020",
+        "target": "es2022",
         "bundle": true,
         "thirdParty": true,
         "skipTypeCheck": true,
