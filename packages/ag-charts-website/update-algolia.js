@@ -4,9 +4,9 @@
  */
 
 /*
- * node update-algolia.js -d to write indices content to local files (no algolia update)
- * node update-algolia.js -i ag-charts-dev to update dev indices
- * node update-algolia.js -i ag-charts to update production indices
+ * `node update-algolia.js -d [--local]` to write indices content to local files (no algolia update). Use `--local` to run locally on MacOSX
+ * `node update-algolia.js -i ag-charts-dev` to update dev indices
+ * `node update-algolia.js -i ag-charts` to update production indices
  */
 
 require('dotenv').config();
@@ -26,6 +26,7 @@ const options = commander
         "if debug = true (not provided - it'll default to true), the script writes the records it would upload into JSON files for inspection",
         true
     )
+    .option('-l, --local', 'use local MacOSX Chrome for generating Algolia index', false)
     .option(
         '-i, --indexNamePrefix <prefix>',
         'if indexNamePrefix = "ag-charts-dev" we\'ll update development indices, and for "ag-charts" production',
@@ -37,9 +38,10 @@ const options = commander
 const clearIndices = true; // to ensure a clean index, you should clear existing records before inserting new ones
 const debug = options.debug === true;
 const indexNamePrefix = options.indexNamePrefix;
+const isLocal = options.local === true;
 
 console.log('Updating Algolia Indices');
-console.log(`debug: ${debug}, indexNamePrefix: ${indexNamePrefix}`);
+console.log(`debug: ${debug}, indexNamePrefix: ${indexNamePrefix}, isLocal: ${isLocal}`);
 console.log(
     `Updating Algolia using App ID ${process.env.PUBLIC_ASTRO_ALGOLIA_APP_ID} and admin key ${process.env.ALGOLIA_ADMIN_KEY}`
 );
@@ -247,10 +249,9 @@ const processIndexForFramework = async (framework) => {
     const filter = () => false;
 
     const browser = await puppeteer.launch({
-        executablePath:
-            indexNamePrefix === 'ag-charts-dev'
-                ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-                : '/usr/bin/google-chrome',
+        executablePath: isLocal
+            ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+            : '/usr/bin/google-chrome',
         ignoreHTTPSErrors: true,
     });
 
