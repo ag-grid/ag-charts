@@ -296,7 +296,7 @@ const processIndexForFramework = async (framework) => {
     for (const item of highLevelItems) {
         if (filter(item)) continue;
 
-        await iterateItems(item.children);
+        await iterateItems(item);
     }
 
     if (debug) {
