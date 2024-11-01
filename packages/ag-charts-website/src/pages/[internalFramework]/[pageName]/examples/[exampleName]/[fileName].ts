@@ -1,11 +1,11 @@
 import type { InternalFramework } from '@ag-grid-types';
-import { getDocExampleFiles } from '@features/docs/utils/pageData';
+import { getDocExampleFiles } from '@components/docs/utils/pageData';
 import { getIsDev } from '@utils/env';
 import { fileNameToMimeType } from '@utils/mimeType';
 import { getContentRootFileUrl } from '@utils/pages';
 import { getCollection } from 'astro:content';
 
-import { getGeneratedContents } from '../../../../../features/example-generator';
+import { getGeneratedContents } from '../../../../../components/example-generator';
 
 interface Params {
     internalFramework: InternalFramework;

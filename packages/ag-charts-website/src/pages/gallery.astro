@@ -2,10 +2,10 @@
 import { getEntry } from 'astro:content';
 import Layout from '@layouts/Layout.astro';
 import { Icon, IconName } from '@ag-website-shared/components/icon/Icon';
-import { getPageHashUrl } from '@features/gallery/utils/urlPaths';
+import { getPageHashUrl } from '@components/gallery/utils/urlPaths';
 import type { GalleryData, GalleryExample, GalleryExampleChartType } from '@ag-grid-types';
-import { GalleryExampleLink } from '@features/gallery/components/GalleryExampleLink';
-import { GalleryExampleThemeDropdown } from '@features/gallery/components/GalleryExampleThemeDropdown';
+import { GalleryExampleLink } from '@components/gallery/components/GalleryExampleLink';
+import { GalleryExampleThemeDropdown } from '@components/gallery/components/GalleryExampleThemeDropdown';
 import { GALLERY_IMAGE_DPR_ENHANCEMENT } from '@constants';
 import styles from '@pages-styles/gallery.module.scss';
 

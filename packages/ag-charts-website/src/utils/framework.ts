@@ -1,6 +1,6 @@
 import type { Framework, InternalFramework } from '@ag-grid-types';
+import { DOCS_FRAMEWORK_PATH_INDEX } from '@components/docs/constants';
 import { FRAMEWORK_DISPLAY_TEXT } from '@constants';
-import { DOCS_FRAMEWORK_PATH_INDEX } from '@features/docs/constants';
 
 export const getFrameworkDisplayText = (framework: Framework): string => {
     return FRAMEWORK_DISPLAY_TEXT[framework];

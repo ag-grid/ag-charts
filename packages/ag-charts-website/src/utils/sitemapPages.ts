@@ -1,6 +1,6 @@
-import { getDocsExamplePages, getDocsPages } from '@features/docs/utils/pageData';
-import * as docsUrlPaths from '@features/docs/utils/urlPaths';
-import { getExamplePageUrl } from '@features/docs/utils/urlPaths';
+import { getDocsExamplePages, getDocsPages } from '@components/docs/utils/pageData';
+import * as docsUrlPaths from '@components/docs/utils/urlPaths';
+import { getExamplePageUrl } from '@components/docs/utils/urlPaths';
 import { getCollection } from 'astro:content';
 
 import { getDebugPageUrls } from './pages';

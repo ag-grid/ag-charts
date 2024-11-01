@@ -1,4 +1,4 @@
-import type { ApiReferenceConfig } from '@features/api-documentation/components/ApiReference';
+import type { ApiReferenceConfig } from '@components/api-documentation/components/ApiReference';
 import type {
     ApiReferenceNode,
     ApiReferenceType,

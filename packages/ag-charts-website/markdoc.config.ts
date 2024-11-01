@@ -47,7 +47,7 @@ export default defineMarkdocConfig({
             render: component('./src/components/license-setup/LicenseSetup.astro'),
         },
         chartExampleRunner: {
-            render: component('./src/features/docs/components/DocsExampleRunner.astro'),
+            render: component('./src/components/docs/components/DocsExampleRunner.astro'),
             attributes: {
                 title: { type: String, required: true },
                 name: { type: String, required: true },
@@ -80,7 +80,7 @@ export default defineMarkdocConfig({
         image,
         imageCaption,
         apiReference: {
-            render: component('./src/features/api-documentation/ApiReference.astro'),
+            render: component('./src/components/api-documentation/ApiReference.astro'),
             attributes: {
                 id: { type: 'String' },
                 include: { type: 'Array' },

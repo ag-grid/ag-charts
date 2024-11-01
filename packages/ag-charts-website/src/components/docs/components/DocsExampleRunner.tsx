@@ -1,9 +1,14 @@
-import { ExampleRunner } from '@features/example-runner/components/ExampleRunner';
-import { ExternalLinks } from '@features/example-runner/components/ExternalLinks';
-import { type ReactElement, useEffect, useState } from 'react';
+import type { InternalFramework } from '@ag-grid-types';
+import type { ExampleType } from '@components/example-generator/types';
+import { ExampleRunner } from '@components/example-runner/components/ExampleRunner';
+import { ExternalLinks } from '@components/example-runner/components/ExternalLinks';
+import type { ExampleOptions } from '@components/example-runner/types';
+import { getLoadingIFrameId } from '@components/example-runner/utils/getLoadingLogoId';
+import { useStore } from '@nanostores/react';
+import { $internalFramework } from '@stores/frameworkStore';
+import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider, useQuery } from 'react-query';
 
-import { GALLERY_EXAMPLE_TYPE, GALLERY_INTERNAL_FRAMEWORK } from '../constants';
 import {
     getExampleCodeSandboxUrl,
     getExampleContentsUrl,
@@ -13,12 +18,14 @@ import {
 } from '../utils/urlPaths';
 
 interface Props {
+    name: string;
     title: string;
-    exampleName: string;
-    loadingIFrameId: string;
+    exampleType?: ExampleType;
+    options?: ExampleOptions;
+    pageName: string;
+    internalFrameworkOverride?: InternalFramework;
     hideCode?: boolean;
     hideExternalLinks?: boolean;
-    footerChildren?: ReactElement;
 }
 
 // NOTE: Not on the layout level, as that is generated at build time, and queryClient needs to be
@@ -32,14 +39,18 @@ const queryOptions = {
     refetchOnReconnect: false,
 };
 
-const GalleryExampleRunnerInner = ({
+const DocsExampleRunnerInner = ({
+    name,
     title,
-    exampleName,
-    loadingIFrameId,
+    exampleType,
+    options,
+    pageName,
+    internalFrameworkOverride,
     hideCode,
     hideExternalLinks,
-    footerChildren,
 }: Props) => {
+    const storeInternalFramework = useStore($internalFramework);
+    const internalFramework = internalFrameworkOverride ?? storeInternalFramework;
     const [initialSelectedFile, setInitialSelectedFile] = useState();
     const [exampleUrl, setExampleUrl] = useState<string>();
     const [exampleRunnerExampleUrl, setExampleRunnerExampleUrl] = useState<string>();
@@ -49,35 +60,35 @@ const GalleryExampleRunnerInner = ({
     const [exampleBoilerPlateFiles, setExampleBoilerPlateFiles] = useState();
     const [packageJson, setPackageJson] = useState();
 
-    const internalFramework = GALLERY_INTERNAL_FRAMEWORK;
-    const exampleType = GALLERY_EXAMPLE_TYPE;
-    const id = `example-${exampleName}`;
+    const exampleName = name;
+    const id = `example-${name}`;
+    const loadingIFrameId = getLoadingIFrameId({ pageName, exampleName: name });
 
     const {
-        isLoading: exampleFilesIsLoading,
-        isError: exampleFilesIsError,
+        isLoading: contentsIsLoading,
+        isError: contentsIsError,
         data: [contents, exampleFileHtml] = [],
     } = useQuery(
-        ['galleryExampleFiles', exampleName],
+        ['docsExampleContents', internalFramework, pageName, exampleName],
         () => {
             const getContents = fetch(
                 getExampleContentsUrl({
+                    internalFramework,
+                    pageName,
                     exampleName,
                 })
             ).then((res) => res.json());
 
             const getExampleFileHtml = fetch(
                 getExampleUrl({
+                    internalFramework,
+                    pageName,
                     exampleName,
                 })
             ).then((res) => res.text());
-
             return Promise.all([getContents, getExampleFileHtml]);
         },
-        {
-            ...queryOptions,
-            enabled: !hideCode,
-        }
+        queryOptions
     );
 
     useEffect(() => {
@@ -87,40 +98,47 @@ const GalleryExampleRunnerInner = ({
 
         setExampleUrl(
             getExampleUrl({
+                internalFramework,
+                pageName,
                 exampleName,
             })
         );
-
         setExampleRunnerExampleUrl(
             getExampleRunnerExampleUrl({
+                internalFramework,
+                pageName,
                 exampleName,
             })
         );
-    }, [exampleName]);
+    }, [internalFramework, pageName, exampleName]);
 
     useEffect(() => {
-        if (!contents || exampleFilesIsLoading || exampleFilesIsError) {
+        if (!contents || contentsIsLoading || contentsIsError) {
             return;
         }
         setInitialSelectedFile(contents?.mainFileName);
-    }, [contents, exampleFilesIsLoading, exampleFilesIsError]);
+    }, [contents, contentsIsLoading, contentsIsError]);
 
     useEffect(() => {
         setCodeSandboxHtmlUrl(
             getExampleCodeSandboxUrl({
+                internalFramework,
+                pageName,
                 exampleName,
             })
         );
 
         setPlunkrHtmlUrl(
             getExamplePlunkrUrl({
+                internalFramework,
+                pageName,
                 exampleName,
             })
         );
-    }, [exampleName]);
+    }, [internalFramework, pageName, exampleName]);
 
     useEffect(() => {
-        if (!contents || exampleFilesIsLoading || exampleFilesIsError || !exampleFileHtml) {
+        if (!contents || contentsIsLoading || contentsIsError || !exampleFileHtml) {
             return;
         }
         const files = {
@@ -133,11 +151,12 @@ const GalleryExampleRunnerInner = ({
         setExampleFiles(files);
         setPackageJson(contents.packageJson);
         setExampleBoilerPlateFiles(contents.boilerPlateFiles);
-    }, [contents, exampleFilesIsLoading, exampleFilesIsError, exampleFileHtml]);
+    }, [contents, contentsIsLoading, contentsIsError, exampleFileHtml]);
 
-    const externalLinks = hideExternalLinks ? undefined : (
+    const externalLinks = (
         <ExternalLinks
             title={title}
+            options={options}
             internalFramework={internalFramework}
             exampleFiles={exampleFiles}
             exampleBoilerPlateFiles={exampleBoilerPlateFiles}
@@ -155,24 +174,24 @@ const GalleryExampleRunnerInner = ({
             exampleUrl={exampleUrl}
             exampleRunnerExampleUrl={exampleRunnerExampleUrl}
             exampleType={exampleType}
-            hideCode={hideCode}
+            exampleHeight={options?.exampleHeight}
+            exampleWidth={options?.exampleWidth}
             exampleFiles={exampleFiles}
+            initialShowCode={options?.showCode}
             initialSelectedFile={initialSelectedFile}
             internalFramework={internalFramework}
             externalLinks={externalLinks}
-            hideExternalLinks={hideExternalLinks}
-            hideInternalFrameworkSelection={true}
-            exampleHeight={620}
             loadingIFrameId={loadingIFrameId}
-            footerChildren={footerChildren}
+            hideCode={hideCode}
+            hideExternalLinks={hideExternalLinks}
         />
     );
 };
 
-export const GalleryExampleRunner = (props: Props) => {
+export const DocsExampleRunner = (props: Props) => {
     return (
         <QueryClientProvider client={queryClient}>
-            <GalleryExampleRunnerInner {...props} />
+            <DocsExampleRunnerInner {...props} />
         </QueryClientProvider>
     );
 };

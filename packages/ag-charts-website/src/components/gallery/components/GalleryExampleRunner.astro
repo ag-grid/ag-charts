@@ -1,9 +1,9 @@
 ---
 import { getEntry } from 'astro:content';
-import ExampleRunnerContainer from '@features/example-runner/components/ExampleRunnerContainer.astro';
+import ExampleRunnerContainer from '@components/example-runner/components/ExampleRunnerContainer.astro';
 import { GalleryExampleRunner } from './GalleryExampleRunner';
 import { getChartExampleTitle, getSeriesTypeSlug } from '../utils/filesData';
-import { getLoadingIFrameId } from '@features/example-runner/utils/getLoadingLogoId';
+import { getLoadingIFrameId } from '@components/example-runner/utils/getLoadingLogoId';
 
 interface Props {
     exampleName: string;

@@ -1,8 +1,8 @@
 import { Icon, type IconName } from '@ag-website-shared/components/icon/Icon';
 import LoadingLogo from '@ag-website-shared/images/inline-svgs/ag-grid-logomark-loading.svg?react';
-import { getLoadingIFrameId, getLoadingLogoId } from '@features/example-runner/utils/getLoadingLogoId';
-import { onMessageRemoveLoadingLogo } from '@features/example-runner/utils/onMessageRemoveLoadingLogo';
-import { GalleryExampleRunner } from '@features/gallery/components/GalleryExampleRunner';
+import { getLoadingIFrameId, getLoadingLogoId } from '@components/example-runner/utils/getLoadingLogoId';
+import { onMessageRemoveLoadingLogo } from '@components/example-runner/utils/onMessageRemoveLoadingLogo';
+import { GalleryExampleRunner } from '@components/gallery/components/GalleryExampleRunner';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { useEffect, useState } from 'react';
 
