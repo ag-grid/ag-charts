@@ -1,6 +1,7 @@
 import type { AgAxisCaptionFormatterParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
+import { resetMotion } from '../../motion/resetMotion';
 import { BandScale } from '../../scale/bandScale';
 import { BBox } from '../../scene/bbox';
 import { Selection } from '../../scene/selection';
@@ -14,6 +15,12 @@ import { TextUtils } from '../../util/textMeasurer';
 import { isNumber } from '../../util/type-guards';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
+import {
+    prepareAxisAnimationContext,
+    resetAxisGroupFn,
+    resetAxisLabelSelectionFn,
+    resetAxisSelectionFn,
+} from './axisUtil';
 import { CategoryAxis } from './categoryAxis';
 import type { TreeLayout } from './tree';
 import { ticksToTree, treeLayout } from './tree';
@@ -32,7 +39,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
     // We don't call is `labelScale` for consistency with other axes.
     readonly tickScale = new BandScale<string | number>();
 
-    private readonly gridLineSelection: Selection<Line>;
     private readonly axisLineSelection: Selection<Line>;
     private readonly separatorSelection: Selection<Line>;
     private tickTreeLayout?: TreeLayout;
@@ -42,12 +48,11 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         this.includeInvisibleDomains = true;
 
-        const { tickLineGroup, gridLineGroup, tickScale } = this;
+        const { tickLineGroup, tickScale } = this;
 
         tickScale.paddingInner = 1;
         tickScale.paddingOuter = 0;
 
-        this.gridLineSelection = Selection.select(gridLineGroup, Line);
         this.axisLineSelection = Selection.select(tickLineGroup, Line);
         this.separatorSelection = Selection.select(tickLineGroup, Line);
         this.lineNode.remove();
@@ -84,7 +89,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
      * The length of the grid. The grid is only visible in case of a non-zero value.
      */
     override onGridVisibilityChange() {
-        this.gridLineSelection.clear();
+        this.gridLineGroupSelection.clear();
         this.tickLabelGroupSelection.clear();
     }
 
@@ -136,9 +141,18 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.updateCategoryLabels();
         this.updateSeparators();
         this.updateAxisLines();
-        this.updateCategoryGridLines();
+        this.updateGridLines();
 
         this.resetSelectionNodes();
+    }
+
+    protected override resetSelectionNodes() {
+        const { tickLineGroupSelection, tickLabelGroupSelection } = this;
+
+        const selectionCtx = prepareAxisAnimationContext(this);
+        resetMotion([this.axisGroup], resetAxisGroupFn());
+        resetMotion([tickLineGroupSelection], resetAxisSelectionFn(selectionCtx));
+        resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn());
     }
 
     private computedLayout: ComputedGroupAxisLayout | undefined;
@@ -186,11 +200,11 @@ export class GroupedCategoryAxis extends CategoryAxis {
         });
     }
 
-    private updateCategoryGridLines() {
+    protected override updateGridLines() {
         const { gridLength, gridLine, label, range, tickScale } = this;
         const ticks = tickScale.ticks();
         const sideFlag = label.getSideFlag();
-        const gridSelection = this.gridLineSelection.update(gridLength ? ticks : []);
+        const gridSelection = this.gridLineGroupSelection.update(gridLength ? ticks : []);
         if (gridLength) {
             const { width, style } = gridLine;
             const styleCount = style.length;
