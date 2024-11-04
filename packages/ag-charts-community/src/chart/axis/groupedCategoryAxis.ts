@@ -12,7 +12,6 @@ import { extent, unique } from '../../util/array';
 import { iterate } from '../../util/iterator';
 import { TextUtils } from '../../util/textMeasurer';
 import { isNumber } from '../../util/type-guards';
-import { COLOR_STRING, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
 import { CategoryAxis } from './categoryAxis';
@@ -39,14 +38,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
     private tickTreeLayout?: TreeLayout;
 
     constructor(moduleCtx: ModuleContext) {
-        const scale = new BandScale<string>();
-        scale.paddingOuter = 0.1;
-        scale.paddingInner = 0.2;
+        super(moduleCtx);
 
-        super(moduleCtx, scale);
         this.includeInvisibleDomains = true;
-        this.paddingOuter = 0.1;
-        this.paddingInner = 0.2;
 
         const { tickLineGroup, gridLineGroup, tickScale } = this;
 
@@ -56,7 +50,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.gridLineSelection = Selection.select(gridLineGroup, Line);
         this.axisLineSelection = Selection.select(tickLineGroup, Line);
         this.separatorSelection = Selection.select(tickLineGroup, Line);
-        this.lineNode.visible = false;
+        this.lineNode.remove();
     }
 
     protected override updateRange() {
@@ -65,7 +59,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const shift = span * vr[0];
         const start = rr[0] - shift;
 
-        this.tickScale.range = scale.range = [start, start + span];
+        scale.range = [start, start + span];
+        this.tickScale.range = scale.range;
         this.resizeTickTree();
     }
 
@@ -84,13 +79,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
             range[1] - range[0] < 0
         );
     }
-
-    /**
-     * The color of the labels.
-     * Use `undefined` rather than `rgba(0, 0, 0, 0)` to make labels invisible.
-     */
-    @Validate(COLOR_STRING, { optional: true })
-    labelColor?: string = 'rgba(87, 87, 87, 1)';
 
     /**
      * The length of the grid. The grid is only visible in case of a non-zero value.
@@ -225,6 +213,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
     private computeLayout() {
         this.updateDirection();
         this.calculateDomain();
+        this.updateScale();
         this.updateRange();
 
         const {

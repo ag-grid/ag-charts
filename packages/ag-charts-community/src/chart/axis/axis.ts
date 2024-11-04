@@ -1095,7 +1095,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         };
     }
 
-    updatePosition() {
+    protected updatePosition() {
         const { crossLineRangeGroup, crossLineLineGroup, crossLineLabelGroup, axisGroup, gridGroup, translation } =
             this;
         const { rotation } = this.calculateRotations();
@@ -1109,7 +1109,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         axisGroup.datum = this.getAxisTransform();
     }
 
-    updateSecondaryAxisTicks(_primaryTickCount: number | undefined): any[] {
+    protected updateSecondaryAxisTicks(_primaryTickCount: number | undefined): any[] {
         throw new Error('AG Charts - unexpected call to updateSecondaryAxisTicks() - check axes configuration.');
     }
 
