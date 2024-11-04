@@ -69,14 +69,15 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
     private resizeTickTree() {
         const s = this.scale;
-        const range = s.domain.length ? [s.convert(s.domain[0]), s.convert(s.domain[s.domain.length - 1])] : s.range;
-        const layout = this.tickTreeLayout;
+        const { bandwidth = 0 } = s;
+        const range = s.domain.length ? [s.convert(s.domain[0]), s.convert(s.domain.at(-1)!)] : s.range;
         const lineHeight = TextUtils.getLineHeight(this.label.fontSize!);
+        const layout = this.tickTreeLayout;
 
         layout?.resize(
             Math.abs(range[1] - range[0]),
             layout.depth * lineHeight,
-            (Math.min(range[0], range[1]) || 0) + (s.bandwidth ?? 0) / 2,
+            (Math.min(range[0], range[1]) || 0) + bandwidth / 2,
             -layout.depth * lineHeight,
             range[1] - range[0] < 0
         );
@@ -227,7 +228,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         const {
             scale,
             label,
-            label: { parallel },
             moduleCtx: { callbackCache },
             range,
             title,
@@ -247,9 +247,9 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         const lineHeight = TextUtils.getLineHeight(label.fontSize!);
 
         // Render ticks and labels.
-        const tickTreeLayout = this.tickTreeLayout;
+        const { tickTreeLayout } = this;
         const labels = scale.ticks();
-        const treeLabels = tickTreeLayout ? tickTreeLayout.nodes : [];
+        const treeLabels = tickTreeLayout?.nodes ?? [];
         const isLabelTree = tickTreeLayout ? tickTreeLayout.depth > 1 : false;
         const isCaptionEnabled = title?.enabled && labels.length > 0;
         // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
@@ -263,37 +263,15 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         //  1 = don't flip (default)
         const { defaultRotation, configuredRotation, parallelFlipFlag } = calculateLabelRotation({
             rotation: label.rotation,
-            parallel,
+            parallel: label.parallel,
             regularFlipRotation: normalizeAngle360(rotation - Math.PI / 2),
             parallelFlipRotation: normalizeAngle360(rotation),
         });
 
         const tickLabelLayout: Array<Partial<TransformableText>> = [];
-
-        const copyLabelProps = (node: TransformableText): Partial<TransformableText> => {
-            return {
-                visible: true,
-                fill: node.fill,
-                fontFamily: node.fontFamily,
-                fontSize: node.fontSize,
-                fontStyle: node.fontStyle,
-                fontWeight: node.fontWeight,
-                rotation: node.rotation,
-                rotationCenterX: node.rotationCenterX,
-                rotationCenterY: node.rotationCenterY,
-                text: node.text,
-                textAlign: node.textAlign,
-                textBaseline: node.textBaseline,
-                translationX: node.translationX,
-                translationY: node.translationY,
-                x: node.x,
-                y: node.y,
-            };
-        };
-
         const labelBBoxes: Map<number, BBox> = new Map();
-        let maxLeafLabelWidth = 0;
         const tempText = new TransformableText();
+        let maxLeafLabelWidth = 0;
 
         const setLabelProps = (datum: (typeof treeLabels)[number], index: number) => {
             if (index === 0) {
@@ -336,15 +314,8 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                 return false;
             }
 
-            if (label.formatter) {
-                tempText.text =
-                    callbackCache.call(label.formatter, {
-                        value: String(datum.label),
-                        index,
-                    }) ?? String(datum.label);
-            } else {
-                tempText.text = String(datum.label);
-            }
+            tempText.text = this.formatTick(datum.label, index);
+
             return true;
         };
 
@@ -378,7 +349,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             } else {
                 const availableRange = datum.leafCount * bandwidth;
                 const bbox = labelBBoxes.get(index);
-                tempText.translationX -= maxLeafLabelWidth - lineHeight + this.label.padding;
+                tempText.translationX -= maxLeafLabelWidth - lineHeight + label.padding;
                 if (bbox && bbox.width > availableRange) {
                     visible = false;
                     labelBBoxes.delete(index);
@@ -397,11 +368,11 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                         separatorData.push({
                             y,
                             x1: 0,
-                            x2: -maxLeafLabelWidth - this.label.padding * 2,
+                            x2: -maxLeafLabelWidth - label.padding * 2,
                         });
                     }
                 } else {
-                    const x = -maxLeafLabelWidth - this.label.padding * 2 + datum.screenY;
+                    const x = -maxLeafLabelWidth - label.padding * 2 + datum.screenY;
                     separatorData.push({
                         y,
                         x1: x + lineHeight,
@@ -411,7 +382,24 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             }
 
             if (visible) {
-                tickLabelLayout.push(copyLabelProps(tempText));
+                tickLabelLayout.push({
+                    visible: true,
+                    fill: tempText.fill,
+                    fontFamily: tempText.fontFamily,
+                    fontSize: tempText.fontSize,
+                    fontStyle: tempText.fontStyle,
+                    fontWeight: tempText.fontWeight,
+                    rotation: tempText.rotation,
+                    rotationCenterX: tempText.rotationCenterX,
+                    rotationCenterY: tempText.rotationCenterY,
+                    text: tempText.text,
+                    textAlign: tempText.textAlign,
+                    textBaseline: tempText.textBaseline,
+                    translationX: tempText.translationX,
+                    translationY: tempText.translationY,
+                    x: tempText.x,
+                    y: tempText.y,
+                });
                 labelBBoxes.set(index, Transformable.toCanvas(tempText));
             } else {
                 tickLabelLayout.push({ visible: false });
@@ -441,7 +429,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         const lineCount = tickTreeLayout ? tickTreeLayout.depth + 1 : 1;
         for (let i = 0; i < lineCount; i++) {
             const visible = labels.length > 0 && i === 0;
-            const x = i > 0 ? -maxLeafLabelWidth - this.label.padding * 2 - (i - 1) * lineHeight : 0;
+            const x = i > 0 ? -maxLeafLabelWidth - label.padding * 2 - (i - 1) * lineHeight : 0;
             const lineBox = new BBox(x, Math.min(...range), 0, Math.abs(range[1] - range[0]));
             axisLineBoxes.push(lineBox);
             axisLineLayout.push({ x, y1: range[0], y2: range[1], visible });

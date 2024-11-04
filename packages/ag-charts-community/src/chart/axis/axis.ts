@@ -1008,7 +1008,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             // instead hide ticks based on their translation.
             if (range.length > 0 && !this.inRange(translationY, 0.001)) continue;
 
-            const tickLabel = this.formatTick(tick, fractionDigits, start + i);
+            const tickLabel = this.formatTick(tick, start + i, fractionDigits);
 
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank
             ticks.push({ tick, tickId: idGenerator(tickLabel), tickLabel, translationY: Math.floor(translationY) });
@@ -1184,7 +1184,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     // For formatting (nice rounded) tick values.
-    private formatTick(datum: any, fractionDigits: number, index: number): string {
+    protected formatTick(value: any, index: number, fractionDigits?: number): string {
         const {
             labelFormatter,
             label: { formatter },
@@ -1193,15 +1193,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let result: string | undefined;
         if (formatter) {
-            result = callbackCache.call(formatter, { value: datum, index, fractionDigits });
+            result = callbackCache.call(formatter, { value: value, index, fractionDigits });
         } else if (labelFormatter) {
-            result = callbackCache.call(labelFormatter, datum);
+            result = callbackCache.call(labelFormatter, value);
         }
-        return String(result ?? datum);
+        return String(result ?? value);
     }
 
     // For formatting arbitrary values between the ticks.
-    formatDatum(datum: any): string {
+    formatDatum(value: any): string {
         const {
             label: { formatter },
             moduleCtx: { callbackCache },
@@ -1210,14 +1210,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
         let result: string | undefined;
         if (formatter) {
-            result = callbackCache.call(formatter, { value: datum, index: NaN });
+            result = callbackCache.call(formatter, { value: value, index: NaN });
         } else if (valueFormatter) {
-            result = callbackCache.call(valueFormatter, datum);
+            result = callbackCache.call(valueFormatter, value);
         }
-        return String(result ?? datum);
+        return String(result ?? value);
     }
 
-    private getScaleValueFormatter(format?: string): (datum: any) => string {
+    private getScaleValueFormatter(format?: string): (value: any) => string {
         if (format && this.scale.tickFormat) {
             try {
                 return this.scale.tickFormat({ specifier: format });
@@ -1225,7 +1225,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 Logger.warnOnce(`the format string ${format} is invalid, ignoring.`);
             }
         }
-        return (datum) => this.formatDatum(datum);
+        return (value) => this.formatDatum(value);
     }
 
     getBBox(): BBox {
