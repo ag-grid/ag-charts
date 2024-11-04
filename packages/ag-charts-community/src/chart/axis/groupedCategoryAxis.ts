@@ -12,18 +12,12 @@ import { extent, unique } from '../../util/array';
 import { iterate } from '../../util/iterator';
 import { TextUtils } from '../../util/textMeasurer';
 import { isNumber } from '../../util/type-guards';
-import { BOOLEAN, COLOR_STRING, Validate } from '../../util/validation';
+import { COLOR_STRING, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
-import { AxisLabel } from './axisLabel';
 import { CartesianAxis } from './cartesianAxis';
 import type { TreeLayout } from './tree';
 import { ticksToTree, treeLayout } from './tree';
-
-class GroupedCategoryAxisLabel extends AxisLabel {
-    @Validate(BOOLEAN)
-    grid: boolean = false;
-}
 
 interface ComputedGroupAxisLayout {
     axisLineLayout: Partial<Line>[];
@@ -77,7 +71,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         const s = this.scale;
         const range = s.domain.length ? [s.convert(s.domain[0]), s.convert(s.domain[s.domain.length - 1])] : s.range;
         const layout = this.tickTreeLayout;
-        const lineHeight = TextUtils.getLineHeight(this.label.fontSize);
+        const lineHeight = TextUtils.getLineHeight(this.label.fontSize!);
 
         layout?.resize(
             Math.abs(range[1] - range[0]),
@@ -87,8 +81,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             range[1] - range[0] < 0
         );
     }
-
-    override readonly label = new GroupedCategoryAxisLabel();
 
     /**
      * The color of the labels.
@@ -242,18 +234,17 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             title: { formatter = (p: AgAxisCaptionFormatterParams) => p.defaultValue } = {},
         } = this;
 
-        const rangeStart = scale.range[0];
-        const rangeEnd = scale.range[1];
+        const [rangeStart, rangeEnd] = scale.range;
         const rangeLength = Math.abs(rangeEnd - rangeStart);
         const bandwidth = rangeLength / scale.domain.length || 0;
-        const keepEvery = Math.ceil(label.fontSize / bandwidth);
+        const keepEvery = Math.ceil(label.fontSize! / bandwidth);
         const rotation = toRadians(this.rotation);
         const isHorizontal = Math.abs(Math.cos(rotation)) < 1e-8;
         const sideFlag = label.getSideFlag();
 
         // The Text `node` of the Caption is not used to render the title of the grouped category axis.
         // The phantom root of the tree layout is used instead.
-        const lineHeight = TextUtils.getLineHeight(label.fontSize);
+        const lineHeight = TextUtils.getLineHeight(label.fontSize!);
 
         // Render ticks and labels.
         const tickTreeLayout = this.tickTreeLayout;
@@ -333,7 +324,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                 fontWeight: label.fontWeight,
                 textAlign: 'center',
                 textBaseline: parallelFlipFlag === -1 ? 'bottom' : 'hanging',
-                translationX: datum.screenY - label.fontSize * 0.25,
+                translationX: datum.screenY - label.fontSize! * 0.25,
                 translationY: datum.screenX,
             });
 
@@ -372,7 +363,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         });
 
         const labelX = sideFlag * label.padding;
-        const labelGrid = this.label.grid;
         const separatorData: Array<{ y: number; x1: number; x2: number }> = [];
 
         treeLabels.forEach((datum, index) => {
@@ -403,7 +393,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                 const y = isLeaf ? datum.screenX - bandwidth / 2 : datum.screenX - (datum.leafCount * bandwidth) / 2;
 
                 if (isLeaf) {
-                    if (datum.number !== datum.children.length - 1 || labelGrid) {
+                    if (datum.number !== datum.children.length - 1) {
                         separatorData.push({
                             y,
                             x1: 0,
@@ -450,7 +440,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         const axisLineBoxes: BBox[] = [];
         const lineCount = tickTreeLayout ? tickTreeLayout.depth + 1 : 1;
         for (let i = 0; i < lineCount; i++) {
-            const visible = labels.length > 0 && (i === 0 || (labelGrid && isLabelTree));
+            const visible = labels.length > 0 && i === 0;
             const x = i > 0 ? -maxLeafLabelWidth - this.label.padding * 2 - (i - 1) * lineHeight : 0;
             const lineBox = new BBox(x, Math.min(...range), 0, Math.abs(range[1] - range[0]));
             axisLineBoxes.push(lineBox);
