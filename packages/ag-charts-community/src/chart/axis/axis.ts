@@ -385,12 +385,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     /**
      * Checks if a point or an object is in range.
-     * @param x A point (or object's starting point).
+     * @param value A point (or object's starting point).
      * @param tolerance Expands the range on both ends by this amount.
      */
-    inRange(x: number, tolerance = 0): boolean {
+    inRange(value: number, tolerance = 0): boolean {
         const [min, max] = findMinMax(this.range);
-        return x >= min - tolerance && x <= max + tolerance;
+        return value >= min - tolerance && value <= max + tolerance;
     }
 
     protected datumFormatter?: (datum: any) => string;
@@ -468,7 +468,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             range: this.scale.range,
         });
 
-        if (!animated || this.animationManager.isSkipped()) {
+        if (!animated || this.animationManager.isSkipped() || 0) {
             this.resetSelectionNodes();
         } else {
             const diff = diffArrays(

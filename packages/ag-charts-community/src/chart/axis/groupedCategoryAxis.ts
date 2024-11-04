@@ -5,7 +5,7 @@ import { BandScale } from '../../scale/bandScale';
 import { BBox } from '../../scene/bbox';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
-import { RotatableText, TransformableText } from '../../scene/shape/text';
+import { type RotatableText, TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent, unique } from '../../util/array';
@@ -15,7 +15,6 @@ import { BOOLEAN, COLOR_STRING, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
 import { AxisLabel } from './axisLabel';
-import { AxisLine } from './axisLine';
 import { CartesianAxis } from './cartesianAxis';
 import type { TreeLayout } from './tree';
 import { ticksToTree, treeLayout } from './tree';
@@ -42,7 +41,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     private readonly gridLineSelection: Selection<Line>;
     private readonly axisLineSelection: Selection<Line>;
     private readonly separatorSelection: Selection<Line>;
-    private readonly labelSelection: Selection<TransformableText>;
     private tickTreeLayout?: TreeLayout;
 
     constructor(moduleCtx: ModuleContext) {
@@ -53,7 +51,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         super(moduleCtx, scale);
         this.includeInvisibleDomains = true;
 
-        const { tickLineGroup, tickLabelGroup, gridLineGroup, tickScale } = this;
+        const { tickLineGroup, gridLineGroup, tickScale } = this;
 
         tickScale.paddingInner = 1;
         tickScale.paddingOuter = 0;
@@ -61,7 +59,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         this.gridLineSelection = Selection.select(gridLineGroup, Line);
         this.axisLineSelection = Selection.select(tickLineGroup, Line);
         this.separatorSelection = Selection.select(tickLineGroup, Line);
-        this.labelSelection = Selection.select(tickLabelGroup, TransformableText);
         this.lineNode.visible = false;
     }
 
@@ -81,18 +78,14 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         const layout = this.tickTreeLayout;
         const lineHeight = this.lineHeight;
 
-        if (layout) {
-            layout.resize(
-                Math.abs(range[1] - range[0]),
-                layout.depth * lineHeight,
-                (Math.min(range[0], range[1]) || 0) + (s.bandwidth ?? 0) / 2,
-                -layout.depth * lineHeight,
-                range[1] - range[0] < 0
-            );
-        }
+        layout?.resize(
+            Math.abs(range[1] - range[0]),
+            layout.depth * lineHeight,
+            (Math.min(range[0], range[1]) || 0) + (s.bandwidth ?? 0) / 2,
+            -layout.depth * lineHeight,
+            range[1] - range[0] < 0
+        );
     }
-
-    override readonly line = new AxisLine();
 
     override readonly label = new GroupedCategoryAxisLabel();
 
@@ -112,7 +105,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
      */
     override onGridVisibilityChange() {
         this.gridLineSelection.clear();
-        this.labelSelection.clear();
+        this.tickLabelGroupSelection.clear();
     }
 
     protected override calculateDomain() {
@@ -124,8 +117,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
             .flatMap((series) => {
                 if (direction === ChartAxisDirection.Y || isNumericX) {
                     return series.getDomain(direction);
-                }
-                if (isNumericX === null) {
+                } else if (isNumericX === null) {
                     // always add first X domain
                     const domain = series.getDomain(direction);
                     isNumericX = isNumber(domain[0]);
@@ -180,7 +172,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     private updateCategoryLabels() {
         if (!this.computedLayout) return;
         const { tickLabelLayout } = this.computedLayout;
-        const labelSelection = this.labelSelection.update(tickLabelLayout);
+        const labelSelection = this.tickLabelGroupSelection.update(tickLabelLayout as any);
         labelSelection.each((node, datum) => {
             node.setProperties(datum);
         });
@@ -292,6 +284,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
         const copyLabelProps = (node: TransformableText): Partial<TransformableText> => {
             return {
+                visible: true,
                 fill: node.fill,
                 fontFamily: node.fontFamily,
                 fontSize: node.fontSize,
@@ -305,7 +298,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                 textBaseline: node.textBaseline,
                 translationX: node.translationX,
                 translationY: node.translationY,
-                visible: node.visible,
                 x: node.x,
                 y: node.y,
             };
@@ -431,37 +423,28 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
                 }
             }
 
-            let props: Partial<RotatableText>;
             if (visible) {
-                const bbox = Transformable.toCanvas(tempText);
-                if (bbox) {
-                    labelBBoxes.set(index, bbox);
-                }
-                props = { ...copyLabelProps(tempText), visible };
+                tickLabelLayout.push(copyLabelProps(tempText));
+                labelBBoxes.set(index, Transformable.toCanvas(tempText));
             } else {
+                tickLabelLayout.push({ visible: false });
                 labelBBoxes.delete(index);
-                props = { visible };
             }
-            tickLabelLayout.push(props);
         });
 
         // Calculate the position of the long separator on the far bottom of the axis.
-        let minX = 0;
-        separatorData.forEach((d) => (minX = Math.min(minX, d.x2)));
         separatorData.push({
             y: Math.max(rangeStart, rangeEnd),
             x1: 0,
-            x2: minX,
+            x2: separatorData.reduce((minX, d) => Math.min(minX, d.x2), 0),
         });
 
         const separatorLayout: Array<Partial<Line>> = [];
         const separatorBoxes: BBox[] = [];
-        const epsilon = 0.0000001;
         separatorData.forEach((datum) => {
-            if (datum.y >= range[0] - epsilon && datum.y <= range[1] + epsilon) {
+            if (this.inRange(datum.y, 0.0000001)) {
                 const { x1, x2, y } = datum;
-                const separatorBox = new BBox(Math.min(x1, x2), y, Math.abs(x1 - x2), 0);
-                separatorBoxes.push(separatorBox);
+                separatorBoxes.push(new BBox(Math.min(x1, x2), y, Math.abs(x1 - x2), 0));
                 separatorLayout.push({ x1, x2, y });
             }
         });
@@ -488,7 +471,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         };
     }
 
-    override calculateLayout(): { bbox: BBox; primaryTickCount: number | undefined } {
+    override calculateLayout() {
         const { axisLineLayout, separatorLayout, tickLabelLayout, bbox } = this.computeLayout();
         this.computedLayout = { axisLineLayout, separatorLayout, tickLabelLayout };
         return { bbox, primaryTickCount: undefined };
