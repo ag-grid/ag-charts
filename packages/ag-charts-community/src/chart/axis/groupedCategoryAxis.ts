@@ -11,16 +11,12 @@ import { Transformable } from '../../scene/transformable';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent, unique } from '../../util/array';
 import { iterate } from '../../util/iterator';
+import { inRange } from '../../util/number';
 import { TextUtils } from '../../util/textMeasurer';
 import { isNumber } from '../../util/type-guards';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
-import {
-    prepareAxisAnimationContext,
-    resetAxisGroupFn,
-    resetAxisLabelSelectionFn,
-    resetAxisSelectionFn,
-} from './axisUtil';
+import { resetAxisGroupFn, resetAxisLabelSelectionFn } from './axisUtil';
 import { CategoryAxis } from './categoryAxis';
 import type { TreeLayout } from './tree';
 import { ticksToTree, treeLayout } from './tree';
@@ -39,22 +35,15 @@ export class GroupedCategoryAxis extends CategoryAxis {
     // We don't call is `labelScale` for consistency with other axes.
     readonly tickScale = new BandScale<string | number>();
 
-    private readonly axisLineSelection: Selection<Line>;
-    private readonly separatorSelection: Selection<Line>;
+    private readonly separatorSelection = Selection.select(this.tickLineGroup, Line);
     private tickTreeLayout?: TreeLayout;
 
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx);
 
         this.includeInvisibleDomains = true;
-
-        const { tickLineGroup, tickScale } = this;
-
-        tickScale.paddingInner = 1;
-        tickScale.paddingOuter = 0;
-
-        this.axisLineSelection = Selection.select(tickLineGroup, Line);
-        this.separatorSelection = Selection.select(tickLineGroup, Line);
+        this.tickScale.paddingInner = 1;
+        this.tickScale.paddingOuter = 0;
         this.lineNode.remove();
     }
 
@@ -147,12 +136,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
     }
 
     protected override resetSelectionNodes() {
-        const { tickLineGroupSelection, tickLabelGroupSelection } = this;
-
-        const selectionCtx = prepareAxisAnimationContext(this);
         resetMotion([this.axisGroup], resetAxisGroupFn());
-        resetMotion([tickLineGroupSelection], resetAxisSelectionFn(selectionCtx));
-        resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn());
+        resetMotion([this.tickLabelGroupSelection], resetAxisLabelSelectionFn());
     }
 
     private computedLayout: ComputedGroupAxisLayout | undefined;
@@ -174,17 +159,14 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
     private updateSeparators() {
         if (!this.computedLayout) return;
-        const { separatorLayout } = this.computedLayout;
-        const { range } = this;
-        const epsilon = 0.0000001;
-        const separatorSelection = this.separatorSelection.update(separatorLayout);
-        separatorSelection.each((line, datum) => {
+        const { enabled, stroke } = this.tick;
+        this.separatorSelection.update(this.computedLayout.separatorLayout).each((line, datum) => {
+            line.visible = enabled && inRange(datum.y, this.range, 1e-7);
             line.x1 = datum.x1;
             line.x2 = datum.x2;
             line.y1 = datum.y;
             line.y2 = datum.y;
-            line.visible = this.tick.enabled && datum.y >= range[0] - epsilon && datum.y <= range[1] + epsilon;
-            line.stroke = this.tick.stroke;
+            line.stroke = stroke;
             line.strokeWidth = 1;
         });
     }
@@ -192,7 +174,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
     private updateAxisLines() {
         if (!this.computedLayout) return;
         const { axisLineLayout } = this.computedLayout;
-        const axisLineSelection = this.axisLineSelection.update(axisLineLayout);
+        const axisLineSelection = this.tickLineGroupSelection.update(axisLineLayout);
         axisLineSelection.each((line, datum) => {
             line.setProperties(datum);
             line.stroke = this.line.stroke;
@@ -281,9 +263,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const setLabelProps = (datum: (typeof treeLabels)[number], index: number) => {
             if (index === 0) {
                 if (isCaptionEnabled) {
-                    const text = callbackCache.call(formatter, this.getTitleFormatterParams());
                     tempText.setProperties({
-                        text,
+                        text: callbackCache.call(formatter, this.getTitleFormatterParams()),
                         fill: title.color,
                         fontFamily: title.fontFamily,
                         fontSize: title.fontSize,
@@ -299,7 +280,16 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 return false;
             }
 
+            if (index % keepEvery !== 0) {
+                return false;
+            }
+            // Check datum is in range.
+            if (datum.screenX < range[0] || datum.screenX > range[1]) {
+                return false;
+            }
+
             tempText.setProperties({
+                text: this.formatTick(datum.label, index),
                 fill: label.color,
                 fontFamily: label.fontFamily,
                 fontSize: label.fontSize,
@@ -310,16 +300,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 translationX: datum.screenY - label.fontSize! * 0.25,
                 translationY: datum.screenX,
             });
-
-            if (index % keepEvery !== 0) {
-                return false;
-            }
-            // Check datum is in range.
-            if (datum.screenX < range[0] || datum.screenX > range[1]) {
-                return false;
-            }
-
-            tempText.text = this.formatTick(datum.label, index);
 
             return true;
         };
@@ -333,7 +313,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
             labelBBoxes.set(index, bbox);
             const isLeaf = !datum.children.length;
-            if (isLeaf && bbox.width > maxLeafLabelWidth) {
+            if (isLeaf && maxLeafLabelWidth < bbox.width) {
                 maxLeafLabelWidth = bbox.width;
             }
         });
@@ -344,9 +324,11 @@ export class GroupedCategoryAxis extends CategoryAxis {
         treeLabels.forEach((datum, index) => {
             const isLeaf = !datum.children.length;
             let visible = setLabelProps(datum, index);
+
             tempText.x = labelX;
             tempText.y = index === 0 && isCaptionEnabled ? title.spacing ?? 0 : 0;
             tempText.rotationCenterX = labelX;
+
             if (isLeaf) {
                 tempText.rotation = configuredRotation;
                 tempText.textAlign = 'end';
@@ -421,30 +403,32 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         const separatorLayout: Array<Partial<Line>> = [];
         const separatorBoxes: BBox[] = [];
+
         separatorData.forEach((datum) => {
-            if (this.inRange(datum.y, 0.0000001)) {
+            if (this.inRange(datum.y, 1e-7)) {
                 const { x1, x2, y } = datum;
                 separatorBoxes.push(new BBox(Math.min(x1, x2), y, Math.abs(x1 - x2), 0));
                 separatorLayout.push({ x1, x2, y });
             }
         });
 
-        const axisLineLayout: Array<Partial<Line>> = [];
         const axisLineBoxes: BBox[] = [];
-        const lineCount = tickTreeLayout ? tickTreeLayout.depth + 1 : 1;
+        const axisLineLayout: Array<Partial<Line>> = [];
+        const lineCount = (tickTreeLayout?.depth ?? 0) + 1;
+
         for (let i = 0; i < lineCount; i++) {
-            const visible = labels.length > 0 && i === 0;
-            const x = i > 0 ? -maxLeafLabelWidth - label.padding * 2 - (i - 1) * lineHeight : 0;
-            const lineBox = new BBox(x, Math.min(...range), 0, Math.abs(range[1] - range[0]));
-            axisLineBoxes.push(lineBox);
-            axisLineLayout.push({ x, y1: range[0], y2: range[1], visible });
+            if (i === 0) {
+                axisLineBoxes.push(new BBox(0, Math.min(...range), 0, Math.abs(range[1] - range[0])));
+                axisLineLayout.push({ x: 0, y1: range[0], y2: range[1], visible: labels.length > 0 });
+            } else {
+                axisLineLayout.push({ visible: false });
+            }
         }
 
-        const bbox = BBox.merge(iterate(labelBBoxes.values(), separatorBoxes, axisLineBoxes));
-        const transformedBBox = this.getTransformBox(bbox);
+        const mergedBBox = BBox.merge(iterate(labelBBoxes.values(), separatorBoxes, axisLineBoxes));
 
         return {
-            bbox: transformedBBox,
+            bbox: this.getTransformBox(mergedBBox),
             tickLabelLayout,
             separatorLayout,
             axisLineLayout,
