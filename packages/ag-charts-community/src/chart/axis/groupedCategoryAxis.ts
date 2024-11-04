@@ -10,6 +10,7 @@ import { Transformable } from '../../scene/transformable';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent, unique } from '../../util/array';
 import { iterate } from '../../util/iterator';
+import { TextUtils } from '../../util/textMeasurer';
 import { isNumber } from '../../util/type-guards';
 import { BOOLEAN, COLOR_STRING, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
@@ -76,7 +77,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
         const s = this.scale;
         const range = s.domain.length ? [s.convert(s.domain[0]), s.convert(s.domain[s.domain.length - 1])] : s.range;
         const layout = this.tickTreeLayout;
-        const lineHeight = this.lineHeight;
+        const lineHeight = TextUtils.getLineHeight(this.label.fontSize);
 
         layout?.resize(
             Math.abs(range[1] - range[0]),
@@ -88,10 +89,6 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     }
 
     override readonly label = new GroupedCategoryAxisLabel();
-
-    private get lineHeight() {
-        return this.label.fontSize * 1.5;
-    }
 
     /**
      * The color of the labels.
@@ -256,7 +253,7 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
 
         // The Text `node` of the Caption is not used to render the title of the grouped category axis.
         // The phantom root of the tree layout is used instead.
-        const lineHeight = this.lineHeight;
+        const lineHeight = TextUtils.getLineHeight(label.fontSize);
 
         // Render ticks and labels.
         const tickTreeLayout = this.tickTreeLayout;
