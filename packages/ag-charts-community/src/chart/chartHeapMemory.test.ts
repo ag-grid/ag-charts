@@ -53,7 +53,7 @@ describe('Chart Heap Memory', () => {
         data: genData(),
         axes: [
             {
-                type: 'grouped-category',
+                type: 'category',
                 position: 'bottom',
             },
             {
@@ -68,7 +68,7 @@ describe('Chart Heap Memory', () => {
         data: genData(),
         axes: [
             {
-                type: 'grouped-category',
+                type: 'category',
                 position: 'bottom',
             },
             {
