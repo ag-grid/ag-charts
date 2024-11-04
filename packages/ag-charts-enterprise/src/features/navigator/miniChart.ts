@@ -1,7 +1,6 @@
 import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
-const { Validate, BOOLEAN, POSITIVE_NUMBER, ZIndexMap, ActionOnSet, CategoryAxis, GroupedCategoryAxis, TextUtils } =
-    _ModuleSupport;
+const { Validate, BOOLEAN, POSITIVE_NUMBER, ZIndexMap, ActionOnSet, CategoryAxis, TextUtils } = _ModuleSupport;
 
 const { Padding, Logger } = _Util;
 const { Group, TranslatableGroup, BBox } = _Scene;
@@ -264,7 +263,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
                     break;
                 case 'right':
                 case 'left': {
-                    const isCategoryAxis = axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis;
+                    const isCategoryAxis = axis instanceof CategoryAxis;
                     axis.range = isCategoryAxis ? [0, seriesRect.height] : [seriesRect.height, 0];
                     axis.gridLength = seriesRect.width;
                     break;

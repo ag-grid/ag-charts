@@ -15,7 +15,7 @@ import { isNumber } from '../../util/type-guards';
 import { COLOR_STRING, Validate } from '../../util/validation';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
-import { CartesianAxis } from './cartesianAxis';
+import { CategoryAxis } from './categoryAxis';
 import type { TreeLayout } from './tree';
 import { ticksToTree, treeLayout } from './tree';
 
@@ -25,9 +25,9 @@ interface ComputedGroupAxisLayout {
     separatorLayout: Partial<Line>[];
 }
 
-export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number>> {
-    static readonly className = 'GroupedCategoryAxis';
-    static readonly type = 'grouped-category' as const;
+export class GroupedCategoryAxis extends CategoryAxis {
+    static override readonly className = 'GroupedCategoryAxis';
+    static override readonly type = 'grouped-category' as const;
 
     // Label scale (labels are positioned between ticks, tick count = label count + 1).
     // We don't call is `labelScale` for consistency with other axes.
@@ -39,12 +39,14 @@ export class GroupedCategoryAxis extends CartesianAxis<BandScale<string | number
     private tickTreeLayout?: TreeLayout;
 
     constructor(moduleCtx: ModuleContext) {
-        const scale = new BandScale<string | number>();
+        const scale = new BandScale<string>();
         scale.paddingOuter = 0.1;
-        scale.paddingInner = scale.paddingOuter * 2;
+        scale.paddingInner = 0.2;
 
         super(moduleCtx, scale);
         this.includeInvisibleDomains = true;
+        this.paddingOuter = 0.1;
+        this.paddingInner = 0.2;
 
         const { tickLineGroup, gridLineGroup, tickScale } = this;
 

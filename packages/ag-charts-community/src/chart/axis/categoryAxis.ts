@@ -13,7 +13,7 @@ export class CategoryAxis<
     }
 
     static readonly className: string = 'CategoryAxis';
-    static readonly type: 'category' | 'ordinal-time' = 'category';
+    static readonly type: 'category' | 'grouped-category' | 'ordinal-time' = 'category';
 
     constructor(moduleCtx: ModuleContext, scale = new BandScale<string | object>() as S) {
         super(moduleCtx, scale);

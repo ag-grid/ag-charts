@@ -9,7 +9,6 @@ import { arraysEqual, groupBy } from '../util/array';
 import { Logger } from '../util/logger';
 import { findMinMax } from '../util/number';
 import { CategoryAxis } from './axis/categoryAxis';
-import { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
 import type { TransferableResources } from './chart';
 import { Chart } from './chart';
 import type { ChartAxis } from './chartAxis';
@@ -324,7 +323,7 @@ export class CartesianChart extends Chart {
     }
 
     private sizeAxis(axis: ChartAxis, seriesRect: BBox, position: AgCartesianAxisPosition) {
-        const isCategory = axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis;
+        const isCategory = axis instanceof CategoryAxis;
         const isLeftRight = position === 'left' || position === 'right';
 
         const { width, height } = seriesRect;
