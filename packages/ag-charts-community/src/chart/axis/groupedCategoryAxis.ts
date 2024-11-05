@@ -16,7 +16,7 @@ import { TextUtils } from '../../util/textMeasurer';
 import { isNumber } from '../../util/type-guards';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
-import { resetAxisGroupFn, resetAxisLabelSelectionFn } from './axisUtil';
+import { resetAxisGroupFn, resetAxisLabelSelectionFn, resetAxisLineSelectionFn } from './axisUtil';
 import { CategoryAxis } from './categoryAxis';
 import type { TreeLayout } from './tree';
 import { ticksToTree, treeLayout } from './tree';
@@ -306,12 +306,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
             }
         }
 
-        this.lineNode.setProperties({
-            visible: labels.length > 0,
-            x: 0,
-            y1: range[0],
-            y2: range[1],
-        });
+        const { enabled, stroke, width } = this.line;
+        this.lineNode.datum = { x: 0, y1: range[0], y2: range[1] };
+        this.lineNode.setProperties({ stroke, strokeWidth: enabled ? width : 0 });
 
         const mergedBBox = BBox.merge(iterate(labelBBoxes.values(), separatorBoxes, [this.lineNode.getBBox()]));
 
@@ -403,6 +400,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
     protected override resetSelectionNodes() {
         resetMotion([this.axisGroup], resetAxisGroupFn());
         resetMotion([this.tickLabelGroupSelection], resetAxisLabelSelectionFn());
+        resetMotion([this.lineNode], resetAxisLineSelectionFn());
     }
 
     protected override updateGridLines() {
