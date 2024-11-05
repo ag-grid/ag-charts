@@ -95,7 +95,7 @@ export type TickDatum = {
     translationY: number;
 };
 
-type LabelNodeDatum = {
+export type LabelNodeDatum = {
     tickId: string;
     fill?: CssColor;
     fontFamily?: FontFamily;
@@ -110,6 +110,7 @@ type LabelNodeDatum = {
     visible: boolean;
     x: number;
     y: number;
+    translationX?: number;
     translationY: number;
     range: number[];
 };

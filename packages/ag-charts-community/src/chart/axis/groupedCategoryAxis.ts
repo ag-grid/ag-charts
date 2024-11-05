@@ -6,23 +6,25 @@ import { BandScale } from '../../scale/bandScale';
 import { BBox } from '../../scene/bbox';
 import { Selection } from '../../scene/selection';
 import { Line } from '../../scene/shape/line';
-import { type RotatableText, TransformableText } from '../../scene/shape/text';
+import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent, unique } from '../../util/array';
 import { iterate } from '../../util/iterator';
 import { inRange } from '../../util/number';
+import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';
 import { isNumber } from '../../util/type-guards';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { calculateLabelRotation } from '../label';
+import type { LabelNodeDatum } from './axis';
 import { resetAxisGroupFn, resetAxisLabelSelectionFn, resetAxisLineSelectionFn } from './axisUtil';
 import { CategoryAxis } from './categoryAxis';
 import type { TreeLayout } from './tree';
 import { ticksToTree, treeLayout } from './tree';
 
 interface ComputedGroupAxisLayout {
-    tickLabelLayout: Partial<RotatableText>[];
+    tickLabelLayout: LabelNodeDatum[];
     separatorLayout: Partial<Line>[];
 }
 
@@ -72,8 +74,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
     private updateCategoryLabels() {
         if (!this.computedLayout) return;
-        const { tickLabelLayout } = this.computedLayout;
-        const labelSelection = this.tickLabelGroupSelection.update(tickLabelLayout as any);
+        const labelSelection = this.tickLabelGroupSelection.update(this.computedLayout.tickLabelLayout);
         labelSelection.each((node, datum) => {
             node.setProperties(datum);
         });
@@ -149,7 +150,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
             parallelFlipRotation: normalizeAngle360(rotation),
         });
 
-        const tickLabelLayout: Array<Partial<TransformableText>> = [];
+        const tickLabelLayout: LabelNodeDatum[] = [];
         const labelBBoxes: Map<number, BBox> = new Map();
         const tempText = new TransformableText();
         let maxLeafLabelWidth = 0;
@@ -214,6 +215,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         const labelX = sideFlag * label.padding;
         const separatorData: Array<{ y: number; x1: number; x2: number }> = [];
+        const idGenerator = createIdsGenerator();
 
         treeLabels.forEach((datum, index) => {
             const isLeaf = !datum.children.length;
@@ -263,17 +265,19 @@ export class GroupedCategoryAxis extends CategoryAxis {
             }
 
             if (visible) {
+                const { text = '' } = tempText;
                 tickLabelLayout.push({
+                    text,
                     visible: true,
-                    fill: tempText.fill,
+                    range: this.scale.range,
+                    tickId: idGenerator(text),
+                    fill: tempText.fill as string,
                     fontFamily: tempText.fontFamily,
                     fontSize: tempText.fontSize,
                     fontStyle: tempText.fontStyle,
                     fontWeight: tempText.fontWeight,
                     rotation: tempText.rotation,
                     rotationCenterX: tempText.rotationCenterX,
-                    rotationCenterY: tempText.rotationCenterY,
-                    text: tempText.text,
                     textAlign: tempText.textAlign,
                     textBaseline: tempText.textBaseline,
                     translationX: tempText.translationX,
@@ -283,7 +287,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 });
                 labelBBoxes.set(index, Transformable.toCanvas(tempText));
             } else {
-                tickLabelLayout.push({ visible: false });
                 labelBBoxes.delete(index);
             }
         });
@@ -295,22 +298,24 @@ export class GroupedCategoryAxis extends CategoryAxis {
             x2: separatorData.reduce((minX, d) => Math.min(minX, d.x2), 0),
         });
 
-        const separatorLayout: Array<Partial<Line>> = [];
-        const separatorBoxes: BBox[] = [];
-
-        for (const datum of separatorData) {
-            if (this.inRange(datum.y, 1e-7)) {
-                const { x1, x2, y } = datum;
-                separatorBoxes.push(new BBox(Math.min(x1, x2), y, Math.abs(x1 - x2), 0));
-                separatorLayout.push({ x1, x2, y });
-            }
-        }
+        const lineBoxes: BBox[] = [];
+        const separatorLayout: Partial<Line>[] = [];
 
         const { enabled, stroke, width } = this.line;
         this.lineNode.datum = { x: 0, y1: range[0], y2: range[1] };
         this.lineNode.setProperties({ stroke, strokeWidth: enabled ? width : 0 });
 
-        const mergedBBox = BBox.merge(iterate(labelBBoxes.values(), separatorBoxes, [this.lineNode.getBBox()]));
+        lineBoxes.push(this.lineNode.getBBox());
+
+        for (const datum of separatorData) {
+            if (this.inRange(datum.y, 1e-7)) {
+                const { x1, x2, y } = datum;
+                separatorLayout.push({ x1, x2, y });
+                lineBoxes.push(new BBox(Math.min(x1, x2), y, Math.abs(x1 - x2), 0));
+            }
+        }
+
+        const mergedBBox = BBox.merge(iterate(labelBBoxes.values(), lineBoxes));
 
         return {
             bbox: this.getTransformBox(mergedBBox),
