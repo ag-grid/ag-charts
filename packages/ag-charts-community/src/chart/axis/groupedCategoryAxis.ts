@@ -22,7 +22,6 @@ import type { TreeLayout } from './tree';
 import { ticksToTree, treeLayout } from './tree';
 
 interface ComputedGroupAxisLayout {
-    axisLineLayout: Partial<Line>[];
     tickLabelLayout: Partial<RotatableText>[];
     separatorLayout: Partial<Line>[];
 }
@@ -44,18 +43,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.includeInvisibleDomains = true;
         this.tickScale.paddingInner = 1;
         this.tickScale.paddingOuter = 0;
-        this.lineNode.remove();
-    }
-
-    protected override updateRange() {
-        const { range: rr, visibleRange: vr, scale } = this;
-        const span = (rr[1] - rr[0]) / (vr[1] - vr[0]);
-        const shift = span * vr[0];
-        const start = rr[0] - shift;
-
-        scale.range = [start, start + span];
-        this.tickScale.range = scale.range;
-        this.resizeTickTree();
+        // this.tickScale.round = true;
     }
 
     private resizeTickTree() {
@@ -72,72 +60,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
             -layout.depth * lineHeight,
             range[1] - range[0] < 0
         );
-    }
-
-    /**
-     * The length of the grid. The grid is only visible in case of a non-zero value.
-     */
-    override onGridVisibilityChange() {
-        this.gridLineGroupSelection.clear();
-        this.tickLabelGroupSelection.clear();
-    }
-
-    protected override calculateDomain() {
-        const { direction } = this;
-        let isNumericX: boolean | null = null;
-
-        const flatDomains = this.boundSeries
-            .filter((s) => s.visible)
-            .flatMap((series) => {
-                if (direction === ChartAxisDirection.Y || isNumericX) {
-                    return series.getDomain(direction);
-                } else if (isNumericX === null) {
-                    // always add first X domain
-                    const domain = series.getDomain(direction);
-                    isNumericX = isNumber(domain[0]);
-                    return domain;
-                }
-                return [];
-            });
-
-        this.setDomain(extent(flatDomains) ?? unique(flatDomains));
-
-        const { domain } = this.dataDomain;
-        this.tickTreeLayout = treeLayout(ticksToTree(domain));
-        this.tickScale.domain = domain.concat('');
-        this.resizeTickTree();
-    }
-
-    /**
-     * Creates/removes/updates the scene graph nodes that constitute the axis.
-     * Supposed to be called _manually_ after changing _any_ of the axis properties.
-     * This allows to bulk set axis properties before updating the nodes.
-     * The node changes made by this method are rendered on the next animation frame.
-     * We could schedule this method call automatically on the next animation frame
-     * when any of the axis properties change (the way we do when properties of scene graph's
-     * nodes change), but this will mean that we first wait for the next animation
-     * frame to make changes to the nodes of the axis, then wait for another animation
-     * frame to render those changes. It's nice to have everything update automatically,
-     * but this extra level of async indirection will not just introduce an unwanted delay,
-     * it will also make it harder to reason about the program.
-     */
-    override update() {
-        if (!this.computedLayout) return;
-
-        this.updatePosition();
-
-        this.updateTitleCaption();
-        this.updateCategoryLabels();
-        this.updateSeparators();
-        this.updateAxisLines();
-        this.updateGridLines();
-
-        this.resetSelectionNodes();
-    }
-
-    protected override resetSelectionNodes() {
-        resetMotion([this.axisGroup], resetAxisGroupFn());
-        resetMotion([this.tickLabelGroupSelection], resetAxisLabelSelectionFn());
     }
 
     private computedLayout: ComputedGroupAxisLayout | undefined;
@@ -173,37 +95,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
     private updateAxisLines() {
         if (!this.computedLayout) return;
-        const { axisLineLayout } = this.computedLayout;
-        const axisLineSelection = this.tickLineGroupSelection.update(axisLineLayout);
-        axisLineSelection.each((line, datum) => {
-            line.setProperties(datum);
-            line.stroke = this.line.stroke;
-            line.strokeWidth = this.line.width;
-        });
-    }
 
-    protected override updateGridLines() {
-        const { gridLength, gridLine, label, range, tickScale } = this;
-        const ticks = tickScale.ticks();
-        const sideFlag = label.getSideFlag();
-        const gridSelection = this.gridLineGroupSelection.update(gridLength ? ticks : []);
-        if (gridLength) {
-            const { width, style } = gridLine;
-            const styleCount = style.length;
-
-            gridSelection.each((line, datum, index) => {
-                const y = Math.round(tickScale.convert(datum));
-                const { stroke, lineDash } = style[index % styleCount];
-                line.visible = gridLine.enabled && y >= range[0] && y <= range[1];
-                line.x1 = 0;
-                line.x2 = -sideFlag * gridLength;
-                line.y1 = y;
-                line.y2 = y;
-                line.stroke = stroke;
-                line.strokeWidth = width;
-                line.lineDash = lineDash;
-            });
-        }
+        this.lineNode.stroke = this.line.stroke;
+        this.lineNode.strokeWidth = this.line.width;
     }
 
     private computeLayout() {
@@ -215,9 +109,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const {
             scale,
             label,
-            moduleCtx: { callbackCache },
             range,
             title,
+            moduleCtx: { callbackCache },
             title: { formatter = (p: AgAxisCaptionFormatterParams) => p.defaultValue } = {},
         } = this;
 
@@ -404,40 +298,134 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const separatorLayout: Array<Partial<Line>> = [];
         const separatorBoxes: BBox[] = [];
 
-        separatorData.forEach((datum) => {
+        for (const datum of separatorData) {
             if (this.inRange(datum.y, 1e-7)) {
                 const { x1, x2, y } = datum;
                 separatorBoxes.push(new BBox(Math.min(x1, x2), y, Math.abs(x1 - x2), 0));
                 separatorLayout.push({ x1, x2, y });
             }
-        });
-
-        const axisLineBoxes: BBox[] = [];
-        const axisLineLayout: Array<Partial<Line>> = [];
-        const lineCount = (tickTreeLayout?.depth ?? 0) + 1;
-
-        for (let i = 0; i < lineCount; i++) {
-            if (i === 0) {
-                axisLineBoxes.push(new BBox(0, Math.min(...range), 0, Math.abs(range[1] - range[0])));
-                axisLineLayout.push({ x: 0, y1: range[0], y2: range[1], visible: labels.length > 0 });
-            } else {
-                axisLineLayout.push({ visible: false });
-            }
         }
 
-        const mergedBBox = BBox.merge(iterate(labelBBoxes.values(), separatorBoxes, axisLineBoxes));
+        this.lineNode.setProperties({
+            visible: labels.length > 0,
+            x: 0,
+            y1: range[0],
+            y2: range[1],
+        });
+
+        const mergedBBox = BBox.merge(iterate(labelBBoxes.values(), separatorBoxes, [this.lineNode.getBBox()]));
 
         return {
             bbox: this.getTransformBox(mergedBBox),
             tickLabelLayout,
             separatorLayout,
-            axisLineLayout,
         };
     }
 
+    /**
+     * Creates/removes/updates the scene graph nodes that constitute the axis.
+     * Supposed to be called _manually_ after changing _any_ of the axis properties.
+     * This allows to bulk set axis properties before updating the nodes.
+     * The node changes made by this method are rendered on the next animation frame.
+     * We could schedule this method call automatically on the next animation frame
+     * when any of the axis properties change (the way we do when properties of scene graph's
+     * nodes change), but this will mean that we first wait for the next animation
+     * frame to make changes to the nodes of the axis, then wait for another animation
+     * frame to render those changes. It's nice to have everything update automatically,
+     * but this extra level of async indirection will not just introduce an unwanted delay,
+     * it will also make it harder to reason about the program.
+     */
+    override update() {
+        if (!this.computedLayout) return;
+
+        this.updatePosition();
+
+        this.updateTitleCaption();
+        this.updateCategoryLabels();
+        this.updateSeparators();
+        this.updateAxisLines();
+        this.updateGridLines();
+
+        this.resetSelectionNodes();
+    }
+
     override calculateLayout() {
-        const { axisLineLayout, separatorLayout, tickLabelLayout, bbox } = this.computeLayout();
-        this.computedLayout = { axisLineLayout, separatorLayout, tickLabelLayout };
+        const { separatorLayout, tickLabelLayout, bbox } = this.computeLayout();
+        this.computedLayout = { separatorLayout, tickLabelLayout };
         return { bbox, primaryTickCount: undefined };
+    }
+
+    /**
+     * The length of the grid. The grid is only visible in case of a non-zero value.
+     */
+    override onGridVisibilityChange() {
+        this.gridLineGroupSelection.clear();
+        this.tickLabelGroupSelection.clear();
+    }
+
+    protected override updateRange() {
+        const { range: rr, visibleRange: vr, scale } = this;
+        const span = (rr[1] - rr[0]) / (vr[1] - vr[0]);
+        const shift = span * vr[0];
+        const start = rr[0] - shift;
+
+        scale.range = [start, start + span];
+        this.tickScale.range = scale.range;
+        this.resizeTickTree();
+    }
+
+    protected override calculateDomain() {
+        const { direction } = this;
+        let isNumericX: boolean | null = null;
+
+        const flatDomains = this.boundSeries
+            .filter((s) => s.visible)
+            .flatMap((series) => {
+                if (direction === ChartAxisDirection.Y || isNumericX) {
+                    return series.getDomain(direction);
+                } else if (isNumericX === null) {
+                    // always add first X domain
+                    const domain = series.getDomain(direction);
+                    isNumericX = isNumber(domain[0]);
+                    return domain;
+                }
+                return [];
+            });
+
+        this.setDomain(extent(flatDomains) ?? unique(flatDomains));
+
+        const { domain } = this.dataDomain;
+        this.tickTreeLayout = treeLayout(ticksToTree(domain));
+        this.tickScale.domain = domain.concat('');
+        this.resizeTickTree();
+    }
+
+    protected override resetSelectionNodes() {
+        resetMotion([this.axisGroup], resetAxisGroupFn());
+        resetMotion([this.tickLabelGroupSelection], resetAxisLabelSelectionFn());
+    }
+
+    protected override updateGridLines() {
+        const { gridLength, gridLine, label, range, tickScale } = this;
+        const ticks = tickScale.ticks();
+        const sideFlag = label.getSideFlag();
+        const gridSelection = this.gridLineGroupSelection.update(gridLength ? ticks : []);
+        if (gridLength) {
+            const { width, style } = gridLine;
+            const styleCount = style.length;
+
+            gridSelection.each((line, datum, index) => {
+                const y = Math.round(tickScale.convert(datum));
+                const { stroke, lineDash } = style[index % styleCount];
+                line.visible = gridLine.enabled && y >= range[0] && y <= range[1];
+                line.x1 = 0;
+                line.x2 = -sideFlag * gridLength;
+                line.y1 = y;
+                line.y2 = y;
+                line.stroke = stroke;
+                line.strokeWidth = width;
+                line.lineDash = lineDash;
+            });
+        }
     }
 }

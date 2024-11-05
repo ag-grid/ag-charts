@@ -201,8 +201,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     readonly axisGroup = new TransformableGroup({ name: `${this.id}-axis` });
 
-    protected lineNode = this.axisGroup.appendChild(new TranslatableLine({ name: `${this.id}-Axis-line` }));
+    // Order is important to apply the correct z-index.
     protected readonly tickLineGroup = this.axisGroup.appendChild(new Group({ name: `${this.id}-Axis-tick-lines` }));
+    protected readonly lineNode = this.axisGroup.appendChild(new TranslatableLine({ name: `${this.id}-Axis-line` }));
     protected readonly tickLabelGroup = this.axisGroup.appendChild(new Group({ name: `${this.id}-Axis-tick-labels` }));
     protected readonly labelGroup = new Group({
         name: `${this.id}-Labels`,
@@ -1351,13 +1352,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     protected resetSelectionNodes() {
-        const { gridLineGroupSelection, tickLineGroupSelection, tickLabelGroupSelection, lineNode } = this;
-
         const selectionCtx = prepareAxisAnimationContext(this);
+
         resetMotion([this.axisGroup], resetAxisGroupFn());
-        resetMotion([gridLineGroupSelection, tickLineGroupSelection], resetAxisSelectionFn(selectionCtx));
-        resetMotion([tickLabelGroupSelection], resetAxisLabelSelectionFn());
-        resetMotion([lineNode], resetAxisLineSelectionFn());
+        resetMotion([this.gridLineGroupSelection, this.tickLineGroupSelection], resetAxisSelectionFn(selectionCtx));
+        resetMotion([this.tickLabelGroupSelection], resetAxisLabelSelectionFn());
+        resetMotion([this.lineNode], resetAxisLineSelectionFn());
     }
 
     isReversed() {
