@@ -107,6 +107,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         const { scale, label, range, title } = this;
         const formatter = title.formatter ?? ((p: AgAxisCaptionFormatterParams) => p.defaultValue);
+        const reverseDirection = this.position === 'top' || this.position === 'right';
 
         const [rangeStart, rangeEnd] = scale.range;
         const rangeLength = Math.abs(rangeEnd - rangeStart);
@@ -158,7 +159,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
                         fontWeight: title.fontWeight,
                         textAlign: 'center',
                         textBaseline: 'hanging',
-                        translationX: datum.screenY - title.fontSize * 0.25,
+                        translationX: reverseDirection
+                            ? title.fontSize * 0.25 - datum.screenY
+                            : datum.screenY - title.fontSize * 0.25,
                         translationY: datum.screenX,
                     });
                     return true;
@@ -179,7 +182,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 fontWeight: label.fontWeight,
                 textAlign: 'center',
                 textBaseline: parallelFlipFlag === -1 ? 'bottom' : 'hanging',
-                translationX: datum.screenY - label.fontSize! * 0.25,
+                translationX: reverseDirection
+                    ? title.fontSize * 0.25 - datum.screenY
+                    : datum.screenY - title.fontSize * 0.25,
                 translationY: datum.screenX,
             });
 
@@ -213,6 +218,10 @@ export class GroupedCategoryAxis extends CategoryAxis {
             tempText.y = index === 0 && isCaptionEnabled ? title.spacing ?? 0 : 0;
             tempText.rotationCenterX = labelX;
 
+            if (reverseDirection) {
+                tempText.y *= -1;
+            }
+
             if (isLeaf) {
                 tempText.rotation = configuredRotation;
                 tempText.textAlign = 'end';
@@ -220,7 +229,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
             } else {
                 const availableRange = datum.leafCount * bandwidth;
                 const bbox = labelBBoxes.get(index);
+
                 tempText.translationX -= maxLeafLabelWidth - lineHeight + label.padding;
+
                 if (bbox && bbox.width > availableRange) {
                     visible = false;
                     labelBBoxes.delete(index);
@@ -236,19 +247,20 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
                 if (isLeaf) {
                     if (datum.number !== datum.children.length - 1) {
-                        separatorData.push({
-                            y,
-                            x1: 0,
-                            x2: -maxLeafLabelWidth - label.padding * 2,
-                        });
+                        separatorData.push(
+                            reverseDirection
+                                ? { y, x1: 0, x2: maxLeafLabelWidth + label.padding * 2 }
+                                : { y, x1: 0, x2: -maxLeafLabelWidth - label.padding * 2 }
+                        );
                     }
                 } else {
-                    const x = -maxLeafLabelWidth - label.padding * 2 + datum.screenY;
-                    separatorData.push({
-                        y,
-                        x1: x + lineHeight,
-                        x2: x,
-                    });
+                    const x = reverseDirection
+                        ? maxLeafLabelWidth + label.padding * 2 - datum.screenY
+                        : -maxLeafLabelWidth - label.padding * 2 + datum.screenY;
+
+                    separatorData.push(
+                        reverseDirection ? { y, x1: x - lineHeight, x2: x } : { y, x1: x + lineHeight, x2: x }
+                    );
                 }
             }
 
@@ -283,7 +295,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         separatorData.push({
             y: Math.max(rangeStart, rangeEnd),
             x1: 0,
-            x2: separatorData.reduce((minX, d) => Math.min(minX, d.x2), 0),
+            x2: separatorData.reduce((minX, d) => (reverseDirection ? Math.max(minX, d.x2) : Math.min(minX, d.x2)), 0),
         });
 
         const lineBoxes: BBox[] = [];
