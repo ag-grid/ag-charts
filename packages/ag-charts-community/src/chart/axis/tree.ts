@@ -1,7 +1,3 @@
-interface Tick {
-    labels: string[];
-}
-
 /**
  * The tree layout is calculated in abstract x/y coordinates, where the root is at (0, 0)
  * and the tree grows downward from the root.
@@ -63,17 +59,17 @@ class TreeNode {
  * If `pad` is `true`, will ensure that every branch matches the depth of the tree by
  * creating empty labels.
  */
-export function ticksToTree(ticks: Tick[], pad = true): TreeNode {
+export function ticksToTree(ticks: string[][], pad = true): TreeNode {
     const root: any = new TreeNode();
     let depth = 0;
 
     if (pad) {
-        ticks.forEach((tick) => (depth = Math.max(depth, tick.labels.length)));
+        ticks.forEach((tick) => (depth = Math.max(depth, tick.length)));
     }
     ticks.forEach((tick) => {
         if (pad) {
-            while (tick.labels.length < depth) {
-                tick.labels.unshift('');
+            while (tick.length < depth) {
+                tick.unshift('');
             }
         }
         insertTick(root, tick);
@@ -82,14 +78,12 @@ export function ticksToTree(ticks: Tick[], pad = true): TreeNode {
     return root;
 }
 
-function insertTick(root: TreeNode, tick: Tick) {
-    const pathParts = tick.labels.slice().reverse(); // path elements from root to leaf label
-    const lastPartIndex = pathParts.length - 1;
-
-    pathParts.forEach((pathPart, partIndex) => {
-        const children = root.children;
+function insertTick(root: TreeNode, tick: string[]) {
+    for (let i = tick.length - 1; i >= 0; i--) {
+        const pathPart = tick[i];
+        const isNotLeaf = i !== 0;
+        const { children } = root;
         const existingNode = children.find((child) => child.label === pathPart);
-        const isNotLeaf = partIndex !== lastPartIndex;
         if (existingNode && isNotLeaf) {
             // the isNotLeaf check is to allow duplicate leafs
             root = existingNode;
@@ -101,7 +95,7 @@ function insertTick(root: TreeNode, tick: Tick) {
                 root = node;
             }
         }
-    });
+    }
 }
 
 // Shift the subtree.

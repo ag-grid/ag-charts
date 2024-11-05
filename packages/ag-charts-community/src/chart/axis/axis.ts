@@ -35,6 +35,7 @@ import { StateMachine } from '../../util/stateMachine';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
 import { estimateTickCount } from '../../util/ticks';
+import { isArray } from '../../util/type-guards';
 import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
@@ -1215,6 +1216,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             result = callbackCache.call(formatter, { value: value, index: NaN });
         } else if (valueFormatter) {
             result = callbackCache.call(valueFormatter, value);
+        } else if (isArray(value)) {
+            // Handle grouped categories value.
+            result = value.filter(Boolean).join(' - ');
         }
         return String(result ?? value);
     }

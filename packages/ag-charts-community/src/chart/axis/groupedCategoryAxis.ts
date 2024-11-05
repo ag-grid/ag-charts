@@ -45,7 +45,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.includeInvisibleDomains = true;
         this.tickScale.paddingInner = 1;
         this.tickScale.paddingOuter = 0;
-        // this.tickScale.round = true;
     }
 
     private resizeTickTree() {
@@ -74,10 +73,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
     private updateCategoryLabels() {
         if (!this.computedLayout) return;
-        const labelSelection = this.tickLabelGroupSelection.update(this.computedLayout.tickLabelLayout);
-        labelSelection.each((node, datum) => {
-            node.setProperties(datum);
-        });
+        this.tickLabelGroupSelection
+            .update(this.computedLayout.tickLabelLayout)
+            .each((node, datum) => node.setProperties(datum));
     }
 
     private updateSeparators() {
@@ -107,14 +105,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.updateScale();
         this.updateRange();
 
-        const {
-            scale,
-            label,
-            range,
-            title,
-            moduleCtx: { callbackCache },
-            title: { formatter = (p: AgAxisCaptionFormatterParams) => p.defaultValue } = {},
-        } = this;
+        const { scale, label, range, title } = this;
+        const formatter = title.formatter ?? ((p: AgAxisCaptionFormatterParams) => p.defaultValue);
 
         const [rangeStart, rangeEnd] = scale.range;
         const rangeLength = Math.abs(rangeEnd - rangeStart);
@@ -153,13 +145,12 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const tickLabelLayout: LabelNodeDatum[] = [];
         const labelBBoxes: Map<number, BBox> = new Map();
         const tempText = new TransformableText();
-        let maxLeafLabelWidth = 0;
 
         const setLabelProps = (datum: (typeof treeLabels)[number], index: number) => {
             if (index === 0) {
                 if (isCaptionEnabled) {
                     tempText.setProperties({
-                        text: callbackCache.call(formatter, this.getTitleFormatterParams()),
+                        text: this.moduleCtx.callbackCache.call(formatter, this.getTitleFormatterParams()),
                         fill: title.color,
                         fontFamily: title.fontFamily,
                         fontSize: title.fontSize,
@@ -175,11 +166,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 return false;
             }
 
-            if (index % keepEvery !== 0) {
-                return false;
-            }
-            // Check datum is in range.
-            if (datum.screenX < range[0] || datum.screenX > range[1]) {
+            if (index % keepEvery !== 0 || !inRange(datum.screenX, range)) {
                 return false;
             }
 
@@ -199,6 +186,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
             return true;
         };
 
+        let maxLeafLabelWidth = 0;
         treeLabels.forEach((datum, index) => {
             const isVisible = setLabelProps(datum, index);
             if (!isVisible) return;
@@ -397,6 +385,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.setDomain(extent(flatDomains) ?? unique(flatDomains));
 
         const { domain } = this.dataDomain;
+        console.log(domain);
         this.tickTreeLayout = treeLayout(ticksToTree(domain));
         this.tickScale.domain = domain.concat('');
         this.resizeTickTree();
