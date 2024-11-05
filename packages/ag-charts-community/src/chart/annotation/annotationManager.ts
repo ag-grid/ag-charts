@@ -7,7 +7,7 @@ import { mergeDefaults } from '../../util/object';
 import { isArray } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 
-export interface AnnotationsRestoreEvent {
+interface AnnotationsRestoreEvent {
     type: 'restore-annotations';
     annotations: AnnotationsMemento;
 }

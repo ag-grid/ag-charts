@@ -341,8 +341,10 @@ export abstract class Node {
     }
 
     private invalidateCachedBBox() {
-        this.cachedBBox = undefined;
-        this.parentNode?.invalidateCachedBBox();
+        if (this.cachedBBox != null) {
+            this.cachedBBox = undefined;
+            this.parentNode?.invalidateCachedBBox();
+        }
     }
 
     getBBox(): BBox {

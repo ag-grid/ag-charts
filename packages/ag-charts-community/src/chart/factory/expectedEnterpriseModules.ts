@@ -95,12 +95,8 @@ export function isEnterpriseSeriesType(type: string) {
     return EXPECTED_ENTERPRISE_MODULES.some((s) => s.type === 'series' && s.identifier === type);
 }
 
-export function getEnterpriseSeriesChartTypes(type: string) {
+function getEnterpriseSeriesChartTypes(type: string) {
     return EXPECTED_ENTERPRISE_MODULES.find((s) => s.type === 'series' && s.identifier === type)?.chartTypes;
-}
-
-export function isEnterpriseSeriesTypeLoaded(type: string) {
-    return (EXPECTED_ENTERPRISE_MODULES.find((s) => s.type === 'series' && s.identifier === type)?.useCount ?? 0) > 0;
 }
 
 export function isEnterpriseCartesian(seriesType: string) {

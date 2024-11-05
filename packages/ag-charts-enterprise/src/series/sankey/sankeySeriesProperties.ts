@@ -59,12 +59,12 @@ export interface SankeyNodeLabelDatum {
     text: string;
 }
 
-export class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams> {
+class SankeySeriesLabelProperties extends Label<AgSankeySeriesLabelFormatterParams> {
     @Validate(POSITIVE_NUMBER)
     spacing: number = 1;
 }
 
-export class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions<any>> {
+class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLinkOptions<any>> {
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined = undefined;
 
@@ -90,7 +90,7 @@ export class SankeySeriesLinkProperties extends BaseProperties<AgSankeySeriesLin
     itemStyler?: Styler<AgSankeySeriesLinkItemStylerParams<unknown>, AgSankeySeriesLinkStyle>;
 }
 
-export class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions<any>> {
+class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOptions<any>> {
     @Validate(POSITIVE_NUMBER)
     spacing: number = 1;
 

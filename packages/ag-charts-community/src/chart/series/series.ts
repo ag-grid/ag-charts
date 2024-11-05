@@ -645,7 +645,7 @@ export abstract class Series<
 
     public getMarkerStyle<TParams>(
         marker: ISeriesMarker<TParams>,
-        params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId'>,
+        params: TParams & Omit<AgSeriesMarkerStylerParams<TDatum>, 'seriesId' | keyof AgSeriesMarkerStyle>,
         defaultStyle: AgSeriesMarkerStyle = marker.getStyle()
     ) {
         const defaultSize = { size: params.datum.point?.size ?? 0 };

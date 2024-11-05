@@ -81,7 +81,7 @@ export interface FunnelContext
 export interface FunnelAnimationData<TNode extends _ModuleSupport.QuadtreeCompatibleNode>
     extends _ModuleSupport.CartesianAnimationData<TNode, FunnelNodeDatum, FunnelNodeLabelDatum, FunnelContext> {}
 
-export class FunnelSeriesNodeEvent<
+class FunnelSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
 > extends _ModuleSupport.SeriesNodeEvent<FunnelNodeDatum, TEvent> {
     readonly xKey?: string;

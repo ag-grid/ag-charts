@@ -1,6 +1,6 @@
 import { expect, test } from '@jest/globals';
 
-import utcDay from './utcDay';
+import { utcDay } from './utcDay';
 
 test('UTC day', () => {
     const interval = utcDay;

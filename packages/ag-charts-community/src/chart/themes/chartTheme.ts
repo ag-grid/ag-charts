@@ -18,7 +18,7 @@ import { axisRegistry } from '../factory/axisRegistry';
 import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
 import { legendRegistry } from '../factory/legendRegistry';
 import { seriesRegistry } from '../factory/seriesRegistry';
-import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE, FONT_WEIGHT, POLAR_AXIS_TYPE } from './constants';
+import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION, FONT_SIZE, POLAR_AXIS_TYPE } from './constants';
 import { DEFAULT_FILLS, DEFAULT_STROKES, type DefaultColors } from './defaultColors';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
@@ -136,7 +136,7 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Axis Title',
                 spacing: 25,
-                fontWeight: FONT_WEIGHT.NORMAL,
+                fontWeight: 'normal' as const,
                 fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
@@ -192,7 +192,7 @@ export class ChartTheme {
             title: {
                 enabled: false,
                 text: 'Title',
-                fontWeight: FONT_WEIGHT.NORMAL,
+                fontWeight: 'normal' as const,
                 fontSize: FONT_SIZE.LARGE,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
@@ -402,28 +402,30 @@ export class ChartTheme {
         );
     }
 
-    templateTheme<T>(themeTemplate: T): T {
-        const themeInstance = deepClone(themeTemplate);
-        const params = this.getTemplateParameters();
-
-        jsonWalk(themeInstance, (node: any) => {
-            if (isArray(node)) {
-                for (let i = 0; i < node.length; i++) {
-                    const symbol = node[i];
-                    if (params.has(symbol)) {
-                        node[i] = params.get(symbol);
-                    }
-                }
-            } else {
-                for (const [name, value] of Object.entries(node)) {
-                    if (params.has(value)) {
-                        node[name] = params.get(value);
-                    }
+    private static applyTemplateTheme(node: any, _other: any, params?: Map<any, any>) {
+        if (isArray(node)) {
+            for (let i = 0; i < node.length; i++) {
+                const symbol = node[i];
+                if (typeof symbol === 'symbol' && params?.has(symbol)) {
+                    node[i] = params.get(symbol);
                 }
             }
-        });
+        } else {
+            for (const [name, value] of Object.entries(node)) {
+                if (typeof value === 'symbol' && params?.has(value)) {
+                    node[name] = params.get(value);
+                }
+            }
+        }
+    }
 
-        return deepClone(themeInstance);
+    templateTheme<T>(themeTemplate: T, clone = true): T {
+        const themeInstance = clone ? deepClone(themeTemplate) : themeTemplate;
+        const params = this.getTemplateParameters();
+
+        jsonWalk(themeInstance, ChartTheme.applyTemplateTheme, undefined, undefined, params);
+
+        return themeInstance;
     }
 
     protected getDefaultColors(): DefaultColors {

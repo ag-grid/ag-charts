@@ -250,21 +250,19 @@ class AgChartsInternal {
         return proxy;
     }
 
-    static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>) {
-        deltaOptions = deepClone(deltaOptions, { shallow: ['data'] });
+    private static markRemovedProperties(node: any) {
+        if (typeof node !== 'object') return;
+        for (const [key, value] of Object.entries(node)) {
+            if (typeof value === 'undefined') {
+                Object.assign(node, { [key]: Symbol('UNSET') });
+            }
+        }
+    }
 
-        jsonWalk(
-            deltaOptions,
-            (node) => {
-                if (typeof node !== 'object') return;
-                for (const [key, value] of Object.entries(node)) {
-                    if (typeof value === 'undefined') {
-                        Object.assign(node, { [key]: Symbol('UNSET') });
-                    }
-                }
-            },
-            { skip: ['data'] }
-        );
+    static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>) {
+        deltaOptions = deepClone(deltaOptions, new Set(['data']));
+
+        jsonWalk(deltaOptions, AgChartsInternal.markRemovedProperties, new Set(['data']));
 
         const { chart } = proxy;
         const lastUpdateOptions = chart.getOptions();

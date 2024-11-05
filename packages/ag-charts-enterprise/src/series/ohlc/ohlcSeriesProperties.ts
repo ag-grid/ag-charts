@@ -14,7 +14,7 @@ import {
 
 const { BaseProperties, Validate, COLOR_STRING, FUNCTION, LINE_DASH, OBJECT, POSITIVE_NUMBER, RATIO } = _ModuleSupport;
 
-export class OhlcSeriesItem extends BaseProperties {
+class OhlcSeriesItem extends BaseProperties {
     @Validate(COLOR_STRING)
     stroke: string = '#333';
 

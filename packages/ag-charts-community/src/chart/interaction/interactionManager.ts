@@ -75,6 +75,8 @@ type BaseInteractionEvent<T extends InteractionTypes, TEvent extends Event> = Pr
 export type PointerOffsets = {
     offsetX: number;
     offsetY: number;
+    pageX?: number;
+    pageY?: number;
 };
 
 export type PointerHistoryEvent = PointerOffsets & { type: string };

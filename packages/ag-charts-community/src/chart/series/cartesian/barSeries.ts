@@ -579,11 +579,15 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         let format: AgBarSeriesStyle | undefined;
 
         if (itemStyler) {
+            const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
+            const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
             format = callbackCache.call(itemStyler, {
                 seriesId,
                 datum,
                 xKey,
                 yKey,
+                xDomain,
+                yDomain,
                 stackGroup,
                 fill,
                 stroke,

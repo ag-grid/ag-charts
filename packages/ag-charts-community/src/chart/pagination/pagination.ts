@@ -299,7 +299,7 @@ export class Pagination extends BaseProperties {
     }
 
     public setPage(pageNumber: number) {
-        pageNumber = clamp(0, pageNumber, this.totalPages - 1);
+        pageNumber = clamp(0, pageNumber, Math.max(0, this.totalPages - 1));
         if (this.currentPage !== pageNumber) {
             this.currentPage = pageNumber;
             this.onPaginationChanged();

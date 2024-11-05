@@ -1,3 +1,4 @@
+import type { ProxyDragHandlerEvent } from '../../dom/proxyInteractionService';
 import type { ModuleContext } from '../../module/moduleContext';
 import { setAttribute } from '../../util/attributeUtil';
 import type { BBoxValues } from '../../util/bboxinterface';
@@ -7,23 +8,36 @@ import { formatPercent } from '../../util/format.util';
 import { initToolbarKeyNav } from '../../util/keynavUtil';
 import { clamp } from '../../util/number';
 
+export type NavigatorButtonType = 'min' | 'max' | 'pan';
+
+type SliderDragHandlers = {
+    onDragStart(type: NavigatorButtonType, event: { offsetX: number }): void;
+    onDrag(type: NavigatorButtonType, event: { offsetX: number }): void;
+};
+
 export class NavigatorDOMProxy {
     public _min = 0;
     public _max = 1;
 
     public readonly minRange = 0.001;
 
+    private dragStartX = 0;
+
     private readonly toolbar: HTMLElement;
     private readonly sliders: [HTMLInputElement, HTMLInputElement, HTMLInputElement];
 
     private readonly destroyFns = new DestroyFns();
-    private readonly ctx: Pick<ModuleContext, 'zoomManager' | 'localeManager'>;
 
-    constructor(ctx: Pick<ModuleContext, 'zoomManager' | 'proxyInteractionService' | 'localeManager'>) {
+    private destroyDragListeners?: () => void;
+
+    constructor(
+        private readonly ctx: Pick<ModuleContext, 'zoomManager' | 'proxyInteractionService' | 'localeManager'>,
+        private readonly sliderHandlers: SliderDragHandlers
+    ) {
         this.ctx = ctx;
         this.toolbar = ctx.proxyInteractionService.createProxyContainer({
             type: 'toolbar',
-            id: `navigator-toolbar`,
+            domManagerId: `navigator-toolbar`,
             classList: ['ag-charts-proxy-navigator-toolbar'],
             ariaOrientation: 'vertical',
             ariaLabel: { id: 'ariaLabelNavigator' },
@@ -32,30 +46,29 @@ export class NavigatorDOMProxy {
         this.sliders = [
             ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
-                id: 'ag-charts-navigator-min',
                 ariaLabel: { id: 'ariaLabelNavigatorMinimum' },
                 ariaOrientation: 'horizontal',
                 parent: this.toolbar,
+                cursor: 'ew-resize',
                 onchange: (ev) => this.onMinSliderChange(ev),
             }),
             ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
-                id: 'ag-charts-navigator-pan',
                 ariaLabel: { id: 'ariaLabelNavigatorRange' },
                 ariaOrientation: 'horizontal',
                 parent: this.toolbar,
+                cursor: 'grab',
                 onchange: (ev) => this.onPanSliderChange(ev),
             }),
             ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
-                id: 'ag-charts-navigator-max',
                 ariaLabel: { id: 'ariaLabelNavigatorMaximum' },
                 ariaOrientation: 'horizontal',
                 parent: this.toolbar,
+                cursor: 'ew-resize',
                 onchange: (ev) => this.onMaxSliderChange(ev),
             }),
         ];
-        this.sliders.forEach((slider) => setAttribute(slider, 'data-preventdefault', false));
         this.setSliderRatio(this.sliders[0], this._min);
         this.setSliderRatio(this.sliders[2], this._max);
         this.setPanSliderValue(this._min, this._max);
@@ -68,17 +81,37 @@ export class NavigatorDOMProxy {
             this.sliders.forEach((e) => e.remove());
             this.toolbar.remove();
         });
+        this.updateVisibility(false);
     }
 
     destroy() {
         this.destroyFns.destroy();
     }
 
+    private initDragListeners() {
+        if (this.destroyDragListeners != null) return;
+
+        for (const [index, key] of (['min', 'pan', 'max'] as const).entries()) {
+            const slider = this.sliders[index];
+            slider.step = '0.01';
+            setAttribute(slider, 'data-preventdefault', false);
+            this.destroyDragListeners = this.ctx.proxyInteractionService.createDragListeners({
+                element: slider,
+                onDragStart: (ev) => this.onDragStart(ev, key, slider),
+                onDrag: (ev) => this.onDrag(ev, key),
+                onDragEnd: () => this.updateSliderRatios(),
+            });
+        }
+    }
+
     updateVisibility(visible: boolean): void {
         if (visible) {
             this.toolbar.style.removeProperty('display');
+            this.initDragListeners();
         } else {
             this.toolbar.style.display = 'none';
+            this.destroyDragListeners?.();
+            this.destroyDragListeners = undefined;
         }
     }
 
@@ -100,9 +133,28 @@ export class NavigatorDOMProxy {
     updateMinMax(min: number, max: number) {
         this._min = min;
         this._max = max;
-        this.setPanSliderValue(min, max);
-        this.setSliderRatio(this.sliders[0], min);
-        this.setSliderRatio(this.sliders[2], max);
+        this.updateSliderRatios();
+    }
+
+    private updateSliderRatios() {
+        this.setPanSliderValue(this._min, this._max);
+        this.setSliderRatio(this.sliders[0], this._min);
+        this.setSliderRatio(this.sliders[2], this._max);
+    }
+
+    private toCanvasOffsets(event: ProxyDragHandlerEvent): { offsetX: number } {
+        return { offsetX: this.dragStartX + event.originDeltaX };
+    }
+
+    private onDragStart(event: ProxyDragHandlerEvent, key: NavigatorButtonType, slider: HTMLInputElement) {
+        const toolbarLeft = parseFloat(this.toolbar.style.left);
+        const sliderLeft = parseFloat(slider.style.left);
+        this.dragStartX = toolbarLeft + sliderLeft + event.offsetX;
+        this.sliderHandlers.onDragStart(key, this.toCanvasOffsets(event));
+    }
+
+    private onDrag(event: ProxyDragHandlerEvent, key: NavigatorButtonType) {
+        this.sliderHandlers.onDrag(key, this.toCanvasOffsets(event));
     }
 
     private onPanSliderChange(_event: Event) {
@@ -126,7 +178,8 @@ export class NavigatorDOMProxy {
     }
 
     private setPanSliderValue(min: number, max: number) {
-        this.sliders[1].value = `${Math.round(min * 100)}`;
+        const value = Math.round(min * 10000) / 100;
+        this.sliders[1].value = `${value}`;
         this.sliders[1].ariaValueText = this.ctx.localeManager.t('ariaValuePanRange', { min, max });
     }
 
@@ -140,12 +193,23 @@ export class NavigatorDOMProxy {
     }
 
     private setSliderRatio(slider: HTMLInputElement, ratio: number) {
-        const value = Math.round(ratio * 100);
+        const value = Math.round(ratio * 10000) / 100;
         slider.value = `${value}`;
         slider.ariaValueText = formatPercent(value / 100);
     }
 
     private getSliderRatio(slider: HTMLInputElement) {
         return parseFloat(slider.value) / 100;
+    }
+
+    testFindTarget(
+        type: NavigatorButtonType,
+        canvasX: number,
+        canvasY: number
+    ): { target: HTMLElement; x: number; y: number } {
+        const target = this.sliders[{ min: 0, pan: 1, max: 2 }[type]];
+        const x = canvasX - parseFloat(target.style.left) - parseFloat(this.toolbar.style.left);
+        const y = canvasY - parseFloat(target.style.top) - parseFloat(this.toolbar.style.top);
+        return { target, x, y };
     }
 }

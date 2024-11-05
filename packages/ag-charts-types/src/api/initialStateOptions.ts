@@ -1,4 +1,5 @@
 import type { AgAnnotation } from '../chart/annotationsOptions';
+import type { Ratio } from '../chart/types';
 import type { AgStateSerializableDate } from './stateTypes';
 
 // Theme
@@ -27,6 +28,6 @@ export interface AgInitialStateZoomRange {
 }
 
 export interface AgInitialStateZoomRatio {
-    start?: number;
-    end?: number;
+    start?: Ratio;
+    end?: Ratio;
 }

@@ -83,7 +83,6 @@ export type GaugeAnimationEvent = {
     reset: undefined;
     skip: undefined;
 };
-export type GaugeAnimationData = { duration?: number };
 
 interface RadialGaugeNeedleDatum {
     centerX: number;

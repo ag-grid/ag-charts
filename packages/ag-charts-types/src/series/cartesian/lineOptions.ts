@@ -20,7 +20,7 @@ export interface AgLineSeriesThemeableOptions<TDatum = any>
         LineDashOptions,
         AgBaseCartesianThemeableOptions<TDatum> {
     /** Configuration for the markers used in the series. */
-    marker?: AgSeriesMarkerOptions<AgLineSeriesOptionsKeys, TDatum>;
+    marker?: AgSeriesMarkerOptions<TDatum, AgLineSeriesMarkerItemStylerParams>;
     /** Configuration for the line used in the series. */
     interpolation?: AgInterpolationType;
     /** The title to use for the series. Defaults to `yName` if it exists, or `yKey` if not. */
@@ -40,6 +40,13 @@ export interface AgLineSeriesOptionsKeys {
     xKey: string;
     /** The key to use to retrieve y-values from the data. */
     yKey: string;
+}
+
+export interface AgLineSeriesMarkerItemStylerParams extends AgLineSeriesOptionsKeys {
+    /** The key to use to retrieve x-values from the data. */
+    xDomain: any[];
+    /** The key to use to retrieve y-values from the data. */
+    yDomain: any[];
 }
 
 export interface AgLineSeriesOptionsNames {

@@ -1,7 +1,7 @@
 import { Logger } from './logger';
 import { clamp, countFractionDigits } from './number';
 import { numberFormat, parseFormat } from './numberFormat';
-import timeDay from './time/day';
+import { day } from './time/day';
 import {
     durationDay,
     durationHour,
@@ -11,14 +11,14 @@ import {
     durationWeek,
     durationYear,
 } from './time/duration';
-import timeHour from './time/hour';
+import { hour } from './time/hour';
 import { type CountableTimeInterval, type TimeInterval } from './time/interval';
-import timeMillisecond from './time/millisecond';
-import timeMinute from './time/minute';
-import timeMonth from './time/month';
-import timeSecond from './time/second';
-import timeWeek from './time/week';
-import timeYear from './time/year';
+import { millisecond } from './time/millisecond';
+import { minute } from './time/minute';
+import { month } from './time/month';
+import { second } from './time/second';
+import { sunday as week } from './time/week';
+import { year } from './time/year';
 
 const tInterval = (timeInterval: CountableTimeInterval, baseDuration: number, step: number) => ({
     duration: baseDuration * step,
@@ -27,32 +27,32 @@ const tInterval = (timeInterval: CountableTimeInterval, baseDuration: number, st
 });
 
 export const TickIntervals = [
-    tInterval(timeSecond, durationSecond, 1),
-    tInterval(timeSecond, durationSecond, 5),
-    tInterval(timeSecond, durationSecond, 15),
-    tInterval(timeSecond, durationSecond, 30),
-    tInterval(timeMinute, durationMinute, 1),
-    tInterval(timeMinute, durationMinute, 5),
-    tInterval(timeMinute, durationMinute, 15),
-    tInterval(timeMinute, durationMinute, 30),
-    tInterval(timeHour, durationHour, 1),
-    tInterval(timeHour, durationHour, 3),
-    tInterval(timeHour, durationHour, 6),
-    tInterval(timeHour, durationHour, 12),
-    tInterval(timeDay, durationDay, 1),
-    tInterval(timeDay, durationDay, 2),
-    tInterval(timeWeek, durationWeek, 1),
-    tInterval(timeWeek, durationWeek, 2),
-    tInterval(timeWeek, durationWeek, 3),
-    tInterval(timeMonth, durationMonth, 1),
-    tInterval(timeMonth, durationMonth, 2),
-    tInterval(timeMonth, durationMonth, 3),
-    tInterval(timeMonth, durationMonth, 4),
-    tInterval(timeMonth, durationMonth, 6),
-    tInterval(timeYear, durationYear, 1),
+    tInterval(second, durationSecond, 1),
+    tInterval(second, durationSecond, 5),
+    tInterval(second, durationSecond, 15),
+    tInterval(second, durationSecond, 30),
+    tInterval(minute, durationMinute, 1),
+    tInterval(minute, durationMinute, 5),
+    tInterval(minute, durationMinute, 15),
+    tInterval(minute, durationMinute, 30),
+    tInterval(hour, durationHour, 1),
+    tInterval(hour, durationHour, 3),
+    tInterval(hour, durationHour, 6),
+    tInterval(hour, durationHour, 12),
+    tInterval(day, durationDay, 1),
+    tInterval(day, durationDay, 2),
+    tInterval(week, durationWeek, 1),
+    tInterval(week, durationWeek, 2),
+    tInterval(week, durationWeek, 3),
+    tInterval(month, durationMonth, 1),
+    tInterval(month, durationMonth, 2),
+    tInterval(month, durationMonth, 3),
+    tInterval(month, durationMonth, 4),
+    tInterval(month, durationMonth, 6),
+    tInterval(year, durationYear, 1),
 ];
 
-export const TickMultipliers = [1, 2, 5, 10];
+const TickMultipliers = [1, 2, 5, 10];
 
 function isCloseToInteger(n: number, delta: number) {
     return Math.abs(Math.round(n) - n) < delta;
@@ -99,11 +99,11 @@ export function getTickInterval(
 
     if (i === 0) {
         const step = Math.max(tickStep(start, stop, count, minCount, maxCount), 1);
-        return timeMillisecond.every(step);
+        return millisecond.every(step);
     } else if (i === TickIntervals.length) {
         const step =
             targetInterval == null ? tickStep(start / durationYear, stop / durationYear, count, minCount, maxCount) : 1;
-        return timeYear.every(step);
+        return year.every(step);
     }
 
     const i0 = TickIntervals[i - 1];

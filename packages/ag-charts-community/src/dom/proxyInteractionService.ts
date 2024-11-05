@@ -1,17 +1,18 @@
 import type { Direction } from 'ag-charts-types';
 
 import type { LocaleManager } from '../locale/localeManager';
-import { setAttribute } from '../util/attributeUtil';
-import { createElement } from '../util/dom';
+import { type BaseStyleTypeMap, setAttribute, setElementStyle } from '../util/attributeUtil';
+import { createElement, getWindow } from '../util/dom';
 import { BoundedText } from './boundedText';
 import type { DOMManager } from './domManager';
 
 export type ListSwitch = { button: HTMLButtonElement; listitem: HTMLElement };
 
-type ElemParams<T extends ProxyElementType> = { readonly type: T; readonly id?: string } & (
-    | { readonly parent: HTMLElement }
-    | { readonly domManagerId: string; readonly parent: 'beforebegin' | 'afterend' }
-);
+type ElemParams<T extends ProxyElementType> = {
+    readonly type: T;
+    readonly id?: string;
+    readonly cursor?: BaseStyleTypeMap['cursor'];
+} & ({ readonly parent: HTMLElement } | { readonly domManagerId: string; readonly parent: 'beforebegin' | 'afterend' });
 
 type InteractParams<T extends ProxyElementType> = ElemParams<T> & {
     readonly tabIndex?: number;
@@ -29,7 +30,7 @@ type TranslationKey = { id: string; params?: Record<string, any> };
 
 type ContainerParams<T extends ProxyContainerType> = {
     readonly type: T;
-    readonly id: string;
+    readonly domManagerId: string;
     readonly classList: string[];
     readonly ariaLabel: TranslationKey;
     readonly ariaOrientation: Direction;
@@ -81,6 +82,16 @@ type ProxyMeta = {
 type ProxyElementType = 'button' | 'slider' | 'text' | 'listswitch' | 'region';
 type ProxyContainerType = 'toolbar' | 'group' | 'list';
 
+export type ProxyDragHandlerEvent = {
+    offsetX: number;
+    offsetY: number;
+    // `originDelta` is the offset relative to position of the HTML element when the drag initiated.
+    // This is helpful for elements that move during drag actions, like navigator sliders.
+    originDeltaX: number;
+    originDeltaY: number;
+};
+type ProxyDragHandler = (event: ProxyDragHandlerEvent) => void;
+
 function checkType<T extends keyof ProxyMeta>(type: T, meta: ProxyMeta[keyof ProxyMeta]): meta is ProxyMeta[T] {
     return meta.params?.type === type;
 }
@@ -110,6 +121,16 @@ function allocateMeta<T extends keyof ProxyMeta>(params: ProxyMeta[T]['params'])
 export class ProxyInteractionService {
     private readonly destroyFns: Array<() => void> = [];
 
+    private dragState?: {
+        target: HTMLElement;
+        start: {
+            offsetX: number;
+            offsetY: number;
+            pageX: number;
+            pageY: number;
+        };
+    };
+
     constructor(
         private readonly localeManager: LocaleManager,
         private readonly domManager: DOMManager
@@ -131,7 +152,7 @@ export class ProxyInteractionService {
         const meta: ProxyMeta[T] = allocateMeta(args);
         const { params, result: div } = meta;
 
-        this.domManager.addChild('canvas-proxy', params.id, div);
+        this.domManager.addChild('canvas-proxy', params.domManagerId, div);
         div.classList.add(...params.classList, 'ag-charts-proxy-container');
         div.role = params.type;
         if ('ariaOrientation' in params) {
@@ -155,7 +176,6 @@ export class ProxyInteractionService {
         if (checkType('button', meta)) {
             const { params, result: button } = meta;
             this.initInteract(params, button);
-            button.style.pointerEvents = 'auto'; // TODO(olegat) this should be part of CSS once all element types support pointer events.
 
             if (typeof params.textContent === 'string') {
                 button.textContent = params.textContent;
@@ -199,7 +219,6 @@ export class ProxyInteractionService {
             button.textContent = params.textContent;
             button.role = 'switch';
             button.ariaChecked = params.ariaChecked.toString();
-            button.style.pointerEvents = 'auto'; // TODO(olegat) this should be part of CSS once all element types support pointer events.
             button.setAttribute('aria-describedby', params.ariaDescribedBy);
 
             listitem.role = 'listitem';
@@ -212,15 +231,72 @@ export class ProxyInteractionService {
             const { params, result: region } = meta;
             this.initInteract(params, region);
             region.role = 'region';
-            region.style.pointerEvents = 'auto'; // TODO(olegat) this should be part of CSS once all element types support pointer events.
             this.setParent(params, region);
         }
 
         return meta.result;
     }
 
+    createDragListeners(args: {
+        element: HTMLElement;
+        onDragStart?: ProxyDragHandler;
+        onDrag?: ProxyDragHandler;
+        onDragEnd?: ProxyDragHandler;
+    }): () => void {
+        const { element, onDragStart, onDrag, onDragEnd } = args;
+
+        const mousedown = (sourceEvent: MouseEvent) => {
+            const { button, offsetX, offsetY, pageX, pageY } = sourceEvent;
+            if (button === 0) {
+                this.dragState = { target: element, start: { offsetX, offsetY, pageX, pageY } };
+                onDragStart?.(ProxyInteractionService.makeDragEvent(this.dragState, sourceEvent));
+            }
+        };
+        const mousemove = (sourceEvent: MouseEvent) => {
+            if (this.dragState?.target === element) {
+                onDrag?.(ProxyInteractionService.makeDragEvent(this.dragState, sourceEvent));
+            }
+        };
+        const mouseup = (sourceEvent: MouseEvent) => {
+            if (this.dragState?.target === element && sourceEvent.button === 0) {
+                onDragEnd?.(ProxyInteractionService.makeDragEvent(this.dragState, sourceEvent));
+                this.dragState = undefined;
+            }
+        };
+
+        // TODO: We only need 1 window listener. Not one per draggable element.
+        const window = getWindow();
+        element.addEventListener('mousedown', mousedown);
+        window.addEventListener('mousemove', mousemove);
+        window.addEventListener('mouseup', mouseup);
+
+        return () => {
+            element.removeEventListener('mousedown', mousedown);
+            window.removeEventListener('mousemove', mousemove);
+            window.removeEventListener('mouseup', mouseup);
+        };
+    }
+
+    private static makeDragEvent(
+        { start }: NonNullable<ProxyInteractionService['dragState']>,
+        sourceEvent: MouseEvent
+    ): ProxyDragHandlerEvent {
+        // [offsetX, offsetY] is relative to the sourceEvent.target, which can be another element
+        // such as a legend button. Therefore, calculate [offsetX, offsetY] relative to the axis
+        // element that fired the 'mousedown' event.
+        const originDeltaX = sourceEvent.pageX - start.pageX;
+        const originDeltaY = sourceEvent.pageY - start.pageY;
+        return {
+            offsetX: start.offsetX + originDeltaX,
+            offsetY: start.offsetY + originDeltaY,
+            originDeltaX,
+            originDeltaY,
+        };
+    }
+
     private initElement<T extends ProxyElementType, TElem extends HTMLElement>(params: ElemParams<T>, element: TElem) {
         setAttribute(element, 'id', params.id);
+        setElementStyle(element, 'cursor', params.cursor);
         element.classList.toggle('ag-charts-proxy-elem', true);
     }
 

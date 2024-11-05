@@ -38,7 +38,7 @@ export interface RangeAreaContext
     lowStrokeData: RangeAreaStrokePathDatum;
 }
 
-export function prepareRangeAreaPathStrokeAnimationFns(
+function prepareRangeAreaPathStrokeAnimationFns(
     status: _ModuleSupport.NodeUpdateState,
     highSpans: _ModuleSupport.SpanAnimation,
     lowSpans: _ModuleSupport.SpanAnimation,

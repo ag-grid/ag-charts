@@ -25,7 +25,7 @@ type MatrixTransformType<T> = T &
         computeBBoxWithoutTransforms(): BBox | undefined;
     };
 
-export function isMatrixTransform<N extends Node>(node: N): node is MatrixTransformType<N> {
+function isMatrixTransform<N extends Node>(node: N): node is MatrixTransformType<N> {
     return isMatrixTransformType(node.constructor as any);
 }
 

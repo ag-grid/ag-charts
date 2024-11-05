@@ -391,6 +391,28 @@ const ENABLED_FALSE_OPTIONS: AgCartesianChartOptions = {
     },
 };
 
+const INTRINSIC_ENABLE_CROSSLINE_OPTIONS: AgCartesianChartOptions = {
+    ...examples.SIMPLE_LINE_CHART_EXAMPLE,
+    axes: [
+        {
+            position: 'bottom',
+            type: 'time',
+            crossLines: [
+                {
+                    type: 'range',
+                    label: {
+                        text: 'Custom Crossline Label',
+                    },
+                },
+            ],
+        },
+        {
+            position: 'left',
+            type: 'number',
+        },
+    ],
+};
+
 describe('ChartOptions', () => {
     beforeAll(() => {
         registerInbuiltModules();
@@ -1645,6 +1667,16 @@ describe('ChartOptions', () => {
 
             // AG-13304 - Disabled modules should not have any options object.
             expect(preparedOptions.legend).toBeUndefined();
+        });
+
+        it('should intrinsically enable nested crossline options', () => {
+            const options = INTRINSIC_ENABLE_CROSSLINE_OPTIONS;
+            options.container = document.createElement('div');
+
+            const preparedOptions = prepareOptions(options);
+
+            expect(preparedOptions.axes?.[0].crossLines?.[0].enabled).toBe(true);
+            expect(preparedOptions.axes?.[0].crossLines?.[0].label?.enabled).toBe(true);
         });
     });
 });

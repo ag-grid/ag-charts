@@ -8,6 +8,10 @@ export interface ChartLegend {
     destroy(): void;
     data: any;
     listeners?: AgChartLegendListeners;
+    pagination?: {
+        currentPage: number;
+        setPage: (pageNumber: number) => void;
+    };
 }
 
 export type ChartLegendType = 'category' | 'gradient';

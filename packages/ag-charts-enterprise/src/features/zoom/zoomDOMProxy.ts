@@ -6,75 +6,44 @@ type AxesHandlers = {
     onDragEnd: () => void;
 };
 
-export class ZoomDOMProxy {
-    private axes: { axisId: string; div: HTMLDivElement }[] = [];
-    private readonly destroyFns = new _Util.DestroyFns();
+type ProxyAxis = {
+    axisId: string;
+    div: HTMLDivElement;
+    destroy(): void;
+};
 
-    private dragState?: {
-        direction: _ModuleSupport.ChartAxisDirection;
-        start: {
-            offsetX: number;
-            offsetY: number;
-            pageX: number;
-            pageY: number;
-        };
-    };
+export class ZoomDOMProxy {
+    private axes: ProxyAxis[] = [];
 
     private initAxis(
         ctx: Pick<_ModuleSupport.ModuleContext, 'proxyInteractionService' | 'localeManager'>,
         axisId: string,
         handlers: AxesHandlers,
         direction: _ModuleSupport.ChartAxisDirection
-    ) {
+    ): ProxyAxis {
         const { X, Y } = _ModuleSupport.ChartAxisDirection;
         const cursor = ({ [X]: 'ew-resize', [Y]: 'ns-resize' } as const)[direction];
         const parent = 'afterend';
-        const axis = ctx.proxyInteractionService.createProxyElement({ type: 'region', domManagerId: axisId, parent });
-        _Util.setElementStyle(axis, 'cursor', cursor);
+        const div = ctx.proxyInteractionService.createProxyElement({ type: 'region', domManagerId: axisId, parent });
+        _Util.setElementStyle(div, 'cursor', cursor);
 
-        const mousedown = (sourceEvent: MouseEvent) => {
-            const { button, offsetX, offsetY, pageX, pageY } = sourceEvent;
-            if (button === 0) {
-                this.dragState = { direction, start: { offsetX, offsetY, pageX, pageY } };
-                handlers.onDragStart(axisId, direction);
-            }
-        };
-        const mousemove = (sourceEvent: MouseEvent) => {
-            if (this.dragState?.direction === direction) {
-                // [offsetX, offsetY] is relative to the sourceEvent.target, which can be another element
-                // such as a legend button. Therefore, calculate [offsetX, offsetY] relative to the axis
-                // element that fired the 'mousedown' event.
-                const { start } = this.dragState;
-                handlers.onDrag({
-                    offsetX: start.offsetX + (sourceEvent.pageX - start.pageX),
-                    offsetY: start.offsetY + (sourceEvent.pageY - start.pageY),
-                });
-            }
-        };
-        const mouseup = (sourceEvent: MouseEvent) => {
-            if (this.dragState !== undefined && sourceEvent.button === 0) {
-                this.dragState = undefined;
-                handlers.onDragEnd();
-            }
-        };
-
-        const window = _ModuleSupport.getWindow();
-        axis.addEventListener('mousedown', mousedown);
-        window.addEventListener('mousemove', mousemove);
-        window.addEventListener('mouseup', mouseup);
-        this.destroyFns.push(() => {
-            axis.removeEventListener('mousedown', mousedown);
-            window.removeEventListener('mousemove', mousemove);
-            window.removeEventListener('mouseup', mouseup);
+        const removeListeners = ctx.proxyInteractionService.createDragListeners({
+            element: div,
+            onDragStart: () => handlers.onDragStart(axisId, direction),
+            onDrag: handlers.onDrag,
+            onDragEnd: handlers.onDragEnd,
         });
-
-        return axis;
+        const destroy = () => {
+            div.remove();
+            removeListeners();
+        };
+        return { axisId, div, destroy };
     }
 
     constructor(private readonly axesHandlers: AxesHandlers) {}
 
     destroy() {
-        this.destroyFns.destroy();
+        this.axes.forEach((a) => a.destroy());
     }
 
     update(ctx: _ModuleSupport.ModuleContext) {
@@ -85,7 +54,7 @@ export class ZoomDOMProxy {
         if (removed.length > 0) {
             this.axes = this.axes.filter((entry) => {
                 if (removed.includes(entry.axisId)) {
-                    entry.div.remove();
+                    entry.destroy();
                     return false;
                 }
                 return true;
@@ -94,8 +63,7 @@ export class ZoomDOMProxy {
 
         for (const newAxisCtx of added) {
             const { axisId, direction } = newAxisCtx;
-            const div = this.initAxis(ctx, axisId, this.axesHandlers, direction);
-            this.axes.push({ axisId, div });
+            this.axes.push(this.initAxis(ctx, axisId, this.axesHandlers, direction));
         }
 
         for (const axis of this.axes) {

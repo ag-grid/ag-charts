@@ -80,19 +80,12 @@ type EventUpcast<K extends keyof HTMLElement> = PointerInteractionEvent & {
     sourceEvent: RegionEvent['sourceEvent'] & { target: (EventTarget & { [P in K]?: unknown }) | null };
 };
 
-function shouldIgnore(
-    event: EventUpcast<'id' | 'className' | 'classList' | 'ariaHidden' | 'role'>
-): 'none' | 'leave' | 'wait' {
+function shouldIgnore(event: EventUpcast<'className' | 'classList' | 'ariaHidden'>): 'none' | 'leave' | 'wait' {
     const { type, sourceEvent } = event;
-    const { id, className, classList, ariaHidden, role } = sourceEvent?.target ?? {};
-    if (!(classList instanceof DOMTokenList)) return 'leave';
+    const { className, classList, ariaHidden } = sourceEvent?.target ?? {};
+    if (className === 'ag-charts-proxy-elem' || !(classList instanceof DOMTokenList)) return 'leave';
 
     const dragTypes: readonly string[] = DRAG_INTERACTION_TYPES;
-    if (className === 'ag-charts-proxy-elem') {
-        if (id?.toString().startsWith('ag-charts-legend-item-')) return 'leave'; // legend <buttons>
-        if (role === 'region') return 'leave'; // axes zoom draggers
-        return 'none'; // navigator sliders
-    }
     if (
         // Handle drag event on the axis 'add horizontal line annotation' button as canvas events.
         (classList.contains('ag-charts-annotations__axis-button-icon') && !dragTypes.includes(type)) ||
@@ -282,14 +275,14 @@ export class RegionManager {
     }
 
     private processPointerEvent(event: PointerInteractionEvent) {
-        if (this.handleDragging(event)) {
+        const ignore = shouldIgnore(event);
+        if (ignore === 'none' && this.handleDragging(event)) {
             // We are current dragging, so do not send leave/enter events until dragging is done.
             return;
         }
 
         const { current } = this;
 
-        const ignore = shouldIgnore(event);
         let newCurrent: ReturnType<RegionManager['pickRegion']>;
         switch (ignore) {
             case 'wait':

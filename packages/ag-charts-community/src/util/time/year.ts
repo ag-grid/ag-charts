@@ -15,4 +15,3 @@ function decode(encoded: number) {
 }
 
 export const year = new CountableTimeInterval(encode, decode);
-export default year;

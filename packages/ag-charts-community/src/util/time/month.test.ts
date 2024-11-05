@@ -1,6 +1,6 @@
 import { expect, test } from '@jest/globals';
 
-import month from './month';
+import { month } from './month';
 
 test('month', () => {
     const interval = month;

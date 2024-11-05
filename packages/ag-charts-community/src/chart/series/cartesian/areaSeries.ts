@@ -631,6 +631,8 @@ export class AreaSeries extends CartesianSeries<
         const { markerSelection, isHighlight: highlighted } = opts;
         const { xKey, yKey, marker, fill, stroke, strokeWidth, fillOpacity, strokeOpacity, highlightStyle } =
             this.properties;
+        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
         const baseStyle = mergeDefaults(highlighted && highlightStyle.item, marker.getStyle(), {
             fill,
             stroke,
@@ -640,7 +642,7 @@ export class AreaSeries extends CartesianSeries<
         });
 
         markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey }, baseStyle, {
+            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, xDomain, yDomain }, baseStyle, {
                 selected: datum.selected,
             });
         });
@@ -687,6 +689,8 @@ export class AreaSeries extends CartesianSeries<
         const { id: seriesId, axes, dataModel } = this;
         const { xKey, xName, yName, tooltip, marker } = this.properties;
         const { yKey, xValue, yValue, datum, itemId } = nodeDatum;
+        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -706,7 +710,7 @@ export class AreaSeries extends CartesianSeries<
         });
         const { fill: color } = this.getMarkerStyle(
             marker,
-            { datum: nodeDatum, xKey, yKey, highlighted: false },
+            { datum: nodeDatum, xKey, yKey, xDomain, yDomain, highlighted: false },
             baseStyle
         );
 
@@ -882,7 +886,9 @@ export class AreaSeries extends CartesianSeries<
 
     public getFormattedMarkerStyle(datum: MarkerSelectionDatum): AgSeriesMarkerStyle & { size: number } {
         const { xKey, yKey } = datum;
-        return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, highlighted: true });
+        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
+        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+        return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, xDomain, yDomain, highlighted: true });
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {

@@ -48,7 +48,7 @@ export class DonutInnerLabel<T extends object = any> extends Label<AgDonutSeries
     }
 }
 
-export class DonutInnerCircle extends BaseProperties {
+class DonutInnerCircle extends BaseProperties {
     @Validate(COLOR_STRING)
     fill: string = 'transparent';
 

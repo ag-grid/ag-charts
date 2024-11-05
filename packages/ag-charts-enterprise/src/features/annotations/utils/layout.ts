@@ -45,7 +45,7 @@ export function layoutScenesColumn(
     }
 }
 
-export function layoutSetX(scene: PositionedScene, x: number) {
+function layoutSetX(scene: PositionedScene, x: number) {
     if ('x1' in scene) {
         scene.x2 = x + (scene.x2 - scene.x1);
         scene.x1 = x;
@@ -54,7 +54,7 @@ export function layoutSetX(scene: PositionedScene, x: number) {
     }
 }
 
-export function layoutSetY(scene: PositionedScene, y: number) {
+function layoutSetY(scene: PositionedScene, y: number) {
     if ('y1' in scene) {
         scene.y2 = y + (scene.y2 - scene.y1);
         scene.y1 = y;

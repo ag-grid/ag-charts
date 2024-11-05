@@ -38,7 +38,7 @@ class CandlestickSeriesWick extends BaseProperties {
     lineDashOffset?: number;
 }
 
-export class CandlestickSeriesItem extends BaseProperties {
+class CandlestickSeriesItem extends BaseProperties {
     @Validate(COLOR_STRING, { optional: true })
     fill: string = '#c16068';
 

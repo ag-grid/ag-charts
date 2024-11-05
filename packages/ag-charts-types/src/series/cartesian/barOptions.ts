@@ -27,6 +27,10 @@ export interface AgBarSeriesItemStylerParams<TDatum>
         AgBarSeriesOptionsKeys,
         Required<AgBarSeriesStyle> {
     readonly stackGroup?: string;
+    /** The key to use to retrieve x-values from the data. */
+    xDomain: any[];
+    /** The key to use to retrieve y-values from the data. */
+    yDomain: any[];
 }
 
 export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {

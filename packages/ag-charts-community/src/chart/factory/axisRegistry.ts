@@ -2,7 +2,7 @@ import type { AxisModule } from '../../module/axisModule';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { ChartAxis } from '../chartAxis';
 
-export class AxisRegistry {
+class AxisRegistry {
     private readonly axesMap = new Map<string, (moduleContext: ModuleContext) => ChartAxis>();
     private readonly hidden = new Set<string>();
     private readonly themeTemplates = new Map<string, object>();

@@ -11,18 +11,14 @@ const options: AgSparklineOptions = {
     type: 'line',
     xKey: 'date',
     yKey: 'change',
-    xAxis: {
+    axis: {
         type: 'time',
         visible: true,
         stroke: '#66A4',
         strokeWidth: 1,
     },
-    yAxis: {
-        type: 'number',
-        visible: false,
-        min: -3,
-        max: 3,
-    },
+    min: -3,
+    max: 3,
 };
 
 AgCharts.__createSparkline(options);

@@ -56,7 +56,7 @@ export function validateDatumPoint(context: AnnotationContext, point: Point, war
     return true;
 }
 
-export function validateDatumPointDirection(value: any, context: AnnotationAxisContext) {
+function validateDatumPointDirection(value: any, context: AnnotationAxisContext) {
     const domain = context.scale.getDomain?.();
     if (domain && _Scale.OrdinalTimeScale.is(context.scale)) {
         return value >= domain[0] && value <= domain.at(-1);

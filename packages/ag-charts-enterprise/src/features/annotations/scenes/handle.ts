@@ -67,7 +67,7 @@ export abstract class Handle extends _Scene.Group {
     }
 }
 
-export class InvariantHandle extends Handle {
+class InvariantHandle extends Handle {
     static override readonly HANDLE_SIZE = 7;
     static override readonly GLOW_SIZE = 9;
 

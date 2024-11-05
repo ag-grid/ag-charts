@@ -16,29 +16,42 @@ import { extractImageData, setupMockCanvas } from '../src/util/test/mockCanvas';
 
 export interface BenchmarkExpectations {
     expectedMaxMemoryMB: number;
-    runCount?: number;
+    autoSnapshot?: boolean;
 }
 
 export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
-    chart: AgChartProxy | AgChartInstance;
+    chart?: AgChartProxy | AgChartInstance;
     options: T;
     nodePositions: Point[][] = [];
+    repeat = 1;
 
-    public constructor(readonly canvasCtx: ReturnType<typeof setupMockCanvas>) {}
+    public constructor(
+        readonly canvasCtx: ReturnType<typeof setupMockCanvas>,
+        readonly createApi: 'create' | '__createSparkline'
+    ) {}
 
     async create() {
         if (this.chart) this.chart.destroy();
 
-        this.chart = AgCharts.create(this.options);
+        this.chart = AgCharts[this.createApi](this.options as any) as AgChartProxy;
         await this.waitForUpdate();
     }
 
     async update() {
-        await this.chart.update(this.options);
+        await this.chart?.update(this.options);
+    }
+
+    async updateDelta(options: Partial<T>) {
+        await this.chart?.updateDelta(options as T);
     }
 
     async waitForUpdate() {
-        await this.chart.waitForUpdate();
+        await this.chart?.waitForUpdate();
+    }
+
+    repeatCount(count: number) {
+        this.repeat = count;
+        return this;
     }
 }
 
@@ -58,12 +71,15 @@ export function benchmark(
         async () => {
             global.gc?.();
             const memoryUsageBefore = process.memoryUsage();
+
             const start = performance.now();
-            const { runCount = 1 } = expectations;
+            const { repeat: runCount = 1 } = ctx;
             for (let i = 0; i < runCount; i++) {
                 await callback();
             }
             const duration = (performance.now() - start) / runCount;
+
+            if (runCount > 1) global.gc?.();
             const memoryUsageAfter = process.memoryUsage();
             const canvasInstances = ctx.canvasCtx.getActiveCanvasInstances();
             const { currentTestName, testPath } = expect.getState();
@@ -90,8 +106,10 @@ export function benchmark(
                 },
             });
 
-            const newImageData = extractImageData(ctx.canvasCtx);
-            expect(newImageData).toMatchImageSnapshot({ failureThresholdType: 'pixel', failureThreshold: 5 });
+            if (expectations.autoSnapshot ?? true) {
+                const newImageData = extractImageData(ctx.canvasCtx);
+                expect(newImageData).toMatchImageSnapshot({ failureThresholdType: 'pixel', failureThreshold: 5 });
+            }
 
             const BYTES_PER_MB = 1024 ** 2;
             expect(memoryUse / BYTES_PER_MB).toBeLessThanOrEqual(expectations.expectedMaxMemoryMB);
@@ -100,8 +118,14 @@ export function benchmark(
     );
 }
 
-export function setupBenchmark<T extends AgChartOptions>(exampleName: string): BenchmarkContext<T> {
+export function setupBenchmark<T extends AgChartOptions>(
+    exampleName: string,
+    opts?: {
+        createApi: 'create' | '__createSparkline';
+    }
+): BenchmarkContext<T> {
     const canvasCtx = setupMockCanvas();
+    const { createApi = 'create' } = opts ?? {};
     setupMockConsole();
 
     beforeEach(() => {
@@ -119,7 +143,7 @@ export function setupBenchmark<T extends AgChartOptions>(exampleName: string): B
         logTimings();
     });
 
-    const ctx = new BenchmarkContext<T>(canvasCtx);
+    const ctx = new BenchmarkContext<T>(canvasCtx, createApi);
     return ctx;
 }
 
@@ -132,6 +156,8 @@ export function addSeriesNodePoints<T extends AgChartOptions>(
     seriesIdx: number,
     nodeCount: number
 ) {
+    if (ctx.chart == null) throw new Error('No ctx.chart to update');
+
     const series = deproxy(ctx.chart).series[seriesIdx] as CartesianSeries<any, any, any>;
     const { nodeData = [] } = getSeriesNodeData(series) ?? {};
 

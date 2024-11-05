@@ -3,7 +3,7 @@ import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
 
 import type { CandlestickNodeDatum } from './candlestickTypes';
 
-export enum GroupTags {
+enum GroupTags {
     Body,
     LowWick,
     HighWick,

@@ -21,16 +21,13 @@ const marketCapOptions: AgSparklineOptions = {
         fill: 'transparent',
     },
     type: 'bar',
-    xAxis: {
+    axis: {
         type: 'category',
         visible: false,
         paddingOuter: 0,
     },
-    yAxis: {
-        type: 'number',
-        min: 0,
-        max: 2500000000000,
-    },
+    min: 0,
+    max: 2500000000000,
     xKey: 'index',
     yKey: 'marketCap',
     direction: 'horizontal',
@@ -93,11 +90,8 @@ const priceChangeOptions: AgSparklineOptions = {
     type: 'area',
     xKey: 'date',
     yKey: 'change',
-    yAxis: {
-        type: 'number',
-        min: -10,
-        max: 10,
-    },
+    min: -10,
+    max: 10,
     tooltip: {
         renderer: ({ datum, yKey }) => ({ content: priceChangeFormatter.format(datum[yKey]) }),
     },

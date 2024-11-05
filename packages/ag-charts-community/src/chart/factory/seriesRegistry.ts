@@ -18,7 +18,7 @@ interface SeriesRegistryRecord {
     stackedByDefault?: boolean;
 }
 
-export class SeriesRegistry {
+class SeriesRegistry {
     private readonly seriesMap = new Map<SeriesType, SeriesRegistryRecord>();
     private readonly themeTemplates = new Map<string, object>();
 

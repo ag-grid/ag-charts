@@ -6,10 +6,6 @@ import type { AnnotationStateEvents } from '../states/stateTypes';
 import { type CrossLineProperties, HorizontalLineProperties, VerticalLineProperties } from './crossLineProperties';
 import type { CrossLineScene } from './crossLineScene';
 
-export function isHorizontalAxis(region: any) {
-    return region === 'horizontal-axes';
-}
-
 const { StateMachine, StateMachineProperty } = _ModuleSupport;
 
 interface CrossLineStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {

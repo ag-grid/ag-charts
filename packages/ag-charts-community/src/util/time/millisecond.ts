@@ -9,4 +9,3 @@ function decode(encoded: number) {
 }
 
 export const millisecond = new CountableTimeInterval(encode, decode);
-export default millisecond;

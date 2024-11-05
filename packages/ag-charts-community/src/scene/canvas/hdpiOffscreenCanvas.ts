@@ -67,6 +67,7 @@ export class HdpiOffscreenCanvas {
         this.context.clearRect(0, 0, 0, 0);
 
         (this as any).canvas = null!;
+        (this as any).context = null!;
 
         Object.freeze(this);
     }

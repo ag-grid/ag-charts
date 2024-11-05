@@ -60,9 +60,9 @@ export class AxisLabelProperties extends Stroke(LineStyle(Fill(Label(Font(BasePr
     cornerRadius: number = 2;
 }
 
-export class BackgroundProperties extends Fill(BaseProperties) {}
+class BackgroundProperties extends Fill(BaseProperties) {}
 
-export class HandleProperties extends Stroke(LineStyle(Fill(BaseProperties))) {}
+class HandleProperties extends Stroke(LineStyle(Fill(BaseProperties))) {}
 
 export class LineTextProperties extends Font(BaseProperties) {
     @Validate(STRING)
@@ -216,7 +216,7 @@ export function Localisable<T extends Constructor>(Parent: T) {
 /******************
  * Generic mixins *
  ******************/
-export function Visible<T extends Constructor>(Parent: T) {
+function Visible<T extends Constructor>(Parent: T) {
     class VisibleInternal extends Parent {
         @Validate(BOOLEAN, { optional: true })
         visible?: boolean;

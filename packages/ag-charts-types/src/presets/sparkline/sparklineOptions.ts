@@ -4,10 +4,14 @@ import type { AgLineSeriesOptions } from '../../series/cartesian/lineOptions';
 import type { AgSparklineAxisOptions } from './sparklineAxisOptions';
 
 export interface AgSparklineBaseThemeableOptions {
-    /** x-axis configurations. */
-    xAxis?: AgSparklineAxisOptions;
     /** y-axis configurations. */
-    yAxis?: AgSparklineAxisOptions;
+    axis?: AgSparklineAxisOptions;
+    /** User override for the automatically determined min value (based on series data). */
+    min?: number;
+    /** User override for the automatically determined max value (based on series data). */
+    max?: number;
+    /** Reverse the axis scale domain if `true`. */
+    reverse?: boolean;
 }
 
 export interface AgBarSparklinePreset

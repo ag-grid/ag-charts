@@ -3,20 +3,18 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
+import { Transformable } from '../../scene/transformable';
 import type { BBoxProvider } from '../../util/bboxinterface';
 import { clamp } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, OBJECT, POSITIVE_NUMBER, Validate } from '../../util/validation';
-import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
-import type { RegionEvent } from '../interaction/regionManager';
+import { InteractionState } from '../interaction/interactionManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
 import { type LayoutCompleteEvent, LayoutElement } from '../layout/layoutManager';
-import { NavigatorDOMProxy } from './navigatorDOMProxy';
+import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
 import { RangeHandle } from './shapes/rangeHandle';
 import { RangeMask } from './shapes/rangeMask';
 import { RangeSelector } from './shapes/rangeSelector';
-
-type NavigatorButtonType = 'min' | 'max' | 'pan';
 
 export class Navigator extends BaseModuleInstance implements ModuleInstance {
     @Validate(OBJECT, { optional: true })
@@ -51,30 +49,21 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
 
     private readonly rangeSelector = new RangeSelector([this.mask, this.minHandle, this.maxHandle]);
 
-    private dragging?: NavigatorButtonType;
     private panStart?: number;
     private readonly domProxy: NavigatorDOMProxy;
 
     constructor(private readonly ctx: ModuleContext) {
         super();
 
-        const region = ctx.regionManager.addRegion('navigator', this.rangeSelector);
-        const dragStates = InteractionState.Default | InteractionState.Animation | InteractionState.ZoomDrag;
         this.destroyFns.push(
             ctx.scene.attachNode(this.rangeSelector),
-            region.addListener('hover', (event) => this.onHover(event), dragStates),
-            region.addListener('drag-start', (event) => this.onDragStart(event), dragStates),
-            region.addListener('drag', (event) => this.onDrag(event), dragStates),
-            region.addListener('drag-end', (event) => this.onDragEnd(event), dragStates),
-            region.addListener('leave', (event) => this.onLeave(event), dragStates),
-            () => ctx.regionManager.removeRegion('navigator'),
             this.ctx.localeManager.addListener('locale-changed', () => this.updateZoom()),
             this.ctx.layoutManager.registerElement(LayoutElement.Navigator, (e) => this.onLayoutStart(e)),
             this.ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event))
         );
 
-        this.domProxy = new NavigatorDOMProxy(ctx);
+        this.domProxy = new NavigatorDOMProxy(ctx, this);
         this.updateGroupVisibility();
     }
 
@@ -121,68 +110,29 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.width = width;
     }
 
-    private onHover(event: RegionEvent<'hover'>) {
-        if (!this.enabled) return;
-        this.updateCursor(event);
+    private canDrag() {
+        const dragStates = InteractionState.Default | InteractionState.Animation | InteractionState.ZoomDrag;
+        return this.enabled && this.ctx.interactionManager.getState() & dragStates;
     }
 
-    private updateCursor(event: RegionEvent) {
-        if (!this.enabled) return;
+    onDragStart(dragging: NavigatorButtonType, { offsetX }: { offsetX: number }) {
+        if (!this.canDrag()) return;
 
-        const { mask, minHandle, maxHandle } = this;
-        const { regionOffsetX, regionOffsetY } = event;
-
-        if (
-            minHandle.containsPoint(regionOffsetX, regionOffsetY) ||
-            maxHandle.containsPoint(regionOffsetX, regionOffsetY)
-        ) {
-            this.ctx.cursorManager.updateCursor('navigator', 'ew-resize');
-        } else if (mask.computeVisibleRangeBBox().containsPoint(regionOffsetX, regionOffsetY)) {
-            this.ctx.cursorManager.updateCursor('navigator', 'grab');
-        } else {
-            this.ctx.cursorManager.updateCursor('navigator');
+        if (dragging === 'pan') {
+            this.panStart = (offsetX - this.x) / this.width - this.domProxy._min;
         }
+
+        this.ctx.zoomManager.fireZoomPanStartEvent('navigator');
     }
 
-    private onDragStart(event: RegionEvent<'drag-start'>) {
-        if (!this.enabled) return;
-        this.updateCursor(event);
+    onDrag(dragging: NavigatorButtonType, { offsetX }: { offsetX: number }) {
+        if (!this.canDrag()) return;
 
-        const { mask, minHandle, maxHandle, x, width } = this;
-        const { _min: min } = this.domProxy;
-        const { regionOffsetX, regionOffsetY } = event;
-
-        if (minHandle.zIndex < maxHandle.zIndex) {
-            if (maxHandle.containsPoint(regionOffsetX, regionOffsetY)) {
-                this.dragging = 'max';
-            } else if (minHandle.containsPoint(regionOffsetX, regionOffsetY)) {
-                this.dragging = 'min';
-            }
-        } else if (minHandle.containsPoint(regionOffsetX, regionOffsetY)) {
-            this.dragging = 'min';
-        } else if (maxHandle.containsPoint(regionOffsetX, regionOffsetY)) {
-            this.dragging = 'max';
-        }
-
-        if (this.dragging == null && mask.computeVisibleRangeBBox().containsPoint(regionOffsetX, regionOffsetY)) {
-            this.dragging = 'pan';
-            this.panStart = (regionOffsetX - x) / width - min;
-        }
-
-        if (this.dragging != null) {
-            this.ctx.zoomManager.fireZoomPanStartEvent('navigator');
-        }
-    }
-
-    private onDrag(event: RegionEvent<'drag'>) {
-        if (!this.enabled || this.dragging == null) return;
-
-        const { dragging, panStart, x, width } = this;
+        const { panStart, x, width } = this;
         const { minRange } = this.domProxy;
         let { _min: min, _max: max } = this.domProxy;
-        const { regionOffsetX } = event;
 
-        const ratio = (regionOffsetX - x) / width;
+        const ratio = (offsetX - x) / width;
 
         if (dragging === 'min') {
             min = clamp(0, ratio, max - minRange);
@@ -198,15 +148,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         this.domProxy._max = max;
 
         this.updateZoom();
-    }
-
-    private onDragEnd(event: RegionEvent<'drag-end'>) {
-        this.dragging = undefined;
-        this.updateCursor(event);
-    }
-
-    private onLeave(_event: PointerInteractionEvent<'leave'>) {
-        this.ctx.cursorManager.updateCursor('navigator');
     }
 
     private onZoomChange(event: ZoomChangeEvent) {
@@ -248,5 +189,18 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private updateZoom() {
         if (!this.enabled) return;
         this.domProxy.updateZoom();
+    }
+
+    testFindTarget(canvasX: number, canvasY: number): { target: HTMLElement; x: number; y: number } | undefined {
+        if (!this.enabled) return undefined;
+
+        if (Transformable.toCanvas(this.minHandle).containsPoint(canvasX, canvasY)) {
+            return this.domProxy.testFindTarget('min', canvasX, canvasY);
+        } else if (Transformable.toCanvas(this.maxHandle).containsPoint(canvasX, canvasY)) {
+            return this.domProxy.testFindTarget('max', canvasX, canvasY);
+        } else if (Transformable.toCanvas(this.mask).containsPoint(canvasX, canvasY)) {
+            return this.domProxy.testFindTarget('pan', canvasX, canvasY);
+        }
+        return undefined;
     }
 }

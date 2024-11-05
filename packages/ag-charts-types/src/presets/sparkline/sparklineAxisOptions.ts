@@ -1,4 +1,3 @@
-import type { AgAxisContinuousIntervalOptions, TimeInterval } from '../../chart/axisOptions';
 import type { CssColor, PixelSize, Ratio } from '../../chart/types';
 
 export interface AgSparklineBaseAxisOptions {
@@ -32,24 +31,10 @@ export interface AgSparklineCategoryAxisOptions extends AgSparklineBaseCategoryA
     type: 'category';
 }
 
-export interface AgSparklineOrdinalTimeAxisOptions extends AgSparklineBaseCategoryAxisOptions {
-    type: 'ordinal-time';
-    /** Configuration for the axis ticks interval. */
-    interval?: AgAxisContinuousIntervalOptions<TimeInterval | number>;
-}
-
 export interface AgSparklineNumberAxisOptions
     extends AgSparklineBaseAxisOptions,
         AgSparklineContinuousAxisOptions<number> {
     type: 'number';
-}
-
-export interface AgSparklineLogAxisOptions
-    extends AgSparklineBaseAxisOptions,
-        AgSparklineContinuousAxisOptions<number> {
-    type: 'log';
-    /** The base of the logarithm used. */
-    base?: number;
 }
 
 export interface AgSparklineTimeAxisOptions extends AgSparklineBaseAxisOptions, AgSparklineContinuousAxisOptions<Date> {
@@ -58,7 +43,5 @@ export interface AgSparklineTimeAxisOptions extends AgSparklineBaseAxisOptions, 
 
 export type AgSparklineAxisOptions =
     | AgSparklineCategoryAxisOptions
-    | AgSparklineOrdinalTimeAxisOptions
     | AgSparklineNumberAxisOptions
-    | AgSparklineLogAxisOptions
     | AgSparklineTimeAxisOptions;

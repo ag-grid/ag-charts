@@ -8,7 +8,7 @@ const EXPECTATIONS = {
 };
 
 describe('simple-chart benchmark', () => {
-    const ctx = setupBenchmark<AgCartesianChartOptions>('simple-chart');
+    const ctx = setupBenchmark<AgCartesianChartOptions>('simple-chart').repeatCount(10);
 
     benchmark('initial load', ctx, { ...EXPECTATIONS }, async () => {
         await ctx.create();

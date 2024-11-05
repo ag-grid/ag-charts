@@ -3,7 +3,7 @@
  */
 import { expect, test } from '@jest/globals';
 
-import hour from './hour';
+import { hour } from './hour';
 
 it('should execute with Los Angeles timezone', () => {
     expect(new Date(2023, 0, 1).getTimezoneOffset()).toEqual(480);

@@ -12,4 +12,3 @@ function decode(encoded: number) {
 }
 
 export const minute = new CountableTimeInterval(encode, decode);
-export default minute;

@@ -52,6 +52,9 @@ export class LayersManager {
     }
 
     clear() {
+        for (const layer of this.layersMap.values()) {
+            layer.canvas.destroy();
+        }
         this.layersMap.clear();
     }
 }

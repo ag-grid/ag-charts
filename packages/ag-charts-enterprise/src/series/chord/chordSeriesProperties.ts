@@ -28,7 +28,7 @@ const {
 } = _ModuleSupport;
 const { Label } = _Scene;
 
-export class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams> {
+class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams> {
     @Validate(POSITIVE_NUMBER)
     spacing: number = 1;
 
@@ -36,7 +36,7 @@ export class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatte
     maxWidth: number = 1;
 }
 
-export class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
+class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptions> {
     @Validate(COLOR_STRING, { optional: true })
     fill: string | undefined = undefined;
 
@@ -65,7 +65,7 @@ export class ChordSeriesLinkProperties extends BaseProperties<AgChordSeriesOptio
     itemStyler?: Styler<AgChordSeriesLinkItemStylerParams<unknown>, AgChordSeriesLinkStyle>;
 }
 
-export class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
+class ChordSeriesNodeProperties extends BaseProperties<AgChordSeriesOptions> {
     @Validate(POSITIVE_NUMBER)
     spacing: number = 1;
 

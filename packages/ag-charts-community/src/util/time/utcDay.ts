@@ -13,4 +13,3 @@ function decode(encoded: number) {
 }
 
 export const utcDay = new CountableTimeInterval(encode, decode);
-export default utcDay;

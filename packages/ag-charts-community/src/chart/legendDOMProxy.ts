@@ -59,14 +59,14 @@ export class LegendDOMProxy {
     ) {
         this.itemList = ctx.proxyInteractionService.createProxyContainer({
             type: 'list',
-            id: `${idPrefix}-toolbar`,
+            domManagerId: `${idPrefix}-toolbar`,
             classList: ['ag-charts-proxy-legend-toolbar'],
             ariaLabel: { id: 'ariaLabelLegend' },
             ariaHidden: true,
         });
         this.paginationGroup = ctx.proxyInteractionService.createProxyContainer({
             type: 'group',
-            id: `${idPrefix}-pagination`,
+            domManagerId: `${idPrefix}-pagination`,
             classList: ['ag-charts-proxy-legend-pagination'],
             ariaLabel: { id: 'ariaLabelLegendPagination' },
             ariaOrientation: 'horizontal',

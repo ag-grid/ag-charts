@@ -4,7 +4,6 @@ import { Transformable } from '../../scene/transformable';
 import type { BBoxContainsTester, BBoxProvider, BBoxValues } from '../../util/bboxinterface';
 
 export enum REGIONS {
-    NAVIGATOR = 'navigator',
     ROOT = 'root',
     SERIES = 'series',
 }

@@ -5,14 +5,6 @@ import { createAngleMotionCalculator, fixRadialColumnAnimationStatus } from '../
 
 const { SectorBox, motion } = _Scene;
 
-export type AnimatableNightingaleDatum = {
-    innerRadius: number;
-    outerRadius: number;
-    startAngle: number;
-    endAngle: number;
-    clipSector: _Scene.SectorBox;
-};
-
 export function getRadii(datum: RadialColumnNodeDatum) {
     const { negative, innerRadius, outerRadius, stackInnerRadius, stackOuterRadius } = datum;
     return {

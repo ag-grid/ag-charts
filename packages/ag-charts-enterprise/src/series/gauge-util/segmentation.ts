@@ -3,7 +3,7 @@ import { _ModuleSupport, type _Scale, _Util } from 'ag-charts-community';
 const { BaseProperties, Validate, OBJECT, BOOLEAN, NUMBER, NUMBER_ARRAY } = _ModuleSupport;
 const { Logger } = _Util;
 
-export class GaugeSegmentationIntervalProperties extends BaseProperties {
+class GaugeSegmentationIntervalProperties extends BaseProperties {
     @Validate(NUMBER_ARRAY, { optional: true })
     values?: number[] | undefined;
 

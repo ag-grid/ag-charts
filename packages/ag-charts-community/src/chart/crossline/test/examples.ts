@@ -4,13 +4,10 @@ import { DATA_MEAN_SEA_LEVEL } from '../../test/data';
 import { loadExampleOptions } from '../../test/load-example';
 import { DATA_OIL_PETROLEUM } from './data';
 
-export const GROUPED_BAR_CHART_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('grouped-bar');
-export const GROUPED_COLUMN_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('grouped-column');
-export const LINE_GRAPH_WITH_GAPS_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('line-with-gaps');
-export const XY_HISTOGRAM_WITH_MEAN_EXAMPLE: AgCartesianChartOptions = loadExampleOptions(
-    'xy-histogram-with-mean-aggregation'
-);
-export const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
+const GROUPED_BAR_CHART_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('grouped-bar');
+const GROUPED_COLUMN_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('grouped-column');
+const LINE_GRAPH_WITH_GAPS_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('line-with-gaps');
+const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
     loadExampleOptions('area-with-negative-values');
 
 type CrossLinesRangeConfig = Record<string, { vertical: [Date, Date]; horizontal: [number, number] }>;
@@ -550,75 +547,6 @@ export const BAR_CROSSLINES: AgCartesianChartOptions = {
                         text: '3.6',
                     },
                     ...xAxisCrossLineStyle,
-                },
-            ],
-        },
-    ],
-};
-
-export const HISTOGRAM_CROSSLINES: AgCartesianChartOptions = {
-    ...XY_HISTOGRAM_WITH_MEAN_EXAMPLE,
-    axes: [
-        {
-            position: 'bottom',
-            type: 'number',
-            title: {
-                enabled: true,
-                text: 'Engine Size (Cubic inches)',
-            },
-            crossLines: [
-                {
-                    type: 'range',
-                    range: [70, 100],
-                    label: {
-                        text: '70 - 100',
-                    },
-                    ...xAxisCrossLineStyle,
-                },
-                {
-                    type: 'range',
-                    range: [200, 285],
-                    label: {
-                        text: '200 - 285',
-                    },
-                    ...xAxisCrossLineStyle,
-                },
-                {
-                    type: 'line',
-                    value: 300,
-                    label: {
-                        text: '300',
-                    },
-                    ...xAxisCrossLineStyle,
-                },
-            ],
-        },
-        {
-            position: 'left',
-            type: 'number',
-            title: {
-                text: 'Highway MPG',
-            },
-            crossLines: [
-                {
-                    type: 'range',
-                    range: [10, 15],
-                    label: {
-                        text: '70 - 100',
-                        position: 'inside-top-right',
-                        color: 'orange',
-                    },
-                    ...yAxisCrossLineStyle,
-                },
-                {
-                    type: 'line',
-                    value: 50,
-                    label: {
-                        text: '50',
-                        position: 'bottom-right',
-                        color: 'orange',
-                    },
-                    ...yAxisCrossLineStyle,
                 },
             ],
         },

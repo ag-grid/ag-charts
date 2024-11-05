@@ -81,7 +81,6 @@ export type GaugeAnimationEvent = {
     reset: undefined;
     skip: undefined;
 };
-export type GaugeAnimationData = { duration?: number };
 
 interface LinearGaugeNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<LinearGaugeNodeDatum, LinearGaugeLabelDatum> {

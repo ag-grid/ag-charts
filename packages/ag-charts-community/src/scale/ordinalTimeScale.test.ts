@@ -1,6 +1,6 @@
 import { describe, expect, it } from '@jest/globals';
 
-import day from '../util/time/day';
+import { day } from '../util/time/day';
 import {
     durationDay,
     durationHour,
@@ -9,10 +9,10 @@ import {
     durationWeek,
     durationYear,
 } from '../util/time/duration';
-import hour from '../util/time/hour';
-import minute from '../util/time/minute';
-import month from '../util/time/month';
-import year from '../util/time/year';
+import { hour } from '../util/time/hour';
+import { minute } from '../util/time/minute';
+import { month } from '../util/time/month';
+import { year } from '../util/time/year';
 import { OrdinalTimeScale } from './ordinalTimeScale';
 
 describe('OrdinalTimeScale', () => {

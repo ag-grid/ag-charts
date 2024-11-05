@@ -1,5 +1,4 @@
 // Common time unit sizes in milliseconds.
-export const epochYear = new Date(0).getFullYear();
 export const durationSecond = 1000;
 export const durationMinute = durationSecond * 60;
 export const durationHour = durationMinute * 60;

@@ -1,4 +1,10 @@
-import { type AgAnnotationLineStyleType, type Direction, _ModuleSupport, _Scene } from 'ag-charts-community';
+import {
+    type AgAnnotation,
+    type AgAnnotationLineStyleType,
+    type Direction,
+    _ModuleSupport,
+    _Scene,
+} from 'ag-charts-community';
 
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';
@@ -433,17 +439,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const seriesRegion = ctx.regionManager.getRegion(REGIONS.SERIES);
 
         const otherRegions = Object.values(REGIONS)
-            .filter(
-                (region) =>
-                    ![
-                        REGIONS.SERIES,
-
-                        // TODO: Navigator wrongly enchroaches on the top of the chart, even if it is disabled. We
-                        // have to ignore it to prevent it immediately calling `onCancel()` when the top-left
-                        // annotations toolbar button is clicked.
-                        REGIONS.NAVIGATOR,
-                    ].includes(region)
-            )
+            .filter((region) => REGIONS.SERIES !== region)
             .map((region) => ctx.regionManager.getRegion(region));
 
         const annotationsState = Default | ZoomDrag | AnnotationsState | AnnotationsSelected;
@@ -654,7 +650,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         );
     }
 
-    private onRestoreAnnotations(event: { annotations?: any }) {
+    private onRestoreAnnotations(event: { annotations: Array<AgAnnotation> }) {
         if (!this.enabled) return;
 
         this.clear();
