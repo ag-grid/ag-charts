@@ -366,14 +366,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
     }
 
     protected override updateRange() {
-        const { range: rr, visibleRange: vr, scale } = this;
-        const span = (rr[1] - rr[0]) / (vr[1] - vr[0]);
-        const shift = span * vr[0];
-        const start = rr[0] - shift;
-
-        scale.range = [start, start + span];
-        this.tickScale.range = scale.range;
+        super.updateRange();
         this.resizeTickTree();
+        this.tickScale.range = this.scale.range;
     }
 
     protected override calculateDomain() {
@@ -397,7 +392,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.setDomain(extent(flatDomains) ?? unique(flatDomains));
 
         const { domain } = this.dataDomain;
-        console.log(domain);
         this.tickTreeLayout = treeLayout(ticksToTree(domain));
         this.tickScale.domain = domain.concat('');
         this.resizeTickTree();
