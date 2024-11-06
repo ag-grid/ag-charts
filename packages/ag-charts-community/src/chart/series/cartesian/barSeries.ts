@@ -27,7 +27,7 @@ import {
     normaliseGroupTo,
     valueProperty,
 } from '../../data/processors';
-import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
