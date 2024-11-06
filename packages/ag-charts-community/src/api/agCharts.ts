@@ -31,7 +31,6 @@ import { enterpriseModule } from '../module/enterpriseModule';
 import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import { Debug } from '../util/debug';
 import { deepClone, jsonWalk } from '../util/json';
-import { mergeDefaults } from '../util/object';
 import type { DeepPartial } from '../util/types';
 import { VERSION } from '../version';
 import { MementoCaretaker } from './state/memento';
@@ -173,7 +172,8 @@ class AgChartsInternal {
     };
 
     static createOrUpdate(opts: {
-        userOptions: AgChartOptions & Partial<ChartSpecialOverrides>;
+        userOptions?: AgChartOptions & Partial<ChartSpecialOverrides>;
+        deltaOptions?: DeepPartial<AgChartOptions>;
         processedOverrides?: Partial<AgChartOptions>;
         proxy?: AgChartInstanceProxy;
         licenseManager?: LicenseManager;
@@ -189,6 +189,7 @@ class AgChartsInternal {
             processedOverrides = proxy?.chart.chartOptions.processedOverrides ?? {},
             specialOverrides = proxy?.chart.chartOptions.specialOverrides ?? {},
             optionsMetadata = proxy?.chart.chartOptions.optionMetadata ?? {},
+            deltaOptions,
         } = opts;
         const { presetType } = optionsMetadata;
 
@@ -197,14 +198,21 @@ class AgChartsInternal {
         debug('>>> AgCharts.createOrUpdate() user options', userOptions);
 
         let mutableOptions = userOptions;
-        if (AgCharts.optionsMutationFn) {
-            mutableOptions = AgCharts.optionsMutationFn(mutableOptions, presetType);
+        if (AgCharts.optionsMutationFn && mutableOptions) {
+            mutableOptions = AgCharts.optionsMutationFn(deepClone(mutableOptions), presetType);
             debug('>>> AgCharts.createOrUpdate() MUTATED user options', mutableOptions);
         }
 
-        const { overrideDevicePixelRatio, document, window: userWindow, styleContainer, ...options } = mutableOptions;
+        const {
+            overrideDevicePixelRatio,
+            document,
+            window: userWindow,
+            styleContainer,
+            ...options
+        } = mutableOptions ?? {};
+        const baseOptions = (deltaOptions ? proxy?.chart.chartOptions : options) ?? options;
         const chartOptions = new ChartOptions(
-            options,
+            baseOptions,
             processedOverrides,
             {
                 ...specialOverrides,
@@ -213,14 +221,17 @@ class AgChartsInternal {
                 overrideDevicePixelRatio,
                 styleContainer,
             },
-            optionsMetadata
+            optionsMetadata,
+            deltaOptions
         );
 
+        let create = false;
         let chart = proxy?.chart;
         if (
             chart == null ||
             chartType(chartOptions.processedOptions) !== chartType(chart?.chartOptions.processedOptions)
         ) {
+            create = true;
             chart = AgChartsInternal.createChartInstance(chartOptions, chart);
             styles?.forEach(([id, css]) => {
                 chart?.ctx.domManager.addStyles(id, css);
@@ -238,12 +249,12 @@ class AgChartsInternal {
             (window as any).agChartInstances[chart.id] = chart;
         }
 
-        chart.queuedUserOptions.push(userOptions);
+        chart.queuedUserOptions.push(chartOptions.userOptions);
         chart.requestFactoryUpdate((chartRef) => {
-            chartRef.applyOptions(chartOptions);
+            chartRef.applyOptions(chartOptions, create);
             // If there are a lot of update calls, `requestFactoryUpdate()` may skip callbacks,
             // so we need to remove all queue items up to the last successfully applied item.
-            const queueIdx = chartRef.queuedUserOptions.indexOf(userOptions) + 1;
+            const queueIdx = chartRef.queuedUserOptions.indexOf(chartOptions.userOptions) + 1;
             chartRef.queuedUserOptions.splice(0, queueIdx);
         });
 
@@ -264,12 +275,8 @@ class AgChartsInternal {
 
         jsonWalk(deltaOptions, AgChartsInternal.markRemovedProperties, new Set(['data']));
 
-        const { chart } = proxy;
-        const lastUpdateOptions = chart.getOptions();
-        const userOptions = mergeDefaults(deltaOptions, lastUpdateOptions);
         debug('>>> AgCharts.updateUserDelta() user delta', deltaOptions);
-        debug('AgCharts.updateUserDelta() - base options', lastUpdateOptions);
-        AgChartsInternal.createOrUpdate({ userOptions, proxy });
+        AgChartsInternal.createOrUpdate({ proxy, deltaOptions });
     }
 
     private static createChartInstance(options: ChartOptions, oldChart?: Chart): Chart {

@@ -141,12 +141,12 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             stageLabel,
         } = properties;
 
-        if (dataModel == null || processedData == null) return;
+        if (dataModel == null || processedData == null || processedData.rawData.length === 0) return;
 
         const horizontal = direction === 'horizontal';
 
-        const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
-        const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
+        const xValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
+        const yValues = dataModel.resolveColumnById<number>(this, `yValue`, processedData);
 
         const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font: stageLabel.getFont() });
 
@@ -165,10 +165,10 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         let maxLabelHeight = 0;
         let yTotal = 0;
 
-        processedData.data.forEach(({ datum, values }, index) => {
-            const xValue: string = values[xIdx];
-            const yValue = Number(values[yIdx]);
-            const enabled = visible && seriesItemEnabled[index];
+        processedData.rawData.forEach((datum, datumIndex) => {
+            const xValue = xValues[datumIndex];
+            const yValue = yValues[datumIndex];
+            const enabled = visible && seriesItemEnabled[datumIndex];
 
             yTotal += yValue;
 
@@ -198,7 +198,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         const seriesRectWidth = this._nodeDataDependencies?.seriesRectWidth ?? 0;
         const seriesRectHeight = this._nodeDataDependencies?.seriesRectHeight ?? 0;
-        const totalSpacing = spacing * (processedData.data.length - 1);
+        const totalSpacing = spacing * (processedData.rawData.length - 1);
 
         let bounds: _Scene.BBox;
         if (horizontal) {
@@ -254,25 +254,25 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const nodeData: PyramidNodeDatum[] = [];
         const labelData: PyramidNodeLabelDatum[] = [];
         let yStart = 0;
-        processedData.data.forEach(({ datum, values }, index) => {
-            const xValue: string = values[xIdx];
-            const yValue = Number(values[yIdx]);
+        processedData.rawData.forEach((datum, datumIndex) => {
+            const xValue = xValues[datumIndex];
+            const yValue = yValues[datumIndex];
 
-            const enabled = visible && seriesItemEnabled[index];
+            const enabled = visible && seriesItemEnabled[datumIndex];
 
             const yEnd = yStart + yValue;
 
             const yMidRatio = (yStart + yEnd) / (2 * yTotal);
             const yRangeRatio = (yEnd - yStart) / yTotal;
 
-            const xOffset = horizontal ? availableWidth * yMidRatio + spacing * index : availableWidth * 0.5;
-            const yOffset = horizontal ? availableHeight * 0.5 : availableHeight * yMidRatio + spacing * index;
+            const xOffset = horizontal ? availableWidth * yMidRatio + spacing * datumIndex : availableWidth * 0.5;
+            const yOffset = horizontal ? availableHeight * 0.5 : availableHeight * yMidRatio + spacing * datumIndex;
 
             const x = bounds.x + xOffset;
             const y = bounds.y + yOffset;
 
             if (stageLabelData != null) {
-                const stageLabelDatum = stageLabelData[index] as Writeable<PyramidNodeLabelDatum>;
+                const stageLabelDatum = stageLabelData[datumIndex] as Writeable<PyramidNodeLabelDatum>;
                 stageLabelDatum.x = labelX ?? x;
                 stageLabelDatum.y = labelY ?? y;
             }
@@ -318,14 +318,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             labelData.push(labelDatum);
 
-            const fill = fills[index % fills.length] ?? 'black';
-            const stroke = strokes[index % strokes.length] ?? 'black';
+            const fill = fills[datumIndex % fills.length] ?? 'black';
+            const stroke = strokes[datumIndex % strokes.length] ?? 'black';
 
             nodeData.push({
                 series: this,
                 itemId: valueKey,
                 datum,
-                index,
+                index: datumIndex,
                 xValue,
                 yValue,
                 x,
@@ -598,7 +598,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         if (
             !dataModel ||
-            !processedData?.data.length ||
+            !processedData?.rawData.length ||
             legendType !== 'category' ||
             !this.properties.isValid() ||
             !this.properties.showInLegend
@@ -609,25 +609,23 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, visible } = this.properties;
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
-        const stageIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const stageValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
 
-        for (let index = 0; index < processedData.data.length; index++) {
-            const { values } = processedData.data[index];
-
-            const stageValue: string = values[stageIdx];
-            const fill = fills[index % fills.length] ?? 'black';
-            const stroke = strokes[index % strokes.length] ?? 'black';
+        processedData.rawData.forEach((_datum, datumIndex) => {
+            const stageValue = stageValues[datumIndex];
+            const fill = fills[datumIndex % fills.length] ?? 'black';
+            const stroke = strokes[datumIndex % strokes.length] ?? 'black';
 
             legendData.push({
                 legendType: 'category',
                 id,
-                itemId: index,
+                itemId: datumIndex,
                 seriesId: id,
-                enabled: visible && legendItemEnabled[index],
+                enabled: visible && legendItemEnabled[datumIndex],
                 label: { text: stageValue },
                 symbols: [{ marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } }],
             });
-        }
+        });
 
         return legendData;
     }

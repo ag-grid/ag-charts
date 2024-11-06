@@ -10,6 +10,7 @@ const options: AgFinancialChartOptions = {
     title: {
         text: 'Dow Jones Industrial Average',
     },
+    chartType: 'ohlc',
     navigator: true,
     zoom: true,
     initialState: {
@@ -33,6 +34,7 @@ const options: AgFinancialChartOptions = {
                 strokeWidth: 2,
             },
         ],
+        chartType: 'hollow-candlestick',
         zoom: {
             rangeX: {
                 start: { __type: 'date', value: 'Thu Mar 21 2024 18:28:00 GMT+0000 (Greenwich Mean Time)' },

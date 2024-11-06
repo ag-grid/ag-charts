@@ -18,7 +18,7 @@ import { VividDark } from '../themes/vividDark';
 import { VividLight } from '../themes/vividLight';
 
 type SpecialThemeName = 'ag-financial' | 'ag-financial-dark';
-export type ThemeMap = { [key in AgChartThemeName | SpecialThemeName | 'undefined' | 'null']?: () => ChartTheme };
+type ThemeMap = { [key in AgChartThemeName | SpecialThemeName | 'undefined' | 'null']?: () => ChartTheme };
 
 const lightTheme = simpleMemorize(() => new ChartTheme());
 const darkTheme = simpleMemorize(() => new DarkTheme());

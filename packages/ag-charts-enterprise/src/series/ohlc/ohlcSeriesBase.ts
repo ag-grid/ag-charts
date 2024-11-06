@@ -22,7 +22,6 @@ const {
     valueProperty,
     diff,
     animationValidation,
-    convertValuesToScaleByDefs,
 } = _ModuleSupport;
 
 const { sanitizeHtml, Logger } = _Util;
@@ -182,28 +181,26 @@ export abstract class OhlcSeriesBase<
     }
 
     createBaseNodeData() {
-        const { visible, dataModel } = this;
+        const { visible, dataModel, processedData } = this;
 
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(dataModel && xAxis && yAxis)) {
+        if (!(dataModel && processedData != null && processedData.rawData.length !== 0 && xAxis && yAxis)) {
             return;
         }
 
         const nodeData: CandlestickNodeBaseDatum[] = [];
         const { xKey, highKey, lowKey } = this.properties;
-        const defs = dataModel.resolveProcessedDataDefsByIds(this, [
-            'xValue',
-            'openValue',
-            'closeValue',
-            'highValue',
-            'lowValue',
-        ]);
+        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
+        const openValues = dataModel.resolveColumnById(this, 'openValue', processedData);
+        const closeValues = dataModel.resolveColumnById(this, 'closeValue', processedData);
+        const highValues = dataModel.resolveColumnById(this, 'highValue', processedData);
+        const lowValues = dataModel.resolveColumnById(this, 'lowValue', processedData);
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         const barOffset = ContinuousScale.is(xAxis.scale) ? barWidth * -0.5 : 0;
-        const { groupScale, processedData } = this;
+        const { groupScale } = this;
 
         const context = {
             itemId: xKey,
@@ -214,11 +211,14 @@ export abstract class OhlcSeriesBase<
         };
         if (!visible) return context;
 
-        processedData?.data.forEach(({ datum, keys, values }) => {
-            const { xValue, openValue, closeValue, highValue, lowValue } = dataModel.resolveProcessedDataDefsValues(
-                defs,
-                { keys, values }
-            );
+        processedData.rawData.forEach((datum, datumIndex) => {
+            const xValue = xValues[datumIndex];
+            if (xValue == null) return;
+
+            const openValue = openValues[datumIndex];
+            const closeValue = closeValues[datumIndex];
+            const highValue = highValues[datumIndex];
+            const lowValue = lowValues[datumIndex];
 
             // compare unscaled values
             const validLowValue = lowValue != null && lowValue <= openValue && lowValue <= closeValue;
@@ -238,18 +238,13 @@ export abstract class OhlcSeriesBase<
                 return;
             }
 
-            const scaledValues = convertValuesToScaleByDefs({
-                defs,
-                values: {
-                    xValue,
-                    openValue,
-                    closeValue,
-                    highValue,
-                    lowValue,
-                },
-                xAxis,
-                yAxis,
-            });
+            const scaledValues = {
+                xValue: Math.round(xAxis.scale.convert(xValue)),
+                openValue: Math.round(yAxis.scale.convert(openValue)),
+                closeValue: Math.round(yAxis.scale.convert(closeValue)),
+                highValue: Math.round(yAxis.scale.convert(highValue)),
+                lowValue: Math.round(yAxis.scale.convert(lowValue)),
+            };
 
             scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex))) + barOffset;
 

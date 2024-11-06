@@ -113,3 +113,7 @@ export function sortBasedOnArray<T>(baseArray: T[], orderArray: T[]): T[] {
         return indexA - indexB;
     });
 }
+
+export function includes<T>(array: (T & string)[], item: string): item is T & string {
+    return array.includes(item as any);
+}

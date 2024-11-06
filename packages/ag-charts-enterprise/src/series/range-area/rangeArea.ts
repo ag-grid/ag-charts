@@ -149,12 +149,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     async createNodeData() {
-        const { data, dataModel, axes, visible } = this;
+        const { data, dataModel, processedData, axes, visible } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(data && visible && xAxis && yAxis && dataModel)) {
+        if (
+            !(
+                data &&
+                visible &&
+                xAxis &&
+                yAxis &&
+                dataModel &&
+                processedData != null &&
+                processedData.rawData.length !== 0
+            )
+        ) {
             return;
         }
 
@@ -165,23 +175,29 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
-        const defs = dataModel.resolveProcessedDataDefsByIds(this, [`xValue`, `yHighValue`, `yLowValue`]);
+        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
+        const yHighValues = dataModel.resolveColumnById(this, 'yHighValue', processedData);
+        const yLowValues = dataModel.resolveColumnById(this, 'yLowValue', processedData);
 
         if (!this.visible) return;
 
         const labelData: RangeAreaLabelDatum[] = [];
         const markerData: RangeAreaMarkerDatum[] = [];
         const spanPoints: Array<RangeAreaSpanPointDatum[] | { skip: number }> = [];
-        this.processedData?.data.forEach(({ keys, datum, values }, datumIdx) => {
-            const dataValues = dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
-            const { xValue, yHighValue, yLowValue } = dataValues;
+
+        processedData.rawData.forEach((datum, datumIndex) => {
+            const xValue = xValues[datumIndex];
+            if (xValue == null) return;
+
+            const yHighValue = yHighValues[datumIndex];
+            const yLowValue = yLowValues[datumIndex];
 
             const currentSpanPoints: RangeAreaSpanPointDatum[] | { skip: number } | undefined =
                 spanPoints[spanPoints.length - 1];
             if (yHighValue != null || yLowValue != null) {
                 const appendMarker = (id: 'high' | 'low', yValue: any, y: number) => {
                     markerData.push({
-                        index: datumIdx,
+                        index: datumIndex,
                         series: this,
                         itemId: id,
                         datum,

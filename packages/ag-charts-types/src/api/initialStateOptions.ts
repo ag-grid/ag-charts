@@ -1,5 +1,6 @@
 import type { AgAnnotation } from '../chart/annotationsOptions';
 import type { Ratio } from '../chart/types';
+import type { AgPriceVolumeChartType } from '../presets/financial/priceVolumeOptions';
 import type { AgStateSerializableDate } from './stateTypes';
 
 // Theme
@@ -11,9 +12,13 @@ export interface AgInitialStateThemeableOptions {
 export interface AgInitialStateOptions {
     /** The initial set of annotations to display on the chart. */
     annotations?: AgAnnotation[];
+    /* The initial chart type. */
+    chartType?: AgInitialStateChartType;
     /** The initial zoom state. */
     zoom?: AgInitialStateZoomOptions;
 }
+
+export type AgInitialStateChartType = AgPriceVolumeChartType;
 
 export interface AgInitialStateZoomOptions {
     rangeX?: AgInitialStateZoomRange;

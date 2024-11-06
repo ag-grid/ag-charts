@@ -15,6 +15,7 @@ const chart = AgCharts.createFinancialChart(options);
 
 let state: AgChartState = {
     version: '10.0.0',
+    chartType: 'ohlc',
     annotations: [
         {
             type: 'parallel-channel',

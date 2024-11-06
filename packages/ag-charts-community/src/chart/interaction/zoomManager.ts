@@ -4,6 +4,7 @@ import type { MementoOriginator } from '../../api/state/memento';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { BBox } from '../../scene/bbox';
+import { includes } from '../../util/array';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { deepClone } from '../../util/json';
 import { Logger } from '../../util/logger';
@@ -57,10 +58,6 @@ type ZoomEvents = ZoomChangeEvent | ZoomPanStartEvent;
 
 const expectedMementoKeys: Array<keyof ZoomMemento> = ['rangeX', 'rangeY', 'ratioX', 'ratioY'];
 
-function isZoomMementoKey(key: string): key is keyof ZoomMemento {
-    return expectedMementoKeys.includes(key as any);
-}
-
 /**
  * Manages the current zoom state for a chart. Tracks the requested zoom from distinct dependents
  * and handles conflicting zoom requests.
@@ -113,7 +110,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         if (!isObject(blob)) return false;
 
         for (const key of Object.keys(blob)) {
-            if (!isZoomMementoKey(key)) {
+            if (!includes(expectedMementoKeys, key)) {
                 return false;
             }
         }

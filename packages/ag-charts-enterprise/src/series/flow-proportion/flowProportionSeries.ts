@@ -161,8 +161,16 @@ export abstract class FlowProportionSeries<
         const { fills, strokes } = this.properties;
         const processedNodes = new Map<string, FlowProportionNodeDatum>();
         if (nodesDataModel == null) {
-            const fromIdIdx = linksDataModel.dataModel.resolveProcessedDataIndexById(this, 'fromValue');
-            const toIdIdx = linksDataModel.dataModel.resolveProcessedDataIndexById(this, 'toValue');
+            const fromIdValues = linksDataModel.dataModel.resolveColumnById<string | undefined>(
+                this,
+                'fromValue',
+                linksDataModel.processedData
+            );
+            const toIdValues = linksDataModel.dataModel.resolveColumnById<string | undefined>(
+                this,
+                'toValue',
+                linksDataModel.processedData
+            );
 
             const createImplicitNode = (id: string): FlowProportionNodeDatum => {
                 const index = processedNodes.size;
@@ -183,9 +191,9 @@ export abstract class FlowProportionSeries<
                 };
             };
 
-            linksDataModel.processedData.data.forEach(({ values }) => {
-                const fromId: string | undefined = values[fromIdIdx];
-                const toId: string | undefined = values[toIdIdx];
+            linksDataModel.processedData.rawData.forEach((_datum, datumIndex) => {
+                const fromId = fromIdValues[datumIndex];
+                const toId = toIdValues[datumIndex];
                 if (fromId == null || toId == null) return;
 
                 if (!processedNodes.has(fromId)) {
@@ -197,26 +205,33 @@ export abstract class FlowProportionSeries<
                 }
             });
         } else {
-            const nodeIdIdx = nodesDataModel.dataModel.resolveProcessedDataIndexById(this, 'idValue');
-            const labelIdx =
+            const nodeIdValues = nodesDataModel.dataModel.resolveColumnById<string>(
+                this,
+                'idValue',
+                nodesDataModel.processedData
+            );
+            const labelValues =
                 labelKey != null
-                    ? nodesDataModel.dataModel.resolveProcessedDataIndexById(this, 'labelValue')
+                    ? nodesDataModel.dataModel.resolveColumnById<string | undefined>(
+                          this,
+                          'labelValue',
+                          nodesDataModel.processedData
+                      )
                     : undefined;
 
-            nodesDataModel.processedData.data.forEach(({ datum, keys, values }, index) => {
-                const value = values[0];
-                const id: string = keys[nodeIdIdx];
-                const label: string | undefined = labelIdx != null ? value[labelIdx] : undefined;
+            nodesDataModel.processedData.rawData.forEach((datum, datumIndex) => {
+                const id: string = nodeIdValues[datumIndex];
+                const label: string | undefined = labelValues?.[datumIndex];
 
-                const fill = fills[index % fills.length];
-                const stroke = strokes[index % strokes.length];
+                const fill = fills[datumIndex % fills.length];
+                const stroke = strokes[datumIndex % strokes.length];
 
                 processedNodes.set(id, {
                     series: this,
                     itemId: undefined,
                     datum,
                     type: FlowProportionDatumType.Node,
-                    index,
+                    index: datumIndex,
                     id,
                     label,
                     fill,
@@ -235,7 +250,7 @@ export abstract class FlowProportionSeries<
     ) {
         const { dataModel: linksDataModel, processedData: linksProcessedData } = this;
 
-        if (linksDataModel == null || linksProcessedData == null) {
+        if (linksDataModel == null || linksProcessedData == null || linksProcessedData.rawData.length === 0) {
             const { links, nodeGraph, maxPathLength } = computeNodeGraph(
                 new Map<string, TNodeDatum>().values(),
                 [],
@@ -249,9 +264,12 @@ export abstract class FlowProportionSeries<
 
         const { sizeKey } = this.properties;
 
-        const fromIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'fromValue');
-        const toIdIdx = linksDataModel.resolveProcessedDataIndexById(this, 'toValue');
-        const sizeIdx = sizeKey != null ? linksDataModel.resolveProcessedDataIndexById(this, 'sizeValue') : undefined;
+        const fromIdValues = linksDataModel.resolveColumnById<string>(this, 'fromValue', linksProcessedData);
+        const toIdValues = linksDataModel.resolveColumnById<string>(this, 'toValue', linksProcessedData);
+        const sizeValues =
+            sizeKey != null
+                ? linksDataModel.resolveColumnById<number>(this, 'sizeValue', linksProcessedData)
+                : undefined;
 
         const nodesById = new Map<string, TNodeDatum>();
         this.processedNodes.forEach((datum) => {
@@ -260,10 +278,10 @@ export abstract class FlowProportionSeries<
         });
 
         const baseLinks: TLinkDatum[] = [];
-        linksProcessedData.data.forEach(({ datum, values }, index) => {
-            const fromId: string = values[fromIdIdx];
-            const toId: string = values[toIdIdx];
-            const size: number = sizeIdx != null ? values[sizeIdx] : 1;
+        linksProcessedData.rawData.forEach((datum, datumIndex) => {
+            const fromId: string = fromIdValues[datumIndex];
+            const toId: string = toIdValues[datumIndex];
+            const size: number = sizeValues != null ? sizeValues[datumIndex] : 1;
             const fromNode = nodesById.get(fromId);
             const toNode = nodesById.get(toId);
             if (size <= 0 || fromNode == null || toNode == null) return;
@@ -273,7 +291,7 @@ export abstract class FlowProportionSeries<
                 itemId: undefined,
                 datum,
                 type: FlowProportionDatumType.Link,
-                index,
+                index: datumIndex,
                 fromNode,
                 toNode,
                 size,

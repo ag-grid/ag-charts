@@ -18,7 +18,6 @@ const {
     resetBarSelectionsFn,
     prepareBarAnimationFunctions,
     midpointStartingBarPosition,
-    createDatumId,
     formatValue,
 } = _ModuleSupport;
 const { Rect, motion } = _Scene;
@@ -181,7 +180,7 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
             this.ctx.animationManager,
             [datumSelections],
             fns,
-            (_, datum) => createDatumId(datum.xValue, datum.valueIndex),
+            (_, datum) => datum.xValue,
             dataDiff
         );
     }

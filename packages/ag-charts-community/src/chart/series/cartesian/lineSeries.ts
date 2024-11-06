@@ -19,13 +19,7 @@ import { isDefined } from '../../../util/type-guards';
 import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
-import type {
-    DataModel,
-    DataModelOptions,
-    DatumPropertyDefinition,
-    UngroupedData,
-    UngroupedDataItem,
-} from '../../data/dataModel';
+import type { DataModel, DataModelOptions, DatumPropertyDefinition, UngroupedData } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import {
     animationValidation,
@@ -214,7 +208,7 @@ export class LineSeries extends CartesianSeries<
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
-        if (!dataModel || !processedData?.data.length) return [];
+        if (!dataModel || !processedData?.rawData.length) return [];
 
         const xDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
         if (direction === ChartAxisDirection.X) {
@@ -251,13 +245,11 @@ export class LineSeries extends CartesianSeries<
     }
 
     async createNodeData() {
-        const { dataModel, axes, dataAggregationFilters } = this;
-        const ungroupedData = this.processedData?.data;
-
+        const { dataModel, processedData, axes, dataAggregationFilters } = this;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!ungroupedData || !dataModel || !xAxis || !yAxis) {
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
             return;
         }
 
@@ -280,28 +272,32 @@ export class LineSeries extends CartesianSeries<
         const yOffset = (yScale.bandwidth ?? 0) / 2;
         const size = marker.enabled ? marker.size : 0;
 
-        const xIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
-        const yIdx = dataModel.resolveProcessedDataIndexById(this, `yValueRaw`);
-        const ySelectionIdx =
-            yFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `yFilterRaw`) : undefined;
-        const yCumulativeIdx = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValueCumulative`) : yIdx;
-        const yEndIdx = stacked ? dataModel.resolveProcessedDataIndexById(this, `yValueEnd`) : undefined;
+        const { rawData } = processedData;
+        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+        const yValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
+        const yEndValues = stacked ? dataModel.resolveColumnById<number>(this, `yValueEnd`, processedData) : undefined;
+        const yCumulativeValues = stacked
+            ? dataModel.resolveColumnById<number>(this, `yValueCumulative`, processedData)
+            : yValues;
+        const selectionValues =
+            yFilterKey != null ? dataModel.resolveColumnById(this, `yFilterRaw`, processedData) : undefined;
 
         const nodeData: LineNodeDatum[] = [];
         let spanPoints: SpanPoints | undefined;
-        const handleDatum = ({ datum, values }: UngroupedDataItem<any, any[]>) => {
-            const xDatum = values[xIdx];
-            const yDatum = values[yIdx];
-            const yEndDatum = yEndIdx != null ? values[yEndIdx] : undefined;
-            const yCumulativeDatum = values[yCumulativeIdx];
-            const selected = ySelectionIdx != null ? values[ySelectionIdx] === yDatum : undefined;
+        const handleDatum = (index: number) => {
+            const datum = rawData[index];
+            const xDatum = xValues[index];
+            const yDatum = yValues[index];
+            const yEndDatum = yEndValues?.[index];
+            const yCumulativeDatum = yCumulativeValues?.[index];
+            const selected = selectionValues?.[index];
 
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yCumulativeDatum) + yOffset;
 
-            const validDatum = yDatum != null && Number.isFinite(x);
+            if (!Number.isFinite(x)) return;
 
-            if (validDatum) {
+            if (yDatum != null) {
                 const labelText = label.enabled
                     ? this.getLabelText(label, {
                           value: yDatum,
@@ -337,7 +333,7 @@ export class LineSeries extends CartesianSeries<
 
             const currentSpanPoints: LineSpanPointDatum[] | { skip: number } | undefined =
                 spanPoints[spanPoints.length - 1];
-            if (validDatum) {
+            if (yDatum != null) {
                 const spanPoint: LineSpanPointDatum = {
                     point: { x, y },
                     xDatum,
@@ -363,8 +359,7 @@ export class LineSeries extends CartesianSeries<
 
         const [x0, x1] = findMinMax(xAxis.range);
         const xFor = (index: number) => {
-            const { values } = ungroupedData[index];
-            const xDatum = values[xIdx];
+            const xDatum = xValues[index];
             return xScale.convert(xDatum) + xOffset;
         };
 
@@ -377,14 +372,14 @@ export class LineSeries extends CartesianSeries<
             const [start, end] = this.visibleRange(indices.length, x0, x1, (index) => xFor(indices[index]));
 
             for (let i = start; i < end; i += 1) {
-                handleDatum(ungroupedData[indices[i]]);
+                handleDatum(indices[i]);
             }
         } else {
             spanPoints = [];
-            const [start, end] = this.visibleRange(ungroupedData.length, x0, x1, xFor);
+            const [start, end] = this.visibleRange(rawData.length, x0, x1, xFor);
 
             for (let i = start; i < end; i += 1) {
-                handleDatum(ungroupedData[i]);
+                handleDatum(i);
             }
         }
 
@@ -394,7 +389,7 @@ export class LineSeries extends CartesianSeries<
         const strokeData = strokeSpans != null ? { itemId: yKey, spans: strokeSpans } : undefined;
 
         const crossFiltering =
-            ySelectionIdx != null && ungroupedData.some(({ values }) => values[ySelectionIdx] === values[yIdx]);
+            selectionValues?.some((selectionValue, index) => selectionValue === yValues[index]) ?? false;
 
         return {
             itemId: yKey,

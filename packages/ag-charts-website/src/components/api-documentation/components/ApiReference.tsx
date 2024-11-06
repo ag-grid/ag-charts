@@ -374,7 +374,13 @@ function useMemberAdditionalDetails(member: MemberNode) {
     }
     const reference = useContext(ApiReferenceContext);
     if (reference?.has(memberType) && !isInterfaceHidden(memberType)) {
-        return reference.get(memberType);
+        const ref = reference.get(memberType);
+
+        if (ref?.kind === 'typeAlias' && typeof ref.type === 'string' && reference.has(ref.type)) {
+            return [ref, reference.get(ref.type)];
+        }
+
+        return ref;
     }
     if (typeof member.type === 'object' && member.type.kind === 'union') {
         const unionTypes = member.type.type

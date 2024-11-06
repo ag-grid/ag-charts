@@ -1073,15 +1073,12 @@ export abstract class Chart extends Observable {
         return series?.filter((s) => s.showInMiniChart !== false);
     }
 
-    applyOptions(newChartOptions: ChartOptions) {
-        // Detect first creation case.
-        const isDifferentOpts = newChartOptions !== this.chartOptions;
+    applyOptions(newChartOptions: ChartOptions, create: boolean) {
+        const deltaOptions = create ? newChartOptions.processedOptions : newChartOptions.diffOptions(this.chartOptions);
+        if (deltaOptions == null || Object.keys(deltaOptions).length === 0) return;
 
-        const oldOpts = isDifferentOpts ? this.chartOptions.processedOptions : {};
+        const oldOpts = create ? {} : this.chartOptions.processedOptions;
         const newOpts = newChartOptions.processedOptions;
-        const deltaOptions = newChartOptions.diffOptions(oldOpts);
-
-        if (deltaOptions == null) return;
 
         debug('Chart.applyOptions() - applying delta', deltaOptions);
 
@@ -1173,7 +1170,7 @@ export abstract class Chart extends Observable {
     }
 
     private applyInitialState(options: AgChartOptions) {
-        const { annotationManager, historyManager, stateManager, zoomManager } = this.ctx;
+        const { annotationManager, chartTypeOriginator, historyManager, stateManager, zoomManager } = this.ctx;
         const { initialState } = options;
 
         if ('annotations' in options && options.annotations?.enabled && initialState?.annotations != null) {
@@ -1183,6 +1180,10 @@ export abstract class Chart extends Observable {
             });
 
             stateManager.setState(annotationManager, annotations);
+        }
+
+        if (initialState?.chartType != null) {
+            stateManager.setState(chartTypeOriginator, initialState.chartType);
         }
 
         if ((options.navigator?.enabled || options.zoom?.enabled) && initialState?.zoom != null) {

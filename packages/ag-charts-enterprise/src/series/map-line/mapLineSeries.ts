@@ -153,16 +153,15 @@ export class MapLineSeries
             ],
         });
 
-        const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`);
-        this.topologyBounds = (processedData.data as any[]).reduce<_ModuleSupport.LonLatBBox | undefined>(
-            (current, { values }) => {
-                const feature: _ModuleSupport.Feature | undefined = values[featureIdx];
-                const geometry = feature?.geometry;
-                if (geometry == null) return current;
-                return geometryBbox(geometry, current);
-            },
-            undefined
-        );
+        const featureValues =
+            processedData.rawData.length !== 0
+                ? dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(this, `featureValue`, processedData)
+                : undefined;
+        this.topologyBounds = featureValues?.reduce<_ModuleSupport.LonLatBBox | undefined>((current, feature) => {
+            const geometry = feature?.geometry;
+            if (geometry == null) return current;
+            return geometryBbox(geometry, current);
+        }, undefined);
 
         if (sizeKey != null) {
             const sizeIdx = dataModel.resolveProcessedDataIndexById(this, `sizeValue`);
@@ -194,7 +193,7 @@ export class MapLineSeries
         }
 
         const colorIdx = dataModel.resolveProcessedDataIndexById(this, 'colorValue');
-        const dataCount = processedData.data.length;
+        const dataCount = processedData.rawData.length;
         const missCount = getMissCount(this, processedData.defs.values[colorIdx].missing);
         const colorDataMissing = dataCount === 0 || dataCount === missCount;
         return !colorDataMissing;
@@ -246,24 +245,31 @@ export class MapLineSeries
         const { id: seriesId, dataModel, processedData, sizeScale, colorScale, properties, scale } = this;
         const { idKey, sizeKey, colorKey, labelKey, label } = properties;
 
-        if (dataModel == null || processedData == null) return;
+        if (dataModel == null || processedData == null || processedData.rawData.length === 0) return;
 
         const colorScaleValid = this.isColorScaleValid();
 
-        const idIdx = dataModel.resolveProcessedDataIndexById(this, `idValue`);
-        const featureIdx = dataModel.resolveProcessedDataIndexById(this, `featureValue`);
-        const labelIdx = labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : undefined;
-        const sizeIdx = sizeKey != null ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`) : undefined;
-        const colorIdx = colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : undefined;
+        const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
+        const featureValues = dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(
+            this,
+            `featureValue`,
+            processedData
+        );
+        const labelValues =
+            labelKey != null ? dataModel.resolveColumnById<string>(this, `labelValue`, processedData) : undefined;
+        const sizeValues =
+            sizeKey != null ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
+        const colorValues =
+            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
 
         const maxStrokeWidth = properties.maxStrokeWidth ?? properties.strokeWidth;
         sizeScale.range = [Math.min(properties.strokeWidth, maxStrokeWidth), maxStrokeWidth];
         const font = label.getFont();
 
         const projectedGeometries = new Map<string, _ModuleSupport.Geometry>();
-        processedData.data.forEach(({ values }) => {
-            const id: string | undefined = values[idIdx];
-            const geometry: _ModuleSupport.Geometry | undefined = values[featureIdx]?.geometry;
+        processedData.rawData.forEach((_datum, datumIndex) => {
+            const id: string | undefined = idValues[datumIndex];
+            const geometry: _ModuleSupport.Geometry | undefined = featureValues[datumIndex]?.geometry ?? undefined;
             const projectedGeometry = geometry != null && scale != null ? projectGeometry(geometry, scale) : undefined;
             if (id != null && projectedGeometry != null) {
                 projectedGeometries.set(id, projectedGeometry);
@@ -273,11 +279,11 @@ export class MapLineSeries
         const nodeData: MapLineNodeDatum[] = [];
         const labelData: MapLineNodeLabelDatum[] = [];
         const missingGeometries: string[] = [];
-        processedData.data.forEach(({ datum, values }) => {
-            const idValue = values[idIdx];
-            const colorValue: number | undefined = colorIdx != null ? values[colorIdx] : undefined;
-            const sizeValue: number | undefined = sizeIdx != null ? values[sizeIdx] : undefined;
-            const labelValue: string | undefined = labelIdx != null ? values[labelIdx] : undefined;
+        processedData.rawData.forEach((datum, datumIndex) => {
+            const idValue = idValues[datumIndex];
+            const colorValue = colorValues?.[datumIndex];
+            const sizeValue = sizeValues?.[datumIndex];
+            const labelValue = labelValues?.[datumIndex];
 
             const color: string | undefined =
                 colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;

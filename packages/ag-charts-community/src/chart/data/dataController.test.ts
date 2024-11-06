@@ -13,7 +13,7 @@ describe('DataController', () => {
     });
 
     it('should merge compatible requests with identical definitions', async () => {
-        const def = {
+        const def: DataModelOptions<any, any> = {
             props: [
                 {
                     id: 'keyProp1-key',
@@ -250,7 +250,8 @@ describe('DataController', () => {
         await controller.execute();
         const results = await Promise.all([promise1]);
 
-        expect(results[0].processedData.data[0].datum).not.toHaveProperty('test1');
+        expect(results[0].processedData.keys).toEqual([[2020, 2021, 2022]]);
+        expect(results[0].processedData.columns).toEqual([[100, 200, 300]]);
     });
 
     describe('with multiple data sources', () => {
@@ -292,11 +293,8 @@ describe('DataController', () => {
             const results = await Promise.all([promise1, promise2]);
 
             expect(results.length).toEqual(2);
-            expect(results[0].processedData.data[0].values).toEqual([100]);
-            expect(results[1].processedData.data[0].values).toEqual([40]);
-
-            expect(results[0].processedData.data[0].datum).not.toHaveProperty('test1');
-            expect(results[1].processedData.data[0].datum).not.toHaveProperty('test1');
+            expect(results[0].processedData.columns.map((c) => c[0])).toEqual([100]);
+            expect(results[1].processedData.columns.map((c) => c[0])).toEqual([40]);
         });
 
         it('should extract scoped data for each request with unique scopes', async () => {
@@ -352,11 +350,8 @@ describe('DataController', () => {
             await controller.execute();
             const results = await Promise.all([promise1, promise2]);
 
-            expect(results[0].processedData.data[0].values).toEqual([100]);
-            expect(results[1].processedData.data[0].values).toEqual([40]);
-
-            expect(results[0].processedData.data[0].datum).not.toHaveProperty('test1');
-            expect(results[1].processedData.data[0].datum).not.toHaveProperty('test2');
+            expect(results[0].processedData.columns.map((c) => c[0])).toEqual([100]);
+            expect(results[1].processedData.columns.map((c) => c[0])).toEqual([40]);
         });
 
         it('should extract scoped data for each request and not include given properties', async () => {
@@ -408,14 +403,8 @@ describe('DataController', () => {
             await controller.execute();
             const results = await Promise.all([promise1, promise2]);
 
-            expect(results[0].processedData.data[0].datum).toEqual({ valueProp1: 100 });
-            expect(results[1].processedData.data[0].datum).toEqual({ valueProp1: 40 });
-
-            expect(results[0].processedData.data[0].values).toEqual([100, 'key2 100']);
-            expect(results[1].processedData.data[0].values).toEqual([40, 'key2 40']);
-
-            expect(results[0].processedData.data[0].datum).not.toHaveProperty('test1');
-            expect(results[1].processedData.data[0].datum).not.toHaveProperty('test2');
+            expect(results[0].processedData.columns.map((c) => c[0])).toEqual([100, 'key2 100']);
+            expect(results[1].processedData.columns.map((c) => c[0])).toEqual([40, 'key2 40']);
         });
 
         it('should extract scoped grouped data and not leak scopes', async () => {
@@ -457,8 +446,8 @@ describe('DataController', () => {
             await controller.execute();
             const results = await Promise.all([promise1, promise2]);
 
-            expect((results[0].processedData.data[0].datum as any)[0]).not.toHaveProperty('test1');
-            expect((results[1].processedData.data[0].datum as any)[0]).not.toHaveProperty('test1');
+            expect(results[0].processedData.columns).toEqual([[100, 200, 300]]);
+            expect(results[1].processedData.columns).toEqual([[40, 50, 60]]);
         });
     });
 

@@ -228,16 +228,23 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     private getEnabledOriginators() {
-        const { annotationManager, zoomManager } = this.chart.ctx;
-        const options = this.chart.chartOptions.processedOptions;
+        const {
+            chartOptions: { processedOptions, optionMetadata },
+            ctx: { annotationManager, chartTypeOriginator, zoomManager },
+        } = this.chart;
 
         const originators = [];
 
-        if ('annotations' in options && options.annotations?.enabled) {
+        if ('annotations' in processedOptions && processedOptions.annotations?.enabled) {
             originators.push(annotationManager);
         }
 
-        if (options.navigator?.enabled || options.zoom?.enabled) {
+        const isFinancialChart = optionMetadata.presetType === 'price-volume';
+        if (isFinancialChart) {
+            originators.push(chartTypeOriginator);
+        }
+
+        if (processedOptions.navigator?.enabled || processedOptions.zoom?.enabled) {
             originators.push(zoomManager);
         }
 

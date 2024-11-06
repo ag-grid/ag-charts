@@ -131,18 +131,20 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(dataModel && processedData && visible && xAxis && yAxis)) {
+        if (!(dataModel && processedData && processedData.rawData.length && visible && xAxis && yAxis)) {
             return;
         }
 
-        const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
-        const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
-        const colorDataIdx = colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : -1;
-        const labelDataIdx = labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : -1;
-        const xFilterDataIdx =
-            xFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `xFilterValue`) : undefined;
-        const yFilterDataIdx =
-            yFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `yFilterValue`) : undefined;
+        const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+        const yDataValues = dataModel.resolveColumnById(this, `yValue`, processedData);
+        const colorDataValues =
+            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
+        const labelDataValues =
+            labelKey != null ? dataModel.resolveColumnById<string>(this, `labelValue`, processedData) : undefined;
+        const xFilterDataValues =
+            xFilterKey != null ? dataModel.resolveColumnById(this, `xFilterValue`, processedData) : undefined;
+        const yFilterDataValues =
+            yFilterKey != null ? dataModel.resolveColumnById(this, `yFilterValue`, processedData) : undefined;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -152,18 +154,18 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
         const font = label.getFont();
         const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
-        for (const { values, datum } of processedData.data ?? []) {
-            const xDatum = values[xDataIdx];
-            const yDatum = values[yDataIdx];
+        processedData.rawData.forEach((datum, datumIndex) => {
+            const xDatum = xDataValues[datumIndex];
+            const yDatum = yDataValues[datumIndex];
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
             const selected =
-                xFilterDataIdx != null && yFilterDataIdx != null
-                    ? values[xFilterDataIdx] === xDatum && values[yFilterDataIdx] === yDatum
+                xFilterDataValues != null && yFilterDataValues != null
+                    ? xFilterDataValues[datumIndex] === xDatum && yFilterDataValues[datumIndex] === yDatum
                     : undefined;
 
             const labelText = this.getLabelText(label, {
-                value: labelKey ? values[labelDataIdx] : yDatum,
+                value: labelDataValues != null ? labelDataValues?.[datumIndex] : yDatum,
                 datum,
                 xKey,
                 yKey,
@@ -174,7 +176,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             });
 
             const size = textMeasurer.measureText(labelText);
-            const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
+            const fill = colorDataValues != null ? colorScale.convert(colorDataValues[datumIndex]) : undefined;
 
             nodeData.push({
                 series: this,
@@ -193,7 +195,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 placement,
                 selected,
             });
-        }
+        });
 
         return {
             itemId: yKey,

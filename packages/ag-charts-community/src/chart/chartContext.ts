@@ -1,3 +1,4 @@
+import { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import { HistoryManager } from '../api/state/historyManager';
 import { StateManager } from '../api/state/stateManager';
 import { DOMManager } from '../dom/domManager';
@@ -46,6 +47,7 @@ export class ChartContext implements ModuleContext {
     annotationManager: AnnotationManager;
     axisManager: AxisManager;
     chartService: ChartService;
+    chartTypeOriginator: ChartTypeOriginator;
     contextMenuRegistry: ContextMenuRegistry;
     cursorManager: CursorManager;
     dataService: DataService<any>;
@@ -92,6 +94,7 @@ export class ChartContext implements ModuleContext {
 
         this.axisManager = new AxisManager(root);
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
+        this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.cursorManager = new CursorManager(this.domManager);
         this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
         this.keyNavManager = new KeyNavManager(this.interactionManager);

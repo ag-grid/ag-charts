@@ -1,13 +1,7 @@
 import { Debug } from '../../util/debug';
 import { getWindow } from '../../util/dom';
 import type { ChartMode } from '../chartMode';
-import type {
-    DataModelOptions,
-    DatumPropertyDefinition,
-    ProcessedData,
-    PropertyDefinition,
-    UngroupedData,
-} from './dataModel';
+import type { DataModelOptions, DatumPropertyDefinition, ProcessedData, PropertyDefinition } from './dataModel';
 import { DataModel } from './dataModel';
 
 interface RequestedProcessing<
@@ -80,8 +74,6 @@ export class DataController {
             getWindow<{ processedData: any[] }>().processedData = [];
         }
 
-        const scopes = this.requested.map(({ id }) => id);
-        const needsValueExtraction = this.hasMultipleDataSources(valid);
         for (const { opts, data, resolves, rejects, ids } of merged) {
             try {
                 const dataModel = new DataModel<any>(opts, this.mode);
@@ -92,15 +84,10 @@ export class DataController {
                 }
 
                 if (processedData?.partialValidDataCount === 0) {
-                    resolves.forEach((resolve, requestIdx) =>
+                    resolves.forEach((resolve) =>
                         resolve({
                             dataModel,
-                            processedData: this.processScopedData(
-                                ids[requestIdx],
-                                processedData,
-                                scopes,
-                                needsValueExtraction
-                            ),
+                            processedData,
                         })
                     );
                 } else if (processedData) {
@@ -112,48 +99,6 @@ export class DataController {
                 rejects.forEach((cb) => cb(error));
             }
         }
-    }
-
-    private hasMultipleDataSources(validRequests: RequestedProcessing<any, any, any>[]) {
-        if (validRequests.length) {
-            const [{ data }, ...restRequests] = validRequests;
-            return restRequests.some((v) => data !== v.data);
-        }
-        return false;
-    }
-
-    private processScopedData(
-        id: string,
-        processedData: UngroupedData<any>,
-        ids: string[],
-        needsValueExtraction: boolean
-    ) {
-        const extractDatum = (datum: any): any => {
-            if (Array.isArray(datum)) {
-                return datum.map(extractDatum);
-            }
-            const extracted = needsValueExtraction ? { ...datum, ...datum[id] } : datum;
-            for (const otherId of ids) {
-                delete extracted[otherId];
-            }
-            return extracted;
-        };
-
-        const extractValues = (values: any): any => {
-            if (Array.isArray(values)) {
-                return values.map(extractValues);
-            }
-            return values?.[id] ?? values;
-        };
-
-        return {
-            ...processedData,
-            data: processedData.data.map((datum) => ({
-                ...datum,
-                datum: extractDatum(datum.datum),
-                values: needsValueExtraction ? datum.values?.map(extractValues) : datum.values,
-            })),
-        };
     }
 
     private validateRequests(requested: RequestedProcessing<any, any, any>[]): RequestedProcessing<any, any, any>[] {
@@ -202,6 +147,7 @@ export class DataController {
                 dataModel,
                 processedData: {
                     ...processedData,
+                    // @ts-ignore
                     data: processedData.data.filter(({ validScopes }) => validScopes?.has(scope) ?? true),
                 },
             });

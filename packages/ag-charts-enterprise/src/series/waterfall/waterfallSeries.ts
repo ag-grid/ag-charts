@@ -206,11 +206,20 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     async createNodeData() {
-        const { data, dataModel } = this;
+        const { data, dataModel, processedData } = this;
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();
 
-        if (!data || !categoryAxis || !valueAxis || !dataModel) return;
+        if (
+            !data ||
+            !categoryAxis ||
+            !valueAxis ||
+            !dataModel ||
+            processedData == null ||
+            processedData.rawData.length === 0
+        ) {
+            return;
+        }
 
         const { line } = this.properties;
         const xScale = categoryAxis.scale;
@@ -220,7 +229,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const categoryAxisReversed = categoryAxis.isReversed();
         const valueAxisReversed = valueAxis.isReversed();
 
-        if (this.processedData?.type !== 'ungrouped') return;
+        if (processedData.type !== 'ungrouped') return;
 
         const context: WaterfallContext = {
             itemId: this.properties.yKey,
@@ -233,31 +242,34 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!this.visible) return context;
 
-        const yRawIndex = dataModel.resolveProcessedDataIndexById(this, `yRaw`);
-        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`);
-        const totalTypeIndex = dataModel.resolveProcessedDataIndexById(this, `totalTypeValue`);
-
         const pointData: WaterfallNodePointDatum[] = [];
 
-        const yCurrIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrent');
-        const yPrevIndex = dataModel.resolveProcessedDataIndexById(this, 'yPrevious');
-        const yCurrTotalIndex = dataModel.resolveProcessedDataIndexById(this, 'yCurrentTotal');
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const yRawValues = dataModel.resolveColumnById(this, `yRaw`, processedData);
+        const totalTypeValues = dataModel.resolveColumnById<AgWaterfallSeriesItemType>(
+            this,
+            `totalTypeValue`,
+            processedData
+        );
+        const yCurrValues = dataModel.resolveColumnById<number>(this, 'yCurrent', processedData);
+        const yPrevValues = dataModel.resolveColumnById<number>(this, 'yPrevious', processedData);
+        const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
 
         function getValues(
             isTotal: boolean,
             isSubtotal: boolean,
-            values: any[]
+            datumIndex: number
         ): { cumulativeValue: number | undefined; trailingValue: number | undefined } {
             if (isTotal || isSubtotal) {
                 return {
-                    cumulativeValue: values[yCurrTotalIndex],
+                    cumulativeValue: yCurrTotalValues[datumIndex],
                     trailingValue: isSubtotal ? trailingSubtotal : 0,
                 };
             }
 
             return {
-                cumulativeValue: values[yCurrIndex],
-                trailingValue: values[yPrevIndex],
+                cumulativeValue: yCurrValues[datumIndex],
+                trailingValue: yPrevValues[datumIndex],
             };
         }
 
@@ -280,19 +292,21 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         let trailingSubtotal = 0;
         const { xKey, yKey, xName, yName } = this.properties;
 
-        this.processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
-            const datumType = values[totalTypeIndex];
+        processedData.rawData.forEach((datum, datumIndex) => {
+            const datumType = totalTypeValues[datumIndex];
 
             const isSubtotal = this.isSubtotal(datumType);
             const isTotal = this.isTotal(datumType);
             const isTotalOrSubtotal = isTotal || isSubtotal;
 
-            const xDatum = keys[xIndex];
+            const xDatum = xValues[datumIndex];
+            if (xDatum == null) return;
+
             const x = Math.round(xScale.convert(xDatum));
 
-            const rawValue = values[yRawIndex];
+            const rawValue = yRawValues[datumIndex];
 
-            const { cumulativeValue, trailingValue } = getValues(isTotal, isSubtotal, values);
+            const { cumulativeValue, trailingValue } = getValues(isTotal, isSubtotal, datumIndex);
 
             if (isTotalOrSubtotal) {
                 trailingSubtotal = cumulativeValue ?? 0;
@@ -367,7 +381,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const labelText = this.getLabelText(label, { itemId, value, datum, xKey, yKey, xName, yName });
 
             const nodeDatum: WaterfallNodeDatum = {
-                index: dataIndex,
+                index: datumIndex,
                 series: this,
                 itemId: seriesItemType,
                 datum,
@@ -402,7 +416,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
 
         const connectorLinesEnabled = this.properties.line.enabled;
-        if (yCurrIndex !== undefined && connectorLinesEnabled) {
+        if (yCurrValues !== undefined && connectorLinesEnabled) {
             context.pointData = pointData;
         }
 

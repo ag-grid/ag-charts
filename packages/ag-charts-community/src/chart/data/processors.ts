@@ -1,18 +1,19 @@
 /* eslint-disable sonarjs/no-duplicate-string */
 import type { ScaleType } from '../../scale/scale';
-import { arraysEqual } from '../../util/array';
 import { memo } from '../../util/memo';
 import { clamp, isNegative } from '../../util/number';
 import { isArray, isFiniteNumber } from '../../util/type-guards';
 import { isContinuous, transformIntegratedCategoryValue } from '../../util/value';
 import { accumulatedValue, range, trailingAccumulatedValue } from './aggregateFunctions';
-import type {
-    DatumPropertyDefinition,
-    GroupValueProcessorDefinition,
-    ProcessedData,
-    ProcessorOutputPropertyDefinition,
-    PropertyValueProcessorDefinition,
-    ReducerOutputPropertyDefinition,
+import {
+    type DatumPropertyDefinition,
+    type GroupValueProcessorDefinition,
+    type ProcessedData,
+    type ProcessedOutputDiff,
+    type ProcessorOutputPropertyDefinition,
+    type PropertyValueProcessorDefinition,
+    type ReducerOutputPropertyDefinition,
+    datumKeys,
 } from './dataModel';
 
 function basicContinuousCheckDatumValidation(value: any) {
@@ -191,10 +192,11 @@ function normaliseFnBuilder({ normaliseTo, mode }: { normaliseTo: number; mode: 
         return Math.max(-normaliseTo, result);
     };
 
-    return () => () => (values: any[], valueIndexes: number[]) => {
+    return () => () => (columns: any[][], valueIndexes: number[], datumIndex: number) => {
         const valuesExtent = [0, 0];
         for (const valueIdx of valueIndexes) {
-            const value: number | number[] = values[valueIdx];
+            const column = columns[valueIdx];
+            const value: number | number[] = column[datumIndex];
             // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators
             const valueExtent = typeof value === 'number' ? value : Math.max(...value);
             const valIdx = valueExtent < 0 ? 0 : 1;
@@ -209,8 +211,9 @@ function normaliseFnBuilder({ normaliseTo, mode }: { normaliseTo: number; mode: 
 
         const extent = Math.max(Math.abs(valuesExtent[0]), valuesExtent[1]);
         for (const valueIdx of valueIndexes) {
-            const value: number | number[] = values[valueIdx];
-            values[valueIdx] =
+            const column = columns[valueIdx];
+            const value: number | number[] = column[datumIndex];
+            column[datumIndex] =
                 typeof value === 'number' ? normalise(value, extent) : value.map((v) => normalise(v, extent));
         }
     };
@@ -261,14 +264,10 @@ function normalisePropertyFnBuilder({
 
         pData.domain.values[pIdx] = [normaliseTo[0], normaliseTo[1]];
 
-        for (const group of pData.data) {
-            let groupValues = group.values;
-            if (pData.type === 'ungrouped') {
-                groupValues = [groupValues];
-            }
-            for (const values of groupValues) {
-                values[pIdx] = normalise(values[pIdx], start, span);
-            }
+        const { rawData } = pData;
+        const column = pData.columns[pIdx];
+        for (let datumIndex = 0; datumIndex < rawData.length; datumIndex += 1) {
+            column[datumIndex] = normalise(column[datumIndex], start, span);
         }
     };
 }
@@ -293,9 +292,13 @@ export function animationValidation(valueKeyIds?: string[]): ProcessorOutputProp
         property: 'animationValidation',
         calculate(result: ProcessedData<any>) {
             const { keys, values } = result.defs;
-            const { input, data } = result;
+            const { input, rawData, columns } = result;
             let uniqueKeys = true;
             let orderedKeys = true;
+
+            if (rawData.length === 0) {
+                return { uniqueKeys, orderedKeys };
+            }
 
             const valueKeys: [number, DatumPropertyDefinition<unknown>][] = [];
             for (let k = 0; k < values.length; k++) {
@@ -311,9 +314,9 @@ export function animationValidation(valueKeyIds?: string[]): ProcessorOutputProp
                     return;
                 }
 
-                let lastValue = data[0]?.[type][idx];
-                for (let d = 1; (uniqueKeys || orderedKeys) && d < data.length; d++) {
-                    const keyValue = data[d][type][idx];
+                let lastValue = columns[idx][0];
+                for (let d = 1; (uniqueKeys || orderedKeys) && d < rawData.length; d++) {
+                    const keyValue = columns[idx][d];
                     orderedKeys &&= lastValue <= keyValue;
                     uniqueKeys &&= lastValue !== keyValue;
                     lastValue = keyValue;
@@ -334,16 +337,17 @@ export function animationValidation(valueKeyIds?: string[]): ProcessorOutputProp
 }
 
 function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailing'; separateNegative?: boolean }) {
-    return () => () => (values: any[], valueIndexes: number[]) => {
+    return () => () => (columns: any[][], valueIndexes: number[], datumIndex: number) => {
         // Datum scope.
         const acc = [0, 0];
         for (const valueIdx of valueIndexes) {
-            const currentVal = values[valueIdx];
+            const column = columns[valueIdx];
+            const currentVal = column[datumIndex];
             const accIndex = isNegative(currentVal) && separateNegative ? 0 : 1;
             if (!isFiniteNumber(currentVal)) continue;
 
             if (mode === 'normal') acc[accIndex] += currentVal;
-            values[valueIdx] = acc[accIndex];
+            column[datumIndex] = acc[accIndex];
             if (mode === 'trailing') acc[accIndex] += currentVal;
         }
     };
@@ -356,24 +360,25 @@ function buildGroupWindowAccFn({ mode, sum }: { mode: 'normal' | 'trailing'; sum
         let firstRow = true;
         return () => {
             // Group scope.
-            return (values: any[], valueIndexes: number[]) => {
+            return (columns: any[][], valueIndexes: number[], datumIndex: number) => {
                 // Datum scope.
                 let acc = 0;
                 for (const valueIdx of valueIndexes) {
-                    const currentVal = values[valueIdx];
+                    const column = columns[valueIdx];
+                    const currentVal = column[datumIndex];
                     const lastValue = firstRow && sum === 'current' ? 0 : lastValues[valueIdx];
                     lastValues[valueIdx] = currentVal;
 
                     const sumValue = sum === 'current' ? currentVal : lastValue;
                     if (!isFiniteNumber(currentVal) || !isFiniteNumber(lastValue)) {
-                        values[valueIdx] = acc;
+                        column[datumIndex] = acc;
                         continue;
                     }
 
                     if (mode === 'normal') {
                         acc += sumValue;
                     }
-                    values[valueIdx] = acc;
+                    column[datumIndex] = acc;
                     if (mode === 'trailing') {
                         acc += sumValue;
                     }
@@ -407,15 +412,16 @@ export function accumulateGroup(
 }
 
 function groupStackAccFn() {
-    return () => (values: any[], valueIndexes: number[]) => {
+    return () => (columns: any[][], valueIndexes: number[], datumIndex: number) => {
         // Datum scope.
         const acc = new Float64Array(32);
         let stackCount = 0;
         for (const valueIdx of valueIndexes) {
-            const currentValue = values[valueIdx];
+            const column = columns[valueIdx];
+            const currentValue = column[datumIndex];
             acc[stackCount] = Number.isFinite(currentValue) ? currentValue : NaN;
             stackCount += 1;
-            values[valueIdx] = acc.subarray(0, stackCount);
+            column[datumIndex] = acc.subarray(0, stackCount);
         }
     };
 }
@@ -461,22 +467,27 @@ function valueIndices(id: string, previousData: ProcessedData<any>, processedDat
     return { prevIndices, nextIndices };
 }
 
-function valuesEqual(
-    previousValues: any[],
-    nextValues: any[],
+function columnsEqual(
+    previousColumns: any[][],
+    nextColumns: any[][],
     previousIndices: number[] | undefined,
-    nextIndices: number[] | undefined
+    nextIndices: number[] | undefined,
+    previousDatumIndex: number,
+    nextDatumIndex: number
 ) {
     if (previousIndices == null || nextIndices == null) {
-        return arraysEqual(previousValues, nextValues);
+        return false;
     }
 
-    for (let i = 0; i < previousIndices.length; i += 1) {
-        const previousIndex = previousIndices[i];
-        const nextIndex = nextIndices[i];
+    for (let indicesIndex = 0; indicesIndex < previousIndices.length; indicesIndex += 1) {
+        const previousIndex = previousIndices[indicesIndex];
+        const nextIndex = nextIndices[indicesIndex];
 
-        const previousValue = previousValues[previousIndex];
-        const nextValue = nextValues[nextIndex];
+        const previousColumn = previousColumns[previousIndex];
+        const nextColumn = nextColumns[nextIndex];
+
+        const previousValue = previousColumn[previousDatumIndex];
+        const nextValue = nextColumn[nextDatumIndex];
 
         if (previousValue !== nextValue) {
             return false;
@@ -494,57 +505,79 @@ export function diff(
     return {
         type: 'processor',
         property: 'diff',
-        calculate: (processedData) => {
-            const moved = new Map<string, any>();
-            const added = new Map<string, any>();
-            const updated = new Map<string, any>();
-            const removed = new Map<string, any>();
+        calculate(processedData): ProcessedOutputDiff | undefined {
+            const moved = new Map<string, number>();
+            const added = new Map<string, number>();
+            const updated = new Map<string, number>();
+            const removed = new Map<string, number>();
+
+            const previousKeys = previousData.keys;
+            const keys = processedData.keys;
+
+            const previousColumns = previousData.columns;
+            const columns = processedData.columns;
 
             const indices = valueIndices(id, previousData, processedData);
             if (indices == null) return;
 
             const { prevIndices, nextIndices } = indices;
 
-            const length = Math.max(previousData.data.length, processedData.data.length);
+            const length = Math.max(previousData.rawData.length, processedData.rawData.length);
 
             for (let i = 0; i < length; i++) {
-                const prev = previousData.data[i];
-                const datum = processedData.data[i];
+                const hasPreviousDatum = i < previousData.rawData.length;
+                const hasDatum = i < processedData.rawData.length;
 
-                const prevId = prev ? createDatumId(prev.keys) : '';
-                const datumId = datum ? createDatumId(datum.keys) : '';
+                const prevKeys = hasPreviousDatum ? datumKeys(previousKeys, i) : undefined;
+                const prevId = prevKeys != null ? createDatumId(prevKeys) : '';
+                const dKeys = hasDatum ? datumKeys(keys, i) : undefined;
+                const datumId = dKeys != null ? createDatumId(dKeys) : '';
 
-                if (datum && prev && prevId === datumId) {
-                    if (!valuesEqual(prev.values, datum.values, prevIndices, nextIndices)) {
-                        updated.set(datumId, datum);
+                if (hasDatum && hasPreviousDatum && prevId === datumId) {
+                    if (!columnsEqual(previousColumns, columns, prevIndices, nextIndices, i, i)) {
+                        updated.set(datumId, i);
                     }
                     continue;
                 }
 
-                if (removed.has(datumId)) {
-                    if (updateMovedData || !arraysEqual(removed.get(datumId).values, datum.values)) {
-                        updated.set(datumId, datum);
-                        moved.set(datumId, datum);
+                const removedIndex = removed.get(datumId);
+                if (removedIndex != null) {
+                    if (
+                        updateMovedData ||
+                        !columnsEqual(previousColumns, columns, prevIndices, nextIndices, removedIndex, i)
+                    ) {
+                        updated.set(datumId, i);
+                        moved.set(datumId, i);
                     }
                     removed.delete(datumId);
-                } else if (datum) {
-                    added.set(datumId, datum);
+                } else if (hasDatum) {
+                    added.set(datumId, i);
                 }
 
-                if (added.has(prevId)) {
-                    if (updateMovedData || !arraysEqual(added.get(prevId).values, prev.values)) {
-                        updated.set(prevId, prev);
-                        moved.set(prevId, prev);
+                const addedIndex = added.get(prevId);
+                if (addedIndex != null) {
+                    if (
+                        updateMovedData ||
+                        !columnsEqual(previousColumns, columns, prevIndices, nextIndices, addedIndex, i)
+                    ) {
+                        updated.set(prevId, i);
+                        moved.set(prevId, i);
                     }
                     added.delete(prevId);
-                } else if (prev) {
+                } else if (hasPreviousDatum) {
                     updated.delete(prevId);
-                    removed.set(prevId, prev);
+                    removed.set(prevId, i);
                 }
             }
 
             const changed = added.size > 0 || updated.size > 0 || removed.size > 0;
-            return { changed, added, updated, removed, moved };
+            return {
+                changed,
+                added: new Set(added.keys()),
+                updated: new Set(updated.keys()),
+                removed: new Set(removed.keys()),
+                moved: new Set(moved.keys()),
+            };
         },
     };
 }

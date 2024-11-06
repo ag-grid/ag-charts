@@ -280,7 +280,9 @@ export class StatusBar
 
         if (props.length === 0) return;
 
-        const { processedData, dataModel } = await dataController.request(this.id, this.data, { props });
+        const { processedData, dataModel } = await dataController.request(this.id, this.data, {
+            props,
+        });
 
         for (const label of this.labels) {
             const { id, key } = label;
