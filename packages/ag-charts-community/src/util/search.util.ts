@@ -1,3 +1,18 @@
+export function findValue(min: number, max: number, iteratee: (value: number) => number): number | undefined {
+    if (min > max) return;
+    while (max >= min) {
+        const index = Math.floor((max + min) / 2);
+        const value = iteratee(index);
+        if (value === 0) {
+            return index;
+        } else if (value < 0) {
+            max = index - 1;
+        } else {
+            min = index + 1;
+        }
+    }
+}
+
 /**
  * Finds the maximum value that matches a condition within a specified range.
  *

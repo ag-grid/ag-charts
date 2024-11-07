@@ -284,13 +284,13 @@ export class LineSeries extends CartesianSeries<
 
         const nodeData: LineNodeDatum[] = [];
         let spanPoints: SpanPoints | undefined;
-        const handleDatum = (index: number) => {
-            const datum = rawData[index];
-            const xDatum = xValues[index];
-            const yDatum = yValues[index];
-            const yEndDatum = yEndValues?.[index];
-            const yCumulativeDatum = yCumulativeValues?.[index];
-            const selected = selectionValues?.[index];
+        const handleDatum = (datumIndex: number) => {
+            const datum = rawData[datumIndex];
+            const xDatum = xValues[datumIndex];
+            const yDatum = yValues[datumIndex];
+            const yEndDatum = yEndValues?.[datumIndex];
+            const yCumulativeDatum = yCumulativeValues?.[datumIndex];
+            const selected = selectionValues?.[datumIndex];
 
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yCumulativeDatum) + yOffset;
@@ -313,6 +313,7 @@ export class LineSeries extends CartesianSeries<
                 nodeData.push({
                     series: this,
                     datum,
+                    datumIndex,
                     yKey,
                     xKey,
                     point: { x, y, size },

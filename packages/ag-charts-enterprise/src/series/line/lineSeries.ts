@@ -2,9 +2,24 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { aggregateData } from './lineAggregation';
 
-const { ChartAxisDirection, findMinValue, findMaxValue, ContinuousScale } = _ModuleSupport;
+const { ChartAxisDirection, findMinValue, findMaxValue, findValue, ContinuousScale } = _ModuleSupport;
+
+function nodeDataIndexDelta(datumIndex: number, nodeData: _ModuleSupport.LineNodeDatum[], delta: -1 | 1) {
+    const nodeDatumIndex = findValue(0, nodeData.length, (index) => {
+        return nodeData[index].datumIndex - datumIndex;
+    });
+    return nodeDatumIndex != null ? nodeData[nodeDatumIndex + delta]?.datumIndex : undefined;
+}
 
 export class LineSeries extends _ModuleSupport.LineSeries {
+    protected override previousDatumIndex(datumIndex: number, nodeData: _ModuleSupport.LineNodeDatum[]) {
+        return nodeDataIndexDelta(datumIndex, nodeData, -1);
+    }
+
+    protected override nextDatumIndex(datumIndex: number, nodeData: _ModuleSupport.LineNodeDatum[]) {
+        return nodeDataIndexDelta(datumIndex, nodeData, 1);
+    }
+
     protected override visibleRange(
         length: number,
         x0: number,

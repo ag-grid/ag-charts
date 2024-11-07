@@ -98,22 +98,30 @@ export abstract class DataModelSeries<
         }
     }
 
+    protected previousDatumIndex(datumIndex: number, _nodeData: TDatum[]) {
+        return datumIndex > 0 ? datumIndex - 1 : undefined;
+    }
+
+    protected nextDatumIndex(datumIndex: number, nodeData: TDatum[]) {
+        return datumIndex < nodeData.length ? datumIndex + 1 : undefined;
+    }
+
     private computeFocusDatumIndex(opts: PickFocusInputs, nodeData: TDatum[]): number | undefined {
         const isDatumEnabled = (datumIndex: number): boolean => {
             const { missing = false, enabled = true, focusable = true } = nodeData[datumIndex];
             return !missing && enabled && focusable;
         };
-        const searchBackward = (datumIndex: number): number | undefined => {
-            while (datumIndex >= 0 && !isDatumEnabled(datumIndex)) {
-                datumIndex--;
+        const searchBackward = (datumIndex: number | undefined): number | undefined => {
+            while (datumIndex != null && !isDatumEnabled(datumIndex)) {
+                datumIndex = this.previousDatumIndex(datumIndex, nodeData);
             }
-            return datumIndex === -1 ? undefined : datumIndex;
+            return datumIndex;
         };
-        const searchForward = (datumIndex: number): number | undefined => {
-            while (datumIndex < nodeData.length && !isDatumEnabled(datumIndex)) {
-                datumIndex++;
+        const searchForward = (datumIndex: number | undefined): number | undefined => {
+            while (datumIndex != null && !isDatumEnabled(datumIndex)) {
+                datumIndex = this.nextDatumIndex(datumIndex, nodeData);
             }
-            return datumIndex === nodeData.length ? undefined : datumIndex;
+            return datumIndex;
         };
 
         // Search forward or backwards depending on the delta direction.
