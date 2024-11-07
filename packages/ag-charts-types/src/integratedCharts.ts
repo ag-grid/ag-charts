@@ -65,8 +65,9 @@ export interface IntegratedModule<O extends AgChartInstanceOptions> {
     _Scene: _IScene;
     _Theme: _ITheme;
     _Util: _IUtil;
-    setup: () => void;
     create: (options: O) => AgChartInstance<O>;
+    setup: () => void;
+    isEnterprise: boolean;
 }
 
 export type IntegratedChartModule = IntegratedModule<AgChartOptions>;
