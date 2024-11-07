@@ -169,6 +169,14 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         centerStyle.height = `${this.containerSize?.height ?? 0}px`;
     }
 
+    setFocusable(focusable: boolean) {
+        if (focusable) {
+            this.element.removeAttribute('inert');
+        } else {
+            this.element.setAttribute('inert', '');
+        }
+    }
+
     setTabGuardIndex(tabIndex: number) {
         this.tabGuards.tabIndex = tabIndex;
     }
