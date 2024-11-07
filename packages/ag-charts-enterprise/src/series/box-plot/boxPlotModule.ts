@@ -1,9 +1,14 @@
-import { type _ModuleSupport, _Theme, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { BoxPlotSeries } from './boxPlotSeries';
 import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
 
-const { Color } = _Util;
+const {
+    Color,
+    swapAxisCondition,
+    ThemeSymbols: { DEFAULT_BACKGROUND_COLOUR },
+    ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
+} = _ModuleSupport;
 
 export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     type: 'series',
@@ -14,10 +19,10 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     identifier: 'box-plot',
     moduleFactory: (ctx) => new BoxPlotSeries(ctx),
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: _Theme.swapAxisCondition(
+    defaultAxes: swapAxisCondition(
         [
-            { type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER, position: _Theme.CARTESIAN_POSITION.LEFT },
-            { type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY, position: _Theme.CARTESIAN_POSITION.BOTTOM },
+            { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
+            { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
         ],
         (series) => series?.direction === 'horizontal'
     ),
@@ -25,7 +30,7 @@ export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     groupable: true,
 
     paletteFactory: ({ takeColors, themeTemplateParameters }) => {
-        const themeBackgroundColor = themeTemplateParameters.get(_Theme.DEFAULT_BACKGROUND_COLOUR);
+        const themeBackgroundColor = themeTemplateParameters.get(DEFAULT_BACKGROUND_COLOUR);
         const backgroundFill =
             (Array.isArray(themeBackgroundColor) ? themeBackgroundColor[0] : themeBackgroundColor) ?? 'white';
 

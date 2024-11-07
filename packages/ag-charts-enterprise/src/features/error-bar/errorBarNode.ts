@@ -1,9 +1,7 @@
 import type { AgErrorBarOptions, AgErrorBarThemeableOptions } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { nearestSquaredInContainer, partialAssign, mergeDefaults } = _ModuleSupport;
-const { BBox } = _Scene;
-type BBox = _Scene.BBox;
+const { nearestSquaredInContainer, partialAssign, mergeDefaults, BBox } = _ModuleSupport;
 type NearestResult<T> = _ModuleSupport.NearestResult<T>;
 
 export type ErrorBarNodeDatum = _ModuleSupport.CartesianSeriesNodeDatum & _ModuleSupport.ErrorBoundSeriesNodeDatum;
@@ -19,10 +17,10 @@ class HierarchicalBBox {
     // ErrorBarNode can include up to 6 bboxes in total (2 whiskers, 4 caps). This is expensive hit
     // testing, therefore we'll use a hierarchical bbox structure: `union` is the bbox that includes
     // all the components.
-    public union: BBox;
-    public components: BBox[];
+    public union: _ModuleSupport.BBox;
+    public components: _ModuleSupport.BBox[];
 
-    constructor(components: BBox[]) {
+    constructor(components: _ModuleSupport.BBox[]) {
         this.components = components;
         this.union = BBox.merge(components);
     }
@@ -42,9 +40,9 @@ class HierarchicalBBox {
     }
 }
 
-export class ErrorBarNode extends _Scene.Group {
-    private readonly whiskerPath: _Scene.Path;
-    private readonly capsPath: _Scene.Path;
+export class ErrorBarNode extends _ModuleSupport.Group {
+    private readonly whiskerPath: _ModuleSupport.Path;
+    private readonly capsPath: _ModuleSupport.Path;
     private capLength: number = NaN;
 
     // The ErrorBarNode does not need to handle the 'nearest' interaction range type, we can let the
@@ -62,8 +60,8 @@ export class ErrorBarNode extends _Scene.Group {
 
     constructor() {
         super();
-        this.whiskerPath = new _Scene.Path();
-        this.capsPath = new _Scene.Path();
+        this.whiskerPath = new _ModuleSupport.Path();
+        this.capsPath = new _ModuleSupport.Path();
         this.bboxes = new HierarchicalBBox([]);
         this.append([this.whiskerPath, this.capsPath]);
     }
@@ -193,11 +191,11 @@ export class ErrorBarNode extends _Scene.Group {
         return this.bboxes.containsPoint(x, y);
     }
 
-    override pickNode(x: number, y: number): _Scene.Node | undefined {
+    override pickNode(x: number, y: number): _ModuleSupport.Node | undefined {
         return this.containsPoint(x, y) ? this : undefined;
     }
 
-    nearestSquared(x: number, y: number, maxDistance: number): NearestResult<_Scene.Node> {
+    nearestSquared(x: number, y: number, maxDistance: number): NearestResult<_ModuleSupport.Node> {
         const { bboxes } = this;
         if (bboxes.union.distanceSquared(x, y) > maxDistance) {
             return { nearest: undefined, distanceSquared: Infinity };
@@ -208,7 +206,7 @@ export class ErrorBarNode extends _Scene.Group {
     }
 }
 
-export class ErrorBarGroup extends _Scene.Group {
+export class ErrorBarGroup extends _ModuleSupport.Group {
     nearestSquared(x: number, y: number): _ModuleSupport.PickNodeDatumResult {
         const { nearest, distanceSquared } = nearestSquaredInContainer(x, y, {
             children: this.children() as Iterable<ErrorBarNode>,

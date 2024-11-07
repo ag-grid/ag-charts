@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
@@ -20,11 +20,14 @@ const {
     seriesLabelFadeInAnimation,
     seriesLabelFadeOutAnimation,
     animationValidation,
+    isFiniteNumber,
+    angleBetween,
+    sanitizeHtml,
+    BandScale,
+    Sector,
+    SectorBox,
+    motion,
 } = _ModuleSupport;
-
-const { BandScale } = _Scale;
-const { Sector, SectorBox, motion } = _Scene;
-const { angleBetween, isNumber, sanitizeHtml } = _Util;
 
 class RadialBarSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -54,7 +57,7 @@ export interface RadialBarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly outerRadius: number;
     readonly startAngle: number;
     readonly endAngle: number;
-    readonly clipSector: _Scene.SectorBox;
+    readonly clipSector: _ModuleSupport.SectorBox;
     readonly reversed: boolean;
     readonly index: number;
 }
@@ -62,7 +65,7 @@ export interface RadialBarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     RadialBarNodeDatum,
     RadialBarSeriesProperties<any>,
-    _Scene.Sector
+    _ModuleSupport.Sector
 > {
     static readonly className = 'RadialBarSeries';
     static readonly type = 'radial-bar' as const;
@@ -85,7 +88,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         });
     }
 
-    protected override nodeFactory(): _Scene.Sector {
+    protected override nodeFactory(): _ModuleSupport.Sector {
         return new Sector();
     }
 
@@ -339,7 +342,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return context;
     }
 
-    async update({ seriesRect }: { seriesRect?: _Scene.BBox }) {
+    async update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         const resize = this.checkResize(seriesRect);
         await this.maybeRefreshNodeData();
 
@@ -363,7 +366,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected updateSectorSelection(
-        selection: _Scene.Selection<_Scene.Sector, RadialBarNodeDatum>,
+        selection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialBarNodeDatum>,
         highlighted: boolean
     ) {
         let selectionData: RadialBarNodeDatum[] = [];
@@ -514,7 +517,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!this.properties.isValid() || !(xAxis && yAxis && isNumber(angleValue)) || !dataModel) {
+        if (!this.properties.isValid() || !(xAxis && yAxis && isFiniteNumber(angleValue)) || !dataModel) {
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
@@ -558,7 +561,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         );
     }
 
-    protected override pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+    protected override pickNodeClosestDatum(
+        point: _ModuleSupport.Point
+    ): _ModuleSupport.SeriesNodePickMatch | undefined {
         return this.pickNodeNearestDistantObject(point, this.itemSelection.nodes());
     }
 

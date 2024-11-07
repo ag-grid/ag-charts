@@ -1,6 +1,6 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { BBox, Path, ScenePathChangeDetection } = _Scene;
+const { lineDistanceSquared, BBox, Path, ScenePathChangeDetection } = _ModuleSupport;
 
 const delta = 1e-6;
 function pointsEq([ax, ay]: readonly [number, number], [bx, by]: readonly [number, number]) {
@@ -45,14 +45,14 @@ export class FunnelConnector extends Path implements _ModuleSupport.DistantObjec
 
         const { x0, y0, x1, y1, x2, y2, x3, y3 } = this;
         return Math.min(
-            _Util.lineDistanceSquared(x, y, x0, y0, x1, y1, Infinity),
-            _Util.lineDistanceSquared(x, y, x1, y1, x2, y2, Infinity),
-            _Util.lineDistanceSquared(x, y, x2, y2, x3, y3, Infinity),
-            _Util.lineDistanceSquared(x, y, x3, y3, x0, y0, Infinity)
+            lineDistanceSquared(x, y, x0, y0, x1, y1, Infinity),
+            lineDistanceSquared(x, y, x1, y1, x2, y2, Infinity),
+            lineDistanceSquared(x, y, x2, y2, x3, y3, Infinity),
+            lineDistanceSquared(x, y, x3, y3, x0, y0, Infinity)
         );
     }
 
-    protected override computeBBox(): _Scene.BBox | undefined {
+    protected override computeBBox(): _ModuleSupport.BBox | undefined {
         const { x0, y0, x1, y1, x2, y2, x3, y3 } = this;
         const x = Math.min(x0, x1, x2, x3);
         const width = Math.max(x0, x1, x2, x3) - x;

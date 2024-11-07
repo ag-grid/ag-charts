@@ -1,5 +1,5 @@
-import type { AgBaseCrossLineLabelOptions, FontStyle, FontWeight, _Scale } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import type { AgBaseCrossLineLabelOptions, FontStyle, FontWeight } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 const {
     BaseProperties,
@@ -19,10 +19,9 @@ const {
     AND,
     Validate,
     MATCHING_CROSSLINE_TYPE,
+    createId,
+    Group,
 } = _ModuleSupport;
-
-const { Group } = _Scene;
-const { createId } = _Util;
 
 export class PolarCrossLineLabel extends BaseProperties implements AgBaseCrossLineLabelOptions {
     @Validate(BOOLEAN, { optional: true })
@@ -100,7 +99,7 @@ export abstract class PolarCrossLine extends BaseProperties implements _ModuleSu
     @Validate(OBJECT)
     label = new PolarCrossLineLabel();
 
-    scale?: _Scale.Scale<any, number> = undefined;
+    scale?: _ModuleSupport.Scale<any, number> = undefined;
     clippedRange: [number, number] = [-Infinity, Infinity];
     gridLength: number = 0;
     sideFlag: 1 | -1 = -1;
@@ -116,7 +115,7 @@ export abstract class PolarCrossLine extends BaseProperties implements _ModuleSu
     readonly labelGroup = new Group({ name: this.id });
 
     private _isRange: boolean | undefined = undefined;
-    protected assignCrossLineGroup(isRange: boolean, crossLineRange: _Scene.Node) {
+    protected assignCrossLineGroup(isRange: boolean, crossLineRange: _ModuleSupport.Node) {
         if (isRange !== this._isRange) {
             if (isRange) {
                 this.rangeGroup.appendChild(crossLineRange);
@@ -129,7 +128,7 @@ export abstract class PolarCrossLine extends BaseProperties implements _ModuleSu
 
     abstract update(visible: boolean): void;
 
-    protected setSectorNodeProps(node: _Scene.Path | _Scene.Sector) {
+    protected setSectorNodeProps(node: _ModuleSupport.Path | _ModuleSupport.Sector) {
         node.fill = this.fill;
         node.fillOpacity = this.fillOpacity ?? 1;
         node.stroke = this.stroke;
@@ -139,7 +138,7 @@ export abstract class PolarCrossLine extends BaseProperties implements _ModuleSu
     }
 
     protected setLabelNodeProps(
-        node: _Scene.RotatableText,
+        node: _ModuleSupport.RotatableText,
         x: number,
         y: number,
         baseline: CanvasTextBaseline,

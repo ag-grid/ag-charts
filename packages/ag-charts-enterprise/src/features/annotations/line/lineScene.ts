@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -135,10 +135,10 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         _datum: LineTypeProperties,
         coords: _ModuleSupport.Vec4,
         _context: AnnotationContext,
-        _bbox?: _Scene.BBox
+        _bbox?: _ModuleSupport.BBox
     ) {
         const point = Vec4.topCenter(coords);
-        Vec2.apply(this.anchor, _Scene.Transformable.toCanvasPoint(this.line, point.x, point.y));
+        Vec2.apply(this.anchor, _ModuleSupport.Transformable.toCanvasPoint(this.line, point.x, point.y));
     }
 
     override containsPoint(x: number, y: number) {
@@ -158,7 +158,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         _datum: LineTypeProperties,
         coords: _ModuleSupport.Vec4,
         handle: 'start' | 'end',
-        _bbox?: _Scene.BBox | undefined
+        _bbox?: _ModuleSupport.BBox | undefined
     ): _ModuleSupport.Vec2 {
         const { startCap, endCap } = this;
 

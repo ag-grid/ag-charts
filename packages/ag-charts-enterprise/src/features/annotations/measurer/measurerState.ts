@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { Point } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext, MeasurerPropertiesType } from '../annotationsSuperTypes';
@@ -12,7 +12,7 @@ import {
 } from './measurerProperties';
 import type { MeasurerScene } from './measurerScene';
 
-const { StateMachine, StateMachineProperty } = _ModuleSupport;
+const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
 interface MeasurerStateMachineContext<Datum extends MeasurerPropertiesType>
     extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
@@ -23,7 +23,7 @@ abstract class MeasurerTypeStateMachine<Datum extends MeasurerPropertiesType> ex
     'start' | 'end',
     Pick<AnnotationStateEvents, 'click' | 'hover' | 'drag' | 'dragEnd' | 'reset' | 'cancel'>
 > {
-    override debug = _Util.Debug.create(true, 'annotations');
+    override debug = Debug.create(true, 'annotations');
 
     @StateMachineProperty()
     protected datum?: Datum;

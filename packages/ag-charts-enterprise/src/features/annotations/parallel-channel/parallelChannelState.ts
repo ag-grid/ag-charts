@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType, type Point } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
@@ -7,7 +7,7 @@ import { snapPoint } from '../utils/coords';
 import { ParallelChannelProperties } from './parallelChannelProperties';
 import type { ParallelChannelScene } from './parallelChannelScene';
 
-const { StateMachine, StateMachineProperty } = _ModuleSupport;
+const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
 interface ParallelChannelStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: ParallelChannelProperties) => void;
@@ -20,7 +20,7 @@ export class ParallelChannelStateMachine extends StateMachine<
         'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'cancel' | 'reset' | 'render'
     >
 > {
-    override debug = _Util.Debug.create(true, 'annotations');
+    override debug = Debug.create(true, 'annotations');
 
     @StateMachineProperty()
     protected datum?: ParallelChannelProperties;

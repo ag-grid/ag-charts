@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import type { AgMapShapeSeriesStyle } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -24,10 +24,14 @@ const {
     Validate,
     CachedTextMeasurerPool,
     TextUtils,
+    sanitizeHtml,
+    Logger,
+    ColorScale,
+    Group,
+    Selection,
+    Text,
+    PointerEvents,
 } = _ModuleSupport;
-const { ColorScale } = _Scale;
-const { Group, Selection, Text, PointerEvents } = _Scene;
-const { sanitizeHtml, Logger } = _Util;
 
 export interface MapShapeNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {}
@@ -81,14 +85,15 @@ export class MapShapeSeries
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
     private readonly itemLabelGroup = this.contentGroup.appendChild(new Group({ name: 'itemLabelGroup' }));
 
-    public datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(this.itemGroup, () =>
-        this.nodeFactory()
+    public datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
+        this.itemGroup,
+        () => this.nodeFactory()
     );
-    private labelSelection: _Scene.Selection<_Scene.Text, MapShapeNodeLabelDatum> = Selection.select(
+    private labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum> = Selection.select(
         this.itemLabelGroup,
         Text
     );
-    private highlightDatumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
+    private highlightDatumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum> = Selection.select(
         this.highlightNode,
         () => this.nodeFactory()
     );
@@ -440,13 +445,13 @@ export class MapShapeSeries
 
     private async updateDatumSelection(opts: {
         nodeData: MapShapeNodeDatum[];
-        datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
 
     private async updateDatumNodes(opts: {
-        datumSelection: _Scene.Selection<GeoGeometry, MapShapeNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum>;
         isHighlight: boolean;
     }) {
         const {
@@ -501,13 +506,15 @@ export class MapShapeSeries
 
     private async updateLabelSelection(opts: {
         labelData: MapShapeNodeLabelDatum[];
-        labelSelection: _Scene.Selection<_Scene.Text, MapShapeNodeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum>;
     }) {
         const labels = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(labels);
     }
 
-    private async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, MapShapeNodeLabelDatum> }) {
+    private async updateLabelNodes(opts: {
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, MapShapeNodeLabelDatum>;
+    }) {
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontFamily } = this.properties.label;
 
@@ -558,7 +565,7 @@ export class MapShapeSeries
         // No animations
     }
 
-    override getLabelData(): _Util.PointLabelDatum[] {
+    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
         return [];
     }
 
@@ -566,7 +573,7 @@ export class MapShapeSeries
         return [NaN, NaN];
     }
 
-    override pickNodeClosestDatum({ x, y }: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+    override pickNodeClosestDatum({ x, y }: _ModuleSupport.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
 
@@ -582,9 +589,9 @@ export class MapShapeSeries
     }
 
     private _previousDatumMidPoint:
-        | { datum: _ModuleSupport.SeriesNodeDatum; point: _Scene.Point | undefined }
+        | { datum: _ModuleSupport.SeriesNodeDatum; point: _ModuleSupport.Point | undefined }
         | undefined = undefined;
-    datumMidPoint(datum: _ModuleSupport.SeriesNodeDatum): _Scene.Point | undefined {
+    datumMidPoint(datum: _ModuleSupport.SeriesNodeDatum): _ModuleSupport.Point | undefined {
         const { _previousDatumMidPoint } = this;
         if (_previousDatumMidPoint?.datum === datum) {
             return _previousDatumMidPoint.point;
@@ -743,7 +750,7 @@ export class MapShapeSeries
         );
     }
 
-    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.Path | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.Path | undefined {
         return findFocusedGeoGeometry(this, opts);
     }
 }

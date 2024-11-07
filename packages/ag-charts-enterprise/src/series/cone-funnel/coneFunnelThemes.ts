@@ -3,8 +3,13 @@ import {
     type AgConeFunnelSeriesThemeableOptions,
     type AgNumberAxisThemeOptions,
     type AgSeriesAreaOptions,
-    _Theme,
+    _ModuleSupport,
 } from 'ag-charts-community';
+
+const {
+    ThemeSymbols: { DEFAULT_LABEL_COLOUR, DEFAULT_FONT_FAMILY },
+    ThemeConstants: { CARTESIAN_AXIS_TYPE },
+} = _ModuleSupport;
 
 export const CONE_FUNNEL_SERIES_THEME: {
     series: AgConeFunnelSeriesThemeableOptions;
@@ -17,8 +22,8 @@ export const CONE_FUNNEL_SERIES_THEME: {
         label: {
             enabled: true,
             fontSize: 12,
-            fontFamily: _Theme.DEFAULT_FONT_FAMILY,
-            color: _Theme.DEFAULT_LABEL_COLOUR,
+            fontFamily: DEFAULT_FONT_FAMILY,
+            color: DEFAULT_LABEL_COLOUR,
             placement: 'before',
             spacing: 4,
         },
@@ -30,7 +35,7 @@ export const CONE_FUNNEL_SERIES_THEME: {
         },
     },
     axes: {
-        [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
+        [CARTESIAN_AXIS_TYPE.NUMBER]: {
             nice: false,
             gridLine: {
                 enabled: false,
@@ -45,7 +50,7 @@ export const CONE_FUNNEL_SERIES_THEME: {
                 },
             },
         },
-        [_Theme.CARTESIAN_AXIS_TYPE.CATEGORY]: {
+        [CARTESIAN_AXIS_TYPE.CATEGORY]: {
             line: {
                 enabled: false,
             },

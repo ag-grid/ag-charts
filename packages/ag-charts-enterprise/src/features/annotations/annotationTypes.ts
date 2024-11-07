@@ -1,4 +1,4 @@
-import type { AgAnnotationLineStyleType, _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 
 export type Constructor<T = object> = new (...args: any[]) => T;
 
@@ -131,12 +131,12 @@ export interface AnnotationAxisContext
         | 'attachLabel'
         | 'inRange'
     > {
-    bounds: _Scene.BBox;
+    bounds: _ModuleSupport.BBox;
     labelPadding: number;
 }
 
 export type AnnotationContext = {
-    seriesRect: _Scene.BBox;
+    seriesRect: _ModuleSupport.BBox;
     xAxis: AnnotationAxisContext;
     yAxis: AnnotationAxisContext;
 };

@@ -1,9 +1,9 @@
-import { _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { createAngleMotionCalculator, fixRadialColumnAnimationStatus } from '../radial-column/radialColumnUtil';
 
-const { SectorBox, motion } = _Scene;
+const { SectorBox, motion } = _ModuleSupport;
 
 export function getRadii(datum: RadialColumnNodeDatum) {
     const { negative, innerRadius, outerRadius, stackInnerRadius, stackOuterRadius } = datum;
@@ -18,7 +18,11 @@ export function getRadii(datum: RadialColumnNodeDatum) {
 export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
     const angles = createAngleMotionCalculator();
 
-    const fromFn = (sect: _Scene.Sector, datum: RadialColumnNodeDatum, status: _Scene.NodeUpdateState) => {
+    const fromFn = (
+        sect: _ModuleSupport.Sector,
+        datum: RadialColumnNodeDatum,
+        status: _ModuleSupport.NodeUpdateState
+    ) => {
         status = fixRadialColumnAnimationStatus(sect, datum, status);
 
         angles.calculate(sect, datum, status);
@@ -26,7 +30,7 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
 
         let innerRadius: number;
         let outerRadius: number;
-        let clipSector: _Scene.SectorBox | undefined;
+        let clipSector: _ModuleSupport.SectorBox | undefined;
         if (status === 'removed' || status === 'updated') {
             innerRadius = sect.innerRadius;
             outerRadius = sect.outerRadius;
@@ -40,11 +44,15 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
         return { innerRadius, outerRadius, startAngle, endAngle, clipSector, phase };
     };
 
-    const toFn = (_sect: _Scene.Sector, datum: RadialColumnNodeDatum, status: _Scene.NodeUpdateState) => {
+    const toFn = (
+        _sect: _ModuleSupport.Sector,
+        datum: RadialColumnNodeDatum,
+        status: _ModuleSupport.NodeUpdateState
+    ) => {
         const { startAngle, endAngle } = angles.to(datum);
         let innerRadius: number;
         let outerRadius: number;
-        let clipSector: _Scene.SectorBox;
+        let clipSector: _ModuleSupport.SectorBox;
         if (status === 'removed') {
             innerRadius = axisZeroRadius;
             outerRadius = axisZeroRadius;
@@ -64,7 +72,7 @@ export function prepareNightingaleAnimationFunctions(axisZeroRadius: number) {
     return { toFn, fromFn };
 }
 
-export function resetNightingaleSelectionFn(_sect: _Scene.Sector, datum: RadialColumnNodeDatum) {
+export function resetNightingaleSelectionFn(_sect: _ModuleSupport.Sector, datum: RadialColumnNodeDatum) {
     const { startAngle, endAngle } = datum;
     const { innerRadius, outerRadius, clipInnerRadius, clipOuterRadius } = getRadii(datum);
     const clipSector = new SectorBox(startAngle, endAngle, clipInnerRadius, clipOuterRadius);

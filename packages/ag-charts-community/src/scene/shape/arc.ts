@@ -1,5 +1,5 @@
 import { normalizeAngle360 } from '../../util/angle';
-import { isEqual } from '../../util/number';
+import { isNumberEqual } from '../../util/number';
 import { BBox } from '../bbox';
 import { Path, ScenePathChangeDetection } from './path';
 import { Shape } from './shape';
@@ -39,7 +39,7 @@ export class Arc extends Path {
     endAngle: number = Math.PI * 2;
 
     private get fullPie(): boolean {
-        return isEqual(normalizeAngle360(this.startAngle), normalizeAngle360(this.endAngle));
+        return isNumberEqual(normalizeAngle360(this.startAngle), normalizeAngle360(this.endAngle));
     }
 
     @ScenePathChangeDetection()

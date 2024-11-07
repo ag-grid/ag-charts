@@ -1,10 +1,9 @@
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapLineSeries } from './mapLineSeries';
 
-const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, singleSeriesPaletteFactory } =
-    _Theme;
+const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } = _ModuleSupport.ThemeSymbols;
 
 export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     type: 'series',
@@ -24,8 +23,6 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
             lineDashOffset: 0,
             label: {
                 enabled: true,
-                fontStyle: undefined,
-                fontWeight: undefined,
                 fontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,
                 color: DEFAULT_LABEL_COLOUR,
@@ -34,7 +31,7 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     },
     paletteFactory: (opts) => {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
-        const { fill } = singleSeriesPaletteFactory(opts);
+        const { fill } = _ModuleSupport.singleSeriesPaletteFactory(opts);
         const defaultColorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
         const { fills } = takeColors(colorsCount);
         return {

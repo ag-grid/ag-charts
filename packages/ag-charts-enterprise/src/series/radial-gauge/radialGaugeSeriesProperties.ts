@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import type {
     AgChartLabelFormatterParams,
     AgGaugeFillMode,
@@ -39,9 +39,9 @@ const {
     RATIO,
     STRING,
     UNION,
+    Logger,
+    Label,
 } = _ModuleSupport;
-const { Label } = _Scene;
-const { Logger } = _Util;
 
 const TARGET_PLACEMENT = UNION(['inside', 'outside', 'middle'], 'a placement');
 
@@ -67,7 +67,7 @@ export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     clipEndAngle: number | undefined;
     startCornerRadius: number;
     endCornerRadius: number;
-    fill: string | _Scene.Gradient | undefined;
+    fill: string | _ModuleSupport.Gradient | undefined;
 }
 
 export interface RadialGaugeTargetDatumLabel {

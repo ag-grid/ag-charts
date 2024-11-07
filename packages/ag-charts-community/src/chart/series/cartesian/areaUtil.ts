@@ -112,11 +112,13 @@ export function prepareAreaPathAnimation(newData: AreaSeriesNodeDataContext, old
         { scales: oldData.scales, data: oldData.fillData.spans },
         CollapseMode.Zero
     );
+    if (fillSpans == null) return;
     const fillPhantomSpans = pairUpSpans(
         { scales: newData.scales, data: newData.fillData.phantomSpans },
         { scales: oldData.scales, data: oldData.fillData.phantomSpans },
         CollapseMode.Zero
     );
+    if (fillPhantomSpans == null) return;
     const strokeSpans = pairUpSpans(
         {
             scales: newData.scales,
@@ -130,6 +132,7 @@ export function prepareAreaPathAnimation(newData: AreaSeriesNodeDataContext, old
         },
         CollapseMode.Zero
     );
+    if (strokeSpans == null) return;
 
     const fadeMode = 'none';
     const fill = prepareAreaFillAnimationFns(status, fillSpans, fillPhantomSpans, fadeMode);

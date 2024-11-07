@@ -32,7 +32,8 @@ export interface UngroupedData<D> {
     rawData: any[];
     rawDataSources?: Map<string, any[]>;
     aggregation: [number, number][][] | undefined;
-    validScopes: Array<Set<string> | undefined> | undefined;
+    invalidKeys: boolean[] | undefined;
+    invalidDataScopes: Map<string, boolean[]> | undefined;
     keys: any[][];
     columns: any[][];
     domain: {
@@ -82,6 +83,8 @@ export interface GroupedData<D> {
     rawDataSources?: Map<string, any[]>;
     groups: DataGroup[];
     keys: any[][];
+    invalidKeys: boolean[] | undefined;
+    invalidDataScopes: Map<string, boolean[]> | undefined;
     columns: any[][];
     domain: UngroupedData<D>['domain'];
     reduced?: UngroupedData<D>['reduced'];
@@ -625,68 +628,71 @@ export class DataModel<
         const { dataDomain, processValue, scopes, allScopesHaveSameDefs } = this.initDataDomainProcessor();
         const sourcesById = new Map(sources?.map((s) => [s.id, s]));
         const { keys: keyDefs, values: valueDefs } = this;
-        let resultValidScopes: Array<Set<string> | undefined> | undefined;
 
         const dataLength = data.length;
-        const resultKeys = createArray<any[][]>(keyDefs.length, undefined!);
-        const resultColumns = createArray<any[][]>(valueDefs.length, undefined!);
 
         let partialValidDataCount = 0;
 
-        for (const [datumIdx, datum] of data.entries()) {
-            let validScopes = scopes.size > 0 ? new Set(scopes) : undefined;
-            let key;
-            for (const [keyDefIdx, def] of keyDefs.entries()) {
-                const key2Column: any[] = (resultKeys[keyDefIdx] ??= createArray(dataLength, undefined!));
+        let invalidKeys: boolean[] | undefined;
+        const keys = keyDefs.map((def) => {
+            const { invalidValue } = def;
 
-                key = processValue(def, datum, datumIdx, key);
+            return data.map((datum, datumIndex) => {
+                const key = processValue(def, datum, datumIndex);
 
-                key2Column[datumIdx] = key !== INVALID_VALUE ? key : undefined;
+                if (key !== INVALID_VALUE) return key;
 
-                if (key === INVALID_VALUE) break;
+                invalidKeys ??= createArray(dataLength, false);
+                invalidKeys[datumIndex] = true;
+
+                return invalidValue;
+            });
+        });
+
+        let invalidDataScopes: Map<string, boolean[]> | undefined;
+        const markScopeDatumInvalid = (scope: string, datumIndex: number) => {
+            invalidDataScopes ??= new Map();
+            let datumValidity = invalidDataScopes.get(scope);
+            if (datumValidity == null) {
+                datumValidity = createArray(dataLength, false);
+                invalidDataScopes.set(scope, datumValidity);
             }
+            datumValidity[datumIndex] = true;
+        };
 
-            let value;
+        const columns: any[][] = [];
+        valueDefs.forEach((def) => {
+            const { invalidValue } = def;
 
-            for (const [valueDefIdx, def] of valueDefs.entries()) {
-                const { invalidValue } = def;
-                const column: any[] = (resultColumns[valueDefIdx] ??= createArray(dataLength, invalidValue));
+            const previousColumn = columns.length > 0 ? columns[columns.length - 1] : undefined;
 
-                if (key === INVALID_VALUE) continue;
-
+            const column = data.map((datum, datumIndex) => {
+                const invalidKey = invalidKeys?.[datumIndex] === true;
+                let value = previousColumn?.[datumIndex];
                 for (const scope of def.scopes ?? scopes) {
                     const source = sourcesById.get(scope);
-                    const valueDatum = source?.data[datumIdx] ?? datum;
+                    const valueDatum = source?.data[datumIndex] ?? datum;
 
-                    value = processValue(def, valueDatum, datumIdx, value, scope);
+                    value = processValue(def, valueDatum, datumIndex, value, scope);
 
-                    column[datumIdx] = value !== INVALID_VALUE ? value : invalidValue;
-                }
-
-                if (value === INVALID_VALUE) {
-                    validScopes ??= new Set();
-                    resultValidScopes ??= createArray<Set<string> | undefined>(dataLength, undefined);
-
-                    resultValidScopes[datumIdx] = validScopes;
-
-                    if (allScopesHaveSameDefs) break;
-                    for (const scope of def.scopes ?? scopes) {
-                        validScopes?.delete(scope);
+                    if (invalidKey || value === INVALID_VALUE) {
+                        markScopeDatumInvalid(scope, datumIndex);
                     }
-                    if (validScopes?.size === 0) break;
                 }
-            }
 
-            if (value === INVALID_VALUE && allScopesHaveSameDefs) continue;
-            if (validScopes?.size === 0) continue;
+                if (invalidKey) {
+                    return invalidValue;
+                } else if (value === INVALID_VALUE) {
+                    partialValidDataCount += 1;
 
-            if (!allScopesHaveSameDefs && validScopes && validScopes.size < scopes.size) {
-                resultValidScopes ??= createArray<Set<string> | undefined>(dataLength, undefined);
-                partialValidDataCount++;
+                    return invalidValue;
+                }
 
-                resultValidScopes[datumIdx] = new Set(validScopes);
-            }
-        }
+                return value;
+            });
+
+            columns.push(column);
+        });
 
         const propertyDomain = (def: InternalDatumPropertyDefinition<K>) => {
             const defDomain = dataDomain.get(def)!;
@@ -703,10 +709,11 @@ export class DataModel<
             input: { count: data.length },
             rawData: data,
             rawDataSources: sources != null ? new Map(sources.map((s) => [s.id, s.data])) : undefined,
-            validScopes: resultValidScopes,
             aggregation: undefined,
-            keys: resultKeys,
-            columns: resultColumns,
+            keys,
+            columns,
+            invalidKeys,
+            invalidDataScopes,
             domain: {
                 keys: keyDefs.map(propertyDomain),
                 values: valueDefs.map(propertyDomain),
@@ -724,7 +731,7 @@ export class DataModel<
     private groupData(data: UngroupedData<D>, groupingFn?: GroupingFn<D>): GroupedData<D> {
         const groups = new Map<string, { keys: D[K][]; datumIndices: number[]; validScopes?: Set<string> }>();
 
-        const { rawData, keys: dataKeys, validScopes: dataValidScopes } = data;
+        const { rawData, keys: dataKeys, invalidKeys, invalidDataScopes } = data;
         for (let datumIndex = 0; datumIndex < rawData.length; datumIndex += 1) {
             const datum = rawData[datumIndex];
             const keys = datumKeys(dataKeys, datumIndex);
@@ -740,10 +747,25 @@ export class DataModel<
                     validScopes: undefined!,
                 }) ?? keys;
             const groupStr = toKeyString(group);
-            const validScopes = dataValidScopes?.[datumIndex] as Set<any> | undefined;
 
-            // Invalid datum
-            if (validScopes?.size === 0) continue;
+            if (invalidKeys?.[datumIndex] === true) continue;
+
+            let validScopes: Set<string> | undefined;
+            if (invalidDataScopes != null) {
+                validScopes = new Set();
+                invalidDataScopes.forEach((invalidDatums, scope) => {
+                    if (invalidDatums[datumIndex] === false) {
+                        validScopes!.add(scope);
+                    }
+                });
+
+                if (validScopes.size === 0) {
+                    continue;
+                } else if (validScopes.size === invalidDataScopes.size) {
+                    // Default to all being valid
+                    validScopes = undefined;
+                }
+            }
 
             const existingGroup = groups.get(groupStr);
             if (existingGroup != null) {

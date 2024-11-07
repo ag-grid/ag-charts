@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 const {
     BaseProperties,
@@ -40,14 +40,14 @@ export class Image extends BaseProperties {
 
     private readonly imageElement: HTMLImageElement;
     private loadedSynchronously: boolean = true;
-    readonly node: _Scene.Image;
+    readonly node: _ModuleSupport.Image;
 
     constructor() {
         super();
 
         this.imageElement = createElement('img');
         this.imageElement.onload = this.onImageLoad;
-        this.node = new _Scene.Image(this.imageElement);
+        this.node = new _ModuleSupport.Image(this.imageElement);
     }
 
     get complete() {

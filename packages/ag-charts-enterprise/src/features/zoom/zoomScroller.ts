@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AxisZoomStates, DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -15,7 +15,7 @@ export class ZoomScroller {
     updateAxes(
         event: _ModuleSupport.PointerInteractionEvent<'wheel'>,
         props: ZoomProperties,
-        bbox: _Scene.BBox,
+        bbox: _ModuleSupport.BBox,
         zooms: AxisZoomStates
     ): AxisZoomStates {
         const sourceEvent = event.sourceEvent as WheelEvent;
@@ -54,7 +54,7 @@ export class ZoomScroller {
     update(
         event: _ModuleSupport.PointerInteractionEvent<'wheel'>,
         props: ZoomProperties,
-        bbox: _Scene.BBox,
+        bbox: _ModuleSupport.BBox,
         oldZoom: DefinedZoomState
     ): DefinedZoomState {
         const sourceEvent = event.sourceEvent as WheelEvent;

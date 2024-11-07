@@ -69,11 +69,13 @@ export class AgChartInstanceProxy implements AgChartProxy {
             AgChartInstanceProxy.chartInstances.delete(chart);
         },
         newValue(chart) {
+            if (!chart) return;
             chart.publicApi = this;
             AgChartInstanceProxy.chartInstances.set(chart, this);
         },
     })
     chart: Chart;
+    releaseChart?: () => void;
 
     constructor(
         chart: Chart,
@@ -152,8 +154,13 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     destroy() {
-        this.chart.publicApi = undefined;
-        this.chart.destroy();
+        if (this.releaseChart) {
+            this.releaseChart();
+            (this as any).chart = null;
+        } else {
+            this.chart.publicApi = undefined;
+            this.chart.destroy();
+        }
     }
 
     private async prepareResizedChart(proxy: AgChartInstanceProxy, opts: DownloadOptions = {}) {

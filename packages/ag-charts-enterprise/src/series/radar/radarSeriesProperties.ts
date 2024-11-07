@@ -4,7 +4,7 @@ import type {
     AgRadarSeriesTooltipRendererParams,
     AgRadialSeriesOptionsKeys,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 export interface RadarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly label?: {
@@ -14,13 +14,13 @@ export interface RadarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
         textAlign: CanvasTextAlign;
         textBaseline: CanvasTextBaseline;
     };
-    readonly point: Readonly<_Scene.SizedPoint>;
+    readonly point: Readonly<_ModuleSupport.SizedPoint>;
     readonly angleValue: any;
     readonly radiusValue: any;
 }
 
-const { Label } = _Scene;
 const {
+    Label,
     SeriesMarker,
     SeriesProperties,
     SeriesTooltip,

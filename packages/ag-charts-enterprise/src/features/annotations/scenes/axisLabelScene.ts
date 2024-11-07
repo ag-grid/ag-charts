@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AxisLabelProperties } from '../annotationProperties';
 import type { AnnotationAxisContext } from '../annotationTypes';
@@ -13,11 +13,11 @@ type UpdateOpts = {
     context: AnnotationAxisContext;
 };
 
-export class AxisLabelScene extends _Scene.Group {
+export class AxisLabelScene extends _ModuleSupport.Group {
     static override readonly className = 'AxisLabel';
 
-    private readonly label = new _Scene.Text({ zIndex: 1 });
-    private readonly rect = new _Scene.Rect();
+    private readonly label = new _ModuleSupport.Text({ zIndex: 1 });
+    private readonly rect = new _ModuleSupport.Rect();
 
     constructor() {
         super({ name: 'AnnotationAxisLabelGroup' });

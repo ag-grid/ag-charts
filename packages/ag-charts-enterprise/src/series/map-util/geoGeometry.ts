@@ -1,9 +1,9 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { lineStringDistance } from './lineStringUtil';
 import { polygonDistance } from './polygonUtil';
 
-const { Path, ExtendedPath2D, BBox, ScenePathChangeDetection } = _Scene;
+const { Path, ExtendedPath2D, BBox, ScenePathChangeDetection } = _ModuleSupport;
 
 export enum GeoGeometryRenderMode {
     All = 0b11,
@@ -18,11 +18,11 @@ export class GeoGeometry extends Path implements _ModuleSupport.DistantObject {
     @ScenePathChangeDetection()
     renderMode: GeoGeometryRenderMode = GeoGeometryRenderMode.All;
 
-    private bbox: _Scene.BBox | undefined;
+    private bbox: _ModuleSupport.BBox | undefined;
     // Keep non-filled shapes separate so we don't fill them
     private readonly strokePath = new ExtendedPath2D();
 
-    protected override computeBBox(): _Scene.BBox | undefined {
+    protected override computeBBox(): _ModuleSupport.BBox | undefined {
         if (this.dirtyPath || this.isDirtyPath()) {
             this.updatePath();
             this.dirtyPath = false;
@@ -103,7 +103,10 @@ export class GeoGeometry extends Path implements _ModuleSupport.DistantObject {
         }
     }
 
-    private drawGeometry(geometry: _ModuleSupport.Geometry, bbox: _Scene.BBox | undefined): _Scene.BBox | undefined {
+    private drawGeometry(
+        geometry: _ModuleSupport.Geometry,
+        bbox: _ModuleSupport.BBox | undefined
+    ): _ModuleSupport.BBox | undefined {
         const { renderMode, path, strokePath } = this;
         const drawPolygons = (renderMode & GeoGeometryRenderMode.Polygons) !== 0;
         const drawLines = (renderMode & GeoGeometryRenderMode.Lines) !== 0;
@@ -147,10 +150,10 @@ export class GeoGeometry extends Path implements _ModuleSupport.DistantObject {
     }
 
     private drawPolygon(
-        path: _Scene.ExtendedPath2D,
+        path: _ModuleSupport.ExtendedPath2D,
         polygons: _ModuleSupport.Position[][],
-        bbox: _Scene.BBox | undefined
-    ): _Scene.BBox | undefined {
+        bbox: _ModuleSupport.BBox | undefined
+    ): _ModuleSupport.BBox | undefined {
         if (polygons.length < 1) return bbox;
 
         bbox = this.drawLineString(path, polygons[0], bbox, true);
@@ -163,11 +166,11 @@ export class GeoGeometry extends Path implements _ModuleSupport.DistantObject {
     }
 
     private drawLineString(
-        path: _Scene.ExtendedPath2D,
+        path: _ModuleSupport.ExtendedPath2D,
         coordinates: _ModuleSupport.Position[],
-        bbox: _Scene.BBox | undefined,
+        bbox: _ModuleSupport.BBox | undefined,
         isClosed: boolean
-    ): _Scene.BBox | undefined {
+    ): _ModuleSupport.BBox | undefined {
         if (coordinates.length < 2) return bbox;
 
         // For polygons (i.e. closed), the start and end coordinates are the same

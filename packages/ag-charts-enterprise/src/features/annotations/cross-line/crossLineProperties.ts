@@ -1,7 +1,7 @@
-import { type PixelSize, _ModuleSupport, type _Scene } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
 
 import { Annotation, AxisLabel, Handle, LineStyle, LineTextProperties, Stroke, Value } from '../annotationProperties';
-import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
+import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { getLineCap, getLineDash } from '../utils/line';
 import { validateDatumValue } from '../utils/validation';
 
@@ -24,11 +24,11 @@ export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(
         return super.isValid(warningPrefix) && validateDatumValue(context, this, warningPrefix);
     }
 
-    getDefaultColor(_colorPickerType: AnnotationOptionsColorPickerType) {
+    getDefaultColor() {
         return this.stroke;
     }
 
-    getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType) {
+    getDefaultOpacity() {
         return this.strokeOpacity;
     }
 
@@ -36,7 +36,7 @@ export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(
         return getLineDash(this.lineDash, this.computedLineDash, this.lineStyle, this.strokeWidth);
     }
 
-    getLineCap(): _Scene.ShapeLineCap | undefined {
+    getLineCap(): _ModuleSupport.ShapeLineCap | undefined {
         return getLineCap(this.lineCap, this.lineDash, this.lineStyle);
     }
 }
@@ -58,11 +58,11 @@ export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(St
         return super.isValid(warningPrefix) && validateDatumValue(context, this, warningPrefix);
     }
 
-    getDefaultColor(_colorPickerType: AnnotationOptionsColorPickerType) {
+    getDefaultColor() {
         return this.stroke;
     }
 
-    getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType) {
+    getDefaultOpacity() {
         return this.strokeOpacity;
     }
 
@@ -70,7 +70,7 @@ export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(St
         return getLineDash(this.lineDash, this.computedLineDash, this.lineStyle, this.strokeWidth);
     }
 
-    getLineCap(): _Scene.ShapeLineCap | undefined {
+    getLineCap(): _ModuleSupport.ShapeLineCap | undefined {
         return getLineCap(this.lineCap, this.lineDash, this.lineStyle);
     }
 }

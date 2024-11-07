@@ -23,3 +23,9 @@ export class AsyncAwaitQueue {
         this.queue.splice(0).forEach((cb) => cb());
     }
 }
+
+export function pause() {
+    return new Promise((resolve) => {
+        setTimeout(resolve, 0);
+    });
+}

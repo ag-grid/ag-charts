@@ -1,4 +1,4 @@
-import { type AgMapShapeSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { type AgMapShapeSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 
 import { extendBbox } from '../map-util/bboxUtil';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -23,10 +23,15 @@ const {
     SeriesNodePickMode,
     valueProperty,
     computeMarkerFocusBounds,
+    sanitizeHtml,
+    Logger,
+    ColorScale,
+    LinearScale,
+    Group,
+    Selection,
+    Text,
+    getMarker,
 } = _ModuleSupport;
-const { ColorScale, LinearScale } = _Scale;
-const { Group, Selection, Text, getMarker } = _Scene;
-const { sanitizeHtml, Logger } = _Util;
 
 export interface MapMarkerNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapMarkerNodeDatum, MapMarkerNodeLabelDatum> {}
@@ -81,20 +86,17 @@ export class MapMarkerSeries
 
     private readonly markerGroup = this.contentGroup.appendChild(new Group({ name: 'markerGroup' }));
 
-    private labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>> = Selection.select(
-        this.labelGroup,
-        Text,
-        false
-    );
-    private markerSelection: _Scene.Selection<_Scene.Marker, MapMarkerNodeDatum> = Selection.select(
+    private labelSelection: _ModuleSupport.Selection<
+        _ModuleSupport.Text,
+        _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
+    > = Selection.select(this.labelGroup, Text, false);
+    private markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> = Selection.select(
         this.markerGroup,
         () => this.markerFactory(),
         false
     );
-    private highlightMarkerSelection: _Scene.Selection<_Scene.Marker, MapMarkerNodeDatum> = Selection.select(
-        this.highlightNode,
-        () => this.markerFactory()
-    );
+    private highlightMarkerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> =
+        Selection.select(this.highlightNode, () => this.markerFactory());
 
     private contextNodeData?: MapMarkerNodeDataContext;
 
@@ -186,7 +188,7 @@ export class MapMarkerSeries
         return this.properties.labelKey != null && this.properties.label.enabled;
     }
 
-    private markerFactory(): _Scene.Marker {
+    private markerFactory(): _ModuleSupport.Marker {
         const { shape } = this.properties;
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
@@ -493,7 +495,7 @@ export class MapMarkerSeries
         return true;
     }
 
-    override async update({ seriesRect }: { seriesRect?: _Scene.BBox }): Promise<void> {
+    override async update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }): Promise<void> {
         const resize = this.checkResize(seriesRect);
         const scaleChange = this.checkScaleChange();
 
@@ -534,14 +536,20 @@ export class MapMarkerSeries
     }
 
     private async updateLabelSelection(opts: {
-        labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>>;
+        labelSelection: _ModuleSupport.Selection<
+            _ModuleSupport.Text,
+            _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
+        >;
     }) {
         const placedLabels = (this.isLabelEnabled() ? this.chart?.placeLabels().get(this) : undefined) ?? [];
         return opts.labelSelection.update(placedLabels);
     }
 
     private async updateLabelNodes(opts: {
-        labelSelection: _Scene.Selection<_Scene.Text, _Util.PlacedLabel<_Util.PointLabelDatum>>;
+        labelSelection: _ModuleSupport.Selection<
+            _ModuleSupport.Text,
+            _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
+        >;
     }) {
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
@@ -563,7 +571,7 @@ export class MapMarkerSeries
 
     private async updateMarkerSelection(opts: {
         markerData: MapMarkerNodeDatum[];
-        markerSelection: _Scene.Selection<_Scene.Marker, MapMarkerNodeDatum>;
+        markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum>;
     }) {
         const { markerData, markerSelection } = opts;
 
@@ -573,7 +581,7 @@ export class MapMarkerSeries
     }
 
     private async updateMarkerNodes(opts: {
-        markerSelection: _Scene.Selection<_Scene.Marker, MapMarkerNodeDatum>;
+        markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum>;
         isHighlight: boolean;
         highlightedDatum: MapMarkerNodeDatum | undefined;
     }) {
@@ -653,7 +661,7 @@ export class MapMarkerSeries
         fromToMotion(this.id, 'markers', animationManager, [this.markerSelection, this.highlightMarkerSelection], fns);
     }
 
-    override getLabelData(): _Util.PointLabelDatum[] {
+    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
         return this.contextNodeData?.labelData ?? [];
     }
 
@@ -661,7 +669,7 @@ export class MapMarkerSeries
         return [NaN, NaN];
     }
 
-    override pickNodeClosestDatum(p: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+    override pickNodeClosestDatum(p: _ModuleSupport.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         const { x: x0, y: y0 } = p;
 
         let minDistanceSquared = Infinity;
@@ -902,7 +910,7 @@ export class MapMarkerSeries
         return { size: style?.size ?? markerDatum.point.size };
     }
 
-    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
     }
 }

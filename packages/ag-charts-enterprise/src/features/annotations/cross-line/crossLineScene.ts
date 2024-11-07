@@ -1,4 +1,4 @@
-import { _ModuleSupport, type _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationAxisContext, AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -26,7 +26,7 @@ export class CrossLineScene extends AnnotationScene {
     private axisLabel?: AxisLabelScene;
     public text?: CollidableText;
 
-    private seriesRect?: _Scene.BBox;
+    private seriesRect?: _ModuleSupport.BBox;
     private dragState?: {
         offset: _ModuleSupport.Vec2;
         middle: _ModuleSupport.Vec2;

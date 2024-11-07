@@ -1,14 +1,13 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { RadialColumnNodeDatum } from './radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from './radialColumnSeriesBase';
 import { RadialColumnSeriesProperties } from './radialColumnSeriesProperties';
 import { prepareRadialColumnAnimationFunctions, resetRadialColumnSelectionFn } from './radialColumnUtil';
 
-const { ChartAxisDirection, PolarAxis } = _ModuleSupport;
-const { RadialColumnShape, getRadialColumnWidth } = _Scene;
+const { ChartAxisDirection, PolarAxis, RadialColumnShape, getRadialColumnWidth } = _ModuleSupport;
 
-export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.RadialColumnShape> {
+export class RadialColumnSeries extends RadialColumnSeriesBase<_ModuleSupport.RadialColumnShape> {
     static readonly className = 'RadialColumnSeries';
     static readonly type = 'radial-column' as const;
 
@@ -27,7 +26,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.RadialColu
         return `radarColumn-stack-${groupIndex}-yValues`;
     }
 
-    protected override nodeFactory(): _Scene.RadialColumnShape {
+    protected override nodeFactory(): _ModuleSupport.RadialColumnShape {
         return new RadialColumnShape();
     }
 
@@ -42,7 +41,7 @@ export class RadialColumnSeries extends RadialColumnSeriesBase<_Scene.RadialColu
     }
 
     protected override updateItemPath(
-        node: _Scene.RadialColumnShape,
+        node: _ModuleSupport.RadialColumnShape,
         datum: RadialColumnNodeDatum,
         highlight: boolean
     ) {

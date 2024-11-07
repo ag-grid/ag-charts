@@ -1,11 +1,12 @@
 import type { AgRadialSeriesStyle } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { AngleCategoryAxis } from '../../axes/angle-category/angleCategoryAxis';
 import type { RadialColumnSeriesBaseProperties } from './radialColumnSeriesBaseProperties';
 
 const {
     isDefined,
+    isFiniteNumber,
     ChartAxisDirection,
     PolarAxis,
     diff,
@@ -20,11 +21,11 @@ const {
     valueProperty,
     animationValidation,
     SeriesNodePickMode,
+    normalizeAngle360,
+    sanitizeHtml,
+    BandScale,
+    motion,
 } = _ModuleSupport;
-
-const { BandScale } = _Scale;
-const { motion } = _Scene;
-const { isNumber, normalizeAngle360, sanitizeHtml } = _Util;
 
 class RadialColumnSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -64,7 +65,7 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.SeriesNodeDatum {
 }
 
 export abstract class RadialColumnSeriesBase<
-    ItemPathType extends _Scene.Sector | _Scene.RadialColumnShape,
+    ItemPathType extends _ModuleSupport.Sector | _ModuleSupport.RadialColumnShape,
 > extends _ModuleSupport.PolarSeries<RadialColumnNodeDatum, RadialColumnSeriesBaseProperties<any>, ItemPathType> {
     protected override readonly NodeEvent = RadialColumnSeriesNodeEvent;
 
@@ -364,7 +365,7 @@ export abstract class RadialColumnSeriesBase<
         return NaN;
     }
 
-    async update({ seriesRect }: { seriesRect?: _Scene.BBox }) {
+    async update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         const resize = this.checkResize(seriesRect);
         await this.maybeRefreshNodeData();
 
@@ -395,7 +396,7 @@ export abstract class RadialColumnSeriesBase<
     ): void;
 
     protected updateSectorSelection(
-        selection: _Scene.Selection<ItemPathType, RadialColumnNodeDatum>,
+        selection: _ModuleSupport.Selection<ItemPathType, RadialColumnNodeDatum>,
         highlighted: boolean
     ) {
         let selectionData: RadialColumnNodeDatum[] = [];
@@ -479,8 +480,8 @@ export abstract class RadialColumnSeriesBase<
     }
 
     protected abstract getColumnTransitionFunctions(): {
-        fromFn: _Scene.FromToMotionPropFn<any, any, any>;
-        toFn: _Scene.FromToMotionPropFn<any, any, any>;
+        fromFn: _ModuleSupport.FromToMotionPropFn<any, any, any>;
+        toFn: _ModuleSupport.FromToMotionPropFn<any, any, any>;
     };
 
     protected override animateEmptyUpdateReady() {
@@ -524,7 +525,7 @@ export abstract class RadialColumnSeriesBase<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!this.properties.isValid() || !(xAxis && yAxis && isNumber(radiusValue)) || !dataModel) {
+        if (!this.properties.isValid() || !(xAxis && yAxis && isFiniteNumber(radiusValue)) || !dataModel) {
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 
@@ -568,7 +569,9 @@ export abstract class RadialColumnSeriesBase<
         );
     }
 
-    protected override pickNodeClosestDatum(point: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+    protected override pickNodeClosestDatum(
+        point: _ModuleSupport.Point
+    ): _ModuleSupport.SeriesNodePickMatch | undefined {
         return this.pickNodeNearestDistantObject(point, this.itemSelection.nodes());
     }
 

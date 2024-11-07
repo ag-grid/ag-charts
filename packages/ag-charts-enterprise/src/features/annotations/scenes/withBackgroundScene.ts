@@ -1,4 +1,4 @@
-import { _ModuleSupport, type _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import type { FillOptions } from 'ag-charts-types';
 
 import type { AnnotationContext } from '../annotationTypes';
@@ -9,7 +9,7 @@ const { Vec4 } = _ModuleSupport;
 export class WithBackgroundScene {
     static updateBackground<Datum extends { background: FillOptions }>(
         this: AnnotationScene & {
-            background: _Scene.Path;
+            background: _ModuleSupport.Path;
             getBackgroundStyles?(datum: Datum): FillOptions;
             getBackgroundPoints(
                 datum: Datum,

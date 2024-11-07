@@ -1,6 +1,8 @@
-import { type _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { OhlcSeries } from './ohlcSeries';
+
+const { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } = _ModuleSupport.ThemeConstants;
 
 export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
     type: 'series',
@@ -12,24 +14,18 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
     moduleFactory: (ctx) => new OhlcSeries(ctx),
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-            position: _Theme.CARTESIAN_POSITION.LEFT,
-        },
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.ORDINAL_TIME,
-            position: _Theme.CARTESIAN_POSITION.BOTTOM,
-        },
+        { type: CARTESIAN_AXIS_TYPE.NUMBER, position: CARTESIAN_POSITION.LEFT },
+        { type: CARTESIAN_AXIS_TYPE.ORDINAL_TIME, position: CARTESIAN_POSITION.BOTTOM },
     ],
     themeTemplate: {
         animation: { enabled: false },
         axes: {
-            [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
+            [CARTESIAN_AXIS_TYPE.NUMBER]: {
                 crosshair: {
                     snap: false,
                 },
             },
-            [_Theme.CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
+            [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
                 groupPaddingInner: 0,
                 crosshair: {
                     enabled: true,
@@ -40,17 +36,11 @@ export const OhlcModule: _ModuleSupport.SeriesModule<'ohlc'> = {
     groupable: false,
     paletteFactory: ({ takeColors, colorsCount, userPalette, palette }) => {
         if (userPalette === 'user-indexed') {
-            const {
-                strokes: [stroke],
-            } = takeColors(colorsCount);
+            const [stroke] = takeColors(colorsCount).strokes;
             return {
                 item: {
-                    up: {
-                        stroke: stroke,
-                    },
-                    down: {
-                        stroke: stroke,
-                    },
+                    up: { stroke },
+                    down: { stroke },
                 },
             };
         }

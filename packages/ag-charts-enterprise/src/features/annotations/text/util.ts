@@ -1,7 +1,6 @@
-import { type TextAlign, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type TextAlign, _ModuleSupport } from 'ag-charts-community';
 
-const { TextWrapper, CachedTextMeasurerPool } = _ModuleSupport;
-const { BBox } = _Scene;
+const { TextWrapper, CachedTextMeasurerPool, BBox } = _ModuleSupport;
 
 export type AnnotationTextPosition = 'top' | 'center' | 'bottom';
 export type AnnotationTextAlignment = 'left' | 'center' | 'right';
@@ -51,7 +50,7 @@ export function getBBox(
     options: TextOptions & { width?: number },
     text: string,
     coords: _ModuleSupport.Vec2,
-    bbox?: _Scene.BBox
+    bbox?: _ModuleSupport.BBox
 ) {
     let width = bbox?.width ?? 0;
     let height = bbox?.height ?? 0;
@@ -65,7 +64,7 @@ export function getBBox(
 }
 
 export function updateTextNode(
-    node: _Scene.Text,
+    node: _ModuleSupport.Text,
     text: string,
     isPlaceholder: boolean,
     config: TextOptions & { visible?: boolean; color?: string; getPlaceholderColor: () => string | undefined },

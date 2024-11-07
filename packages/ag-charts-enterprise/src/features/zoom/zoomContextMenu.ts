@@ -1,4 +1,4 @@
-import type { AgChartContextMenuEvent, _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { AgChartContextMenuEvent, _ModuleSupport } from 'ag-charts-community';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -23,7 +23,7 @@ export class ZoomContextMenu {
         private readonly contextMenuRegistry: _ModuleSupport.ContextMenuRegistry,
         private readonly zoomManager: _ModuleSupport.ZoomManager,
         private readonly getModuleProperties: () => ZoomProperties,
-        private readonly getRect: () => _Scene.BBox | undefined,
+        private readonly getRect: () => _ModuleSupport.BBox | undefined,
         private readonly updateZoom: (zoom: DefinedZoomState) => void
     ) {}
 

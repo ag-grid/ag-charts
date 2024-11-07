@@ -1,5 +1,5 @@
 import type { AgTooltipRendererResult } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -21,10 +21,13 @@ const {
     resetLabelFn,
     animationValidation,
     computeBarFocusBounds,
+    sanitizeHtml,
+    ContinuousScale,
+    Group,
+    Selection,
+    PointerEvents,
+    motion,
 } = _ModuleSupport;
-const { Group, Selection, PointerEvents, motion } = _Scene;
-const { sanitizeHtml } = _Util;
-const { ContinuousScale } = _Scale;
 
 export type Bounds = {
     x: number;
@@ -33,7 +36,7 @@ export type Bounds = {
     height: number;
 };
 
-export type FunnelNodeLabelDatum = Readonly<_Scene.Point> & {
+export type FunnelNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
     text: string;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
@@ -43,7 +46,7 @@ export type FunnelNodeLabelDatum = Readonly<_Scene.Point> & {
     visible: boolean;
 };
 
-export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<_Scene.Point> {
+export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Readonly<_ModuleSupport.Point> {
     readonly index: number;
     readonly itemId: string;
     readonly width: number;
@@ -53,7 +56,7 @@ export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum
     readonly stroke: string;
     readonly strokeWidth: number;
     readonly opacity: number;
-    readonly clipBBox?: _Scene.BBox;
+    readonly clipBBox?: _ModuleSupport.BBox;
     readonly visible: boolean;
 }
 
@@ -243,6 +246,7 @@ export abstract class BaseFunnelSeries<
         if (direction === this.getCategoryDirection()) {
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
+                if (!this.hasData) return [];
                 return keys.filter((_key, index) => seriesItemEnabled[index]);
             }
             return this.padBandExtent(keys);
@@ -255,12 +259,13 @@ export abstract class BaseFunnelSeries<
     }
 
     async createNodeData() {
-        const { data, dataModel, groupScale, processedData, seriesItemEnabled } = this;
+        const { hasData, data, dataModel, groupScale, processedData, seriesItemEnabled } = this;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
         if (
             !(
+                hasData &&
                 data &&
                 xAxis &&
                 yAxis &&
@@ -441,7 +446,7 @@ export abstract class BaseFunnelSeries<
 
     protected override async updateDatumSelection(opts: {
         nodeData: FunnelNodeDatum[];
-        datumSelection: _Scene.Selection<TNode, FunnelNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<TNode, FunnelNodeDatum>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -450,7 +455,7 @@ export abstract class BaseFunnelSeries<
 
     private async updateConnectorSelection(opts: {
         connectorData: FunnelConnectorDatum[];
-        connectorSelection: _Scene.Selection<FunnelConnector, FunnelConnectorDatum>;
+        connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
     }) {
         const { connectorData, connectorSelection } = opts;
         return connectorSelection.update(this.connectorEnabled() ? connectorData : [], undefined, (connector) =>
@@ -459,7 +464,7 @@ export abstract class BaseFunnelSeries<
     }
 
     private async updateConnectorNodes(opts: {
-        connectorSelection: _Scene.Selection<FunnelConnector, FunnelConnectorDatum>;
+        connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
     }) {
         const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
             this.connectorStyle();
@@ -494,7 +499,7 @@ export abstract class BaseFunnelSeries<
         });
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, any> }) {
+    protected async updateLabelNodes(opts: { labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text> }) {
         opts.labelSelection.each((textNode, datum) => {
             updateLabelNode(textNode, this.properties.label, datum);
         });
@@ -560,17 +565,12 @@ export abstract class BaseFunnelSeries<
         });
     }
 
-    private resetConnectorAnimation(_data: FunnelAnimationData<TNode>) {
-        const { connectorSelection } = this;
-        resetMotion([connectorSelection], resetConnectorSelectionsFn);
-    }
-
     protected override resetAllAnimation(
         data: _ModuleSupport.CartesianAnimationData<TNode, FunnelNodeDatum, FunnelNodeLabelDatum, FunnelContext>
     ): void {
         super.resetAllAnimation(data);
 
-        this.resetConnectorAnimation(data);
+        resetMotion([this.connectorSelection], resetConnectorSelectionsFn);
     }
 
     override animateEmptyUpdateReady({ labelSelection }: FunnelAnimationData<TNode>) {
@@ -600,7 +600,10 @@ export abstract class BaseFunnelSeries<
         return this.properties.label.enabled;
     }
 
-    protected computeFocusBounds({ datumIndex, seriesRect }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+    protected computeFocusBounds({
+        datumIndex,
+        seriesRect,
+    }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup, seriesRect);
     }
 

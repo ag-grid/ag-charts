@@ -6,12 +6,13 @@ import type {
     AgFunnelSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 
-const { Label, DropShadow } = _Scene;
 const {
+    Label,
+    DropShadow,
     AbstractBarSeriesProperties,
     BaseProperties,
     SeriesTooltip,

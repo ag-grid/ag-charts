@@ -1,8 +1,9 @@
-import type { _ModuleSupport } from 'ag-charts-community';
-import { _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { WaterfallSeries } from './waterfallSeries';
 import { WATERFALL_SERIES_THEME } from './waterfallThemes';
+
+const { ThemeSymbols, ThemeConstants } = _ModuleSupport;
 
 export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     type: 'series',
@@ -14,10 +15,10 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     solo: true,
     moduleFactory: (ctx) => new WaterfallSeries(ctx),
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: _Theme.swapAxisCondition(
+    defaultAxes: _ModuleSupport.swapAxisCondition(
         [
-            { type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER, position: _Theme.CARTESIAN_POSITION.LEFT },
-            { type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY, position: _Theme.CARTESIAN_POSITION.BOTTOM },
+            { type: ThemeConstants.CARTESIAN_AXIS_TYPE.NUMBER, position: ThemeConstants.CARTESIAN_POSITION.LEFT },
+            { type: ThemeConstants.CARTESIAN_AXIS_TYPE.CATEGORY, position: ThemeConstants.CARTESIAN_POSITION.BOTTOM },
         ],
         (series) => series?.direction === 'horizontal'
     ),
@@ -50,21 +51,21 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
                     fill: palette.altUp.fill,
                     stroke: palette.altUp.stroke,
                     label: {
-                        color: _Theme.DEFAULT_LABEL_COLOUR,
+                        color: ThemeSymbols.DEFAULT_LABEL_COLOUR,
                     },
                 },
                 negative: {
                     fill: palette.altDown.fill,
                     stroke: palette.altDown.stroke,
                     label: {
-                        color: _Theme.DEFAULT_LABEL_COLOUR,
+                        color: ThemeSymbols.DEFAULT_LABEL_COLOUR,
                     },
                 },
                 total: {
                     fill: palette.neutral.fill,
                     stroke: palette.neutral.stroke,
                     label: {
-                        color: _Theme.DEFAULT_LABEL_COLOUR,
+                        color: ThemeSymbols.DEFAULT_LABEL_COLOUR,
                     },
                 },
             },

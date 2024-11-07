@@ -1,4 +1,3 @@
-import type { _Scene } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AxisZoomStates } from './zoomTypes';
@@ -7,12 +6,12 @@ import { constrainZoom, definedZoomState, dx, pointToRatio, translateZoom } from
 const DELTA_SCALE = 200;
 
 export class ZoomScrollPanner {
-    update(event: { deltaX: number }, step: number, bbox: _Scene.BBox, zooms: AxisZoomStates): AxisZoomStates {
+    update(event: { deltaX: number }, step: number, bbox: _ModuleSupport.BBox, zooms: AxisZoomStates): AxisZoomStates {
         const deltaX = event.deltaX * step * DELTA_SCALE;
         return this.translateZooms(bbox, zooms, deltaX);
     }
 
-    private translateZooms(bbox: _Scene.BBox, currentZooms: AxisZoomStates, deltaX: number) {
+    private translateZooms(bbox: _ModuleSupport.BBox, currentZooms: AxisZoomStates, deltaX: number) {
         const newZooms: AxisZoomStates = {};
 
         const offset = pointToRatio(bbox, bbox.x + Math.abs(deltaX), 0);

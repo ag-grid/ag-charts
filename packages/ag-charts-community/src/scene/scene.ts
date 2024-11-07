@@ -65,6 +65,10 @@ export class Scene {
         return this;
     }
 
+    clear() {
+        this.canvas.clear();
+    }
+
     attachNode<T extends Node>(node: T) {
         this.appendChild(node);
         return () => this.removeChild(node);

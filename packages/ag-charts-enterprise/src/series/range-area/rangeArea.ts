@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { type RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties';
 import { type RangeAreaContext, type RangeAreaLabelDatum, prepareRangeAreaPathAnimation } from './rangeAreaUtil';
@@ -29,9 +29,13 @@ const {
     markerFadeInAnimation,
     fromToMotion,
     pathMotion,
+    sanitizeHtml,
+    extent,
+    getMarker,
+    PointerEvents,
+    Group,
+    BBox,
 } = _ModuleSupport;
-const { getMarker, PointerEvents } = _Scene;
-const { sanitizeHtml, extent } = _Util;
 
 class RangeAreaSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -54,7 +58,7 @@ interface RangeAreaSpanPointDatum {
 }
 
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
-    _Scene.Group,
+    _ModuleSupport.Group,
     RangeAreaProperties,
     RangeAreaMarkerDatum,
     RangeAreaLabelDatum,
@@ -296,7 +300,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datum,
         series,
     }: {
-        point: _Scene.Point;
+        point: _ModuleSupport.Point;
         value: any;
         yLowValue: any;
         yHighValue: any;
@@ -350,7 +354,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return new MarkerShape();
     }
 
-    protected override async updatePathNodes(opts: { paths: _Scene.Path[]; opacity: number; visible: boolean }) {
+    protected override async updatePathNodes(opts: {
+        paths: _ModuleSupport.Path[];
+        opacity: number;
+        visible: boolean;
+    }) {
         const { opacity, visible } = opts;
         const [fill, stroke] = opts.paths;
 
@@ -387,11 +395,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         updateClipPath(this, fill);
     }
 
-    protected override async updatePaths(opts: { contextData: RangeAreaContext; paths: _Scene.Path[] }) {
+    protected override async updatePaths(opts: { contextData: RangeAreaContext; paths: _ModuleSupport.Path[] }) {
         this.updateAreaPaths(opts.paths, opts.contextData);
     }
 
-    private updateAreaPaths(paths: _Scene.Path[], contextData: RangeAreaContext) {
+    private updateAreaPaths(paths: _ModuleSupport.Path[], contextData: RangeAreaContext) {
         for (const path of paths) {
             path.visible = contextData.visible;
         }
@@ -407,14 +415,14 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         }
     }
 
-    private updateFillPath(paths: _Scene.Path[], contextData: RangeAreaContext) {
+    private updateFillPath(paths: _ModuleSupport.Path[], contextData: RangeAreaContext) {
         const [fill] = paths;
         fill.path.clear();
         plotAreaPathFill(fill, contextData.fillData);
         fill.markDirty();
     }
 
-    private updateStrokePath(paths: _Scene.Path[], contextData: RangeAreaContext) {
+    private updateStrokePath(paths: _ModuleSupport.Path[], contextData: RangeAreaContext) {
         const [, stroke] = paths;
         stroke.path.clear();
         plotLinePathStroke(stroke, contextData.highStrokeData.spans);
@@ -424,7 +432,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     protected override async updateMarkerSelection(opts: {
         nodeData: RangeAreaMarkerDatum[];
-        markerSelection: _Scene.Selection<_Scene.Marker, RangeAreaMarkerDatum>;
+        markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
     }) {
         const { nodeData, markerSelection } = opts;
         if (this.properties.marker.isDirty()) {
@@ -435,7 +443,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     protected override async updateMarkerNodes(opts: {
-        markerSelection: _Scene.Selection<_Scene.Marker, RangeAreaMarkerDatum>;
+        markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
         const { markerSelection, isHighlight: highlighted } = opts;
@@ -461,7 +469,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     protected async updateLabelSelection(opts: {
         labelData: RangeAreaLabelDatum[];
-        labelSelection: _Scene.Selection<_Scene.Text, RangeAreaLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeAreaLabelDatum>;
     }) {
         const { labelData, labelSelection } = opts;
 
@@ -470,7 +478,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, RangeAreaLabelDatum> }) {
+    protected async updateLabelNodes(opts: {
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeAreaLabelDatum>;
+    }) {
         opts.labelSelection.each((textNode, datum) => {
             updateLabelNode(textNode, this.properties.label, datum);
         });
@@ -601,12 +611,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     override onDataChange() {}
 
     protected nodeFactory() {
-        return new _Scene.Group();
+        return new Group();
     }
 
     override animateEmptyUpdateReady(
         animationData: _ModuleSupport.CartesianAnimationData<
-            _Scene.Group,
+            _ModuleSupport.Group,
             RangeAreaMarkerDatum,
             RangeAreaLabelDatum,
             RangeAreaContext
@@ -624,7 +634,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     protected override animateReadyResize(
         animationData: _ModuleSupport.CartesianAnimationData<
-            _Scene.Group,
+            _ModuleSupport.Group,
             RangeAreaMarkerDatum,
             RangeAreaLabelDatum,
             RangeAreaContext
@@ -638,7 +648,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
     override animateWaitingUpdateReady(
         animationData: _ModuleSupport.CartesianAnimationData<
-            _Scene.Group,
+            _ModuleSupport.Group,
             RangeAreaMarkerDatum,
             RangeAreaLabelDatum,
             RangeAreaContext
@@ -712,11 +722,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return this.getMarkerStyle(this.properties.marker, { datum, xKey, yLowKey, yHighKey, highlighted: true });
     }
 
-    protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+    protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         const hiBox = computeMarkerFocusBounds(this, opts);
         const loBox = computeMarkerFocusBounds(this, { ...opts, datumIndex: opts.datumIndex + 1 });
         if (hiBox && loBox) {
-            return _Scene.BBox.merge([hiBox, loBox]);
+            return BBox.merge([hiBox, loBox]);
         }
         return undefined;
     }

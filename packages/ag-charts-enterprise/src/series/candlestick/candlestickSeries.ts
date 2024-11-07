@@ -1,4 +1,4 @@
-import { type AgCandlestickSeriesItemOptions, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type AgCandlestickSeriesItemOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickGroup } from './candlestickGroup';
@@ -7,6 +7,7 @@ import type { CandlestickNodeDatum } from './candlestickTypes';
 import { computeCandleFocusBounds, resetCandlestickSelectionsFn } from './candlestickUtil';
 
 const { extractDecoratedProperties, mergeDefaults } = _ModuleSupport;
+
 export class CandlestickSeries extends OhlcSeriesBase<
     CandlestickGroup,
     AgCandlestickSeriesItemOptions,
@@ -135,7 +136,7 @@ export class CandlestickSeries extends OhlcSeriesBase<
         return activeStyles;
     }
 
-    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeCandleFocusBounds(this, opts);
     }
 }

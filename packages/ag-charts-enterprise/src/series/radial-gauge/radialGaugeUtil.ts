@@ -1,11 +1,11 @@
-import { type TextAlign, type VerticalAlign, type _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type TextAlign, type VerticalAlign, _ModuleSupport } from 'ag-charts-community';
 
 import { getLabelText } from '../gauge-util/label';
 import { type LabelFormatting, formatSingleLabel, formatStackedLabels } from '../util/labelFormatter';
 import type { RadialGaugeNeedle } from './radialGaugeNeedle';
 import { LabelType, type RadialGaugeLabelDatum } from './radialGaugeSeriesProperties';
 
-const { SectorBox } = _Scene;
+const { SectorBox } = _ModuleSupport;
 
 export interface AnimatableSectorDatum {
     innerRadius: number;
@@ -24,7 +24,7 @@ interface DefinedClipSector {
 type SectorAnimation = {
     startAngle: number;
     endAngle: number;
-    clipSector: _Scene.SectorBox | undefined;
+    clipSector: _ModuleSupport.SectorBox | undefined;
 };
 
 type AnimatableNeedleDatum = {
@@ -45,7 +45,7 @@ function computeClipSector(datum: AnimatableSectorDatum) {
     );
 }
 
-function clipSectorVisibility(startAngle: number, endAngle: number, clipSector: _Scene.SectorBox) {
+function clipSectorVisibility(startAngle: number, endAngle: number, clipSector: _ModuleSupport.SectorBox) {
     return Math.max(startAngle, clipSector.startAngle) <= Math.min(endAngle, clipSector.endAngle);
 }
 
@@ -62,7 +62,7 @@ function datumClipSector(datum: AnimatableSectorDatum & DefinedClipSector, zero:
 export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean, initialStartAngle: number) {
     const phase = initialLoad ? 'initial' : 'update';
 
-    const node: _ModuleSupport.FromToFns<_Scene.Sector, SectorAnimation, AnimatableSectorDatum> = {
+    const node: _ModuleSupport.FromToFns<_ModuleSupport.Sector, SectorAnimation, AnimatableSectorDatum> = {
         fromFn(sect, datum) {
             const previousDatum: AnimatableSectorDatum | undefined = sect.previousDatum;
             let { startAngle, endAngle } = previousDatum ?? datum;
@@ -73,7 +73,7 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
                     : undefined;
             const nextClipSector = hasClipSector(datum) ? datumClipSector(datum, initialLoad) : undefined;
 
-            let clipSector: _Scene.SectorBox | undefined;
+            let clipSector: _ModuleSupport.SectorBox | undefined;
             if (previousClipSector != null && nextClipSector != null) {
                 // Clip sector updated
                 clipSector = previousClipSector;
@@ -97,7 +97,7 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
         toFn(_sect, datum) {
             const { startAngle, endAngle } = datum;
 
-            let clipSector: _Scene.SectorBox | undefined;
+            let clipSector: _ModuleSupport.SectorBox | undefined;
             if (hasClipSector(datum)) {
                 clipSector = datumClipSector(datum, false);
             }
@@ -146,7 +146,7 @@ export function prepareRadialGaugeSeriesAnimationFunctions(initialLoad: boolean,
     return { node, needle };
 }
 
-export function resetRadialGaugeSeriesResetSectorFunction(_node: _Scene.Sector, datum: AnimatableSectorDatum) {
+export function resetRadialGaugeSeriesResetSectorFunction(_node: _ModuleSupport.Sector, datum: AnimatableSectorDatum) {
     const { startAngle, endAngle } = datum;
     const clipSector = computeClipSector(datum);
     const visible = clipSector == null || clipSectorVisibility(startAngle, endAngle, clipSector);
@@ -166,7 +166,7 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
 
 export function formatRadialGaugeLabels(
     series: _ModuleSupport.Series<any, any>,
-    selection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum>,
+    selection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeLabelDatum>,
     opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
     innerRadius: number,
     datumOverrides?: { label: number | undefined; secondaryLabel: number | undefined }

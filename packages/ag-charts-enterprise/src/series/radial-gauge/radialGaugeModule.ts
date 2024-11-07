@@ -1,15 +1,18 @@
-import { type _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import defaultColorStops from '../gauge-util/defaultColorStops';
 import { RadialGaugeSeries } from './radialGaugeSeries';
 
 const {
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_HIERARCHY_FILLS,
-    DEFAULT_LABEL_COLOUR,
-    DEFAULT_MUTED_LABEL_COLOUR,
-    POLAR_AXIS_TYPE,
-} = _Theme;
+    ThemeSymbols: {
+        DEFAULT_FONT_FAMILY,
+        DEFAULT_HIERARCHY_FILLS,
+        DEFAULT_LABEL_COLOUR,
+        DEFAULT_MUTED_LABEL_COLOUR,
+        DEFAULT_GAUGE_SERIES_COLOR_RANGE,
+    },
+    ThemeConstants: { POLAR_AXIS_TYPE },
+} = _ModuleSupport;
 
 export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     type: 'series',
@@ -81,7 +84,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             },
         },
         axes: {
-            [_Theme.POLAR_AXIS_TYPE.ANGLE_NUMBER]: {
+            [POLAR_AXIS_TYPE.ANGLE_NUMBER]: {
                 startAngle: 270,
                 endAngle: 270 + 180,
                 nice: false,
@@ -94,9 +97,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
     paletteFactory(params) {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = params;
         const { fills } = takeColors(colorsCount);
-        const defaultColorRange = themeTemplateParameters.get(_Theme.DEFAULT_GAUGE_SERIES_COLOR_RANGE) as
-            | string[]
-            | undefined;
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_GAUGE_SERIES_COLOR_RANGE) as string[] | undefined;
         const hierarchyFills = themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS);
         const colorRange = userPalette === 'inbuilt' ? defaultColorRange : [fills[0], fills[1]];
         return {

@@ -130,14 +130,7 @@ export class SeriesLayerManager {
         } else if (groupInfo != null && groupInfo.seriesIds.length > 0) {
             // Update zIndexSubOrder to avoid it becoming stale as series are removed and re-added
             // with the same groupIndex, but are otherwise unrelated.
-            const lowestSeriesZIndex = groupInfo.seriesIds.reduce<ZIndex | undefined>((currentLowest, seriesId) => {
-                const series = this.series.get(seriesId);
-                const zIndex = series?.seriesConfig.contentGroup.zIndex;
-                if (currentLowest == null || zIndex == null) return zIndex;
-
-                return compareZIndex(currentLowest, zIndex) <= 0 ? currentLowest : zIndex;
-            }, undefined);
-            groupInfo.group.zIndex = lowestSeriesZIndex ?? SeriesZIndexMap.ANY_CONTENT;
+            groupInfo.group.zIndex = this.getLowestSeriesZIndex(groupInfo.seriesIds);
         }
 
         this.series.delete(internalId);
@@ -159,6 +152,7 @@ export class SeriesLayerManager {
                 }
 
                 group.renderToOffscreenCanvas = renderToOffscreenCanvas;
+                group.zIndex = this.getLowestSeriesZIndex(seriesIds);
             });
         });
     }
@@ -189,5 +183,17 @@ export class SeriesLayerManager {
 
         this.groups.clear();
         this.series.clear();
+    }
+
+    private getLowestSeriesZIndex(seriesIds: string[]) {
+        const lowestSeriesZIndex = seriesIds.reduce<ZIndex | undefined>((currentLowest, seriesId) => {
+            const series = this.series.get(seriesId);
+            const zIndex = series?.seriesConfig.contentGroup.zIndex;
+            if (currentLowest == null || zIndex == null) return zIndex;
+
+            return compareZIndex(currentLowest, zIndex) <= 0 ? currentLowest : zIndex;
+        }, undefined);
+
+        return lowestSeriesZIndex ?? SeriesZIndexMap.ANY_CONTENT;
     }
 }

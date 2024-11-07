@@ -12,7 +12,11 @@ describe('sparkline benchmark', () => {
         createApi: '__createSparkline',
     }).repeatCount(500);
 
-    benchmark('initial load', ctx, { ...EXPECTATIONS }, async () => {
+    benchmark('initial load', ctx, EXPECTATIONS, async () => {
+        await ctx.create({ pool: false });
+    });
+
+    benchmark('initial load (pooled)', ctx, { ...EXPECTATIONS, autoSnapshot: false }, async () => {
         await ctx.create();
     });
 

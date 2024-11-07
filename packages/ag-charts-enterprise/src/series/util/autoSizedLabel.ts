@@ -1,9 +1,9 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import type { OverflowStrategy, TextWrap } from 'ag-charts-types';
 
 const { Validate, NUMBER, POSITIVE_NUMBER, TEXT_WRAP, OVERFLOW_STRATEGY } = _ModuleSupport;
 
-class BaseAutoSizedLabel<FormatterParams> extends _Scene.Label<FormatterParams> {
+class BaseAutoSizedLabel<FormatterParams> extends _ModuleSupport.Label<FormatterParams> {
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'on-space';
 

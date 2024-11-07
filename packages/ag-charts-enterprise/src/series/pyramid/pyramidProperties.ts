@@ -7,9 +7,8 @@ import type {
     Direction,
     Styler,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { Label, DropShadow } = _Scene;
 const {
     SeriesProperties,
     SeriesTooltip,
@@ -25,6 +24,8 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    Label,
+    DropShadow,
 } = _ModuleSupport;
 
 class PyramidSeriesLabel extends Label<AgPyramidSeriesLabelFormatterParams> {}

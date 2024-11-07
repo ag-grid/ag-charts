@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
@@ -9,7 +9,7 @@ import { PointScene } from './pointScene';
 export abstract class TextualPointScene<Datum extends TextualPointProperties> extends PointScene<Datum> {
     override activeHandle?: string;
 
-    protected readonly label = new _Scene.Text({ zIndex: 1 });
+    protected readonly label = new _ModuleSupport.Text({ zIndex: 1 });
 
     protected override anchor: _ModuleSupport.ToolbarAnchor = {
         x: 0,
@@ -17,9 +17,9 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         position: 'above-left',
     };
 
-    private textInputBBox?: _Scene.BBox;
+    private textInputBBox?: _ModuleSupport.BBox;
 
-    public setTextInputBBox(bbox?: _Scene.BBox) {
+    public setTextInputBBox(bbox?: _ModuleSupport.BBox) {
         this.textInputBBox = bbox;
         this.markDirty();
     }
@@ -71,17 +71,17 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         return getBBox(datum, text, { x: coords.x, y: coords.y }, this.textInputBBox);
     }
 
-    protected updateLabel(datum: Datum, bbox: _Scene.BBox) {
+    protected updateLabel(datum: Datum, bbox: _ModuleSupport.BBox) {
         const { text, isPlaceholder } = datum.getText();
 
         updateTextNode(this.label, text, isPlaceholder, datum, this.getLabelCoords(datum, bbox));
     }
 
-    protected updateShape(_datum: Datum, _bbox: _Scene.BBox) {
+    protected updateShape(_datum: Datum, _bbox: _ModuleSupport.BBox) {
         // Shapes should be implemented by the extending annotation type class
     }
 
-    protected override updateAnchor(_datum: Datum, bbox: _Scene.BBox, context: AnnotationContext) {
+    protected override updateAnchor(_datum: Datum, bbox: _ModuleSupport.BBox, context: AnnotationContext) {
         return {
             x: bbox.x + context.seriesRect.x,
             y: bbox.y + context.seriesRect.y - bbox.height,
@@ -89,14 +89,14 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
         };
     }
 
-    protected getLabelCoords(_datum: Datum, bbox: _Scene.BBox): _ModuleSupport.Vec2 {
+    protected getLabelCoords(_datum: Datum, bbox: _ModuleSupport.BBox): _ModuleSupport.Vec2 {
         return bbox;
     }
 
     protected override getHandleCoords(
         _datum: Datum,
         _coords: _ModuleSupport.Vec2,
-        bbox: _Scene.BBox
+        bbox: _ModuleSupport.BBox
     ): _ModuleSupport.Vec2 {
         return bbox;
     }

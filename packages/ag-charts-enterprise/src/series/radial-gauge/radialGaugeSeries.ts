@@ -7,8 +7,6 @@ import {
     type TextAlign,
     type VerticalAlign,
     _ModuleSupport,
-    _Scene,
-    _Util,
 } from 'ag-charts-community';
 
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
@@ -39,9 +37,19 @@ const {
     createDatumId,
     ChartAxisDirection,
     EMPTY_TOOLTIP_CONTENT,
+    normalizeAngle360,
+    normalizeAngle360Inclusive,
+    toDegrees,
+    toRadians,
+    BBox,
+    Group,
+    PointerEvents,
+    Selection,
+    Sector,
+    Text,
+    ConicGradient,
+    getMarker,
 } = _ModuleSupport;
-const { BBox, Group, PointerEvents, Selection, Sector, Text, ConicGradient, getMarker } = _Scene;
-const { normalizeAngle360, normalizeAngle360Inclusive, toDegrees, toRadians } = _Util;
 
 interface TargetLabel {
     enabled: boolean;
@@ -154,34 +162,30 @@ export class RadialGaugeSeries
         new Group({ name: 'itemTargetLabelGroup' })
     );
 
-    private scaleSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum> = Selection.select(
+    private scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum> = Selection.select(
         this.scaleGroup,
         () => this.nodeFactory()
     );
-    private datumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum> = Selection.select(
+    private datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory()
     );
-    private needleSelection: _Scene.Selection<RadialGaugeNeedle, RadialGaugeNeedleDatum> = Selection.select(
+    private needleSelection: _ModuleSupport.Selection<RadialGaugeNeedle, RadialGaugeNeedleDatum> = Selection.select(
         this.itemNeedleGroup,
         RadialGaugeNeedle
     );
-    private targetSelection: _Scene.Selection<_Scene.Marker, RadialGaugeTargetDatum> = Selection.select(
+    private targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum> = Selection.select(
         this.itemTargetGroup,
         (datum) => this.markerFactory(datum)
     );
-    private targetLabelSelection: _Scene.Selection<_Scene.Text, RadialGaugeTargetDatum> = Selection.select(
-        this.itemTargetLabelGroup,
-        Text
-    );
-    private labelSelection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum> = Selection.select(
+    private targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeTargetDatum> =
+        Selection.select(this.itemTargetLabelGroup, Text);
+    private labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeLabelDatum> = Selection.select(
         this.itemLabelGroup,
         Text
     );
-    private highlightTargetSelection: _Scene.Selection<_Scene.Marker, RadialGaugeTargetDatum> = Selection.select(
-        this.highlightTargetGroup,
-        (datum) => this.markerFactory(datum)
-    );
+    private highlightTargetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum> =
+        Selection.select(this.highlightTargetGroup, (datum) => this.markerFactory(datum));
 
     private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
 
@@ -239,11 +243,11 @@ export class RadialGaugeSeries
         return this.properties.value != null;
     }
 
-    private nodeFactory(): _Scene.Sector {
+    private nodeFactory(): _ModuleSupport.Sector {
         return new Sector();
     }
 
-    private markerFactory({ shape }: RadialGaugeTargetDatum): _Scene.Marker {
+    private markerFactory({ shape }: RadialGaugeTargetDatum): _ModuleSupport.Marker {
         const MarkerShape = shape !== 'line' ? getMarker(shape) : LineMarker;
         const marker = new MarkerShape();
         marker.size = 1;
@@ -270,7 +274,7 @@ export class RadialGaugeSeries
         const sweepAngle = normalizeAngle360Inclusive(endAngle - startAngle);
 
         const stops = getColorStops(fills, defaultColorRange, domain, fillMode).map(
-            ({ color, offset }): _Scene.GradientColorStop => {
+            ({ color, offset }): _ModuleSupport.GradientColorStop => {
                 offset = Math.min(Math.max(offset, 0), 1);
                 const angle = startAngle + sweepAngle * offset;
                 offset = (angle - conicAngle) / (2 * Math.PI);
@@ -507,8 +511,8 @@ export class RadialGaugeSeries
         } else {
             segments ??= domain;
 
-            for (let i = 0; i < segments.length - 1; i += 1) {
-                const segmentStart = segments[i + 0];
+            for (let i = 0; i < segments.length - 1; i++) {
+                const segmentStart = segments[i];
                 const segmentEnd = segments[i + 1];
                 const datum = { value, segmentStart, segmentEnd };
 
@@ -705,7 +709,7 @@ export class RadialGaugeSeries
         }
     }
 
-    override async update({ seriesRect }: { seriesRect?: _Scene.BBox }): Promise<void> {
+    override async update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }): Promise<void> {
         const {
             datumSelection,
             labelSelection,
@@ -762,14 +766,16 @@ export class RadialGaugeSeries
 
     private async updateDatumSelection(opts: {
         nodeData: RadialGaugeNodeDatum[];
-        datumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => {
             return createDatumId(opts.nodeData.length, datum.itemId);
         });
     }
 
-    private async updateDatumNodes(opts: { datumSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum> }) {
+    private async updateDatumNodes(opts: {
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum>;
+    }) {
         const { datumSelection } = opts;
         const { ctx, properties } = this;
         const { bar, segmentation } = properties;
@@ -808,14 +814,16 @@ export class RadialGaugeSeries
 
     private async updateScaleSelection(opts: {
         scaleData: RadialGaugeNodeDatum[];
-        scaleSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum>;
+        scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum>;
     }) {
         return opts.scaleSelection.update(opts.scaleData, undefined, (datum) => {
             return createDatumId(opts.scaleData.length, datum.itemId);
         });
     }
 
-    private async updateScaleNodes(opts: { scaleSelection: _Scene.Selection<_Scene.Sector, RadialGaugeNodeDatum> }) {
+    private async updateScaleNodes(opts: {
+        scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum>;
+    }) {
         const { scaleSelection } = opts;
         const { scale, segmentation } = this.properties;
         const sectorSpacing = segmentation.spacing ?? 0;
@@ -849,13 +857,13 @@ export class RadialGaugeSeries
 
     private async updateNeedleSelection(opts: {
         needleData: RadialGaugeNeedleDatum[];
-        needleSelection: _Scene.Selection<RadialGaugeNeedle, RadialGaugeNeedleDatum>;
+        needleSelection: _ModuleSupport.Selection<RadialGaugeNeedle, RadialGaugeNeedleDatum>;
     }) {
         return opts.needleSelection.update(opts.needleData, undefined, () => createDatumId([]));
     }
 
     private async updateNeedleNodes(opts: {
-        needleSelection: _Scene.Selection<RadialGaugeNeedle, RadialGaugeNeedleDatum>;
+        needleSelection: _ModuleSupport.Selection<RadialGaugeNeedle, RadialGaugeNeedleDatum>;
     }) {
         const { needleSelection } = opts;
         const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
@@ -889,13 +897,13 @@ export class RadialGaugeSeries
 
     private async updateTargetSelection(opts: {
         targetData: RadialGaugeTargetDatum[];
-        targetSelection: _Scene.Selection<_Scene.Marker, RadialGaugeTargetDatum>;
+        targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum>;
     }) {
         return opts.targetSelection.update(opts.targetData, undefined, (target) => target.itemId);
     }
 
     private async updateTargetNodes(opts: {
-        targetSelection: _Scene.Selection<_Scene.Marker, RadialGaugeTargetDatum>;
+        targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum>;
         isHighlight: boolean;
     }) {
         const { targetSelection, isHighlight } = opts;
@@ -934,13 +942,13 @@ export class RadialGaugeSeries
 
     private async updateTargetLabelSelection(opts: {
         targetData: RadialGaugeTargetDatum[];
-        targetLabelSelection: _Scene.Selection<_Scene.Text, RadialGaugeTargetDatum>;
+        targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeTargetDatum>;
     }) {
         return opts.targetLabelSelection.update(opts.targetData, undefined, (target) => target.itemId);
     }
 
     private async updateTargetLabelNodes(opts: {
-        targetLabelSelection: _Scene.Selection<_Scene.Text, RadialGaugeTargetDatum>;
+        targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeTargetDatum>;
     }) {
         const { targetLabelSelection } = opts;
 
@@ -970,12 +978,14 @@ export class RadialGaugeSeries
 
     private async updateLabelSelection(opts: {
         labelData: RadialGaugeLabelDatum[];
-        labelSelection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeLabelDatum>;
     }) {
         return opts.labelSelection.update(opts.labelData, undefined, (datum) => datum.label);
     }
 
-    private async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, RadialGaugeLabelDatum> }) {
+    private async updateLabelNodes(opts: {
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeLabelDatum>;
+    }) {
         const { labelSelection } = opts;
         const animationDisabled = this.ctx.animationManager.isSkipped();
 
@@ -1115,7 +1125,7 @@ export class RadialGaugeSeries
         this.resetAllAnimation();
     }
 
-    override getLabelData(): _Util.PointLabelDatum[] {
+    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
         return [];
     }
 
@@ -1131,7 +1141,7 @@ export class RadialGaugeSeries
 
     private readonly nodeDatum: any = { series: this, datum: {} };
     override pickNode(
-        point: _Scene.Point,
+        point: _ModuleSupport.Point,
         intent: _ModuleSupport.SeriesNodePickIntent
     ): _ModuleSupport.PickResult | undefined {
         switch (intent) {

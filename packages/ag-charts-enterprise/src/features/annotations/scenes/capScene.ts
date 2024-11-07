@@ -1,9 +1,9 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import type { StrokeOptions } from 'ag-charts-types';
 
 const { Vec2 } = _ModuleSupport;
 
-export abstract class CapScene extends _Scene.Group {
+export abstract class CapScene extends _ModuleSupport.Group {
     abstract type: string;
 
     abstract update(options: { x: number; y: number; angle: number } & StrokeOptions): void;
@@ -12,7 +12,7 @@ export abstract class CapScene extends _Scene.Group {
 export class ArrowCapScene extends CapScene {
     override type = 'arrow' as const;
 
-    private readonly path = new _Scene.Path();
+    private readonly path = new _ModuleSupport.Path();
     private readonly armLength = 6;
 
     constructor() {

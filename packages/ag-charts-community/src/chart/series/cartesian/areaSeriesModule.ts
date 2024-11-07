@@ -1,7 +1,7 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import { markerPaletteFactory } from '../../../module/theme';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
+import { markerPaletteFactory } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
 
 export const AreaSeriesModule: SeriesModule<'area'> = {

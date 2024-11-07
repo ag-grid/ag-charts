@@ -1,10 +1,9 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationContext, Point } from '../annotationTypes';
 import { convertPoint, invertCoords } from './values';
 
-const { Vec2 } = _ModuleSupport;
-const { toRadians } = _Scene;
+const { Vec2, toRadians } = _ModuleSupport;
 
 export function snapPoint(
     offset: _ModuleSupport.Vec2,

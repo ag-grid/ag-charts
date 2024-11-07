@@ -1,14 +1,10 @@
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapShapeSeries } from './mapShapeSeries';
 
-const {
-    DEFAULT_INVERTED_LABEL_COLOUR,
-    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
-    DEFAULT_BACKGROUND_COLOUR,
-    singleSeriesPaletteFactory,
-} = _Theme;
+const { DEFAULT_INVERTED_LABEL_COLOUR, DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_BACKGROUND_COLOUR } =
+    _ModuleSupport.ThemeSymbols;
 
 export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
     type: 'series',
@@ -36,7 +32,7 @@ export const MapShapeModule: _ModuleSupport.SeriesModule<'map-shape'> = {
     },
     paletteFactory: (opts) => {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
-        const { fill } = singleSeriesPaletteFactory(opts);
+        const { fill } = _ModuleSupport.singleSeriesPaletteFactory(opts);
         const defaultColorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
         const { fills } = takeColors(colorsCount);
         return {

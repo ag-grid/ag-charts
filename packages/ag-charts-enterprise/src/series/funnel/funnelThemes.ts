@@ -3,31 +3,36 @@ import {
     type AgFunnelSeriesOptions,
     type AgFunnelSeriesThemeableOptions,
     type AgNumberAxisThemeOptions,
-    _Theme,
+    _ModuleSupport,
 } from 'ag-charts-community';
+
+const {
+    ThemeSymbols: { DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_FONT_FAMILY },
+    ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
+} = _ModuleSupport;
 
 export function funnelSeriesAxes(series: Pick<AgFunnelSeriesOptions, 'direction' | 'stageLabel'>) {
     const { placement, ...categoryLabel } = series?.stageLabel ?? {};
     return series?.direction !== 'horizontal'
         ? [
               {
-                  type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-                  position: placement === 'after' ? _Theme.CARTESIAN_POSITION.RIGHT : _Theme.CARTESIAN_POSITION.LEFT,
+                  type: CARTESIAN_AXIS_TYPE.CATEGORY,
+                  position: placement === 'after' ? CARTESIAN_POSITION.RIGHT : CARTESIAN_POSITION.LEFT,
                   label: categoryLabel,
               },
               {
-                  type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-                  position: _Theme.CARTESIAN_POSITION.BOTTOM,
+                  type: CARTESIAN_AXIS_TYPE.NUMBER,
+                  position: CARTESIAN_POSITION.BOTTOM,
               },
           ]
         : [
               {
-                  type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-                  position: _Theme.CARTESIAN_POSITION.LEFT,
+                  type: CARTESIAN_AXIS_TYPE.NUMBER,
+                  position: CARTESIAN_POSITION.LEFT,
               },
               {
-                  type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-                  position: placement === 'before' ? _Theme.CARTESIAN_POSITION.TOP : _Theme.CARTESIAN_POSITION.BOTTOM,
+                  type: CARTESIAN_AXIS_TYPE.CATEGORY,
+                  position: placement === 'before' ? CARTESIAN_POSITION.TOP : CARTESIAN_POSITION.BOTTOM,
                   label: categoryLabel,
               },
           ];
@@ -44,8 +49,8 @@ export const FUNNEL_SERIES_THEME: {
         label: {
             enabled: true,
             fontSize: 12,
-            fontFamily: _Theme.DEFAULT_FONT_FAMILY,
-            color: _Theme.DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+            fontFamily: DEFAULT_FONT_FAMILY,
+            color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
         },
         dropOff: {
             enabled: true,
@@ -54,7 +59,7 @@ export const FUNNEL_SERIES_THEME: {
         },
     },
     axes: {
-        [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
+        [CARTESIAN_AXIS_TYPE.NUMBER]: {
             nice: false,
             gridLine: {
                 enabled: false,
@@ -69,7 +74,7 @@ export const FUNNEL_SERIES_THEME: {
                 },
             },
         },
-        [_Theme.CARTESIAN_AXIS_TYPE.CATEGORY]: {
+        [CARTESIAN_AXIS_TYPE.CATEGORY]: {
             line: {
                 enabled: false,
             },

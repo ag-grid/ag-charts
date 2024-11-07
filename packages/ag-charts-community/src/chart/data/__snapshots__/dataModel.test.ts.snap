@@ -4,10 +4,10 @@ exports[`DataModel empty data set processing should generated the expected resul
 {
   "aggregation": undefined,
   "columns": [
-    undefined,
-    undefined,
-    undefined,
-    undefined,
+    [],
+    [],
+    [],
+    [],
   ],
   "defs": {
     "allScopesHaveSameDefs": true,
@@ -92,15 +92,16 @@ exports[`DataModel empty data set processing should generated the expected resul
   "input": {
     "count": 0,
   },
+  "invalidDataScopes": undefined,
+  "invalidKeys": undefined,
   "keys": [
-    undefined,
+    [],
   ],
   "partialValidDataCount": 0,
   "rawData": [],
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "ungrouped",
-  "validScopes": undefined,
 }
 `;
 
@@ -263,6 +264,8 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   "input": {
     "count": 20,
   },
+  "invalidDataScopes": undefined,
+  "invalidKeys": undefined,
   "keys": [
     [
       2548,
@@ -369,7 +372,6 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   },
   "time": Any<Number>,
   "type": "grouped",
-  "validScopes": undefined,
 }
 `;
 
@@ -536,6 +538,8 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   "input": {
     "count": 20,
   },
+  "invalidDataScopes": undefined,
+  "invalidKeys": undefined,
   "keys": [
     [
       130,
@@ -659,7 +663,6 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   },
   "time": Any<Number>,
   "type": "grouped",
-  "validScopes": undefined,
 }
 `;
 
@@ -784,6 +787,8 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   "input": {
     "count": 20,
   },
+  "invalidDataScopes": undefined,
+  "invalidKeys": undefined,
   "keys": [
     [
       130,
@@ -887,7 +892,6 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   },
   "time": Any<Number>,
   "type": "grouped",
-  "validScopes": undefined,
 }
 `;
 
@@ -1119,6 +1123,8 @@ exports[`DataModel grouped processing - grouped example should generated the exp
   "input": {
     "count": 7,
   },
+  "invalidDataScopes": undefined,
+  "invalidKeys": undefined,
   "keys": [
     [
       "Whole economy",
@@ -1171,7 +1177,6 @@ exports[`DataModel grouped processing - grouped example should generated the exp
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "grouped",
-  "validScopes": undefined,
 }
 `;
 
@@ -1632,6 +1637,8 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
   "input": {
     "count": 12,
   },
+  "invalidDataScopes": undefined,
+  "invalidKeys": undefined,
   "keys": [
     [
       "Jan",
@@ -1774,7 +1781,6 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "grouped",
-  "validScopes": undefined,
 }
 `;
 
@@ -2060,6 +2066,8 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
   "input": {
     "count": 5,
   },
+  "invalidDataScopes": undefined,
+  "invalidKeys": undefined,
   "keys": [
     [
       "Nursery",
@@ -2120,7 +2128,6 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "grouped",
-  "validScopes": undefined,
 }
 `;
 
@@ -2427,6 +2434,8 @@ exports[`DataModel grouped processing - stacked example should generated the exp
   "input": {
     "count": 8,
   },
+  "invalidDataScopes": undefined,
+  "invalidKeys": undefined,
   "keys": [
     [
       "Semi-detached house",
@@ -2501,7 +2510,6 @@ exports[`DataModel grouped processing - stacked example should generated the exp
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "grouped",
-  "validScopes": undefined,
 }
 `;
 
@@ -2812,6 +2820,8 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
   "input": {
     "count": 8,
   },
+  "invalidDataScopes": undefined,
+  "invalidKeys": undefined,
   "keys": [
     [
       "Semi-detached house",
@@ -2886,7 +2896,6 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "grouped",
-  "validScopes": undefined,
 }
 `;
 
@@ -3151,6 +3160,8 @@ exports[`DataModel grouped processing - stacked with accumulation example should
   "input": {
     "count": 8,
   },
+  "invalidDataScopes": undefined,
+  "invalidKeys": undefined,
   "keys": [
     [
       "Semi-detached house",
@@ -3225,7 +3236,6 @@ exports[`DataModel grouped processing - stacked with accumulation example should
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "grouped",
-  "validScopes": undefined,
 }
 `;
 
@@ -3250,7 +3260,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       undefined,
       null,
       15.01,
-      undefined,
+      25.99,
       31.71,
       null,
       42.27,
@@ -3263,7 +3273,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       26.85,
       31.15,
       null,
-      undefined,
+      22.69,
       undefined,
       14.77,
       null,
@@ -3276,7 +3286,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       2.79,
       4.22,
       5.94,
-      undefined,
+      null,
       undefined,
       12.63,
       undefined,
@@ -3399,6 +3409,48 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
   "input": {
     "count": 11,
   },
+  "invalidDataScopes": Map {
+    "series-a" => [
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+    ],
+    "series-b" => [
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+    ],
+    "series-c" => [
+      false,
+      false,
+      false,
+      true,
+      true,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+    ],
+  },
+  "invalidKeys": undefined,
   "keys": [
     [
       "2009",
@@ -3414,7 +3466,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
       "2019",
     ],
   ],
-  "partialValidDataCount": 4,
+  "partialValidDataCount": 6,
   "rawData": [
     {
       "chrome": "illegal value",
@@ -3486,30 +3538,6 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "ungrouped",
-  "validScopes": [
-    Set {
-      "series-b",
-      "series-c",
-    },
-    undefined,
-    undefined,
-    Set {},
-    Set {
-      "series-a",
-    },
-    undefined,
-    Set {
-      "series-a",
-      "series-b",
-    },
-    undefined,
-    undefined,
-    Set {
-      "series-a",
-      "series-c",
-    },
-    undefined,
-  ],
 }
 `;
 
@@ -3689,6 +3717,8 @@ exports[`DataModel missing and invalid data processing should generated the expe
   "input": {
     "count": 11,
   },
+  "invalidDataScopes": undefined,
+  "invalidKeys": undefined,
   "keys": [
     [
       "2009",
@@ -3776,7 +3806,6 @@ exports[`DataModel missing and invalid data processing should generated the expe
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "ungrouped",
-  "validScopes": undefined,
 }
 `;
 
@@ -3848,6 +3877,8 @@ exports[`DataModel repeated property processing should generated the expected re
   "input": {
     "count": 5,
   },
+  "invalidDataScopes": undefined,
+  "invalidKeys": undefined,
   "keys": [],
   "partialValidDataCount": 0,
   "rawData": [
@@ -3880,7 +3911,6 @@ exports[`DataModel repeated property processing should generated the expected re
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "ungrouped",
-  "validScopes": undefined,
 }
 `;
 
@@ -3988,6 +4018,8 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
   "input": {
     "count": 8,
   },
+  "invalidDataScopes": undefined,
+  "invalidKeys": undefined,
   "keys": [],
   "partialValidDataCount": 0,
   "rawData": [
@@ -4027,7 +4059,6 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "ungrouped",
-  "validScopes": undefined,
 }
 `;
 
@@ -4206,6 +4237,8 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
   "input": {
     "count": 52,
   },
+  "invalidDataScopes": undefined,
+  "invalidKeys": undefined,
   "keys": [
     [
       2019-01-07T00:00:00.000Z,
@@ -4528,6 +4561,5 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "ungrouped",
-  "validScopes": undefined,
 }
 `;

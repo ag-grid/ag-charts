@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 
@@ -14,10 +14,18 @@ const {
     animationValidation,
     formatValue,
     computeMarkerFocusBounds,
+    isFiniteNumber,
+    extent,
+    isNumberEqual,
+    sanitizeHtml,
+    BBox,
+    Group,
+    Path,
+    PointerEvents,
+    Selection,
+    Text,
+    getMarker,
 } = _ModuleSupport;
-
-const { BBox, Group, Path, PointerEvents, Selection, Text, getMarker } = _Scene;
-const { extent, isNumberEqual, sanitizeHtml } = _Util;
 
 export interface RadarPathPoint {
     x: number;
@@ -44,7 +52,7 @@ class RadarSeriesNodeEvent<
 export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     RadarNodeDatum,
     RadarSeriesProperties<any>,
-    _Scene.Marker
+    _ModuleSupport.Marker
 > {
     static readonly className: string = 'RadarSeries';
 
@@ -58,7 +66,10 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             zIndex: _ModuleSupport.SeriesZIndexMap.ANY_CONTENT,
         })
     );
-    protected lineSelection: _Scene.Selection<_Scene.Path, boolean> = Selection.select(this.lineGroup, Path);
+    protected lineSelection: _ModuleSupport.Selection<_ModuleSupport.Path, boolean> = Selection.select(
+        this.lineGroup,
+        Path
+    );
 
     protected resetInvalidToZero: boolean = false;
 
@@ -74,7 +85,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         });
     }
 
-    protected override nodeFactory(): _Scene.Marker {
+    protected override nodeFactory(): _ModuleSupport.Marker {
         const { shape } = this.properties.marker;
         const MarkerShape = getMarker(shape);
         return new MarkerShape();
@@ -244,14 +255,14 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 label: labelNodeDatum,
                 angleValue: angleDatum,
                 radiusValue: radiusDatum,
-                missing: !_Util.isNumber(angle) || !_Util.isNumber(radius),
+                missing: !isFiniteNumber(angle) || !isFiniteNumber(radius),
             };
         });
 
         return { itemId: radiusKey, nodeData, labelData: nodeData };
     }
 
-    async update({ seriesRect }: { seriesRect?: _Scene.BBox }) {
+    async update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         const resize = this.checkResize(seriesRect);
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -300,7 +311,10 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         return highlightedStyle?.fill ?? this.properties.marker.fill;
     }
 
-    protected updateMarkers(selection: _Scene.Selection<_Scene.Marker, RadarNodeDatum>, highlight: boolean) {
+    protected updateMarkers(
+        selection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadarNodeDatum>,
+        highlight: boolean
+    ) {
         const { angleKey, radiusKey, marker, visible } = this.properties;
 
         let selectionData: RadarNodeDatum[] = [];
@@ -491,7 +505,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         this.toggleSeriesItem(itemId, newEnabled);
     }
 
-    protected override pickNodeClosestDatum(hitPoint: _Scene.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
+    protected override pickNodeClosestDatum(
+        hitPoint: _ModuleSupport.Point
+    ): _ModuleSupport.SeriesNodePickMatch | undefined {
         const { nodeData, centerX: cx, centerY: cy } = this;
         const { x, y } = hitPoint;
         const radius = this.radius;
@@ -528,7 +544,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         await this.maybeRefreshNodeData();
 
-        const textBoxes: _Scene.BBox[] = [];
+        const textBoxes: _ModuleSupport.BBox[] = [];
         const tempText = new Text();
         this.nodeData.forEach((nodeDatum) => {
             if (!label.enabled || !nodeDatum.label) {
@@ -616,7 +632,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         return points;
     }
 
-    protected animateSinglePath(pathNode: _Scene.Path, points: RadarPathPoint[], ratio: number) {
+    protected animateSinglePath(pathNode: _ModuleSupport.Path, points: RadarPathPoint[], ratio: number) {
         const { path } = pathNode;
 
         path.clear(true);
@@ -719,7 +735,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         return this.getMarkerStyle(this.properties.marker, { datum, angleKey, radiusKey, highlighted: true });
     }
 
-    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+    protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeMarkerFocusBounds(this, opts);
     }
 }

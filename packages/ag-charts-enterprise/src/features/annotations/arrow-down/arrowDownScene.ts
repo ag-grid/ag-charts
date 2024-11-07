@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -13,7 +13,7 @@ export class ArrowDownScene extends ShapePointScene<ArrowDownProperties> {
 
     type = AnnotationType.ArrowDown;
 
-    protected readonly shape = new _Scene.ArrowDown();
+    protected readonly shape = new _ModuleSupport.ArrowDown();
 
     constructor() {
         super();

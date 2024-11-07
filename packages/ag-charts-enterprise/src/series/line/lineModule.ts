@@ -1,5 +1,4 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { _Theme } from 'ag-charts-community';
 
 import { LineSeries } from './lineSeries';
 

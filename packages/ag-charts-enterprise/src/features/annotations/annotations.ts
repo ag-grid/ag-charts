@@ -1,10 +1,4 @@
-import {
-    type AgAnnotation,
-    type AgAnnotationLineStyleType,
-    type Direction,
-    _ModuleSupport,
-    _Scene,
-} from 'ag-charts-community';
+import { type AgAnnotation, type AgAnnotationLineStyleType, type Direction, _ModuleSupport } from 'ag-charts-community';
 
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';
@@ -44,6 +38,8 @@ const {
     isValidDate,
     keyProperty,
     valueProperty,
+    Selection,
+    BBox,
 } = _ModuleSupport;
 
 type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProperties>;
@@ -51,7 +47,7 @@ type AnnotationPropertiesArray = _ModuleSupport.PropertiesArray<AnnotationProper
 type AnnotationAxis = {
     layout: _ModuleSupport.AxisLayout;
     context: _ModuleSupport.AxisContext;
-    bounds: _Scene.BBox;
+    bounds: _ModuleSupport.BBox;
     button?: AxisButton;
 };
 
@@ -94,9 +90,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private processedData?: _ModuleSupport.ProcessedData<any>;
 
     // Elements
-    private seriesRect?: _Scene.BBox;
-    private readonly container = new _Scene.Group({ name: 'static-annotations' });
-    private readonly annotations = new _Scene.Selection<AnnotationScene, AnnotationProperties>(
+    private seriesRect?: _ModuleSupport.BBox;
+    private readonly container = new _ModuleSupport.Group({ name: 'static-annotations' });
+    private readonly annotations = new Selection<AnnotationScene, AnnotationProperties>(
         this.container,
         this.createAnnotationScene.bind(this)
     );
@@ -351,7 +347,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.state.transition('updateTextInputBBox', bbox);
             },
 
-            updateTextInputBBox: (bbox?: _Scene.BBox) => {
+            updateTextInputBBox: (bbox?: _ModuleSupport.BBox) => {
                 this.state.transition('updateTextInputBBox', bbox);
             },
 
@@ -682,14 +678,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private getAxis(
         axisLayout: _ModuleSupport.AxisLayout,
-        seriesRect: _Scene.BBox,
+        seriesRect: _ModuleSupport.BBox,
         button?: AxisButton
     ): AnnotationAxis {
         const axisCtx = this.ctx.axisManager.getAxisContext(axisLayout.direction)[0];
 
         const { position: axisPosition = 'bottom', direction } = axisCtx;
         const padding = axisLayout.gridPadding + axisLayout.seriesAreaPadding;
-        const bounds = new _Scene.BBox(0, 0, seriesRect.width, seriesRect.height).grow(padding, axisPosition);
+        const bounds = new BBox(0, 0, seriesRect.width, seriesRect.height).grow(padding, axisPosition);
 
         const lineDirection = axisCtx.direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
 

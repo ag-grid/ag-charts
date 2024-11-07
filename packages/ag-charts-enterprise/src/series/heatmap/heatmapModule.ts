@@ -1,8 +1,12 @@
-import type { _ModuleSupport } from 'ag-charts-community';
-import { _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { HeatmapSeries } from './heatmapSeries';
 import { HEATMAP_SERIES_THEME } from './heatmapThemes';
+
+const {
+    ThemeSymbols: { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_BACKGROUND_COLOUR },
+    ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
+} = _ModuleSupport;
 
 export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
     type: 'series',
@@ -14,19 +18,13 @@ export const HeatmapModule: _ModuleSupport.SeriesModule<'heatmap'> = {
     moduleFactory: (ctx) => new HeatmapSeries(ctx),
     tooltipDefaults: { range: 'exact' },
     defaultAxes: [
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: _Theme.CARTESIAN_POSITION.LEFT,
-        },
-        {
-            type: _Theme.CARTESIAN_AXIS_TYPE.CATEGORY,
-            position: _Theme.CARTESIAN_POSITION.BOTTOM,
-        },
+        { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.LEFT },
+        { type: CARTESIAN_AXIS_TYPE.CATEGORY, position: CARTESIAN_POSITION.BOTTOM },
     ],
     themeTemplate: HEATMAP_SERIES_THEME,
     paletteFactory: ({ takeColors, colorsCount, userPalette, themeTemplateParameters }) => {
-        const defaultColorRange = themeTemplateParameters.get(_Theme.DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
-        const defaultBackgroundColor = themeTemplateParameters.get(_Theme.DEFAULT_BACKGROUND_COLOUR);
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
+        const defaultBackgroundColor = themeTemplateParameters.get(DEFAULT_BACKGROUND_COLOUR);
         const backgroundFill =
             (Array.isArray(defaultBackgroundColor) ? defaultBackgroundColor[0] : defaultBackgroundColor) ?? 'white';
         const { fills, strokes } = takeColors(colorsCount);

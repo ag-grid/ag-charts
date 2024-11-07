@@ -1,6 +1,6 @@
-import { _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { motion } = _Scene;
+const { motion } = _ModuleSupport;
 
 export type AnimatableRadialColumnDatum = {
     innerRadius: number;
@@ -23,7 +23,11 @@ export function createAngleMotionCalculator() {
         endAngle: new Map(),
     };
     const angleKeys: AngleKey[] = ['startAngle', 'endAngle'];
-    const calculate = (node: _Scene.Path & AngleObject, datum: AngleObject, status: _Scene.NodeUpdateState) => {
+    const calculate = (
+        node: _ModuleSupport.Path & AngleObject,
+        datum: AngleObject,
+        status: _ModuleSupport.NodeUpdateState
+    ) => {
         angleKeys.forEach((key) => {
             const map = angles[key];
             let from = (status === 'removed' || status === 'updated' ? node : datum)[key];
@@ -50,9 +54,9 @@ export function createAngleMotionCalculator() {
 }
 
 export function fixRadialColumnAnimationStatus(
-    node: _Scene.Path,
+    node: _ModuleSupport.Path,
     datum: { startAngle: number; endAngle: number },
-    status: _Scene.NodeUpdateState
+    status: _ModuleSupport.NodeUpdateState
 ) {
     if (status === 'updated') {
         if (node.previousDatum == null || isNaN(node.previousDatum.startAngle) || isNaN(node.previousDatum.endAngle)) {
@@ -72,9 +76,9 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
     const angles = createAngleMotionCalculator();
 
     const fromFn = (
-        node: _Scene.RadialColumnShape,
+        node: _ModuleSupport.RadialColumnShape,
         datum: AnimatableRadialColumnDatum,
-        status: _Scene.NodeUpdateState
+        status: _ModuleSupport.NodeUpdateState
     ) => {
         status = fixRadialColumnAnimationStatus(node, datum, status);
 
@@ -114,9 +118,9 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
     };
 
     const toFn = (
-        node: _Scene.RadialColumnShape,
+        node: _ModuleSupport.RadialColumnShape,
         datum: AnimatableRadialColumnDatum,
-        status: _Scene.NodeUpdateState
+        status: _ModuleSupport.NodeUpdateState
     ) => {
         const { startAngle, endAngle } = angles.to(datum);
 
@@ -146,7 +150,7 @@ export function prepareRadialColumnAnimationFunctions(axisZeroRadius: number) {
 }
 
 export function resetRadialColumnSelectionFn(
-    _node: _Scene.RadialColumnShape,
+    _node: _ModuleSupport.RadialColumnShape,
     {
         innerRadius,
         outerRadius,

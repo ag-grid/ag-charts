@@ -1,7 +1,7 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import { markerPaletteFactory } from '../../../module/theme';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } from '../../themes/symbols';
+import { markerPaletteFactory } from '../../themes/util';
 import { LineSeries } from './lineSeries';
 
 export const LineSeriesModule: SeriesModule<'line'> = {

@@ -1,5 +1,5 @@
 import type { AgTooltipRendererResult } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { RangeBarProperties } from './rangeBarProperties';
 
@@ -24,10 +24,12 @@ const {
     animationValidation,
     createDatumId,
     computeBarFocusBounds,
+    sanitizeHtml,
+    ContinuousScale,
+    Rect,
+    PointerEvents,
+    motion,
 } = _ModuleSupport;
-const { Rect, PointerEvents, motion } = _Scene;
-const { sanitizeHtml } = _Util;
-const { ContinuousScale } = _Scale;
 
 type Bounds = {
     x: number;
@@ -36,7 +38,7 @@ type Bounds = {
     height: number;
 };
 
-type RangeBarNodeLabelDatum = Readonly<_Scene.Point> & {
+type RangeBarNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
     text: string;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
@@ -47,7 +49,7 @@ type RangeBarNodeLabelDatum = Readonly<_Scene.Point> & {
 
 interface RangeBarNodeDatum
     extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'>,
-        Readonly<_Scene.Point> {
+        Readonly<_ModuleSupport.Point> {
     readonly index: number;
     readonly valueIndex: number;
     readonly itemId: string;
@@ -62,13 +64,13 @@ interface RangeBarNodeDatum
     readonly stroke: string;
     readonly strokeWidth: number;
     readonly opacity: number;
-    readonly clipBBox?: _Scene.BBox;
+    readonly clipBBox?: _ModuleSupport.BBox;
 }
 
 type RangeBarContext = _ModuleSupport.CartesianSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
 
 type RangeBarAnimationData = _ModuleSupport.CartesianAnimationData<
-    _Scene.Rect,
+    _ModuleSupport.Rect,
     RangeBarNodeDatum,
     RangeBarNodeLabelDatum
 >;
@@ -89,7 +91,7 @@ class RangeBarSeriesNodeEvent<
 }
 
 export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
-    _Scene.Rect,
+    _ModuleSupport.Rect,
     RangeBarProperties,
     RangeBarNodeDatum,
     RangeBarNodeLabelDatum
@@ -368,7 +370,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override async updateDatumSelection(opts: {
         nodeData: RangeBarNodeDatum[];
-        datumSelection: _Scene.Selection<_Scene.Rect, RangeBarNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
     }) {
         const { nodeData, datumSelection } = opts;
         const data = nodeData ?? [];
@@ -376,7 +378,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected override async updateDatumNodes(opts: {
-        datumSelection: _Scene.Selection<_Scene.Rect, RangeBarNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -453,7 +455,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, any> }) {
+    protected async updateLabelNodes(opts: { labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text> }) {
         opts.labelSelection.each((textNode, datum) => {
             updateLabelNode(textNode, this.properties.label, datum);
         });
@@ -614,7 +616,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override onDataChange() {}
 
-    protected computeFocusBounds({ datumIndex, seriesRect }: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+    protected computeFocusBounds({
+        datumIndex,
+        seriesRect,
+    }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup, seriesRect);
     }
 }

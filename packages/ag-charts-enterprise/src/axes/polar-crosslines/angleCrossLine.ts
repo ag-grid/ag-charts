@@ -1,10 +1,18 @@
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { PolarCrossLine } from './polarCrossLine';
 
-const { ChartAxisDirection, validateCrossLineValues } = _ModuleSupport;
-const { Group, Path, Sector, RotatableText, ContinuousScale } = _Scene;
-const { normalizeAngle360, isNumberEqual } = _Util;
+const {
+    ChartAxisDirection,
+    validateCrossLineValues,
+    normalizeAngle360,
+    isNumberEqual,
+    Group,
+    Path,
+    Sector,
+    RotatableText,
+    ContinuousScale,
+} = _ModuleSupport;
 
 export class AngleCrossLine extends PolarCrossLine {
     static readonly className = 'AngleCrossLine';
@@ -51,7 +59,7 @@ export class AngleCrossLine extends PolarCrossLine {
         this.lineGroup.visible = visible;
         this.labelGroup.visible = visible;
 
-        if (type === 'line' && shape === 'circle' && scale instanceof _Scale.BandScale) {
+        if (type === 'line' && shape === 'circle' && scale instanceof _ModuleSupport.BandScale) {
             this.type = 'range';
             this.range = [value, value];
         }
@@ -116,14 +124,14 @@ export class AngleCrossLine extends PolarCrossLine {
             startIndex <= endIndex
                 ? ticks.slice(startIndex, endIndex + 1)
                 : ticks.slice(startIndex).concat(ticks.slice(0, endIndex + 1));
-        const angles = stops.map((value) => scale.convert(value));
+        const angles = stops.map((value: unknown) => scale.convert(value));
 
         polygon.visible = true;
         this.setSectorNodeProps(polygon);
 
         const { path } = polygon;
         path.clear(true);
-        angles.forEach((angle, index) => {
+        angles.forEach((angle: number, index: number) => {
             const x = axisOuterRadius * Math.cos(angle);
             const y = axisOuterRadius * Math.sin(angle);
             if (index === 0) {
@@ -138,7 +146,7 @@ export class AngleCrossLine extends PolarCrossLine {
             angles
                 .slice()
                 .reverse()
-                .forEach((angle) => {
+                .forEach((angle: number) => {
                     const x = axisInnerRadius * Math.cos(angle);
                     const y = axisInnerRadius * Math.sin(angle);
                     path.lineTo(x, y);
@@ -160,7 +168,7 @@ export class AngleCrossLine extends PolarCrossLine {
         const angles = range.map((value) => scale.convert(value));
 
         const step = scale.step ?? 0;
-        const padding = scale instanceof _Scale.BandScale ? step / 2 : 0;
+        const padding = scale instanceof _ModuleSupport.BandScale ? step / 2 : 0;
 
         sector.visible = true;
         this.setSectorNodeProps(sector);

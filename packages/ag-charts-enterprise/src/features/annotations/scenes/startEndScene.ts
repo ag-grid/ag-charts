@@ -1,4 +1,4 @@
-import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type AgAnnotationHandleStyles, _ModuleSupport } from 'ag-charts-community';
 
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext } from '../annotationTypes';
@@ -126,7 +126,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         if (this.start.containsPoint(x, y) || this.end.containsPoint(x, y)) return 'handle';
     }
 
-    protected updateHandles(datum: Datum, coords: _ModuleSupport.Vec4, bbox?: _Scene.BBox) {
+    protected updateHandles(datum: Datum, coords: _ModuleSupport.Vec4, bbox?: _ModuleSupport.BBox) {
         this.start.update({
             ...this.getHandleStyles(datum, 'start'),
             ...this.getHandleCoords(datum, coords, 'start'),
@@ -144,7 +144,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         _datum: Datum,
         coords: _ModuleSupport.Vec4,
         context: AnnotationContext,
-        _bbox?: _Scene.BBox
+        _bbox?: _ModuleSupport.BBox
     ) {
         this.anchor = {
             x: coords.x1 + context.seriesRect.x,
@@ -157,7 +157,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         _datum: Datum,
         coords: _ModuleSupport.Vec4,
         handle: StartEndHandle,
-        _bbox?: _Scene.BBox
+        _bbox?: _ModuleSupport.BBox
     ): _ModuleSupport.Vec2 {
         return handle === 'start' ? Vec4.start(coords) : Vec4.end(coords);
     }

@@ -1,9 +1,8 @@
-import { _ModuleSupport, _Scale } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { OrdinalTimeScale } = _Scale;
-const { dateToNumber } = _ModuleSupport;
+const { dateToNumber, OrdinalTimeScale } = _ModuleSupport;
 
-export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_Scale.OrdinalTimeScale> {
+export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.OrdinalTimeScale> {
     static override readonly className = 'OrdinalTimeAxis' as const;
     static override readonly type = 'ordinal-time' as const;
 

@@ -1,9 +1,9 @@
-import { _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 export type PositionedScene = Vec2Scene | Vec4Scene;
 
-type Vec2Scene = _Scene.Node & { x: number; y: number };
-type Vec4Scene = _Scene.Node & { x: number; y: number; x1: number; y1: number; x2: number; y2: number };
+type Vec2Scene = _ModuleSupport.Node & { x: number; y: number };
+type Vec4Scene = _ModuleSupport.Node & { x: number; y: number; x1: number; y1: number; x2: number; y2: number };
 
 export function layoutScenesRow(
     scenes: Array<PositionedScene | Array<PositionedScene>>,
@@ -17,7 +17,7 @@ export function layoutScenesRow(
             for (const scene_ of scene) {
                 layoutSetX(scene_, x);
             }
-            x += _Scene.Group.computeChildrenBBox(scene).width + gap;
+            x += _ModuleSupport.Group.computeChildrenBBox(scene).width + gap;
         } else {
             layoutSetX(scene, x);
             x += scene.getBBox().width + gap;
@@ -37,7 +37,7 @@ export function layoutScenesColumn(
             for (const scene_ of scene) {
                 layoutSetY(scene_, y);
             }
-            y += _Scene.Group.computeChildrenBBox(scene).height + gap;
+            y += _ModuleSupport.Group.computeChildrenBBox(scene).height + gap;
         } else {
             layoutSetY(scene, y);
             y += scene.getBBox().height + gap;

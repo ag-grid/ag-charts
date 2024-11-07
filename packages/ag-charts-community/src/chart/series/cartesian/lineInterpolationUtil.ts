@@ -144,9 +144,7 @@ function validateAxisEntriesOrder(axisValues: ValueEntry[], data: SpanContext) {
     return true;
 }
 
-function getAxisValues(newData: SpanContext, oldData: SpanContext): AxisContext | undefined {
-    if (!validateCategorySorting(newData, oldData)) return;
-
+function spanAxisContext(newData: SpanContext, oldData: SpanContext): AxisContext | undefined {
     // Old and new axis values might not be directly comparable
     // Array.sort does not handle this case
     const allAxisEntries = new Map<AxisValue, any>();
@@ -453,9 +451,14 @@ function phaseAnimation(
     axisContext: AxisContext,
     newData: SpanContext,
     oldData: SpanContext,
-    collapseMode: CollapseMode,
-    out: SpanInterpolationResult
-) {
+    collapseMode: CollapseMode
+): SpanInterpolationResult {
+    const out: SpanInterpolationResult = {
+        removed: [],
+        moved: [],
+        added: [],
+    };
+
     const { axisValues, oldDataAxisIndices, newDataAxisIndices } = axisContext;
     const range = {
         xValue0Index: Math.max(
@@ -480,6 +483,8 @@ function phaseAnimation(
             out
         );
     }
+
+    return out;
 }
 
 function resetSpan(data: SpanContext, spanDatum: SpanDatum, collapseMode: CollapseMode) {
@@ -495,35 +500,39 @@ function resetSpan(data: SpanContext, spanDatum: SpanDatum, collapseMode: Collap
 function resetAnimation(
     newData: SpanContext,
     oldData: SpanContext,
-    collapseMode: CollapseMode,
-    out: SpanInterpolationResult
-) {
+    collapseMode: CollapseMode
+): SpanInterpolationResult {
+    const added: SpanInterpolationResult['added'] = [];
+    const removed: SpanInterpolationResult['removed'] = [];
+
     for (const oldSpanDatum of oldData.data) {
         const oldSpan = oldSpanDatum.span;
         const collapsedSpan = resetSpan(oldData, oldSpanDatum, collapseMode);
-        out.removed.push({ from: oldSpan, to: collapsedSpan });
+        removed.push({ from: oldSpan, to: collapsedSpan });
     }
 
     for (const newSpanDatum of newData.data) {
         const newSpan = newSpanDatum.span;
         const collapsedSpan = resetSpan(newData, newSpanDatum, collapseMode);
-        out.added.push({ from: collapsedSpan, to: newSpan });
+        added.push({ from: collapsedSpan, to: newSpan });
     }
+
+    return {
+        removed,
+        moved: [],
+        added,
+    };
 }
 
-export function pairUpSpans(newData: SpanContext, oldData: SpanContext, collapseMode: CollapseMode) {
-    const out: SpanInterpolationResult = {
-        removed: [],
-        moved: [],
-        added: [],
-    };
+export function pairUpSpans(
+    newData: SpanContext,
+    oldData: SpanContext,
+    collapseMode: CollapseMode
+): SpanInterpolationResult | undefined {
+    if (!validateCategorySorting(newData, oldData)) return;
 
-    const axisContext = getAxisValues(newData, oldData);
-    if (axisContext == null) {
-        resetAnimation(newData, oldData, collapseMode, out);
-    } else {
-        phaseAnimation(axisContext, newData, oldData, collapseMode, out);
-    }
-
-    return out;
+    const axisContext = spanAxisContext(newData, oldData);
+    return axisContext == null
+        ? resetAnimation(newData, oldData, collapseMode)
+        : phaseAnimation(axisContext, newData, oldData, collapseMode);
 }

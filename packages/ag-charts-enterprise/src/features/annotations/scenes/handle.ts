@@ -1,16 +1,20 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-type InvariantHandleStyles = { x: number; y: number } & { [K in keyof _Scene.Circle]?: _Scene.Circle[K] };
-type UnivariantHandleStyles = { x: number; y: number } & { [K in keyof _Scene.Rect]?: _Scene.Rect[K] };
-type DivariantHandleStyles = { x: number; y: number } & { [K in keyof _Scene.Circle]?: _Scene.Circle[K] };
+type InvariantHandleStyles = { x: number; y: number } & {
+    [K in keyof _ModuleSupport.Circle]?: _ModuleSupport.Circle[K];
+};
+type UnivariantHandleStyles = { x: number; y: number } & { [K in keyof _ModuleSupport.Rect]?: _ModuleSupport.Rect[K] };
+type DivariantHandleStyles = { x: number; y: number } & {
+    [K in keyof _ModuleSupport.Circle]?: _ModuleSupport.Circle[K];
+};
 
-export abstract class Handle extends _Scene.Group {
+export abstract class Handle extends _ModuleSupport.Group {
     public static readonly HANDLE_SIZE: number;
     public static readonly GLOW_SIZE: number;
     public static readonly INACTIVE_STROKE_WIDTH = 2;
 
-    abstract handle: _Scene.Rect | _Scene.Circle;
-    protected abstract glow: _Scene.Rect | _Scene.Circle;
+    abstract handle: _ModuleSupport.Rect | _ModuleSupport.Circle;
+    protected abstract glow: _ModuleSupport.Rect | _ModuleSupport.Circle;
     protected active = false;
     protected locked = false;
 
@@ -18,7 +22,7 @@ export abstract class Handle extends _Scene.Group {
     override zIndex = 1;
 
     public abstract update(styles: {
-        [K in keyof (_Scene.Rect | _Scene.Circle)]?: (_Scene.Rect | _Scene.Circle)[K];
+        [K in keyof (_ModuleSupport.Rect | _ModuleSupport.Circle)]?: (_ModuleSupport.Rect | _ModuleSupport.Circle)[K];
     }): void;
 
     public drag(target: _ModuleSupport.Vec2): { point: _ModuleSupport.Vec2; offset: _ModuleSupport.Vec2 } {
@@ -71,8 +75,8 @@ class InvariantHandle extends Handle {
     static override readonly HANDLE_SIZE = 7;
     static override readonly GLOW_SIZE = 9;
 
-    override handle = new _Scene.Circle();
-    override glow = new _Scene.Circle();
+    override handle = new _ModuleSupport.Circle();
+    override glow = new _ModuleSupport.Circle();
 
     constructor() {
         super();
@@ -97,8 +101,8 @@ export class UnivariantHandle extends Handle {
     static override readonly GLOW_SIZE = 16;
     static readonly CORNER_RADIUS = 4;
 
-    override handle = new _Scene.Rect();
-    override glow = new _Scene.Rect();
+    override handle = new _ModuleSupport.Rect();
+    override glow = new _ModuleSupport.Rect();
 
     public gradient: 'horizontal' | 'vertical' = 'horizontal';
 
@@ -204,8 +208,8 @@ export class DivariantHandle extends Handle {
     static override readonly HANDLE_SIZE = 11;
     static override readonly GLOW_SIZE = 17;
 
-    override handle = new _Scene.Circle();
-    override glow = new _Scene.Circle();
+    override handle = new _ModuleSupport.Circle();
+    override glow = new _ModuleSupport.Circle();
 
     private cachedStyles?: DivariantHandleStyles;
 

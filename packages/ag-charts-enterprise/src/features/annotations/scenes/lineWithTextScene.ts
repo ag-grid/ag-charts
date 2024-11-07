@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { ChannelTextProperties, LineTextProperties } from '../annotationProperties';
 import type { AnnotationScene } from './annotationScene';
@@ -61,7 +61,7 @@ export class LineWithTextScene {
     }
 
     static updateChannelText<Datum extends { strokeWidth?: number; text?: ChannelTextProperties }>(
-        this: AnnotationScene & { text?: _Scene.TransformableText },
+        this: AnnotationScene & { text?: _ModuleSupport.TransformableText },
         offsetInsideTextLabel: boolean,
         datum: Datum,
         top: _ModuleSupport.Vec4,
@@ -150,7 +150,7 @@ export class LineWithTextScene {
     }
 
     static setProperties(
-        scene: _Scene.TransformableText,
+        scene: _ModuleSupport.TransformableText,
         datum: LineTextProperties | ChannelTextProperties,
         point: _ModuleSupport.Vec2,
         angle: number,

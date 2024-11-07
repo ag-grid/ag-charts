@@ -13,8 +13,9 @@ import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
 import { groupBy } from '../util/array';
-import { AsyncAwaitQueue } from '../util/async';
+import { AsyncAwaitQueue, pause } from '../util/async';
 import { Debug } from '../util/debug';
+import { isInputPending } from '../util/dom';
 import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
 import { Logger } from '../util/logger';
@@ -231,6 +232,7 @@ export abstract class Chart extends Observable {
 
     queuedUserOptions: AgChartOptions[] = [];
     chartOptions: ChartOptions;
+    private firstApply = true;
 
     /**
      * Public API for this Chart instance. NOTE: This is initialized after construction by the
@@ -398,6 +400,11 @@ export abstract class Chart extends Observable {
         this._performUpdateSkipAnimations = true;
     }
 
+    detachAndClear() {
+        this.container = undefined;
+        this.ctx.scene.clear();
+    }
+
     destroy(opts?: { keepTransferableResources: boolean }): TransferableResources | undefined {
         if (this.destroyed) {
             return;
@@ -449,9 +456,13 @@ export abstract class Chart extends Observable {
         this.updateMutex
             .acquire(async () => {
                 if (this.destroyed) return;
-                await cb(this);
-                if (this.destroyed) return;
-                this._pendingFactoryUpdatesCount--;
+                try {
+                    await cb(this);
+                } finally {
+                    if (!this.destroyed) {
+                        this._pendingFactoryUpdatesCount--;
+                    }
+                }
             })
             .catch((e) => Logger.errorOnce(e));
     }
@@ -1037,6 +1048,10 @@ export abstract class Chart extends Observable {
                     Logger.warnOnce(message);
                 }
             }
+
+            if (isInputPending()) {
+                await pause();
+            }
         }
     }
 
@@ -1073,11 +1088,13 @@ export abstract class Chart extends Observable {
         return series?.filter((s) => s.showInMiniChart !== false);
     }
 
-    applyOptions(newChartOptions: ChartOptions, create: boolean) {
-        const deltaOptions = create ? newChartOptions.processedOptions : newChartOptions.diffOptions(this.chartOptions);
+    applyOptions(newChartOptions: ChartOptions) {
+        const deltaOptions = this.firstApply
+            ? newChartOptions.processedOptions
+            : newChartOptions.diffOptions(this.chartOptions);
         if (deltaOptions == null || Object.keys(deltaOptions).length === 0) return;
 
-        const oldOpts = create ? {} : this.chartOptions.processedOptions;
+        const oldOpts = this.firstApply ? {} : this.chartOptions.processedOptions;
         const newOpts = newChartOptions.processedOptions;
 
         debug('Chart.applyOptions() - applying delta', deltaOptions);
@@ -1167,6 +1184,8 @@ export abstract class Chart extends Observable {
         if (deltaOptions.initialState || deltaOptions.theme) {
             this.applyInitialState(newOpts);
         }
+
+        this.firstApply = false;
     }
 
     private applyInitialState(options: AgChartOptions) {

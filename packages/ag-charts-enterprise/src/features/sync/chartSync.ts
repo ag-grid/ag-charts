@@ -1,4 +1,4 @@
-import { type AgChartSyncOptions, _ModuleSupport, _Util } from 'ag-charts-community';
+import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
 
 const {
     BOOLEAN,
@@ -14,8 +14,8 @@ const {
     ObserveChanges,
     TooltipManager,
     Validate,
+    Logger,
 } = _ModuleSupport;
-const { Logger } = _Util;
 
 interface ChartLike {
     ctx: {

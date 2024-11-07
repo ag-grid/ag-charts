@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import type {
     AgChartLabelFormatterParams,
     AgGaugeFillMode,
@@ -42,8 +42,8 @@ const {
     RATIO,
     STRING,
     UNION,
+    Label,
 } = _ModuleSupport;
-const { Label } = _Scene;
 
 const TARGET_PLACEMENT = UNION(['before', 'after', 'middle'], 'a placement');
 const LABEL_PLACEMENT = UNION(
@@ -81,7 +81,7 @@ export interface LinearGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     topRightCornerRadius: number;
     bottomRightCornerRadius: number;
     bottomLeftCornerRadius: number;
-    fill: string | _Scene.Gradient | undefined;
+    fill: string | _ModuleSupport.Gradient | undefined;
     horizontalInset: number;
     verticalInset: number;
 }

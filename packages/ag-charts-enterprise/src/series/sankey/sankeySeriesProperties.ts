@@ -10,7 +10,6 @@ import {
     type AgSankeySeriesTooltipRendererParams,
     type Styler,
     _ModuleSupport,
-    _Scene,
 } from 'ag-charts-community';
 
 import type { FlowProportionLinkDatum, FlowProportionNodeDatum } from '../flow-proportion/flowProportionSeries';
@@ -30,8 +29,8 @@ const {
     STRING,
     UNION,
     Validate,
+    Label,
 } = _ModuleSupport;
-const { Label } = _Scene;
 
 const ALIGNMENT = UNION(['left', 'right', 'center', 'justify'], 'a justification value');
 

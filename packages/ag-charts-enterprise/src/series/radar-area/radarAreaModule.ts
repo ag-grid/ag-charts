@@ -1,9 +1,12 @@
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { RADAR_AREA_SERIES_THEME } from '../radar/radarThemes';
 import { RadarAreaSeries } from './radarAreaSeries';
 
-const { markerPaletteFactory } = _ModuleSupport;
+const {
+    markerPaletteFactory,
+    ThemeConstants: { POLAR_AXIS_TYPE },
+} = _ModuleSupport;
 
 export const RadarAreaModule: _ModuleSupport.SeriesModule<'radar-area'> = {
     type: 'series',
@@ -14,14 +17,7 @@ export const RadarAreaModule: _ModuleSupport.SeriesModule<'radar-area'> = {
     identifier: 'radar-area',
     moduleFactory: (ctx) => new RadarAreaSeries(ctx),
     tooltipDefaults: { range: 'nearest' },
-    defaultAxes: [
-        {
-            type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
-        },
-        {
-            type: _Theme.POLAR_AXIS_TYPE.RADIUS_NUMBER,
-        },
-    ],
+    defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
     themeTemplate: RADAR_AREA_SERIES_THEME,
     paletteFactory: (params) => {
         const { marker } = markerPaletteFactory(params);

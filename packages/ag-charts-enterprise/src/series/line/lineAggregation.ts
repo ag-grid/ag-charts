@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scale } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 const { findMinMax } = _ModuleSupport;
 

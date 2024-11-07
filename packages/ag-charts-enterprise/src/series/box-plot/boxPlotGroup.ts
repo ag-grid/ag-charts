@@ -1,10 +1,9 @@
 import type { AgBoxPlotSeriesStyle } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
-const { ScalableGroup, Rect, Line, BBox, Selection } = _Scene;
-const { Logger } = _Util;
+const { ScalableGroup, Rect, Line, BBox, Selection, Logger } = _ModuleSupport;
 
 enum GroupTags {
     Box,
@@ -70,11 +69,11 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
         } = activeStyles;
 
         const selection = Selection.select(this, Rect);
-        const boxes = selection.selectByTag<_Scene.Rect>(GroupTags.Box);
-        const [outline] = selection.selectByTag<_Scene.Rect>(GroupTags.Outline);
-        const [median] = selection.selectByTag<_Scene.Rect>(GroupTags.Median);
-        const whiskers = selection.selectByTag<_Scene.Line>(GroupTags.Whisker);
-        const caps = selection.selectByTag<_Scene.Line>(GroupTags.Cap);
+        const boxes = selection.selectByTag<_ModuleSupport.Rect>(GroupTags.Box);
+        const [outline] = selection.selectByTag<_ModuleSupport.Rect>(GroupTags.Outline);
+        const [median] = selection.selectByTag<_ModuleSupport.Rect>(GroupTags.Median);
+        const whiskers = selection.selectByTag<_ModuleSupport.Line>(GroupTags.Whisker);
+        const caps = selection.selectByTag<_ModuleSupport.Line>(GroupTags.Cap);
 
         if (whiskerStyles.strokeWidth > bandwidth) {
             whiskerStyles.strokeWidth = bandwidth;
@@ -162,7 +161,7 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
     }
 
     distanceSquared(x: number, y: number): number {
-        const nodes = Selection.selectByClass<_Scene.Rect | _Scene.Line>(this, Rect, Line);
+        const nodes = Selection.selectByClass<_ModuleSupport.Rect | _ModuleSupport.Line>(this, Rect, Line);
         return _ModuleSupport.nearestSquared(x, y, nodes).distanceSquared;
     }
 

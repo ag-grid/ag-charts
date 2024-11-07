@@ -1,9 +1,8 @@
-import { _ModuleSupport, _Scale } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 
-const { RATIO, ProxyPropertyOnWrite, Validate } = _ModuleSupport;
-const { BandScale } = _Scale;
+const { RATIO, ProxyPropertyOnWrite, Validate, BandScale } = _ModuleSupport;
 
 export class RadiusCategoryAxis extends RadiusAxis {
     static readonly className = 'RadiusCategoryAxis';

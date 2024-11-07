@@ -175,6 +175,7 @@ export function prepareLinePathAnimation(
         { scales: oldData.scales, data: oldData.strokeData.spans },
         CollapseMode.Split
     );
+    if (strokeSpans == null) return;
 
     const stroke = prepareLinePathStrokeAnimationFns(status, strokeSpans, 'fade');
 

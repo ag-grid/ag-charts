@@ -1064,11 +1064,11 @@ describe('DataModel', () => {
             expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
-    "AG Charts - invalid value of type [string] for [series-a / undefined] ignored:",
+    "AG Charts - invalid value of type [string] for [undefined / undefined] ignored:",
     "[illegal value]",
   ],
   [
-    "AG Charts - invalid value of type [string] for [undefined / undefined] ignored:",
+    "AG Charts - invalid value of type [string] for [series-a / undefined] ignored:",
     "[illegal value]",
   ],
   [
@@ -1076,15 +1076,15 @@ describe('DataModel', () => {
     "[undefined]",
   ],
   [
+    "AG Charts - invalid value of type [string] for [series-b / undefined] ignored:",
+    "[illegal value]",
+  ],
+  [
     "AG Charts - invalid value of type [undefined] for [series-c / undefined] ignored:",
     "[undefined]",
   ],
   [
     "AG Charts - invalid value of type [string] for [series-c / undefined] ignored:",
-    "[illegal value]",
-  ],
-  [
-    "AG Charts - invalid value of type [string] for [series-b / undefined] ignored:",
     "[illegal value]",
   ],
 ]
@@ -1176,7 +1176,7 @@ describe('DataModel', () => {
             it('should not generate data extracts', () => {
                 const result = dataModel.processData([])!;
 
-                expect(result.keys).toEqual([]);
+                expect(result.keys).toEqual([[]]);
             });
 
             it('should not generate values for domains', () => {

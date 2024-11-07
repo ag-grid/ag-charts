@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { ChannelTextProperties } from '../annotationProperties';
 import type { AnnotationContext, Point } from '../annotationTypes';
@@ -28,7 +28,7 @@ export abstract class ChannelScene<
 
     protected topLine = new CollidableLine();
     protected bottomLine = new CollidableLine();
-    public background = new _Scene.Path({ zIndex: -1 });
+    public background = new _ModuleSupport.Path({ zIndex: -1 });
     public text?: CollidableText;
     private readonly anchor: _ModuleSupport.ToolbarAnchor = { x: 0, y: 0 };
 
@@ -158,7 +158,7 @@ export abstract class ChannelScene<
     protected readonly updateBackground = WithBackgroundScene.updateBackground.bind(this);
 
     protected updateAnchor(top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
-        const { x, y } = _Scene.Transformable.toCanvasPoint(
+        const { x, y } = _ModuleSupport.Transformable.toCanvasPoint(
             this.topLine,
             (top.x1 + top.x2) / 2,
             Math.min(top.y1, top.y2, bottom.y1, bottom.y2)

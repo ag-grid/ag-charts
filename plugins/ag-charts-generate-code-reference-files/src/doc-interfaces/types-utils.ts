@@ -398,6 +398,7 @@ export function formatNode(node: ts.Node) {
     switch (node.kind) {
         case ts.SyntaxKind.AnyKeyword:
         case ts.SyntaxKind.BooleanKeyword:
+        case ts.SyntaxKind.ConstructSignature:
         case ts.SyntaxKind.Identifier:
         case ts.SyntaxKind.LiteralType:
         case ts.SyntaxKind.NeverKeyword:

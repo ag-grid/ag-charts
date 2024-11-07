@@ -9,7 +9,7 @@ import {
     AgTooltipPositionType,
 } from 'ag-charts-types';
 
-import { PRESETS } from '../api/preset/presets';
+import { PRESETS, PRESET_DATA_PROCESSORS } from '../api/preset/presets';
 import { axisRegistry } from '../chart/factory/axisRegistry';
 import { publicChartTypes } from '../chart/factory/chartTypes';
 import { isEnterpriseSeriesType } from '../chart/factory/expectedEnterpriseModules';
@@ -33,7 +33,7 @@ import { type ChartTheme } from '../chart/themes/chartTheme';
 import { circularSliceArray, groupBy, unique } from '../util/array';
 import { Debug } from '../util/debug';
 import { setDocument, setWindow } from '../util/dom';
-import { deepClone, jsonDiff, jsonWalk } from '../util/json';
+import { deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { isEnumValue, isFiniteNumber, isObject, isPlainObject, isString } from '../util/type-guards';
@@ -51,7 +51,8 @@ export interface ChartSpecialOverrides {
 }
 
 export interface ChartInternalOptionMetadata {
-    presetType?: string;
+    presetType?: keyof typeof PRESETS;
+    pool?: boolean;
 }
 
 type GroupingOptions = {
@@ -146,8 +147,30 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private fastSetup(deltaOptions: DeepPartial<T>, baseChartOptions: ChartOptions<T>) {
         const { activeTheme, defaultAxes, processedOptions: baseOptions } = baseChartOptions;
 
+        const { presetType } = this.optionMetadata;
+        const processor = presetType ? PRESET_DATA_PROCESSORS[presetType] : undefined;
+        if (presetType != null && deltaOptions.data != null && processor != null) {
+            // Handle preset data transforms gracefully.
+            deltaOptions = mergeDefaults(processor(deltaOptions.data), deltaOptions) as DeepPartial<T>;
+        }
+
+        this.fastSeriesSetup(deltaOptions, baseOptions);
         const processedOptions = mergeDefaults(deltaOptions, baseOptions);
         return { activeTheme, defaultAxes, processedOptions, fastDelta: deltaOptions };
+    }
+
+    private fastSeriesSetup(deltaOptions: DeepPartial<T>, baseOptions: T) {
+        if (!deltaOptions.series) return;
+
+        if (deltaOptions.series?.every((s, i) => jsonPropertyCompare(s, baseOptions.series?.[i] ?? {}))) {
+            // No series changes - skip these.
+            delete deltaOptions['series'];
+        } else {
+            // Need to take full series options in update cases.
+            deltaOptions.series = deltaOptions.series.map((s, i) => {
+                return mergeDefaults(s, baseOptions.series?.[i] ?? {});
+            });
+        }
     }
 
     private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T>) {

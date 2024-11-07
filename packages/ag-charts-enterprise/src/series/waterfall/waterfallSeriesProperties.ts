@@ -8,9 +8,8 @@ import type {
     AgWaterfallSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { DropShadow, Label } = _Scene;
 const {
     AbstractBarSeriesProperties,
     BaseProperties,
@@ -28,6 +27,8 @@ const {
     RATIO,
     STRING,
     UNION,
+    DropShadow,
+    Label,
 } = _ModuleSupport;
 
 export class WaterfallSeriesTotal extends BaseProperties {

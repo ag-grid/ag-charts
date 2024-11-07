@@ -1,4 +1,6 @@
-import { _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
+
+const { CARTESIAN_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
 
 export const BOX_PLOT_SERIES_THEME = {
     series: {
@@ -8,12 +10,12 @@ export const BOX_PLOT_SERIES_THEME = {
         strokeWidth: 2,
     },
     axes: {
-        [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
+        [CARTESIAN_AXIS_TYPE.NUMBER]: {
             crosshair: {
                 snap: false,
             },
         },
-        [_Theme.CARTESIAN_AXIS_TYPE.CATEGORY]: {
+        [CARTESIAN_AXIS_TYPE.CATEGORY]: {
             groupPaddingInner: 0.2,
             crosshair: {
                 enabled: false,

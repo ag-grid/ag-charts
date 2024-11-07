@@ -1,7 +1,9 @@
-import { type _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { RADAR_LINE_SERIES_THEME } from '../radar/radarThemes';
 import { RadarLineSeries } from './radarLineSeries';
+
+const { POLAR_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
 
 export const RadarLineModule: _ModuleSupport.SeriesModule<'radar-line'> = {
     type: 'series',
@@ -12,14 +14,7 @@ export const RadarLineModule: _ModuleSupport.SeriesModule<'radar-line'> = {
     identifier: 'radar-line',
     moduleFactory: (ctx) => new RadarLineSeries(ctx),
     tooltipDefaults: { range: 'nearest' },
-    defaultAxes: [
-        {
-            type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
-        },
-        {
-            type: _Theme.POLAR_AXIS_TYPE.RADIUS_NUMBER,
-        },
-    ],
+    defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
     themeTemplate: RADAR_LINE_SERIES_THEME,
     paletteFactory: ({ takeColors }) => {
         const {

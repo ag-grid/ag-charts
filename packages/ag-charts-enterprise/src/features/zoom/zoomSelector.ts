@@ -1,4 +1,4 @@
-import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 
 import type { ZoomRect } from './scenes/zoomRect';
 import type { DefinedZoomState, ZoomCoords, ZoomProperties } from './zoomTypes';
@@ -17,7 +17,7 @@ export class ZoomSelector {
     update(
         event: _ModuleSupport.PointerOffsets,
         props: ZoomProperties,
-        bbox?: _Scene.BBox,
+        bbox?: _ModuleSupport.BBox,
         currentZoom?: _ModuleSupport.AxisZoomState
     ): void {
         this.rect.visible = true;
@@ -26,7 +26,11 @@ export class ZoomSelector {
         this.updateRect(bbox);
     }
 
-    stop(innerBBox?: _Scene.BBox, bbox?: _Scene.BBox, currentZoom?: _ModuleSupport.AxisZoomState): DefinedZoomState {
+    stop(
+        innerBBox?: _ModuleSupport.BBox,
+        bbox?: _ModuleSupport.BBox,
+        currentZoom?: _ModuleSupport.AxisZoomState
+    ): DefinedZoomState {
         let zoom = definedZoomState();
 
         if (!innerBBox || !bbox) return zoom;
@@ -60,7 +64,7 @@ export class ZoomSelector {
         x: number,
         y: number,
         props: ZoomProperties,
-        bbox?: _Scene.BBox,
+        bbox?: _ModuleSupport.BBox,
         currentZoom?: _ModuleSupport.AxisZoomState
     ): void {
         if (!this.coords) {
@@ -130,7 +134,7 @@ export class ZoomSelector {
         }
     }
 
-    private updateRect(bbox?: _Scene.BBox): void {
+    private updateRect(bbox?: _ModuleSupport.BBox): void {
         if (!bbox) return;
 
         const { rect } = this;
@@ -150,7 +154,7 @@ export class ZoomSelector {
         rect.height = height;
     }
 
-    private createZoomFromCoords(bbox: _Scene.BBox, currentZoom?: _ModuleSupport.AxisZoomState) {
+    private createZoomFromCoords(bbox: _ModuleSupport.BBox, currentZoom?: _ModuleSupport.AxisZoomState) {
         const oldZoom = definedZoomState(currentZoom);
         const normal = this.getNormalisedDimensions();
 

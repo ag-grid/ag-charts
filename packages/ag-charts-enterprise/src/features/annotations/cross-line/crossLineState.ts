@@ -1,4 +1,4 @@
-import { type Direction, _ModuleSupport, _Util } from 'ag-charts-community';
+import { type Direction, _ModuleSupport } from 'ag-charts-community';
 
 import { AnnotationType, type Point } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
@@ -6,7 +6,7 @@ import type { AnnotationStateEvents } from '../states/stateTypes';
 import { type CrossLineProperties, HorizontalLineProperties, VerticalLineProperties } from './crossLineProperties';
 import type { CrossLineScene } from './crossLineScene';
 
-const { StateMachine, StateMachineProperty } = _ModuleSupport;
+const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
 interface CrossLineStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: CrossLineProperties) => void;
@@ -16,7 +16,7 @@ export class CrossLineStateMachine extends StateMachine<
     'start' | 'waiting-first-render',
     Pick<AnnotationStateEvents, 'click' | 'drag' | 'cancel' | 'render' | 'reset'>
 > {
-    override debug = _Util.Debug.create(true, 'annotations');
+    override debug = Debug.create(true, 'annotations');
 
     @StateMachineProperty()
     protected node?: CrossLineScene;

@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { Fill, Stroke } from '../annotationProperties';
 import {
@@ -10,8 +10,7 @@ import {
 import { TextualPointProperties } from '../properties/textualPointProperties';
 import { getBBox } from '../text/util';
 
-const { OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
-const { clamp } = _Util;
+const { OBJECT, STRING, BaseProperties, Validate, isObject, clamp } = _ModuleSupport;
 
 const DEFAULT_NOTE_PADDING = 10;
 const HANDLE_SIZE = 11;

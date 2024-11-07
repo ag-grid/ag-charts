@@ -14,7 +14,7 @@ import {
     type AgTooltipPositionType,
 } from 'ag-charts-types';
 
-import { IS_ENTERPRISE } from '../../chart/themes/symbols';
+import { DEFAULT_AXIS_GRID_COLOUR, IS_ENTERPRISE } from '../../chart/themes/symbols';
 import { simpleMemorize } from '../../util/memo';
 import { IGNORED_PROP, assertEmpty, pickProps } from './presetUtils';
 
@@ -33,7 +33,7 @@ const commonAxisProperties = {
     },
     crosshair: {
         enabled: false,
-        strokeOpacity: 0.25,
+        stroke: DEFAULT_AXIS_GRID_COLOUR,
         lineDash: [0],
         label: {
             enabled: false,
@@ -172,6 +172,24 @@ function createInitialBaseTheme(
     return initialBaseTheme;
 }
 
+export function sparklineDataPreset(data: any[] | undefined): {
+    data: any[] | undefined;
+    series?: { xKey: string; yKey: string }[];
+} {
+    if (Array.isArray(data) && data.length !== 0) {
+        const firstItem = data[0];
+        if (typeof firstItem === 'number') {
+            const mappedData = data.map((y, x) => ({ x, y }));
+            return { data: mappedData, series: [{ xKey: 'x', yKey: 'y' }] };
+        } else if (Array.isArray(firstItem)) {
+            const mappedData = data.map(([x, y]) => ({ x, y }));
+            return { data: mappedData, series: [{ xKey: 'x', yKey: 'y' }] };
+        }
+    }
+
+    return { data };
+}
+
 function axisPreset(
     opts: AgSparklineAxisOptions | undefined,
     defaultType: AgCartesianAxisOptions['type']
@@ -180,12 +198,12 @@ function axisPreset(
         case 'number': {
             const {
                 type,
-                reverse,
                 visible: _visible,
                 stroke: _stroke,
                 strokeWidth: _strokeWidth,
                 min,
                 max,
+                reverse,
                 ...optsRest
             } = opts;
             assertEmpty(optsRest);
@@ -199,12 +217,12 @@ function axisPreset(
         case 'time': {
             const {
                 type,
-                reverse,
                 visible: _visible,
                 stroke: _stroke,
                 strokeWidth: _strokeWidth,
                 min,
                 max,
+                reverse,
                 ...optsRest
             } = opts;
             assertEmpty(optsRest);
@@ -218,12 +236,12 @@ function axisPreset(
         case 'category': {
             const {
                 type,
-                reverse,
                 visible: _visible,
                 stroke: _stroke,
                 strokeWidth: _strokeWidth,
                 paddingInner,
                 paddingOuter,
+                reverse,
                 ...optsRest
             } = opts;
             assertEmpty(optsRest);
@@ -243,9 +261,14 @@ function gridLinePreset(opts: AgSparklineAxisOptions | undefined, defaultEnabled
     const gridLineOpts: AgAxisGridLineOptions = {};
     if (opts?.stroke != null) {
         gridLineOpts.style = [{ stroke: opts?.stroke }];
+        gridLineOpts.enabled ??= true;
     }
     if (opts?.strokeWidth != null) {
         gridLineOpts.width = opts?.strokeWidth;
+        gridLineOpts.enabled ??= true;
+    }
+    if (opts?.visible != null) {
+        gridLineOpts.enabled = opts.visible;
     }
     gridLineOpts.enabled ??= defaultEnabled;
     return gridLineOpts;
@@ -263,18 +286,14 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         padding,
         width,
         theme: baseTheme,
-        data,
+        data: baseData,
+        crosshair,
         axis,
         min,
         max,
-        reverse,
         ...optsRest
     } = opts as any as AgBaseSparklinePresetOptions;
     assertEmpty(optsRest);
-
-    const seriesOptions = optsRest as any as AgCartesianSeriesOptions;
-
-    const swapAxes = seriesOptions.type !== 'bar' || seriesOptions.direction !== 'horizontal';
 
     const chartOpts: AgCartesianChartOptions = pickProps<AgBaseSparklinePresetOptions>(opts, {
         background,
@@ -286,34 +305,41 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         minWidth,
         padding,
         width,
-        data,
+        data: IGNORED_PROP,
+        crosshair: IGNORED_PROP,
         axis: IGNORED_PROP,
         min: IGNORED_PROP,
         max: IGNORED_PROP,
-        reverse: IGNORED_PROP,
         theme: IGNORED_PROP,
     });
 
+    const { data, series: [seriesOverrides] = [] } = sparklineDataPreset(baseData);
+
+    const seriesOptions = optsRest as any as AgCartesianSeriesOptions;
+    // Assign is safe as it comes from a rest object
+    if (seriesOverrides != null) Object.assign(seriesOptions, seriesOverrides);
+
     chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME);
+    chartOpts.data = data;
     chartOpts.series = [seriesOptions];
 
+    const swapAxes = seriesOptions.type !== 'bar' || seriesOptions.direction !== 'horizontal';
     const [xAxisPosition, yAxisPosition] = swapAxes ? (['bottom', 'left'] as const) : (['left', 'bottom'] as const);
 
-    const xAxis: AgCartesianAxisOptions = {
-        ...axisPreset(axis, 'category'),
-        position: xAxisPosition,
-    };
+    const xAxis: AgCartesianAxisOptions = Object.assign(
+        {
+            ...axisPreset(axis, 'category'),
+            position: xAxisPosition,
+        },
+        pickProps<Pick<AgCartesianAxisOptions, 'crosshair'>>(opts, { crosshair })
+    );
     const yAxis: AgCartesianAxisOptions = Object.assign(
         {
             type: 'number',
             gridLine: gridLinePreset(axis, false),
             position: yAxisPosition,
         },
-        pickProps<Pick<AgNumberAxisOptions, 'reverse' | 'min' | 'max'>>(opts, {
-            min,
-            max,
-            reverse,
-        })
+        pickProps<Pick<AgNumberAxisOptions, 'min' | 'max'>>(opts, { min, max })
     );
 
     chartOpts.axes = swapAxes ? [yAxis, xAxis] : [xAxis, yAxis];

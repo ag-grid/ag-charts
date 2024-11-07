@@ -181,7 +181,7 @@ module.exports = {
             comment: "Don't use top-level export bundles internally.",
             severity: 'error',
             from: { path: 'src/.*' },
-            to: { path: 'src/[^/]*\\.ts', pathNot: 'src/chartBuilderOptions.ts' },
+            to: { path: 'src/[^/]*\\.ts', pathNot: ['src/chartBuilderOptions.ts', 'src/integratedCharts.ts'] },
         },
     ],
     options: {

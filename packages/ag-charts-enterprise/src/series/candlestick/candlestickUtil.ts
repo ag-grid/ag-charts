@@ -1,4 +1,4 @@
-import { _ModuleSupport, type _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { CandlestickBaseGroup } from './candlestickGroup';
 import type { CandlestickNodeBaseDatum, CandlestickNodeDatum } from './candlestickTypes';
@@ -105,13 +105,13 @@ function getCoordinates(datum: CandlestickNodeDatum) {
 
 type AbstractCandlestickSeries = {
     getNodeData(): CandlestickNodeBaseDatum[] | undefined;
-    contentGroup: _Scene.Group;
+    contentGroup: _ModuleSupport.Group;
 };
 
 export function computeCandleFocusBounds(
     series: AbstractCandlestickSeries,
     opts: _ModuleSupport.PickFocusInputs
-): _Scene.BBox | undefined {
+): _ModuleSupport.BBox | undefined {
     const candleDatum = series.getNodeData()?.at(opts.datumIndex);
     const datum = !candleDatum
         ? undefined

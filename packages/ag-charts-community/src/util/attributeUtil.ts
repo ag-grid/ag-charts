@@ -1,3 +1,5 @@
+import type { Direction } from 'ag-charts-types';
+
 import type { Nullable } from './types';
 
 type ElementID = string;
@@ -12,6 +14,7 @@ export type BaseAttributeTypeMap = {
     'aria-label': string;
     'aria-labelledby': ElementID;
     'aria-live': 'assertive' | 'polite';
+    'aria-orientation': Direction;
     'aria-selected': boolean;
     'data-preventdefault': boolean;
     class: string;

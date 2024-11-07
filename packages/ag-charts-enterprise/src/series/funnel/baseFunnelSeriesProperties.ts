@@ -5,9 +5,9 @@ import type {
     AgFunnelSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 
-interface FunnelSeriesLabel extends _Scene.Label<AgFunnelSeriesLabelFormatterParams> {}
+interface FunnelSeriesLabel extends _ModuleSupport.Label<AgFunnelSeriesLabelFormatterParams> {}
 
 export interface BaseFunnelProperties<SeriesOptions extends object>
     extends _ModuleSupport.AbstractBarSeriesProperties<SeriesOptions> {

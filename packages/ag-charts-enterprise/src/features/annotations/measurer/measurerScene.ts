@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -40,7 +40,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
     private readonly horizontalEndCap = new ArrowCapScene();
     private readonly verticalEndCap = new ArrowCapScene();
 
-    public readonly background = new _Scene.Path({ zIndex: -1 });
+    public readonly background = new _ModuleSupport.Path({ zIndex: -1 });
     private readonly statistics: MeasurerStatisticsScene;
 
     protected verticalDirection?: 'up' | 'down';
@@ -287,10 +287,10 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         _datum: MeasurerTypeProperties,
         coords: _ModuleSupport.Vec4,
         _context: AnnotationContext,
-        _bbox?: _Scene.BBox
+        _bbox?: _ModuleSupport.BBox
     ) {
         const point = Vec4.topCenter(coords);
-        Vec2.apply(this.anchor, _Scene.Transformable.toCanvasPoint(this.horizontalLine, point.x, point.y));
+        Vec2.apply(this.anchor, _ModuleSupport.Transformable.toCanvasPoint(this.horizontalLine, point.x, point.y));
     }
 
     public getBackgroundPoints(

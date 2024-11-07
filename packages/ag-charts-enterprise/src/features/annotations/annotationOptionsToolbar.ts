@@ -1,4 +1,4 @@
-import { type AgAnnotationLineStyleType, _ModuleSupport, _Util } from 'ag-charts-community';
+import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 
 import { Menu, type MenuItem } from '../../components/menu/menu';
 import { ColorPicker } from '../color-picker/colorPicker';
@@ -19,7 +19,7 @@ import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, has
 import { getLineStyle } from './utils/line';
 import { isTextType } from './utils/types';
 
-const { ToolbarManager, Vec2 } = _ModuleSupport;
+const { Color, ToolbarManager, Vec2 } = _ModuleSupport;
 
 interface EventMap {
     'pressed-delete': void;
@@ -139,8 +139,8 @@ export class AnnotationOptionsToolbar
 
     public updateColorPickerFill(colorPickerType: AnnotationOptionsColorPickerType, color?: string, opacity?: number) {
         if (color != null && opacity != null) {
-            const { r, g, b } = _Util.Color.fromString(color);
-            color = _Util.Color.fromArray([r, g, b, opacity]).toHexString();
+            const { r, g, b } = Color.fromString(color);
+            color = Color.fromArray([r, g, b, opacity]).toHexString();
         }
         this.ctx.toolbarManager.updateButton('annotationOptions', colorPickerType, {
             fill: color,

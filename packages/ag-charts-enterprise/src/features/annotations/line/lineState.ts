@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationContext, Point } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
@@ -7,7 +7,7 @@ import { snapPoint } from '../utils/coords';
 import { ArrowProperties, LineProperties } from './lineProperties';
 import type { LineScene } from './lineScene';
 
-const { StateMachine, StateMachineProperty } = _ModuleSupport;
+const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
 interface LineStateMachineContext<Datum extends ArrowProperties | LineProperties>
     extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
@@ -21,7 +21,7 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
         'click' | 'hover' | 'keyDown' | 'keyUp' | 'drag' | 'dragEnd' | 'reset' | 'cancel' | 'render'
     >
 > {
-    override debug = _Util.Debug.create(true, 'annotations');
+    override debug = Debug.create(true, 'annotations');
 
     @StateMachineProperty()
     protected datum?: Datum;

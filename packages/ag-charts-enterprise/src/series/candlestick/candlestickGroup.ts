@@ -1,5 +1,5 @@
 import type { AgCandlestickSeriesItemOptions } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { CandlestickNodeDatum } from './candlestickTypes';
 
@@ -9,10 +9,11 @@ enum GroupTags {
     HighWick,
 }
 
-const { SceneChangeDetection, BBox } = _Scene;
+const { Logger } = _ModuleSupport;
+const { SceneChangeDetection, BBox } = _ModuleSupport;
 
 export abstract class CandlestickBaseGroup<TNodeDatum, TStyles>
-    extends _Scene.Group
+    extends _ModuleSupport.Group
     implements _ModuleSupport.QuadtreeCompatibleNode
 {
     abstract updateDatumStyles(datum: TNodeDatum, activeStyles: TStyles): void;
@@ -40,20 +41,24 @@ export abstract class CandlestickBaseGroup<TNodeDatum, TStyles>
     height: number = 0;
 
     distanceSquared(x: number, y: number): number {
-        const nodes = _Scene.Selection.selectByClass<_Scene.Rect | _Scene.Line>(this, _Scene.Rect, _Scene.Line);
+        const nodes = _ModuleSupport.Selection.selectByClass<_ModuleSupport.Rect | _ModuleSupport.Line>(
+            this,
+            _ModuleSupport.Rect,
+            _ModuleSupport.Line
+        );
         return _ModuleSupport.nearestSquared(x, y, nodes).distanceSquared;
     }
 
     get midPoint(): { x: number; y: number } {
         const datum: { midPoint?: { readonly x: number; readonly y: number } } = this.datum;
         if (datum.midPoint === undefined) {
-            _Util.Logger.error('CandlestickBaseGroup.datum.midPoint is undefined');
+            Logger.error('CandlestickBaseGroup.datum.midPoint is undefined');
             return { x: NaN, y: NaN };
         }
         return datum.midPoint;
     }
 
-    override preRender(): _Scene.ChildNodeCounts {
+    override preRender(): _ModuleSupport.ChildNodeCounts {
         this.updateCoordinates();
         return super.preRender();
     }
@@ -63,18 +68,18 @@ export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum,
     constructor() {
         super();
         this.append([
-            new _Scene.Rect({ tag: GroupTags.Body }),
-            new _Scene.Line({ tag: GroupTags.LowWick }),
-            new _Scene.Line({ tag: GroupTags.HighWick }),
+            new _ModuleSupport.Rect({ tag: GroupTags.Body }),
+            new _ModuleSupport.Line({ tag: GroupTags.LowWick }),
+            new _ModuleSupport.Line({ tag: GroupTags.HighWick }),
         ]);
     }
 
     updateCoordinates() {
         const { x, y, yBottom, yHigh, yLow, width, height } = this;
-        const selection = _Scene.Selection.select(this, _Scene.Rect);
-        const [body] = selection.selectByTag<_Scene.Rect>(GroupTags.Body);
-        const [lowWick] = selection.selectByTag<_Scene.Line>(GroupTags.LowWick);
-        const [highWick] = selection.selectByTag<_Scene.Line>(GroupTags.HighWick);
+        const selection = _ModuleSupport.Selection.select(this, _ModuleSupport.Rect);
+        const [body] = selection.selectByTag<_ModuleSupport.Rect>(GroupTags.Body);
+        const [lowWick] = selection.selectByTag<_ModuleSupport.Line>(GroupTags.LowWick);
+        const [highWick] = selection.selectByTag<_ModuleSupport.Line>(GroupTags.HighWick);
 
         if (width === 0 || height === 0) {
             body.visible = false;
@@ -128,10 +133,10 @@ export class CandlestickGroup extends CandlestickBaseGroup<CandlestickNodeDatum,
 
         wickStyles.strokeWidth ??= 1;
 
-        const selection = _Scene.Selection.select(this, _Scene.Rect);
-        const [body] = selection.selectByTag<_Scene.Rect>(GroupTags.Body);
-        const [lowWick] = selection.selectByTag<_Scene.Line>(GroupTags.LowWick);
-        const [highWick] = selection.selectByTag<_Scene.Line>(GroupTags.HighWick);
+        const selection = _ModuleSupport.Selection.select(this, _ModuleSupport.Rect);
+        const [body] = selection.selectByTag<_ModuleSupport.Rect>(GroupTags.Body);
+        const [lowWick] = selection.selectByTag<_ModuleSupport.Line>(GroupTags.LowWick);
+        const [highWick] = selection.selectByTag<_ModuleSupport.Line>(GroupTags.HighWick);
 
         if (wickStyles.strokeWidth > bandwidth) {
             wickStyles.strokeWidth = bandwidth;

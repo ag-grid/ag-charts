@@ -1,4 +1,4 @@
-import { type _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -6,7 +6,7 @@ import { TextualPointScene } from '../scenes/textualPointScene';
 import { ANNOTATION_TEXT_LINE_HEIGHT } from '../text/util';
 import type { CommentProperties } from './commentProperties';
 
-const { drawCorner } = _Scene;
+const { drawCorner } = _ModuleSupport;
 
 export class CommentScene extends TextualPointScene<CommentProperties> {
     static override is(value: unknown): value is CommentScene {
@@ -15,14 +15,14 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
 
     override type = AnnotationType.Comment;
 
-    private readonly shape = new _Scene.Path();
+    private readonly shape = new _ModuleSupport.Path();
 
     constructor() {
         super();
         this.append([this.shape, this.label, this.handle]);
     }
 
-    protected override updateShape(datum: CommentProperties, bbox: _Scene.BBox) {
+    protected override updateShape(datum: CommentProperties, bbox: _ModuleSupport.BBox) {
         const { shape } = this;
 
         // update shape styles
@@ -53,14 +53,14 @@ export class CommentScene extends TextualPointScene<CommentProperties> {
         };
     }
 
-    protected override updateAnchor(datum: CommentProperties, bbox: _Scene.BBox, context: AnnotationContext) {
+    protected override updateAnchor(datum: CommentProperties, bbox: _ModuleSupport.BBox, context: AnnotationContext) {
         const anchor = super.updateAnchor(datum, bbox, context);
         const padding = datum.getPadding();
         anchor.y -= padding.bottom + padding.top;
         return anchor;
     }
 
-    private updatePath(datum: CommentProperties, bbox: _Scene.BBox) {
+    private updatePath(datum: CommentProperties, bbox: _ModuleSupport.BBox) {
         const padding = datum.getPadding();
         const { x, y } = bbox;
         let { width, height } = bbox;

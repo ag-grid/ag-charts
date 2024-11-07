@@ -5,7 +5,7 @@ import type {
     AgRangeAreaSeriesOptionsKeys,
     AgRangeAreaSeriesTooltipRendererParams,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
     readonly index: number;
@@ -13,11 +13,10 @@ export interface RangeAreaMarkerDatum extends Omit<_ModuleSupport.CartesianSerie
     readonly yHighKey: string;
     readonly yLowValue: number;
     readonly yHighValue: number;
-    readonly point: Readonly<_Scene.SizedPoint>;
+    readonly point: Readonly<_ModuleSupport.SizedPoint>;
     readonly enabled: boolean;
 }
 
-const { DropShadow, Label } = _Scene;
 const {
     CartesianSeriesProperties,
     InterpolationProperties,
@@ -32,6 +31,8 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    DropShadow,
+    Label,
 } = _ModuleSupport;
 
 class RangeAreaSeriesLabel extends Label<AgRangeAreaSeriesLabelFormatterParams> {

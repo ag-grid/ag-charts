@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import { type PositionedScene, layoutAddX, layoutAddY, layoutScenesColumn, layoutScenesRow } from '../utils/layout';
@@ -12,17 +12,17 @@ export interface Statistics {
     volume?: number;
 }
 
-export class MeasurerStatisticsScene extends _Scene.Group {
+export class MeasurerStatisticsScene extends _ModuleSupport.Group {
     override name = 'MeasurerStatisticsScene';
 
-    private readonly background = new _Scene.Rect();
-    private readonly dateRangeBarsText = new _Scene.Text();
-    private readonly dateRangeDivider = new _Scene.Line();
-    private readonly dateRangeValueText = new _Scene.Text();
-    private readonly priceRangeValueText = new _Scene.Text();
-    private readonly priceRangeDivider = new _Scene.Line();
-    private readonly priceRangePercentageText = new _Scene.Text();
-    private readonly volumeText = new _Scene.Text();
+    private readonly background = new _ModuleSupport.Rect();
+    private readonly dateRangeBarsText = new _ModuleSupport.Text();
+    private readonly dateRangeDivider = new _ModuleSupport.Line();
+    private readonly dateRangeValueText = new _ModuleSupport.Text();
+    private readonly priceRangeValueText = new _ModuleSupport.Text();
+    private readonly priceRangeDivider = new _ModuleSupport.Line();
+    private readonly priceRangePercentageText = new _ModuleSupport.Text();
+    private readonly volumeText = new _ModuleSupport.Text();
 
     private readonly volumeFormatter = new Intl.NumberFormat('en-US', {
         notation: 'compact',
@@ -58,7 +58,7 @@ export class MeasurerStatisticsScene extends _Scene.Group {
 
         const scenes = this.updateStatistics(datum, stats, anchor, localeManager);
 
-        const bbox = _Scene.Group.computeChildrenBBox(scenes.flat());
+        const bbox = _ModuleSupport.Group.computeChildrenBBox(scenes.flat());
         const padding = 10;
         bbox.grow(padding);
 
@@ -150,7 +150,7 @@ export class MeasurerStatisticsScene extends _Scene.Group {
         return scenes;
     }
 
-    private updateBackground(datum: MeasurerTypeProperties, bbox: _Scene.BBox, padding: number) {
+    private updateBackground(datum: MeasurerTypeProperties, bbox: _ModuleSupport.BBox, padding: number) {
         const styles = this.getBackgroundStyles(datum);
 
         this.background.setProperties({
@@ -177,7 +177,7 @@ export class MeasurerStatisticsScene extends _Scene.Group {
         // Reposition center and below the anchor
         for (const scene of scenes) {
             if (Array.isArray(scene)) {
-                const rowWidth = _Scene.Group.computeChildrenBBox(scene).width;
+                const rowWidth = _ModuleSupport.Group.computeChildrenBBox(scene).width;
                 for (const scene_ of scene) {
                     layoutAddX(scene_, offsetX - rowWidth / 2);
                     layoutAddY(scene_, offsetY);

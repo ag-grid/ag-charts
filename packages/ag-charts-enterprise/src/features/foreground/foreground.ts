@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { Image } from '../image/image';
 
@@ -27,7 +27,7 @@ export class Foreground extends _ModuleSupport.Background<Image> {
     fillOpacity?: number = undefined;
 
     protected override createNode() {
-        return new _Scene.Group({ name: 'foreground', zIndex: ZIndexMap.FOREGROUND });
+        return new _ModuleSupport.Group({ name: 'foreground', zIndex: ZIndexMap.FOREGROUND });
     }
 
     protected override onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {

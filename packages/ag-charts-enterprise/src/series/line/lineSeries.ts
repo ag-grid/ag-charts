@@ -1,9 +1,8 @@
-import { _ModuleSupport, _Scale } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { aggregateData } from './lineAggregation';
 
-const { ChartAxisDirection, findMinValue, findMaxValue } = _ModuleSupport;
-const { ContinuousScale } = _Scale;
+const { ChartAxisDirection, findMinValue, findMaxValue, ContinuousScale } = _ModuleSupport;
 
 export class LineSeries extends _ModuleSupport.LineSeries {
     protected override visibleRange(

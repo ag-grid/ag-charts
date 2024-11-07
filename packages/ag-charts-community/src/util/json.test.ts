@@ -1,6 +1,6 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
-import { deepClone, jsonApply, jsonDiff, jsonWalk } from './json';
+import { deepClone, jsonApply, jsonDiff, jsonPropertyCompare, jsonWalk } from './json';
 import { mergeDefaults } from './object';
 
 const FIXED_DATE = new Date('2022-01-27T00:00:00.000+00:00');
@@ -453,6 +453,40 @@ describe('json module', () => {
             expect(console.warn).toBeCalledWith(
                 "AG Charts - unable to set [recurse] in TestApply - can't apply type of [primitive], allowed types are: [class-instance]"
             );
+        });
+    });
+
+    describe('#jsonPropertyCompare', () => {
+        it('should return true with matching property values', () => {
+            const source = { a: 1, b: true, c: 'three' };
+            const target = { a: 1, b: true, c: 'three', d: 4 };
+
+            expect(jsonPropertyCompare(source, target)).toEqual(true);
+        });
+
+        it('should return false with mismatching property values', () => {
+            const source = { a: 1, b: true, c: 'three' };
+
+            for (const key of Object.keys(source) as (keyof typeof source)[]) {
+                const target = { ...source, [key]: (source[key] as any) + 1 };
+                expect(jsonPropertyCompare(source, target)).toEqual(false);
+            }
+        });
+
+        it('should return false with missing properties', () => {
+            const source = { a: 1, b: true, c: 'three' };
+
+            for (const key of Object.keys(source) as (keyof typeof source)[]) {
+                const target = { ...source };
+                delete target[key];
+                expect(jsonPropertyCompare(source, target)).toEqual(false);
+            }
+        });
+
+        it('should return false for undefined target', () => {
+            const source = { a: 1, b: true, c: 'three' };
+
+            expect(jsonPropertyCompare(source, undefined as any)).toEqual(false);
         });
     });
 });

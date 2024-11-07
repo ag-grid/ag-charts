@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import {
     BaseFunnelSeries,
@@ -19,10 +19,11 @@ const {
     prepareBarAnimationFunctions,
     midpointStartingBarPosition,
     formatValue,
+    Rect,
+    motion,
 } = _ModuleSupport;
-const { Rect, motion } = _Scene;
 
-export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
+export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
     static readonly className = 'FunnelSeries';
     static readonly type = 'funnel' as const;
 
@@ -64,7 +65,7 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
         return { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset };
     }
 
-    protected override nodeFactory(): _Scene.Rect {
+    protected override nodeFactory(): _ModuleSupport.Rect {
         return new Rect();
     }
 
@@ -98,7 +99,7 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
     }
 
     protected override async updateDatumNodes(opts: {
-        datumSelection: _Scene.Selection<_Scene.Rect, FunnelNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, FunnelNodeDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -156,7 +157,7 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
         });
     }
 
-    override animateEmptyUpdateReady(params: FunnelAnimationData<_Scene.Rect>) {
+    override animateEmptyUpdateReady(params: FunnelAnimationData<_ModuleSupport.Rect>) {
         super.animateEmptyUpdateReady(params);
 
         const { datumSelection } = params;
@@ -167,7 +168,7 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
         motion.fromToMotion(this.id, 'datums', this.ctx.animationManager, [datumSelection], barFns);
     }
 
-    override animateWaitingUpdateReady(data: FunnelAnimationData<_Scene.Rect>) {
+    override animateWaitingUpdateReady(data: FunnelAnimationData<_ModuleSupport.Rect>) {
         super.animateWaitingUpdateReady(data);
         const { datumSelection: datumSelections } = data;
         const { processedData } = this;

@@ -6,7 +6,7 @@ import {
     type AgScatterSeriesOptions,
     type AgScatterSeriesTooltipRendererParams,
     type Styler,
-    _Scene,
+    _ModuleSupport,
 } from 'ag-charts-community';
 import {
     Chart,
@@ -168,7 +168,7 @@ describe('ErrorBars', () => {
     const getItemCoords = (itemIndex: number): { x: number; y: number } => {
         const series = chart['series'][0] as any;
         const item = series['contextNodeData'].nodeData[itemIndex];
-        return _Scene.Transformable.toCanvasPoint(series.contentGroup, item.midPoint.x, item.midPoint.y);
+        return _ModuleSupport.Transformable.toCanvasPoint(series.contentGroup, item.midPoint.x, item.midPoint.y);
     };
 
     it('should render 1 line series as expected', async () => {

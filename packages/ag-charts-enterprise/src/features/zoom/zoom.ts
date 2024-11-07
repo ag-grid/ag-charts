@@ -5,7 +5,6 @@ import type {
     AgToolbarZoomButton,
     AgZoomAnchorPoint,
     AgZoomButtons,
-    _Scene,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
@@ -149,8 +148,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public anchorPointY: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_Y;
 
     // Scenes
-    private seriesRect?: _Scene.BBox;
-    private paddedRect?: _Scene.BBox;
+    private seriesRect?: _ModuleSupport.BBox;
+    private paddedRect?: _ModuleSupport.BBox;
 
     // Zoom methods
     private readonly axisDragger = new ZoomAxisDragger();
@@ -174,6 +173,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private minRatioY = 0;
 
     private destroyContextMenuActions: (() => void) | undefined = undefined;
+
+    private isFirstWheelEvent = true;
+    private readonly debouncedWheelReset = _ModuleSupport.debounce(() => {
+        this.isFirstWheelEvent = true;
+    }, 100);
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -214,7 +218,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.keyNavManager.addListener('nav-zoom', (event) => this.onNavZoom(event)),
             region.addListener('drag', (event) => this.onDrag(event), draggableState),
             region.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
-            region.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
+            region.addListener('drag-end', () => this.onDragEnd(), draggableState),
             region.addListener('wheel', (event) => this.onWheel(event), wheelableState),
             ctx.gestureDetector.addListener('pinch-move', (event) => this.onPinchMove(event as PinchEvent)),
             ctx.toolbarManager.addListener('button-pressed', (event) =>
@@ -359,7 +363,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
-    private onDragEnd(_event?: _ModuleSupport.RegionEvent<'drag-end'>) {
+    private onDragEnd() {
         const {
             axisDragger,
             dragState,
@@ -454,7 +458,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (!seriesRect) return;
 
-        event.preventDefault();
+        const zoom = this.getZoom();
+        const isZoomCapped = (this.isMaxZoom(zoom) && event.deltaY > 0) || (this.isMinZoom(zoom) && event.deltaY < 0);
+
+        if (!this.isFirstWheelEvent || !isZoomCapped) {
+            event.preventDefault();
+        }
+
+        // Prevent browser scrolling when smooth wheel events continue being fired after the chart
+        // reaches a min or max extent
+        this.isFirstWheelEvent = false;
+        this.debouncedWheelReset();
 
         const isAxisScrolling = enableAxisDragging && hoveredAxis != null;
 
@@ -470,9 +484,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (enableIndependentAxes === true) {
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
-            for (const [axisId, { direction, zoom }] of Object.entries(newZooms)) {
+            for (const [axisId, { direction, zoom: axisZoom }] of Object.entries(newZooms)) {
                 if (isAxisScrolling && hoveredAxis.id !== axisId) continue;
-                this.updateAxisZoom(axisId, direction, zoom);
+                this.updateAxisZoom(axisId, direction, axisZoom);
             }
         } else {
             const newZoom = scroller.update(event, props, seriesRect, this.getZoom());
@@ -523,7 +537,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.shouldFlipXY = shouldFlipXY;
     }
 
-    private onUpdateComplete(event: { minRect?: _Scene.BBox; minVisibleRect?: _Scene.BBox }) {
+    private onUpdateComplete(event: { minRect?: _ModuleSupport.BBox; minVisibleRect?: _ModuleSupport.BBox }) {
         const { minRect, minVisibleRect } = event;
         const { enabled, minVisibleItemsX, minVisibleItemsY, paddedRect, shouldFlipXY } = this;
 
@@ -621,6 +635,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private isMinZoom(zoom: DefinedZoomState): boolean {
         return isZoomLess(zoom, this.minRatioX, this.minRatioY);
+    }
+
+    private isMaxZoom(zoom: DefinedZoomState): boolean {
+        const max = UNIT.max - UNIT.min;
+        return dx(zoom) === max && dy(zoom) === max;
     }
 
     private updateZoom(zoom: DefinedZoomState) {

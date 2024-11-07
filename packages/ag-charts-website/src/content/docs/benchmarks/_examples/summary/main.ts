@@ -33,6 +33,11 @@ const keys: TestName[][] = [
         'multi-series benchmark after load 15x datum highlight',
     ],
     ['resize benchmark after load 10x resize'],
+    [
+        'sparkline benchmark initial load',
+        'sparkline benchmark after load update',
+        'sparkline benchmark after load updateDelta',
+    ],
 ];
 
 let row = 0;
@@ -88,6 +93,18 @@ const chartOptions13: AgCartesianChartOptions = {
     container: document.getElementById('myChart13'),
     ...generatePerformanceChart(0, row++),
 };
+const chartOptions14: AgCartesianChartOptions = {
+    container: document.getElementById('myChart14'),
+    ...generatePerformanceChart(0, row),
+};
+const chartOptions15: AgCartesianChartOptions = {
+    container: document.getElementById('myChart15'),
+    ...generatePerformanceChart(1, row),
+};
+const chartOptions16: AgCartesianChartOptions = {
+    container: document.getElementById('myChart16'),
+    ...generatePerformanceChart(2, row++),
+};
 
 AgCharts.create(chartOptions1);
 AgCharts.create(chartOptions2);
@@ -102,6 +119,9 @@ AgCharts.create(chartOptions10);
 AgCharts.create(chartOptions11);
 AgCharts.create(chartOptions12);
 AgCharts.create(chartOptions13);
+AgCharts.create(chartOptions14);
+AgCharts.create(chartOptions15);
+AgCharts.create(chartOptions16);
 
 function generatePerformanceChart(keyX: number, keyY: number) {
     const yName = (key: TestName) => {
@@ -130,6 +150,9 @@ function generatePerformanceChart(keyX: number, keyY: number) {
         axes: [
             {
                 type: 'category',
+                label: {
+                    fontSize: 8,
+                },
             },
             {
                 type: 'number',

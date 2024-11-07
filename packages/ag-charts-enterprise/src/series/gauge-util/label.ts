@@ -1,4 +1,4 @@
-import type { AgChartLabelFormatterParams, Formatter, _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { AgChartLabelFormatterParams, Formatter, _ModuleSupport } from 'ag-charts-community';
 
 export interface GaugeLabelDatum {
     value: number;
@@ -6,7 +6,7 @@ export interface GaugeLabelDatum {
     formatter?: Formatter<AgChartLabelFormatterParams<any>>;
 }
 
-export const fadeInFns: _ModuleSupport.FromToFns<_Scene.Node, any, any> = {
+export const fadeInFns: _ModuleSupport.FromToFns<_ModuleSupport.Node, any, any> = {
     fromFn: () => ({ opacity: 0, phase: 'initial' }),
     toFn: () => ({ opacity: 1 }),
 };

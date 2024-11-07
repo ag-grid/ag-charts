@@ -3,12 +3,12 @@ import type {
     AgConeFunnelSeriesOptions,
     AgConeFunnelSeriesTooltipRendererParams,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { BaseFunnelProperties } from '../funnel/baseFunnelSeriesProperties';
 
-const { Label } = _Scene;
 const {
+    Label,
     AbstractBarSeriesProperties,
     SeriesTooltip,
     AxisLabel,

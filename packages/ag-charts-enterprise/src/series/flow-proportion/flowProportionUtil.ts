@@ -1,6 +1,7 @@
-import { _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { Logger } = _Util;
+const { Logger } = _ModuleSupport;
+
 export interface Node {
     id: string;
 }

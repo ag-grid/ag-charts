@@ -1,8 +1,12 @@
-import type { _ModuleSupport } from 'ag-charts-community';
-import { _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { NightingaleSeries } from './nightingaleSeries';
 import { NIGHTINGALE_SERIES_THEME } from './nightingaleThemes';
+
+const {
+    ThemeSymbols: { DEFAULT_POLAR_SERIES_STROKE },
+    ThemeConstants: { POLAR_AXIS_TYPE },
+} = _ModuleSupport;
 
 export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
     type: 'series',
@@ -13,14 +17,7 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
     identifier: 'nightingale',
     moduleFactory: (ctx) => new NightingaleSeries(ctx),
     tooltipDefaults: { range: 'exact' },
-    defaultAxes: [
-        {
-            type: _Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY,
-        },
-        {
-            type: _Theme.POLAR_AXIS_TYPE.RADIUS_NUMBER,
-        },
-    ],
+    defaultAxes: [{ type: POLAR_AXIS_TYPE.ANGLE_CATEGORY }, { type: POLAR_AXIS_TYPE.RADIUS_NUMBER }],
     themeTemplate: NIGHTINGALE_SERIES_THEME,
     paletteFactory({ takeColors, userPalette }) {
         const {
@@ -29,7 +26,7 @@ export const NightingaleModule: _ModuleSupport.SeriesModule<'nightingale'> = {
         } = takeColors(1);
         return {
             fill,
-            stroke: userPalette !== 'inbuilt' ? stroke : _Theme.DEFAULT_POLAR_SERIES_STROKE,
+            stroke: userPalette !== 'inbuilt' ? stroke : DEFAULT_POLAR_SERIES_STROKE,
         };
     },
     stackable: true,

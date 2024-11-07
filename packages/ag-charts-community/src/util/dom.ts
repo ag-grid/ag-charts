@@ -118,3 +118,18 @@ let _id = 0;
 export function createElementId(label?: string) {
     return `${label ?? 'ag-charts-element'}-${_id++}`;
 }
+
+export function isInputPending() {
+    // Chrome-specific API for checking if user-input is pending, and we should yield the main thread
+    // to allow it to be processed.
+    const navigator = getWindow().navigator;
+    if ('scheduling' in navigator) {
+        const scheduling: { isInputPending(opts?: { includeContinuous?: boolean }): void } =
+            navigator.scheduling as any;
+        if ('isInputPending' in scheduling) {
+            return scheduling.isInputPending({ includeContinuous: true });
+        }
+    }
+
+    return false;
+}

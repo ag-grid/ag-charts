@@ -1,4 +1,4 @@
-import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
 
 import { Menu, type MenuItem } from '../../components/menu/menu';
 
@@ -52,7 +52,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         }
     }
 
-    private setAnchor(anchor: _Scene.BBox) {
+    private setAnchor(anchor: _ModuleSupport.BBox) {
         this.menu.setAnchor({ x: anchor.x + anchor.width + 6, y: anchor.y });
     }
 

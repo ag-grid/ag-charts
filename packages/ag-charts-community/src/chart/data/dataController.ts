@@ -140,16 +140,11 @@ export class DataController {
         resolves: ((result: Result<any, any, any>) => void)[]
     ) {
         for (let i = 0; i < scopes.length; i++) {
-            const scope = scopes[i];
             const resolve = resolves[i];
 
             resolve({
                 dataModel,
-                processedData: {
-                    ...processedData,
-                    // @ts-ignore
-                    data: processedData.data.filter(({ validScopes }) => validScopes?.has(scope) ?? true),
-                },
+                processedData,
             });
         }
     }

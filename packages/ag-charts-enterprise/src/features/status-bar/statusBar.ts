@@ -1,4 +1,4 @@
-import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
 
 const {
     CachedTextMeasurerPool,
@@ -13,8 +13,11 @@ const {
     RATIO,
     valueProperty,
     TextUtils,
+    Group,
+    Label,
+    Rect,
+    Text,
 } = _ModuleSupport;
-const { Group, Label, Rect, Text } = _Scene;
 
 enum LabelConfiguration {
     Open = 1 << 1,
@@ -121,7 +124,7 @@ export class StatusBar
         name: 'StatusBar',
         zIndex: ZIndexMap.STATUS_BAR,
     });
-    private readonly labelGroup = this.layer.appendChild(new _Scene.TranslatableGroup());
+    private readonly labelGroup = this.layer.appendChild(new _ModuleSupport.TranslatableGroup());
     private readonly backgroundNode = this.labelGroup.appendChild(new Rect());
     private readonly labels = [
         {

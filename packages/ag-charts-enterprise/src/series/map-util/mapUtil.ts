@@ -1,4 +1,4 @@
-import type { _ModuleSupport, _Scene } from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 
 import type { GeoGeometry } from './geoGeometry';
 
@@ -8,7 +8,7 @@ type AnimatableMapMarkerDatum = {
 };
 
 export function prepareMapMarkerAnimationFunctions() {
-    const fromFn: _ModuleSupport.FromToMotionPropFn<_Scene.Marker, AnimatableMapMarkerDatum, unknown> = (
+    const fromFn: _ModuleSupport.FromToMotionPropFn<_ModuleSupport.Marker, AnimatableMapMarkerDatum, unknown> = (
         marker,
         _datum,
         status
@@ -20,7 +20,7 @@ export function prepareMapMarkerAnimationFunctions() {
         }
         return { scalingX: marker.scalingX, scalingY: marker.scalingY };
     };
-    const toFn: _ModuleSupport.FromToMotionPropFn<_Scene.Marker, AnimatableMapMarkerDatum, unknown> = (
+    const toFn: _ModuleSupport.FromToMotionPropFn<_ModuleSupport.Marker, AnimatableMapMarkerDatum, unknown> = (
         _marker,
         _datum,
         status
@@ -36,7 +36,7 @@ export function prepareMapMarkerAnimationFunctions() {
 
 type SomeMapSeries<TDatum> = {
     contextNodeData?: { nodeData: TDatum[] };
-    datumSelection: _Scene.Selection<GeoGeometry, TDatum>;
+    datumSelection: _ModuleSupport.Selection<GeoGeometry, TDatum>;
 };
 
 export function findFocusedGeoGeometry<TDatum>(

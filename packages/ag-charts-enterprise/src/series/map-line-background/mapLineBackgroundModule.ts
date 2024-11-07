@@ -1,9 +1,9 @@
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapLineBackgroundSeries } from './mapLineBackgroundSeries';
 
-const { DEFAULT_HIERARCHY_STROKES } = _Theme;
+const { DEFAULT_HIERARCHY_STROKES } = _ModuleSupport.ThemeSymbols;
 
 export const MapLineBackgroundModule: _ModuleSupport.SeriesModule<'map-line-background'> = {
     type: 'series',

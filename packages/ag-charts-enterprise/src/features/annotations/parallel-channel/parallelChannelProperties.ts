@@ -1,4 +1,4 @@
-import { type PixelSize, _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
 
 import {
     Annotation,
@@ -15,7 +15,7 @@ import { type AnnotationContext, type AnnotationOptionsColorPickerType, Annotati
 import { getLineCap, getLineDash } from '../utils/line';
 import { validateDatumLine } from '../utils/validation';
 
-const { NUMBER, STRING, OBJECT, BaseProperties, Validate, isObject } = _ModuleSupport;
+const { NUMBER, STRING, OBJECT, BaseProperties, Validate, isObject, Logger } = _ModuleSupport;
 
 export class ParallelChannelProperties extends Annotation(
     Background(Line(Handle(Extendable(Stroke(LineStyle(BaseProperties))))))
@@ -48,7 +48,7 @@ export class ParallelChannelProperties extends Annotation(
             bottom.start.y -= this.height;
             bottom.end.y -= this.height;
         } else {
-            _Util.Logger.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
+            Logger.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
         }
 
         return bottom;
@@ -86,7 +86,7 @@ export class ParallelChannelProperties extends Annotation(
         return getLineDash(this.lineDash, this.computedLineDash, this.lineStyle, this.strokeWidth);
     }
 
-    getLineCap(): _Scene.ShapeLineCap | undefined {
+    getLineCap(): _ModuleSupport.ShapeLineCap | undefined {
         return getLineCap(this.lineCap, this.lineDash, this.lineStyle);
     }
 }

@@ -1,4 +1,4 @@
-import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import type { AgIconName } from 'ag-charts-types';
 
 import { ColorPicker } from '../../features/color-picker/colorPicker';
@@ -16,8 +16,10 @@ const {
     initRovingTabIndex,
     getWindow,
     mapValues,
+    Color,
+    setAttribute,
+    setAttributes,
 } = _ModuleSupport;
-const { Color, setAttribute, setAttributes } = _Util;
 
 export interface DialogOptions extends PopoverOptions {}
 
@@ -63,7 +65,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private readonly colorPicker = new ColorPicker(this.ctx, { detached: true });
     private colorPickerAnchorElement?: HTMLElement;
     private dragStartState?: { client: _ModuleSupport.Vec2; position: _ModuleSupport.Vec2 };
-    private seriesRect?: _Scene.BBox;
+    private seriesRect?: _ModuleSupport.BBox;
 
     constructor(ctx: _ModuleSupport.ModuleContext, id: string) {
         super(ctx, id);

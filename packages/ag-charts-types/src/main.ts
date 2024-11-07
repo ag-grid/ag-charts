@@ -23,6 +23,7 @@ export * from './chart/tooltipOptions';
 export * from './chart/types';
 export * from './chart/zoomOptions';
 export * from './chartBuilderOptions';
+export * from './integratedCharts';
 export * from './presets/financial/financialOptions';
 export * from './presets/financial/priceVolumeOptions';
 export * from './presets/gauge/commonOptions';

@@ -8,7 +8,6 @@ import {
     type AgChordSeriesTooltipRendererParams,
     type Styler,
     _ModuleSupport,
-    _Scene,
 } from 'ag-charts-community';
 
 const {
@@ -25,8 +24,8 @@ const {
     RATIO,
     STRING,
     Validate,
+    Label,
 } = _ModuleSupport;
-const { Label } = _Scene;
 
 class ChordSeriesLabelProperties extends Label<AgChordSeriesLabelFormatterParams> {
     @Validate(POSITIVE_NUMBER)

@@ -3,7 +3,8 @@
   "editor.formatOnSave": true,
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSaveMode": "file",
-  "eslint.validate": ["json"],
+  "eslint.validate": ["json", "typescript"],
+  "eslint.workingDirectories": [{ "pattern": "packages/*" }, { "pattern": "plugins/*" }, { "pattern": "libraries/*" }],
   "prettier.ignorePath": ".prettierignore.local",
   "typescript.tsdk": "node_modules/typescript/lib",
   "jestrunner.jestCommand": "node --expose-gc 'node_modules/.bin/jest'"

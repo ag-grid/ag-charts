@@ -1,11 +1,23 @@
-import type { AgAxisCaptionFormatterParams, _Scale } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import type { AgAxisCaptionFormatterParams } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
-const { ChartAxisDirection, Default, ZIndexMap, DEGREE, BOOLEAN, Validate } = _ModuleSupport;
-const { Caption, Group, Path, Selection } = _Scene;
-const { isNumberEqual, normalizeAngle360, toRadians } = _Util;
+const {
+    ChartAxisDirection,
+    Default,
+    ZIndexMap,
+    DEGREE,
+    BOOLEAN,
+    Validate,
+    isNumberEqual,
+    normalizeAngle360,
+    toRadians,
+    Caption,
+    Group,
+    Path,
+    Selection,
+} = _ModuleSupport;
 
 class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
     @Validate(BOOLEAN, { optional: true })
@@ -75,7 +87,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         const ticks = this.prepareTickData(data);
 
         const styleCount = style.length;
-        const setStyle = (node: _Scene.Path | _Scene.Arc, index: number) => {
+        const setStyle = (node: _ModuleSupport.Path | _ModuleSupport.Arc, index: number) => {
             const { stroke, lineDash } = style[index % styleCount];
             node.stroke = stroke;
             node.strokeWidth = width;
@@ -86,7 +98,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         const [startAngle, endAngle] = this.gridRange ?? [0, 2 * Math.PI];
         const isFullCircle = isNumberEqual(endAngle - startAngle, 2 * Math.PI);
 
-        const drawCircleShape = (node: _Scene.Path, value: any) => {
+        const drawCircleShape = (node: _ModuleSupport.Path, value: any) => {
             const { path } = node;
             path.clear(true);
             const radius = this.getTickRadius(value);
@@ -102,7 +114,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
             }
         };
 
-        const drawPolygonShape = (node: _Scene.Path, value: any) => {
+        const drawPolygonShape = (node: _ModuleSupport.Path, value: any) => {
             const { path } = node;
             const angles = this.gridAngles;
             path.clear(true);

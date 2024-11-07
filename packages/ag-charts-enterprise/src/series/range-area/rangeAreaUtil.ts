@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { type RangeAreaMarkerDatum } from './rangeAreaProperties';
 
@@ -11,7 +11,7 @@ const {
     prepareLinePathPropertyAnimation,
 } = _ModuleSupport;
 
-export interface RangeAreaLabelDatum extends Readonly<_Scene.Point> {
+export interface RangeAreaLabelDatum extends Readonly<_ModuleSupport.Point> {
     text: string;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
@@ -44,15 +44,15 @@ function prepareRangeAreaPathStrokeAnimationFns(
     lowSpans: _ModuleSupport.SpanAnimation,
     visibleToggleMode: 'fade' | 'none'
 ) {
-    const removePhaseFn = (ratio: number, path: _Scene.Path) => {
+    const removePhaseFn = (ratio: number, path: _ModuleSupport.Path) => {
         plotInterpolatedLinePathStroke(ratio, path, highSpans.removed);
         plotInterpolatedLinePathStroke(ratio, path, lowSpans.removed);
     };
-    const updatePhaseFn = (ratio: number, path: _Scene.Path) => {
+    const updatePhaseFn = (ratio: number, path: _ModuleSupport.Path) => {
         plotInterpolatedLinePathStroke(ratio, path, highSpans.moved);
         plotInterpolatedLinePathStroke(ratio, path, lowSpans.moved);
     };
-    const addPhaseFn = (ratio: number, path: _Scene.Path) => {
+    const addPhaseFn = (ratio: number, path: _ModuleSupport.Path) => {
         plotInterpolatedLinePathStroke(ratio, path, highSpans.added);
         plotInterpolatedLinePathStroke(ratio, path, lowSpans.added);
     };
@@ -80,21 +80,25 @@ export function prepareRangeAreaPathAnimation(newData: RangeAreaContext, oldData
         { scales: oldData.scales, data: oldData.fillData.spans },
         CollapseMode.Split
     );
+    if (fillSpans == null) return;
     const fillPhantomSpans = pairUpSpans(
         { scales: newData.scales, data: newData.fillData.phantomSpans },
         { scales: oldData.scales, data: oldData.fillData.phantomSpans },
         CollapseMode.Split
     );
+    if (fillPhantomSpans == null) return;
     const highStrokeSpans = pairUpSpans(
         { scales: newData.scales, data: newData.highStrokeData.spans },
         { scales: oldData.scales, data: oldData.highStrokeData.spans },
         CollapseMode.Split
     );
+    if (highStrokeSpans == null) return;
     const lowStrokeSpans = pairUpSpans(
         { scales: newData.scales, data: newData.lowStrokeData.spans },
         { scales: oldData.scales, data: oldData.lowStrokeData.spans },
         CollapseMode.Split
     );
+    if (lowStrokeSpans == null) return;
 
     const fadeMode = 'none';
     const fill = prepareAreaFillAnimationFns(status, fillSpans, fillPhantomSpans, fadeMode);

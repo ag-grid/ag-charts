@@ -1,4 +1,4 @@
-import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type AgAnnotationHandleStyles, _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
@@ -12,16 +12,16 @@ const { Vec2, Vec4 } = _ModuleSupport;
 export abstract class TextualStartEndScene<Datum extends TextualStartEndProperties> extends StartEndScene<Datum> {
     override activeHandle?: 'start' | 'end';
 
-    protected readonly label = new _Scene.Text({ zIndex: 1 });
+    protected readonly label = new _ModuleSupport.Text({ zIndex: 1 });
 
     protected override anchor: _ModuleSupport.ToolbarAnchor = {
         x: 0,
         y: 0,
         position: 'above-left',
     };
-    protected textInputBBox?: _Scene.BBox;
+    protected textInputBBox?: _ModuleSupport.BBox;
 
-    public setTextInputBBox(bbox?: _Scene.BBox) {
+    public setTextInputBBox(bbox?: _ModuleSupport.BBox) {
         this.textInputBBox = bbox;
         this.markDirty();
     }
@@ -74,17 +74,21 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
         return getBBox(datum, text, Vec4.end(coords), this.textInputBBox);
     }
 
-    protected updateLabel(datum: Datum, bbox: _Scene.BBox, coords: _ModuleSupport.Vec4) {
+    protected updateLabel(datum: Datum, bbox: _ModuleSupport.BBox, coords: _ModuleSupport.Vec4) {
         const { text, isPlaceholder } = datum.getText();
 
         updateTextNode(this.label, text, isPlaceholder, datum, this.getLabelCoords(datum, bbox, coords));
     }
 
-    protected updateShape(_datum: Datum, _textBBox: _Scene.BBox, _coords: _ModuleSupport.Vec4) {
+    protected updateShape(_datum: Datum, _textBBox: _ModuleSupport.BBox, _coords: _ModuleSupport.Vec4) {
         // Shapes should be implemented by the extending annotation type class
     }
 
-    protected getLabelCoords(_datum: Datum, _bbox: _Scene.BBox, coords: _ModuleSupport.Vec4): _ModuleSupport.Vec2 {
+    protected getLabelCoords(
+        _datum: Datum,
+        _bbox: _ModuleSupport.BBox,
+        coords: _ModuleSupport.Vec4
+    ): _ModuleSupport.Vec2 {
         return Vec4.end(coords);
     }
 

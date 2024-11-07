@@ -1,10 +1,4 @@
-import {
-    type AgChordSeriesLinkStyle,
-    type AgChordSeriesNodeStyle,
-    _ModuleSupport,
-    _Scene,
-    _Util,
-} from 'ag-charts-community';
+import { type AgChordSeriesLinkStyle, type AgChordSeriesNodeStyle, _ModuleSupport } from 'ag-charts-community';
 
 import {
     FlowProportionDatumType,
@@ -15,10 +9,21 @@ import {
 import { ChordLink, bezierControlPoints } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
-const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, TextUtils, createDatumId, EMPTY_TOOLTIP_CONTENT } =
-    _ModuleSupport;
-const { angleBetween, normalizeAngle360, isBetweenAngles, sanitizeHtml, Logger } = _Util;
-const { Sector, evaluateBezier } = _Scene;
+const {
+    SeriesNodePickMode,
+    CachedTextMeasurerPool,
+    TextWrapper,
+    TextUtils,
+    createDatumId,
+    EMPTY_TOOLTIP_CONTENT,
+    angleBetween,
+    normalizeAngle360,
+    isBetweenAngles,
+    sanitizeHtml,
+    Logger,
+    Sector,
+    evaluateBezier,
+} = _ModuleSupport;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum {
     size: number;
@@ -58,7 +63,7 @@ export class ChordSeries extends FlowProportionSeries<
     ChordLinkDatum,
     ChordNodeLabelDatum,
     ChordSeriesProperties,
-    _Scene.Sector,
+    _ModuleSupport.Sector,
     ChordLink
 > {
     static readonly className = 'ChordSeries';
@@ -316,14 +321,14 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected async updateLabelSelection(opts: {
         labelData: ChordNodeLabelDatum[];
-        labelSelection: _Scene.Selection<_Scene.TransformableText, ChordNodeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, ChordNodeLabelDatum>;
     }) {
         const labels = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(labels);
     }
 
     protected async updateLabelNodes(opts: {
-        labelSelection: _Scene.Selection<_Scene.TransformableText, ChordNodeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, ChordNodeLabelDatum>;
     }) {
         const { labelSelection } = opts;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = this.properties.label;
@@ -351,13 +356,13 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected async updateNodeSelection(opts: {
         nodeData: ChordNodeDatum[];
-        datumSelection: _Scene.Selection<_Scene.Sector, ChordNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, ChordNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId([datum.type, datum.id]));
     }
 
     protected async updateNodeNodes(opts: {
-        datumSelection: _Scene.Selection<_Scene.Sector, ChordNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, ChordNodeDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -424,7 +429,7 @@ export class ChordSeries extends FlowProportionSeries<
 
     protected async updateLinkSelection(opts: {
         nodeData: ChordLinkDatum[];
-        datumSelection: _Scene.Selection<ChordLink, ChordLinkDatum>;
+        datumSelection: _ModuleSupport.Selection<ChordLink, ChordLinkDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) =>
             createDatumId([datum.type, datum.index, datum.fromNode.id, datum.toNode.id])
@@ -432,7 +437,7 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     protected async updateLinkNodes(opts: {
-        datumSelection: _Scene.Selection<ChordLink, ChordLinkDatum>;
+        datumSelection: _ModuleSupport.Selection<ChordLink, ChordLinkDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
@@ -604,13 +609,13 @@ export class ChordSeries extends FlowProportionSeries<
         );
     }
 
-    override getLabelData(): _Util.PointLabelDatum[] {
+    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
         return [];
     }
 
     protected override computeFocusBounds({
         datumIndex,
-    }: _ModuleSupport.PickFocusInputs): _Scene.BBox | _Scene.Path | undefined {
+    }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {
         const datum = this.contextNodeData?.nodeData[datumIndex];
 
         if (datum?.type === FlowProportionDatumType.Node) {

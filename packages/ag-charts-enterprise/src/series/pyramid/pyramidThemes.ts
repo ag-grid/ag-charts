@@ -1,4 +1,6 @@
-import { type AgPyramidSeriesThemeableOptions, _Theme } from 'ag-charts-community';
+import { type AgPyramidSeriesThemeableOptions, _ModuleSupport } from 'ag-charts-community';
+
+const { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, DEFAULT_INSIDE_SERIES_LABEL_COLOUR } = _ModuleSupport.ThemeSymbols;
 
 export const PYRAMID_SERIES_THEME: {
     series: AgPyramidSeriesThemeableOptions;
@@ -10,14 +12,14 @@ export const PYRAMID_SERIES_THEME: {
         label: {
             enabled: true,
             fontSize: 12,
-            fontFamily: _Theme.DEFAULT_FONT_FAMILY,
-            color: _Theme.DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+            fontFamily: DEFAULT_FONT_FAMILY,
+            color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
         },
         stageLabel: {
             enabled: true,
             fontSize: 12,
-            fontFamily: _Theme.DEFAULT_FONT_FAMILY,
-            color: _Theme.DEFAULT_LABEL_COLOUR,
+            fontFamily: DEFAULT_FONT_FAMILY,
+            color: DEFAULT_LABEL_COLOUR,
             spacing: 12,
         },
     },

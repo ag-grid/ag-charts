@@ -1,6 +1,6 @@
-import { _Scale } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { ColorScale } = _Scale;
+const { ColorScale } = _ModuleSupport;
 
 export default function defaultColorStops(colors: string[] | undefined) {
     if (colors == null) return [];

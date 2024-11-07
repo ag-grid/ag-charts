@@ -1,4 +1,4 @@
-import { type AgAnnotationLineStyleType, type PixelSize, _ModuleSupport, type _Scene } from 'ag-charts-community';
+import { type AgAnnotationLineStyleType, type PixelSize, _ModuleSupport } from 'ag-charts-community';
 
 const { Vec2 } = _ModuleSupport;
 
@@ -28,10 +28,10 @@ export function getLineDash(
 }
 
 export function getLineCap(
-    lineCap?: _Scene.ShapeLineCap,
+    lineCap?: _ModuleSupport.ShapeLineCap,
     lineDash?: PixelSize[],
     lineStyle?: AgAnnotationLineStyleType
-): _Scene.ShapeLineCap | undefined {
+): _ModuleSupport.ShapeLineCap | undefined {
     const styleType = getLineStyle(lineDash, lineStyle);
     return lineCap ?? styleType === 'dotted' ? 'round' : undefined;
 }
@@ -41,7 +41,7 @@ export function getLineCap(
  */
 export function boundsIntersections(
     coords: _ModuleSupport.Vec4,
-    bounds: _Scene.BBox
+    bounds: _ModuleSupport.BBox
 ): [_ModuleSupport.Vec2, _ModuleSupport.Vec2] {
     const [p1, p2] = Vec2.from(coords);
 

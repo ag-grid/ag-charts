@@ -1,8 +1,8 @@
-import { type _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { SankeySeries } from './sankeySeries';
 
-const { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } = _Theme;
+const { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } = _ModuleSupport.ThemeSymbols;
 
 export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
     type: 'series',

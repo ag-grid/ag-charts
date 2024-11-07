@@ -1,4 +1,4 @@
-import { type _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { Crosshair } from './crosshair';
 
@@ -12,7 +12,7 @@ export const CrosshairModule: _ModuleSupport.AxisOptionModule = {
     themeTemplate: {
         crosshair: {
             snap: true,
-            stroke: _Theme.DEFAULT_MUTED_LABEL_COLOUR,
+            stroke: _ModuleSupport.ThemeSymbols.DEFAULT_MUTED_LABEL_COLOUR,
             strokeWidth: 1,
             strokeOpacity: 1,
             lineDash: [5, 6],

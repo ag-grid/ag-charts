@@ -1,4 +1,6 @@
-import { _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
+
+const { CARTESIAN_AXIS_TYPE } = _ModuleSupport.ThemeConstants;
 
 export const CANDLESTICK_SERIES_THEME = {
     series: {
@@ -8,12 +10,12 @@ export const CANDLESTICK_SERIES_THEME = {
     },
     animation: { enabled: false },
     axes: {
-        [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
+        [CARTESIAN_AXIS_TYPE.NUMBER]: {
             crosshair: {
                 snap: false,
             },
         },
-        [_Theme.CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
+        [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: {
             groupPaddingInner: 0,
             crosshair: {
                 enabled: true,

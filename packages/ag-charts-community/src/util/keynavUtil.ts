@@ -57,7 +57,7 @@ function containsPoint(container: Element, event: MouseEvent) {
     return false;
 }
 
-function hasNoModifiers(event: KeyboardEvent | MouseEvent): boolean {
+export function hasNoModifiers(event: KeyboardEvent | MouseEvent): boolean {
     return !(event.shiftKey || event.altKey || event.ctrlKey || event.metaKey);
 }
 
@@ -92,7 +92,7 @@ function linkThreeButtons(
     });
 }
 
-const PREV_NEXT_KEYS = {
+export const PREV_NEXT_KEYS = {
     horizontal: { nextKey: 'ArrowRight', prevKey: 'ArrowLeft' },
     vertical: { nextKey: 'ArrowDown', prevKey: 'ArrowUp' },
 } as const;

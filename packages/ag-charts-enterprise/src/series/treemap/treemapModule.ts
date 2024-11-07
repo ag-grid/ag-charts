@@ -1,4 +1,4 @@
-import { type _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { TreemapSeries } from './treemapSeries';
 
@@ -9,7 +9,7 @@ const {
     DEFAULT_HIERARCHY_STROKES,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
-} = _Theme;
+} = _ModuleSupport.ThemeSymbols;
 
 export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
     type: 'series',

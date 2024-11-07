@@ -11,6 +11,7 @@ import { Translatable } from '../scene/transformable';
 import { arraysEqual } from '../util/array';
 import { iterate } from '../util/iterator';
 import { ProxyPropertyOnWrite } from '../util/proxy';
+import type { NativeWidget } from '../widget/nativeWidget';
 import type { Marker } from './marker/marker';
 import type { MarkerConstructor } from './marker/util';
 
@@ -49,12 +50,12 @@ export class LegendMarkerLabel extends Translatable(Group) {
     }
 
     destroyProxyButton() {
-        this.proxyButton?.button.remove();
-        this.proxyButton?.listitem.remove();
+        this.proxyButton?.value.button.remove();
+        this.proxyButton?.value.listitem.remove();
         this.proxyButton = undefined;
     }
 
-    proxyButton?: ListSwitch;
+    proxyButton?: NativeWidget<HTMLElement, ListSwitch>;
 
     pageIndex: number = NaN;
 

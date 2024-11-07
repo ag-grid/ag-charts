@@ -1,8 +1,7 @@
 import type { SeriesModule } from '../../../module/coreModules';
-import { singleSeriesPaletteFactory } from '../../../module/theme';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
 import { DEFAULT_FONT_FAMILY, DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
-import { swapAxisCondition } from '../../themes/util';
+import { singleSeriesPaletteFactory, swapAxisCondition } from '../../themes/util';
 import { BarSeries } from './barSeries';
 
 export const BarSeriesModule: SeriesModule<'bar'> = {

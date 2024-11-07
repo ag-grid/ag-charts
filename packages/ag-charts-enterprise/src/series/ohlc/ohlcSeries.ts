@@ -1,4 +1,4 @@
-import { type AgOhlcSeriesItemOptions, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type AgOhlcSeriesItemOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { computeCandleFocusBounds, resetCandlestickSelectionsFn } from '../candlestick/candlestickUtil';
 import { OhlcGroup } from './ohlcGroup';
@@ -99,7 +99,7 @@ export class OhlcSeries extends OhlcSeriesBase<
         return highlighted ? mergeDefaults(this.properties.highlightStyle.item, activeStyles) : activeStyles;
     }
 
-    protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+    protected computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return computeCandleFocusBounds(this, opts);
     }
 }

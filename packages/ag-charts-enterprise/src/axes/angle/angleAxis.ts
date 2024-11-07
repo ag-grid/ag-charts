@@ -1,12 +1,27 @@
-import type { AgAngleAxisLabelOrientation, _Scale } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import type { AgAngleAxisLabelOrientation } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
-const { AND, ChartAxisDirection, GREATER_THAN, NUMBER, UNION, ProxyOnWrite, TextWrapper, TextUtils, Validate } =
-    _ModuleSupport;
-const { Path, RotatableText } = _Scene;
-const { angleBetween, isNumberEqual, toRadians, normalizeAngle360 } = _Util;
+const {
+    AND,
+    ChartAxisDirection,
+    GREATER_THAN,
+    NUMBER,
+    UNION,
+    ProxyOnWrite,
+    TextWrapper,
+    TextUtils,
+    Validate,
+    angleBetween,
+    isNumberEqual,
+    toRadians,
+    normalizeAngle360,
+    Path,
+    RotatableText,
+    Transformable,
+    BBox,
+} = _ModuleSupport;
 
 export interface AngleAxisLabelDatum {
     text: string;
@@ -16,7 +31,7 @@ export interface AngleAxisLabelDatum {
     rotation: number;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
-    box: _Scene.BBox | undefined;
+    box: _ModuleSupport.BBox | undefined;
 }
 
 interface AngleAxisTickDatum<TDatum> {
@@ -31,7 +46,7 @@ class AngleAxisLabel extends _ModuleSupport.AxisLabel {
 
 export abstract class AngleAxis<
     TDomain,
-    TScale extends _Scale.Scale<TDomain, any>,
+    TScale extends _ModuleSupport.Scale<TDomain, any>,
 > extends _ModuleSupport.PolarAxis<TScale> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = AngleCrossLine;
 
@@ -44,7 +59,7 @@ export abstract class AngleAxis<
 
     protected labelData: AngleAxisLabelDatum[] = [];
     protected tickData: AngleAxisTickDatum<TDomain>[] = [];
-    protected radiusLine: _Scene.Path = this.axisGroup.appendChild(new Path());
+    protected radiusLine: _ModuleSupport.Path = this.axisGroup.appendChild(new Path());
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: TScale) {
         super(moduleCtx, scale);
@@ -270,7 +285,7 @@ export abstract class AngleAxis<
     protected createLabelNodeData(
         ticks: any[],
         options: { hideWhenNecessary: boolean },
-        seriesRect: _Scene.BBox
+        seriesRect: _ModuleSupport.BBox
     ): AngleAxisLabelDatum[] {
         const { label, gridLength: radius, scale, tick } = this;
         if (!label.enabled) {
@@ -318,7 +333,7 @@ export abstract class AngleAxis<
                 tempText.rotationCenterY = y;
             }
 
-            let box: _Scene.BBox | undefined = rotation ? _Scene.Transformable.toCanvas(tempText) : tempText.getBBox();
+            let box: _ModuleSupport.BBox | undefined = rotation ? Transformable.toCanvas(tempText) : tempText.getBBox();
             if (box && options.hideWhenNecessary && !rotation) {
                 const overflowLeft = seriesLeft - box.x;
                 const overflowRight = box.x + box.width - seriesRight;
@@ -355,17 +370,17 @@ export abstract class AngleAxis<
 
     protected abstract avoidLabelCollisions(labelData: AngleAxisLabelDatum[]): void;
 
-    override computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: _Scene.BBox) {
+    override computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: _ModuleSupport.BBox) {
         this.tickData = this.generateAngleTicks();
         this.labelData = this.createLabelNodeData(this.tickData, options, seriesRect);
 
-        const textBoxes = this.labelData.map(({ box }) => box).filter((box): box is _Scene.BBox => box != null);
+        const textBoxes = this.labelData.map(({ box }) => box).filter((box): box is _ModuleSupport.BBox => box != null);
 
         if (!this.label.enabled || textBoxes.length === 0) {
             return null;
         }
 
-        return _Scene.BBox.merge(textBoxes);
+        return BBox.merge(textBoxes);
     }
 
     protected getLabelOrientation(): AgAngleAxisLabelOrientation {

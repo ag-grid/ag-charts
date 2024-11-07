@@ -1,8 +1,8 @@
-import { type Direction, _Scale, _Util } from 'ag-charts-community';
+import { type Direction, _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
 
-const { Logger } = _Util;
+const { Logger, OrdinalTimeScale } = _ModuleSupport;
 
 export function validateDatumLine(
     context: AnnotationContext,
@@ -58,7 +58,7 @@ export function validateDatumPoint(context: AnnotationContext, point: Point, war
 
 function validateDatumPointDirection(value: any, context: AnnotationAxisContext) {
     const domain = context.scale.getDomain?.();
-    if (domain && _Scale.OrdinalTimeScale.is(context.scale)) {
+    if (domain && OrdinalTimeScale.is(context.scale)) {
         return value >= domain[0] && value <= domain.at(-1);
     }
     return true; // domain.includes(value); // TODO: does not work with dates

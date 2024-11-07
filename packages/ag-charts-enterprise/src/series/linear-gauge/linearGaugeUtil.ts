@@ -5,15 +5,13 @@ import {
     type FontWeight,
     type TextAlign,
     _ModuleSupport,
-    _Scene,
 } from 'ag-charts-community';
 
 import { getLabelText } from '../gauge-util/label';
 import { type LabelFormatting, formatSingleLabel, getLineHeight } from '../util/labelFormatter';
 import type { LinearGaugeLabelDatum } from './linearGaugeSeriesProperties';
 
-const { CachedTextMeasurerPool } = _ModuleSupport;
-const { BBox } = _Scene;
+const { CachedTextMeasurerPool, BBox } = _ModuleSupport;
 
 interface TextProperties {
     fontSize: FontSize;
@@ -60,7 +58,7 @@ function datumRect(datum: AnimatableRectDatum) {
     return { x, y, width, height };
 }
 
-function clipBBoxVisibility(datum: AnimatableRectDatum, clipBBox: _Scene.BBox | undefined) {
+function clipBBoxVisibility(datum: AnimatableRectDatum, clipBBox: _ModuleSupport.BBox | undefined) {
     if (clipBBox == null) return true;
 
     const rect = datumRect(datum);
@@ -82,7 +80,7 @@ function hasClipBBox(datum: AnimatableRectDatum) {
     return (clipX0 != null && clipX1 != null) || (clipY0 != null && clipY1 != null);
 }
 
-function computeClipBBox(datum: AnimatableRectDatum): _Scene.BBox | undefined {
+function computeClipBBox(datum: AnimatableRectDatum): _ModuleSupport.BBox | undefined {
     if (!hasClipBBox(datum)) return;
 
     const { x0, y0, x1, y1 } = datum;
@@ -120,7 +118,7 @@ function computeClipBBox(datum: AnimatableRectDatum): _Scene.BBox | undefined {
 export function prepareLinearGaugeSeriesAnimationFunctions(initialLoad: boolean, horizontal: boolean) {
     const phase = initialLoad ? 'initial' : 'update';
 
-    const node: _ModuleSupport.FromToFns<_Scene.Rect, RectAnimationParams, AnimatableRectDatum> = {
+    const node: _ModuleSupport.FromToFns<_ModuleSupport.Rect, RectAnimationParams, AnimatableRectDatum> = {
         fromFn(sect, datum) {
             const previousDatum: AnimatableRectDatum | undefined = sect.previousDatum;
             let { x0, y0, x1, y1, clipX0, clipY0, clipX1, clipY1 } = previousDatum ?? datum;
@@ -174,7 +172,7 @@ export function prepareLinearGaugeSeriesAnimationFunctions(initialLoad: boolean,
     return { node };
 }
 
-export function resetLinearGaugeSeriesResetRectFunction(_node: _Scene.Rect, datum: AnimatableRectDatum) {
+export function resetLinearGaugeSeriesResetRectFunction(_node: _ModuleSupport.Rect, datum: AnimatableRectDatum) {
     const { x, y, width, height } = datumRect(datum);
     const clipBBox = computeClipBBox(datum);
     const visible = clipBBoxVisibility(datum, clipBBox);
@@ -213,9 +211,9 @@ const verticalAlignFactors: Record<Align, number> = {
 
 export function formatLinearGaugeLabels(
     series: _ModuleSupport.Series<any, any>,
-    selection: _Scene.Selection<_Scene.Text, LinearGaugeLabelDatum>,
+    selection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeLabelDatum>,
     opts: { padding: number; horizontal: boolean },
-    bboxes: { scale: _Scene.BBox; bar: _Scene.BBox },
+    bboxes: { scale: _ModuleSupport.BBox; bar: _ModuleSupport.BBox },
     datumOverrides?: { label: number | undefined }
 ) {
     const { scale, bar } = bboxes;

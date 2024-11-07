@@ -1,10 +1,17 @@
-import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { convert, invert } from './utils/values';
 
-const { BaseModuleInstance, InteractionState, Validate, BOOLEAN, createElement, REGIONS, ChartAxisDirection } =
-    _ModuleSupport;
-const { setAttributes } = _Util;
+const {
+    BaseModuleInstance,
+    InteractionState,
+    Validate,
+    BOOLEAN,
+    createElement,
+    REGIONS,
+    ChartAxisDirection,
+    setAttributes,
+} = _ModuleSupport;
 
 export const DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS = `ag-charts-annotations__axis-button`;
 
@@ -22,7 +29,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         private readonly ctx: _ModuleSupport.ModuleContext,
         private readonly axisCtx: _ModuleSupport.AxisContext,
         private readonly onButtonClick: (coords?: _ModuleSupport.Vec2) => void,
-        private seriesRect: _Scene.BBox
+        private seriesRect: _ModuleSupport.BBox
     ) {
         super();
 
@@ -62,7 +69,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         );
     }
 
-    update(seriesRect: _Scene.BBox, padding: number) {
+    update(seriesRect: _ModuleSupport.BBox, padding: number) {
         this.seriesRect = seriesRect;
         this.padding = padding;
     }

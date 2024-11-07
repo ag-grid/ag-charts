@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -7,8 +7,7 @@ import { TextualPointScene } from '../scenes/textualPointScene';
 import { convertPoint } from '../utils/values';
 import { ICON_HEIGHT, ICON_WIDTH, LABEL_OFFSET, type NoteProperties, TOOLBAR_OFFSET } from './noteProperties';
 
-const { ZIndexMap, TextWrapper } = _ModuleSupport;
-const { clamp } = _Util;
+const { ZIndexMap, TextWrapper, clamp } = _ModuleSupport;
 
 export class NoteScene extends TextualPointScene<NoteProperties> {
     static override is(value: unknown): value is NoteScene {
@@ -17,11 +16,11 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
 
     type = AnnotationType.Note;
 
-    private readonly shape = new _Scene.Rect();
-    private readonly iconBackground = new _Scene.SvgPath(
+    private readonly shape = new _ModuleSupport.Rect();
+    private readonly iconBackground = new _ModuleSupport.SvgPath(
         'M22 1.83333C22 0.820811 21.1792 0 20.1667 0H1.83333C0.820811 0 0 0.82081 0 1.83333V13.9868C0 14.9994 0.820811 15.8202 1.83333 15.8202L5.88971 15.8202C6.44575 15.8202 6.97175 16.0725 7.31971 16.5062L9.57006 19.3112C10.304 20.2259 11.6962 20.2259 12.4301 19.3112L14.6804 16.5062C15.0284 16.0725 15.5544 15.8202 16.1104 15.8202L20.1667 15.8202C21.1792 15.8202 22 14.9994 22 13.9868V1.83333Z'
     );
-    private readonly iconLines = new _Scene.SvgPath(
+    private readonly iconLines = new _ModuleSupport.SvgPath(
         'M17.1114 5.75C17.1114 6.16421 16.7756 6.5 16.3614 6.5H5.63916C5.22495 6.5 4.88916 6.16421 4.88916 5.75V5.75C4.88916 5.33579 5.22495 5 5.63916 5H16.3614C16.7756 5 17.1114 5.33579 17.1114 5.75V5.75ZM17.1114 9.25C17.1114 9.66421 16.7756 10 16.3614 10H5.63916C5.22495 10 4.88916 9.66421 4.88916 9.25V9.25C4.88916 8.83579 5.22495 8.5 5.63916 8.5H16.3614C16.7756 8.5 17.1114 8.83579 17.1114 9.25V9.25Z'
     );
 
@@ -33,7 +32,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         this.shape.visible = false;
         this.label.visible = false;
 
-        this.iconBackground.fillShadow = new _Scene.DropShadow();
+        this.iconBackground.fillShadow = new _ModuleSupport.DropShadow();
 
         this.append([this.shape, this.label, this.iconBackground, this.iconLines, this.handle]);
     }
@@ -66,7 +65,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         return bbox;
     }
 
-    override updateLabel(datum: NoteProperties, bbox: _Scene.BBox): void {
+    override updateLabel(datum: NoteProperties, bbox: _ModuleSupport.BBox): void {
         const labelVisibility = datum.visible === false ? false : this.label.visible;
 
         super.updateLabel(datum, bbox);
@@ -87,7 +86,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         });
     }
 
-    override updateShape(datum: NoteProperties, bbox: _Scene.BBox) {
+    override updateShape(datum: NoteProperties, bbox: _ModuleSupport.BBox) {
         const { shape } = this;
         shape.fill = datum.background.fill;
         shape.fillOpacity = datum.background.fillOpacity ?? 1;
@@ -130,7 +129,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
         }
     }
 
-    protected override updateAnchor(datum: NoteProperties, bbox: _Scene.BBox, context: AnnotationContext) {
+    protected override updateAnchor(datum: NoteProperties, bbox: _ModuleSupport.BBox, context: AnnotationContext) {
         const padding = datum.getPadding().top;
         const isPositionTop = datum.position === 'top';
         const direction = isPositionTop ? 1 : -1;
@@ -145,7 +144,7 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
     protected override getHandleCoords(
         _datum: NoteProperties,
         coords: _ModuleSupport.Vec2,
-        _bbox: _Scene.BBox
+        _bbox: _ModuleSupport.BBox
     ): _ModuleSupport.Vec2 {
         return {
             x: coords.x,

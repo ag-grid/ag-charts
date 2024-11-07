@@ -1,12 +1,10 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { AnchoredPopover, type AnchoredPopoverOptions } from '../../components/popover/anchoredPopover';
 import type { PopoverConstructorOptions } from '../../components/popover/popover';
 import colorPickerTemplate from './colorPickerTemplate.html';
 
-const { createElement } = _ModuleSupport;
-
-const { Color, clamp } = _Util;
+const { createElement, Color, clamp } = _ModuleSupport;
 
 export interface ColorPickerOptions extends AnchoredPopoverOptions {
     color?: string;

@@ -1,8 +1,8 @@
-import { type _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { SunburstSeries } from './sunburstSeries';
 
-const { DEFAULT_INSIDE_SERIES_LABEL_COLOUR } = _Theme;
+const { DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_DIVERGING_SERIES_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
 
 export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     type: 'series',
@@ -50,7 +50,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     },
     paletteFactory: ({ takeColors, colorsCount, themeTemplateParameters }) => {
         const { fills, strokes } = takeColors(colorsCount);
-        const defaultColorRange = themeTemplateParameters.get(_Theme.DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
+        const defaultColorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
         return { fills, strokes, colorRange: defaultColorRange };
     },
 };

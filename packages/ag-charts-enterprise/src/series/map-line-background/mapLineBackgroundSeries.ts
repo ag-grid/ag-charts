@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -9,9 +9,8 @@ import {
     MapLineBackgroundSeriesProperties,
 } from './mapLineBackgroundSeriesProperties';
 
-const { createDatumId, DataModelSeries, SeriesNodePickMode, Validate } = _ModuleSupport;
-const { Group, Selection, PointerEvents } = _Scene;
-const { Logger } = _Util;
+const { createDatumId, DataModelSeries, SeriesNodePickMode, Validate, Logger, Group, Selection, PointerEvents } =
+    _ModuleSupport;
 
 export interface MapLineNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<MapLineBackgroundNodeDatum> {}
 
@@ -58,7 +57,7 @@ export class MapLineBackgroundSeries
 
     private readonly itemGroup = this.contentGroup.appendChild(new Group({ name: 'itemGroup' }));
 
-    private datumSelection: _Scene.Selection<GeoGeometry, MapLineBackgroundNodeDatum> = Selection.select(
+    private datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineBackgroundNodeDatum> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory()
     );
@@ -167,13 +166,13 @@ export class MapLineBackgroundSeries
 
     private async updateDatumSelection(opts: {
         nodeData: MapLineBackgroundNodeDatum[];
-        datumSelection: _Scene.Selection<GeoGeometry, MapLineBackgroundNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineBackgroundNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.index));
     }
 
     private async updateDatumNodes(opts: {
-        datumSelection: _Scene.Selection<GeoGeometry, MapLineBackgroundNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineBackgroundNodeDatum>;
     }) {
         const { properties } = this;
         const { datumSelection } = opts;
@@ -202,7 +201,7 @@ export class MapLineBackgroundSeries
         // No animations
     }
 
-    override getLabelData(): _Util.PointLabelDatum[] {
+    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
         return [];
     }
 
@@ -218,7 +217,7 @@ export class MapLineBackgroundSeries
         return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
     }
 
-    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _Scene.BBox | undefined {
+    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return undefined;
     }
 }

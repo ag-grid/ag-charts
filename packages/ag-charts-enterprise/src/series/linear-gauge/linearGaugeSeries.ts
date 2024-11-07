@@ -5,8 +5,6 @@ import {
     type FontStyle,
     type FontWeight,
     _ModuleSupport,
-    _Scene,
-    _Util,
 } from 'ag-charts-community';
 
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
@@ -37,9 +35,17 @@ const {
     ChartAxisDirection,
     CachedTextMeasurerPool,
     EMPTY_TOOLTIP_CONTENT,
+    toRadians,
+    BBox,
+    Group,
+    PointerEvents,
+    Selection,
+    Rect,
+    Text,
+    LinearGradient,
+    getMarker,
+    easing,
 } = _ModuleSupport;
-const { BBox, Group, PointerEvents, Selection, Rect, Text, LinearGradient, getMarker, easing } = _Scene;
-const { toRadians } = _Util;
 
 interface TargetLabel {
     enabled: boolean;
@@ -164,29 +170,26 @@ export class LinearGaugeSeries
         new Group({ name: 'itemTargetLabelGroup' })
     );
 
-    private scaleSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum> = Selection.select(
+    private scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum> = Selection.select(
         this.scaleGroup,
         () => this.nodeFactory()
     );
-    private datumSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum> = Selection.select(this.itemGroup, () =>
-        this.nodeFactory()
+    private datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum> = Selection.select(
+        this.itemGroup,
+        () => this.nodeFactory()
     );
-    private targetSelection: _Scene.Selection<_Scene.Marker, LinearGaugeTargetDatum> = Selection.select(
+    private targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum> = Selection.select(
         this.itemTargetGroup,
         (datum) => this.markerFactory(datum)
     );
-    private targetLabelSelection: _Scene.Selection<_Scene.Text, LinearGaugeTargetDatum> = Selection.select(
-        this.itemTargetLabelGroup,
-        Text
-    );
-    private labelSelection: _Scene.Selection<_Scene.Text, LinearGaugeLabelDatum> = Selection.select(
+    private targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeTargetDatum> =
+        Selection.select(this.itemTargetLabelGroup, Text);
+    private labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeLabelDatum> = Selection.select(
         this.itemLabelGroup,
         Text
     );
-    private highlightTargetSelection: _Scene.Selection<_Scene.Marker, LinearGaugeTargetDatum> = Selection.select(
-        this.highlightTargetGroup,
-        (datum) => this.markerFactory(datum)
-    );
+    private highlightTargetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum> =
+        Selection.select(this.highlightTargetGroup, (datum) => this.markerFactory(datum));
 
     private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
 
@@ -244,13 +247,13 @@ export class LinearGaugeSeries
         return true;
     }
 
-    private nodeFactory(): _Scene.Rect {
+    private nodeFactory(): _ModuleSupport.Rect {
         const rect = new Rect();
         rect.crisp = true;
         return rect;
     }
 
-    private markerFactory({ shape }: LinearGaugeTargetDatum): _Scene.Marker {
+    private markerFactory({ shape }: LinearGaugeTargetDatum): _ModuleSupport.Marker {
         const MarkerShape = shape !== 'line' ? getMarker(shape) : LineMarker;
         const marker = new MarkerShape();
         marker.size = 1;
@@ -732,7 +735,7 @@ export class LinearGaugeSeries
         }
     }
 
-    override async update({ seriesRect }: { seriesRect?: _Scene.BBox }): Promise<void> {
+    override async update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }): Promise<void> {
         const {
             datumSelection,
             labelSelection,
@@ -784,14 +787,16 @@ export class LinearGaugeSeries
 
     private async updateDatumSelection(opts: {
         nodeData: LinearGaugeNodeDatum[];
-        datumSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum>;
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => {
             return createDatumId(opts.nodeData.length, datum.itemId);
         });
     }
 
-    private async updateDatumNodes(opts: { datumSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum> }) {
+    private async updateDatumNodes(opts: {
+        datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum>;
+    }) {
         const { datumSelection } = opts;
         const { ctx, properties } = this;
         const { bar } = properties;
@@ -823,14 +828,16 @@ export class LinearGaugeSeries
 
     private async updateScaleSelection(opts: {
         scaleData: LinearGaugeNodeDatum[];
-        scaleSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum>;
+        scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum>;
     }) {
         return opts.scaleSelection.update(opts.scaleData, undefined, (datum) => {
             return createDatumId(opts.scaleData.length, datum.itemId);
         });
     }
 
-    private async updateScaleNodes(opts: { scaleSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum> }) {
+    private async updateScaleNodes(opts: {
+        scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum>;
+    }) {
         const { scaleSelection } = opts;
         const { scale } = this.properties;
         const { fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = scale;
@@ -857,13 +864,13 @@ export class LinearGaugeSeries
 
     private async updateTargetSelection(opts: {
         targetData: LinearGaugeTargetDatum[];
-        targetSelection: _Scene.Selection<_Scene.Marker, LinearGaugeTargetDatum>;
+        targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum>;
     }) {
         return opts.targetSelection.update(opts.targetData, undefined, (target) => target.itemId);
     }
 
     private async updateTargetNodes(opts: {
-        targetSelection: _Scene.Selection<_Scene.Marker, LinearGaugeTargetDatum>;
+        targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum>;
         isHighlight: boolean;
     }) {
         const { targetSelection, isHighlight } = opts;
@@ -900,13 +907,13 @@ export class LinearGaugeSeries
 
     private async updateTargetLabelSelection(opts: {
         targetData: LinearGaugeTargetDatum[];
-        targetLabelSelection: _Scene.Selection<_Scene.Text, LinearGaugeTargetDatum>;
+        targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeTargetDatum>;
     }) {
         return opts.targetLabelSelection.update(opts.targetData);
     }
 
     private async updateTargetLabelNodes(opts: {
-        targetLabelSelection: _Scene.Selection<_Scene.Text, LinearGaugeTargetDatum>;
+        targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeTargetDatum>;
     }) {
         const { targetLabelSelection } = opts;
 
@@ -931,12 +938,14 @@ export class LinearGaugeSeries
 
     private async updateLabelSelection(opts: {
         labelData: LinearGaugeLabelDatum[];
-        labelSelection: _Scene.Selection<_Scene.Text, LinearGaugeLabelDatum>;
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeLabelDatum>;
     }) {
         return opts.labelSelection.update(opts.labelData, undefined, (_datum) => 'primary');
     }
 
-    private async updateLabelNodes(opts: { labelSelection: _Scene.Selection<_Scene.Text, LinearGaugeLabelDatum> }) {
+    private async updateLabelNodes(opts: {
+        labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeLabelDatum>;
+    }) {
         const { labelSelection } = opts;
         const animationDisabled = this.ctx.animationManager.isSkipped();
 
@@ -977,7 +986,7 @@ export class LinearGaugeSeries
 
         const value = datum?.label ?? this.properties.value;
 
-        let barBBox: _Scene.BBox;
+        let barBBox: _ModuleSupport.BBox;
         if (horizontal) {
             const xValue = xAxis.scale.convert(value);
             barBBox = new BBox(x, y, xValue - x, height);
@@ -1067,7 +1076,7 @@ export class LinearGaugeSeries
         this.resetAllAnimation();
     }
 
-    override getLabelData(): _Util.PointLabelDatum[] {
+    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
         return [];
     }
 
@@ -1083,7 +1092,7 @@ export class LinearGaugeSeries
 
     private readonly nodeDatum: any = { series: this, datum: {} };
     override pickNode(
-        point: _Scene.Point,
+        point: _ModuleSupport.Point,
         intent: _ModuleSupport.SeriesNodePickIntent
     ): _ModuleSupport.PickResult | undefined {
         switch (intent) {

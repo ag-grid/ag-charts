@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { StatusBar } from './statusBar';
 
@@ -12,21 +12,21 @@ export const StatusBarModule: _ModuleSupport.RootModule = {
     themeTemplate: {
         statusBar: {
             enabled: false,
-            layoutStyle: _Theme.DEFAULT_CAPTION_LAYOUT_STYLE,
+            layoutStyle: _ModuleSupport.ThemeSymbols.DEFAULT_CAPTION_LAYOUT_STYLE,
             title: {
-                color: _Theme.DEFAULT_LABEL_COLOUR,
+                color: _ModuleSupport.ThemeSymbols.DEFAULT_LABEL_COLOUR,
             },
             positive: {
-                color: _Theme.PALETTE_UP_STROKE,
+                color: _ModuleSupport.ThemeSymbols.PALETTE_UP_STROKE,
             },
             negative: {
-                color: _Theme.PALETTE_DOWN_STROKE,
+                color: _ModuleSupport.ThemeSymbols.PALETTE_DOWN_STROKE,
             },
             neutral: {
-                color: _Theme.PALETTE_NEUTRAL_STROKE,
+                color: _ModuleSupport.ThemeSymbols.PALETTE_NEUTRAL_STROKE,
             },
             background: {
-                fill: _Theme.DEFAULT_BACKGROUND_COLOUR,
+                fill: _ModuleSupport.ThemeSymbols.DEFAULT_BACKGROUND_COLOUR,
                 fillOpacity: 0.5,
             },
             altNeutral: {

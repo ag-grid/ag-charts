@@ -59,6 +59,24 @@ export function jsonDiff<T extends unknown>(source: T, target: T, skip?: (keyof 
 }
 
 /**
+ * Compares all properties of source against target's properties of the same name.
+ *
+ * @param source object to read properties from
+ * @param target object to compare property values with
+ *
+ * @returns true if all properties in source have identical values in target
+ */
+export function jsonPropertyCompare<T>(source: Partial<T>, target: T) {
+    for (const key of Object.keys(source) as (keyof T)[]) {
+        if (source[key] === target?.[key]) continue;
+
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Recursively clones of primitives and objects.
  *
  * @param source object | array

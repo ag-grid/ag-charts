@@ -1,11 +1,11 @@
-import { type _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType, type Bounds } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { TextualStartEndScene } from '../scenes/textualStartEndScene';
 import type { CalloutProperties } from './calloutProperties';
 
-const { drawCorner } = _Scene;
+const { drawCorner, Path } = _ModuleSupport;
 
 interface CalloutDimensions {
     tailPoint: {
@@ -29,7 +29,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
 
     type = AnnotationType.Callout;
 
-    private readonly shape = new _Scene.Path();
+    private readonly shape = new Path();
 
     constructor() {
         super();
@@ -53,7 +53,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
 
     protected override getLabelCoords(
         datum: CalloutProperties,
-        bbox: _Scene.BBox,
+        bbox: _ModuleSupport.BBox,
         coords: _ModuleSupport.Vec4
     ): _ModuleSupport.Vec2 {
         const padding = datum.getPadding();
@@ -87,7 +87,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         datum: CalloutProperties,
         coords: _ModuleSupport.Vec4,
         context: AnnotationContext,
-        bbox: _Scene.BBox
+        bbox: _ModuleSupport.BBox
     ) {
         const { bodyBounds } = this.getDimensions(datum, bbox, coords) ?? {};
         const bounds = bodyBounds ?? bbox;
@@ -98,7 +98,11 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         };
     }
 
-    protected override updateShape(datum: CalloutProperties, textBBox: _Scene.BBox, coords: _ModuleSupport.Vec4) {
+    protected override updateShape(
+        datum: CalloutProperties,
+        textBBox: _ModuleSupport.BBox,
+        coords: _ModuleSupport.Vec4
+    ) {
         const { shape } = this;
 
         // update shape styles
@@ -128,7 +132,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
         const placement = this.calculateCalloutPlacement({ x: tailX, y: tailY }, bodyBounds);
         const cornerRadius = 8;
 
-        const pathParams: { coordinates: _Scene.Corner; type: PathType }[] = [
+        const pathParams: { coordinates: _ModuleSupport.Corner; type: PathType }[] = [
             {
                 coordinates: {
                     x0: x,
@@ -231,8 +235,8 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
     }
 
     drawPath(
-        path: _Scene.ExtendedPath2D,
-        { x0, y0, x1, y1, cx, cy }: _Scene.Corner,
+        path: _ModuleSupport.ExtendedPath2D,
+        { x0, y0, x1, y1, cx, cy }: _ModuleSupport.Corner,
         cornerRadius: number,
         type: PathType
     ) {
@@ -320,7 +324,7 @@ export class CalloutScene extends TextualStartEndScene<CalloutProperties> {
 
     public getDimensions(
         datum: CalloutProperties,
-        textBBox: _Scene.BBox,
+        textBBox: _ModuleSupport.BBox,
         coords: _ModuleSupport.Vec4
     ): CalloutDimensions | undefined {
         const { fontSize } = datum;

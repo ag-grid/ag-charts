@@ -1,9 +1,9 @@
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapShapeBackgroundSeries } from './mapShapeBackgroundSeries';
 
-const { DEFAULT_BACKGROUND_COLOUR, DEFAULT_HIERARCHY_FILLS } = _Theme;
+const { DEFAULT_BACKGROUND_COLOUR, DEFAULT_HIERARCHY_FILLS } = _ModuleSupport.ThemeSymbols;
 
 export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-background'> = {
     type: 'series',
@@ -22,8 +22,6 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
         },
     },
     paletteFactory: ({ themeTemplateParameters }) => {
-        return {
-            fill: themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS)?.[1],
-        };
+        return { fill: themeTemplateParameters.get(DEFAULT_HIERARCHY_FILLS)?.[1] };
     },
 };

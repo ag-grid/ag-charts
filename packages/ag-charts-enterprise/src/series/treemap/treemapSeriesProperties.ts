@@ -8,11 +8,10 @@ import type {
     TextAlign,
     VerticalAlign,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { AutoSizedLabel, AutoSizedSecondaryLabel } from '../util/autoSizedLabel';
 
-const { Label } = _Scene;
 const {
     BaseProperties,
     HierarchySeriesProperties,
@@ -30,6 +29,7 @@ const {
     STRING_ARRAY,
     TEXT_ALIGN,
     VERTICAL_ALIGN,
+    Label,
 } = _ModuleSupport;
 
 class TreemapGroupLabel extends Label<AgTreemapSeriesLabelFormatterParams> {

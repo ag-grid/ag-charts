@@ -1,4 +1,4 @@
-import { type AgToolbarAnnotationsButtonValue, _ModuleSupport, _Util } from 'ag-charts-community';
+import { type AgToolbarAnnotationsButtonValue, _ModuleSupport } from 'ag-charts-community';
 
 import { Menu, type MenuItem } from '../../components/menu/menu';
 import {
@@ -14,7 +14,7 @@ import {
     TEXT_ANNOTATION_ITEMS,
 } from './annotationsMenuOptions';
 
-const { ToolbarManager } = _ModuleSupport;
+const { ToolbarManager, Logger } = _ModuleSupport;
 
 interface EventMap {
     'cancel-create-annotation': void;
@@ -143,7 +143,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseModuleInstance implem
         if (annotation) {
             this.dispatch('pressed-create-annotation', { annotation });
         } else {
-            _Util.Logger.errorOnce(`Can not create unknown annotation type [${event.value}], ignoring.`);
+            Logger.errorOnce(`Can not create unknown annotation type [${event.value}], ignoring.`);
         }
     }
 

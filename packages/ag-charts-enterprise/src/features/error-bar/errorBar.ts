@@ -1,5 +1,5 @@
-import type { AgErrorBarThemeableOptions, _Scale } from 'ag-charts-community';
-import { AgErrorBarSupportedSeriesTypes, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import type { AgErrorBarThemeableOptions } from 'ag-charts-community';
+import { AgErrorBarSupportedSeriesTypes, _ModuleSupport } from 'ag-charts-community';
 
 import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
 import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
@@ -12,10 +12,15 @@ const {
     mergeDefaults,
     valueProperty,
     ChartAxisDirection,
+    Logger,
 } = _ModuleSupport;
 
 type ErrorBoundCartesianSeries = Omit<
-    _ModuleSupport.CartesianSeries<_Scene.Node, _ModuleSupport.CartesianSeriesProperties<any>, ErrorBarNodeDatum>,
+    _ModuleSupport.CartesianSeries<
+        _ModuleSupport.Node,
+        _ModuleSupport.CartesianSeriesProperties<any>,
+        ErrorBarNodeDatum
+    >,
     'highlightSelection'
 >;
 
@@ -34,10 +39,10 @@ function toErrorBoundCartesianSeries(ctx: _ModuleSupport.SeriesContext): ErrorBo
 
 type AnyDataModel = _ModuleSupport.DataModel<any, any, any>;
 type AnyProcessedData = _ModuleSupport.ProcessedData<any>;
-type AnyScale = _Scale.Scale<any, any, any>;
+type AnyScale = _ModuleSupport.Scale<any, any, any>;
 type HighlightNodeDatum = NonNullable<_ModuleSupport.HighlightChangeEvent['currentHighlight']>;
 type PickNodeDatumResult = _ModuleSupport.PickNodeDatumResult;
-type Point = _Scene.Point;
+type Point = _ModuleSupport.Point;
 type SeriesDataProcessedEvent = _ModuleSupport.SeriesDataProcessedEvent;
 type SeriesDataUpdateEvent = _ModuleSupport.SeriesDataUpdateEvent;
 type SeriesVisibilityEvent = _ModuleSupport.SeriesVisibilityEvent;
@@ -46,7 +51,7 @@ type PropertyDefinitionOpts = Parameters<_ModuleSupport.SeriesOptionInstance['ge
 export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.SeriesOptionInstance {
     private readonly cartesianSeries: ErrorBoundCartesianSeries;
     private readonly groupNode: ErrorBarGroup;
-    private readonly selection: _Scene.Selection<ErrorBarNode>;
+    private readonly selection: _ModuleSupport.Selection<ErrorBarNode>;
 
     readonly properties = new ErrorBarProperties();
 
@@ -65,7 +70,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         });
 
         annotationGroup.appendChild(this.groupNode);
-        this.selection = _Scene.Selection.select(this.groupNode, () => this.errorBarFactory());
+        this.selection = _ModuleSupport.Selection.select(this.groupNode, () => this.errorBarFactory());
         annotationSelections.add(this.selection);
 
         this.destroyFns.push(
@@ -121,7 +126,12 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
             separateNegative: true,
             ...(cartesianSeries.visible ? {} : { forceValue: 0 }),
         };
-        const makeErrorProperty = (key: string, id: string, type: 'lower' | 'upper', scaleType?: _Scale.ScaleType) => {
+        const makeErrorProperty = (
+            key: string,
+            id: string,
+            type: 'lower' | 'upper',
+            scaleType?: _ModuleSupport.ScaleType
+        ) => {
             return groupAccumulativeValueProperty(
                 key,
                 'normal',
@@ -134,7 +144,12 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
                 scaleType
             );
         };
-        const pushErrorProperties = (lowerKey: string, upperKey: string, id: string, scaleType?: _Scale.ScaleType) => {
+        const pushErrorProperties = (
+            lowerKey: string,
+            upperKey: string,
+            id: string,
+            scaleType?: _ModuleSupport.ScaleType
+        ) => {
             props.push(
                 ...makeErrorProperty(lowerKey, id, 'lower', scaleType),
                 ...makeErrorProperty(upperKey, id, 'upper', scaleType)
@@ -253,7 +268,7 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         // The datum has an error value for `key`. Validate this user input value:
         if (typeof value !== 'number') {
-            _Util.Logger.warnOnce(`Found [${key}] error value of type ${typeof value}. Expected number type`);
+            Logger.warnOnce(`Found [${key}] error value of type ${typeof value}. Expected number type`);
             return;
         }
 

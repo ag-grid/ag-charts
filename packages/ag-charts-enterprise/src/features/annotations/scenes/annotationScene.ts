@@ -1,10 +1,10 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { Handle } from './handle';
 
 const { ZIndexMap, isObject } = _ModuleSupport;
 
-export abstract class AnnotationScene extends _Scene.Group {
+export abstract class AnnotationScene extends _ModuleSupport.Group {
     static isCheck(value: unknown, type: string) {
         return isObject(value) && Object.hasOwn(value, 'type') && value.type === type;
     }
@@ -37,6 +37,9 @@ export abstract class AnnotationScene extends _Scene.Group {
     }
 
     protected computeBBoxWithoutHandles() {
-        return _Scene.Transformable.toCanvas(this, _Scene.Group.computeChildrenBBox(this.nonHandleChildren()));
+        return _ModuleSupport.Transformable.toCanvas(
+            this,
+            _ModuleSupport.Group.computeChildrenBBox(this.nonHandleChildren())
+        );
     }
 }

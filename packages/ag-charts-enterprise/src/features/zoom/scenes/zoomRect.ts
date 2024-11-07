@@ -1,8 +1,8 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 const { COLOR_STRING, RATIO, Validate } = _ModuleSupport;
 
-export class ZoomRect extends _Scene.Rect {
+export class ZoomRect extends _ModuleSupport.Rect {
     static override readonly className = 'ZoomRect';
 
     @Validate(COLOR_STRING)

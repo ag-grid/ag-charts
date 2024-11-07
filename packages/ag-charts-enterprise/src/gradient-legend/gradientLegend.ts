@@ -1,10 +1,4 @@
-import {
-    type AgChartLegendPosition,
-    type AgGradientLegendScaleOptions,
-    _ModuleSupport,
-    _Scene,
-    _Util,
-} from 'ag-charts-community';
+import { type AgChartLegendPosition, type AgGradientLegendScaleOptions, _ModuleSupport } from 'ag-charts-community';
 
 const {
     BOOLEAN,
@@ -17,9 +11,13 @@ const {
     ProxyProperty,
     Validate,
     LayoutElement,
+    createId,
+    Group,
+    Rect,
+    Triangle,
+    TranslatableGroup,
+    LinearGradient,
 } = _ModuleSupport;
-const { Group, Rect, Triangle, TranslatableGroup, LinearGradient } = _Scene;
-const { createId } = _Util;
 
 class GradientBar extends BaseProperties {
     @Validate(POSITIVE_NUMBER)
@@ -104,7 +102,7 @@ export class GradientLegend {
         this.destroyFns.forEach((f) => f());
     }
 
-    attachLegend(scene: _Scene.Scene) {
+    attachLegend(scene: _ModuleSupport.Scene) {
         scene.appendChild(this.legendGroup);
     }
 
@@ -156,7 +154,7 @@ export class GradientLegend {
         return { colorDomain, colorRange };
     }
 
-    private updateGradientRect(shrinkRect: _Scene.BBox, colorRange: string[]) {
+    private updateGradientRect(shrinkRect: _ModuleSupport.BBox, colorRange: string[]) {
         const { gradientRect } = this;
         const { preferredLength, thickness } = this.gradient;
 
@@ -228,7 +226,7 @@ export class GradientLegend {
         arrow.translationY = y;
     }
 
-    private getMeasurements(shrinkRect: _Scene.BBox, axisBox: _Scene.BBox) {
+    private getMeasurements(shrinkRect: _ModuleSupport.BBox, axisBox: _ModuleSupport.BBox) {
         let { x: left, y: top } = shrinkRect;
         let { width, height } = this.gradientRect;
 

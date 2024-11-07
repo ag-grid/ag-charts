@@ -1,10 +1,13 @@
-import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type AgCrosshairLabelRendererResult, _ModuleSupport } from 'ag-charts-community';
 
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
 
-const { Group, TranslatableGroup, Line, BBox } = _Scene;
-const { createId } = _Util;
 const {
+    Group,
+    TranslatableGroup,
+    Line,
+    BBox,
+    createId,
     POSITIVE_NUMBER,
     RATIO,
     BOOLEAN,
@@ -49,9 +52,9 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     private readonly labels: { [key: string]: CrosshairLabel };
 
     private readonly axisCtx: _ModuleSupport.AxisContext;
-    private seriesRect: _Scene.BBox = new BBox(0, 0, 0, 0);
-    private hoverRect: _Scene.BBox = new BBox(0, 0, 0, 0);
-    private bounds: _Scene.BBox = new BBox(0, 0, 0, 0);
+    private seriesRect: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
+    private hoverRect: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
+    private bounds: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
     private axisLayout?: _ModuleSupport.AxisLayout;
     private labelFormatter?: (value: any) => string;
 
@@ -65,7 +68,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             zIndex: ZIndexMap.SERIES_CROSSHAIR,
         })
     );
-    protected lineGroupSelection = _Scene.Selection.select(this.lineGroup, Line, false);
+    protected lineGroupSelection = _ModuleSupport.Selection.select(this.lineGroup, Line, false);
 
     private activeHighlight?: _ModuleSupport.HighlightChangeEvent['currentHighlight'] = undefined;
     constructor(private readonly ctx: _ModuleSupport.ModuleContextWithParent<_ModuleSupport.AxisContext>) {
@@ -142,11 +145,16 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private updateLabels(keys: string[]) {
         const { labels, ctx } = this;
-        keys.forEach((key) => {
-            labels[key] ??= new CrosshairLabel(ctx.domManager, key, this.axisCtx.axisId);
+        for (const key of keys) {
+            // Lazy creation of labels if enabled.
+            if (this.label.enabled) {
+                labels[key] ??= new CrosshairLabel(ctx.domManager, key, this.axisCtx.axisId);
+            }
 
-            this.updateLabel(labels[key]);
-        });
+            if (labels[key]) {
+                this.updateLabel(labels[key]);
+            }
+        }
         this.labelFormatter = this.axisCtx.scaleValueFormatter(this.label.format);
     }
 
@@ -399,6 +407,6 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private hideLabel(key: string) {
-        this.labels[key].toggle(false);
+        this.labels[key]?.toggle(false);
     }
 }

@@ -9,6 +9,7 @@ import {
     DATA_APPLE_REVENUE_BY_PRODUCT,
     DATA_BROWSER_MARKET_SHARE,
     DATA_BROWSER_MARKET_SHARE_MISSING_FIRST_Y,
+    DATA_BROWSER_MARKET_SHARE_MISSING_X,
     DATA_INTERNET_EXPLORER_MARKET_SHARE_BAD_Y_VALUE,
     DATA_MEAN_SEA_LEVEL,
     DATA_MISSING_X,
@@ -2199,6 +2200,62 @@ export const STACKED_AREA_TIME_X_AXIS_MISSING_X_DATA_EXAMPLE: AgCartesianChartOp
             marker: {
                 size: 5,
             },
+        },
+    ],
+};
+
+export const NORMALISED_STACKED_AREA: AgCartesianChartOptions = {
+    data: DATA_BROWSER_MARKET_SHARE_MISSING_X,
+    series: [
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'ie',
+            marker: {
+                size: 5,
+            },
+            normalizedTo: 100,
+            stacked: true,
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'firefox',
+            marker: {
+                size: 5,
+            },
+            normalizedTo: 100,
+            stacked: true,
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'safari',
+            marker: {
+                size: 5,
+            },
+            normalizedTo: 100,
+            stacked: true,
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'chrome',
+            marker: {
+                size: 5,
+            },
+            normalizedTo: 100,
+            stacked: true,
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
         },
     ],
 };

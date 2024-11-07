@@ -1,10 +1,21 @@
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { PolarCrossLine, PolarCrossLineLabel } from './polarCrossLine';
 
-const { ChartAxisDirection, Validate, DEGREE, validateCrossLineValues } = _ModuleSupport;
-const { Group, Path, Sector, RotatableText } = _Scene;
-const { normalizeAngle360, toRadians, isNumberEqual } = _Util;
+const {
+    ChartAxisDirection,
+    Validate,
+    DEGREE,
+    validateCrossLineValues,
+    clamp,
+    normalizeAngle360,
+    toRadians,
+    isNumberEqual,
+    Group,
+    Path,
+    Sector,
+    RotatableText,
+} = _ModuleSupport;
 
 class RadiusCrossLineLabel extends PolarCrossLineLabel {
     @Validate(DEGREE, { optional: true })
@@ -44,7 +55,7 @@ export class RadiusCrossLine extends PolarCrossLine {
             return;
         }
 
-        if (type === 'line' && scale instanceof _Scale.BandScale) {
+        if (type === 'line' && scale instanceof _ModuleSupport.BandScale) {
             this.type = 'range';
             this.range = [value, value];
         }
@@ -89,7 +100,7 @@ export class RadiusCrossLine extends PolarCrossLine {
         this.innerRadius = innerRadius;
     }
 
-    private drawPolygon(radius: number, angles: number[], polygon: _Scene.Path) {
+    private drawPolygon(radius: number, angles: number[], polygon: _ModuleSupport.Path) {
         angles.forEach((angle, index) => {
             const x = radius * Math.cos(angle);
             const y = radius * Math.sin(angle);
@@ -136,8 +147,8 @@ export class RadiusCrossLine extends PolarCrossLine {
         sector.endAngle = 2 * Math.PI;
 
         const padding = this.getPadding();
-        const r0 = _Util.clamp(axisInnerRadius, innerRadius + padding, axisOuterRadius);
-        const r1 = _Util.clamp(axisInnerRadius, outerRadius - padding, axisOuterRadius);
+        const r0 = clamp(axisInnerRadius, innerRadius + padding, axisOuterRadius);
+        const r1 = clamp(axisInnerRadius, outerRadius - padding, axisOuterRadius);
         sector.innerRadius = Math.min(r0, r1);
         sector.outerRadius = Math.max(r0, r1);
 
@@ -185,6 +196,6 @@ export class RadiusCrossLine extends PolarCrossLine {
 
         const bandwidth = Math.abs(scale.bandwidth ?? 0);
         const step = Math.abs(scale.step ?? 0);
-        return scale instanceof _Scale.BandScale ? (step - bandwidth) / 2 : 0;
+        return scale instanceof _ModuleSupport.BandScale ? (step - bandwidth) / 2 : 0;
     }
 }

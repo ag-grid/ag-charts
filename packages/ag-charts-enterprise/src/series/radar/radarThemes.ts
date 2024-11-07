@@ -1,12 +1,17 @@
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
+
+const {
+    ThemeSymbols: { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR },
+    ThemeConstants: { POLAR_AXIS_TYPE },
+} = _ModuleSupport;
 
 const BASE_RADAR_SERIES_THEME = {
     series: {
         label: {
             enabled: false,
             fontSize: 12,
-            fontFamily: _Theme.DEFAULT_FONT_FAMILY,
-            color: _Theme.DEFAULT_LABEL_COLOUR,
+            fontFamily: DEFAULT_FONT_FAMILY,
+            color: DEFAULT_LABEL_COLOUR,
         },
         marker: {
             enabled: true,
@@ -18,7 +23,7 @@ const BASE_RADAR_SERIES_THEME = {
         },
     },
     axes: {
-        [_Theme.POLAR_AXIS_TYPE.ANGLE_CATEGORY]: {
+        [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: {
             label: {
                 padding: 10,
             },
@@ -27,11 +32,7 @@ const BASE_RADAR_SERIES_THEME = {
 };
 
 export const RADAR_LINE_SERIES_THEME = _ModuleSupport.mergeDefaults(
-    {
-        series: {
-            strokeWidth: 2,
-        },
-    },
+    { series: { strokeWidth: 2 } },
     BASE_RADAR_SERIES_THEME
 );
 
@@ -40,9 +41,7 @@ export const RADAR_AREA_SERIES_THEME = _ModuleSupport.mergeDefaults(
         series: {
             fillOpacity: 0.8,
             strokeWidth: 2,
-            marker: {
-                enabled: false,
-            },
+            marker: { enabled: false },
         },
     },
     BASE_RADAR_SERIES_THEME

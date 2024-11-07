@@ -1,13 +1,13 @@
-import { type AgNightingaleSeriesOptions, type AgRadialSeriesStyle, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type AgNightingaleSeriesOptions, type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase';
 import { RadialColumnSeriesBaseProperties } from '../radial-column/radialColumnSeriesBaseProperties';
 import { getRadii, prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
 
-const { Sector, SectorBox } = _Scene;
+const { Sector, SectorBox } = _ModuleSupport;
 
-export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
+export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sector> {
     static readonly className = 'NightingaleSeries';
     static readonly type = 'nightingale' as const;
 
@@ -26,12 +26,12 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_Scene.Sector> {
         return `nightingale-stack-${groupIndex}-yValues`;
     }
 
-    protected override nodeFactory(): _Scene.Sector {
+    protected override nodeFactory(): _ModuleSupport.Sector {
         return new Sector();
     }
 
     protected updateItemPath(
-        node: _Scene.Sector,
+        node: _ModuleSupport.Sector,
         datum: RadialColumnNodeDatum,
         highlight: boolean,
         _format: AgRadialSeriesStyle | undefined

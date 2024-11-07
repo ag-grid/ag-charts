@@ -1,5 +1,5 @@
 import { angleBetween, normalizeAngle360 } from '../../util/angle';
-import { isEqual } from '../../util/number';
+import { isNumberEqual } from '../../util/number';
 import { BBox } from '../bbox';
 import { Path, ScenePathChangeDetection } from './path';
 
@@ -119,7 +119,7 @@ export class RadialColumnShape extends Path {
         const { columnWidth, path, outerRadius, innerRadius, axisInnerRadius, axisOuterRadius, isRadiusAxisReversed } =
             this;
 
-        const isStackBottom = isEqual(innerRadius, axisInnerRadius);
+        const isStackBottom = isNumberEqual(innerRadius, axisInnerRadius);
         const sideRotation = Math.asin(columnWidth / 2 / innerRadius);
         const pointRotation = this.getRotation();
         const rotate = (x: number, y: number) => rotatePoint(x, y, pointRotation);
@@ -162,7 +162,7 @@ export class RadialColumnShape extends Path {
         path.moveTo(bottomLeftPt.x, bottomLeftPt.y);
 
         // Top
-        const isEmpty = isEqual(innerRadius, outerRadius);
+        const isEmpty = isNumberEqual(innerRadius, outerRadius);
         const hasSideIntersection = compare(
             axisOuterRadius,
             getTriangleHypotenuse(outerRadius, columnWidth / 2),
@@ -195,7 +195,7 @@ export class RadialColumnShape extends Path {
                 Math.atan2(top, -topIntersectionX) + pointRotation,
                 false
             );
-            if (!isEqual(topIntersectionX, 0)) {
+            if (!isNumberEqual(topIntersectionX, 0)) {
                 // Connecting line between two top bevels
                 const topRightBevelPt = rotate(topIntersectionX, top);
                 path.lineTo(topRightBevelPt.x, topRightBevelPt.y);

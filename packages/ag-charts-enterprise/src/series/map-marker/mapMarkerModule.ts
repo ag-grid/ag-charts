@@ -1,9 +1,9 @@
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapMarkerSeries } from './mapMarkerSeries';
 
-const { DEFAULT_LABEL_COLOUR, DEFAULT_DIVERGING_SERIES_COLOR_RANGE, singleSeriesPaletteFactory } = _Theme;
+const { DEFAULT_LABEL_COLOUR, DEFAULT_DIVERGING_SERIES_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
 
 export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
     type: 'series',
@@ -27,7 +27,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
     },
     paletteFactory: (opts) => {
         const { takeColors, colorsCount, userPalette, themeTemplateParameters } = opts;
-        const { fill, stroke } = singleSeriesPaletteFactory(opts);
+        const { fill, stroke } = _ModuleSupport.singleSeriesPaletteFactory(opts);
         const defaultColorRange = themeTemplateParameters.get(DEFAULT_DIVERGING_SERIES_COLOR_RANGE);
         const { fills } = takeColors(colorsCount);
         return {

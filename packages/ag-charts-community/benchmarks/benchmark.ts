@@ -30,10 +30,10 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
         readonly createApi: 'create' | '__createSparkline'
     ) {}
 
-    async create() {
+    async create(extraOpts?: {}) {
         if (this.chart) this.chart.destroy();
 
-        this.chart = AgCharts[this.createApi](this.options as any) as AgChartProxy;
+        this.chart = AgCharts[this.createApi]({ ...this.options, ...extraOpts } as any) as AgChartProxy;
         await this.waitForUpdate();
     }
 

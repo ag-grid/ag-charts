@@ -1,4 +1,4 @@
-import { type AgRangeAreaSeriesThemeableOptions, type InteractionRange, _Theme } from 'ag-charts-community';
+import { type AgRangeAreaSeriesThemeableOptions, type InteractionRange, _ModuleSupport } from 'ag-charts-community';
 
 export const RANGE_AREA_SERIES_THEME: {
     series: AgRangeAreaSeriesThemeableOptions;
@@ -17,8 +17,8 @@ export const RANGE_AREA_SERIES_THEME: {
             placement: 'outside',
             padding: 10,
             fontSize: 12,
-            fontFamily: _Theme.DEFAULT_FONT_FAMILY,
-            color: _Theme.DEFAULT_LABEL_COLOUR,
+            fontFamily: _ModuleSupport.ThemeSymbols.DEFAULT_FONT_FAMILY,
+            color: _ModuleSupport.ThemeSymbols.DEFAULT_LABEL_COLOUR,
         },
         interpolation: {
             type: 'linear',
@@ -28,7 +28,7 @@ export const RANGE_AREA_SERIES_THEME: {
         },
     },
     axes: {
-        [_Theme.CARTESIAN_AXIS_TYPE.NUMBER]: {
+        [_ModuleSupport.ThemeConstants.CARTESIAN_AXIS_TYPE.NUMBER]: {
             crosshair: { enabled: true },
         },
     },

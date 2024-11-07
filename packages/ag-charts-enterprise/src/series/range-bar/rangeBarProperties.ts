@@ -7,9 +7,8 @@ import type {
     AgRangeBarSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { DropShadow, Label } = _Scene;
 const {
     AbstractBarSeriesProperties,
     SeriesTooltip,
@@ -22,6 +21,8 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    DropShadow,
+    Label,
 } = _ModuleSupport;
 
 class RangeBarSeriesLabel extends Label<AgRangeBarSeriesLabelFormatterParams> {

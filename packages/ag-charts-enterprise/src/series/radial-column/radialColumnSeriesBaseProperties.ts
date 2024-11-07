@@ -6,9 +6,8 @@ import type {
     AgRadialSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { Label } = _Scene;
 const {
     SeriesProperties,
     SeriesTooltip,
@@ -22,6 +21,7 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    Label,
 } = _ModuleSupport;
 
 export class RadialColumnSeriesBaseProperties<T extends AgBaseRadialColumnSeriesOptions> extends SeriesProperties<T> {

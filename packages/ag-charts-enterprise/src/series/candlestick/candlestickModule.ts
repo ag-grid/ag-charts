@@ -1,7 +1,9 @@
-import { type _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { CandlestickSeries } from './candlestickSeries';
 import { CANDLESTICK_SERIES_THEME } from './candlestickThemes';
+
+const { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } = _ModuleSupport.ThemeConstants;
 
 export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
     type: 'series',
@@ -14,12 +16,12 @@ export const CandlestickModule: _ModuleSupport.SeriesModule<'candlestick'> = {
     tooltipDefaults: { range: 'nearest' },
     defaultAxes: [
         {
-            type: _Theme.CARTESIAN_AXIS_TYPE.NUMBER,
-            position: _Theme.CARTESIAN_POSITION.LEFT,
+            type: CARTESIAN_AXIS_TYPE.NUMBER,
+            position: CARTESIAN_POSITION.LEFT,
         },
         {
-            type: _Theme.CARTESIAN_AXIS_TYPE.ORDINAL_TIME,
-            position: _Theme.CARTESIAN_POSITION.BOTTOM,
+            type: CARTESIAN_AXIS_TYPE.ORDINAL_TIME,
+            position: CARTESIAN_POSITION.BOTTOM,
         },
     ],
     themeTemplate: CANDLESTICK_SERIES_THEME,

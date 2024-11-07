@@ -1,10 +1,9 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { type RadarPathPoint, RadarSeries } from '../radar/radarSeries';
 import { RadarAreaSeriesProperties } from './radarAreaSeriesProperties';
 
-const { Group, Path, PointerEvents, Selection } = _Scene;
-const { ChartAxisDirection } = _ModuleSupport;
+const { Group, Path, PointerEvents, Selection, ChartAxisDirection } = _ModuleSupport;
 
 export class RadarAreaSeries extends RadarSeries {
     static override readonly className = 'RadarAreaSeries';
@@ -12,7 +11,7 @@ export class RadarAreaSeries extends RadarSeries {
 
     override properties = new RadarAreaSeriesProperties();
 
-    protected areaSelection: _Scene.Selection<_Scene.Path, boolean>;
+    protected areaSelection: _ModuleSupport.Selection<_ModuleSupport.Path, boolean>;
 
     override resetInvalidToZero = true;
 

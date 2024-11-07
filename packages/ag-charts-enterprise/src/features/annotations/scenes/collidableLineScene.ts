@@ -1,11 +1,11 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 const { Vec2 } = _ModuleSupport;
 
 export type ShapeClipMask = { x: number; y: number; radius: number };
 
-export class CollidableLine extends _Scene.Line {
-    public collisionBBox?: _Scene.BBox;
+export class CollidableLine extends _ModuleSupport.Line {
+    public collisionBBox?: _ModuleSupport.BBox;
     private readonly growCollisionBox = 9;
 
     protected clipMask?: ShapeClipMask;
@@ -30,7 +30,7 @@ export class CollidableLine extends _Scene.Line {
         const bottomRight = Vec2.from(x2, y2);
         const width = Vec2.distance(topLeft, bottomRight);
 
-        this.collisionBBox = new _Scene.BBox(topLeft.x, topLeft.y, width, height);
+        this.collisionBBox = new _ModuleSupport.BBox(topLeft.x, topLeft.y, width, height);
     }
 
     override isPointInPath(pointX: number, pointY: number) {
@@ -50,7 +50,7 @@ export class CollidableLine extends _Scene.Line {
         return collisionBBox.containsPoint(rotated.x, rotated.y) ?? false;
     }
 
-    override render(renderCtx: _Scene.RenderContext): void {
+    override render(renderCtx: _ModuleSupport.RenderContext): void {
         this.applyClipMask(renderCtx.ctx);
         super.render(renderCtx);
         this.closeClipMask(renderCtx.ctx);

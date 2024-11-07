@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, jest } from '@jest/globals';
 
+import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     extractImageData,
@@ -18,7 +19,7 @@ const EXAMPLES: Record<string, AgFinancialChartOptions> = {
     // 'with-navigator': { data: getStockData(), navigator: true },
 };
 
-const { AgCharts } = setupEnterpriseModules();
+setupEnterpriseModules();
 
 describe('priceVolumePreset', () => {
     setupMockConsole();

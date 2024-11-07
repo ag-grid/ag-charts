@@ -1,8 +1,8 @@
-import { _ModuleSupport, _Theme } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { ChordSeries } from './chordSeries';
 
-const { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } = _Theme;
+const { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } = _ModuleSupport.ThemeSymbols;
 
 export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
     type: 'series',

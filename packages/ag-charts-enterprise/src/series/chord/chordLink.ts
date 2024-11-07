@@ -1,6 +1,6 @@
-import { _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { BBox, Path, ScenePathChangeDetection } = _Scene;
+const { BBox, Path, ScenePathChangeDetection } = _ModuleSupport;
 
 export function bezierControlPoints({
     radius,
@@ -52,7 +52,7 @@ export class ChordLink extends Path {
     @ScenePathChangeDetection()
     tension: number = 1;
 
-    protected override computeBBox(): _Scene.BBox | undefined {
+    protected override computeBBox(): _ModuleSupport.BBox | undefined {
         const { centerX, centerY, radius, startAngle1, endAngle1, startAngle2, endAngle2, tension } = this;
 
         const outer = bezierControlPoints({ radius, startAngle: startAngle1, endAngle: endAngle2, tension });

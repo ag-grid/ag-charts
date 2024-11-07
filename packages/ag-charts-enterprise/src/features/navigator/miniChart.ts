@@ -1,9 +1,19 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { Validate, BOOLEAN, POSITIVE_NUMBER, ZIndexMap, ActionOnSet, CategoryAxis, TextUtils } = _ModuleSupport;
-
-const { Padding, Logger } = _Util;
-const { Group, TranslatableGroup, BBox } = _Scene;
+const {
+    Validate,
+    BOOLEAN,
+    POSITIVE_NUMBER,
+    ZIndexMap,
+    ActionOnSet,
+    CategoryAxis,
+    TextUtils,
+    Padding,
+    Logger,
+    Group,
+    TranslatableGroup,
+    BBox,
+} = _ModuleSupport;
 
 class MiniChartPadding {
     @Validate(POSITIVE_NUMBER)
@@ -288,5 +298,5 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     // Should be available after the first layout.
-    protected seriesRect?: _Scene.BBox;
+    protected seriesRect?: _ModuleSupport.BBox;
 }

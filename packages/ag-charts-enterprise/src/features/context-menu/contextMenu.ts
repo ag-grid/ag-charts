@@ -1,5 +1,5 @@
 import type { AgContextMenuOptions } from 'ag-charts-community';
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
@@ -15,10 +15,8 @@ type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuAction<T extends ContextType = ContextType> = _ModuleSupport.ContextMenuAction<T>;
 type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCallback<T>;
 
-const { BOOLEAN, Validate, createElement, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } =
+const { BOOLEAN, Validate, createElement, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry, Logger } =
     _ModuleSupport;
-
-const { Logger } = _Util;
 
 const moduleId = 'context-menu';
 
@@ -284,7 +282,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 if (event) {
                     callback(event);
                 } else {
-                    _Util.Logger.error('series node not found');
+                    Logger.error('series node not found');
                 }
                 this.hide();
             };

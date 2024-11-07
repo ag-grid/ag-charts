@@ -1,4 +1,4 @@
-import { type PixelSize, _ModuleSupport, type _Scene } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
 
 import { Cappable, Extendable, LineStyle, LineTextProperties, Localisable, Stroke } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
@@ -27,7 +27,7 @@ export abstract class LineTypeProperties extends Localisable(
         }
     }
 
-    override getDefaultOpacity(_colorPickerType: AnnotationOptionsColorPickerType) {
+    override getDefaultOpacity() {
         return this.strokeOpacity;
     }
 
@@ -35,7 +35,7 @@ export abstract class LineTypeProperties extends Localisable(
         return getLineDash(this.lineDash, this.computedLineDash, this.lineStyle, this.strokeWidth);
     }
 
-    getLineCap(): _Scene.ShapeLineCap | undefined {
+    getLineCap(): _ModuleSupport.ShapeLineCap | undefined {
         return getLineCap(this.lineCap, this.lineDash, this.lineStyle);
     }
 }

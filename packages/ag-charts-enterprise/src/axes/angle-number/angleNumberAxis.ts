@@ -1,12 +1,23 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 import { AngleAxisInterval } from './angleAxisInterval';
 import { LinearAngleScale } from './linearAngleScale';
 
-const { AND, Default, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, OBJECT, Validate } = _ModuleSupport;
-const { angleBetween, isNumberEqual, normalisedExtentWithMetadata, findMinMax } = _Util;
+const {
+    AND,
+    Default,
+    GREATER_THAN,
+    LESS_THAN,
+    NUMBER_OR_NAN,
+    OBJECT,
+    Validate,
+    angleBetween,
+    isNumberEqual,
+    normalisedExtentWithMetadata,
+    findMinMax,
+} = _ModuleSupport;
 
 export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
     static readonly className = 'AngleNumberAxis';

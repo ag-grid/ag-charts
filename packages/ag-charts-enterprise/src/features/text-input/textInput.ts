@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import type { FontOptions, TextAlign } from 'ag-charts-types';
 
 import type { AnnotationTextPosition } from '../annotations/text/util';
@@ -47,7 +47,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         placeholderText?: string;
         styles?: FontOptions & { placeholderColor?: string };
         layout?: Layout;
-        onChange?: (text: string, bbox: _Scene.BBox) => void;
+        onChange?: (text: string, bbox: _ModuleSupport.BBox) => void;
         onClose?: (text: string) => void;
     }) {
         this.element.innerHTML = textInputTemplate;
@@ -172,6 +172,6 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     public getBBox() {
         const { left, top, width, height } = this.element.getBoundingClientRect();
-        return new _Scene.BBox(left, top, width, height);
+        return new _ModuleSupport.BBox(left, top, width, height);
     }
 }

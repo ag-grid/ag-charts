@@ -1,12 +1,12 @@
 import type { AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate } = _ModuleSupport;
-const { setAttribute } = _Util;
+const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate, createId, setAttribute } =
+    _ModuleSupport;
 
 const DEFAULT_LABEL_CLASS = 'ag-crosshair-label';
 
-export class CrosshairLabelProperties extends _Scene.ChangeDetectableProperties {
+export class CrosshairLabelProperties extends _ModuleSupport.ChangeDetectableProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
@@ -27,7 +27,7 @@ export class CrosshairLabelProperties extends _Scene.ChangeDetectableProperties 
 }
 
 export class CrosshairLabel extends BaseProperties {
-    private readonly id = _Util.createId(this);
+    private readonly id = createId(this);
 
     @Validate(BOOLEAN)
     enabled: boolean = true;
@@ -75,7 +75,7 @@ export class CrosshairLabel extends BaseProperties {
         this.element.setAttribute('data-axis-id', axisId);
     }
 
-    show(meta: _Scene.Point) {
+    show(meta: _ModuleSupport.Point) {
         const { element } = this;
 
         const left = meta.x + this.xOffset;
@@ -93,9 +93,14 @@ export class CrosshairLabel extends BaseProperties {
         }
     }
 
-    getBBox(): _Scene.BBox {
+    getBBox(): _ModuleSupport.BBox {
         const { element } = this;
-        return new _Scene.BBox(element.clientLeft, element.clientTop, element.clientWidth, element.clientHeight);
+        return new _ModuleSupport.BBox(
+            element.clientLeft,
+            element.clientTop,
+            element.clientWidth,
+            element.clientHeight
+        );
     }
 
     toggle(visible?: boolean) {
