@@ -13,9 +13,6 @@ import type {
 import { AgCharts } from '../../api/agCharts';
 import { type IAnimation, PHASE_METADATA } from '../../motion/animation';
 import { BBox } from '../../scene/bbox';
-import type { Group } from '../../scene/group';
-import { Selection } from '../../scene/selection';
-import { Transformable } from '../../scene/transformable';
 import { getDocument } from '../../util/dom';
 import {
     CANVAS_HEIGHT,
@@ -29,7 +26,6 @@ import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
 import type { PointerOffsets } from '../interaction/interactionManager';
-import { LegendMarkerLabel } from '../legendMarkerLabel';
 
 export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
@@ -63,6 +59,7 @@ const FAILURE_THRESHOLD = Number(process.env.SNAPSHOT_FAILURE_THRESHOLD ?? 0);
 export const IMAGE_SNAPSHOT_DEFAULTS: MatchImageSnapshotOptions = {
     failureThreshold: FAILURE_THRESHOLD,
     failureThresholdType: 'percent',
+    dumpInlineDiffToConsole: process.env.CI != null,
 };
 
 export async function delay(ms: number): Promise<void> {
@@ -176,10 +173,11 @@ export async function waitForChartStability<O extends AgChartOptions | AgFinanci
 
 function makeMouseEvent<T extends 'mousedown' | 'mouseup' | 'mousemove' | 'click' | 'dblclick' | 'contextmenu'>(
     type: T,
-    { offsetX, offsetY }: PointerOffsets
+    offsets: PointerOffsets
 ): MouseEvent {
     const event = new MouseEvent(type, { bubbles: true });
-    Object.assign(event, { offsetX, offsetY, pageX: offsetX, pageY: offsetY });
+    const { offsetX, offsetY, pageX = offsetX, pageY = offsetY } = offsets;
+    Object.assign(event, { offsetX, offsetY, pageX, pageY });
     return event;
 }
 
@@ -303,13 +301,15 @@ const checkTargetValid = (target: HTMLElement) => {
     if (!target.isConnected) throw new Error('Chart must be configured with a container for event testing to work');
 };
 
+type TestTarget = { target: HTMLElement; x: number; y: number };
+type TestModuleFns = { testFindTarget: (canvasX: number, canvasY: number) => TestTarget | undefined };
+
 function findTarget(chart: Chart, canvasX: number, canvasY: number): { target: HTMLElement; x: number; y: number } {
-    const legendGroup: Group = chart.modulesManager.getModule<any>('legend').group;
-    for (const node of Selection.selectByClass(legendGroup, LegendMarkerLabel)) {
-        const bbox = Transformable.toCanvas(node);
-        if (bbox.containsPoint(canvasX, canvasY)) {
-            const { x, y } = Transformable.fromCanvasPoint(node, canvasX, canvasY);
-            return { target: node.proxyButton?.button!, x, y };
+    for (const moduleName of ['legend', 'navigator', 'zoom']) {
+        const mod = chart.modulesManager.getModule<TestModuleFns>(moduleName);
+        const modTarget = mod?.testFindTarget(canvasX, canvasY);
+        if (modTarget) {
+            return modTarget;
         }
     }
     return { target: chart.ctx.scene.canvas.element, x: canvasX, y: canvasY };
@@ -385,18 +385,27 @@ export function dragAction(
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const { target } = findTarget(chart, from.x, from.y);
-        const { target: toTarget } = findTarget(chart, to.x, to.y);
-        if (target !== toTarget) {
-            throw new Error('from and to points are on different elements, drag test will fail');
-        }
-        checkTargetValid(target);
+        const fromTarget = findTarget(chart, from.x, from.y);
+        const toTarget = findTarget(chart, to.x, to.y);
+        const fromOffsets = {
+            offsetX: fromTarget.x,
+            offsetY: fromTarget.y,
+            pageX: from.x,
+            pageY: from.y,
+        };
+        const toOffsets = {
+            offsetX: toTarget.x,
+            offsetY: toTarget.y,
+            pageX: to.x,
+            pageY: to.y,
+        };
+        checkTargetValid(fromTarget.target);
+        checkTargetValid(toTarget.target);
 
-        target?.dispatchEvent(mouseDownEvent({ offsetX: from.x, offsetY: from.y }));
-        target?.dispatchEvent(mouseMoveEvent({ offsetX: from.x, offsetY: from.y }));
-        target?.dispatchEvent(mouseMoveEvent({ offsetX: from.x + (to.x - from.x), offsetY: to.y }));
-        target?.dispatchEvent(mouseMoveEvent({ offsetX: to.x, offsetY: to.y }));
-        target?.dispatchEvent(mouseUpEvent({ offsetX: to.x, offsetY: to.y }));
+        fromTarget.target?.dispatchEvent(mouseDownEvent(fromOffsets));
+        fromTarget.target?.dispatchEvent(mouseMoveEvent(fromOffsets));
+        toTarget.target?.dispatchEvent(mouseMoveEvent(toOffsets));
+        toTarget.target?.dispatchEvent(mouseUpEvent(toOffsets));
 
         return delay(50);
     };

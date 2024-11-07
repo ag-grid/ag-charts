@@ -12,17 +12,19 @@ export type SpriteDimensions = {
 };
 
 export class SpriteRenderer {
+    public static offscreenCanvasCount = 0;
     private readonly offscreenCanvas: OffscreenCanvas;
     private readonly renderCtx: RenderContext;
 
     constructor() {
         this.offscreenCanvas = new OffscreenCanvas(1, 1);
+        SpriteRenderer.offscreenCanvasCount++;
+
         const ctx = this.offscreenCanvas.getContext('2d');
         if (ctx == null) throw new TypeError(`AG Charts - invalid 2d context`);
         this.renderCtx = {
             ctx,
             devicePixelRatio: 1,
-            forceRender: true,
             resized: false,
             debugNodes: {},
         };
@@ -42,12 +44,13 @@ export class SpriteRenderer {
         } = this;
         const { scale = 1, translateX = 0, translateY = 0 } = opts ?? {};
 
+        ctx.save();
         ctx.resetTransform();
         ctx.clearRect(0, 0, offscreenCanvas.width, offscreenCanvas.height);
-        ctx.save();
         ctx.beginPath();
         ctx.setTransform(scale, 0, 0, scale, translateX, translateY);
         for (const node of nodes) {
+            node.preRender();
             node.render(renderCtx);
         }
         ctx.closePath();

@@ -3,7 +3,6 @@ import {
     type AgSankeySeriesNodeStyle,
     _ModuleSupport,
     _Scene,
-    _Util,
 } from 'ag-charts-community';
 
 import { FlowProportionDatumType, FlowProportionSeries } from '../flow-proportion/flowProportionSeries';
@@ -18,9 +17,16 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
-const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, TextUtils, createDatumId, EMPTY_TOOLTIP_CONTENT } =
-    _ModuleSupport;
-const { sanitizeHtml, Logger } = _Util;
+const {
+    SeriesNodePickMode,
+    CachedTextMeasurerPool,
+    TextWrapper,
+    TextUtils,
+    createDatumId,
+    EMPTY_TOOLTIP_CONTENT,
+    sanitizeHtml,
+    Logger,
+} = _ModuleSupport;
 const { Rect, BBox } = _Scene;
 
 export interface SankeyNodeDataContext
@@ -42,7 +48,6 @@ export class SankeySeries extends FlowProportionSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            contentGroupVirtual: false,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
     }
@@ -159,19 +164,14 @@ export class SankeySeries extends FlowProportionSeries<
             node.x = column.x;
             node.size = size;
 
-            const defaultLabelFormatter = (v: any) => String(v);
-            const label = this.getLabelText(
-                this.properties.label,
-                {
-                    datum: node.datum,
-                    value: node.label,
-                    fromKey,
-                    toKey,
-                    sizeKey,
-                    size,
-                },
-                defaultLabelFormatter
-            );
+            const label = this.getLabelText(this.properties.label, {
+                datum: node.datum,
+                value: node.label,
+                fromKey,
+                toKey,
+                sizeKey,
+                size,
+            });
             node.label = String(label);
 
             column.nodes.push(graphNode);
@@ -624,7 +624,7 @@ export class SankeySeries extends FlowProportionSeries<
         );
     }
 
-    override getLabelData(): _Util.PointLabelDatum[] {
+    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
         return [];
     }
 

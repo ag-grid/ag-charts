@@ -3,7 +3,7 @@ import type { BBoxProvider } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
 import { Listeners, type StoppableEvent, buildStoppable } from '../../util/listeners';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
-import { InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
+import { DRAG_INTERACTION_TYPES, InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
 import { type Unpreventable, buildPreventable } from './preventableEvent';
 import { NodeRegionBBoxProvider, type RegionBBoxProvider, type RegionName } from './regions';
 
@@ -65,6 +65,46 @@ function nodeToBBoxProvider(node: RegionNodeType) {
     return new NodeRegionBBoxProvider(node.node, node.id);
 }
 
+function getTooltipContainer(target: EventTarget | null): HTMLElement | undefined {
+    if (target == null || !(target instanceof HTMLElement)) return undefined;
+    let current: HTMLElement | null = target;
+    while (current != null && !current?.classList.contains('ag-charts-wrapper')) {
+        if (current.classList.contains('ag-chart-tooltip')) {
+            return current;
+        }
+        current = current.parentElement;
+    }
+    return undefined;
+}
+
+type EventUpcast<K extends keyof HTMLElement> = PointerInteractionEvent & {
+    sourceEvent: RegionEvent['sourceEvent'] & { target: (EventTarget & { [P in K]?: unknown }) | null };
+};
+
+function shouldIgnore(event: EventUpcast<'className' | 'classList' | 'ariaHidden'>): 'none' | 'leave' | 'wait' {
+    const { type, sourceEvent } = event;
+    const { className, classList, ariaHidden } = sourceEvent?.target ?? {};
+    if (className === 'ag-charts-proxy-elem' || !(classList instanceof DOMTokenList)) return 'leave';
+
+    const dragTypes: readonly string[] = DRAG_INTERACTION_TYPES;
+    if (
+        // Handle drag event on the axis 'add horizontal line annotation' button as canvas events.
+        (classList.contains('ag-charts-annotations__axis-button-icon') && !dragTypes.includes(type)) ||
+        className === 'ag-charts-swapchain' ||
+        className === 'ag-charts-canvas-proxy' ||
+        sourceEvent?.target instanceof HTMLCanvasElement // This case is for nodeCanvas tests
+    ) {
+        return 'none';
+    }
+
+    // Ignore events on interactive tooltips, but don't fire a 'leave' event
+    if (getTooltipContainer(sourceEvent.target) && ariaHidden !== 'true') {
+        return 'wait';
+    }
+
+    return 'leave';
+}
+
 export class RegionManager {
     private readonly debug = Debug.create(true, 'region');
 
@@ -114,6 +154,10 @@ export class RegionManager {
         } else {
             throw new Error('AG Charts - unknown region: ' + name);
         }
+    }
+
+    public removeRegion(region: RegionName): void {
+        this.regions.delete(region);
     }
 
     public getRegion(name: RegionName) {
@@ -234,20 +278,26 @@ export class RegionManager {
     }
 
     private processPointerEvent(event: PointerInteractionEvent) {
-        if (this.handleDragging(event)) {
+        const ignore = shouldIgnore(event);
+        if (ignore === 'none' && this.handleDragging(event)) {
             // We are current dragging, so do not send leave/enter events until dragging is done.
             return;
         }
 
         const { current } = this;
 
-        if (event.type === 'leave') {
-            this.dispatch(current, { ...event, type: 'leave' });
-            this.current = undefined;
-            return;
+        let newCurrent: ReturnType<RegionManager['pickRegion']>;
+        switch (ignore) {
+            case 'wait':
+                return;
+            case 'none':
+                newCurrent = this.pickRegion(event.offsetX, event.offsetY);
+                break;
+            case 'leave':
+                newCurrent = undefined;
+                break;
         }
 
-        const newCurrent = this.pickRegion(event.offsetX, event.offsetY);
         const newRegion = newCurrent?.region;
         if (current !== undefined && newRegion?.properties.name !== current.region.properties.name) {
             this.dispatch(current, { ...event, type: 'leave' });

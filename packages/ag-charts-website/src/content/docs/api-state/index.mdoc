@@ -12,7 +12,7 @@ The dynamic chart state can be saved and restored using the API.
 ```js
 function saveState() {
     const newState = chart.getState();
-    //save to database...
+    // save to database...
 }
 
 function restoreState() {
@@ -28,11 +28,17 @@ In the above example:
 
 ## Initial State
 
+{% chartExampleRunner title="Initial State" name="initial-state" type="generated" /%}
+
 The `initialState` chart option allows creating a chart with a saved state.
 
 Additionally, mutating this option at runtime will modify the chart state.
 
 The object provided to this property should be the same as the object returned from the `getState()` method.
+
+Date objects can not be serialized, so should instead be provided as an `AgStateSerializableDate` object in the format `{ __type: 'date', value: string | number }` with a value of any date string or a timestamp number.
+
+Dates returned from `chart.getState()` will be in the ISO-8601 format and UTC timezone.
 
 ```js
 initialState: {
@@ -55,8 +61,19 @@ initialState: {
 ## State Contents
 
 -   `annotations` - This object includes the position and style of any displayed drawings or text annotations.
+-   `zoom` - This object includes start and end ranges of the zoom.
 
 Note that all the state properties are optional, so a property can be excluded if you do not want to restore it.
+
+### Zoom
+
+Zoom state can be provided as a range or ratio on each axis direction with either the `rangeX` & `rangeY` or `ratioX` & `ratioY` properties.
+
+If both a range and ratio are provided, only the `rangeX` and `rangeY` values will be used.
+
+The `start` and `end` properties of `rangeX` and `rangeY` should match the [type of axis](./axes-types/), e.g. a date for an [Ordinal Time Axis](./axes-types/#ordinal-time).
+
+The `start` and `end` properties of `ratioX` and `ratioY` should be a value between `0` and `1` as a proportion of the width or height of the chart.
 
 ## API Reference
 

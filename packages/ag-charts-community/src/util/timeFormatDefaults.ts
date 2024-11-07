@@ -1,10 +1,10 @@
-import timeDay from '../util/time/day';
-import timeHour from '../util/time/hour';
-import timeMinute from '../util/time/minute';
-import timeMonth from '../util/time/month';
-import timeSecond from '../util/time/second';
-import timeWeek from '../util/time/week';
-import timeYear from '../util/time/year';
+import { day } from '../util/time/day';
+import { hour } from '../util/time/hour';
+import { minute } from '../util/time/minute';
+import { month } from '../util/time/month';
+import { second } from '../util/time/second';
+import { sunday as week } from '../util/time/week';
+import { year } from '../util/time/year';
 import { durationDay, durationHour, durationMinute, durationSecond, durationWeek, durationYear } from './time/duration';
 import { buildFormatter } from './timeFormat';
 
@@ -36,7 +36,7 @@ export function calculateDefaultTimeTickFormat(ticks: any[] = [], domain = ticks
     }
 
     const startYear = new Date(domain[0]).getFullYear();
-    const stopYear = new Date(domain.at(-1)!).getFullYear();
+    const stopYear = new Date(domain.at(-1)).getFullYear();
     const yearChange = stopYear - startYear > 0;
     const timeFormat = isFinite(minInterval)
         ? getIntervalLowestGranularityFormat(minInterval, ticks)
@@ -65,20 +65,20 @@ function getIntervalLowestGranularityFormat(value: number, ticks: any[]): Defaul
 }
 
 function getLowestGranularityFormat(value: Date | number): DefaultTimeFormats {
-    if (timeSecond.floor(value) < value) {
+    if (second.floor(value) < value) {
         return DefaultTimeFormats.MILLISECOND;
-    } else if (timeMinute.floor(value) < value) {
+    } else if (minute.floor(value) < value) {
         return DefaultTimeFormats.SECOND;
-    } else if (timeHour.floor(value) < value) {
+    } else if (hour.floor(value) < value) {
         return DefaultTimeFormats.MINUTE;
-    } else if (timeDay.floor(value) < value) {
+    } else if (day.floor(value) < value) {
         return DefaultTimeFormats.HOUR;
-    } else if (timeMonth.floor(value) < value) {
-        if (timeWeek.floor(value) < value) {
+    } else if (month.floor(value) < value) {
+        if (week.floor(value) < value) {
             return DefaultTimeFormats.WEEK_DAY;
         }
         return DefaultTimeFormats.SHORT_MONTH;
-    } else if (timeYear.floor(value) < value) {
+    } else if (year.floor(value) < value) {
         return DefaultTimeFormats.MONTH;
     }
 
@@ -99,7 +99,7 @@ function hasDuplicateMonth(ticks: any[]) {
 
 function formatStringBuilder(defaultTimeFormat: DefaultTimeFormats, yearChange: boolean, ticks: any[]): string {
     const firstTick = dateToNumber(ticks[0]);
-    const lastTick = dateToNumber(ticks.at(-1)!);
+    const lastTick = dateToNumber(ticks.at(-1));
     const extent = Math.abs(lastTick - firstTick);
 
     const activeYear = yearChange || defaultTimeFormat === DefaultTimeFormats.YEAR;

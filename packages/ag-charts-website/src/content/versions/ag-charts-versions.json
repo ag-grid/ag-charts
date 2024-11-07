@@ -1,12 +1,27 @@
 [
     {
+        "version": "10.3.1",
+        "date": "October 28th 2024"
+    },
+    {
         "version": "10.3.0",
         "date": "October 22nd 2024",
-        "highlightSummary": "Funnel Series",
         "highlights": [
             {
                 "text": "Funnel Series",
-                "path": "./funnel-series/"
+                "path": "./funnel-series"
+            },
+            {
+                "text": "Cone Funnel Series",
+                "path": "./cone-funnel-series"
+            },
+            {
+                "text": "Pyramid Series",
+                "path": "./pyramid-series"
+            },
+            {
+                "text": "Measuring Tools",
+                "path": "./financial-charts-toolbar#measuring-tools"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-10-3"
@@ -14,15 +29,14 @@
     {
         "version": "10.2.0",
         "date": "September 17th 2024",
-        "highlightSummary": "Radial Gauge Series, Financial Charts Trend Line Labels & Arrow Drawings",
         "highlights": [
             {
                 "text": "Radial Gauge",
-                "path": "./radial-gauge/"
+                "path": "./radial-gauge"
             },
             {
                 "text": "Linear Gauge",
-                "path": "./linear-gauge/"
+                "path": "./linear-gauge"
             },
             {
                 "text": "Arrow Drawings",
@@ -46,7 +60,6 @@
     {
         "version": "10.1.0",
         "date": "August 8th 2024",
-        "highlightSummary": "New Financial Charts Annotations: Text, Comments, Callouts & Notes",
         "highlights": [
             {
                 "text": "Financial Chart Type Selection",

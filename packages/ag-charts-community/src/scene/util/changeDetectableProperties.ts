@@ -1,20 +1,17 @@
 import { BaseProperties } from '../../util/properties';
-import { RedrawType } from '../changeDetectable';
 
 export class ChangeDetectableProperties extends BaseProperties {
-    protected _dirty: RedrawType = RedrawType.MAJOR;
+    protected _dirty: boolean = true;
 
-    protected markDirty(type = RedrawType.TRIVIAL) {
-        if (this._dirty < type) {
-            this._dirty = type;
-        }
+    protected markDirty() {
+        this._dirty = true;
     }
 
     markClean(_opts?: { force?: boolean; recursive?: boolean }) {
-        this._dirty = RedrawType.NONE;
+        this._dirty = false;
     }
 
     isDirty(): boolean {
-        return this._dirty > RedrawType.NONE;
+        return this._dirty;
     }
 }

@@ -8,6 +8,9 @@ if (process.env.CI != null) {
 module.exports = {
   extends: ['../../.eslintrc.json', 'plugin:sonarjs/recommended'],
   ignorePatterns: ['!**/*', '.dependency-cruiser.js', '.eslintrc.js'],
+  parserOptions: {
+    project: `${__dirname}/tsconfig.lint.json`,
+  },
   rules: {
     // Show this warning in IDE and PRs, but not when running at command line (to reduce clutter).
     'sonarjs/cognitive-complexity': env !== 'nx-task' ? 1 : 0,

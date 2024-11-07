@@ -1,6 +1,6 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../../module/coreModulesTypes';
-import { FONT_SIZE, FONT_WEIGHT } from '../../themes/constants';
+import { FONT_SIZE } from '../../themes/constants';
 import {
     DEFAULT_FONT_FAMILY,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
@@ -13,7 +13,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
     series: {
         title: {
             enabled: true,
-            fontWeight: FONT_WEIGHT.NORMAL,
+            fontWeight: 'normal' as const,
             fontSize: 14,
             fontFamily: DEFAULT_FONT_FAMILY,
             color: DEFAULT_MUTED_LABEL_COLOUR,
@@ -29,7 +29,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
         },
         sectorLabel: {
             enabled: true,
-            fontWeight: FONT_WEIGHT.NORMAL,
+            fontWeight: 'normal' as const,
             fontSize: FONT_SIZE.SMALL,
             fontFamily: DEFAULT_FONT_FAMILY,
             color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,

@@ -21,6 +21,8 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
 
     type = 'parallel-channel';
 
+    protected override ignoreYBounds: boolean = true;
+
     override activeHandle?: ChannelHandle;
     override handles = {
         topLeft: new DivariantHandle(),

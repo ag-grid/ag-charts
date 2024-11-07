@@ -2,12 +2,15 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+const { socialCircle, domains } = getData();
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'SOCIAL CIRCLE',
     },
-    series: Object.entries(getData()).map(([relationship, data]) => ({
+    animation: { enabled: false },
+    series: Object.entries(socialCircle).map(([relationship, data]) => ({
         data,
         type: 'radar-line',
         angleKey: 'recognitionTime',
@@ -28,9 +31,6 @@ const options: AgChartOptions = {
             label: {
                 enabled: false,
             },
-            gridLine: {
-                enabled: false,
-            },
             line: {
                 enabled: false,
             },
@@ -47,7 +47,7 @@ const options: AgChartOptions = {
             crossLines: [
                 {
                     type: 'line',
-                    value: 1,
+                    value: domains['intimate'][1],
                     strokeOpacity: 0.3,
                     label: {
                         text: 'INTIMATE',
@@ -56,7 +56,7 @@ const options: AgChartOptions = {
                 },
                 {
                     type: 'line',
-                    value: 2,
+                    value: domains['best friends'][1],
                     strokeOpacity: 0.3,
                     label: {
                         text: 'BEST FRIENDS',
@@ -65,7 +65,7 @@ const options: AgChartOptions = {
                 },
                 {
                     type: 'line',
-                    value: 6,
+                    value: domains['friends'][1],
                     strokeOpacity: 0.3,
                     label: {
                         text: 'FRIENDS',
@@ -74,7 +74,7 @@ const options: AgChartOptions = {
                 },
                 {
                     type: 'line',
-                    value: 10,
+                    value: domains['acquaintances'][1],
                     strokeWidth: 0,
                     label: {
                         text: 'ACQUAINTANCES',

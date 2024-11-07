@@ -6,7 +6,7 @@ import type {
     AgMapMarkerSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { GEOJSON_OBJECT } from '../map-util/validation';
 
@@ -25,11 +25,11 @@ const {
     Validate,
     SeriesProperties,
     SeriesTooltip,
+    Logger,
 } = _ModuleSupport;
 const { Label, Circle } = _Scene;
-const { Logger } = _Util;
 
-export interface MapMarkerNodeLabelDatum extends _Util.PointLabelDatum {}
+export interface MapMarkerNodeLabelDatum extends _ModuleSupport.PointLabelDatum {}
 
 export interface MapMarkerNodeDatum extends _ModuleSupport.SeriesNodeDatum {
     readonly index: number;
@@ -45,7 +45,7 @@ export interface MapMarkerNodeDatum extends _ModuleSupport.SeriesNodeDatum {
 
 class MapMarkerSeriesLabel extends Label<AgMapMarkerSeriesLabelFormatterParams> {
     @Validate(STRING)
-    placement: _Util.LabelPlacement = 'bottom';
+    placement: _ModuleSupport.LabelPlacement = 'bottom';
 }
 
 export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSeriesOptions> {

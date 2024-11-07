@@ -1,1 +1,0 @@
-export { FunnelModule } from './funnelModule';

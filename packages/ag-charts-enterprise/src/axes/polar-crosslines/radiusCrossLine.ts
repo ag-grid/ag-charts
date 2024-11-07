@@ -1,10 +1,18 @@
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { PolarCrossLine, PolarCrossLineLabel } from './polarCrossLine';
 
-const { ChartAxisDirection, Validate, DEGREE, validateCrossLineValues } = _ModuleSupport;
-const { Path, Sector, RotatableText } = _Scene;
-const { normalizeAngle360, toRadians, isNumberEqual } = _Util;
+const {
+    ChartAxisDirection,
+    Validate,
+    DEGREE,
+    validateCrossLineValues,
+    clamp,
+    normalizeAngle360,
+    toRadians,
+    isNumberEqual,
+} = _ModuleSupport;
+const { Group, Path, Sector, RotatableText } = _Scene;
 
 class RadiusCrossLineLabel extends PolarCrossLineLabel {
     @Validate(DEGREE, { optional: true })
@@ -21,6 +29,7 @@ export class RadiusCrossLine extends PolarCrossLine {
 
     private readonly polygonNode = new Path();
     private readonly sectorNode = new Sector();
+    private readonly crossLineRange = new Group();
     private readonly labelNode = new RotatableText();
 
     private outerRadius = 0;
@@ -29,20 +38,21 @@ export class RadiusCrossLine extends PolarCrossLine {
     constructor() {
         super();
 
-        this.group.append(this.polygonNode);
-        this.group.append(this.sectorNode);
+        this.crossLineRange.append(this.polygonNode);
+        this.crossLineRange.append(this.sectorNode);
         this.labelGroup.append(this.labelNode);
     }
 
     update(visible: boolean) {
         const { scale, type, value, range } = this;
         if (!scale || !type || !validateCrossLineValues(type, value, range, scale)) {
-            this.group.visible = false;
+            this.rangeGroup.visible = false;
+            this.lineGroup.visible = false;
             this.labelGroup.visible = false;
             return;
         }
 
-        if (type === 'line' && scale instanceof _Scale.BandScale) {
+        if (type === 'line' && scale instanceof _ModuleSupport.BandScale) {
             this.type = 'range';
             this.range = [value, value];
         }
@@ -52,14 +62,15 @@ export class RadiusCrossLine extends PolarCrossLine {
         const { innerRadius, outerRadius } = this;
         visible &&= innerRadius >= this.axisInnerRadius && outerRadius <= this.axisOuterRadius;
 
-        this.group.visible = visible;
+        this.rangeGroup.visible = visible;
+        this.lineGroup.visible = visible;
         this.labelGroup.visible = visible;
 
         this.updatePolygonNode(visible);
         this.updateSectorNode(visible);
         this.updateLabelNode(visible);
-        this.group.zIndex =
-            this.type === 'line' ? RadiusCrossLine.LINE_LAYER_ZINDEX : RadiusCrossLine.RANGE_LAYER_ZINDEX;
+
+        this.assignCrossLineGroup(this.type === 'range', this.crossLineRange);
     }
 
     private updateRadii() {
@@ -133,8 +144,8 @@ export class RadiusCrossLine extends PolarCrossLine {
         sector.endAngle = 2 * Math.PI;
 
         const padding = this.getPadding();
-        const r0 = _Util.clamp(axisInnerRadius, innerRadius + padding, axisOuterRadius);
-        const r1 = _Util.clamp(axisInnerRadius, outerRadius - padding, axisOuterRadius);
+        const r0 = clamp(axisInnerRadius, innerRadius + padding, axisOuterRadius);
+        const r1 = clamp(axisInnerRadius, outerRadius - padding, axisOuterRadius);
         sector.innerRadius = Math.min(r0, r1);
         sector.outerRadius = Math.max(r0, r1);
 
@@ -182,6 +193,6 @@ export class RadiusCrossLine extends PolarCrossLine {
 
         const bandwidth = Math.abs(scale.bandwidth ?? 0);
         const step = Math.abs(scale.step ?? 0);
-        return scale instanceof _Scale.BandScale ? (step - bandwidth) / 2 : 0;
+        return scale instanceof _ModuleSupport.BandScale ? (step - bandwidth) / 2 : 0;
     }
 }

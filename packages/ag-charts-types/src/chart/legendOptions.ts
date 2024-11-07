@@ -26,6 +26,7 @@ export interface AgChartLegendLabelFormatterParams {
     seriesId: string;
     itemId: any;
     value: string;
+    datum?: any;
 }
 
 export interface AgChartLegendLabelOptions {

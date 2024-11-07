@@ -26,7 +26,7 @@ const placementColors: Record<AgLinearGaugeLabelPlacement, string> = {
     'outside-start': '#888',
     'inside-end': '#888',
     'outside-end': '#888',
-    inside: 'white',
+    'inside-center': 'white',
     'bar-inside': 'white',
     'bar-inside-end': 'white',
     'bar-outside-end': '#888',

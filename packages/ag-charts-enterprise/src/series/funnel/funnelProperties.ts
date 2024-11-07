@@ -36,7 +36,7 @@ class FunnelSeriesStageLabel extends AxisLabel {
     placement?: string;
 }
 
-export class FunnelDropOff extends BaseProperties {
+class FunnelDropOff extends BaseProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
 

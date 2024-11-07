@@ -1,15 +1,16 @@
 import type { AgCandlestickSeriesItemOptions } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { CandlestickNodeDatum } from './candlestickTypes';
 
-export enum GroupTags {
+enum GroupTags {
     Body,
     LowWick,
     HighWick,
 }
 
-const { SceneChangeDetection, BBox, RedrawType } = _Scene;
+const { Logger } = _ModuleSupport;
+const { SceneChangeDetection, BBox } = _Scene;
 
 export abstract class CandlestickBaseGroup<TNodeDatum, TStyles>
     extends _Scene.Group
@@ -18,25 +19,25 @@ export abstract class CandlestickBaseGroup<TNodeDatum, TStyles>
     abstract updateDatumStyles(datum: TNodeDatum, activeStyles: TStyles): void;
     abstract updateCoordinates(): void;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     x: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     y: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     yBottom: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     yHigh: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     yLow: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     width: number = 0;
 
-    @SceneChangeDetection({ redraw: RedrawType.MAJOR })
+    @SceneChangeDetection()
     height: number = 0;
 
     distanceSquared(x: number, y: number): number {
@@ -47,15 +48,15 @@ export abstract class CandlestickBaseGroup<TNodeDatum, TStyles>
     get midPoint(): { x: number; y: number } {
         const datum: { midPoint?: { readonly x: number; readonly y: number } } = this.datum;
         if (datum.midPoint === undefined) {
-            _Util.Logger.error('CandlestickBaseGroup.datum.midPoint is undefined');
+            Logger.error('CandlestickBaseGroup.datum.midPoint is undefined');
             return { x: NaN, y: NaN };
         }
         return datum.midPoint;
     }
 
-    override render(renderCtx: _Scene.RenderContext) {
+    override preRender(): _Scene.ChildNodeCounts {
         this.updateCoordinates();
-        super.render(renderCtx);
+        return super.preRender();
     }
 }
 

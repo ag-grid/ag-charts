@@ -1,4 +1,4 @@
-import { type PixelSize, _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
+import { type PixelSize, _ModuleSupport, type _Scene } from 'ag-charts-community';
 
 import {
     Annotation,
@@ -15,7 +15,7 @@ import { type AnnotationContext, type AnnotationOptionsColorPickerType, Annotati
 import { getLineCap, getLineDash } from '../utils/line';
 import { validateDatumLine } from '../utils/validation';
 
-const { NUMBER, STRING, OBJECT, BaseProperties, Validate, isObject } = _ModuleSupport;
+const { NUMBER, STRING, OBJECT, BaseProperties, Validate, isObject, Logger } = _ModuleSupport;
 
 export class ParallelChannelProperties extends Annotation(
     Background(Line(Handle(Extendable(Stroke(LineStyle(BaseProperties))))))
@@ -30,14 +30,13 @@ export class ParallelChannelProperties extends Annotation(
     @Validate(NUMBER)
     height!: number;
 
-    @Validate(NUMBER)
-    snapToAngle: number = 45;
-
     @Validate(OBJECT, { optional: true })
     middle = new ChannelAnnotationMiddleProperties();
 
     @Validate(OBJECT, { optional: true })
     text = new ChannelTextProperties();
+
+    snapToAngle: number = 45;
 
     get bottom() {
         const bottom = {
@@ -49,7 +48,7 @@ export class ParallelChannelProperties extends Annotation(
             bottom.start.y -= this.height;
             bottom.end.y -= this.height;
         } else {
-            _Util.Logger.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
+            Logger.warnOnce(`Annotation [${this.type}] can only be used with a numeric y-axis.`);
         }
 
         return bottom;

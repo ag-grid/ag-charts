@@ -9,10 +9,9 @@ import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesT
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export type AgBarSeriesLabelPlacement =
-    | 'inside'
+    | 'inside-center'
     | 'inside-start'
     | 'inside-end'
-    | 'outside'
     | 'outside-start'
     | 'outside-end';
 
@@ -20,7 +19,7 @@ export interface AgBarSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOp
     /** Where to render series labels relative to the segments. */
     placement?: AgBarSeriesLabelPlacement;
     /** Distance between the shape edges and the text. */
-    spacing?: PixelSize;
+    padding?: PixelSize;
 }
 
 export interface AgBarSeriesItemStylerParams<TDatum>
@@ -28,6 +27,10 @@ export interface AgBarSeriesItemStylerParams<TDatum>
         AgBarSeriesOptionsKeys,
         Required<AgBarSeriesStyle> {
     readonly stackGroup?: string;
+    /** The key to use to retrieve x-values from the data. */
+    xDomain: any[];
+    /** The key to use to retrieve y-values from the data. */
+    yDomain: any[];
 }
 
 export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {

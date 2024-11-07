@@ -9,7 +9,7 @@ interface LegendRegistryRecord {
 
 type LegendRegistryOptions = LegendRegistryRecord & { themeTemplate?: object };
 
-export class LegendRegistry {
+class LegendRegistry {
     private readonly legendMap = new Map<ChartLegendType, LegendRegistryRecord>();
     private readonly themeTemplates = new Map<string, object | undefined>();
 

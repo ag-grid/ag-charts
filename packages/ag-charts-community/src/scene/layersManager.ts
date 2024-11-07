@@ -1,46 +1,24 @@
-import { type LiteralOrFn, ascendingStringNumberUndefined, compoundAscending } from '../util/compare';
 import { Debug } from '../util/debug';
 import { HdpiCanvas } from './canvas/hdpiCanvas';
-
-export type ZIndexSubOrder = [LiteralOrFn<string | number>, LiteralOrFn<number>];
+import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 
 interface SceneLayer {
     id: number;
     name?: string;
-    zIndex: number;
-    zIndexSubOrder?: ZIndexSubOrder;
-    canvas: HdpiCanvas;
-    getComputedOpacity: () => number;
-    getVisibility: () => boolean;
+    canvas: HdpiOffscreenCanvas;
 }
 
 export class LayersManager {
-    protected static sortLayers(a: SceneLayer, b: SceneLayer) {
-        return compoundAscending(
-            [a.zIndex, ...(a.zIndexSubOrder ?? [undefined, undefined]), a.id],
-            [b.zIndex, ...(b.zIndexSubOrder ?? [undefined, undefined]), b.id],
-            ascendingStringNumberUndefined
-        );
-    }
-
     readonly debug = Debug.create(true, 'scene');
 
-    private readonly layersMap = new Map<HdpiCanvas, SceneLayer>();
+    private readonly layersMap = new Map<HdpiOffscreenCanvas, SceneLayer>();
 
-    private nextZIndex = 0;
     private nextLayerId = 0;
 
-    constructor(
-        public readonly canvas: HdpiCanvas,
-        public readonly markDirty: () => void
-    ) {}
+    constructor(public readonly canvas: HdpiCanvas) {}
 
     get size() {
         return this.layersMap.size;
-    }
-
-    forEach(callback: (layer: SceneLayer, index: number, array: SceneLayer[]) => void) {
-        Array.from(this.layersMap.values()).sort(LayersManager.sortLayers).forEach(callback);
     }
 
     resize(width: number, height: number) {
@@ -48,29 +26,15 @@ export class LayersManager {
         this.layersMap.forEach(({ canvas }) => canvas.resize(width, height));
     }
 
-    addLayer(opts: {
-        zIndex?: number;
-        zIndexSubOrder?: ZIndexSubOrder;
-        name?: string;
-        getComputedOpacity: () => number;
-        getVisibility: () => boolean;
-    }) {
+    addLayer(opts: { name?: string }) {
         const { width, height, pixelRatio } = this.canvas;
-        const { zIndex = this.nextZIndex++, name, zIndexSubOrder, getComputedOpacity, getVisibility } = opts;
-        const canvas = new HdpiCanvas({ width, height, pixelRatio });
-
-        if (zIndex >= this.nextZIndex) {
-            this.nextZIndex = zIndex + 1;
-        }
+        const { name } = opts;
+        const canvas = new HdpiOffscreenCanvas({ width, height, pixelRatio });
 
         this.layersMap.set(canvas, {
             id: this.nextLayerId++,
             name,
             canvas,
-            zIndex,
-            zIndexSubOrder,
-            getComputedOpacity,
-            getVisibility,
         });
 
         this.debug('Scene.addLayer() - layers', this.layersMap);
@@ -78,29 +42,19 @@ export class LayersManager {
         return canvas;
     }
 
-    removeLayer(canvas: HdpiCanvas) {
+    removeLayer(canvas: HdpiOffscreenCanvas) {
         if (this.layersMap.has(canvas)) {
             this.layersMap.delete(canvas);
             canvas.destroy();
-            this.markDirty();
 
             this.debug('Scene.removeLayer() -  layers', this.layersMap);
         }
     }
 
-    moveLayer(canvas: HdpiCanvas, newZIndex: number, newZIndexSubOrder?: ZIndexSubOrder) {
-        const layer = this.layersMap.get(canvas);
-
-        if (layer) {
-            layer.zIndex = newZIndex;
-            layer.zIndexSubOrder = newZIndexSubOrder;
-            this.markDirty();
-
-            this.debug('Scene.moveLayer() -  layers', this.layersMap);
-        }
-    }
-
     clear() {
+        for (const layer of this.layersMap.values()) {
+            layer.canvas.destroy();
+        }
         this.layersMap.clear();
     }
 }

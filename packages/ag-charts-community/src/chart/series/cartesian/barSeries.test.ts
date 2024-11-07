@@ -414,7 +414,7 @@ describe('BarSeries', () => {
                                 yKey: 'y',
                                 label: {
                                     placement,
-                                    spacing: 10,
+                                    padding: 10,
                                     color: 'black',
                                 },
                             },

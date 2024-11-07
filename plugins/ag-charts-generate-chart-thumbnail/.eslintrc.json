@@ -1,6 +1,9 @@
 {
   "extends": ["../../.eslintrc.json"],
   "ignorePatterns": ["!**/*"],
+  "parserOptions": {
+    "project": "plugins/ag-charts-generate-chart-thumbnail/tsconfig.lint.json"
+  },
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],

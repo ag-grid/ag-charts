@@ -96,7 +96,6 @@ AG Charts offers 20+ Angular Chart types, each of which are fully customisable:
 | [Donut](https://ag-grid.com/charts/angular/donut-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                 | ✅                  | ✅                   |
 | [Combination](https://ag-grid.com/charts/angular/combination-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)     | ✅                  | ✅                   |
 | [Box Plot](https://ag-grid.com/charts/angular/box-plot-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)           | ❌                  | ✅                   |
-| [Bullet](https://ag-grid.com/charts/angular/bullet-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)               | ❌                  | ✅                   |
 | [Candlestick](https://ag-grid.com/charts/angular/candlestick-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)     | ❌                  | ✅                   |
 | [OHLC](https://ag-grid.com/charts/angular/ohlc-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                   | ❌                  | ✅                   |
 | [Heatmap](https://ag-grid.com/charts/angular/heatmap-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)             | ❌                  | ✅                   |

@@ -5,6 +5,8 @@ import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
 import { setAttribute } from '../util/attributeUtil';
 import { createElement, getDocument, getWindow } from '../util/dom';
+import { GuardedElement } from '../util/guardedElement';
+import { stopPageScrolling } from '../util/keynavUtil';
 import { type Size, SizeMonitor } from '../util/sizeMonitor';
 // TODO move to utils
 import BASE_DOM from './domLayout.html';
@@ -70,22 +72,32 @@ const NULL_DOMRECT: DOMRect = {
     },
 };
 
+function createTabGuardElement(guardedElem: HTMLElement, where: 'beforebegin' | 'afterend') {
+    const div = createElement('div');
+    div.className = 'ag-charts-tab-guard';
+    guardedElem.insertAdjacentElement(where, div);
+    return div;
+}
+
 export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly rootElements: Record<DOMElementClass, LiveDOMElement>;
     private readonly styles = new Map<string, string>();
     private readonly element: HTMLElement;
+    private readonly styleRootElement?: HTMLElement;
     private container?: HTMLElement = undefined;
     containerSize?: Size = undefined;
+    private readonly tabGuards: GuardedElement;
 
     private readonly observer?: IntersectionObserver;
     private readonly sizeMonitor = new SizeMonitor();
 
-    constructor(container?: HTMLElement) {
+    constructor(container?: HTMLElement, styleContainer?: HTMLElement) {
         super();
 
         const templateEl = createElement('div');
         templateEl.innerHTML = BASE_DOM;
         this.element = templateEl.children.item(0) as HTMLElement;
+        this.styleRootElement = styleContainer;
 
         this.rootElements = DOM_ELEMENT_CLASSES.reduce(
             (r, c) => {
@@ -117,6 +129,14 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         if (container) {
             this.setContainer(container);
         }
+
+        this.destroyFns.push(stopPageScrolling(this.element));
+
+        const guardedElement = this.element.querySelector('.ag-charts-canvas-center') as HTMLElement | null;
+        if (guardedElement == null) throw new Error('Error initializing tab guards');
+        const topGuard = createTabGuardElement(guardedElement, 'beforebegin');
+        const botGuard = createTabGuardElement(guardedElement, 'afterend');
+        this.tabGuards = new GuardedElement(guardedElement, topGuard, botGuard);
     }
 
     override destroy() {
@@ -147,6 +167,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         centerStyle.width = `${this.containerSize?.width ?? 0}px`;
         centerStyle.height = `${this.containerSize?.height ?? 0}px`;
+    }
+
+    setTabGuardIndex(tabIndex: number) {
+        this.tabGuards.tabIndex = tabIndex;
     }
 
     setContainer(newContainer: HTMLElement) {
@@ -206,30 +230,14 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         this.element.classList.add(themeClassName);
     }
 
-    setTabIndex(tabIndex: number /* FIXME: type should be 0 | -1 */) {
-        this.rootElements['series-area'].element.tabIndex = tabIndex;
-    }
-
     updateCanvasLabel(ariaLabel: string) {
         setAttribute(this.rootElements['canvas-proxy'].element, 'aria-label', ariaLabel);
     }
 
     private getEventElement<K extends keyof HTMLElementEventMap>(defaultElem: HTMLElement, eventType: K) {
         // For now, the only element managed by DOMManager that is focusable is 'series-area'
-        return ['focus', 'blur'].includes(eventType) ? this.rootElements['series-area'].element : defaultElem;
-    }
-
-    addEventListenerOnElement<K extends keyof HTMLElementEventMap>(
-        elementType: DOMElementClass,
-        type: K,
-        listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any,
-        options?: boolean | AddEventListenerOptions
-    ) {
-        const element = this.getEventElement(this.rootElements[elementType].element, type);
-        element.addEventListener(type, listener, options);
-        return () => {
-            element.removeEventListener(type, listener, options);
-        };
+        const events = ['focus', 'blur', 'keydown', 'keyup'];
+        return events.includes(eventType) ? this.rootElements['series-area'].element : defaultElem;
     }
 
     addEventListener<K extends keyof HTMLElementEventMap>(
@@ -308,7 +316,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             current = current.parentNode as HTMLElement;
         }
 
-        return undefined;
+        // Container is disconnected from the DOM, default to the container.
+        return this.container;
     }
 
     getChildBoundingClientRect(type: DOMElementClass) {
@@ -341,36 +350,50 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         return search != null && el.contains(search);
     }
 
-    isEventOverElement(event: Event | MouseEvent | TouchEvent) {
-        const element = event.target as HTMLElement | null;
-        return element != null && this.element.contains(element);
+    contains(element: HTMLElement, domElementClass?: DOMElementClass) {
+        if (domElementClass == null) return this.element.contains(element);
+        return this.rootElements[domElementClass].element.contains(element);
     }
 
     addStyles(id: string, styles: string) {
+        const dataAttribute = 'data-ag-charts';
+
         this.styles.set(id, styles);
 
         if (this.container == null) return;
 
-        const dataAttribute = 'data-ag-charts';
-        const documentRoot = this.getShadowDocumentRoot();
-        let styleElement: HTMLElement;
-        if (documentRoot != null) {
-            styleElement = this.addChild('styles', id);
-        } else {
-            const head = getDocument('head');
+        const checkId = (el: Element) => {
+            return el.getAttribute(dataAttribute) === id;
+        };
 
-            for (const child of head.children as any as Iterable<Element>) {
-                if (child.getAttribute(dataAttribute) === id) return;
+        const addStyleElement = (el: HTMLElement) => {
+            for (const child of el.children as any as Iterable<Element>) {
+                if (checkId(child)) return;
             }
 
-            styleElement = createElement('style');
-            head.appendChild(styleElement);
+            const styleEl = createElement('style');
+            el.appendChild(styleEl);
+            return styleEl;
+        };
+
+        let styleElement: HTMLElement | undefined;
+        if (this.styleRootElement) {
+            // AG-13233 - User supplied root element, don't use heuristics.
+            styleElement = addStyleElement(this.styleRootElement);
+        } else {
+            // Heuristic detection of enclosing shadow DOM root.
+            const documentRoot = this.getShadowDocumentRoot(this.container);
+            if (documentRoot != null) {
+                // Add to our DOM tree to avoid contaminating outside of the shadow DOM.
+                styleElement = this.addChild('styles', id);
+            } else {
+                // Add to document head as failsafe fallback.
+                styleElement = addStyleElement(getDocument('head'));
+            }
         }
 
-        if (styleElement.getAttribute(dataAttribute) === id) {
-            // Avoid setting innerHTML on elements we've already configured to avoid style recalculations
-            return;
-        }
+        // Avoid setting innerHTML on elements we've already configured to avoid style recalculations
+        if (styleElement == null || checkId(styleElement)) return;
 
         styleElement.setAttribute(dataAttribute, id);
         styleElement.innerHTML = styles;

@@ -1,7 +1,7 @@
 import type { AxisModule } from './axisModule';
+import type { AxisOptionModule } from './axisOptionModule';
 import type { ModuleInstance } from './baseModule';
 import type { LegendModule, RootModule, SeriesModule } from './coreModules';
-import type { AxisOptionModule } from './optionsModule';
 import type { SeriesOptionModule } from './optionsModuleTypes';
 
 export type Module<M extends ModuleInstance = ModuleInstance> =
@@ -25,8 +25,8 @@ export abstract class BaseModuleInstance {
 export class ModuleRegistry {
     readonly modules: Module[] = [];
 
-    private readonly dependencies: Map<string, Set<string>> = new Map();
-    private readonly dependents: Map<string, Set<string>> = new Map();
+    private readonly dependencies: Map<string, string[]> = new Map();
+    private readonly modulesByOptionKey: Map<string, Module> = new Map();
 
     register(...modules: Module[]) {
         for (const module of modules) {
@@ -44,9 +44,11 @@ export class ModuleRegistry {
                     // Replace the community module with an enterprise version
                     const index = this.modules.indexOf(otherModule);
                     this.modules.splice(index, 1, module);
+                    this.modulesByOptionKey.set(module.optionsKey, module);
                 }
             } else {
                 this.modules.push(module);
+                this.modulesByOptionKey.set(module.optionsKey, module);
             }
         }
     }
@@ -56,52 +58,49 @@ export class ModuleRegistry {
     }
 
     *byType<T extends Module>(...types: Module['type'][]): Generator<T> {
-        const { dependents } = this;
-
         const yielded = new Set();
-
-        let count = 0;
-        const maxCount = 3;
 
         const modulesByType = this.modules.filter((module) => types.includes(module.type));
 
+        const calculateDependencies = (module: string): string[] => {
+            const deps = this.dependencies.get(module);
+            return deps?.flatMap(calculateDependencies).concat(deps) ?? [];
+        };
+
+        const unresolvable = [];
+
         // Iterate through modules yielding those that have no dependencies and repeating while any modules still have
         // un-yielded dependencies. Escape out if circular or missing dependencies.
-        do {
-            for (const module of modulesByType) {
-                if (yielded.has(module.optionsKey) || dependents.has(module.optionsKey)) {
+        for (const module of modulesByType) {
+            if (yielded.has(module.optionsKey)) continue;
+
+            for (const dependency of calculateDependencies(module.optionsKey)) {
+                if (yielded.has(dependency)) continue;
+                const dependencyModule = this.modulesByOptionKey.get(dependency);
+                if (!dependencyModule) {
+                    unresolvable.push(dependency);
                     continue;
                 }
 
-                yield module as T;
-                yielded.add(module.optionsKey);
+                if (!types.includes(dependencyModule.type)) continue;
 
-                for (const [key, dependencies] of dependents.entries()) {
-                    dependencies.delete(module.optionsKey);
-                    if (dependencies.size === 0) {
-                        dependents.delete(key);
-                    }
-                }
+                yield dependencyModule as T;
+                yielded.add(dependency);
             }
 
-            count++;
-        } while (yielded.size < modulesByType.length && count < maxCount);
+            yield module as T;
+            yielded.add(module.optionsKey);
+        }
 
-        if (dependents.size > 0) {
-            throw new Error(`Could not resolve module dependencies: [${[...dependents.keys()]}]`);
+        if (unresolvable.length > 0) {
+            throw new Error(`Could not resolve module dependencies: ${unresolvable}`);
         }
     }
 
     private registerDependencies(module: Module) {
         if (module.dependencies == null || module.dependencies.length === 0) return;
 
-        for (const key of module.dependencies) {
-            const dependencies = this.dependencies.get(key) ?? new Set();
-            dependencies.add(module.optionsKey);
-            this.dependencies.set(key, dependencies);
-        }
-
-        this.dependents.set(module.optionsKey, new Set(module.dependencies));
+        this.dependencies.set(module.optionsKey, module.dependencies);
     }
 }
 

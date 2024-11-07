@@ -39,18 +39,9 @@ const options: AgChartOptions = {
     axes: [
         {
             type: 'angle-category',
-            gridLine: {
-                enabled: false,
-            },
         },
         {
             type: 'radius-number',
-            gridLine: {
-                enabled: true,
-            },
-            line: {
-                enabled: false,
-            },
             label: {
                 enabled: false,
             },

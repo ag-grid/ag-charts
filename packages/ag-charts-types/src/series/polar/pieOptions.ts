@@ -88,6 +88,8 @@ export interface AgPieSeriesThemeableOptions<TDatum = any>
     cornerRadius?: PixelSize;
     /** The spacing between Pie sectors. */
     sectorSpacing?: PixelSize;
+    /** Whether items with a value of 0 should be hidden in the legend. */
+    hideZeroValueSectorsInLegend?: boolean;
     /** A styler function for adjusting the styling of the pie sectors. */
     itemStyler?: Styler<AgPieSeriesItemStylerParams<TDatum>, AgPieSeriesStyle>;
 }

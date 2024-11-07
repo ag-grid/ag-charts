@@ -20,9 +20,6 @@ const options: AgChartOptions = {
             angleKey: 'department',
             radiusKey: 'customerSatisfaction',
             radiusName: 'Customer Satisfaction',
-            marker: {
-                enabled: true,
-            },
         },
         {
             type: 'radar-area',
@@ -36,7 +33,7 @@ const options: AgChartOptions = {
     axes: [
         {
             type: 'angle-category',
-            shape: 'circle',
+
             gridLine: {
                 enabled: true,
             },
@@ -46,10 +43,6 @@ const options: AgChartOptions = {
         },
         {
             type: 'radius-number',
-            shape: 'circle',
-            line: {
-                enabled: false,
-            },
         },
     ],
 };

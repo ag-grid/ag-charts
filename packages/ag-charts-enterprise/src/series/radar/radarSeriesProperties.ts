@@ -3,8 +3,6 @@ import type {
     AgRadarSeriesLabelFormatterParams,
     AgRadarSeriesTooltipRendererParams,
     AgRadialSeriesOptionsKeys,
-    FillOptions,
-    StrokeOptions,
 } from 'ag-charts-community';
 import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
@@ -36,8 +34,6 @@ const {
     RATIO,
     STRING,
 } = _ModuleSupport;
-
-export type AgRadarSeriesFormat = FillOptions & StrokeOptions;
 
 export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends SeriesProperties<T> {
     @Validate(STRING)

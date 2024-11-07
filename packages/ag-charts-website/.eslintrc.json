@@ -1,6 +1,9 @@
 {
   "extends": ["../../.eslintrc.json"],
   "ignorePatterns": ["!**/*", ".astro", "**/_examples", "**/public/example-runner/**"],
+  "parserOptions": {
+    "project": "packages/ag-charts-website/tsconfig.lint.json"
+  },
   "overrides": [
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],

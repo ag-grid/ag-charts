@@ -1,6 +1,6 @@
 import { describe, expect, it, jest } from '@jest/globals';
 
-import { deepClone, jsonApply, jsonDiff, jsonWalk } from './json';
+import { deepClone, jsonApply, jsonDiff, jsonPropertyCompare, jsonWalk } from './json';
 import { mergeDefaults } from './object';
 
 const FIXED_DATE = new Date('2022-01-27T00:00:00.000+00:00');
@@ -267,7 +267,7 @@ describe('json module', () => {
                 const base: any = {};
                 const mergee = { a: [{ x: 1 }], b: [{ y: 2 }] };
 
-                const merge = deepClone(mergeDefaults(mergee, base), { shallow: ['b'] });
+                const merge = deepClone(mergeDefaults(mergee, base), new Set(['b']));
                 expect(merge).toMatchSnapshot();
                 expect(merge).not.toBe(base);
                 expect(merge).not.toBe(mergee);
@@ -311,7 +311,7 @@ describe('json module', () => {
         it('should visit no nodes for no object', () => {
             for (const test of [undefined, null, 'a', 1, FIXED_DATE]) {
                 const cb = jest.fn();
-                jsonWalk(test, cb, {}, test);
+                jsonWalk(test, cb, undefined, test);
                 expect(cb).toHaveBeenCalledTimes(0);
             }
         });
@@ -321,8 +321,8 @@ describe('json module', () => {
                 const wrappedTest = { test };
 
                 const cb = jest.fn();
-                jsonWalk(wrappedTest, cb, {}, wrappedTest);
-                expect(cb).toHaveBeenCalledWith(wrappedTest, wrappedTest);
+                jsonWalk(wrappedTest, cb, undefined, wrappedTest);
+                expect(cb).toHaveBeenCalledWith(wrappedTest, wrappedTest, undefined);
                 expect(cb).toHaveBeenCalledTimes(1);
             }
         });
@@ -332,9 +332,9 @@ describe('json module', () => {
             const walked2 = { a: 2, b: 3, c: 'd', d: FIXED_DATE };
 
             const cb = jest.fn();
-            jsonWalk(walked1, cb, {}, walked2);
+            jsonWalk(walked1, cb, undefined, walked2);
             expect(cb).toHaveBeenCalledTimes(1);
-            expect(cb).toHaveBeenCalledWith(walked1, walked2);
+            expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined);
         });
 
         it('should visit every node for a non-trivial object', () => {
@@ -349,11 +349,11 @@ describe('json module', () => {
             const walked2 = { a: 2, b: 3, c: 'd', d: FIXED_DATE, child1: { foo: 'bar' } };
 
             const cb = jest.fn();
-            jsonWalk(walked1, cb, {}, walked2);
-            expect(cb).toHaveBeenCalledWith(walked1, walked2);
-            expect(cb).toHaveBeenCalledWith(walked1.child1, walked2.child1);
-            expect(cb).toHaveBeenCalledWith(walked1.child2, undefined);
-            expect(cb).toHaveBeenCalledWith(walked1.child2.child3, undefined);
+            jsonWalk(walked1, cb, undefined, walked2);
+            expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.child1, walked2.child1, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.child2, undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.child2.child3, undefined, undefined);
             expect(cb).toHaveBeenCalledTimes(4);
         });
 
@@ -362,12 +362,12 @@ describe('json module', () => {
             const walked2 = [{ x: 1 }, { y: 2 }, { z: 3 }];
 
             const cb = jest.fn();
-            jsonWalk(walked1, cb, {}, walked2);
-            expect(cb).toHaveBeenCalledWith(walked1, walked2);
-            expect(cb).toHaveBeenCalledWith(walked1[0], walked2[0]);
-            expect(cb).toHaveBeenCalledWith(walked1[1], walked2[1]);
-            expect(cb).toHaveBeenCalledWith(walked1[2], walked2[2]);
-            expect(cb).toHaveBeenCalledWith(walked1[3], undefined);
+            jsonWalk(walked1, cb, undefined, walked2);
+            expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1[0], walked2[0], undefined);
+            expect(cb).toHaveBeenCalledWith(walked1[1], walked2[1], undefined);
+            expect(cb).toHaveBeenCalledWith(walked1[2], walked2[2], undefined);
+            expect(cb).toHaveBeenCalledWith(walked1[3], undefined, undefined);
             expect(cb).toHaveBeenCalledTimes(5);
         });
 
@@ -376,13 +376,13 @@ describe('json module', () => {
             const walked2 = { prop1: [{ x: 1 }, { y: 2 }, { z: 3 }] };
 
             const cb = jest.fn();
-            jsonWalk(walked1, cb, {}, walked2);
-            expect(cb).toHaveBeenCalledWith(walked1, walked2);
-            expect(cb).toHaveBeenCalledWith(walked1.prop1, walked2.prop1);
-            expect(cb).toHaveBeenCalledWith(walked1.prop1[0], walked2.prop1[0]);
-            expect(cb).toHaveBeenCalledWith(walked1.prop1[1], walked2.prop1[1]);
-            expect(cb).toHaveBeenCalledWith(walked1.prop1[2], walked2.prop1[2]);
-            expect(cb).toHaveBeenCalledWith(walked1.prop1[3], undefined);
+            jsonWalk(walked1, cb, undefined, walked2);
+            expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.prop1, walked2.prop1, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.prop1[0], walked2.prop1[0], undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.prop1[1], walked2.prop1[1], undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.prop1[2], walked2.prop1[2], undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.prop1[3], undefined, undefined);
             expect(cb).toHaveBeenCalledTimes(6);
         });
 
@@ -398,9 +398,9 @@ describe('json module', () => {
             const walked2 = { a: 2, b: 3, c: 'd', d: FIXED_DATE, child1: { foo: 'bar' } };
 
             const cb = jest.fn();
-            jsonWalk(walked1, cb, { skip: ['child1', 'child3'] }, walked2);
-            expect(cb).toHaveBeenCalledWith(walked1, walked2);
-            expect(cb).toHaveBeenCalledWith(walked1.child2, undefined);
+            jsonWalk(walked1, cb, new Set(['child1', 'child3']), walked2);
+            expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.child2, undefined, undefined);
             expect(cb).toHaveBeenCalledTimes(2);
         });
     });
@@ -453,6 +453,40 @@ describe('json module', () => {
             expect(console.warn).toBeCalledWith(
                 "AG Charts - unable to set [recurse] in TestApply - can't apply type of [primitive], allowed types are: [class-instance]"
             );
+        });
+    });
+
+    describe('#jsonPropertyCompare', () => {
+        it('should return true with matching property values', () => {
+            const source = { a: 1, b: true, c: 'three' };
+            const target = { a: 1, b: true, c: 'three', d: 4 };
+
+            expect(jsonPropertyCompare(source, target)).toEqual(true);
+        });
+
+        it('should return false with mismatching property values', () => {
+            const source = { a: 1, b: true, c: 'three' };
+
+            for (const key of Object.keys(source) as (keyof typeof source)[]) {
+                const target = { ...source, [key]: (source[key] as any) + 1 };
+                expect(jsonPropertyCompare(source, target)).toEqual(false);
+            }
+        });
+
+        it('should return false with missing properties', () => {
+            const source = { a: 1, b: true, c: 'three' };
+
+            for (const key of Object.keys(source) as (keyof typeof source)[]) {
+                const target = { ...source };
+                delete target[key];
+                expect(jsonPropertyCompare(source, target)).toEqual(false);
+            }
+        });
+
+        it('should return false for undefined target', () => {
+            const source = { a: 1, b: true, c: 'three' };
+
+            expect(jsonPropertyCompare(source, undefined as any)).toEqual(false);
         });
     });
 });

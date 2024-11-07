@@ -1,6 +1,7 @@
 import type {
     AgCartesianChartOptions,
     AgCartesianSeriesOptions,
+    AgChartOptions,
     AgChartThemeOverrides,
     AgFlowProportionSeriesOptions,
     AgHierarchySeriesOptions,
@@ -11,7 +12,6 @@ import type {
     AgStandaloneSeriesOptions,
     AgTopologySeriesOptions,
 } from 'ag-charts-types';
-import type { AgChartOptions } from 'ag-charts-types';
 
 import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
 import type { Series } from '../chart/series/series';
@@ -29,6 +29,9 @@ export interface RootModule<M extends ModuleInstance = ModuleInstance> extends B
     moduleFactory: ModuleInstanceFactory<M>;
 
     themeTemplate?: {};
+
+    /** Force whether this is a removable module or not, depending on user options. */
+    removable?: boolean;
 }
 
 export interface LegendModule extends BaseModule {

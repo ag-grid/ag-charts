@@ -88,7 +88,7 @@ describe('ChartTheme', () => {
             title: {
                 enabled: true,
                 text: 'Test Chart',
-                fontWeight: 'normal',
+                fontWeight: 'normal' as const,
             },
             data,
             series: [
@@ -249,7 +249,7 @@ describe('ChartTheme', () => {
             title: {
                 enabled: true,
                 text: 'Test Chart',
-                fontWeight: 'normal',
+                fontWeight: 'normal' as const,
             },
             data,
             series: [
@@ -348,7 +348,7 @@ describe('ChartTheme', () => {
             title: {
                 enabled: true,
                 text: 'Test Chart',
-                fontWeight: 'normal',
+                fontWeight: 'normal' as const,
             },
             data,
             series: [
@@ -405,7 +405,7 @@ describe('ChartTheme', () => {
             title: {
                 enabled: true,
                 text: 'Test Chart',
-                fontWeight: 'normal',
+                fontWeight: 'normal' as const,
             },
             data,
             series: [

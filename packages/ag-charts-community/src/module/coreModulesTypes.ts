@@ -25,7 +25,7 @@ export interface SeriesPaletteFactoryParams {
 
 export type SeriesPaletteFactory<SeriesOpts> = (params: SeriesPaletteFactoryParams) => SeriesPaletteOptions<SeriesOpts>;
 
-export type SeriesPaletteOptions<
+type SeriesPaletteOptions<
     SeriesOpts,
     ColourKeys = 'stroke' | 'fill' | 'fills' | 'strokes' | 'colors',
     NestedKeys = 'marker' | 'calloutLine',

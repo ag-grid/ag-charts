@@ -21,16 +21,20 @@ const options: AgChartOptions = {
 const chart = AgCharts.create(options as AgChartOptions);
 
 let running = false;
-async function start() {
+function start() {
     if (running) return;
     running = true;
-
-    while (running) {
-        options.data = [...options.data!, generateDatum()];
-        await chart.update(options);
-    }
+    update();
 }
 
 function stop() {
     running = false;
+}
+
+async function update() {
+    if (!running) return;
+
+    options.data = [...options.data!, generateDatum()];
+    await chart.update(options);
+    requestAnimationFrame(update);
 }

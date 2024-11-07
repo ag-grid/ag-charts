@@ -1,16 +1,16 @@
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
+import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import {
     type MapShapeBackgroundNodeDatum,
     MapShapeBackgroundSeriesProperties,
 } from './mapShapeBackgroundSeriesProperties';
 
-const { createDatumId, Series, SeriesNodePickMode, Validate } = _ModuleSupport;
+const { createDatumId, Series, SeriesNodePickMode, Validate, Logger } = _ModuleSupport;
 const { Selection, Group, PointerEvents } = _Scene;
-const { Logger } = _Util;
 
 export interface MapShapeBackgroundNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapShapeBackgroundNodeDatum> {}
@@ -64,10 +64,13 @@ export class MapShapeBackgroundSeries
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            contentGroupVirtual: false,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
+    }
+
+    override renderToOffscreenCanvas(): boolean {
+        return true;
     }
 
     setChartTopology(topology: any): void {
@@ -75,6 +78,15 @@ export class MapShapeBackgroundSeries
         if (this.topology === topology) {
             this.nodeDataRefresh = true;
         }
+    }
+
+    override setSeriesIndex(index: number): boolean {
+        if (!super.setSeriesIndex(index)) return false;
+
+        this.contentGroup.zIndex = [MapZIndexMap.ShapeLineBackground, index, 0];
+        this.highlightGroup.zIndex = [MapZIndexMap.ShapeLineBackground, index, 1];
+
+        return true;
     }
 
     private nodeFactory(): GeoGeometry {
@@ -187,7 +199,7 @@ export class MapShapeBackgroundSeries
         // No animations
     }
 
-    override getLabelData(): _Util.PointLabelDatum[] {
+    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
         return [];
     }
 

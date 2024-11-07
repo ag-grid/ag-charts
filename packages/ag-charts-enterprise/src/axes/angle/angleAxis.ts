@@ -1,12 +1,24 @@
-import type { AgAngleAxisLabelOrientation, _Scale } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import type { AgAngleAxisLabelOrientation } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
-const { AND, ChartAxisDirection, GREATER_THAN, NUMBER, UNION, ProxyOnWrite, TextWrapper, TextUtils, Validate } =
-    _ModuleSupport;
+const {
+    AND,
+    ChartAxisDirection,
+    GREATER_THAN,
+    NUMBER,
+    UNION,
+    ProxyOnWrite,
+    TextWrapper,
+    TextUtils,
+    Validate,
+    angleBetween,
+    isNumberEqual,
+    toRadians,
+    normalizeAngle360,
+} = _ModuleSupport;
 const { Path, RotatableText } = _Scene;
-const { angleBetween, isNumberEqual, toRadians, normalizeAngle360 } = _Util;
 
 export interface AngleAxisLabelDatum {
     text: string;
@@ -31,7 +43,7 @@ class AngleAxisLabel extends _ModuleSupport.AxisLabel {
 
 export abstract class AngleAxis<
     TDomain,
-    TScale extends _Scale.Scale<TDomain, any>,
+    TScale extends _ModuleSupport.Scale<TDomain, any>,
 > extends _ModuleSupport.PolarAxis<TScale> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = AngleCrossLine;
 
@@ -67,7 +79,6 @@ export abstract class AngleAxis<
         this.updateLabels();
         this.updateRadiusLine();
         this.updateCrossLines();
-        return this.tickData.length;
     }
 
     override computeRange() {
@@ -87,7 +98,8 @@ export abstract class AngleAxis<
     protected abstract generateAngleTicks(): AngleAxisTickDatum<TDomain>[];
 
     override updatePosition() {
-        const { translation, axisGroup, gridGroup, crossLineGroup } = this;
+        const { translation, axisGroup, gridGroup, crossLineRangeGroup, crossLineLineGroup, crossLineLabelGroup } =
+            this;
         const translationX = Math.floor(translation.x);
         const translationY = Math.floor(translation.y);
 
@@ -97,8 +109,14 @@ export abstract class AngleAxis<
         gridGroup.translationX = translationX;
         gridGroup.translationY = translationY;
 
-        crossLineGroup.translationX = translationX;
-        crossLineGroup.translationY = translationY;
+        crossLineRangeGroup.translationX = translationX;
+        crossLineRangeGroup.translationY = translationY;
+
+        crossLineLineGroup.translationX = translationX;
+        crossLineLineGroup.translationY = translationY;
+
+        crossLineLabelGroup.translationX = translationX;
+        crossLineLabelGroup.translationY = translationY;
     }
 
     protected updateRadiusLine() {
@@ -430,7 +448,7 @@ export abstract class AngleAxis<
     }
 
     protected override updateCrossLines() {
-        this.crossLines?.forEach((crossLine) => {
+        this.crossLines.forEach((crossLine) => {
             if (crossLine instanceof AngleCrossLine) {
                 const { shape, gridLength: radius, innerRadiusRatio } = this;
                 crossLine.shape = shape;
@@ -438,6 +456,6 @@ export abstract class AngleAxis<
                 crossLine.axisInnerRadius = radius * innerRadiusRatio;
             }
         });
-        super.updateCrossLines({ rotation: 0, parallelFlipRotation: 0, regularFlipRotation: 0 });
+        super.updateCrossLines();
     }
 }

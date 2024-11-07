@@ -8,7 +8,7 @@ import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions } from './cros
 import type { AgPolarAxisShape } from './polarAxisOptions';
 import type { Degree, Ratio } from './types';
 
-export interface AgRadiusAxisLabelOptions extends AgBaseAxisLabelOptions {}
+interface AgRadiusAxisLabelOptions extends AgBaseAxisLabelOptions {}
 
 export interface AgRadiusNumberAxisOptions
     extends Omit<AgBaseAxisOptions<AgRadiusAxisLabelOptions>, 'keys' | 'interval'>,
@@ -59,6 +59,6 @@ export interface AgRadiusCategoryAxisOptions extends Omit<AgBaseAxisOptions<AgRa
 
 export interface AgRadiusCrossLineOptions extends AgBaseCrossLineOptions<AgRadiusCrossLineLabelOptions> {}
 
-export interface AgRadiusCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
+interface AgRadiusCrossLineLabelOptions extends AgBaseCrossLineLabelOptions {
     positionAngle?: Degree;
 }

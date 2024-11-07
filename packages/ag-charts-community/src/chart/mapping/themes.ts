@@ -1,6 +1,7 @@
 import type { AgChartTheme, AgChartThemeName, AgChartThemeOverrides, AgChartThemePalette } from 'ag-charts-types';
 
 import { Logger } from '../../util/logger';
+import { simpleMemorize } from '../../util/memo';
 import { mergeDefaults } from '../../util/object';
 import { type OptionsDefs, arrayOf, isValid, object, or, string } from '../../util/validate';
 import { ChartTheme } from '../themes/chartTheme';
@@ -17,32 +18,34 @@ import { VividDark } from '../themes/vividDark';
 import { VividLight } from '../themes/vividLight';
 
 type SpecialThemeName = 'ag-financial' | 'ag-financial-dark';
-export type ThemeMap = { [key in AgChartThemeName | SpecialThemeName | 'undefined' | 'null']?: () => ChartTheme };
+type ThemeMap = { [key in AgChartThemeName | SpecialThemeName | 'undefined' | 'null']?: () => ChartTheme };
 
-const lightTheme = () => new ChartTheme();
-const darkTheme = () => new DarkTheme();
+const lightTheme = simpleMemorize(() => new ChartTheme());
+const darkTheme = simpleMemorize(() => new DarkTheme());
 
 export const themes: ThemeMap = {
     // darkThemes,
     'ag-default-dark': darkTheme,
-    'ag-sheets-dark': () => new SheetsDark(),
-    'ag-polychroma-dark': () => new PolychromaDark(),
-    'ag-vivid-dark': () => new VividDark(),
-    'ag-material-dark': () => new MaterialDark(),
-    'ag-financial-dark': () => new FinancialDark(),
+    'ag-sheets-dark': simpleMemorize(() => new SheetsDark()),
+    'ag-polychroma-dark': simpleMemorize(() => new PolychromaDark()),
+    'ag-vivid-dark': simpleMemorize(() => new VividDark()),
+    'ag-material-dark': simpleMemorize(() => new MaterialDark()),
+    'ag-financial-dark': simpleMemorize(() => new FinancialDark()),
 
     // lightThemes,
     null: lightTheme,
     undefined: lightTheme,
     'ag-default': lightTheme,
-    'ag-sheets': () => new SheetsLight(),
-    'ag-polychroma': () => new PolychromaLight(),
-    'ag-vivid': () => new VividLight(),
-    'ag-material': () => new MaterialLight(),
-    'ag-financial': () => new FinancialLight(),
+    'ag-sheets': simpleMemorize(() => new SheetsLight()),
+    'ag-polychroma': simpleMemorize(() => new PolychromaLight()),
+    'ag-vivid': simpleMemorize(() => new VividLight()),
+    'ag-material': simpleMemorize(() => new MaterialLight()),
+    'ag-financial': simpleMemorize(() => new FinancialLight()),
 };
 
-export function getChartTheme(value: unknown): ChartTheme {
+export const getChartTheme = simpleMemorize(createChartTheme);
+
+function createChartTheme(value: unknown): ChartTheme {
     if (value instanceof ChartTheme) {
         return value;
     }

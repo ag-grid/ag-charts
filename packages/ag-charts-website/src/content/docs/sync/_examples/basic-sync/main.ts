@@ -76,9 +76,10 @@ const chartOptions2: AgChartOptions = {
         text: 'Microsoft (MSFT)',
         textAlign: 'left',
     },
-    navigator: {
-        min: 0.8,
-        max: 1,
+    initialState: {
+        zoom: {
+            ratioX: { start: 0.8, end: 1 },
+        },
     },
 };
 

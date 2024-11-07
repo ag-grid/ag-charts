@@ -7,6 +7,7 @@ const options: AgChartOptions = {
     title: {
         text: 'FRIENDS & ACQUAINTANCES',
     },
+    animation: { enabled: false },
     series: Object.entries(getData()).map(([relationship, data]) => ({
         data,
         type: 'radar-line',
@@ -28,9 +29,6 @@ const options: AgChartOptions = {
             type: 'angle-number',
             label: {
                 padding: 0,
-            },
-            gridLine: {
-                enabled: false,
             },
             line: {
                 enabled: false,

@@ -1,9 +1,8 @@
-import { _ModuleSupport, type _Scale, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-const { BaseProperties, Validate, OBJECT, BOOLEAN, NUMBER, NUMBER_ARRAY } = _ModuleSupport;
-const { Logger } = _Util;
+const { BaseProperties, Validate, OBJECT, BOOLEAN, NUMBER, NUMBER_ARRAY, Logger } = _ModuleSupport;
 
-export class GaugeSegmentationIntervalProperties extends BaseProperties {
+class GaugeSegmentationIntervalProperties extends BaseProperties {
     @Validate(NUMBER_ARRAY, { optional: true })
     values?: number[] | undefined;
 
@@ -13,7 +12,7 @@ export class GaugeSegmentationIntervalProperties extends BaseProperties {
     @Validate(NUMBER, { optional: true })
     count?: number;
 
-    getSegments(scale: _Scale.Scale<number, number>, maxTicks: number) {
+    getSegments(scale: _ModuleSupport.Scale<number, number>, maxTicks: number) {
         const { values, step, count } = this;
         const d0 = Math.min(...scale.domain);
         const d1 = Math.max(...scale.domain);
@@ -33,7 +32,8 @@ export class GaugeSegmentationIntervalProperties extends BaseProperties {
             const segments = count + 1;
             ticks = Array.from({ length: segments + 1 }, (_, i) => (i / segments) * (d1 - d0) + d0);
         } else {
-            ticks = scale.ticks?.();
+            const segments = scale.ticks?.().filter((v) => v > d0 && v < d1);
+            ticks = segments != null ? [d0, ...segments, d1] : undefined;
         }
 
         if (ticks != null && ticks.length > maxTicks) {

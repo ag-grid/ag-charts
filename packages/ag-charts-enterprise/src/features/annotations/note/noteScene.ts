@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
@@ -7,8 +7,7 @@ import { TextualPointScene } from '../scenes/textualPointScene';
 import { convertPoint } from '../utils/values';
 import { ICON_HEIGHT, ICON_WIDTH, LABEL_OFFSET, type NoteProperties, TOOLBAR_OFFSET } from './noteProperties';
 
-const { ZIndexMap, TextWrapper } = _ModuleSupport;
-const { clamp } = _Util;
+const { ZIndexMap, TextWrapper, clamp } = _ModuleSupport;
 
 export class NoteScene extends TextualPointScene<NoteProperties> {
     static override is(value: unknown): value is NoteScene {

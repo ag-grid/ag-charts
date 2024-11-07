@@ -17,6 +17,8 @@ export abstract class LinearScene<
         locked?: boolean;
     },
 > extends AnnotationScene {
+    protected readonly ignoreYBounds?: boolean;
+
     protected dragState?: {
         offset: _ModuleSupport.Vec2;
         start: _ModuleSupport.Vec2;
@@ -130,7 +132,10 @@ export abstract class LinearScene<
             datum.end.x = endPoint.x;
         }
 
-        if (coords.every((coord) => within(yAxis.bounds.y, coord.y, yAxis.bounds.y + yAxis.bounds.height))) {
+        if (
+            this.ignoreYBounds ||
+            coords.every((coord) => within(yAxis.bounds.y, coord.y, yAxis.bounds.y + yAxis.bounds.height))
+        ) {
             datum.start.y = startPoint.y;
             datum.end.y = endPoint.y;
         }

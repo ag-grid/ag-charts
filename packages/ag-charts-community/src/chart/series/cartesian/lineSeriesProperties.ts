@@ -1,7 +1,7 @@
 import type {
     AgLineSeriesLabelFormatterParams,
+    AgLineSeriesMarkerItemStylerParams,
     AgLineSeriesOptions,
-    AgLineSeriesOptionsKeys,
     AgLineSeriesTooltipRendererParams,
 } from 'ag-charts-types';
 
@@ -18,17 +18,8 @@ import {
 import { Label } from '../../label';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
-import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
-import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
+import { CartesianSeriesProperties } from './cartesianSeries';
 import { InterpolationProperties } from './interpolationProperties';
-
-export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
-    readonly point: CartesianSeriesNodeDatum['point'] & {
-        readonly moveTo: boolean;
-    };
-    readonly labelText?: string;
-    readonly selected: boolean | undefined;
-}
 
 export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeriesOptions> {
     @Validate(STRING)
@@ -74,7 +65,7 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
     interpolation: InterpolationProperties = new InterpolationProperties();
 
     @Validate(OBJECT)
-    readonly marker = new SeriesMarker<AgLineSeriesOptionsKeys>();
+    readonly marker = new SeriesMarker<AgLineSeriesMarkerItemStylerParams>();
 
     @Validate(OBJECT)
     readonly label = new Label<AgLineSeriesLabelFormatterParams>();
@@ -84,4 +75,7 @@ export class LineSeriesProperties extends CartesianSeriesProperties<AgLineSeries
 
     @Validate(BOOLEAN)
     connectMissingData: boolean = false;
+
+    @Validate(BOOLEAN)
+    sparklineMode: boolean = false;
 }

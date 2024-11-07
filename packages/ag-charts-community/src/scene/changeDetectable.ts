@@ -1,19 +1,6 @@
 /* eslint-disable @typescript-eslint/no-implied-eval */
-export enum RedrawType {
-    NONE, // No change in rendering.
-
-    // Canvas doesn't need clearing, an incremental re-rerender is sufficient.
-    TRIVIAL, // Non-positional change in rendering.
-
-    // Group needs clearing, a semi-incremental re-render is sufficient.
-    MINOR, // Small change in rendering, potentially affecting other elements in the same group.
-
-    // Canvas needs to be cleared for these redraw types.
-    MAJOR, // Significant change in rendering.
-}
 
 type SceneChangeDetectionOptions<T = any> = {
-    redraw?: RedrawType;
     type?: 'normal' | 'transform' | 'path';
     convertor?: (o: any) => any;
     changeCb?: (o: T) => any;
@@ -34,14 +21,8 @@ export function SceneChangeDetection<T = any>(opts?: SceneChangeDetectionOptions
 }
 
 function prepareGetSet(target: any, key: string, privateKey: string, opts?: SceneChangeDetectionOptions) {
-    const {
-        redraw = RedrawType.TRIVIAL,
-        type = 'normal',
-        changeCb,
-        convertor,
-        checkDirtyOnAssignment = false,
-    } = opts ?? {};
-    const requiredOpts = { redraw, type, changeCb, checkDirtyOnAssignment, convertor };
+    const { type = 'normal', changeCb, convertor, checkDirtyOnAssignment = false } = opts ?? {};
+    const requiredOpts = { type, changeCb, checkDirtyOnAssignment, convertor };
 
     // Select the correctly optimized setter with minimal branches/checks for the specific type
     // of change detection.
@@ -51,10 +32,10 @@ function prepareGetSet(target: any, key: string, privateKey: string, opts?: Scen
             setter = buildNormalSetter(privateKey, requiredOpts);
             break;
         case 'transform':
-            setter = buildTransformSetter(privateKey, requiredOpts);
+            setter = buildTransformSetter(privateKey);
             break;
         case 'path':
-            setter = buildPathSetter(privateKey, requiredOpts);
+            setter = buildPathSetter(privateKey);
             break;
     }
     setter = buildCheckDirtyChain(
@@ -108,8 +89,8 @@ function buildCheckDirtyChain(setterFn: Function, opts: SceneChangeDetectionOpti
         return function (this: any, value: any) {
             const change = setterFn.call(this, value);
 
-            if (change !== NO_CHANGE && value != null && value._dirty > RedrawType.NONE) {
-                this.markDirty(value._dirty);
+            if (change !== NO_CHANGE && value != null && value._dirty) {
+                this.markDirty();
             }
 
             return change;
@@ -120,13 +101,13 @@ function buildCheckDirtyChain(setterFn: Function, opts: SceneChangeDetectionOpti
 }
 
 function buildNormalSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
-    const { redraw = RedrawType.TRIVIAL, changeCb } = opts;
+    const { changeCb } = opts;
 
     return function (this: any, value: any) {
         const oldValue = this[privateKey];
         if (value !== oldValue) {
             this[privateKey] = value;
-            this.markDirty(redraw);
+            this.markDirty();
             changeCb?.(this);
             return value;
         }
@@ -135,14 +116,12 @@ function buildNormalSetter(privateKey: string, opts: SceneChangeDetectionOptions
     };
 }
 
-function buildTransformSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
-    const { redraw = RedrawType.TRIVIAL } = opts;
-
+function buildTransformSetter(privateKey: string) {
     return function (this: any, value: any) {
         const oldValue = this[privateKey];
         if (value !== oldValue) {
             this[privateKey] = value;
-            this.markDirtyTransform(redraw);
+            this.markDirtyTransform();
             return value;
         }
 
@@ -150,16 +129,14 @@ function buildTransformSetter(privateKey: string, opts: SceneChangeDetectionOpti
     };
 }
 
-function buildPathSetter(privateKey: string, opts: SceneChangeDetectionOptions) {
-    const { redraw = RedrawType.TRIVIAL } = opts;
-
+function buildPathSetter(privateKey: string) {
     return function (this: any, value: any) {
         const oldValue = this[privateKey];
         if (value !== oldValue) {
             this[privateKey] = value;
             if (!this._dirtyPath) {
                 this._dirtyPath = true;
-                this.markDirty(redraw);
+                this.markDirty();
             }
             return value;
         }

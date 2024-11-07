@@ -5,6 +5,22 @@ export type SeriesGrouping = {
     stackCount: number;
 };
 
+export type SeriesGroupingResult = {
+    visibleGroupCount: number;
+    visibleSameStackCount: number;
+    index: number;
+};
+
+type SeriesIdLike = {
+    internalId: string;
+    type: string;
+};
+
+type SeriesLike = SeriesIdLike & {
+    seriesGrouping?: SeriesGrouping;
+    visible: boolean;
+};
+
 export class SeriesStateManager {
     private readonly groups: {
         [type: string]: {
@@ -15,45 +31,33 @@ export class SeriesStateManager {
         };
     } = {};
 
-    public registerSeries({
-        id,
-        seriesGrouping,
-        visible,
-        type,
-    }: {
-        id: string;
-        seriesGrouping?: SeriesGrouping;
-        visible: boolean;
-        type: string;
-    }) {
+    public registerSeries({ internalId, seriesGrouping, visible, type }: SeriesLike) {
         if (!seriesGrouping) return;
 
         this.groups[type] ??= {};
-        this.groups[type][id] = { grouping: seriesGrouping, visible };
+        this.groups[type][internalId] = { grouping: seriesGrouping, visible };
     }
 
-    public deregisterSeries({ id, type }: { id: string; type: string }) {
+    public updateSeries({ internalId, seriesGrouping, visible, type }: SeriesLike) {
+        if (!seriesGrouping) return;
+
+        const entry = this.groups[type]?.[internalId];
+        if (entry) {
+            entry.grouping = seriesGrouping;
+            entry.visible = visible;
+        }
+    }
+
+    public deregisterSeries({ internalId, type }: SeriesIdLike) {
         if (this.groups[type]) {
-            delete this.groups[type][id];
+            delete this.groups[type][internalId];
         }
         if (this.groups[type] && Object.keys(this.groups[type]).length === 0) {
             delete this.groups[type];
         }
     }
 
-    public getVisiblePeerGroupIndex({
-        type,
-        seriesGrouping,
-        visible,
-    }: {
-        type: string;
-        seriesGrouping?: SeriesGrouping;
-        visible: boolean;
-    }): {
-        visibleGroupCount: number;
-        visibleSameStackCount: number;
-        index: number;
-    } {
+    public getVisiblePeerGroupIndex({ type, seriesGrouping, visible }: SeriesLike): SeriesGroupingResult {
         if (!seriesGrouping)
             return { visibleGroupCount: visible ? 1 : 0, visibleSameStackCount: visible ? 1 : 0, index: 0 };
 

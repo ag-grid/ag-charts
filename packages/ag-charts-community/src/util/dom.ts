@@ -92,8 +92,16 @@ export function setElementBBox(element: HTMLElement | undefined, bbox: BBoxValue
     }
 }
 
+export function getElementBBox(element: HTMLElement): BBoxValues {
+    const width = parseFloat(element.style.width) || 0;
+    const height = parseFloat(element.style.height) || 0;
+    const x = parseFloat(element.style.left) || 0;
+    const y = parseFloat(element.style.top) || 0;
+    return { x, y, width, height };
+}
+
 export function focusCursorAtEnd(element: HTMLElement) {
-    element.focus();
+    element.focus({ preventScroll: true });
 
     if (element.lastChild?.textContent == null) return;
 
@@ -109,4 +117,19 @@ export function focusCursorAtEnd(element: HTMLElement) {
 let _id = 0;
 export function createElementId(label?: string) {
     return `${label ?? 'ag-charts-element'}-${_id++}`;
+}
+
+export function isInputPending() {
+    // Chrome-specific API for checking if user-input is pending, and we should yield the main thread
+    // to allow it to be processed.
+    const navigator = getWindow().navigator;
+    if ('scheduling' in navigator) {
+        const scheduling: { isInputPending(opts?: { includeContinuous?: boolean }): void } =
+            navigator.scheduling as any;
+        if ('isInputPending' in scheduling) {
+            return scheduling.isInputPending({ includeContinuous: true });
+        }
+    }
+
+    return false;
 }

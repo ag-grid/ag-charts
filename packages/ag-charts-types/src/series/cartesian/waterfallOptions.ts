@@ -39,7 +39,12 @@ export interface AgWaterfallSeriesLabelOptions<TDatum, TParams> extends AgChartL
     padding?: PixelSize;
 }
 
-export type AgWaterfallSeriesLabelPlacement = 'start' | 'end' | 'inside';
+export type AgWaterfallSeriesLabelPlacement =
+    | 'inside-center'
+    | 'inside-start'
+    | 'inside-end'
+    | 'outside-start'
+    | 'outside-end';
 
 export interface AgWaterfallSeriesThemeableOptions<TDatum = any> extends AgBaseCartesianThemeableOptions<TDatum> {
     /**

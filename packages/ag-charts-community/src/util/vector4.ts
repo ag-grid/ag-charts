@@ -5,6 +5,7 @@ export const Vec4 = {
     end,
     from,
     height,
+    round,
     start,
     topCenter,
     origin,
@@ -77,6 +78,13 @@ function width(a: Vec4): number {
  */
 function height(a: Vec4): number {
     return Math.abs(a.y2 - a.y1);
+}
+
+/**
+ * Round each component of the vector4 to the nearest integer.
+ */
+function round(a: Vec4): Vec4 {
+    return { x1: Math.round(a.x1), y1: Math.round(a.y1), x2: Math.round(a.x2), y2: Math.round(a.y2) };
 }
 
 /**

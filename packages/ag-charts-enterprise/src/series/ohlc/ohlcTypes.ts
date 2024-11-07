@@ -1,4 +1,4 @@
-import type { LineDashOptions, StrokeOptions, _ModuleSupport } from 'ag-charts-community';
+import type { LineDashOptions, StrokeOptions } from 'ag-charts-community';
 
 import type { CandlestickNodeBaseDatum } from '../candlestick/candlestickTypes';
 

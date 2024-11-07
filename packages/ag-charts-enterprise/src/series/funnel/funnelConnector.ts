@@ -1,5 +1,6 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
+const { lineDistanceSquared } = _ModuleSupport;
 const { BBox, Path, ScenePathChangeDetection } = _Scene;
 
 const delta = 1e-6;
@@ -45,10 +46,10 @@ export class FunnelConnector extends Path implements _ModuleSupport.DistantObjec
 
         const { x0, y0, x1, y1, x2, y2, x3, y3 } = this;
         return Math.min(
-            _Util.lineDistanceSquared(x, y, x0, y0, x1, y1, Infinity),
-            _Util.lineDistanceSquared(x, y, x1, y1, x2, y2, Infinity),
-            _Util.lineDistanceSquared(x, y, x2, y2, x3, y3, Infinity),
-            _Util.lineDistanceSquared(x, y, x2, y2, x0, y0, Infinity)
+            lineDistanceSquared(x, y, x0, y0, x1, y1, Infinity),
+            lineDistanceSquared(x, y, x1, y1, x2, y2, Infinity),
+            lineDistanceSquared(x, y, x2, y2, x3, y3, Infinity),
+            lineDistanceSquared(x, y, x3, y3, x0, y0, Infinity)
         );
     }
 

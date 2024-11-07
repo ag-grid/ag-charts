@@ -14,7 +14,7 @@ const {
     valueProperty,
     TextUtils,
 } = _ModuleSupport;
-const { Label, Rect, Text } = _Scene;
+const { Group, Label, Rect, Text } = _Scene;
 
 enum LabelConfiguration {
     Open = 1 << 1,
@@ -49,7 +49,6 @@ const chartConfigurations: Record<AgPriceVolumeChartType, LabelConfiguration> = 
         LabelConfiguration.Volume,
     line: LabelConfiguration.UnlabelledClose | LabelConfiguration.Volume,
     'step-line': LabelConfiguration.UnlabelledClose | LabelConfiguration.Volume,
-    'range-area': LabelConfiguration.Open | LabelConfiguration.Close | LabelConfiguration.Low | LabelConfiguration.High,
     hlc: LabelConfiguration.NeutralClose | LabelConfiguration.Low | LabelConfiguration.High | LabelConfiguration.Volume,
     'high-low': LabelConfiguration.NeutralLow | LabelConfiguration.NeutralHigh | LabelConfiguration.Volume,
 };
@@ -118,10 +117,11 @@ export class StatusBar
     data?: any[] = undefined;
 
     private readonly highlightManager: _ModuleSupport.HighlightManager;
-    private readonly labelGroup = new _Scene.TranslatableLayer({
+    private readonly layer = new Group({
         name: 'StatusBar',
         zIndex: ZIndexMap.STATUS_BAR,
     });
+    private readonly labelGroup = this.layer.appendChild(new _Scene.TranslatableGroup());
     private readonly backgroundNode = this.labelGroup.appendChild(new Rect());
     private readonly labels = [
         {
@@ -257,7 +257,7 @@ export class StatusBar
         this.labelGroup.visible = false;
 
         this.destroyFns.push(
-            ctx.scene.attachNode(this.labelGroup),
+            ctx.scene.attachNode(this.layer),
             ctx.layoutManager.registerElement(LayoutElement.Overlay, (e) => this.startPerformLayout(e)),
             ctx.layoutManager.addListener('layout:complete', (e) => this.onLayoutComplete(e)),
             ctx.highlightManager.addListener('highlight-change', () => this.updateHighlight())
@@ -280,7 +280,9 @@ export class StatusBar
 
         if (props.length === 0) return;
 
-        const { processedData, dataModel } = await dataController.request(this.id, this.data, { props });
+        const { processedData, dataModel } = await dataController.request(this.id, this.data, {
+            props,
+        });
 
         for (const label of this.labels) {
             const { id, key } = label;

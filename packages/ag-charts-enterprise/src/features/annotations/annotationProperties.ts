@@ -7,7 +7,7 @@ import type {
     TextAlign,
     _Scene,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import type {
     AnnotationContext,
@@ -37,6 +37,7 @@ const {
     UNION,
     BaseProperties,
     Validate,
+    generateUUID,
 } = _ModuleSupport;
 
 /**************
@@ -60,9 +61,9 @@ export class AxisLabelProperties extends Stroke(LineStyle(Fill(Label(Font(BasePr
     cornerRadius: number = 2;
 }
 
-export class BackgroundProperties extends Fill(BaseProperties) {}
+class BackgroundProperties extends Fill(BaseProperties) {}
 
-export class HandleProperties extends Stroke(LineStyle(Fill(BaseProperties))) {}
+class HandleProperties extends Stroke(LineStyle(Fill(BaseProperties))) {}
 
 export class LineTextProperties extends Font(BaseProperties) {
     @Validate(STRING)
@@ -96,9 +97,9 @@ export interface AxisLabelFormatterParams {
 export function Annotation<U extends Constructor<_ModuleSupport.BaseProperties>>(Parent: U) {
     abstract class AnnotationInternal extends Lockable(Visible(Parent)) {
         // A uuid is required, over the usual incrementing index, as annotations can be restored from external databases
-        id = _Util.generateUUID();
+        id = generateUUID();
 
-        isValidWithContext(_context: AnnotationContext, warningPrefix: string) {
+        isValidWithContext(_context: AnnotationContext, warningPrefix?: string) {
             return super.isValid(warningPrefix);
         }
 
@@ -207,7 +208,7 @@ export function Localisable<T extends Constructor>(Parent: T) {
         localeManager?: _ModuleSupport.ModuleContext['localeManager'];
 
         setLocaleManager(localeManager: _ModuleSupport.ModuleContext['localeManager']) {
-            this.localeManager = localeManager;
+            this.localeManager ??= localeManager;
         }
     }
     return LocalisableInternal;
@@ -216,7 +217,7 @@ export function Localisable<T extends Constructor>(Parent: T) {
 /******************
  * Generic mixins *
  ******************/
-export function Visible<T extends Constructor>(Parent: T) {
+function Visible<T extends Constructor>(Parent: T) {
     class VisibleInternal extends Parent {
         @Validate(BOOLEAN, { optional: true })
         visible?: boolean;

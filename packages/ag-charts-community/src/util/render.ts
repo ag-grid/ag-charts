@@ -12,7 +12,13 @@ export function debouncedAnimationFrame(cb: Callback): { schedule(delayMs?: numb
 }
 
 export function debouncedCallback(cb: Callback): { schedule(delayMs?: number): void; await(): Promise<void> } {
-    return buildScheduler((innerCb, delayMs = 0) => setTimeout(innerCb, delayMs), cb);
+    return buildScheduler((innerCb, delayMs = 0) => {
+        if (delayMs === 0) {
+            queueMicrotask(innerCb);
+        } else {
+            setTimeout(innerCb, delayMs);
+        }
+    }, cb);
 }
 
 function buildScheduler(scheduleFn: (cb: () => void, delayMs?: number) => void, cb: Callback) {

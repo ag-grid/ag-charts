@@ -5,9 +5,7 @@ import {
     type FontStyle,
     type FontWeight,
     _ModuleSupport,
-    _Scale,
     _Scene,
-    _Util,
 } from 'ag-charts-community';
 
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
@@ -38,9 +36,9 @@ const {
     ChartAxisDirection,
     CachedTextMeasurerPool,
     EMPTY_TOOLTIP_CONTENT,
+    toRadians,
 } = _ModuleSupport;
 const { BBox, Group, PointerEvents, Selection, Rect, Text, LinearGradient, getMarker, easing } = _Scene;
-const { toRadians } = _Util;
 
 interface TargetLabel {
     enabled: boolean;
@@ -72,16 +70,16 @@ interface Target {
 }
 
 export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
-export type GaugeAnimationEvent =
-    | 'update'
-    | 'updateData'
-    | 'highlight'
-    | 'highlightMarkers'
-    | 'resize'
-    | 'clear'
-    | 'reset'
-    | 'skip';
-export type GaugeAnimationData = { duration?: number };
+export type GaugeAnimationEvent = {
+    update: undefined;
+    updateData: undefined;
+    highlight: undefined;
+    highlightMarkers: undefined;
+    resize: undefined;
+    clear: undefined;
+    reset: undefined;
+    skip: undefined;
+};
 
 interface LinearGaugeNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<LinearGaugeNodeDatum, LinearGaugeLabelDatum> {
@@ -196,7 +194,6 @@ export class LinearGaugeSeries
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            contentGroupVirtual: false,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
         });
@@ -789,7 +786,7 @@ export class LinearGaugeSeries
         datumSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => {
-            return createDatumId(opts.nodeData.length, datum.itemId!);
+            return createDatumId(opts.nodeData.length, datum.itemId);
         });
     }
 
@@ -828,7 +825,7 @@ export class LinearGaugeSeries
         scaleSelection: _Scene.Selection<_Scene.Rect, LinearGaugeNodeDatum>;
     }) {
         return opts.scaleSelection.update(opts.scaleData, undefined, (datum) => {
-            return createDatumId(opts.scaleData.length, datum.itemId!);
+            return createDatumId(opts.scaleData.length, datum.itemId);
         });
     }
 
@@ -1069,7 +1066,7 @@ export class LinearGaugeSeries
         this.resetAllAnimation();
     }
 
-    override getLabelData(): _Util.PointLabelDatum[] {
+    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
         return [];
     }
 

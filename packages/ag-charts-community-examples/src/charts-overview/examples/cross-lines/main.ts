@@ -77,7 +77,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0.3,
                     label: {
                         text: 'Q1',
-                        position: 'insideTop',
+                        position: 'inside-top',
                     },
                 },
                 {
@@ -86,7 +86,7 @@ const options: AgChartOptions = {
                     fill: 'transparent',
                     label: {
                         text: 'Q2',
-                        position: 'insideTop',
+                        position: 'inside-top',
                     },
                 },
                 {
@@ -95,7 +95,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0.3,
                     label: {
                         text: 'Q3',
-                        position: 'insideTop',
+                        position: 'inside-top',
                     },
                 },
                 {
@@ -104,7 +104,7 @@ const options: AgChartOptions = {
                     fill: 'transparent',
                     label: {
                         text: 'Q4',
-                        position: 'insideTop',
+                        position: 'inside-top',
                     },
                 },
             ],
@@ -124,7 +124,7 @@ const options: AgChartOptions = {
                     label: {
                         text: 'Peak Male Release',
                         padding: 10,
-                        position: 'bottomRight',
+                        position: 'bottom-right',
                     },
                 },
                 {
@@ -138,7 +138,7 @@ const options: AgChartOptions = {
                     label: {
                         text: 'Female Range',
                         padding: 10,
-                        position: 'insideTopRight',
+                        position: 'inside-top-right',
                     },
                 },
             ],

@@ -25,6 +25,8 @@ const options: AgChartOptions = {
             yName: 'Exam Results Range',
             yLowKey: 'low',
             yHighKey: 'high',
+            yLowName: 'Low',
+            yHighName: 'High',
             cornerRadius: 3,
             itemStyler: ({ datum, xKey }) => {
                 const isSecondExam = datum[xKey].slice(-1) === '2';
@@ -64,9 +66,6 @@ const options: AgChartOptions = {
             position: 'top',
             gridLine: {
                 enabled: false,
-            },
-            crosshair: {
-                snap: true,
             },
         },
     ],

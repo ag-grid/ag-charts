@@ -15,20 +15,9 @@ navigator: {
 }
 ```
 
-## Setting an Initial Range
+## Save & Restore
 
-By default the Navigator shows the entire range of chart's data. The two properties that control the range of data to show are `min` and `max`, which default to `0` and `1`, respectively.
-
-The visible range is normalized to the `[0, 1]` interval. For example, to show the last quarter of the chart's data by default we can use the following config:
-
-```js
-navigator: {
-    min: 0.75,
-    max: 1,
-}
-```
-
-Regardless of the initial visible range, the user will be able to adjust the range as they see fit by dragging the range handles inside the Navigator.
+The navigator will reflect the zoom state that can be saved, restored and programmatically initialised and modified, using the [Chart State API](./api-state/).
 
 ## Mini Chart
 

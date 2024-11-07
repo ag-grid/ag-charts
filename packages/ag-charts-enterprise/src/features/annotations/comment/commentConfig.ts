@@ -23,17 +23,10 @@ export const commentConfig: AnnotationTypeConfig<CommentProperties, CommentScene
             node.update(datum, context);
         }
     },
-    createState: (ctx, { createDatum, getDatum, getNode }) =>
+    createState: (ctx, { createDatum }) =>
         new CommentStateMachine({
             ...ctx,
             create: createDatum(AnnotationType.Comment),
-            datum: getDatum(CommentProperties.is),
-            node: getNode(CommentScene.is),
         }),
-    dragState: (ctx, { getDatum, getNode }) =>
-        new DragStateMachine<CommentProperties, CommentScene>({
-            ...ctx,
-            datum: getDatum(CommentProperties.is),
-            node: getNode(CommentScene.is),
-        }),
+    dragState: (ctx) => new DragStateMachine<CommentProperties, CommentScene>(ctx),
 };

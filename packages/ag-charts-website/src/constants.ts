@@ -90,7 +90,7 @@ export const ASTRO_ALGOLIA_APP_ID = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_APP_ID
 
 export const ASTRO_ALGOLIA_SEARCH_KEY = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_SEARCH_KEY;
 
-export const PRODUCTION_GRID_SITE_URL = 'https://ag-grid.com';
+export const PRODUCTION_GRID_SITE_URL = 'https://www.ag-grid.com';
 
 function calculateGridUrl() {
     if (SITE_URL == null) return;
@@ -107,7 +107,7 @@ export const GRID_URL = calculateGridUrl();
 
 export const GALLERY_IMAGE_DPR_ENHANCEMENT = import.meta.env?.PUBLIC_GALLERY_IMAGE_DPR_ENHANCEMENT === 'true';
 
-export const PRODUCTION_CHARTS_SITE_URL = 'https://ag-grid.com/charts';
+export const PRODUCTION_CHARTS_SITE_URL = 'https://www.ag-grid.com/charts';
 export const LEGACY_CHARTS_SITE_URL = 'https://charts.ag-grid.com';
 
 /*

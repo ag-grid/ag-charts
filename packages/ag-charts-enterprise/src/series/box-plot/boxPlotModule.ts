@@ -1,9 +1,9 @@
-import { type _ModuleSupport, _Theme, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Theme } from 'ag-charts-community';
 
 import { BoxPlotSeries } from './boxPlotSeries';
 import { BOX_PLOT_SERIES_THEME } from './boxPlotThemes';
 
-const { Color } = _Util;
+const { Color } = _ModuleSupport;
 
 export const BoxPlotModule: _ModuleSupport.SeriesModule<'box-plot'> = {
     type: 'series',

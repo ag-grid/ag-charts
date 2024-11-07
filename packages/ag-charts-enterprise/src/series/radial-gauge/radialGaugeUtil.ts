@@ -32,7 +32,7 @@ type AnimatableNeedleDatum = {
     angle: number;
 };
 
-export function computeClipSector(datum: AnimatableSectorDatum) {
+function computeClipSector(datum: AnimatableSectorDatum) {
     const { startAngle, endAngle, clipStartAngle, clipEndAngle, innerRadius, outerRadius } = datum;
 
     if (clipStartAngle == null || clipEndAngle == null) return;
@@ -45,7 +45,7 @@ export function computeClipSector(datum: AnimatableSectorDatum) {
     );
 }
 
-export function clipSectorVisibility(startAngle: number, endAngle: number, clipSector: _Scene.SectorBox) {
+function clipSectorVisibility(startAngle: number, endAngle: number, clipSector: _Scene.SectorBox) {
     return Math.max(startAngle, clipSector.startAngle) <= Math.min(endAngle, clipSector.endAngle);
 }
 

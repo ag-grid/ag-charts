@@ -82,11 +82,13 @@ Additionally `AgChartsInstance.waitForUpdate()` can be used after initial creati
 when the first rendering of the newly created chart is complete.
 
 {% note %}
+Although rendering maybe complete, browsers may not repaint until Javascript execution pauses.
+
 `Promise`s do not take animations into account, they resolve after the first rendering in an animation sequence.
 {% /note %}
 
-This example demonstrates how this can be used to create trivial loops to continuously update a chart,
-with each update only being applied once the previous update has completed.
+This example demonstrates how these APIs be used to create to continuously update a chart, with each update only being
+applied once the previous update has been rendered.
 
 {% chartExampleRunner title="Wait for Options Update" name="wait-for-update" type="generated" /%}
 

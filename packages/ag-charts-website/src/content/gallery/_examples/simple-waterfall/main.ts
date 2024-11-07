@@ -54,13 +54,7 @@ const options: AgChartOptions = {
             position: 'left',
             interval: { values: [0, -148.1] },
             label: {
-                formatter: ({ value }) => `${value}M`,
-            },
-            crosshair: {
-                label: {
-                    renderer: ({ value }) =>
-                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${value >= 0 ? '' : '-'}£${formatter.format(Math.abs(value))}M</div>`,
-                },
+                formatter: ({ value }) => `-£${formatter.format(Math.abs(value))}M`,
             },
         },
         {

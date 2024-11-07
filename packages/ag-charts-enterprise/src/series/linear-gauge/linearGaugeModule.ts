@@ -4,7 +4,6 @@ import defaultColorStops from '../gauge-util/defaultColorStops';
 import { LinearGaugeSeries } from './linearGaugeSeries';
 
 const {
-    FONT_WEIGHT,
     DEFAULT_FONT_FAMILY,
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_LABEL_COLOUR,
@@ -48,7 +47,7 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 spacing: 5,
                 label: {
                     enabled: true,
-                    fontWeight: FONT_WEIGHT.NORMAL,
+                    fontWeight: 'normal' as const,
                     fontSize: 12,
                     fontFamily: DEFAULT_FONT_FAMILY,
                     color: DEFAULT_LABEL_COLOUR,
@@ -58,7 +57,7 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
             label: {
                 enabled: false,
                 placement: 'inside-start',
-                fontWeight: FONT_WEIGHT.NORMAL,
+                fontWeight: 'normal' as const,
                 fontSize: 24,
                 minimumFontSize: 12,
                 spacing: 18,

@@ -5,14 +5,22 @@ import { getData } from './data';
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
-    title: {
-        text: 'Revenue Open by Sales Stage',
-    },
     series: [
         {
             type: 'pyramid',
-            stageKey: 'group',
-            valueKey: 'value',
+            stageKey: 'incomeBracket',
+            valueKey: 'adults',
+            spacing: 4,
+            fillOpacity: 1,
+            aspectRatio: 1.2,
+            label: {
+                formatter: ({ value, datum }) =>
+                    datum.group === 'Lower Middle Class' || datum.group === 'Bottom 50%'
+                        ? `${datum.percentage}\n${value.toLocaleString()}`
+                        : datum.group === 'Upper Middle Class'
+                          ? `${datum.percentage}`
+                          : ``,
+            },
         },
     ],
 };

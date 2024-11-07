@@ -2,7 +2,6 @@ import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ListSwitch } from '../dom/proxyInteractionService';
 import { BBox } from '../scene/bbox';
-import { RedrawType } from '../scene/changeDetectable';
 import { Group } from '../scene/group';
 import { Image } from '../scene/image';
 import type { Line } from '../scene/shape/line';
@@ -12,6 +11,7 @@ import { Translatable } from '../scene/transformable';
 import { arraysEqual } from '../util/array';
 import { iterate } from '../util/iterator';
 import { ProxyPropertyOnWrite } from '../util/proxy';
+import type { NativeWidget } from '../widget/nativeWidget';
 import type { Marker } from './marker/marker';
 import type { MarkerConstructor } from './marker/util';
 
@@ -50,12 +50,12 @@ export class LegendMarkerLabel extends Translatable(Group) {
     }
 
     destroyProxyButton() {
-        this.proxyButton?.button.remove();
-        this.proxyButton?.listitem.remove();
+        this.proxyButton?.value.button.remove();
+        this.proxyButton?.value.listitem.remove();
         this.proxyButton = undefined;
     }
 
-    proxyButton?: ListSwitch;
+    proxyButton?: NativeWidget<HTMLElement, ListSwitch>;
 
     pageIndex: number = NaN;
 
@@ -164,7 +164,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
                 line.x2 = shift + length;
                 line.y1 = 0;
                 line.y2 = 0;
-                line.markDirty(RedrawType.MAJOR);
+                line.markDirty();
                 lineTop = -line.strokeWidth / 2;
                 lineX1 = line.x1;
                 lineX2 = line.x2;

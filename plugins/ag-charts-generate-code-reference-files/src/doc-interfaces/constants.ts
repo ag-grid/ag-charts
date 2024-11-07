@@ -1,7 +1,4 @@
-export const HIDDEN_SERIES_TYPES = ['AgBulletSeriesOptions'];
-
 export const HIDDEN_API_INTERFACE_MEMBERS = {
-    AgChartThemeOverrides: ['bullet'],
     AgGradientLegendOptions: ['stop'],
     AgConeFunnelSeriesOptions: ['showInMiniChart'],
     AgFunnelSeriesOptions: ['showInMiniChart'],

@@ -2,8 +2,16 @@ import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 
 import { convert, invert } from './utils/values';
 
-const { BaseModuleInstance, InteractionState, Validate, BOOLEAN, createElement, REGIONS, ChartAxisDirection } =
-    _ModuleSupport;
+const {
+    BaseModuleInstance,
+    InteractionState,
+    Validate,
+    BOOLEAN,
+    createElement,
+    REGIONS,
+    ChartAxisDirection,
+    setAttributes,
+} = _ModuleSupport;
 
 export const DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS = `ag-charts-annotations__axis-button`;
 
@@ -31,16 +39,29 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.toggleVisibility(false);
         this.updateButtonElement();
 
-        this.snap = axisCtx.scaleBandwidth() > 0;
+        this.snap = Boolean(axisCtx.scale.bandwidth);
 
         const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
-        const mouseMoveStates = InteractionState.Default | InteractionState.Annotations;
+        const mouseMoveStates =
+            InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
+
+        ctx.domManager.addEventListener('focusin', ({ target }) => {
+            const isSeriesAreaChild = target instanceof HTMLElement && ctx.domManager.contains(target, 'series-area');
+            if (!isSeriesAreaChild) this.hide();
+        });
 
         this.destroyFns.push(
             seriesRegion.addListener('hover', (event) => this.show(event), mouseMoveStates),
-            seriesRegion.addListener('drag', (event) => this.show(event), InteractionState.Annotations),
-            seriesRegion.addListener('drag', () => this.hide(), InteractionState.ZoomDrag),
-            seriesRegion.addListener('leave', () => this.hide(), InteractionState.Default),
+            seriesRegion.addListener(
+                'drag',
+                (event) => this.show(event),
+                InteractionState.Annotations | InteractionState.AnnotationsSelected
+            ),
+            seriesRegion.addListener('leave', () => this.hide(), mouseMoveStates),
+            ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
+            ctx.keyNavManager.addListener('nav-hori', () => this.onKeyPress()),
+            ctx.keyNavManager.addListener('nav-vert', () => this.onKeyPress()),
+            ctx.zoomManager.addListener('zoom-pan-start', () => this.hide()),
             ctx.zoomManager.addListener('zoom-change', () => this.hide()),
             () => this.destroyElements(),
             () => this.wrapper.remove(),
@@ -62,6 +83,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
 
         const button = createElement('button');
         button.classList.add(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
+        setAttributes(button, { tabindex: -1, 'aria-label': this.ctx.localeManager.t('ariaLabelAddHorizontalLine') });
 
         wrapper.appendChild(button);
 
@@ -92,6 +114,16 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
 
     private hide() {
         this.toggleVisibility(false);
+    }
+
+    private onHighlightChange(event: _ModuleSupport.HighlightChangeEvent) {
+        if (event.currentHighlight) return;
+        this.hide();
+    }
+
+    private onKeyPress() {
+        if (this.snap) return;
+        this.hide();
     }
 
     private getButtonCoordinates({ x, y }: _ModuleSupport.Vec2) {

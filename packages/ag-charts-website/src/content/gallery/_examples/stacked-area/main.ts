@@ -90,7 +90,7 @@ const options: AgChartOptions = {
                     strokeWidth: 0,
                     label: {
                         text: 'Peak Season\nJun - Sep',
-                        position: 'insideTop',
+                        position: 'inside-top',
                     },
                 },
             ],

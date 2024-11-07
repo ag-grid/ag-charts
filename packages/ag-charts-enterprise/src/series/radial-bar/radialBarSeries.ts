@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
@@ -20,12 +20,13 @@ const {
     seriesLabelFadeInAnimation,
     seriesLabelFadeOutAnimation,
     animationValidation,
-    formatValue,
+    isFiniteNumber,
+    angleBetween,
+    sanitizeHtml,
+    BandScale,
 } = _ModuleSupport;
 
-const { BandScale } = _Scale;
 const { Sector, SectorBox, motion } = _Scene;
-const { angleBetween, isNumber, sanitizeHtml } = _Util;
 
 class RadialBarSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -129,7 +130,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         if (animationEnabled) {
             if (this.processedData) {
-                extraProps.push(diff(this.processedData));
+                extraProps.push(diff(this.id, this.processedData));
             }
             extraProps.push(animationValidation());
         }
@@ -211,7 +212,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     async createNodeData() {
         const { processedData, dataModel } = this;
 
-        if (!processedData || !dataModel || !this.properties.isValid()) {
+        if (
+            !dataModel ||
+            !processedData ||
+            processedData.type !== 'ungrouped' ||
+            processedData.rawData.length === 0 ||
+            !this.properties.isValid()
+        ) {
             return;
         }
 
@@ -224,10 +231,12 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             return;
         }
 
-        const angleStartIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-start`);
-        const angleEndIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-end`);
+        const radiusValues = dataModel.resolveKeysById<number>(this, 'radiusValue', processedData);
+        const angleStartValues = dataModel.resolveColumnById(this, `angleValue-start`, processedData);
+        const angleEndValues = dataModel.resolveColumnById(this, `angleValue-end`, processedData);
+        const angleRawValues = dataModel.resolveColumnById(this, `angleValue-raw`, processedData);
+
         const angleRangeIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-range`);
-        const angleRawIndex = dataModel.resolveProcessedDataIndexById(this, `angleValue-raw`);
 
         let groupPaddingInner = 0;
         if (radiusAxis instanceof RadiusCategoryAxis) {
@@ -257,11 +266,14 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             x: number,
             y: number
         ): RadialBarLabelNodeDatum | undefined => {
-            const labelText = this.getLabelText(
-                label,
-                { value: angleDatum, datum, angleKey, radiusKey, angleName, radiusName },
-                formatValue
-            );
+            const labelText = this.getLabelText(label, {
+                value: angleDatum,
+                datum,
+                angleKey,
+                radiusKey,
+                angleName,
+                radiusName,
+            });
             if (labelText) {
                 return { x, y, text: labelText, textAlign: 'center', textBaseline: 'middle' };
             }
@@ -271,22 +283,24 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const context = { itemId: radiusKey, nodeData, labelData: nodeData };
         if (!this.visible) return context;
 
-        processedData.data.forEach((group, index) => {
-            const { datum, keys, values, aggValues } = group;
+        const { rawData, aggregation } = processedData;
+        rawData.forEach((datum, datumIndex) => {
+            const radiusDatum = radiusValues[datumIndex];
+            if (radiusDatum == null) return;
 
-            const radiusDatum = keys[0];
-            const angleDatum = values[angleRawIndex];
+            const angleDatum = angleRawValues[datumIndex];
+            const angleStartDatum = angleStartValues[datumIndex];
+            const angleEndDatum = angleEndValues[datumIndex];
             const isPositive = angleDatum >= 0 && !Object.is(angleDatum, -0);
-            const angleStartDatum = values[angleStartIndex];
-            const angleEndDatum = values[angleEndIndex];
-            const angleRange = aggValues?.[angleRangeIndex][isPositive ? 1 : 0] ?? 0;
+            const datumAggregation = aggregation![datumIndex];
+            const angleRange = datumAggregation[angleRangeIndex][isPositive ? 1 : 0];
             const reversed = isPositive === angleAxisReversed;
 
-            let startAngle = angleScale.convert(angleStartDatum, { clampMode: 'clamped' });
-            let endAngle = angleScale.convert(angleEndDatum, { clampMode: 'clamped' });
+            let startAngle = angleScale.convert(angleStartDatum, true);
+            let endAngle = angleScale.convert(angleEndDatum, true);
 
-            let rangeStartAngle = angleScale.convert(0, { clampMode: 'clamped' });
-            let rangeEndAngle = angleScale.convert(angleRange, { clampMode: 'clamped' });
+            let rangeStartAngle = angleScale.convert(0, true);
+            let rangeEndAngle = angleScale.convert(angleRange, true);
 
             if (reversed) {
                 [rangeStartAngle, rangeEndAngle] = [rangeEndAngle, rangeStartAngle];
@@ -320,7 +334,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 endAngle: rangeEndAngle,
                 clipSector,
                 reversed,
-                index,
+                index: datumIndex,
             });
         });
 
@@ -502,7 +516,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!this.properties.isValid() || !(xAxis && yAxis && isNumber(angleValue)) || !dataModel) {
+        if (!this.properties.isValid() || !(xAxis && yAxis && isFiniteNumber(angleValue)) || !dataModel) {
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
         }
 

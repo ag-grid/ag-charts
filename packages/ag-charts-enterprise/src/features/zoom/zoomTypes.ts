@@ -1,7 +1,5 @@
 import type { AgZoomAnchorPoint, _ModuleSupport } from 'ag-charts-community';
 
-import type { ZoomRange } from './zoomRange';
-
 export interface DefinedZoomState extends _ModuleSupport.AxisZoomState {
     x: _ModuleSupport.ZoomState;
     y: _ModuleSupport.ZoomState;
@@ -28,6 +26,5 @@ export interface ZoomProperties {
     isScalingY: boolean;
     minRatioX: number;
     minRatioY: number;
-    rangeX: ZoomRange;
     scrollingStep: number;
 }

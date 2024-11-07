@@ -68,7 +68,7 @@ export class ZoomToolbar {
     }
 
     public onButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent, props: ZoomProperties) {
-        this.onButtonPressRanges(event, props);
+        this.onButtonPressRanges(event);
         this.onButtonPressZoom(event, props);
     }
 
@@ -77,31 +77,30 @@ export class ZoomToolbar {
         this.toolbarManager?.toggleGroup('zoom', 'zoom', { visible: Boolean(enabled) });
     }
 
-    private onButtonPressRanges(event: _ModuleSupport.ToolbarButtonPressedEvent, props: ZoomProperties) {
+    private onButtonPressRanges(event: _ModuleSupport.ToolbarButtonPressedEvent) {
         if (!ToolbarManager.isGroup('ranges', event)) return;
 
         const { id } = event;
-        const { rangeX } = props;
 
         const time = event.value;
         if (typeof time === 'number') {
-            rangeX.extendToEnd(time);
+            this.zoomManager.extendToEnd('zoom-buttons', ChartAxisDirection.X, time);
         } else if (Array.isArray(time)) {
-            rangeX.updateWith(() => time);
+            this.zoomManager.updateWith('zoom-buttons', ChartAxisDirection.X, () => time);
         } else if (typeof time === 'function') {
-            rangeX.updateWith(time);
+            this.zoomManager.updateWith('zoom-buttons', ChartAxisDirection.X, time);
         }
 
-        const range = rangeX.getRange();
-        this.selectedZoom = range != null ? { id, range } : undefined;
+        const zoom = this.zoomManager.getZoom();
+        this.selectedZoom = zoom?.x == null ? undefined : { id, range: zoom.x };
 
         this.toolbarManager.toggleGroup('zoom-toolbar', 'ranges', { active: false });
         this.toolbarManager.toggleButton('ranges', id, { active: true });
     }
 
-    private onZoomChanged(e: _ModuleSupport.ZoomChangeEvent) {
+    private onZoomChanged(event: _ModuleSupport.ZoomChangeEvent) {
         const { selectedZoom } = this;
-        const { x } = e;
+        const { x } = event;
 
         this.toolbarManager.toggleGroup('zoom-toolbar', 'ranges', { active: false });
 

@@ -1,9 +1,9 @@
 import type { InternalFramework } from '@ag-grid-types';
-import { getDocsExamplePages } from '@features/docs/utils/pageData';
+import { getDocsExamplePages } from '@components/docs/utils/pageData';
 import type { APIContext } from 'astro';
 import { getCollection } from 'astro:content';
 
-import { getGeneratedContents } from '../../../../../features/example-generator';
+import { getGeneratedContents } from '../../../../../components/example-generator';
 
 export async function getStaticPaths() {
     const pages = await getCollection('docs');

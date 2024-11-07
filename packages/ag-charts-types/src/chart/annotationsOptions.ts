@@ -39,7 +39,7 @@ export interface AgAnnotationsThemeableOptions {
     'date-range'?: AgMeasurerAnnotationStyles;
     'price-range'?: AgMeasurerAnnotationStyles;
     'date-price-range'?: AgMeasurerAnnotationStyles;
-    'quick-date-price-range'?: AgMeasurerAnnotationStyles;
+    'quick-date-price-range'?: AgQuickMeasurerAnnotationStyles;
 
     // Other
     axesButtons?: AgAnnotationAxesButtons;
@@ -84,8 +84,18 @@ export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles, StrokeOp
 export interface AgShapeAnnotationStyles extends Lockable, Visible, FillOptions {}
 
 // Measurers
-export interface AgMeasurerAnnotationStyles extends Extendable, Lockable, Visible {
-    statistics: FontOptions;
+export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, Extendable, Lockable, Visible {
+    background?: FillOptions;
+    statistics?: AgMeasurerAnnotationStatistics;
+}
+
+export interface AgQuickMeasurerAnnotationStyles extends Visible {
+    up?: AgQuickMeasurerAnnotationDirectionStyles;
+    down?: AgQuickMeasurerAnnotationDirectionStyles;
+}
+
+export interface AgQuickMeasurerAnnotationDirectionStyles extends FillOptions, StrokeOptions, LineOptions {
+    statistics?: AgMeasurerAnnotationStatistics;
 }
 
 // ***********
@@ -288,14 +298,34 @@ export interface AgArrowDownAnnotation extends AgArrowMarkAnnotation {
 export interface AgDateRangeAnnotation extends AgMeasurerAnnotation {
     /** Configuration for the date range annotation.*/
     type: 'date-range';
+    /**
+     * Whether the annotation should be extended up above.
+     *
+     * Default: `false`
+     */
     extendAbove?: boolean;
+    /**
+     * Whether the annotation should be extended down below.
+     *
+     * Default: `false`
+     */
     extendBelow?: boolean;
 }
 
 export interface AgPriceRangeAnnotation extends AgMeasurerAnnotation {
     /** Configuration for the price range annotation.*/
     type: 'price-range';
+    /**
+     * Whether the annotation should be extended to the left.
+     *
+     * Default: `false`
+     */
     extendLeft?: boolean;
+    /**
+     * Whether the annotation should be extended to the right.
+     *
+     * Default: `false`
+     */
     extendRight?: boolean;
 }
 
@@ -304,19 +334,17 @@ export interface AgDatePriceRangeAnnotation extends AgMeasurerAnnotation {
     type: 'date-price-range';
 }
 
-export interface AgMeasurerAnnotation
-    extends AnnotationLinePoints,
-        Extendable,
-        Lockable,
-        Visible,
-        StrokeOptions,
-        LineOptions {
+export interface AgMeasurerAnnotation extends AnnotationLinePoints, Lockable, Visible, StrokeOptions, LineOptions {
     /** Configuration for the drag handles. */
     handle?: AgAnnotationHandle;
     /** Configuration for the line text. */
     text?: AgLineAnnotationText;
-    /** */
-    statistics?: FontOptions;
+    /** Configuration for the statistics. */
+    statistics?: AgMeasurerAnnotationStatistics;
+}
+
+export interface AgMeasurerAnnotationStatistics extends FontOptions, FillOptions, StrokeOptions {
+    divider?: StrokeOptions;
 }
 
 // **************
@@ -331,9 +359,13 @@ export interface LineOptions extends LineDashOptions {
 }
 
 export interface AgAnnotationHandle extends FillOptions, StrokeOptions, LineDashOptions {}
+
 export interface AgChannelAnnotationMiddle extends Visible, StrokeOptions, LineOptions {}
+
 export interface AgChannelAnnotationBackground extends FillOptions {}
+
 export interface AgNoteAnnotationBackground extends StrokeOptions, FillOptions {}
+
 export interface AgAnnotationAxisLabel
     extends Toggleable,
         FillOptions,

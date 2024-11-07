@@ -96,7 +96,6 @@ AG Charts offers 20+ Vue3 Chart types, each of which are fully customisable:
 | [Donut](https://ag-grid.com/charts/vue/donut-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                 | ✅                  | ✅                   |
 | [Combination](https://ag-grid.com/charts/vue/combination-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)     | ✅                  | ✅                   |
 | [Box Plot](https://ag-grid.com/charts/vue/box-plot-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)           | ❌                  | ✅                   |
-| [Bullet](https://ag-grid.com/charts/vue/bullet-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)               | ❌                  | ✅                   |
 | [Candlestick](https://ag-grid.com/charts/vue/candlestick-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)     | ❌                  | ✅                   |
 | [OHLC](https://ag-grid.com/charts/vue/ohlc-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                   | ❌                  | ✅                   |
 | [Heatmap](https://ag-grid.com/charts/vue/heatmap-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)             | ❌                  | ✅                   |

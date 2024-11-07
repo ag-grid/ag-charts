@@ -75,7 +75,7 @@ export class Menu extends AnchoredPopover {
             row.appendChild(label);
         }
 
-        if (item.altText != null) {
+        if ('altText' in item) {
             row.ariaLabel = this.ctx.localeManager.t(item.altText);
         }
 

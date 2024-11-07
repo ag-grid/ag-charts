@@ -1,5 +1,4 @@
 import { BBox } from '../../../scene/bbox';
-import { RedrawType } from '../../../scene/changeDetectable';
 import { Path } from '../../../scene/shape/path';
 
 export class RangeMask extends Path {
@@ -21,7 +20,7 @@ export class RangeMask extends Path {
             this.width = width;
             this.height = height;
             this.dirtyPath = true;
-            this.markDirty(RedrawType.MAJOR);
+            this.markDirty();
         }
     }
 
@@ -32,7 +31,7 @@ export class RangeMask extends Path {
             this.min = min;
             this.max = max;
             this.dirtyPath = true;
-            this.markDirty(RedrawType.MAJOR);
+            this.markDirty();
         }
     }
 

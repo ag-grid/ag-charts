@@ -4,7 +4,7 @@ import { Marker } from './marker';
 export class Plus extends Marker {
     static readonly className = 'Plus';
 
-    static moves: MarkerPathMove[] = [
+    private static readonly moves: MarkerPathMove[] = [
         { x: -0.5, y: -0.5, t: 'move' },
         { x: 0, y: -1 },
         { x: +1, y: 0 },

@@ -15,7 +15,7 @@ export class ZoomSelector {
     }
 
     update(
-        event: _ModuleSupport.PointerInteractionEvent<'drag' | 'hover'>,
+        event: _ModuleSupport.PointerOffsets,
         props: ZoomProperties,
         bbox?: _Scene.BBox,
         currentZoom?: _ModuleSupport.AxisZoomState

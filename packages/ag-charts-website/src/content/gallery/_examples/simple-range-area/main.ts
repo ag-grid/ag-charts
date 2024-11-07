@@ -57,7 +57,6 @@ const options: AgChartOptions = {
                 text: 'Year',
             },
             crosshair: {
-                snap: true,
                 label: {
                     format: '%b %Y',
                 },
@@ -69,9 +68,6 @@ const options: AgChartOptions = {
             interval: { values: [4.6, 9.1] },
             title: {
                 text: 'Magnitude',
-            },
-            crosshair: {
-                snap: true,
             },
         },
     ],

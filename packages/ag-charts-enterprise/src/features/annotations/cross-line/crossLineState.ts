@@ -1,35 +1,32 @@
-import { type Direction, _ModuleSupport, _Util } from 'ag-charts-community';
+import { type Direction, _ModuleSupport } from 'ag-charts-community';
 
 import { AnnotationType, type Point } from '../annotationTypes';
-import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
+import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
+import type { AnnotationStateEvents } from '../states/stateTypes';
 import { type CrossLineProperties, HorizontalLineProperties, VerticalLineProperties } from './crossLineProperties';
 import type { CrossLineScene } from './crossLineScene';
 
-export function isHorizontalAxis(region: any) {
-    return region === 'horizontal-axes';
-}
+const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
-const { StateMachine } = _ModuleSupport;
-
-interface CrossLineStateMachineContext extends Omit<AnnotationsStateMachineContext, 'create' | 'node'> {
+interface CrossLineStateMachineContext extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: CrossLineProperties) => void;
-    node: () => CrossLineScene | undefined;
-    showAnnotationOptions: () => void;
 }
 
 export class CrossLineStateMachine extends StateMachine<
     'start' | 'waiting-first-render',
-    'click' | 'cancel' | 'render' | 'reset'
+    Pick<AnnotationStateEvents, 'click' | 'drag' | 'cancel' | 'render' | 'reset'>
 > {
-    override debug = _Util.Debug.create(true, 'annotations');
+    override debug = Debug.create(true, 'annotations');
+
+    @StateMachineProperty()
+    protected node?: CrossLineScene;
 
     constructor(direction: Direction, ctx: CrossLineStateMachineContext) {
-        const onClick = ({ point }: { point: () => Point }) => {
+        const onClick = ({ point }: { point: Point }) => {
             const isHorizontal = direction === 'horizontal';
             const datum = isHorizontal ? new HorizontalLineProperties() : new VerticalLineProperties();
 
-            const { x, y } = point();
-            datum.set({ value: isHorizontal ? y : x });
+            datum.set({ value: isHorizontal ? point.y : point.x });
             ctx.create(datum);
 
             ctx.recordAction(
@@ -38,7 +35,7 @@ export class CrossLineStateMachine extends StateMachine<
         };
 
         const actionFirstRender = () => {
-            ctx.node()?.toggleActive(true);
+            this.node?.toggleActive(true);
             ctx.showAnnotationOptions();
             ctx.update();
         };
@@ -46,6 +43,10 @@ export class CrossLineStateMachine extends StateMachine<
         super('start', {
             start: {
                 click: {
+                    target: 'waiting-first-render',
+                    action: onClick,
+                },
+                drag: {
                     target: 'waiting-first-render',
                     action: onClick,
                 },

@@ -1,25 +1,20 @@
-import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 
 import type { AnnotationOptionsColorPickerType, Point } from '../annotationTypes';
-import type { AnnotationsStateMachineContext } from '../annotationsSuperTypes';
+import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { TextualPointProperties } from '../properties/textualPointProperties';
 import type { TextualPointScene } from '../scenes/textualPointScene';
 import { wrapText } from '../text/util';
 import { setColor } from '../utils/styles';
 import { isTextType } from '../utils/types';
+import type { AnnotationStateEvents } from './stateTypes';
 import { guardCancelAndExit, guardSaveAndExit } from './textualStateUtils';
 
-const { StateMachine } = _ModuleSupport;
+const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
-interface TextualPointStateMachineContext<Datum extends TextualPointProperties, Node extends TextualPointScene<Datum>>
-    extends Omit<AnnotationsStateMachineContext, 'create' | 'delete' | 'datum' | 'node' | 'showTextInput'> {
+interface TextualPointStateMachineContext<Datum extends TextualPointProperties>
+    extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: Datum) => void;
-    delete: () => void;
-    datum: () => Datum | undefined;
-    node: () => Node | undefined;
-    showTextInput: () => void;
-    deselect: () => void;
-    showAnnotationOptions: () => void;
 }
 
 export abstract class TextualPointStateMachine<
@@ -27,42 +22,57 @@ export abstract class TextualPointStateMachine<
     Node extends TextualPointScene<Datum>,
 > extends StateMachine<
     'start' | 'waiting-first-render' | 'edit',
-    'click' | 'cancel' | 'keyDown' | 'updateTextInputBBox' | 'color' | 'fontSize' | 'render' | 'reset'
+    Pick<
+        AnnotationStateEvents,
+        | 'click'
+        | 'dragStart'
+        | 'resize'
+        | 'cancel'
+        | 'keyDown'
+        | 'textInput'
+        | 'updateTextInputBBox'
+        | 'color'
+        | 'fontSize'
+        | 'render'
+        | 'reset'
+    >
 > {
-    override debug = _Util.Debug.create(true, 'annotations');
+    override debug = Debug.create(true, 'annotations');
 
-    constructor(ctx: TextualPointStateMachineContext<Datum, Node>) {
-        const actionCreate = ({ point }: { point: () => Point }) => {
+    @StateMachineProperty()
+    protected datum?: Datum;
+
+    @StateMachineProperty()
+    protected node?: Node;
+
+    constructor(ctx: TextualPointStateMachineContext<Datum>) {
+        const actionCreate = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
-            const { x, y } = point();
-            datum.set({ x, y });
+            datum.set({ x: point.x, y: point.y });
             ctx.create(datum);
         };
 
         const actionFirstRender = () => {
-            ctx.node()?.toggleActive(true);
+            this.node?.toggleActive(true);
             ctx.showAnnotationOptions();
             ctx.update();
         };
 
         const onStartEditing = () => {
             ctx.showTextInput();
-            const datum = ctx.datum();
-            if (datum) {
-                datum.visible = false;
+            if (this.datum) {
+                this.datum.visible = false;
             }
         };
 
         const onStopEditing = () => {
             ctx.hideTextInput();
-            const datum = ctx.datum();
-            if (datum) datum.visible = true;
+            if (this.datum) this.datum.visible = true;
             ctx.deselect();
         };
 
-        const actionUpdateTextInputBBox = (bbox: _Scene.BBox) => {
-            const node = ctx.node();
-            node?.setTextInputBBox(bbox);
+        const actionUpdateTextInputBBox = (bbox?: _Scene.BBox) => {
+            this.node?.setTextInputBBox(bbox);
             ctx.update();
         };
 
@@ -77,19 +87,17 @@ export abstract class TextualPointStateMachine<
             color: string;
             opacity: number;
         }) => {
-            const datum = ctx.datum();
-            if (!datum) return;
+            if (!this.datum) return;
 
             if (colorPickerType === 'text-color') {
                 ctx.updateTextInputColor(color);
             }
-            setColor(datum as any, colorPickerType, colorOpacity, color, opacity);
+            setColor(this.datum as any, colorPickerType, colorOpacity, color, opacity);
             ctx.update();
         };
 
         const actionFontSize = (fontSize: number) => {
-            const datum = ctx.datum();
-            const node = ctx.node();
+            const { datum, node } = this;
             if (!datum || !node || !isTextType(datum)) return;
 
             datum.fontSize = fontSize;
@@ -101,9 +109,9 @@ export abstract class TextualPointStateMachine<
             ctx.delete();
         };
 
-        const actionSave = ({ textInputValue, bbox }: { textInputValue?: string; bbox: _Scene.BBox }) => {
-            if (textInputValue != null && textInputValue.length > 0) {
-                const datum = ctx.datum();
+        const actionSave = ({ textInputValue, bbox }: { textInputValue?: string; bbox?: _Scene.BBox }) => {
+            if (bbox != null && textInputValue != null && textInputValue.length > 0) {
+                const { datum } = this;
 
                 if (!isTextType(datum)) {
                     return;
@@ -113,7 +121,7 @@ export abstract class TextualPointStateMachine<
                 datum?.set({ text: wrappedText });
 
                 ctx.update();
-                ctx.recordAction(`Create ${ctx.node()?.type} annotation`);
+                ctx.recordAction(`Create ${datum?.type} annotation`);
             } else {
                 ctx.delete();
             }
@@ -122,6 +130,10 @@ export abstract class TextualPointStateMachine<
         super('start', {
             start: {
                 click: {
+                    target: 'waiting-first-render',
+                    action: actionCreate,
+                },
+                dragStart: {
                     target: 'waiting-first-render',
                     action: actionCreate,
                 },
@@ -139,7 +151,7 @@ export abstract class TextualPointStateMachine<
                 updateTextInputBBox: actionUpdateTextInputBBox,
                 color: actionColor,
                 fontSize: actionFontSize,
-                keyDown: [
+                textInput: [
                     {
                         guard: guardCancelAndExit,
                         target: StateMachine.parent,
@@ -152,6 +164,14 @@ export abstract class TextualPointStateMachine<
                     },
                 ],
                 click: {
+                    target: StateMachine.parent,
+                    action: actionSave,
+                },
+                dragStart: {
+                    target: StateMachine.parent,
+                    action: actionSave,
+                },
+                resize: {
                     target: StateMachine.parent,
                     action: actionSave,
                 },

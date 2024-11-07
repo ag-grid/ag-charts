@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import {
     BaseFunnelSeries,
@@ -18,8 +18,7 @@ const {
     resetBarSelectionsFn,
     prepareBarAnimationFunctions,
     midpointStartingBarPosition,
-    createDatumId,
-    isFiniteNumber,
+    formatValue,
 } = _ModuleSupport;
 const { Rect, motion } = _Scene;
 
@@ -73,11 +72,13 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
         rect,
         yDatum,
         datum,
+        visible,
     }: {
         rect: Bounds;
         barAlongX: boolean;
         yDatum: number;
         datum: any;
+        visible: boolean;
     }): FunnelNodeLabelDatum | undefined {
         const { valueKey, stageKey, label } = this.properties;
 
@@ -86,12 +87,13 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
             y: rect.y + rect.height / 2,
             textAlign: 'center',
             textBaseline: 'middle',
-            text: this.getLabelText(label, { itemId: stageKey, value: yDatum, datum, valueKey, stageKey }, (v) =>
-                isFiniteNumber(v) ? v.toFixed(0) : String(v)
+            text: this.getLabelText(label, { itemId: stageKey, value: yDatum, datum, valueKey, stageKey }, (value) =>
+                formatValue(value, 0)
             ),
             itemId: stageKey,
             datum,
             series: this,
+            visible,
         };
     }
 
@@ -178,7 +180,7 @@ export class FunnelSeries extends BaseFunnelSeries<_Scene.Rect> {
             this.ctx.animationManager,
             [datumSelections],
             fns,
-            (_, datum) => createDatumId(datum.xValue, datum.valueIndex),
+            (_, datum) => datum.xValue,
             dataDiff
         );
     }

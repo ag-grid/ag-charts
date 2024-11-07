@@ -8,6 +8,9 @@ if (process.env.CI != null) {
 module.exports = {
   extends: ['../../.eslintrc.json', 'plugin:sonarjs/recommended'],
   ignorePatterns: ['!**/*', '.dependency-cruiser.js', '.eslintrc.js'],
+  parserOptions: {
+    project: `${__dirname}/tsconfig.lint.json`,
+  },
   rules: {},
   overrides: [
     {

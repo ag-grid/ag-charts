@@ -1,8 +1,8 @@
-import { type AgZoomAnchorPoint, _ModuleSupport, _Scene } from 'ag-charts-community';
+import { type AgZoomAnchorPoint, _ModuleSupport, type _Scene } from 'ag-charts-community';
 
 import type { DefinedZoomState } from './zoomTypes';
 
-const { clamp, isEqual, round } = _ModuleSupport;
+const { clamp, isNumberEqual, round } = _ModuleSupport;
 
 export const UNIT = { min: 0, max: 1 };
 export const DEFAULT_ANCHOR_POINT_X: AgZoomAnchorPoint = 'end';
@@ -27,7 +27,7 @@ export function isZoomRangeEqual(
     right: _ModuleSupport.ZoomState,
     epsilon: number = 1e-10
 ) {
-    return isEqual(left.min, right.min, epsilon) && isEqual(left.max, right.max, epsilon);
+    return isNumberEqual(left.min, right.min, epsilon) && isNumberEqual(left.max, right.max, epsilon);
 }
 
 export function isZoomEqual(left: DefinedZoomState, right: DefinedZoomState, epsilon?: number) {

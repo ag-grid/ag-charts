@@ -96,13 +96,11 @@ const options: AgChartOptions = {
             type: 'category',
             position: 'bottom',
             paddingInner: 0,
-            groupPaddingInner: 0,
             paddingOuter: 0,
         },
         {
             type: 'number',
             position: 'left',
-            nice: false,
             gridLine: {
                 enabled: false,
             },

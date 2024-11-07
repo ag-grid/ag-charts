@@ -7,7 +7,7 @@ import { mergeDefaults } from '../../util/object';
 import { isArray } from '../../util/type-guards';
 import { BaseManager } from '../baseManager';
 
-export interface AnnotationsRestoreEvent {
+interface AnnotationsRestoreEvent {
     type: 'restore-annotations';
     annotations: AnnotationsMemento;
 }
@@ -31,14 +31,14 @@ export class AnnotationManager
         return this.annotations;
     }
 
-    public guardMemento(blob: unknown): blob is AnnotationsMemento {
-        return isArray(blob);
+    public guardMemento(blob: unknown): blob is AnnotationsMemento | undefined {
+        return blob == null || isArray(blob);
     }
 
-    public restoreMemento(_version: string, _mementoVersion: string, memento: AnnotationsMemento) {
+    public restoreMemento(_version: string, _mementoVersion: string, memento: AnnotationsMemento | undefined) {
         // Migration from older versions can be implemented here.
 
-        this.annotations = this.cleanData(memento).map((annotation) => {
+        this.annotations = this.cleanData(memento ?? []).map((annotation) => {
             const annotationTheme = this.getAnnotationTypeStyles(annotation.type);
             return mergeDefaults(annotation, annotationTheme);
         });

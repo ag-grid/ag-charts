@@ -19,7 +19,13 @@ describe('DataSource', () => {
     let chart: any;
     const ctx = setupMockCanvas();
 
+    // Note: We set crosshair: { enabled: false } and tooltip: { range: 'exact'} to avoid the highlight
+    // styling from being rendered styling because there is a race condition with the clickAction and
+    // data-update handling, which sometimes triggers the highlight rendering, and sometimes doesn't. We're
+    // not explicitly testing highlight rendering, so this allows us to treat highlighted & unhighlighted
+    // charts as equal.
     const EXAMPLE_OPTIONS: AgCartesianChartOptions = {
+        tooltip: { range: 'exact' },
         dataSource: {
             // @ts-expect-error Set undocumented options to instantly resolve for tests
             requestThrottle: 0,
@@ -30,6 +36,7 @@ describe('DataSource', () => {
             {
                 type: 'number',
                 position: 'left',
+                crosshair: { enabled: false },
             },
             {
                 type: 'time',
@@ -37,6 +44,7 @@ describe('DataSource', () => {
                 nice: false,
                 min: new Date('2024-01-01 00:00:00'),
                 max: new Date('2024-01-07 00:00:00'),
+                crosshair: { enabled: false },
             },
         ],
         series: [
@@ -186,7 +194,7 @@ describe('DataSource', () => {
         it('should load a window at the end', async () => {
             await prepareChart(dataSource, {
                 ...EXAMPLE_OPTIONS,
-                navigator: { min: 0.5, max: 1.0 },
+                initialState: { zoom: { ratioX: { start: 0.5, end: 1.0 } } },
             });
             await response;
             await compare();
@@ -195,7 +203,7 @@ describe('DataSource', () => {
         it('should load a window in the middle', async () => {
             await prepareChart(dataSource, {
                 ...EXAMPLE_OPTIONS,
-                navigator: { min: 0.25, max: 0.75 },
+                initialState: { zoom: { ratioX: { start: 0.25, end: 0.75 } } },
             });
             await response;
             await compare();

@@ -1,4 +1,4 @@
-import { _ModuleSupport, type _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 const { BaseModuleInstance, createElement, getLastFocus } = _ModuleSupport;
 const canvasOverlay = 'canvas-overlay';
@@ -29,6 +29,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     private readonly moduleId: string;
     private readonly element: HTMLElement;
     private lastFocus?: HTMLElement;
+    private initialFocus?: HTMLElement;
 
     constructor(
         protected readonly ctx: _ModuleSupport.ModuleContext,
@@ -75,7 +76,6 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         }
 
         const popover = createElement('div', 'ag-charts-popover');
-        popover.setAttribute('data-pointer-capture', 'exclusive');
 
         if (options.ariaLabel != null) {
             popover.setAttribute('aria-label', options.ariaLabel);
@@ -96,8 +96,8 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         if (options.initialFocus && options.sourceEvent) {
             const lastFocus = getLastFocus(options.sourceEvent);
             if (lastFocus !== undefined) {
-                options.initialFocus.focus();
                 this.lastFocus = lastFocus;
+                this.initialFocus = options.initialFocus;
             }
         }
 
@@ -116,5 +116,9 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         popover.style.setProperty('bottom', 'unset');
         popover.style.setProperty('left', `${Math.floor(position.x)}px`);
         popover.style.setProperty('top', `${Math.floor(position.y)}px`);
+
+        // AG-13167 Deferred focus() call after position have been initialised
+        this.initialFocus?.focus();
+        this.initialFocus = undefined;
     }
 }

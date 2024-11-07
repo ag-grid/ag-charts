@@ -21,7 +21,7 @@ const LICENSE_TYPES = {
 const LICENSING_HELP_URL = 'https://ag-grid.com/charts/licensing/';
 
 export class LicenseManager {
-    private static readonly RELEASE_INFORMATION: string = 'MTcyNjU1NzQ0MzEwNw==';
+    private static readonly RELEASE_INFORMATION: string = 'MTczMDEyNjk4OTQ4Nw==';
     private licenseKey?: string;
     private gridContext: boolean = false;
     private watermarkMessage: string | undefined = undefined;
@@ -43,16 +43,15 @@ export class LicenseManager {
         const currentLicenseName = `AG ${
             licenseDetails.currentLicenseType === 'BOTH' ? 'Grid and ' : ''
         }Charts Enterprise`;
-        const suppliedLicenseName =
-            licenseDetails.suppliedLicenseType === undefined
-                ? ''
-                : `AG ${
-                      licenseDetails.suppliedLicenseType === 'BOTH'
-                          ? 'Grid and AG Charts'
-                          : licenseDetails.suppliedLicenseType === 'GRID'
-                            ? 'Grid'
-                            : 'Charts'
-                  } Enterprise`;
+
+        let suppliedLicenseName = '';
+        if (licenseDetails.suppliedLicenseType === 'BOTH') {
+            suppliedLicenseName = 'AG Grid and AG Charts Enterprise';
+        } else if (licenseDetails.suppliedLicenseType === 'GRID') {
+            suppliedLicenseName = 'AG Grid Enterprise';
+        } else if (licenseDetails.suppliedLicenseType !== undefined) {
+            suppliedLicenseName = 'AG Charts Enterprise';
+        }
 
         if (licenseDetails.missing) {
             if (!this.isWebsiteUrl() || this.isForceWatermark()) {
@@ -186,14 +185,14 @@ export class LicenseManager {
     }
 
     public getWatermarkMessage(): string {
-        return this.watermarkMessage || '';
+        return this.watermarkMessage ?? '';
     }
 
     private getHostname(): string {
         if (!this.document) {
             return 'localhost';
         }
-        const win = this.document!.defaultView || window;
+        const win = this.document.defaultView ?? window;
         if (!win) {
             return 'localhost';
         }
@@ -218,12 +217,12 @@ export class LicenseManager {
 
     private isWebsiteUrl(): boolean {
         const hostname = this.getHostname();
-        return hostname.match(/^((?:[\w-]+\.)?ag-grid\.com)$/) !== null;
+        return /^((?:[\w-]+\.)?ag-grid\.com)$/.exec(hostname) !== null;
     }
 
     private isLocalhost(): boolean {
         const hostname = this.getHostname();
-        return hostname.match(/^(?:127\.0\.0\.1|localhost)$/) !== null;
+        return /^(?:127\.0\.0\.1|localhost)$/.exec(hostname) !== null;
     }
 
     private static formatDate(date: any): string {
@@ -316,7 +315,7 @@ export class LicenseManager {
         }
 
         const isTrial = matches.filter((match) => match === 'TRIAL').length === 1;
-        const rawVersion = matches.filter((match) => match.indexOf('v') === 0)[0];
+        const rawVersion = matches.filter((match) => match.startsWith('v'))[0];
         const version = rawVersion ? rawVersion.replace('v', '') : 'legacy';
         const type = (LICENSE_TYPES as any)[matches.filter((match) => (LICENSE_TYPES as any)[match])[0]];
 

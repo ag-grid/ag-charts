@@ -1,0 +1,165 @@
+---
+import { getBoilerPlateUrl } from '@utils/pages';
+import type { InternalFramework } from '@ag-grid-types';
+import JavascriptTemplate from '../framework-templates/JavascriptTemplate.astro';
+import TypescriptTemplate from '../framework-templates/TypescriptTemplate.astro';
+import { getIsDev } from '@utils/env';
+import ReactTemplate from '../framework-templates/ReactTemplate.astro';
+import VueTemplate from '../framework-templates/VueTemplate.astro';
+import type { GeneratedContents } from '@components/example-generator/types';
+import AngularTemplate from '../framework-templates/AngularTemplate.astro';
+import PostInitMessageScript from '@components/example-runner/components/PostInitMessageScript.astro';
+import { toTitle } from '@utils/toTitle';
+
+interface Props {
+    internalFramework: InternalFramework;
+    pageName: string;
+    exampleName: string;
+    exampleUrl: string;
+    generatedContents: GeneratedContents | undefined;
+    /**
+     * Whether to use relative paths for script files references
+     */
+    relativePath?: boolean;
+    /**
+     * Whether to add a script to post an `init` message to the parent
+     */
+    addInitMessageScript?: boolean;
+    /**
+     * Whether to not include system js code
+     */
+    ignoreSystemJs?: boolean;
+    /**
+     * Extra styles to add to HTML
+     */
+    extraStyles?: string;
+}
+
+const {
+    internalFramework,
+    pageName,
+    exampleName,
+    exampleUrl,
+    generatedContents,
+    relativePath,
+    addInitMessageScript,
+    ignoreSystemJs,
+    extraStyles,
+} = Astro.props as Props;
+
+const isDev = getIsDev();
+
+const library = 'charts';
+
+const { entryFileName, files, scriptFiles, styleFiles, isEnterprise, hasLocale, layout, exampleConfig } =
+    generatedContents || {};
+const indexFragment = files?.['index.html'];
+const headFragment = files?.['head.html'];
+const appLocation = relativePath ? '' : exampleUrl;
+const boilerPlateUrl = relativePath
+    ? ''
+    : getBoilerPlateUrl({
+          library,
+          internalFramework,
+      });
+
+const timeNow = Date.now();
+const title = `${toTitle(pageName)} - ${toTitle(exampleName)}`;
+---
+
+{
+    !generatedContents ? (
+        <p>
+            Error generating content for: <a href={exampleUrl}>{exampleUrl}</a>
+        </p>
+    ) : internalFramework === 'vanilla' ? (
+        <JavascriptTemplate
+            isDev={isDev}
+            title={title}
+            modifiedTimeMs={timeNow}
+            isEnterprise={isEnterprise}
+            hasLocale={hasLocale}
+            layout={layout}
+            scriptFiles={scriptFiles}
+            styleFiles={styleFiles}
+            indexFragment={indexFragment}
+            headFragment={headFragment}
+            appLocation={appLocation}
+            extraStyles={extraStyles}
+        />
+    ) : internalFramework === 'typescript' ? (
+        <TypescriptTemplate
+            isDev={isDev}
+            title={title}
+            modifiedTimeMs={timeNow}
+            entryFileName={entryFileName!}
+            layout={layout}
+            styleFiles={styleFiles}
+            indexFragment={indexFragment!}
+            headFragment={headFragment}
+            appLocation={appLocation}
+            boilerplatePath={boilerPlateUrl}
+            extraStyles={extraStyles}
+        />
+    ) : ['reactFunctional', 'reactFunctionalTs'].includes(internalFramework) ? (
+        <ReactTemplate
+            isDev={isDev}
+            title={title}
+            modifiedTimeMs={timeNow}
+            entryFileName={entryFileName!}
+            layout={layout}
+            scriptFiles={scriptFiles}
+            styleFiles={styleFiles}
+            appLocation={appLocation}
+            boilerplatePath={boilerPlateUrl}
+            ignoreSystemJs={ignoreSystemJs}
+            extraStyles={extraStyles}
+            headFragment={headFragment}
+        />
+    ) : internalFramework === 'angular' ? (
+        <AngularTemplate
+            isDev={isDev}
+            title={title}
+            modifiedTimeMs={timeNow}
+            entryFileName={entryFileName!}
+            layout={layout}
+            styleFiles={styleFiles}
+            scriptFiles={scriptFiles}
+            appLocation={appLocation}
+            boilerplatePath={boilerPlateUrl}
+            extraStyles={extraStyles}
+            headFragment={headFragment}
+        />
+    ) : internalFramework === 'vue3' ? (
+        <VueTemplate
+            isDev={isDev}
+            title={title}
+            modifiedTimeMs={timeNow}
+            entryFileName={entryFileName!}
+            layout={layout}
+            scriptFiles={scriptFiles}
+            styleFiles={styleFiles}
+            appLocation={appLocation}
+            boilerplatePath={boilerPlateUrl}
+            extraStyles={extraStyles}
+            headFragment={headFragment}
+        />
+    ) : null
+}
+
+{
+    addInitMessageScript && (
+        <PostInitMessageScript
+            pageName={pageName}
+            exampleName={exampleName}
+            shadowDomSelector={exampleConfig?.shadowDomSelector}
+            iframeSelector={exampleConfig?.iframeSelector}
+        />
+    )
+}
+
+<style>
+    :global(astro-dev-toolbar) {
+        display: none !important;
+    }
+</style>

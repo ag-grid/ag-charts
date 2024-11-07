@@ -4,7 +4,6 @@ import defaultColorStops from '../gauge-util/defaultColorStops';
 import { RadialGaugeSeries } from './radialGaugeSeries';
 
 const {
-    FONT_WEIGHT,
     DEFAULT_FONT_FAMILY,
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_LABEL_COLOUR,
@@ -49,7 +48,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 spacing: 5,
                 label: {
                     enabled: true,
-                    fontWeight: FONT_WEIGHT.NORMAL,
+                    fontWeight: 'normal' as const,
                     fontSize: 12,
                     fontFamily: DEFAULT_FONT_FAMILY,
                     color: DEFAULT_LABEL_COLOUR,
@@ -63,7 +62,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             },
             label: {
                 enabled: true,
-                fontWeight: FONT_WEIGHT.NORMAL,
+                fontWeight: 'normal' as const,
                 fontSize: 56,
                 minimumFontSize: 18,
                 fontFamily: DEFAULT_FONT_FAMILY,
@@ -71,7 +70,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             },
             secondaryLabel: {
                 enabled: true,
-                fontWeight: FONT_WEIGHT.NORMAL,
+                fontWeight: 'normal' as const,
                 fontSize: 14,
                 minimumFontSize: 12,
                 fontFamily: DEFAULT_FONT_FAMILY,

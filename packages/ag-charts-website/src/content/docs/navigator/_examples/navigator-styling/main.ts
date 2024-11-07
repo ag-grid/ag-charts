@@ -81,8 +81,6 @@ const options: AgChartOptions = {
     },
     navigator: {
         height: 50,
-        min: 0.2,
-        max: 0.7,
         mask: {
             fill: 'red',
             strokeWidth: 2,
@@ -100,6 +98,14 @@ const options: AgChartOptions = {
         maxHandle: {
             fill: 'lime',
             stroke: 'black',
+        },
+    },
+    zoom: {
+        enabled: true,
+    },
+    initialState: {
+        zoom: {
+            ratioX: { start: 0.2, end: 0.7 },
         },
     },
 };

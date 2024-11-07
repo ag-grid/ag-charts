@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { ChannelTextProperties } from '../annotationProperties';
 import type { AnnotationContext, Point } from '../annotationTypes';

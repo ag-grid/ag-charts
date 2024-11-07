@@ -96,7 +96,6 @@ AG Charts offers 20+ React Chart types, each of which are fully customisable:
 | [Donut](https://ag-grid.com/charts/react/donut-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                 | ✅                  | ✅                   |
 | [Combination](https://ag-grid.com/charts/react/combination-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)     | ✅                  | ✅                   |
 | [Box Plot](https://ag-grid.com/charts/react/box-plot-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)           | ❌                  | ✅                   |
-| [Bullet](https://ag-grid.com/charts/react/bullet-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)               | ❌                  | ✅                   |
 | [Candlestick](https://ag-grid.com/charts/react/candlestick-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)     | ❌                  | ✅                   |
 | [OHLC](https://ag-grid.com/charts/react/ohlc-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                   | ❌                  | ✅                   |
 | [Heatmap](https://ag-grid.com/charts/react/heatmap-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)             | ❌                  | ✅                   |

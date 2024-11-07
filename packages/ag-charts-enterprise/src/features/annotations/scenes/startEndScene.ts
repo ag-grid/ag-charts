@@ -1,4 +1,4 @@
-import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { type AgAnnotationHandleStyles, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext } from '../annotationTypes';
@@ -57,12 +57,11 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
     }
 
     override dragHandle(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) {
-        const { activeHandle } = this;
+        const { activeHandle, dragState } = this;
 
-        if (!activeHandle) return;
+        if (!activeHandle || !dragState) return;
 
         this[activeHandle].toggleDragging(true);
-
         const point = snapping
             ? this.snapToAngle(datum, target, context)
             : invertCoords(this[activeHandle].drag(target).point, context);
@@ -75,7 +74,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
 
     snapToAngle(
         datum: Datum,
-        target: _ModuleSupport.Vec2,
+        coords: _ModuleSupport.Vec2,
         context: AnnotationContext
     ): Pick<PointProperties, 'x' | 'y'> | undefined {
         const { activeHandle } = this;
@@ -88,9 +87,8 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
         this[activeHandle].toggleDragging(true);
 
         const fixed = convertPoint(datum[fixedHandle], context);
-        const active = this[activeHandle].drag(target).point;
 
-        return invertCoords(snapToAngle(active, fixed, datum.snapToAngle), context);
+        return invertCoords(snapToAngle(coords, fixed, datum.snapToAngle), context);
     }
 
     override stopDragging() {

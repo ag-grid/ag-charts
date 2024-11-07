@@ -8,6 +8,10 @@ export interface ChartLegend {
     destroy(): void;
     data: any;
     listeners?: AgChartLegendListeners;
+    pagination?: {
+        currentPage: number;
+        setPage: (pageNumber: number) => void;
+    };
 }
 
 export type ChartLegendType = 'category' | 'gradient';
@@ -45,12 +49,14 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
     legendType: 'category';
     id: string; // component ID
     itemId: any; // sub-component ID
+    datum?: any; // series datum
     symbols: LegendSymbolOptions[];
     /** Optional deduplication id - used to coordinate synced toggling of multiple items. */
     legendItemName?: string;
     label: {
         text: string; // display name for the sub-component
     };
+    skipAnimations?: boolean;
 }
 
 export interface GradientLegendDatum extends BaseChartLegendDatum {

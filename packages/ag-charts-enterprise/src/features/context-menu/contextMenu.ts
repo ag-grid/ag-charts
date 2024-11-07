@@ -1,5 +1,5 @@
-import type { AgContextMenuOptions, _Scene } from 'ag-charts-community';
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import type { AgContextMenuOptions } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
@@ -15,10 +15,8 @@ type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuAction<T extends ContextType = ContextType> = _ModuleSupport.ContextMenuAction<T>;
 type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCallback<T>;
 
-const { BOOLEAN, Validate, createElement, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } =
+const { BOOLEAN, Validate, createElement, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry, Logger } =
     _ModuleSupport;
-
-const { Logger } = _Util;
 
 const moduleId = 'context-menu';
 
@@ -27,8 +25,7 @@ function getChildrenOfType<TElem extends Element>(parent: Element, ctor: new () 
     if (!children) return [];
 
     const result: TElem[] = [];
-    for (let i = 0; i < children.length; i++) {
-        const child = children[i];
+    for (const child of Array.from(children)) {
         if (child instanceof ctor) {
             result.push(child);
         }
@@ -285,7 +282,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 if (event) {
                     callback(event);
                 } else {
-                    _Util.Logger.error('series node not found');
+                    Logger.error('series node not found');
                 }
                 this.hide();
             };

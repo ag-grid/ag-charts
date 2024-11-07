@@ -51,7 +51,7 @@ export function boundsIntersections(
 
     // Fallback intersections of a vertical line at the x value
     const fallback = [
-        { x: p1.x, y: reflection == null ? 0 : reflection },
+        { x: p1.x, y: reflection ?? 0 },
         { x: p1.x, y: reflection == null ? bounds.height : reflection - bounds.height },
     ] as [_ModuleSupport.Vec2, _ModuleSupport.Vec2];
 

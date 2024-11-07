@@ -1,11 +1,11 @@
 import { Logger } from '../../util/logger';
 import { isDate, isObject } from '../../util/type-guards';
 
-export interface MementoOriginator<Memento extends any = any> {
+export interface MementoOriginator<Memento = any> {
     mementoOriginatorKey: string;
     createMemento(): Memento;
-    guardMemento(blob: unknown): blob is Memento;
-    restoreMemento(version: string, mementoVersion: string, blob: Memento): void;
+    guardMemento(blob: unknown): blob is Memento | undefined;
+    restoreMemento(version: string, mementoVersion: string, blob: Memento | undefined): void;
 }
 
 type MementoCaretakerPacket = Record<'version', string> & Record<string, any>;
@@ -48,11 +48,6 @@ export class MementoCaretaker {
         }
 
         for (const originator of originators) {
-            if (!(originator.mementoOriginatorKey in blob)) {
-                // Silently skip restoring this originator, as we are happy restoring partial state
-                continue;
-            }
-
             const memento = this.decode(originator, (blob as any)[originator.mementoOriginatorKey]);
 
             if (!originator.guardMemento(memento)) {
@@ -84,6 +79,7 @@ export class MementoCaretaker {
      * Decode an encoded memento, decoding any non-serializable types.
      */
     private decode(originator: MementoOriginator, encoded: unknown) {
+        if (encoded == null) return encoded;
         try {
             return JSON.parse(JSON.stringify(encoded), this.decodeTypes) as unknown;
         } catch (error) {
@@ -95,7 +91,7 @@ export class MementoCaretaker {
 
     private encodeTypes(this: any, key: any, value: any) {
         if (isDate(this[key])) {
-            return { __type: 'date', value: String(this[key]) };
+            return { __type: 'date', value: this[key].toISOString() };
         }
         return value;
     }

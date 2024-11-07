@@ -5,12 +5,12 @@ const itemTheme = {
     label: {
         enabled: false,
         fontStyle: undefined,
-        fontWeight: _Theme.FONT_WEIGHT.NORMAL,
+        fontWeight: 'normal' as const,
         fontSize: 12,
         fontFamily: _Theme.DEFAULT_FONT_FAMILY,
         color: _Theme.DEFAULT_LABEL_COLOUR,
         formatter: undefined,
-        placement: 'end' as const,
+        placement: 'outside-end' as const,
     },
 };
 

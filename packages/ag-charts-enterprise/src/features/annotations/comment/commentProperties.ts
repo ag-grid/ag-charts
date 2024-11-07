@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { Fill, Stroke } from '../annotationProperties';
 import {
@@ -9,8 +9,7 @@ import {
 } from '../annotationTypes';
 import { TextualPointProperties } from '../properties/textualPointProperties';
 
-const { STRING, Validate, isObject } = _ModuleSupport;
-const { Color } = _Util;
+const { STRING, Validate, isObject, Color } = _ModuleSupport;
 
 const DEFAULT_COMMENT_PADDING = {
     top: 8,

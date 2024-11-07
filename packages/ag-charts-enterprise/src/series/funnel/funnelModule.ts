@@ -1,4 +1,4 @@
-import { type _ModuleSupport, _Theme } from 'ag-charts-community';
+import type { _ModuleSupport } from 'ag-charts-community';
 
 import { FunnelSeries } from './funnelSeries';
 import { FUNNEL_SERIES_THEME, funnelSeriesAxes } from './funnelThemes';

@@ -72,7 +72,7 @@ export class PropertiesArray<T extends BaseProperties> extends Array<T> {
         this.set(properties);
     }
 
-    set(properties: object[]): PropertiesArray<T> {
+    set(properties: object[]): this {
         if (isArray(properties)) {
             this.length = properties.length;
             for (let i = 0; i < properties.length; i++) {

@@ -133,6 +133,10 @@
     --stroke-width-color: var(--ag-charts-toolbar-foreground-color);
 }
 
+.ag-charts-toolbar__no-pointer-events {
+    pointer-events: none;
+}
+
 .ag-charts-toolbar__button--drag-handle {
     min-width: 24px;
     padding-left: 0;

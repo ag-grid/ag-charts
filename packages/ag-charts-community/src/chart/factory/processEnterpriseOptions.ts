@@ -1,5 +1,7 @@
 import type { AgChartOptions } from 'ag-charts-types';
 
+import type { LegendModule, RootModule } from '../../module/coreModules';
+import { moduleRegistry } from '../../module/module';
 import { Logger } from '../../util/logger';
 import { isAgGaugeChartOptions, optionsType } from '../mapping/types';
 import { chartTypes } from './chartTypes';
@@ -8,13 +10,15 @@ import { EXPECTED_ENTERPRISE_MODULES } from './expectedEnterpriseModules';
 export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(options: T, silent?: boolean) {
     let usedOptions: string[] = [];
     const isGaugeChart = isAgGaugeChartOptions(options);
-    const optionsChartType = chartTypes.get(optionsType(options));
+    const optsType = optionsType(options);
+    const optionsChartType = optsType ? chartTypes.get(optsType) : 'unknown';
     for (const {
         type,
         chartTypes: moduleChartTypes,
         optionsKey,
         optionsInnerKey,
         identifier,
+        community,
     } of EXPECTED_ENTERPRISE_MODULES) {
         if (optionsChartType !== 'unknown' && !moduleChartTypes.includes(optionsChartType)) continue;
 
@@ -44,6 +48,7 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
                 }
             });
         } else if (type === 'series') {
+            if (community) continue;
             if (!options.series?.some((series) => series.type === identifier)) continue;
 
             usedOptions.push(`series[type=${identifier}]`);
@@ -81,5 +86,17 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
                 `See: ${enterpriseReferenceUrl}`,
             ].join('\n')
         );
+    }
+}
+
+export function removeUnusedEnterpriseOptions<T extends Partial<AgChartOptions>>(options: T) {
+    for (const module of moduleRegistry.byType<RootModule | LegendModule>('root', 'legend')) {
+        const moduleOptions = options[module.optionsKey as keyof AgChartOptions] as { enabled?: boolean };
+        const isPresentAndDisabled = moduleOptions != null && moduleOptions.enabled === false;
+        const removable = !('removable' in module) || module.removable !== false;
+
+        if (isPresentAndDisabled && removable) {
+            delete options[module.optionsKey as keyof AgChartOptions];
+        }
     }
 }

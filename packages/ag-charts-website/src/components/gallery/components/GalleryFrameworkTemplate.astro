@@ -1,0 +1,69 @@
+---
+import { getEntry } from 'astro:content';
+import { getExampleUrl } from '../utils/urlPaths';
+import FrameworkTemplate from '@components/example-runner/components/FrameworkTemplate.astro';
+import { GALLERY_INTERNAL_FRAMEWORK } from '../constants';
+import { getExampleName, getSeriesTypeSlug } from '../utils/filesData';
+import type { GeneratedContents } from '@components/example-generator/types';
+import { getGeneratedContents } from '../../example-generator';
+interface Props {
+    exampleName: string;
+    /**
+     * Whether to use relative paths for script files references
+     */
+    relativePath?: boolean;
+    /**
+     * Whether to add a script to post an `init` message to the parent
+     */
+    addInitMessageScript?: boolean;
+    /**
+     * Override to be used for generated contents
+     */
+    generatedContents?: GeneratedContents;
+    /**
+     * Extra styles to add to HTML
+     */
+    extraStyles?: string;
+}
+
+const {
+    exampleName,
+    relativePath,
+    addInitMessageScript,
+    generatedContents: generatedContentsOverride,
+    extraStyles,
+} = Astro.props as Props;
+
+const internalFramework = GALLERY_INTERNAL_FRAMEWORK;
+const generatedContents = generatedContentsOverride
+    ? generatedContentsOverride
+    : await getGeneratedContents({
+          type: 'gallery',
+          exampleName,
+      });
+
+const exampleUrl = getExampleUrl({
+    exampleName,
+});
+
+const galleryDataEntry = await getEntry('gallery', 'data');
+const pageName = getSeriesTypeSlug({
+    galleryData: galleryDataEntry.data,
+    exampleName,
+});
+const displayExampleName = getExampleName({
+    galleryData: galleryDataEntry.data,
+    exampleName,
+});
+---
+
+<FrameworkTemplate
+    internalFramework={internalFramework}
+    pageName={pageName!}
+    exampleName={displayExampleName!}
+    exampleUrl={exampleUrl}
+    generatedContents={generatedContents!}
+    relativePath={relativePath}
+    addInitMessageScript={addInitMessageScript}
+    extraStyles={extraStyles}
+/>

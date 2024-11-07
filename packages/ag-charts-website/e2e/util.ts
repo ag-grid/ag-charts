@@ -15,9 +15,14 @@ export const SELECTORS = {
     legendItem1: '#ag-charts-legend-item-1',
     legendItem2: '#ag-charts-legend-item-2',
 
-    annotationOptionsDeleteButton: '[data-toolbar-group="annotationOptions"][data-toolbar-id="delete"]',
-    commentMenuItem: '[data-popover-id="comment"]',
     textAnnotationMenu: '[data-toolbar-group="annotations"][data-toolbar-id="text-menu"]',
+    lineAnnotationMenu: '[data-toolbar-group="annotations"][data-toolbar-id="line-menu"]',
+
+    commentMenuItem: '[data-popover-id="comment"]',
+    horizontalLineMenuItem: '[data-popover-id="horizontal-line"]',
+
+    annotationOptionsDeleteButton: '[data-toolbar-group="annotationOptions"][data-toolbar-id="delete"]',
+    annotationOptionsSettingsButton: '[data-toolbar-group="annotationOptions"][data-toolbar-id="settings"]',
 } as const;
 
 export function getExamples() {

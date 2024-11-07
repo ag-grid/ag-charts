@@ -1,4 +1,4 @@
-import { type AgBoxPlotSeriesStyle, _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { type AgBoxPlotSeriesStyle, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotGroup } from './boxPlotGroup';
@@ -15,12 +15,12 @@ const {
     valueProperty,
     diff,
     animationValidation,
-    convertValuesToScaleByDefs,
     computeBarFocusBounds,
+    sanitizeHtml,
+    Color,
+    ContinuousScale,
 } = _ModuleSupport;
 const { motion } = _Scene;
-const { ContinuousScale } = _Scale;
-const { Color } = _Util;
 
 class BoxPlotSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -83,7 +83,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const { isContinuousX, xScaleType, yScaleType } = this.getScaleInformation({ xScale, yScale });
         const extraProps = [];
         if (animationEnabled && this.processedData) {
-            extraProps.push(diff(this.processedData));
+            extraProps.push(diff(this.id, this.processedData));
         }
         if (animationEnabled) {
             extraProps.push(animationValidation());
@@ -127,12 +127,12 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     async createNodeData() {
-        const { visible, dataModel } = this;
+        const { visible, dataModel, processedData } = this;
 
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(dataModel && xAxis && yAxis)) {
+        if (!(dataModel && processedData != null && processedData.rawData.length !== 0 && xAxis && yAxis)) {
             return;
         }
 
@@ -141,18 +141,16 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         const nodeData: BoxPlotNodeDatum[] = [];
 
-        const defs = dataModel.resolveProcessedDataDefsByIds(this, [
-            'xValue',
-            'minValue',
-            'q1Value',
-            `medianValue`,
-            `q3Value`,
-            `maxValue`,
-        ]);
+        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
+        const minValues = dataModel.resolveColumnById(this, 'minValue', processedData);
+        const q1Values = dataModel.resolveColumnById(this, 'q1Value', processedData);
+        const medianValues = dataModel.resolveColumnById(this, 'medianValue', processedData);
+        const q3Values = dataModel.resolveColumnById(this, 'q3Value', processedData);
+        const maxValues = dataModel.resolveColumnById(this, 'maxValue', processedData);
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         const barOffset = ContinuousScale.is(xAxis.scale) ? barWidth * -0.5 : 0;
-        const { groupScale, processedData } = this;
+        const { groupScale } = this;
         const isVertical = this.isVertical();
 
         const context = {
@@ -165,9 +163,15 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!visible) return context;
 
-        processedData?.data.forEach(({ datum, keys, values }) => {
-            const { xValue, minValue, q1Value, medianValue, q3Value, maxValue } =
-                dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
+        processedData.rawData.forEach((datum, datumIndex) => {
+            const xValue = xValues[datumIndex];
+            if (xValue == null) return;
+
+            const minValue = minValues[datumIndex];
+            const q1Value = q1Values[datumIndex];
+            const medianValue = medianValues[datumIndex];
+            const q3Value = q3Values[datumIndex];
+            const maxValue = maxValues[datumIndex];
 
             if (
                 [minValue, q1Value, medianValue, q3Value, maxValue].some((value) => typeof value !== 'number') ||
@@ -179,19 +183,14 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 return;
             }
 
-            const scaledValues = convertValuesToScaleByDefs({
-                defs,
-                values: {
-                    xValue,
-                    minValue,
-                    q1Value,
-                    medianValue,
-                    q3Value,
-                    maxValue,
-                },
-                xAxis,
-                yAxis,
-            });
+            const scaledValues = {
+                xValue: Math.round(xAxis.scale.convert(xValue)),
+                minValue: Math.round(yAxis.scale.convert(minValue)),
+                q1Value: Math.round(yAxis.scale.convert(q1Value)),
+                medianValue: Math.round(yAxis.scale.convert(medianValue)),
+                q3Value: Math.round(yAxis.scale.convert(q3Value)),
+                maxValue: Math.round(yAxis.scale.convert(maxValue)),
+            };
 
             scaledValues.xValue += Math.round(groupScale.convert(String(groupIndex))) + barOffset;
 
@@ -307,7 +306,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (!xAxis || !yAxis || !this.properties.isValid()) return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
 
-        const title = _Util.sanitizeHtml(yName);
+        const title = sanitizeHtml(yName);
         const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [
             [xKey, xName, xAxis],
             [minKey, minName, yAxis],
@@ -317,7 +316,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             [maxKey, maxName, yAxis],
         ];
         const content = contentData
-            .map(([key, name, axis]) => _Util.sanitizeHtml(`${name ?? key}: ${axis.formatDatum(datum[key])}`))
+            .map(([key, name, axis]) => sanitizeHtml(`${name ?? key}: ${axis.formatDatum(datum[key])}`))
             .join(title ? '<br/>' : ', ');
 
         const { fill: formatFill } = this.getFormattedStyles(nodeDatum);

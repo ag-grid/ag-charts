@@ -1,10 +1,4 @@
-import {
-    type AgChordSeriesLinkStyle,
-    type AgChordSeriesNodeStyle,
-    _ModuleSupport,
-    _Scene,
-    _Util,
-} from 'ag-charts-community';
+import { type AgChordSeriesLinkStyle, type AgChordSeriesNodeStyle, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import {
     FlowProportionDatumType,
@@ -15,9 +9,19 @@ import {
 import { ChordLink, bezierControlPoints } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
 
-const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, TextUtils, createDatumId, EMPTY_TOOLTIP_CONTENT } =
-    _ModuleSupport;
-const { angleBetween, normalizeAngle360, isBetweenAngles, sanitizeHtml, Logger } = _Util;
+const {
+    SeriesNodePickMode,
+    CachedTextMeasurerPool,
+    TextWrapper,
+    TextUtils,
+    createDatumId,
+    EMPTY_TOOLTIP_CONTENT,
+    angleBetween,
+    normalizeAngle360,
+    isBetweenAngles,
+    sanitizeHtml,
+    Logger,
+} = _ModuleSupport;
 const { Sector, evaluateBezier } = _Scene;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum {
@@ -69,7 +73,6 @@ export class ChordSeries extends FlowProportionSeries<
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
-            contentGroupVirtual: false,
             pickModes: [SeriesNodePickMode.NEAREST_NODE, SeriesNodePickMode.EXACT_SHAPE_MATCH],
         });
     }
@@ -127,7 +130,6 @@ export class ChordSeries extends FlowProportionSeries<
             { includeCircularReferences: true }
         );
 
-        const defaultLabelFormatter = (v: any) => String(v);
         let totalSize = 0;
         nodeGraph.forEach(({ datum: node, linksBefore, linksAfter }, id) => {
             const size =
@@ -139,18 +141,14 @@ export class ChordSeries extends FlowProportionSeries<
                 node.size = size;
                 totalSize += node.size;
 
-                const label = this.getLabelText(
-                    this.properties.label,
-                    {
-                        datum: node.datum,
-                        value: node.label,
-                        fromKey,
-                        toKey,
-                        sizeKey,
-                        size: node.size,
-                    },
-                    defaultLabelFormatter
-                );
+                const label = this.getLabelText(this.properties.label, {
+                    datum: node.datum,
+                    value: node.label,
+                    fromKey,
+                    toKey,
+                    sizeKey,
+                    size: node.size,
+                });
                 node.label = String(label);
             }
         });
@@ -242,7 +240,7 @@ export class ChordSeries extends FlowProportionSeries<
 
             let linkAngle = node.startAngle;
             combinedLinks
-                .sort((a, b) => a.distance - b.distance)
+                .toSorted((a, b) => a.distance - b.distance)
                 .forEach(({ link, after }) => {
                     const linkSweep = link.size * sizeScale;
                     if (after) {
@@ -473,10 +471,10 @@ export class ChordSeries extends FlowProportionSeries<
                     fromKey,
                     toKey,
                     sizeKey,
-                    fill: fill!,
+                    fill,
                     fillOpacity,
                     strokeOpacity,
-                    stroke: stroke!,
+                    stroke,
                     strokeWidth,
                     lineDash,
                     lineDashOffset,
@@ -502,8 +500,6 @@ export class ChordSeries extends FlowProportionSeries<
             link.tension = format?.tension ?? tension;
         });
     }
-
-    override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {}
 
     override getTooltipHtml(nodeDatum: ChordDatum): _ModuleSupport.TooltipContent {
         const {
@@ -612,7 +608,7 @@ export class ChordSeries extends FlowProportionSeries<
         );
     }
 
-    override getLabelData(): _Util.PointLabelDatum[] {
+    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
         return [];
     }
 

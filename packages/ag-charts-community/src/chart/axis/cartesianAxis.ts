@@ -15,8 +15,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return value instanceof CartesianAxis;
     }
 
-    @Validate(POSITIVE_NUMBER)
-    thickness: number = 0;
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    thickness?: number;
 
     @Validate(POSITION)
     position!: AgCartesianAxisPosition;
@@ -57,7 +57,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     override update(animated?: boolean) {
         this.updateDirection();
-        return super.update(animated);
+        super.update(animated);
     }
 
     override calculateLayout(domain?: any[], primaryTickCount?: number) {

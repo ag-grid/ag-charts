@@ -1,8 +1,8 @@
 import type { AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate } = _ModuleSupport;
-const { setAttribute } = _Util;
+const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate, createId, setAttribute } =
+    _ModuleSupport;
 
 const DEFAULT_LABEL_CLASS = 'ag-crosshair-label';
 
@@ -27,7 +27,7 @@ export class CrosshairLabelProperties extends _Scene.ChangeDetectableProperties 
 }
 
 export class CrosshairLabel extends BaseProperties {
-    private readonly id = _Util.createId(this);
+    private readonly id = createId(this);
 
     @Validate(BOOLEAN)
     enabled: boolean = true;

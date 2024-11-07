@@ -1,26 +1,4 @@
-export * from './util/angle';
-export * from './util/attributeUtil';
-export * from './util/distance';
-export * from './util/equal';
-export * from './util/id';
-export * from './util/interpolate';
-export * from './util/json';
-export * from './util/number';
-export * from './util/padding';
-export * from './util/sanitize';
-export * from './util/value';
-export * from './util/zip';
-
-export { isValidDate as isDate, isFiniteNumber as isNumber, isString } from './util/type-guards';
-export { extent, normalisedExtentWithMetadata } from './util/array';
-export { toFixed, isEqual as isNumberEqual } from './util/number';
-export { tickFormat } from './util/ticks';
-
-export * from './util/time';
-export { createTicks as ticks, tickStep, range, isDenseInterval } from './util/ticks';
+// Only these methods are used by ag-grid.
+// DO NOT ADD EXPORTS UNLESS REQUIRED BY INTEGRATED CHARTS.
 export { Color } from './util/color';
-export * from './util/debug';
-export type { LabelPlacement, MeasuredLabel, PointLabelDatum, PlacedLabel } from './scene/util/labelPlacement';
-export * from './util/logger';
-
-export type { RequireOptional } from './util/types';
+export { interpolateColor } from './util/interpolate';

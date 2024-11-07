@@ -1,10 +1,10 @@
+import type { AgInitialStateThemeableOptions } from '../api/initialStateOptions';
 import type { AgLinearGaugeTarget, AgLinearGaugeThemeableOptions } from '../presets/gauge/linearGaugeOptions';
 import type { AgRadialGaugeTarget, AgRadialGaugeThemeableOptions } from '../presets/gauge/radialGaugeOptions';
 import type { AgAreaSeriesThemeableOptions } from '../series/cartesian/areaOptions';
 import type { AgBarSeriesThemeableOptions } from '../series/cartesian/barOptions';
 import type { AgBoxPlotSeriesThemeableOptions } from '../series/cartesian/boxPlotOptions';
 import type { AgBubbleSeriesThemeableOptions } from '../series/cartesian/bubbleOptions';
-import type { AgBulletSeriesThemeableOptions } from '../series/cartesian/bulletOptions';
 import type { AgCandlestickSeriesThemeableOptions } from '../series/cartesian/candlestickOptions';
 import type { AgBaseCartesianThemeOptions, AgCartesianAxesTheme } from '../series/cartesian/cartesianOptions';
 import type { AgCartesianSeriesOptions } from '../series/cartesian/cartesianSeriesTypes';
@@ -112,7 +112,7 @@ export interface AgBoxPlotSeriesThemeOverrides extends AgBaseCartesianThemeOptio
 export interface AgCandlestickSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgCandlestickSeriesThemeableOptions;
 }
-export interface AConeFunnelSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
+export interface AgConeFunnelSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgConeFunnelSeriesThemeableOptions;
 }
 export interface AgFunnelSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
@@ -136,13 +136,10 @@ export interface AgRangeBarSeriesThemeOverrides extends AgBaseCartesianThemeOpti
 export interface AgRangeAreaSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
     series?: AgRangeAreaSeriesThemeableOptions;
 }
-export interface AgBulletSeriesThemeOverrides extends AgBaseCartesianThemeOptions {
-    series?: AgBulletSeriesThemeableOptions;
-}
-export interface AgDonutSeriesThemeOverrides extends AgBasePolarThemeOptions {
+export interface AgDonutSeriesThemeOverrides extends AgBaseThemeableChartOptions {
     series?: AgDonutSeriesThemeableOptions;
 }
-export interface AgPieSeriesThemeOverrides extends AgBasePolarThemeOptions {
+export interface AgPieSeriesThemeOverrides extends AgBaseThemeableChartOptions {
     series?: AgPieSeriesThemeableOptions;
 }
 export interface AgRadarLineSeriesThemeOverrides extends AgBasePolarThemeOptions {
@@ -211,13 +208,15 @@ export type AgBaseGaugePresetThemeOptions = Pick<
 
 // Interface needed for docs generation, but listeners conflicts using the extends clause
 type AgRadialGaugeTheme = AgBaseGaugePresetThemeOptions & AgRadialGaugeThemeableOptions;
+export interface AgRadialGaugeTargetTheme extends Omit<AgRadialGaugeTarget, 'value' | 'text'> {}
 export interface AgRadialGaugeThemeOverrides extends AgRadialGaugeTheme {
-    targets?: AgRadialGaugeTarget;
+    targets?: AgRadialGaugeTargetTheme;
 }
 
 type AgLinearGaugeTheme = AgBaseGaugePresetThemeOptions & AgLinearGaugeThemeableOptions;
+export interface AgLinearGaugeTargetTheme extends Omit<AgLinearGaugeTarget, 'value' | 'text'> {}
 export interface AgLinearGaugeThemeOverrides extends AgLinearGaugeTheme {
-    targets?: AgLinearGaugeTarget;
+    targets?: AgLinearGaugeTargetTheme;
 }
 
 export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPolarAxesTheme {}
@@ -225,6 +224,7 @@ export interface AgCommonThemeableAxisOptions extends AgCartesianAxesTheme, AgPo
 export interface AgCommonThemeableChartOptions extends AgBaseThemeableChartOptions {
     axes?: AgCommonThemeableAxisOptions;
     annotations?: AgAnnotationsThemeableOptions;
+    initialState?: AgInitialStateThemeableOptions;
     locale?: AgLocaleThemeableOptions;
 }
 
@@ -249,7 +249,7 @@ export interface AgChartThemeOverrides {
     /** Candlestick series theme overrides. */
     candlestick?: AgCandlestickSeriesThemeOverrides;
     /** Cone Funnel series theme overrides. */
-    'cone-funnel'?: AConeFunnelSeriesThemeOverrides;
+    'cone-funnel'?: AgConeFunnelSeriesThemeOverrides;
     /** Funnel series theme overrides. */
     funnel?: AgFunnelSeriesThemeOverrides;
     /** ohlc series theme overrides. */
@@ -264,8 +264,6 @@ export interface AgChartThemeOverrides {
     'range-bar'?: AgRangeBarSeriesThemeOverrides;
     /** Range-area series theme overrides. */
     'range-area'?: AgRangeAreaSeriesThemeOverrides;
-    /** Bullet series theme overrides. */
-    bullet?: AgBulletSeriesThemeOverrides;
     /** Donut series theme overrides. */
     donut?: AgDonutSeriesThemeOverrides;
     /** Pie series theme overrides. */

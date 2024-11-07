@@ -116,6 +116,8 @@ export interface AgDonutSeriesThemeableOptions<TDatum = any>
     cornerRadius?: PixelSize;
     /** The spacing between Donut sectors. */
     sectorSpacing?: PixelSize;
+    /** Whether items with a value of 0 should be hidden in the legend. */
+    hideZeroValueSectorsInLegend?: boolean;
     /** A styler function for adjusting the styling of the Donut sectors. */
     itemStyler?: Styler<AgDonutSeriesItemStylerParams<TDatum>, AgDonutSeriesStyle>;
 }

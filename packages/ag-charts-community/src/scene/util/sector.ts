@@ -191,10 +191,10 @@ export function arcRadialLineIntersectionAngle(
     const cosA = Math.cos(clipAngle);
     const c = cx ** 2 + cy ** 2 - r ** 2;
 
-    let p0x = NaN;
-    let p0y = NaN;
-    let p1x = NaN;
-    let p1y = NaN;
+    let p0x;
+    let p0y;
+    let p1x;
+    let p1y;
     if (cosA > 0.5) {
         const tanA = sinA / cosA;
         const a = 1 + tanA ** 2;

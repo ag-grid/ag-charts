@@ -1,4 +1,4 @@
-import { type AgAnnotationLineStyleType, _ModuleSupport, _Util } from 'ag-charts-community';
+import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 
 import {
     type AnnotationLineStyle,
@@ -14,6 +14,8 @@ import {
 } from './annotationTypes';
 import type { AnnotationProperties } from './annotationsSuperTypes';
 import { setColor, setFontSize, setLineStyle } from './utils/styles';
+
+const { deepClone } = _ModuleSupport;
 
 interface DefaultsMemento {
     colors: DefaultColors;
@@ -94,11 +96,11 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
 
     createMemento() {
         return {
-            colors: _Util.deepClone(this.colors),
-            fontSizes: _Util.deepClone(this.fontSizes),
-            lineStyles: _Util.deepClone(this.lineStyles),
-            lineTextAlignments: _Util.deepClone(this.lineTextAlignments),
-            lineTextPositions: _Util.deepClone(this.lineTextPositions),
+            colors: deepClone(this.colors),
+            fontSizes: deepClone(this.fontSizes),
+            lineStyles: deepClone(this.lineStyles),
+            lineTextAlignments: deepClone(this.lineTextAlignments),
+            lineTextPositions: deepClone(this.lineTextPositions),
         };
     }
 
@@ -107,11 +109,11 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
     }
 
     restoreMemento(_version: string, _mementoVersion: string, blob: DefaultsMemento): void {
-        this.colors = _Util.deepClone(blob.colors);
-        this.fontSizes = _Util.deepClone(blob.fontSizes);
-        this.lineStyles = _Util.deepClone(blob.lineStyles);
-        this.lineTextAlignments = _Util.deepClone(blob.lineTextAlignments);
-        this.lineTextPositions = _Util.deepClone(blob.lineTextPositions);
+        this.colors = deepClone(blob.colors);
+        this.fontSizes = deepClone(blob.fontSizes);
+        this.lineStyles = deepClone(blob.lineStyles);
+        this.lineTextAlignments = deepClone(blob.lineTextAlignments);
+        this.lineTextPositions = deepClone(blob.lineTextPositions);
     }
 
     setDefaultColor(

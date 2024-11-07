@@ -1,8 +1,6 @@
-import { type AgGaugeFillMode, _ModuleSupport, _Scale, _Util } from 'ag-charts-community';
+import { type AgGaugeFillMode, _ModuleSupport } from 'ag-charts-community';
 
-const { BaseProperties, Validate, COLOR_STRING, NUMBER } = _ModuleSupport;
-const { ColorScale } = _Scale;
-const { Logger } = _Util;
+const { BaseProperties, Validate, COLOR_STRING, NUMBER, Logger, ColorScale } = _ModuleSupport;
 
 export class GaugeStopProperties extends BaseProperties {
     @Validate(NUMBER, { optional: true })
@@ -19,8 +17,7 @@ export interface GaugeColorStopDatum {
 
 function stopsAreAscending(fills: GaugeStopProperties[]) {
     let currentStop: number | undefined;
-    for (let i = 0; i < fills.length; i += 1) {
-        const { stop } = fills[i];
+    for (const { stop } of fills) {
         if (stop == null) {
             continue;
         } else if (currentStop != null && stop < currentStop) {
@@ -109,7 +106,7 @@ export function getColorStops(
     }
 
     let lastDefinedColor = fills.find((c) => c.color != null)?.color;
-    let colorScale: _Scale.ColorScale | undefined;
+    let colorScale: _ModuleSupport.ColorScale | undefined;
 
     const colorStops = fills.map(({ color }, i): GaugeColorStopDatum => {
         const offset = offsets[i];

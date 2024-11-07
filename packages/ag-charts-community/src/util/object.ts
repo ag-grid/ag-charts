@@ -5,10 +5,10 @@ import type { Intersection, PlainObject } from './types';
 type FalsyType = false | null | undefined;
 
 export function objectEqualWith<T extends PlainObject>(a: T, b: T, cmp: (a: T, b: T) => boolean): boolean {
-    for (const key in b) {
+    for (const key of Object.keys(b)) {
         if (!(key in a)) return false;
     }
-    for (const key in a) {
+    for (const key of Object.keys(a)) {
         if (!(key in b)) return false;
         if (!cmp(a[key], b[key])) return false;
     }
@@ -98,4 +98,21 @@ export function partialAssign<T>(keysToCopy: (keyof T)[], target: T, source?: Pa
     }
 
     return target;
+}
+
+export function deepFreeze<T>(obj: T): T {
+    // Freeze the current object
+    Object.freeze(obj);
+
+    // Get all properties of the object
+    Object.getOwnPropertyNames(obj).forEach((prop) => {
+        const value = (obj as any)[prop];
+
+        // If the value is an object, and not null, and hasn't already been frozen, recursively freeze it
+        if (value !== null && (typeof value === 'object' || typeof value === 'function') && !Object.isFrozen(value)) {
+            deepFreeze(value);
+        }
+    });
+
+    return obj;
 }

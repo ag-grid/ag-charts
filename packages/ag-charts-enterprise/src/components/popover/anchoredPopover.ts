@@ -1,8 +1,8 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { Popover, type PopoverOptions } from './popover';
 
-const { clamp } = _Util;
+const { clamp } = _ModuleSupport;
 
 export interface AnchoredPopoverOptions extends PopoverOptions {
     anchor?: _ModuleSupport.Vec2;

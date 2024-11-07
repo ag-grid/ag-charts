@@ -107,7 +107,7 @@ export function maxWidthOfRectConstrainedByCenterAndAspectRatioToLineSegment(
     return maxWidth;
 }
 
-export function maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(
+function maxWidthOfRectConstrainedByCenterAndAspectRatioToPolygon(
     polygons: _ModuleSupport.Position[][],
     cx: number,
     cy: number,

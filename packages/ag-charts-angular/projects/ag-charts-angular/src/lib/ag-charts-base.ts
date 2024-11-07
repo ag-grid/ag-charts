@@ -1,7 +1,10 @@
-import { AfterViewInit, EventEmitter, NgZone, OnChanges, OnDestroy } from '@angular/core';
+import { AfterViewInit, Component, EventEmitter, NgZone, OnChanges, OnDestroy } from '@angular/core';
 
 import { AgBaseChartListeners, AgChartInstance, AgChartLegendListeners, AgSeriesListeners } from 'ag-charts-community';
 
+@Component({
+    template: '',
+})
 export abstract class AgChartsBase<Options extends {}> implements AfterViewInit, OnChanges, OnDestroy {
     public chart?: AgChartInstance;
     public abstract options: Options;

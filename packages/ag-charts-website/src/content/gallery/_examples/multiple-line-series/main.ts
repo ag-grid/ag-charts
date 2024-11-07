@@ -99,6 +99,8 @@ const options: AgChartOptions = {
             title: {
                 text: 'Time',
             },
+            max: 540,
+            nice: false,
             interval: { values: [0, 180, 360, 540] },
             label: {
                 formatter: ({ value }) => `${Math.floor(value / 60)}h`,

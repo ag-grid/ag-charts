@@ -1,6 +1,6 @@
 import { clamp } from './number';
 
-export interface IColor {
+interface IColor {
     readonly r: number;
     readonly g: number;
     readonly b: number;

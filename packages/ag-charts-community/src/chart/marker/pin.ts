@@ -3,7 +3,7 @@ import { Marker } from './marker';
 export class Pin extends Marker {
     static readonly className = 'MapPin';
 
-    static override center = { x: 0.5, y: 1 };
+    static override readonly center = { x: 0.5, y: 1 };
 
     override updatePath() {
         const { path, x, y } = this;

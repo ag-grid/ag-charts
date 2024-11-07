@@ -96,7 +96,6 @@ AG Charts offers 20+ Enterprise Chart types, each of which are fully customisabl
 | [Donut](https://ag-grid.com/charts/javascript/donut-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                 | ✅                  | ✅                   |
 | [Combination](https://ag-grid.com/charts/javascript/combination-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)     | ✅                  | ✅                   |
 | [Box Plot](https://ag-grid.com/charts/javascript/box-plot-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)           | ❌                  | ✅                   |
-| [Bullet](https://ag-grid.com/charts/javascript/bullet-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)               | ❌                  | ✅                   |
 | [Candlestick](https://ag-grid.com/charts/javascript/candlestick-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)     | ❌                  | ✅                   |
 | [OHLC](https://ag-grid.com/charts/javascript/ohlc-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)                   | ❌                  | ✅                   |
 | [Heatmap](https://ag-grid.com/charts/javascript/heatmap-series/?utm_source=ag-charts-readme&utm_medium=repository&utm_campaign=github)             | ❌                  | ✅                   |

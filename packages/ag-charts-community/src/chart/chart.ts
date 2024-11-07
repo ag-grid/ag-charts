@@ -1,21 +1,21 @@
-import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateOptions } from 'ag-charts-types';
+import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
+import type { AxisOptionModule } from '../module/axisOptionModule';
 import type { LayoutContext } from '../module/baseModule';
 import type { LegendModule, RootModule } from '../module/coreModules';
 import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
-import type { AxisOptionModule, ChartOptions } from '../module/optionsModule';
+import type { ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
-import { Layer, TranslatableLayer } from '../scene/layer';
-import type { Node } from '../scene/node';
 import type { Scene } from '../scene/scene';
 import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
 import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
 import { groupBy } from '../util/array';
-import { sleep } from '../util/async';
+import { AsyncAwaitQueue, pause } from '../util/async';
 import { Debug } from '../util/debug';
+import { isInputPending } from '../util/dom';
 import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
 import { Logger } from '../util/logger';
@@ -70,6 +70,7 @@ const debug = Debug.create(true, 'opts');
 
 export type TransferableResources = {
     container?: HTMLElement;
+    styleContainer?: HTMLElement;
     scene: Scene;
 };
 
@@ -86,16 +87,6 @@ type ObservableLike = {
     addEventListener(key: string, cb: TypedEventListener): void;
     clearEventListeners(): void;
 };
-
-export interface ChartSpecialOverrides {
-    document?: Document;
-    window?: Window;
-    overrideDevicePixelRatio?: number;
-    sceneMode?: 'simple';
-    presetType?: string;
-}
-
-export type ChartExtendedOptions = AgChartOptions & ChartSpecialOverrides;
 
 class SeriesArea extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
@@ -116,15 +107,17 @@ export abstract class Chart extends Observable {
 
     className?: string;
 
-    readonly seriesRoot = new TranslatableGroup({ name: `${this.id}-series-root` });
-    readonly highlightRoot = new TranslatableLayer({
-        name: `${this.id}-highlight-root`,
-        zIndex: ZIndexMap.SERIES_HIGHLIGHT,
-        deriveZIndexFromChildren: true, // TODO remove feature
+    readonly seriesRoot = new TranslatableGroup({
+        name: `${this.id}-series-root`,
+        zIndex: ZIndexMap.SERIES_LAYER,
     });
-    readonly annotationRoot = new TranslatableLayer({
+    readonly annotationRoot = new TranslatableGroup({
         name: `${this.id}-annotation-root`,
         zIndex: ZIndexMap.SERIES_ANNOTATION,
+    });
+    private readonly titleGroup = new Group({
+        name: 'titles',
+        zIndex: ZIndexMap.SERIES_LABEL,
     });
 
     readonly tooltip: Tooltip;
@@ -185,6 +178,7 @@ export abstract class Chart extends Observable {
 
     private _lastAutoSize?: [number, number];
     private _firstAutoSize = true;
+    private readonly _autoSizeNotify = new AsyncAwaitQueue();
 
     download(fileName?: string, fileFormat?: string) {
         this.ctx.scene.download(fileName, fileFormat);
@@ -256,30 +250,31 @@ export abstract class Chart extends Observable {
 
         const scene: Scene | undefined = resources?.scene;
         const container = resources?.container ?? options.processedOptions.container ?? undefined;
+        const styleContainer = resources?.styleContainer ?? options.specialOverrides.styleContainer;
 
         const root = new Group({ name: 'root' });
-        const titleGroup = new Layer({ name: 'titles', zIndex: ZIndexMap.SERIES_LABEL });
         // Prevent the scene from rendering chart components in an invalid state
         // (before first layout is performed).
         root.visible = false;
-        root.append(titleGroup);
         root.append(this.seriesRoot);
-        root.append(this.highlightRoot);
         root.append(this.annotationRoot);
+        root.append(this.titleGroup);
 
-        titleGroup.append(this.title.node);
-        titleGroup.append(this.subtitle.node);
-        titleGroup.append(this.footnote.node);
+        this.titleGroup.append(this.title.node);
+        this.titleGroup.append(this.subtitle.node);
+        this.titleGroup.append(this.footnote.node);
 
         this.tooltip = new Tooltip();
-        this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot, this.highlightRoot, this.annotationRoot);
+        this.seriesLayerManager = new SeriesLayerManager(this.seriesRoot);
+        this.mode = (options.userOptions as { mode?: ChartMode }).mode ?? this.mode;
         const ctx = (this.ctx = new ChartContext(this, {
             scene,
             root,
             container,
+            styleContainer,
             syncManager: new SyncManager(this),
             pixelRatio: options.specialOverrides.overrideDevicePixelRatio,
-            updateCallback: (type = ChartUpdateType.FULL, opts) => this.update(type, opts),
+            updateCallback: (type, opts) => this.update(type, opts),
             updateMutex: this.updateMutex,
         }));
 
@@ -314,8 +309,6 @@ export abstract class Chart extends Observable {
             new SimpleRegionBBoxProvider(this.seriesRoot, () => this.seriesRect ?? BBox.zero),
             this.ctx.axisManager.axisGridGroup
         );
-        ctx.regionManager.addRegion(REGIONS.HORIZONTAL_AXES);
-        ctx.regionManager.addRegion(REGIONS.VERTICAL_AXES);
         ctx.regionManager.addRegion('root', root);
 
         // The 'data-animating' is used by e2e tests to wait for the animation to end before starting kbm interactions
@@ -355,11 +348,11 @@ export abstract class Chart extends Observable {
     }
 
     private initSeriesAreaDependencies(): SeriesAreaChartDependencies {
-        const { ctx, tooltip, highlight, overlays, seriesRoot } = this;
+        const { ctx, tooltip, highlight, overlays, seriesRoot, mode } = this;
         const chartType = this.getChartType();
         const fireEvent = this.fireEvent.bind(this);
         const getUpdateType = () => this.performUpdateType;
-        return { fireEvent, getUpdateType, chartType, ctx, tooltip, highlight, overlays, seriesRoot };
+        return { fireEvent, getUpdateType, chartType, ctx, tooltip, highlight, overlays, seriesRoot, mode };
     }
 
     getModuleContext(): ModuleContext {
@@ -457,17 +450,22 @@ export abstract class Chart extends Observable {
         this.updateMutex
             .acquire(async () => {
                 if (this.destroyed) return;
-                await cb(this);
-                if (this.destroyed) return;
-                this._pendingFactoryUpdatesCount--;
+                try {
+                    await cb(this);
+                } finally {
+                    if (!this.destroyed) {
+                        this._pendingFactoryUpdatesCount--;
+                    }
+                }
             })
             .catch((e) => Logger.errorOnce(e));
     }
 
     private _pendingFactoryUpdatesCount = 0;
-    private _performUpdateNoRenderCount = 0;
     private _performUpdateSkipAnimations: boolean = false;
+    private readonly _performUpdateNotify = new AsyncAwaitQueue();
     private performUpdateType: ChartUpdateType = ChartUpdateType.NONE;
+    private runningUpdateType: ChartUpdateType = ChartUpdateType.NONE;
 
     private updateShortcutCount = 0;
     private readonly seriesToUpdate: Set<ISeries<any, any>> = new Set();
@@ -533,6 +531,7 @@ export abstract class Chart extends Observable {
         // Clear state immediately so that side effects can be detected prior to SCENE_RENDER.
         this.performUpdateType = ChartUpdateType.NONE;
         this.seriesToUpdate.clear();
+        this.runningUpdateType = performUpdateType;
 
         if (this.updateShortcutCount === 0 && performUpdateType < ChartUpdateType.SCENE_RENDER) {
             ctx.animationManager.startBatch(this._performUpdateSkipAnimations);
@@ -548,36 +547,38 @@ export abstract class Chart extends Observable {
             previousSplit = performance.now();
         };
 
-        let updateDeferred = false;
         switch (performUpdateType) {
             case ChartUpdateType.FULL:
+                if (this.checkUpdateShortcut(ChartUpdateType.FULL)) break;
+
                 this.ctx.updateService.dispatchPreDomUpdate();
                 this.updateDOM();
             // fallthrough
 
             case ChartUpdateType.UPDATE_DATA:
+                if (this.checkUpdateShortcut(ChartUpdateType.UPDATE_DATA)) break;
+
                 await this.updateData();
                 updateSplits('⬇️');
             // fallthrough
 
             case ChartUpdateType.PROCESS_DATA:
+                if (this.checkUpdateShortcut(ChartUpdateType.PROCESS_DATA)) break;
+
                 await this.processData();
                 this.seriesAreaManager.dataChanged();
                 updateSplits('🏭');
             // fallthrough
 
             case ChartUpdateType.PERFORM_LAYOUT:
+                await this.checkFirstAutoSize();
                 if (this.checkUpdateShortcut(ChartUpdateType.PERFORM_LAYOUT)) break;
-                if (!this.checkFirstAutoSize(seriesToUpdate)) {
-                    updateDeferred = true;
-                    break;
-                }
 
                 await this.processLayout();
                 updateSplits('⌖');
             // fallthrough
 
-            case ChartUpdateType.SERIES_UPDATE:
+            case ChartUpdateType.SERIES_UPDATE: {
                 if (this.checkUpdateShortcut(ChartUpdateType.SERIES_UPDATE)) break;
 
                 const { seriesRect } = this;
@@ -586,6 +587,8 @@ export abstract class Chart extends Observable {
                 updateSplits('🤔');
 
                 this.updateAriaLabels();
+                this.seriesLayerManager.updateLayerCompositing();
+            }
             // fallthrough
 
             case ChartUpdateType.PRE_SCENE_RENDER:
@@ -606,7 +609,7 @@ export abstract class Chart extends Observable {
                 extraDebugStats['updateShortcutCount'] = this.updateShortcutCount;
                 await ctx.scene.render({ debugSplitTimes: splits, extraDebugStats, seriesRect: this.seriesRect });
                 this.extraDebugStats = {};
-                for (const key in splits) {
+                for (const key of Object.keys(splits)) {
                     delete splits[key];
                 }
 
@@ -621,10 +624,12 @@ export abstract class Chart extends Observable {
                 ctx.animationManager.endBatch();
         }
 
-        if (!updateDeferred) {
+        if (!this.destroyed) {
             ctx.updateService.dispatchUpdateComplete(this.getMinRects());
             this.ctx.domManager.setDataBoolean('updatePending', false);
+            this.runningUpdateType = ChartUpdateType.NONE;
         }
+        this._performUpdateNotify.notify();
 
         const end = performance.now();
         this.debug('Chart.performUpdate() - end', {
@@ -663,7 +668,7 @@ export abstract class Chart extends Observable {
         this.updateThemeClassName();
 
         const { enabled, tabIndex } = this.keyboard;
-        this.ctx.domManager.setTabIndex(enabled ? tabIndex ?? 0 : -1);
+        this.ctx.domManager.setTabGuardIndex(enabled ? tabIndex ?? 0 : -1);
     }
 
     private updateAriaLabels() {
@@ -672,6 +677,8 @@ export abstract class Chart extends Observable {
 
     private checkUpdateShortcut(checkUpdateType: ChartUpdateType) {
         const maxShortcuts = 3;
+
+        if (this.destroyed) return true;
 
         if (this.updateShortcutCount > maxShortcuts) {
             Logger.warn(
@@ -692,29 +699,19 @@ export abstract class Chart extends Observable {
         return false;
     }
 
-    private checkFirstAutoSize(seriesToUpdate: ISeries<any, any>[]) {
+    private async checkFirstAutoSize() {
         if (this.width != null && this.height != null) {
             // Auto-size isn't in use in this case, don't wait for it.
         } else if (!this._lastAutoSize) {
-            const count = this._performUpdateNoRenderCount++;
-            const backOffMs = (count + 1) ** 2 * 40;
+            const success = await this._autoSizeNotify.await(500);
 
-            if (count < 8) {
-                // Reschedule if canvas size hasn't been set yet to avoid a race.
-                this.update(ChartUpdateType.PERFORM_LAYOUT, { seriesToUpdate, backOffMs });
-
-                this.debug('Chart.checkFirstAutoSize() - backing off until first size update', backOffMs);
-                return false;
+            if (!success) {
+                // After several failed passes, continue and accept there maybe a redundant
+                // render. Sometimes this case happens when we already have the correct
+                // width/height, and we end up never rendering the chart in that scenario.
+                this.debug('Chart.checkFirstAutoSize() - timeout for first size update.');
             }
-
-            // After several failed passes, continue and accept there maybe a redundant
-            // render. Sometimes this case happens when we already have the correct
-            // width/height, and we end up never rendering the chart in that scenario.
-            this.debug('Chart.checkFirstAutoSize() - timeout for first size update.');
         }
-        this._performUpdateNoRenderCount = 0;
-
-        return true;
     }
 
     @ActionOnSet<Chart>({
@@ -745,9 +742,8 @@ export abstract class Chart extends Observable {
         for (const series of newValue) {
             if (oldValue?.includes(series)) continue;
 
-            if (series.rootGroup.isRoot()) {
-                this.seriesLayerManager.requestGroup(series);
-            }
+            const seriesContentNode = this.seriesLayerManager.requestGroup(series);
+            series.attachSeries(seriesContentNode, this.seriesRoot, this.annotationRoot);
 
             const chart = this;
             series.chart = {
@@ -780,6 +776,7 @@ export abstract class Chart extends Observable {
             series.removeEventListener('groupingChanged', this.seriesGroupingChanged);
             series.destroy();
             this.seriesLayerManager.releaseGroup(series);
+            series.detachSeries(undefined, this.seriesRoot, this.annotationRoot);
 
             series.chart = undefined;
         });
@@ -807,8 +804,8 @@ export abstract class Chart extends Observable {
         // This method has to run before `assignSeriesToAxes`.
         const directionToAxesMap = groupBy(this.axes, (axis) => axis.direction);
 
-        this.series.forEach((series) => {
-            series.directions.forEach((direction) => {
+        for (const series of this.series) {
+            for (const direction of series.directions) {
                 const directionAxes = directionToAxesMap[direction];
                 if (!directionAxes) {
                     Logger.warnOnce(
@@ -829,8 +826,8 @@ export abstract class Chart extends Observable {
                 }
 
                 series.axes[direction] = newAxis;
-            });
-        });
+            }
+        }
     }
 
     private parentResize(size: { width: number; height: number } | undefined) {
@@ -879,6 +876,7 @@ export abstract class Chart extends Observable {
             }
 
             this.update(ChartUpdateType.PERFORM_LAYOUT, { forceNodeDataRefresh: true, skipAnimations });
+            this._autoSizeNotify.notify();
         }
     }
 
@@ -1007,15 +1005,13 @@ export abstract class Chart extends Observable {
         const { series, seriesGrouping, oldGrouping } = event;
 
         // Short-circuit if series isn't already attached to the scene-graph yet.
-        if (series.rootGroup.isRoot()) return;
+        if (series.contentGroup.isRoot()) return;
 
         this.seriesLayerManager.changeGroup({
             internalId: series.internalId,
             type: series.type,
-            rootGroup: series.rootGroup,
-            highlightGroup: series.highlightGroup,
-            annotationGroup: series.annotationGroup,
-            getGroupZIndexSubOrder: (type) => series.getGroupZIndexSubOrder(type),
+            contentGroup: series.contentGroup,
+            renderToOffscreenCanvas: () => series.renderToOffscreenCanvas(),
             seriesGrouping,
             oldGrouping,
         });
@@ -1024,12 +1020,20 @@ export abstract class Chart extends Observable {
     async waitForUpdate(timeoutMs = 10_000, failOnTimeout = false): Promise<void> {
         const start = performance.now();
 
-        if (this._pendingFactoryUpdatesCount > 0) {
-            // wait until any pending updates are flushed through.
-            await this.updateMutex.waitForClearAcquireQueue();
-        }
+        while (
+            this._pendingFactoryUpdatesCount > 0 ||
+            this.performUpdateType !== ChartUpdateType.NONE ||
+            this.runningUpdateType !== ChartUpdateType.NONE
+        ) {
+            if (this._pendingFactoryUpdatesCount > 0) {
+                // wait until any pending updates are flushed through.
+                await this.updateMutex.waitForClearAcquireQueue();
+            }
 
-        while (this.performUpdateType !== ChartUpdateType.NONE) {
+            if (this.performUpdateType !== ChartUpdateType.NONE || this.runningUpdateType !== ChartUpdateType.NONE) {
+                await this._performUpdateNotify.await();
+            }
+
             if (performance.now() - start > timeoutMs) {
                 const message = `Chart.waitForUpdate() timeout of ${timeoutMs} reached - first chart update taking too long.`;
                 if (failOnTimeout) {
@@ -1038,11 +1042,11 @@ export abstract class Chart extends Observable {
                     Logger.warnOnce(message);
                 }
             }
-            await sleep(50);
-        }
 
-        // wait until any remaining updates are flushed through.
-        await this.updateMutex.waitForClearAcquireQueue();
+            if (isInputPending()) {
+                await pause();
+            }
+        }
     }
 
     protected getMinRects() {
@@ -1078,15 +1082,12 @@ export abstract class Chart extends Observable {
         return series?.filter((s) => s.showInMiniChart !== false);
     }
 
-    applyOptions(newChartOptions: ChartOptions) {
-        // Detect first creation case.
-        const isDifferentOpts = newChartOptions !== this.chartOptions;
+    applyOptions(newChartOptions: ChartOptions, create: boolean) {
+        const deltaOptions = create ? newChartOptions.processedOptions : newChartOptions.diffOptions(this.chartOptions);
+        if (deltaOptions == null || Object.keys(deltaOptions).length === 0) return;
 
-        const oldOpts = isDifferentOpts ? this.chartOptions.processedOptions : {};
+        const oldOpts = create ? {} : this.chartOptions.processedOptions;
         const newOpts = newChartOptions.processedOptions;
-        const deltaOptions = newChartOptions.diffOptions(oldOpts);
-
-        if (deltaOptions == null) return;
 
         debug('Chart.applyOptions() - applying delta', deltaOptions);
 
@@ -1107,6 +1108,7 @@ export abstract class Chart extends Observable {
             'topology',
             'nodes',
             'initialState',
+            'styleContainer',
         ];
 
         // Needs to be done before applying the series to detect if a seriesNode[Double]Click listener has been added
@@ -1125,7 +1127,7 @@ export abstract class Chart extends Observable {
         if (seriesStatus === 'replaced') {
             this.resetAnimations();
         }
-        if (this.applyAxes(this, newOpts, oldOpts, seriesStatus, [], true)) {
+        if (this.applyAxes(this, newOpts, oldOpts, seriesStatus, [])) {
             forceNodeDataRefresh = true;
         }
 
@@ -1172,16 +1174,15 @@ export abstract class Chart extends Observable {
         this.update(updateType, { forceNodeDataRefresh, newAnimationBatch: true });
 
         if (deltaOptions.initialState || deltaOptions.theme) {
-            this.applyInitialState(newChartOptions.userOptions.initialState);
+            this.applyInitialState(newOpts);
         }
     }
 
-    private applyInitialState(initialState?: AgInitialStateOptions) {
-        const {
-            ctx: { annotationManager, historyManager, stateManager },
-        } = this;
+    private applyInitialState(options: AgChartOptions) {
+        const { annotationManager, chartTypeOriginator, historyManager, stateManager, zoomManager } = this.ctx;
+        const { initialState } = options;
 
-        if (initialState?.annotations != null) {
+        if ('annotations' in options && options.annotations?.enabled && initialState?.annotations != null) {
             const annotations = initialState.annotations.map((annotation) => {
                 const annotationTheme = annotationManager.getAnnotationTypeStyles(annotation.type);
                 return mergeDefaults(annotation, annotationTheme);
@@ -1190,9 +1191,13 @@ export abstract class Chart extends Observable {
             stateManager.setState(annotationManager, annotations);
         }
 
-        // if (initialState?.zoom != null) {
-        //     stateManager.setState(zoomManager, initialState.zoom);
-        // }
+        if (initialState?.chartType != null) {
+            stateManager.setState(chartTypeOriginator, initialState.chartType);
+        }
+
+        if ((options.navigator?.enabled || options.zoom?.enabled) && initialState?.zoom != null) {
+            stateManager.setState(zoomManager, initialState.zoom);
+        }
 
         if (initialState != null) {
             historyManager.clear();
@@ -1313,7 +1318,7 @@ export abstract class Chart extends Observable {
     private initSeriesDeclarationOrder(series: Series<any, any>[]) {
         // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
         for (let idx = 0; idx < series.length; idx++) {
-            series[idx]._declarationOrder = idx;
+            series[idx].setSeriesIndex(idx);
         }
     }
 
@@ -1329,8 +1334,9 @@ export abstract class Chart extends Observable {
         const matchResult = matchSeriesOptions(chart.series, optSeries, oldOptSeries);
         if (matchResult.status === 'no-overlap') {
             debug(`Chart.applySeries() - creating new series instances, status: ${matchResult.status}`, matchResult);
-            chart.series = optSeries.map((opts) => this.createSeries(opts));
-            this.initSeriesDeclarationOrder(chart.series);
+            const chartSeries = optSeries.map((opts) => this.createSeries(opts));
+            this.initSeriesDeclarationOrder(chartSeries);
+            chart.series = chartSeries;
             return 'replaced';
         }
 
@@ -1393,8 +1399,7 @@ export abstract class Chart extends Observable {
         options: AgChartOptions,
         oldOpts: AgChartOptions,
         seriesStatus: SeriesChangeType,
-        skip: string[] = [],
-        registerRegions = false
+        skip: string[] = []
     ) {
         if (!('axes' in options) || !options.axes) {
             return false;
@@ -1423,24 +1428,11 @@ export abstract class Chart extends Observable {
 
         debug(`Chart.applyAxes() - creating new axes instances; seriesStatus: ${seriesStatus}`);
         chart.axes = this.createAxis(axes, skip);
-
-        const axisGroups: { [Key in ChartAxisDirection]: { id: string; node: Node }[] } = {
-            [ChartAxisDirection.X]: [],
-            [ChartAxisDirection.Y]: [],
-        };
-
-        chart.axes.forEach((axis) => axisGroups[axis.direction].push({ id: axis.id, node: axis.getRegionNode() }));
-
-        if (registerRegions) {
-            this.ctx.regionManager.updateRegion(REGIONS.HORIZONTAL_AXES, ...axisGroups[ChartAxisDirection.X]);
-            this.ctx.regionManager.updateRegion(REGIONS.VERTICAL_AXES, ...axisGroups[ChartAxisDirection.Y]);
-        }
-
         return true;
     }
 
     private createSeries(seriesOptions: SeriesOptionsTypes): Series<any, any> {
-        const seriesInstance = seriesRegistry.create(seriesOptions.type!, this.getModuleContext()) as Series<any, any>;
+        const seriesInstance = seriesRegistry.create(seriesOptions.type, this.getModuleContext()) as Series<any, any>;
         this.applySeriesOptionModules(seriesInstance, seriesOptions);
         this.applySeriesValues(seriesInstance, seriesOptions);
         return seriesInstance;

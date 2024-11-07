@@ -45,6 +45,7 @@ const options: AgChartOptions = {
                 enabled: true,
                 text: '£ / Week',
             },
+            label: { formatter: ({ value }) => `£${value.toFixed(0)}` },
         },
     ],
 };

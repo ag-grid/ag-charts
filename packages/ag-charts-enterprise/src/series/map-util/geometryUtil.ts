@@ -144,7 +144,6 @@ export function largestLineString(geometry: _ModuleSupport.Geometry): _ModuleSup
 }
 
 export enum GeometryType {
-    Any = 0b111,
     Polygon = 0b001,
     LineString = 0b010,
     Point = 0b100,

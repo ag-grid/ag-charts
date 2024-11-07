@@ -1,3 +1,4 @@
+import type { AgInitialStateOptions } from './api/initialStateOptions';
 import type { AgBaseChartOptions } from './chart/chartOptions';
 import type {
     AgBaseChartThemeOptions,
@@ -10,7 +11,13 @@ import type { AgFinancialChartPresets } from './presets/financial/financialOptio
 import type { AgGaugePresets } from './presets/gauge/gaugeOptions';
 import type { AgLinearGaugePreset } from './presets/gauge/linearGaugeOptions';
 import type { AgRadialGaugePreset } from './presets/gauge/radialGaugeOptions';
-import type { SparklineBarPreset, SparklineLinePreset } from './presets/sparkline/sparklineOptions';
+import type {
+    AgAreaSparklinePreset,
+    AgBarSparklinePreset,
+    AgLineSparklinePreset,
+    AgSparklineBaseThemeableOptions,
+    AgSparklinePresets,
+} from './presets/sparkline/sparklineOptions';
 import type { AgBaseCartesianChartOptions } from './series/cartesian/cartesianOptions';
 import type { AgBaseFlowProportionChartOptions } from './series/flow-proportion/flowProportionOptions';
 import type { AgBaseHierarchyChartOptions } from './series/hierarchy/hierarchyOptions';
@@ -60,20 +67,20 @@ export type AgBaseFinancialPresetOptions = Pick<
     'container' | 'width' | 'height' | 'minWidth' | 'minHeight' | 'theme' | 'title' | 'initialState' | 'data'
 >;
 
-export type AgBaseSparklinePresetThemeOptions = Pick<
-    AgCartesianChartOptions,
-    | 'background'
-    | 'container'
-    | 'height'
-    | 'listeners'
-    | 'locale'
-    | 'minHeight'
-    | 'minWidth'
-    | 'padding'
-    | 'width'
-    | 'data'
-    | 'axes'
->;
+export type AgBaseSparklinePresetThemeOptions = AgSparklineBaseThemeableOptions &
+    Pick<
+        AgCartesianChartOptions,
+        | 'background'
+        | 'container'
+        | 'height'
+        | 'listeners'
+        | 'locale'
+        | 'minHeight'
+        | 'minWidth'
+        | 'padding'
+        | 'width'
+        | 'data'
+    >;
 
 export type AgFinancialChartOptions = AgBaseFinancialPresetOptions & AgFinancialChartPresets;
 
@@ -89,12 +96,12 @@ export interface AgBaseSparklinePresetOptions extends AgBaseSparklinePresetTheme
     theme?: AgChartTheme | AgChartThemeName;
 }
 
-export type AgSparklineBarOptions = AgBaseSparklinePresetOptions & SparklineBarPreset;
-export type AgSparklineLineOptions = AgBaseSparklinePresetOptions & SparklineLinePreset;
-export type AgSparklineAreaOptions = AgBaseSparklinePresetOptions & SparklineLinePreset;
-export type AgSparklineOptions = AgBaseSparklinePresetOptions & AgBaseSparklinePresetOptions;
+export type AgBarSparklineOptions = AgBaseSparklinePresetOptions & AgBarSparklinePreset;
+export type AgLineSparklineOptions = AgBaseSparklinePresetOptions & AgLineSparklinePreset;
+export type AgAreaSparklineOptions = AgBaseSparklinePresetOptions & AgAreaSparklinePreset;
+export type AgSparklineOptions = AgBaseSparklinePresetOptions & AgSparklinePresets;
 
-export type AgPresetOptions = AgFinancialChartOptions | AgGaugeOptions;
+export type AgPresetOptions = AgFinancialChartOptions | AgGaugeOptions | AgSparklineOptions;
 
 export type AgChartInstanceOptions = AgChartOptions | AgPresetOptions;
 
@@ -148,7 +155,7 @@ export interface AgChartInstance<O extends AgChartInstanceOptions = AgChartOptio
     getImageDataURL(options?: ImageDataUrlOptions): Promise<string>;
 
     /** Returns a representation of the current state of the given `AgChartInstance`. */
-    getState(): Required<AgChartState>;
+    getState(): AgChartState;
     /** Sets the state of the given `AgChartInstance` to the state provided.*/
     setState(state: AgChartState): Promise<void>;
 
@@ -178,19 +185,6 @@ export interface ImageDataUrlOptions {
     fileFormat?: string;
 }
 
-export interface AgChartState {
+export interface AgChartState extends AgInitialStateOptions {
     version: string;
-    annotations?: AgChartSerializableState;
-    // zoom?: AgChartSerializableState;
 }
-
-/**
- * @deprecated v10.2.0 use `AgAnnotationsOptions` instead.
- *
- * ```
- * export interface AgChartState extends AgInitialStateOptions {
- *     version: string;
- * }
- * ```
- */
-export type AgChartSerializableState = any;

@@ -12,4 +12,3 @@ function decode(encoded: number) {
 }
 
 export const hour = new CountableTimeInterval(encode, decode);
-export default hour;

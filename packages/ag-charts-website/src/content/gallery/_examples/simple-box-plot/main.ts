@@ -72,7 +72,6 @@ const options: AgChartOptions = {
         {
             type: 'category',
             position: 'bottom',
-            groupPaddingInner: 0,
             paddingInner: 0.7,
             paddingOuter: 0.2,
             gridLine: {

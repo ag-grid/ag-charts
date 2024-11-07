@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, jest, test } from '@jest/globals';
 
-import type { AgPolarChartOptions } from 'ag-charts-types';
+import type { AgPieSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
 import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
@@ -173,6 +173,37 @@ describe('PieSeries', () => {
             expect(doubleClicks).toHaveLength(0);
             expect(clicks).toHaveLength(0);
             expect(legendClicks).toEqual([0, 0, 1, 1, 2, 2, 3, 3, 4, 4]);
+        });
+    });
+
+    // AG-8724 - Allow hiding zero value sectors in legend
+    describe('hideZeroValueSectorsInLegend', () => {
+        const data = [
+            { id: 'a', value: 4 },
+            { id: 'b', value: 0 },
+            { id: 'c', value: 5 },
+        ];
+        const series: AgPieSeriesOptions[] = [
+            {
+                type: 'pie' as const,
+                angleKey: 'value',
+                calloutLabelKey: 'id',
+            },
+        ];
+        const opts = prepareTestOptions({
+            data,
+            series,
+        });
+
+        it('should display legend item for zero value sectors when `hideZeroValueSectorsInLegend` is not supplied in the options', async () => {
+            chart = await createChart(opts);
+            await compare();
+        });
+        it('should hide legend item for zero value sectors when `hideZeroValueSectorsInLegend` is set to `true`', async () => {
+            opts.series[0] = { ...series[0], hideZeroValueSectorsInLegend: true };
+
+            chart = await createChart(opts);
+            await compare();
         });
     });
 

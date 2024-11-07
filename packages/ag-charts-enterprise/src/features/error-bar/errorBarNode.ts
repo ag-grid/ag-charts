@@ -121,8 +121,6 @@ export class ErrorBarNode extends _Scene.Group {
     }
 
     update(style: AgErrorBarThemeableOptions, formatters: FormatOptions, highlighted: boolean) {
-        // Note: The method always uses the RedrawType.MAJOR mode for simplicity.
-        // This could be optimised to reduce a amount of unnecessary redraws.
         if (this.datum === undefined) {
             return;
         }

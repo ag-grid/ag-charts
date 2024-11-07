@@ -1,6 +1,7 @@
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { type RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties';
+import { type RangeAreaContext, type RangeAreaLabelDatum, prepareRangeAreaPathAnimation } from './rangeAreaUtil';
 
 const {
     valueProperty,
@@ -20,30 +21,18 @@ const {
     animationValidation,
     diff,
     updateClipPath,
-    formatValue,
     computeMarkerFocusBounds,
-    plotPath,
-    pathRanges,
-    pathRangePoints,
-    pathRangePointsReverse,
+    plotAreaPathFill,
+    plotLinePathStroke,
+    interpolatePoints,
+    pathFadeInAnimation,
+    markerFadeInAnimation,
+    fromToMotion,
+    pathMotion,
+    sanitizeHtml,
+    extent,
 } = _ModuleSupport;
 const { getMarker, PointerEvents } = _Scene;
-const { sanitizeHtml, extent } = _Util;
-
-type RangeAreaLabelDatum = Readonly<_Scene.Point> & {
-    text: string;
-    textAlign: CanvasTextAlign;
-    textBaseline: CanvasTextBaseline;
-    datum: any;
-    itemId?: string;
-    series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
-};
-
-interface RangeAreaContext
-    extends _ModuleSupport.CartesianSeriesNodeDataContext<RangeAreaMarkerDatum, RangeAreaLabelDatum> {
-    fillData: RadarAreaPathDatum;
-    strokeData: RadarAreaPathDatum;
-}
 
 class RangeAreaSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -60,13 +49,10 @@ class RangeAreaSeriesNodeEvent<
     }
 }
 
-type RadarAreaPoint = _ModuleSupport.AreaPathPoint & { size: number; enabled: boolean };
-
-type RadarAreaPathDatum = {
-    readonly highPoints: RadarAreaPoint[];
-    readonly lowPoints: RadarAreaPoint[];
-    readonly itemId: string;
-};
+interface RangeAreaSpanPointDatum {
+    high: _ModuleSupport.LineSpanPointDatum;
+    low: _ModuleSupport.LineSpanPointDatum;
+}
 
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     _Scene.Group,
@@ -115,7 +101,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const extraProps = [];
         const animationEnabled = !this.ctx.animationManager.isSkipped();
         if (!this.ctx.animationManager.isSkipped() && this.processedData) {
-            extraProps.push(diff(this.processedData));
+            extraProps.push(diff(this.id, this.processedData));
         }
         if (animationEnabled) {
             extraProps.push(animationValidation());
@@ -164,133 +150,141 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     async createNodeData() {
-        const { data, dataModel, axes, visible } = this;
+        const { data, dataModel, processedData, axes, visible } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(data && visible && xAxis && yAxis && dataModel)) {
+        if (
+            !(
+                data &&
+                visible &&
+                xAxis &&
+                yAxis &&
+                dataModel &&
+                processedData != null &&
+                processedData.rawData.length !== 0
+            )
+        ) {
             return;
         }
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
 
-        const { xKey, yLowKey, yHighKey, connectMissingData, marker } = this.properties;
+        const { xKey, yLowKey, yHighKey, connectMissingData, marker, interpolation } = this.properties;
 
-        const itemId = `${yLowKey}-${yHighKey}`;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
-        const defs = dataModel.resolveProcessedDataDefsByIds(this, [`xValue`, `yHighValue`, `yLowValue`]);
+        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
+        const yHighValues = dataModel.resolveColumnById(this, 'yHighValue', processedData);
+        const yLowValues = dataModel.resolveColumnById(this, 'yLowValue', processedData);
 
-        const createCoordinates = (
-            xValue: any,
-            yHigh: number,
-            yLow: number,
-            moveTo: boolean
-        ): [RadarAreaPoint, RadarAreaPoint] => {
-            const x = xScale.convert(xValue) + xOffset;
-            const yHighCoordinate = yScale.convert(yHigh);
-            const yLowCoordinate = yScale.convert(yLow);
-            const { size } = marker;
-
-            return [
-                {
-                    point: { x, y: yHighCoordinate, moveTo },
-                    size,
-                    itemId: `high`,
-                    yValue: yHigh,
-                    xValue,
-                    enabled: true,
-                },
-                {
-                    point: { x, y: yLowCoordinate, moveTo },
-                    size,
-                    itemId: `low`,
-                    yValue: yLow,
-                    xValue,
-                    enabled: false,
-                },
-            ];
-        };
+        if (!this.visible) return;
 
         const labelData: RangeAreaLabelDatum[] = [];
         const markerData: RangeAreaMarkerDatum[] = [];
-        const strokeData: RadarAreaPathDatum = { itemId, highPoints: [], lowPoints: [] };
-        const fillData: RadarAreaPathDatum = { itemId, highPoints: [], lowPoints: [] };
+        const spanPoints: Array<RangeAreaSpanPointDatum[] | { skip: number }> = [];
+
+        processedData.rawData.forEach((datum, datumIndex) => {
+            const xValue = xValues[datumIndex];
+            if (xValue == null) return;
+
+            const yHighValue = yHighValues[datumIndex];
+            const yLowValue = yLowValues[datumIndex];
+
+            const currentSpanPoints: RangeAreaSpanPointDatum[] | { skip: number } | undefined =
+                spanPoints[spanPoints.length - 1];
+            if (yHighValue != null || yLowValue != null) {
+                const appendMarker = (id: 'high' | 'low', yValue: any, y: number) => {
+                    markerData.push({
+                        index: datumIndex,
+                        series: this,
+                        itemId: id,
+                        datum,
+                        midPoint: { x, y },
+                        yHighValue,
+                        yLowValue,
+                        xValue,
+                        xKey,
+                        yLowKey,
+                        yHighKey,
+                        point: { x, y, size },
+                        enabled: true,
+                    });
+                    const highLabelDatum: RangeAreaLabelDatum = this.createLabelData({
+                        point: { x, y },
+                        value: yValue,
+                        yLowValue,
+                        yHighValue,
+                        itemId: id,
+                        inverted,
+                        datum,
+                        series: this,
+                    });
+                    labelData.push(highLabelDatum);
+                };
+
+                const inverted = yLowValue > yHighValue;
+                const x = xScale.convert(xValue) + xOffset;
+                const yHighCoordinate = yScale.convert(yHighValue);
+                const yLowCoordinate = yScale.convert(yLowValue);
+                const { size } = marker;
+
+                appendMarker('high', yHighValue, yHighCoordinate);
+                appendMarker('low', yLowValue, yLowCoordinate);
+
+                const spanPoint: RangeAreaSpanPointDatum = {
+                    high: {
+                        point: { x, y: yHighCoordinate },
+                        xDatum: xValue,
+                        yDatum: yHighValue,
+                    },
+                    low: {
+                        point: { x, y: yLowCoordinate },
+                        xDatum: xValue,
+                        yDatum: yLowValue,
+                    },
+                };
+
+                if (Array.isArray(currentSpanPoints)) {
+                    currentSpanPoints.push(spanPoint);
+                } else if (currentSpanPoints != null) {
+                    currentSpanPoints.skip += 1;
+                    spanPoints.push([spanPoint]);
+                } else {
+                    spanPoints.push([spanPoint]);
+                }
+            } else if (!connectMissingData) {
+                if (Array.isArray(currentSpanPoints) || currentSpanPoints == null) {
+                    spanPoints.push({ skip: 0 });
+                } else {
+                    currentSpanPoints.skip += 1;
+                }
+            }
+        });
+
+        const highSpans = spanPoints.flatMap((p): _ModuleSupport.LinePathSpan[] => {
+            if (!Array.isArray(p)) return [];
+            const highPoints = p.map((d) => d.high);
+            return interpolatePoints(highPoints, interpolation);
+        });
+        const lowSpans = spanPoints.flatMap((p): _ModuleSupport.LinePathSpan[] => {
+            if (!Array.isArray(p)) return [];
+            const lowPoints = p.map((d) => d.low);
+            return interpolatePoints(lowPoints, interpolation);
+        });
+
         const context: RangeAreaContext = {
-            itemId,
+            itemId: `${yLowKey}-${yHighKey}`,
             labelData,
             nodeData: markerData,
-            fillData,
-            strokeData,
+            fillData: { itemId: 'high', spans: highSpans, phantomSpans: lowSpans },
+            highStrokeData: { itemId: 'high', spans: highSpans },
+            lowStrokeData: { itemId: 'low', spans: lowSpans },
             scales: this.calculateScaling(),
             visible: this.visible,
         };
-        if (!this.visible) return context;
-
-        const fillHighPoints = fillData.highPoints;
-        const fillLowPoints = fillData.lowPoints;
-        const strokeHighPoints = strokeData.highPoints;
-        const strokeLowPoints = strokeData.lowPoints;
-
-        let moveTo = true;
-        this.processedData?.data.forEach(({ keys, datum, values }, datumIdx) => {
-            const dataValues = dataModel.resolveProcessedDataDefsValues(defs, { keys, values });
-            const { xValue, yHighValue, yLowValue } = dataValues;
-
-            const invalidRange = yHighValue == null || yLowValue == null;
-            const points = invalidRange ? [] : createCoordinates(xValue, yHighValue, yLowValue, false);
-
-            const inverted = yLowValue > yHighValue;
-            points.forEach(({ point: { x, y }, enabled, size, itemId: datumItemId = '', yValue }) => {
-                // marker data
-                markerData.push({
-                    index: datumIdx,
-                    series: this,
-                    itemId: datumItemId,
-                    datum,
-                    midPoint: { x, y },
-                    yHighValue,
-                    yLowValue,
-                    xValue,
-                    xKey,
-                    yLowKey,
-                    yHighKey,
-                    point: { x, y, size },
-                    enabled,
-                });
-
-                // label data
-                const labelDatum: RangeAreaLabelDatum = this.createLabelData({
-                    point: { x, y },
-                    value: yValue,
-                    yLowValue,
-                    yHighValue,
-                    itemId: datumItemId,
-                    inverted,
-                    datum,
-                    series: this,
-                });
-                labelData.push(labelDatum);
-            });
-
-            // fill data
-            const xValid = xValue != null;
-            const yValid = yHighValue != null && yLowValue != null;
-
-            const [high, low] = createCoordinates(xValue, yHighValue ?? 0, yLowValue ?? 0, moveTo);
-
-            if (xValid && yValid) {
-                fillHighPoints.push(high);
-                fillLowPoints.push(low);
-                strokeHighPoints.push(high);
-                strokeLowPoints.push(low);
-                moveTo = false;
-            } else if (!connectMissingData) {
-                moveTo = true;
-            }
-        });
 
         return context;
     }
@@ -330,11 +324,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             series,
             itemId,
             datum,
-            text: this.getLabelText(
-                label,
-                { value, datum, itemId, xKey, yLowKey, yHighKey, xName, yLowName, yHighName, yName },
-                formatValue
-            ),
+            text: this.getLabelText(label, {
+                value,
+                datum,
+                itemId,
+                xKey,
+                yLowKey,
+                yHighKey,
+                xName,
+                yLowName,
+                yHighName,
+                yName,
+            }),
             textAlign: 'center',
             textBaseline: direction === -1 ? 'bottom' : 'top',
         };
@@ -357,7 +358,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
         stroke.setProperties({
             fill: undefined,
-            lineJoin: (stroke.lineCap = 'round'),
+            lineCap: 'round',
+            lineJoin: 'round',
             pointerEvents: PointerEvents.None,
             stroke: this.properties.stroke,
             strokeWidth,
@@ -391,33 +393,34 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     private updateAreaPaths(paths: _Scene.Path[], contextData: RangeAreaContext) {
-        this.updateFillPath(paths, contextData);
-        this.updateStrokePath(paths, contextData);
+        for (const path of paths) {
+            path.visible = contextData.visible;
+        }
+
+        if (contextData.visible) {
+            this.updateFillPath(paths, contextData);
+            this.updateStrokePath(paths, contextData);
+        } else {
+            for (const path of paths) {
+                path.path.clear();
+                path.markDirty();
+            }
+        }
     }
 
     private updateFillPath(paths: _Scene.Path[], contextData: RangeAreaContext) {
-        const { interpolation } = this.properties;
-        const { fillData } = contextData;
         const [fill] = paths;
         fill.path.clear();
-        for (const range of pathRanges(fillData.highPoints)) {
-            plotPath(pathRangePoints(fillData.highPoints, range), fill, interpolation);
-            plotPath(pathRangePointsReverse(fillData.lowPoints, range), fill, interpolation, true);
-            fill.path.closePath();
-        }
-        fill.checkPathDirty();
+        plotAreaPathFill(fill, contextData.fillData);
+        fill.markDirty();
     }
 
     private updateStrokePath(paths: _Scene.Path[], contextData: RangeAreaContext) {
-        const { interpolation } = this.properties;
-        const { strokeData } = contextData;
         const [, stroke] = paths;
-        stroke.path.clear(true);
-        for (const range of pathRanges(strokeData.highPoints)) {
-            plotPath(pathRangePoints(strokeData.highPoints, range), stroke, interpolation);
-            plotPath(pathRangePoints(strokeData.lowPoints, range), stroke, interpolation);
-        }
-        stroke.checkPathDirty();
+        stroke.path.clear();
+        plotLinePathStroke(stroke, contextData.highStrokeData.spans);
+        plotLinePathStroke(stroke, contextData.lowStrokeData.spans);
+        stroke.markDirty();
     }
 
     protected override async updateMarkerSelection(opts: {
@@ -642,10 +645,67 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             RangeAreaContext
         >
     ) {
-        const { contextData, paths } = animationData;
+        const { animationManager } = this.ctx;
+        const { markerSelection, labelSelection, contextData, paths, previousContextData } = animationData;
+        const [fill, stroke] = paths;
 
-        super.animateWaitingUpdateReady(animationData);
-        this.updateAreaPaths(paths, contextData);
+        // Handling initially hidden series case gracefully.
+        if (fill == null && stroke == null) return;
+
+        this.resetMarkerAnimation(animationData);
+        this.resetLabelAnimation(animationData);
+
+        const update = () => {
+            this.resetPathAnimation(animationData);
+            this.updateAreaPaths(paths, contextData);
+        };
+        const skip = () => {
+            animationManager.skipCurrentBatch();
+            update();
+        };
+
+        if (contextData == null || previousContextData == null) {
+            // Added series to existing chart case - fade in series.
+            update();
+
+            markerFadeInAnimation(this, animationManager, 'added', markerSelection);
+            pathFadeInAnimation(this, 'fill_path_properties', animationManager, 'add', fill);
+            pathFadeInAnimation(this, 'stroke_path_properties', animationManager, 'add', stroke);
+            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
+            return;
+        }
+
+        const fns = prepareRangeAreaPathAnimation(contextData, previousContextData);
+        if (fns === undefined) {
+            // Un-animatable - skip all animations.
+            skip();
+            return;
+        } else if (fns.status === 'no-op') {
+            return;
+        }
+
+        markerFadeInAnimation(this, animationManager, undefined, markerSelection);
+
+        fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
+        pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
+
+        fromToMotion(this.id, 'stroke_path_properties', animationManager, [stroke], fns.stroke.pathProperties);
+        pathMotion(this.id, 'stroke_path_update', animationManager, [stroke], fns.stroke.path);
+
+        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
+
+        // The animation may clip spans
+        // When using smooth interpolation, the bezier spans are clipped using an approximation
+        // This can result in artefacting, which may be present on the final frame
+        // To remove this on the final frame, re-draw the series without animations
+        this.ctx.animationManager.animate({
+            id: this.id,
+            groupId: 'reset_after_animation',
+            phase: 'trailing',
+            from: {},
+            to: {},
+            onComplete: () => this.updateAreaPaths(paths, contextData),
+        });
     }
 
     public getFormattedMarkerStyle(datum: RangeAreaMarkerDatum) {

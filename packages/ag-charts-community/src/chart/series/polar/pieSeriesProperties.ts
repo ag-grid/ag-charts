@@ -145,6 +145,9 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     @Validate(NUMBER)
     sectorSpacing: number = 0;
 
+    @Validate(BOOLEAN)
+    hideZeroValueSectorsInLegend = false;
+
     @Validate(OBJECT)
     readonly title = new PieTitle();
 

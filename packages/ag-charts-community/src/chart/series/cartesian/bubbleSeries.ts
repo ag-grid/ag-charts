@@ -168,21 +168,26 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(dataModel && processedData && visible && xAxis && yAxis)) {
+        if (!(dataModel && processedData && processedData.rawData.length && visible && xAxis && yAxis)) {
             return;
         }
 
-        const xDataIdx = dataModel.resolveProcessedDataIndexById(this, `xValue`);
-        const yDataIdx = dataModel.resolveProcessedDataIndexById(this, `yValue`);
-        const sizeDataIdx = sizeKey != null ? dataModel.resolveProcessedDataIndexById(this, `sizeValue`) : undefined;
-        const colorDataIdx = colorKey != null ? dataModel.resolveProcessedDataIndexById(this, `colorValue`) : -1;
-        const labelDataIdx = labelKey != null ? dataModel.resolveProcessedDataIndexById(this, `labelValue`) : -1;
-        const xFilterDataIdx =
-            xFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `xFilterValue`) : undefined;
-        const yFilterDataIdx =
-            yFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `yFilterValue`) : undefined;
-        const sizeFilterDataIdx =
-            sizeFilterKey != null ? dataModel.resolveProcessedDataIndexById(this, `sizeFilterValue`) : undefined;
+        const xDataValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+        const yDataValues = dataModel.resolveColumnById(this, `yValue`, processedData);
+        const sizeDataValues =
+            sizeKey != null ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
+        const colorDataValues =
+            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
+        const labelDataValues =
+            labelKey != null ? dataModel.resolveColumnById(this, `labelValue`, processedData) : undefined;
+        const xFilterDataValues =
+            xFilterKey != null ? dataModel.resolveColumnById(this, `xFilterValue`, processedData) : undefined;
+        const yFilterDataValues =
+            yFilterKey != null ? dataModel.resolveColumnById(this, `yFilterValue`, processedData) : undefined;
+        const sizeFilterDataValues =
+            sizeFilterKey != null
+                ? dataModel.resolveColumnById<number>(this, `sizeFilterValue`, processedData)
+                : undefined;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -194,24 +199,24 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
         const font = label.getFont();
         const textMeasurer = CachedTextMeasurerPool.getMeasurer({ font });
-        for (const { values, datum } of processedData.data ?? []) {
-            const xDatum = values[xDataIdx];
-            const yDatum = values[yDataIdx];
-            const sizeValue = sizeDataIdx != null ? values[sizeDataIdx] : undefined;
+        processedData.rawData.forEach((datum, datumIndex) => {
+            const xDatum = xDataValues[datumIndex];
+            const yDatum = yDataValues[datumIndex];
+            const sizeValue = sizeDataValues?.[datumIndex];
             const x = xScale.convert(xDatum) + xOffset;
             const y = yScale.convert(yDatum) + yOffset;
 
             let selected: boolean | undefined;
-            if (xFilterDataIdx != null && yFilterDataIdx != null) {
-                selected = values[xFilterDataIdx] === xDatum && values[yFilterDataIdx] === yDatum;
+            if (xFilterDataValues != null && yFilterDataValues != null) {
+                selected = xFilterDataValues[datumIndex] === xDatum && yFilterDataValues[datumIndex] === yDatum;
 
-                if (sizeFilterDataIdx != null) {
-                    selected &&= values[sizeFilterDataIdx] === sizeValue;
+                if (sizeFilterDataValues != null) {
+                    selected &&= sizeFilterDataValues[datumIndex] === sizeValue;
                 }
             }
 
             const labelText = this.getLabelText(label, {
-                value: labelKey ? values[labelDataIdx] : yDatum,
+                value: labelDataValues != null ? labelDataValues[datumIndex] : yDatum,
                 datum,
                 xKey,
                 yKey,
@@ -224,8 +229,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             });
 
             const size = textMeasurer.measureText(String(labelText));
-            const markerSize = sizeValue ? sizeScale.convert(sizeValue) : marker.size;
-            const fill = colorKey ? colorScale.convert(values[colorDataIdx]) : undefined;
+            const markerSize = sizeValue != null ? sizeScale.convert(sizeValue) : marker.size;
+            const fill = colorDataValues != null ? colorScale.convert(colorDataValues[datumIndex]) : undefined;
 
             nodeData.push({
                 series: this,
@@ -244,7 +249,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 placement,
                 selected,
             });
-        }
+        });
 
         return {
             itemId: yKey,

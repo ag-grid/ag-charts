@@ -6,21 +6,26 @@ const first: AgGaugeOptions = {
     title: {
         text: 'Tech',
     },
-    value: 326,
+    value: 236,
+    cornerRadius: 100,
+    padding: {
+        left: 0,
+    },
     scale: {
         min: 0,
-        max: 350,
-        fills: [{ color: '#8898', stop: 200 }, { color: '#AAB8', stop: 300 }, { color: '#CCD8' }],
-        fillMode: 'discrete',
+        max: 250,
     },
     bar: {
-        fill: '#334E',
-        thickness: 30,
+        fillMode: 'discrete',
+        thickness: 20,
+    },
+    segmentation: {
+        enabled: true,
     },
     targets: [
-        { value: 250, shape: 'line', placement: 'middle', rotation: 90, size: 40, stroke: '#112E', strokeWidth: 2 },
+        { value: 220, shape: 'line', placement: 'middle', rotation: 90, size: 40, stroke: 'gray', strokeWidth: 2 },
     ],
-    thickness: 50,
+    thickness: 30,
     width: 150,
     tooltip: {
         enabled: true,
@@ -37,28 +42,30 @@ const second: AgGaugeOptions = {
     type: 'linear-gauge',
     container: document.getElementById('second'),
     title: {
-        text: 'Travel',
+        text: 'Energy',
     },
-    value: 123,
+    value: 225,
+    cornerRadius: 100,
     scale: {
         min: 0,
-        max: 350,
-        fills: [{ color: '#8898', stop: 200 }, { color: '#AAB8', stop: 300 }, { color: '#CCD8' }],
-        fillMode: 'discrete',
+        max: 250,
     },
     bar: {
-        fill: '#334E',
-        thickness: 30,
+        fillMode: 'discrete',
+        thickness: 20,
+    },
+    segmentation: {
+        enabled: true,
     },
     targets: [
-        { value: 250, shape: 'line', placement: 'middle', rotation: 90, size: 40, stroke: '#112E', strokeWidth: 2 },
+        { value: 220, shape: 'line', placement: 'middle', rotation: 90, size: 40, stroke: 'gray', strokeWidth: 2 },
     ],
-    thickness: 50,
+    thickness: 30,
     width: 150,
     tooltip: {
         enabled: true,
         renderer: ({ value }) => ({
-            title: 'Travel',
+            title: 'Energy',
             content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${250}`,
         }),
     },
@@ -70,29 +77,31 @@ const third: AgGaugeOptions = {
     type: 'linear-gauge',
     container: document.getElementById('third'),
     title: {
-        text: 'Energy',
+        text: 'Government',
     },
-    value: 225,
+    value: 205,
+    cornerRadius: 100,
     scale: {
         min: 0,
-        max: 350,
-        fills: [{ color: '#8898', stop: 200 }, { color: '#AAB8', stop: 300 }, { color: '#CCD8' }],
-        fillMode: 'discrete',
+        max: 250,
     },
     bar: {
-        fill: '#334E',
-        thickness: 30,
+        fillMode: 'discrete',
+        thickness: 20,
+    },
+    segmentation: {
+        enabled: true,
     },
     targets: [
-        { value: 250, shape: 'line', placement: 'middle', rotation: 90, size: 40, stroke: '#112E', strokeWidth: 2 },
+        { value: 215, shape: 'line', placement: 'middle', rotation: 90, size: 40, stroke: 'gray', strokeWidth: 2 },
     ],
-    thickness: 50,
+    thickness: 30,
     width: 150,
     tooltip: {
         enabled: true,
         renderer: ({ value }) => ({
-            title: 'Energy',
-            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${250}`,
+            title: 'Government',
+            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${330}`,
         }),
     },
 };
@@ -103,29 +112,31 @@ const fourth: AgGaugeOptions = {
     type: 'linear-gauge',
     container: document.getElementById('fourth'),
     title: {
-        text: 'Education',
+        text: 'Travel',
     },
-    value: 95,
+    value: 123,
+    cornerRadius: 100,
     scale: {
         min: 0,
-        max: 350,
-        fills: [{ color: '#8898', stop: 200 }, { color: '#AAB8', stop: 300 }, { color: '#CCD8' }],
-        fillMode: 'discrete',
+        max: 250,
     },
     bar: {
-        fill: '#334E',
-        thickness: 30,
+        fillMode: 'discrete',
+        thickness: 20,
+    },
+    segmentation: {
+        enabled: true,
     },
     targets: [
-        { value: 120, shape: 'line', placement: 'middle', rotation: 90, size: 40, stroke: '#112E', strokeWidth: 2 },
+        { value: 220, shape: 'line', placement: 'middle', rotation: 90, size: 40, stroke: 'gray', strokeWidth: 2 },
     ],
-    thickness: 50,
+    thickness: 30,
     width: 150,
     tooltip: {
         enabled: true,
         renderer: ({ value }) => ({
-            title: 'Education',
-            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${120}`,
+            title: 'Travel',
+            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${250}`,
         }),
     },
 };
@@ -136,29 +147,31 @@ const fifth: AgGaugeOptions = {
     type: 'linear-gauge',
     container: document.getElementById('fifth'),
     title: {
-        text: 'Government',
+        text: 'Education',
     },
-    value: 225,
+    value: 95,
+    cornerRadius: 100,
     scale: {
         min: 0,
-        max: 350,
-        fills: [{ color: '#8898', stop: 200 }, { color: '#AAB8', stop: 300 }, { color: '#CCD8' }],
-        fillMode: 'discrete',
+        max: 250,
     },
     bar: {
-        fill: '#334E',
-        thickness: 30,
+        fillMode: 'discrete',
+        thickness: 20,
+    },
+    segmentation: {
+        enabled: true,
     },
     targets: [
-        { value: 330, shape: 'line', placement: 'middle', rotation: 90, size: 40, stroke: '#112E', strokeWidth: 2 },
+        { value: 120, shape: 'line', placement: 'middle', rotation: 90, size: 40, stroke: 'gray', strokeWidth: 2 },
     ],
-    thickness: 50,
+    thickness: 30,
     width: 150,
     tooltip: {
         enabled: true,
         renderer: ({ value }) => ({
-            title: 'Government',
-            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${330}`,
+            title: 'Education',
+            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${120}`,
         }),
     },
 };

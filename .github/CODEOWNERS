@@ -8,7 +8,6 @@
 *.astro @taktran
 /packages/ag-charts-website/astro/** @taktran
 /packages/ag-charts-website/components/** @taktran
-/packages/ag-charts-website/features/** @taktran
 /packages/ag-charts-website/layouts/** @taktran
 /packages/ag-charts-website/stores/** @taktran
 /packages/ag-charts-website/utils/** @taktran

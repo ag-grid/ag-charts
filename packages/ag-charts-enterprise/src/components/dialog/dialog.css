@@ -17,6 +17,10 @@
 .ag-charts-dialog__header {
     border-bottom: 1px solid var(--ag-charts-border-color);
     display: flex;
+}
+
+.ag-charts-dialog__tab-list {
+    display: flex;
     gap: var(--ag-charts-input-spacing);
 }
 

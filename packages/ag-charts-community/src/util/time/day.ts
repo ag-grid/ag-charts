@@ -15,4 +15,3 @@ function decode(encoded: number) {
 }
 
 export const day = new CountableTimeInterval(encode, decode);
-export default day;

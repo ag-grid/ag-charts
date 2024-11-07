@@ -23,7 +23,6 @@ const options: AgChartOptions = {
     axes: [
         {
             type: 'radius-number',
-            innerRadiusRatio: 0,
             interval: { values: [1, 3, 5] },
             reverse: true,
             gridLine: {
@@ -34,9 +33,6 @@ const options: AgChartOptions = {
                 rotation: -90,
                 padding: 12,
                 formatter: ({ value }) => `$${value}M`,
-            },
-            tick: {
-                size: 0,
             },
             line: {
                 enabled: true,

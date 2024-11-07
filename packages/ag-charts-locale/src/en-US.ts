@@ -15,6 +15,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     ariaAnnounceFlowProportionNode: 'node ${index} of ${count}, ${description}',
     // Screen reader description for legend items
     ariaDescriptionLegendItem: 'Press Space or Enter to toggle visibility',
+    // Screen reader for the '+' horizontal line button on the Y-axis
+    ariaLabelAddHorizontalLine: 'Add Horizontal Line',
     // Screen reader text for annotation-options toolbar
     ariaLabelAnnotationOptionsToolbar: 'Annotation Options',
     // Screen reader text for annotation-settings dialog
@@ -107,11 +109,6 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsDisjointChannel: 'Disjoint Channel',
     // Text for the annotation toolbar's clear all button
     toolbarAnnotationsClearAll: 'Clear All',
-    /**
-     * Text for the annotation toolbar's color picker annotation button
-     * @deprecated v10.1.0 use `toolbarAnnotationsLineColor` instead.
-     */
-    toolbarAnnotationsColor: 'Color',
     // Text for the annotation toolbar's fill color picker annotation button
     toolbarAnnotationsFillColor: 'Fill Color',
     // Text for the annotation toolbar's line color picker annotation button
@@ -139,7 +136,9 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Text for the annotation toolbar's text annotations menu button
     toolbarAnnotationsTextAnnotations: 'Text Annotations',
     // Text for the annotation toolbar's shapes menu button
-    toolbarAnnotationsShapeAnnotations: 'Shapes',
+    toolbarAnnotationsShapeAnnotations: 'Arrows',
+    // Text for the annotation toolbar's measurers menu button
+    toolbarAnnotationsMeasurerAnnotations: 'Measurers',
     // Text for the annotation toolbar's callout button
     toolbarAnnotationsCallout: 'Callout',
     // Text for the annotation toolbar's comment button
@@ -159,7 +158,9 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Text for the annotation toolbar's price range button
     toolbarAnnotationsPriceRange: 'Price Range',
     // Text for the annotation toolbar's date and price range button
-    toolbarAnnotationsDatePRiceRange: 'Date and Price',
+    toolbarAnnotationsDatePriceRange: 'Date and Price',
+    // Text for the annotation toolbar's quick date and price range button
+    toolbarAnnotationsQuickDatePriceRange: 'Measure',
     // Text for the range toolbar's 1 month button
     toolbarRange1Month: '1M',
     // Aria label for the range toolbar's 1 month button
@@ -226,6 +227,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputColorPicker: 'Color',
     // Text for the annotation dialog's color picker alt text
     dialogInputColorPickerAltText: 'Text Color',
+    // Text for the annotation dialog's fill color picker label
+    dialogInputFillColorPicker: 'Fill',
+    // Text for the annotation dialog's fill color picker alt text
+    dialogInputFillColorPickerAltText: 'Fill Color',
     // Text for the annotation dialog's extend channel start checkbox
     dialogInputExtendChannelStart: 'Extend channel start',
     // Text for the annotation dialog's extend channel end checkbox

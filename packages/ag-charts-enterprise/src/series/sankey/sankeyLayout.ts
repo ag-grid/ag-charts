@@ -37,8 +37,7 @@ function separateNodesInColumn(column: Column, layout: Layout) {
 
     let totalShift = 0;
     let currentTop = 0;
-    for (let i = 0; i < nodes.length; i += 1) {
-        const { datum: node } = nodes[i];
+    for (const { datum: node } of nodes) {
         const shift = Math.max(currentTop - node.y, 0);
 
         node.y += shift;
@@ -194,8 +193,8 @@ function layoutColumn(column: Column, layout: Layout, weight: number, direction:
 
 function layoutColumnsForward(columns: Column[], layout: Layout, weight: number) {
     let didShift = false;
-    for (let i = 0; i < columns.length; i += 1) {
-        didShift = layoutColumn(columns[i], layout, weight, 1) || didShift;
+    for (const column of columns) {
+        didShift = layoutColumn(column, layout, weight, 1) || didShift;
     }
     return didShift;
 }

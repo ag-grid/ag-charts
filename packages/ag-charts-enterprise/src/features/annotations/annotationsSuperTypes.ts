@@ -1,12 +1,6 @@
-import type { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import type { _ModuleSupport, _Scene } from 'ag-charts-community';
 
-import type {
-    AnnotationContext,
-    AnnotationType,
-    Constructor,
-    GuardDragClickDoubleEvent,
-    Point,
-} from './annotationTypes';
+import type { AnnotationContext, AnnotationType, Constructor, Point } from './annotationTypes';
 import type { ArrowDownProperties } from './arrow-down/arrowDownProperties';
 import type { ArrowDownScene } from './arrow-down/arrowDownScene';
 import type { ArrowUpProperties } from './arrow-up/arrowUpProperties';
@@ -25,6 +19,7 @@ import type {
     DatePriceRangeProperties,
     DateRangeProperties,
     PriceRangeProperties,
+    QuickDatePriceRangeProperties,
 } from './measurer/measurerProperties';
 import type { MeasurerScene } from './measurer/measurerScene';
 import type { NoteProperties } from './note/noteProperties';
@@ -35,11 +30,15 @@ import type { AnnotationScene as AnnotationSceneNode } from './scenes/annotation
 import type { TextProperties } from './text/textProperties';
 import type { TextScene } from './text/textScene';
 
-export type ShapePropertiesType = ArrowUpProperties | ArrowDownProperties;
+type ShapePropertiesType = ArrowUpProperties | ArrowDownProperties;
 export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
 export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties | ArrowProperties;
 export type ChannelPropertiesType = ParallelChannelProperties | DisjointChannelProperties;
-export type MeasurerPropertiesType = DateRangeProperties | PriceRangeProperties | DatePriceRangeProperties;
+export type MeasurerPropertiesType =
+    | DateRangeProperties
+    | PriceRangeProperties
+    | DatePriceRangeProperties
+    | QuickDatePriceRangeProperties;
 
 export type AnnotationProperties =
     | LinePropertiesType
@@ -47,6 +46,8 @@ export type AnnotationProperties =
     | TextualPropertiesType
     | ShapePropertiesType
     | MeasurerPropertiesType;
+
+export type EphemeralPropertiesType = QuickDatePriceRangeProperties;
 
 export type AnnotationScene =
     // Lines
@@ -103,7 +104,6 @@ export interface AnnotationsStateMachineContext {
     showAnnotationSettings: (index: number, sourceEvent?: Event, initialTab?: 'line' | 'text') => void;
 
     recordAction: (label: string) => void;
-    addPostUpdateFns: (...fns: (() => void)[]) => void;
 
     update: () => void;
 }
@@ -127,27 +127,22 @@ export interface AnnotationTypeConfig<Datum extends _ModuleSupport.BasePropertie
         context: AnnotationContext
     ) => Datum | undefined;
     createState: (
-        ctx: AnnotationsStateMachineContext & {
-            delete: () => void;
-            guardDragClickDoubleEvent: GuardDragClickDoubleEvent;
-            deselect: () => void;
-            showAnnotationOptions: () => void;
-            showTextInput: () => void;
-        },
+        ctx: AnnotationsCreateStateMachineContext,
         helpers: AnnotationsStateMachineHelperFns
     ) => _ModuleSupport.StateMachine<any, any>;
     dragState: (
-        ctx: AnnotationsStateMachineContext & {
-            setSelectedWithDrag: () => void;
-            setSnapping: (snapping: boolean) => void;
-            getSnapping: () => boolean;
-        },
+        ctx: AnnotationsStateMachineContext,
         helpers: AnnotationsStateMachineHelperFns
     ) => _ModuleSupport.StateMachine<any, any>;
 }
 
 export interface AnnotationsStateMachineHelperFns {
     createDatum: <T extends AnnotationProperties>(type: AnnotationType) => (datum: T) => void;
-    getDatum: <T>(is: (value: unknown) => value is T) => () => T;
-    getNode: <T>(is: (value: unknown) => value is T) => () => T;
 }
+
+export type AnnotationsCreateStateMachineContext = AnnotationsStateMachineContext & {
+    delete: () => void;
+    deselect: () => void;
+    showAnnotationOptions: () => void;
+    showTextInput: () => void;
+};

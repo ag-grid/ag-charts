@@ -1,10 +1,10 @@
 import type { AgBoxPlotSeriesStyle } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
 const { ScalableGroup, Rect, Line, BBox, Selection } = _Scene;
-const { Logger } = _Util;
+const { Logger } = _ModuleSupport;
 
 enum GroupTags {
     Box,

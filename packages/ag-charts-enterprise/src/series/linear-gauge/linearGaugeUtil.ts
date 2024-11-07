@@ -299,7 +299,7 @@ export function formatLinearGaugeLabels(
                 s = scale1 - offset;
                 align = Align.Before;
                 break;
-            case 'inside':
+            case 'inside-center':
                 bounds0 = scale0;
                 bounds1 = scale1;
                 s = (scale0 + scale1) / 2;

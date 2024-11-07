@@ -24,11 +24,11 @@ export function convertPoint(point: Point, context: AnnotationContext) {
     return { x, y };
 }
 
-export function convert(p: Point['x' | 'y'], context: Pick<AnnotationAxisContext, 'scaleBandwidth' | 'scaleConvert'>) {
+export function convert(p: Point['x' | 'y'], context: Pick<AnnotationAxisContext, 'scale'>) {
     if (p == null) return 0;
 
-    const halfBandwidth = (context.scaleBandwidth() ?? 0) / 2;
-    return context.scaleConvert(p) + halfBandwidth;
+    const halfBandwidth = (context.scale.bandwidth ?? 0) / 2;
+    return context.scale.convert(p) + halfBandwidth;
 }
 
 export function invertCoords(coords: _ModuleSupport.Vec2, context: AnnotationContext) {
@@ -40,9 +40,9 @@ export function invertCoords(coords: _ModuleSupport.Vec2, context: AnnotationCon
 
 export function invert(
     n: _ModuleSupport.Vec2['x' | 'y'],
-    context: Pick<AnnotationAxisContext, 'scaleBandwidth' | 'continuous' | 'scaleInvert' | 'scaleInvertNearest'>
+    context: Pick<AnnotationAxisContext, 'scale' | 'continuous' | 'scaleInvert' | 'scaleInvertNearest'>
 ) {
-    const halfBandwidth = (context.scaleBandwidth() ?? 0) / 2;
+    const halfBandwidth = (context.scale.bandwidth ?? 0) / 2;
     if (context.continuous) {
         return context.scaleInvert(n - halfBandwidth);
     }

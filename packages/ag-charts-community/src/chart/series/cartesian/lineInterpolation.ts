@@ -138,84 +138,6 @@ export function rescaleSpan(span: Span, nextStart: Point, nextEnd: Point): Span 
     }
 }
 
-function setMoveTo(span: Span, moveTo: boolean) {
-    return span.moveTo !== moveTo ? { ...span, moveTo } : span;
-}
-
-export function splitSpanAtX(span: Span, x: number): [Span, Span] {
-    const [start, end] = spanRangeNormalized(span);
-    const { x: x0, y: y0 } = start;
-    const { x: x1, y: y1 } = end;
-
-    if (x < x0) {
-        return [rescaleSpan(span, start, start), setMoveTo(span, false)];
-    } else if (x > x1) {
-        return [span, setMoveTo(rescaleSpan(span, end, end), false)];
-    }
-
-    switch (span.type) {
-        case 'linear': {
-            const midY = y0 === y1 ? y0 : ((y1 - y0) / (x1 - x0)) * (x - x0) + y0;
-            return [
-                { type: 'linear', moveTo: span.moveTo, x0, y0, x1: x, y1: midY },
-                { type: 'linear', moveTo: false, x0: x, y0: midY, x1, y1 },
-            ];
-        }
-        case 'step':
-            if (x < span.stepX) {
-                return [
-                    { type: 'step', moveTo: span.moveTo, x0, y0, x1: x, y1: y0, stepX: x },
-                    { type: 'step', moveTo: false, x0: x, y0, x1, y1, stepX: span.stepX },
-                ];
-            } else {
-                return [
-                    { type: 'step', moveTo: span.moveTo, x0, y0, x1: x, y1, stepX: span.stepX },
-                    { type: 'step', moveTo: false, x0: x, y0: y1, x1, y1, stepX: x },
-                ];
-            }
-        case 'cubic': {
-            const t = solveBezier(span.cp0x, span.cp1x, span.cp2x, span.cp3x, x);
-            const [a, b] = splitBezier(
-                span.cp0x,
-                span.cp0y,
-                span.cp1x,
-                span.cp1y,
-                span.cp2x,
-                span.cp2y,
-                span.cp3x,
-                span.cp3y,
-                t
-            );
-            return [
-                {
-                    type: 'cubic',
-                    moveTo: span.moveTo,
-                    cp0x: a[0].x,
-                    cp0y: a[0].y,
-                    cp1x: a[1].x,
-                    cp1y: a[1].y,
-                    cp2x: a[2].x,
-                    cp2y: a[2].y,
-                    cp3x: a[3].x,
-                    cp3y: a[3].y,
-                },
-                {
-                    type: 'cubic',
-                    moveTo: false,
-                    cp0x: b[0].x,
-                    cp0y: b[0].y,
-                    cp1x: b[1].x,
-                    cp1y: b[1].y,
-                    cp2x: b[2].x,
-                    cp2y: b[2].y,
-                    cp3x: b[3].x,
-                    cp3y: b[3].y,
-                },
-            ];
-        }
-    }
-}
-
 export function clipSpanX(span: Span, x0: number, x1: number): Span {
     const { moveTo } = span;
     const [start, end] = spanRangeNormalized(span);
@@ -288,7 +210,6 @@ export function clipSpanX(span: Span, x0: number, x1: number): Span {
 }
 
 export enum SpanJoin {
-    None,
     MoveTo,
     LineTo,
 }

@@ -30,10 +30,6 @@ const options: AgChartOptions = {
             label: {
                 formatter: ({ value }) => `${value === 113.4 ? value : ''}`,
             },
-            tooltip: {
-                renderer: ({ datum, xKey, yLowKey, yHighKey }) =>
-                    `<div class="ag-chart-tooltip-content">${formatter.format(datum[xKey])}: ${datum[yLowKey]} - ${datum[yHighKey]}</div>`,
-            },
         },
         {
             type: 'range-area',
@@ -44,10 +40,6 @@ const options: AgChartOptions = {
             label: {
                 formatter: ({ value }) => `${value === 149.9 ? value : ''}`,
             },
-            tooltip: {
-                renderer: ({ datum, xKey, yLowKey, yHighKey }) =>
-                    `<div class="ag-chart-tooltip-content">${formatter.format(datum[xKey])}: ${datum[yLowKey]} - ${datum[yHighKey]}</div>`,
-            },
         },
     ],
     axes: [
@@ -57,9 +49,7 @@ const options: AgChartOptions = {
             gridLine: {
                 enabled: false,
             },
-            crosshair: {
-                snap: true,
-            },
+
             nice: false,
             min: 100,
             max: 160,

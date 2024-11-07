@@ -2,7 +2,6 @@ import type { AgAreaSeriesOptions } from './areaOptions';
 import type { AgBarSeriesOptions } from './barOptions';
 import type { AgBoxPlotSeriesOptions } from './boxPlotOptions';
 import type { AgBubbleSeriesOptions } from './bubbleOptions';
-import type { AgBulletSeriesOptions } from './bulletOptions';
 import type { AgCandlestickSeriesOptions } from './candlestickOptions';
 import type { AgConeFunnelSeriesOptions } from './coneFunnelOptions';
 import type { AgFunnelSeriesOptions } from './funnelOptions';
@@ -20,7 +19,6 @@ export type AgCartesianSeriesOptions =
     | AgBarSeriesOptions
     | AgBoxPlotSeriesOptions
     | AgBubbleSeriesOptions
-    | AgBulletSeriesOptions
     | AgCandlestickSeriesOptions
     | AgConeFunnelSeriesOptions
     | AgFunnelSeriesOptions

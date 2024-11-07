@@ -17,7 +17,7 @@ export interface AgAreaSeriesThemeableOptions<TDatum = any>
         LineDashOptions,
         AgBaseCartesianThemeableOptions<TDatum> {
     /** Configuration for the markers used in the series. */
-    marker?: AgSeriesMarkerOptions<AgAreaSeriesOptionsKeys, TDatum>;
+    marker?: AgSeriesMarkerOptions<TDatum, AgAreaSeriesMarkerItemStylerParams>;
     /** Configuration for the line used in the series. */
     interpolation?: AgInterpolationType;
     /** Configuration for the shadow used behind the chart series. */
@@ -35,6 +35,13 @@ export interface AgAreaSeriesOptionsKeys {
     xKey: string;
     /** The key to use to retrieve y-values from the data. */
     yKey: string;
+}
+
+export interface AgAreaSeriesMarkerItemStylerParams extends AgAreaSeriesOptionsKeys {
+    /** The key to use to retrieve x-values from the data. */
+    xDomain: any[];
+    /** The key to use to retrieve y-values from the data. */
+    yDomain: any[];
 }
 
 export interface AgAreaSeriesOptionsNames {

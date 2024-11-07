@@ -3,7 +3,6 @@ import {
     type AgGradientLegendScaleOptions,
     _ModuleSupport,
     _Scene,
-    _Util,
 } from 'ag-charts-community';
 
 const {
@@ -17,9 +16,9 @@ const {
     ProxyProperty,
     Validate,
     LayoutElement,
+    createId,
 } = _ModuleSupport;
-const { Group, Rect, Triangle, TranslatableLayer, LinearGradient } = _Scene;
-const { createId } = _Util;
+const { Group, Rect, Triangle, TranslatableGroup, LinearGradient } = _Scene;
 
 class GradientBar extends BaseProperties {
     @Validate(POSITIVE_NUMBER)
@@ -50,7 +49,7 @@ export class GradientLegend {
     private readonly axisTicks: _ModuleSupport.AxisTicks;
     private readonly highlightManager: _ModuleSupport.HighlightManager;
 
-    private readonly legendGroup = new TranslatableLayer({ name: 'legend', zIndex: ZIndexMap.LEGEND });
+    private readonly legendGroup = new TranslatableGroup({ name: 'legend', zIndex: ZIndexMap.LEGEND });
     private readonly gradientRect = new Rect();
     private readonly arrow = new Triangle();
 

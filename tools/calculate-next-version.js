@@ -34,5 +34,6 @@ if (dateStr !== todayStr) {
 
 const h = now.getUTCHours();
 const m = now.getUTCMinutes();
-const time = `${h < 10 ? '0' : ''}${h}${m < 10 ? '0' : ''}${m}`;
+//const time = `${h < 10 ? '0' : ''}${h}${m < 10 ? '0' : ''}${m}`;
+const time = `${h}${m < 10 ? '0' : ''}${m}`;
 console.log(`${semverPart}-${tag}.${todayStr}.${time}`);

@@ -1,4 +1,4 @@
-import { _ModuleSupport, type _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, type _Scene } from 'ag-charts-community';
 import type { AgIconName } from 'ag-charts-types';
 
 import { ColorPicker } from '../../features/color-picker/colorPicker';
@@ -16,8 +16,10 @@ const {
     initRovingTabIndex,
     getWindow,
     mapValues,
+    Color,
+    setAttribute,
+    setAttributes,
 } = _ModuleSupport;
-const { setAttribute, setAttributes } = _Util;
 
 export interface DialogOptions extends PopoverOptions {}
 
@@ -44,7 +46,8 @@ interface CheckboxOptions extends _ModuleSupport.CheckboxOptions {
 interface ColorPickerOptions {
     altText: string;
     label: string;
-    value: string | undefined;
+    color?: string;
+    opacity?: number;
     onChange: (colorOpacity: string, color: string, opacity: number) => void;
     onChangeHide: () => void;
 }
@@ -63,7 +66,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private colorPickerAnchorElement?: HTMLElement;
     private dragStartState?: { client: _ModuleSupport.Vec2; position: _ModuleSupport.Vec2 };
     private seriesRect?: _Scene.BBox;
-    private initialFocus?: HTMLElement;
 
     constructor(ctx: _ModuleSupport.ModuleContext, id: string) {
         super(ctx, id);
@@ -71,8 +73,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     }
 
     protected override showWithChildren(children: Array<HTMLElement>, options: Options) {
-        options.initialFocus ??= this.initialFocus;
-
         const popover = super.showWithChildren(children, options);
         popover.classList.add('ag-charts-dialog');
         popover.setAttribute('role', 'dialog');
@@ -153,21 +153,20 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                 }
             )
         );
-        const tablist = createElement('div');
-        setAttributes(tablist, { role: 'tablist', 'aria-label': this.ctx.localeManager.t(tablistLabel) });
-        tablist.append(...Object.values(tabButtons));
+
+        const tabList = createElement('div', 'ag-charts-dialog__tab-list');
+        setAttributes(tabList, { role: 'tablist', 'aria-label': this.ctx.localeManager.t(tablistLabel) });
+        tabList.append(...Object.values(tabButtons));
 
         const closeButton = this.createHeaderCloseButton();
 
-        header.append(dragHandle, tablist, closeButton);
+        header.append(dragHandle, tabList, closeButton);
         element.append(header, ...Object.values(tabs).map((t) => t.panel));
 
         onPressTab(initial);
         initRovingTabIndex({ orientation: 'horizontal', buttons: Object.values(tabButtons) });
 
-        this.initialFocus = tabButtons[initial];
-
-        return element;
+        return { tabs: element, initialFocus: tabButtons[initial] };
     }
 
     protected createTabPanel() {
@@ -262,7 +261,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    protected createColorPicker({ value, label, altText, onChange, onChangeHide }: ColorPickerOptions) {
+    protected createColorPicker({ color, opacity, label, altText, onChange, onChangeHide }: ColorPickerOptions) {
         const group = this.createInputGroup(label);
 
         const altTextT = this.ctx.localeManager.t(altText);
@@ -276,13 +275,12 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                     this.colorPicker.show({
                         anchor,
                         fallbackAnchor,
-                        color: defaultColor,
-                        opacity: 1,
+                        color,
+                        opacity,
                         sourceEvent: event,
-                        onChange: (colorOpacity: string, color: string, opacity: number) => {
-                            defaultColor = colorOpacity;
-                            colorEl.style.setProperty('--color', colorOpacity);
-                            onChange(colorOpacity, color, opacity);
+                        onChange: (newColorOpacity: string, newColor: string, newOpacity: number) => {
+                            colorEl.style.setProperty('--color', newColorOpacity);
+                            onChange(newColorOpacity, newColor, newOpacity);
                         },
                         onChangeHide,
                     });
@@ -296,8 +294,11 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             }
         );
 
-        if (value) colorEl.style.setProperty('--color', value);
-        let defaultColor = value;
+        if (color) {
+            const hex = Color.fromHexString(color);
+            const hexWithOpacity = new Color(hex.r, hex.g, hex.b, opacity);
+            colorEl.style.setProperty('--color', hexWithOpacity.toHexString());
+        }
 
         group.append(colorEl);
 

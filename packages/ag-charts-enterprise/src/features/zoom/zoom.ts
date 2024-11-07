@@ -7,14 +7,13 @@ import type {
     AgZoomButtons,
     _Scene,
 } from 'ag-charts-community';
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
 import { ZoomContextMenu } from './zoomContextMenu';
+import { ZoomDOMProxy } from './zoomDOMProxy';
 import { type ZoomPanUpdate, ZoomPanner } from './zoomPanner';
-import { ZoomRange } from './zoomRange';
-import { ZoomRatio } from './zoomRatio';
 import { ZoomScrollPanner } from './zoomScrollPanner';
 import { ZoomScroller } from './zoomScroller';
 import { ZoomSelector } from './zoomSelector';
@@ -50,7 +49,6 @@ const {
     ChartUpdateType,
     Validate,
     ProxyProperty,
-    arraysEqual,
     round: sharedRound,
 } = _ModuleSupport;
 
@@ -112,6 +110,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(BOOLEAN)
     public enableDoubleClickToReset = true;
 
+    @ActionOnSet<Zoom>({
+        changeValue(newValue) {
+            this.ctx.zoomManager.setIndependentAxes(Boolean(newValue));
+        },
+    })
     @Validate(BOOLEAN, { optional: true })
     public enableIndependentAxes?: boolean;
 
@@ -145,12 +148,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(ANCHOR_POINT)
     public anchorPointY: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_Y;
 
-    public rangeX = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.X));
-    public rangeY = new ZoomRange(this.onRangeChange.bind(this, ChartAxisDirection.Y));
-
-    public ratioX = new ZoomRatio(this.onRangeChange.bind(this, ChartAxisDirection.X));
-    public ratioY = new ZoomRatio(this.onRangeChange.bind(this, ChartAxisDirection.Y));
-
     // Scenes
     private seriesRect?: _Scene.BBox;
     private paddedRect?: _Scene.BBox;
@@ -163,6 +160,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly scroller = new ZoomScroller();
     private readonly scrollPanner = new ZoomScrollPanner();
     private readonly toolbar: ZoomToolbar;
+    private readonly domProxy: ZoomDOMProxy;
 
     @ProxyProperty('panner.deceleration')
     @Validate(OR(RATIO, UNION(['off', 'short', 'long'], 'a deceleration')))
@@ -170,14 +168,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     // State
     private dragState = DragState.None;
-    private hoveredAxis?: { id: string; direction: _ModuleSupport.ChartAxisDirection };
-    private axisIds: Partial<Record<_ModuleSupport.ChartAxisDirection, string>> = {};
-    private axisDomains: Partial<Record<_ModuleSupport.ChartAxisDirection, Array<any> | undefined>> = {};
+    private hoveredAxis?: { direction: _ModuleSupport.ChartAxisDirection; id: string };
     private shouldFlipXY?: boolean;
     private minRatioX = 0;
     private minRatioY = 0;
-    private restoreEvent?: _ModuleSupport.ZoomRestoreEvent;
-    private hasPerformedLayout = false;
+
+    private destroyContextMenuActions: (() => void) | undefined = undefined;
+
+    private isFirstWheelEvent = true;
+    private readonly debouncedWheelReset = _ModuleSupport.debounce(() => {
+        this.isFirstWheelEvent = true;
+    }, 100);
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -199,13 +200,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             this.updateAxisZoom.bind(this)
         );
 
-        const { Default, ZoomDrag, Animation, Annotations } = _ModuleSupport.InteractionState;
+        const { Default, ZoomDrag, Animation, Annotations, AnnotationsSelected } = _ModuleSupport.InteractionState;
         const draggableState = Default | Animation | ZoomDrag;
         const clickableState = Default | Animation;
-        const wheelableState = draggableState | Annotations;
+        const wheelableState = draggableState | Annotations | AnnotationsSelected;
         const region = ctx.regionManager.getRegion(REGIONS.SERIES);
-        const horizontalAxesRegion = ctx.regionManager.getRegion(REGIONS.HORIZONTAL_AXES);
-        const verticalAxesRegion = ctx.regionManager.getRegion(REGIONS.VERTICAL_AXES);
+
+        this.domProxy = new ZoomDOMProxy({
+            onDragStart: (id, dir) => this.onAxisDragStart(id, dir),
+            onDrag: (ev) => this.onDrag(ev),
+            onDragEnd: () => this.onDragEnd(),
+        });
 
         const dragStartEventType = 'drag-start';
         this.destroyFns.push(
@@ -214,17 +219,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.keyNavManager.addListener('nav-zoom', (event) => this.onNavZoom(event)),
             region.addListener('drag', (event) => this.onDrag(event), draggableState),
             region.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
-            region.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
-            verticalAxesRegion.addListener('drag', (event) => this.onDrag(event), draggableState),
-            verticalAxesRegion.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
-            verticalAxesRegion.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
-            verticalAxesRegion.addListener('leave', () => this.onAxisLeave(), clickableState),
-            verticalAxesRegion.addListener('hover', (event) => this.onAxisHover(event, ChartAxisDirection.Y)),
-            horizontalAxesRegion.addListener('drag', (event) => this.onDrag(event), draggableState),
-            horizontalAxesRegion.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
-            horizontalAxesRegion.addListener('drag-end', (event) => this.onDragEnd(event), draggableState),
-            horizontalAxesRegion.addListener('leave', () => this.onAxisLeave(), clickableState),
-            horizontalAxesRegion.addListener('hover', (event) => this.onAxisHover(event, ChartAxisDirection.X)),
+            region.addListener('drag-end', () => this.onDragEnd(), draggableState),
             region.addListener('wheel', (event) => this.onWheel(event), wheelableState),
             ctx.gestureDetector.addListener('pinch-move', (event) => this.onPinchMove(event as PinchEvent)),
             ctx.toolbarManager.addListener('button-pressed', (event) =>
@@ -234,7 +229,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event)),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event)),
             ctx.zoomManager.addListener('zoom-pan-start', (event) => this.onZoomPanStart(event)),
-            ctx.zoomManager.addListener('restore-zoom', (event) => this.onRestoreZoom(event)),
             this.panner.addListener('update', (event) => this.onPanUpdate(event)),
             () => this.toolbar.destroy()
         );
@@ -242,18 +236,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     override destroy(): void {
         super.destroy();
-
-        this._destroyContextMenuActions?.();
+        this.destroyContextMenuActions?.();
     }
 
-    private _destroyContextMenuActions: (() => void) | undefined = undefined;
     private onEnabledChange(enabled: boolean) {
         if (!this.contextMenu || !this.toolbar) return;
 
+        this.ctx.zoomManager.setZoomModuleEnabled(enabled);
         const zoom = this.getZoom();
         const props = this.getModuleProperties({ enabled });
-        this._destroyContextMenuActions?.();
-        this._destroyContextMenuActions = this.contextMenu.registerActions(enabled, zoom);
+        this.destroyContextMenuActions?.();
+        this.destroyContextMenuActions = this.contextMenu.registerActions(enabled, zoom);
         this.onZoomButtonsChange(enabled);
         this.toolbar.toggle(enabled, zoom, props);
     }
@@ -263,12 +256,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const buttonsJson = this.buttons.toJson();
         buttonsJson.enabled &&= zoomEnabled;
         this.ctx.toolbarManager.proxyGroupOptions('zoom', 'zoom', buttonsJson);
-    }
-
-    private onRangeChange(direction: _ModuleSupport.ChartAxisDirection, rangeZoom?: DefinedZoomState['x' | 'y']) {
-        const axisId = this.axisIds[direction];
-        if (!axisId || !rangeZoom) return;
-        this.updateAxisZoom(axisId, direction, rangeZoom);
     }
 
     private onDoubleClick(event: _ModuleSupport.RegionEvent<'dblclick'> & { preventZoomDblClick?: boolean }) {
@@ -286,7 +273,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDragStart(event: _ModuleSupport.RegionEvent<'drag-start'>) {
+    private onDragStart(
+        event: Pick<_ModuleSupport.RegionEvent, 'offsetX' | 'offsetY' | 'sourceEvent' | 'button'> | undefined
+    ) {
         const {
             enabled,
             enableAxisDragging,
@@ -296,7 +285,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx: { cursorManager, zoomManager },
         } = this;
 
-        if (!enabled || event.button !== 0) return;
+        if (!enabled || (event !== undefined && event.button !== 0)) return;
 
         this.panner.stopInteractions();
 
@@ -305,7 +294,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (enableAxisDragging && hoveredAxis) {
             newDragState = DragState.Axis;
-        } else {
+        } else if (event != null) {
             const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent as DragEvent);
             // Allow panning if either selection is disabled or the panning key is pressed.
             if (enablePanning && (!enableSelecting || panKeyPressed)) {
@@ -326,7 +315,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDrag(event: _ModuleSupport.RegionEvent<'drag'>) {
+    private onDrag(event: _ModuleSupport.PointerOffsets) {
         const {
             anchorPointX,
             anchorPointY,
@@ -348,7 +337,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const zoom = this.getZoom();
 
         switch (dragState) {
-            case DragState.Axis:
+            case DragState.Axis: {
                 if (!hoveredAxis) break;
 
                 const { id: axisId, direction } = hoveredAxis;
@@ -357,6 +346,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
                 this.updateAxisZoom(axisId, direction, newZoom);
                 break;
+            }
 
             case DragState.Pan:
                 panner.update(event);
@@ -374,7 +364,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         updateService.update(ChartUpdateType.PERFORM_LAYOUT, { skipAnimations: true });
     }
 
-    private onDragEnd(_event: _ModuleSupport.RegionEvent<'drag-end'>) {
+    private onDragEnd() {
         const {
             axisDragger,
             dragState,
@@ -391,6 +381,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         switch (dragState) {
             case DragState.Axis:
+                this.hoveredAxis = undefined;
                 axisDragger.stop();
                 break;
 
@@ -398,13 +389,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 panner.stop();
                 break;
 
-            case DragState.Select:
+            case DragState.Select: {
                 if (!selector.didUpdate()) break;
                 const zoom = this.getZoom();
                 if (this.isMinZoom(zoom)) break;
                 const newZoom = selector.stop(this.seriesRect, this.paddedRect, zoom);
                 this.updateZoom(newZoom);
                 break;
+            }
         }
 
         this.dragState = DragState.None;
@@ -467,7 +459,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (!seriesRect) return;
 
-        event.preventDefault();
+        const zoom = this.getZoom();
+        const isZoomCapped = (this.isMaxZoom(zoom) && event.deltaY > 0) || (this.isMinZoom(zoom) && event.deltaY < 0);
+
+        if (!this.isFirstWheelEvent || !isZoomCapped) {
+            event.preventDefault();
+        }
+
+        // Prevent browser scrolling when smooth wheel events continue being fired after the chart
+        // reaches a min or max extent
+        this.isFirstWheelEvent = false;
+        this.debouncedWheelReset();
 
         const isAxisScrolling = enableAxisDragging && hoveredAxis != null;
 
@@ -483,9 +485,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (enableIndependentAxes === true) {
             const newZooms = scroller.updateAxes(event, props, seriesRect, zoomManager.getAxisZooms());
-            for (const [axisId, { direction, zoom }] of Object.entries(newZooms)) {
+            for (const [axisId, { direction, zoom: axisZoom }] of Object.entries(newZooms)) {
                 if (isAxisScrolling && hoveredAxis.id !== axisId) continue;
-                this.updateAxisZoom(axisId, direction, zoom);
+                this.updateAxisZoom(axisId, direction, axisZoom);
             }
         } else {
             const newZoom = scroller.update(event, props, seriesRect, this.getZoom());
@@ -493,35 +495,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onAxisLeave() {
-        const {
-            enabled,
-            ctx: { cursorManager },
-        } = this;
-
-        if (!enabled) return;
-
-        this.hoveredAxis = undefined;
-        cursorManager.updateCursor(CURSOR_ID);
-    }
-
-    private onAxisHover(event: _ModuleSupport.RegionEvent, direction: _ModuleSupport.ChartAxisDirection) {
-        const {
-            enabled,
-            enableAxisDragging,
-            ctx: { cursorManager },
-        } = this;
-
-        if (!enabled) return;
-
-        this.hoveredAxis = {
-            id: event.bboxProviderId ?? 'unknown',
-            direction,
-        };
-
-        if (enableAxisDragging) {
-            cursorManager.updateCursor(CURSOR_ID, direction === ChartAxisDirection.X ? 'ew-resize' : 'ns-resize');
-        }
+    private onAxisDragStart(id: string, direction: _ModuleSupport.ChartAxisDirection) {
+        this.hoveredAxis = { id, direction };
+        this.onDragStart(undefined);
     }
 
     private onPinchMove(event: PinchEvent) {
@@ -548,40 +524,18 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
-        const { enabled, rangeX, rangeY, ratioX, ratioY } = this;
+        this.domProxy.update(this.ctx);
+        const { enabled } = this;
 
         if (!enabled) return;
 
         const {
             series: { rect, paddedRect, shouldFlipXY },
-            axes,
         } = event;
 
         this.seriesRect = rect;
         this.paddedRect = paddedRect;
         this.shouldFlipXY = shouldFlipXY;
-
-        if (this.restoreEvent) {
-            this.restoreZoom(this.restoreEvent);
-            this.restoreEvent = undefined;
-        }
-
-        this.hasPerformedLayout = true;
-
-        // Update zoom from range or ratio on initial render and whenever the axis domains change
-        const axesChanged = this.updateAxes(axes);
-        if (!axesChanged) return;
-
-        rangeX.updateDomain(this.axisDomains[ChartAxisDirection.X]!);
-        rangeY.updateDomain(this.axisDomains[ChartAxisDirection.Y]!);
-
-        const newZoom = {
-            x: rangeX.getRange() ?? ratioX.getRatio(),
-            y: rangeY.getRange() ?? ratioY.getRatio(),
-        };
-        if (newZoom.x != null || newZoom.y != null) {
-            this.updateZoom(constrainZoom(definedZoomState(newZoom)));
-        }
     }
 
     private onUpdateComplete(event: { minRect?: _Scene.BBox; minVisibleRect?: _Scene.BBox }) {
@@ -625,14 +579,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.toolbar.toggleButtons(zoom, props);
     }
 
-    private onRestoreZoom(event: _ModuleSupport.ZoomRestoreEvent) {
-        if (this.hasPerformedLayout) {
-            this.restoreZoom(event);
-        } else {
-            this.restoreEvent = event;
-        }
-    }
-
     private onZoomPanStart(event: _ModuleSupport.ZoomPanStartEvent): void {
         if (event.callerId === 'zoom') {
             this.panner.stopInteractions();
@@ -655,45 +601,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         tooltipManager.updateTooltip(TOOLTIP_ID);
-    }
-
-    private updateAxes(axes?: Array<_ModuleSupport.AxisLayout>) {
-        if (!axes) return;
-
-        const xAxis = this.getPrimaryAxis(axes, ChartAxisDirection.X);
-        const yAxis = this.getPrimaryAxis(axes, ChartAxisDirection.Y);
-
-        if (!xAxis || !yAxis) return;
-
-        this.axisIds = {
-            [ChartAxisDirection.X]: xAxis.axisId,
-            [ChartAxisDirection.Y]: yAxis.axisId,
-        };
-
-        this.axisDomains = {
-            [ChartAxisDirection.X]: xAxis.domain,
-            [ChartAxisDirection.Y]: yAxis.domain,
-        };
-
-        return xAxis.changed || yAxis.changed;
-    }
-
-    private getPrimaryAxis(axes: Array<_ModuleSupport.AxisLayout>, direction: _ModuleSupport.ChartAxisDirection) {
-        const axis = axes.find((a) => a.direction === direction);
-        if (!axis) return;
-
-        // We only need to compare the extents of the domain, not the full category domain
-        let domain = [axis.domain[0], axis.domain.at(-1)];
-
-        // Ensure a valid comparison of date objects by mapping to timestamps
-        if (domain[0] instanceof Date && domain[1] instanceof Date) {
-            domain = [domain[0].getTime(), domain[1].getTime()];
-        }
-
-        const oldDomain = this.axisDomains[direction];
-        const changed = oldDomain == null || !arraysEqual(oldDomain, domain);
-
-        return { axisId: axis.id, changed, domain: domain };
     }
 
     private isPanningKeyPressed(event: MouseEvent | WheelEvent) {
@@ -731,6 +638,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         return isZoomLess(zoom, this.minRatioX, this.minRatioY);
     }
 
+    private isMaxZoom(zoom: DefinedZoomState): boolean {
+        const max = UNIT.max - UNIT.min;
+        return dx(zoom) === max && dy(zoom) === max;
+    }
+
     private updateZoom(zoom: DefinedZoomState) {
         if (this.enableIndependentAxes) {
             this.updatePrimaryAxisZooms(zoom);
@@ -740,11 +652,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private updatePrimaryAxisZooms(zoom: DefinedZoomState) {
-        const xAxisId = this.axisIds[ChartAxisDirection.X];
-        const yAxisId = this.axisIds[ChartAxisDirection.Y];
-
-        if (xAxisId) this.updateAxisZoom(xAxisId, ChartAxisDirection.X, zoom.x);
-        if (yAxisId) this.updateAxisZoom(yAxisId, ChartAxisDirection.Y, zoom.y);
+        this.ctx.zoomManager.updatePrimaryAxisZoom('zoom', ChartAxisDirection.X, zoom.x);
+        this.ctx.zoomManager.updatePrimaryAxisZoom('zoom', ChartAxisDirection.Y, zoom.y);
     }
 
     private updateUnifiedZoom(zoom: DefinedZoomState) {
@@ -805,35 +714,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         zoomManager.updateAxisZoom('zoom', axisId, axisZoom);
     }
 
-    private restoreZoom(event: _ModuleSupport.ZoomRestoreEvent) {
-        const { rangeX, rangeY, ratioX, ratioY } = event;
-
-        if (rangeX) {
-            this.rangeX.restore(rangeX.start, rangeX.end);
-        }
-
-        if (rangeY) {
-            this.rangeY.restore(rangeY.start, rangeY.end);
-        }
-
-        if (ratioX && !rangeX) {
-            this.ratioX.restore(ratioX.start, ratioX.end);
-        }
-
-        if (ratioY && !rangeY) {
-            this.ratioY.restore(ratioY.start, ratioY.end);
-        }
-    }
-
     private getZoom() {
         return definedZoomState(this.ctx.zoomManager.getZoom());
     }
 
     private getResetZoom() {
-        const x = this.rangeX.getInitialRange() ?? this.ratioX.getInitialRatio() ?? UNIT;
-        const y = this.rangeY.getInitialRange() ?? this.ratioY.getInitialRatio() ?? UNIT;
-
-        return { x, y };
+        return definedZoomState(this.ctx.zoomManager.getRestoredZoom());
     }
 
     private getModuleProperties(overrides?: Partial<ZoomProperties>): ZoomProperties {
@@ -846,8 +732,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             isScalingY: overrides?.isScalingY ?? this.isScalingY(),
             minRatioX: overrides?.minRatioX ?? this.minRatioX,
             minRatioY: overrides?.minRatioY ?? this.minRatioY,
-            rangeX: overrides?.rangeX ?? this.rangeX,
             scrollingStep: overrides?.scrollingStep ?? this.scrollingStep,
         };
+    }
+
+    testFindTarget(canvasX: number, canvasY: number): { target: HTMLElement; x: number; y: number } | undefined {
+        if (this.enabled && this.enableAxisDragging) {
+            return this.domProxy.testFindTarget(canvasX, canvasY);
+        }
+        return undefined;
     }
 }

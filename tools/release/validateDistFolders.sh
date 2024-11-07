@@ -2,6 +2,22 @@
 
 excluded=("ag-charts-react" "ag-charts-vue3" "ag-charts-angular" "ag-charts-locale")
 frameworks=("ag-charts-react" "ag-charts-vue3" "ag-charts-angular")
+expected_package_files=(
+  "dist/packages/ag-charts-vue3.tgz"
+  "dist/packages/ag-charts-react.tgz"
+  "dist/packages/ag-charts-types.tgz"
+  "dist/packages/ag-charts-angular.tgz"
+  "dist/packages/ag-charts-locale.tgz"
+  "dist/packages/ag-charts-enterprise.tgz"
+  "dist/packages/ag-charts-community.tgz"
+  "dist/packages/contents/ag-charts-angular"
+  "dist/packages/contents/ag-charts-community"
+  "dist/packages/contents/ag-charts-react"
+  "dist/packages/contents/ag-charts-vue3"
+  "dist/packages/contents/ag-charts-types"
+  "dist/packages/contents/ag-charts-locale"
+  "dist/packages/contents/ag-charts-enterprise"
+)
 
 validatePackageJsonExists()
 {
@@ -14,17 +30,22 @@ validatePackageJsonExists()
   fi
 }
 
-validateExpectedDirs()
-{
-  local directory=$1
-  local expected_count=$2
+checkFilesExist() {
+  local -n expected_files=$1
+  local missing_files=()
+  
+  for file in "${expected_files[@]}"; do
+    if [[ ! -e "$file" ]]; then
+      missing_files+=("$file")
+    fi
+  done
 
-  local count=`find $directory -maxdepth 1 | wc -l | tr -d ' '`;
-
-  if [[ $count -ne $expected_count ]]
-  then
-    echo "ERROR: Expected $directory to have $expected_count directories but it only has $count"
-    exit 1
+  if [[ ${#missing_files[@]} -eq 0 ]]; then
+    return 0
+  else
+    echo "The following expected files or directories are missing:"
+    printf "%s\n" "${missing_files[@]}"
+    return 1
   fi
 }
 
@@ -47,6 +68,15 @@ validateCommonDist()
   fi
 
   local expected_count=4
+  if [[ "$directory" == "dist/packages/contents/ag-charts-community/package" ]]
+  then
+      expected_count=8
+  fi
+  if [[ "$directory" == "dist/packages/contents/ag-charts-enterprise/package" ]]
+  then
+      expected_count=8
+  fi
+  
   local count=`find "$directory/dist/package" -type f | wc -l | tr -d ' '`;
   if [[ $count -ne $expected_count ]]
   then
@@ -139,8 +169,8 @@ validateLocale()
 }
 
 # check all expected modules & packages are there
-validateExpectedDirs "dist/packages/contents" 8
-validateExpectedDirs "dist/packages" 9
+checkFilesExist expected_package_files # NOTE: Send expected as a reference, not by value
 validateModules "dist/packages/contents"
 validateLocale "dist/packages/contents/ag-charts-locale/package"
+
 

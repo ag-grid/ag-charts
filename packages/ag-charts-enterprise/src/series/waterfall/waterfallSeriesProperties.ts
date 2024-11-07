@@ -47,8 +47,8 @@ class WaterfallSeriesItemTooltip extends BaseProperties {
 }
 
 class WaterfallSeriesLabel extends Label<AgWaterfallSeriesLabelFormatterParams> {
-    @Validate(UNION(['start', 'end', 'inside'], 'a placement'))
-    placement: AgWaterfallSeriesLabelPlacement = 'end';
+    @Validate(UNION(['inside-center', 'inside-start', 'inside-end', 'outside-start', 'outside-end'], 'a placement'))
+    placement: AgWaterfallSeriesLabelPlacement = 'outside-end';
 
     @Validate(POSITIVE_NUMBER)
     padding: number = 6;

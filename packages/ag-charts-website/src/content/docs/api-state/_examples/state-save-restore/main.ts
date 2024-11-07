@@ -15,6 +15,7 @@ const chart = AgCharts.createFinancialChart(options);
 
 let state: AgChartState = {
     version: '10.0.0',
+    chartType: 'ohlc',
     annotations: [
         {
             type: 'parallel-channel',
@@ -35,6 +36,11 @@ let state: AgChartState = {
             strokeWidth: 2,
         },
     ],
+    zoom: {
+        rangeX: {
+            start: { __type: 'date', value: 'Thu Mar 21 2024 18:43:00 GMT+0000 (Greenwich Mean Time)' },
+        },
+    },
 };
 
 function saveState() {

@@ -34,8 +34,8 @@ type ChartLike = {
 };
 
 export class SyncManager extends BaseManager {
-    static chartsGroups = new Map<GroupId, Set<ChartLike>>();
-    static DEFAULT_GROUP = Symbol('sync-group-default');
+    private static readonly chartsGroups = new Map<GroupId, Set<ChartLike>>();
+    private static readonly DEFAULT_GROUP = Symbol('sync-group-default');
 
     constructor(protected chart: ChartLike) {
         super();

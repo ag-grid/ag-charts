@@ -1,4 +1,4 @@
-import { type TextAlign, _ModuleSupport, _Scene, type _Util } from 'ag-charts-community';
+import { type TextAlign, _ModuleSupport, _Scene } from 'ag-charts-community';
 
 const { TextWrapper, CachedTextMeasurerPool } = _ModuleSupport;
 const { BBox } = _Scene;
@@ -10,7 +10,7 @@ export type TextOptions = _ModuleSupport.FontOptions & { textAlign: TextAlign; p
 
 export const ANNOTATION_TEXT_LINE_HEIGHT = 1.38;
 
-export function getTextWrapOptions(options: TextOptions): Omit<_ModuleSupport.WrapOptions, 'maxWidth'> {
+function getTextWrapOptions(options: TextOptions): Omit<_ModuleSupport.WrapOptions, 'maxWidth'> {
     return {
         font: {
             fontFamily: options.fontFamily,
@@ -35,7 +35,7 @@ export function wrapText(options: TextOptions, text: string, width: number) {
         : text;
 }
 
-export function measureAnnotationText(options: TextOptions, text: string) {
+function measureAnnotationText(options: TextOptions, text: string) {
     const textOptions = getTextWrapOptions(options);
 
     const { lineMetrics, width } = CachedTextMeasurerPool.measureLines(text, textOptions);

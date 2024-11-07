@@ -35,9 +35,8 @@ const options: AgChartOptions = {
     ],
     axes: [
         {
-            type: 'time',
+            type: 'ordinal-time',
             position: 'bottom',
-            nice: false,
             interval: {
                 values: [
                     new Date(2023, 7, 1),
@@ -59,12 +58,6 @@ const options: AgChartOptions = {
                         lineDash: [2, 2],
                     },
                 ],
-            },
-            crosshair: {
-                label: {
-                    renderer: ({ value }) =>
-                        `<div style="padding: 0 7px; border-radius: 2px; line-height: 1.7em; background-color: rgb(71,71,71); color: rgb(255, 255, 255);">${month.format(value)} ${day.format(value)}</div>`,
-                },
             },
         },
         {

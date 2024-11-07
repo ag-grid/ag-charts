@@ -23,77 +23,88 @@ const NAVIGATOR_ZOOM_EXAMPLES: Record<string, CartesianTestCase> = {
     NAV_ZOOMED_CROSSLINES: {
         options: {
             ...VALID_RANGE_CROSSLINES,
-            navigator: { min: 0.4, max: 0.6 },
+            navigator: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 0.4, end: 0.6 } } },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
     },
     NAV_ZOOMED_NO_CROSSLINES: {
         options: {
             ...VALID_RANGE_CROSSLINES,
-            navigator: { min: 0, max: 0.05 },
+            navigator: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 0, end: 0.05 } } },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
     },
     NAV_ZOOMED_NO_CROSSLINES_2: {
         options: {
             ...VALID_RANGE_CROSSLINES,
-            navigator: { min: 0.95, max: 1.0 },
+            navigator: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 0.95, end: 1.0 } } },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
     },
     NAV_ZOOMED_CLIPPED_CROSSLINES_1: {
         options: {
             ...VALID_RANGE_CROSSLINES,
-            navigator: { min: 0, max: 0.5 },
+            navigator: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 0, end: 0.5 } } },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
     },
     NAV_ZOOMED_CLIPPED_CROSSLINES_2: {
         options: {
             ...VALID_RANGE_CROSSLINES,
-            navigator: { min: 0.5, max: 1.0 },
+            navigator: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 0.5, end: 1.0 } } },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
     },
     NAV_ZOOMED_INSIDE_CROSSLINES_1: {
         options: {
             ...VALID_RANGE_CROSSLINES,
-            navigator: { min: 0.4, max: 0.6 },
+            navigator: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 0.4, end: 0.6 } } },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
     },
     NAV_ZOOMED_INSIDE_CROSSLINES_2: {
         options: {
             ...VALID_RANGE_CROSSLINES,
-            navigator: { min: 0.51, max: 0.55 },
+            navigator: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 0.51, end: 0.55 } } },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
     },
     NAV_ZOOMED_EDGE_CROSSLINES_1: {
         options: {
             ...VALID_RANGE_CROSSLINES,
-            navigator: { min: 0.14661198412976173, max: 0.3286788694841538 },
+            navigator: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 0.14661198412976173, end: 0.3286788694841538 } } },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
     },
     NAV_ZOOMED_EDGE_CROSSLINES_2: {
         options: {
             ...VALID_RANGE_CROSSLINES,
-            navigator: { min: 0.15, max: 0.3286788694841538 + 0.001 },
+            navigator: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 0.15, end: 0.3286788694841538 + 0.001 } } },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
     },
     NAV_ZOOMED_EDGE_CROSSLINES_3: {
         options: {
             ...VALID_RANGE_CROSSLINES,
-            navigator: { min: 1 - 0.3286788694841538, max: 1 - 0.14661198412976173 },
+            navigator: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 1 - 0.3286788694841538, end: 1 - 0.14661198412976173 } } },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
     },
     NAV_ZOOMED_EDGE_CROSSLINES_4: {
         options: {
             ...VALID_RANGE_CROSSLINES,
-            navigator: { min: 1 - 0.3286788694841538 - 0.006, max: 0.85 },
+            navigator: { enabled: true },
+            initialState: { zoom: { ratioX: { start: 1 - 0.3286788694841538 - 0.006, end: 0.85 } } },
         },
         assertions: cartesianChartAssertions({ axisTypes: ['time', 'number'], seriesTypes: repeat('line', 2) }),
     },
@@ -124,10 +135,7 @@ describe('Navigator', () => {
                 await waitForChartStability(chart);
                 await example.assertions(chart);
 
-                expectWarningsCalls().toEqual([
-                    // ['AG Charts - Property [navigator.min] is deprecated. Use [initialState.zoom.ratioX] instead.'],
-                    // ['AG Charts - Property [navigator.max] is deprecated. Use [initialState.zoom.ratioX] instead.'],
-                ]);
+                expectWarningsCalls().toEqual([]);
             }
         );
 
@@ -147,10 +155,7 @@ describe('Navigator', () => {
                 chart = AgCharts.create(options);
                 await compare();
 
-                expectWarningsCalls().toEqual([
-                    // ['AG Charts - Property [navigator.min] is deprecated. Use [initialState.zoom.ratioX] instead.'],
-                    // ['AG Charts - Property [navigator.max] is deprecated. Use [initialState.zoom.ratioX] instead.'],
-                ]);
+                expectWarningsCalls().toEqual([]);
             }
         );
     });

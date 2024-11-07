@@ -1,7 +1,21 @@
 import { type PixelSize, _ModuleSupport, type _Scene } from 'ag-charts-community';
 
-import { Background, Fill, Font, LineStyle, LineTextProperties, Localisable, Stroke } from '../annotationProperties';
-import { type AnnotationOptionsColorPickerType, AnnotationType, type Constructor } from '../annotationTypes';
+import {
+    Background,
+    Fill,
+    Font,
+    Handle,
+    LineStyle,
+    LineTextProperties,
+    Localisable,
+    Stroke,
+} from '../annotationProperties';
+import {
+    type AnnotationOptionsColorPickerType,
+    AnnotationType,
+    type Constructor,
+    type Point,
+} from '../annotationTypes';
 import { StartEndProperties } from '../properties/startEndProperties';
 import { getLineCap, getLineDash } from '../utils/line';
 
@@ -14,6 +28,11 @@ class MeasurerStatistics extends Font(Fill(Stroke(BaseProperties))) {
     public divider = new MeasurerStatisticsDivider();
 }
 
+class MeasurerDirectionProperties extends Fill(Stroke(Handle(BaseProperties))) {
+    @Validate(OBJECT, { optional: true })
+    public statistics = new MeasurerStatistics();
+}
+
 export class MeasurerTypeProperties extends Localisable(Background(Stroke(LineStyle(StartEndProperties)))) {
     public direction: 'both' | 'horizontal' | 'vertical' = 'both';
 
@@ -23,8 +42,7 @@ export class MeasurerTypeProperties extends Localisable(Background(Stroke(LineSt
     @Validate(OBJECT, { optional: true })
     public statistics = new MeasurerStatistics();
 
-    @Validate(OBJECT, { optional: true })
-    text = new LineTextProperties();
+    public getVolume: (from: Point['x'], to: Point['x']) => number | undefined = () => 0;
 
     override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
         switch (colorPickerType) {
@@ -32,8 +50,6 @@ export class MeasurerTypeProperties extends Localisable(Background(Stroke(LineSt
                 return this.background.fill;
             case `line-color`:
                 return this.stroke;
-            case 'text-color':
-                return this.text.color;
         }
     }
 
@@ -69,10 +85,19 @@ function PriceRange<T extends Constructor>(Parent: T) {
     return PriceRangeInternal;
 }
 
-function LineText<T extends Constructor>(Parent: T) {
+function LineText<
+    T extends Constructor<{
+        getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType): string | undefined;
+    }>,
+>(Parent: T) {
     class LineTextInternal extends Parent {
         @Validate(OBJECT, { optional: true })
         text = new LineTextProperties();
+
+        override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
+            if (colorPickerType === 'text-color') return this.text.color;
+            return super.getDefaultColor(colorPickerType);
+        }
     }
     return LineTextInternal;
 }
@@ -118,6 +143,23 @@ export class DatePriceRangeProperties extends DateRange(PriceRange(LineText(Meas
 
     @Validate(STRING)
     type = AnnotationType.DatePriceRange as const;
+
+    override direction = 'both' as const;
+}
+
+export class QuickDatePriceRangeProperties extends DateRange(PriceRange(MeasurerTypeProperties)) {
+    static is(value: unknown): value is QuickDatePriceRangeProperties {
+        return isObject(value) && value.type === AnnotationType.QuickDatePriceRange;
+    }
+
+    @Validate(STRING)
+    type = AnnotationType.QuickDatePriceRange as const;
+
+    @Validate(OBJECT, { optional: true })
+    public up = new MeasurerDirectionProperties();
+
+    @Validate(OBJECT, { optional: true })
+    public down = new MeasurerDirectionProperties();
 
     override direction = 'both' as const;
 }

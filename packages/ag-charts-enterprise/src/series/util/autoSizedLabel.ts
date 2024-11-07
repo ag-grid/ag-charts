@@ -3,7 +3,7 @@ import type { OverflowStrategy, TextWrap } from 'ag-charts-types';
 
 const { Validate, NUMBER, POSITIVE_NUMBER, TEXT_WRAP, OVERFLOW_STRATEGY } = _ModuleSupport;
 
-export class BaseAutoSizedLabel<FormatterParams> extends _Scene.Label<FormatterParams> {
+class BaseAutoSizedLabel<FormatterParams> extends _Scene.Label<FormatterParams> {
     @Validate(TEXT_WRAP)
     wrapping: TextWrap = 'on-space';
 

@@ -1,5 +1,5 @@
 import type { AgTooltipRendererResult } from 'ag-charts-community';
-import { _ModuleSupport, _Scale, _Scene, _Util } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { RangeBarProperties } from './rangeBarProperties';
 
@@ -23,12 +23,11 @@ const {
     resetLabelFn,
     animationValidation,
     createDatumId,
-    formatValue,
     computeBarFocusBounds,
+    sanitizeHtml,
+    ContinuousScale,
 } = _ModuleSupport;
 const { Rect, PointerEvents, motion } = _Scene;
-const { sanitizeHtml } = _Util;
-const { ContinuousScale } = _Scale;
 
 type Bounds = {
     x: number;
@@ -137,7 +136,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const extraProps = [];
         if (!this.ctx.animationManager.isSkipped()) {
             if (this.processedData) {
-                extraProps.push(diff(this.processedData));
+                extraProps.push(diff(this.id, this.processedData));
             }
             extraProps.push(animationValidation());
         }
@@ -146,8 +145,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 keyProperty(xKey, xScaleType, { id: 'xValue' }),
-                valueProperty(yLowKey, yScaleType, { id: `yLowValue`, ...visibleProps }),
-                valueProperty(yHighKey, yScaleType, { id: `yHighValue`, ...visibleProps }),
+                valueProperty(yLowKey, yScaleType, { id: `yLowValue`, invalidValue: null, ...visibleProps }),
+                valueProperty(yHighKey, yScaleType, { id: `yHighValue`, invalidValue: null, ...visibleProps }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL, LARGEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
@@ -199,7 +198,16 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(data && xAxis && yAxis && dataModel)) {
+        if (
+            !(
+                data &&
+                xAxis &&
+                yAxis &&
+                dataModel &&
+                processedData?.type === 'grouped' &&
+                processedData.rawData.length > 0
+            )
+        ) {
             return;
         }
 
@@ -220,19 +228,24 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         };
         if (!visible) return context;
 
-        const yLowIndex = dataModel.resolveProcessedDataIndexById(this, `yLowValue`);
-        const yHighIndex = dataModel.resolveProcessedDataIndexById(this, `yHighValue`);
-        const xIndex = dataModel.resolveProcessedDataIndexById(this, `xValue`);
+        const { rawData } = processedData;
+
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const yLowValues = dataModel.resolveColumnById(this, `yLowValue`, processedData);
+        const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);
 
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         const barOffset = ContinuousScale.is(xScale) ? barWidth * -0.5 : 0;
-        processedData?.data.forEach(({ keys, datum, values }, dataIndex) => {
-            values.forEach((value, valueIndex) => {
-                const xDatum = keys[xIndex];
+        processedData.groups.forEach(({ datumIndices }, groupedDataIndex) => {
+            datumIndices.forEach((datumIndex) => {
+                const datum = rawData[datumIndex];
+                const xDatum = xValues[datumIndex];
+                if (xDatum == null) return;
+
                 const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex)) + barOffset;
 
-                const rawLowValue = value[yLowIndex];
-                const rawHighValue = value[yHighIndex];
+                const rawLowValue = yLowValues[datumIndex];
+                const rawHighValue = yHighValues[datumIndex];
 
                 const yLowValue = Math.min(rawLowValue, rawHighValue);
                 const yHighValue = Math.max(rawLowValue, rawHighValue);
@@ -260,16 +273,16 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                     barAlongX,
                     yLowValue,
                     yHighValue,
-                    datum: datum[valueIndex],
+                    datum: datum,
                     series: this,
                 });
 
                 const nodeDatum: RangeBarNodeDatum = {
-                    index: dataIndex,
-                    valueIndex,
+                    index: groupedDataIndex,
+                    valueIndex: datumIndex,
                     series: this,
                     itemId,
-                    datum: datum[valueIndex],
+                    datum: datum,
                     xValue: xDatum,
                     yLowValue: rawLowValue,
                     yHighValue: rawHighValue,
@@ -323,7 +336,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
             textBaseline: barAlongX ? 'middle' : 'bottom',
-            text: this.getLabelText(label, { itemId: 'low', value: yLowValue, ...labelParams }, formatValue),
+            text: this.getLabelText(label, { itemId: 'low', value: yLowValue, ...labelParams }),
             itemId: 'low',
             datum,
             series,
@@ -333,7 +346,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
             textAlign: barAlongX ? 'right' : 'center',
             textBaseline: barAlongX ? 'middle' : 'top',
-            text: this.getLabelText(label, { itemId: 'high', value: yHighValue, ...labelParams }, formatValue),
+            text: this.getLabelText(label, { itemId: 'high', value: yHighValue, ...labelParams }),
             itemId: 'high',
             datum,
             series,

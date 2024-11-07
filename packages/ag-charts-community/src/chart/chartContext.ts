@@ -1,7 +1,7 @@
+import { ChartTypeOriginator } from '../api/preset/chartTypeOriginator';
 import { HistoryManager } from '../api/state/historyManager';
 import { StateManager } from '../api/state/stateManager';
 import { DOMManager } from '../dom/domManager';
-import { FocusIndicator } from '../dom/focusIndicator';
 import { ProxyInteractionService } from '../dom/proxyInteractionService';
 import { LocaleManager } from '../locale/localeManager';
 import type { ModuleContext } from '../module/moduleContext';
@@ -47,11 +47,11 @@ export class ChartContext implements ModuleContext {
     annotationManager: AnnotationManager;
     axisManager: AxisManager;
     chartService: ChartService;
+    chartTypeOriginator: ChartTypeOriginator;
     contextMenuRegistry: ContextMenuRegistry;
     cursorManager: CursorManager;
     dataService: DataService<any>;
     domManager: DOMManager;
-    focusIndicator: FocusIndicator;
     gestureDetector: GestureDetector;
     historyManager: HistoryManager;
     interactionManager: InteractionManager;
@@ -70,16 +70,17 @@ export class ChartContext implements ModuleContext {
             root: Group;
             syncManager: SyncManager;
             container?: HTMLElement;
+            styleContainer?: HTMLElement;
             updateCallback: UpdateCallback;
             updateMutex: Mutex;
             pixelRatio?: number;
         }
     ) {
-        const { scene, root, syncManager, container, updateCallback, updateMutex, pixelRatio } = vars;
+        const { scene, root, syncManager, container, updateCallback, updateMutex, pixelRatio, styleContainer } = vars;
 
         this.chartService = chart;
         this.syncManager = syncManager;
-        this.domManager = new DOMManager(container);
+        this.domManager = new DOMManager(container, styleContainer);
 
         // Sets canvas element if scene exists, otherwise use return value with scene constructor
         const canvasElement = this.domManager.addChild(
@@ -93,16 +94,16 @@ export class ChartContext implements ModuleContext {
 
         this.axisManager = new AxisManager(root);
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
+        this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.cursorManager = new CursorManager(this.domManager);
         this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
-        this.focusIndicator = new FocusIndicator(this.domManager);
-        this.keyNavManager = new KeyNavManager(this.focusIndicator, this.interactionManager);
+        this.keyNavManager = new KeyNavManager(this.interactionManager);
         this.regionManager = new RegionManager(this.interactionManager);
         this.contextMenuRegistry = new ContextMenuRegistry(this.regionManager);
         this.gestureDetector = new GestureDetector(this.domManager);
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(this.localeManager, this.domManager);
-        this.historyManager = new HistoryManager(this.domManager);
+        this.historyManager = new HistoryManager(this.keyNavManager);
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.animationManager);
         this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip);
@@ -113,6 +114,7 @@ export class ChartContext implements ModuleContext {
     destroy() {
         // chart.ts handles the destruction of the scene.
         this.animationManager.destroy();
+        this.highlightManager.destroy();
         this.axisManager.destroy();
         this.callbackCache.invalidateCache();
         this.chartEventManager.destroy();
@@ -121,7 +123,6 @@ export class ChartContext implements ModuleContext {
         this.highlightManager.destroy();
         this.interactionManager.destroy();
         this.keyNavManager.destroy();
-        this.focusIndicator.destroy();
         this.proxyInteractionService.destroy();
         this.regionManager.destroy();
         this.syncManager.destroy();

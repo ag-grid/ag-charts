@@ -219,6 +219,9 @@
         "buildOutputExcludes",
         "{workspaceRoot}/.eslintrc.*",
         "{projectRoot}/.eslintrc.*",
+        "{workspaceRoot}/tsconfig.base.json",
+        "{projectRoot}/tsconfig.json",
+        "{projectRoot}/tsconfig.lint.*",
         "{workspaceRoot}/tools/eslint-rules/**/*"
       ],
       "outputs": [],

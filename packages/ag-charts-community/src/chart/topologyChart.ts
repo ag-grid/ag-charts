@@ -56,7 +56,7 @@ export class TopologyChart extends Chart {
     }
 
     protected performLayout(ctx: LayoutContext) {
-        const { seriesRoot, annotationRoot, highlightRoot } = this;
+        const { seriesRoot, annotationRoot } = this;
         const { layoutBox } = ctx;
         const seriesRect = layoutBox.clone();
 
@@ -116,7 +116,7 @@ export class TopologyChart extends Chart {
 
         const seriesVisible = this.series.some((s) => s.visible);
         seriesRoot.visible = seriesVisible;
-        for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
+        for (const group of [seriesRoot, annotationRoot]) {
             group.translationX = Math.floor(layoutBox.x);
             group.translationY = Math.floor(layoutBox.y);
             group.setClipRect(layoutBox.clone());

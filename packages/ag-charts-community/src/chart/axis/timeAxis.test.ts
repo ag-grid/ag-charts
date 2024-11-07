@@ -62,8 +62,6 @@ const TIME_AXIS_EXAMPLE: AgCartesianChartOptions = {
     ],
     navigator: {
         height: 50,
-        min: 0,
-        max: 1,
     },
 };
 
@@ -106,10 +104,10 @@ describe('Time Axis Examples', () => {
             [0.4, 0.4125],
             [0.45, 0.45625],
         ];
-        for (const [min, max] of ZOOM_LEVELS) {
-            it(`for should render as expected as zoom [${min}, ${max}]`, async () => {
+        for (const [start, end] of ZOOM_LEVELS) {
+            it(`for should render as expected as zoom [${start}, ${end}]`, async () => {
                 chart = AgCharts.create(prepareTestOptions({ ...TIME_AXIS_EXAMPLE }));
-                await chart.updateDelta({ navigator: { min, max } });
+                await chart.updateDelta({ initialState: { zoom: { ratioX: { start, end } } } });
                 await axisCompare();
             });
         }

@@ -7,7 +7,7 @@ import type {
 } from 'ag-charts-types';
 
 import { CartesianChart } from '../chart/cartesianChart';
-import { Chart, type ChartExtendedOptions } from '../chart/chart';
+import { Chart } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
@@ -28,10 +28,9 @@ import { StandaloneChart } from '../chart/standaloneChart';
 import { TopologyChart } from '../chart/topologyChart';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { enterpriseModule } from '../module/enterpriseModule';
-import { ChartOptions } from '../module/optionsModule';
+import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverrides } from '../module/optionsModule';
 import { Debug } from '../util/debug';
 import { deepClone, jsonWalk } from '../util/json';
-import { mergeDefaults } from '../util/object';
 import type { DeepPartial } from '../util/types';
 import { VERSION } from '../version';
 import { MementoCaretaker } from './state/memento';
@@ -105,14 +104,17 @@ export abstract class AgCharts {
     /**
      * Create a new `AgChartInstance` based upon the given configuration options.
      */
-    public static create<O extends AgChartOptions>(options: O): AgChartInstance<O> {
-        this.licenseCheck(options);
-        const chart = AgChartsInternal.createOrUpdate(
-            options,
-            undefined,
-            this.licenseManager,
-            enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : []
-        );
+    public static create<O extends AgChartOptions>(
+        userOptions: O,
+        optionsMetadata?: ChartInternalOptionMetadata
+    ): AgChartInstance<O> {
+        this.licenseCheck(userOptions);
+        const chart = AgChartsInternal.createOrUpdate({
+            userOptions,
+            licenseManager: this.licenseManager,
+            styles: enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : [],
+            optionsMetadata,
+        });
 
         if (this.licenseManager?.isDisplayWatermark() && this.licenseManager) {
             enterpriseModule.injectWatermark?.(chart.chart.ctx.domManager, this.licenseManager.getWatermarkMessage());
@@ -121,15 +123,15 @@ export abstract class AgCharts {
     }
 
     public static createFinancialChart(options: AgFinancialChartOptions): AgChartInstance<AgFinancialChartOptions> {
-        return this.create({ presetType: 'price-volume', ...options } as AgChartOptions) as any;
+        return this.create(options as any, { presetType: 'price-volume' }) as any;
     }
 
     public static createGauge(options: AgGaugeOptions): AgChartInstance<AgGaugeOptions> {
-        return this.create({ presetType: 'gauge', ...(options as any) } as AgChartOptions) as any;
+        return this.create(options as AgChartOptions, { presetType: 'gauge' }) as any;
     }
 
     public static __createSparkline(options: AgSparklineOptions): AgChartInstance<AgSparklineOptions> {
-        return this.create({ presetType: 'sparkline', ...(options as any) } as AgChartOptions) as any;
+        return this.create(options as AgChartOptions, { presetType: 'sparkline' }) as any;
     }
 }
 
@@ -151,47 +153,85 @@ class AgChartsInternal {
         AgChartsInternal.initialised = true;
     }
 
-    static callbackApi: FactoryApi = {
+    private static readonly callbackApi: FactoryApi = {
         caretaker: AgChartsInternal.caretaker,
-        createOrUpdate(opts, chart) {
-            return AgChartsInternal.createOrUpdate(opts, chart as AgChartInstanceProxy);
+        create(userOptions, processedOverrides, specialOverrides, optionsMetadata) {
+            return AgChartsInternal.createOrUpdate({
+                userOptions,
+                processedOverrides,
+                specialOverrides,
+                optionsMetadata,
+            });
+        },
+        update(opts, chart) {
+            return AgChartsInternal.createOrUpdate({ userOptions: opts, proxy: chart as AgChartInstanceProxy });
         },
         updateUserDelta(chart, deltaOptions) {
             return AgChartsInternal.updateUserDelta(chart as AgChartInstanceProxy, deltaOptions);
         },
     };
 
-    static createOrUpdate(
-        options: ChartExtendedOptions,
-        proxy?: AgChartInstanceProxy,
-        licenseManager?: LicenseManager,
-        styles?: Array<[string, string]>
-    ) {
+    static createOrUpdate(opts: {
+        userOptions?: AgChartOptions & Partial<ChartSpecialOverrides>;
+        deltaOptions?: DeepPartial<AgChartOptions>;
+        processedOverrides?: Partial<AgChartOptions>;
+        proxy?: AgChartInstanceProxy;
+        licenseManager?: LicenseManager;
+        styles?: Array<[string, string]>;
+        specialOverrides?: Partial<ChartSpecialOverrides>;
+        optionsMetadata?: ChartInternalOptionMetadata;
+    }) {
+        let { proxy } = opts;
+        const {
+            userOptions,
+            licenseManager,
+            styles,
+            processedOverrides = proxy?.chart.chartOptions.processedOverrides ?? {},
+            specialOverrides = proxy?.chart.chartOptions.specialOverrides ?? {},
+            optionsMetadata = proxy?.chart.chartOptions.optionMetadata ?? {},
+            deltaOptions,
+        } = opts;
+        const { presetType } = optionsMetadata;
+
         AgChartsInternal.initialiseModules();
 
-        debug('>>> AgCharts.createOrUpdate() user options', options);
+        debug('>>> AgCharts.createOrUpdate() user options', userOptions);
 
-        const { presetType = proxy?.chart.chartOptions.presetType, ...otherOptions } = options;
-
-        let mutableOptions = otherOptions;
-        if (AgCharts.optionsMutationFn) {
-            mutableOptions = AgCharts.optionsMutationFn(mutableOptions, presetType);
-            debug('>>> AgCharts.createOrUpdate() MUTATED user options', options);
+        let mutableOptions = userOptions;
+        if (AgCharts.optionsMutationFn && mutableOptions) {
+            mutableOptions = AgCharts.optionsMutationFn(deepClone(mutableOptions), presetType);
+            debug('>>> AgCharts.createOrUpdate() MUTATED user options', mutableOptions);
         }
 
-        const { overrideDevicePixelRatio, document, window: userWindow, ...userOptions } = mutableOptions;
-        const chartOptions = new ChartOptions(userOptions, {
-            presetType,
+        const {
+            overrideDevicePixelRatio,
             document,
             window: userWindow,
-            overrideDevicePixelRatio,
-        });
+            styleContainer,
+            ...options
+        } = mutableOptions ?? {};
+        const baseOptions = (deltaOptions ? proxy?.chart.chartOptions : options) ?? options;
+        const chartOptions = new ChartOptions(
+            baseOptions,
+            processedOverrides,
+            {
+                ...specialOverrides,
+                document,
+                window: userWindow,
+                overrideDevicePixelRatio,
+                styleContainer,
+            },
+            optionsMetadata,
+            deltaOptions
+        );
 
+        let create = false;
         let chart = proxy?.chart;
         if (
             chart == null ||
             chartType(chartOptions.processedOptions) !== chartType(chart?.chartOptions.processedOptions)
         ) {
+            create = true;
             chart = AgChartsInternal.createChartInstance(chartOptions, chart);
             styles?.forEach(([id, css]) => {
                 chart?.ctx.domManager.addStyles(id, css);
@@ -209,40 +249,34 @@ class AgChartsInternal {
             (window as any).agChartInstances[chart.id] = chart;
         }
 
-        chart.queuedUserOptions.push(userOptions);
+        chart.queuedUserOptions.push(chartOptions.userOptions);
         chart.requestFactoryUpdate((chartRef) => {
-            chartRef.applyOptions(chartOptions);
+            chartRef.applyOptions(chartOptions, create);
             // If there are a lot of update calls, `requestFactoryUpdate()` may skip callbacks,
             // so we need to remove all queue items up to the last successfully applied item.
-            const queueIdx = chartRef.queuedUserOptions.indexOf(userOptions) + 1;
+            const queueIdx = chartRef.queuedUserOptions.indexOf(chartOptions.userOptions) + 1;
             chartRef.queuedUserOptions.splice(0, queueIdx);
         });
 
         return proxy;
     }
 
+    private static markRemovedProperties(node: any) {
+        if (typeof node !== 'object') return;
+        for (const [key, value] of Object.entries(node)) {
+            if (typeof value === 'undefined') {
+                Object.assign(node, { [key]: Symbol('UNSET') });
+            }
+        }
+    }
+
     static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>) {
-        deltaOptions = deepClone(deltaOptions, { shallow: ['data'] });
+        deltaOptions = deepClone(deltaOptions, new Set(['data']));
 
-        jsonWalk(
-            deltaOptions,
-            (node) => {
-                if (typeof node !== 'object') return;
-                for (const [key, value] of Object.entries(node)) {
-                    if (typeof value === 'undefined') {
-                        Object.assign(node, { [key]: Symbol('UNSET') });
-                    }
-                }
-            },
-            { skip: ['data'] }
-        );
+        jsonWalk(deltaOptions, AgChartsInternal.markRemovedProperties, new Set(['data']));
 
-        const { chart } = proxy;
-        const lastUpdateOptions = chart.getOptions();
-        const userOptions = mergeDefaults(deltaOptions, lastUpdateOptions);
         debug('>>> AgCharts.updateUserDelta() user delta', deltaOptions);
-        debug('AgCharts.updateUserDelta() - base options', lastUpdateOptions);
-        AgChartsInternal.createOrUpdate(userOptions, proxy);
+        AgChartsInternal.createOrUpdate({ proxy, deltaOptions });
     }
 
     private static createChartInstance(options: ChartOptions, oldChart?: Chart): Chart {

@@ -59,6 +59,17 @@ Arrow types available are:
 -   **Arrow Up**: A fixed size up arrow in a specific position on the chart.
 -   **Arrow Down**: A fixed size down arrow in a specific position on the chart.
 
+## Measuring Tools
+
+{% chartExampleRunner title="Measuring Tools" name="measuring-tools" type="generated" /%}
+
+Measuring Tools available are:
+
+-   **Measure**: A quick measuring tool, which measures both the date and price range. This is removed when the user clicks away on the chart.
+-   **Date Range**: Measures the time difference and number of bars between two points on the chart. Also shows the sum of the volume between the the two points if `volume` is enabled.
+-   **Price Range**: Measures the price difference between two points on the chart. This is displayed both as an absolute value and as a percentage.
+-   **Date and Price**: Combines both the Date and Price Range measures.
+
 ## Keyboard Shortcuts
 
 The following keyboard shortcuts can be used with Financial Charts.
@@ -68,6 +79,9 @@ The following keyboard shortcuts can be used with Financial Charts.
 -   {% kbd "^ Ctrl"/%}+{% kbd "C"/%} / {% kbd "⌘"/%}+{% kbd "C"/%} will copy the selected drawing or annotation.
 -   {% kbd "^ Ctrl"/%}+{% kbd "V"/%} / {% kbd "⌘"/%}+{% kbd "V"/%} will paste the copied drawing or annotation.
 -   {% kbd "Delete"/%} or {% kbd "⌫ Backspace" /%} will delete the selected item.
+-   Arrow keys ({% kbd "←"/%} {% kbd "↑"/%} {% kbd "→"/%} {% kbd "↓"/%}) will move the selected drawing or annotation by 1 pixel.  
+    Use in combination with {% kbd "^ Ctrl"/%} or {% kbd "⇧ Shift"/%} to move by 10 pixels.
+-   Holding down {% kbd "⇧ Shift"/%} whilst creating a drawing or dragging a handle will snap it to the nearest 45° angle.
 
 ## Save & Restore
 

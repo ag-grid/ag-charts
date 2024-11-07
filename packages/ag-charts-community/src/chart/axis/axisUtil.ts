@@ -137,7 +137,6 @@ export function prepareAxisAnimationFunctions(ctx: AxisAnimationContext) {
             let opacity = 1;
 
             if (status === 'added') {
-                opacity = 1;
                 rotation = datum.rotation;
             } else if (status === 'removed') {
                 opacity = 0;

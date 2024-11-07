@@ -14,7 +14,7 @@ import type { AgScatterSeriesOptions } from '../series/cartesian/scatterOptions'
 import type { AgWaterfallSeriesOptions } from '../series/cartesian/waterfallOptions';
 import type { AgAxisLabelFormatterParams } from './axisOptions';
 import type { Formatter } from './callbackOptions';
-import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize, Ratio } from './types';
+import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
 
 export interface AgNavigatorMiniChartIntervalOptions {
     /** Maximum gap in pixels between labels. */
@@ -138,7 +138,7 @@ export type AgMiniChartSeriesOptions =
     | AgCandlestickMiniChartSeriesOptions
     | AgOhlcMiniChartSeriesOptions;
 
-type IgnoredMiniChartSeries = 'bullet' | 'funnel' | 'cone-funnel';
+type IgnoredMiniChartSeries = 'funnel' | 'cone-funnel';
 type VerifyAgMiniChartSeriesOptions = Record<NonNullable<AgCartesianSeriesOptions['type']>, string>;
 
 // Verification checks for completeness/correctness.
@@ -197,14 +197,6 @@ export interface AgNavigatorOptions {
     height?: PixelSize;
     /** The distance between the Navigator and the bottom axis of the chart. */
     spacing?: PixelSize;
-    /**
-     * The start of the visible range in the `[0, 1]` interval.
-     */
-    min?: Ratio;
-    /**
-     * The end of the visible range in the `[0, 1]` interval.
-     */
-    max?: Ratio;
     /** Configuration for the Navigator's visible range mask. */
     mask?: AgNavigatorMaskOptions;
     /** Configuration for the Navigator's left handle. */

@@ -9,8 +9,13 @@ import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { StartEndScene } from '../scenes/startEndScene';
 import { WithBackgroundScene } from '../scenes/withBackgroundScene';
 import { convertLine } from '../utils/values';
-import { DateRangeProperties, type MeasurerTypeProperties, PriceRangeProperties } from './measurerProperties';
-import { MeasurerStatisticsScene, type Statistics } from './measurerStatisticsScene';
+import {
+    DateRangeProperties,
+    type MeasurerTypeProperties,
+    PriceRangeProperties,
+    QuickDatePriceRangeProperties,
+} from './measurerProperties';
+import { MeasurerStatisticsScene, QuickMeasurerStatisticsScene, type Statistics } from './measurerStatisticsScene';
 
 const { Vec2, Vec4 } = _ModuleSupport;
 
@@ -36,10 +41,16 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
     private readonly verticalEndCap = new ArrowCapScene();
 
     public readonly background = new _Scene.Path({ zIndex: -1 });
-    private readonly statistics = new MeasurerStatisticsScene();
+    private readonly statistics: MeasurerStatisticsScene;
+
+    protected verticalDirection?: 'up' | 'down';
 
     constructor() {
         super();
+
+        this.statistics = this.createStatisticsScene();
+        this.statistics.zIndex = 1;
+
         this.append([
             this.background,
             this.verticalStartLine,
@@ -50,10 +61,14 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             this.verticalLine,
             this.horizontalEndCap,
             this.verticalEndCap,
-            this.statistics,
             this.start,
             this.end,
+            this.statistics,
         ]);
+    }
+
+    protected createStatisticsScene() {
+        return new MeasurerStatisticsScene();
     }
 
     public override update(datum: MeasurerTypeProperties, context: AnnotationContext) {
@@ -70,6 +85,8 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         const extended = this.extendPerpendicular(coords, datum, context);
         const verticalStart = { ...extended, y2: extended.y1 };
         const verticalEnd = { ...extended, y1: extended.y2 };
+
+        this.verticalDirection = coords.y1 < coords.y2 ? 'down' : 'up';
 
         this.updateVisibilities(datum);
         this.updateLines(datum, coords);
@@ -129,19 +146,11 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     private updateLines(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {
         const { horizontalLine, verticalLine } = this;
-        const { direction, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        const { direction } = datum;
         const { x1, y1, x2, y2 } = coords;
-        const center = Vec4.center(coords);
+        const center = Vec2.round(Vec4.center(coords));
 
-        const lineStyles = {
-            lineCap: datum.getLineCap(),
-            lineDash: datum.getLineDash(),
-            lineDashOffset,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            fillOpacity: 0,
-        };
+        const lineStyles = this.getLineStyles(datum);
 
         if (direction !== 'vertical') {
             horizontalLine.setProperties({
@@ -166,7 +175,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     private updateText(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {
         const { direction } = datum;
-        const center = Vec4.center(coords);
+        const center = Vec2.round(Vec4.center(coords));
 
         let line;
         const textCoords = { ...coords };
@@ -181,41 +190,64 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             textCoords.y2 = center.y;
         }
 
-        LineWithTextScene.updateLineText.call(this, line, datum, textCoords);
+        const clip = LineWithTextScene.updateLineText.call(this, line, datum, textCoords);
+
+        let verticalClipMask;
+
+        if (direction === 'both' && clip && this.text) {
+            // Add a secondary clip mask to the vertical line that is pinned to the line's horizontal position and only
+            // considers the height of the text, since we know the text must be axis-aligned.
+            const textBBox = Vec4.from(this.text.getBBox());
+            const { offset } = clip.numbers;
+            const crossesVerticalLine = textBBox.x1 <= center.x + offset.x && textBBox.x2 >= center.x - offset.x;
+
+            if (crossesVerticalLine) {
+                verticalClipMask = {
+                    x: center.x,
+                    y: clip.clipMask.y,
+                    radius: this.text.getBBox().height / 2 + Vec2.length(offset),
+                };
+            }
+        }
+
+        this.verticalLine.setClipMask(verticalClipMask);
     }
 
     private updateCaps(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {
         const { horizontalEndCap, verticalEndCap } = this;
-        const { direction, stroke, strokeWidth, strokeOpacity } = datum;
+        const { direction } = datum;
         const { x1, y1, x2, y2 } = coords;
 
-        const center = Vec4.center(coords);
+        const center = Vec2.round(Vec4.center(coords));
+
+        const { stroke, strokeWidth, strokeOpacity } = this.getLineStyles(datum);
         const capStyles = { stroke, strokeWidth, strokeOpacity };
 
         if (direction !== 'vertical') {
             const angle = x1 <= x2 ? 0 : Math.PI;
-            horizontalEndCap.update({ ...capStyles, x: x2, y: center.y, angle });
+            let x = x2;
+            if (direction === 'horizontal') {
+                x += x1 <= x2 ? -2 : 2;
+            }
+            horizontalEndCap.update({ ...capStyles, x, y: center.y, angle });
         }
 
         if (direction !== 'horizontal') {
             const angle = y1 <= y2 ? Math.PI / 2 : Math.PI / -2;
-            verticalEndCap.update({ ...capStyles, x: center.x, y: y2, angle });
+            let y = y2;
+            if (direction === 'vertical') {
+                y += y1 <= y2 ? -2 : 2;
+            }
+            verticalEndCap.update({ ...capStyles, x: center.x, y, angle });
         }
     }
 
     private updateBoundingLines(datum: MeasurerTypeProperties, extendedCoords: _ModuleSupport.Vec4) {
         const { verticalStartLine, verticalEndLine, horizontalStartLine, horizontalEndLine } = this;
-        const { direction, lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        const { direction } = datum;
         const { x1, y1, x2, y2 } = extendedCoords;
 
-        const lineStyles = {
-            lineDash: datum.getLineDash(),
-            lineDashOffset,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            fillOpacity: 0,
-        };
+        const lineStyles = this.getLineStyles(datum);
 
         if (direction === 'horizontal') {
             verticalStartLine.setProperties({ ...lineStyles, x1, y1, x2: x1, y2 });
@@ -232,7 +264,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
     private updateStatistics(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4, context: AnnotationContext) {
         const point = Vec2.add(Vec4.bottomCenter(coords), Vec2.from(0, 10));
-        const statistics: Statistics = { volume: this.getVolume() };
+        const statistics: Statistics = { volume: this.getVolume(datum) };
 
         if (datum.hasPriceRange) {
             statistics.priceRange = {
@@ -248,7 +280,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             };
         }
 
-        this.statistics.update(datum, statistics, point, datum.localeManager);
+        this.statistics.update(datum, statistics, point, context, this.verticalDirection, datum.localeManager);
     }
 
     override updateAnchor(
@@ -271,6 +303,27 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         const [endStart, endEnd] = Vec2.from(verticalEnd);
 
         return [startStart, startEnd, endEnd, endStart];
+    }
+
+    protected getLineStyles(datum: MeasurerTypeProperties) {
+        const { lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        return {
+            lineCap: datum.getLineCap(),
+            lineDash: datum.getLineDash(),
+            lineDashOffset,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            fillOpacity: 0,
+        };
+    }
+
+    public getBackgroundStyles(datum: MeasurerTypeProperties) {
+        const { background } = datum;
+        return {
+            fill: background.fill,
+            fillOpacity: background.fillOpacity,
+        };
     }
 
     override getHandleStyles(datum: MeasurerTypeProperties) {
@@ -305,8 +358,17 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         );
     }
 
+    override getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.text?.containsPoint(x, y)) return 'text';
+        if (this.start.containsPoint(x, y) || this.end.containsPoint(x, y)) return 'handle';
+
+        return 'line';
+    }
+
     private getDateRangeBars(coords: _ModuleSupport.Vec4, context: AnnotationContext) {
-        return Math.round(Vec4.width(coords) / context.xAxis.scaleStep());
+        const { step } = context.xAxis.scale;
+        const sign = coords.x1 <= coords.x2 ? 1 : -1;
+        return step ? Math.round(Vec4.width(coords) / step) * sign : 0;
     }
 
     private getDateRangeValue(datum: MeasurerTypeProperties) {
@@ -319,7 +381,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             throw new Error('Can not create a date range measurement of non-date x-axis.');
         }
 
-        return Math.abs(datum.end.x.getTime() - datum.start.x.getTime());
+        return datum.end.x.getTime() - datum.start.x.getTime();
     }
 
     private getPriceRangePercentage(datum: MeasurerTypeProperties) {
@@ -338,7 +400,54 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
         return datum.end.y - datum.start.y;
     }
 
-    private getVolume() {
-        return 0;
+    private getVolume(datum: MeasurerTypeProperties) {
+        return datum.getVolume?.(datum.start.x, datum.end.x);
+    }
+}
+
+export class QuickMeasurerScene extends MeasurerScene {
+    static override is(value: unknown): value is QuickMeasurerScene {
+        return AnnotationScene.isCheck(value, 'quick-measurer');
+    }
+
+    override type = 'quick-measurer';
+
+    override createStatisticsScene() {
+        return new QuickMeasurerStatisticsScene();
+    }
+
+    private getDirectionStyles(datum: QuickDatePriceRangeProperties) {
+        return this.verticalDirection === 'down' ? datum.down : datum.up;
+    }
+
+    override getLineStyles(datum: QuickDatePriceRangeProperties) {
+        const styles = this.getDirectionStyles(datum);
+
+        return {
+            ...super.getLineStyles(datum),
+            stroke: styles.stroke,
+            strokeWidth: styles.strokeWidth,
+            strokeOpacity: styles.strokeOpacity,
+        };
+    }
+
+    override getBackgroundStyles(datum: QuickDatePriceRangeProperties) {
+        const styles = this.getDirectionStyles(datum);
+
+        return {
+            fill: styles.fill,
+            fillOpacity: styles.fillOpacity,
+        };
+    }
+
+    override getHandleStyles(datum: QuickDatePriceRangeProperties) {
+        const styles = this.getDirectionStyles(datum);
+
+        return {
+            fill: styles.handle.fill,
+            stroke: styles.handle.stroke ?? styles.stroke,
+            strokeOpacity: styles.handle.strokeOpacity ?? styles.strokeOpacity,
+            strokeWidth: styles.handle.strokeWidth ?? styles.strokeWidth,
+        };
     }
 }

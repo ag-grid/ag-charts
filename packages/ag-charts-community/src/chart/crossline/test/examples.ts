@@ -4,13 +4,10 @@ import { DATA_MEAN_SEA_LEVEL } from '../../test/data';
 import { loadExampleOptions } from '../../test/load-example';
 import { DATA_OIL_PETROLEUM } from './data';
 
-export const GROUPED_BAR_CHART_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('grouped-bar');
-export const GROUPED_COLUMN_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('grouped-column');
-export const LINE_GRAPH_WITH_GAPS_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('line-with-gaps');
-export const XY_HISTOGRAM_WITH_MEAN_EXAMPLE: AgCartesianChartOptions = loadExampleOptions(
-    'xy-histogram-with-mean-aggregation'
-);
-export const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
+const GROUPED_BAR_CHART_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('grouped-bar');
+const GROUPED_COLUMN_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('grouped-column');
+const LINE_GRAPH_WITH_GAPS_EXAMPLE: AgCartesianChartOptions = loadExampleOptions('line-with-gaps');
+const AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions =
     loadExampleOptions('area-with-negative-values');
 
 type CrossLinesRangeConfig = Record<string, { vertical: [Date, Date]; horizontal: [number, number] }>;
@@ -87,7 +84,7 @@ const baseCrossLineOptions: AgCartesianCrossLineOptions = {
 const createChartOptions = (rangeConfig: CrossLinesRangeConfig): Record<string, AgCartesianChartOptions> => {
     const result: Record<string, AgCartesianChartOptions> = {};
 
-    for (const name in rangeConfig) {
+    for (const name of Object.keys(rangeConfig)) {
         result[name] = {
             ...baseChartOptions,
             axes: baseChartOptions['axes']?.map((axis) => {
@@ -105,7 +102,7 @@ const createChartOptionsWithInvalidCrossLines = (
 ): Record<string, AgCartesianChartOptions> => {
     const result: Record<string, AgCartesianChartOptions> = {};
 
-    for (const name in config) {
+    for (const name of Object.keys(config)) {
         const invalidCrossLineOptions = config[name];
         result[name] = {
             ...baseChartOptions,
@@ -358,7 +355,7 @@ export const LINE_CROSSLINES: AgCartesianChartOptions = {
                     range: [0.25, 0.33],
                     label: {
                         text: '0.25 - 0.33',
-                        position: 'insideLeft',
+                        position: 'inside-left',
                         padding: 10,
                     },
                     ...yAxisCrossLineStyle,
@@ -368,7 +365,7 @@ export const LINE_CROSSLINES: AgCartesianChartOptions = {
                     value: 0.87,
                     label: {
                         text: '0.87',
-                        position: 'topRight',
+                        position: 'top-right',
                     },
                     ...yAxisCrossLineStyle,
                 },
@@ -414,7 +411,7 @@ export const AREA_CROSSLINES: AgCartesianChartOptions = {
                     range: [800, 1000],
                     label: {
                         text: '800 - 1000',
-                        position: 'insideBottomLeft',
+                        position: 'inside-bottom-left',
                     },
                     ...yAxisCrossLineStyle,
                 },
@@ -423,7 +420,7 @@ export const AREA_CROSSLINES: AgCartesianChartOptions = {
                     value: -700,
                     label: {
                         text: '-700',
-                        position: 'topLeft',
+                        position: 'top-left',
                     },
                     ...yAxisCrossLineStyle,
                 },
@@ -550,75 +547,6 @@ export const BAR_CROSSLINES: AgCartesianChartOptions = {
                         text: '3.6',
                     },
                     ...xAxisCrossLineStyle,
-                },
-            ],
-        },
-    ],
-};
-
-export const HISTOGRAM_CROSSLINES: AgCartesianChartOptions = {
-    ...XY_HISTOGRAM_WITH_MEAN_EXAMPLE,
-    axes: [
-        {
-            position: 'bottom',
-            type: 'number',
-            title: {
-                enabled: true,
-                text: 'Engine Size (Cubic inches)',
-            },
-            crossLines: [
-                {
-                    type: 'range',
-                    range: [70, 100],
-                    label: {
-                        text: '70 - 100',
-                    },
-                    ...xAxisCrossLineStyle,
-                },
-                {
-                    type: 'range',
-                    range: [200, 285],
-                    label: {
-                        text: '200 - 285',
-                    },
-                    ...xAxisCrossLineStyle,
-                },
-                {
-                    type: 'line',
-                    value: 300,
-                    label: {
-                        text: '300',
-                    },
-                    ...xAxisCrossLineStyle,
-                },
-            ],
-        },
-        {
-            position: 'left',
-            type: 'number',
-            title: {
-                text: 'Highway MPG',
-            },
-            crossLines: [
-                {
-                    type: 'range',
-                    range: [10, 15],
-                    label: {
-                        text: '70 - 100',
-                        position: 'insideTopRight',
-                        color: 'orange',
-                    },
-                    ...yAxisCrossLineStyle,
-                },
-                {
-                    type: 'line',
-                    value: 50,
-                    label: {
-                        text: '50',
-                        position: 'bottomRight',
-                        color: 'orange',
-                    },
-                    ...yAxisCrossLineStyle,
                 },
             ],
         },

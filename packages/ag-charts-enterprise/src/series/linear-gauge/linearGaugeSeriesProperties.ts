@@ -52,7 +52,7 @@ const LABEL_PLACEMENT = UNION(
         'outside-start',
         'inside-end',
         'outside-end',
-        'inside',
+        'inside-center',
         'bar-inside',
         'bar-inside-end',
         'bar-outside-end',
@@ -191,7 +191,7 @@ export class LinearGaugeTargetProperties extends BaseProperties {
     readonly label = new LinearGaugeDefaultTargetLabelProperties();
 }
 
-export class LinearGaugeBarProperties extends BaseProperties {
+class LinearGaugeBarProperties extends BaseProperties {
     @Validate(BOOLEAN)
     enabled = true;
 
@@ -229,7 +229,7 @@ export class LinearGaugeBarProperties extends BaseProperties {
     lineDashOffset: number = 0;
 }
 
-export class LinearGaugeScaleProperties extends BaseProperties {
+class LinearGaugeScaleProperties extends BaseProperties {
     @Validate(OBJECT_ARRAY)
     fills = new PropertiesArray<GaugeStopProperties>(GaugeStopProperties);
 
@@ -266,7 +266,7 @@ export class LinearGaugeLabelProperties extends AutoSizedLabel<AgLinearGaugeLabe
     text?: string;
 
     @Validate(LABEL_PLACEMENT)
-    placement: AgLinearGaugeLabelPlacement = 'inside';
+    placement: AgLinearGaugeLabelPlacement = 'inside-center';
 
     @Validate(BOOLEAN)
     avoidCollisions: boolean = true;

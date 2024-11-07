@@ -29,7 +29,7 @@ export class FlowProportionChart extends Chart {
     }
 
     protected performLayout(ctx: LayoutContext) {
-        const { seriesRoot, annotationRoot, highlightRoot } = this;
+        const { seriesRoot, annotationRoot } = this;
         const { layoutBox } = ctx;
         const seriesRect = layoutBox.clone();
 
@@ -39,7 +39,7 @@ export class FlowProportionChart extends Chart {
         this.animationRect = layoutBox;
         seriesRoot.visible = this.series.some((s) => s.visible);
 
-        for (const group of [seriesRoot, annotationRoot, highlightRoot]) {
+        for (const group of [seriesRoot, annotationRoot]) {
             group.translationX = Math.floor(layoutBox.x);
             group.translationY = Math.floor(layoutBox.y);
             group.setClipRect(seriesRect.clone());

@@ -1,11 +1,20 @@
-import type { AgAxisCaptionFormatterParams, _Scale } from 'ag-charts-community';
-import { _ModuleSupport, _Scene, _Util } from 'ag-charts-community';
+import type { AgAxisCaptionFormatterParams } from 'ag-charts-community';
+import { _ModuleSupport, _Scene } from 'ag-charts-community';
 
 import { RadiusCrossLine } from '../polar-crosslines/radiusCrossLine';
 
-const { ChartAxisDirection, Default, ZIndexMap, DEGREE, BOOLEAN, Validate } = _ModuleSupport;
+const {
+    ChartAxisDirection,
+    Default,
+    ZIndexMap,
+    DEGREE,
+    BOOLEAN,
+    Validate,
+    isNumberEqual,
+    normalizeAngle360,
+    toRadians,
+} = _ModuleSupport;
 const { Caption, Group, Path, Selection } = _Scene;
-const { isNumberEqual, normalizeAngle360, toRadians } = _Util;
 
 class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
     @Validate(BOOLEAN, { optional: true })
@@ -30,10 +39,6 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
     );
 
     protected gridPathSelection = Selection.select(this.gridPathGroup, Path);
-
-    constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: _Scale.Scale<any, any>) {
-        super(moduleCtx, scale);
-    }
 
     get direction() {
         return ChartAxisDirection.Y;
@@ -183,7 +188,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
     }
 
     protected override updateCrossLines() {
-        this.crossLines?.forEach((crossLine) => {
+        this.crossLines.forEach((crossLine) => {
             if (crossLine instanceof RadiusCrossLine) {
                 const { shape, gridAngles, range, innerRadiusRatio } = this;
                 const radius = range[0];
@@ -193,7 +198,7 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
                 crossLine.axisInnerRadius = radius * innerRadiusRatio;
             }
         });
-        super.updateCrossLines({ rotation: 0, parallelFlipRotation: 0, regularFlipRotation: 0 });
+        super.updateCrossLines();
     }
 
     protected override createLabel() {

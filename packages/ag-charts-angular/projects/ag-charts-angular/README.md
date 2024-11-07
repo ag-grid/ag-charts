@@ -42,7 +42,7 @@ Here are some of the features that make AG Charts stand out:
         -   Line \*
         -   Bar \*
         -   Column \*
-    -   Bullet \*
+    -   Guage \*
 -   Reactive - property changes are automatically batched to take effect on next frame
 -   Simple, clean API
 -   Interactive documentation

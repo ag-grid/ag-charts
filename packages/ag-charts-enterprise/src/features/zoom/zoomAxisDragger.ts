@@ -9,7 +9,7 @@ export class ZoomAxisDragger {
     private oldZoom?: DefinedZoomState;
 
     update(
-        event: _ModuleSupport.RegionEvent<'drag'>,
+        event: _ModuleSupport.PointerOffsets,
         direction: _ModuleSupport.ChartAxisDirection,
         anchor: AgZoomAnchorPoint,
         bbox: _Scene.BBox,

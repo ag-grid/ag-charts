@@ -11,7 +11,6 @@
       "@components/*": ["src/components/*"],
       "@design-system/*": ["../../external/ag-website-shared/src/design-system/*"],
       "@pages-styles/*": ["src/pages-styles/*"],
-      "@features/*": ["src/features/*"],
       "@images/*": ["src/images/*"],
       "@layouts/*": ["src/layouts/*"],
       "@stores/*": ["src/stores/*"],

@@ -6,15 +6,13 @@ import {
     type VerticalAlign,
     _ModuleSupport,
     _Scene,
-    _Util,
 } from 'ag-charts-community';
 
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
-const { TextUtils, TextWrapper, formatValue } = _ModuleSupport;
+const { TextUtils, TextWrapper, Color, Logger, clamp, isNumberEqual, sanitizeHtml } = _ModuleSupport;
 const { Rect, Group, BBox, Selection, Text } = _Scene;
-const { Color, Logger, clamp, isEqual, sanitizeHtml } = _Util;
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
 
@@ -171,22 +169,18 @@ export class TreemapSeries<
             let label: string | undefined;
             if (datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
-                label = this.getLabelText(
-                    labelStyle,
-                    {
-                        depth,
-                        datum,
-                        childrenKey,
-                        colorKey,
-                        colorName,
-                        labelKey,
-                        secondaryLabelKey,
-                        sizeKey,
-                        sizeName,
-                        value,
-                    },
-                    formatValue
-                );
+                label = this.getLabelText(labelStyle, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    colorName,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    sizeName,
+                    value,
+                });
             }
             if (label === '') {
                 label = undefined;
@@ -195,22 +189,18 @@ export class TreemapSeries<
             let secondaryLabel: string | undefined;
             if (isLeaf && datum != null && depth != null && secondaryLabelKey != null) {
                 const value = (datum as any)[secondaryLabelKey];
-                secondaryLabel = this.getLabelText(
-                    tile.secondaryLabel,
-                    {
-                        depth,
-                        datum,
-                        childrenKey,
-                        colorKey,
-                        colorName,
-                        labelKey,
-                        secondaryLabelKey,
-                        sizeKey,
-                        sizeName,
-                        value,
-                    },
-                    formatValue
-                );
+                secondaryLabel = this.getLabelText(tile.secondaryLabel, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    colorName,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    sizeName,
+                    value,
+                });
             }
             if (secondaryLabel === '') {
                 secondaryLabel = undefined;
@@ -357,7 +347,7 @@ export class TreemapSeries<
         const childBounds = getBounds(childBox);
         const sides: Side[] = ['top', 'right', 'bottom', 'left'];
         sides.forEach((side) => {
-            if (!isEqual(innerBounds[side], childBounds[side])) {
+            if (!isNumberEqual(innerBounds[side], childBounds[side])) {
                 childBox.shrink(gap, side);
             }
         });

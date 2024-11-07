@@ -12,4 +12,3 @@ function decode(encoded: number) {
 }
 
 export const second = new CountableTimeInterval(encode, decode);
-export default second;

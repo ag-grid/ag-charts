@@ -1,8 +1,8 @@
 import { Logger } from './logger';
-import { SKIP_JS_BUILTINS, mapValues } from './object';
+import { SKIP_JS_BUILTINS } from './object';
 import { isProperties } from './properties';
 import { isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } from './type-guards';
-import type { DeepPartial } from './types';
+import type { DeepPartial, PlainObject } from './types';
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
 
@@ -59,6 +59,24 @@ export function jsonDiff<T extends unknown>(source: T, target: T, skip?: (keyof 
 }
 
 /**
+ * Compares all properties of source against target's properties of the same name.
+ *
+ * @param source object to read properties from
+ * @param target object to compare property values with
+ *
+ * @returns true if all properties in source have identical values in target
+ */
+export function jsonPropertyCompare<T>(source: Partial<T>, target: T) {
+    for (const key of Object.keys(source) as (keyof T)[]) {
+        if (source[key] === target?.[key]) continue;
+
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Recursively clones of primitives and objects.
  *
  * @param source object | array
@@ -66,19 +84,25 @@ export function jsonDiff<T extends unknown>(source: T, target: T, skip?: (keyof 
  *
  * @return deep clone of source
  */
-export function deepClone<T>(source: T, options?: { shallow?: string[] }): T {
+export function deepClone<T>(source: T, shallow?: Set<string>): T {
     if (isArray(source)) {
-        return source.map((item) => deepClone(item, options)) as T;
+        return source.map((item) => deepClone(item, shallow)) as T;
     }
     if (isPlainObject(source)) {
-        return mapValues(source, (value, key) =>
-            options?.shallow?.includes(key as string) ? shallowClone(value) : deepClone(value, options)
-        );
+        return clonePlainObject(source, shallow) as T;
     }
     if (source instanceof Map) {
         return new Map(deepClone(Array.from(source))) as T;
     }
     return shallowClone(source);
+}
+
+function clonePlainObject(source: PlainObject, shallow?: Set<string>) {
+    const target: PlainObject = {};
+    for (const key of Object.keys(source)) {
+        target[key] = shallow?.has(key) ? shallowClone(source[key]) : deepClone(source[key], shallow);
+    }
+    return target;
 }
 
 /**
@@ -90,7 +114,7 @@ export function deepClone<T>(source: T, options?: { shallow?: string[] }): T {
  */
 export function shallowClone<T>(source: T): T {
     if (isArray(source)) {
-        return [...source] as T;
+        return source.slice(0) as T;
     }
     if (isPlainObject(source)) {
         return { ...source };
@@ -111,26 +135,31 @@ export function shallowClone<T>(source: T): T {
  *
  * @param json to traverse
  * @param visit callback for each non-primitive and non-array object found
- * @param opts
- * @param opts.skip property names to skip when walking
- * @param jsons to traverse in parallel
+ * @param skip property names to skip when walking
+ * @param parallelJson to traverse in parallel
  */
-export function jsonWalk<T>(json: T, visit: (...nodes: T[]) => void, opts?: { skip?: string[] }, ...jsons: T[]) {
+export function jsonWalk<T, C>(
+    json: T,
+    visit: (node: T, parallelNode?: T, ctx?: C) => void,
+    skip?: Set<string>,
+    parallelJson?: T,
+    ctx?: C
+) {
     if (isArray(json)) {
-        visit(json, ...jsons);
-        json.forEach((node, index) => {
-            jsonWalk(node, visit, opts, ...keyMapper(jsons, index));
-        });
+        visit(json, parallelJson, ctx);
+        let index = 0;
+        for (const node of json) {
+            jsonWalk(node, visit, skip, (parallelJson as any[])?.[index], ctx);
+            index++;
+        }
     } else if (isPlainObject(json)) {
-        visit(json, ...jsons);
+        visit(json, parallelJson, ctx);
         for (const key of Object.keys(json)) {
-            if (opts?.skip?.includes(key)) {
+            if (skip?.has(key)) {
                 continue;
             }
             const value = json[key as keyof T] as T;
-            if (isArray(value) || isPlainObject(value)) {
-                jsonWalk(value, visit, opts, ...keyMapper(jsons, key));
-            }
+            jsonWalk(value, visit, skip, (parallelJson as any)?.[key], ctx);
         }
     }
 }
@@ -171,13 +200,13 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
 
     const targetAny = target as any;
     const targetType = classify(target);
-    for (const property in source) {
+    for (const property of Object.keys(source)) {
         if (SKIP_JS_BUILTINS.has(property)) continue;
 
         const propertyMatcherPath = `${matcherPath ? matcherPath + '.' : ''}${property}`;
         if (skip.includes(propertyMatcherPath)) continue;
 
-        const newValue = source[property];
+        const newValue = (source as any)[property];
         const propertyPath = `${path ? path + '.' : ''}${property}`;
         const targetClass = targetAny.constructor;
         const currentValue = targetAny[property];
@@ -186,6 +215,8 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
             const newValueType = classify(newValue);
 
             if (targetType === CLASS_INSTANCE_TYPE && !(property in target)) {
+                if (newValue === undefined) continue;
+
                 Logger.warn(`unable to set [${propertyPath}] in ${targetClass?.name} - property is unknown`);
                 continue;
             }
@@ -222,10 +253,6 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
     }
 
     return target;
-}
-
-function keyMapper<T>(data: T[], key: string | number) {
-    return data.map((dataObject: T | undefined) => dataObject?.[key as keyof T] as T);
 }
 
 type RestrictedClassification = 'array' | 'object' | 'primitive';

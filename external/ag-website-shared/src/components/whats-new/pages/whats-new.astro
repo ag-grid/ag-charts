@@ -4,7 +4,7 @@ import Layout from '@layouts/Layout.astro';
 import { DocsNavFromLocalStorage } from '@ag-website-shared/components/docs-navigation/DocsNavFromLocalStorage';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { Version, type VersionProps } from '../components/Version';
-import type { Framework, MenuSection, Library, MenuData } from '@ag-grid-types';
+import type { Framework, Library } from '@ag-grid-types';
 import styles from '../WhatsNew.module.scss';
 import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
 
@@ -35,23 +35,25 @@ const { data: docsNavData } = await getEntry('docs-nav', 'docsNav');
             <p class={styles.description}>See what's new in recent {name} versions.</p>
             <div class={styles.versions}>
                 {
-                    versionsData.slice(0, 9).map((versionInfo, index) => {
-                        if (versionInfo.highlights) {
+                    versionsData
+                        .filter((version) => version.highlights)
+                        .slice(0, 12)
+                        .map((versionInfo, index) => {
                             const { major, minor } = parseVersion(versionInfo.version);
                             const blogUrl = `${minor ? `${blogPrefix}${major}-${minor}` : `${blogPrefix}${major}`}/`;
+
                             return (
                                 <Version
                                     client:load
                                     isLatest={index === 0}
-                                    blogUrl={blogUrl}
+                                    blogUrl={versionInfo.hideBlogPostLink ? undefined : blogUrl}
                                     version={versionInfo.version}
                                     date={versionInfo.date}
                                     highlights={versionInfo.highlights}
                                     notesPath={versionInfo.notesPath}
                                 />
                             );
-                        }
-                    })
+                        })
                 }
             </div>
         </div>

@@ -1,4 +1,5 @@
-import type { BBoxContainsTester, BBoxValues } from '../util/bboxinterface';
+import type { BBoxContainsTester } from '../util/bboxinterface';
+import { BBoxValues } from '../util/bboxinterface';
 import { type Interpolating, interpolate } from '../util/interpolating';
 import type { DistantObject, NearestResult } from '../util/nearest';
 import { nearestSquared } from '../util/nearest';
@@ -22,24 +23,45 @@ type Padding = {
 type ShrinkOrGrowPosition = 'top' | 'left' | 'bottom' | 'right' | 'vertical' | 'horizontal';
 
 export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Interpolating<BBox> {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-
-    static readonly zero: Readonly<BBox> = Object.freeze(new BBox(0, 0, 0, 0));
-    static readonly NaN: Readonly<BBox> = Object.freeze(new BBox(NaN, NaN, NaN, NaN));
-
-    constructor(x: number, y: number, width: number, height: number) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-    }
+    static readonly zero = Object.freeze(new BBox(0, 0, 0, 0)) as BBox;
+    static readonly NaN = Object.freeze(new BBox(NaN, NaN, NaN, NaN)) as BBox;
 
     static fromDOMRect({ x, y, width, height }: DOMRect) {
         return new BBox(x, y, width, height);
     }
+
+    static merge(boxes: Iterable<BBoxValues>) {
+        let left = Infinity;
+        let top = Infinity;
+        let right = -Infinity;
+        let bottom = -Infinity;
+        for (const box of boxes) {
+            if (box.x < left) {
+                left = box.x;
+            }
+            if (box.y < top) {
+                top = box.y;
+            }
+            if (box.x + box.width > right) {
+                right = box.x + box.width;
+            }
+            if (box.y + box.height > bottom) {
+                bottom = box.y + box.height;
+            }
+        }
+        return new BBox(left, top, right - left, bottom - top);
+    }
+
+    static nearestBox(x: number, y: number, boxes: BBox[]): NearestResult<BBox> {
+        return nearestSquared(x, y, boxes);
+    }
+
+    constructor(
+        public x: number,
+        public y: number,
+        public width: number,
+        public height: number
+    ) {}
 
     toDOMRect(): DOMRect {
         return {
@@ -67,7 +89,20 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
     }
 
     containsPoint(x: number, y: number): boolean {
-        return x >= this.x && x <= this.x + this.width && y >= this.y && y <= this.y + this.height;
+        return BBoxValues.containsPoint(this, x, y);
+    }
+
+    containsBBox(other: BBoxValues) {
+        const [ax0, ax1] = [this.x, this.x + this.width];
+        const [ay0, ay1] = [this.y, this.y + this.height];
+        const [bx0, bx1] = [other.x, other.x + other.width];
+        const [by0, by1] = [other.y, other.y + other.height];
+        return (
+            Math.min(ax0, bx0) === ax0 &&
+            Math.max(ax1, bx1) === ax1 &&
+            Math.min(ay0, by0) === ay0 &&
+            Math.max(ay1, by1) === ay1
+        );
     }
 
     intersection(other: BBox) {
@@ -114,11 +149,7 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         return dx * dx + dy * dy;
     }
 
-    static nearestBox(x: number, y: number, boxes: BBox[]): NearestResult<BBox> {
-        return nearestSquared(x, y, boxes);
-    }
-
-    clip(clipRect: BBox | undefined): BBox {
+    clip(clipRect: BBox | undefined): this {
         if (clipRect === undefined) return this;
 
         const x1 = Math.max(this.x, clipRect.x);
@@ -135,43 +166,19 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
     shrink(amounts: Partial<Padding>): this;
     shrink(amount: number, position?: ShrinkOrGrowPosition): this;
     shrink(amount: number | Partial<Padding>, position?: ShrinkOrGrowPosition) {
-        const apply = (pos: typeof position, amt: number) => {
-            switch (pos) {
-                case 'top':
-                    this.y += amt;
-                // eslint-disable-next-line no-fallthrough
-                case 'bottom':
-                    this.height -= amt;
-                    break;
-                case 'left':
-                    this.x += amt;
-                // eslint-disable-next-line no-fallthrough
-                case 'right':
-                    this.width -= amt;
-                    break;
-                case 'vertical':
-                    this.y += amt;
-                    this.height -= amt * 2;
-                    break;
-                case 'horizontal':
-                    this.x += amt;
-                    this.width -= amt * 2;
-                    break;
-                case undefined:
-                    this.x += amt;
-                    this.width -= amt * 2;
-                    this.y += amt;
-                    this.height -= amt * 2;
-                    break;
-                default:
-                // Unknown position - do nothing.
-            }
-        };
-
         if (typeof amount === 'number') {
-            apply(position, amount);
-        } else if (typeof amount === 'object') {
-            Object.entries(amount).forEach(([pos, amt]) => apply(pos as ShrinkOrGrowPosition, amt));
+            this.applyMargin(amount, position);
+        } else {
+            for (const [key, value] of Object.entries(amount)) {
+                this.applyMargin(value, key as ShrinkOrGrowPosition);
+            }
+        }
+
+        if (this.width < 0) {
+            this.width = 0;
+        }
+        if (this.height < 0) {
+            this.height = 0;
         }
 
         return this;
@@ -181,18 +188,49 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
     grow(amount: number, position?: ShrinkOrGrowPosition): this;
     grow(amount: number | Partial<Padding>, position?: ShrinkOrGrowPosition) {
         if (typeof amount === 'number') {
-            this.shrink(-amount, position);
+            this.applyMargin(-amount, position);
         } else {
-            const paddingCopy = { ...amount };
-
-            for (const key in paddingCopy) {
-                (paddingCopy as any)[key] *= -1;
+            for (const [key, value] of Object.entries(amount)) {
+                this.applyMargin(-value, key as ShrinkOrGrowPosition);
             }
-
-            this.shrink(paddingCopy);
         }
 
         return this;
+    }
+
+    private applyMargin(value: number, position?: ShrinkOrGrowPosition) {
+        switch (position) {
+            case 'top':
+                this.y += value;
+            // fallthrough
+            case 'bottom':
+                this.height -= value;
+                break;
+
+            case 'left':
+                this.x += value;
+            // fallthrough
+            case 'right':
+                this.width -= value;
+                break;
+
+            case 'vertical':
+                this.y += value;
+                this.height -= value * 2;
+                break;
+
+            case 'horizontal':
+                this.x += value;
+                this.width -= value * 2;
+                break;
+
+            case undefined:
+                this.x += value;
+                this.y += value;
+                this.width -= value * 2;
+                this.height -= value * 2;
+                break;
+        }
     }
 
     translate(x: number, y: number) {
@@ -207,28 +245,6 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         this.y = Math.min(y, other.y);
         this.width = Math.max(x + width, other.x + other.width) - this.x;
         this.height = Math.max(y + height, other.y + other.height) - this.y;
-    }
-
-    static merge(boxes: Iterable<BBox>) {
-        let left = Infinity;
-        let top = Infinity;
-        let right = -Infinity;
-        let bottom = -Infinity;
-        for (const box of boxes) {
-            if (box.x < left) {
-                left = box.x;
-            }
-            if (box.y < top) {
-                top = box.y;
-            }
-            if (box.x + box.width > right) {
-                right = box.x + box.width;
-            }
-            if (box.y + box.height > bottom) {
-                bottom = box.y + box.height;
-            }
-        }
-        return new BBox(left, top, right - left, bottom - top);
     }
 
     [interpolate](other: BBox, d: number) {

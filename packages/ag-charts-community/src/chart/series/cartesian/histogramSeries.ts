@@ -194,10 +194,13 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         };
 
         if (!this.ctx.animationManager.isSkipped() && this.processedData) {
-            props.push(diff(this.processedData, false));
+            props.push(diff(this.id, this.processedData, false));
         }
 
-        await this.requestDataModel<any>(dataController, this.data, { props, groupByFn });
+        await this.requestDataModel<any>(dataController, this.data, {
+            props,
+            groupByFn,
+        });
 
         this.animationState.transition('updateData');
     }
@@ -246,16 +249,22 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             animationValid: true,
             visible: this.visible,
         };
-        if (!this.visible || !processedData || processedData.type !== 'grouped') return context;
+        if (
+            !this.visible ||
+            processedData == null ||
+            processedData.rawData.length === 0 ||
+            processedData.type !== 'grouped'
+        ) {
+            return context;
+        }
 
-        processedData.data.forEach((group) => {
-            const {
-                aggValues: [[negativeAgg, positiveAgg]] = [[0, 0]],
-                datum,
-                datum: { length: frequency },
-                keys: domain,
-                keys: [xDomainMin, xDomainMax],
-            } = group;
+        const { rawData } = processedData;
+        processedData.groups.forEach(({ keys, datumIndices, aggregation }) => {
+            const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
+            const frequency = datumIndices.length;
+            const domain = keys;
+            const [xDomainMin, xDomainMax] = domain;
+            const datum = datumIndices.map((datumIndex) => rawData[datumIndex]);
 
             const xMinPx = xScale.convert(xDomainMin);
             const xMaxPx = xScale.convert(xDomainMax);
@@ -301,7 +310,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                 // since each selection is an aggregation of multiple data.
                 aggregatedValue: total,
                 frequency,
-                domain: domain as [number, number],
+                domain: domain as any[] as [number, number],
                 yKey,
                 xKey,
                 x,

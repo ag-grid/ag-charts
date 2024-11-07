@@ -13,6 +13,15 @@ const options: AgChartOptions = {
             type: 'funnel',
             stageKey: 'group',
             valueKey: 'value',
+            spacingRatio: 0.3,
+            stageLabel: {
+                enabled: false,
+            },
+            label: {
+                formatter({ value }) {
+                    return value.toLocaleString();
+                },
+            },
         },
     ],
 };

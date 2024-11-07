@@ -1,4 +1,4 @@
-import { _ModuleSupport, _Util } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 import type {
     AgChartAutoSizedBaseLabelOptions,
     AgChartAutoSizedLabelOptions,
@@ -11,8 +11,7 @@ import type {
     TextWrap,
 } from 'ag-charts-types';
 
-const { CachedTextMeasurerPool, TextUtils, TextWrapper, findMaxValue } = _ModuleSupport;
-const { Logger } = _Util;
+const { CachedTextMeasurerPool, TextUtils, TextWrapper, findMaxValue, Logger } = _ModuleSupport;
 
 interface AutoSizedBaseLabelOptions extends AgChartAutoSizedBaseLabelOptions<unknown, any> {
     fontSize: FontSize;

@@ -10,4 +10,8 @@ export class DestroyFns {
         this.destroy();
         this.destroyFns = destroyFns;
     }
+
+    push(...destroyFns: (() => void)[]) {
+        this.destroyFns.push(...destroyFns);
+    }
 }

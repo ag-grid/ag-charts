@@ -11,4 +11,3 @@ function decode(encoded: number) {
 }
 
 export const month = new CountableTimeInterval(encode, decode);
-export default month;

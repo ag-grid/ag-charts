@@ -10,6 +10,11 @@ type TestResult = SuiteResults[TestName];
 
 const keys: TestName[][] = [
     [
+        'simple-chart benchmark initial load',
+        'simple-chart benchmark after load 10x legend toggle',
+        // 'simple-chart benchmark after load 15x datum highlight',
+    ],
+    [
         'integrated charts large scale benchmark initial load',
         'integrated charts large scale benchmark after load 4x legend toggle',
     ],
@@ -28,51 +33,77 @@ const keys: TestName[][] = [
         'multi-series benchmark after load 15x datum highlight',
     ],
     ['resize benchmark after load 10x resize'],
+    [
+        'sparkline benchmark initial load',
+        'sparkline benchmark after load update',
+        'sparkline benchmark after load updateDelta',
+    ],
 ];
 
+let row = 0;
 const chartOptions1: AgCartesianChartOptions = {
     container: document.getElementById('myChart1'),
-    ...generatePerformanceChart(0, 0),
+    ...generatePerformanceChart(0, row),
 };
 const chartOptions2: AgCartesianChartOptions = {
     container: document.getElementById('myChart2'),
-    ...generatePerformanceChart(1, 0),
+    ...generatePerformanceChart(1, row++),
 };
 const chartOptions3: AgCartesianChartOptions = {
     container: document.getElementById('myChart3'),
-    ...generatePerformanceChart(0, 1),
+    ...generatePerformanceChart(0, row),
 };
 const chartOptions4: AgCartesianChartOptions = {
     container: document.getElementById('myChart4'),
-    ...generatePerformanceChart(1, 1),
+    ...generatePerformanceChart(1, row++),
 };
 const chartOptions5: AgCartesianChartOptions = {
     container: document.getElementById('myChart5'),
-    ...generatePerformanceChart(2, 1),
+    ...generatePerformanceChart(0, row),
 };
 const chartOptions6: AgCartesianChartOptions = {
     container: document.getElementById('myChart6'),
-    ...generatePerformanceChart(0, 2),
+    ...generatePerformanceChart(1, row),
 };
 const chartOptions7: AgCartesianChartOptions = {
     container: document.getElementById('myChart7'),
-    ...generatePerformanceChart(1, 2),
+    ...generatePerformanceChart(2, row++),
 };
 const chartOptions8: AgCartesianChartOptions = {
     container: document.getElementById('myChart8'),
-    ...generatePerformanceChart(0, 3),
+    ...generatePerformanceChart(0, row),
 };
 const chartOptions9: AgCartesianChartOptions = {
     container: document.getElementById('myChart9'),
-    ...generatePerformanceChart(1, 3),
+    ...generatePerformanceChart(1, row++),
 };
 const chartOptions10: AgCartesianChartOptions = {
     container: document.getElementById('myChart10'),
-    ...generatePerformanceChart(2, 3),
+    ...generatePerformanceChart(0, row),
 };
 const chartOptions11: AgCartesianChartOptions = {
     container: document.getElementById('myChart11'),
-    ...generatePerformanceChart(0, 4),
+    ...generatePerformanceChart(1, row),
+};
+const chartOptions12: AgCartesianChartOptions = {
+    container: document.getElementById('myChart12'),
+    ...generatePerformanceChart(2, row++),
+};
+const chartOptions13: AgCartesianChartOptions = {
+    container: document.getElementById('myChart13'),
+    ...generatePerformanceChart(0, row++),
+};
+const chartOptions14: AgCartesianChartOptions = {
+    container: document.getElementById('myChart14'),
+    ...generatePerformanceChart(0, row),
+};
+const chartOptions15: AgCartesianChartOptions = {
+    container: document.getElementById('myChart15'),
+    ...generatePerformanceChart(1, row),
+};
+const chartOptions16: AgCartesianChartOptions = {
+    container: document.getElementById('myChart16'),
+    ...generatePerformanceChart(2, row++),
 };
 
 AgCharts.create(chartOptions1);
@@ -86,6 +117,11 @@ AgCharts.create(chartOptions8);
 AgCharts.create(chartOptions9);
 AgCharts.create(chartOptions10);
 AgCharts.create(chartOptions11);
+AgCharts.create(chartOptions12);
+AgCharts.create(chartOptions13);
+AgCharts.create(chartOptions14);
+AgCharts.create(chartOptions15);
+AgCharts.create(chartOptions16);
 
 function generatePerformanceChart(keyX: number, keyY: number) {
     const yName = (key: TestName) => {
@@ -114,6 +150,9 @@ function generatePerformanceChart(keyX: number, keyY: number) {
         axes: [
             {
                 type: 'category',
+                label: {
+                    fontSize: 8,
+                },
             },
             {
                 type: 'number',

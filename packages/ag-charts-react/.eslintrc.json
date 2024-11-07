@@ -1,4 +1,7 @@
 {
   "extends": ["../../.eslintrc.json", "plugin:sonarjs/recommended", "plugin:react-hooks/recommended"],
-  "ignorePatterns": ["!**/*"]
+  "ignorePatterns": ["!**/*"],
+  "parserOptions": {
+    "project": "packages/ag-charts-react/tsconfig.lint.json"
+  }
 }

@@ -1,4 +1,4 @@
-import { HIDDEN_API_INTERFACE_MEMBERS, HIDDEN_SERIES_TYPES } from './constants';
+import { HIDDEN_API_INTERFACE_MEMBERS } from './constants';
 import type { ApiReferenceNode, ApiReferenceType, InterfaceNode } from './types';
 
 /**
@@ -56,9 +56,7 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
                 );
                 axisOptions.push(...axisOptionUnion);
             } else if (member.name === 'series') {
-                const series = getTypeUnion(reference.get(member.type.type)).filter(
-                    (series) => !HIDDEN_SERIES_TYPES.includes(series)
-                );
+                const series = getTypeUnion(reference.get(member.type.type));
                 seriesOptions.push(...series);
             }
         }

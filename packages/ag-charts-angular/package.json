@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-angular",
-  "version": "10.2.0-beta.20241008.1216",
+  "version": "10.3.1-beta.20241106.1506",
   "scripts": {
     "ng": "ng",
     "build": "ng build",
@@ -33,40 +33,39 @@
   "module": "./dist/ag-charts-angular/fesm2022/ag-charts-angular.mjs",
   "typings": "./dist/ag-charts-angular/index.d.ts",
   "dependencies": {
-    "@angular/animations": "^16.0.0",
-    "@angular/common": "^16.0.0",
-    "@angular/compiler": "^16.0.0",
-    "@angular/core": "^16.0.0",
-    "@angular/forms": "^16.0.0",
-    "@angular/platform-browser": "^16.0.0",
-    "@angular/platform-browser-dynamic": "^16.0.0",
-    "@angular/router": "^16.0.0",
-    "ag-charts-community": "10.2.0-beta.20241008.1216",
+    "@angular/animations": "^17.0.0",
+    "@angular/common": "^17.0.0",
+    "@angular/compiler": "^17.0.0",
+    "@angular/core": "^17.0.0",
+    "@angular/forms": "^17.0.0",
+    "@angular/platform-browser": "^17.0.0",
+    "@angular/platform-browser-dynamic": "^17.0.0",
+    "@angular/router": "^17.0.0",
+    "ag-charts-community": "10.3.1-beta.20241106.1506",
     "rxjs": "~7.5.0",
     "tslib": "^2.3.0",
-    "zone.js": "~0.11.4"
+    "zone.js": "~0.14.10"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^16.0.0",
+    "@angular-devkit/build-angular": "^17.0.0",
     "@angular-eslint/builder": "12.7.0",
     "@angular-eslint/eslint-plugin": "12.7.0",
     "@angular-eslint/eslint-plugin-template": "12.7.0",
     "@angular-eslint/schematics": "12.7.0",
     "@angular-eslint/template-parser": "12.7.0",
-    "@angular/cli": "^16.0.0",
-    "@angular/compiler-cli": "^16.0.0",
+    "@angular/cli": "^17.0.0",
+    "@angular/compiler-cli": "^17.0.0",
     "@types/jasmine": "~4.0.0",
     "@types/node": "^18.18.10",
     "@typescript-eslint/eslint-plugin": "4.28.2",
     "@typescript-eslint/parser": "4.28.2",
-    "eslint": "8.56.0",
     "jasmine-core": "~4.3.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
-    "ng-packagr": "^16.0.0",
-    "typescript": "~4.9.0"
+    "ng-packagr": "^17.3.0",
+    "typescript": "~5.2.2"
   }
 }

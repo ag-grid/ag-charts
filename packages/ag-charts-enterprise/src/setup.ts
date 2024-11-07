@@ -22,12 +22,12 @@ import { GradientLegendModule } from './gradient-legend/gradientLegendModule';
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
 import { BoxPlotModule } from './series/box-plot/main';
-import { BulletModule } from './series/bullet/bulletModule';
 import { CandlestickModule } from './series/candlestick/main';
 import { ChordModule } from './series/chord/main';
 import { ConeFunnelModule } from './series/cone-funnel/coneFunnelModule';
 import { FunnelModule } from './series/funnel/funnelModule';
 import { HeatmapModule } from './series/heatmap/main';
+import { LineModule } from './series/line/lineModule';
 import { LinearGaugeModule } from './series/linear-gauge/main';
 import { MapLineBackgroundModule } from './series/map-line-background/main';
 import { MapLineModule } from './series/map-line/main';
@@ -64,13 +64,13 @@ export function setupEnterpriseModules() {
         ConeFunnelModule,
         FunnelModule,
         OhlcModule,
-        BulletModule,
         ChartToolbarModule,
         ContextMenuModule,
         CrosshairModule,
         DataSourceModule,
         ErrorBarsModule,
         LinearGaugeModule,
+        LineModule,
         MapLineModule,
         MapLineBackgroundModule,
         MapMarkerModule,

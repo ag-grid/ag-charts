@@ -54,7 +54,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0,
                     label: {
                         text: '→ JUL',
-                        position: 'insideRight',
+                        position: 'inside-right',
                     },
                 },
                 {
@@ -64,7 +64,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0,
                     label: {
                         text: '→ AUG',
-                        position: 'insideRight',
+                        position: 'inside-right',
                     },
                 },
                 {
@@ -74,7 +74,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0,
                     label: {
                         text: '→ SEP',
-                        position: 'insideRight',
+                        position: 'inside-right',
                     },
                 },
                 {
@@ -85,7 +85,7 @@ const options: AgChartOptions = {
 
                     label: {
                         text: '→ OCT',
-                        position: 'insideRight',
+                        position: 'inside-right',
                     },
                 },
                 {
@@ -95,7 +95,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0,
                     label: {
                         text: 'NOV ←',
-                        position: 'insideLeft',
+                        position: 'inside-left',
                     },
                 },
                 {
@@ -105,7 +105,7 @@ const options: AgChartOptions = {
                     fillOpacity: 0,
                     label: {
                         text: 'DEC ←',
-                        position: 'insideLeft',
+                        position: 'inside-left',
                     },
                 },
             ],
