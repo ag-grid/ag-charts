@@ -14,17 +14,13 @@ export interface AgSparklineBaseThemeableOptions {
     reverse?: boolean;
 }
 
-export interface AgBarSparklinePreset
-    extends AgSparklineBaseThemeableOptions,
-        Omit<
-            AgBarSeriesOptions,
-            'showInLegend' | 'showInMiniChart' | 'grouped' | 'stacked' | 'stackGroup' | 'errorBar'
-        > {}
-export interface AgLineSparklinePreset
-    extends AgSparklineBaseThemeableOptions,
-        Omit<AgLineSeriesOptions, 'showInLegend' | 'showInMiniChart' | 'stacked' | 'stackGroup' | 'errorBar'> {}
-export interface AgAreaSparklinePreset
-    extends AgSparklineBaseThemeableOptions,
-        Omit<AgAreaSeriesOptions, 'showInLegend' | 'showInMiniChart' | 'stacked' | 'stackGroup'> {}
+export type AgBarSparklinePreset = AgSparklineBaseThemeableOptions &
+    Omit<AgBarSeriesOptions, 'showInLegend' | 'showInMiniChart' | 'grouped' | 'stacked' | 'stackGroup' | 'errorBar'>;
+
+export type AgLineSparklinePreset = AgSparklineBaseThemeableOptions &
+    Omit<AgLineSeriesOptions, 'showInLegend' | 'showInMiniChart' | 'stacked' | 'stackGroup' | 'errorBar'>;
+
+export type AgAreaSparklinePreset = AgSparklineBaseThemeableOptions &
+    Omit<AgAreaSeriesOptions, 'showInLegend' | 'showInMiniChart' | 'stacked' | 'stackGroup'>;
 
 export type AgSparklinePresets = AgBarSparklinePreset | AgLineSparklinePreset | AgAreaSparklinePreset;

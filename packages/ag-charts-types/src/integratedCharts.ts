@@ -1,5 +1,11 @@
 import type { AgChartCaptionOptions } from './chart/chartOptions';
 import type { AgChartThemePalette, AgPaletteColors } from './chart/themeOptions';
+import type {
+    AgChartInstance,
+    AgChartInstanceOptions,
+    AgChartOptions,
+    AgSparklineOptions,
+} from './chartBuilderOptions';
 
 export interface IColor {
     r: number;
@@ -53,3 +59,15 @@ export interface _IUtil {
     };
     interpolateColor(a: IColor | string, b: IColor | string): (delta: number) => string;
 }
+
+export interface IntegratedModule<O extends AgChartInstanceOptions> {
+    VERSION: string;
+    _Scene: _IScene;
+    _Theme: _ITheme;
+    _Util: _IUtil;
+    setup: () => void;
+    create: (options: O) => AgChartInstance<O>;
+}
+
+export type IntegratedChartModule = IntegratedModule<AgChartOptions>;
+export type IntegratedSparklineModule = IntegratedModule<AgSparklineOptions>;

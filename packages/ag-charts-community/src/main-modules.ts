@@ -1,6 +1,24 @@
-export { AgCharts } from './api/agCharts';
-export { VERSION } from './version';
-export * as _Scene from './integrated-charts-scene';
-export * as _Theme from './integrated-charts-theme';
-export * as _Util from './integrated-charts-util';
-export { registerInbuiltModules as setupCommunityModules } from './chart/factory/registerInbuiltModules';
+import { AgCharts } from './api/agCharts';
+import { registerInbuiltModules } from './chart/factory/registerInbuiltModules';
+import * as _Scene from './integrated-charts-scene';
+import * as _Theme from './integrated-charts-theme';
+import * as _Util from './integrated-charts-util';
+import { VERSION } from './version';
+
+export const ChartCommunityModule = {
+    VERSION,
+    _Scene,
+    _Theme,
+    _Util,
+    setup: registerInbuiltModules,
+    create: AgCharts.create,
+};
+
+export const SparklineModule = {
+    VERSION,
+    _Scene,
+    _Theme,
+    _Util,
+    setup: registerInbuiltModules,
+    create: AgCharts.__createSparkline,
+};
