@@ -7,10 +7,6 @@ import * as _Theme from './integrated-charts-theme';
 import * as _Util from './integrated-charts-util';
 import { VERSION } from './version';
 
-export { AgCharts } from './api/agCharts';
-export { VERSION } from './version';
-export { registerInbuiltModules as setupCommunityModules } from './chart/factory/registerInbuiltModules';
-
 export const ChartCommunityModule: IntegratedChartModule = {
     VERSION,
     // @ts-ignore
