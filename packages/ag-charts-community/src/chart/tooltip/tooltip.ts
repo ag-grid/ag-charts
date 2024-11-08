@@ -186,6 +186,12 @@ export class Tooltip extends BaseProperties {
         this.element = domManager.addChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
 
         this.resetClass();
+
+        if (this.popoverApiSupported()) {
+            this.element.setAttribute('popover', 'manual');
+        } else {
+            this.element.removeAttribute('popover');
+        }
     }
 
     destroy(domManager: DOMManager) {
@@ -238,50 +244,59 @@ export class Tooltip extends BaseProperties {
         const xOffset = meta.position?.xOffset ?? 0;
         const yOffset = meta.position?.yOffset ?? 0;
 
-        const tooltipBounds = this.getTooltipBounds({ positionType, meta, yOffset, xOffset, canvasRect });
+        if (this.popoverApiSupported()) {
+            this.updateShowArrow(true);
+            const left = meta.offsetX + xOffset - element.clientWidth / 2;
+            const top = meta.offsetY + yOffset - element.clientHeight;
+            element.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
+            element.style.top = `${canvasRect.top}px`;
+            element.style.left = `${canvasRect.left}px`;
+        } else {
+            const tooltipBounds = this.getTooltipBounds({ positionType, meta, yOffset, xOffset, canvasRect });
 
-        const relativeRect = {
-            x: boundingRect.x - canvasRect.x,
-            y: boundingRect.y - canvasRect.y,
-            width: boundingRect.width,
-            height: boundingRect.height,
-        };
-        const position = calculatePlacement(element.clientWidth, element.clientHeight, relativeRect, tooltipBounds);
+            const relativeRect = {
+                x: boundingRect.x - canvasRect.x,
+                y: boundingRect.y - canvasRect.y,
+                width: boundingRect.width,
+                height: boundingRect.height,
+            };
+            const position = calculatePlacement(element.clientWidth, element.clientHeight, relativeRect, tooltipBounds);
 
-        const minX = relativeRect.x;
-        const minY = relativeRect.y;
-        const maxX = relativeRect.width - element.clientWidth - 1 + minX;
-        const maxY = relativeRect.height - element.clientHeight + minY;
+            const minX = relativeRect.x;
+            const minY = relativeRect.y;
+            const maxX = relativeRect.width - element.clientWidth - 1 + minX;
+            const maxY = relativeRect.height - element.clientHeight + minY;
 
-        const left = clamp(minX, position.x, maxX);
-        const top = clamp(minY, position.y, maxY);
+            const left = clamp(minX, position.x, maxX);
+            const top = clamp(minY, position.y, maxY);
 
-        let willExistOutsideBoundingRectDuringTransition = false;
-        if (existingPosition != null) {
-            // When we adjusted the content, we changed the width/height of the tooltip
-            // Detect whether the new size with the old position will overflow the bounding rect
-            const maxXWithPreviousPosition = relativeRect.width - existingPosition.width - 1 + minX;
-            const maxYWithPreviousPosition = relativeRect.height - existingPosition.height + minY;
-            willExistOutsideBoundingRectDuringTransition =
-                maxXWithPreviousPosition > maxX || maxYWithPreviousPosition > maxY;
-        }
+            let willExistOutsideBoundingRectDuringTransition = false;
+            if (existingPosition != null) {
+                // When we adjusted the content, we changed the width/height of the tooltip
+                // Detect whether the new size with the old position will overflow the bounding rect
+                const maxXWithPreviousPosition = relativeRect.width - existingPosition.width - 1 + minX;
+                const maxYWithPreviousPosition = relativeRect.height - existingPosition.height + minY;
+                willExistOutsideBoundingRectDuringTransition =
+                    maxXWithPreviousPosition > maxX || maxYWithPreviousPosition > maxY;
+            }
 
-        const constrained = left !== position.x || top !== position.y;
-        const defaultShowArrow =
-            (positionType === 'node' || positionType === 'pointer' || positionType === 'sparkline') &&
-            !constrained &&
-            !xOffset &&
-            !yOffset;
-        const showArrow = meta.showArrow ?? this.showArrow ?? defaultShowArrow;
-        this.updateShowArrow(showArrow);
+            const constrained = left !== position.x || top !== position.y;
+            const defaultShowArrow =
+                (positionType === 'node' || positionType === 'pointer' || positionType === 'sparkline') &&
+                !constrained &&
+                !xOffset &&
+                !yOffset;
+            const showArrow = meta.showArrow ?? this.showArrow ?? defaultShowArrow;
+            this.updateShowArrow(showArrow);
 
-        if (willExistOutsideBoundingRectDuringTransition) {
-            // https://ag-grid.atlassian.net/browse/AG-12685
-            element.style.transition = 'none';
-        }
-        element.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
-        if (willExistOutsideBoundingRectDuringTransition) {
-            element.style.transition = '';
+            if (willExistOutsideBoundingRectDuringTransition) {
+                // https://ag-grid.atlassian.net/browse/AG-12685
+                element.style.transition = 'none';
+            }
+            element.style.transform = `translate(${Math.round(left)}px, ${Math.round(top)}px)`;
+            if (willExistOutsideBoundingRectDuringTransition) {
+                element.style.transition = '';
+            }
         }
 
         if (meta.enableInteraction) {
@@ -338,10 +353,15 @@ export class Tooltip extends BaseProperties {
         }
 
         toggleClass('no-interaction', !this.enableInteraction); // Prevent interaction.
-        toggleClass('hidden', !visible); // Hide if not visible.
         toggleClass('arrow', this._showArrow); // Add arrow if tooltip is constrained.
 
         classList.toggle(DEFAULT_TOOLTIP_DARK_CLASS, this.darkTheme);
+
+        if (this.popoverApiSupported()) {
+            this.element.togglePopover(visible);
+        } else {
+            toggleClass('hidden', !visible); // Hide if not visible.
+        }
 
         for (const wrapType of this.wrapTypes) {
             classList.toggle(`${DEFAULT_TOOLTIP_CLASS}-wrap-${wrapType}`, wrapType === this.wrapping);
@@ -350,6 +370,10 @@ export class Tooltip extends BaseProperties {
 
     private updateShowArrow(show: boolean) {
         this._showArrow = show;
+    }
+
+    private popoverApiSupported() {
+        return this.element != null && 'togglePopover' in this.element;
     }
 
     private getTooltipBounds(opts: {
