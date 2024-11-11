@@ -5,7 +5,7 @@ import type {
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { Degree, Direction, MarkerShape, PixelSize } from '../../chart/types';
+import type { AgMarkerShape, Degree, Direction, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../../series/cartesian/commonOptions';
 import type {
     AgBaseGaugeThemeableOptions,
@@ -61,7 +61,7 @@ export interface AgLinearGaugeBarStyle extends FillsOptions, FillOptions, Stroke
     thicknessRatio?: number;
 }
 
-export type AgLinearGaugeMarkerShape = MarkerShape | 'line';
+export type AgLinearGaugeMarkerShape = AgMarkerShape | 'line';
 
 export interface AgLinearGaugeTarget extends FillOptions, StrokeOptions, LineDashOptions {
     /** Value to use to position the target */

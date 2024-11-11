@@ -32,39 +32,35 @@ The legend item marker can be modified within the [Legend Options](./legend/#mar
 
 ## Custom Marker Shapes
 
-It's possible to define custom marker shapes with relative ease. All you have to do is extend the `Marker` class and define a single method called `updatePath`, for example to draw a heart:
+You can easily define custom marker shapes by providing a callback function to create the desired shape. This function takes `x` and `y` parameters, representing the marker's position on the canvas, the `size` of the marker and the `path` instance. The path includes various drawing methods that allow you to apply specific drawing commands to construct the marker.
+If you are familiar with the standard Canvas API, you'll feel right at home here. The `path` API is very similar to that of [CanvasRenderingContext2D](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D).
+
+for example to draw a heart:
 
 ```js
-import { Marker } from 'ag-charts-community';
+const rad = (degree: number) => {
+    return (degree / 180) * Math.PI;
+};
 
-export class Heart extends Marker {
-    toRadians(degrees) {
-        return (degrees / 180) * Math.PI;
-    }
+const heart = ({ x, y, path, size }) => {
+    const r = size / 4;
+    const yCoord = y + r / 2;
 
-    updatePath() {
-        const { x, path, size, toRadians } = this;
-        const r = size / 4;
-        const y = this.y + r / 2;
-
-        path.clear();
-        path.cubicArc(x - r, y - r, r, r, 0, toRadians(130), toRadians(330), 0);
-        path.cubicArc(x + r, y - r, r, r, 0, toRadians(220), toRadians(50), 0);
-        path.lineTo(x, y + r);
-        path.closePath();
-    }
-}
+    path.clear();
+    path.arc(x - r, yCoord - r, r, rad(130), rad(330));
+    path.arc(x + r, yCoord - r, r, rad(220), rad(50));
+    path.lineTo(x, yCoord + r);
+    path.closePath();
+};
 ```
-
-Inside the marker object, you have access to the `size` of the marker, the `x` and `y` coordinates of the data point and the `path` instance, which you can use to issue draw commands. If you are familiar with the standard Canvas API, you'll feel right at home here. The `path` API is very similar to that of [CanvasRenderingContext2D](https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D).
 
 All we do is render two partial circles with the `cubicArc` command and then two straight lines using the `lineTo` and `closePath` commands to get the shape of a heart.
 
-Inside the marker config of a series we then use the marker's constructor function itself rather than using one of the predefined shape names:
+Inside the marker config of a series we then use this callback function rather than using one of the predefined shape names:
 
 ```js
 marker: {
-    shape: Heart,
+    shape: heart,
     size: 16,
 }
 ```

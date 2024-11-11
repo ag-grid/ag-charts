@@ -264,13 +264,7 @@ export function getPathComponents(path: string) {
     const components: string[] = [];
     let matchIndex = 0;
     let matchGroup: RegExpExecArray | null;
-    // This regex is a slightly less correct version of the commented out version below
-    // Safari <16.4 does not support negative look behinds
-    // Look at the skipped tests for what cases are not supported by this version
-    const regExp = /((?:(?:^|\.)\s*\w+|\[\s*(?:'(?:[^']|\\')*'|"(?:[^"]|\\")*"|-?\d+)\s*\])\s*)/g;
-    /*
     const regExp = /((?:(?:^|\.)\s*\w+|\[\s*(?:'(?:[^']|(?<!\\)\\')*'|"(?:[^"]|(?<!\\)\\")*"|-?\d+)\s*\])\s*)/g;
-    */
     /**              ^                         ^                      ^                      ^
      *               |                         |                      |                      |
      *                - .dotAccessor or initial property (i.e. a in "a.b")                   |
@@ -294,14 +288,10 @@ export function getPathComponents(path: string) {
             const accessor = match.slice(1, -1).trim();
             if (accessor.startsWith(`'`)) {
                 // ['string-property']
-                // See Safari <16.4 note above
-                components.push(accessor.slice(1, -1).replace(/\\'/g, `'`));
-                // components.push(accessor.slice(1, -1).replace(/(?<!\\)\\'/g, `'`));
+                components.push(accessor.slice(1, -1).replace(/(?<!\\)\\'/g, `'`));
             } else if (accessor.startsWith(`"`)) {
                 // ["string-property"]
-                // See Safari <16.4 note above
-                components.push(accessor.slice(1, -1).replace(/\\"/g, `"`));
-                // components.push(accessor.slice(1, -1).replace(/(?<!\\)\\"/g, `"`));
+                components.push(accessor.slice(1, -1).replace(/(?<!\\)\\"/g, `"`));
             } else {
                 // ["number-property"]
                 components.push(accessor);

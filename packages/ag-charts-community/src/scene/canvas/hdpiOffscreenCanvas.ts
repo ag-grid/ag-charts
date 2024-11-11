@@ -1,5 +1,4 @@
 import { getWindow } from '../../util/dom';
-import { hasConstrainedCanvasMemory } from '../../util/userAgent';
 import { clearContext, debugContext } from './canvasUtil';
 
 // Work-around for typing issues with Angular 13+ (see AG-6969),
@@ -28,7 +27,7 @@ export class HdpiOffscreenCanvas {
     constructor(options: CanvasOptions) {
         const { width, height, pixelRatio, willReadFrequently = false } = options;
 
-        this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
+        this.pixelRatio = pixelRatio ?? getWindow('devicePixelRatio');
 
         this.canvas = new OffscreenCanvas(width ?? this.width, height ?? this.height);
 

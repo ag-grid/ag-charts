@@ -4,6 +4,7 @@ import type {
     AgBubbleSeriesOptionsKeys,
     AgBubbleSeriesStyle,
     AgBubbleSeriesTooltipRendererParams,
+    AgMarkerShape,
     BubbleSeriesItemStylerParams,
     LabelPlacement,
     Styler,
@@ -23,7 +24,7 @@ import {
     Validate,
 } from '../../../util/validation';
 import { Label } from '../../label';
-import type { MarkerConstructor, MarkerShape } from '../../marker/util';
+import type { MarkerConstructor } from '../../marker/util';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
@@ -109,7 +110,7 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     title?: string;
 
     @ProxyProperty('marker.shape')
-    shape!: MarkerShape;
+    shape!: AgMarkerShape;
 
     @ProxyProperty('marker.size')
     size!: number;

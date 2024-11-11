@@ -4,6 +4,7 @@ import type {
     AgMapMarkerSeriesOptions,
     AgMapMarkerSeriesStyle,
     AgMapMarkerSeriesTooltipRendererParams,
+    AgMarkerShape,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -27,7 +28,6 @@ const {
     SeriesTooltip,
     Logger,
     Label,
-    Circle,
 } = _ModuleSupport;
 
 export interface MapMarkerNodeLabelDatum extends _ModuleSupport.PointLabelDatum {}
@@ -117,9 +117,9 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     @Validate(AND(COLOR_STRING_ARRAY, ARRAY.restrict({ minLength: 1 })), { optional: true })
     colorRange: string[] | undefined = undefined;
 
-    /** One of the predefined marker names, or a marker constructor function (for user-defined markers). */
+    /** One of the predefined marker names, or a marker shape function (for user-defined markers). */
     @Validate(MARKER_SHAPE)
-    shape: _ModuleSupport.MarkerShape = Circle;
+    shape: AgMarkerShape = 'circle';
 
     @Validate(POSITIVE_NUMBER)
     size: number = 6;

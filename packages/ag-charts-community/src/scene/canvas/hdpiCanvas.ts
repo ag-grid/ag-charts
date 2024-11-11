@@ -1,6 +1,5 @@
 import { createElement, getWindow } from '../../util/dom';
 import { ObserveChanges } from '../../util/proxy';
-import { hasConstrainedCanvasMemory } from '../../util/userAgent';
 import { clearContext, debugContext } from './canvasUtil';
 
 // Work-around for typing issues with Angular 13+ (see AG-6969),
@@ -32,7 +31,7 @@ export class HdpiCanvas {
     constructor(options: CanvasOptions) {
         const { width, height, pixelRatio, canvasElement, willReadFrequently = false } = options;
 
-        this.pixelRatio = hasConstrainedCanvasMemory() ? 1 : pixelRatio ?? getWindow('devicePixelRatio');
+        this.pixelRatio = pixelRatio ?? getWindow('devicePixelRatio');
 
         // Create canvas and immediately apply width + height to avoid out-of-memory errors on iOS/iPadOS Safari.
         this.element = canvasElement ?? createElement('canvas');

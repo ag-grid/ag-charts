@@ -33,7 +33,8 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
         this.destroyFns.push(
             interactionManager.addListener('click', () => this.onClick(), mouseStates),
             interactionManager.addListener('hover', () => this.onMouse(), mouseStates),
-            interactionManager.addListener('drag-start', () => this.onMouse(), mouseStates),
+            interactionManager.addListener('wheel', () => this.onClick(), mouseStates),
+            interactionManager.addListener('drag-start', () => this.onClick(), mouseStates),
             interactionManager.addListener('keydown', (e) => this.onKeyDown(e), InteractionState.All)
         );
     }

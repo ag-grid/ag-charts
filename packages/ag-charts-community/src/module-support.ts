@@ -174,7 +174,6 @@ export { Label } from './chart/label';
 export { Marker } from './chart/marker/marker';
 export { getMarker } from './chart/marker/util';
 export { LegendMarkerLabel } from './chart/legendMarkerLabel';
-export type { MarkerShape } from './chart/marker/util';
 export { Diamond } from './chart/marker/diamond';
 export { Square } from './chart/marker/square';
 export { Triangle } from './chart/marker/triangle';

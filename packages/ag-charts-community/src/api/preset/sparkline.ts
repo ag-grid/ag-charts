@@ -70,11 +70,11 @@ const crossHairTooltip = {
 const SPARKLINE_THEME: AgChartTheme = {
     overrides: {
         common: {
-            animation: {
-                enabled: false,
-            },
+            animation: { enabled: false },
             contextMenu: { enabled: false },
             toolbar: { enabled: false },
+            keyboard: { enabled: false },
+            background: { visible: false },
             padding: {
                 top: 0,
                 right: 0,

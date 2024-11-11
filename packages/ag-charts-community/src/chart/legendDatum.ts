@@ -1,7 +1,6 @@
-import type { AgChartLegendListeners } from 'ag-charts-types';
+import type { AgChartLegendListeners, AgMarkerShape } from 'ag-charts-types';
 
 import type { Scene } from '../scene/scene';
-import type { MarkerConstructor } from './marker/util';
 
 export interface ChartLegend {
     attachLegend(scene: Scene): void;
@@ -29,7 +28,7 @@ export interface BaseChartLegendDatum {
 
 export interface LegendSymbolOptions {
     marker: {
-        shape?: string | MarkerConstructor;
+        shape?: AgMarkerShape;
         fill?: string;
         stroke?: string;
         fillOpacity: number;

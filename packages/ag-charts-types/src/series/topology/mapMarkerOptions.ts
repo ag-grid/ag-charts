@@ -1,7 +1,7 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, GeoJSON, LabelPlacement, MarkerShape, PixelSize } from '../../chart/types';
+import type { AgMarkerShape, CssColor, GeoJSON, LabelPlacement, PixelSize } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
@@ -49,7 +49,7 @@ export interface AgMapMarkerSeriesOptionsNames {
 
 export interface AgMapMarkerSeriesStyle extends FillOptions, StrokeOptions {
     /** The shape to use for the markers. You can also supply a custom marker by providing a `Marker` subclass. */
-    shape?: MarkerShape;
+    shape?: AgMarkerShape;
     /** The size in pixels of the markers. */
     size?: PixelSize;
 }

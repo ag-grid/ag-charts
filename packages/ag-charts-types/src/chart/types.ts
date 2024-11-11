@@ -4,7 +4,7 @@ export type FontFamily = string;
 export type FontSize = number;
 
 // eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
-export type MarkerShape =
+export type AgMarkerShape =
     | 'circle'
     | 'cross'
     | 'diamond'
@@ -14,7 +14,27 @@ export type MarkerShape =
     | 'square'
     | 'star'
     | 'triangle'
-    | any;
+    | AgMarkerShapeFn;
+
+export interface AgPath {
+    readonly moveTo: (x: number, y: number) => void;
+    readonly lineTo: (x: number, y: number) => void;
+    readonly rect: (x: number, y: number, width: number, height: number) => void;
+    readonly roundRect: (x: number, y: number, width: number, height: number, radii: number) => void;
+    readonly arc: (x: number, y: number, r: number, sAngle: number, eAngle: number, counterClockwise?: boolean) => void;
+    readonly cubicCurveTo: (cx1: number, cy1: number, cx2: number, cy2: number, x: number, y: number) => void;
+    readonly closePath: () => void;
+    readonly clear: (trackChanges?: boolean) => void;
+}
+
+export type AgMarkerShapeFnParams = {
+    path: AgPath;
+    x: number;
+    y: number;
+    size: number;
+};
+
+export type AgMarkerShapeFn = (params: AgMarkerShapeFnParams) => void;
 
 export type LabelPlacement = 'top' | 'bottom' | 'left' | 'right';
 

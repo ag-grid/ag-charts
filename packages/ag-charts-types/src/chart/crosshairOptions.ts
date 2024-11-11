@@ -3,7 +3,7 @@ import type { CssColor, Opacity, PixelSize } from './types';
 export interface AgCrosshairOptions {
     /** Whether to show the crosshair. */
     enabled?: boolean;
-    /** When true, the crosshair snaps to the highlighted data point. By default this property is false and the crosshair is rendered at the mouse pointer position. */
+    /** When true, the crosshair snaps to the highlighted data point. By default this property is true. */
     snap?: boolean;
     /** The colour of the stroke for the lines. */
     stroke?: CssColor;

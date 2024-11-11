@@ -1264,8 +1264,7 @@ describe('DataModel', () => {
             expect(getPathComponents(`[ 'a\\'b' ] [ "a\\"b" ]`)).toEqual([`a'b`, `a"b`]);
         });
 
-        // Re-enable when we drop support for Safari <16.4
-        it.skip('handles string escapes paths', () => {
+        it('handles string escapes paths', () => {
             expect(getPathComponents(`[ 'a\\\\'b' ]`)).toBe(undefined);
             expect(getPathComponents(`[ "a\\\\"b" ]`)).toBe(undefined);
         });

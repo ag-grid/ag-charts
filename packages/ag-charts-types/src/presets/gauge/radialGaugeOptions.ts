@@ -5,7 +5,7 @@ import type {
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { Degree, MarkerShape, PixelSize, Ratio } from '../../chart/types';
+import type { AgMarkerShape, Degree, PixelSize, Ratio } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../../series/cartesian/commonOptions';
 import type {
     AgBaseGaugeThemeableOptions,
@@ -65,7 +65,7 @@ export interface AgRadialGaugeNeedleStyle extends FillOptions, StrokeOptions, Li
     spacing?: number;
 }
 
-export type AgRadialGaugeMarkerShape = MarkerShape | 'line';
+export type AgRadialGaugeMarkerShape = AgMarkerShape | 'line';
 
 export interface AgRadialGaugeTargetLabelOptions extends AgChartLabelOptions<undefined, never> {
     /** Spacing of the label. */

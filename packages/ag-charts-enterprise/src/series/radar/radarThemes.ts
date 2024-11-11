@@ -16,7 +16,7 @@ const BASE_RADAR_SERIES_THEME = {
         marker: {
             enabled: true,
             fillOpacity: 1,
-            shape: 'circle',
+            shape: 'circle' as const,
             size: 6,
             strokeOpacity: 1,
             strokeWidth: 0,

@@ -1,5 +1,5 @@
 import type { Formatter } from './callbackOptions';
-import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, MarkerShape, Opacity, PixelSize } from './types';
+import type { AgMarkerShape, CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
 
 export type AgChartLegendPosition = 'top' | 'right' | 'bottom' | 'left';
 export type AgChartLegendOrientation = 'horizontal' | 'vertical';
@@ -8,7 +8,7 @@ export interface AgChartLegendMarkerOptions {
     /** The size in pixels of the markers in the legend. */
     size?: PixelSize;
     /** If set, overrides the marker shape from the series and the legend will show the specified marker shape instead. If not set, will use a marker shape matching the shape from the series, or fall back to `'square'` if there is none. */
-    shape?: MarkerShape;
+    shape?: AgMarkerShape;
     /** The padding in pixels between a legend marker and the corresponding label. */
     padding?: PixelSize;
     /** The width in pixels of the stroke for markers in the legend. */
@@ -137,7 +137,7 @@ export interface AgPaginationMarkerOptions {
     /** The size in pixels of the pagination buttons. */
     size?: PixelSize;
     /** If set, overrides the marker shape for the pagination buttons. If not set, the pagination buttons will default to the `'triangle'` marker shape. */
-    shape?: MarkerShape;
+    shape?: AgMarkerShape;
     /** The inner padding in pixels between a pagination button and the pagination label. */
     padding?: PixelSize;
 }

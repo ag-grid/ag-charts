@@ -12,7 +12,6 @@ import type {
     FontStyle,
     FontWeight,
     Formatter,
-    MarkerShape,
     Styler,
 } from 'ag-charts-types';
 
@@ -89,7 +88,7 @@ export interface RadialGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
     text: string | undefined;
     centerX: number;
     centerY: number;
-    shape: MarkerShape;
+    shape: AgRadialGaugeMarkerShape;
     radius: number;
     angle: number;
     size: number;

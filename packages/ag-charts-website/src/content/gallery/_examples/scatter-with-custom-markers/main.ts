@@ -1,28 +1,27 @@
-import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts, Marker } from 'ag-charts-enterprise';
+import {
+    AgCartesianSeriesTooltipRendererParams,
+    AgChartOptions,
+    AgCharts,
+    AgMarkerShapeFnParams,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-class AGChartsLogo extends Marker {
-    updatePath() {
-        const { path } = this;
-        const pathData = [
-            'M58,10l-17,0l-8,8l25,0l0,-8Z',
-            'M43,30l0,-7.995l-14,0l-8.008,7.995l22.008,0Z',
-            'M13,38.01l4,-4.01l14,0l0,8l-18,0l0,-3.99Z',
-            'M41,10l-4,4l-26,0l0,-8l30,0l0,4Z',
-            'M16,26l9,0l8,-8l-17,0l0,8Z',
-            'M6,37.988l7,0.012l7.992,-8l-14.992,-0.047l-0,8.035Z',
-        ];
-        updatePath(pathData, path, 0.4, 12, 10);
-    }
+function agChartsLogo({ path }: AgMarkerShapeFnParams) {
+    const pathData = [
+        'M58,10l-17,0l-8,8l25,0l0,-8Z',
+        'M43,30l0,-7.995l-14,0l-8.008,7.995l22.008,0Z',
+        'M13,38.01l4,-4.01l14,0l0,8l-18,0l0,-3.99Z',
+        'M41,10l-4,4l-26,0l0,-8l30,0l0,4Z',
+        'M16,26l9,0l8,-8l-17,0l0,8Z',
+        'M6,37.988l7,0.012l7.992,-8l-14.992,-0.047l-0,8.035Z',
+    ];
+    updatePath(pathData, path, 0.4, 12, 10);
 }
 
-class NpmLogo extends Marker {
-    updatePath() {
-        const { path } = this;
-        const pathData = ['M5.8,21.75l7.86,0l0,-11.77l3.92,0l0,11.78l3.93,0l0,-15.7l-15.7,0l0,15.69'];
-        updatePath(pathData, path, 0.75, 5, 11);
-    }
+function npmLogo({ path }: AgMarkerShapeFnParams) {
+    const pathData = ['M5.8,21.75l7.86,0l0,-11.77l3.92,0l0,11.78l3.93,0l0,-15.7l-15.7,0l0,15.69'];
+    updatePath(pathData, path, 0.75, 5, 11);
 }
 
 const tooltip = {
@@ -50,7 +49,7 @@ const options: AgChartOptions = {
             xName: 'Date',
             yKey: 'numberOfVisits',
             yName: 'Daily Website Visits',
-            shape: AGChartsLogo,
+            shape: agChartsLogo,
             fillOpacity: 1,
             tooltip,
         },
@@ -60,7 +59,7 @@ const options: AgChartOptions = {
             xName: 'Date',
             yKey: 'npmDownloads',
             yName: 'NPM Downloads',
-            shape: NpmLogo,
+            shape: npmLogo,
             fillOpacity: 1,
             tooltip,
         },

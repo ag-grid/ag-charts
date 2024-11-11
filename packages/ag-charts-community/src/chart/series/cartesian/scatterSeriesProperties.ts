@@ -1,4 +1,5 @@
 import type {
+    AgMarkerShape,
     AgScatterSeriesItemStylerParams,
     AgScatterSeriesLabelFormatterParams,
     AgScatterSeriesOptions,
@@ -13,7 +14,7 @@ import type { LabelPlacement, MeasuredLabel } from '../../../scene/util/labelPla
 import { ProxyProperty } from '../../../util/proxy';
 import { COLOR_STRING_ARRAY, LABEL_PLACEMENT, NUMBER_ARRAY, OBJECT, STRING, Validate } from '../../../util/validation';
 import { Label } from '../../label';
-import type { MarkerConstructor, MarkerShape } from '../../marker/util';
+import type { MarkerConstructor } from '../../marker/util';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
@@ -74,7 +75,7 @@ export class ScatterSeriesProperties extends CartesianSeriesProperties<AgScatter
     title?: string;
 
     @ProxyProperty('marker.shape')
-    shape!: MarkerShape;
+    shape!: AgMarkerShape;
 
     @ProxyProperty('marker.size')
     size!: number;

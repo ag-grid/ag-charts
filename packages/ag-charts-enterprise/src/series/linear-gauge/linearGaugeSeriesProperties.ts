@@ -13,7 +13,6 @@ import type {
     FontStyle,
     FontWeight,
     Formatter,
-    MarkerShape,
     OverflowStrategy,
     Styler,
     TextWrap,
@@ -105,7 +104,7 @@ export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
     text: string | undefined;
     x: number;
     y: number;
-    shape: MarkerShape;
+    shape: AgLinearGaugeMarkerShape;
     size: number;
     rotation: number;
     fill: string;

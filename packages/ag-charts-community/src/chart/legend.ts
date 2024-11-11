@@ -6,6 +6,8 @@ import type {
     AgChartLegendListeners,
     AgChartLegendOrientation,
     AgChartLegendPosition,
+    AgMarkerShape,
+    AgMarkerShapeFn,
     FontStyle,
     FontWeight,
     Formatter,
@@ -53,7 +55,7 @@ import { LegendDOMProxy } from './legendDOMProxy';
 import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
 import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { Marker } from './marker/marker';
-import { type MarkerConstructor, getMarker } from './marker/util';
+import { getMarker } from './marker/util';
 import { Pagination } from './pagination/pagination';
 import { type TooltipMeta, type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
 import { ZIndexMap } from './zIndexMap';
@@ -87,7 +89,7 @@ class LegendMarker extends BaseProperties {
      * regardless of the type that comes from the `data`.
      */
     @ObserveChanges<LegendMarker>((target) => target.parent?.onMarkerShapeChange())
-    shape?: string | MarkerConstructor;
+    shape?: AgMarkerShape;
 
     @Validate(POSITIVE_NUMBER)
     size = 15;
@@ -455,7 +457,7 @@ export class Legend extends BaseProperties {
     private isCustomMarker(
         markerEnabled: boolean,
         shape: LegendSymbolOptions['marker']['shape']
-    ): shape is typeof Marker {
+    ): shape is AgMarkerShapeFn {
         return markerEnabled && shape !== undefined && typeof shape !== 'string';
     }
 
@@ -477,7 +479,8 @@ export class Legend extends BaseProperties {
         const { shape } = symbol.marker;
         // Calculate the marker size of a custom marker shape:
         if (this.isCustomMarker(markerEnabled, shape)) {
-            const tmpShape = new shape();
+            const Marker = getMarker(shape);
+            const tmpShape = new Marker();
             tmpShape.updatePath();
             const bbox = tmpShape.getBBox();
             customMarkerSize = Math.max(bbox.width, bbox.height);
