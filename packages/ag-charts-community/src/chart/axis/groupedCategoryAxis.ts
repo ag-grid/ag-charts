@@ -21,7 +21,7 @@ import type { LabelNodeDatum } from './axis';
 import { resetAxisGroupFn, resetAxisLabelSelectionFn, resetAxisLineSelectionFn } from './axisUtil';
 import { CategoryAxis } from './categoryAxis';
 import type { TreeLayout } from './tree';
-import { ticksToTree, treeLayout } from './tree';
+import { treeLayout } from './tree';
 
 interface ComputedGroupAxisLayout {
     tickLabelLayout: LabelNodeDatum[];
@@ -48,17 +48,19 @@ export class GroupedCategoryAxis extends CategoryAxis {
     }
 
     private resizeTickTree() {
+        if (!this.tickTreeLayout) return;
+
         const s = this.scale;
         const { bandwidth = 0 } = s;
         const range = s.domain.length ? [s.convert(s.domain[0]), s.convert(s.domain.at(-1)!)] : s.range;
         const lineHeight = TextUtils.getLineHeight(this.label.fontSize!);
-        const layout = this.tickTreeLayout;
+        const { depth } = this.tickTreeLayout;
 
-        layout?.resize(
+        this.tickTreeLayout.resize(
             Math.abs(range[1] - range[0]),
-            layout.depth * lineHeight,
+            depth * lineHeight,
             (Math.min(range[0], range[1]) || 0) + bandwidth / 2,
-            -layout.depth * lineHeight,
+            -depth * lineHeight,
             range[1] - range[0] < 0
         );
     }
@@ -226,11 +228,17 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 tempText.rotation = configuredRotation;
                 tempText.textAlign = 'end';
                 tempText.textBaseline = 'middle';
+
+                if (reverseDirection) {
+                    tempText.translationX += labelBBoxes.get(index)?.width ?? 0;
+                }
             } else {
                 const availableRange = datum.leafCount * bandwidth;
                 const bbox = labelBBoxes.get(index);
 
-                tempText.translationX -= maxLeafLabelWidth - lineHeight + label.padding;
+                tempText.translationX -= reverseDirection
+                    ? -maxLeafLabelWidth - label.padding
+                    : maxLeafLabelWidth - lineHeight + label.padding;
 
                 if (bbox && bbox.width > availableRange) {
                     visible = false;
@@ -246,7 +254,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 const y = isLeaf ? datum.screenX - bandwidth / 2 : datum.screenX - (datum.leafCount * bandwidth) / 2;
 
                 if (isLeaf) {
-                    if (datum.number !== datum.children.length - 1) {
+                    if (datum.index !== datum.children.length - 1) {
                         separatorData.push(
                             reverseDirection
                                 ? { y, x1: 0, x2: maxLeafLabelWidth + label.padding * 2 }
@@ -392,7 +400,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.setDomain(extent(flatDomains) ?? unique(flatDomains));
 
         const { domain } = this.dataDomain;
-        this.tickTreeLayout = treeLayout(ticksToTree(domain));
+        this.tickTreeLayout = treeLayout(domain);
         this.tickScale.domain = domain.concat('');
         this.resizeTickTree();
     }
