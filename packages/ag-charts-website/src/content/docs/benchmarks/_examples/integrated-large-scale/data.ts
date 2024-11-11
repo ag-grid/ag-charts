@@ -103,9 +103,7 @@ export const integratedChartOptions = {
     mode: 'integrated',
     data: [
         {
-            'ag-Grid-AutoColumn': {
-                labels: ['English'],
-            },
+            'ag-Grid-AutoColumn': ['English'],
             pivot_country_Argentina_jan: null,
             pivot_country_Argentina_feb: null,
             pivot_country_Argentina_mar: null,
@@ -348,9 +346,7 @@ export const integratedChartOptions = {
             pivot_country_Venezuela_dec: null,
         },
         {
-            'ag-Grid-AutoColumn': {
-                labels: ['French'],
-            },
+            'ag-Grid-AutoColumn': ['French'],
             pivot_country_Argentina_jan: null,
             pivot_country_Argentina_feb: null,
             pivot_country_Argentina_mar: null,
@@ -593,9 +589,7 @@ export const integratedChartOptions = {
             pivot_country_Venezuela_dec: null,
         },
         {
-            'ag-Grid-AutoColumn': {
-                labels: ['German'],
-            },
+            'ag-Grid-AutoColumn': ['German'],
             pivot_country_Argentina_jan: null,
             pivot_country_Argentina_feb: null,
             pivot_country_Argentina_mar: null,
@@ -838,9 +832,7 @@ export const integratedChartOptions = {
             pivot_country_Venezuela_dec: null,
         },
         {
-            'ag-Grid-AutoColumn': {
-                labels: ['Greek'],
-            },
+            'ag-Grid-AutoColumn': ['Greek'],
             pivot_country_Argentina_jan: null,
             pivot_country_Argentina_feb: null,
             pivot_country_Argentina_mar: null,
@@ -1083,9 +1075,7 @@ export const integratedChartOptions = {
             pivot_country_Venezuela_dec: null,
         },
         {
-            'ag-Grid-AutoColumn': {
-                labels: ['Icelandic'],
-            },
+            'ag-Grid-AutoColumn': ['Icelandic'],
             pivot_country_Argentina_jan: null,
             pivot_country_Argentina_feb: null,
             pivot_country_Argentina_mar: null,
@@ -1328,9 +1318,7 @@ export const integratedChartOptions = {
             pivot_country_Venezuela_dec: null,
         },
         {
-            'ag-Grid-AutoColumn': {
-                labels: ['Italian'],
-            },
+            'ag-Grid-AutoColumn': ['Italian'],
             pivot_country_Argentina_jan: null,
             pivot_country_Argentina_feb: null,
             pivot_country_Argentina_mar: null,
@@ -1573,9 +1561,7 @@ export const integratedChartOptions = {
             pivot_country_Venezuela_dec: null,
         },
         {
-            'ag-Grid-AutoColumn': {
-                labels: ['Maltese'],
-            },
+            'ag-Grid-AutoColumn': ['Maltese'],
             pivot_country_Argentina_jan: null,
             pivot_country_Argentina_feb: null,
             pivot_country_Argentina_mar: null,
@@ -1818,9 +1804,7 @@ export const integratedChartOptions = {
             pivot_country_Venezuela_dec: null,
         },
         {
-            'ag-Grid-AutoColumn': {
-                labels: ['Norwegian'],
-            },
+            'ag-Grid-AutoColumn': ['Norwegian'],
             pivot_country_Argentina_jan: null,
             pivot_country_Argentina_feb: null,
             pivot_country_Argentina_mar: null,
@@ -2063,9 +2047,7 @@ export const integratedChartOptions = {
             pivot_country_Venezuela_dec: null,
         },
         {
-            'ag-Grid-AutoColumn': {
-                labels: ['Portuguese'],
-            },
+            'ag-Grid-AutoColumn': ['Portuguese'],
             pivot_country_Argentina_jan: null,
             pivot_country_Argentina_feb: null,
             pivot_country_Argentina_mar: null,
@@ -2308,9 +2290,7 @@ export const integratedChartOptions = {
             pivot_country_Venezuela_dec: null,
         },
         {
-            'ag-Grid-AutoColumn': {
-                labels: ['Spanish'],
-            },
+            'ag-Grid-AutoColumn': ['Spanish'],
             pivot_country_Argentina_jan: 85714636,
             pivot_country_Argentina_feb: 85812605,
             pivot_country_Argentina_mar: 85741328,
@@ -2553,9 +2533,7 @@ export const integratedChartOptions = {
             pivot_country_Venezuela_dec: 85677946,
         },
         {
-            'ag-Grid-AutoColumn': {
-                labels: ['Swedish'],
-            },
+            'ag-Grid-AutoColumn': ['Swedish'],
             pivot_country_Argentina_jan: null,
             pivot_country_Argentina_feb: null,
             pivot_country_Argentina_mar: null,
@@ -4731,7 +4709,3 @@ export const integratedChartOptions = {
         },
     ],
 };
-
-integratedChartOptions.data.forEach(
-    (d) => (d['ag-Grid-AutoColumn'].toString = () => d['ag-Grid-AutoColumn'].labels.join(' - '))
-);

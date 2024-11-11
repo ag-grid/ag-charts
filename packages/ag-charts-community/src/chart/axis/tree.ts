@@ -254,7 +254,7 @@ export function treeLayout(ticks: string[][]): TreeLayout {
 }
 
 export class TreeLayout {
-    private dimensions = new Dimensions();
+    private readonly dimensions = new Dimensions();
 
     public nodes: TreeNode[] = [];
     public depth: number = 0;
