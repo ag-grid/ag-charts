@@ -471,7 +471,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             range: this.scale.range,
         });
 
-        if (!animated || this.animationManager.isSkipped() || 0) {
+        if (!animated || this.animationManager.isSkipped()) {
             this.resetSelectionNodes();
         } else {
             const diff = diffArrays(

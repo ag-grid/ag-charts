@@ -9,7 +9,7 @@ import { Line } from '../../scene/shape/line';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { normalizeAngle360, toRadians } from '../../util/angle';
-import { extent, unique } from '../../util/array';
+import { extent, toArray, unique } from '../../util/array';
 import { iterate } from '../../util/iterator';
 import { inRange } from '../../util/number';
 import { createIdsGenerator } from '../../util/tempUtils';
@@ -34,7 +34,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
     // Label scale (labels are positioned between ticks, tick count = label count + 1).
     // We don't call is `labelScale` for consistency with other axes.
-    readonly tickScale = new BandScale<string | number>();
+    readonly tickScale = new BandScale<string[]>();
 
     private readonly separatorSelection = Selection.select(this.tickLineGroup, Line);
     private tickTreeLayout?: TreeLayout;
@@ -125,10 +125,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         // Render ticks and labels.
         const { tickTreeLayout } = this;
-        const labels = scale.ticks();
         const treeLabels = tickTreeLayout?.nodes ?? [];
         const isLabelTree = tickTreeLayout ? tickTreeLayout.depth > 1 : false;
-        const isCaptionEnabled = title?.enabled && labels.length > 0;
+        const isCaptionEnabled = title?.enabled && scale.domain.length > 0;
         // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
         // flip the labels to avoid upside-down text, when the axis is rotated
         // such that it is in the right hemisphere, i.e. the angle of rotation
@@ -399,9 +398,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         this.setDomain(extent(flatDomains) ?? unique(flatDomains));
 
-        const { domain } = this.dataDomain;
+        const domain = this.dataDomain.domain.map(toArray);
         this.tickTreeLayout = treeLayout(domain);
-        this.tickScale.domain = domain.concat('');
+        this.tickScale.domain = domain.concat([['']]);
         this.resizeTickTree();
     }
 
@@ -412,26 +411,28 @@ export class GroupedCategoryAxis extends CategoryAxis {
     }
 
     protected override updateGridLines() {
-        const { gridLength, gridLine, label, range, tickScale } = this;
-        const ticks = tickScale.ticks();
-        const sideFlag = label.getSideFlag();
-        const gridSelection = this.gridLineGroupSelection.update(gridLength ? ticks : []);
-        if (gridLength) {
-            const { width, style } = gridLine;
-            const styleCount = style.length;
-
-            gridSelection.each((line, datum, index) => {
-                const y = Math.round(tickScale.convert(datum));
-                const { stroke, lineDash } = style[index % styleCount];
-                line.visible = gridLine.enabled && y >= range[0] && y <= range[1];
-                line.x1 = 0;
-                line.x2 = -sideFlag * gridLength;
-                line.y1 = y;
-                line.y2 = y;
-                line.stroke = stroke;
-                line.strokeWidth = width;
-                line.lineDash = lineDash;
-            });
+        if (!this.gridLength) {
+            this.gridLineGroupSelection.update([]);
+            return;
         }
+
+        const { gridLength, label, range, tickScale } = this;
+        const { enabled, width, style } = this.gridLine;
+        const gridSelection = this.gridLineGroupSelection.update(tickScale.ticks());
+        const lineSize = gridLength * -label.getSideFlag();
+        const styleCount = style.length;
+
+        gridSelection.each((line, datum, index) => {
+            const y = Math.round(tickScale.convert(datum));
+            const { stroke, lineDash } = style[index % styleCount];
+            line.visible = enabled && y >= range[0] && y <= range[1];
+            line.x1 = 0;
+            line.x2 = lineSize;
+            line.y1 = y;
+            line.y2 = y;
+            line.stroke = stroke;
+            line.strokeWidth = width;
+            line.lineDash = lineDash;
+        });
     }
 }
