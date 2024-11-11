@@ -292,10 +292,6 @@ export class ChartTheme {
             tick: { enabled: true },
             paddingOuter: 0.1,
             paddingInner: 0.2,
-            // groupPaddingInner: 0.1,
-            // label: { autoRotate: true },
-            // gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
-            // crosshair: { enabled: false },
         }),
     };
 
