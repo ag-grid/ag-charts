@@ -6,5 +6,6 @@
     color: var(--ag-charts-popover-foreground-color);
     font-family: var(--ag-charts-font-family);
     font-size: var(--ag-charts-popover-font-size);
+    box-shadow: var(--ag-charts-popover-shadow);
     z-index: var(--ag-charts-layer-ui-overlay);
 }

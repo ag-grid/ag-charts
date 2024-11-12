@@ -52,6 +52,8 @@
 .ag-charts-toolbar--floating {
     padding: 0;
     width: auto;
+    border-radius: var(--ag-charts-button-radius);
+    box-shadow: var(--ag-charts-toolbar-shadow);
     z-index: var(--ag-charts-layer-toolbar);
 }
 
@@ -116,6 +118,8 @@
 }
 
 .ag-charts-toolbar__button {
+    --stroke-width-color: var(--ag-charts-toolbar-foreground-color);
+
     align-items: center;
     background: var(--ag-charts-toolbar-background-color);
     border: var(--ag-charts-toolbar-border);
@@ -130,7 +134,6 @@
     pointer-events: all;
     position: relative;
     white-space: nowrap;
-    --stroke-width-color: var(--ag-charts-toolbar-foreground-color);
 }
 
 .ag-charts-toolbar__no-pointer-events {
