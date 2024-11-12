@@ -6,7 +6,7 @@ import type { InteractionManager, PointerInteractionEvent, PointerInteractionTyp
 import { DRAG_INTERACTION_TYPES, InteractionState } from './interactionManager';
 import { buildPreventable } from './preventableEvent';
 
-type RegionName = 'root'| 'series';
+type RegionName = 'root' | 'series';
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
@@ -185,13 +185,6 @@ export class RegionManager {
     ) {
         if (current == null) return;
 
-        let originX = 0;
-        let originY = 0;
-        if (current.properties.name === 'series') {
-            originX = this.regions.series?.properties.widget.cssLeft() ?? 0;
-            originY = this.regions.series?.properties.widget.cssTop() ?? 0;
-        }
-
         const event: RegionEvent = buildPreventable({
             ...widgetEvent,
             type: this.widgetEventTypeToRegionEventType(widgetEvent, regionEventType),
@@ -202,8 +195,8 @@ export class RegionManager {
             deltaY: NaN,
             button: 0,
             pointerHistory: [],
-            regionOffsetX: widgetEvent.offsetX - originX,
-            regionOffsetY: widgetEvent.offsetY - originY,
+            regionOffsetX: widgetEvent.offsetX,
+            regionOffsetY: widgetEvent.offsetY,
         });
         this.debug('Dispatching region event: ', event);
         this.allRegionsListeners.dispatch(event.type, event);

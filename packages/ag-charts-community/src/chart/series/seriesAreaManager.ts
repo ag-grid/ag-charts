@@ -189,7 +189,8 @@ export class SeriesAreaManager extends BaseManager {
     private layoutComplete(event: LayoutCompleteEvent): void {
         this.seriesRect = event.series.rect;
         this.hoverRect = event.series.paddedRect;
-        this.swapChain.resizeContainer(event.chart);
+        this.seriesWidget.setBounds(event.series.rect);
+        this.chartWidget.setBounds(event.chart);
     }
 
     private onContextMenu(event: RegionEvent<'contextmenu'>): void {
