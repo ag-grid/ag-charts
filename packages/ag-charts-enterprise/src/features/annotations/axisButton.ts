@@ -8,7 +8,6 @@ const {
     Validate,
     BOOLEAN,
     createElement,
-    REGIONS,
     ChartAxisDirection,
     getIconClassNames,
     makeAccessibleClickListener,
@@ -43,7 +42,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
 
         this.snap = Boolean(axisCtx.scale.bandwidth);
 
-        const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
+        const seriesRegion = this.ctx.regionManager.getRegion('series');
         const mouseMoveStates =
             InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
 

@@ -20,7 +20,6 @@ import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import type { KeyNavEvent } from '../interaction/keyNavManager';
 import type { RegionEvent } from '../interaction/regionManager';
-import { REGIONS } from '../interaction/regions';
 import { TooltipManager } from '../interaction/tooltipManager';
 import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
@@ -117,7 +116,7 @@ export class SeriesAreaManager extends BaseManager {
         this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
         this.chart.ctx.keyNavManager.focusIndicator = this.focusIndicator;
 
-        const seriesRegion = chart.ctx.regionManager.getRegion(REGIONS.SERIES);
+        const seriesRegion = chart.ctx.regionManager.getRegion('series');
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild(domElementClass, 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild(domElementClass, 'series-area-aria-label2'),

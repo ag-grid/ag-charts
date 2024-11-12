@@ -31,7 +31,6 @@ const {
     BOOLEAN,
     NUMBER,
     RATIO,
-    REGIONS,
     UNION,
     OBJECT,
     OR,
@@ -167,7 +166,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const draggableState = Default | Animation | ZoomDrag;
         const clickableState = Default | Animation;
         const wheelableState = draggableState | Annotations | AnnotationsSelected;
-        const region = ctx.regionManager.getRegion(REGIONS.SERIES);
+        const region = ctx.regionManager.getRegion('series');
 
         this.domProxy = new ZoomDOMProxy({
             onDragStart: (id, dir) => this.onAxisDragStart(id, dir),

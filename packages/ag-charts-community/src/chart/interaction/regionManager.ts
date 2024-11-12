@@ -5,7 +5,8 @@ import type { Widget } from '../../widget/widget';
 import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
 import { DRAG_INTERACTION_TYPES, InteractionState } from './interactionManager';
 import { buildPreventable } from './preventableEvent';
-import { type RegionName } from './regions';
+
+type RegionName = 'root'| 'series';
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
