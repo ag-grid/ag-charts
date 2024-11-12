@@ -11,6 +11,7 @@ import { clamp } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
 import { excludesType } from '../../util/type-guards';
+import { NativeWidget } from '../../widget/nativeWidget';
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
@@ -52,6 +53,8 @@ export class SeriesAreaManager extends BaseManager {
     private series: Series<any, any>[] = [];
     private seriesRect?: BBox;
     private hoverRect?: BBox;
+    private seriesWidget: NativeWidget<HTMLElement>;
+    private chartWidget: NativeWidget<HTMLElement>;
     private readonly focusIndicator: FocusIndicator;
     private readonly swapChain: FocusSwapChain;
 
@@ -95,7 +98,6 @@ export class SeriesAreaManager extends BaseManager {
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
 
-        const seriesRegion = chart.ctx.regionManager.getRegion(REGIONS.SERIES);
         const mouseMoveStates =
             InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
         const keyState = InteractionState.Default | InteractionState.Animation;
@@ -104,6 +106,10 @@ export class SeriesAreaManager extends BaseManager {
         const label1 = chart.ctx.domManager.addChild(domElementClass, 'series-area-aria-label1');
         const label2 = chart.ctx.domManager.addChild(domElementClass, 'series-area-aria-label2');
 
+        this.seriesWidget = new NativeWidget(label1.parentElement!);
+        this.chartWidget = new NativeWidget(label1.parentElement!.parentElement!);
+        chart.ctx.regionManager.initRegions(this.chartWidget, this.seriesWidget);
+
         this.swapChain = new FocusSwapChain(label1, label2, this.id, 'img');
         this.swapChain.addListener('blur', () => this.onBlur(keyState));
         this.swapChain.addListener('focus', () => this.onFocus(keyState));
@@ -111,6 +117,7 @@ export class SeriesAreaManager extends BaseManager {
         this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
         this.chart.ctx.keyNavManager.focusIndicator = this.focusIndicator;
 
+        const seriesRegion = chart.ctx.regionManager.getRegion(REGIONS.SERIES);
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild(domElementClass, 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild(domElementClass, 'series-area-aria-label2'),

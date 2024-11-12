@@ -48,6 +48,7 @@ export type WidgetEventMap = {
     keyup: KeyboardWidgetEvent<'keyup'>;
     click: MouseWidgetEvent<'click'>;
     dblclick: MouseWidgetEvent<'dblclick'>;
+    mouseenter: MouseWidgetEvent<'mouseenter'>;
     mousemove: MouseWidgetEvent<'mousemove'>;
     mouseleave: MouseWidgetEvent<'mouseleave'>;
 };
@@ -61,6 +62,7 @@ export const WIDGET_HTML_EVENTS: readonly (keyof WidgetEventMap & keyof HTMLElem
     'keyup',
     'click',
     'dblclick',
+    'mouseenter',
     'mousemove',
     'mouseleave',
 ] satisfies (keyof WidgetEventMap & keyof HTMLElementEventMap)[];
@@ -109,6 +111,9 @@ const WidgetAllocators: { [K in keyof WidgetEventMap]: (sourceEvent: WidgetSourc
     },
     dblclick: (sourceEvent: MouseEvent): MouseWidgetEvent<'dblclick'> => {
         return allocMouseEvent('dblclick', sourceEvent);
+    },
+    mouseenter: (sourceEvent: MouseEvent): MouseWidgetEvent<'mouseenter'> => {
+        return allocMouseEvent('mouseenter', sourceEvent);
     },
     mousemove: (sourceEvent: MouseEvent): MouseWidgetEvent<'mousemove'> => {
         return allocMouseEvent('mousemove', sourceEvent);

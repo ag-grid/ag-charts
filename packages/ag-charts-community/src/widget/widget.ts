@@ -97,11 +97,14 @@ export abstract class Widget<
         setAttribute(this.elem, 'aria-describedby', ariaDescribedBy);
     }
 
+    private parseFloat(s: string) {
+        return s === '' ? 0 : parseFloat(s);
+    }
     cssLeft(): number {
-        return parseFloat(this.elem.style.left);
+        return this.parseFloat(this.elem.style.left);
     }
     cssTop(): number {
-        return parseFloat(this.elem.style.top);
+        return this.parseFloat(this.elem.style.top);
     }
 
     focus(): void {
