@@ -55,8 +55,8 @@ export abstract class Widget<
     public index: number = NaN;
 
     protected readonly children: TChildWidget[] = [];
-    protected htmlListener?: WidgetListenerHTML<typeof this>;
-    protected internalListener?: WidgetListenerInternal<typeof this>;
+    protected htmlListener?: WidgetListenerHTML;
+    protected internalListener?: WidgetListenerInternal;
 
     constructor(protected override readonly elem: TElement) {
         super(elem);
