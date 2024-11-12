@@ -106,7 +106,7 @@ export class WidgetListenerInternal<T extends TargetableWidget> {
 
         window.addEventListener('mousemove', mousemove);
         window.addEventListener('mouseup', mouseup);
-        const dragStartEvent = makeDragEvent('drag-end', origin, downEvent);
+        const dragStartEvent = makeDragEvent('drag-start', origin, downEvent);
         this.dispatch('drag-start', target, dragStartEvent);
     }
 

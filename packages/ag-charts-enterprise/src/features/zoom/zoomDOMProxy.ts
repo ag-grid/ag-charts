@@ -4,7 +4,7 @@ const { BBoxValues } = _ModuleSupport;
 
 type AxesHandlers = {
     onDragStart: (id: string, direction: _ModuleSupport.ChartAxisDirection) => void;
-    onDrag: (event: _Widget.DragMoveWidgetEvent) => void;
+    onDrag: (event: _Widget.DragWidgetEvent<'drag-move'>) => void;
     onDragEnd: () => void;
 };
 

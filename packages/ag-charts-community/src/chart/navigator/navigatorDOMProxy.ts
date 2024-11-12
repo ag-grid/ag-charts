@@ -3,7 +3,7 @@ import type { BBoxValues } from '../../util/bboxinterface';
 import { clamp } from '../../util/number';
 import { SliderWidget } from '../../widget/sliderWidget';
 import type { ToolbarWidget } from '../../widget/toolbarWidget';
-import type { DragMoveWidgetEvent, DragStartWidgetEvent } from '../../widget/widgetEvents';
+import type { DragWidgetEvent } from '../../widget/widgetEvents';
 
 export type NavigatorButtonType = 'min' | 'max' | 'pan';
 
@@ -115,14 +115,14 @@ export class NavigatorDOMProxy {
         return { offsetX: this.dragStartX + event.originDeltaX };
     }
 
-    private onDragStart(slider: SliderWidget, event: DragStartWidgetEvent, key: NavigatorButtonType) {
+    private onDragStart(slider: SliderWidget, event: DragWidgetEvent<'drag-start'>, key: NavigatorButtonType) {
         const toolbarLeft = this.toolbar.cssLeft();
         const sliderLeft = slider.cssLeft();
         this.dragStartX = toolbarLeft + sliderLeft + event.offsetX;
         this.sliderHandlers.onDragStart(key, this.toCanvasOffsets(event));
     }
 
-    private onDrag(_slider: SliderWidget, event: DragMoveWidgetEvent, key: NavigatorButtonType) {
+    private onDrag(_slider: SliderWidget, event: DragWidgetEvent<'drag-move'>, key: NavigatorButtonType) {
         this.sliderHandlers.onDrag(key, this.toCanvasOffsets(event));
     }
 
