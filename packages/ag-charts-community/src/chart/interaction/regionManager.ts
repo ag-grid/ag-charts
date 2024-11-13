@@ -1,7 +1,7 @@
-import type { DragWidgetEvent, MouseWidgetEvent } from '../../module-support';
 import { Debug } from '../../util/debug';
 import { Listeners } from '../../util/listeners';
 import type { Widget } from '../../widget/widget';
+import type { DragWidgetEvent, MouseWidgetEvent } from '../../widget/widgetEvents';
 import { InteractionManager } from './interactionManager';
 import type { PointerInteractionTypes } from './interactionManager';
 import { DRAG_INTERACTION_TYPES, InteractionState } from './interactionManager';

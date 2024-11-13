@@ -71,23 +71,20 @@ export type WidgetSourceEventMap = {
     [K in keyof WidgetEventMap]: WidgetEventMap[K]['sourceEvent'];
 };
 
-function allocDragEvent<T extends DragWidgetEventType>(type: T, sourceEvent: MouseEvent | TouchEvent) {
-    return { type, offsetX: NaN, offsetY: NaN, originDeltaX: NaN, originDeltaY: NaN, sourceEvent };
-}
 function allocMouseEvent<T extends MouseWidgetEventType>(type: T, sourceEvent: MouseEvent) {
-    return { type, offsetX: sourceEvent.offsetX, offsetY: sourceEvent.offsetY, sourceEvent };
+    const { offsetX, offsetY } = sourceEvent;
+    return { type, offsetX, offsetY, sourceEvent };
 }
 
-const WidgetAllocators: { [K in keyof WidgetEventMap]: (sourceEvent: WidgetSourceEventMap[K]) => WidgetEventMap[K] } = {
-    'drag-start': (sourceEvent: MouseEvent | TouchEvent): DragWidgetEvent<'drag-start'> => {
-        return allocDragEvent('drag-start', sourceEvent);
-    },
-    'drag-move': (sourceEvent: MouseEvent | TouchEvent): DragWidgetEvent<'drag-move'> => {
-        return allocDragEvent('drag-move', sourceEvent);
-    },
-    'drag-end': (sourceEvent: MouseEvent | TouchEvent): DragWidgetEvent<'drag-end'> => {
-        return allocDragEvent('drag-end', sourceEvent);
-    },
+export type WidgetEventMap_HTML = Pick<WidgetEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
+export type WidgetEventMap_Internal = Omit<WidgetEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
+export type WidgetSourceEventMap_HTML = Pick<WidgetSourceEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
+export type WidgetSourceEventMap_Internal = Omit<WidgetSourceEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
+
+type Allocator<K extends keyof WidgetEventMap_HTML> = (
+    sourceEvent: WidgetSourceEventMap_HTML[K]
+) => WidgetEventMap_HTML[K];
+const WidgetAllocators: { [K in keyof WidgetEventMap_HTML]: Allocator<K> } = {
     blur: (sourceEvent: FocusEvent): FocusWidgetEvent<'blur'> => {
         return { type: 'blur', sourceEvent };
     },
@@ -123,23 +120,11 @@ const WidgetAllocators: { [K in keyof WidgetEventMap]: (sourceEvent: WidgetSourc
     },
 };
 
-export type WidgetEventMap_HTML = Pick<WidgetEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
-export type WidgetEventMap_Internal = Omit<WidgetEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
-export type WidgetSourceEventMap_HTML = Pick<WidgetSourceEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
-export type WidgetSourceEventMap_Internal = Omit<WidgetSourceEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
-
 export class WidgetEventUtil {
     static alloc<K extends keyof WidgetEventMap_HTML>(
         type: K,
         sourceEvent: WidgetSourceEventMap_HTML[K]
-    ): WidgetEventMap_HTML[K];
-
-    static alloc<K extends keyof WidgetEventMap_Internal>(
-        type: K,
-        sourceEvent: WidgetSourceEventMap_Internal[K]
-    ): WidgetEventMap_Internal[K];
-
-    static alloc<K extends keyof WidgetEventMap>(type: K, sourceEvent: WidgetSourceEventMap[K]): WidgetEventMap[K] {
+    ): WidgetEventMap_HTML[K] {
         return WidgetAllocators[type](sourceEvent);
     }
 
