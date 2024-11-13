@@ -76,6 +76,7 @@ function shouldIgnore(event: MouseWidgetEvent | DragWidgetEvent): 'none' | 'leav
         // Handle drag event on the axis 'add horizontal line annotation' button as canvas events.
         (classList.contains('ag-charts-annotations__axis-button-icon') && !dragTypes.includes(type)) ||
         className === 'ag-charts-swapchain' ||
+        className === 'ag-charts-canvas-container' ||
         className === 'ag-charts-canvas-proxy' ||
         sourceEvent?.target instanceof HTMLCanvasElement // This case is for nodeCanvas tests
     ) {
@@ -116,20 +117,20 @@ export class RegionManager {
         }
         const region = { properties: { name, widget }, listeners: new RegionListeners() };
         this.regions[name] = region;
-        widget.addListener('click', this.processPointerEvent);
-        widget.addListener('dblclick', this.processPointerEvent);
-        widget.addListener('mouseenter', this.processPointerEvent);
-        widget.addListener('mousemove', this.processPointerEvent);
-        widget.addListener('mouseleave', this.processPointerEvent);
-        widget.addListener('drag-start', this.processPointerEvent);
-        widget.addListener('drag-move', this.processPointerEvent);
-        widget.addListener('drag-end', this.processPointerEvent);
         return this.makeObserver(region);
     }
 
     initRegions(root: Widget, series: Widget) {
         this.addRegion('root', root);
         this.addRegion('series', series);
+        root.addListener('click', this.processPointerEvent);
+        root.addListener('dblclick', this.processPointerEvent);
+        root.addListener('mouseenter', this.processPointerEvent);
+        root.addListener('mousemove', this.processPointerEvent);
+        root.addListener('mouseleave', this.processPointerEvent);
+        root.addListener('drag-start', this.processPointerEvent);
+        root.addListener('drag-move', this.processPointerEvent);
+        root.addListener('drag-end', this.processPointerEvent);
     }
 
     getRegion(name: RegionName) {
@@ -182,16 +183,24 @@ export class RegionManager {
     // Create and dispatch a copy of the InteractionEvent.
     private dispatch(
         current: Region | undefined,
+        widget: Widget,
         widgetEvent: MouseWidgetEvent | DragWidgetEvent,
         regionEventType?: 'leave' | 'enter'
     ) {
         if (current == null) return;
 
-        const { deltaX, deltaY } = InteractionManager.getWheelDeltas(widgetEvent.sourceEvent);
+        const { clientX, clientY, sourceEvent } = widgetEvent;
+        const { x, y } = widget.getElement().getBoundingClientRect();
+        const offsetX = clientX - x;
+        const offsetY = clientY - y;
+        const { deltaX, deltaY } = InteractionManager.getWheelDeltas(sourceEvent);
+
         const event: RegionEvent = buildPreventable({
-            ...widgetEvent,
+            offsetX,
+            offsetY,
             deltaX,
             deltaY,
+            sourceEvent,
             type: this.widgetEventTypeToRegionEventType(widgetEvent, regionEventType),
             region: current.properties.name,
         });
@@ -200,7 +209,7 @@ export class RegionManager {
         current.listeners.dispatch(event.type, event);
     }
 
-    private processPointerEvent = (target: Widget, event: MouseWidgetEvent | DragWidgetEvent) => {
+    private processPointerEvent = (widget: Widget, event: MouseWidgetEvent | DragWidgetEvent) => {
         const ignore = shouldIgnore(event);
         const { current } = this;
 
@@ -209,7 +218,7 @@ export class RegionManager {
             case 'wait':
                 return;
             case 'none':
-                newCurrent = this.pickRegion(target);
+                newCurrent = this.pickRegion(event);
                 break;
             case 'leave':
                 newCurrent = undefined;
@@ -218,24 +227,21 @@ export class RegionManager {
 
         const newRegion = newCurrent;
         if (current !== undefined && newRegion?.properties.name !== current.properties.name) {
-            this.dispatch(current, event, 'leave');
+            this.dispatch(current, widget, event, 'leave');
         }
         if (newRegion !== undefined && newRegion.properties.name !== current?.properties.name) {
-            this.dispatch(newCurrent, event, 'enter');
+            this.dispatch(newCurrent, widget, event, 'enter');
         }
         if (newRegion !== undefined) {
-            this.dispatch(newCurrent, event);
+            this.dispatch(newCurrent, widget, event);
         }
         this.current = newCurrent;
     };
 
-    private pickRegion(target: Widget) {
-        if (target === this.regions.series?.properties.widget) {
-            return this.regions.series;
+    private pickRegion(event: MouseWidgetEvent | DragWidgetEvent) {
+        if (event.sourceEvent.target === this.regions.root?.properties.widget.getElement()) {
+            return this.regions.root;
         }
-        if (target === this.regions.root?.properties.widget) {
-            return this.regions.series;
-        }
-        return undefined;
+        return this.regions.series;
     }
 }

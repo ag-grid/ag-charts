@@ -19,6 +19,8 @@ function makeDragEvent<K extends DragEvents>(type: K, origin: DragOrigin, source
         type,
         offsetX: origin.offsetX + originDeltaX,
         offsetY: origin.offsetY + originDeltaY,
+        clientX: sourceEvent.clientX,
+        clientY: sourceEvent.clientY,
         originDeltaX,
         originDeltaY,
         sourceEvent,

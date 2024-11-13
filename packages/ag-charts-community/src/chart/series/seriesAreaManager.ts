@@ -54,6 +54,7 @@ export class SeriesAreaManager extends BaseManager {
     private hoverRect?: BBox;
     private seriesWidget: NativeWidget<HTMLElement>;
     private chartWidget: NativeWidget<HTMLElement>;
+    private containerWidget: NativeWidget<HTMLElement>;
     private readonly focusIndicator: FocusIndicator;
     private readonly swapChain: FocusSwapChain;
 
@@ -107,7 +108,8 @@ export class SeriesAreaManager extends BaseManager {
 
         this.seriesWidget = new NativeWidget(label1.parentElement!);
         this.chartWidget = new NativeWidget(label1.parentElement!.parentElement!);
-        chart.ctx.regionManager.initRegions(this.chartWidget, this.seriesWidget);
+        this.containerWidget = new NativeWidget(label1.parentElement!.parentElement!.parentElement!);
+        chart.ctx.regionManager.initRegions(this.containerWidget, this.seriesWidget);
 
         this.swapChain = new FocusSwapChain(label1, label2, this.id, 'img');
         this.swapChain.addListener('blur', () => this.onBlur(keyState));

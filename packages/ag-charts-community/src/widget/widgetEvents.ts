@@ -22,6 +22,8 @@ export type MouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventTy
     type: T;
     offsetX: number;
     offsetY: number;
+    clientX: number;
+    clientY: number;
     sourceEvent: MouseEvent;
 };
 
@@ -31,6 +33,8 @@ export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType>
     type: T;
     offsetX: number;
     offsetY: number;
+    clientX: number;
+    clientY: number;
     originDeltaX: number;
     originDeltaY: number;
     sourceEvent: MouseEvent | TouchEvent;
@@ -72,8 +76,8 @@ export type WidgetSourceEventMap = {
 };
 
 function allocMouseEvent<T extends MouseWidgetEventType>(type: T, sourceEvent: MouseEvent) {
-    const { offsetX, offsetY } = sourceEvent;
-    return { type, offsetX, offsetY, sourceEvent };
+    const { offsetX, offsetY, clientX, clientY } = sourceEvent;
+    return { type, offsetX, offsetY, clientX, clientY, sourceEvent };
 }
 
 export type WidgetEventMap_HTML = Pick<WidgetEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
