@@ -66,10 +66,10 @@
 
 .tabButtonIcon,
 .activeTabButtonIcon {
-    --icon-size: #{$spacing-size-6} !important;
+    --icon-size: #{$spacing-size-6};
+    --icon-color: var(--color-text-primary);
 
-    fill: var(--color-text-primary) !important;
-    margin-right: $spacing-size-2 !important;
+    margin-right: $spacing-size-2;
 }
 
 .activeTabButton {
