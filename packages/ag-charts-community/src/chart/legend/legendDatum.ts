@@ -24,6 +24,7 @@ export interface BaseChartLegendDatum {
     legendType: ChartLegendType;
     seriesId: string;
     enabled: boolean;
+    hideInLegend?: boolean;
 }
 
 export interface LegendSymbolOptions {

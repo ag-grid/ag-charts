@@ -28,6 +28,7 @@ import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import type { Keyboard } from './keyboard';
 import { LayoutManager } from './layout/layoutManager';
+import { LegendManager } from './legend/legendManager';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
 import { type UpdateCallback, UpdateService } from './updateService';
@@ -46,6 +47,7 @@ export class ChartContext implements ModuleContext {
     animationManager: AnimationManager;
     annotationManager: AnnotationManager;
     axisManager: AxisManager;
+    legendManager: LegendManager;
     chartService: ChartService;
     chartTypeOriginator: ChartTypeOriginator;
     contextMenuRegistry: ContextMenuRegistry;
@@ -93,6 +95,7 @@ export class ChartContext implements ModuleContext {
         this.scene.setRoot(root);
 
         this.axisManager = new AxisManager(root);
+        this.legendManager = new LegendManager(this.chartService);
         this.annotationManager = new AnnotationManager(chart.annotationRoot);
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.cursorManager = new CursorManager(this.domManager);

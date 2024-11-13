@@ -77,10 +77,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     public contextNodeData?: PyramidNodeDataContext;
 
-    // When a user toggles a series item (e.g. from the legend), its boolean state is recorded here.
-    public seriesItemEnabled: boolean[] = [];
-    public legendItemEnabled: boolean[] = [];
-
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -97,10 +93,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         );
     }
 
-    override get visible() {
-        return super.visible && (this.seriesItemEnabled.length === 0 || this.seriesItemEnabled.includes(true));
-    }
-
     private nodeFactory(): FunnelConnector {
         return new FunnelConnector();
     }
@@ -114,15 +106,19 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             return;
         }
 
-        const { visible, seriesItemEnabled } = this;
+        const {
+            id: seriesId,
+            visible,
+            ctx: { legendManager },
+        } = this;
 
         const { stageKey, valueKey } = this.properties;
 
         const xScaleType = 'band';
         const yScaleType = 'number';
 
-        const validation = (_value: unknown, _datum: unknown, index: number) => visible && seriesItemEnabled[index];
-
+        const validation = (_value: unknown, _datum: unknown, index: number) =>
+            visible && legendManager.getItemEnabled({ seriesId, itemId: index });
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
@@ -133,7 +129,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     override async createNodeData(): Promise<PyramidNodeDataContext | undefined> {
-        const { id: seriesId, dataModel, processedData, properties, visible, seriesItemEnabled } = this;
+        const {
+            id: seriesId,
+            dataModel,
+            processedData,
+            properties,
+            visible,
+            ctx: { legendManager },
+        } = this;
         const {
             stageKey,
             valueKey,
@@ -174,7 +177,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         processedData.rawData.forEach((datum, datumIndex) => {
             const xValue = xValues[datumIndex];
             const yValue = yValues[datumIndex];
-            const enabled = visible && seriesItemEnabled[datumIndex];
+            const enabled = visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
 
             yTotal += yValue;
 
@@ -264,7 +267,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             const xValue = xValues[datumIndex];
             const yValue = yValues[datumIndex];
 
-            const enabled = visible && seriesItemEnabled[datumIndex];
+            const enabled = visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
 
             const yEnd = yStart + yValue;
 
@@ -602,19 +605,19 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { processedData, dataModel, legendItemEnabled, id } = this;
+        const {
+            processedData,
+            dataModel,
+            id: seriesId,
+            ctx: { legendManager },
+            visible,
+        } = this;
 
-        if (
-            !dataModel ||
-            !processedData?.rawData.length ||
-            legendType !== 'category' ||
-            !this.properties.isValid() ||
-            !this.properties.showInLegend
-        ) {
+        if (!dataModel || !processedData || legendType !== 'category' || !this.properties.isValid()) {
             return [];
         }
 
-        const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, visible } = this.properties;
+        const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, showInLegend } = this.properties;
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
         const stageValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
@@ -626,37 +629,16 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             legendData.push({
                 legendType: 'category',
-                id,
+                id: seriesId,
                 itemId: datumIndex,
-                seriesId: id,
-                enabled: visible && legendItemEnabled[datumIndex],
+                seriesId,
+                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
                 label: { text: stageValue },
                 symbols: [{ marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } }],
+                hideInLegend: !showInLegend,
             });
         });
 
         return legendData;
-    }
-
-    onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {
-        const { enabled, itemId, series } = event;
-
-        if (series.id !== this.id) {
-            return;
-        }
-
-        this.toggleSeriesItem(itemId, enabled);
-    }
-
-    protected override toggleSeriesItem(itemId: number, enabled: boolean): void {
-        this.seriesItemEnabled[itemId] = enabled;
-        this.legendItemEnabled[itemId] = enabled;
-        this.nodeDataRefresh = true;
-    }
-
-    protected override onDataChange() {
-        const { data, seriesItemEnabled, legendItemEnabled } = this;
-        this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
-        this.legendItemEnabled = data?.map((_, index) => legendItemEnabled[index] ?? true) ?? [];
     }
 }

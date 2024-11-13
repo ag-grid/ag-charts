@@ -645,23 +645,37 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
         const { showInLegend } = this.properties;
 
-        if (legendType !== 'category' || !this.data?.length || !this.properties.isValid() || !showInLegend) {
+        if (legendType !== 'category' || !this.properties.isValid()) {
             return [];
         }
 
-        const { yKey, yName, fill, stroke, strokeWidth, fillOpacity, strokeOpacity, legendItemName, visible } =
-            this.properties;
+        const {
+            id: seriesId,
+            ctx: { legendManager },
+            visible,
+        } = this;
 
+        const {
+            yKey: itemId,
+            yName,
+            fill,
+            stroke,
+            strokeWidth,
+            fillOpacity,
+            strokeOpacity,
+            legendItemName,
+        } = this.properties;
         return [
             {
                 legendType: 'category',
-                id: this.id,
-                itemId: yKey,
-                seriesId: this.id,
-                enabled: visible,
-                label: { text: legendItemName ?? yName ?? yKey },
+                id: seriesId,
+                itemId,
+                seriesId,
+                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
+                label: { text: legendItemName ?? yName ?? itemId },
                 symbols: [{ marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } }],
                 legendItemName,
+                hideInLegend: !showInLegend,
             },
         ];
     }

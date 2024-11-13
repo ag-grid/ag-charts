@@ -655,6 +655,9 @@ export class MapMarkerSeries
     ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
+
+        const { id: seriesId, visible } = this;
+
         const {
             title,
             legendItemName,
@@ -663,7 +666,6 @@ export class MapMarkerSeries
             colorKey,
             colorName,
             colorRange,
-            visible,
             shape,
             fill,
             stroke,
@@ -678,20 +680,21 @@ export class MapMarkerSeries
             const legendDatum: _ModuleSupport.GradientLegendDatum = {
                 legendType: 'gradient',
                 enabled: visible,
-                seriesId: this.id,
+                seriesId,
                 colorName,
                 colorRange,
                 colorDomain,
             };
             return [legendDatum];
         } else if (legendType === 'category') {
+            const itemId = legendItemName ?? title ?? idName ?? idKey ?? seriesId;
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
-                id: this.id,
-                itemId: legendItemName ?? title ?? idName ?? idKey ?? this.id,
-                seriesId: this.id,
+                id: seriesId,
+                itemId,
+                seriesId,
                 enabled: visible,
-                label: { text: legendItemName ?? title ?? idName ?? idKey ?? this.id },
+                label: { text: itemId },
                 symbols: [
                     {
                         marker: {

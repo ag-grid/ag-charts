@@ -142,6 +142,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
     async setState(state: AgChartState) {
         this.factoryApi.caretaker.restore(state, ...this.getEnabledOriginators());
+        this.chart.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
         await this.chart.waitForUpdate();
     }
 
@@ -211,7 +212,14 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         const cloneProxy = this.factoryApi.create(userOptions, processedOverrides, specialOverrides, optionsMetadata);
         await cloneProxy.setState(state);
-        cloneProxy.chart.ctx.zoomManager.updateZoom('chartProxy', chart.ctx.zoomManager.getZoom()); // sync zoom
+
+        // sync zoom
+        cloneProxy.chart.ctx.zoomManager.updateZoom('chartProxy', chart.ctx.zoomManager.getZoom());
+
+        // sync legend
+        cloneProxy.chart.ctx.legendManager.clearData();
+        cloneProxy.chart.ctx.legendManager.update(chart.ctx.legendManager.getData());
+
         chart.series.forEach((series, index) => {
             if (!series.visible) {
                 cloneProxy.chart.series[index].visible = false; // sync series visibility
@@ -237,7 +245,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
     private getEnabledOriginators() {
         const {
             chartOptions: { processedOptions, optionMetadata },
-            ctx: { annotationManager, chartTypeOriginator, zoomManager },
+            ctx: { annotationManager, chartTypeOriginator, zoomManager, legendManager },
         } = this.chart;
 
         const originators = [];
@@ -253,6 +261,10 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         if (processedOptions.navigator?.enabled || processedOptions.zoom?.enabled) {
             originators.push(zoomManager);
+        }
+
+        if (processedOptions.legend?.enabled) {
+            originators.push(legendManager);
         }
 
         return originators;

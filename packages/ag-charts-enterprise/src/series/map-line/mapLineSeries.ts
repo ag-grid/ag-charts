@@ -505,6 +505,9 @@ export class MapLineSeries extends _ModuleSupport.TopologySeries<
     ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
+
+        const { id: seriesId, visible } = this;
+
         const {
             title,
             legendItemName,
@@ -517,7 +520,6 @@ export class MapLineSeries extends _ModuleSupport.TopologySeries<
             strokeWidth,
             strokeOpacity,
             lineDash,
-            visible,
         } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
@@ -526,20 +528,21 @@ export class MapLineSeries extends _ModuleSupport.TopologySeries<
             const legendDatum: _ModuleSupport.GradientLegendDatum = {
                 legendType: 'gradient',
                 enabled: visible,
-                seriesId: this.id,
+                seriesId,
                 colorName,
                 colorRange,
                 colorDomain,
             };
             return [legendDatum];
         } else if (legendType === 'category') {
+            const itemId = legendItemName ?? title ?? idName ?? idKey;
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
-                id: this.id,
-                itemId: legendItemName ?? title ?? idName ?? idKey,
-                seriesId: this.id,
+                id: seriesId,
+                itemId,
+                seriesId,
                 enabled: visible,
-                label: { text: legendItemName ?? title ?? idName ?? idKey },
+                label: { text: itemId },
                 symbols: [
                     {
                         marker: {

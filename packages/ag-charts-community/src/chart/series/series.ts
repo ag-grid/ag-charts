@@ -30,6 +30,7 @@ import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
+import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../interaction/chartEventManager';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent } from '../tooltip/tooltip';
@@ -248,11 +249,13 @@ export abstract class Series<
 
     set visible(value: boolean) {
         this.properties.visible = value;
+        this.ctx.legendManager.toggleItem({ enabled: value, seriesId: this.id });
+        this.ctx.legendManager.update();
         this.visibleMaybeChanged();
     }
 
     get visible() {
-        return this.properties.visible;
+        return this.properties.visible && this.ctx.legendManager.getSeriesEnabled(this.id);
     }
 
     get hasData() {
@@ -607,14 +610,67 @@ export abstract class Series<
         return new this.NodeEvent('nodeContextMenuAction', event, datum, this);
     }
 
+    onLegendItemClick(event: LegendItemClickChartEvent) {
+        const { enabled, itemId, series, legendType } = event;
+        const legendItemName =
+            'legendItemName' in this.properties ? (this.properties.legendItemName as string) : undefined;
+
+        const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
+        if (series.id === this.id || matchedLegendItemName) {
+            this.toggleSeriesItem(itemId, enabled, legendType);
+            this.updateLegendData({ legendType, enabled, itemId, legendItemName });
+        }
+    }
+
+    onLegendItemDoubleClick(event: LegendItemDoubleClickChartEvent) {
+        const { enabled, itemId, series, numVisibleItems, legendType } = event;
+        const legendItemName =
+            'legendItemName' in this.properties ? (this.properties.legendItemName as string) : undefined;
+
+        const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
+        if (series.id === this.id || matchedLegendItemName) {
+            // Double-clicked item should always become visible.
+            this.toggleSeriesItem(itemId, true, legendType);
+            this.updateLegendData({ legendType, enabled: true, itemId, legendItemName });
+        } else if (enabled && numVisibleItems === 1) {
+            // Other items should become visible if there is only one existing visible item.
+            this.toggleSeriesItem(itemId, true, legendType);
+            this.updateLegendData({ legendType, enabled: true, legendItemName });
+        } else {
+            // Disable other items if not exactly one enabled.
+            this.toggleSeriesItem(itemId, false, legendType);
+            this.updateLegendData({ legendType, enabled: false, legendItemName });
+        }
+    }
+
     abstract getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     abstract getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
 
-    protected toggleSeriesItem(itemId: any, enabled: boolean): void {
-        this.visible = enabled;
+    protected toggleSeriesItem(id: any, enabled: boolean, legendType: ChartLegendType): void {
+        if (enabled || legendType !== 'category') {
+            this.visible = enabled;
+        }
         this.nodeDataRefresh = true;
         this._pickNodeCache.clear();
-        this.dispatch('visibility-changed', { itemId, enabled });
+        this.dispatch('visibility-changed', { id, enabled });
+    }
+
+    protected updateLegendData({
+        legendType,
+        enabled,
+        itemId,
+        legendItemName,
+    }: {
+        legendType: ChartLegendType;
+        enabled: boolean;
+        itemId?: any;
+        legendItemName?: string;
+    }) {
+        if (legendType !== 'category') {
+            return;
+        }
+
+        this.ctx.legendManager.toggleItem({ enabled, seriesId: this.id, itemId, legendItemName });
     }
 
     isEnabled() {

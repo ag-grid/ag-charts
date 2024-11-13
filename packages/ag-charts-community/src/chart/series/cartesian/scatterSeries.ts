@@ -340,22 +340,28 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        const { yKey, yName, title, marker, visible } = this.properties;
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
-
-        if (!this.data?.length || !this.properties.isValid() || legendType !== 'category') {
+        if (!this.properties.isValid() || legendType !== 'category') {
             return [];
         }
+
+        const { yKey: itemId, yName, title, marker, showInLegend } = this.properties;
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
+
+        const {
+            id: seriesId,
+            ctx: { legendManager },
+            visible,
+        } = this;
 
         return [
             {
                 legendType: 'category',
-                id: this.id,
-                itemId: yKey,
-                seriesId: this.id,
-                enabled: visible,
+                id: seriesId,
+                itemId,
+                seriesId,
+                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
                 label: {
-                    text: title ?? yName ?? yKey,
+                    text: title ?? yName ?? itemId,
                 },
                 symbols: [
                     {
@@ -369,6 +375,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                         },
                     },
                 ],
+                hideInLegend: !showInLegend,
             },
         ];
     }

@@ -57,6 +57,7 @@ import { type TooltipMeta, type TooltipPointerEvent, toTooltipHtml } from '../to
 import { ZIndexMap } from '../zIndexMap';
 import { LegendDOMProxy } from './legendDOMProxy';
 import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
+import type { LegendChangeEvent } from './legendManager';
 import { LegendMarkerLabel } from './legendMarkerLabel';
 
 class LegendLabel extends BaseProperties {
@@ -223,7 +224,21 @@ export class Legend extends BaseProperties {
     @Validate(OBJECT)
     readonly listeners = new LegendListeners();
 
-    @ObserveChanges<Legend>((target) => target.updateGroupVisibility())
+    @ObserveChanges<Legend>((target, newValue?: boolean, oldValue?: boolean) => {
+        target.updateGroupVisibility();
+
+        if (newValue === oldValue) {
+            return;
+        }
+
+        const {
+            ctx: { legendManager, stateManager },
+        } = target;
+
+        if (oldValue === false && newValue === true) {
+            stateManager.restoreState(legendManager);
+        }
+    })
     @Validate(BOOLEAN)
     enabled: boolean = true;
 
@@ -281,7 +296,8 @@ export class Legend extends BaseProperties {
                 type: 'legend',
                 label: 'contextMenuToggleOtherSeries',
                 action: (params) => this.contextToggleOtherSeries(params),
-            })
+            }),
+            ctx.legendManager.addListener('legend-change', this.onLegendDataChange.bind(this))
         );
 
         this.destroyFns.push(
@@ -291,6 +307,25 @@ export class Legend extends BaseProperties {
         );
 
         this.domProxy = new LegendDOMProxy(this.ctx, this.id);
+
+        this.ctx.historyManager.addMementoOriginator(ctx.legendManager);
+    }
+
+    private onLegendDataChange({ legendData = [] }: LegendChangeEvent) {
+        if (!this.enabled) return;
+
+        const visibleItems = legendData.filter((datum) => !datum.hideInLegend);
+        const { data } = this;
+
+        const propertiesToCheck: (keyof CategoryLegendDatum)[] = ['seriesId', 'itemId', 'enabled', 'legendItemName'];
+        const shouldUpdate =
+            data.length !== legendData.length ||
+            data.some((_v, index, _a) => {
+                const [newValue, oldValue] = [legendData[index], data[index]];
+                return propertiesToCheck.some((p) => newValue[p] !== oldValue[p]);
+            });
+
+        if (shouldUpdate) this.data = visibleItems;
     }
 
     public destroy() {
@@ -946,8 +981,8 @@ export class Legend extends BaseProperties {
             return false;
         }
 
-        const { id, itemId, enabled } = datum;
-        const series = chartService.series.find((s) => s.id === id);
+        const { legendType, seriesId, itemId, enabled } = datum;
+        const series = chartService.series.find((s) => s.id === seriesId);
         if (!series) {
             return false;
         }
@@ -969,7 +1004,7 @@ export class Legend extends BaseProperties {
             }
 
             proxyButton.setChecked(newEnabled);
-            this.ctx.chartEventManager.legendItemClick(series, itemId, newEnabled, datum.legendItemName);
+            this.ctx.chartEventManager.legendItemClick(legendType, series, itemId, newEnabled, datum.legendItemName);
         }
 
         if (newEnabled) {
@@ -982,6 +1017,7 @@ export class Legend extends BaseProperties {
             highlightManager.updateHighlight(this.id);
         }
 
+        this.ctx.legendManager.update();
         this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, {
             forceNodeDataRefresh: true,
             skipAnimations: datum.skipAnimations ?? false,
@@ -1012,7 +1048,7 @@ export class Legend extends BaseProperties {
             return false;
         }
 
-        const { id, itemId, seriesId } = datum;
+        const { legendType, id, itemId, seriesId } = datum;
         const series = chartService.series.find((s) => s.id === id);
         if (!series) {
             return false;
@@ -1029,6 +1065,7 @@ export class Legend extends BaseProperties {
             const clickedItem = legendData.find((d) => d.itemId === itemId && d.seriesId === seriesId);
 
             this.ctx.chartEventManager.legendItemDoubleClick(
+                legendType,
                 series,
                 itemId,
                 clickedItem?.enabled ?? false,
@@ -1037,6 +1074,7 @@ export class Legend extends BaseProperties {
             );
         }
 
+        this.ctx.legendManager.update();
         this.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
 
         return true;

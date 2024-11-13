@@ -247,6 +247,7 @@ describe('PolarSeries', () => {
 
             options.data?.forEach((_, idx) => {
                 (deproxied.series[0] as any).toggleSeriesItem(idx, false);
+                (deproxied.series[0] as any).updateLegendData({ legendType: 'category', itemId: idx, enabled: false });
             });
             deproxied.update(ChartUpdateType.FULL);
 
@@ -255,6 +256,7 @@ describe('PolarSeries', () => {
 
             options.data?.forEach((_, idx) => {
                 (deproxied.series[0] as any).toggleSeriesItem(idx, true);
+                (deproxied.series[0] as any).updateLegendData({ legendType: 'category', itemId: idx, enabled: true });
             });
             deproxied.update(ChartUpdateType.FULL);
 

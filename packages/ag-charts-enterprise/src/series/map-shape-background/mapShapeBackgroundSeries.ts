@@ -221,4 +221,8 @@ export class MapShapeBackgroundSeries
     public override pickFocus() {
         return undefined;
     }
+
+    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+        return undefined;
+    }
 }

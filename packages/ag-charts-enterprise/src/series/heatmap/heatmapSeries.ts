@@ -486,13 +486,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.GradientLegendDatum[] {
-        if (
-            legendType !== 'gradient' ||
-            !this.data?.length ||
-            !this.properties.isValid() ||
-            !this.isColorScaleValid() ||
-            !this.dataModel
-        ) {
+        if (legendType !== 'gradient' || !this.properties.isValid() || !this.isColorScaleValid() || !this.dataModel) {
             return [];
         }
 

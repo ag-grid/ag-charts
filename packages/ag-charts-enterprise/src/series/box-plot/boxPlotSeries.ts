@@ -247,36 +247,31 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, data } = this;
         const {
-            xKey,
-            yName,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            showInLegend,
-            legendItemName,
+            id: seriesId,
+            ctx: { legendManager },
             visible,
-        } = this.properties;
+        } = this;
+        const { xKey, yName, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, showInLegend, legendItemName } =
+            this.properties;
 
-        if (!showInLegend || !data?.length || !xKey || legendType !== 'category') {
+        if (!xKey || legendType !== 'category') {
             return [];
         }
 
         return [
             {
                 legendType: 'category',
-                id,
-                itemId: id,
-                seriesId: id,
-                enabled: visible,
+                id: seriesId,
+                itemId: seriesId,
+                seriesId: seriesId,
+                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: seriesId }),
                 label: {
-                    text: legendItemName ?? yName ?? id,
+                    text: legendItemName ?? yName ?? seriesId,
                 },
                 symbols: [{ marker: { fill, fillOpacity, stroke, strokeOpacity, strokeWidth } }],
                 legendItemName,
+                hideInLegend: !showInLegend,
             },
         ];
     }

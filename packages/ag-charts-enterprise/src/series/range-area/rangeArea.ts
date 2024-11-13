@@ -558,6 +558,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             return [];
         }
 
+        const { id: seriesId, visible } = this;
+
         const {
             yLowKey,
             yHighKey,
@@ -569,17 +571,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeWidth,
             strokeOpacity,
             lineDash,
-            visible,
             marker,
+            showInLegend,
         } = this.properties;
         const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
-
+        const itemId = `${yLowKey}-${yHighKey}`;
         return [
             {
                 legendType: 'category',
-                id: this.id,
-                itemId: `${yLowKey}-${yHighKey}`,
-                seriesId: this.id,
+                id: seriesId,
+                itemId,
+                seriesId,
                 enabled: visible,
                 label: { text: `${legendItemText}` },
                 symbols: [
@@ -600,6 +602,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                         },
                     },
                 ],
+                hideInLegend: !showInLegend,
             },
         ];
     }

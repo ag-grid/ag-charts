@@ -568,18 +568,21 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        if (!this.data?.length || !this.properties.isValid() || legendType !== 'category') {
+        if (!this.properties.isValid() || legendType !== 'category') {
             return [];
         }
 
-        const { angleKey, angleName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, visible } = this.properties;
+        const { id: seriesId, visible } = this;
+
+        const { angleKey, angleName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, showInLegend } =
+            this.properties;
 
         return [
             {
                 legendType: 'category',
-                id: this.id,
+                id: seriesId,
                 itemId: angleKey,
-                seriesId: this.id,
+                seriesId,
                 enabled: visible,
                 label: {
                     text: angleName ?? angleKey,
@@ -595,25 +598,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                         },
                     },
                 ],
+                hideInLegend: !showInLegend,
             },
         ];
-    }
-
-    onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {
-        const { enabled, itemId, series } = event;
-
-        if (series.id === this.id) {
-            this.toggleSeriesItem(itemId, enabled);
-        }
-    }
-
-    onLegendItemDoubleClick(event: _ModuleSupport.LegendItemDoubleClickChartEvent) {
-        const { enabled, itemId, series, numVisibleItems } = event;
-
-        const wasClicked = series.id === this.id;
-        const newEnabled = wasClicked || (enabled && numVisibleItems === 1);
-
-        this.toggleSeriesItem(itemId, newEnabled);
     }
 
     override computeLabelsBBox() {

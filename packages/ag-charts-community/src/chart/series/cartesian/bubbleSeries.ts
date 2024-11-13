@@ -416,22 +416,28 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     }
 
     getLegendData(): CategoryLegendDatum[] {
-        if (!this.data?.length || !this.properties.isValid()) {
+        if (!this.properties.isValid()) {
             return [];
         }
 
-        const { yKey, yName, title, marker, visible } = this.properties;
+        const {
+            id: seriesId,
+            ctx: { legendManager },
+            visible,
+        } = this;
+
+        const { yKey: itemId, yName, title, marker } = this.properties;
         const { shape, fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
 
         return [
             {
                 legendType: 'category',
-                id: this.id,
-                itemId: yKey,
-                seriesId: this.id,
-                enabled: visible,
+                id: seriesId,
+                itemId,
+                seriesId,
+                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
                 label: {
-                    text: title ?? yName ?? yKey,
+                    text: title ?? yName ?? itemId,
                 },
                 symbols: [
                     {

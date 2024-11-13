@@ -283,26 +283,27 @@ export abstract class OhlcSeriesBase<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, data } = this;
+        const { id } = this;
         const {
             xKey,
             yName,
             item: { up, down },
             showInLegend,
             legendItemName,
-            visible,
         } = this.properties;
 
-        if (!showInLegend || !data?.length || !xKey || legendType !== 'category') {
+        if (!xKey || legendType !== 'category') {
             return [];
         }
+
+        const { id: seriesId, visible } = this;
 
         return [
             {
                 legendType: 'category',
-                id,
-                itemId: id,
-                seriesId: id,
+                id: seriesId,
+                itemId: seriesId,
+                seriesId,
                 enabled: visible,
                 label: {
                     text: legendItemName ?? yName ?? id,
@@ -329,6 +330,7 @@ export abstract class OhlcSeriesBase<
                     },
                 ],
                 legendItemName,
+                hideInLegend: !showInLegend,
             },
         ];
     }

@@ -556,25 +556,38 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, visible } = this;
-
         if (legendType !== 'category') {
             return [];
         }
 
-        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, yName, yLowName, yHighName, yLowKey, yHighKey } =
-            this.properties;
+        const { id: seriesId, visible } = this;
+
+        const {
+            fill,
+            stroke,
+            strokeWidth,
+            fillOpacity,
+            strokeOpacity,
+            yName,
+            yLowName,
+            yHighName,
+            yLowKey,
+            yHighKey,
+            showInLegend,
+        } = this.properties;
         const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
+        const itemId = `${yLowKey}-${yHighKey}`;
 
         return [
             {
                 legendType: 'category',
-                id,
-                itemId: `${yLowKey}-${yHighKey}`,
-                seriesId: id,
+                id: seriesId,
+                itemId,
+                seriesId,
                 enabled: visible,
                 label: { text: `${legendItemText}` },
                 symbols: [{ marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } }],
+                hideInLegend: !showInLegend,
             },
         ];
     }

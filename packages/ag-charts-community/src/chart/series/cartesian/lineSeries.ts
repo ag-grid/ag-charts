@@ -571,24 +571,40 @@ export class LineSeries extends CartesianSeries<
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        if (!(this.data?.length && this.properties.isValid() && legendType === 'category')) {
+        if (!(this.properties.isValid() && legendType === 'category')) {
             return [];
         }
 
-        const { yKey, yName, stroke, strokeOpacity, strokeWidth, lineDash, title, marker, visible, legendItemName } =
-            this.properties;
+        const {
+            id: seriesId,
+            ctx: { legendManager },
+            visible,
+        } = this;
+
+        const {
+            yKey: itemId,
+            yName,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            title,
+            marker,
+            legendItemName,
+            showInLegend,
+        } = this.properties;
 
         const color0 = 'rgba(0, 0, 0, 0)';
         return [
             {
                 legendType: 'category',
-                id: this.id,
-                itemId: yKey,
+                id: seriesId,
+                itemId,
                 legendItemName,
-                seriesId: this.id,
-                enabled: visible,
+                seriesId,
+                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
                 label: {
-                    text: legendItemName ?? title ?? yName ?? yKey,
+                    text: legendItemName ?? title ?? yName ?? itemId,
                 },
                 symbols: [
                     {
@@ -609,6 +625,7 @@ export class LineSeries extends CartesianSeries<
                         },
                     },
                 ],
+                hideInLegend: !showInLegend,
             },
         ];
     }

@@ -17,7 +17,6 @@ import { BOOLEAN, STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../../interaction/chartEventManager';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { DataModelSeries } from '../dataModelSeries';
@@ -728,33 +727,6 @@ export abstract class CartesianSeries<
             }
 
             return { datum: closestDatum, distance: Math.sqrt(closestDistanceSquared) };
-        }
-    }
-
-    onLegendItemClick(event: LegendItemClickChartEvent) {
-        const { legendItemName } = this.properties;
-        const { enabled, itemId, series } = event;
-
-        const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
-            this.toggleSeriesItem(itemId, enabled);
-        }
-    }
-
-    onLegendItemDoubleClick(event: LegendItemDoubleClickChartEvent) {
-        const { enabled, itemId, series, numVisibleItems } = event;
-        const { legendItemName } = this.properties;
-
-        const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
-            // Double-clicked item should always become visible.
-            this.toggleSeriesItem(itemId, true);
-        } else if (enabled && numVisibleItems === 1) {
-            // Other items should become visible if there is only one existing visible item.
-            this.toggleSeriesItem(itemId, true);
-        } else {
-            // Disable other items if not exactly one enabled.
-            this.toggleSeriesItem(itemId, false);
         }
     }
 

@@ -362,11 +362,17 @@ describe('Axis Examples', () => {
             });
 
             it(`for ${exampleName} it should render identically after legend toggle`, async () => {
-                chart = await createChart(example.options);
+                chart = await createChart({ ...example.options, legend: { enabled: true } });
                 const reference = await snapshot();
 
                 chart.series.forEach((s) => {
-                    (s as any).toggleSeriesItem(s.getKeys(ChartAxisDirection.Y)[0], true);
+                    const itemId = s.getKeys(ChartAxisDirection.Y)[0];
+                    (s as any).toggleSeriesItem(s.id, true);
+                    (s as any).updateLegendData({
+                        legendType: 'category',
+                        itemId,
+                        enabled: true,
+                    });
                 });
                 chart.update(ChartUpdateType.FULL);
 
@@ -374,7 +380,13 @@ describe('Axis Examples', () => {
                 expect(afterUpdate).not.toMatchImage(reference);
 
                 chart.series.forEach((s) => {
-                    (s as any).toggleSeriesItem(s.getKeys(ChartAxisDirection.Y)[0], false);
+                    const itemId = s.getKeys(ChartAxisDirection.Y)[0];
+                    (s as any).toggleSeriesItem(s.id, false);
+                    (s as any).updateLegendData({
+                        legendType: 'category',
+                        itemId,
+                        enabled: false,
+                    });
                 });
                 chart.update(ChartUpdateType.FULL);
 
@@ -386,19 +398,30 @@ describe('Axis Examples', () => {
 
     describe('toggle secondary axis series', () => {
         it(`for ADV_COMBINATION_SERIES_CHART_EXAMPLE it should render identically after legend toggle`, async () => {
-            chart = await createChart(examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE);
+            chart = await createChart({ ...examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE, legend: { enabled: true } });
             const reference = await snapshot();
-            expect(chart.series[2].getKeys(ChartAxisDirection.Y)).toEqual(['exportedTonnes']);
+
+            const secondarySeries = chart.series[2] as any;
+
+            expect(secondarySeries.getKeys(ChartAxisDirection.Y)).toEqual(['exportedTonnes']);
 
             // Hide series bound to secondary axis.
-            (chart.series[2] as any).toggleSeriesItem('exportedTonnes', false);
+            secondarySeries.toggleSeriesItem(secondarySeries.id, false);
+            secondarySeries.updateLegendData({
+                legendType: 'category',
+                enabled: false,
+            });
             chart.update(ChartUpdateType.FULL);
 
             const afterUpdate = await snapshot();
             (expect(afterUpdate) as any).not.toMatchImage(reference);
 
             // Show series bound to secondary axis.
-            (chart.series[2] as any).toggleSeriesItem('exportedTonnes', true);
+            secondarySeries.toggleSeriesItem(secondarySeries.id, true);
+            secondarySeries.updateLegendData({
+                legendType: 'category',
+                enabled: true,
+            });
             chart.update(ChartUpdateType.FULL);
 
             const afterFinalUpdate = await snapshot();
@@ -406,19 +429,33 @@ describe('Axis Examples', () => {
         });
 
         it(`for ADV_COMBINATION_SERIES_CHART_EXAMPLE it should render identically after legend toggle with reversed axes`, async () => {
-            chart = await createChart(reverseAxes(examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE, true));
+            chart = await createChart({
+                ...reverseAxes(examples.ADV_COMBINATION_SERIES_CHART_EXAMPLE, true),
+                legend: { enabled: true },
+            });
+
             const reference = await snapshot();
-            expect(chart.series[2].getKeys(ChartAxisDirection.Y)).toEqual(['exportedTonnes']);
+
+            const secondarySeries = chart.series[2] as any;
+            expect(secondarySeries.getKeys(ChartAxisDirection.Y)).toEqual(['exportedTonnes']);
 
             // Hide series bound to secondary axis.
-            (chart.series[2] as any).toggleSeriesItem('exportedTonnes', false);
+            secondarySeries.toggleSeriesItem(secondarySeries.id, false);
+            secondarySeries.updateLegendData({
+                legendType: 'category',
+                enabled: false,
+            });
             chart.update(ChartUpdateType.FULL);
 
             const afterUpdate = await snapshot();
             (expect(afterUpdate) as any).not.toMatchImage(reference);
 
             // Show series bound to secondary axis.
-            (chart.series[2] as any).toggleSeriesItem('exportedTonnes', true);
+            secondarySeries.toggleSeriesItem(secondarySeries.id, true);
+            secondarySeries.updateLegendData({
+                legendType: 'category',
+                enabled: true,
+            });
             chart.update(ChartUpdateType.FULL);
 
             const afterFinalUpdate = await snapshot();

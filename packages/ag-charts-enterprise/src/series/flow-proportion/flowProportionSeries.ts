@@ -474,6 +474,7 @@ export abstract class FlowProportionSeries<
     override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         if (legendType !== 'category') return [];
 
+        const { showInLegend } = this.properties;
         return Array.from(
             this.processedNodes.values(),
             ({ id, label, fill, stroke }): _ModuleSupport.CategoryLegendDatum => ({
@@ -494,6 +495,7 @@ export abstract class FlowProportionSeries<
                         },
                     },
                 ],
+                hideInLegend: !showInLegend,
             })
         );
     }
