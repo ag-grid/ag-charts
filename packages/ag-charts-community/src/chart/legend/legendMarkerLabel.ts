@@ -1,18 +1,18 @@
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
-import { BBox } from '../scene/bbox';
-import { Group } from '../scene/group';
-import { Image } from '../scene/image';
-import type { Line } from '../scene/shape/line';
-import { Text } from '../scene/shape/text';
-import type { SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
-import { Translatable } from '../scene/transformable';
-import { arraysEqual } from '../util/array';
-import { iterate } from '../util/iterator';
-import { ProxyPropertyOnWrite } from '../util/proxy';
-import type { SwitchWidget } from '../widget/switchWidget';
-import type { Marker } from './marker/marker';
-import type { MarkerConstructor } from './marker/util';
+import { BBox } from '../../scene/bbox';
+import { Group } from '../../scene/group';
+import { Image } from '../../scene/image';
+import type { Line } from '../../scene/shape/line';
+import { Text } from '../../scene/shape/text';
+import type { SpriteDimensions, SpriteRenderer } from '../../scene/spriteRenderer';
+import { Translatable } from '../../scene/transformable';
+import { arraysEqual } from '../../util/array';
+import { iterate } from '../../util/iterator';
+import { ProxyPropertyOnWrite } from '../../util/proxy';
+import type { SwitchWidget } from '../../widget/switchWidget';
+import type { Marker } from '../marker/marker';
+import type { MarkerConstructor } from '../marker/util';
 
 export class LegendMarkerLabel extends Translatable(Group) {
     static readonly className = 'MarkerLabel';

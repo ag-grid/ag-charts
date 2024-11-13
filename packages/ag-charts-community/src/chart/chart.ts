@@ -48,7 +48,7 @@ import { REGIONS, SimpleRegionBBoxProvider } from './interaction/regions';
 import { SyncManager } from './interaction/syncManager';
 import { Keyboard } from './keyboard';
 import { LayoutElement } from './layout/layoutManager';
-import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legendDatum';
+import type { CategoryLegendDatum, ChartLegend, ChartLegendType, GradientLegendDatum } from './legend/legendDatum';
 import { guessInvalidPositions } from './mapping/prepareAxis';
 import { matchSeriesOptions } from './mapping/prepareSeries';
 import { type SeriesOptionsTypes, isAgCartesianChartOptions } from './mapping/types';

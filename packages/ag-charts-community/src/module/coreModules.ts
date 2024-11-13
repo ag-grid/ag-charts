@@ -13,7 +13,7 @@ import type {
     AgTopologySeriesOptions,
 } from 'ag-charts-types';
 
-import type { ChartLegend, ChartLegendType } from '../chart/legendDatum';
+import type { ChartLegend, ChartLegendType } from '../chart/legend/legendDatum';
 import type { Series } from '../chart/series/series';
 import type { BaseModule, ChartTypes, ModuleInstance } from './baseModule';
 import type { RequiredSeriesType, SeriesPaletteFactory } from './coreModulesTypes';

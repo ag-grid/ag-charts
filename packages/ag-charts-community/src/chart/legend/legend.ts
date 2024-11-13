@@ -13,23 +13,23 @@ import type {
     Formatter,
 } from 'ag-charts-types';
 
-import type { LayoutContext } from '../module/baseModule';
-import type { ModuleContext } from '../module/moduleContext';
-import { BBox } from '../scene/bbox';
-import { Group, TranslatableGroup } from '../scene/group';
-import type { Scene } from '../scene/scene';
-import { Selection } from '../scene/selection';
-import { Line } from '../scene/shape/line';
-import { type SpriteDimensions, SpriteRenderer } from '../scene/spriteRenderer';
-import { Transformable } from '../scene/transformable';
-import { getWindow } from '../util/dom';
-import { createId } from '../util/id';
-import { Logger } from '../util/logger';
-import { clamp } from '../util/number';
-import { BaseProperties } from '../util/properties';
-import { ObserveChanges } from '../util/proxy';
-import { CachedTextMeasurerPool, TextUtils } from '../util/textMeasurer';
-import { TextWrapper } from '../util/textWrapper';
+import type { LayoutContext } from '../../module/baseModule';
+import type { ModuleContext } from '../../module/moduleContext';
+import { BBox } from '../../scene/bbox';
+import { Group, TranslatableGroup } from '../../scene/group';
+import type { Scene } from '../../scene/scene';
+import { Selection } from '../../scene/selection';
+import { Line } from '../../scene/shape/line';
+import { type SpriteDimensions, SpriteRenderer } from '../../scene/spriteRenderer';
+import { Transformable } from '../../scene/transformable';
+import { getWindow } from '../../util/dom';
+import { createId } from '../../util/id';
+import { Logger } from '../../util/logger';
+import { clamp } from '../../util/number';
+import { BaseProperties } from '../../util/properties';
+import { ObserveChanges } from '../../util/proxy';
+import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
+import { TextWrapper } from '../../util/textWrapper';
 import {
     BOOLEAN,
     COLOR_STRING,
@@ -42,22 +42,22 @@ import {
     STRING,
     UNION,
     Validate,
-} from '../util/validation';
-import type { SwitchWidget } from '../widget/switchWidget';
-import { ChartUpdateType } from './chartUpdateType';
-import type { Page } from './gridLayout';
-import { gridLayout } from './gridLayout';
-import type { HighlightNodeDatum } from './interaction/highlightManager';
-import { InteractionState, type PointerInteractionEvent } from './interaction/interactionManager';
-import { LayoutElement } from './layout/layoutManager';
+} from '../../util/validation';
+import type { SwitchWidget } from '../../widget/switchWidget';
+import { ChartUpdateType } from '../chartUpdateType';
+import type { Page } from '../gridLayout';
+import { gridLayout } from '../gridLayout';
+import type { HighlightNodeDatum } from '../interaction/highlightManager';
+import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
+import { LayoutElement } from '../layout/layoutManager';
+import type { Marker } from '../marker/marker';
+import { getMarker } from '../marker/util';
+import { Pagination } from '../pagination/pagination';
+import { type TooltipMeta, type TooltipPointerEvent, toTooltipHtml } from '../tooltip/tooltip';
+import { ZIndexMap } from '../zIndexMap';
 import { LegendDOMProxy } from './legendDOMProxy';
 import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
 import { LegendMarkerLabel } from './legendMarkerLabel';
-import type { Marker } from './marker/marker';
-import { getMarker } from './marker/util';
-import { Pagination } from './pagination/pagination';
-import { type TooltipMeta, type TooltipPointerEvent, toTooltipHtml } from './tooltip/tooltip';
-import { ZIndexMap } from './zIndexMap';
 
 class LegendLabel extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })

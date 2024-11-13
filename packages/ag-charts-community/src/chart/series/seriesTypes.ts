@@ -4,7 +4,7 @@ import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { Point, SizedPoint } from '../../scene/point';
 import type { ChartAxisDirection } from '../chartAxisDirection';
-import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
+import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltip';
 
 // Breaks circular dependency between ISeries and ChartAxis.

@@ -4,7 +4,7 @@ import type { AgPieSeriesOptions, AgPolarChartOptions } from 'ag-charts-types';
 
 import { Transformable } from '../../../scene/transformable';
 import type { Chart } from '../../chart';
-import { LegendMarkerLabel } from '../../legendMarkerLabel';
+import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,

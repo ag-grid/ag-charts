@@ -5,7 +5,7 @@ import type { AgAreaSeriesOptions, AgCartesianChartOptions, AgChartInstance, AgC
 import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
 import { deepClone } from '../../../util/json';
-import { LegendMarkerLabel } from '../../legendMarkerLabel';
+import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
     DATA_INVALID_DOMAIN_LOG_AXIS,

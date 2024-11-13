@@ -2,10 +2,10 @@ import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type { AgCartesianChartOptions, AgChartOptions, AgMarkerShapeFnParams, AgPath } from 'ag-charts-types';
 
-import { AgCharts } from '../api/agCharts';
-import type { Chart } from './chart';
-import * as examples from './test/examples';
-import { seedRandom } from './test/random';
+import { AgCharts } from '../../api/agCharts';
+import type { Chart } from '../chart';
+import * as examples from '../test/examples';
+import { seedRandom } from '../test/random';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
@@ -18,8 +18,8 @@ import {
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
-} from './test/utils';
-import type { AgChartProxy } from './test/utils';
+} from '../test/utils';
+import type { AgChartProxy } from '../test/utils';
 
 function buildSeries(data: { x: number; y: number }) {
     return {

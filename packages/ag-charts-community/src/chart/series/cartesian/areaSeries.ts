@@ -31,7 +31,7 @@ import {
     normaliseGroupTo,
     valueProperty,
 } from '../../data/processors';
-import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';

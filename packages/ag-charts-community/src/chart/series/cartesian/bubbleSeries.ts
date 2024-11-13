@@ -16,7 +16,7 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, valueProperty } from '../../data/processors';
-import type { CategoryLegendDatum } from '../../legendDatum';
+import type { CategoryLegendDatum } from '../../legend/legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';

@@ -1,4 +1,4 @@
-import type { LegendModule } from '../module/coreModules';
+import type { LegendModule } from '../../module/coreModules';
 import { Legend } from './legend';
 
 export const CommunityLegendModule: LegendModule = {

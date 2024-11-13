@@ -1,7 +1,7 @@
 import type { AgContextMenuOptions } from 'ag-charts-types';
 
 import { Listeners } from '../../util/listeners';
-import type { CategoryLegendDatum } from '../legendDatum';
+import type { CategoryLegendDatum } from '../legend/legendDatum';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
 import { InteractionState, type PointerInteractionEvent } from './interactionManager';
 import { type PreventableEvent, buildPreventable } from './preventableEvent';

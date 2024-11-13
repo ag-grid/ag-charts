@@ -18,7 +18,7 @@ import type { DataController } from '../../data/dataController';
 import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import { SORT_DOMAIN_GROUPS, createDatumId, diff, keyProperty, valueProperty } from '../../data/processors';
-import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, Series, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';

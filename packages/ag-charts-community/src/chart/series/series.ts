@@ -30,7 +30,7 @@ import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
-import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
+import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent } from '../tooltip/tooltip';
 import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';

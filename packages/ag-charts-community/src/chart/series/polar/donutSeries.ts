@@ -35,7 +35,7 @@ import {
     valueProperty,
 } from '../../data/processors';
 import type { LegendItemClickChartEvent } from '../../interaction/chartEventManager';
-import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { Circle } from '../../marker/circle';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import { SeriesNodeEvent, type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
