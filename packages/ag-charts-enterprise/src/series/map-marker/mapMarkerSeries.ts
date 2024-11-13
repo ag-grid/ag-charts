@@ -5,6 +5,7 @@ import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { markerPositions } from '../map-util/markerUtil';
+import { TopologySeries } from '../map-util/topologySeries';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import {
     type MapMarkerNodeDatum,
@@ -47,7 +48,7 @@ type MapMarkerAnimationEvent = {
 };
 
 export class MapMarkerSeries
-    extends _ModuleSupport.TopologySeries<
+    extends TopologySeries<
         MapMarkerNodeDatum,
         MapMarkerSeriesProperties,
         MapMarkerNodeLabelDatum,

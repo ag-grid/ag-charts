@@ -7,6 +7,7 @@ import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { polygonMarkerCenter } from '../map-util/markerUtil';
 import { maxWidthInPolygonForRectOfHeight, preferredLabelCenter } from '../map-util/polygonLabelUtil';
+import { TopologySeries } from '../map-util/topologySeries';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { formatSingleLabel } from '../util/labelFormatter';
 import {
@@ -47,12 +48,7 @@ interface LabelLayout {
     fixedPolygon: _ModuleSupport.Position[][];
 }
 export class MapShapeSeries
-    extends _ModuleSupport.TopologySeries<
-        MapShapeNodeDatum,
-        MapShapeSeriesProperties,
-        MapShapeNodeLabelDatum,
-        MapShapeNodeDataContext
-    >
+    extends TopologySeries<MapShapeNodeDatum, MapShapeSeriesProperties, MapShapeNodeLabelDatum, MapShapeNodeDataContext>
     implements _ModuleSupport.ITopology
 {
     static readonly className = 'MapShapeSeries';

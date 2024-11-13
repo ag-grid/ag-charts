@@ -3,6 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
+import { TopologySeries } from '../map-util/topologySeries';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import {
     type MapShapeBackgroundNodeDatum,
@@ -15,7 +16,7 @@ export interface MapShapeBackgroundNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapShapeBackgroundNodeDatum> {}
 
 export class MapShapeBackgroundSeries
-    extends _ModuleSupport.TopologySeries<
+    extends TopologySeries<
         MapShapeBackgroundNodeDatum,
         MapShapeBackgroundSeriesProperties,
         MapShapeBackgroundNodeDatum,

@@ -5,6 +5,7 @@ import { GeometryType, containsType, geometryBbox, largestLineString, projectGeo
 import { lineStringCenter } from '../map-util/lineStringUtil';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
+import { TopologySeries } from '../map-util/topologySeries';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
@@ -26,7 +27,7 @@ const {
 export interface MapLineNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapLineNodeDatum, MapLineNodeLabelDatum> {}
 
-export class MapLineSeries extends _ModuleSupport.TopologySeries<
+export class MapLineSeries extends TopologySeries<
     MapLineNodeDatum,
     MapLineSeriesProperties,
     MapLineNodeLabelDatum,
