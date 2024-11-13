@@ -320,7 +320,6 @@ export class AreaSeries extends CartesianSeries<
             };
         };
 
-        const itemId = yKey;
         const labelData: LabelSelectionDatum[] = [];
         const markerData: MarkerSelectionDatum[] = [];
         const { visibleSameStackCount } = this.ctx.seriesStateManager.getVisiblePeerGroupIndex(this);
@@ -351,7 +350,7 @@ export class AreaSeries extends CartesianSeries<
                     markerData.push({
                         index: datumIndex,
                         series: this,
-                        itemId,
+                        itemId: yKey,
                         datum: seriesDatum,
                         midPoint: { x: point.x, y: point.y },
                         cumulativeValue: yValueEnd,
@@ -512,9 +511,9 @@ export class AreaSeries extends CartesianSeries<
         const strokeSpans = currentSeriesSpans.filter((span): span is LinePathSpan => span != null);
 
         const context: AreaSeriesNodeDataContext = {
-            itemId,
-            fillData: { itemId, spans: fillSpans, phantomSpans },
-            strokeData: { itemId, spans: strokeSpans },
+            itemId: yKey,
+            fillData: { itemId: yKey, spans: fillSpans, phantomSpans },
+            strokeData: { itemId: yKey, spans: strokeSpans },
             labelData,
             nodeData: markerData,
             scales: this.calculateScaling(),

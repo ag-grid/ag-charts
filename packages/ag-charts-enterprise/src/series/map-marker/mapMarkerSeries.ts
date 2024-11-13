@@ -673,6 +673,7 @@ export class MapMarkerSeries
             fillOpacity,
             strokeOpacity,
             strokeWidth,
+            showInLegend,
         } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
@@ -688,14 +689,13 @@ export class MapMarkerSeries
             };
             return [legendDatum];
         } else if (legendType === 'category') {
-            const itemId = legendItemName ?? title ?? idName ?? idKey ?? seriesId;
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
                 id: seriesId,
-                itemId,
+                itemId: seriesId,
                 seriesId,
                 enabled: visible,
-                label: { text: itemId },
+                label: { text: legendItemName ?? title ?? idName ?? idKey ?? seriesId },
                 symbols: [
                     {
                         marker: {
@@ -709,6 +709,7 @@ export class MapMarkerSeries
                     },
                 ],
                 legendItemName,
+                hideInLegend: !showInLegend,
             };
             return [legendDatum];
         } else {

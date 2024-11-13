@@ -976,7 +976,7 @@ export abstract class Chart extends Observable {
                 seriesId,
                 symbols: [{ marker }],
                 label,
-            } of legendData) {
+            } of legendData.filter((d) => !d.hideInLegend)) {
                 if (marker.fill == null) continue;
 
                 const seriesType = seriesTypeMap.get(seriesId)!;

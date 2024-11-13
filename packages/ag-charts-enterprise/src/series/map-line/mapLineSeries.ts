@@ -521,6 +521,7 @@ export class MapLineSeries extends TopologySeries<
             strokeWidth,
             strokeOpacity,
             lineDash,
+            showInLegend,
         } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
@@ -536,14 +537,13 @@ export class MapLineSeries extends TopologySeries<
             };
             return [legendDatum];
         } else if (legendType === 'category') {
-            const itemId = legendItemName ?? title ?? idName ?? idKey;
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
                 id: seriesId,
-                itemId,
+                itemId: seriesId,
                 seriesId,
                 enabled: visible,
-                label: { text: itemId },
+                label: { text: legendItemName ?? title ?? idName ?? idKey },
                 symbols: [
                     {
                         marker: {
@@ -563,6 +563,7 @@ export class MapLineSeries extends TopologySeries<
                     },
                 ],
                 legendItemName,
+                hideInLegend: !showInLegend,
             };
             return [legendDatum];
         } else {

@@ -585,6 +585,7 @@ export class MapShapeSeries
             colorKey,
             colorName,
             colorRange,
+            showInLegend,
         } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
@@ -600,14 +601,13 @@ export class MapShapeSeries
             };
             return [legendDatum];
         } else if (legendType === 'category') {
-            const itemId = legendItemName ?? title ?? idName ?? idKey;
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
                 id: seriesId,
-                itemId,
+                itemId: seriesId,
                 seriesId,
                 enabled: visible,
-                label: { text: itemId },
+                label: { text: legendItemName ?? title ?? idName ?? idKey },
                 symbols: [
                     {
                         marker: {
@@ -620,6 +620,7 @@ export class MapShapeSeries
                     },
                 ],
                 legendItemName,
+                hideInLegend: !showInLegend,
             };
             return [legendDatum];
         } else {
