@@ -9,19 +9,19 @@ import {
     MapShapeBackgroundSeriesProperties,
 } from './mapShapeBackgroundSeriesProperties';
 
-const { createDatumId, Series, SeriesNodePickMode, Validate, Logger, Selection, Group, PointerEvents } = _ModuleSupport;
+const { createDatumId, SeriesNodePickMode, Validate, Logger, Selection, Group, PointerEvents } = _ModuleSupport;
 
 export interface MapShapeBackgroundNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapShapeBackgroundNodeDatum> {}
 
 export class MapShapeBackgroundSeries
-    extends Series<
+    extends _ModuleSupport.TopologySeries<
         MapShapeBackgroundNodeDatum,
         MapShapeBackgroundSeriesProperties,
         MapShapeBackgroundNodeDatum,
         MapShapeBackgroundNodeDataContext
     >
-    implements _ModuleSupport.TopologySeries
+    implements _ModuleSupport.ITopology
 {
     static readonly className = 'MapShapeBackgroundSeries';
     static readonly type = 'map-shape-background' as const;
@@ -45,6 +45,10 @@ export class MapShapeBackgroundSeries
 
     override setChartData() {
         // Ignore data
+    }
+
+    public override getNodeData(): MapShapeBackgroundNodeDatum[] | undefined {
+        return;
     }
 
     override get hasData() {

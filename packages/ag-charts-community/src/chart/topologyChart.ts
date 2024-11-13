@@ -9,9 +9,9 @@ import type { Series } from './series/series';
 import type { Position } from './series/topology/geojson';
 import type { LonLatBBox } from './series/topology/lonLatBbox';
 import { MercatorScale } from './series/topology/mercatorScale';
-import type { TopologySeries } from './series/topologySeries';
+import type { ITopology } from './series/topologySeries';
 
-function isTopologySeries(series: Series<any, any>): series is TopologySeries {
+function isTopologySeries(series: Series<any, any>): series is ITopology {
     return (
         series.type === 'map-shape' ||
         series.type === 'map-line' ||
@@ -65,7 +65,7 @@ export class TopologyChart extends Chart {
         this.seriesRect = layoutBox;
         this.animationRect = layoutBox;
 
-        const mapSeries = this.series.filter<TopologySeries>(isTopologySeries);
+        const mapSeries = this.series.filter<ITopology>(isTopologySeries);
         const combinedBbox = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
             if (!series.visible) return combined;
             const bbox = series.topologyBounds;

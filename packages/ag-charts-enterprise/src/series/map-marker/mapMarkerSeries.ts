@@ -19,7 +19,6 @@ const {
     StateMachine,
     getMissCount,
     createDatumId,
-    DataModelSeries,
     SeriesNodePickMode,
     valueProperty,
     computeMarkerFocusBounds,
@@ -48,13 +47,13 @@ type MapMarkerAnimationEvent = {
 };
 
 export class MapMarkerSeries
-    extends DataModelSeries<
+    extends _ModuleSupport.TopologySeries<
         MapMarkerNodeDatum,
         MapMarkerSeriesProperties,
         MapMarkerNodeLabelDatum,
         MapMarkerNodeDataContext
     >
-    implements _ModuleSupport.TopologySeries
+    implements _ModuleSupport.ITopology
 {
     static readonly className = 'MapMarkerSeries';
     static readonly type = 'map-marker' as const;
@@ -171,17 +170,6 @@ export class MapMarkerSeries
         this.highlightGroup.zIndex = [MapZIndexMap.MarkerHighlight, index];
 
         return true;
-    }
-
-    override addChartEventListeners(): void {
-        this.destroyFns.push(
-            this.ctx.chartEventManager.addListener('legend-item-click', (event) => {
-                this.onLegendItemClick(event);
-            }),
-            this.ctx.chartEventManager.addListener('legend-item-double-click', (event) => {
-                this.onLegendItemDoubleClick(event);
-            })
-        );
     }
 
     private isLabelEnabled() {
@@ -604,33 +592,6 @@ export class MapMarkerSeries
             marker.translationY = point.y;
             marker.zIndex = !isHighlight && highlightedDatum != null && datum === highlightedDatum.datum ? 1 : 0;
         });
-    }
-
-    onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {
-        const { legendItemName } = this.properties;
-        const { enabled, itemId, series } = event;
-
-        const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
-            this.toggleSeriesItem(itemId, enabled);
-        }
-    }
-
-    onLegendItemDoubleClick(event: _ModuleSupport.LegendItemDoubleClickChartEvent) {
-        const { enabled, itemId, series, numVisibleItems } = event;
-        const { legendItemName } = this.properties;
-
-        const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
-            // Double-clicked item should always become visible.
-            this.toggleSeriesItem(itemId, true);
-        } else if (enabled && numVisibleItems === 1) {
-            // Other items should become visible if there is only one existing visible item.
-            this.toggleSeriesItem(itemId, true);
-        } else {
-            // Disable other items if not exactly one enabled.
-            this.toggleSeriesItem(itemId, false);
-        }
     }
 
     override isProcessedDataAnimatable() {

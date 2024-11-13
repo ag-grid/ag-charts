@@ -9,19 +9,18 @@ import {
     MapLineBackgroundSeriesProperties,
 } from './mapLineBackgroundSeriesProperties';
 
-const { createDatumId, DataModelSeries, SeriesNodePickMode, Validate, Logger, Group, Selection, PointerEvents } =
-    _ModuleSupport;
+const { createDatumId, SeriesNodePickMode, Validate, Logger, Group, Selection, PointerEvents } = _ModuleSupport;
 
 export interface MapLineNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<MapLineBackgroundNodeDatum> {}
 
 export class MapLineBackgroundSeries
-    extends DataModelSeries<
+    extends _ModuleSupport.TopologySeries<
         MapLineBackgroundNodeDatum,
         MapLineBackgroundSeriesProperties,
         MapLineBackgroundNodeDatum,
         MapLineNodeDataContext
     >
-    implements _ModuleSupport.TopologySeries
+    implements _ModuleSupport.ITopology
 {
     static readonly className = 'MapLineBackgroundSeries';
     static readonly type = 'map-line-background' as const;
