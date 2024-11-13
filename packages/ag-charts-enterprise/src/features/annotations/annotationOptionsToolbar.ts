@@ -1,7 +1,6 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 
-import { Menu, type MenuItem } from '../../components/menu/menu';
-import { ColorPicker } from '../color-picker/colorPicker';
+import { ColorPicker } from '../../components/color-picker/colorPicker';
 import {
     type AnnotationOptionsColorPickerType,
     type HasColorAnnotationType,
@@ -19,7 +18,7 @@ import { hasFillColor, hasFontSize, hasLineColor, hasLineStyle, hasLineText, has
 import { getLineStyle } from './utils/line';
 import { isTextType } from './utils/types';
 
-const { Color, ToolbarManager, Vec2 } = _ModuleSupport;
+const { Color, Menu, ToolbarManager, Vec2 } = _ModuleSupport;
 
 interface EventMap {
     'pressed-delete': void;
@@ -173,13 +172,13 @@ export class AnnotationOptionsToolbar
         });
     }
 
-    public updateLineStyleType(item: MenuItem<AgAnnotationLineStyleType>) {
+    public updateLineStyleType(item: _ModuleSupport.MenuItem<AgAnnotationLineStyleType>) {
         this.ctx.toolbarManager.updateButton('annotationOptions', AnnotationOptions.LineStyleType, {
             icon: item.icon,
         });
     }
 
-    public updateStrokeWidth(item: MenuItem<number>) {
+    public updateStrokeWidth(item: _ModuleSupport.MenuItem<number>) {
         this.ctx.toolbarManager.updateButton('annotationOptions', AnnotationOptions.LineStrokeWidth, {
             label: item.label,
             strokeWidth: item.value,
@@ -321,7 +320,7 @@ export class AnnotationOptionsToolbar
         this.updateColorPickerFill(colorPickerType, colorOpacity);
     }
 
-    private onTextSizeMenuPress(item: MenuItem<number>, datum?: AnnotationProperties) {
+    private onTextSizeMenuPress(item: _ModuleSupport.MenuItem<number>, datum?: AnnotationProperties) {
         if (!hasFontSize(datum)) return;
 
         const fontSize = item.value;
@@ -330,7 +329,10 @@ export class AnnotationOptionsToolbar
         this.updateFontSize(fontSize);
     }
 
-    private onLineStyleTypeMenuPress(item: MenuItem<AgAnnotationLineStyleType>, datum?: AnnotationProperties) {
+    private onLineStyleTypeMenuPress(
+        item: _ModuleSupport.MenuItem<AgAnnotationLineStyleType>,
+        datum?: AnnotationProperties
+    ) {
         if (!hasLineStyle(datum)) return;
 
         const type = item.value;
@@ -339,7 +341,7 @@ export class AnnotationOptionsToolbar
         this.updateLineStyleType(item);
     }
 
-    private onLineStrokeWidthMenuPress(item: MenuItem<number>, datum?: AnnotationProperties) {
+    private onLineStrokeWidthMenuPress(item: _ModuleSupport.MenuItem<number>, datum?: AnnotationProperties) {
         if (!hasLineStyle(datum)) {
             return;
         }

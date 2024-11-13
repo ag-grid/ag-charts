@@ -1,6 +1,5 @@
-import type { AgAnnotationLineStyleType } from 'ag-charts-community';
+import type { AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 
-import type { MenuItem } from '../../components/menu/menu';
 import { AnnotationType } from './annotationTypes';
 
 export enum AnnotationOptions {
@@ -15,7 +14,7 @@ export enum AnnotationOptions {
     Settings = 'settings',
 }
 
-export const LINE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
+export const LINE_ANNOTATION_ITEMS: _ModuleSupport.MenuItem<AnnotationType>[] = [
     {
         label: 'toolbarAnnotationsTrendLine',
         icon: 'trend-line-drawing',
@@ -43,20 +42,20 @@ export const LINE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
     },
 ];
 
-export const TEXT_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
+export const TEXT_ANNOTATION_ITEMS: _ModuleSupport.MenuItem<AnnotationType>[] = [
     { label: 'toolbarAnnotationsText', icon: 'text-annotation', value: AnnotationType.Text },
     { label: 'toolbarAnnotationsComment', icon: 'comment-annotation', value: AnnotationType.Comment },
     { label: 'toolbarAnnotationsCallout', icon: 'callout-annotation', value: AnnotationType.Callout },
     { label: 'toolbarAnnotationsNote', icon: 'note-annotation', value: AnnotationType.Note },
 ];
 
-export const SHAPE_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
+export const SHAPE_ANNOTATION_ITEMS: _ModuleSupport.MenuItem<AnnotationType>[] = [
     { label: 'toolbarAnnotationsArrow', icon: 'arrow-drawing', value: AnnotationType.Arrow },
     { label: 'toolbarAnnotationsArrowUp', icon: 'arrow-up-drawing', value: AnnotationType.ArrowUp },
     { label: 'toolbarAnnotationsArrowDown', icon: 'arrow-down-drawing', value: AnnotationType.ArrowDown },
 ];
 
-export const MEASURER_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
+export const MEASURER_ANNOTATION_ITEMS: _ModuleSupport.MenuItem<AnnotationType>[] = [
     {
         label: 'toolbarAnnotationsQuickDatePriceRange',
         icon: 'measurer-drawing',
@@ -71,7 +70,7 @@ export const MEASURER_ANNOTATION_ITEMS: MenuItem<AnnotationType>[] = [
     },
 ];
 
-export const LINE_STROKE_WIDTH_ITEMS: MenuItem<number>[] = [
+export const LINE_STROKE_WIDTH_ITEMS: _ModuleSupport.MenuItem<number>[] = [
     { strokeWidth: 1, label: '1', value: 1 },
     { strokeWidth: 2, label: '2', value: 2 },
     { strokeWidth: 3, label: '3', value: 3 },
@@ -79,13 +78,13 @@ export const LINE_STROKE_WIDTH_ITEMS: MenuItem<number>[] = [
     { strokeWidth: 8, label: '8', value: 8 },
 ];
 
-export const LINE_STYLE_TYPE_ITEMS: MenuItem<AgAnnotationLineStyleType>[] = [
+export const LINE_STYLE_TYPE_ITEMS: _ModuleSupport.MenuItem<AgAnnotationLineStyleType>[] = [
     { icon: 'line-style-solid', altText: 'iconAltTextLineStyleSolid', value: 'solid' },
     { icon: 'line-style-dashed', altText: 'iconAltTextLineStyleDashed', value: 'dashed' },
     { icon: 'line-style-dotted', altText: 'iconAltTextLineStyleDotted', value: 'dotted' },
 ];
 
-export const TEXT_SIZE_ITEMS: MenuItem<number>[] = [
+export const TEXT_SIZE_ITEMS: _ModuleSupport.MenuItem<number>[] = [
     { label: '10', value: 10 },
     { label: '12', value: 12 },
     { label: '14', value: 14 },

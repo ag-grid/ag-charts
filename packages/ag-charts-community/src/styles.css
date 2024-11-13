@@ -4,3 +4,5 @@
 @import url(./chart/toolbar/toolbarStyles.css);
 @import url(./chart/update/overlaysProcessor.css);
 @import url(./chart/interaction/tooltipManager.css);
+@import url(./components/popover/popover.css);
+@import url(./components/menu/menu.css);

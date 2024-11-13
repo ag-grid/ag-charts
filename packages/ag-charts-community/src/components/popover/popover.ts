@@ -1,6 +1,10 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import type { ModuleInstance } from '../../module/baseModule';
+import { BaseModuleInstance } from '../../module/module';
+import type { ModuleContext } from '../../module/moduleContext';
+import { createElement } from '../../util/dom';
+import { getLastFocus } from '../../util/keynavUtil';
+import type { Vec2 } from '../../util/vector';
 
-const { BaseModuleInstance, createElement, getLastFocus } = _ModuleSupport;
 const canvasOverlay = 'canvas-overlay';
 
 export interface PopoverConstructorOptions {
@@ -22,7 +26,7 @@ export interface PopoverOptions {
  */
 export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     extends BaseModuleInstance
-    implements _ModuleSupport.ModuleInstance
+    implements ModuleInstance
 {
     protected readonly hideFns: Array<() => void> = [];
 
@@ -32,7 +36,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
     private initialFocus?: HTMLElement;
 
     constructor(
-        protected readonly ctx: _ModuleSupport.ModuleContext,
+        protected readonly ctx: ModuleContext,
         id: string,
         options?: PopoverConstructorOptions
     ) {
@@ -108,7 +112,7 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         return this.element.firstElementChild as HTMLDivElement | undefined;
     }
 
-    protected updatePosition(position: _ModuleSupport.Vec2) {
+    protected updatePosition(position: Vec2) {
         const popover = this.getPopoverElement();
         if (!popover) return;
 

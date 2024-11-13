@@ -1,10 +1,8 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
 
-import { Menu, type MenuItem } from '../../components/menu/menu';
+const { BOOLEAN, ActionOnSet, Menu, Validate, Logger } = _ModuleSupport;
 
-const { ActionOnSet, Validate, BOOLEAN, Logger } = _ModuleSupport;
-
-const menuItems: MenuItem<AgPriceVolumeChartType>[] = [
+const menuItems: _ModuleSupport.MenuItem<AgPriceVolumeChartType>[] = [
     { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc-series', value: 'ohlc' },
     { label: 'toolbarSeriesTypeCandles', icon: 'candlestick-series', value: 'candlestick' },
     { label: 'toolbarSeriesTypeHollowCandles', icon: 'hollow-candlestick-series', value: 'hollow-candlestick' },
