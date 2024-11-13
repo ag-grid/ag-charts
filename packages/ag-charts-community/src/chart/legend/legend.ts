@@ -48,7 +48,7 @@ import { ChartUpdateType } from '../chartUpdateType';
 import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
 import type { HighlightNodeDatum } from '../interaction/highlightManager';
-import { InteractionState, type PointerInteractionEvent } from '../interaction/interactionManager';
+import { InteractionState } from '../interaction/interactionManager';
 import { LayoutElement } from '../layout/layoutManager';
 import type { Marker } from '../marker/marker';
 import { getMarker } from '../marker/util';
@@ -943,21 +943,16 @@ export class Legend extends BaseProperties {
             this.ctx.contextMenuRegistry.enableAction(ID_LEGEND_VISIBILITY);
         }
 
-        const { button, offsetX, offsetY } = sourceEvent;
+        const { offsetX, offsetY } = sourceEvent;
         const { x: canvasOffsetX, y: canvasOffsetY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
-        const event: PointerInteractionEvent<'contextmenu'> = {
+        const event = {
             type: 'contextmenu',
             sourceEvent,
-            button,
             offsetX: canvasOffsetX,
             offsetY: canvasOffsetY,
-            deltaX: 0,
-            deltaY: 0,
-            pageX: NaN,
-            pageY: NaN,
-            preventDefault: () => sourceEvent.preventDefault(),
             pointerHistory: [],
-        };
+            preventDefault: () => sourceEvent.preventDefault(),
+        } as const;
         this.ctx.contextMenuRegistry.dispatchContext('legend', event, { legendItem });
     }
 

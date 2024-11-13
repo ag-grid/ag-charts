@@ -2,25 +2,27 @@ import type { DragWidgetEvent, MouseWidgetEvent } from '../../module-support';
 import { Debug } from '../../util/debug';
 import { Listeners } from '../../util/listeners';
 import type { Widget } from '../../widget/widget';
-import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
+import { InteractionManager } from './interactionManager';
+import type { PointerInteractionTypes } from './interactionManager';
 import { DRAG_INTERACTION_TYPES, InteractionState } from './interactionManager';
-import { buildPreventable } from './preventableEvent';
+import { type PreventableEvent, buildPreventable } from './preventableEvent';
 
 type RegionName = 'root' | 'series';
 
-// This type-map allows the compiler to automatically figure out the parameter type of handlers
-// specifies through the `addListener` method (see the `makeObserver` method).
-type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> & RegionEventMixins };
-
-type RegionEventMixins = {
+export type RegionEvent<T extends PointerInteractionTypes = PointerInteractionTypes> = PreventableEvent & {
+    type: T;
     region: RegionName;
-    bboxProviderId?: string;
-    regionOffsetX: number;
-    regionOffsetY: number;
+    offsetX: number;
+    offsetY: number;
+    deltaX: T extends 'wheel' ? number : never;
+    deltaY: T extends 'wheel' ? number : never;
+    sourceEvent: Event;
 };
 
-export type RegionEvent<T extends PointerInteractionTypes = PointerInteractionTypes> = PointerInteractionEvent &
-    RegionEventMixins & { type: T };
+// This type-map allows the compiler to automatically figure out the parameter type of handlers
+// specifies through the `addListener` method (see the `makeObserver` method).
+type TypeInfo = { [K in PointerInteractionTypes]: RegionEvent<K> };
+
 type RegionHandler = (event: RegionEvent) => void;
 
 class RegionListeners extends Listeners<RegionEvent['type'], RegionHandler> {}
@@ -185,18 +187,13 @@ export class RegionManager {
     ) {
         if (current == null) return;
 
+        const { deltaX, deltaY } = InteractionManager.getWheelDeltas(widgetEvent.sourceEvent);
         const event: RegionEvent = buildPreventable({
             ...widgetEvent,
+            deltaX,
+            deltaY,
             type: this.widgetEventTypeToRegionEventType(widgetEvent, regionEventType),
             region: current.properties.name,
-            pageX: NaN,
-            pageY: NaN,
-            deltaX: NaN,
-            deltaY: NaN,
-            button: 0,
-            pointerHistory: [],
-            regionOffsetX: widgetEvent.offsetX,
-            regionOffsetY: widgetEvent.offsetY,
         });
         this.debug('Dispatching region event: ', event);
         this.allRegionsListeners.dispatch(event.type, event);

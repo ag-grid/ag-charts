@@ -223,9 +223,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDragStart(
-        event: Pick<_ModuleSupport.RegionEvent, 'offsetX' | 'offsetY' | 'sourceEvent' | 'button'> | undefined
-    ) {
+    private onDragStart(event: _ModuleSupport.RegionEvent<'drag-start'> | undefined) {
         const {
             enabled,
             enableAxisDragging,
@@ -235,7 +233,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx: { cursorManager, zoomManager },
         } = this;
 
-        if (!enabled || (event !== undefined && event.button !== 0)) return;
+        if (!enabled || event === undefined) return;
 
         this.panner.stopInteractions();
 
@@ -245,7 +243,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (enableAxisDragging && hoveredAxis) {
             newDragState = DragState.Axis;
         } else if (event != null) {
-            const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent as DragEvent);
+            const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent as MouseEvent);
             // Allow panning if either selection is disabled or the panning key is pressed.
             if (enablePanning && (!enableSelecting || panKeyPressed)) {
                 cursorManager.updateCursor(CURSOR_ID, 'grabbing');

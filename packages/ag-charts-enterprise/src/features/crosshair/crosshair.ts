@@ -303,10 +303,10 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         const { axisCtx } = this;
         const key = 'pointer';
         const { datum, xKey = '', yKey = '' } = this.activeHighlight ?? {};
-        const { regionOffsetX, regionOffsetY } = event;
+        const { offsetX, offsetY } = event;
 
         const isVertical = this.isVertical();
-        const position = isVertical ? regionOffsetX : regionOffsetY;
+        const position = isVertical ? offsetX : offsetY;
 
         let value = datum?.[isVertical ? xKey : yKey] ?? '';
         if (axisCtx.continuous) {

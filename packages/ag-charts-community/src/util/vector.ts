@@ -193,7 +193,7 @@ function from(element: { offsetWidth: number; offsetHeight: number }): Vec2;
 /**
  * Create a vector from a region event.
  */
-function from(regionEvent: { regionOffsetX: number; regionOffsetY: number }): Vec2;
+function from(regionEvent: { region: string; offsetX: number; offsetY: number }): Vec2;
 /**
  * Create a pair of vectors of the top left and bottom right of a bounding box.
  */
@@ -206,7 +206,7 @@ function from(
     a:
         | number
         | { offsetWidth: number; offsetHeight: number }
-        | { regionOffsetX: number; regionOffsetY: number }
+        | { region: string; offsetX: number; offsetY: number }
         | { x: number; y: number; width: number; height: number }
         | Vec4,
     b?: number
@@ -216,8 +216,8 @@ function from(
     }
 
     // Pick from object properties in order of specificity and return type
-    if ('regionOffsetX' in a) {
-        return { x: a.regionOffsetX, y: a.regionOffsetY };
+    if ('region' in a) {
+        return { x: a.offsetX, y: a.offsetY };
     }
 
     if ('offsetWidth' in a) {

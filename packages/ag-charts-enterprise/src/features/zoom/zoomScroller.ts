@@ -13,7 +13,7 @@ import {
 
 export class ZoomScroller {
     updateAxes(
-        event: _ModuleSupport.PointerInteractionEvent<'wheel'>,
+        event: _ModuleSupport.RegionEvent<'wheel'>,
         props: ZoomProperties,
         bbox: _ModuleSupport.BBox,
         zooms: AxisZoomStates
@@ -52,7 +52,7 @@ export class ZoomScroller {
     }
 
     update(
-        event: _ModuleSupport.PointerInteractionEvent<'wheel'>,
+        event: _ModuleSupport.RegionEvent<'wheel'>,
         props: ZoomProperties,
         bbox: _ModuleSupport.BBox,
         oldZoom: DefinedZoomState

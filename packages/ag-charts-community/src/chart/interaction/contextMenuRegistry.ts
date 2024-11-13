@@ -3,9 +3,9 @@ import type { AgContextMenuOptions } from 'ag-charts-types';
 import { Listeners } from '../../util/listeners';
 import type { CategoryLegendDatum } from '../legend/legendDatum';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
-import { InteractionState, type PointerInteractionEvent } from './interactionManager';
+import { InteractionState } from './interactionManager';
 import { type PreventableEvent, buildPreventable } from './preventableEvent';
-import type { RegionManager } from './regionManager';
+import type { RegionEvent, RegionManager } from './regionManager';
 
 type ContextTypeMap = {
     all: object;
@@ -63,7 +63,7 @@ export class ContextMenuRegistry {
         this.destroyFns.forEach((d) => d());
     }
 
-    private onContextMenu(event: PointerInteractionEvent<'contextmenu'> & { region: string }) {
+    private onContextMenu(event: RegionEvent<'contextmenu'>) {
         const type = ContextMenuRegistry.toContextType(event.region);
         if (type === 'all') {
             this.dispatchContext('all', event, {});
@@ -91,7 +91,7 @@ export class ContextMenuRegistry {
 
     public dispatchContext<T extends ContextType>(
         type: T,
-        pointerEvent: PointerInteractionEvent<'contextmenu'>,
+        pointerEvent: Omit<RegionEvent<'contextmenu'>, 'region' | 'deltaX' | 'deltaY'>,
         context: ContextTypeMap[T],
         position?: { x: number; y: number }
     ) {

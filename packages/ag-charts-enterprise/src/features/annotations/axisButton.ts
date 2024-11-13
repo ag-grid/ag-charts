@@ -98,7 +98,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.ctx.domManager.removeChild('canvas-overlay', DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
     }
 
-    private show(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>) {
+    private show(event: _ModuleSupport.RegionEvent<'hover' | 'drag'>) {
         const { offsetX: x, offsetY: y } = event;
 
         if (!(this.enabled && this.seriesRect.containsPoint(x, y))) {
