@@ -233,7 +233,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx: { cursorManager, zoomManager },
         } = this;
 
-        if (!enabled || event === undefined) return;
+        if (!enabled) return;
 
         this.panner.stopInteractions();
 
