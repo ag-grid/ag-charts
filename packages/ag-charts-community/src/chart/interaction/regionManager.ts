@@ -102,6 +102,7 @@ export class RegionManager {
     private readonly regions: { root?: Region; series?: Region } = {};
     private readonly destroyFns: (() => void)[] = [];
     private readonly allRegionsListeners = new RegionListeners();
+    private deferredDragStart?: RegionEvent<'drag-start'>;
 
     constructor(private readonly interactionManager: InteractionManager) {}
 
@@ -210,6 +211,23 @@ export class RegionManager {
             type: this.widgetEventTypeToRegionEventType(widgetEvent, regionEventType),
             region: current.properties.name,
         });
+
+        if (event.type === 'drag-start') {
+            this.deferredDragStart = event as RegionEvent<'drag-start'>;
+        } else if (this.deferredDragStart) {
+            if (event.type === 'drag') {
+                this.dispatchEvent(current, this.deferredDragStart);
+                this.dispatchEvent(current, event);
+                this.deferredDragStart = undefined;
+            } else if (event.type === 'drag-end') {
+                this.deferredDragStart = undefined;
+            }
+        } else {
+            this.dispatchEvent(current, event);
+        }
+    }
+
+    private dispatchEvent(current: Region, event: RegionEvent) {
         this.debug('Dispatching region event: ', event);
         this.allRegionsListeners.dispatch(event.type, event);
         current.listeners.dispatch(event.type, event);
