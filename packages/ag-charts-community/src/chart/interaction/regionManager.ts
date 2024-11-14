@@ -1,7 +1,7 @@
 import { Debug } from '../../util/debug';
 import { Listeners } from '../../util/listeners';
 import type { Widget } from '../../widget/widget';
-import type { DragWidgetEvent, MouseWidgetEvent } from '../../widget/widgetEvents';
+import type { DragWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../../widget/widgetEvents';
 import { InteractionManager } from './interactionManager';
 import type { PointerInteractionTypes } from './interactionManager';
 import { DRAG_INTERACTION_TYPES, InteractionState } from './interactionManager';
@@ -20,6 +20,8 @@ export type RegionEvent<T extends PointerInteractionTypes = PointerInteractionTy
     deltaY: T extends 'wheel' ? number : never;
     sourceEvent: Event;
 };
+
+type TWidgetEvent = DragWidgetEvent | MouseWidgetEvent | WheelWidgetEvent;
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
@@ -68,7 +70,7 @@ function getTooltipContainer(target: EventTarget | null): HTMLElement | undefine
     return undefined;
 }
 
-function shouldIgnore(event: MouseWidgetEvent | DragWidgetEvent): 'none' | 'leave' | 'wait' {
+function shouldIgnore(event: TWidgetEvent): 'none' | 'leave' | 'wait' {
     const { type, sourceEvent } = event;
     const { className, classList, ariaHidden } = (event.sourceEvent?.target as HTMLElement) ?? {};
     if (className === 'ag-charts-proxy-elem' || !(classList instanceof DOMTokenList)) return 'leave';
@@ -125,6 +127,8 @@ export class RegionManager {
     initRegions(root: Widget, series: Widget) {
         this.addRegion('root', root);
         this.addRegion('series', series);
+        root.addListener('wheel', this.processPointerEvent);
+        root.addListener('contextmenu', this.processPointerEvent);
         root.addListener('click', this.processPointerEvent);
         root.addListener('dblclick', this.processPointerEvent);
         root.addListener('mouseenter', this.processPointerEvent);
@@ -163,10 +167,7 @@ export class RegionManager {
         return new ObservableRegionImplementation();
     }
 
-    private widgetEventTypeToRegionEventType(
-        widgetEvent: MouseWidgetEvent | DragWidgetEvent,
-        regionEventType?: 'leave' | 'enter'
-    ) {
+    private widgetEventTypeToRegionEventType(widgetEvent: TWidgetEvent, regionEventType?: 'leave' | 'enter') {
         if (regionEventType !== undefined) return regionEventType;
         const map = {
             contextmenu: 'contextmenu',
@@ -175,6 +176,7 @@ export class RegionManager {
             mouseenter: 'enter',
             mousemove: 'hover',
             mouseleave: 'leave',
+            wheel: 'wheel',
             'drag-start': 'drag-start',
             'drag-move': 'drag',
             'drag-end': 'drag-end',
@@ -186,7 +188,7 @@ export class RegionManager {
     private dispatch(
         current: Region | undefined,
         widget: Widget,
-        widgetEvent: MouseWidgetEvent | DragWidgetEvent,
+        widgetEvent: TWidgetEvent,
         regionEventType?: 'leave' | 'enter'
     ) {
         if (current == null) return;
@@ -213,7 +215,7 @@ export class RegionManager {
         current.listeners.dispatch(event.type, event);
     }
 
-    private processPointerEvent = (widget: Widget, event: MouseWidgetEvent | DragWidgetEvent) => {
+    private processPointerEvent = (widget: Widget, event: TWidgetEvent) => {
         const ignore = shouldIgnore(event);
         const { current } = this;
 
@@ -242,7 +244,7 @@ export class RegionManager {
         this.current = newCurrent;
     };
 
-    private pickRegion(event: MouseWidgetEvent | DragWidgetEvent) {
+    private pickRegion(event: TWidgetEvent) {
         if (event.sourceEvent.target === this.regions.root?.properties.widget.getElement()) {
             return this.regions.root;
         }

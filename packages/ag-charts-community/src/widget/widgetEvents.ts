@@ -27,6 +27,17 @@ export type MouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventTy
     sourceEvent: MouseEvent;
 };
 
+export type WheelWidgetEvent = {
+    type: 'wheel';
+    offsetX: number;
+    offsetY: number;
+    clientX: number;
+    clientY: number;
+    deltaX: number;
+    deltaY: number;
+    sourceEvent: WheelEvent;
+};
+
 // `originDelta` is the offset relative to position of the HTML element when the drag initiated.
 // This is helpful for elements that move during drag actions, like navigator sliders.
 export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType> = {
@@ -55,6 +66,7 @@ export type WidgetEventMap = {
     mouseenter: MouseWidgetEvent<'mouseenter'>;
     mousemove: MouseWidgetEvent<'mousemove'>;
     mouseleave: MouseWidgetEvent<'mouseleave'>;
+    wheel: WheelWidgetEvent;
 };
 
 export const WIDGET_HTML_EVENTS: readonly (keyof WidgetEventMap & keyof HTMLElementEventMap)[] = [
@@ -69,6 +81,7 @@ export const WIDGET_HTML_EVENTS: readonly (keyof WidgetEventMap & keyof HTMLElem
     'mouseenter',
     'mousemove',
     'mouseleave',
+    'wheel',
 ] satisfies (keyof WidgetEventMap & keyof HTMLElementEventMap)[];
 
 export type WidgetSourceEventMap = {
@@ -121,6 +134,10 @@ const WidgetAllocators: { [K in keyof WidgetEventMap_HTML]: Allocator<K> } = {
     },
     mouseleave: (sourceEvent: MouseEvent): MouseWidgetEvent<'mouseleave'> => {
         return allocMouseEvent('mouseleave', sourceEvent);
+    },
+    wheel: (sourceEvent: WheelEvent): WheelWidgetEvent => {
+        const { offsetX, offsetY, clientX, clientY, deltaX, deltaY } = sourceEvent;
+        return { type: 'wheel', offsetX, offsetY, clientX, clientY, deltaX, deltaY, sourceEvent };
     },
 };
 
