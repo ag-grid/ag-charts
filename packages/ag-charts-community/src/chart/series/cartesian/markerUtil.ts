@@ -2,11 +2,9 @@ import { QUICK_TRANSITION } from '../../../motion/animation';
 import type { NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING, fromToMotion, staticFromToMotion } from '../../../motion/fromToMotion';
 import { BBox } from '../../../scene/bbox';
-import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
-import { Transformable } from '../../../scene/transformable';
 import { clamp } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { Marker } from '../../marker/marker';
@@ -157,7 +155,6 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
 type MarkerSeries<TDatum> = {
     getNodeData(): TDatum[] | undefined;
     getFormattedMarkerStyle(datum: TDatum): { size: number };
-    contentGroup: Group;
 };
 
 export function computeMarkerFocusBounds<TDatum extends { point: Point & SizedPoint }>(
@@ -175,5 +172,5 @@ export function computeMarkerFocusBounds<TDatum extends { point: Point & SizedPo
     const radius = size / 2;
     const x = datum.point.x - radius;
     const y = datum.point.y - radius;
-    return Transformable.toCanvas(series.contentGroup, new BBox(x, y, size, size));
+    return new BBox(x, y, size, size);
 }

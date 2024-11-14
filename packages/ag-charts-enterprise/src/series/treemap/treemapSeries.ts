@@ -19,7 +19,6 @@ const {
     isNumberEqual,
     sanitizeHtml,
     createDatumId,
-    Transformable,
     Rect,
     Group,
     BBox,
@@ -830,6 +829,6 @@ export class TreemapSeries<
         node: _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
     ): _ModuleSupport.BBox | undefined {
         const rects = this.groupSelection.selectByClass(Rect);
-        return Transformable.toCanvas(rects[node.index]);
+        return rects[node.index].getBBox();
     }
 }

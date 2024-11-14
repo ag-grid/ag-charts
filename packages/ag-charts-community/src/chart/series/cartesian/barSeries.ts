@@ -850,6 +850,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
     protected computeFocusBounds({ datumIndex, seriesRect }: PickFocusInputs): BBox | undefined {
         const datumBox = this.contextNodeData?.nodeData[datumIndex].clipBBox;
-        return computeBarFocusBounds(datumBox, this.contentGroup, seriesRect);
+        return computeBarFocusBounds(datumBox, seriesRect);
     }
 }
