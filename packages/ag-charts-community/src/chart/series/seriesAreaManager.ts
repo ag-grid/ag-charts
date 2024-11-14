@@ -52,9 +52,9 @@ export class SeriesAreaManager extends BaseManager {
     private series: Series<any, any>[] = [];
     private seriesRect?: BBox;
     private hoverRect?: BBox;
-    private seriesWidget: NativeWidget<HTMLElement>;
-    private chartWidget: NativeWidget<HTMLElement>;
-    private containerWidget: NativeWidget<HTMLElement>;
+    private readonly seriesWidget: NativeWidget<HTMLElement>;
+    private readonly chartWidget: NativeWidget<HTMLElement>;
+    private readonly containerWidget: NativeWidget<HTMLElement>;
     private readonly focusIndicator: FocusIndicator;
     private readonly swapChain: FocusSwapChain;
 
