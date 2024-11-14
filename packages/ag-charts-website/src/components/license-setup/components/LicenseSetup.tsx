@@ -2,6 +2,7 @@ import type { Framework, Library } from '@ag-grid-types';
 import Note from '@ag-website-shared/components/alert/Note';
 import Success from '@ag-website-shared/components/alert/Success';
 import Warning from '@ag-website-shared/components/alert/Warning';
+import { LinkIcon } from '@ag-website-shared/components/link-icon/LinkIcon';
 import { Snippet } from '@ag-website-shared/components/snippet/Snippet';
 import classnames from 'classnames';
 import { useMemo } from 'react';
@@ -81,7 +82,10 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework, pat
     return (
         <>
             <form>
-                <h2 id="validate-your-license">Validate Your Licence</h2>
+                <h2 id="validate-your-license">
+                    Validate Your Licence
+                    <LinkIcon href="#validate-your-license" />
+                </h2>
 
                 <div className={styles.licenceWrapper}>
                     <textarea
@@ -128,7 +132,10 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework, pat
                 </div>
 
                 <div className={styles.results}>
-                    <h3 id="add-your-dependencies">Add Your Dependencies</h3>
+                    <h3 id="add-your-dependencies">
+                        Add Your Dependencies
+                        <LinkIcon href="#add-your-dependencies" />
+                    </h3>
 
                     {licenseState.chartsNoGridEnterpriseError && (
                         <Warning>
@@ -157,7 +164,10 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework, pat
                         <Snippet framework={framework} content={npmInstallSnippet} language="bash" copyToClipboard />
                     )}
 
-                    <h3 id="set-up-your-application">Set Up Your Application</h3>
+                    <h3 id="set-up-your-application">
+                        Set Up Your Application
+                        <LinkIcon href="#set-up-your-application" />
+                    </h3>
 
                     {licenseState.chartsNoGridEnterpriseError && (
                         <Warning>
