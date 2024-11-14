@@ -310,5 +310,5 @@ export function computeBarFocusBounds(
     if (datum === undefined) return undefined;
 
     const { x, y, width, height } = datum;
-    return new BBox(x, y, width, height).clip(seriesRect);
+    return new BBox(x, y, width, height).relativeClip(seriesRect);
 }
