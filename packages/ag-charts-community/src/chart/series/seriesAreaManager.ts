@@ -384,7 +384,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private updatePickedFocus(pick: PickFocusOutputs | undefined, refresh: boolean) {
         const { focus, seriesRect } = this;
-        if (pick === undefined || focus.series === undefined) return;
+        if (pick === undefined || focus.series === undefined || seriesRect === undefined) return;
 
         const { datum, datumIndex } = pick;
         focus.datumIndex = datumIndex;
@@ -394,7 +394,7 @@ export class SeriesAreaManager extends BaseManager {
             this.chart.ctx.animationManager.reset();
         }
 
-        if (this.focusIndicator.isFocusVisible() && seriesRect) {
+        if (this.focusIndicator.isFocusVisible()) {
             const focusBBox = getPickedFocusBBox(pick);
             const { x, y } = focusBBox.computeCenter();
             if (!seriesRect.containsPoint(x, y)) {
@@ -403,7 +403,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         // Update the bounds of the focus indicator:
-        const keyboardEvent = makeKeyboardPointerEvent(this.focusIndicator, pick);
+        const keyboardEvent = makeKeyboardPointerEvent(seriesRect, this.focusIndicator, pick);
 
         // Update highlight/tooltip for keyboard users:
         if (keyboardEvent !== undefined && this.hoverDevice === 'keyboard') {

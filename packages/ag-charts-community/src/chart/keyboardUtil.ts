@@ -28,13 +28,17 @@ export function getPickedFocusBBox({ bounds }: PickProperties): BBox {
 }
 
 export function makeKeyboardPointerEvent(
+    seriesRect: BBox,
     focusIndicator: FocusIndicator | undefined,
     pick: PickProperties
 ): TooltipPointerEvent<'keyboard'> | undefined {
     drawPickedFocus(focusIndicator, pick);
 
-    const { x: canvasX, y: canvasY } = computeCenter(pick.bounds) ?? {};
-    if (canvasX !== undefined && canvasY !== undefined) {
+    const { x: offsetX, y: offsetY } = seriesRect;
+    const { x: centerX, y: centerY } = computeCenter(pick.bounds) ?? {};
+    if (centerX !== undefined && centerY !== undefined) {
+        const canvasX = offsetX + centerX;
+        const canvasY = offsetY + centerY;
         return { type: 'keyboard', canvasX, canvasY };
     }
     return undefined;
