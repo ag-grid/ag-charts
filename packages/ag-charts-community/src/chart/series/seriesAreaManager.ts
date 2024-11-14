@@ -578,4 +578,11 @@ export class SeriesAreaManager extends BaseManager {
             this.update(ChartUpdateType.SERIES_UPDATE, { seriesToUpdate });
         }
     }
+
+    public testFindTarget(x: number, y: number): { target: HTMLElement; x: number; y: number } {
+        if (this.seriesRect?.containsPoint(x, y)) {
+            return { target: this.chart.ctx.scene.canvas.element, x: x - this.seriesRect.x, y: y - this.seriesRect.y };
+        }
+        return { target: this.chart.ctx.scene.canvas.element, x, y };
+    }
 }

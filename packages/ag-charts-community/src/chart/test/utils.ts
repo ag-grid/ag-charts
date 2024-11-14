@@ -301,24 +301,10 @@ const checkTargetValid = (target: HTMLElement) => {
     if (!target.isConnected) throw new Error('Chart must be configured with a container for event testing to work');
 };
 
-type TestTarget = { target: HTMLElement; x: number; y: number };
-type TestModuleFns = { testFindTarget: (canvasX: number, canvasY: number) => TestTarget | undefined };
-
-function findTarget(chart: Chart, canvasX: number, canvasY: number): { target: HTMLElement; x: number; y: number } {
-    for (const moduleName of ['legend', 'navigator', 'zoom']) {
-        const mod = chart.modulesManager.getModule<TestModuleFns>(moduleName);
-        const modTarget = mod?.testFindTarget(canvasX, canvasY);
-        if (modTarget) {
-            return modTarget;
-        }
-    }
-    return { target: chart.ctx.scene.canvas.element, x: canvasX, y: canvasY };
-}
-
 export function hoverAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const { target, x, y } = findTarget(chart, canvasX, canvasY);
+        const { target, x, y } = chart.testFindTarget(canvasX, canvasY);
         checkTargetValid(target);
 
         target?.dispatchEvent(mouseMoveEvent({ offsetX: x, offsetY: y }));
@@ -333,8 +319,7 @@ export function clickAction(
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const { target, x, y } = findTarget(
-            chart,
+        const { target, x, y } = chart.testFindTarget(
             opts?.mousedown?.offsetX ?? canvasX,
             opts?.mousedown?.offsetY ?? canvasY
         );
@@ -351,7 +336,7 @@ export function clickAction(
 export function doubleClickAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const { target, x, y } = findTarget(chart, canvasX, canvasY);
+        const { target, x, y } = chart.testFindTarget(canvasX, canvasY);
         const offsets = { offsetX: x, offsetY: y };
         // A double click is always preceded by two single clicks, simulate here to ensure correct handling
         target?.dispatchEvent(mouseDownEvent(offsets));
@@ -370,7 +355,7 @@ export function doubleClickAction(canvasX: number, canvasY: number): (chart: Cha
 export function contextMenuAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const { target, x, y } = findTarget(chart, canvasX, canvasY);
+        const { target, x, y } = chart.testFindTarget(canvasX, canvasY);
         checkTargetValid(target);
 
         const offsets = { offsetX: x, offsetY: y };
@@ -385,8 +370,8 @@ export function dragAction(
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const fromTarget = findTarget(chart, from.x, from.y);
-        const toTarget = findTarget(chart, to.x, to.y);
+        const fromTarget = chart.testFindTarget(from.x, from.y);
+        const toTarget = chart.testFindTarget(to.x, to.y);
         const fromOffsets = {
             offsetX: fromTarget.x,
             offsetY: fromTarget.y,
@@ -420,7 +405,7 @@ export function scrollAction(
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const { target, x, y } = findTarget(chart, canvasX, canvasY);
+        const { target, x, y } = chart.testFindTarget(canvasX, canvasY);
         target?.dispatchEvent(wheelEvent({ clientX: x, clientY: y, deltaY, deltaX, deltaMode }));
         await delay(50);
     };
