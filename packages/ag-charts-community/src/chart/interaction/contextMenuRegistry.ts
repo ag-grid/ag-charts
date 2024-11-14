@@ -91,13 +91,13 @@ export class ContextMenuRegistry {
 
     public dispatchContext<T extends ContextType>(
         type: T,
-        pointerEvent: Omit<RegionEvent<'contextmenu'>, 'region' | 'deltaX' | 'deltaY'>,
+        pointerEvent: Pick<RegionEvent<'contextmenu'>, 'sourceEvent' | 'canvasX' | 'canvasY'>,
         context: ContextTypeMap[T],
         position?: { x: number; y: number }
     ) {
         const { sourceEvent } = pointerEvent;
-        const x = position?.x ?? pointerEvent.offsetX;
-        const y = position?.y ?? pointerEvent.offsetY;
+        const x = position?.x ?? pointerEvent.canvasX;
+        const y = position?.y ?? pointerEvent.canvasY;
         sourceEvent.stopPropagation();
         this.listeners.dispatch('', buildPreventable({ type, x, y, context, sourceEvent }));
     }

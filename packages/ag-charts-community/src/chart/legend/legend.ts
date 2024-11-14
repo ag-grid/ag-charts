@@ -944,16 +944,8 @@ export class Legend extends BaseProperties {
         }
 
         const { offsetX, offsetY } = sourceEvent;
-        const { x: canvasOffsetX, y: canvasOffsetY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
-        const event = {
-            type: 'contextmenu',
-            sourceEvent,
-            offsetX: canvasOffsetX,
-            offsetY: canvasOffsetY,
-            pointerHistory: [],
-            preventDefault: () => sourceEvent.preventDefault(),
-        } as const;
-        this.ctx.contextMenuRegistry.dispatchContext('legend', event, { legendItem });
+        const { x: canvasX, y: canvasY } = Transformable.toCanvasPoint(node, offsetX, offsetY);
+        this.ctx.contextMenuRegistry.dispatchContext('legend', { sourceEvent, canvasX, canvasY }, { legendItem });
     }
 
     onClick(event: Event, datum: CategoryLegendDatum, proxyButton: SwitchWidget) {
@@ -1081,15 +1073,15 @@ export class Legend extends BaseProperties {
         let lastPointerEvent: TooltipPointerEvent<'hover' | 'keyboard'>;
         if (event instanceof FocusEvent) {
             const { x, y } = Transformable.toCanvas(node).computeCenter();
-            lastPointerEvent = { type: 'keyboard', offsetX: x, offsetY: y } as const;
+            lastPointerEvent = { type: 'keyboard', canvasX: x, canvasY: y } as const;
         } else {
             event.preventDefault();
             const { x, y } = Transformable.toCanvasPoint(node, event.offsetX, event.offsetY);
-            lastPointerEvent = { type: 'hover', offsetX: x, offsetY: y };
+            lastPointerEvent = { type: 'hover', canvasX: x, canvasY: y };
         }
 
-        const { offsetX, offsetY } = lastPointerEvent;
-        return { offsetX, offsetY, lastPointerEvent, showArrow: false };
+        const { canvasX, canvasY } = lastPointerEvent;
+        return { canvasX, canvasY, lastPointerEvent, showArrow: false };
     }
 
     onHover(event: FocusEvent | MouseEvent, node: LegendMarkerLabel) {

@@ -33,9 +33,9 @@ export function makeKeyboardPointerEvent(
 ): TooltipPointerEvent<'keyboard'> | undefined {
     drawPickedFocus(focusIndicator, pick);
 
-    const { x: offsetX, y: offsetY } = computeCenter(pick.bounds) ?? {};
-    if (offsetX !== undefined && offsetY !== undefined) {
-        return { type: 'keyboard', offsetX, offsetY };
+    const { x: canvasX, y: canvasY } = computeCenter(pick.bounds) ?? {};
+    if (canvasX !== undefined && canvasY !== undefined) {
+        return { type: 'keyboard', canvasX, canvasY };
     }
     return undefined;
 }

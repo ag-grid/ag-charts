@@ -14,6 +14,8 @@ export type RegionEvent<T extends PointerInteractionTypes = PointerInteractionTy
     region: RegionName;
     offsetX: number;
     offsetY: number;
+    canvasX: number;
+    canvasY: number;
     deltaX: T extends 'wheel' ? number : never;
     deltaY: T extends 'wheel' ? number : never;
     sourceEvent: Event;
@@ -189,15 +191,17 @@ export class RegionManager {
     ) {
         if (current == null) return;
 
-        const { clientX, clientY, sourceEvent } = widgetEvent;
+        const { offsetX, offsetY, clientX, clientY, sourceEvent } = widgetEvent;
         const { x, y } = widget.getElement().getBoundingClientRect();
-        const offsetX = clientX - x;
-        const offsetY = clientY - y;
+        const canvasX = clientX - x;
+        const canvasY = clientY - y;
         const { deltaX, deltaY } = InteractionManager.getWheelDeltas(sourceEvent);
 
         const event: RegionEvent = buildPreventable({
             offsetX,
             offsetY,
+            canvasX,
+            canvasY,
             deltaX,
             deltaY,
             sourceEvent,
