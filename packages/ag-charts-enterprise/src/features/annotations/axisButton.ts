@@ -99,7 +99,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     }
 
     private show(event: _ModuleSupport.RegionEvent<'hover' | 'drag'>) {
-        const { offsetX: x, offsetY: y } = event;
+        const { canvasX: x, canvasY: y } = event;
 
         if (!(this.enabled && this.seriesRect.containsPoint(x, y))) {
             this.hide();
