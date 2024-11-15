@@ -14,6 +14,18 @@ interface Props {
     enableDprScaling: boolean;
 }
 
+const optimizeAltTextForSeo = (label: string): string => {
+    if (label.toLowerCase().endsWith('chart')) {
+        return label;
+    }
+
+    if (label.toLowerCase().includes('with')) {
+        return label.replace(/with/i, 'Chart with');
+    }
+
+    return `${label} Chart`;
+};
+
 export const GalleryExampleImage: FunctionComponent<Props> = ({ label, exampleName, className, enableDprScaling }) => {
     const [theme] = useTheme();
     const [darkMode] = useDarkmode();
@@ -48,7 +60,7 @@ export const GalleryExampleImage: FunctionComponent<Props> = ({ label, exampleNa
                 <img
                     src={src}
                     srcSet={srcSet}
-                    alt={label}
+                    alt={optimizeAltTextForSeo(label)}
                     className={classNames(styles.image, className)}
                     onError={(e) => (e.currentTarget.style.display = 'none')}
                 />
