@@ -178,6 +178,8 @@ function makeMouseEvent<T extends 'mousedown' | 'mouseup' | 'mousemove' | 'click
     const event = new MouseEvent(type, { bubbles: true });
     const { offsetX, offsetY, pageX = offsetX, pageY = offsetY } = offsets;
     Object.assign(event, { offsetX, offsetY, pageX, pageY });
+    Object.defineProperty(event, 'clientX', { get: () => pageX, configurable: true });
+    Object.defineProperty(event, 'clientY', { get: () => pageY, configurable: true });
     return event;
 }
 
