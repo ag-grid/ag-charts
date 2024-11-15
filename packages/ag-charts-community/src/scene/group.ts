@@ -19,7 +19,7 @@ export class Group extends Node {
         return BBox.merge(Node.extractBBoxes(nodes, skipInvisible));
     }
 
-    private static compareChildren(a: Node, b: Node) {
+    private static compareChildren(this: void, a: Node, b: Node) {
         return compareZIndex(a.zIndex, b.zIndex) || ascendingStringNumberUndefined(a.serialNumber, b.serialNumber);
     }
 

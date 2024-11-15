@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-duplicate-string */
 import type { AgToolbarOptions } from 'ag-charts-types';
 
 import type { Module } from '../../module/module';

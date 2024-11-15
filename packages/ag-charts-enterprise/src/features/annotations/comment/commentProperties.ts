@@ -19,7 +19,7 @@ const DEFAULT_COMMENT_PADDING = {
 };
 
 export class CommentProperties extends Fill(Stroke(TextualPointProperties)) {
-    static is(value: unknown): value is CommentProperties {
+    static is(this: void, value: unknown): value is CommentProperties {
         return isObject(value) && value.type === AnnotationType.Comment;
     }
 

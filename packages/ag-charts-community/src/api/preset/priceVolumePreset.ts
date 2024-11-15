@@ -266,7 +266,6 @@ function createVolumeSeries(
     ];
 }
 
-// eslint-disable-next-line sonarjs/no-duplicate-string
 const RANGE_AREA_TYPE = 'range-area';
 
 interface PriceSeriesCommon {

@@ -23,7 +23,7 @@ export const TOOLBAR_OFFSET = 34;
 class NoteBackgroundProperties extends Fill(Stroke(BaseProperties)) {}
 
 export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
-    static is(value: unknown): value is NoteProperties {
+    static is(this: void, value: unknown): value is NoteProperties {
         return isObject(value) && value.type === AnnotationType.Note;
     }
 

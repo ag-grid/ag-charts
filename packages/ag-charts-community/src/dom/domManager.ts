@@ -9,7 +9,6 @@ import { type Size, SizeMonitor } from '../util/sizeMonitor';
 // TODO move to utils
 import BASE_DOM from './domLayout.html';
 
-/* eslint-disable sonarjs/no-duplicate-string */
 const DOM_ELEMENT_CLASSES = [
     'styles',
     'canvas',

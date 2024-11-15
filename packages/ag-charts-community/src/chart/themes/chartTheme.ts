@@ -403,7 +403,7 @@ export class ChartTheme {
         );
     }
 
-    private static applyTemplateTheme(node: any, _other: any, params?: Map<any, any>) {
+    private static applyTemplateTheme(this: void, node: any, _other: any, params?: Map<any, any>) {
         if (isArray(node)) {
             for (let i = 0; i < node.length; i++) {
                 const symbol = node[i];

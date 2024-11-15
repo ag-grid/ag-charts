@@ -608,7 +608,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private static enableConfiguredJsonOptions(visitingUserOpts: any, visitingMergedOpts: any) {
+    private static enableConfiguredJsonOptions(this: void, visitingUserOpts: any, visitingMergedOpts: any) {
         if (
             visitingMergedOpts &&
             'enabled' in visitingMergedOpts &&
@@ -619,7 +619,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private static cleanupEnabledFromThemeJsonOptions(visitingMergedOpts: any) {
+    private static cleanupEnabledFromThemeJsonOptions(this: void, visitingMergedOpts: any) {
         if (visitingMergedOpts._enabledFromTheme != null) {
             // Do not apply special handling, base enablement on theme.
             delete visitingMergedOpts._enabledFromTheme;
@@ -634,7 +634,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         jsonWalk(options, ChartOptions.cleanupEnabledFromThemeJsonOptions, new Set(['data', 'theme']));
     }
 
-    private static removeDisabledOptionJson(optionsNode: any) {
+    private static removeDisabledOptionJson(this: void, optionsNode: any) {
         if ('enabled' in optionsNode && optionsNode.enabled === false) {
             Object.keys(optionsNode).forEach((key) => {
                 if (key === 'enabled') return;

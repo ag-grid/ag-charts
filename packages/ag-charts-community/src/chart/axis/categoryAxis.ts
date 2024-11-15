@@ -8,7 +8,7 @@ import { CartesianAxis } from './cartesianAxis';
 export class CategoryAxis<
     S extends BandScale<string | object, number> | OrdinalTimeScale = BandScale<string | object, number>,
 > extends CartesianAxis<S> {
-    static override is(value: unknown): value is CategoryAxis<any> {
+    static override is(this: void, value: unknown): value is CategoryAxis<any> {
         return value instanceof CategoryAxis;
     }
 

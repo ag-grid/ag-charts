@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-duplicate-string */
 import type { ScaleType } from '../../scale/scale';
 import { memo } from '../../util/memo';
 import { clamp, isNegative } from '../../util/number';

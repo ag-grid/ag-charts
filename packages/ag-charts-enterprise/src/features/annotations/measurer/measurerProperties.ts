@@ -103,7 +103,7 @@ function LineText<
 }
 
 export class DateRangeProperties extends DateRange(LineText(MeasurerTypeProperties)) {
-    static is(value: unknown): value is DateRangeProperties {
+    static is(this: void, value: unknown): value is DateRangeProperties {
         return isObject(value) && value.type === AnnotationType.DateRange;
     }
 
@@ -120,7 +120,7 @@ export class DateRangeProperties extends DateRange(LineText(MeasurerTypeProperti
 }
 
 export class PriceRangeProperties extends PriceRange(LineText(MeasurerTypeProperties)) {
-    static is(value: unknown): value is PriceRangeProperties {
+    static is(this: void, value: unknown): value is PriceRangeProperties {
         return isObject(value) && value.type === AnnotationType.PriceRange;
     }
 
@@ -137,7 +137,7 @@ export class PriceRangeProperties extends PriceRange(LineText(MeasurerTypeProper
 }
 
 export class DatePriceRangeProperties extends DateRange(PriceRange(LineText(MeasurerTypeProperties))) {
-    static is(value: unknown): value is DatePriceRangeProperties {
+    static is(this: void, value: unknown): value is DatePriceRangeProperties {
         return isObject(value) && value.type === AnnotationType.DatePriceRange;
     }
 
@@ -148,7 +148,7 @@ export class DatePriceRangeProperties extends DateRange(PriceRange(LineText(Meas
 }
 
 export class QuickDatePriceRangeProperties extends DateRange(PriceRange(MeasurerTypeProperties)) {
-    static is(value: unknown): value is QuickDatePriceRangeProperties {
+    static is(this: void, value: unknown): value is QuickDatePriceRangeProperties {
         return isObject(value) && value.type === AnnotationType.QuickDatePriceRange;
     }
 

@@ -16,7 +16,7 @@ import {
 
 import { DEFAULT_AXIS_GRID_COLOUR, IS_ENTERPRISE } from '../../chart/themes/symbols';
 import { simpleMemorize } from '../../util/memo';
-import { IGNORED_PROP, assertEmpty, pickProps } from './presetUtils';
+import { IGNORED_PROP, pickProps } from './presetUtils';
 
 const commonAxisProperties = {
     title: {
@@ -196,17 +196,7 @@ function axisPreset(
 ): AgCartesianAxisOptions {
     switch (opts?.type) {
         case 'number': {
-            const {
-                type,
-                visible: _visible,
-                stroke: _stroke,
-                strokeWidth: _strokeWidth,
-                min,
-                max,
-                reverse,
-                ...optsRest
-            } = opts;
-            assertEmpty(optsRest);
+            const { type, visible: _visible, stroke: _stroke, strokeWidth: _strokeWidth, min, max, reverse } = opts;
             return pickProps<Pick<AgNumberAxisOptions, 'type' | 'reverse' | 'min' | 'max'>>(opts, {
                 type,
                 reverse,
@@ -215,17 +205,7 @@ function axisPreset(
             });
         }
         case 'time': {
-            const {
-                type,
-                visible: _visible,
-                stroke: _stroke,
-                strokeWidth: _strokeWidth,
-                min,
-                max,
-                reverse,
-                ...optsRest
-            } = opts;
-            assertEmpty(optsRest);
+            const { type, visible: _visible, stroke: _stroke, strokeWidth: _strokeWidth, min, max, reverse } = opts;
             return pickProps<Pick<AgTimeAxisOptions, 'type' | 'reverse' | 'min' | 'max'>>(opts, {
                 type,
                 reverse,
@@ -242,9 +222,7 @@ function axisPreset(
                 paddingInner,
                 paddingOuter,
                 reverse,
-                ...optsRest
             } = opts;
-            assertEmpty(optsRest);
             return pickProps<Pick<AgCategoryAxisOptions, 'type' | 'reverse' | 'paddingInner' | 'paddingOuter'>>(opts, {
                 type,
                 reverse,
@@ -293,7 +271,6 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         max,
         ...optsRest
     } = opts as any as AgBaseSparklinePresetOptions;
-    assertEmpty(optsRest);
 
     const chartOpts: AgCartesianChartOptions = pickProps<AgBaseSparklinePresetOptions>(opts, {
         background,

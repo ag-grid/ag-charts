@@ -10,7 +10,7 @@ const { OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
 export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(Stroke(LineStyle(BaseProperties)))))) {
     readonly direction = 'horizontal';
 
-    static is(value: unknown): value is HorizontalLineProperties {
+    static is(this: void, value: unknown): value is HorizontalLineProperties {
         return isObject(value) && value.type === AnnotationType.HorizontalLine;
     }
 
@@ -44,7 +44,7 @@ export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(
 export class VerticalLineProperties extends Annotation(Value(Handle(AxisLabel(Stroke(LineStyle(BaseProperties)))))) {
     readonly direction = 'vertical';
 
-    static is(value: unknown): value is VerticalLineProperties {
+    static is(this: void, value: unknown): value is VerticalLineProperties {
         return isObject(value) && value.type === AnnotationType.VerticalLine;
     }
 

@@ -35,7 +35,7 @@ export const testDefaults = {
 
 /** @type {import('eslint').Linter.Config[]} */
 export default [
-    { files: ['**/*.{js,mjs,cjs,ts}'] },
+    { files: ['**/*.{js,mjs,cjs,ts}'], linterOptions: { reportUnusedDisableDirectives: 'error' } },
     {
         ignores: [
             '**/node_modules',
@@ -101,16 +101,17 @@ export default [
             'sonarjs/cognitive-complexity': env !== 'nx-task' ? 1 : 0,
             'sonarjs/no-duplicate-string': env !== 'nx-task' ? 1 : 0,
 
+            // We don't really care about these.
+            '@typescript-eslint/no-base-to-string': 0,
+
             // For review - actual bugs?
             'sonarjs/no-inverted-boolean-check': 1,
             'sonarjs/no-misused-promises': 1,
             // For review - new for eslint 9.
-            '@typescript-eslint/no-base-to-string': 1,
             '@typescript-eslint/no-unsafe-member-access': 1,
             '@typescript-eslint/restrict-template-expressions': 1,
             '@typescript-eslint/no-unsafe-return': 1,
             '@typescript-eslint/no-unsafe-call': 1,
-            '@typescript-eslint/unbound-method': 1,
             '@typescript-eslint/no-unsafe-assignment': 1,
             '@typescript-eslint/no-unsafe-function-type': 1,
             '@typescript-eslint/no-unsafe-argument': 1,
@@ -119,9 +120,7 @@ export default [
             '@typescript-eslint/require-await': 1,
             '@typescript-eslint/no-this-alias': 1,
             'sonarjs/public-static-readonly': 1,
-            'sonarjs/no-empty-function': 1,
             'sonarjs/no-redeclare': 1,
-            'sonarjs/no-base-to-string': 0,
             'sonarjs/new-cap': 1,
             'sonarjs/updated-loop-counter': 1,
             'sonarjs/todo-tag': 1,
@@ -136,6 +135,7 @@ export default [
             'sonarjs/sonar-no-unused-vars': 0,
             'sonarjs/no-redundant-type-constituents': 0,
             'sonarjs/sonar-prefer-optional-chain': 0,
+            'sonarjs/no-base-to-string': 0,
         },
     },
     testDefaults,

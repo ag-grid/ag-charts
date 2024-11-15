@@ -186,7 +186,10 @@ export class DataController {
             keys(group.opts.props) === keys(opts.props);
     }
 
-    private static mergeRequests(requests: RequestedProcessing<any, any, any>[]): MergedRequests<any, any, any> {
+    private static mergeRequests(
+        this: void,
+        requests: RequestedProcessing<any, any, any>[]
+    ): MergedRequests<any, any, any> {
         return requests.reduce(
             (result, { id, data, resolve, reject, opts: { props, ...opts } }) => {
                 result.ids.push(id);

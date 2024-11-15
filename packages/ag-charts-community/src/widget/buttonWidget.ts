@@ -8,7 +8,9 @@ export class ButtonWidget extends Widget<HTMLButtonElement> {
         this.setEnabled(true);
     }
 
-    protected override destructor() {} // NOSONAR
+    protected override destructor() {
+        // Nothing to destroy.
+    }
 
     setEnabled(enabled: boolean) {
         setAttribute(this.elem, 'aria-disabled', !enabled);

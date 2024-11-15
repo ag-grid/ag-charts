@@ -201,9 +201,9 @@ describe('AreaSeries', () => {
 
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
             if (example.skip === true) {
-                // eslint-disable-next-line sonarjs/no-skipped-test
+                // Support skipping.
                 it.skip(`for ${exampleName} it should create chart instance as expected`, async () => {});
-                // eslint-disable-next-line sonarjs/no-skipped-test
+                // Support skipping.
                 it.skip(`for ${exampleName} it should render to canvas as expected`, async () => {});
             } else {
                 it(`for ${exampleName} it should create chart instance as expected`, async () => {
@@ -215,14 +215,12 @@ describe('AreaSeries', () => {
                     await assertions(chart);
 
                     warnings.forEach((message, index) => {
-                        // eslint-disable-next-line no-console
                         expect(console.warn).toHaveBeenNthCalledWith(
                             index + 1,
                             ...(Array.isArray(message) ? message : [message])
                         );
                     });
                     if (warnings.length === 0) {
-                        // eslint-disable-next-line no-console
                         expect(console.warn).not.toHaveBeenCalled();
                     }
                 });

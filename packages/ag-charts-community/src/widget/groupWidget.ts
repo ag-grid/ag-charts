@@ -7,5 +7,7 @@ export class GroupWidget extends Widget<HTMLDivElement> {
         super(getDocument().createElement('div'));
         setAttribute(this.elem, 'role', 'group');
     }
-    protected override destructor() {} // NOSONAR
+    protected override destructor() {
+        // Nothing to destroy.
+    }
 }

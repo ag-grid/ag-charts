@@ -1,6 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function assertEmpty(_t: Record<string, never>) {}
-
 export const IGNORED_PROP = Symbol('IGNORED_PROP');
 
 export function pickProps<T>(

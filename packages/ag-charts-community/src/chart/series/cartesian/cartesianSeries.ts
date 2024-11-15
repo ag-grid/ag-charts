@@ -333,7 +333,11 @@ export abstract class CartesianSeries<
         }
     }
 
-    protected detachPaths(_paths: Path[], _seriesNode: Node, _annotationNode: Node | undefined) {}
+    protected detachPaths(paths: Path[], _seriesNode: Node, _annotationNode: Node | undefined) {
+        for (const path of paths) {
+            this.contentGroup.removeChild(path);
+        }
+    }
 
     override renderToOffscreenCanvas(): boolean {
         const nodeData = this.getNodeData();

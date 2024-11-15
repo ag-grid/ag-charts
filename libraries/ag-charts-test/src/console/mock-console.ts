@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 // The intent of setupMockConsole is to suppress console warnings and errors from tests.
 // The reason for this is that we have some tests for console messages, (i.e. we have tests
 // that pass if a message is printed) and we do not want to pollute the test output with

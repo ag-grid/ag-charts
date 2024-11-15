@@ -273,7 +273,7 @@ class AgChartsInternal {
         return proxy;
     }
 
-    private static markRemovedProperties(node: any) {
+    private static markRemovedProperties(this: void, node: any) {
         if (typeof node !== 'object') return;
         for (const [key, value] of Object.entries(node)) {
             if (typeof value === 'undefined') {
@@ -291,7 +291,7 @@ class AgChartsInternal {
         AgChartsInternal.createOrUpdate({ proxy, deltaOptions });
     }
 
-    private static createChartInstance(options: ChartOptions, oldChart?: Chart): Chart {
+    private static createChartInstance(this: void, options: ChartOptions, oldChart?: Chart): Chart {
         const transferableResource = oldChart?.destroy({ keepTransferableResources: true });
         const ChartConstructor = AgChartsInternal.getChartByOptions(options.processedOptions);
         return new ChartConstructor(options, transferableResource);

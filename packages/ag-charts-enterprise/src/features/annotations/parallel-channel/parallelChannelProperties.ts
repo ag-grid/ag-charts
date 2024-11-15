@@ -20,7 +20,7 @@ const { NUMBER, STRING, OBJECT, BaseProperties, Validate, isObject, Logger } = _
 export class ParallelChannelProperties extends Annotation(
     Background(Line(Handle(Extendable(Stroke(LineStyle(BaseProperties))))))
 ) {
-    static is(value: unknown): value is ParallelChannelProperties {
+    static is(this: void, value: unknown): value is ParallelChannelProperties {
         return isObject(value) && value.type === AnnotationType.ParallelChannel;
     }
 

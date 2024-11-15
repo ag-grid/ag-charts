@@ -1,9 +1,3 @@
-/* eslint-disable no-nested-ternary */
-
-/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-
-/* eslint-disable sonarjs/no-duplicate-string */
-
 /* eslint-disable no-console */
 import { MD5 } from './md5';
 

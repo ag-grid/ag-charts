@@ -8,7 +8,7 @@ const formatters = ['number', 'percent', 'date', 'time', 'datetime'];
 const formatterRegExp = /\[([^\]]*)\]/g;
 const variableRegExp = /(\$\{\w+\})/g;
 
-// eslint-disable-next-line sonarjs/no-skipped-test
+// Ignored since the translations are currently a moving target.
 describe.skip('translations', () => {
     describe.each(Object.keys(locales))('%s', (locale) => {
         const translations = (locales as any)[locale] as Record<string, string>;

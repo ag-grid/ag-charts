@@ -4,5 +4,7 @@ export class NativeWidget<TElem extends HTMLElement = HTMLElement> extends Widge
     constructor(elem: TElem) {
         super(elem);
     }
-    protected destructor() {} // NOSONAR
+    protected override destructor() {
+        // Nothing to destroy.
+    }
 }

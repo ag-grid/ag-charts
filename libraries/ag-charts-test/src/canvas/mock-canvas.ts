@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Canvas, Image, CanvasRenderingContext2D as NodeCanvasRenderingContext2D, createCanvas } from 'canvas';
 
 import { ConicGradient } from './conicGradient';

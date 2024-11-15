@@ -15,7 +15,7 @@ import {
 } from 'ag-charts-types';
 
 import { mergeArrayDefaults, mergeDefaults } from '../../util/object';
-import { IGNORED_PROP, assertEmpty, pickProps } from './presetUtils';
+import { IGNORED_PROP, pickProps } from './presetUtils';
 
 function isRadialGauge(opts: AgGaugeOptions): opts is AgRadialGaugeOptions {
     return opts.type === 'radial-gauge';
@@ -79,7 +79,6 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         spacing,
         ...rest
     } = opts;
-    assertEmpty(rest);
 
     const {
         fills: scaleFills,
@@ -95,9 +94,7 @@ function radialGaugeOptions(opts: AgRadialGaugeOptions) {
         max: scaleMax = 1,
         interval: scaleInterval = {},
         label: scaleLabel = {},
-        ...scaleRest
     } = scale;
-    assertEmpty(scaleRest);
 
     const chartOpts = pickProps<AgBaseGaugePresetOptions>(opts, {
         animation,
@@ -209,7 +206,6 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         label,
         ...rest
     } = opts;
-    assertEmpty(rest);
 
     const {
         fills: scaleFills,
@@ -225,9 +221,7 @@ function linearGaugeOptions(opts: AgLinearGaugeOptions): AgGaugeChartOptions {
         max: scaleMax = 1,
         interval: scaleInterval = {},
         label: scaleLabel = {},
-        ...scaleRest
     } = scale;
-    assertEmpty(scaleRest);
 
     const chartOpts = pickProps<AgBaseGaugePresetOptions>(opts, {
         animation,

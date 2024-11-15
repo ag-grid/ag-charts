@@ -38,5 +38,7 @@ export class BoundedTextWidget extends Widget<HTMLDivElement> {
         this.elem.role = 'presentation';
     }
 
-    protected override destructor() {} // NOSONAR
+    protected override destructor() {
+        // Nothing to destroy.
+    }
 }

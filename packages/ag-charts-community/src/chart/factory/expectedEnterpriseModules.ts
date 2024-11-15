@@ -1,5 +1,3 @@
-/* eslint-disable sonarjs/no-duplicate-string */
-/* eslint-disable sonarjs/no-collapsible-if */
 type EnterpriseModuleStub = {
     type: 'axis' | 'axis-option' | 'series' | 'series-option' | 'root' | 'legend';
     packageType?: 'enterprise';
