@@ -213,7 +213,7 @@ export class SeriesAreaManager extends BaseManager {
                 );
             }
         } else if (this.chart.ctx.interactionManager.getState() & (Default | ContextMenu)) {
-            const match = pickNode(this.series, { x: event.offsetX, y: event.offsetY }, 'context-menu');
+            const match = pickNode(this.series, { x: event.regionX, y: event.regionY }, 'context-menu');
             if (match) {
                 this.chart.ctx.highlightManager.updateHighlight(this.id);
                 pickedNode = match.datum;
@@ -242,7 +242,7 @@ export class SeriesAreaManager extends BaseManager {
         this.hoverScheduler.schedule();
 
         if (this.chart.ctx.interactionManager.getState() === InteractionState.Default) {
-            const { offsetX: x, offsetY: y } = event;
+            const { regionX: x, regionY: y } = event;
             const found = pickNode(this.series, { x, y }, 'event');
             if (found?.series.hasEventListener('nodeClick') || found?.series.hasEventListener('nodeDoubleClick')) {
                 this.chart.ctx.cursorManager.updateCursor(this.id, 'pointer');
@@ -255,7 +255,7 @@ export class SeriesAreaManager extends BaseManager {
     private onClick(event: RegionEvent<'click' | 'dblclick'>) {
         this.hoverDevice = 'mouse';
         this.onHoverLikeEvent(event);
-        if (this.seriesRect?.containsPoint(event.offsetX, event.offsetY) && this.checkSeriesNodeClick(event)) {
+        if (this.seriesRect?.containsPoint(event.regionX, event.regionY) && this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.preventDefault();
             return;
@@ -310,9 +310,9 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private checkSeriesNodeClick(event: RegionEvent<'click' | 'dblclick'> & { preventZoomDblClick?: boolean }) {
-        let point = { x: event.offsetX, y: event.offsetY };
+        let point = { x: event.regionX, y: event.regionY };
         if (event.region !== 'series') {
-            point = Transformable.fromCanvasPoint(this.chart.seriesRoot, event.offsetX, event.offsetY);
+            point = Transformable.fromCanvasPoint(this.chart.seriesRoot, event.regionX, event.regionY);
         }
         const result = pickNode(this.series, point, 'event');
         if (result == null) return false;
@@ -481,15 +481,15 @@ export class SeriesAreaManager extends BaseManager {
         )
             return;
 
-        const { offsetX, offsetY } = event;
-        if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(offsetX, offsetY)) {
+        const { regionX, regionY } = event;
+        if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(regionX, regionY)) {
             this.clearHighlight();
             return;
         }
 
-        let pickCoords = { x: event.offsetX, y: event.offsetY };
+        let pickCoords = { x: event.regionX, y: event.regionY };
         if (event.region !== 'series') {
-            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, offsetX, offsetY);
+            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, regionX, regionY);
         }
 
         const { range } = this.chart.highlight;
@@ -513,7 +513,7 @@ export class SeriesAreaManager extends BaseManager {
         )
             return;
 
-        const { offsetX, offsetY, region } = event;
+        const { regionX, regionY, region } = event;
         const targetElement = event.sourceEvent.target as HTMLElement;
         if (redisplay ? this.chart.ctx.animationManager.isActive() : region !== 'series') {
             if (this.hoverDevice == 'mouse') this.clearTooltip();
@@ -529,9 +529,9 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        let pickCoords = { x: offsetX, y: offsetY };
+        let pickCoords = { x: regionX, y: regionY };
         if (event.region !== 'series') {
-            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, offsetX, offsetY);
+            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, regionX, regionY);
         }
 
         const pick = pickNode(this.series, pickCoords, 'tooltip');

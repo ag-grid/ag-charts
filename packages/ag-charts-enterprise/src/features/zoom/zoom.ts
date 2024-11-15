@@ -170,7 +170,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         this.domProxy = new ZoomDOMProxy({
             onDragStart: (id, dir) => this.onAxisDragStart(id, dir),
-            onDrag: (ev) => this.onDrag(ev),
+            onDrag: (ev) => this.onDrag({ regionX: ev.offsetX, regionY: ev.offsetY }),
             onDragEnd: () => this.onDragEnd(),
         });
 
@@ -263,7 +263,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDrag(event: _ModuleSupport.PointerOffsets) {
+    private onDrag(event: Pick<_ModuleSupport.RegionEvent, 'regionX' | 'regionY'>) {
         const {
             anchorPointX,
             anchorPointY,

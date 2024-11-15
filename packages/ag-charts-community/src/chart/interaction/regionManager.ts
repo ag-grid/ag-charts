@@ -12,8 +12,8 @@ type RegionName = 'root' | 'series';
 export type RegionEvent<T extends PointerInteractionTypes = PointerInteractionTypes> = PreventableEvent & {
     type: T;
     region: RegionName;
-    offsetX: number;
-    offsetY: number;
+    regionX: number;
+    regionY: number;
     canvasX: number;
     canvasY: number;
     deltaX: T extends 'wheel' ? number : never;
@@ -185,6 +185,20 @@ export class RegionManager {
         return map[widgetEvent.type];
     }
 
+    private computeEventOffsets(current: Region, widget: Widget, widgetEvent: TWidgetEvent) {
+        const widgetRect = widget.getElement().getBoundingClientRect();
+        const currentWidgetRect = current.properties.widget.getElement().getBoundingClientRect();
+        const { deltaX, deltaY } = InteractionManager.getWheelDeltas(widgetEvent.sourceEvent);
+        return {
+            canvasX: widgetEvent.clientX - widgetRect.x,
+            canvasY: widgetEvent.clientY - widgetRect.y,
+            regionX: widgetEvent.clientX - currentWidgetRect.x,
+            regionY: widgetEvent.clientY - currentWidgetRect.y,
+            deltaX,
+            deltaY,
+        };
+    }
+
     // Create and dispatch a copy of the InteractionEvent.
     private dispatch(
         current: Region | undefined,
@@ -194,20 +208,9 @@ export class RegionManager {
     ) {
         if (current == null) return;
 
-        const { offsetX, offsetY, clientX, clientY, sourceEvent } = widgetEvent;
-        const { x, y } = widget.getElement().getBoundingClientRect();
-        const canvasX = clientX - x;
-        const canvasY = clientY - y;
-        const { deltaX, deltaY } = InteractionManager.getWheelDeltas(sourceEvent);
-
         const event: RegionEvent = buildPreventable({
-            offsetX,
-            offsetY,
-            canvasX,
-            canvasY,
-            deltaX,
-            deltaY,
-            sourceEvent,
+            ...this.computeEventOffsets(current, widget, widgetEvent),
+            sourceEvent: widgetEvent.sourceEvent,
             type: this.widgetEventTypeToRegionEventType(widgetEvent, regionEventType),
             region: current.properties.name,
         });

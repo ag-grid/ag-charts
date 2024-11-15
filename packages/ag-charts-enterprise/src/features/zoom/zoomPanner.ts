@@ -57,8 +57,8 @@ export class ZoomPanner {
         }
     }
 
-    update(event: _ModuleSupport.PointerOffsets) {
-        this.updateCoords(event.offsetX, event.offsetY);
+    update(event: { regionX: number; regionY: number }) {
+        this.updateCoords(event.regionX, event.regionY);
         const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.coords ?? {};
         this.onUpdate?.({
             type: 'update',
