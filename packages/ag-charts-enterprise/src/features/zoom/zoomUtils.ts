@@ -53,7 +53,7 @@ export function definedZoomState(zoom?: _ModuleSupport.AxisZoomState): DefinedZo
  * cater for conflicting direction between screen and chart axis systems. Constrains the point to the series
  * rect so the zoom is pinned to the edges if the point is over the legends, axes, etc.
  */
-export function pointToRatio(bbox: _ModuleSupport.BBox, x: number, y: number): { x: number; y: number } {
+export function pointToRatio(bbox: _ModuleSupport.BBoxValues, x: number, y: number): { x: number; y: number } {
     if (!bbox) return { x: 0, y: 0 };
 
     const constrainedX = constrain(x - bbox.x, 0, bbox.x + bbox.width);
