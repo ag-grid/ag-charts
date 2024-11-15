@@ -263,7 +263,7 @@ export class RegionManager {
     };
 
     private pickRegion(event: TWidgetEvent) {
-        if (event.sourceEvent.target === this.regions.root?.properties.widget.getElement()) {
+        if (event.sourceEvent.target == this.regions.root?.properties.widget.getElement()) {
             return this.regions.root;
         }
         return this.regions.series;
