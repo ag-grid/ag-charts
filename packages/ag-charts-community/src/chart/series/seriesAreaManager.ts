@@ -579,10 +579,29 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    public testFindTarget(x: number, y: number): { target: HTMLElement; x: number; y: number } {
+    public testFindTarget(
+        x: number,
+        y: number
+    ): {
+        target: HTMLElement;
+        offsetX: number;
+        offsetY: number;
+        mockRegion?: Pick<RegionEvent, 'region' | 'canvasX' | 'canvasY' | 'regionX' | 'regionY'>;
+    } {
         if (this.seriesRect?.containsPoint(x, y)) {
-            return { target: this.chart.ctx.scene.canvas.element, x: x - this.seriesRect.x, y: y - this.seriesRect.y };
+            return {
+                target: this.chart.ctx.scene.canvas.element,
+                offsetX: NaN,
+                offsetY: NaN,
+                mockRegion: {
+                    region: 'series',
+                    canvasX: x,
+                    canvasY: y,
+                    regionX: x - this.seriesRect.x,
+                    regionY: y - this.seriesRect.y,
+                },
+            };
         }
-        return { target: this.chart.ctx.scene.canvas.element, x, y };
+        return { target: this.chart.ctx.scene.canvas.element, offsetX: x, offsetY: y };
     }
 }

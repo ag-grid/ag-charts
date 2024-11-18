@@ -1559,7 +1559,7 @@ export abstract class Chart extends Observable {
         }
     }
 
-    public testFindTarget(x: number, y: number): { target: HTMLElement; x: number; y: number } {
+    public testFindTarget(x: number, y: number): ReturnType<SeriesAreaManager['testFindTarget']> {
         type TestModuleFns = { testFindTarget: Chart['testFindTarget'] };
         for (const moduleName of ['legend', 'navigator', 'zoom']) {
             const mod = this.modulesManager.getModule<TestModuleFns>(moduleName);

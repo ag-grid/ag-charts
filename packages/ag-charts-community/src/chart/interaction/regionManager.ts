@@ -41,6 +41,8 @@ export interface RegionProperties {
     readonly widget: Widget;
 }
 
+export type MockRegionEvent = Pick<RegionEvent, 'region' | 'canvasX' | 'canvasY' | 'regionX' | 'regionY'>;
+
 function addHandler<T extends RegionEvent['type']>(
     listeners: RegionListeners | undefined,
     interactionManager: InteractionManager,
@@ -186,9 +188,15 @@ export class RegionManager {
     }
 
     private computeEventOffsets(current: Region, widget: Widget, widgetEvent: TWidgetEvent) {
+        const { deltaX, deltaY } = InteractionManager.getWheelDeltas(widgetEvent.sourceEvent);
+
+        if ('mockRegion' in widgetEvent.sourceEvent) {
+            const mockRegion = widgetEvent.sourceEvent.mockRegion as MockRegionEvent;
+            return { deltaX, deltaY, ...mockRegion };
+        }
+
         const widgetRect = widget.getElement().getBoundingClientRect();
         const currentWidgetRect = current.properties.widget.getElement().getBoundingClientRect();
-        const { deltaX, deltaY } = InteractionManager.getWheelDeltas(widgetEvent.sourceEvent);
         return {
             canvasX: widgetEvent.clientX - widgetRect.x,
             canvasY: widgetEvent.clientY - widgetRect.y,
@@ -266,6 +274,11 @@ export class RegionManager {
     };
 
     private pickRegion(event: TWidgetEvent) {
+        if ('mockRegion' in event.sourceEvent) {
+            return (event.sourceEvent.mockRegion as MockRegionEvent).region === 'series'
+                ? this.regions.series
+                : this.regions.root;
+        }
         if (event.sourceEvent.target == this.regions.root?.properties.widget.getElement()) {
             return this.regions.root;
         }
