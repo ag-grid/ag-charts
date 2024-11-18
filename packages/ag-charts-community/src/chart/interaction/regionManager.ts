@@ -104,6 +104,8 @@ export class RegionManager {
     private readonly destroyFns: (() => void)[] = [];
     private readonly allRegionsListeners = new RegionListeners();
     private deferredDragStart?: RegionEvent<'drag-start'>;
+    private isDragMoving = false;
+    private blockNextClickEvent = false;
 
     constructor(private readonly interactionManager: InteractionManager) {}
 
@@ -222,18 +224,47 @@ export class RegionManager {
             region: current.properties.name,
         });
 
-        if (event.type === 'drag-start') {
-            this.deferredDragStart = event as RegionEvent<'drag-start'>;
-        } else if (this.deferredDragStart) {
-            if (event.type === 'drag') {
-                this.dispatchEvent(current, this.deferredDragStart);
+        switch (event.type) {
+            case 'drag-start': {
+                this.deferredDragStart = event as RegionEvent<'drag-start'>;
+                break;
+            }
+            case 'drag': {
+                if (this.deferredDragStart) {
+                    this.dispatchEvent(current, this.deferredDragStart);
+                }
                 this.dispatchEvent(current, event);
                 this.deferredDragStart = undefined;
-            } else if (event.type === 'drag-end') {
-                this.deferredDragStart = undefined;
+                this.isDragMoving = true;
+                this.blockNextClickEvent = true;
+                break;
             }
-        } else {
-            this.dispatchEvent(current, event);
+            case 'drag-end': {
+                if (this.isDragMoving) {
+                    this.dispatchEvent(current, event);
+                }
+                this.deferredDragStart = undefined;
+                this.isDragMoving = false;
+                break;
+            }
+            case 'click': {
+                if (!this.blockNextClickEvent) {
+                    this.dispatchEvent(current, event);
+                }
+                this.blockNextClickEvent = false;
+                break;
+            }
+            case 'hover': {
+                if (!this.isDragMoving) {
+                    this.dispatchEvent(current, event);
+                    this.blockNextClickEvent = false;
+                }
+                break;
+            }
+            default: {
+                this.dispatchEvent(current, event);
+                break;
+            }
         }
     }
 
