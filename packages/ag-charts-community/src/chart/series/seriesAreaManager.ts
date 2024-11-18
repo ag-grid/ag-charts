@@ -255,7 +255,7 @@ export class SeriesAreaManager extends BaseManager {
     private onClick(event: RegionEvent<'click' | 'dblclick'>) {
         this.hoverDevice = 'mouse';
         this.onHoverLikeEvent(event);
-        if (this.seriesRect?.containsPoint(event.regionX, event.regionY) && this.checkSeriesNodeClick(event)) {
+        if (this.seriesRect?.containsPoint(event.canvasX, event.canvasY) && this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.preventDefault();
             return;
@@ -312,7 +312,7 @@ export class SeriesAreaManager extends BaseManager {
     private checkSeriesNodeClick(event: RegionEvent<'click' | 'dblclick'> & { preventZoomDblClick?: boolean }) {
         let point = { x: event.regionX, y: event.regionY };
         if (event.region !== 'series') {
-            point = Transformable.fromCanvasPoint(this.chart.seriesRoot, event.regionX, event.regionY);
+            point = Transformable.fromCanvasPoint(this.chart.seriesRoot, event.canvasX, event.canvasY);
         }
         const result = pickNode(this.series, point, 'event');
         if (result == null) return false;
@@ -481,15 +481,15 @@ export class SeriesAreaManager extends BaseManager {
         )
             return;
 
-        const { regionX, regionY } = event;
-        if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(regionX, regionY)) {
+        const { canvasX, canvasY } = event;
+        if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
             this.clearHighlight();
             return;
         }
 
         let pickCoords = { x: event.regionX, y: event.regionY };
         if (event.region !== 'series') {
-            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, regionX, regionY);
+            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, canvasX, canvasY);
         }
 
         const { range } = this.chart.highlight;
@@ -513,7 +513,7 @@ export class SeriesAreaManager extends BaseManager {
         )
             return;
 
-        const { regionX, regionY, region } = event;
+        const { canvasX, canvasY, regionX, regionY, region } = event;
         const targetElement = event.sourceEvent.target as HTMLElement;
         if (redisplay ? this.chart.ctx.animationManager.isActive() : region !== 'series') {
             if (this.hoverDevice == 'mouse') this.clearTooltip();
@@ -531,7 +531,7 @@ export class SeriesAreaManager extends BaseManager {
 
         let pickCoords = { x: regionX, y: regionY };
         if (event.region !== 'series') {
-            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, regionX, regionY);
+            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, canvasX, canvasY);
         }
 
         const pick = pickNode(this.series, pickCoords, 'tooltip');
