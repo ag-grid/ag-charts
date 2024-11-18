@@ -580,28 +580,24 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     public testFindTarget(
-        x: number,
-        y: number
+        canvasX: number,
+        canvasY: number
     ): {
         target: HTMLElement;
         offsetX: number;
         offsetY: number;
         mockRegion?: Pick<RegionEvent, 'region' | 'canvasX' | 'canvasY' | 'regionX' | 'regionY'>;
     } {
-        if (this.seriesRect?.containsPoint(x, y)) {
-            return {
-                target: this.chart.ctx.scene.canvas.element,
-                offsetX: NaN,
-                offsetY: NaN,
-                mockRegion: {
-                    region: 'series',
-                    canvasX: x,
-                    canvasY: y,
-                    regionX: x - this.seriesRect.x,
-                    regionY: y - this.seriesRect.y,
-                },
-            };
+        const target = this.chart.ctx.scene.canvas.element;
+        const [offsetX, offsetY] = [NaN, NaN];
+        if (this.seriesRect?.containsPoint(canvasX, canvasY)) {
+            const regionX = canvasX - this.seriesRect.x;
+            const regionY = canvasY - this.seriesRect.y;
+            return { target, offsetX, offsetY, mockRegion: { region: 'series', canvasX, canvasY, regionX, regionY } };
+        } else {
+            const regionX = canvasX;
+            const regionY = canvasY;
+            return { target, offsetX, offsetY, mockRegion: { region: 'root', canvasX, canvasY, regionX, regionY } };
         }
-        return { target: this.chart.ctx.scene.canvas.element, offsetX: x, offsetY: y };
     }
 }
