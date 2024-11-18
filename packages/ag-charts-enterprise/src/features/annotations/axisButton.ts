@@ -47,8 +47,9 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
             InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
 
         ctx.domManager.addEventListener('focusin', ({ target }) => {
-            const isSeriesAreaChild = target instanceof HTMLElement && ctx.domManager.contains(target, 'series-area');
-            if (!isSeriesAreaChild) this.hide();
+            const htmlTarget = target instanceof HTMLElement ? target : undefined;
+            const isSeriesAreaChild = htmlTarget && ctx.domManager.contains(htmlTarget, 'series-area');
+            if (!isSeriesAreaChild && htmlTarget !== this.button) this.hide();
         });
 
         this.destroyFns.push(

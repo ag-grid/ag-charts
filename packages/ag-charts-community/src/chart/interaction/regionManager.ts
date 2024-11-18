@@ -4,7 +4,7 @@ import type { Widget } from '../../widget/widget';
 import type { DragWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../../widget/widgetEvents';
 import { InteractionManager } from './interactionManager';
 import type { PointerInteractionTypes } from './interactionManager';
-import { DRAG_INTERACTION_TYPES, InteractionState } from './interactionManager';
+import { InteractionState } from './interactionManager';
 import { type PreventableEvent, buildPreventable } from './preventableEvent';
 
 type RegionName = 'root' | 'series';
@@ -73,14 +73,13 @@ function getTooltipContainer(target: EventTarget | null): HTMLElement | undefine
 }
 
 function shouldIgnore(event: TWidgetEvent): 'none' | 'leave' | 'wait' {
-    const { type, sourceEvent } = event;
+    const { sourceEvent } = event;
     const { className, classList, ariaHidden } = (event.sourceEvent?.target as HTMLElement) ?? {};
     if (className === 'ag-charts-proxy-elem' || !(classList instanceof DOMTokenList)) return 'leave';
 
-    const dragTypes: readonly string[] = DRAG_INTERACTION_TYPES;
     if (
         // Handle drag event on the axis 'add horizontal line annotation' button as canvas events.
-        (classList.contains('ag-charts-annotations__axis-button-icon') && !dragTypes.includes(type)) ||
+        classList.contains('ag-charts-annotations__axis-button-icon') ||
         className === 'ag-charts-swapchain' ||
         className === 'ag-charts-canvas-container' ||
         className === 'ag-charts-canvas-proxy' ||
