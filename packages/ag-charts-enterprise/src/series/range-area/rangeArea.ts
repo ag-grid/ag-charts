@@ -212,8 +212,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const yHighValues = dataModel.resolveColumnById(this, 'yHighValue', processedData);
         const yLowValues = dataModel.resolveColumnById(this, 'yLowValue', processedData);
 
-        if (!this.visible) return;
-
         const xPosition = (index: number) => xScale.convert(xValues[index]) + xOffset;
 
         const labelData: RangeAreaLabelDatum[] = [];
@@ -223,11 +221,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const handleDatumPoint = (datumIndex: number, yHighValue: number, yLowValue: number) => {
             const datum = rawData[datumIndex];
             const xValue = xValues[datumIndex];
-            if (xValue == null || !Number.isFinite(yHighValue) || !Number.isFinite(yLowValue)) return;
+            if (xValue == null) return;
 
             const currentSpanPoints: RangeAreaSpanPointDatum[] | { skip: number } | undefined =
                 spanPoints[spanPoints.length - 1];
-            if (yHighValue != null || yLowValue != null) {
+            if (Number.isFinite(yHighValue) && Number.isFinite(yLowValue)) {
                 const appendMarker = (id: 'high' | 'low', yValue: any, y: number) => {
                     markerData.push({
                         index: datumIndex,
@@ -311,7 +309,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             }
         } else {
             const { topIndices, bottomIndices } = dataAggregationFilter;
-            const [start, end] = visibleRange(topIndices.length, x0, x1, xPosition);
+            const [start, end] = visibleRange(topIndices.length, x0, x1, (index) => xPosition(topIndices[index]));
 
             for (let i = start; i < end; i += 1) {
                 const topDatumIndex = topIndices[i];

@@ -900,6 +900,10 @@ export abstract class Chart extends Observable {
             this.assignSeriesToAxes();
         }
 
+        for (const axis of this.axes) {
+            axis.processData();
+        }
+
         const dataController = new DataController(this.mode);
         const seriesPromises = this.series.map((s) => {
             s.resetDatumCallbackCache();

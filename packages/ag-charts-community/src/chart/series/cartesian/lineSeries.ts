@@ -284,6 +284,9 @@ export class LineSeries extends CartesianSeries<
         const selectionValues =
             yFilterKey != null ? dataModel.resolveColumnById(this, `yFilterRaw`, processedData) : undefined;
 
+        const xPosition = (index: number) => xScale.convert(xValues[index]) + xOffset;
+        const yPosition = (index: number) => yScale.convert(yCumulativeValues[index]) + yOffset;
+
         const nodeData: LineNodeDatum[] = [];
         let spanPoints: SpanPoints | undefined;
         const handleDatum = (index: number) => {
@@ -291,11 +294,10 @@ export class LineSeries extends CartesianSeries<
             const xDatum = xValues[index];
             const yDatum = yValues[index];
             const yEndDatum = yEndValues?.[index];
-            const yCumulativeDatum = yCumulativeValues?.[index];
             const selected = selectionValues?.[index];
 
-            const x = xScale.convert(xDatum) + xOffset;
-            const y = yScale.convert(yCumulativeDatum) + yOffset;
+            const x = xPosition(index);
+            const y = yPosition(index);
 
             if (!Number.isFinite(x)) return;
 
@@ -360,25 +362,20 @@ export class LineSeries extends CartesianSeries<
         };
 
         const [x0, x1] = findMinMax(xAxis.range);
-        const xFor = (index: number) => {
-            const xDatum = xValues[index];
-            return xScale.convert(xDatum) + xOffset;
-        };
-
         const [r0, r1] = xScale.range;
         const range = r1 - r0;
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         if (dataAggregationFilter != null) {
             const { indices } = dataAggregationFilter;
-            const [start, end] = this.visibleRange(indices.length, x0, x1, (index) => xFor(indices[index]));
+            const [start, end] = this.visibleRange(indices.length, x0, x1, (index) => xPosition(indices[index]));
 
             for (let i = start; i < end; i += 1) {
                 handleDatum(indices[i]);
             }
         } else {
             spanPoints = [];
-            const [start, end] = this.visibleRange(rawData.length, x0, x1, xFor);
+            const [start, end] = this.visibleRange(rawData.length, x0, x1, xPosition);
 
             for (let i = start; i < end; i += 1) {
                 handleDatum(i);
