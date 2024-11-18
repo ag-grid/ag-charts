@@ -1,5 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
+import { visibleRange } from '../../utils/aggregation';
+import { type RangeAreaSeriesDataAggregationFilter, aggregateData } from './rangeAreaAggregation';
 import { type RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties';
 import { type RangeAreaContext, type RangeAreaLabelDatum, prepareRangeAreaPathAnimation } from './rangeAreaUtil';
 
@@ -32,9 +34,12 @@ const {
     sanitizeHtml,
     extent,
     getMarker,
+    findMinMax,
     PointerEvents,
     Group,
     BBox,
+    ContinuousScale,
+    OrdinalTimeScale,
 } = _ModuleSupport;
 
 class RangeAreaSeriesNodeEvent<
@@ -70,6 +75,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     override properties = new RangeAreaProperties();
 
     protected override readonly NodeEvent = RangeAreaSeriesNodeEvent;
+
+    private dataAggregationFilters: RangeAreaSeriesDataAggregationFilter[] | undefined = undefined;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
@@ -110,16 +117,37 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             extraProps.push(animationValidation());
         }
 
-        await this.requestDataModel<any, any, true>(dataController, this.data, {
+        const { dataModel, processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
                 keyProperty(xKey, xScaleType, { id: `xValue` }),
-                valueProperty(yLowKey, yScaleType, { id: `yLowValue`, invalidValue: undefined }),
-                valueProperty(yHighKey, yScaleType, { id: `yHighValue`, invalidValue: undefined }),
+                valueProperty(yLowKey, yScaleType, { id: `yLowValue` }),
+                valueProperty(yHighKey, yScaleType, { id: `yHighValue` }),
                 ...extraProps,
             ],
         });
 
+        this.dataAggregationFilters = this.aggregateData(dataModel, processedData);
+
         this.animationState.transition('updateData');
+    }
+
+    private aggregateData(
+        dataModel: _ModuleSupport.DataModel<any, any, any>,
+        processedData: _ModuleSupport.ProcessedData<any>
+    ) {
+        if (processedData.rawData.length === 0) return;
+
+        const xAxis = this.axes[ChartAxisDirection.X];
+        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || OrdinalTimeScale.is(xAxis.scale))) return;
+
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);
+        const yLowValues = dataModel.resolveColumnById(this, `yLowValue`, processedData);
+
+        const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
+        const domain = processedData.domain.keys[index];
+
+        return aggregateData(xValues, yHighValues, yLowValues, domain);
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
@@ -176,6 +204,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const yScale = yAxis.scale;
 
         const { xKey, yLowKey, yHighKey, connectMissingData, marker, interpolation } = this.properties;
+        const { rawData } = processedData;
 
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
@@ -185,16 +214,16 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         if (!this.visible) return;
 
+        const xPosition = (index: number) => xScale.convert(xValues[index]) + xOffset;
+
         const labelData: RangeAreaLabelDatum[] = [];
         const markerData: RangeAreaMarkerDatum[] = [];
         const spanPoints: Array<RangeAreaSpanPointDatum[] | { skip: number }> = [];
 
-        processedData.rawData.forEach((datum, datumIndex) => {
+        const handleDatumPoint = (datumIndex: number, yHighValue: number, yLowValue: number) => {
+            const datum = rawData[datumIndex];
             const xValue = xValues[datumIndex];
-            if (xValue == null) return;
-
-            const yHighValue = yHighValues[datumIndex];
-            const yLowValue = yLowValues[datumIndex];
+            if (xValue == null || !Number.isFinite(yHighValue) || !Number.isFinite(yLowValue)) return;
 
             const currentSpanPoints: RangeAreaSpanPointDatum[] | { skip: number } | undefined =
                 spanPoints[spanPoints.length - 1];
@@ -229,7 +258,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 };
 
                 const inverted = yLowValue > yHighValue;
-                const x = xScale.convert(xValue) + xOffset;
+                const x = xPosition(datumIndex);
                 const yHighCoordinate = yScale.convert(yHighValue);
                 const yLowCoordinate = yScale.convert(yLowValue);
                 const { size } = marker;
@@ -265,7 +294,31 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                     currentSpanPoints.skip += 1;
                 }
             }
-        });
+        };
+
+        const { dataAggregationFilters } = this;
+        const [x0, x1] = findMinMax(xAxis.range);
+        const [r0, r1] = xScale.range;
+        const range = r1 - r0;
+
+        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
+
+        if (dataAggregationFilter == null) {
+            const [start, end] = visibleRange(rawData.length, x0, x1, xPosition);
+
+            for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
+                handleDatumPoint(datumIndex, yHighValues[datumIndex], yLowValues[datumIndex]);
+            }
+        } else {
+            const { topIndices, bottomIndices } = dataAggregationFilter;
+            const [start, end] = visibleRange(topIndices.length, x0, x1, xPosition);
+
+            for (let i = start; i < end; i += 1) {
+                const topDatumIndex = topIndices[i];
+                const bottomDatumIndex = bottomIndices[i];
+                handleDatumPoint(topDatumIndex, yHighValues[topDatumIndex], yLowValues[bottomDatumIndex]);
+            }
+        }
 
         const highSpans = spanPoints.flatMap((p): _ModuleSupport.LinePathSpan[] => {
             if (!Array.isArray(p)) return [];
