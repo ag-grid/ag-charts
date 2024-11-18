@@ -218,9 +218,9 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         if (!this.enabled || this.snap) return;
 
         const { crosshairGroup, hoverRect } = this;
-        const { regionX, regionY } = event;
+        const { canvasX, canvasY } = event;
 
-        if (hoverRect.containsPoint(regionX, regionY)) {
+        if (hoverRect.containsPoint(canvasX, canvasY)) {
             const lineData = this.getData(event);
 
             this.updatePositions(lineData);
