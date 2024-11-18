@@ -1,4 +1,4 @@
-import type { Formatter } from './callbackOptions';
+import type { Formatter, Styler } from './callbackOptions';
 import type { CssColor, Degree, FontFamily, FontSize, FontStyle, FontWeight, PixelSize } from './types';
 
 export interface AgAxisBoundSeries {
@@ -114,15 +114,7 @@ export interface AgAxisBaseIntervalOptions {
     minSpacing?: PixelSize;
 }
 
-export interface AgAxisLabelFormatterParams {
-    readonly value: any;
-    readonly index: number;
-    readonly fractionDigits?: number;
-}
-
-export interface AgBaseAxisLabelOptions {
-    /** Set to `false` to hide the axis labels. */
-    enabled?: boolean;
+export interface AgBaseAxisLabelStyleOptions {
     /** The font style to use for the labels. */
     fontStyle?: FontStyle;
     /** The font weight to use for the labels. */
@@ -135,6 +127,22 @@ export interface AgBaseAxisLabelOptions {
     padding?: PixelSize;
     /** The colour to use for the labels */
     color?: CssColor;
+}
+
+export interface AgAxisLabelFormatterParams {
+    readonly value: any;
+    readonly index: number;
+    readonly fractionDigits?: number;
+}
+
+export interface AgAxisLabelStylerParams extends AgBaseAxisLabelStyleOptions {
+    readonly value: any;
+    readonly depth?: number;
+}
+
+export interface AgBaseAxisLabelOptions extends AgBaseAxisLabelStyleOptions {
+    /** Set to `false` to hide the axis labels. */
+    enabled?: boolean;
     /** The rotation of the axis labels in degrees. Note: for integrated charts the default is 335 degrees, unless the axis shows grouped or default categories (indexes). The first row of labels in a grouped category axis is rotated perpendicular to the axis line. */
     rotation?: Degree;
     /** Avoid axis label collision by automatically reducing the number of ticks displayed. If set to `false`, axis labels may collide. */
@@ -145,6 +153,8 @@ export interface AgBaseAxisLabelOptions {
     format?: string;
     /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
     formatter?: Formatter<AgAxisLabelFormatterParams>;
+    /** Function used to style axis labels. */
+    styler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
 }
 
 export interface AgAxisGridStyle {

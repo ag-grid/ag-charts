@@ -148,12 +148,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
             }
 
             tempText.setProperties({
+                ...this.getLabelStyles({ value: datum.label, depth: datum.depth }),
                 text: this.formatTick(datum.label, index),
-                fill: label.color,
-                fontFamily: label.fontFamily,
-                fontSize: label.fontSize,
-                fontStyle: label.fontStyle,
-                fontWeight: label.fontWeight,
                 textAlign: 'center',
                 textBaseline: parallelFlipFlag === -1 ? 'bottom' : 'hanging',
                 translationX: (title.fontSize * 0.25 - datum.screenY) * sideFlag,

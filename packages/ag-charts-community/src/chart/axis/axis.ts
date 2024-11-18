@@ -1,4 +1,12 @@
-import type { AgAxisBoundSeries, CssColor, FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
+import type {
+    AgAxisBoundSeries,
+    AgBaseAxisLabelStyleOptions,
+    CssColor,
+    FontFamily,
+    FontSize,
+    FontStyle,
+    FontWeight,
+} from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
 import type { AxisOptionModule } from '../../module/axisOptionModule';
@@ -30,6 +38,7 @@ import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
+import { mergeDefaults } from '../../util/object';
 import { ObserveChanges } from '../../util/proxy';
 import { StateMachine } from '../../util/stateMachine';
 import { createIdsGenerator } from '../../util/tempUtils';
@@ -515,6 +524,26 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return { x1, x2, y };
     }
 
+    protected getLabelStyles(params: { value: string; depth?: number }) {
+        const { label } = this;
+        const defaultStyle: AgBaseAxisLabelStyleOptions = {
+            color: label.color,
+            fontFamily: label.fontFamily,
+            fontSize: label.fontSize,
+            fontStyle: label.fontStyle,
+            fontWeight: label.fontWeight,
+        };
+        let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
+        if (label.styler) {
+            stylerOutput = this.moduleCtx.callbackCache.call(label.styler, {
+                ...params,
+                ...defaultStyle,
+            });
+        }
+        const { color: fill, fontFamily, fontSize, fontStyle, fontWeight } = mergeDefaults(stylerOutput, defaultStyle);
+        return { fill, fontFamily, fontSize, fontStyle, fontWeight };
+    }
+
     private getTickLabelProps(
         datum: TickDatum,
         params: {
@@ -530,16 +559,13 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const sideFlag = label.getSideFlag();
         const labelX = sideFlag * (this.getTickSize() + label.padding + this.seriesAreaPadding);
         const visible = text !== '' && text != null;
+
         return {
+            ...this.getLabelStyles({ value: datum.tickLabel }),
             tickId: datum.tickId,
-            translationY: datum.translationY,
-            fill: label.color,
-            fontFamily: label.fontFamily,
-            fontSize: label.fontSize,
-            fontStyle: label.fontStyle,
-            fontWeight: label.fontWeight,
             rotation: combinedRotation,
             rotationCenterX: labelX,
+            translationY: datum.translationY,
             text,
             textAlign,
             textBaseline,

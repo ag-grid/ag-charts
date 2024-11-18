@@ -1,4 +1,12 @@
-import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions, Formatter } from 'ag-charts-types';
+import type {
+    AgAxisLabelFormatterParams,
+    AgAxisLabelStylerParams,
+    AgBaseAxisLabelStyleOptions,
+    AgCartesianAxisPosition,
+    FontOptions,
+    Formatter,
+    Styler,
+} from 'ag-charts-types';
 
 import type { AxisContext } from '../module/axisContext';
 import type { ModuleContextWithParent } from '../module/moduleContext';
@@ -94,6 +102,7 @@ export interface ChartAxisLabel extends FontOptions {
     enabled: boolean;
     format?: string;
     formatter?: Formatter<AgAxisLabelFormatterParams>;
+    styler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
     minSpacing: number;
     mirrored: boolean;
     padding: number;

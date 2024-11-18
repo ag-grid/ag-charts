@@ -1,4 +1,12 @@
-import type { AgAxisLabelFormatterParams, FontStyle, FontWeight, Formatter } from 'ag-charts-types';
+import type {
+    AgAxisLabelFormatterParams,
+    AgAxisLabelStylerParams,
+    AgBaseAxisLabelStyleOptions,
+    FontStyle,
+    FontWeight,
+    Formatter,
+    Styler,
+} from 'ag-charts-types';
 
 import { Default } from '../../util/default';
 import { BaseProperties } from '../../util/properties';
@@ -101,6 +109,9 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
      */
     @Validate(BOOLEAN)
     parallel: boolean = false;
+
+    @Validate(FUNCTION, { optional: true })
+    styler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
 
     /**
      * In case {@param value} is a number, the {@param fractionDigits} parameter will
