@@ -1537,16 +1537,4 @@ export abstract class Chart extends Observable {
             }
         }
     }
-
-    public testFindTarget(x: number, y: number): MockEvent {
-        type TestModuleFns = { testFindTarget: Chart['testFindTarget'] };
-        for (const moduleName of ['legend', 'navigator', 'zoom']) {
-            const mod = this.modulesManager.getModule<TestModuleFns>(moduleName);
-            const modTarget = mod?.testFindTarget(x, y);
-            if (modTarget) {
-                return modTarget;
-            }
-        }
-        return this.seriesAreaManager.testFindTarget(x, y);
-    }
 }
