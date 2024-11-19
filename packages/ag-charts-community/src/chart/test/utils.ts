@@ -180,7 +180,7 @@ function makeMouseEvent<T extends 'mousedown' | 'mouseup' | 'mousemove' | 'click
 ): MouseEvent {
     const { offsetX, offsetY } = testTarget;
     const event = new MouseEvent(type, { bubbles: true, clientX, clientY });
-    Object.assign(event, { offsetX, offsetY, pageX: clientY, pageY: clientY });
+    Object.assign(event, { offsetX, offsetY, pageX: clientX, pageY: clientY });
     if (testTarget.mockRegion) {
         (event as { mockRegion?: unknown }).mockRegion = testTarget.mockRegion;
     }
