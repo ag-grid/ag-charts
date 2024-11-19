@@ -19,6 +19,19 @@ global.TextEncoder = TextEncoder;
 // @ts-expect-error types don't exactly align
 global.URL = URL;
 
+const TOGGLE_POPOVER_ATTRIBUTE = 'data-presented-as-popover';
+global.HTMLElement.prototype.togglePopover = function (visible) {
+    visible ??= !this.hasAttribute(TOGGLE_POPOVER_ATTRIBUTE);
+
+    if (visible) {
+        this.setAttribute(TOGGLE_POPOVER_ATTRIBUTE, '');
+    } else {
+        this.removeAttribute(TOGGLE_POPOVER_ATTRIBUTE);
+    }
+
+    return visible;
+};
+
 applyPath2DToCanvasRenderingContext(CanvasRenderingContext2D);
 
 declare module 'expect' {

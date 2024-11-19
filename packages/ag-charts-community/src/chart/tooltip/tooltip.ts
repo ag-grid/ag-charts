@@ -2,7 +2,6 @@ import type { AgTooltipRendererResult, InteractionRange, TextWrap } from 'ag-cha
 
 import type { DOMManager } from '../../dom/domManager';
 import { enterpriseModule } from '../../module/enterpriseModule';
-import { setAttribute } from '../../util/attributeUtil';
 import { getWindow } from '../../util/dom';
 import { clamp } from '../../util/number';
 import { type Bounds, calculatePlacement } from '../../util/placement';
@@ -309,11 +308,11 @@ export class Tooltip extends BaseProperties {
         if (meta.enableInteraction) {
             this.enableInteraction = true;
             element.style.pointerEvents = 'auto';
-            setAttribute(element, 'aria-hidden', undefined);
+            element.removeAttribute('aria-hidden');
         } else {
             this.enableInteraction = false;
             element.style.pointerEvents = 'none';
-            setAttribute(element, 'aria-hidden', true);
+            element.setAttribute('aria-hidden', 'true');
         }
 
         if (this.delay > 0 && !instantly) {
