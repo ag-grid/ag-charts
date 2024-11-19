@@ -437,8 +437,6 @@ function createPriceSeriesHighLow(
     return [
         {
             type: 'range-bar',
-            // @ts-expect-error undocumented option
-            focusPriority: 0,
             ...common,
             xKey,
             yHighKey: highKey,
@@ -448,6 +446,9 @@ function createPriceSeriesHighLow(
             tooltip: {
                 range: 'nearest',
             },
+            // @ts-expect-error undocumented option
+            focusPriority: 0,
+            fastDataProcessing: true,
         } satisfies AgRangeBarSeriesOptions,
     ];
 }

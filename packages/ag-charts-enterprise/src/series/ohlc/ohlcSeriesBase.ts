@@ -1,7 +1,15 @@
 import { type AgOhlcSeriesItemType, _ModuleSupport } from 'ag-charts-community';
 
 import { visibleRange } from '../../utils/aggregation';
-import { CLOSE, HIGH, LOW, OPEN, type OhlcSeriesDataAggregationFilter, SPAN, aggregateData } from './ohlcAggregation';
+import {
+    CLOSE,
+    HIGH,
+    LOW,
+    OPEN,
+    type OhlcSeriesDataAggregationFilter,
+    SPAN,
+    aggregateOhlcData,
+} from './ohlcAggregation';
 import type { OhlcBaseNode } from './ohlcNode';
 import type { OhlcSeriesBaseProperties } from './ohlcSeriesProperties';
 
@@ -150,7 +158,7 @@ export abstract class OhlcSeriesBase<
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return aggregateData(xValues, highValues, lowValues, domain);
+        return aggregateOhlcData(xValues, highValues, lowValues, domain);
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection) {

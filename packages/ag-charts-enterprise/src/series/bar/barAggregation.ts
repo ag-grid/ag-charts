@@ -22,7 +22,7 @@ const indexes: _ModuleSupport.BarSeriesAggregationIndexes = {
 const AGGREGATION_THRESHOLD = 1e3;
 const MAX_POINTS = 5;
 
-export function aggregateData(
+export function aggregateBarData(
     xValues: any[],
     yValues: any[],
     domain: number[]

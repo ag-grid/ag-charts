@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { visibleRange } from '../../utils/aggregation';
-import { aggregateData } from './lineAggregation';
+import { aggregateLineData } from './lineAggregation';
 
 const { ChartAxisDirection, ContinuousScale, OrdinalTimeScale } = _ModuleSupport;
 
@@ -28,6 +28,6 @@ export class LineSeries extends _ModuleSupport.LineSeries {
         const yValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
         const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
 
-        return aggregateData(xValues, yValues, domain);
+        return aggregateLineData(xValues, yValues, domain);
     }
 }

@@ -21,6 +21,7 @@ const {
     POSITIVE_NUMBER,
     RATIO,
     STRING,
+    BOOLEAN,
     DropShadow,
     Label,
 } = _ModuleSupport;
@@ -90,4 +91,7 @@ export class RangeBarProperties extends AbstractBarSeriesProperties<AgRangeBarSe
 
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgRangeBarSeriesTooltipRendererParams<unknown>>();
+
+    @Validate(BOOLEAN)
+    fastDataProcessing: boolean = false;
 }
