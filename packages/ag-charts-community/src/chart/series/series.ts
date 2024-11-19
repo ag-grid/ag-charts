@@ -14,7 +14,7 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
-import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
+import type { PointLabelDatum } from '../../scene/util/labelPlacement';
 import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
@@ -148,6 +148,7 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     directionKeys?: SeriesDirectionKeysMapping<TProps>;
     directionNames?: SeriesDirectionKeysMapping<TProps>;
     canHaveAxes?: boolean;
+    usesPlacedLabels?: boolean;
 };
 
 export abstract class Series<
@@ -163,6 +164,7 @@ export abstract class Series<
     abstract readonly properties: TProps;
 
     pickModes: SeriesNodePickMode[];
+    usesPlacedLabels: boolean = false;
 
     get pickModeAxis(): 'main' | 'main-category' | undefined {
         return 'main';
@@ -222,7 +224,6 @@ export abstract class Series<
     chart?: {
         mode: ChartMode;
         isMiniChart: boolean;
-        placeLabels(padding?: number): Map<Series<any, any>, PlacedLabel[]>;
         seriesRect?: BBox;
     };
 
@@ -307,12 +308,20 @@ export abstract class Series<
     constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
         super();
 
-        const { moduleCtx, pickModes, directionKeys = {}, directionNames = {}, canHaveAxes = false } = seriesOpts;
+        const {
+            moduleCtx,
+            pickModes,
+            directionKeys = {},
+            directionNames = {},
+            canHaveAxes = false,
+            usesPlacedLabels = false,
+        } = seriesOpts;
 
         this.ctx = moduleCtx;
         this.directionKeys = directionKeys;
         this.directionNames = directionNames;
         this.canHaveAxes = canHaveAxes;
+        this.usesPlacedLabels = usesPlacedLabels;
 
         this.highlightGroup = new TranslatableGroup({
             name: `${this.internalId}-highlight`,

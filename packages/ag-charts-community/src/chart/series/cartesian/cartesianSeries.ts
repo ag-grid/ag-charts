@@ -506,7 +506,9 @@ export abstract class CartesianSeries<
         }
 
         this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false });
-        this.updateLabelNodes({ labelSelection });
+        if (!this.usesPlacedLabels) {
+            this.updateLabelNodes({ labelSelection });
+        }
         if (hasMarkers) {
             this.updateMarkerNodes({ markerSelection, isHighlight: false });
         }

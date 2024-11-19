@@ -33,7 +33,7 @@ export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Reado
     readonly datum: PLD;
 }
 
-interface Bounds extends Readonly<Point> {
+export interface LabelBounds extends Readonly<Point> {
     readonly width: number;
     readonly height: number;
 }
@@ -78,13 +78,13 @@ function circleRectOverlap(
     return d <= c.size * 0.5;
 }
 
-function rectRectOverlap(r1: Bounds, x2: number, y2: number, w2: number, h2: number): boolean {
+function rectRectOverlap(r1: LabelBounds, x2: number, y2: number, w2: number, h2: number): boolean {
     const xOverlap = r1.x + r1.width > x2 && r1.x < x2 + w2;
     const yOverlap = r1.y + r1.height > y2 && r1.y < y2 + h2;
     return xOverlap && yOverlap;
 }
 
-function rectContainsRect(r1: Bounds, r2x: number, r2y: number, r2w: number, r2h: number) {
+function rectContainsRect(r1: LabelBounds, r2x: number, r2y: number, r2w: number, r2h: number) {
     return r2x + r2w < r1.x + r1.width && r2x > r1.x && r2y > r1.y && r2y + r2h < r1.y + r1.height;
 }
 
@@ -107,20 +107,21 @@ const labelPlacements: Record<LabelPlacement, { x: -1 | 0 | 1; y: -1 | 0 | 1 }> 
  * @param data Points and labels for one or more series. The order of series determines label placement precedence.
  * @param bounds Bounds to fit the labels into. If a label can't be fully contained, it doesn't fit.
  * @param padding
- * @returns Placed labels for the given series (in the given order).
+ * @returns Placed labels for all series.
  */
-export function placeLabels(data: PointLabelDatum[][], bounds?: Bounds, padding = 5): PlacedLabel[][] {
-    const result: PlacedLabel[][] = [];
+export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds?: LabelBounds, padding = 5) {
+    const result: Map<string, PlacedLabel[]> = new Map();
+    const previousResults: PlacedLabel[] = [];
 
-    data = data.map((d) => d.slice().sort((a, b) => b.point.size - a.point.size));
-    for (let j = 0; j < data.length; j++) {
-        const labels: PlacedLabel[] = (result[j] = []);
-        const datum = data[j];
-        if (!(datum?.length && datum[0].label)) {
-            continue;
-        }
-        for (let index = 0, ln = datum.length; index < ln; index++) {
-            const d = datum[index];
+    const sortedDataClone = new Map(
+        [...data.entries()].map(([k, d]) => [k, d.toSorted((a, b) => b.point.size - a.point.size)])
+    );
+    const dataValues = [...sortedDataClone.values()].flat();
+    for (const [seriesId, datums] of sortedDataClone.entries()) {
+        const labels: PlacedLabel[] = [];
+        if (!datums[0]?.label) continue;
+        for (let index = 0, ln = datums.length; index < ln; index++) {
+            const d = datums[index];
             const { point, label, marker } = d;
             const { text, width, height } = label;
             const r = point.size * 0.5;
@@ -135,26 +136,22 @@ export function placeLabels(data: PointLabelDatum[][], bounds?: Bounds, padding 
             const y = point.y - height * 0.5 + dy - ((marker?.center.y ?? 0.5) - 0.5) * point.size;
 
             const withinBounds = !bounds || rectContainsRect(bounds, x, y, width, height);
-            if (!withinBounds) {
-                continue;
-            }
+            if (!withinBounds) continue;
 
-            const overlapPoints = data.some((dataDatums) =>
-                dataDatums.some((dataDatum) =>
-                    circleRectOverlap(dataDatum.point, dataDatum.marker?.center, x, y, width, height)
-                )
+            const overlapPoints = dataValues.some((dataDatum) =>
+                circleRectOverlap(dataDatum.point, dataDatum.marker?.center, x, y, width, height)
             );
-            if (overlapPoints) {
-                continue;
-            }
+            if (overlapPoints) continue;
 
-            const overlapLabels = result.some((l2) => l2.some((l3) => rectRectOverlap(l3, x, y, width, height)));
-            if (overlapLabels) {
-                continue;
-            }
+            const overlapLabels = previousResults.some((pr) => rectRectOverlap(pr, x, y, width, height));
+            if (overlapLabels) continue;
 
-            labels.push({ index, text, x, y, width, height, datum: d });
+            const resultDatum = { index, text, x, y, width, height, datum: d };
+            labels.push(resultDatum);
+            previousResults.push(resultDatum);
         }
+
+        result.set(seriesId, labels);
     }
 
     return result;

@@ -80,6 +80,7 @@ export class MapLineSeries extends TopologySeries<
             moduleCtx,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
+            usesPlacedLabels: true,
         });
     }
 
@@ -351,7 +352,6 @@ export class MapLineSeries extends TopologySeries<
         this.updateDatumNodes({ datumSelection, isHighlight: false });
 
         this.labelSelection = this.updateLabelSelection({ labelSelection });
-        this.updateLabelNodes({ labelSelection });
 
         this.highlightDatumSelection = this.updateDatumSelection({
             nodeData: highlightedDatum != null ? [highlightedDatum] : [],
@@ -427,8 +427,17 @@ export class MapLineSeries extends TopologySeries<
             _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
         >;
     }) {
-        const placedLabels = (this.isLabelEnabled() ? this.chart?.placeLabels().get(this) : undefined) ?? [];
-        return opts.labelSelection.update(placedLabels);
+        if (!this.isLabelEnabled()) return opts.labelSelection.update([]);
+
+        this.ctx.seriesLabelLayoutManager
+            .placeLabels(this.id, this.getLabelData())
+            .then((layoutResult) => {
+                const placedLabels = layoutResult.get(this.id) ?? [];
+                opts.labelSelection.update(placedLabels);
+                this.updateLabelNodes(opts);
+            })
+            .catch((e) => Logger.error(e));
+        return opts.labelSelection;
     }
 
     private updateLabelNodes(opts: {

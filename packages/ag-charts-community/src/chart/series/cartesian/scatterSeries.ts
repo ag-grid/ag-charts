@@ -9,6 +9,7 @@ import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
+import { Logger } from '../../../util/logger';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
@@ -63,6 +64,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 marker: resetMarkerFn,
                 label: resetLabelFn,
             },
+            usesPlacedLabels: true,
         });
     }
 
@@ -257,17 +259,29 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         labelData: ScatterNodeDatum[];
         labelSelection: Selection<Text, ScatterNodeDatum>;
     }) {
-        const placedLabels = this.isLabelEnabled() ? this.chart?.placeLabels().get(this) ?? [] : [];
-        return opts.labelSelection.update(
-            placedLabels.map(({ datum, x, y }) => ({
-                ...(datum as ScatterNodeDatum),
-                point: { x, y, size: datum.point.size },
-                placement: 'top',
-            })),
-            (text) => {
-                text.pointerEvents = PointerEvents.None;
-            }
-        );
+        if (!this.isLabelEnabled()) return opts.labelSelection.update([]);
+
+        this.ctx.seriesLabelLayoutManager
+            .placeLabels(this.id, this.getLabelData())
+            .then((layoutResult) => {
+                const placedLabels = layoutResult.get(this.id) ?? [];
+                opts.labelSelection.update(
+                    placedLabels.map((v) => ({
+                        ...(v.datum as ScatterNodeDatum),
+                        point: {
+                            x: v.x,
+                            y: v.y,
+                            size: v.datum.point.size,
+                        },
+                    })),
+                    (text) => {
+                        text.pointerEvents = PointerEvents.None;
+                    }
+                );
+                this.updateLabelNodes(opts);
+            })
+            .catch((e) => Logger.error(e));
+        return opts.labelSelection;
     }
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, ScatterNodeDatum> }) {

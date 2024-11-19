@@ -122,9 +122,6 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
                 get seriesRect() {
                     return chart.seriesRect;
                 },
-                placeLabels() {
-                    return new Map();
-                },
             };
 
             series.resetAnimation(this.miniChartAnimationPhase === 'initial' ? 'initial' : 'disabled');
