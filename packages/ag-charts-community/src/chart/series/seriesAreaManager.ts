@@ -102,13 +102,14 @@ export class SeriesAreaManager extends BaseManager {
             InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
         const keyState = InteractionState.Default | InteractionState.Animation;
 
+        const { domManager } = chart.ctx;
         const domElementClass = 'series-area';
-        const label1 = chart.ctx.domManager.addChild(domElementClass, 'series-area-aria-label1');
-        const label2 = chart.ctx.domManager.addChild(domElementClass, 'series-area-aria-label2');
+        const label1 = domManager.addChild(domElementClass, 'series-area-aria-label1');
+        const label2 = domManager.addChild(domElementClass, 'series-area-aria-label2');
 
-        this.seriesWidget = new NativeWidget(label1.parentElement!);
-        this.chartWidget = new NativeWidget(label1.parentElement!.parentElement!);
-        this.containerWidget = new NativeWidget(label1.parentElement!.parentElement!.parentElement!);
+        this.seriesWidget = new NativeWidget(domManager.getParent(domElementClass));
+        this.chartWidget = new NativeWidget(domManager.getParent('canvas-proxy'));
+        this.containerWidget = new NativeWidget(domManager.getParent('canvas-container'));
         chart.ctx.regionManager.initRegions(this.containerWidget, this.seriesWidget);
 
         this.swapChain = new FocusSwapChain(label1, label2, this.id, 'img');
