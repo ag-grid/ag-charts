@@ -57,6 +57,7 @@ export interface ChartAxis {
     isReversed(): boolean;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
     setCrossLinesVisible(visible: boolean): void;
+    processData(): void;
     update(animated?: boolean): void;
     boundSeries: ISeries<unknown, unknown>[];
     crossLines?: CrossLine[];

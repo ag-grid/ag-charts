@@ -98,7 +98,7 @@ export class CategoryAxis<
         return { domain, clipped: false };
     }
 
-    override updateScale(domain?: any[]) {
+    override updateScale(opts?: { domain?: any[]; skipDomainCalculation?: boolean }): void {
         let { paddingInner, paddingOuter } = this;
         if (!isFiniteNumber(paddingInner) || !isFiniteNumber(paddingOuter)) {
             const padding = this.reduceBandScalePadding();
@@ -108,7 +108,7 @@ export class CategoryAxis<
         this.scale.paddingInner = paddingInner ?? 0;
         this.scale.paddingOuter = paddingOuter ?? 0;
 
-        super.updateScale(domain);
+        super.updateScale(opts);
     }
 
     private reduceBandScalePadding() {

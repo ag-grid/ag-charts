@@ -10,9 +10,9 @@ export class LineSeries extends _ModuleSupport.LineSeries {
         length: number,
         x0: number,
         x1: number,
-        xFor: (index: number) => number
+        xPosition: (index: number) => number
     ): [number, number] {
-        return visibleRange(length, x0, x1, xFor);
+        return visibleRange(length, x0, x1, xPosition);
     }
 
     protected override aggregateData(

@@ -358,9 +358,6 @@ describe('BarSeries', () => {
   [
     "AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.",
   ],
-  [
-    "AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.",
-  ],
 ]
 `);
             }
@@ -382,9 +379,6 @@ describe('BarSeries', () => {
 
                 expectWarningsCalls().toMatchInlineSnapshot(`
 [
-  [
-    "AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.",
-  ],
   [
     "AG Charts - the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.",
   ],

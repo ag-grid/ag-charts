@@ -101,6 +101,10 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         needle: { skipCanvasUpdateCheck: true },
         segmentation: { clickOrder: 'reverse' },
     },
+    'range-area-series': {
+        // Warns for missing data
+        'range-area-missing-data': { ignoreConsoleWarnings: true },
+    },
     'range-bar-series': {
         // Warns for missing data
         'range-bar-missing-data': { ignoreConsoleWarnings: true },

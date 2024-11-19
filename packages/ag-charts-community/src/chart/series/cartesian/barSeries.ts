@@ -323,6 +323,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             : undefined;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
+        const xPosition = (index: number): number => xScale.convert(xValues[index]) + groupOffset + barOffset;
+
         const nodeDatum = ({
             datum,
             valueIndex,
@@ -515,11 +517,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         };
 
         const [x0, x1] = findMinMax(xAxis.range);
-        const xFor = (index: number): number => {
-            const xValue = xValues[index];
-            return xScale.convert(xValue) + groupOffset + barOffset;
-        };
-
         const [r0, r1] = xScale.range;
         const range = r1 - r0;
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
@@ -535,7 +532,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 const yRanges = aggregation[yRangeIndex];
 
                 datumIndices.forEach((datumIndex, valueIndex) => {
-                    const x = xFor(datumIndex);
+                    const x = xPosition(datumIndex);
 
                     const yRawValue = yRawValues[datumIndex];
                     const isPositive = yRawValue >= 0 && !Object.is(yRawValue, -0);
@@ -548,10 +545,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             });
         } else if (dataAggregationFilter == null) {
             const width = barWidth;
-            const [start, end] = this.visibleRange(rawData.length, x0, x1, xFor);
+            const [start, end] = this.visibleRange(rawData.length, x0, x1, xPosition);
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
-                const x = xFor(datumIndex);
+                const x = xPosition(datumIndex);
                 const yEnd = Number(yRawValues[datumIndex]);
 
                 handleDatum(datumIndex, 0, x, width, 0, yEnd, yEnd, 1);
@@ -564,7 +561,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 const xMinIndex = indexData[aggIndex + X_MIN];
                 const xMaxIndex = indexData[aggIndex + X_MAX];
                 const midDatumIndex = ((xMinIndex + xMaxIndex) / 2) | 0;
-                return xMinIndex !== -1 ? xFor(midDatumIndex) : NaN;
+                return xMinIndex !== -1 ? xPosition(midDatumIndex) : NaN;
             });
 
             for (let i = start; i < end; i += 1) {
@@ -576,8 +573,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
                 if (xMinIndex === -1) continue;
 
-                const x = xFor(((xMinIndex + xMaxIndex) / 2) | 0);
-                const width = Math.abs(xFor(xMaxIndex) - xFor(xMinIndex)) + barWidth;
+                const x = xPosition(((xMinIndex + xMaxIndex) / 2) | 0);
+                const width = Math.abs(xPosition(xMaxIndex) - xPosition(xMinIndex)) + barWidth;
 
                 const yEndMax = xValues[yMaxIndex] != null ? Number(yRawValues[yMaxIndex]) : NaN;
                 const yEndMin = xValues[yMinIndex] != null ? Number(yRawValues[yMinIndex]) : NaN;
