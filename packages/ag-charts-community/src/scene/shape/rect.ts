@@ -293,8 +293,8 @@ export class Rect extends Path implements DistantObject {
 
     private effectiveStrokeWidth: number = Shape.defaultStyles.strokeWidth;
 
-    private hittester = super.isPointInPath;
-    private distanceCalculator = super.distanceSquaredTransformedPoint;
+    private hittester = super.isPointInPath.bind(this);
+    private distanceCalculator = super.distanceSquaredTransformedPoint.bind(this);
 
     /**
      * When the rectangle's width or height is less than a pixel

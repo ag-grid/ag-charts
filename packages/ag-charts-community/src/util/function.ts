@@ -74,7 +74,7 @@ export function debounce<T extends (...args: Parameters<T>) => void>(
 
 export function throttle<T extends (...args: Parameters<T>) => void>(
     callback: T,
-    waitMs = 0,
+    waitMs: number,
     options?: ThrottleOptions
 ) {
     const { leading = true, trailing = true } = options ?? {};
@@ -113,12 +113,4 @@ export function throttle<T extends (...args: Parameters<T>) => void>(
             lastArgs = null;
         },
     });
-}
-
-export function joinFunctions(...fns: (() => void)[]): () => void {
-    return () => {
-        for (const fn of fns) {
-            fn();
-        }
-    };
 }

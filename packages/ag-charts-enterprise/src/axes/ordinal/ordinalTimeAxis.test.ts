@@ -457,7 +457,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
 type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
-    assertions: (chart: ChartOrProxy) => Promise<void>;
+    assertions: (chart: ChartOrProxy) => Promise<void> | void;
     extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
     compare?: AgCartesianAxisType[];
 };

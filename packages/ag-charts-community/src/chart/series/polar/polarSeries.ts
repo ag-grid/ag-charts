@@ -193,6 +193,12 @@ export abstract class PolarSeries<
         return text;
     }
 
+    override addChartEventListeners(): void {
+        this.destroyFns.push(
+            this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event))
+        );
+    }
+
     getInnerRadius(): number {
         return 0;
     }

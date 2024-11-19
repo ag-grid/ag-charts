@@ -4,6 +4,7 @@ export type TransformTsFileExt = undefined | '.js' | '.tsx';
 
 export interface ExampleSettings {
     enterprise?: boolean;
+    skipContainerCheck?: boolean;
 }
 
 export type FileContents = Record<string, string>;

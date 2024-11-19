@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-implied-eval */
 
-/* eslint-disable no-console */
+/* eslint-disable sonarjs/code-eval */
 import * as fs from 'fs';
 
 const filters = [
@@ -24,7 +24,7 @@ function cleanJs(content: string) {
 }
 
 export function loadExampleOptions(
-    agCharts: { AgCharts: {}; time: {}; Marker: {} },
+    agCharts: { AgCharts: object; time: object; Marker: object },
     name: string,
     evalReturn = 'options',
     exampleRootDir = `${process.cwd()}/dist/packages/ag-charts-community-examples/src/`,

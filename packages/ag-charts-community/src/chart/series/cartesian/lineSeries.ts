@@ -30,12 +30,13 @@ import {
     normaliseGroupTo,
     valueProperty,
 } from '../../data/processors';
-import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { datumStylerProperties } from '../util';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
     CartesianSeries,
@@ -126,9 +127,10 @@ export class LineSeries extends CartesianSeries<
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
         if (connectMissingData && stackCount > 1) {
             common.invalidValue = 0;
-        }
-        if (!visible) {
-            common.forceValue = 0;
+
+            if (!visible) {
+                common.forceValue = 0;
+            }
         }
 
         const props: DataModelOptions<any, false>['props'] = [];
@@ -244,7 +246,7 @@ export class LineSeries extends CartesianSeries<
         return [0, length];
     }
 
-    async createNodeData() {
+    override createNodeData() {
         const { dataModel, processedData, axes, dataAggregationFilters } = this;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -412,7 +414,7 @@ export class LineSeries extends CartesianSeries<
         return new MarkerShape();
     }
 
-    protected override async updatePathNodes(opts: {
+    protected override updatePathNodes(opts: {
         seriesHighlighted?: boolean;
         paths: Path[];
         opacity: number;
@@ -447,7 +449,7 @@ export class LineSeries extends CartesianSeries<
         updateClipPath(this, lineNode);
     }
 
-    protected override async updateMarkerSelection(opts: {
+    protected override updateMarkerSelection(opts: {
         nodeData: LineNodeDatum[];
         markerSelection: Selection<Marker, LineNodeDatum>;
         markerGroup?: Group;
@@ -465,7 +467,7 @@ export class LineSeries extends CartesianSeries<
         return markerSelection.update(nodeData, undefined, (datum) => createDatumId(datum.xValue));
     }
 
-    protected override async updateMarkerNodes(opts: {
+    protected override updateMarkerNodes(opts: {
         markerSelection: Selection<Marker, LineNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -481,10 +483,13 @@ export class LineSeries extends CartesianSeries<
 
         const applyTranslation = this.ctx.animationManager.isSkipped();
         markerSelection.each((node, datum) => {
-            this.updateMarkerStyle(node, marker, { datum, highlighted, xKey, yKey, xDomain, yDomain }, baseStyle, {
-                applyTranslation,
-                selected: datum.selected,
-            });
+            this.updateMarkerStyle(
+                node,
+                marker,
+                { ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain), highlighted },
+                baseStyle,
+                { applyTranslation, selected: datum.selected }
+            );
         });
 
         if (!highlighted) {
@@ -492,14 +497,14 @@ export class LineSeries extends CartesianSeries<
         }
     }
 
-    protected async updateLabelSelection(opts: {
+    protected updateLabelSelection(opts: {
         labelData: LineNodeDatum[];
         labelSelection: Selection<Text, LineNodeDatum>;
     }) {
         return opts.labelSelection.update(this.isLabelEnabled() ? opts.labelData : []);
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: Selection<Text, LineNodeDatum> }) {
+    protected updateLabelNodes(opts: { labelSelection: Selection<Text, LineNodeDatum> }) {
         const { enabled, fontStyle, fontWeight, fontSize, fontFamily, color } = this.properties.label;
 
         opts.labelSelection.each((text, datum) => {
@@ -541,7 +546,10 @@ export class LineSeries extends CartesianSeries<
         const baseStyle = mergeDefaults({ fill: marker.stroke }, marker.getStyle(), { strokeWidth });
         const { fill: color } = this.getMarkerStyle(
             marker,
-            { datum: nodeDatum, xKey, yKey, xDomain, yDomain, highlighted: false },
+            {
+                ...datumStylerProperties(nodeDatum, xKey, yKey, xDomain, yDomain),
+                highlighted: false,
+            },
             baseStyle
         );
 
@@ -563,24 +571,40 @@ export class LineSeries extends CartesianSeries<
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        if (!(this.data?.length && this.properties.isValid() && legendType === 'category')) {
+        if (!(this.properties.isValid() && legendType === 'category')) {
             return [];
         }
 
-        const { yKey, yName, stroke, strokeOpacity, strokeWidth, lineDash, title, marker, visible, legendItemName } =
-            this.properties;
+        const {
+            id: seriesId,
+            ctx: { legendManager },
+            visible,
+        } = this;
+
+        const {
+            yKey: itemId,
+            yName,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            title,
+            marker,
+            legendItemName,
+            showInLegend,
+        } = this.properties;
 
         const color0 = 'rgba(0, 0, 0, 0)';
         return [
             {
                 legendType: 'category',
-                id: this.id,
-                itemId: yKey,
+                id: seriesId,
+                itemId,
                 legendItemName,
-                seriesId: this.id,
-                enabled: visible,
+                seriesId,
+                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
                 label: {
-                    text: legendItemName ?? title ?? yName ?? yKey,
+                    text: legendItemName ?? title ?? yName ?? itemId,
                 },
                 symbols: [
                     {
@@ -601,11 +625,12 @@ export class LineSeries extends CartesianSeries<
                         },
                     },
                 ],
+                hideInLegend: !showInLegend,
             },
         ];
     }
 
-    protected override async updatePaths(opts: { contextData: LineSeriesNodeDataContext; paths: Path[] }) {
+    protected override updatePaths(opts: { contextData: LineSeriesNodeDataContext; paths: Path[] }) {
         this.updateLinePaths(opts.paths, opts.contextData);
     }
 
@@ -736,7 +761,10 @@ export class LineSeries extends CartesianSeries<
         const { xKey, yKey } = this.properties;
         const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-        return this.getMarkerStyle(this.properties.marker, { datum, xKey, yKey, xDomain, yDomain, highlighted: true });
+        return this.getMarkerStyle(this.properties.marker, {
+            ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
+            highlighted: true,
+        });
     }
 
     protected computeFocusBounds(opts: PickFocusInputs): BBox | undefined {

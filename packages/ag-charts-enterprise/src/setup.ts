@@ -15,12 +15,14 @@ import { DataSourceModule } from './features/data-source/main';
 import { ErrorBarsModule } from './features/error-bar/errorBarModule';
 import { ForegroundModule } from './features/foreground/main';
 import { NavigatorModule } from './features/navigator/navigatorModule';
+import { RangesModule } from './features/ranges/rangesModule';
 import { StatusBarModule } from './features/status-bar/main';
 import { SyncModule } from './features/sync/syncModule';
 import { ZoomModule } from './features/zoom/main';
 import { GradientLegendModule } from './gradient-legend/gradientLegendModule';
 import { LicenseManager } from './license/licenseManager';
 import { injectWatermark } from './license/watermark';
+import { BarModule } from './series/bar/barModule';
 import { BoxPlotModule } from './series/box-plot/main';
 import { CandlestickModule } from './series/candlestick/main';
 import { ChordModule } from './series/chord/main';
@@ -57,6 +59,7 @@ export function setupEnterpriseModules() {
         AnimationModule,
         AnnotationsModule,
         BackgroundModule,
+        BarModule,
         ForegroundModule,
         BoxPlotModule,
         CandlestickModule,
@@ -91,6 +94,7 @@ export function setupEnterpriseModules() {
         RadiusNumberAxisModule,
         RangeBarModule,
         RangeAreaModule,
+        RangesModule,
         PyramidModule,
         SankeyModule,
         SunburstModule,

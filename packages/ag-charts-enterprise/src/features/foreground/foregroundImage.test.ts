@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import type { AgChartInstance } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,

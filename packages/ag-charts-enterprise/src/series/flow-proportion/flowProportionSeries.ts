@@ -322,14 +322,14 @@ export abstract class FlowProportionSeries<
         return { nodeGraph, links, maxPathLength };
     }
 
-    async updateSelections(): Promise<void> {
+    updateSelections() {
         if (this.nodeDataRefresh) {
-            this.contextNodeData = await this.createNodeData();
+            this.contextNodeData = this.createNodeData();
             this.nodeDataRefresh = false;
         }
     }
 
-    override async update(opts: { seriesRect?: _ModuleSupport.BBox }): Promise<void> {
+    override update(opts: { seriesRect?: _ModuleSupport.BBox }) {
         const { seriesRect } = opts;
         const newNodeDataDependencies = {
             seriesRectWidth: seriesRect?.width ?? 0,
@@ -343,7 +343,7 @@ export abstract class FlowProportionSeries<
             this._nodeDataDependencies = newNodeDataDependencies;
         }
 
-        await this.updateSelections();
+        this.updateSelections();
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
         const labelData = this.contextNodeData?.labelData ?? [];
@@ -365,20 +365,20 @@ export abstract class FlowProportionSeries<
         this.contentGroup.opacity =
             highlightedDatum != null ? this.properties.highlightStyle.series.dimOpacity ?? 1 : 1;
 
-        this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection: this.labelSelection });
-        await this.updateLabelNodes({ labelSelection: this.labelSelection });
+        this.labelSelection = this.updateLabelSelection({ labelData, labelSelection: this.labelSelection });
+        this.updateLabelNodes({ labelSelection: this.labelSelection });
 
-        this.linkSelection = await this.updateLinkSelection({
+        this.linkSelection = this.updateLinkSelection({
             nodeData: nodeData.filter((d): d is TLinkDatum => d.type === FlowProportionDatumType.Link),
             datumSelection: this.linkSelection,
         });
-        await this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
+        this.updateLinkNodes({ datumSelection: this.linkSelection, isHighlight: false });
 
-        this.nodeSelection = await this.updateNodeSelection({
+        this.nodeSelection = this.updateNodeSelection({
             nodeData: nodeData.filter((d): d is TNodeDatum => d.type === FlowProportionDatumType.Node),
             datumSelection: this.nodeSelection,
         });
-        await this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
+        this.updateNodeNodes({ datumSelection: this.nodeSelection, isHighlight: false });
 
         let focusLinkSelection: TLinkDatum[];
         let focusNodeSelection: TNodeDatum[];
@@ -409,59 +409,59 @@ export abstract class FlowProportionSeries<
             highlightNodeSelection = [];
         }
 
-        this.focusLinkSelection = await this.updateLinkSelection({
+        this.focusLinkSelection = this.updateLinkSelection({
             nodeData: focusLinkSelection,
             datumSelection: this.focusLinkSelection,
         });
-        await this.updateLinkNodes({ datumSelection: this.focusLinkSelection, isHighlight: false });
+        this.updateLinkNodes({ datumSelection: this.focusLinkSelection, isHighlight: false });
 
-        this.focusNodeSelection = await this.updateNodeSelection({
+        this.focusNodeSelection = this.updateNodeSelection({
             nodeData: focusNodeSelection,
             datumSelection: this.focusNodeSelection,
         });
-        await this.updateNodeNodes({ datumSelection: this.focusNodeSelection, isHighlight: false });
+        this.updateNodeNodes({ datumSelection: this.focusNodeSelection, isHighlight: false });
 
-        this.highlightLinkSelection = await this.updateLinkSelection({
+        this.highlightLinkSelection = this.updateLinkSelection({
             nodeData: highlightLinkSelection,
             datumSelection: this.highlightLinkSelection,
         });
-        await this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
+        this.updateLinkNodes({ datumSelection: this.highlightLinkSelection, isHighlight: true });
 
-        this.highlightNodeSelection = await this.updateNodeSelection({
+        this.highlightNodeSelection = this.updateNodeSelection({
             nodeData: highlightNodeSelection,
             datumSelection: this.highlightNodeSelection,
         });
-        await this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
+        this.updateNodeNodes({ datumSelection: this.highlightNodeSelection, isHighlight: true });
     }
 
     protected abstract updateLabelSelection(opts: {
         labelData: TLabel[];
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.TransformableText, TLabel>;
-    }): Promise<_ModuleSupport.Selection<_ModuleSupport.TransformableText, TLabel>>;
+    }): _ModuleSupport.Selection<_ModuleSupport.TransformableText, TLabel>;
 
     protected abstract updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, TLabel>;
-    }): Promise<void>;
+    }): void;
 
     protected abstract updateNodeSelection(opts: {
         nodeData: TNodeDatum[];
         datumSelection: _ModuleSupport.Selection<TNode, TNodeDatum>;
-    }): Promise<_ModuleSupport.Selection<TNode, TNodeDatum>>;
+    }): _ModuleSupport.Selection<TNode, TNodeDatum>;
 
     protected abstract updateNodeNodes(opts: {
         datumSelection: _ModuleSupport.Selection<TNode, TNodeDatum>;
         isHighlight: boolean;
-    }): Promise<void>;
+    }): void;
 
     protected abstract updateLinkSelection(opts: {
         nodeData: TLinkDatum[];
         datumSelection: _ModuleSupport.Selection<TLink, TLinkDatum>;
-    }): Promise<_ModuleSupport.Selection<TLink, TLinkDatum>>;
+    }): _ModuleSupport.Selection<TLink, TLinkDatum>;
 
     protected abstract updateLinkNodes(opts: {
         datumSelection: _ModuleSupport.Selection<TLink, TLinkDatum>;
         isHighlight: boolean;
-    }): Promise<void>;
+    }): void;
 
     override resetAnimation(_chartAnimationPhase: _ModuleSupport.ChartAnimationPhase): void {
         // Does not reset any animations
@@ -474,6 +474,7 @@ export abstract class FlowProportionSeries<
     override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         if (legendType !== 'category') return [];
 
+        const { showInLegend } = this.properties;
         return Array.from(
             this.processedNodes.values(),
             ({ id, label, fill, stroke }): _ModuleSupport.CategoryLegendDatum => ({
@@ -494,6 +495,7 @@ export abstract class FlowProportionSeries<
                         },
                     },
                 ],
+                hideInLegend: !showInLegend,
             })
         );
     }

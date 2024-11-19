@@ -1,4 +1,3 @@
-/* eslint-disable sonarjs/no-duplicate-string */
 import type { ScaleType } from '../../scale/scale';
 import { memo } from '../../util/memo';
 import { clamp, isNegative } from '../../util/number';
@@ -138,6 +137,7 @@ export const SMALLEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'smallestKey
     initialValue: Infinity,
     reducer: () => {
         let prevX = NaN;
+        // eslint-disable-next-line sonarjs/default-param-last
         return (smallestSoFar = Infinity, next) => {
             const nextX = next.keys[0];
             const interval = Math.abs(nextX - prevX);
@@ -156,6 +156,7 @@ export const LARGEST_KEY_INTERVAL: ReducerOutputPropertyDefinition<'largestKeyIn
     initialValue: -Infinity,
     reducer: () => {
         let prevX = NaN;
+        // eslint-disable-next-line sonarjs/default-param-last
         return (largestSoFar = -Infinity, next) => {
             const nextX = next.keys[0];
             const interval = Math.abs(nextX - prevX);
@@ -203,6 +204,7 @@ function normaliseFnBuilder({ normaliseTo, mode }: { normaliseTo: number; mode: 
                 continue;
             }
             column[datumIndex] =
+                // eslint-disable-next-line sonarjs/no-nested-functions
                 typeof value === 'number' ? normalise(value, extent) : value.map((v) => normalise(v, extent));
         }
     };
@@ -307,16 +309,16 @@ const animationValidationProcessKey = (
     let validation = ANIMATION_VALIDATION_UNIQUE_KEYS | ANIMATION_VALIDATION_ORDERED_KEYS;
 
     if (def.valueType === 'category') {
-        if (!(keyValues.length === count)) validation &= ~ANIMATION_VALIDATION_UNIQUE_KEYS;
+        if (keyValues.length !== count) validation &= ~ANIMATION_VALIDATION_UNIQUE_KEYS;
 
         return validation;
     }
 
-    let lastValue = column[0];
+    let lastValue = column[0]?.valueOf();
     for (let d = 1; validation !== 0 && d < column.length; d++) {
-        const keyValue = column[d];
-        if (!(lastValue <= keyValue)) validation &= ~ANIMATION_VALIDATION_ORDERED_KEYS;
-        if (!(lastValue !== keyValue)) validation &= ~ANIMATION_VALIDATION_UNIQUE_KEYS;
+        const keyValue = column[d]?.valueOf();
+        if (!Number.isFinite(keyValue) || lastValue > keyValue) validation &= ~ANIMATION_VALIDATION_ORDERED_KEYS;
+        if (Number.isFinite(keyValue) && lastValue === keyValue) validation &= ~ANIMATION_VALIDATION_UNIQUE_KEYS;
         lastValue = keyValue;
     }
 
@@ -473,6 +475,8 @@ function valueIndices(id: string, previousData: ProcessedData<any>, processedDat
     let previousIndicesIndex = 0;
     const nextValues = processedData.defs.values;
     for (let i = 0; i < nextValues.length; i += 1) {
+        if (previousIndicesIndex >= prevIndices.length) return;
+
         const value = nextValues[i];
         if (value.scopes?.includes(id) !== true) continue;
 
@@ -608,7 +612,7 @@ export function diff(
 }
 
 type KeyType = string | number | boolean | object;
-export function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string | number | boolean)[]) {
+export function createDatumId(keys: KeyType | KeyType[], ...extraKeys: (string | number | boolean)[]): any {
     let result;
     if (isArray(keys)) {
         result = keys.map((key) => transformIntegratedCategoryValue(key)).join('___');

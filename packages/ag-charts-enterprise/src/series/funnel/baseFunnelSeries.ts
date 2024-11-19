@@ -22,6 +22,7 @@ const {
     animationValidation,
     computeBarFocusBounds,
     sanitizeHtml,
+    createDatumId,
     ContinuousScale,
     Group,
     Selection,
@@ -129,10 +130,6 @@ export abstract class BaseFunnelSeries<
         () => this.connectionFactory()
     );
 
-    // When a user toggles a series item (e.g. from the legend), its boolean state is recorded here.
-    public seriesItemEnabled: boolean[] = [];
-    public legendItemEnabled: boolean[] = [];
-
     override get pickModeAxis() {
         return 'main-category' as const;
     }
@@ -176,10 +173,6 @@ export abstract class BaseFunnelSeries<
         return true;
     }
 
-    override get visible() {
-        return super.visible && (this.seriesItemEnabled.length === 0 || this.seriesItemEnabled.includes(true));
-    }
-
     protected override isVertical(): boolean {
         return !super.isVertical();
     }
@@ -201,9 +194,10 @@ export abstract class BaseFunnelSeries<
 
         const { stageKey, valueKey } = this.properties;
 
-        const { visible, seriesItemEnabled } = this;
+        const { visible, id: seriesId } = this;
 
-        const validation = (_value: unknown, _datum: unknown, index: number) => visible && seriesItemEnabled[index];
+        const validation = (_value: unknown, _datum: unknown, index: number) =>
+            visible && this.ctx.legendManager.getItemEnabled({ seriesId, itemId: index });
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
@@ -235,7 +229,12 @@ export abstract class BaseFunnelSeries<
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
-        const { processedData, dataModel, seriesItemEnabled } = this;
+        const {
+            processedData,
+            dataModel,
+            id: seriesId,
+            ctx: { legendManager },
+        } = this;
         if (!processedData || !dataModel) return [];
 
         const {
@@ -247,7 +246,7 @@ export abstract class BaseFunnelSeries<
             const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             if (keyDef?.def.type === 'key' && keyDef?.def.valueType === 'category') {
                 if (!this.hasData) return [];
-                return keys.filter((_key, index) => seriesItemEnabled[index]);
+                return keys.filter((_key, index) => legendManager.getItemEnabled({ seriesId, itemId: index }));
             }
             return this.padBandExtent(keys);
         } else {
@@ -258,8 +257,16 @@ export abstract class BaseFunnelSeries<
         }
     }
 
-    async createNodeData() {
-        const { hasData, data, dataModel, groupScale, processedData, seriesItemEnabled } = this;
+    override createNodeData() {
+        const {
+            hasData,
+            data,
+            dataModel,
+            groupScale,
+            processedData,
+            id: seriesId,
+            ctx: { legendManager },
+        } = this;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -312,7 +319,7 @@ export abstract class BaseFunnelSeries<
         }
         let previousConnection: ConnectorConfig | undefined;
         processedData.rawData.forEach((datum, datumIndex) => {
-            const visible = isVisible && seriesItemEnabled[datumIndex];
+            const visible = isVisible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
 
             const xDatum = xValues[datumIndex];
             if (xDatum == null) return;
@@ -431,20 +438,20 @@ export abstract class BaseFunnelSeries<
         visible: boolean;
     }): FunnelNodeLabelDatum | undefined;
 
-    protected override async updateNodes(
+    protected override updateNodes(
         highlightedItems: FunnelNodeDatum[] | undefined,
         seriesHighlighted: boolean,
         anySeriesItemEnabled: boolean
-    ): Promise<void> {
-        await super.updateNodes(highlightedItems, seriesHighlighted, anySeriesItemEnabled);
+    ) {
+        super.updateNodes(highlightedItems, seriesHighlighted, anySeriesItemEnabled);
 
         const { connectorSelection } = this;
         const connectorData = this.contextNodeData?.connectorData ?? [];
-        this.connectorSelection = await this.updateConnectorSelection({ connectorSelection, connectorData });
-        await this.updateConnectorNodes({ connectorSelection });
+        this.connectorSelection = this.updateConnectorSelection({ connectorSelection, connectorData });
+        this.updateConnectorNodes({ connectorSelection });
     }
 
-    protected override async updateDatumSelection(opts: {
+    protected override updateDatumSelection(opts: {
         nodeData: FunnelNodeDatum[];
         datumSelection: _ModuleSupport.Selection<TNode, FunnelNodeDatum>;
     }) {
@@ -453,7 +460,7 @@ export abstract class BaseFunnelSeries<
         return datumSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private async updateConnectorSelection(opts: {
+    private updateConnectorSelection(opts: {
         connectorData: FunnelConnectorDatum[];
         connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
     }) {
@@ -463,7 +470,7 @@ export abstract class BaseFunnelSeries<
         );
     }
 
-    private async updateConnectorNodes(opts: {
+    private updateConnectorNodes(opts: {
         connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
     }) {
         const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
@@ -489,7 +496,7 @@ export abstract class BaseFunnelSeries<
         return labelItems.length > 0 ? labelItems : undefined;
     }
 
-    protected async updateLabelSelection(opts: {
+    protected updateLabelSelection(opts: {
         labelData: FunnelNodeLabelDatum[];
         labelSelection: FunnelAnimationData<TNode>['labelSelection'];
     }) {
@@ -499,17 +506,14 @@ export abstract class BaseFunnelSeries<
         });
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text> }) {
+    protected updateLabelNodes(opts: { labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text> }) {
         opts.labelSelection.each((textNode, datum) => {
             updateLabelNode(textNode, this.properties.label, datum);
         });
     }
 
     getTooltipHtml(nodeDatum: FunnelNodeDatum): _ModuleSupport.TooltipContent {
-        const {
-            id: seriesId,
-            ctx: { callbackCache },
-        } = this;
+        const { id: seriesId } = this;
 
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
@@ -524,20 +528,22 @@ export abstract class BaseFunnelSeries<
 
         let format;
         if (itemStyler) {
-            format = callbackCache.call(itemStyler, {
-                highlighted: false,
-                seriesId,
-                datum,
-                stageKey,
-                valueKey,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-            });
+            format = this.cachedDatumCallback(createDatumId(datum.index, 'tooltip'), () =>
+                itemStyler({
+                    highlighted: false,
+                    seriesId,
+                    datum,
+                    stageKey,
+                    valueKey,
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                    lineDash,
+                    lineDashOffset,
+                })
+            );
         }
 
         const color = format?.fill ?? fill ?? 'gray';
@@ -608,20 +614,20 @@ export abstract class BaseFunnelSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, processedData, dataModel, legendItemEnabled } = this;
+        const {
+            id: seriesId,
+            processedData,
+            dataModel,
+            ctx: { legendManager },
+            visible,
+        } = this;
 
-        if (
-            !dataModel ||
-            !processedData?.rawData.length ||
-            legendType !== 'category' ||
-            !this.properties.isValid() ||
-            !this.properties.showInLegend
-        ) {
+        if (!dataModel || !processedData || legendType !== 'category' || !this.properties.isValid()) {
             return [];
         }
 
         const { strokeWidth, fillOpacity, strokeOpacity } = this.barStyle();
-        const { fills, strokes, visible } = this.properties;
+        const { fills, strokes, showInLegend } = this.properties;
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
 
@@ -635,37 +641,16 @@ export abstract class BaseFunnelSeries<
 
                 return {
                     legendType: 'category',
-                    id,
+                    id: seriesId,
                     itemId: datumIndex,
-                    seriesId: id,
-                    enabled: visible && legendItemEnabled[datumIndex],
+                    seriesId,
+                    enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
                     label: { text: stageValue },
                     symbols: [{ marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } }],
                     skipAnimations: true,
+                    hideInLegend: !showInLegend,
                 };
             })
             .filter((datum): datum is _ModuleSupport.CategoryLegendDatum => datum != null);
-    }
-
-    override onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {
-        const { enabled, itemId, series } = event;
-
-        if (series.id !== this.id) {
-            return;
-        }
-
-        this.toggleSeriesItem(itemId, enabled);
-    }
-
-    protected override toggleSeriesItem(itemId: number, enabled: boolean): void {
-        this.seriesItemEnabled[itemId] = enabled;
-        this.legendItemEnabled[itemId] = enabled;
-        this.nodeDataRefresh = true;
-    }
-
-    protected override onDataChange() {
-        const { data, seriesItemEnabled, legendItemEnabled } = this;
-        this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
-        this.legendItemEnabled = data?.map((_, index) => legendItemEnabled[index] ?? true) ?? [];
     }
 }

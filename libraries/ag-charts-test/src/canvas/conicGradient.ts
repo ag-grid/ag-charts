@@ -38,10 +38,10 @@ export class ConicGradient {
     colorStops: ColorStop[] = [];
 
     constructor(
-        private ctx: NodeCanvasRenderingContext2D,
-        private startAngle: number,
-        private cx: number,
-        private cy: number
+        private readonly ctx: NodeCanvasRenderingContext2D,
+        private readonly startAngle: number,
+        private readonly cx: number,
+        private readonly cy: number
     ) {}
 
     addColorStop(offset: number, color: string) {

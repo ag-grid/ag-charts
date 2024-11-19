@@ -28,14 +28,14 @@ import { DataModel, type ProcessedData, getMissCount } from '../../data/dataMode
 import {
     accumulativeValueProperty,
     animationValidation,
+    createDatumId,
     diff,
     keyProperty,
     normalisePropertyTo,
     rangedValueProperty,
     valueProperty,
 } from '../../data/processors';
-import type { LegendItemClickChartEvent } from '../../interaction/chartEventManager';
-import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { Circle } from '../../marker/circle';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import { SeriesNodeEvent, type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
@@ -149,10 +149,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     private readonly angleScale: LinearScale;
 
-    // When a user toggles a series item (e.g. from the legend), its boolean state is recorded here.
-    public seriesItemEnabled: boolean[] = [];
-    public legendItemEnabled: boolean[] = [];
-
     private oldTitle?: DonutTitle;
 
     override surroundingRadius?: number = undefined;
@@ -198,16 +194,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         return true;
     }
 
-    override addChartEventListeners(): void {
-        this.destroyFns.push(
-            this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event))
-        );
-    }
-
-    override get visible() {
-        return super.visible && (this.seriesItemEnabled.length === 0 || this.seriesItemEnabled.includes(true));
-    }
-
     protected override nodeFactory(): Sector {
         return new Sector();
     }
@@ -225,11 +211,11 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             return;
         }
 
-        const { visible, seriesItemEnabled } = this;
+        const { visible, id: seriesId } = this;
         const { angleKey, angleFilterKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
 
         const validSector = (_value: unknown, _datum: unknown, index: number) => {
-            return visible && seriesItemEnabled[index];
+            return visible && this.ctx.legendManager.getItemEnabled({ seriesId, itemId: index });
         };
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
@@ -319,9 +305,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.animationState.transition('updateData');
     }
 
-    async maybeRefreshNodeData() {
+    maybeRefreshNodeData() {
         if (!this.nodeDataRefresh) return;
-        const { nodeData = [], phantomNodeData } = (await this.createNodeData()) ?? {};
+        const { nodeData = [], phantomNodeData } = this.createNodeData() ?? {};
         this.nodeData = nodeData;
         this.phantomNodeData = phantomNodeData;
         this.nodeDataRefresh = false;
@@ -367,8 +353,15 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         };
     }
 
-    async createNodeData() {
-        const { id: seriesId, processedData, dataModel, angleScale } = this;
+    override createNodeData() {
+        const {
+            id: seriesId,
+            processedData,
+            dataModel,
+            angleScale,
+            ctx: { legendManager },
+            visible,
+        } = this;
         const { rotation, innerRadiusRatio } = this.properties;
 
         if (!this.properties.isValid()) {
@@ -449,7 +442,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 sectorFormat,
                 radiusValue,
                 legendItemValue,
-                enabled: this.seriesItemEnabled[datumIndex],
+                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
                 focusable: true,
                 ...nodeLabels,
             };
@@ -565,7 +558,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     private getSectorFormat(datum: any, formatIndex: number, highlighted: boolean) {
-        const { callbackCache } = this.ctx;
         const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, fills, strokes, itemStyler } =
             this.properties;
 
@@ -584,24 +576,28 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         let format: AgDonutSeriesStyle | undefined;
         if (itemStyler) {
-            format = callbackCache.call(itemStyler, {
-                datum,
-                angleKey,
-                radiusKey,
-                calloutLabelKey,
-                sectorLabelKey,
-                legendItemKey,
-                fill: fill!,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                cornerRadius,
-                highlighted,
-                seriesId: this.id,
-            });
+            format = this.cachedDatumCallback(
+                createDatumId(this.getDatumId(datum), highlighted ? 'highlight' : 'hide'),
+                () =>
+                    itemStyler({
+                        datum,
+                        angleKey,
+                        radiusKey,
+                        calloutLabelKey,
+                        sectorLabelKey,
+                        legendItemKey,
+                        fill: fill!,
+                        fillOpacity,
+                        stroke,
+                        strokeWidth,
+                        strokeOpacity,
+                        lineDash,
+                        lineDashOffset,
+                        cornerRadius,
+                        highlighted,
+                        seriesId: this.id,
+                    })
+            );
         }
 
         return {
@@ -660,7 +656,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         return -outerRadius - titleOffset - dy;
     }
 
-    async update({ seriesRect }: { seriesRect: BBox }) {
+    update({ seriesRect }: { seriesRect: BBox }) {
         const { title } = this.properties;
 
         const newNodeDataDependencies = {
@@ -672,7 +668,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             this._nodeDataDependencies = newNodeDataDependencies;
         }
 
-        await this.maybeRefreshNodeData();
+        this.maybeRefreshNodeData();
         this.updateTitleNodes();
         this.updateRadiusScale(resize);
 
@@ -704,8 +700,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         this.updateNodeMidPoint();
 
-        await this.updateSelections();
-        await this.updateNodes(seriesRect);
+        this.updateSelections();
+        this.updateNodes(seriesRect);
     }
 
     private updateTitleNodes() {
@@ -738,12 +734,12 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.phantomNodeData?.forEach(setMidPoint);
     }
 
-    private async updateSelections() {
-        await this.updateGroupSelection();
+    private updateSelections() {
+        this.updateGroupSelection();
         this.updateInnerCircleSelection();
     }
 
-    private async updateGroupSelection() {
+    private updateGroupSelection() {
         const {
             itemSelection,
             highlightSelection,
@@ -806,14 +802,14 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         this.innerCircleSelection.update(datums);
     }
 
-    private async updateNodes(seriesRect: BBox) {
+    private updateNodes(seriesRect: BBox) {
         const highlightedDatum = this.ctx.highlightManager.getActiveHighlight();
-        const isVisible = this.visible && this.seriesItemEnabled.includes(true);
-        this.backgroundGroup.visible = isVisible;
-        this.contentGroup.visible = isVisible;
-        this.highlightGroup.visible = isVisible && highlightedDatum?.series === this;
-        this.highlightLabel.visible = isVisible && highlightedDatum?.series === this;
-        this.labelGroup.visible = isVisible;
+        const { visible } = this;
+        this.backgroundGroup.visible = visible;
+        this.contentGroup.visible = visible;
+        this.highlightGroup.visible = visible && highlightedDatum?.series === this;
+        this.highlightLabel.visible = visible && highlightedDatum?.series === this;
+        this.labelGroup.visible = visible;
 
         this.contentGroup.opacity = this.getOpacity();
 
@@ -1157,7 +1153,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         });
     }
 
-    override async computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: BBox) {
+    override computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: BBox) {
         const { calloutLabel, calloutLine } = this.properties;
         const calloutLength = calloutLine.length;
         const { offset, maxCollisionOffset, minSpacing } = calloutLabel;
@@ -1166,7 +1162,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             return null;
         }
 
-        await this.maybeRefreshNodeData();
+        this.maybeRefreshNodeData();
 
         this.updateRadiusScale(false);
         this.computeCalloutLabelCollisionOffsets();
@@ -1408,19 +1404,19 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        const { visible, processedData, dataModel } = this;
+        const {
+            visible,
+            processedData,
+            dataModel,
+            id: seriesId,
+            ctx: { legendManager },
+        } = this;
 
-        if (
-            !dataModel ||
-            !processedData ||
-            !processedData.rawData.length ||
-            !this.properties.isValid() ||
-            legendType !== 'category'
-        ) {
+        if (!dataModel || !processedData || !this.properties.isValid() || legendType !== 'category') {
             return [];
         }
 
-        const { angleKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
+        const { angleKey, calloutLabelKey, sectorLabelKey, legendItemKey, showInLegend } = this.properties;
 
         if (
             !legendItemKey &&
@@ -1474,11 +1470,11 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
             legendData.push({
                 legendType: 'category',
-                id: this.id,
+                id: seriesId,
                 datum,
                 itemId: datumIndex,
-                seriesId: this.id,
-                enabled: visible && this.legendItemEnabled[datumIndex],
+                seriesId,
+                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
                 label: {
                     text: labelParts.join(' - '),
                 },
@@ -1494,51 +1490,22 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                     },
                 ],
                 legendItemName: legendItemKey != null ? datum[legendItemKey] : undefined,
+                hideInLegend: !showInLegend,
             });
         }
 
         return legendData;
     }
 
-    onLegendItemClick(event: LegendItemClickChartEvent) {
-        const { enabled, itemId, series, legendItemName } = event;
-
-        if (series.id === this.id) {
-            this.toggleSeriesItem(itemId, enabled);
-        } else if (legendItemName != null) {
-            this.toggleOtherSeriesItems(legendItemName, enabled);
-        }
-    }
-
-    protected override toggleSeriesItem(itemId: number, enabled: boolean): void {
-        this.seriesItemEnabled[itemId] = enabled;
-        this.legendItemEnabled[itemId] = enabled;
-        if (this.nodeData[itemId]) {
-            this.nodeData[itemId].enabled = enabled;
-        }
-        this.nodeDataRefresh = true;
-    }
-
     // Used for grid
     setLegendState(enabledItems: boolean[]) {
-        this.legendItemEnabled = enabledItems;
-        this.ctx.updateService.update(ChartUpdateType.SERIES_UPDATE);
-    }
-
-    toggleOtherSeriesItems(legendItemName: string, enabled: boolean): void {
-        if (!this.properties.legendItemKey || !this.dataModel) {
-            return;
-        }
-
-        const { processedData } = this;
-        if (!processedData?.rawData.length) return;
-
-        const legendItemValues = this.dataModel.resolveColumnById(this, `legendItemValue`, processedData);
-        legendItemValues.forEach((value, datumIndex) => {
-            if (value === legendItemName) {
-                this.toggleSeriesItem(datumIndex, enabled);
-            }
-        });
+        const {
+            id: seriesId,
+            ctx: { legendManager, updateService },
+        } = this;
+        enabledItems.forEach((enabled, itemId) => legendManager.toggleItem({ enabled, seriesId, itemId }));
+        legendManager.update();
+        updateService.update(ChartUpdateType.SERIES_UPDATE);
     }
 
     override animateEmptyUpdateReady(_data?: PolarAnimationData) {
@@ -1657,11 +1624,5 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
         const datumId = this.getDatumIdFromData(datum.datum);
         return datumId != null ? String(datumId) : `${index}`;
-    }
-
-    protected override onDataChange() {
-        const { data, seriesItemEnabled, legendItemEnabled } = this;
-        this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
-        this.legendItemEnabled = data?.map((_, index) => legendItemEnabled[index] ?? true) ?? [];
     }
 }

@@ -41,7 +41,7 @@ export abstract class LineTypeProperties extends Localisable(
 }
 
 export class ArrowProperties extends LineTypeProperties {
-    static is(value: unknown): value is ArrowProperties {
+    static is(this: void, value: unknown): value is ArrowProperties {
         return isObject(value) && value.type === AnnotationType.Arrow;
     }
 
@@ -52,7 +52,7 @@ export class ArrowProperties extends LineTypeProperties {
 }
 
 export class LineProperties extends LineTypeProperties {
-    static is(value: unknown): value is LineProperties {
+    static is(this: void, value: unknown): value is LineProperties {
         return isObject(value) && value.type === AnnotationType.Line;
     }
 

@@ -42,9 +42,10 @@ const {
 /**************
  * Components *
  **************/
+type XType = string | number | Date;
 export class PointProperties extends BaseProperties {
     @Validate(OR(STRING, NUMBER, DATE))
-    x?: string | number | Date;
+    x?: XType;
 
     @Validate(NUMBER)
     y?: number;
@@ -121,7 +122,7 @@ export function Line<T extends Constructor>(Parent: T) {
 export function Point<T extends Constructor>(Parent: T) {
     class PointInternal extends Parent {
         @Validate(OR(STRING, NUMBER, DATE))
-        x?: string | number | Date;
+        x?: XType;
 
         @Validate(NUMBER)
         y?: number;
@@ -132,7 +133,7 @@ export function Point<T extends Constructor>(Parent: T) {
 export function Value<T extends Constructor>(Parent: T) {
     class ValueInternal extends Parent {
         @Validate(OR(STRING, NUMBER, DATE))
-        value?: string | number | Date;
+        value?: XType;
     }
     return ValueInternal;
 }

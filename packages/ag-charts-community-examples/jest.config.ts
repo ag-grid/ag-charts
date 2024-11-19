@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
     displayName: 'ag-charts-community-examples',
     preset: '../../jest.preset.js',

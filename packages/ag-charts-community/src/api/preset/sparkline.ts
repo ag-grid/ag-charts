@@ -16,7 +16,7 @@ import {
 
 import { DEFAULT_AXIS_GRID_COLOUR, IS_ENTERPRISE } from '../../chart/themes/symbols';
 import { simpleMemorize } from '../../util/memo';
-import { IGNORED_PROP, assertEmpty, pickProps } from './presetUtils';
+import { IGNORED_PROP, pickProps } from './presetUtils';
 
 const commonAxisProperties = {
     title: {
@@ -101,7 +101,7 @@ const SPARKLINE_THEME: AgChartTheme = {
         },
         bar: {
             series: {
-                // @ts-expect-error
+                // @ts-expect-error undocumented option
                 sparklineMode: true,
             },
             tooltip: {
@@ -119,7 +119,7 @@ const SPARKLINE_THEME: AgChartTheme = {
             },
             axes: crossHairAxes,
             series: {
-                // @ts-expect-error
+                // @ts-expect-error undocumented option
                 sparklineMode: true,
                 strokeWidth: 1,
                 marker: {
@@ -196,17 +196,7 @@ function axisPreset(
 ): AgCartesianAxisOptions {
     switch (opts?.type) {
         case 'number': {
-            const {
-                type,
-                visible: _visible,
-                stroke: _stroke,
-                strokeWidth: _strokeWidth,
-                min,
-                max,
-                reverse,
-                ...optsRest
-            } = opts;
-            assertEmpty(optsRest);
+            const { type, visible: _visible, stroke: _stroke, strokeWidth: _strokeWidth, min, max, reverse } = opts;
             return pickProps<Pick<AgNumberAxisOptions, 'type' | 'reverse' | 'min' | 'max'>>(opts, {
                 type,
                 reverse,
@@ -215,17 +205,7 @@ function axisPreset(
             });
         }
         case 'time': {
-            const {
-                type,
-                visible: _visible,
-                stroke: _stroke,
-                strokeWidth: _strokeWidth,
-                min,
-                max,
-                reverse,
-                ...optsRest
-            } = opts;
-            assertEmpty(optsRest);
+            const { type, visible: _visible, stroke: _stroke, strokeWidth: _strokeWidth, min, max, reverse } = opts;
             return pickProps<Pick<AgTimeAxisOptions, 'type' | 'reverse' | 'min' | 'max'>>(opts, {
                 type,
                 reverse,
@@ -242,9 +222,7 @@ function axisPreset(
                 paddingInner,
                 paddingOuter,
                 reverse,
-                ...optsRest
             } = opts;
-            assertEmpty(optsRest);
             return pickProps<Pick<AgCategoryAxisOptions, 'type' | 'reverse' | 'paddingInner' | 'paddingOuter'>>(opts, {
                 type,
                 reverse,
@@ -293,7 +271,6 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         max,
         ...optsRest
     } = opts as any as AgBaseSparklinePresetOptions;
-    assertEmpty(optsRest);
 
     const chartOpts: AgCartesianChartOptions = pickProps<AgBaseSparklinePresetOptions>(opts, {
         background,
@@ -326,21 +303,17 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     const swapAxes = seriesOptions.type !== 'bar' || seriesOptions.direction !== 'horizontal';
     const [xAxisPosition, yAxisPosition] = swapAxes ? (['bottom', 'left'] as const) : (['left', 'bottom'] as const);
 
-    const xAxis: AgCartesianAxisOptions = Object.assign(
-        {
-            ...axisPreset(axis, 'category'),
-            position: xAxisPosition,
-        },
-        pickProps<Pick<AgCartesianAxisOptions, 'crosshair'>>(opts, { crosshair })
-    );
-    const yAxis: AgCartesianAxisOptions = Object.assign(
-        {
-            type: 'number',
-            gridLine: gridLinePreset(axis, false),
-            position: yAxisPosition,
-        },
-        pickProps<Pick<AgNumberAxisOptions, 'min' | 'max'>>(opts, { min, max })
-    );
+    const xAxis: AgCartesianAxisOptions = {
+        ...axisPreset(axis, 'category'),
+        position: xAxisPosition,
+        ...pickProps<Pick<AgCartesianAxisOptions, 'crosshair'>>(opts, { crosshair }),
+    };
+    const yAxis: AgCartesianAxisOptions = {
+        type: 'number',
+        gridLine: gridLinePreset(axis, false),
+        position: yAxisPosition,
+        ...pickProps<Pick<AgNumberAxisOptions, 'min' | 'max'>>(opts, { min, max }),
+    };
 
     chartOpts.axes = swapAxes ? [yAxis, xAxis] : [xAxis, yAxis];
 

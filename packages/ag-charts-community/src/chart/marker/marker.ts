@@ -64,13 +64,13 @@ class InternalMarker extends Path {
         path.closePath();
     }
 
-    protected override executeFill(ctx: CanvasContext, path?: Path2D | undefined): void {
+    protected override executeFill(ctx: CanvasContext, path?: Path2D): void {
         if (!path) return;
 
         return super.executeFill(ctx, path);
     }
 
-    protected override executeStroke(ctx: CanvasContext, path?: Path2D | undefined): void {
+    protected override executeStroke(ctx: CanvasContext, path?: Path2D): void {
         if (!path) return;
 
         return super.executeStroke(ctx, path);

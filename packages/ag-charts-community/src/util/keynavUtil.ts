@@ -141,7 +141,7 @@ export function initRovingTabIndex(opts: {
         if (onFocus) addRemovableEventListener(destroyFns, curr, 'focus', onFocus);
         if (onBlur) addRemovableEventListener(destroyFns, curr, 'blur', onBlur);
         if (onEscape) addEscapeEventListener(destroyFns, curr, onEscape);
-        linkThreeButtons(destroyFns, curr, prev, prevKey, next, nextKey);
+        linkThreeButtons(destroyFns, curr, next, nextKey, prev, prevKey);
         curr.tabIndex = i === 0 ? 0 : -1;
     }
 

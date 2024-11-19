@@ -7,7 +7,7 @@ export interface LicenseManager {
     validateLicense: () => void;
     isDisplayWatermark: () => boolean;
     getWatermarkMessage: () => string;
-    getLicenseDetails: (licenseKey: string) => {};
+    getLicenseDetails: (licenseKey: string) => object;
 }
 
 interface EnterpriseModuleOptions {

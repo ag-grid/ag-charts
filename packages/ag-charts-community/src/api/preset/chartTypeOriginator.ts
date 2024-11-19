@@ -2,6 +2,7 @@ import type { AgFinancialChartOptions, AgInitialStateChartType } from 'ag-charts
 
 import type { ChartService } from '../../chart/chartService';
 import { includes } from '../../util/array';
+import { Logger } from '../../util/logger';
 import { isString } from '../../util/type-guards';
 import type { MementoOriginator } from '../state/memento';
 
@@ -38,6 +39,6 @@ export class ChartTypeOriginator implements MementoOriginator<ChartTypeMemento> 
         if (memento == null) return;
 
         const options: AgFinancialChartOptions = { chartType: memento };
-        void this.chartService.publicApi?.updateDelta(options as any);
+        this.chartService.publicApi?.updateDelta(options as any).catch((e) => Logger.error('error restoring state', e));
     }
 }

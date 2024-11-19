@@ -1,6 +1,5 @@
 const startPrice = 100;
 const maxDailyPriceChange = 5;
-const days = 1000000;
 
 function sfc32(a: number, b: number, c: number, d: number) {
     return function () {
@@ -26,7 +25,7 @@ function seedRandom(seed = 1337): () => number {
     return sfc32(0x9e3779b9, 0x243f6a88, 0xb7e15162, realSeed);
 }
 
-export function getData() {
+export function getData(days: number) {
     let currentPrice = startPrice;
     const random = seedRandom();
     return Array.from({ length: days }, (_, i) => {

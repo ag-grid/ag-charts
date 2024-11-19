@@ -3,7 +3,7 @@ import { Logger } from './logger';
 type Handler = (...args: any[]) => void;
 
 export type Listener<H extends Handler> = {
-    symbol?: Symbol;
+    symbol?: symbol;
     handler: H;
 };
 

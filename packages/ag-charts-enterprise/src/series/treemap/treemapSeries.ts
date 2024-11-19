@@ -18,6 +18,7 @@ const {
     clamp,
     isNumberEqual,
     sanitizeHtml,
+    createDatumId,
     Transformable,
     Rect,
     Group,
@@ -163,8 +164,8 @@ export class TreemapSeries<
         };
     }
 
-    override async processData() {
-        await super.processData();
+    override processData() {
+        super.processData();
 
         const { childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName, tile, group } =
             this.properties;
@@ -365,11 +366,11 @@ export class TreemapSeries<
         });
     }
 
-    async createNodeData() {
+    override createNodeData() {
         return undefined;
     }
 
-    async updateSelections() {
+    override updateSelections() {
         if (!this.nodeDataRefresh) {
             return;
         }
@@ -406,22 +407,24 @@ export class TreemapSeries<
         const stroke = this.getNodeStroke(node);
         const strokeWidth = isLeaf ? tile.strokeWidth : group.strokeWidth;
 
-        return this.ctx.callbackCache.call(itemStyler, {
-            seriesId: this.id,
-            highlighted,
-            datum,
-            depth,
-            colorKey,
-            childrenKey,
-            labelKey,
-            secondaryLabelKey,
-            sizeKey,
-            fill,
-            fillOpacity: 1,
-            stroke,
-            strokeWidth,
-            strokeOpacity: 1,
-        });
+        return this.cachedDatumCallback(createDatumId(this.getDatumId(node), highlighted ? 'highlight' : 'node'), () =>
+            itemStyler({
+                seriesId: this.id,
+                highlighted,
+                datum,
+                depth,
+                colorKey,
+                childrenKey,
+                labelKey,
+                secondaryLabelKey,
+                sizeKey,
+                fill,
+                fillOpacity: 1,
+                stroke,
+                strokeWidth,
+                strokeOpacity: 1,
+            })
+        );
     }
 
     private getNodeFill(node: _ModuleSupport.HierarchyNode) {
@@ -444,7 +447,7 @@ export class TreemapSeries<
         return this.properties.group.stroke ?? defaultStroke;
     }
 
-    async updateNodes() {
+    updateNodes() {
         const { rootNode, data } = this;
         const { highlightStyle, tile, group } = this.properties;
         const { seriesRect } = this.chart ?? {};

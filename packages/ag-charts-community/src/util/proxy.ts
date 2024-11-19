@@ -32,7 +32,7 @@ export function ProxyPropertyOnWrite(childName: string, childProperty?: string) 
 export interface ActionOnSetOptions<T, V = any> {
     newValue?: (this: T, newValue: V) => void;
     oldValue?: (this: T, oldValue: V) => void;
-    changeValue?: (this: T, newValue?: V, oldValue?: V | undefined) => void;
+    changeValue?: (this: T, newValue?: V, oldValue?: V) => void;
 }
 
 /**

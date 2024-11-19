@@ -34,8 +34,8 @@ const options: AgChartOptions = {
     axes: [
         {
             type: 'angle-number',
-            startAngle: 270,
-            endAngle: 450,
+            startAngle: -90,
+            endAngle: 90,
         },
         {
             type: 'radius-category',

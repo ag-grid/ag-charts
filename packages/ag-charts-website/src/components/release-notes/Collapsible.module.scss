@@ -79,16 +79,11 @@
     svg {
         --icon-size: 1em;
 
-        fill: var(--color-link);
         transition: fill $transition-default-timing;
     }
 
     &:hover {
         color: var(--color-link-hover);
-
-        svg {
-            fill: var(--color-link-hover);
-        }
     }
 }
 

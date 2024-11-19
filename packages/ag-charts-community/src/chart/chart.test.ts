@@ -115,7 +115,7 @@ describe('Chart', () => {
 
         const hoverChartNodes = async (
             chartInstance: Chart,
-            iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void>
+            iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void> | void
         ) => {
             for (const series of chartInstance.series) {
                 const nodeData = testParams.getNodeData(series);
@@ -131,7 +131,7 @@ describe('Chart', () => {
         };
 
         const checkHighlight = async (chartInstance: Chart) => {
-            await hoverChartNodes(chartInstance, async ({ series }) => {
+            await hoverChartNodes(chartInstance, ({ series }) => {
                 // Check the highlighted marker
                 const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
@@ -185,7 +185,7 @@ describe('Chart', () => {
 
         it(`should render tooltip correctly`, async () => {
             chart = await createChartPreset({ hasTooltip: true });
-            await hoverChartNodes(chart, async ({ series, item }) => {
+            await hoverChartNodes(chart, ({ series, item }) => {
                 // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-chart-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
@@ -563,7 +563,7 @@ describe('Chart', () => {
             agChartInstance = undefined as any;
         });
 
-        it('should setup DOM on create', async () => {
+        it('should setup DOM on create', () => {
             const elements = document.querySelectorAll('.ag-charts-wrapper');
             expect(elements.length).toEqual(1);
 
@@ -571,7 +571,7 @@ describe('Chart', () => {
             expect(elements[0].querySelectorAll('.ag-charts-focus-indicator')).toHaveLength(1);
         });
 
-        it('should cleanup DOM on destroy()', async () => {
+        it('should cleanup DOM on destroy()', () => {
             agChartInstance.destroy();
 
             const elements = document.querySelectorAll('.ag-charts-wrapper');

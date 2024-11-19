@@ -7,6 +7,7 @@ import type { AgChartProxy } from './chartProxy';
 import { deproxy, prepareTestOptions, setupMockCanvas, setupMockConsole, waitForChartStability } from './test/utils';
 
 // Heap size comparisons can be flaky - let's be sure any failure is consistent.
+// eslint-disable-next-line sonarjs/stable-tests
 jest.retryTimes(5);
 
 describe('Chart Heap Memory', () => {
@@ -53,7 +54,7 @@ describe('Chart Heap Memory', () => {
         data: genData(),
         axes: [
             {
-                type: 'grouped-category',
+                type: 'category',
                 position: 'bottom',
             },
             {
@@ -68,7 +69,7 @@ describe('Chart Heap Memory', () => {
         data: genData(),
         axes: [
             {
-                type: 'grouped-category',
+                type: 'category',
                 position: 'bottom',
             },
             {
@@ -122,5 +123,27 @@ describe('Chart Heap Memory', () => {
             // console.log({ startingHeap, endingHeap, heapProportionChange });
             expect(heapProportionChange).toBeLessThan(0.15);
         }, 20_000);
+
+        // Reason: Need to add --expose-gc to node instance, couldn't figure out how to do it yet...
+        it.skip('should free modules from memory', async () => {
+            let chartProxy: AgChartProxy | null = (await createChart({})).chartProxy;
+
+            const instantiatedSeries = new Set<string>();
+            const seriesFinalizationRegistry = new FinalizationRegistry<string>((id) => {
+                instantiatedSeries.delete(id);
+            });
+            for (const series of chartProxy.chart.series) {
+                instantiatedSeries.add(series.id);
+                seriesFinalizationRegistry.register(series, series.id);
+            }
+
+            chartProxy.destroy();
+
+            chartProxy = null;
+
+            global.gc!();
+
+            expect(instantiatedSeries).toEqual(new Set());
+        });
     });
 });

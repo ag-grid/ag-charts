@@ -238,7 +238,7 @@ function from(
         ];
     }
 
-    throw new Error(`Values can not be converted into a vector: [${a}] [${b}]`);
+    throw new Error(`Values can not be converted into a vector: [${JSON.stringify(a)}] [${b}]`);
 }
 
 /**

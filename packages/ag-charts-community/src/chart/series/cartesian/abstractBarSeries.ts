@@ -99,10 +99,10 @@ export abstract class AbstractBarSeries<
         groupScale.domain = domain;
         groupScale.range = [0, xBandWidth ?? 0];
 
-        if (xAxis instanceof CategoryAxis) {
-            groupScale.paddingInner = xAxis.groupPaddingInner;
-        } else if (xAxis instanceof GroupedCategoryAxis) {
+        if (xAxis instanceof GroupedCategoryAxis) {
             groupScale.padding = 0.1;
+        } else if (xAxis instanceof CategoryAxis) {
+            groupScale.paddingInner = xAxis.groupPaddingInner;
         } else {
             // Number or Time axis
             groupScale.padding = 0;

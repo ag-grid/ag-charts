@@ -1,20 +1,18 @@
-const defaultNumberFormatter = new Intl.NumberFormat('en-US', {
-    maximumFractionDigits: 2,
-    useGrouping: false,
-} as object);
+const defaultNumberFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 2, useGrouping: false });
 const percentFormatter = new Intl.NumberFormat('en-US', { style: 'percent' });
 
 /**
- * Formats a value as a string. If the value is a number, it formats it with two fraction digits.
- * If the value is not a number, it returns an empty string or the string representation of the value.
+ * Formats a value as a string. If the value is a number, it formats it with the specified
+ * maximum number of fraction digits. If the value is not a number, it returns an empty string
+ * or the string representation of the value.
  *
  * @param value - The value to format.
- * @param fractionOrSignificantDigits - Number of fraction digits (if >= 1) or significant digits (if < 1).
- * @returns A formatted string.
+ * @param maximumFractionDigits - The maximum number of fraction digits to display when formatting numbers.
+ * @returns A formatted string representation of the value.
  */
-export function formatValue(value: unknown, fractionOrSignificantDigits: number = 2): string {
+export function formatValue(value: unknown, maximumFractionDigits: number = 2): string {
     if (typeof value === 'number') {
-        return formatNumber(value, fractionOrSignificantDigits);
+        return formatNumber(value, maximumFractionDigits);
     }
     return String(value ?? '');
 }
@@ -30,31 +28,19 @@ export function formatPercent(value: number): string {
 }
 
 /**
- * `Number.toFixed(n)` always formats a number so that it has `n` digits after the decimal point.
- * For example, `Number(0.00003427).toFixed(2)` returns `0.00`.
- * That's not very helpful, because all the meaningful information is lost.
- * In this case we would want the formatted value to have at least two significant digits: `0.000034`,
- * not two fraction digits.
+ * Formats a number with a specified maximum number of fraction digits.
  *
- * This function provides a better solution by formatting small numbers using significant digits
- * and larger numbers with fraction digits.
+ * This function improves upon `Number.toFixed(n)`, which always displays exactly `n` digits after the decimal point.
+ * Instead, this function limits the number of fraction digits to a maximum value, making it useful for
+ * displaying both small and large numbers with an appropriate level of precision.
  *
  * @param value - The number to format.
- * @param fractionOrSignificantDigits - Number of fraction digits (if >= 1) or significant digits (if < 1).
- * @returns A formatted string.
+ * @param maximumFractionDigits - The maximum number of fraction digits to display.
+ * @returns A string representing the formatted number.
  */
-export function formatNumber(value: number, fractionOrSignificantDigits: number): string {
-    const absValue = Math.abs(value);
-    if (absValue === 0 || absValue >= 1) {
-        const numberFormatter =
-            fractionOrSignificantDigits === 2
-                ? defaultNumberFormatter
-                : new Intl.NumberFormat('en-US', {
-                      maximumFractionDigits: fractionOrSignificantDigits,
-                      useGrouping: false,
-                  } as object);
-        return numberFormatter.format(value);
+export function formatNumber(value: number, maximumFractionDigits: number): string {
+    if (maximumFractionDigits === 2) {
+        return defaultNumberFormatter.format(value);
     }
-    const decimalPlaces = Math.abs(Math.floor(Math.log(absValue) / Math.LN10)) - 1;
-    return value.toFixed(decimalPlaces + fractionOrSignificantDigits); // significant digits
+    return new Intl.NumberFormat('en-US', { maximumFractionDigits, useGrouping: false }).format(value);
 }

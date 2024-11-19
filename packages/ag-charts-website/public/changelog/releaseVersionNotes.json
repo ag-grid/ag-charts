@@ -1,5 +1,13 @@
 [
     {
+        "release version": "11.0.0",
+        "markdown": "/releases/11_0_0.md"
+    },
+    {
+        "release version": "10.3.3",
+        "markdown": "/releases/10_3_3.md"
+    },
+    {
         "release version": "10.3.1",
         "markdown": "/releases/10_3_1.md"
     },

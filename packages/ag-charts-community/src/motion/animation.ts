@@ -3,7 +3,7 @@ import type { Selection } from '../scene/selection';
 import { interpolateColor, interpolateNumber } from '../util/interpolate';
 import { type Interpolating, interpolate, isInterpolating } from '../util/interpolating';
 import { clamp } from '../util/number';
-import { objectEqualWith } from '../util/object';
+import { objectsEqualWith } from '../util/object';
 import { isPlainObject } from '../util/type-guards';
 import { linear } from './easing';
 
@@ -126,7 +126,7 @@ function animationValuesEqual(a: AnimationValue, b: AnimationValue): boolean {
     } else if (isInterpolating(a) && isInterpolating(b)) {
         return a.equals(b);
     } else if (isPlainObject(a) && isPlainObject(b)) {
-        return objectEqualWith(a, b, animationValuesEqual);
+        return objectsEqualWith(a, b, animationValuesEqual);
     }
 
     return false;
@@ -300,7 +300,7 @@ export class Animation<T extends AnimationValue> implements IAnimation {
                     }
                     break;
             }
-        } catch (e) {
+        } catch {
             // Error-case handled below.
         }
         throw new Error(`Unable to interpolate values: ${a}, ${b}`);

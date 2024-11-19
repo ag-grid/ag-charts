@@ -20,8 +20,8 @@ function fillText(context: CanvasRenderingContext2D, text: string, x: number, y:
     let cx = x - metrics.actualBoundingBoxLeft + pixelSize / 2;
     const cy = y - metrics.fontBoundingBoxAscent;
 
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i];
+    for (const element of text) {
+        const char = element;
         const pixels = font[char] ?? font['undefined'];
 
         for (let j = 0; j < pixels.length; j++) {
@@ -55,8 +55,8 @@ function measureText(context: CanvasRenderingContext2D, text: string): TextMetri
     let width = 0;
     let ascent = 0;
     let descent = 0;
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i];
+    for (const element of text) {
+        const char = element;
         const pixels = font[char] ?? font['undefined'];
 
         const emptyAscent = pixels.findIndex((line) => line.includes('#'));
@@ -94,7 +94,7 @@ function measureText(context: CanvasRenderingContext2D, text: string): TextMetri
 }
 
 function getFontSize(context: CanvasRenderingContext2D) {
-    const match = context.font.match(/([^\s]+)px/);
+    const match = /([^\s]+)px/.exec(context.font);
     if (!match) {
         throw new Error(`Unable to parse font size: "${context.font}".`);
     }

@@ -79,7 +79,7 @@ describe('PyramidSeries', () => {
             const node = chart.series[0].contextNodeData.nodeData[0];
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, node as any);
+            highlightManager.updateHighlight(chart.id, node);
             await compare();
         });
     });
@@ -136,7 +136,7 @@ describe('PyramidSeries', () => {
 
         const hoverChartNodes = async (
             chartInstance: any,
-            iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void>
+            iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void> | void
         ) => {
             for (const series of chartInstance.series) {
                 const nodeData = testParams.getNodeData(series);
@@ -156,7 +156,7 @@ describe('PyramidSeries', () => {
         };
 
         const checkHighlight = async (chartInstance: any) => {
-            await hoverChartNodes(chartInstance, async ({ series }) => {
+            await hoverChartNodes(chartInstance, ({ series }) => {
                 // Check the highlighted node
                 const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
@@ -198,7 +198,7 @@ describe('PyramidSeries', () => {
 
         it(`should render tooltip correctly`, async () => {
             chart = await createChart({ hasTooltip: true });
-            await hoverChartNodes(chart, async ({ series, item }) => {
+            await hoverChartNodes(chart, ({ series, item }) => {
                 // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-chart-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);

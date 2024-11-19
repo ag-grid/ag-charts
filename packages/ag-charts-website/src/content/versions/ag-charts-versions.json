@@ -1,5 +1,28 @@
 [
     {
+        "version": "11.0.0",
+        "date": "December 3rd 2024",
+        "highlights": [
+            {
+                "text": "Fibonacci Tools",
+                "path": "./financial-charts-toolbar#measuring-tools"
+            },
+            {
+                "text": "Save and Restore Chart State",
+                "path": "./api-state/"
+            },
+            {
+                "text": "Performance Improvements",
+                "path": "./high-performance-charts"
+            }
+        ],
+        "notesPath": "./upgrade-to-ag-charts-11"
+    },
+    {
+        "version": "10.3.3",
+        "date": "November 12th 2024"
+    },
+    {
         "version": "10.3.1",
         "date": "October 28th 2024"
     },

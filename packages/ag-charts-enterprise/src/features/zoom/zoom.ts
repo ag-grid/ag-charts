@@ -1,11 +1,4 @@
-import type {
-    AgToolbarGroupAlignment,
-    AgToolbarGroupPosition,
-    AgToolbarGroupSize,
-    AgToolbarZoomButton,
-    AgZoomAnchorPoint,
-    AgZoomButtons,
-} from 'ag-charts-community';
+import type { AgZoomAnchorPoint } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { ZoomRect } from './scenes/zoomRect';
@@ -35,13 +28,12 @@ import {
 type PinchEvent = _ModuleSupport.PinchEvent;
 
 const {
-    ARRAY,
     BOOLEAN,
     NUMBER,
     RATIO,
     REGIONS,
-    STRING,
     UNION,
+    OBJECT,
     OR,
     ActionOnSet,
     ChartAxisDirection,
@@ -65,33 +57,6 @@ enum DragState {
     Select,
 }
 
-class ZoomButtonsProperties extends _ModuleSupport.BaseProperties<AgZoomButtons> {
-    @_ModuleSupport.ObserveChanges<ZoomButtonsProperties>((target) => {
-        target.onChange();
-    })
-    @Validate(BOOLEAN)
-    enabled?: boolean = false;
-
-    @_ModuleSupport.ObserveChanges<ZoomButtonsProperties>((target) => {
-        target.onChange();
-    })
-    @Validate(ARRAY, { optional: true })
-    buttons?: Array<AgToolbarZoomButton>;
-
-    @Validate(STRING)
-    position?: AgToolbarGroupPosition = 'floating-bottom';
-
-    @Validate(STRING)
-    size?: AgToolbarGroupSize = 'small';
-
-    @Validate(STRING)
-    align?: AgToolbarGroupAlignment = 'center';
-
-    constructor(private readonly onChange: () => void) {
-        super();
-    }
-}
-
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ActionOnSet<Zoom>({
         newValue(enabled) {
@@ -104,7 +69,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(BOOLEAN)
     public enableAxisDragging = true;
 
-    public buttons = new ZoomButtonsProperties(() => this.onZoomButtonsChange(this.enabled));
+    @Validate(OBJECT)
+    public buttons = new ZoomToolbar(
+        this.ctx,
+        this.getModuleProperties.bind(this),
+        this.getResetZoom.bind(this),
+        this.updateZoom.bind(this),
+        this.updateAxisZoom.bind(this)
+    );
 
     @Validate(BOOLEAN)
     public enableDoubleClickToReset = true;
@@ -158,12 +130,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly selector: ZoomSelector;
     private readonly scroller = new ZoomScroller();
     private readonly scrollPanner = new ZoomScrollPanner();
-    private readonly toolbar: ZoomToolbar;
     private readonly domProxy: ZoomDOMProxy;
 
     @ProxyProperty('panner.deceleration')
     @Validate(OR(RATIO, UNION(['off', 'short', 'long'], 'a deceleration')))
-    deceleration: number | 'off' | 'short' | 'long' = 'short';
+    public deceleration: number | 'off' | 'short' | 'long' = 'short';
 
     // State
     private dragState = DragState.None;
@@ -191,13 +162,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             () => this.paddedRect,
             this.updateZoom.bind(this)
         );
-        this.toolbar = new ZoomToolbar(
-            ctx.toolbarManager,
-            ctx.zoomManager,
-            this.getResetZoom.bind(this),
-            this.updateUnifiedZoom.bind(this),
-            this.updateAxisZoom.bind(this)
-        );
 
         const { Default, ZoomDrag, Animation, Annotations, AnnotationsSelected } = _ModuleSupport.InteractionState;
         const draggableState = Default | Animation | ZoomDrag;
@@ -221,15 +185,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             region.addListener('drag-end', () => this.onDragEnd(), draggableState),
             region.addListener('wheel', (event) => this.onWheel(event), wheelableState),
             ctx.gestureDetector.addListener('pinch-move', (event) => this.onPinchMove(event as PinchEvent)),
-            ctx.toolbarManager.addListener('button-pressed', (event) =>
-                this.toolbar.onButtonPress(event, this.getModuleProperties())
-            ),
             ctx.layoutManager.addListener('layout:complete', (event) => this.onLayoutComplete(event)),
             ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event)),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event)),
             ctx.zoomManager.addListener('zoom-pan-start', (event) => this.onZoomPanStart(event)),
-            this.panner.addListener('update', (event) => this.onPanUpdate(event)),
-            () => this.toolbar.destroy()
+            this.panner.addListener('update', (event) => this.onPanUpdate(event))
         );
     }
 
@@ -239,22 +199,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onEnabledChange(enabled: boolean) {
-        if (!this.contextMenu || !this.toolbar) return;
+        if (!this.contextMenu || !this.buttons) return;
 
         this.ctx.zoomManager.setZoomModuleEnabled(enabled);
         const zoom = this.getZoom();
         const props = this.getModuleProperties({ enabled });
         this.destroyContextMenuActions?.();
         this.destroyContextMenuActions = this.contextMenu.registerActions(enabled, zoom);
-        this.onZoomButtonsChange(enabled);
-        this.toolbar.toggle(enabled, zoom, props);
-    }
-
-    private onZoomButtonsChange(zoomEnabled: boolean) {
-        if (!this.buttons) return;
-        const buttonsJson = this.buttons.toJson();
-        buttonsJson.enabled &&= zoomEnabled;
-        this.ctx.toolbarManager.proxyGroupOptions('zoom', 'zoom', buttonsJson);
+        this.buttons.toggle(enabled, zoom, props);
     }
 
     private onDoubleClick(event: _ModuleSupport.RegionEvent<'dblclick'> & { preventZoomDblClick?: boolean }) {
@@ -573,9 +525,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         const zoom = this.getZoom();
-        const props = this.getModuleProperties();
         this.contextMenu.toggleActions(zoom);
-        this.toolbar.toggleButtons(zoom, props);
     }
 
     private onZoomPanStart(event: _ModuleSupport.ZoomPanStartEvent): void {

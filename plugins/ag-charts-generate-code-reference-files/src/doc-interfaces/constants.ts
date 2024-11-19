@@ -1,4 +1,5 @@
 export const HIDDEN_API_INTERFACE_MEMBERS = {
+    AgBarSparklineOptions: ['crosshair'],
     AgGradientLegendOptions: ['stop'],
     AgConeFunnelSeriesOptions: ['showInMiniChart'],
     AgFunnelSeriesOptions: ['showInMiniChart'],

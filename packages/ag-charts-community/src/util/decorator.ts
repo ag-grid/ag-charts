@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 export const BREAK_TRANSFORM_CHAIN = Symbol('BREAK');
 
 const CONFIG_KEY = '__decorator_config';

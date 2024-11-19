@@ -232,7 +232,7 @@ describe('CartesianChart', () => {
             );
             if (seriesImpl == null) fail('No seriesImpl found');
 
-            const nodeData: SeriesNodeDataContext<never, never> = (seriesImpl as any)['contextNodeData']!;
+            const nodeData: SeriesNodeDataContext<never, never> = (seriesImpl as any)['contextNodeData'];
 
             const highlightManager = chart.ctx.highlightManager;
 

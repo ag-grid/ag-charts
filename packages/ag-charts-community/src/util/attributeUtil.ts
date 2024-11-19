@@ -4,10 +4,27 @@ import type { Nullable } from './types';
 
 type ElementID = string;
 
+type AriaRole =
+    | 'figure'
+    | 'group'
+    | 'img'
+    | 'list'
+    | 'listitem'
+    | 'radio'
+    | 'radiogroup'
+    | 'status'
+    | 'switch'
+    | 'tab'
+    | 'tablist'
+    | 'tabpanel'
+    | 'toolbar';
+
 export type BaseAttributeTypeMap = {
-    role: 'figure' | 'img' | 'radio' | 'radiogroup' | 'status' | 'switch' | 'tab' | 'tablist' | 'tabpanel';
+    role: AriaRole;
     'aria-checked': boolean;
     'aria-controls': ElementID;
+    'aria-describedby': ElementID;
+    'aria-disabled': boolean;
     'aria-expanded': boolean;
     'aria-haspopup': boolean;
     'aria-hidden': boolean;
@@ -27,13 +44,49 @@ type InputAttributeTypeMap = BaseAttributeTypeMap & {
     placeholder: string;
 };
 
+// Map used to getAttribute:
+// Do not validate values, getAttribute assumes that setAttribute would be used.
+function booleanParser(value: string): boolean {
+    return value === 'true';
+}
+function numberParser<T extends number = number>(value: string): T {
+    return Number(value) as T;
+}
+function stringParser<T extends string = string>(value: string): T {
+    return value as T;
+}
+const AttributeTypeParsers: { [K in keyof InputAttributeTypeMap]: (value: string) => InputAttributeTypeMap[K] } = {
+    role: stringParser<AriaRole>,
+    'aria-checked': booleanParser,
+    'aria-controls': stringParser<ElementID>,
+    'aria-describedby': stringParser<ElementID>,
+    'aria-disabled': booleanParser,
+    'aria-expanded': booleanParser,
+    'aria-haspopup': booleanParser,
+    'aria-hidden': booleanParser,
+    'aria-label': stringParser,
+    'aria-labelledby': stringParser<ElementID>,
+    'aria-live': stringParser<'assertive' | 'polite'>,
+    'aria-orientation': stringParser<Direction>,
+    'aria-selected': booleanParser,
+    'data-preventdefault': booleanParser,
+    class: stringParser,
+    id: stringParser<ElementID>,
+    tabindex: numberParser<0 | -1>,
+    title: stringParser,
+    placeholder: stringParser,
+};
+
 export type AttributeSet = Partial<{ [K in keyof BaseAttributeTypeMap]: BaseAttributeTypeMap[K] }>;
 export type InputAttributeSet = Partial<{ [K in keyof InputAttributeTypeMap]: InputAttributeTypeMap[K] }>;
 
 export type BaseStyleTypeMap = {
     cursor: 'pointer' | 'ew-resize' | 'ns-resize' | 'grab';
     display: 'none';
+    position: 'absolute';
     'pointer-events': 'auto' | 'none';
+    width: '100%';
+    height: '100%';
 };
 
 type StyleSet = Partial<{ [K in keyof BaseStyleTypeMap]: BaseStyleTypeMap[K] }>;
@@ -55,7 +108,8 @@ export function setAttribute<A extends keyof BaseAttributeTypeMap>(
     qualifiedName: A,
     value: BaseAttributeTypeMap[A] | undefined
 ) {
-    if (value === undefined || value === '') {
+    // eslint-disable-next-line sonarjs/different-types-comparison
+    if (value == null || value === '' || value === '') {
         e?.removeAttribute(qualifiedName);
     } else {
         e?.setAttribute(qualifiedName, value.toString());
@@ -73,17 +127,23 @@ export function setAttributes(e: Nullable<HTMLElement>, attrs: AttributeSet | un
     }
 }
 
-export function getAttribute<A extends keyof BaseAttributeTypeMap>(
+export function getAttribute<
+    A extends keyof BaseAttributeTypeMap,
+    DefaultType extends BaseAttributeTypeMap[A] | undefined,
+>(
     e: Nullable<HTMLElement | EventTarget>,
     qualifiedName: A,
-    defaultValue?: BaseAttributeTypeMap[A]
-): BaseAttributeTypeMap[A] | undefined;
+    defaultValue?: DefaultType
+): BaseAttributeTypeMap[A] | (DefaultType extends undefined ? undefined : never);
 
-export function getAttribute<A extends keyof InputAttributeTypeMap>(
+export function getAttribute<
+    A extends keyof InputAttributeTypeMap,
+    DefaultType extends InputAttributeTypeMap[A] | undefined,
+>(
     e: Nullable<HTMLTextAreaElement>,
     qualifiedName: A,
-    defaultValue?: InputAttributeTypeMap[A]
-): InputAttributeTypeMap[A] | undefined;
+    defaultValue?: DefaultType
+): InputAttributeTypeMap[A] | (DefaultType extends undefined ? undefined : never);
 
 export function getAttribute<A extends keyof BaseAttributeTypeMap>(
     e: Nullable<EventTarget>,
@@ -95,13 +155,7 @@ export function getAttribute<A extends keyof BaseAttributeTypeMap>(
     const value = e.getAttribute(qualifiedName);
     if (value === null) return defaultValue;
 
-    // Do not validate value. Tthis function assumes that setAttribute would be used.
-    const type = typeof ({} as BaseAttributeTypeMap)[qualifiedName];
-    if (type === 'boolean') return (value === 'true') as BaseAttributeTypeMap[A];
-    if (type === 'number') return Number(value) as BaseAttributeTypeMap[A];
-    if (type === 'string') return value as BaseAttributeTypeMap[A];
-
-    return undefined;
+    return AttributeTypeParsers[qualifiedName]?.(value) ?? undefined;
 }
 
 export function setElementStyle<P extends keyof BaseStyleTypeMap>(

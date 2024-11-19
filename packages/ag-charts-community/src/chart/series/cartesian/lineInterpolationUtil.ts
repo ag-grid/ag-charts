@@ -180,12 +180,12 @@ function spanAxisContext(newData: SpanContext, oldData: SpanContext): AxisContex
     const axisEntries = newAxisEntries;
     let insertionIndex = 0;
     for (const oldAxisEntries of exclusivelyOldAxisEntries) {
-        inner: for (let i = axisEntries.length - 1; i > insertionIndex; i -= 1) {
+        for (let i = axisEntries.length - 1; i > insertionIndex; i -= 1) {
             const oldValueX = scale(oldAxisEntries.value, oldData.scales.x);
             const newValueX = scale(axisEntries[i].value, oldData.scales.x);
             if (oldValueX > newValueX) {
                 insertionIndex = i + 1;
-                break inner;
+                break;
             }
         }
 

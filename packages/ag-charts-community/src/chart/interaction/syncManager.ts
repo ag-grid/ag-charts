@@ -1,4 +1,4 @@
-import { BaseManager } from '../baseManager';
+import { BaseManager } from '../../util/baseManager';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ISeries } from '../series/seriesTypes';
 import type { UpdateService } from '../updateService';

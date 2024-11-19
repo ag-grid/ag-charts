@@ -3,9 +3,9 @@ import type { AgAnnotation, AgAnnotationsThemeableOptions } from 'ag-charts-type
 import type { MementoOriginator } from '../../api/state/memento';
 import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
+import { BaseManager } from '../../util/baseManager';
 import { mergeDefaults } from '../../util/object';
 import { isArray } from '../../util/type-guards';
-import { BaseManager } from '../baseManager';
 
 interface AnnotationsRestoreEvent {
     type: 'restore-annotations';

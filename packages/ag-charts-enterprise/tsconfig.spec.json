@@ -3,7 +3,8 @@
   "compilerOptions": {
     "module": "commonjs",
     "types": ["jest", "node"],
-    "noEmit": true
+    "noEmit": true,
+    "resolveJsonModule": true
   },
   "include": [
     "jest.config.ts",

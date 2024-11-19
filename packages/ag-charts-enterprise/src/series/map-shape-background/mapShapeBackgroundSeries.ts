@@ -3,25 +3,26 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
+import { TopologySeries } from '../map-util/topologySeries';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import {
     type MapShapeBackgroundNodeDatum,
     MapShapeBackgroundSeriesProperties,
 } from './mapShapeBackgroundSeriesProperties';
 
-const { createDatumId, Series, SeriesNodePickMode, Validate, Logger, Selection, Group, PointerEvents } = _ModuleSupport;
+const { createDatumId, SeriesNodePickMode, Validate, Logger, Selection, Group, PointerEvents } = _ModuleSupport;
 
 export interface MapShapeBackgroundNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapShapeBackgroundNodeDatum> {}
 
 export class MapShapeBackgroundSeries
-    extends Series<
+    extends TopologySeries<
         MapShapeBackgroundNodeDatum,
         MapShapeBackgroundSeriesProperties,
         MapShapeBackgroundNodeDatum,
         MapShapeBackgroundNodeDataContext
     >
-    implements _ModuleSupport.TopologySeries
+    implements _ModuleSupport.ITopology
 {
     static readonly className = 'MapShapeBackgroundSeries';
     static readonly type = 'map-shape-background' as const;
@@ -45,6 +46,10 @@ export class MapShapeBackgroundSeries
 
     override setChartData() {
         // Ignore data
+    }
+
+    public override getNodeData(): MapShapeBackgroundNodeDatum[] | undefined {
+        return;
     }
 
     override get hasData() {
@@ -96,7 +101,7 @@ export class MapShapeBackgroundSeries
         return geoGeometry;
     }
 
-    override async processData(): Promise<void> {
+    override processData() {
         const { topology } = this;
 
         this.topologyBounds = topology?.features.reduce<_ModuleSupport.LonLatBBox | undefined>((current, feature) => {
@@ -110,7 +115,7 @@ export class MapShapeBackgroundSeries
         }
     }
 
-    override async createNodeData() {
+    override createNodeData() {
         const { id: seriesId, topology, scale } = this;
 
         if (topology == null) return;
@@ -139,34 +144,34 @@ export class MapShapeBackgroundSeries
         };
     }
 
-    async updateSelections(): Promise<void> {
+    updateSelections() {
         if (this.nodeDataRefresh) {
-            this.contextNodeData = await this.createNodeData();
+            this.contextNodeData = this.createNodeData();
             this.nodeDataRefresh = false;
         }
     }
 
-    override async update(): Promise<void> {
+    override update() {
         const { datumSelection } = this;
 
-        await this.updateSelections();
+        this.updateSelections();
 
         this.contentGroup.visible = this.visible;
 
         const { nodeData = [] } = this.contextNodeData ?? {};
 
-        this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
-        await this.updateDatumNodes({ datumSelection });
+        this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
+        this.updateDatumNodes({ datumSelection });
     }
 
-    private async updateDatumSelection(opts: {
+    private updateDatumSelection(opts: {
         nodeData: MapShapeBackgroundNodeDatum[];
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeBackgroundNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.index));
     }
 
-    private async updateDatumNodes(opts: {
+    private updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeBackgroundNodeDatum>;
     }) {
         const { properties } = this;
@@ -215,6 +220,10 @@ export class MapShapeBackgroundSeries
     }
 
     public override pickFocus() {
+        return undefined;
+    }
+
+    protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         return undefined;
     }
 }

@@ -5,7 +5,7 @@
     "default": ["{projectRoot}/**/*", "sharedGlobals"],
     "defaultExcludes": [
       "buildOutputExcludes",
-      "!{projectRoot}/.eslintrc.*",
+      "!{projectRoot}/eslint*",
       "!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
       "!{projectRoot}/**/test/**",
       "!{projectRoot}/**/__image_snapshots__/**",
@@ -182,7 +182,7 @@
     },
 
     "lint": {
-      "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/.eslintrc.*", "{workspaceRoot}/.eslintignore"],
+      "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/eslint*"],
       "outputs": [],
       "cache": true
     },
@@ -207,22 +207,20 @@
       }
     },
     "lint:eslint": {
-      "executor": "@nx/eslint:lint",
+      "executor": "nx:run-commands",
       "options": {
-        "eslintConfig": "{projectRoot}/.eslintrc.js",
-        "cache": true,
-        "cacheLocation": "{workspaceRoot}/node_modules/.cache/.eslintcache"
+        "cwd": "{projectRoot}",
+        "command": "npx eslint --quiet"
       },
       "cache": true,
       "inputs": [
         "default",
         "buildOutputExcludes",
-        "{workspaceRoot}/.eslintrc.*",
-        "{projectRoot}/.eslintrc.*",
+        "{workspaceRoot}/eslint.*",
+        "{projectRoot}/eslint.*",
         "{workspaceRoot}/tsconfig.base.json",
         "{projectRoot}/tsconfig.json",
-        "{projectRoot}/tsconfig.lint.*",
-        "{workspaceRoot}/tools/eslint-rules/**/*"
+        "{projectRoot}/tsconfig.lint.*"
       ],
       "outputs": [],
       "configurations": {
@@ -257,17 +255,6 @@
           "codeCoverage": true
         }
       }
-    },
-    "@nx/eslint:lint": {
-      "cache": true,
-      "inputs": [
-        "default",
-        "buildOutputExcludes",
-        "{workspaceRoot}/.eslintrc.*",
-        "{projectRoot}/.eslintrc.*",
-        "{workspaceRoot}/tools/eslint-rules/**/*"
-      ],
-      "outputs": []
     },
     "@nx/vite:test": {
       "cache": true,

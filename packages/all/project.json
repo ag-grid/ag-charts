@@ -90,15 +90,12 @@
     },
     "dev:quick": {
       "executor": "nx:run-commands",
-      "dependsOn": [],
+      "dependsOn": ["ag-charts-website-gallery_simple-bar_main.ts:generate-thumbnail"],
       "inputs": [],
       "outputs": [],
       "options": {
-        "parallel": false,
-        "commands": [
-          "nx run ag-charts-website-gallery_simple-bar_main.ts:generate-thumbnail",
-          "node external/ag-shared/scripts/watch/watch.js charts & nx run ag-charts-website:dev"
-        ]
+        "parallel": true,
+        "commands": ["node external/ag-shared/scripts/watch/watch.js charts", "nx run ag-charts-website:dev"]
       },
       "configurations": {
         "windows": {
@@ -127,6 +124,11 @@
       }
     },
     "clean": { "cache": false, "command": "rimraf dist/ 'packages/*/dist/'" },
+    "nuke": {
+      "cache": false,
+      "dependsOn": ["clean"],
+      "command": "./tools/nuke.sh"
+    },
     "benchmark": {
       "dependsOn": ["ag-charts-community:benchmark"],
       "cache": false,

@@ -132,14 +132,6 @@
         }
       }
     },
-    "lint": {
-      "executor": "@nx/eslint:lint",
-      "configurations": {
-        "fix": {
-          "fix": true
-        }
-      }
-    },
     "generate-examples": {
       "executor": "nx:noop",
       "dependsOn": ["^generate-example"],

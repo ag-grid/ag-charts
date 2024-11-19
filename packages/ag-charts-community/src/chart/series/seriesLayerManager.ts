@@ -40,7 +40,7 @@ export class SeriesLayerManager {
 
         const seriesInfo = this.series.get(internalId);
         if (seriesInfo != null) {
-            throw new Error(`AG Charts - series already has an allocated layer: ${seriesInfo}`);
+            throw new Error(`AG Charts - series already has an allocated layer: ${JSON.stringify(seriesInfo)}`);
         }
 
         // Re-evaluate mode only on first series addition - we can't swap strategy mid-setup.

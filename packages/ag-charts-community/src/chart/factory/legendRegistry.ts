@@ -1,6 +1,6 @@
 import type { LegendFactory } from '../../module/coreModules';
 import type { ModuleContext } from '../../module/moduleContext';
-import type { ChartLegendType } from '../legendDatum';
+import type { ChartLegendType } from '../legend/legendDatum';
 
 interface LegendRegistryRecord {
     optionsKey: string;

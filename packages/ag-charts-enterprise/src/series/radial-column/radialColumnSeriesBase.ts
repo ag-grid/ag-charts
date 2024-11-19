@@ -20,6 +20,7 @@ const {
     seriesLabelFadeOutAnimation,
     valueProperty,
     animationValidation,
+    createDatumId,
     SeriesNodePickMode,
     normalizeAngle360,
     sanitizeHtml,
@@ -206,10 +207,10 @@ export abstract class RadialColumnSeriesBase<
         return this.axes[ChartAxisDirection.Y]?.isReversed();
     }
 
-    async maybeRefreshNodeData() {
+    maybeRefreshNodeData() {
         const circleChanged = this.didCircleChange();
         if (!circleChanged && !this.nodeDataRefresh) return;
-        const { nodeData = [] } = (await this.createNodeData()) ?? {};
+        const { nodeData = [] } = this.createNodeData() ?? {};
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
     }
@@ -219,7 +220,7 @@ export abstract class RadialColumnSeriesBase<
         return radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
     }
 
-    async createNodeData() {
+    override createNodeData() {
         const { processedData, dataModel, groupScale } = this;
 
         if (
@@ -365,9 +366,9 @@ export abstract class RadialColumnSeriesBase<
         return NaN;
     }
 
-    async update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
+    update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         const resize = this.checkResize(seriesRect);
-        await this.maybeRefreshNodeData();
+        this.maybeRefreshNodeData();
 
         this.contentGroup.translationX = this.centerX;
         this.contentGroup.translationY = this.centerY;
@@ -421,38 +422,43 @@ export abstract class RadialColumnSeriesBase<
             angleKey,
             radiusKey,
         } = mergeDefaults(highlighted ? this.properties.highlightStyle.item : null, this.properties);
+        const { itemStyler } = this.properties;
+        const formatType = highlighted ? 'highlight' : 'node';
 
-        const idFn = (datum: RadialColumnNodeDatum) => datum.angleValue;
-        selection.update(selectionData, undefined, idFn).each((node, datum) => {
-            const format = this.properties.itemStyler
-                ? this.ctx.callbackCache.call(this.properties.itemStyler, {
-                      datum: datum.datum,
-                      fill,
-                      fillOpacity,
-                      stroke,
-                      strokeWidth,
-                      strokeOpacity,
-                      lineDash,
-                      lineDashOffset,
-                      cornerRadius,
-                      highlighted,
-                      angleKey,
-                      radiusKey,
-                      seriesId: this.id,
-                  })
-                : undefined;
+        selection
+            .update(selectionData, undefined, (datum) => this.getDatumId(datum))
+            .each((node, datum) => {
+                const format = itemStyler
+                    ? this.cachedDatumCallback(createDatumId(this.getDatumId(datum), formatType), () =>
+                          itemStyler({
+                              datum: datum.datum,
+                              fill,
+                              fillOpacity,
+                              stroke,
+                              strokeWidth,
+                              strokeOpacity,
+                              lineDash,
+                              lineDashOffset,
+                              cornerRadius,
+                              highlighted,
+                              angleKey,
+                              radiusKey,
+                              seriesId: this.id,
+                          })
+                      )
+                    : undefined;
 
-            this.updateItemPath(node, datum, highlighted, format);
-            node.fill = format?.fill ?? fill;
-            node.fillOpacity = format?.fillOpacity ?? fillOpacity;
-            node.stroke = format?.stroke ?? stroke;
-            node.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            node.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
-            node.lineDash = format?.lineDash ?? lineDash;
-            node.lineDashOffset = format?.lineDashOffset ?? lineDashOffset;
-            node.cornerRadius = format?.cornerRadius ?? cornerRadius;
-            node.lineJoin = 'round';
-        });
+                this.updateItemPath(node, datum, highlighted, format);
+                node.fill = format?.fill ?? fill;
+                node.fillOpacity = format?.fillOpacity ?? fillOpacity;
+                node.stroke = format?.stroke ?? stroke;
+                node.strokeWidth = format?.strokeWidth ?? strokeWidth;
+                node.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
+                node.lineDash = format?.lineDash ?? lineDash;
+                node.lineDashOffset = format?.lineDashOffset ?? lineDashOffset;
+                node.cornerRadius = format?.cornerRadius ?? cornerRadius;
+                node.lineJoin = 'round';
+            });
     }
 
     protected updateLabels() {
@@ -535,21 +541,23 @@ export abstract class RadialColumnSeriesBase<
         const content = sanitizeHtml(`${angleString}: ${radiusString}`);
 
         const { fill: color } = (itemStyler &&
-            this.ctx.callbackCache.call(itemStyler, {
-                highlighted: false,
-                seriesId,
-                datum,
-                angleKey,
-                radiusKey,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                cornerRadius,
-            })) ?? { fill };
+            this.cachedDatumCallback(createDatumId(this.getDatumId(datum), 'tooltip'), () =>
+                itemStyler({
+                    highlighted: false,
+                    seriesId,
+                    datum,
+                    angleKey,
+                    radiusKey,
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                    lineDash,
+                    lineDashOffset,
+                    cornerRadius,
+                })
+            )) ?? { fill };
 
         return tooltip.toTooltipHtml(
             { title, backgroundColor: fill, content },
@@ -576,19 +584,21 @@ export abstract class RadialColumnSeriesBase<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        if (!this.data?.length || !this.properties.isValid() || legendType !== 'category') {
+        if (!this.properties.isValid() || legendType !== 'category') {
             return [];
         }
 
-        const { radiusKey, radiusName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, visible } =
+        const { id: seriesId, visible } = this;
+
+        const { radiusKey, radiusName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, showInLegend } =
             this.properties;
 
         return [
             {
                 legendType: 'category',
-                id: this.id,
+                id: seriesId,
                 itemId: radiusKey,
-                seriesId: this.id,
+                seriesId,
                 enabled: visible,
                 label: {
                     text: radiusName ?? radiusKey,
@@ -604,25 +614,13 @@ export abstract class RadialColumnSeriesBase<
                         },
                     },
                 ],
+                hideInLegend: !showInLegend,
             },
         ];
     }
 
-    onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {
-        const { enabled, itemId, series } = event;
-
-        if (series.id === this.id) {
-            this.toggleSeriesItem(itemId, enabled);
-        }
-    }
-
-    onLegendItemDoubleClick(event: _ModuleSupport.LegendItemDoubleClickChartEvent) {
-        const { enabled, itemId, series, numVisibleItems } = event;
-
-        const wasClicked = series.id === this.id;
-        const newEnabled = wasClicked || (enabled && numVisibleItems === 1);
-
-        this.toggleSeriesItem(itemId, newEnabled);
+    private getDatumId(datum: RadialColumnNodeDatum) {
+        return createDatumId(datum.angleValue);
     }
 
     override computeLabelsBBox() {

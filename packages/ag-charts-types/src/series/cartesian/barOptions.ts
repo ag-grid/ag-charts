@@ -27,10 +27,18 @@ export interface AgBarSeriesItemStylerParams<TDatum>
         AgBarSeriesOptionsKeys,
         Required<AgBarSeriesStyle> {
     readonly stackGroup?: string;
-    /** The key to use to retrieve x-values from the data. */
-    xDomain: any[];
-    /** The key to use to retrieve y-values from the data. */
-    yDomain: any[];
+    /** The x value of the datum. */
+    xValue: any;
+    /** The y value of the datum. */
+    yValue: any;
+    /** Whether the item's x value is the first in the data domain. */
+    first: boolean;
+    /** Whether the item's x value is the last in the data domain. */
+    last: boolean;
+    /** Whether the item's y value is the lowest in the data. */
+    min: boolean;
+    /** Whether the item's y value is the highest in the data. */
+    max: boolean;
 }
 
 export interface AgBarSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {

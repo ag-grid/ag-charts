@@ -30,10 +30,11 @@ import type { ChartAxis } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartMode } from '../chartMode';
 import type { DataController } from '../data/dataController';
-import type { ChartLegendDatum, ChartLegendType } from '../legendDatum';
+import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../interaction/chartEventManager';
+import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent } from '../tooltip/tooltip';
-import type { BaseSeriesEvent, SeriesEventType } from './seriesEvents';
+import type { SeriesEventType } from './seriesEvents';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
 import type { ISeries, NodeDataDependencies, SeriesNodeDatum } from './seriesTypes';
@@ -242,17 +243,21 @@ export abstract class Series<
     protected _data?: any[];
     protected _chartData?: any[];
 
+    private readonly datumCallbackCache = new Map<any, any>();
+
     get data() {
         return this._data ?? this._chartData;
     }
 
     set visible(value: boolean) {
         this.properties.visible = value;
+        this.ctx.legendManager.toggleItem({ enabled: value, seriesId: this.id });
+        this.ctx.legendManager.update();
         this.visibleMaybeChanged();
     }
 
     get visible() {
-        return this.properties.visible;
+        return this.properties.visible && this.ctx.legendManager.getSeriesEnabled(this.id);
     }
 
     get hasData() {
@@ -352,11 +357,11 @@ export abstract class Series<
 
     private readonly seriesListeners = new Listeners<SeriesEventType, (event: any) => void>();
 
-    public addListener<T extends SeriesEventType, E extends BaseSeriesEvent<T>>(type: T, listener: (event: E) => void) {
+    public addListener<T extends SeriesEventType, E>(type: T, listener: (event: E) => void) {
         return this.seriesListeners.addListener(type, listener);
     }
 
-    protected dispatch<T extends SeriesEventType, E extends BaseSeriesEvent<T>>(type: T, event: E): void {
+    protected dispatch<T extends SeriesEventType, E>(type: T, event: E): void {
         this.seriesListeners.dispatch(type, event);
     }
 
@@ -367,6 +372,7 @@ export abstract class Series<
     destroy(): void {
         this.destroyFns.forEach((f) => f());
         this.destroyFns = [];
+        this.resetDatumCallbackCache();
         this.ctx.seriesStateManager.deregisterSeries(this);
     }
 
@@ -420,19 +426,19 @@ export abstract class Series<
     // The union of the series domain ('community') and series-option domains ('enterprise').
     getDomain(direction: ChartAxisDirection): any[] {
         const seriesDomain: any[] = this.getSeriesDomain(direction);
-        const moduleDomains: any[][] = this.moduleMap.mapModules((module) => module.getDomain(direction));
+        const moduleDomains: any[] = this.moduleMap.mapModules((module) => module.getDomain(direction)).flat();
         // Flatten the 2D moduleDomains into a 1D array and concatenate it with seriesDomain
-        return seriesDomain.concat(moduleDomains.flat());
+        return moduleDomains.length !== 0 ? seriesDomain.concat(moduleDomains) : seriesDomain;
     }
 
     // Get the 'community' domain (excluding any additional data from series-option modules).
     abstract getSeriesDomain(direction: ChartAxisDirection): any[];
 
     // Fetch required values from the `chart.data` or `series.data` objects and process them.
-    abstract processData(dataController: DataController): Promise<void>;
+    abstract processData(dataController: DataController): Promise<void> | void;
 
     // Using processed data, create data that backs visible nodes.
-    abstract createNodeData(): Promise<TContext | undefined>;
+    abstract createNodeData(): TContext | undefined;
 
     // Indicate that something external changed and we should recalculate nodeData.
     markNodeDataDirty() {
@@ -446,7 +452,7 @@ export abstract class Series<
     }
 
     // Produce data joins and update selection's nodes using node data.
-    abstract update(opts: { seriesRect?: BBox }): Promise<void>;
+    abstract update(opts: { seriesRect?: BBox }): Promise<void> | void;
 
     public getOpacity(): number {
         const defaultOpacity = 1;
@@ -607,14 +613,67 @@ export abstract class Series<
         return new this.NodeEvent('nodeContextMenuAction', event, datum, this);
     }
 
+    onLegendItemClick(event: LegendItemClickChartEvent) {
+        const { enabled, itemId, series, legendType } = event;
+        const legendItemName =
+            'legendItemName' in this.properties ? (this.properties.legendItemName as string) : undefined;
+
+        const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
+        if (series.id === this.id || matchedLegendItemName) {
+            this.toggleSeriesItem(itemId, enabled, legendType);
+            this.updateLegendData({ legendType, enabled, itemId, legendItemName });
+        }
+    }
+
+    onLegendItemDoubleClick(event: LegendItemDoubleClickChartEvent) {
+        const { enabled, itemId, series, numVisibleItems, legendType } = event;
+        const legendItemName =
+            'legendItemName' in this.properties ? (this.properties.legendItemName as string) : undefined;
+
+        const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
+        if (series.id === this.id || matchedLegendItemName) {
+            // Double-clicked item should always become visible.
+            this.toggleSeriesItem(itemId, true, legendType);
+            this.updateLegendData({ legendType, enabled: true, itemId, legendItemName });
+        } else if (enabled && numVisibleItems === 1) {
+            // Other items should become visible if there is only one existing visible item.
+            this.toggleSeriesItem(itemId, true, legendType);
+            this.updateLegendData({ legendType, enabled: true, legendItemName });
+        } else {
+            // Disable other items if not exactly one enabled.
+            this.toggleSeriesItem(itemId, false, legendType);
+            this.updateLegendData({ legendType, enabled: false, legendItemName });
+        }
+    }
+
     abstract getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     abstract getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
 
-    protected toggleSeriesItem(itemId: any, enabled: boolean): void {
-        this.visible = enabled;
+    protected toggleSeriesItem(id: any, enabled: boolean, legendType: ChartLegendType): void {
+        if (enabled || legendType !== 'category') {
+            this.visible = enabled;
+        }
         this.nodeDataRefresh = true;
         this._pickNodeCache.clear();
-        this.dispatch('visibility-changed', { itemId, enabled });
+        this.dispatch('visibility-changed', { id, enabled });
+    }
+
+    protected updateLegendData({
+        legendType,
+        enabled,
+        itemId,
+        legendItemName,
+    }: {
+        legendType: ChartLegendType;
+        enabled: boolean;
+        itemId?: any;
+        legendItemName?: string;
+    }) {
+        if (legendType !== 'category') {
+            return;
+        }
+
+        this.ctx.legendManager.toggleItem({ enabled, seriesId: this.id, itemId, legendItemName });
     }
 
     isEnabled() {
@@ -727,5 +786,19 @@ export abstract class Series<
 
     public pickFocus(_opts: PickFocusInputs): PickFocusOutputs | undefined {
         return undefined;
+    }
+
+    public resetDatumCallbackCache() {
+        this.datumCallbackCache.clear();
+    }
+
+    public cachedDatumCallback<T>(id: any, fn: () => T): T {
+        const { datumCallbackCache } = this;
+        const existing = datumCallbackCache.get(id) as T;
+        if (existing != null) return existing;
+
+        const value = fn();
+        datumCallbackCache.set(id, value);
+        return value;
     }
 }

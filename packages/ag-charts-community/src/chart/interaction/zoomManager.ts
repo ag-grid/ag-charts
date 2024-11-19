@@ -5,13 +5,13 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { BBox } from '../../scene/bbox';
 import { includes } from '../../util/array';
+import { BaseManager } from '../../util/baseManager';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { deepClone } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
 import { isFiniteNumber, isObject } from '../../util/type-guards';
-import { BaseManager } from '../baseManager';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AxisLayout, LayoutCompleteEvent, LayoutManager } from '../layout/layoutManager';
 

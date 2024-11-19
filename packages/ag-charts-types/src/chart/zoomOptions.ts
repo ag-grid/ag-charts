@@ -1,4 +1,5 @@
-import type { AgToolbarZoomGroup } from './toolbarOptions';
+import type { Toggleable } from '../series/cartesian/commonOptions';
+import type { ToolbarButton } from './buttonOptions';
 import type { Ratio } from './types';
 
 export type AgZoomAnchorPoint = 'pointer' | 'start' | 'middle' | 'end';
@@ -24,7 +25,16 @@ export interface AgZoomRatio {
     end?: Ratio;
 }
 
-export interface AgZoomButtons extends Omit<AgToolbarZoomGroup, 'align' | 'position'> {}
+export interface AgZoomButtons extends Toggleable {
+    buttons?: AgZoomButton[];
+}
+
+export interface AgZoomButton extends ToolbarButton {
+    value: AgZoomButtonValue;
+    section: string;
+}
+
+export type AgZoomButtonValue = 'reset' | 'zoom-in' | 'zoom-out' | 'pan-left' | 'pan-right' | 'pan-start' | 'pan-end';
 
 export interface AgZoomOptions {
     /**

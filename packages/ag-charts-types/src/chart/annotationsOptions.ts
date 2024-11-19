@@ -135,7 +135,6 @@ export type AgAnnotation =
 
 export interface AgLineAnnotation
     extends AnnotationLinePoints,
-        Cappable,
         Extendable,
         Lockable,
         Visible,
@@ -264,7 +263,6 @@ interface TextualAnnotation extends Lockable, Visible, FontOptions {
 
 export interface AgArrowAnnotation
     extends AnnotationLinePoints,
-        Cappable,
         Extendable,
         Lockable,
         Visible,
@@ -441,15 +439,5 @@ interface Extendable {
      */
     extendEnd?: boolean;
 }
-
-// TODO: Add these options back when we have another cap type.
-interface Cappable {
-    /** The cap to show at the start of the line. */
-    // startCap?: Cap;
-    /** The cap to show at the end of the line. */
-    // endCap?: Cap;
-}
-
-// type Cap = 'arrow';
 
 export type AgAnnotationValue = string | number | AgStateSerializableDate;

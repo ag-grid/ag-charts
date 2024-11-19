@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Canvas, Image, CanvasRenderingContext2D as NodeCanvasRenderingContext2D, createCanvas } from 'canvas';
 
 import { ConicGradient } from './conicGradient';
@@ -30,14 +31,13 @@ Object.defineProperty(NodeCanvasRenderingContext2D.prototype, 'createConicGradie
 // https://github.com/Automattic/node-canvas/issues/1852
 const context2dTransform = NodeCanvasRenderingContext2D.prototype.transform;
 Object.defineProperty(NodeCanvasRenderingContext2D.prototype, 'transform', {
-    value: function transform(...args: any[]) {
-        if (args[0] === 0) {
+    value: function transform(a: number, b: number, c: number, d: number, e: number, f: number) {
+        if (a === 0) {
             context2dTransform.call(this, 1e-6, 0, 0, 1e-6, 0, 0);
             return;
         }
 
-        // @ts-ignore
-        context2dTransform.call(this, ...args);
+        context2dTransform.call(this, a, b, c, d, e, f);
     },
     enumerable: false,
     writable: true,
@@ -56,8 +56,8 @@ export class MockContext {
     canvases: WeakRef<Canvas>[] = [];
 
     constructor(
-        width = 1,
-        height = 1,
+        width: number,
+        height: number,
         document: Document,
         realCreateElement: Document['createElement'] = document.createElement
     ) {
@@ -143,7 +143,7 @@ export function setup(opts: {
                 return context2d as any;
             };
 
-            mockedElement.toDataURL = (mimeType?: 'image/png', quality?: any) => {
+            mockedElement.toDataURL = (mimeType?: 'image/png') => {
                 return nextCanvas.toDataURL(mimeType ?? 'image/png');
             };
 

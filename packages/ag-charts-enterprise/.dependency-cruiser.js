@@ -180,7 +180,7 @@ module.exports = {
             severity: 'error',
             from: { path: 'src/.*/' },
             to: {
-                path: '^src/[^/]*.ts',
+                path: '^src/[^/]*\\.ts',
                 pathNot: [
                     '^src/setup.ts',
                     '^src/main-modules.ts',

@@ -6,7 +6,7 @@ import { TextualPointProperties } from '../properties/textualPointProperties';
 const { STRING, Validate, isObject } = _ModuleSupport;
 
 export class TextProperties extends TextualPointProperties {
-    static is(value: unknown): value is TextProperties {
+    static is(this: void, value: unknown): value is TextProperties {
         return isObject(value) && value.type === AnnotationType.Text;
     }
 

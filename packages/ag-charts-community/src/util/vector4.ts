@@ -121,7 +121,7 @@ function from(
         };
     }
 
-    throw new Error(`Values can not be converted into a vector4: [${a}] [${b}] [${c}] [${d}]`);
+    throw new Error(`Values can not be converted into a vector4: [${JSON.stringify(a)}] [${b}] [${c}] [${d}]`);
 }
 
 /**

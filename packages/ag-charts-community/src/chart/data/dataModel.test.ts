@@ -115,14 +115,14 @@ describe('DataModel', () => {
                 ];
 
                 it('should extract the configured keys', () => {
-                    const result = dataModel.processData(data)!!;
+                    const result = dataModel.processData(data)!;
 
                     expect(result.type).toEqual('ungrouped');
                     expect(result.keys).toEqual([[2, 3, 4]]);
                 });
 
                 it('should extract the configured values', () => {
-                    const result = dataModel.processData(data)!!;
+                    const result = dataModel.processData(data)!;
 
                     expect(result.type).toEqual('ungrouped');
                     expect(result.columns).toEqual([
@@ -162,7 +162,7 @@ describe('DataModel', () => {
                 ];
 
                 it('should extract the configured keys', () => {
-                    const result = dataModel.processData(data)!!;
+                    const result = dataModel.processData(data)!;
 
                     expect(result.type).toEqual('ungrouped');
                     expect(result.keys[0]).toHaveLength(4);
@@ -170,7 +170,7 @@ describe('DataModel', () => {
                 });
 
                 it('should extract the configured values', () => {
-                    const result = dataModel.processData(data)!!;
+                    const result = dataModel.processData(data)!;
 
                     expect(result.type).toEqual('ungrouped');
                     expect(result.columns[0]).toHaveLength(4);
@@ -194,7 +194,7 @@ describe('DataModel', () => {
                 ];
 
                 it('should extract the configured keys', () => {
-                    const result = dataModel.processData(data)!!;
+                    const result = dataModel.processData(data)!;
 
                     expect(result.type).toEqual('ungrouped');
                     expect(result.keys[0]).toHaveLength(4);
@@ -202,7 +202,7 @@ describe('DataModel', () => {
                 });
 
                 it('should extract the configured values', () => {
-                    const result = dataModel.processData(data)!!;
+                    const result = dataModel.processData(data)!;
 
                     expect(result.type).toEqual('ungrouped');
                     expect(result.columns).toEqual([

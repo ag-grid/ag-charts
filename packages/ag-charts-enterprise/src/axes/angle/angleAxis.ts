@@ -4,9 +4,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { AngleCrossLine } from '../polar-crosslines/angleCrossLine';
 
 const {
-    AND,
     ChartAxisDirection,
-    GREATER_THAN,
     NUMBER,
     UNION,
     ProxyOnWrite,
@@ -17,6 +15,7 @@ const {
     isNumberEqual,
     toRadians,
     normalizeAngle360,
+    normalizeAngle360Inclusive,
     Path,
     RotatableText,
     Transformable,
@@ -51,10 +50,10 @@ export abstract class AngleAxis<
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = AngleCrossLine;
 
     @ProxyOnWrite('rotation')
-    @Validate(NUMBER.restrict({ min: 0, max: 360 }))
+    @Validate(NUMBER)
     startAngle: number = 0;
 
-    @Validate(AND(NUMBER.restrict({ min: 0, max: 720 }), GREATER_THAN('startAngle')), { optional: true })
+    @Validate(NUMBER, { optional: true })
     endAngle: number | undefined = undefined;
 
     protected labelData: AngleAxisLabelDatum[] = [];
@@ -84,13 +83,18 @@ export abstract class AngleAxis<
         this.updateCrossLines();
     }
 
-    override computeRange() {
+    private normalizedAngles(): [number, number] {
         const startAngle = normalizeAngle360(-Math.PI / 2 + toRadians(this.startAngle));
-        let endAngle = this.endAngle == null ? startAngle + Math.PI * 2 : -Math.PI / 2 + toRadians(this.endAngle);
-        if (endAngle < startAngle) {
-            endAngle += 2 * Math.PI;
-        }
-        this.range = [startAngle, endAngle];
+        const sweep =
+            this.endAngle != null
+                ? normalizeAngle360Inclusive(toRadians(this.endAngle) - toRadians(this.startAngle))
+                : 2 * Math.PI;
+        const endAngle = startAngle + sweep;
+        return [startAngle, endAngle];
+    }
+
+    override computeRange() {
+        this.range = this.normalizedAngles();
     }
 
     protected override calculateAvailableRange(): number {

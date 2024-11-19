@@ -3,7 +3,6 @@ src
 .gitignore
 .npmignore
 .prettierrc
-.eslintrc.json
 tsconfig.*
 project.json
 jest.*

@@ -1,0 +1,75 @@
+---
+title: 'Upgrade to AG Charts 11'
+description: "See what's new in AG Charts v11. View a full list of breaking changes, behaviour changes and depreciations. Read the release post for feature highlights."
+---
+
+## What's New
+
+See the [release post](https://blog.ag-grid.com/whats-new-in-ag-charts-11/) for feature highlights of what's new in this major version.
+
+Users of integrated charting on AG Grid, should refer to this migration guide when upgrading to AG Grid 33.
+
+## Breaking Changes
+
+This release includes the following breaking changes:
+
+{% if isFramework("angular") %}
+
+### Compatibility
+
+The minimum version of Angular you can use with AG Charts is now Angular 17.
+
+{% /if %}
+
+### Series Changes
+
+-   Series type `bullet` is removed. Use the [Linear Gauge](./linear-gauge#bullet-series) instead.
+-   Bar Series `label.placement`:
+    -   `inside` is renamed to `inside-center`.
+    -   `outside` is renamed to `outside-end`.
+-   Waterfall Series `label.placement`:
+    -   `inside` is renamed to `inside-center`.
+    -   `start` is renamed to `outside-start`.
+    -   `end` is renamed to `outside-end`.
+
+### Axes Changes
+
+-   All `AgCrossLineLabelPosition` options are changed to kebab-case. For example, `topLeft` becomes `top-left`.
+-   If `axes[].tick.enabled: false`, any provided `axis[].label.padding` is the distance between the label and the axis.
+
+### Financial Charts Changes
+
+-   `chartType` of `range-area` is renamed to `hlc`.
+-   `AgPriceVolumePreset.rangeToolbar` is renamed to `rangeButtons`.
+-   `AgPriceVolumePreset.xKey` is renamed to `dateKey`.
+-   `AgPriceVolumePreset.annotations` is renamed to `toolbar`.
+
+### Miscellaneous
+
+-   Locale string `toolbarAnnotationsColor` is renamed to `toolbarAnnotationsLineColor`.
+-   All icons with `-legacy` suffix have been removed.
+-   The `any` type is removed from the `MarkerShape` union.
+-   Custom marker shapes are now defined with a callback function instead of extending a `Marker` class.
+-   `AgChartSerializableState` is removed. Use `AgChartState` instead.
+-   `navigator.min` and `navigator.max` are removed. Use `initialState.zoom.ratioX.start` and `initialState.zoom.ratioX.end` instead.
+-   `zoom.ratioX`, `zoom.ratioY` are removed. Use `initialState.zoom.ratioX` and `initialState.zoom.ratioY` instead.
+-   `zoom.rangeX`, `zoom.rangeY` are removed. Use `initialState.zoom.rangeX` and `initialState.zoom.rangeY` instead.
+
+## Behaviour Changes
+
+This release includes the following behaviour changes:
+
+### Theme Defaults
+
+-   If `axes[].tick.enabled: true`, the labels default to padding of 5px away from the tick.
+
+### Other Changes
+
+-   All series and axis labels default to removing trailing zeros. Use the `format` and `formatter` options to modify.
+-   Pie and Donut Series labels default to displaying two decimal places without trailing zeros. Use the `formatter` functions to modify.
+-   A stacked normalized area series datum where all the values are 0 will connect to a point at 0 rather than leaving a gap.
+-   Scrolling events on a chart with zoom enabled, will now be passed to the parent if zoom is at minimum or maximum levels.
+
+## Changes List
+
+If you would like to see the full list of changes in this release, please see the [Changelog](/changelog/?fixVersion=11.0.0).

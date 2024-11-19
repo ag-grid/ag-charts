@@ -5,13 +5,13 @@ import { GeometryType, containsType, geometryBbox, largestLineString, projectGeo
 import { lineStringCenter } from '../map-util/lineStringUtil';
 import { findFocusedGeoGeometry } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
+import { TopologySeries } from '../map-util/topologySeries';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import { type MapLineNodeDatum, type MapLineNodeLabelDatum, MapLineSeriesProperties } from './mapLineSeriesProperties';
 
 const {
     getMissCount,
     createDatumId,
-    DataModelSeries,
     SeriesNodePickMode,
     valueProperty,
     CachedTextMeasurerPool,
@@ -27,10 +27,12 @@ const {
 export interface MapLineNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapLineNodeDatum, MapLineNodeLabelDatum> {}
 
-export class MapLineSeries
-    extends DataModelSeries<MapLineNodeDatum, MapLineSeriesProperties, MapLineNodeLabelDatum, MapLineNodeDataContext>
-    implements _ModuleSupport.TopologySeries
-{
+export class MapLineSeries extends TopologySeries<
+    MapLineNodeDatum,
+    MapLineSeriesProperties,
+    MapLineNodeLabelDatum,
+    MapLineNodeDataContext
+> {
     static readonly className = 'MapLineSeries';
     static readonly type = 'map-line' as const;
 
@@ -101,17 +103,6 @@ export class MapLineSeries
         }
     }
 
-    override addChartEventListeners(): void {
-        this.destroyFns.push(
-            this.ctx.chartEventManager.addListener('legend-item-click', (event) => {
-                this.onLegendItemClick(event);
-            }),
-            this.ctx.chartEventManager.addListener('legend-item-double-click', (event) => {
-                this.onLegendItemDoubleClick(event);
-            })
-        );
-    }
-
     private isLabelEnabled() {
         return this.properties.labelKey != null && this.properties.label.enabled;
     }
@@ -124,7 +115,7 @@ export class MapLineSeries
         return geoGeometry;
     }
 
-    override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
+    override async processData(dataController: _ModuleSupport.DataController) {
         if (this.data == null || !this.properties.isValid()) {
             return;
         }
@@ -245,7 +236,7 @@ export class MapLineSeries
         };
     }
 
-    override async createNodeData() {
+    override createNodeData() {
         const { id: seriesId, dataModel, processedData, sizeScale, colorScale, properties, scale } = this;
         const { idKey, sizeKey, colorKey, labelKey, label } = properties;
 
@@ -334,17 +325,17 @@ export class MapLineSeries
         };
     }
 
-    async updateSelections(): Promise<void> {
+    updateSelections() {
         if (this.nodeDataRefresh) {
-            this.contextNodeData = await this.createNodeData();
+            this.contextNodeData = this.createNodeData();
             this.nodeDataRefresh = false;
         }
     }
 
-    override async update(): Promise<void> {
+    override update() {
         const { datumSelection, labelSelection, highlightDatumSelection } = this;
 
-        await this.updateSelections();
+        this.updateSelections();
 
         this.contentGroup.visible = this.visible;
         this.contentGroup.opacity = this.getOpacity();
@@ -356,35 +347,31 @@ export class MapLineSeries
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
 
-        this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
-        await this.updateDatumNodes({ datumSelection, isHighlight: false });
+        this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
+        this.updateDatumNodes({ datumSelection, isHighlight: false });
 
-        this.labelSelection = await this.updateLabelSelection({ labelSelection });
-        await this.updateLabelNodes({ labelSelection });
+        this.labelSelection = this.updateLabelSelection({ labelSelection });
+        this.updateLabelNodes({ labelSelection });
 
-        this.highlightDatumSelection = await this.updateDatumSelection({
+        this.highlightDatumSelection = this.updateDatumSelection({
             nodeData: highlightedDatum != null ? [highlightedDatum] : [],
             datumSelection: highlightDatumSelection,
         });
-        await this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
+        this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
     }
 
-    private async updateDatumSelection(opts: {
+    private updateDatumSelection(opts: {
         nodeData: MapLineNodeDatum[];
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
 
-    private async updateDatumNodes(opts: {
+    private updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum>;
         isHighlight: boolean;
     }) {
-        const {
-            id: seriesId,
-            properties,
-            ctx: { callbackCache },
-        } = this;
+        const { id: seriesId, properties } = this;
         const { datumSelection, isHighlight } = opts;
         const { idKey, labelKey, sizeKey, colorKey, stroke, strokeOpacity, lineDash, lineDashOffset, itemStyler } =
             properties;
@@ -401,20 +388,24 @@ export class MapLineSeries
 
             let format: AgMapLineSeriesStyle | undefined;
             if (itemStyler != null) {
-                format = callbackCache.call(itemStyler, {
-                    seriesId,
-                    datum: datum.datum,
-                    idKey,
-                    labelKey,
-                    sizeKey,
-                    colorKey,
-                    strokeOpacity,
-                    stroke,
-                    strokeWidth,
-                    lineDash,
-                    lineDashOffset,
-                    highlighted: isHighlight,
-                });
+                format = this.cachedDatumCallback(
+                    createDatumId(datum.idValue, isHighlight ? 'highlight' : 'node'),
+                    () =>
+                        itemStyler({
+                            seriesId,
+                            datum: datum.datum,
+                            idKey,
+                            labelKey,
+                            sizeKey,
+                            colorKey,
+                            strokeOpacity,
+                            stroke,
+                            strokeWidth,
+                            lineDash,
+                            lineDashOffset,
+                            highlighted: isHighlight,
+                        })
+                );
             }
 
             geoGeometry.visible = true;
@@ -430,7 +421,7 @@ export class MapLineSeries
         });
     }
 
-    private async updateLabelSelection(opts: {
+    private updateLabelSelection(opts: {
         labelSelection: _ModuleSupport.Selection<
             _ModuleSupport.Text,
             _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
@@ -440,7 +431,7 @@ export class MapLineSeries
         return opts.labelSelection.update(placedLabels);
     }
 
-    private async updateLabelNodes(opts: {
+    private updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<
             _ModuleSupport.Text,
             _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
@@ -462,33 +453,6 @@ export class MapLineSeries
             label.textAlign = 'center';
             label.textBaseline = 'middle';
         });
-    }
-
-    onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {
-        const { legendItemName } = this.properties;
-        const { enabled, itemId, series } = event;
-
-        const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
-            this.toggleSeriesItem(itemId, enabled);
-        }
-    }
-
-    onLegendItemDoubleClick(event: _ModuleSupport.LegendItemDoubleClickChartEvent) {
-        const { enabled, itemId, series, numVisibleItems } = event;
-        const { legendItemName } = this.properties;
-
-        const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
-            // Double-clicked item should always become visible.
-            this.toggleSeriesItem(itemId, true);
-        } else if (enabled && numVisibleItems === 1) {
-            // Other items should become visible if there is only one existing visible item.
-            this.toggleSeriesItem(itemId, true);
-        } else {
-            // Disable other items if not exactly one enabled.
-            this.toggleSeriesItem(itemId, false);
-        }
     }
 
     resetAnimation() {
@@ -542,6 +506,9 @@ export class MapLineSeries
     ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
+
+        const { id: seriesId, visible } = this;
+
         const {
             title,
             legendItemName,
@@ -554,7 +521,7 @@ export class MapLineSeries
             strokeWidth,
             strokeOpacity,
             lineDash,
-            visible,
+            showInLegend,
         } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
@@ -563,7 +530,7 @@ export class MapLineSeries
             const legendDatum: _ModuleSupport.GradientLegendDatum = {
                 legendType: 'gradient',
                 enabled: visible,
-                seriesId: this.id,
+                seriesId,
                 colorName,
                 colorRange,
                 colorDomain,
@@ -572,9 +539,9 @@ export class MapLineSeries
         } else if (legendType === 'category') {
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
-                id: this.id,
-                itemId: legendItemName ?? title ?? idName ?? idKey,
-                seriesId: this.id,
+                id: seriesId,
+                itemId: seriesId,
+                seriesId,
                 enabled: visible,
                 label: { text: legendItemName ?? title ?? idName ?? idKey },
                 symbols: [
@@ -596,6 +563,7 @@ export class MapLineSeries
                     },
                 ],
                 legendItemName,
+                hideInLegend: !showInLegend,
             };
             return [legendDatum];
         } else {
@@ -604,12 +572,7 @@ export class MapLineSeries
     }
 
     override getTooltipHtml(nodeDatum: MapLineNodeDatum): _ModuleSupport.TooltipContent {
-        const {
-            id: seriesId,
-            processedData,
-            properties,
-            ctx: { callbackCache },
-        } = this;
+        const { id: seriesId, processedData, properties } = this;
 
         if (!processedData || !properties.isValid()) {
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
@@ -650,20 +613,22 @@ export class MapLineSeries
         let format: AgMapLineSeriesStyle | undefined;
 
         if (itemStyler) {
-            format = callbackCache.call(itemStyler, {
-                highlighted: false,
-                seriesId,
-                datum,
-                idKey,
-                sizeKey,
-                colorKey,
-                labelKey,
-                stroke: stroke!,
-                strokeWidth: this.getStrokeWidth(nodeDatum.strokeWidth ?? properties.strokeWidth),
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-            });
+            format = this.cachedDatumCallback(createDatumId(datum.idValue, 'tooltip'), () =>
+                itemStyler({
+                    highlighted: false,
+                    seriesId,
+                    datum,
+                    idKey,
+                    sizeKey,
+                    colorKey,
+                    labelKey,
+                    stroke: stroke!,
+                    strokeWidth: this.getStrokeWidth(nodeDatum.strokeWidth ?? properties.strokeWidth),
+                    strokeOpacity,
+                    lineDash,
+                    lineDashOffset,
+                })
+            );
         }
 
         const color = format?.stroke ?? stroke ?? properties.stroke;

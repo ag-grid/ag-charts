@@ -8,5 +8,5 @@ export interface AxisOptionModule<M extends ModuleInstance = ModuleInstance> ext
     type: 'axis-option';
     axisTypes: AxisType[];
     moduleFactory: (ctx: ModuleContextWithParent<AxisContext>) => M;
-    themeTemplate: {};
+    themeTemplate: object;
 }

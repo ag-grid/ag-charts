@@ -110,7 +110,7 @@ export class StateMachine<
                 if (!transition.guard) return true;
                 const valid = transition.guard(data as Events[Event]);
                 if (!valid) {
-                    this.debug(`${debugPrefix} ${transition.target} (guarded)`, debugQuietColor);
+                    this.debug(`${debugPrefix} (guarded)`, transition.target, debugQuietColor);
                 }
                 return valid;
             });
@@ -120,7 +120,7 @@ export class StateMachine<
             destination.guard &&
             !destination.guard(data as Events[Event])
         ) {
-            this.debug(`${debugPrefix} ${destination.target} (guarded)`, debugQuietColor);
+            this.debug(`${debugPrefix} (guarded)`, destination.target, debugQuietColor);
             return;
         }
 

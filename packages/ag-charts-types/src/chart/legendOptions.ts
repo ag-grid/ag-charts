@@ -167,3 +167,14 @@ export interface AgPaginationLabelOptions {
     /** The font family to use for the pagination label. */
     fontFamily?: FontFamily;
 }
+
+export interface AgInitialStateLegendOptions {
+    /** Series or item id */
+    seriesId: string;
+    /** Legend item id - usually yKey value for cartesian series. */
+    itemId: string;
+    /** Whether the legend item is currently enabled or not. */
+    visible: boolean;
+    /** Human-readable description of the y-values. If supplied, matching items with the same value will be toggled together. */
+    legendItemName?: string;
+}

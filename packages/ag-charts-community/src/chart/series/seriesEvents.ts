@@ -2,19 +2,17 @@ import type { DataModel, ProcessedData } from '../data/dataModel';
 
 export type SeriesEventType = 'data-update' | 'data-processed' | 'visibility-changed';
 
-export interface BaseSeriesEvent<_T extends SeriesEventType> {}
-
-export interface SeriesDataUpdateEvent extends BaseSeriesEvent<'data-update'> {
+export interface SeriesDataUpdateEvent {
     readonly dataModel: DataModel<any, any, any>;
     readonly processedData: ProcessedData<any>;
 }
 
-export interface SeriesDataProcessedEvent extends BaseSeriesEvent<'data-processed'> {
+export interface SeriesDataProcessedEvent {
     readonly dataModel: DataModel<any, any, any>;
     readonly processedData: ProcessedData<any>;
 }
 
-export interface SeriesVisibilityEvent extends BaseSeriesEvent<'visibility-changed'> {
+export interface SeriesVisibilityEvent {
     readonly itemId: any;
     readonly enabled: boolean;
 }

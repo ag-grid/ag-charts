@@ -1,18 +1,26 @@
 import type {
-    AgCandlestickSeriesItemOptions,
+    AgOhlcSeriesBaseOptions,
+    AgOhlcSeriesItemOptions,
     AgOhlcSeriesItemStylerParams,
     AgOhlcSeriesOptions,
-    AgOhlcSeriesStyles,
+    AgOhlcSeriesTooltipRendererParams,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import {
-    type CandlestickSeriesBaseItems,
-    CandlestickSeriesProperties,
-} from '../candlestick/candlestickSeriesProperties';
-
-const { BaseProperties, Validate, COLOR_STRING, FUNCTION, LINE_DASH, OBJECT, POSITIVE_NUMBER, RATIO } = _ModuleSupport;
+const {
+    BaseProperties,
+    Validate,
+    AbstractBarSeriesProperties,
+    SeriesTooltip,
+    STRING,
+    COLOR_STRING,
+    FUNCTION,
+    LINE_DASH,
+    OBJECT,
+    POSITIVE_NUMBER,
+    RATIO,
+} = _ModuleSupport;
 
 class OhlcSeriesItem extends BaseProperties {
     @Validate(COLOR_STRING)
@@ -29,12 +37,9 @@ class OhlcSeriesItem extends BaseProperties {
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
-
-    @Validate(FUNCTION, { optional: true })
-    itemStyler?: Styler<AgOhlcSeriesItemStylerParams<any>, AgOhlcSeriesStyles>;
 }
 
-class OhlcSeriesItems extends BaseProperties implements CandlestickSeriesBaseItems<OhlcSeriesItem> {
+class OhlcSeriesItems extends BaseProperties {
     @Validate(OBJECT)
     readonly up = new OhlcSeriesItem();
 
@@ -42,10 +47,50 @@ class OhlcSeriesItems extends BaseProperties implements CandlestickSeriesBaseIte
     readonly down = new OhlcSeriesItem();
 }
 
-export class OhlcSeriesProperties extends CandlestickSeriesProperties<AgOhlcSeriesOptions> {
+export abstract class OhlcSeriesBaseProperties<
+    T extends AgOhlcSeriesBaseOptions,
+> extends AbstractBarSeriesProperties<T> {
+    @Validate(STRING)
+    xKey!: string;
+
+    @Validate(STRING)
+    openKey!: string;
+
+    @Validate(STRING)
+    closeKey!: string;
+
+    @Validate(STRING)
+    highKey!: string;
+
+    @Validate(STRING)
+    lowKey!: string;
+
+    @Validate(STRING, { optional: true })
+    xName?: string;
+
+    @Validate(STRING, { optional: true })
+    yName?: string;
+
+    @Validate(STRING, { optional: true })
+    openName?: string;
+
+    @Validate(STRING, { optional: true })
+    closeName?: string;
+
+    @Validate(STRING, { optional: true })
+    highName?: string;
+
+    @Validate(STRING, { optional: true })
+    lowName?: string;
+}
+
+export class OhlcSeriesProperties extends OhlcSeriesBaseProperties<AgOhlcSeriesOptions> {
     @Validate(OBJECT)
-    override readonly item = new OhlcSeriesItems();
+    readonly item = new OhlcSeriesItems();
+
+    @Validate(OBJECT)
+    readonly tooltip = new SeriesTooltip<AgOhlcSeriesTooltipRendererParams<any>>();
 
     @Validate(FUNCTION, { optional: true })
-    override itemStyler?: Styler<AgOhlcSeriesItemStylerParams<unknown>, AgCandlestickSeriesItemOptions>;
+    itemStyler?: Styler<AgOhlcSeriesItemStylerParams<unknown>, AgOhlcSeriesItemOptions>;
 }

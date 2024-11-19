@@ -17,7 +17,7 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
 import { valueProperty } from '../../data/processors';
-import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
@@ -109,7 +109,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         return fixNumericExtent(extent(domain));
     }
 
-    async createNodeData() {
+    override createNodeData() {
         const { axes, dataModel, processedData, colorScale } = this;
         const {
             xKey,
@@ -131,7 +131,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(dataModel && processedData && processedData.rawData.length && visible && xAxis && yAxis)) {
+        if (!(dataModel && processedData?.rawData.length && visible && xAxis && yAxis)) {
             return;
         }
 
@@ -220,7 +220,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         return new MarkerShape();
     }
 
-    protected override async updateMarkerSelection(opts: {
+    protected override updateMarkerSelection(opts: {
         nodeData: ScatterNodeDatum[];
         markerSelection: Selection<Marker, ScatterNodeDatum>;
     }) {
@@ -234,7 +234,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
-    protected override async updateMarkerNodes(opts: {
+    protected override updateMarkerNodes(opts: {
         markerSelection: Selection<Marker, ScatterNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -253,7 +253,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         }
     }
 
-    protected async updateLabelSelection(opts: {
+    protected updateLabelSelection(opts: {
         labelData: ScatterNodeDatum[];
         labelSelection: Selection<Text, ScatterNodeDatum>;
     }) {
@@ -270,7 +270,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         );
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: Selection<Text, ScatterNodeDatum> }) {
+    protected updateLabelNodes(opts: { labelSelection: Selection<Text, ScatterNodeDatum> }) {
         const { label } = this.properties;
 
         opts.labelSelection.each((text, datum) => {
@@ -340,22 +340,28 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        const { yKey, yName, title, marker, visible } = this.properties;
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
-
-        if (!this.data?.length || !this.properties.isValid() || legendType !== 'category') {
+        if (!this.properties.isValid() || legendType !== 'category') {
             return [];
         }
+
+        const { yKey: itemId, yName, title, marker, showInLegend } = this.properties;
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
+
+        const {
+            id: seriesId,
+            ctx: { legendManager },
+            visible,
+        } = this;
 
         return [
             {
                 legendType: 'category',
-                id: this.id,
-                itemId: yKey,
-                seriesId: this.id,
-                enabled: visible,
+                id: seriesId,
+                itemId,
+                seriesId,
+                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
                 label: {
-                    text: title ?? yName ?? yKey,
+                    text: title ?? yName ?? itemId,
                 },
                 symbols: [
                     {
@@ -369,6 +375,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                         },
                     },
                 ],
+                hideInLegend: !showInLegend,
             },
         ];
     }

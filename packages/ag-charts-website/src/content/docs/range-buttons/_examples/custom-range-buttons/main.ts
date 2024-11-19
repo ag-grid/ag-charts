@@ -12,30 +12,26 @@ const options: AgFinancialChartOptions = {
     theme: {
         overrides: {
             common: {
-                toolbar: {
-                    ranges: {
-                        enabled: true,
-                        buttons: [
-                            {
-                                label: '6 Months',
-                                value: 6 * MONTH,
-                            },
-                            {
-                                label: '12 Months',
-                                value: 12 * MONTH,
-                            },
-                            {
-                                label: 'February',
-                                value: [new Date(2023, 1, 1), new Date(2023, 2, 1)],
-                                id: 'February',
-                            },
-                            {
-                                label: 'All Data',
-                                value: (start, end) => [start, end],
-                                id: 'All',
-                            },
-                        ],
-                    },
+                ranges: {
+                    enabled: true,
+                    buttons: [
+                        {
+                            label: '6 Months',
+                            value: 6 * MONTH,
+                        },
+                        {
+                            label: '12 Months',
+                            value: 12 * MONTH,
+                        },
+                        {
+                            label: 'February',
+                            value: [new Date(2023, 1, 1), new Date(2023, 2, 1)],
+                        },
+                        {
+                            label: 'All Data',
+                            value: (start, end) => [start, end],
+                        },
+                    ],
                 },
             },
         },

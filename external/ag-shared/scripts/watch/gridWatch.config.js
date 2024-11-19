@@ -24,7 +24,10 @@ function getProjectBuildTargets(project) {
             buildTargets.push(['ag-grid-docs', ['generate-doc-references']]);
 
             if (project === 'ag-grid-community') {
-                buildTargets.push(['ag-grid-community', ['theming:codegen']]);
+                buildTargets.push(['ag-grid-community', ['build:css']]);
+            }
+            if (project === 'ag-grid-enterprise') {
+                buildTargets.push(['ag-grid-enterprise', ['build:css']]);
             }
 
             buildTargets.push(
@@ -50,7 +53,12 @@ function getProjectBuildTargets(project) {
     return buildTargets;
 }
 
+const externalBuildTriggers = [
+    { file: '../ag-charts/node_modules/.cache/ag-build-queue.empty', projects: ['ag-grid-enterprise'] },
+];
+
 module.exports = {
     ignoredProjects: getIgnoredProjects(),
     getProjectBuildTargets,
+    externalBuildTriggers,
 };

@@ -339,7 +339,7 @@ export class RadialGaugeSeriesProperties extends SeriesProperties<AgRadialGaugeO
     @Validate(OBJECT)
     readonly tooltip = new SeriesTooltip<AgRadialGaugeTooltipRendererParams>();
 
-    override isValid(warningPrefix?: string | undefined): boolean {
+    override isValid(warningPrefix?: string): boolean {
         if (!super.isValid(warningPrefix)) return false;
 
         const { outerRadius, innerRadius } = this;

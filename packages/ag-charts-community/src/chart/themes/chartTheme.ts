@@ -144,7 +144,7 @@ export class ChartTheme {
             label: {
                 fontSize: FONT_SIZE.SMALL,
                 fontFamily: DEFAULT_FONT_FAMILY,
-                padding: 5,
+                padding: 11,
                 color: DEFAULT_LABEL_COLOUR,
                 avoidCollisions: true,
             },
@@ -272,6 +272,12 @@ export class ChartTheme {
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
             crosshair: { enabled: false },
         }),
+        [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults({
+            tick: { enabled: true },
+            label: { padding: 5 },
+            paddingOuter: 0.1,
+            paddingInner: 0.2,
+        }),
         [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } }),
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({
             groupPaddingInner: 0,
@@ -279,17 +285,18 @@ export class ChartTheme {
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
         }),
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({
+            label: { padding: 5 },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
         }),
-        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({ gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } }),
+        [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({
+            label: { padding: 5 },
+            gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
+        }),
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults({
             line: { enabled: false },
         }),
         [POLAR_AXIS_TYPE.RADIUS_NUMBER]: ChartTheme.getAxisDefaults({
             line: { enabled: false },
-        }),
-        'grouped-category': ChartTheme.getAxisDefaults({
-            tick: { enabled: true },
         }),
     };
 
@@ -348,9 +355,9 @@ export class ChartTheme {
 
     private createChartConfigPerChartType(config: AgChartThemeOverrides) {
         for (const [nextType, { seriesTypes }] of Object.entries(CHART_TYPE_CONFIG)) {
-            const typeDefaults = chartDefaults.get(nextType as ChartType) as any;
+            const typeDefaults = chartDefaults.get(nextType as ChartType);
             for (const seriesType of seriesTypes) {
-                config[seriesType as keyof AgChartThemeOverrides] ||= deepClone(typeDefaults);
+                config[seriesType as keyof AgChartThemeOverrides] ??= deepClone(typeDefaults);
             }
         }
         return config;
@@ -358,7 +365,7 @@ export class ChartTheme {
 
     private getDefaults(): AgChartThemeOverrides {
         const getOverridesByType = (chartType: ChartType, seriesTypes: string[]) => {
-            const result: Record<string, { series?: {}; axes?: {} }> = {};
+            const result: Record<string, { series?: object; axes?: object }> = {};
             const chartTypeDefaults = {
                 axes: {},
                 ...legendRegistry.getThemeTemplates(),
@@ -371,7 +378,7 @@ export class ChartTheme {
                     result[seriesType] ?? deepClone(chartTypeDefaults)
                 );
 
-                const { axes } = result[seriesType] as { axes: Record<string, {}> };
+                const { axes } = result[seriesType] as { axes: Record<string, object> };
 
                 for (const axisType of axisRegistry.keys()) {
                     axes[axisType] = mergeDefaults(
@@ -396,7 +403,7 @@ export class ChartTheme {
         );
     }
 
-    private static applyTemplateTheme(node: any, _other: any, params?: Map<any, any>) {
+    private static applyTemplateTheme(this: void, node: any, _other: any, params?: Map<any, any>) {
         if (isArray(node)) {
             for (let i = 0; i < node.length; i++) {
                 const symbol = node[i];

@@ -120,8 +120,8 @@ test.describe('toolbar', () => {
         await page.keyboard.down('Enter');
         await expect(page).toHaveScreenshot('callout-4-save.png', { animations: 'disabled' });
 
-        await page.hover(SELECTORS.canvas, { position: { x: 260, y: 140 } });
-        await page.click(SELECTORS.canvas, { position: { x: 260, y: 140 } });
+        await page.hover(SELECTORS.canvas, { position: { x: 270, y: 140 } });
+        await page.click(SELECTORS.canvas, { position: { x: 270, y: 140 } });
         await page.locator('[data-toolbar-id="fill-color"]').click();
         await expect(page).toHaveScreenshot('callout-5-fill-color-popover.png', { animations: 'disabled' });
 

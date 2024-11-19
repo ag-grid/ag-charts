@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { AnchoredPopover, type AnchoredPopoverOptions } from '../popover/anchoredPopover';
 
-const { createElement, initMenuKeyNav, isButtonClickEvent } = _ModuleSupport;
+const { createElement, getIconClassNames, initMenuKeyNav, isButtonClickEvent } = _ModuleSupport;
 
 export interface MenuOptions<Value = any> extends AnchoredPopoverOptions {
     items: Array<MenuItem<Value>>;
@@ -44,7 +44,6 @@ export class Menu extends AnchoredPopover {
     }
 
     private createRow<Value>(options: MenuOptions<Value>, item: MenuItem<Value>) {
-        const { domManager } = this.ctx;
         const { menuItemRole = 'menuitem' } = options;
 
         const active = item.value === options.value;
@@ -59,7 +58,7 @@ export class Menu extends AnchoredPopover {
         row.classList.toggle(`ag-charts-menu__row--active`, active);
 
         if (item.icon != null) {
-            const icon = createElement('span', `ag-charts-menu__icon ${domManager.getIconClassNames(item.icon)}`);
+            const icon = createElement('span', `ag-charts-menu__icon ${getIconClassNames(item.icon)}`);
             row.appendChild(icon);
         }
 

@@ -179,7 +179,7 @@ describe('HistogramSeries', () => {
             async (_exampleName, example) => {
                 chart = createHistogramChart(example);
                 await waitForChartStability(chart);
-                await example.assertions(chart);
+                example.assertions(chart);
             }
         );
 

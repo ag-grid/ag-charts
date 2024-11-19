@@ -189,7 +189,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         }
     }
 
-    async createNodeData() {
+    override createNodeData() {
         const {
             data,
             dataModel,
@@ -368,7 +368,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return new Rect();
     }
 
-    protected override async updateDatumSelection(opts: {
+    protected override updateDatumSelection(opts: {
         nodeData: RangeBarNodeDatum[];
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
     }) {
@@ -377,7 +377,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return datumSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
-    protected override async updateDatumNodes(opts: {
+    protected override updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -420,7 +420,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
-            const config = getRectConfig({
+            const config = getRectConfig(this, this.getDatumId(datum), {
                 datum,
                 isHighlighted: isHighlight,
                 style,
@@ -445,7 +445,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return labelItems.length > 0 ? labelItems : undefined;
     }
 
-    protected async updateLabelSelection(opts: {
+    protected updateLabelSelection(opts: {
         labelData: RangeBarNodeLabelDatum[];
         labelSelection: RangeBarAnimationData['labelSelection'];
     }) {
@@ -455,17 +455,14 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text> }) {
+    protected updateLabelNodes(opts: { labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text> }) {
         opts.labelSelection.each((textNode, datum) => {
             updateLabelNode(textNode, this.properties.label, datum);
         });
     }
 
     getTooltipHtml(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent {
-        const {
-            id: seriesId,
-            ctx: { callbackCache },
-        } = this;
+        const { id: seriesId } = this;
 
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
@@ -497,22 +494,24 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         let format;
         if (itemStyler) {
-            format = callbackCache.call(itemStyler, {
-                highlighted: false,
-                seriesId,
-                datum,
-                xKey,
-                yLowKey,
-                yHighKey,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                cornerRadius,
-            });
+            format = this.cachedDatumCallback(createDatumId(this.getDatumId(nodeDatum), 'tooltip'), () =>
+                itemStyler({
+                    highlighted: false,
+                    seriesId,
+                    datum,
+                    xKey,
+                    yLowKey,
+                    yHighKey,
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                    lineDash,
+                    lineDashOffset,
+                    cornerRadius,
+                })
+            );
         }
 
         const color = format?.fill ?? fill ?? 'gray';
@@ -556,25 +555,38 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, visible } = this;
-
         if (legendType !== 'category') {
             return [];
         }
 
-        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, yName, yLowName, yHighName, yLowKey, yHighKey } =
-            this.properties;
+        const { id: seriesId, visible } = this;
+
+        const {
+            fill,
+            stroke,
+            strokeWidth,
+            fillOpacity,
+            strokeOpacity,
+            yName,
+            yLowName,
+            yHighName,
+            yLowKey,
+            yHighKey,
+            showInLegend,
+        } = this.properties;
         const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
+        const itemId = `${yLowKey}-${yHighKey}`;
 
         return [
             {
                 legendType: 'category',
-                id,
-                itemId: `${yLowKey}-${yHighKey}`,
-                seriesId: id,
+                id: seriesId,
+                itemId,
+                seriesId,
                 enabled: visible,
                 label: { text: `${legendItemText}` },
                 symbols: [{ marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } }],
+                hideInLegend: !showInLegend,
             },
         ];
     }
@@ -599,7 +611,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             this.ctx.animationManager,
             [datumSelections],
             fns,
-            (_, datum) => createDatumId(datum.xValue, datum.valueIndex),
+            (_, datum) => this.getDatumId(datum),
             dataDiff
         );
 

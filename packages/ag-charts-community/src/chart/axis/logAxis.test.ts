@@ -52,7 +52,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
 type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
-    assertions: (chart: Chart) => Promise<void>;
+    assertions: (chart: Chart) => Promise<void> | void;
     extraScreenshotActions?: (chart: Chart) => Promise<void>;
     compare?: AgCartesianAxisType[];
 };
@@ -135,7 +135,7 @@ describe('Log Axis Examples', () => {
         });
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
-            const axisCompare = async () => {
+            const axisCompare = () => {
                 for (const axis of chart.axes) {
                     if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
                         continue;
@@ -149,11 +149,11 @@ describe('Log Axis Examples', () => {
             };
 
             chart = await createChart(example.options);
-            await axisCompare();
+            axisCompare();
 
             if (example.extraScreenshotActions) {
                 await example.extraScreenshotActions(chart);
-                await axisCompare();
+                axisCompare();
             }
         });
     }

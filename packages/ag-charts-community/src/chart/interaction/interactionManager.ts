@@ -2,7 +2,6 @@ import type { DOMManager } from '../../dom/domManager';
 import { Debug } from '../../util/debug';
 import { getWindow } from '../../util/dom';
 import type { Listeners } from '../../util/listeners';
-import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
 import { isFiniteNumber } from '../../util/type-guards';
 import { InteractionState, InteractionStateListener } from './interactionStateListener';
@@ -221,11 +220,11 @@ export class InteractionManager extends InteractionStateListener<InteractionType
 
         for (const type of types ?? []) {
             // Async dispatch to avoid blocking the event-processing thread.
-            this.dispatchEvent(event, type).catch((e) => Logger.errorOnce(e));
+            this.dispatchEvent(event, type);
         }
     }
 
-    private async dispatchEvent(event: SupportedEvent, type: InteractionTypes) {
+    private dispatchEvent(event: SupportedEvent, type: InteractionTypes) {
         if (isPointerEvent(type)) {
             this.dispatchPointerEvent(event, type);
             return;

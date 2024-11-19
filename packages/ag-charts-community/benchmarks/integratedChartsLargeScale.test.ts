@@ -11,7 +11,7 @@ describe('integrated charts large scale benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('integrated-large-scale');
 
     benchmark('initial load', ctx, EXPECTATIONS, async () => {
-        await await ctx.create();
+        await ctx.create();
     });
 
     describe('after load', () => {

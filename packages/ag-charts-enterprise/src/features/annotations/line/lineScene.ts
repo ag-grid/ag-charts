@@ -158,7 +158,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
         _datum: LineTypeProperties,
         coords: _ModuleSupport.Vec4,
         handle: 'start' | 'end',
-        _bbox?: _ModuleSupport.BBox | undefined
+        _bbox?: _ModuleSupport.BBox
     ): _ModuleSupport.Vec2 {
         const { startCap, endCap } = this;
 

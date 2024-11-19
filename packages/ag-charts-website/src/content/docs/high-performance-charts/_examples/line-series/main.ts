@@ -1,10 +1,10 @@
-import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgChartOptions = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
-    data: getData(),
+    data: getData(1e3),
     animation: { enabled: false },
     zoom: {
         enabled: true,
@@ -13,6 +13,9 @@ const options: AgChartOptions = {
     },
     navigator: {
         enabled: true,
+        miniChart: {
+            enabled: true,
+        },
     },
     series: [
         {
@@ -25,4 +28,9 @@ const options: AgChartOptions = {
     axes: [{ type: 'number' }, { type: 'time', nice: false }],
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function setData(points: number) {
+    options.data = getData(points);
+    chart.update(options);
+}

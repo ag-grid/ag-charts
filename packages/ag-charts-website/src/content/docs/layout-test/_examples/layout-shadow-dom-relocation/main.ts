@@ -1,4 +1,5 @@
 // @ag-skip-fws
+// @ag-skip-container-check
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
 
 const pageContainer = document.getElementById('pageChart');

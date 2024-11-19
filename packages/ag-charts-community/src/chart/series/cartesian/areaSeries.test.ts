@@ -5,7 +5,7 @@ import type { AgAreaSeriesOptions, AgCartesianChartOptions, AgChartInstance, AgC
 import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
 import { deepClone } from '../../../util/json';
-import { LegendMarkerLabel } from '../../legendMarkerLabel';
+import { LegendMarkerLabel } from '../../legend/legendMarkerLabel';
 import {
     DATA_FRACTIONAL_LOG_AXIS,
     DATA_INVALID_DOMAIN_LOG_AXIS,
@@ -201,7 +201,9 @@ describe('AreaSeries', () => {
 
         for (const [exampleName, example] of Object.entries(EXAMPLES)) {
             if (example.skip === true) {
+                // Support skipping.
                 it.skip(`for ${exampleName} it should create chart instance as expected`, async () => {});
+                // Support skipping.
                 it.skip(`for ${exampleName} it should render to canvas as expected`, async () => {});
             } else {
                 it(`for ${exampleName} it should create chart instance as expected`, async () => {
@@ -213,14 +215,12 @@ describe('AreaSeries', () => {
                     await assertions(chart);
 
                     warnings.forEach((message, index) => {
-                        // eslint-disable-next-line no-console
                         expect(console.warn).toHaveBeenNthCalledWith(
                             index + 1,
                             ...(Array.isArray(message) ? message : [message])
                         );
                     });
                     if (warnings.length === 0) {
-                        // eslint-disable-next-line no-console
                         expect(console.warn).not.toHaveBeenCalled();
                     }
                 });

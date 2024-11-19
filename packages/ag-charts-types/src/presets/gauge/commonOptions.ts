@@ -32,8 +32,7 @@ export interface AgBaseGaugeThemeableOptions {
 
 // Verification checks for completeness/correctness.
 const __THEMEABLE_OPTIONS = undefined as any as Required<AgBaseGaugeThemeableOptions>;
-// eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-// @ts-ignore
+// @ts-expect-error TS6133 - this is used to validate completeness by the compiler, but is deliberately unused.
 let __VERIFY_THEMEABLE_OPTIONS: Required<Omit<AgBaseSeriesThemeableOptions<any>, 'showInLegend'>> = undefined as any;
 __VERIFY_THEMEABLE_OPTIONS = __THEMEABLE_OPTIONS;
 
@@ -66,8 +65,7 @@ export interface AgGaugeScaleLabel {
 
 // Verification checks for completeness/correctness.
 const __AXIS_LABEL_OPTIONS = undefined as any as Required<AgGaugeScaleLabel>;
-// eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-// @ts-ignore
+// @ts-expect-error TS6133 - this is used to validate completeness by the compiler, but is deliberately unused.
 let __VERIFY_AXIS_LABEL_OPTIONS: Required<AgBaseAxisLabelOptions> = undefined as any;
 __VERIFY_AXIS_LABEL_OPTIONS = __AXIS_LABEL_OPTIONS;
 

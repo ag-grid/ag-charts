@@ -146,8 +146,7 @@ const __MINI_CHART_SERIES_OPTIONS = undefined as any as Record<
     NonNullable<AgMiniChartSeriesOptions['type']> | IgnoredMiniChartSeries,
     string
 >;
-// eslint-disable-next-line @typescript-eslint/prefer-ts-expect-error
-// @ts-ignore
+// @ts-expect-error TS6133 - this is used to validate completeness by the compiler, but is deliberately unused.
 let __VERIFY_MINI_CHART_SERIES_OPTIONS: VerifyAgMiniChartSeriesOptions = undefined as any;
 __VERIFY_MINI_CHART_SERIES_OPTIONS = __MINI_CHART_SERIES_OPTIONS;
 

@@ -22,11 +22,11 @@ class ExampleHierarchySeries extends HierarchySeries<
         throw new Error('Method not implemented.');
     }
 
-    override createNodeData(): Promise<never> {
+    override createNodeData(): never {
         throw new Error('Method not implemented.');
     }
 
-    override update(_opts: never): Promise<never> {
+    override update(_opts: never): never {
         throw new Error('Method not implemented.');
     }
 
@@ -34,7 +34,7 @@ class ExampleHierarchySeries extends HierarchySeries<
         throw new Error('Method not implemented.');
     }
 
-    override async updateSelections(): Promise<never> {
+    override updateSelections(): never {
         throw new Error('Method not implemented.');
     }
 
@@ -52,7 +52,7 @@ class ExampleHierarchySeries extends HierarchySeries<
 }
 
 describe('HierarchySeries', () => {
-    it('creates a hierarchy', async () => {
+    it('creates a hierarchy', () => {
         const series = new ExampleHierarchySeries(null!);
         series.properties.sizeKey = 'size';
         series.setChartData([
@@ -66,7 +66,7 @@ describe('HierarchySeries', () => {
                 ],
             },
         ]);
-        await series.processData();
+        series.processData();
 
         series.rootNode.walk((node: any) => {
             delete node.series;
@@ -78,10 +78,10 @@ describe('HierarchySeries', () => {
         expect(series.rootNode.sumSize).toBe(5 + 1 + 2 + 3 + 5 + 1 + 2 + 4 + 5 + 6 + 3 + 7);
     });
 
-    it('handles an empty dataset', async () => {
+    it('handles an empty dataset', () => {
         const series = new ExampleHierarchySeries(null!);
         series.setChartData([]);
-        await series.processData();
+        series.processData();
 
         // @ts-expect-error - Remove circular dependencies because if this test fails, Jest won't be able to print any errors
         delete series.rootNode.series;
@@ -99,7 +99,7 @@ describe('HierarchySeries', () => {
         });
     });
 
-    it('walks tree in pre-order', async () => {
+    it('walks tree in pre-order', () => {
         const series = new ExampleHierarchySeries(null!);
         series.setChartData([
             {
@@ -115,7 +115,7 @@ describe('HierarchySeries', () => {
                 ],
             },
         ]);
-        await series.processData();
+        series.processData();
 
         let index = 0;
         series.rootNode.walk((node) => {
@@ -130,7 +130,7 @@ describe('HierarchySeries', () => {
         expect(index).toBe(12 + 1);
     });
 
-    it('checks for subtree inclusion', async () => {
+    it('checks for subtree inclusion', () => {
         const series = new ExampleHierarchySeries(null!);
         series.setChartData([
             {
@@ -146,7 +146,7 @@ describe('HierarchySeries', () => {
                 ],
             },
         ]);
-        await series.processData();
+        series.processData();
 
         const nodes = Array.from(series.rootNode);
 

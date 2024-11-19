@@ -172,7 +172,11 @@ export abstract class Shape extends Node {
     }
 
     protected executeFill(ctx: CanvasContext, path?: Path2D) {
-        path ? ctx.fill(path) : ctx.fill();
+        if (path) {
+            ctx.fill(path);
+        } else {
+            ctx.fill();
+        }
     }
 
     protected applyFill(ctx: CanvasContext) {
@@ -229,7 +233,11 @@ export abstract class Shape extends Node {
     }
 
     protected executeStroke(ctx: CanvasContext, path?: Path2D) {
-        path ? ctx.stroke(path) : ctx.stroke();
+        if (path) {
+            ctx.stroke(path);
+        } else {
+            ctx.stroke();
+        }
     }
 
     override containsPoint(x: number, y: number): boolean {

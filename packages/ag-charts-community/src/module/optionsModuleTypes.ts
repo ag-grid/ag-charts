@@ -47,5 +47,5 @@ export interface SeriesOptionModule<M extends SeriesOptionInstance = SeriesOptio
     type: 'series-option';
     seriesTypes: readonly SeriesType[];
     moduleFactory: (ctx: SeriesContext) => M;
-    themeTemplate: {};
+    themeTemplate: object;
 }

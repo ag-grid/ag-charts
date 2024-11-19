@@ -1,0 +1,45 @@
+.ag-charts-zoom-buttons {
+    align-items: center;
+    display: flex;
+    height: calc(var(--ag-charts-toolbar-size) + 10px);
+    justify-content: center;
+    overflow: hidden;
+    padding-bottom: 10px;
+    width: 100%;
+
+    .ag-charts-toolbar {
+        --ag-charts-toolbar-size: var(--ag-charts-toolbar-size-small);
+        --ag-charts-toolbar-font-size: var(--ag-charts-toolbar-font-size-small);
+        --ag-charts-toolbar-button-padding: var(--ag-charts-toolbar-button-padding-small);
+
+        display: flex;
+        height: var(--ag-charts-toolbar-size);
+        justify-content: center;
+        opacity: 1;
+        transition:
+            opacity 0.2s ease-in-out,
+            transform 0.4s ease-in-out;
+
+        /* TODO: move these out once toolbar.css is cleaned up */
+        .ag-charts-toolbar__button--first {
+            border-bottom-left-radius: var(--ag-charts-button-radius);
+            border-top-left-radius: var(--ag-charts-button-radius);
+        }
+
+        .ag-charts-toolbar__button--last {
+            border-bottom-right-radius: var(--ag-charts-button-radius);
+            border-top-right-radius: var(--ag-charts-button-radius);
+        }
+    }
+}
+
+.ag-charts-zoom-buttons__button--gap {
+    margin-left: var(--ag-charts-toolbar-gap);
+}
+
+.ag-charts-zoom-buttons__toolbar--hidden {
+    opacity: 0;
+    transition:
+        opacity 0.4s ease-in-out,
+        transform 0.4s ease-in-out;
+}

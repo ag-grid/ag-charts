@@ -1,4 +1,4 @@
-import type { IntegratedChartModule, IntegratedSparklineModule } from 'ag-charts-types';
+import type { IntegratedModule } from 'ag-charts-types';
 
 import { AgCharts } from './api/agCharts';
 import { registerInbuiltModules } from './chart/factory/registerInbuiltModules';
@@ -11,28 +11,17 @@ export { AgCharts } from './api/agCharts';
 export { VERSION } from './version';
 export { registerInbuiltModules as setupCommunityModules } from './chart/factory/registerInbuiltModules';
 
-export const ChartCommunityModule: IntegratedChartModule = {
-    AgCharts,
+export const AgChartsCommunityModule: IntegratedModule = {
     VERSION,
-    // @ts-ignore
+    // @ts-expect-error types don't exactly match
     _Scene,
-    // @ts-ignore
+    // @ts-expect-error types don't exactly match
     _Theme,
     _Util,
-    create: AgCharts.create,
+    create: AgCharts.create.bind(AgCharts),
+    createSparkline: AgCharts.__createSparkline.bind(AgCharts),
     setup: registerInbuiltModules,
-    isEnterprise: false,
-};
-
-export const SparklineModule: IntegratedSparklineModule = {
-    AgCharts,
-    VERSION,
-    // @ts-ignore
-    _Scene,
-    // @ts-ignore
-    _Theme,
-    _Util,
-    create: AgCharts.__createSparkline,
-    setup: registerInbuiltModules,
+    setGridContext: AgCharts.setGridContext.bind(AgCharts),
+    setLicenseKey: AgCharts.setLicenseKey.bind(AgCharts),
     isEnterprise: false,
 };

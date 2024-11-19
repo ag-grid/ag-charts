@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { dateToNumber, OrdinalTimeScale } = _ModuleSupport;
+const { OrdinalTimeScale, sortAndUniqueDates } = _ModuleSupport;
 
 export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.OrdinalTimeScale> {
     static override readonly className = 'OrdinalTimeAxis' as const;
@@ -10,24 +10,19 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
         super(moduleCtx, new OrdinalTimeScale());
     }
 
-    override normaliseDataDomain(d: Date[]) {
-        const domain = [];
-        const uniqueValues = new Set();
-        for (let v of d) {
-            if (typeof v === 'number') {
-                v = new Date(v);
-            }
-            const key = dateToNumber(v);
-            if (!uniqueValues.has(key)) {
-                uniqueValues.add(key);
-                // Only add unique values
-                domain.push(v);
-            }
-        }
-
-        domain.sort((a, b) => dateToNumber(a) - dateToNumber(b));
-
+    // @todo(AG-13422) Axis assumes setting the scale domain is free - but for OrdinalTimeScale, it's very expensive
+    override normaliseDataDomain(domain: Date[]) {
         return { domain, clipped: false };
+    }
+
+    private _lastSetDomain: Date[] | undefined = undefined;
+    override setDomain(d: Date[]): void {
+        if (this._lastSetDomain === d) return;
+
+        this._lastSetDomain = d;
+
+        const domain = sortAndUniqueDates(d);
+        super.setDomain(domain);
     }
 
     protected override onFormatChange(ticks: any[], fractionDigits: number, domain: any[], format?: string) {

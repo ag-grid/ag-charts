@@ -18,7 +18,7 @@ import type { DataController } from '../../data/dataController';
 import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import { SORT_DOMAIN_GROUPS, createDatumId, diff, keyProperty, valueProperty } from '../../data/processors';
-import type { CategoryLegendDatum, ChartLegendType } from '../../legendDatum';
+import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, Series, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
@@ -220,13 +220,8 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         return fixNumericExtent(yDomain);
     }
 
-    async createNodeData() {
-        const {
-            id: seriesId,
-            axes,
-            processedData,
-            ctx: { callbackCache },
-        } = this;
+    override createNodeData() {
+        const { id: seriesId, axes, processedData } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -259,7 +254,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         }
 
         const { rawData } = processedData;
-        processedData.groups.forEach(({ keys, datumIndices, aggregation }) => {
+        processedData.groups.forEach(({ keys, datumIndices, aggregation }, groupIndex) => {
             const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
             const frequency = datumIndices.length;
             const domain = keys;
@@ -285,15 +280,17 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                     x: x + w / 2,
                     y: y + h / 2,
                     text:
-                        callbackCache.call(labelFormatter, {
-                            value: total,
-                            datum,
-                            seriesId,
-                            xKey,
-                            yKey,
-                            xName,
-                            yName,
-                        }) ?? String(total),
+                        this.cachedDatumCallback(createDatumId(groupIndex, 'label'), () =>
+                            labelFormatter({
+                                value: total,
+                                datum,
+                                seriesId,
+                                xKey,
+                                yKey,
+                                xName,
+                                yName,
+                            })
+                        ) ?? String(total),
                 };
             }
 
@@ -310,7 +307,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                 // since each selection is an aggregation of multiple data.
                 aggregatedValue: total,
                 frequency,
-                domain: domain as any[] as [number, number],
+                domain: domain as [number, number],
                 yKey,
                 xKey,
                 x,
@@ -343,7 +340,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         return new Rect();
     }
 
-    protected override async updateDatumSelection(opts: {
+    protected override updateDatumSelection(opts: {
         nodeData: HistogramNodeDatum[];
         datumSelection: Selection<Rect, HistogramNodeDatum>;
     }) {
@@ -358,7 +355,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         );
     }
 
-    protected override async updateDatumNodes(opts: {
+    protected override updateDatumNodes(opts: {
         datumSelection: Selection<Rect, HistogramNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -410,7 +407,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         });
     }
 
-    protected async updateLabelSelection(opts: {
+    protected updateLabelSelection(opts: {
         labelData: HistogramNodeDatum[];
         labelSelection: Selection<Text, HistogramNodeDatum>;
     }) {
@@ -423,7 +420,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         });
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: Selection<Text, HistogramNodeDatum> }) {
+    protected updateLabelNodes(opts: { labelSelection: Selection<Text, HistogramNodeDatum> }) {
         const { fontStyle, fontWeight, fontFamily, fontSize, color } = this.properties.label;
         const labelEnabled = this.isLabelEnabled();
 
@@ -502,21 +499,36 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
-        if (!this.data?.length || legendType !== 'category') {
+        if (legendType !== 'category') {
             return [];
         }
 
-        const { xKey, yName, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, visible } = this.properties;
+        const {
+            id: seriesId,
+            ctx: { legendManager },
+            visible,
+        } = this;
+
+        const {
+            xKey: itemId,
+            yName,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            showInLegend,
+        } = this.properties;
 
         return [
             {
                 legendType: 'category',
-                id: this.id,
-                itemId: xKey,
-                seriesId: this.id,
-                enabled: visible,
+                id: seriesId,
+                itemId,
+                seriesId,
+                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
                 label: {
-                    text: yName ?? xKey ?? 'Frequency',
+                    text: yName ?? itemId ?? 'Frequency',
                 },
                 symbols: [
                     {
@@ -529,6 +541,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                         },
                     },
                 ],
+                hideInLegend: !showInLegend,
             },
         ];
     }

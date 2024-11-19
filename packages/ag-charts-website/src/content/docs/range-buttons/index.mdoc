@@ -17,34 +17,32 @@ It is possible to override the default buttons by providing an array of button o
 
 {% chartExampleRunner title="Custom Range Buttons" name="custom-range-buttons" type="generated" /%}
 
-Custom buttons can be defined through the `toolbar.ranges` options object.
+Custom buttons can be defined through the `ranges` options object.
 
 ```ts
-toolbar: {
-    ranges: {
-      enabled: true,
-      buttons: [
-        {
-          label: "6 Months",
-          value: 6 * MONTH,
-        },
-        {
-          label: "12 Months",
-          value: 12 * MONTH,
-        },
-        {
-          label: 'February',
-          value: [new Date(2023, 1, 1), new Date(2023, 2, 1)],
-          id: 'February'
-        },
-        {
-          label: "All Data",
-          value: (start, end) => [start, end],
-          id: 'All Data'
-        },
-      ],
+ranges: {
+  enabled: true,
+  buttons: [
+    {
+      label: "6 Months",
+      value: 6 * MONTH,
     },
-  },
+    {
+      label: "12 Months",
+      value: 12 * MONTH,
+    },
+    {
+      label: 'February',
+      value: [new Date(2023, 1, 1), new Date(2023, 2, 1)],
+      id: 'February'
+    },
+    {
+      label: "All Data",
+      value: (start, end) => [start, end],
+      id: 'All Data'
+    },
+  ],
+},
 ```
 
 In this configuration:
@@ -59,8 +57,8 @@ In this configuration:
 
 {% tabs %}
 
-{% tabItem id="AgToolbarOptions" label="Range Button Options" %}
-{% apiReference id="AgToolbarRangesGroup" /%}
+{% tabItem id="AgRangesOptions" label="Range Button Options" %}
+{% apiReference id="AgRangesOptions" /%}
 {% /tabItem %}
 
 {% /tabs %}

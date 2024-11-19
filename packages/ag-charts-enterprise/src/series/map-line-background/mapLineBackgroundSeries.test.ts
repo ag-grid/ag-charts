@@ -13,7 +13,6 @@ import {
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukRoadData } from '../map-test/ukRoadData';
-// @ts-expect-error
 import ukRoadTopology from '../map-test/ukRoadTopology.json';
 
 const SIMPLIFIED_EXAMPLE: AgChartOptions = {

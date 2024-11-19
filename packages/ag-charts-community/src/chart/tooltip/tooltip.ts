@@ -206,7 +206,10 @@ export class Tooltip extends BaseProperties {
         const { element } = this;
         if (element == null) return;
 
-        element.className = DEFAULT_TOOLTIP_CLASS;
+        // AG-13316 The `hidden` class is used to determine if the `no-animation` class is required.
+        const hiddenClass = `${DEFAULT_TOOLTIP_CLASS}-hidden`;
+        const classNameSuffix = element.classList.contains(hiddenClass) ? ` ${hiddenClass}` : '';
+        element.className = `${DEFAULT_TOOLTIP_CLASS}${classNameSuffix}`;
 
         if (this.class != null) {
             element.classList.add(this.class);

@@ -43,7 +43,7 @@ if [[ ${AG_SKIP_NATIVE_DEP_VERSION_CHECK:-} != "" ]] ; then
     exit 0
 fi
 
-checkVersion cairo libcairo2 1.18.0 "1.18.0-.*"
+checkVersion cairo libcairo2 "1.18..*" "1.18.0-.*"
 if ! (echo "import distutils.util" | python3 ) ; then
     checkVersion python-setuptools python-setuptools "[0-9].*" ".*"
 else

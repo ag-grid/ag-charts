@@ -14,6 +14,7 @@ const {
     CachedTextMeasurerPool,
     TextUtils,
     sanitizeHtml,
+    createDatumId,
     BBox,
     Group,
     Selection,
@@ -77,10 +78,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     public contextNodeData?: PyramidNodeDataContext;
 
-    // When a user toggles a series item (e.g. from the legend), its boolean state is recorded here.
-    public seriesItemEnabled: boolean[] = [];
-    public legendItemEnabled: boolean[] = [];
-
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
             moduleCtx,
@@ -97,10 +94,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         );
     }
 
-    override get visible() {
-        return super.visible && (this.seriesItemEnabled.length === 0 || this.seriesItemEnabled.includes(true));
-    }
-
     private nodeFactory(): FunnelConnector {
         return new FunnelConnector();
     }
@@ -114,15 +107,19 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             return;
         }
 
-        const { visible, seriesItemEnabled } = this;
+        const {
+            id: seriesId,
+            visible,
+            ctx: { legendManager },
+        } = this;
 
         const { stageKey, valueKey } = this.properties;
 
         const xScaleType = 'band';
         const yScaleType = 'number';
 
-        const validation = (_value: unknown, _datum: unknown, index: number) => visible && seriesItemEnabled[index];
-
+        const validation = (_value: unknown, _datum: unknown, index: number) =>
+            visible && legendManager.getItemEnabled({ seriesId, itemId: index });
         const visibleProps = this.visible ? {} : { forceValue: 0 };
         await this.requestDataModel<any, any, true>(dataController, this.data, {
             props: [
@@ -132,8 +129,15 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         });
     }
 
-    override async createNodeData(): Promise<PyramidNodeDataContext | undefined> {
-        const { id: seriesId, dataModel, processedData, properties, visible, seriesItemEnabled } = this;
+    override createNodeData() {
+        const {
+            id: seriesId,
+            dataModel,
+            processedData,
+            properties,
+            visible,
+            ctx: { legendManager },
+        } = this;
         const {
             stageKey,
             valueKey,
@@ -174,7 +178,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         processedData.rawData.forEach((datum, datumIndex) => {
             const xValue = xValues[datumIndex];
             const yValue = yValues[datumIndex];
-            const enabled = visible && seriesItemEnabled[datumIndex];
+            const enabled = visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
 
             yTotal += yValue;
 
@@ -264,7 +268,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             const xValue = xValues[datumIndex];
             const yValue = yValues[datumIndex];
 
-            const enabled = visible && seriesItemEnabled[datumIndex];
+            const enabled = visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex });
 
             const yEnd = yStart + yValue;
 
@@ -361,19 +365,19 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         };
     }
 
-    async updateSelections(): Promise<void> {
+    updateSelections() {
         if (this.nodeDataRefresh) {
-            this.contextNodeData = await this.createNodeData();
+            this.contextNodeData = this.createNodeData();
             this.nodeDataRefresh = false;
         }
     }
 
-    override async update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }): Promise<void> {
+    override update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         this.checkResize(seriesRect);
 
         const { datumSelection, labelSelection, stageLabelSelection, highlightDatumSelection } = this;
 
-        await this.updateSelections();
+        this.updateSelections();
 
         this.contentGroup.visible = this.visible;
         this.contentGroup.opacity = this.getOpacity();
@@ -387,33 +391,33 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const labelData = this.contextNodeData?.labelData ?? [];
         const stageLabelData = this.contextNodeData?.stageLabelData ?? [];
 
-        this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
-        await this.updateDatumNodes({ datumSelection, isHighlight: false });
+        this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
+        this.updateDatumNodes({ datumSelection, isHighlight: false });
 
-        this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection });
-        await this.updateLabelNodes({ labelSelection, labelProperties: this.properties.label });
+        this.labelSelection = this.updateLabelSelection({ labelData, labelSelection });
+        this.updateLabelNodes({ labelSelection, labelProperties: this.properties.label });
 
-        this.stageLabelSelection = await this.updateStageLabelSelection({ stageLabelData, stageLabelSelection });
-        await this.updateLabelNodes({
+        this.stageLabelSelection = this.updateStageLabelSelection({ stageLabelData, stageLabelSelection });
+        this.updateLabelNodes({
             labelSelection: stageLabelSelection,
             labelProperties: this.properties.stageLabel,
         });
 
-        this.highlightDatumSelection = await this.updateDatumSelection({
+        this.highlightDatumSelection = this.updateDatumSelection({
             nodeData: highlightedDatum != null ? [highlightedDatum] : [],
             datumSelection: highlightDatumSelection,
         });
-        await this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
+        this.updateDatumNodes({ datumSelection: highlightDatumSelection, isHighlight: true });
     }
 
-    private async updateDatumSelection(opts: {
+    private updateDatumSelection(opts: {
         nodeData: PyramidNodeDatum[];
         datumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum>;
     }) {
         return opts.datumSelection.update(opts.nodeData);
     }
 
-    private async updateDatumNodes(opts: {
+    private updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -444,20 +448,24 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             let itemStyle: AgPyramidSeriesStyle | undefined;
             if (itemStyler != null) {
-                itemStyle = itemStyler({
-                    datum: nodeDatum.datum,
-                    seriesId: this.id,
-                    highlighted: isHighlight,
-                    stageKey,
-                    valueKey,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeOpacity,
-                    strokeWidth,
-                    lineDash,
-                    lineDashOffset,
-                });
+                itemStyle = this.cachedDatumCallback(
+                    createDatumId(nodeDatum.index, isHighlight ? 'highlight' : 'node'),
+                    () =>
+                        itemStyler({
+                            datum: nodeDatum.datum,
+                            seriesId: this.id,
+                            highlighted: isHighlight,
+                            stageKey,
+                            valueKey,
+                            fill,
+                            fillOpacity,
+                            stroke,
+                            strokeOpacity,
+                            strokeWidth,
+                            lineDash,
+                            lineDashOffset,
+                        })
+                );
             }
 
             connector.fill = itemStyle?.fill ?? fill;
@@ -471,21 +479,21 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         });
     }
 
-    private async updateLabelSelection(opts: {
+    private updateLabelSelection(opts: {
         labelData: PyramidNodeLabelDatum[];
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum>;
     }) {
         return opts.labelSelection.update(this.properties.label.enabled ? opts.labelData : []);
     }
 
-    private async updateStageLabelSelection(opts: {
+    private updateStageLabelSelection(opts: {
         stageLabelData: PyramidNodeLabelDatum[];
         stageLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum>;
     }) {
         return opts.stageLabelSelection.update(opts.stageLabelData);
     }
 
-    private async updateLabelNodes(opts: {
+    private updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, PyramidNodeLabelDatum>;
         labelProperties: _ModuleSupport.Label<AgPyramidSeriesLabelFormatterParams>;
     }) {
@@ -525,10 +533,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     override getTooltipHtml(nodeDatum: any): _ModuleSupport.TooltipContent {
-        const {
-            id: seriesId,
-            ctx: { callbackCache },
-        } = this;
+        const { id: seriesId } = this;
 
         if (!this.properties.isValid()) {
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
@@ -540,20 +545,22 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         let format;
         if (itemStyler) {
-            format = callbackCache.call(itemStyler, {
-                highlighted: false,
-                seriesId,
-                datum,
-                stageKey,
-                valueKey,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-            });
+            format = this.cachedDatumCallback(createDatumId(nodeDatum.index, 'tooltip'), () =>
+                itemStyler({
+                    highlighted: false,
+                    seriesId,
+                    datum,
+                    stageKey,
+                    valueKey,
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                    lineDash,
+                    lineDashOffset,
+                })
+            );
         }
 
         const color = format?.fill ?? fill ?? 'gray';
@@ -602,19 +609,19 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { processedData, dataModel, legendItemEnabled, id } = this;
+        const {
+            processedData,
+            dataModel,
+            id: seriesId,
+            ctx: { legendManager },
+            visible,
+        } = this;
 
-        if (
-            !dataModel ||
-            !processedData?.rawData.length ||
-            legendType !== 'category' ||
-            !this.properties.isValid() ||
-            !this.properties.showInLegend
-        ) {
+        if (!dataModel || !processedData || legendType !== 'category' || !this.properties.isValid()) {
             return [];
         }
 
-        const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, visible } = this.properties;
+        const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, showInLegend } = this.properties;
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
         const stageValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
@@ -626,37 +633,16 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             legendData.push({
                 legendType: 'category',
-                id,
+                id: seriesId,
                 itemId: datumIndex,
-                seriesId: id,
-                enabled: visible && legendItemEnabled[datumIndex],
+                seriesId,
+                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
                 label: { text: stageValue },
                 symbols: [{ marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } }],
+                hideInLegend: !showInLegend,
             });
         });
 
         return legendData;
-    }
-
-    onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {
-        const { enabled, itemId, series } = event;
-
-        if (series.id !== this.id) {
-            return;
-        }
-
-        this.toggleSeriesItem(itemId, enabled);
-    }
-
-    protected override toggleSeriesItem(itemId: number, enabled: boolean): void {
-        this.seriesItemEnabled[itemId] = enabled;
-        this.legendItemEnabled[itemId] = enabled;
-        this.nodeDataRefresh = true;
-    }
-
-    protected override onDataChange() {
-        const { data, seriesItemEnabled, legendItemEnabled } = this;
-        this.seriesItemEnabled = data?.map((_, index) => seriesItemEnabled[index] ?? true) ?? [];
-        this.legendItemEnabled = data?.map((_, index) => legendItemEnabled[index] ?? true) ?? [];
     }
 }

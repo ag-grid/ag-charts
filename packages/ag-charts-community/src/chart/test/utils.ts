@@ -38,7 +38,7 @@ export type ChartOrProxy<O extends AgChartOptions | AgFinancialChartOptions = Ag
 
 export interface TestCase {
     options: AgChartOptions;
-    assertions: (chart: ChartOrProxy) => Promise<void>;
+    assertions: (chart: ChartOrProxy) => Promise<void> | void;
     extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
     warnings?: Array<string | Array<string>>;
 }
@@ -226,7 +226,7 @@ export function wheelEvent({ clientX, clientY, deltaX, deltaY, deltaMode }: Whee
 export function cartesianChartAssertions(params?: { type?: string; axisTypes?: string[]; seriesTypes?: string[] }) {
     const { axisTypes = ['category', 'number'], seriesTypes = ['bar', 'bar'] } = params ?? {};
 
-    return async (chartOrProxy: ChartOrProxy) => {
+    return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('CartesianChart');
         expect(chart.axes).toHaveLength(axisTypes.length);
@@ -238,7 +238,7 @@ export function cartesianChartAssertions(params?: { type?: string; axisTypes?: s
 export function polarChartAssertions(params?: { seriesTypes?: string[] }) {
     const { seriesTypes = ['pie'] } = params ?? {};
 
-    return async (chartOrProxy: ChartOrProxy) => {
+    return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('PolarChart');
         expect(chart.axes).toHaveLength(0);
@@ -249,7 +249,7 @@ export function polarChartAssertions(params?: { seriesTypes?: string[] }) {
 export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
     const { seriesTypes = ['treemap'] } = params ?? {};
 
-    return async (chartOrProxy: ChartOrProxy) => {
+    return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('HierarchyChart');
         expect(chart.axes).toHaveLength(0);
@@ -260,7 +260,7 @@ export function hierarchyChartAssertions(params?: { seriesTypes?: string[] }) {
 export function topologyChartAssertions(params?: { seriesTypes?: string[] }) {
     const { seriesTypes = ['map-shape'] } = params ?? {};
 
-    return async (chartOrProxy: ChartOrProxy) => {
+    return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('TopologyChart');
         expect(chart.axes).toHaveLength(0);
@@ -271,7 +271,7 @@ export function topologyChartAssertions(params?: { seriesTypes?: string[] }) {
 export function flowProportionChartAssertions(params?: { seriesTypes?: string[] }) {
     const { seriesTypes = ['flow-proportion'] } = params ?? {};
 
-    return async (chartOrProxy: ChartOrProxy) => {
+    return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('FlowProportionChart');
         expect(chart.axes).toHaveLength(0);
@@ -282,7 +282,7 @@ export function flowProportionChartAssertions(params?: { seriesTypes?: string[] 
 export function standaloneChartAssertions(params?: { seriesTypes?: string[] }) {
     const { seriesTypes = ['standalone'] } = params ?? {};
 
-    return async (chartOrProxy: ChartOrProxy) => {
+    return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('StandaloneChart');
         expect(chart.axes).toHaveLength(0);
@@ -291,7 +291,7 @@ export function standaloneChartAssertions(params?: { seriesTypes?: string[] }) {
 }
 
 export function gaugeAssertions() {
-    return async (chartOrProxy: ChartOrProxy) => {
+    return (chartOrProxy: ChartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         expect(chart?.constructor?.name).toEqual('GaugeChart');
     };
@@ -448,6 +448,7 @@ export function spyOnAnimationManager() {
         const cbs = [...rafCbs.values()];
         rafCbs.clear();
 
+        // eslint-disable-next-line sonarjs/array-callback-without-return
         await Promise.all(cbs.map((cb) => cb(time)));
     };
 
@@ -457,17 +458,17 @@ export function spyOnAnimationManager() {
 
         const forceTimeJumpMock = jest.spyOn(AnimationManager.prototype, 'forceTimeJump');
         forceTimeJumpMock.mockImplementation((controller: IAnimation, defaultDuration: number) => {
-            if (controller.isComplete) return true;
+            if (!controller.isComplete) {
+                // Convert test timing info to phase-relative execution timing.
+                const { phase } = controller;
+                const { animationDelay } = PHASE_METADATA[phase];
 
-            // Convert test timing info to phase-relative execution timing.
-            const { phase } = controller;
-            const { animationDelay } = PHASE_METADATA[phase];
+                // Account for phase notional starting offset.
+                let updateBy = animateParameters[0] * animateParameters[1];
+                updateBy -= animationDelay * defaultDuration;
 
-            // Account for phase notional starting offset.
-            let updateBy = animateParameters[0] * animateParameters[1];
-            updateBy -= animationDelay * defaultDuration;
-
-            controller.update(updateBy);
+                controller.update(updateBy);
+            }
             return true;
         });
         const skippingFramesMock = jest.spyOn(AnimationManager.prototype, 'isSkippingFrames');
@@ -478,6 +479,7 @@ export function spyOnAnimationManager() {
             (this as any).requestId = nextRafId++;
 
             const rafId = nextRafId++;
+            // eslint-disable-next-line @typescript-eslint/no-misused-promises
             rafCbs.set(rafId, cb);
         });
         mocks.push(skippedMock, forceTimeJumpMock, skippingFramesMock, safMock);

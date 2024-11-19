@@ -1,0 +1,17 @@
+.ag-charts-range-buttons {
+    /* TODO: move these out once toolbar.css is cleaned up */
+    .ag-charts-toolbar__button--first {
+        border-bottom-left-radius: var(--ag-charts-button-radius);
+        border-top-left-radius: var(--ag-charts-button-radius);
+        margin: 0;
+    }
+
+    .ag-charts-toolbar__button--last {
+        border-bottom-right-radius: var(--ag-charts-button-radius);
+        border-top-right-radius: var(--ag-charts-button-radius);
+    }
+
+    .ag-charts-toolbar__button {
+        padding: var(--ag-charts-toolbar-button-padding) calc(var(--ag-charts-toolbar-button-padding) * 1.5);
+    }
+}

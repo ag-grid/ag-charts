@@ -1,9 +1,3 @@
-/* eslint-disable no-nested-ternary */
-
-/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-
-/* eslint-disable sonarjs/no-duplicate-string */
-
 /* eslint-disable no-console */
 import { MD5 } from './md5';
 
@@ -21,7 +15,7 @@ const LICENSE_TYPES = {
 const LICENSING_HELP_URL = 'https://ag-grid.com/charts/licensing/';
 
 export class LicenseManager {
-    private static readonly RELEASE_INFORMATION: string = 'MTczMDEyNjk4OTQ4Nw==';
+    private static readonly RELEASE_INFORMATION: string = 'MTczMTQ5NDc0NzMyNw==';
     private licenseKey?: string;
     private gridContext: boolean = false;
     private watermarkMessage: string | undefined = undefined;
@@ -309,6 +303,7 @@ export class LicenseManager {
             return ['legacy', false, undefined];
         }
 
+        // eslint-disable-next-line sonarjs/slow-regex
         const matches = licenseKey.match(/\[(.*?)\]/g)!.map((match) => match.replace('[', '').replace(']', ''));
         if (!matches || matches.length === 0) {
             return ['legacy', false, undefined];

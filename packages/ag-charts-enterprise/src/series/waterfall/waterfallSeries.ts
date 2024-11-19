@@ -14,6 +14,7 @@ const {
     trailingAccumulatedValueProperty,
     ChartAxisDirection,
     getRectConfig,
+    createDatumId,
     updateRect,
     checkCrisp,
     updateLabelNode,
@@ -207,7 +208,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
     }
 
-    async createNodeData() {
+    override createNodeData() {
         const { data, dataModel, processedData } = this;
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();
@@ -418,7 +419,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
 
         const connectorLinesEnabled = this.properties.line.enabled;
-        if (yCurrValues !== undefined && connectorLinesEnabled) {
+        if (yCurrValues != null && connectorLinesEnabled) {
             context.pointData = pointData;
         }
 
@@ -492,7 +493,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
     }
 
-    protected override async updateDatumSelection(opts: {
+    protected override updateDatumSelection(opts: {
         nodeData: WaterfallNodeDatum[];
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, WaterfallNodeDatum>;
     }) {
@@ -501,7 +502,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         return datumSelection.update(data);
     }
 
-    protected override async updateDatumNodes(opts: {
+    protected override updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, WaterfallNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -547,7 +548,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
-            const config = getRectConfig({
+            const config = getRectConfig(this, createDatumId(datum.index, 'node'), {
                 datum,
                 isHighlighted: isHighlight,
                 style,
@@ -565,7 +566,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    protected async updateLabelSelection(opts: {
+    protected updateLabelSelection(opts: {
         labelData: WaterfallNodeDatum[];
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, WaterfallNodeDatum>;
     }) {
@@ -583,7 +584,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         return labelSelection.update(data);
     }
 
-    protected async updateLabelNodes(opts: {
+    protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, WaterfallNodeDatum>;
     }) {
         opts.labelSelection.each((textNode, datum) => {
@@ -601,7 +602,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { id: seriesId } = this;
         const { xKey, yKey, xName, yName, tooltip } = this.properties;
-        const { datum, itemId, xValue, yValue } = nodeDatum;
+        const { index, datum, itemId, xValue, yValue } = nodeDatum;
         const {
             fill,
             fillOpacity,
@@ -618,22 +619,24 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         let format;
 
         if (itemStyler) {
-            format = this.ctx.callbackCache.call(itemStyler, {
-                datum,
-                xKey,
-                yKey,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                cornerRadius,
-                highlighted: false,
-                seriesId,
-                itemId: nodeDatum.itemId,
-            });
+            format = this.cachedDatumCallback(createDatumId(index, 'tooltip'), () =>
+                itemStyler({
+                    datum,
+                    xKey,
+                    yKey,
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                    lineDash,
+                    lineDashOffset,
+                    cornerRadius,
+                    highlighted: false,
+                    seriesId,
+                    itemId: nodeDatum.itemId,
+                })
+            );
         }
 
         const color = format?.fill ?? fill ?? 'gray';
@@ -672,6 +675,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
         const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.substring(1);
 
+        const { showInLegend } = this.properties;
+
         seriesItemTypes.forEach((item) => {
             const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, name } = this.getItemConfig(item);
             legendData.push({
@@ -682,6 +687,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 enabled: true,
                 label: { text: name ?? capitalise(item) },
                 symbols: [{ marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } }],
+                hideInLegend: !showInLegend,
             });
         });
 
@@ -812,13 +818,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         this.resetConnectorLinesPath(data);
     }
 
-    protected override async updatePaths(opts: {
+    protected override updatePaths(opts: {
         seriesHighlighted?: boolean;
         itemId?: string;
         contextData: WaterfallContext;
         paths: _ModuleSupport.Path[];
         seriesIdx: number;
-    }): Promise<void> {
+    }) {
         this.resetConnectorLinesPath({ contextData: opts.contextData, paths: opts.paths });
     }
 

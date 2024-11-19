@@ -96,7 +96,7 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         }
     }
 
-    onLayoutComplete(opts: LayoutCompleteEvent) {
+    onLayoutComplete(opts: LayoutCompleteEvent): Promise<void> | void {
         const { x, width } = opts.series.rect;
         const { y, height } = this;
 

@@ -1,3 +1,4 @@
+/* eslint-disable sonarjs/class-name */
 import type { AgInitialStateOptions } from './api/initialStateOptions';
 import type { AgBaseChartOptions } from './chart/chartOptions';
 import type {
@@ -163,8 +164,7 @@ export interface AgChartInstance<O extends AgChartInstanceOptions = AgChartOptio
     destroy(): void;
 }
 
-/** NOTE: For API docs use; simplified typings to enable rendering. */
-// @ts-ignore
+// @ts-expect-error Expected to be unused in code, simplified typings to enable rendering for API docs.
 interface _AgChartInstanceInterface extends AgChartInstance<AgChartOptions> {
     update(options: AgChartOptions): Promise<void>;
     updateDelta(deltaOptions: AgChartOptions): Promise<void>;

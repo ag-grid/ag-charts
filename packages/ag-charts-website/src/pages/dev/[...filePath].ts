@@ -1,5 +1,5 @@
 import { type DevFileRoute, getDevFiles } from '@utils/pages';
-import fsOriginal from 'node:fs';
+import mime from 'mime';
 import fs from 'node:fs/promises';
 
 export function getStaticPaths() {
@@ -12,10 +12,25 @@ export function getStaticPaths() {
 export async function GET({ props }: DevFileRoute) {
     const { fullFilePath } = props;
 
-    const fileExists = fsOriginal.existsSync(fullFilePath);
-    const body = fileExists
-        ? await fs.readFile(fullFilePath)
-        : `throw new Error("File does not exist: '${fullFilePath}'. You may need to generate it, or try reloading again.");`;
+    const mimeType = mime.getType(fullFilePath);
 
-    return new Response(body);
+    let body;
+    try {
+        body = await fs.readFile(fullFilePath);
+    } catch (e) {
+        if (mimeType !== 'text/javascript') throw e;
+
+        const errorMessage = `File does not exist: '${fullFilePath}'. You may need to generate it, or try reloading again.`;
+        body = `throw new Error(${JSON.stringify(errorMessage)});`;
+    }
+
+    const headers = new Headers();
+
+    if (mimeType != null) {
+        headers.set('Content-Type', mimeType);
+    }
+
+    return new Response(body, {
+        headers,
+    });
 }

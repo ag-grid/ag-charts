@@ -4,8 +4,16 @@ import type { AgSunburstSeriesStyle, AgTooltipRendererResult } from 'ag-charts-t
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
 
-const { fromToMotion, sanitizeHtml, normalizeAngle360, Sector, ScalableGroup, Selection, TransformableText } =
-    _ModuleSupport;
+const {
+    fromToMotion,
+    sanitizeHtml,
+    normalizeAngle360,
+    createDatumId,
+    Sector,
+    ScalableGroup,
+    Selection,
+    TransformableText,
+} = _ModuleSupport;
 
 interface LabelData {
     label: string | undefined;
@@ -68,10 +76,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     private labelData?: (LabelData | undefined)[];
 
-    override async processData() {
+    override processData() {
         const { childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName } = this.properties;
 
-        await super.processData();
+        super.processData();
 
         this.angleData = getAngleData(this.rootNode);
         this.labelData = Array.from(this.rootNode, ({ datum, depth }) => {
@@ -119,7 +127,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         });
     }
 
-    async updateSelections() {
+    updateSelections() {
         if (!this.nodeDataRefresh) return;
         this.nodeDataRefresh = false;
 
@@ -143,7 +151,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.highlightSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
     }
 
-    async updateNodes() {
+    updateNodes() {
         const { chart, data, maxDepth, labelData } = this;
 
         if (chart == null || data == null || labelData == null) {
@@ -450,7 +458,6 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     ): AgSunburstSeriesStyle | undefined {
         const { datum, fill, stroke, depth } = node;
         const {
-            ctx: { callbackCache },
             properties: { itemStyler },
         } = this;
 
@@ -461,22 +468,26 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const { colorKey, childrenKey, labelKey, secondaryLabelKey, sizeKey, strokeWidth, fillOpacity, strokeOpacity } =
             this.properties;
 
-        return callbackCache.call(itemStyler, {
-            seriesId: this.id,
-            highlighted: isHighlighted,
-            datum,
-            depth,
-            colorKey,
-            childrenKey,
-            labelKey,
-            secondaryLabelKey,
-            sizeKey,
-            fill: fill!,
-            fillOpacity,
-            stroke: stroke!,
-            strokeWidth,
-            strokeOpacity,
-        });
+        return this.cachedDatumCallback(
+            createDatumId(this.getDatumId(node), isHighlighted ? 'highlight' : 'node'),
+            () =>
+                itemStyler({
+                    seriesId: this.id,
+                    highlighted: isHighlighted,
+                    datum,
+                    depth,
+                    colorKey,
+                    childrenKey,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    fill: fill!,
+                    fillOpacity,
+                    stroke: stroke!,
+                    strokeWidth,
+                    strokeOpacity,
+                })
+        );
     }
 
     override getTooltipHtml(node: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent {
@@ -548,7 +559,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         });
     }
 
-    override async createNodeData() {
+    override createNodeData() {
         return undefined;
     }
 

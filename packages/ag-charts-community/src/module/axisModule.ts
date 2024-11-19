@@ -11,5 +11,5 @@ export interface AxisModule extends BaseModule {
     moduleFactory: AxisFactory;
     hidden?: boolean;
 
-    themeTemplate?: {};
+    themeTemplate?: object;
 }

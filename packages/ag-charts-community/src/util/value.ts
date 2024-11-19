@@ -27,7 +27,7 @@ export function checkDatum<T>(value: T, isContinuousScale: boolean): boolean {
  *
  * @see https://ag-grid.atlassian.net/browse/AG-10526
  */
-export function transformIntegratedCategoryValue(value: unknown) {
+export function transformIntegratedCategoryValue(value: unknown): any {
     if (isStringObject(value) && Object.hasOwn(value, 'id')) {
         return value.id;
     }

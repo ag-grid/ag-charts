@@ -1,8 +1,9 @@
 export type ZIndex = number | number[];
 
-const cmp = (a: number, b: number): -1 | 0 | 1 => Math.sign(a - b) as -1 | 0 | 1;
+type CompareResult = -1 | 0 | 1;
+const cmp = (a: number, b: number): CompareResult => Math.sign(a - b) as CompareResult;
 
-export function compareZIndex(a: ZIndex, b: ZIndex): -1 | 0 | 1 {
+export function compareZIndex(a: ZIndex, b: ZIndex): CompareResult {
     if (typeof a === 'number' && typeof b === 'number') {
         return cmp(a, b);
     }

@@ -15,7 +15,7 @@ export type TestCase = {
     type?: 'chart' | 'gauge';
     options: AgChartOptions;
     enterprise: boolean;
-    assertions: (chart: ChartOrProxy) => Promise<void>;
+    assertions: (chart: ChartOrProxy) => void | Promise<void>;
     extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
 };
 export const COMMUNITY_AND_ENTERPRISE_EXAMPLES: Record<string, TestCase> = {

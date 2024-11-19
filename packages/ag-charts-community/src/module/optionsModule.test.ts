@@ -20,7 +20,7 @@ import type { SeriesType } from './optionsModuleTypes';
 
 function prepareOptions<T extends AgChartOptions>(userOptions: T): T {
     const chartOptions = new ChartOptions(userOptions, {}, {}, {});
-    return chartOptions.processedOptions as T;
+    return chartOptions.processedOptions;
 }
 
 function getSeriesOptions(seriesType: string, mapper?: <T>(series: T) => T) {
@@ -1548,33 +1548,30 @@ describe('ChartOptions', () => {
     });
 
     describe('#prepareOptions', () => {
-        it.each(Object.entries(EXAMPLES))(
-            'for %s it should prepare options as expected',
-            async (_exampleName, example) => {
-                const options: AgChartOptions = example.options;
-                options.container = document.createElement('div');
+        it.each(Object.entries(EXAMPLES))('for %s it should prepare options as expected', (_exampleName, example) => {
+            const options: AgChartOptions = example.options;
+            options.container = document.createElement('div');
 
-                const preparedOptions = prepareOptions(options);
+            const preparedOptions = prepareOptions(options);
 
-                if (options.data) {
-                    expect(preparedOptions).toHaveProperty('data', options.data);
-                    expect(preparedOptions).toMatchSnapshot({
-                        container: expect.any(HTMLElement),
-                        data: expect.any(options.data instanceof Array ? Array : Object),
-                    });
-                } else {
-                    const optionsCopy = { ...preparedOptions };
-                    optionsCopy.series = (optionsCopy.series as any[]).map((v) => {
-                        const copy = { ...v };
-                        delete copy.data;
-                        return copy;
-                    });
-                    expect(optionsCopy).toMatchSnapshot({
-                        container: expect.any(HTMLElement),
-                    });
-                }
+            if (options.data) {
+                expect(preparedOptions).toHaveProperty('data', options.data);
+                expect(preparedOptions).toMatchSnapshot({
+                    container: expect.any(HTMLElement),
+                    data: expect.any(options.data instanceof Array ? Array : Object),
+                });
+            } else {
+                const optionsCopy = { ...preparedOptions };
+                optionsCopy.series = (optionsCopy.series as any[]).map((v) => {
+                    const copy = { ...v };
+                    delete copy.data;
+                    return copy;
+                });
+                expect(optionsCopy).toMatchSnapshot({
+                    container: expect.any(HTMLElement),
+                });
             }
-        );
+        });
 
         it('should merge combo-chart series overrides as expected', () => {
             const options = COMBO_CHART_EXAMPLE;

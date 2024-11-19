@@ -76,7 +76,7 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
      */
     update(data: TDatum[], initializer?: (node: TChild) => void, getDatumId?: (datum: TDatum) => ValidId) {
         if (this.garbageBin.size > 0) {
-            this.debug(`Selection - update() called with pending garbage: ${data}`);
+            this.debug(`Selection - update() called with pending garbage`, data);
         }
 
         if (getDatumId) {

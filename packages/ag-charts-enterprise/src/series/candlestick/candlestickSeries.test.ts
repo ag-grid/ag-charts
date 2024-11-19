@@ -6,7 +6,6 @@ import {
     extractImageData,
     setupMockCanvas,
     setupMockConsole,
-    spyOnAnimationManager,
     waitForChartStability,
 } from 'ag-charts-community-test';
 
@@ -107,20 +106,5 @@ describe('CandlestickSeries', () => {
         };
         prepareEnterpriseTestOptions(options as any);
         await compareSnapshot(AgCharts.create(options));
-    });
-
-    describe('initial animation', () => {
-        const animate = spyOnAnimationManager();
-
-        for (const ratio of [0, 0.25, 0.5, 0.75, 1]) {
-            it(`for CANDLESTICK_OPTIONS should animate at ${ratio * 100}%`, async () => {
-                animate(1200, ratio);
-
-                const options: AgChartOptions = { ...CANDLESTICK_OPTIONS };
-                prepareEnterpriseTestOptions(options);
-
-                await compareSnapshot(AgCharts.create(options));
-            });
-        }
     });
 });

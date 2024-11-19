@@ -35,7 +35,7 @@ export class Navigator extends _ModuleSupport.Navigator {
     }
 
     override async onLayoutComplete(opts: _ModuleSupport.LayoutCompleteEvent) {
-        super.onLayoutComplete(opts);
+        await super.onLayoutComplete(opts);
         await this.miniChart.layout(this.width, this.height);
     }
 }

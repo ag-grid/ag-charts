@@ -123,12 +123,9 @@
 
         :global(.icon) {
             --icon-size: 1.3333em;
+            --icon-color: var(--color-brand-500);
 
-            fill: var(--color-brand-500);
             transition: transform 0.33s ease-in-out;
-            #{$selector-darkmode} & {
-                fill: var(--color-brand-primary);
-            }
         }
 
         &:hover :global(.icon) {

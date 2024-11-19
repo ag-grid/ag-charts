@@ -14,6 +14,8 @@ import { isNegative } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
+import { createDatumId } from '../../data/processors';
+import type { Series } from '../series';
 import type { SeriesItemHighlightStyle } from '../seriesProperties';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
@@ -54,24 +56,30 @@ export function updateRect(rect: Rect, config: RectConfig) {
 
 interface NodeDatum extends Omit<CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {}
 
-export function getRectConfig<Params extends Omit<AgBarSeriesItemStylerParams<any>, 'yKey'>, ExtraParams extends {}>({
-    datum,
-    isHighlighted,
-    style,
-    highlightStyle,
-    itemStyler,
-    seriesId,
-    ctx: { callbackCache },
-    ...opts
-}: {
-    datum: NodeDatum;
-    isHighlighted: boolean;
-    style: RectConfig;
-    highlightStyle: SeriesItemHighlightStyle;
-    itemStyler?: Styler<Params & ExtraParams, AgBarSeriesStyle>;
-    seriesId: string;
-    ctx: ModuleContext;
-} & ExtraParams): RectConfig {
+export function getRectConfig<
+    Params extends Omit<AgBarSeriesItemStylerParams<any>, 'yKey'>,
+    ExtraParams extends object,
+>(
+    series: Series<any, any, any>,
+    id: string,
+    {
+        datum,
+        isHighlighted,
+        style,
+        highlightStyle,
+        itemStyler,
+        seriesId,
+        ...opts
+    }: {
+        datum: NodeDatum;
+        isHighlighted: boolean;
+        style: RectConfig;
+        highlightStyle: SeriesItemHighlightStyle;
+        itemStyler?: Styler<Params & ExtraParams, AgBarSeriesStyle>;
+        seriesId: string;
+        ctx: ModuleContext;
+    } & ExtraParams
+): RectConfig {
     const {
         fill,
         fillOpacity,
@@ -85,21 +93,23 @@ export function getRectConfig<Params extends Omit<AgBarSeriesItemStylerParams<an
 
     let format: AgBarSeriesStyle | undefined;
     if (itemStyler) {
-        format = callbackCache.call(itemStyler as any, {
-            datum: datum.datum,
-            xKey: datum.xKey,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            cornerRadius,
-            highlighted: isHighlighted,
-            seriesId,
-            ...opts,
-        });
+        format = series.cachedDatumCallback(createDatumId(id, isHighlighted ? 'highlight' : 'node'), () =>
+            (itemStyler as any)({
+                datum: datum.datum,
+                xKey: datum.xKey,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+                lineDashOffset,
+                cornerRadius,
+                highlighted: isHighlighted,
+                seriesId,
+                ...opts,
+            })
+        );
     }
 
     return {

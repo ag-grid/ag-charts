@@ -1,4 +1,3 @@
-import { Logger } from '../../util/logger';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { DataService } from '../data/dataService';
 import type { ZoomManager, ZoomState } from '../interaction/zoomManager';
@@ -45,14 +44,14 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
 
     private onUpdateComplete() {
         if (!this.dirtyZoom && !this.dirtyDataSource) return;
-        this.updateWindow().catch((e) => Logger.errorOnce(e));
+        this.updateWindow();
     }
 
     private onZoomChange() {
         this.dirtyZoom = true;
     }
 
-    private async updateWindow() {
+    private updateWindow() {
         if (!this.dataService.isLazy()) return;
 
         const axis = this.getValidAxis();

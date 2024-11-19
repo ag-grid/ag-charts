@@ -5,8 +5,6 @@ export interface AgToolbarOptions extends Toggleable {
     seriesType?: AgToolbarSeriesTypeGroup;
     annotations?: AgToolbarAnnotationsGroup;
     annotationOptions?: AgToolbarAnnotationOptionsGroup;
-    ranges?: AgToolbarRangesGroup;
-    zoom?: AgToolbarZoomGroup;
 }
 
 export interface AgToolbarGroup extends Toggleable {
@@ -122,38 +120,3 @@ export type AgToolbarAnnotationOptionsButtonValue =
     | 'delete'
     | 'lock'
     | 'settings';
-
-/* Ranges */
-export interface AgToolbarRangesGroup extends AgToolbarGroup {
-    buttons?: AgToolbarRangesButton[];
-}
-
-export interface AgToolbarRangesButton extends AgToolbarButton {
-    /** Timestamp range on which to focus the chart, as either a single start time, a pair of times or a function that returns a pair of times. */
-    value: AgToolbarRangesButtonValue;
-}
-
-export type AgToolbarRangesButtonValue = number | AgToolbarRangesButtonValuePair | AgToolbarRangesButtonValueFunction;
-export type AgToolbarRangesButtonValuePair = [Date | number, Date | number];
-export type AgToolbarRangesButtonValueFunction = (
-    start: Date | number,
-    end: Date | number
-) => [Date | number, Date | number];
-
-/* Zoom */
-export interface AgToolbarZoomGroup extends AgToolbarGroup {
-    buttons?: AgToolbarZoomButton[];
-}
-
-export interface AgToolbarZoomButton extends AgToolbarButton {
-    value: AgToolbarZoomButtonValue;
-}
-
-export type AgToolbarZoomButtonValue =
-    | 'reset'
-    | 'zoom-in'
-    | 'zoom-out'
-    | 'pan-left'
-    | 'pan-right'
-    | 'pan-start'
-    | 'pan-end';

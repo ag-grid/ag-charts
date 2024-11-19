@@ -260,7 +260,7 @@ export class LinearGaugeSeries
         return marker;
     }
 
-    override async processData(): Promise<void> {
+    override processData() {
         this.nodeDataRefresh = true;
 
         this.animationState.transition('updateData');
@@ -464,7 +464,7 @@ export class LinearGaugeSeries
         };
     }
 
-    override async createNodeData() {
+    override createNodeData() {
         const { id: seriesId, properties, originX, originY, horizontal } = this;
 
         if (!properties.isValid()) return;
@@ -722,9 +722,9 @@ export class LinearGaugeSeries
         };
     }
 
-    async updateSelections(resize: boolean): Promise<void> {
+    updateSelections(resize: boolean) {
         if (this.nodeDataRefresh || resize) {
-            this.contextNodeData = await this.createNodeData();
+            this.contextNodeData = this.createNodeData();
             this.nodeDataRefresh = false;
         }
     }
@@ -735,7 +735,7 @@ export class LinearGaugeSeries
         }
     }
 
-    override async update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }): Promise<void> {
+    override update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         const {
             datumSelection,
             labelSelection,
@@ -746,7 +746,7 @@ export class LinearGaugeSeries
         } = this;
 
         const resize = this.checkResize(seriesRect);
-        await this.updateSelections(resize);
+        this.updateSelections(resize);
 
         this.contentGroup.visible = this.visible;
         this.contentGroup.opacity = this.getOpacity();
@@ -758,26 +758,26 @@ export class LinearGaugeSeries
 
         const highlightTargetDatum = this.highlightDatum(this.ctx.highlightManager.getActiveHighlight());
 
-        this.scaleSelection = await this.updateScaleSelection({ scaleData, scaleSelection });
-        await this.updateScaleNodes({ scaleSelection });
+        this.scaleSelection = this.updateScaleSelection({ scaleData, scaleSelection });
+        this.updateScaleNodes({ scaleSelection });
 
-        this.targetSelection = await this.updateTargetSelection({ targetData, targetSelection });
-        await this.updateTargetNodes({ targetSelection, isHighlight: false });
+        this.targetSelection = this.updateTargetSelection({ targetData, targetSelection });
+        this.updateTargetNodes({ targetSelection, isHighlight: false });
 
-        this.targetLabelSelection = await this.updateTargetLabelSelection({ targetData, targetLabelSelection });
-        await this.updateTargetLabelNodes({ targetLabelSelection });
+        this.targetLabelSelection = this.updateTargetLabelSelection({ targetData, targetLabelSelection });
+        this.updateTargetLabelNodes({ targetLabelSelection });
 
-        this.datumSelection = await this.updateDatumSelection({ nodeData, datumSelection });
-        await this.updateDatumNodes({ datumSelection });
+        this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
+        this.updateDatumNodes({ datumSelection });
 
-        this.labelSelection = await this.updateLabelSelection({ labelData, labelSelection });
-        await this.updateLabelNodes({ labelSelection });
+        this.labelSelection = this.updateLabelSelection({ labelData, labelSelection });
+        this.updateLabelNodes({ labelSelection });
 
-        this.highlightTargetSelection = await this.updateTargetSelection({
+        this.highlightTargetSelection = this.updateTargetSelection({
             targetData: highlightTargetDatum != null ? [highlightTargetDatum] : [],
             targetSelection: highlightTargetSelection,
         });
-        await this.updateTargetNodes({ targetSelection: highlightTargetSelection, isHighlight: true });
+        this.updateTargetNodes({ targetSelection: highlightTargetSelection, isHighlight: true });
 
         if (resize) {
             this.animationState.transition('resize');
@@ -785,7 +785,7 @@ export class LinearGaugeSeries
         this.animationState.transition('update');
     }
 
-    private async updateDatumSelection(opts: {
+    private updateDatumSelection(opts: {
         nodeData: LinearGaugeNodeDatum[];
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum>;
     }) {
@@ -794,7 +794,7 @@ export class LinearGaugeSeries
         });
     }
 
-    private async updateDatumNodes(opts: {
+    private updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum>;
     }) {
         const { datumSelection } = opts;
@@ -826,7 +826,7 @@ export class LinearGaugeSeries
         });
     }
 
-    private async updateScaleSelection(opts: {
+    private updateScaleSelection(opts: {
         scaleData: LinearGaugeNodeDatum[];
         scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum>;
     }) {
@@ -835,7 +835,7 @@ export class LinearGaugeSeries
         });
     }
 
-    private async updateScaleNodes(opts: {
+    private updateScaleNodes(opts: {
         scaleSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum>;
     }) {
         const { scaleSelection } = opts;
@@ -862,14 +862,14 @@ export class LinearGaugeSeries
         });
     }
 
-    private async updateTargetSelection(opts: {
+    private updateTargetSelection(opts: {
         targetData: LinearGaugeTargetDatum[];
         targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum>;
     }) {
         return opts.targetSelection.update(opts.targetData, undefined, (target) => target.itemId);
     }
 
-    private async updateTargetNodes(opts: {
+    private updateTargetNodes(opts: {
         targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum>;
         isHighlight: boolean;
     }) {
@@ -905,14 +905,14 @@ export class LinearGaugeSeries
         });
     }
 
-    private async updateTargetLabelSelection(opts: {
+    private updateTargetLabelSelection(opts: {
         targetData: LinearGaugeTargetDatum[];
         targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeTargetDatum>;
     }) {
         return opts.targetLabelSelection.update(opts.targetData);
     }
 
-    private async updateTargetLabelNodes(opts: {
+    private updateTargetLabelNodes(opts: {
         targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeTargetDatum>;
     }) {
         const { targetLabelSelection } = opts;
@@ -936,14 +936,14 @@ export class LinearGaugeSeries
         });
     }
 
-    private async updateLabelSelection(opts: {
+    private updateLabelSelection(opts: {
         labelData: LinearGaugeLabelDatum[];
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeLabelDatum>;
     }) {
         return opts.labelSelection.update(opts.labelData, undefined, (_datum) => 'primary');
     }
 
-    private async updateLabelNodes(opts: {
+    private updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeLabelDatum>;
     }) {
         const { labelSelection } = opts;
@@ -1084,9 +1084,7 @@ export class LinearGaugeSeries
         return [NaN, NaN];
     }
 
-    override getLegendData():
-        | _ModuleSupport.ChartLegendDatum<any>[]
-        | _ModuleSupport.ChartLegendDatum<_ModuleSupport.ChartLegendType>[] {
+    override getLegendData(): _ModuleSupport.ChartLegendDatum<any>[] {
         return [];
     }
 

@@ -173,8 +173,8 @@ describe('AgChartV2', () => {
             // make sure that the chart changes; on second+ round check the same chart image is
             // generated.
             for (let round = 0; round <= 1; round++) {
-                for (let index = 0; index < exampleCycle.length; index++) {
-                    await chart.update(exampleCycle[index]);
+                for (const cycle of exampleCycle) {
+                    await chart.update(cycle);
                 }
             }
         });

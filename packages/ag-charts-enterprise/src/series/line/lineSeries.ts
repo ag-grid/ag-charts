@@ -1,8 +1,9 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
+import { visibleRange } from '../../utils/aggregation';
 import { aggregateData } from './lineAggregation';
 
-const { ChartAxisDirection, findMinValue, findMaxValue, ContinuousScale } = _ModuleSupport;
+const { ChartAxisDirection, ContinuousScale, OrdinalTimeScale } = _ModuleSupport;
 
 export class LineSeries extends _ModuleSupport.LineSeries {
     protected override visibleRange(
@@ -11,18 +12,7 @@ export class LineSeries extends _ModuleSupport.LineSeries {
         x1: number,
         xFor: (index: number) => number
     ): [number, number] {
-        let start = findMinValue(0, length - 1, (index) => {
-            const x = xFor(index);
-            return !Number.isFinite(x) || x > x0 ? index : undefined;
-        });
-        start = Math.max((start ?? 0) - 1, 0);
-        let end = findMaxValue(0, length - 1, (index) => {
-            const x = xFor(index);
-            return !Number.isFinite(x) || x < x1 ? index : undefined;
-        });
-        // Two points needed over end so the spans draw correctly
-        end = Math.min((end ?? length) + 2, length);
-        return [start, end];
+        return visibleRange(length, x0, x1, xFor);
     }
 
     protected override aggregateData(
@@ -32,7 +22,7 @@ export class LineSeries extends _ModuleSupport.LineSeries {
         if (processedData.rawData.length === 0) return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
-        if (xAxis == null || !ContinuousScale.is(xAxis.scale)) return;
+        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || OrdinalTimeScale.is(xAxis.scale))) return;
 
         const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
         const yValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);

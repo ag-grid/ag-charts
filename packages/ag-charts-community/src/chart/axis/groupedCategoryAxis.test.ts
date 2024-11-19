@@ -56,7 +56,7 @@ function applyAxesFlip<T extends AgCartesianChartOptions>(opts: T): T {
 
 type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     options: T;
-    assertions: (chart: ChartOrProxy) => Promise<void>;
+    assertions: (chart: ChartOrProxy) => Promise<void> | void;
     extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
     compare?: AgCartesianAxisType[];
 };
@@ -164,7 +164,7 @@ describe('Grouped Category Axis Examples', () => {
         });
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
-            const axisCompare = async () => {
+            const axisCompare = () => {
                 for (const axis of deproxy(chart).axes) {
                     if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
                         continue;
@@ -178,11 +178,11 @@ describe('Grouped Category Axis Examples', () => {
             };
 
             chart = await createChart(example.options);
-            await axisCompare();
+            axisCompare();
 
             if (example.extraScreenshotActions) {
                 await example.extraScreenshotActions(chart);
-                await axisCompare();
+                axisCompare();
             }
         });
     }

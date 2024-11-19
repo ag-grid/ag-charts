@@ -250,15 +250,15 @@ describe('AgChart', () => {
         expect(updatedSeries.length).toEqual(4);
         expect(updatedSeries[0].id).toEqual(createdSeries[0].id);
         expect(updatedSeries[1].id).not.toEqual(createdSeries[1].id); // Switches from unstacked to stacked.
-        expect((updatedSeries[0].properties as any).marker.shape).toEqual('square');
-        expect((updatedSeries[0].properties as any).marker.size).toEqual(10);
-        expect((updatedSeries[1].properties as any).fill).toEqual('lime');
-        expect((updatedSeries[1].properties as any).yKey).toEqual('profit');
-        expect((updatedSeries[2].properties as any).fill).toEqual('cyan');
-        expect((updatedSeries[2].properties as any).yKey).toEqual('foobar');
+        expect(updatedSeries[0].properties.marker.shape).toEqual('square');
+        expect(updatedSeries[0].properties.marker.size).toEqual(10);
+        expect(updatedSeries[1].properties.fill).toEqual('lime');
+        expect(updatedSeries[1].properties.yKey).toEqual('profit');
+        expect(updatedSeries[2].properties.fill).toEqual('cyan');
+        expect(updatedSeries[2].properties.yKey).toEqual('foobar');
         expect(updatedSeries[3]).toBeInstanceOf(AreaSeries);
-        expect((updatedSeries[3].properties as any).xKey).toEqual('month');
-        expect((updatedSeries[3].properties as any).yKey).toEqual('bazqux');
+        expect(updatedSeries[3].properties.xKey).toEqual('month');
+        expect(updatedSeries[3].properties.yKey).toEqual('bazqux');
 
         await chartProxy.update({
             data: revenueProfitData,
@@ -332,10 +332,10 @@ describe('AgChart', () => {
         expect(updatedSeries3[0]).toBeInstanceOf(BarSeries);
         expect(updatedSeries3[1]).toBeInstanceOf(BarSeries);
         expect(updatedSeries3[2]).toBeInstanceOf(LineSeries);
-        expect((updatedSeries3[0].properties as any).yKey).toEqual('profit');
-        expect((updatedSeries3[1].properties as any).yKey).toEqual('foobar');
-        expect((updatedSeries3[2].properties as any).yKey).toEqual('revenue');
-        expect((updatedSeries3[2].properties as any).marker.size).toEqual(10);
+        expect(updatedSeries3[0].properties.yKey).toEqual('profit');
+        expect(updatedSeries3[1].properties.yKey).toEqual('foobar');
+        expect(updatedSeries3[2].properties.yKey).toEqual('revenue');
+        expect(updatedSeries3[2].properties.marker.size).toEqual(10);
 
         const lineSeries = updatedSeries3[1];
 

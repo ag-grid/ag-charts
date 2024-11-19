@@ -60,15 +60,29 @@ export default defineConfig({
             },
         },
 
-        // {
-        //   name: 'firefox',
-        //   use: { ...devices['Desktop Firefox'] },
-        // },
+        {
+            name: 'firefox',
+            use: {
+                ...devices['Desktop Firefox'],
+                viewport: {
+                    width: 800,
+                    height: 600,
+                },
+            },
+            testMatch: '**/basic-chart.spec.ts',
+        },
 
-        // {
-        //   name: 'webkit',
-        //   use: { ...devices['Desktop Safari'] },
-        // },
+        {
+            name: 'webkit',
+            use: {
+                ...devices['Desktop Safari'],
+                viewport: {
+                    width: 800,
+                    height: 600,
+                },
+            },
+            testMatch: '**/basic-chart.spec.ts',
+        },
 
         /* Test against mobile viewports. */
         // {

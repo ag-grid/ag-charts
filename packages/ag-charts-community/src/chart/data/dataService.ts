@@ -86,10 +86,14 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
     }
 
     private createThrottledFetch(requestThrottle: number) {
-        return throttle((params: DataSourceCallbackParams) => this.fetch(params), requestThrottle, {
-            leading: false,
-            trailing: true,
-        });
+        return throttle(
+            (params: DataSourceCallbackParams) => this.fetch(params).catch((e) => Logger.error('callback failed', e)),
+            requestThrottle,
+            {
+                leading: false,
+                trailing: true,
+            }
+        );
     }
 
     private createThrottledDispatch(dispatchThrottle: number) {
@@ -122,7 +126,7 @@ export class DataService<D extends object> extends Listeners<EventType, EventHan
         try {
             response = await this.dataSourceCallback(params);
             this.debug(`DataService - response | ${performance.now() - start}ms | ${id}`);
-        } catch (error) {
+        } catch (error: any) {
             this.debug(`DataService - request failed | ${id}`);
             Logger.errorOnce(`DataService - request failed | [${error}]`);
             // Ignore errors in callback and keep chart alive

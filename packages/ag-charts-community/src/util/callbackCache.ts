@@ -9,7 +9,7 @@ export class CallbackCache {
 
         try {
             serialisedParams = JSON.stringify(params);
-        } catch (e) {
+        } catch {
             // Unable to serialise params!
             // No caching possible.
 

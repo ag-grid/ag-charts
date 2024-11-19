@@ -4,7 +4,22 @@ import type { Intersection, PlainObject } from './types';
 
 type FalsyType = false | null | undefined;
 
-export function objectEqualWith<T extends PlainObject>(a: T, b: T, cmp: (a: T, b: T) => boolean): boolean {
+export function objectsEqual(a: unknown, b: unknown): boolean {
+    if (Array.isArray(a)) {
+        if (!Array.isArray(b)) return false;
+        if (a.length !== b.length) return false;
+
+        return a.every((av, i) => objectsEqual(av, b[i]));
+    } else if (isPlainObject(a)) {
+        if (!isPlainObject(b)) return false;
+
+        return objectsEqualWith(a, b, objectsEqual);
+    }
+
+    return a === b;
+}
+
+export function objectsEqualWith<T extends PlainObject>(a: T, b: T, cmp: (a: T, b: T) => boolean): boolean {
     for (const key of Object.keys(b)) {
         if (!(key in a)) return false;
     }

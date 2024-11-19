@@ -38,7 +38,7 @@ if [ "$1" == "--host" ] ; then
     -e NX_BASE \
     -e AG_FORCE_ALL_TESTS \
     -e AG_SKIP_NATIVE_DEP_VERSION_CHECK \
-    mcr.microsoft.com/playwright:v1.47.2-noble \
+    mcr.microsoft.com/playwright:v1.45.0-jammy \
     /bin/bash -l /data/packages/ag-charts-website/playwright.sh $@
 
   exit $?

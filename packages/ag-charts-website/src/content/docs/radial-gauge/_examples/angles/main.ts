@@ -8,8 +8,8 @@ const options: AgRadialGaugeOptions = {
         min: 0,
         max: 100,
     },
-    startAngle: 225,
-    endAngle: 495,
+    startAngle: -135,
+    endAngle: 135,
 };
 
 AgCharts.createGauge(options);

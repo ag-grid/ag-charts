@@ -3,7 +3,6 @@ export type FontWeight = 'normal' | 'bold' | 'bolder' | 'lighter' | number;
 export type FontFamily = string;
 export type FontSize = number;
 
-// eslint-disable-next-line @typescript-eslint/no-redundant-type-constituents
 export type AgMarkerShape =
     | 'circle'
     | 'cross'

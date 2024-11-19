@@ -23,6 +23,7 @@ const {
     isFiniteNumber,
     angleBetween,
     sanitizeHtml,
+    createDatumId,
     BandScale,
     Sector,
     SectorBox,
@@ -197,10 +198,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return false;
     }
 
-    protected async maybeRefreshNodeData() {
+    protected maybeRefreshNodeData() {
         const circleChanged = this.didCircleChange();
         if (!circleChanged && !this.nodeDataRefresh) return;
-        const { nodeData = [] } = (await this.createNodeData()) ?? {};
+        const { nodeData = [] } = this.createNodeData() ?? {};
         this.nodeData = nodeData;
         this.nodeDataRefresh = false;
     }
@@ -210,7 +211,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return radiusAxis instanceof PolarAxis ? this.radius * radiusAxis.innerRadiusRatio : 0;
     }
 
-    async createNodeData() {
+    override createNodeData() {
         const { processedData, dataModel } = this;
 
         if (
@@ -342,9 +343,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return context;
     }
 
-    async update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
+    update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         const resize = this.checkResize(seriesRect);
-        await this.maybeRefreshNodeData();
+        this.maybeRefreshNodeData();
 
         this.contentGroup.translationX = this.centerX;
         this.contentGroup.translationY = this.centerY;
@@ -391,49 +392,54 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             angleKey,
             radiusKey,
         } = mergeDefaults(highlighted ? this.properties.highlightStyle.item : null, this.properties);
+        const { itemStyler } = this.properties;
 
-        const idFn = (datum: RadialBarNodeDatum) => datum.radiusValue;
-        selection.update(selectionData, undefined, idFn).each((node, datum) => {
-            const format = this.properties.itemStyler
-                ? this.ctx.callbackCache.call(this.properties.itemStyler, {
-                      seriesId: this.id,
-                      datum: datum.datum,
-                      highlighted,
-                      angleKey,
-                      radiusKey,
-                      fill,
-                      fillOpacity,
-                      stroke,
-                      strokeWidth,
-                      strokeOpacity,
-                      lineDash,
-                      lineDashOffset,
-                      cornerRadius,
-                  })
-                : undefined;
+        const formatType = highlighted ? 'highlight' : 'node';
+        selection
+            .update(selectionData, undefined, (datum) => this.getDatumId(datum))
+            .each((node, datum) => {
+                const format = itemStyler
+                    ? this.cachedDatumCallback(createDatumId(this.getDatumId(datum), formatType), () =>
+                          itemStyler({
+                              seriesId: this.id,
+                              datum: datum.datum,
+                              highlighted,
+                              angleKey,
+                              radiusKey,
+                              fill,
+                              fillOpacity,
+                              stroke,
+                              strokeWidth,
+                              strokeOpacity,
+                              lineDash,
+                              lineDashOffset,
+                              cornerRadius,
+                          })
+                      )
+                    : undefined;
 
-            node.fill = format?.fill ?? fill;
-            node.fillOpacity = format?.fillOpacity ?? fillOpacity;
-            node.stroke = format?.stroke ?? stroke;
-            node.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            node.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
-            node.lineDash = format?.lineDash ?? lineDash;
-            node.lineDashOffset = format?.lineDashOffset ?? lineDashOffset;
-            node.lineJoin = 'round';
-            node.inset = stroke != null ? (format?.strokeWidth ?? strokeWidth) / 2 : 0;
-            node.startInnerCornerRadius = datum.reversed ? format?.cornerRadius ?? cornerRadius : 0;
-            node.startOuterCornerRadius = datum.reversed ? format?.cornerRadius ?? cornerRadius : 0;
-            node.endInnerCornerRadius = datum.reversed ? 0 : format?.cornerRadius ?? cornerRadius;
-            node.endOuterCornerRadius = datum.reversed ? 0 : format?.cornerRadius ?? cornerRadius;
+                node.fill = format?.fill ?? fill;
+                node.fillOpacity = format?.fillOpacity ?? fillOpacity;
+                node.stroke = format?.stroke ?? stroke;
+                node.strokeWidth = format?.strokeWidth ?? strokeWidth;
+                node.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
+                node.lineDash = format?.lineDash ?? lineDash;
+                node.lineDashOffset = format?.lineDashOffset ?? lineDashOffset;
+                node.lineJoin = 'round';
+                node.inset = stroke != null ? (format?.strokeWidth ?? strokeWidth) / 2 : 0;
+                node.startInnerCornerRadius = datum.reversed ? format?.cornerRadius ?? cornerRadius : 0;
+                node.startOuterCornerRadius = datum.reversed ? format?.cornerRadius ?? cornerRadius : 0;
+                node.endInnerCornerRadius = datum.reversed ? 0 : format?.cornerRadius ?? cornerRadius;
+                node.endOuterCornerRadius = datum.reversed ? 0 : format?.cornerRadius ?? cornerRadius;
 
-            if (highlighted) {
-                node.startAngle = datum.startAngle;
-                node.endAngle = datum.endAngle;
-                node.clipSector = datum.clipSector;
-                node.innerRadius = datum.innerRadius;
-                node.outerRadius = datum.outerRadius;
-            }
-        });
+                if (highlighted) {
+                    node.startAngle = datum.startAngle;
+                    node.endAngle = datum.endAngle;
+                    node.clipSector = datum.clipSector;
+                    node.innerRadius = datum.innerRadius;
+                    node.outerRadius = datum.outerRadius;
+                }
+            });
     }
 
     protected updateLabels() {
@@ -527,21 +533,23 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const content = sanitizeHtml(`${radiusString}: ${angleString}`);
 
         const { fill: color } = (itemStyler &&
-            this.ctx.callbackCache.call(itemStyler, {
-                highlighted: false,
-                seriesId,
-                datum,
-                angleKey,
-                radiusKey,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                cornerRadius,
-            })) ?? { fill };
+            this.cachedDatumCallback(createDatumId(this.getDatumId(nodeDatum), 'tooltip'), () =>
+                itemStyler({
+                    highlighted: false,
+                    seriesId,
+                    datum,
+                    angleKey,
+                    radiusKey,
+                    fill,
+                    fillOpacity,
+                    stroke,
+                    strokeWidth,
+                    strokeOpacity,
+                    lineDash,
+                    lineDashOffset,
+                    cornerRadius,
+                })
+            )) ?? { fill };
 
         return tooltip.toTooltipHtml(
             { title, backgroundColor: fill, content },
@@ -568,18 +576,21 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        if (!this.data?.length || !this.properties.isValid() || legendType !== 'category') {
+        if (!this.properties.isValid() || legendType !== 'category') {
             return [];
         }
 
-        const { angleKey, angleName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, visible } = this.properties;
+        const { id: seriesId, visible } = this;
+
+        const { angleKey, angleName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, showInLegend } =
+            this.properties;
 
         return [
             {
                 legendType: 'category',
-                id: this.id,
+                id: seriesId,
                 itemId: angleKey,
-                seriesId: this.id,
+                seriesId,
                 enabled: visible,
                 label: {
                     text: angleName ?? angleKey,
@@ -595,25 +606,13 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                         },
                     },
                 ],
+                hideInLegend: !showInLegend,
             },
         ];
     }
 
-    onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {
-        const { enabled, itemId, series } = event;
-
-        if (series.id === this.id) {
-            this.toggleSeriesItem(itemId, enabled);
-        }
-    }
-
-    onLegendItemDoubleClick(event: _ModuleSupport.LegendItemDoubleClickChartEvent) {
-        const { enabled, itemId, series, numVisibleItems } = event;
-
-        const wasClicked = series.id === this.id;
-        const newEnabled = wasClicked || (enabled && numVisibleItems === 1);
-
-        this.toggleSeriesItem(itemId, newEnabled);
+    private getDatumId(datum: RadialBarNodeDatum) {
+        return createDatumId(datum.radiusValue);
     }
 
     override computeLabelsBBox() {

@@ -2,6 +2,7 @@ import type { LayoutContext as ILayoutContext } from '../../module/baseModule';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { EventEmitter, type EventListener } from '../../util/eventEmitter';
+import { Logger } from '../../util/logger';
 import type { TimeInterval } from '../../util/time';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 
@@ -68,7 +69,9 @@ export class LayoutManager {
         const context = new LayoutContext(width, height);
         for (const element of Object.values(LayoutElement)) {
             if (typeof element !== 'number') continue;
-            this.elements.get(element)?.forEach((listener) => listener(context));
+            this.elements.get(element)?.forEach((listener) => {
+                listener(context)?.catch((e) => Logger.error(e));
+            });
         }
         return context;
     }

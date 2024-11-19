@@ -10,6 +10,8 @@ const {
     createElement,
     REGIONS,
     ChartAxisDirection,
+    getIconClassNames,
+    makeAccessibleClickListener,
     setAttributes,
 } = _ModuleSupport;
 
@@ -191,9 +193,8 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     }
 
     private updateButtonElement() {
-        const { button, ctx } = this;
-        button.onclick = _ModuleSupport.makeAccessibleClickListener(button, () => this.onButtonClick(this.coords));
-
-        button.innerHTML = `<span class="${ctx.domManager.getIconClassNames('zoom-in')} ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`;
+        const { button } = this;
+        button.onclick = makeAccessibleClickListener(button, () => this.onButtonClick(this.coords));
+        button.innerHTML = `<span class="${getIconClassNames('zoom-in')} ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`;
     }
 }

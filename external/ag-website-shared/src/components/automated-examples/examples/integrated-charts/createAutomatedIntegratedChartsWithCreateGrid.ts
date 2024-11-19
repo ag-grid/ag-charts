@@ -187,7 +187,7 @@ export function createAutomatedIntegratedChartsWithCreateGrid({
         gridOptions.chartThemes = getDarkModeChartThemes(darkMode);
 
         gridOptions.onGridReady = () => {
-            onGridReady && onGridReady();
+            onGridReady?.();
         };
         gridOptions.onFirstDataRendered = (e) => {
             if (suppressUpdates) {

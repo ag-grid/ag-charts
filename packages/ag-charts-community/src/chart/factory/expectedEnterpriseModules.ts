@@ -1,5 +1,3 @@
-/* eslint-disable sonarjs/no-duplicate-string */
-/* eslint-disable sonarjs/no-collapsible-if */
 type EnterpriseModuleStub = {
     type: 'axis' | 'axis-option' | 'series' | 'series-option' | 'root' | 'legend';
     packageType?: 'enterprise';
@@ -48,6 +46,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     },
     { type: 'root', optionsKey: 'sync', chartTypes: ['cartesian'] },
     { type: 'root', optionsKey: 'zoom', chartTypes: ['cartesian', 'topology'] },
+    { type: 'root', optionsKey: 'ranges', chartTypes: ['cartesian'] },
     {
         type: 'legend',
         optionsKey: 'gradientLegend',
@@ -59,6 +58,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'angle-number' },
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'radius-category' },
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'radius-number' },
+    { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'bar', community: true },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['cartesian'], identifier: 'line', community: true },
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['cartesian'], identifier: 'ordinal-time' },
     { type: 'axis-option', optionsKey: 'crosshair', chartTypes: ['cartesian'] },

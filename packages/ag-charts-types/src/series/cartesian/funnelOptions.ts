@@ -21,7 +21,7 @@ export interface AgFunnelSeriesItemStylerParams<TDatum>
 
 export interface AgFunnelSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export type AgFunnelSeriesLabelFormatterParams = AgFunnelSeriesOptionsKeys & AgFunnelSeriesOptionsNames;
+export type AgFunnelSeriesLabelFormatterParams = AgFunnelSeriesOptionsKeys;
 
 export interface AgFunnelSeriesTooltipRendererParams<TDatum = any>
     extends AgFunnelSeriesOptionsKeys,

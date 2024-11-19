@@ -7,6 +7,7 @@ import type {
 import { _ModuleSupport } from 'ag-charts-community';
 
 export interface RadarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+    readonly index: number;
     readonly label?: {
         text: string;
         x: number;

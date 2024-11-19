@@ -21,7 +21,6 @@ import {
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukData } from '../map-test/ukData';
-// @ts-expect-error
 import ukTopology from '../map-test/ukTopology.json';
 import type { MapMarkerSeries } from './mapMarkerSeries';
 
@@ -162,7 +161,7 @@ describe('MapMarkerSeries', () => {
 
         const hoverChartNodes = async (
             chartInstance: any,
-            iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void>
+            iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void> | void
         ) => {
             for (const series of chartInstance.series) {
                 const nodeData = testParams.getNodeData(series);
@@ -182,7 +181,7 @@ describe('MapMarkerSeries', () => {
         };
 
         const checkHighlight = async (chartInstance: any) => {
-            await hoverChartNodes(chartInstance, async ({ series }) => {
+            await hoverChartNodes(chartInstance, ({ series }) => {
                 // Check the highlighted marker
                 const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
@@ -211,7 +210,7 @@ describe('MapMarkerSeries', () => {
 
         it(`should render tooltip correctly`, async () => {
             chart = await createChart({ hasTooltip: true });
-            await hoverChartNodes(chart, async ({ series, item }) => {
+            await hoverChartNodes(chart, ({ series, item }) => {
                 // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-chart-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);

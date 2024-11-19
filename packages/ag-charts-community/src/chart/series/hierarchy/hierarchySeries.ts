@@ -14,7 +14,7 @@ import { clamp } from '../../../util/number';
 import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { HighlightNodeDatum } from '../../interaction/highlightManager';
-import type { ChartLegendType, GradientLegendDatum } from '../../legendDatum';
+import type { ChartLegendType, GradientLegendDatum } from '../../legend/legendDatum';
 import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
 import type { HierarchySeriesProperties } from './hierarchySeriesProperties';
@@ -187,7 +187,7 @@ export abstract class HierarchySeries<
         }
     }
 
-    override async processData(): Promise<void> {
+    override processData() {
         const { childrenKey, sizeKey, colorKey, fills, strokes, colorRange } = this.properties;
 
         let index = 0;
@@ -304,13 +304,13 @@ export abstract class HierarchySeries<
         this.focusPath = [{ nodeDatum: this.rootNode, childIndex: 0 }];
     }
 
-    protected abstract updateSelections(): Promise<void>;
+    protected abstract updateSelections(): void;
 
-    protected abstract updateNodes(): Promise<void>;
+    protected abstract updateNodes(): void;
 
-    override async update({ seriesRect }: { seriesRect?: BBox }): Promise<void> {
-        await this.updateSelections();
-        await this.updateNodes();
+    override update({ seriesRect }: { seriesRect?: BBox }) {
+        this.updateSelections();
+        this.updateNodes();
 
         const animationData = this.getAnimationData();
         const resize = this.checkResize(seriesRect);
@@ -387,13 +387,19 @@ export abstract class HierarchySeries<
     }
 
     override getLegendData(legendType: ChartLegendType): GradientLegendDatum[] {
-        const { colorKey, colorName, colorRange, visible } = this.properties;
+        const { colorKey, colorName, colorRange } = this.properties;
+        const {
+            id: seriesId,
+            ctx: { legendManager },
+            visible,
+        } = this;
+
         return legendType === 'gradient' && colorKey != null && colorRange != null
             ? [
                   {
                       legendType: 'gradient',
-                      enabled: visible,
-                      seriesId: this.id,
+                      enabled: visible && legendManager.getItemEnabled({ seriesId }),
+                      seriesId,
                       colorName,
                       colorRange,
                       colorDomain: this.colorDomain,
@@ -426,10 +432,7 @@ export abstract class HierarchySeries<
 
         if (depthDelta !== 0 || path.length === 1) {
             const targetDepth = Math.max(0, depth + depthDelta);
-            if (path[targetDepth + 1] !== undefined) {
-                path.length = targetDepth + 2;
-                return this.computeFocusOutputs(path[targetDepth + 1]);
-            } else {
+            if (path[targetDepth + 1] == null) {
                 let deepest = path[path.length - 1];
                 while (deepest.nodeDatum.children.length > 0 && (deepest.nodeDatum.depth ?? -1) < targetDepth) {
                     const nextDeepest = { nodeDatum: deepest.nodeDatum.children[0], childIndex: 0 };
@@ -437,26 +440,29 @@ export abstract class HierarchySeries<
                     deepest = nextDeepest;
                 }
                 return this.computeFocusOutputs(deepest);
+            } else {
+                path.length = targetDepth + 2;
+                return this.computeFocusOutputs(path[targetDepth + 1]);
             }
-        } else if (childDelta !== 0) {
+        } else if (childDelta === 0) {
+            return this.computeFocusOutputs(path[path.length - 1]);
+        } else {
             const targetChild = path[depth + 1].childIndex + childDelta;
             const currentParent = path[depth].nodeDatum;
             const childCount = currentParent?.children?.length;
-            if (childCount !== undefined) {
+            if (childCount != null) {
                 const newChild = clamp(0, targetChild, childCount - 1);
                 const newFocus = { nodeDatum: currentParent.children[newChild], childIndex: newChild };
                 path[depth + 1] = newFocus;
                 path.length = depth + 2;
                 return this.computeFocusOutputs(newFocus);
             }
-        } else {
-            return this.computeFocusOutputs(path[path.length - 1]);
         }
     }
 
     getDatumAriaText(datum: SeriesNodeDatum, description: string): string | undefined {
         if (!(datum instanceof HierarchyNode)) {
-            Logger.error(`datum is not HierarchyNode: ${datum}`);
+            Logger.error(`datum is not HierarchyNode: ${JSON.stringify(datum)}`);
             return;
         }
         return this.ctx.localeManager.t('ariaAnnounceHierarchyDatum', {

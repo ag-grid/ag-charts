@@ -2,7 +2,7 @@ import type { DistantObject } from '../../util/nearest';
 import { ExtendedPath2D } from '../extendedPath2D';
 import type { ChildNodeCounts, RenderContext } from '../node';
 import { SceneChangeDetection } from '../node';
-import { Shape } from './shape';
+import { type CanvasContext, Shape } from './shape';
 
 export function ScenePathChangeDetection(opts?: { convertor?: (o: any) => any; changeCb?: (t: any) => any }) {
     const { changeCb, convertor } = opts ?? {};
@@ -140,7 +140,7 @@ export class Path extends Shape implements DistantObject {
         super.render(renderCtx);
     }
 
-    protected drawPath(ctx: any) {
+    protected drawPath(ctx: CanvasContext) {
         this.fillStroke(ctx, this.path.getPath2D());
     }
 

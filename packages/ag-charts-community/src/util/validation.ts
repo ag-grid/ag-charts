@@ -129,6 +129,9 @@ export const ARRAY_OF = (predicate: ValidatePredicate, message?: ValidatePredica
         (value, ctx) => isArray(value) && value.every((item) => predicate(item, ctx)),
         (ctx) => {
             const arrayMessage = getPredicateMessage(ARRAY, ctx) ?? '';
+            if (typeof message === 'function') {
+                return `${arrayMessage} of ${message(ctx)}`;
+            }
             return message ? `${arrayMessage} of ${message}` : arrayMessage;
         }
     );

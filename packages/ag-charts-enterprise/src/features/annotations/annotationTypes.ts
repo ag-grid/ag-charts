@@ -93,7 +93,7 @@ export const ANNOTATION_BUTTONS = [
 ] as const;
 export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu', 'shape-menu', 'measurer-menu'] as const;
 
-export function stringToAnnotationType(value: string) {
+export function stringToAnnotationType(value: unknown) {
     for (const t of ANNOTATION_TYPES) {
         if (t === value) return t;
     }

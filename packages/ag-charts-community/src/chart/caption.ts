@@ -1,12 +1,9 @@
 import type { FontStyle, FontWeight, TextAlign, TextWrap } from 'ag-charts-types';
 
-import type { BoundedText } from '../dom/boundedText';
-import type { ProxyInteractionService } from '../dom/proxyInteractionService';
 import type { ModuleContext } from '../module/moduleContext';
 import { PointerEvents } from '../scene/node';
 import { RotatableText } from '../scene/shape/text';
 import { Transformable } from '../scene/transformable';
-import { joinFunctions } from '../util/function';
 import { createId } from '../util/id';
 import { BaseProperties } from '../util/properties';
 import { ProxyPropertyOnWrite } from '../util/proxy';
@@ -23,9 +20,9 @@ import {
     TEXT_WRAP,
     Validate,
 } from '../util/validation';
-import type { NativeWidget } from '../widget/nativeWidget';
+import type { BoundedTextWidget } from '../widget/boundedTextWidget';
+import type { MouseWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';
-import type { PointerInteractionEvent } from './interaction/interactionManager';
 import { toTooltipHtml } from './tooltip/tooltip';
 
 export class Caption extends BaseProperties implements CaptionLike {
@@ -89,18 +86,10 @@ export class Caption extends BaseProperties implements CaptionLike {
     layoutStyle: 'block' | 'overlay' = 'block';
 
     private truncated = false;
-    private proxyText?: NativeWidget<HTMLDivElement, BoundedText>;
+    private proxyText?: BoundedTextWidget;
 
     registerInteraction(moduleCtx: ModuleContext, where: 'beforebegin' | 'afterend') {
-        const { regionManager, proxyInteractionService, layoutManager } = moduleCtx;
-        const region = regionManager.getRegion('root');
-        const destroyFns = [
-            layoutManager.addListener('layout:complete', () => this.updateA11yText(proxyInteractionService, where)),
-            region.addListener('hover', (event) => this.handleMouseMove(moduleCtx, event)),
-            region.addListener('leave', (event) => this.handleMouseLeave(moduleCtx, event)),
-        ];
-
-        return joinFunctions(...destroyFns);
+        return moduleCtx.layoutManager.addListener('layout:complete', () => this.updateA11yText(moduleCtx, where));
     }
 
     computeTextWrap(containerWidth: number, containerHeight: number) {
@@ -116,33 +105,39 @@ export class Caption extends BaseProperties implements CaptionLike {
         this.truncated = wrappedText.includes(TextUtils.EllipsisChar);
     }
 
-    updateA11yText(proxyService: ProxyInteractionService, where: 'beforebegin' | 'afterend') {
+    private updateA11yText(moduleCtx: ModuleContext, where: 'beforebegin' | 'afterend') {
+        const { proxyInteractionService } = moduleCtx;
         if (this.enabled && this.text) {
             const bbox = Transformable.toCanvas(this.node);
             if (bbox) {
                 const { id: domManagerId } = this;
-                this.proxyText ??= proxyService.createProxyElement({ type: 'text', domManagerId, where });
-                this.proxyText.value.textContent = this.text;
-                this.proxyText.value.updateBounds(bbox);
+                this.proxyText ??= proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
+                this.proxyText.textContent = this.text;
+                this.proxyText.setBounds(bbox);
+                this.proxyText.addListener('mousemove', (_target, ev) => this.handleMouseMove(moduleCtx, ev));
+                this.proxyText.addListener('mouseleave', (_target, ev) => this.handleMouseLeave(moduleCtx, ev));
             }
         } else {
-            this.proxyText?.value.remove();
+            this.proxyText?.destroy();
             this.proxyText = undefined;
         }
     }
 
-    handleMouseMove(moduleCtx: ModuleContext, event: PointerInteractionEvent<'hover'>) {
-        if (event !== undefined && this.enabled && this.node.visible && this.truncated) {
-            const { offsetX, offsetY } = event;
+    private handleMouseMove(moduleCtx: ModuleContext, event?: MouseWidgetEvent) {
+        if (event != null && this.enabled && this.node.visible && this.truncated) {
+            const { x, y } = Transformable.toCanvas(this.node);
+            const offsetX = event.sourceEvent.offsetX + x;
+            const offsetY = event.sourceEvent.offsetY + y;
+            const lastPointerEvent = { type: 'hover', offsetX, offsetY } as const;
             moduleCtx.tooltipManager.updateTooltip(
                 this.id,
-                { offsetX, offsetY, lastPointerEvent: event, showArrow: false },
+                { offsetX, offsetY, lastPointerEvent, showArrow: false },
                 toTooltipHtml({ content: this.text })
             );
         }
     }
 
-    handleMouseLeave(moduleCtx: ModuleContext, _event: PointerInteractionEvent<'leave'>) {
+    private handleMouseLeave(moduleCtx: ModuleContext, _event: MouseWidgetEvent) {
         moduleCtx.tooltipManager.removeTooltip(this.id);
     }
 }

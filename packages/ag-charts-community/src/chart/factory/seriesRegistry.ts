@@ -9,7 +9,7 @@ import { chartTypes, publicChartTypes } from './chartTypes';
 
 interface SeriesRegistryRecord {
     moduleFactory?: SeriesFactory;
-    defaultAxes?: object[] | ((opts: {}) => object[]);
+    defaultAxes?: object[] | ((opts: object) => object[]);
     tooltipDefaults?: SeriesTooltipDefaults;
     paletteFactory?: SeriesPaletteFactory<unknown>;
     solo?: boolean;
@@ -63,7 +63,7 @@ class SeriesRegistry {
         throw new Error(`AG Charts - unknown series type: ${seriesType}`);
     }
 
-    cloneDefaultAxes(seriesType: SeriesType, options: {}) {
+    cloneDefaultAxes(seriesType: SeriesType, options: object) {
         const defaultAxes = this.seriesMap.get(seriesType)?.defaultAxes;
         if (defaultAxes == null) return null;
 
@@ -71,7 +71,7 @@ class SeriesRegistry {
         return { axes: deepClone(axes) };
     }
 
-    setThemeTemplate(seriesType: NonNullable<SeriesType>, themeTemplate: {}) {
+    setThemeTemplate(seriesType: NonNullable<SeriesType>, themeTemplate: object) {
         const currentTemplate = this.themeTemplates.get(seriesType);
         this.themeTemplates.set(seriesType, mergeDefaults(themeTemplate, currentTemplate));
     }

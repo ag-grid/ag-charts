@@ -5,6 +5,7 @@ import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
 import { prepareMapMarkerAnimationFunctions } from '../map-util/mapUtil';
 import { MapZIndexMap } from '../map-util/mapZIndexMap';
 import { markerPositions } from '../map-util/markerUtil';
+import { TopologySeries } from '../map-util/topologySeries';
 import { GEOJSON_OBJECT } from '../map-util/validation';
 import {
     type MapMarkerNodeDatum,
@@ -19,7 +20,6 @@ const {
     StateMachine,
     getMissCount,
     createDatumId,
-    DataModelSeries,
     SeriesNodePickMode,
     valueProperty,
     computeMarkerFocusBounds,
@@ -48,13 +48,13 @@ type MapMarkerAnimationEvent = {
 };
 
 export class MapMarkerSeries
-    extends DataModelSeries<
+    extends TopologySeries<
         MapMarkerNodeDatum,
         MapMarkerSeriesProperties,
         MapMarkerNodeLabelDatum,
         MapMarkerNodeDataContext
     >
-    implements _ModuleSupport.TopologySeries
+    implements _ModuleSupport.ITopology
 {
     static readonly className = 'MapMarkerSeries';
     static readonly type = 'map-marker' as const;
@@ -171,17 +171,6 @@ export class MapMarkerSeries
         this.highlightGroup.zIndex = [MapZIndexMap.MarkerHighlight, index];
 
         return true;
-    }
-
-    override addChartEventListeners(): void {
-        this.destroyFns.push(
-            this.ctx.chartEventManager.addListener('legend-item-click', (event) => {
-                this.onLegendItemClick(event);
-            }),
-            this.ctx.chartEventManager.addListener('legend-item-double-click', (event) => {
-                this.onLegendItemDoubleClick(event);
-            })
-        );
     }
 
     private isLabelEnabled() {
@@ -353,7 +342,7 @@ export class MapMarkerSeries
         };
     }
 
-    override async createNodeData() {
+    override createNodeData() {
         const { id: seriesId, dataModel, processedData, colorScale, sizeScale, properties, scale } = this;
         const { idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, label } = properties;
 
@@ -481,9 +470,9 @@ export class MapMarkerSeries
         };
     }
 
-    async updateSelections(): Promise<void> {
+    updateSelections() {
         if (this.nodeDataRefresh) {
-            this.contextNodeData = await this.createNodeData();
+            this.contextNodeData = this.createNodeData();
             this.nodeDataRefresh = false;
         }
     }
@@ -495,13 +484,13 @@ export class MapMarkerSeries
         return true;
     }
 
-    override async update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }): Promise<void> {
+    override update({ seriesRect }: { seriesRect?: _ModuleSupport.BBox }) {
         const resize = this.checkResize(seriesRect);
         const scaleChange = this.checkScaleChange();
 
         const { labelSelection, markerSelection, highlightMarkerSelection } = this;
 
-        await this.updateSelections();
+        this.updateSelections();
 
         this.contentGroup.visible = this.visible;
         this.contentGroup.opacity = this.getOpacity();
@@ -513,17 +502,17 @@ export class MapMarkerSeries
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
 
-        this.labelSelection = await this.updateLabelSelection({ labelSelection });
-        await this.updateLabelNodes({ labelSelection });
+        this.labelSelection = this.updateLabelSelection({ labelSelection });
+        this.updateLabelNodes({ labelSelection });
 
-        this.markerSelection = await this.updateMarkerSelection({ markerData: nodeData, markerSelection });
-        await this.updateMarkerNodes({ markerSelection, isHighlight: false, highlightedDatum });
+        this.markerSelection = this.updateMarkerSelection({ markerData: nodeData, markerSelection });
+        this.updateMarkerNodes({ markerSelection, isHighlight: false, highlightedDatum });
 
-        this.highlightMarkerSelection = await this.updateMarkerSelection({
+        this.highlightMarkerSelection = this.updateMarkerSelection({
             markerData: highlightedDatum != null ? [highlightedDatum] : [],
             markerSelection: highlightMarkerSelection,
         });
-        await this.updateMarkerNodes({
+        this.updateMarkerNodes({
             markerSelection: highlightMarkerSelection,
             isHighlight: true,
             highlightedDatum,
@@ -535,7 +524,7 @@ export class MapMarkerSeries
         this.animationState.transition('update');
     }
 
-    private async updateLabelSelection(opts: {
+    private updateLabelSelection(opts: {
         labelSelection: _ModuleSupport.Selection<
             _ModuleSupport.Text,
             _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
@@ -545,7 +534,7 @@ export class MapMarkerSeries
         return opts.labelSelection.update(placedLabels);
     }
 
-    private async updateLabelNodes(opts: {
+    private updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<
             _ModuleSupport.Text,
             _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
@@ -569,7 +558,7 @@ export class MapMarkerSeries
         });
     }
 
-    private async updateMarkerSelection(opts: {
+    private updateMarkerSelection(opts: {
         markerData: MapMarkerNodeDatum[];
         markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum>;
     }) {
@@ -580,7 +569,7 @@ export class MapMarkerSeries
         );
     }
 
-    private async updateMarkerNodes(opts: {
+    private updateMarkerNodes(opts: {
         markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum>;
         isHighlight: boolean;
         highlightedDatum: MapMarkerNodeDatum | undefined;
@@ -604,33 +593,6 @@ export class MapMarkerSeries
             marker.translationY = point.y;
             marker.zIndex = !isHighlight && highlightedDatum != null && datum === highlightedDatum.datum ? 1 : 0;
         });
-    }
-
-    onLegendItemClick(event: _ModuleSupport.LegendItemClickChartEvent) {
-        const { legendItemName } = this.properties;
-        const { enabled, itemId, series } = event;
-
-        const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
-            this.toggleSeriesItem(itemId, enabled);
-        }
-    }
-
-    onLegendItemDoubleClick(event: _ModuleSupport.LegendItemDoubleClickChartEvent) {
-        const { enabled, itemId, series, numVisibleItems } = event;
-        const { legendItemName } = this.properties;
-
-        const matchedLegendItemName = legendItemName != null && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
-            // Double-clicked item should always become visible.
-            this.toggleSeriesItem(itemId, true);
-        } else if (enabled && numVisibleItems === 1) {
-            // Other items should become visible if there is only one existing visible item.
-            this.toggleSeriesItem(itemId, true);
-        } else {
-            // Disable other items if not exactly one enabled.
-            this.toggleSeriesItem(itemId, false);
-        }
     }
 
     override isProcessedDataAnimatable() {
@@ -694,6 +656,9 @@ export class MapMarkerSeries
     ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
         const { processedData, dataModel } = this;
         if (processedData == null || dataModel == null) return [];
+
+        const { id: seriesId, visible } = this;
+
         const {
             title,
             legendItemName,
@@ -702,13 +667,13 @@ export class MapMarkerSeries
             colorKey,
             colorName,
             colorRange,
-            visible,
             shape,
             fill,
             stroke,
             fillOpacity,
             strokeOpacity,
             strokeWidth,
+            showInLegend,
         } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
@@ -717,7 +682,7 @@ export class MapMarkerSeries
             const legendDatum: _ModuleSupport.GradientLegendDatum = {
                 legendType: 'gradient',
                 enabled: visible,
-                seriesId: this.id,
+                seriesId,
                 colorName,
                 colorRange,
                 colorDomain,
@@ -726,11 +691,11 @@ export class MapMarkerSeries
         } else if (legendType === 'category') {
             const legendDatum: _ModuleSupport.CategoryLegendDatum = {
                 legendType: 'category',
-                id: this.id,
-                itemId: legendItemName ?? title ?? idName ?? idKey ?? this.id,
-                seriesId: this.id,
+                id: seriesId,
+                itemId: seriesId,
+                seriesId,
                 enabled: visible,
-                label: { text: legendItemName ?? title ?? idName ?? idKey ?? this.id },
+                label: { text: legendItemName ?? title ?? idName ?? idKey ?? seriesId },
                 symbols: [
                     {
                         marker: {
@@ -744,6 +709,7 @@ export class MapMarkerSeries
                     },
                 ],
                 legendItemName,
+                hideInLegend: !showInLegend,
             };
             return [legendDatum];
         } else {
@@ -752,12 +718,7 @@ export class MapMarkerSeries
     }
 
     override getTooltipHtml(nodeDatum: MapMarkerNodeDatum): _ModuleSupport.TooltipContent {
-        const {
-            id: seriesId,
-            processedData,
-            ctx: { callbackCache },
-            properties,
-        } = this;
+        const { id: seriesId, processedData, properties } = this;
 
         if (!processedData || !this.properties.isValid()) {
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
@@ -814,24 +775,26 @@ export class MapMarkerSeries
         let format: AgMapShapeSeriesStyle | undefined;
 
         if (itemStyler) {
-            format = callbackCache.call(itemStyler, {
-                highlighted: false,
-                seriesId,
-                datum,
-                idKey,
-                sizeKey,
-                colorKey,
-                labelKey,
-                latitudeKey,
-                longitudeKey,
-                shape,
-                size,
-                fill: fill!,
-                fillOpacity,
-                stroke: stroke!,
-                strokeWidth,
-                strokeOpacity,
-            });
+            format = this.cachedDatumCallback(createDatumId(datum.idValue, 'tooltip'), () =>
+                itemStyler({
+                    highlighted: false,
+                    seriesId,
+                    datum,
+                    idKey,
+                    sizeKey,
+                    colorKey,
+                    labelKey,
+                    latitudeKey,
+                    longitudeKey,
+                    shape,
+                    size,
+                    fill: fill!,
+                    fillOpacity,
+                    stroke: stroke!,
+                    strokeWidth,
+                    strokeOpacity,
+                })
+            );
         }
 
         const color = format?.fill ?? fill ?? properties.fill;
@@ -862,11 +825,7 @@ export class MapMarkerSeries
     }
 
     public getMapMarkerStyle(markerDatum: MapMarkerNodeDatum, highlighted: boolean) {
-        const {
-            id: seriesId,
-            properties,
-            ctx: { callbackCache },
-        } = this;
+        const { id: seriesId, properties } = this;
         const { datum, point } = markerDatum;
         const {
             idKey,
@@ -884,24 +843,26 @@ export class MapMarkerSeries
         } = properties;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
         if (itemStyler !== undefined) {
-            return callbackCache.call(itemStyler, {
-                seriesId,
-                datum,
-                size: point.size,
-                idKey,
-                latitudeKey,
-                longitudeKey,
-                labelKey,
-                sizeKey,
-                colorKey,
-                fill: fill!,
-                fillOpacity,
-                stroke: stroke!,
-                strokeWidth,
-                strokeOpacity,
-                shape,
-                highlighted,
-            });
+            return this.cachedDatumCallback(createDatumId(datum.idValue, highlighted ? 'highlight' : 'node'), () =>
+                itemStyler({
+                    seriesId,
+                    datum,
+                    size: point.size,
+                    idKey,
+                    latitudeKey,
+                    longitudeKey,
+                    labelKey,
+                    sizeKey,
+                    colorKey,
+                    fill: fill!,
+                    fillOpacity,
+                    stroke: stroke!,
+                    strokeWidth,
+                    strokeOpacity,
+                    shape,
+                    highlighted,
+                })
+            );
         }
     }
 

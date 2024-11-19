@@ -4,8 +4,14 @@
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "editor.formatOnSaveMode": "file",
   "eslint.validate": ["json", "typescript"],
-  "eslint.workingDirectories": [{ "pattern": "packages/*" }, { "pattern": "plugins/*" }, { "pattern": "libraries/*" }],
+  "eslint.useFlatConfig": true,
+  "eslint.workingDirectories": [{ "mode": "auto" }],
   "prettier.ignorePath": ".prettierignore.local",
   "typescript.tsdk": "node_modules/typescript/lib",
-  "jestrunner.jestCommand": "node --expose-gc 'node_modules/.bin/jest'"
+  "jestrunner.jestCommand": "node --expose-gc 'node_modules/.bin/jest'",
+  "gitlens.autolinks": [
+    { "prefix": "AG-", "url": "https://ag-grid.atlassian.net/browse/AG-<num>" },
+    { "prefix": "CRT-", "url": "https://ag-grid.atlassian.net/browse/CRT-<num>" },
+    { "prefix": "RTI-", "url": "https://ag-grid.atlassian.net/browse/RTI-<num>" }
+  ]
 }

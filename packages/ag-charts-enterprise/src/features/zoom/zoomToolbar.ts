@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgZoomButtonValue, _ModuleSupport } from 'ag-charts-community';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -11,22 +11,58 @@ import {
     dx,
     isZoomEqual,
     isZoomLess,
-    isZoomRangeEqual,
     scaleZoom,
     scaleZoomAxisWithAnchor,
     translateZoom,
     unitZoomState,
 } from './zoomUtils';
 
-const { ChartAxisDirection, ToolbarManager } = _ModuleSupport;
+const {
+    ARRAY,
+    BOOLEAN,
+    STRING,
+    UNION,
+    BaseProperties,
+    ChartAxisDirection,
+    InteractionState,
+    NativeWidget,
+    PropertiesArray,
+    Toolbar,
+    ToolbarButtonProperties,
+    Validate,
+    createElement,
+} = _ModuleSupport;
 
-export class ZoomToolbar {
-    private selectedZoom: { id: string; range: { min: number; max: number } } | undefined = undefined;
-    private readonly destroyFns: (() => void)[] = [];
+class ZoomButtonProperties extends ToolbarButtonProperties {
+    @Validate(UNION(['reset', 'zoom-in', 'zoom-out', 'pan-left', 'pan-right', 'pan-start', 'pan-end']))
+    value!: 'reset' | 'zoom-in' | 'zoom-out' | 'pan-left' | 'pan-right' | 'pan-start' | 'pan-end';
+
+    @Validate(STRING)
+    section!: string;
+}
+
+interface ZoomToolbarButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
+    value: AgZoomButtonValue;
+}
+
+export class ZoomToolbar extends BaseProperties {
+    @Validate(BOOLEAN)
+    public enabled?: boolean = false;
+
+    @Validate(ARRAY)
+    public buttons = new PropertiesArray(ZoomButtonProperties);
+
+    private readonly verticalSpacing = 10;
+    private readonly detectionRange = 38;
+
+    private readonly container: _ModuleSupport.NativeWidget<HTMLDivElement>;
+    private readonly toolbar = new Toolbar<ZoomToolbarButtonOptions>(this.ctx, this.onButtonPress.bind(this));
+
+    private readonly destroyFns: Array<() => void> = [];
 
     constructor(
-        private readonly toolbarManager: _ModuleSupport.ToolbarManager,
-        private readonly zoomManager: _ModuleSupport.ZoomManager,
+        private readonly ctx: _ModuleSupport.ModuleContext,
+        private readonly getModuleProperties: () => ZoomProperties,
         private readonly getResetZoom: () => DefinedZoomState,
         private readonly updateZoom: (zoom: DefinedZoomState) => void,
         private readonly updateAxisZoom: (
@@ -35,105 +71,133 @@ export class ZoomToolbar {
             partialZoom: _ModuleSupport.ZoomState | undefined
         ) => void
     ) {
-        this.destroyFns.push(zoomManager.addListener('zoom-change', this.onZoomChanged.bind(this)));
+        super();
+
+        this.container = new NativeWidget(createElement('div'));
+        const element = this.container.getElement();
+        element.classList.add('ag-charts-zoom-buttons');
+        ctx.domManager.addChild('canvas-overlay', 'zoom-buttons', element);
+
+        this.container.appendChild(this.toolbar);
+
+        this.toggleVisibility(false);
+
+        this.destroyFns.push(
+            ctx.interactionManager.addListener('hover', this.onHover.bind(this), InteractionState.All),
+            ctx.interactionManager.addListener('leave', this.onLeave.bind(this), InteractionState.All),
+            ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
+            () => this.container.destroy()
+        );
     }
 
-    destroy() {
+    public destroy() {
         for (const fn of this.destroyFns) {
             fn();
         }
     }
 
     public toggle(enabled: boolean | undefined, zoom: DefinedZoomState, props: ZoomProperties) {
-        this.toggleGroups(enabled);
-        if (enabled) {
-            this.toggleButtons(zoom, props);
+        if (!enabled) return;
+        this.toggleButtons(zoom, props);
+    }
+
+    private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
+        const { buttons, container } = this;
+        const { rect } = event.series;
+
+        this.toolbar.updateButtons(buttons);
+        this.toggleButtons(definedZoomState(this.ctx.zoomManager.getZoom()), this.getModuleProperties());
+
+        const height = container.getElement().offsetHeight;
+        container.setBounds({ y: rect.y + rect.height - height });
+    }
+
+    private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
+        const {
+            container,
+            detectionRange,
+            ctx: { scene },
+        } = this;
+        const {
+            offsetY,
+            sourceEvent: { target },
+        } = event;
+
+        const element = container.getElement();
+        const detectionY = element.offsetTop - detectionRange;
+        const visible = (offsetY > detectionY && offsetY < scene.canvas.element.offsetHeight) || target === element;
+
+        this.toggleVisibility(visible);
+    }
+
+    private onLeave() {
+        this.toggleVisibility(false);
+    }
+
+    private toggleVisibility(visible: boolean) {
+        const { container, toolbar, verticalSpacing } = this;
+
+        const element = toolbar.getElement();
+
+        element.classList.toggle('ag-charts-zoom-buttons__toolbar--hidden', !visible);
+        element.style.transform = visible
+            ? 'translateY(0)'
+            : `translateY(${container.getElement().offsetHeight + verticalSpacing}px)`;
+    }
+
+    private toggleButtons(zoom: DefinedZoomState, props: ZoomProperties) {
+        for (const [index, button] of this.buttons.entries()) {
+            let enabled = true;
+
+            switch (button?.value) {
+                case 'pan-start':
+                    enabled = zoom.x.min > UNIT.min;
+                    break;
+                case 'pan-end':
+                    enabled = zoom.x.max < UNIT.max;
+                    break;
+                case 'pan-left':
+                    enabled = zoom.x.min > UNIT.min;
+                    break;
+                case 'pan-right':
+                    enabled = zoom.x.max < UNIT.max;
+                    break;
+                case 'zoom-out':
+                    enabled = !isZoomEqual(zoom, unitZoomState());
+                    break;
+                case 'zoom-in':
+                    enabled = !isZoomLess(zoom, props.minRatioX, props.minRatioY);
+                    break;
+                case 'reset':
+                    enabled = !isZoomEqual(zoom, this.getResetZoom());
+                    break;
+            }
+
+            this.toolbar.toggleButtonEnabledByIndex(index, enabled);
         }
     }
 
-    public toggleButtons(zoom: DefinedZoomState, props: ZoomProperties) {
-        const { toolbarManager } = this;
-
-        const isMaxZoom = isZoomEqual(zoom, unitZoomState());
-        const isMinZoom = isZoomLess(zoom, props.minRatioX, props.minRatioY);
-        const isResetZoom = isZoomEqual(zoom, this.getResetZoom());
-
-        toolbarManager.toggleButton('zoom', 'pan-start', { enabled: zoom.x.min > UNIT.min });
-        toolbarManager.toggleButton('zoom', 'pan-end', { enabled: zoom.x.max < UNIT.max });
-        toolbarManager.toggleButton('zoom', 'pan-left', { enabled: zoom.x.min > UNIT.min });
-        toolbarManager.toggleButton('zoom', 'pan-right', { enabled: zoom.x.max < UNIT.max });
-        toolbarManager.toggleButton('zoom', 'zoom-out', { enabled: !isMaxZoom });
-        toolbarManager.toggleButton('zoom', 'zoom-in', { enabled: !isMinZoom });
-        toolbarManager.toggleButton('zoom', 'reset', { enabled: !isResetZoom });
-    }
-
-    public onButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent, props: ZoomProperties) {
-        this.onButtonPressRanges(event);
-        this.onButtonPressZoom(event, props);
-    }
-
-    private toggleGroups(enabled?: boolean) {
-        this.toolbarManager?.toggleGroup('zoom', 'ranges', { visible: Boolean(enabled) });
-        this.toolbarManager?.toggleGroup('zoom', 'zoom', { visible: Boolean(enabled) });
-    }
-
-    private onButtonPressRanges(event: _ModuleSupport.ToolbarButtonPressedEvent) {
-        if (!ToolbarManager.isGroup('ranges', event)) return;
-
-        const { id } = event;
-
-        const time = event.value;
-        if (typeof time === 'number') {
-            this.zoomManager.extendToEnd('zoom-buttons', ChartAxisDirection.X, time);
-        } else if (Array.isArray(time)) {
-            this.zoomManager.updateWith('zoom-buttons', ChartAxisDirection.X, () => time);
-        } else if (typeof time === 'function') {
-            this.zoomManager.updateWith('zoom-buttons', ChartAxisDirection.X, time);
-        }
-
-        const zoom = this.zoomManager.getZoom();
-        this.selectedZoom = zoom?.x == null ? undefined : { id, range: zoom.x };
-
-        this.toolbarManager.toggleGroup('zoom-toolbar', 'ranges', { active: false });
-        this.toolbarManager.toggleButton('ranges', id, { active: true });
-    }
-
-    private onZoomChanged(event: _ModuleSupport.ZoomChangeEvent) {
-        const { selectedZoom } = this;
-        const { x } = event;
-
-        this.toolbarManager.toggleGroup('zoom-toolbar', 'ranges', { active: false });
-
-        if (selectedZoom != null && x != null && isZoomRangeEqual(selectedZoom.range, x)) {
-            this.toolbarManager.toggleButton('ranges', selectedZoom.id, { active: true });
-        } else {
-            this.selectedZoom = undefined;
-        }
-    }
-
-    private onButtonPressZoom(event: _ModuleSupport.ToolbarButtonPressedEvent, props: ZoomProperties) {
-        if (!ToolbarManager.isGroup('zoom', event)) return;
+    private onButtonPress(event: { value: AgZoomButtonValue }) {
+        const props = this.getModuleProperties();
 
         if (props.independentAxes && event.value !== 'reset') {
-            const axisZooms = this.zoomManager.getAxisZooms();
+            const axisZooms = this.ctx.zoomManager.getAxisZooms();
             for (const [axisId, { direction, zoom }] of Object.entries(axisZooms)) {
                 if (zoom == null) continue;
-                this.onButtonPressZoomAxis(event, props, axisId, direction, zoom);
+                this.onButtonPressAxis(event, props, axisId, direction, zoom);
             }
         } else {
-            this.onButtonPressZoomUnified(event, props);
+            this.onButtonPressUnified(event, props);
         }
     }
 
-    private onButtonPressZoomAxis(
-        event: _ModuleSupport.ToolbarButtonPressedEvent,
+    private onButtonPressAxis(
+        event: { value: AgZoomButtonValue },
         props: ZoomProperties,
         axisId: string,
         direction: _ModuleSupport.ChartAxisDirection,
         zoom: _ModuleSupport.ZoomState
     ) {
-        if (!ToolbarManager.isGroup('zoom', event)) return;
-
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
         let newZoom = { ...zoom };
@@ -181,12 +245,10 @@ export class ZoomToolbar {
         this.updateAxisZoom(axisId, direction, constrainAxis(newZoom));
     }
 
-    private onButtonPressZoomUnified(event: _ModuleSupport.ToolbarButtonPressedEvent, props: ZoomProperties) {
-        if (!ToolbarManager.isGroup('zoom', event)) return;
-
+    private onButtonPressUnified(event: { value: AgZoomButtonValue }, props: ZoomProperties) {
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
-        const oldZoom = definedZoomState(this.zoomManager.getZoom());
+        const oldZoom = definedZoomState(this.ctx.zoomManager.getZoom());
         let zoom = definedZoomState(oldZoom);
 
         switch (event.value) {

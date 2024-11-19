@@ -1,3 +1,4 @@
+import { useDarkmode } from '@utils/hooks/useDarkmode';
 import classNames from 'classnames';
 import { type FunctionComponent, useEffect, useState } from 'react';
 
@@ -13,28 +14,57 @@ interface Props {
     enableDprScaling: boolean;
 }
 
+const optimizeAltTextForSeo = (label: string): string => {
+    if (label.toLowerCase().endsWith('chart')) {
+        return label;
+    }
+
+    if (label.toLowerCase().includes('with')) {
+        return label.replace(/with/i, 'Chart with');
+    }
+
+    return `${label} Chart`;
+};
+
 export const GalleryExampleImage: FunctionComponent<Props> = ({ label, exampleName, className, enableDprScaling }) => {
     const [theme] = useTheme();
-    const [style, setStyle] = useState<Record<string, string>>();
+    const [darkMode] = useDarkmode();
+    const [src, setSrc] = useState<string>('');
+    const [srcSet, setSrcSet] = useState<string>('');
 
     const urlFor = (variant: 'light' | 'dark', dpi: 1 | 2, ext: 'png' | 'webp') => {
         const url = getExampleImageUrl({ exampleName, theme: variant === 'dark' ? `${theme}-dark` : theme, dpi, ext });
-        return `url(${JSON.stringify(url)})`;
+        return url;
     };
 
     useEffect(() => {
         const dprFor2x = enableDprScaling ? 2 : 1;
-        setStyle({
-            '--image-webp': urlFor('light', 1, 'webp'),
-            '--image-webp-2x': urlFor('light', dprFor2x, 'webp'),
-            '--image-png': urlFor('light', 1, 'png'),
-            '--image-png-2x': urlFor('light', dprFor2x, 'png'),
-            '--image-webp-dark': urlFor('dark', 1, 'webp'),
-            '--image-webp-dark-2x': urlFor('dark', dprFor2x, 'webp'),
-            '--image-png-dark': urlFor('dark', 1, 'png'),
-            '--image-png-dark-2x': urlFor('dark', dprFor2x, 'png'),
-        });
-    }, [theme]);
 
-    return <div className={classNames(styles.image, className)} aria-label={label} style={style} />;
+        const srcSetLight = `
+            ${urlFor('light', 1, 'webp')} 1x, 
+            ${urlFor('light', dprFor2x, 'webp')} 2x,
+        `;
+
+        const srcSetDark = `
+            ${urlFor('dark', 1, 'webp')} 1x, 
+            ${urlFor('dark', dprFor2x, 'webp')} 2x,
+        `;
+
+        setSrc(urlFor('light', 1, 'png'));
+        setSrcSet(darkMode ? srcSetDark : srcSetLight);
+    }, [darkMode, theme]);
+
+    return (
+        <div className={styles.imageWrapper}>
+            {srcSet && (
+                <img
+                    src={src}
+                    srcSet={srcSet}
+                    alt={optimizeAltTextForSeo(label)}
+                    className={classNames(styles.image, className)}
+                    onError={(e) => (e.currentTarget.style.display = 'none')}
+                />
+            )}
+        </div>
+    );
 };

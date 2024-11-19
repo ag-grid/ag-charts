@@ -23,7 +23,7 @@ describe('json module', () => {
     describe('#jsonDiff', () => {
         describe('for trivial cases', () => {
             it('should return null for no diff', () => {
-                const cases: {}[] = [
+                const cases: object[] = [
                     {},
                     { a: 1, b: { c: 'abc', d: () => 'test' } },
                     { a: [{ foo: 'bar' }], b: { c: 'abc', d: () => 'test' } },

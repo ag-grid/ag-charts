@@ -22,12 +22,6 @@
     transition: opacity 0.4s ease-in-out;
 }
 
-.ag-charts-toolbar--small {
-    --ag-charts-toolbar-size: var(--ag-charts-toolbar-size-small);
-    --ag-charts-toolbar-font-size: var(--ag-charts-toolbar-font-size-small);
-    --ag-charts-toolbar-button-padding: var(--ag-charts-toolbar-button-padding-small);
-}
-
 .ag-charts-toolbar--top,
 .ag-charts-toolbar--bottom {
     flex-direction: row;
@@ -52,6 +46,8 @@
 .ag-charts-toolbar--floating {
     padding: 0;
     width: auto;
+    border-radius: var(--ag-charts-button-radius);
+    box-shadow: var(--ag-charts-toolbar-shadow);
     z-index: var(--ag-charts-layer-toolbar);
 }
 
@@ -116,6 +112,8 @@
 }
 
 .ag-charts-toolbar__button {
+    --stroke-width-color: var(--ag-charts-toolbar-foreground-color);
+
     align-items: center;
     background: var(--ag-charts-toolbar-background-color);
     border: var(--ag-charts-toolbar-border);
@@ -130,7 +128,6 @@
     pointer-events: all;
     position: relative;
     white-space: nowrap;
-    --stroke-width-color: var(--ag-charts-toolbar-foreground-color);
 }
 
 .ag-charts-toolbar__no-pointer-events {
@@ -151,10 +148,6 @@
         background-color 0.25s ease-in-out,
         border-color 0.25s ease-in-out,
         color 0.25s ease-in-out;
-}
-
-.ag-charts-toolbar__button[data-toolbar-group='ranges'] {
-    padding: var(--ag-charts-toolbar-button-padding) calc(var(--ag-charts-toolbar-button-padding) * 1.5);
 }
 
 .ag-charts-toolbar--top,

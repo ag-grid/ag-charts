@@ -68,7 +68,7 @@ describe('SankeySeries', () => {
             );
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, node as any);
+            highlightManager.updateHighlight(chart.id, node);
             await compare();
         });
 
@@ -84,7 +84,7 @@ describe('SankeySeries', () => {
             );
 
             const highlightManager = (chart as Chart).ctx.highlightManager;
-            highlightManager.updateHighlight(chart.id, node as any);
+            highlightManager.updateHighlight(chart.id, node);
             await compare();
         });
     });
@@ -141,7 +141,7 @@ describe('SankeySeries', () => {
 
         const hoverChartNodes = async (
             chartInstance: any,
-            iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void>
+            iterator: (params: { series: any; item: any; x: number; y: number }) => Promise<void> | void
         ) => {
             for (const series of chartInstance.series) {
                 const nodeData = testParams.getNodeData(series);
@@ -161,7 +161,7 @@ describe('SankeySeries', () => {
         };
 
         const checkHighlight = async (chartInstance: any) => {
-            await hoverChartNodes(chartInstance, async ({ series }) => {
+            await hoverChartNodes(chartInstance, ({ series }) => {
                 // Check the highlighted marker
                 const highlightNode = testParams.getHighlightNode(chartInstance, series);
                 expect(highlightNode).toBeDefined();
@@ -190,7 +190,7 @@ describe('SankeySeries', () => {
 
         it(`should render tooltip correctly`, async () => {
             chart = await createChart({ hasTooltip: true });
-            await hoverChartNodes(chart, async ({ series, item }) => {
+            await hoverChartNodes(chart, ({ series, item }) => {
                 // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-chart-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
@@ -230,13 +230,13 @@ describe('SankeySeries', () => {
             await checkNodeClick(chart, onNodeClick);
         });
 
-        it.skip(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
+        it(`should handle nodeClick event with offset click when range is 'nearest'`, async () => {
             const onNodeClick = jest.fn();
             chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 'nearest' });
             await checkNodeClick(chart, onNodeClick, { x: 5, y: 5 });
         });
 
-        it.skip(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
+        it(`should handle nodeClick event with offset click when range is within pixel distance`, async () => {
             const onNodeClick = jest.fn();
             chart = await createChart({ hasTooltip: true, onNodeClick, nodeClickRange: 6 });
             await checkNodeClick(chart, onNodeClick, { x: 0, y: 5 });

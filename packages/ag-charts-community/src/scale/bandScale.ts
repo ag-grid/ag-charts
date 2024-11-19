@@ -43,11 +43,6 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
     protected index = new Map<D, number>();
 
     /**
-     * The output range values for datum at each index.
-     */
-    protected ordinalRange: number[] = [];
-
-    /**
      * Contains unique data only.
      */
     protected _domain: D[] = [];
@@ -83,34 +78,59 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
     convert(d: D): number {
         this.refresh();
         const i = this.getIndex(d);
-        if (i == null) {
+        if (i == null || i < 0 || i >= this.domain.length) {
             return NaN;
         }
-        return this.ordinalRange[i] ?? NaN;
+        return this.ordinalRange(i);
+    }
+
+    protected invertNearestIndex(position: number) {
+        this.refresh();
+
+        const { domain } = this;
+
+        if (domain.length === 0) return -1;
+
+        let low = 0;
+        let high = domain.length - 1;
+        let closestDistance = Infinity;
+        let closestIndex = 0;
+
+        while (low <= high) {
+            const mid = ((high + low) / 2) | 0;
+            const p = this.ordinalRange(mid);
+            const distance = Math.abs(p - position);
+
+            if (distance === 0) return mid;
+
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestIndex = mid;
+            }
+
+            if (p < position) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+
+        return closestIndex;
     }
 
     invert(position: number) {
         this.refresh();
-        const index = this.ordinalRange.findIndex((p) => p === position);
-        return this.domain[index];
+
+        const index = this.invertNearestIndex(position);
+        const p = this.ordinalRange(index);
+
+        return position === p ? this.domain[index] : undefined!;
     }
 
     invertNearest(position: number) {
-        this.refresh();
-        let nearest = -1;
-        let minDistance = Infinity;
+        const index = this.invertNearestIndex(position);
 
-        const index = this.ordinalRange.findIndex((p, i) => {
-            if (p === position) return true;
-            const distance = Math.abs(position - p);
-            if (distance < minDistance) {
-                minDistance = distance;
-                nearest = i;
-            }
-            return false;
-        });
-
-        return this.domain[index] ?? this.domain[nearest];
+        return this.domain[index];
     }
 
     private _bandwidth: number = 1;
@@ -201,7 +221,11 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         this._inset = inset;
         this._bandwidth = bandwidth;
         this._rawBandwidth = rawStep * (1 - paddingInner);
-        this.ordinalRange = this._domain.map((_, i) => inset + step * i);
+    }
+
+    protected ordinalRange(i: number) {
+        const { _inset: inset, _step: step } = this;
+        return inset + step * i;
     }
 
     private getIndex(value: D) {

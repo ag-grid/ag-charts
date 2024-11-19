@@ -16,7 +16,7 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, valueProperty } from '../../data/processors';
-import type { CategoryLegendDatum } from '../../legendDatum';
+import type { CategoryLegendDatum } from '../../legend/legendDatum';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
@@ -143,7 +143,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         return fixNumericExtent(extent(domain));
     }
 
-    async createNodeData() {
+    override createNodeData() {
         const { axes, dataModel, processedData, colorScale, sizeScale } = this;
         const {
             xKey,
@@ -168,7 +168,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(dataModel && processedData && processedData.rawData.length && visible && xAxis && yAxis)) {
+        if (!(dataModel && processedData?.rawData.length && visible && xAxis && yAxis)) {
             return;
         }
 
@@ -274,7 +274,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         return new MarkerShape();
     }
 
-    protected override async updateMarkerSelection(opts: {
+    protected override updateMarkerSelection(opts: {
         nodeData: BubbleNodeDatum[];
         markerSelection: Selection<Marker, BubbleNodeDatum>;
     }) {
@@ -291,7 +291,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         );
     }
 
-    protected override async updateMarkerNodes(opts: {
+    protected override updateMarkerNodes(opts: {
         markerSelection: Selection<Marker, BubbleNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -316,7 +316,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         }
     }
 
-    protected async updateLabelSelection(opts: {
+    protected updateLabelSelection(opts: {
         labelData: BubbleNodeDatum[];
         labelSelection: Selection<Text, BubbleNodeDatum>;
     }) {
@@ -333,7 +333,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         );
     }
 
-    protected async updateLabelNodes(opts: { labelSelection: Selection<Text, BubbleNodeDatum> }) {
+    protected updateLabelNodes(opts: { labelSelection: Selection<Text, BubbleNodeDatum> }) {
         const { label } = this.properties;
 
         opts.labelSelection.each((text, datum) => {
@@ -416,22 +416,28 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     }
 
     getLegendData(): CategoryLegendDatum[] {
-        if (!this.data?.length || !this.properties.isValid()) {
+        if (!this.properties.isValid()) {
             return [];
         }
 
-        const { yKey, yName, title, marker, visible } = this.properties;
+        const {
+            id: seriesId,
+            ctx: { legendManager },
+            visible,
+        } = this;
+
+        const { yKey: itemId, yName, title, marker } = this.properties;
         const { shape, fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
 
         return [
             {
                 legendType: 'category',
-                id: this.id,
-                itemId: yKey,
-                seriesId: this.id,
-                enabled: visible,
+                id: seriesId,
+                itemId,
+                seriesId,
+                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
                 label: {
-                    text: title ?? yName ?? yKey,
+                    text: title ?? yName ?? itemId,
                 },
                 symbols: [
                     {

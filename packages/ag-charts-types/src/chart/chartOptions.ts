@@ -8,6 +8,7 @@ import type { AgGradientLegendOptions } from './gradientLegendOptions';
 import type { AgChartLegendOptions } from './legendOptions';
 import type { AgLocaleOptions } from './localeOptions';
 import type { AgNavigatorOptions } from './navigatorOptions';
+import type { AgRangesOptions } from './rangesOptions';
 import type { AgToolbarOptions } from './toolbarOptions';
 import type { AgChartTooltipOptions } from './tooltipOptions';
 import type { CssColor, FontFamily, FontSize, FontStyle, FontWeight, PixelSize, TextAlign, TextWrap } from './types';
@@ -199,6 +200,8 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     locale?: AgLocaleOptions;
     /** Configuration for the toolbar. */
     toolbar?: AgToolbarOptions;
+    /** Configuration for the ranges buttons. */
+    ranges?: AgRangesOptions;
     /** Keyboard navigation options. */
     keyboard?: AgKeyboardOptions;
 

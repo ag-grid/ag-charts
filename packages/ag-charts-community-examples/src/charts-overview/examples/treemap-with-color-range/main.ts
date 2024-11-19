@@ -1,4 +1,4 @@
-import type { AgChartOptions, AgTreemapSeriesTooltipRendererParams } from 'ag-charts-community';
+import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 
 import { data } from './data';
@@ -56,11 +56,5 @@ const options: AgChartOptions = {
         text: 'Area represents market cap. Color represents change from the day before.',
     },
 };
-
-function tooltipRenderer(params: AgTreemapSeriesTooltipRendererParams<any>) {
-    return {
-        content: `<b>Change</b>: ${params.datum[params.colorKey!].toFixed(2)}%`,
-    };
-}
 
 AgCharts.create(options);

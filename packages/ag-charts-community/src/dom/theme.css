@@ -18,6 +18,9 @@
     --ag-charts-border: var(--ag-charts-border-color) var(--ag-borders, solid 1px);
     --ag-charts-border-critical: var(--ag-borders-critical, solid 1px);
 
+    /* Shadows */
+    --ag-charts-floating-shadow: 0 2px 8px 0 color-mix(in srgb, black 8%, transparent);
+
     /* Layout */
     --ag-charts-layer-ui-overlay: 5;
     --ag-charts-layer-tooltip: 4;
@@ -37,6 +40,7 @@
         --ag-header-background-color,
         color-mix(in srgb, var(--ag-charts-background-color), var(--ag-charts-foreground-color) 2%)
     );
+    --ag-charts-toolbar-shadow: var(--ag-charts-floating-shadow);
     --ag-charts-toolbar-size: 34px;
     --ag-charts-toolbar-size-small: 24px;
     --ag-charts-toolbar-border: var(--ag-charts-border-critical, solid 1px) var(--ag-charts-border-color);
@@ -73,6 +77,7 @@
     --ag-charts-popover-active-background-color: var(--ag-charts-toolbar-active-background-color);
     --ag-charts-popover-font-size: 14px;
     --ag-charts-popover-font-size-small: var(--ag-charts-toolbar-font-size-small);
+    --ag-charts-popover-shadow: var(--ag-charts-floating-shadow);
 
     /* Dialog */
     --ag-charts-dialog-input-group-label-color: color-mix(in srgb, transparent, var(--ag-charts-foreground-color) 55%);
@@ -127,6 +132,9 @@
     --ag-charts-foreground-color: var(--ag-foreground-color, #fff);
     --ag-charts-border-color: var(--ag-border-color, rgba(255, 255, 255, 0.16));
     --ag-charts-hover-color: color-mix(in srgb, var(--ag-charts-background-color), var(--ag-charts-active-color) 18%);
+
+    /* Shadows */
+    --ag-charts-floating-shadow: 0 2px 12px 0 color-mix(in srgb, black 33.3%, transparent);
 
     /* Axis Labels */
     --ag-charts-axis-label-background-color: #9caebb;

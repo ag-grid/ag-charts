@@ -1,17 +1,16 @@
-import { _ModuleSupport, type _Widget } from 'ag-charts-community';
+import { _ModuleSupport, _Widget } from 'ag-charts-community';
 
 const { BBoxValues } = _ModuleSupport;
 
 type AxesHandlers = {
     onDragStart: (id: string, direction: _ModuleSupport.ChartAxisDirection) => void;
-    onDrag: (event: _ModuleSupport.PointerOffsets) => void;
+    onDrag: (event: _Widget.DragMoveWidgetEvent) => void;
     onDragEnd: () => void;
 };
 
 type ProxyAxis = {
     axisId: string;
     div: _Widget.NativeWidget<HTMLDivElement>;
-    destroy(): void;
 };
 
 export class ZoomDOMProxy {
@@ -28,24 +27,16 @@ export class ZoomDOMProxy {
         const where = 'afterend';
         const div = ctx.proxyInteractionService.createProxyElement({ type: 'region', domManagerId: axisId, where });
         div.setCursor(cursor);
-
-        const removeListeners = ctx.proxyInteractionService.createDragListeners({
-            element: div.getElement(),
-            onDragStart: () => handlers.onDragStart(axisId, direction),
-            onDrag: handlers.onDrag,
-            onDragEnd: handlers.onDragEnd,
-        });
-        const destroy = () => {
-            div.destroy();
-            removeListeners();
-        };
-        return { axisId, div, destroy };
+        div.addListener('drag-start', () => handlers.onDragStart(axisId, direction));
+        div.addListener('drag-move', (_target, ev) => handlers.onDrag(ev));
+        div.addListener('drag-end', handlers.onDragEnd);
+        return { axisId, div };
     }
 
     constructor(private readonly axesHandlers: AxesHandlers) {}
 
     destroy() {
-        this.axes.forEach((a) => a.destroy());
+        this.axes.forEach((a) => a.div.destroy());
     }
 
     update(ctx: _ModuleSupport.ModuleContext) {
@@ -56,7 +47,7 @@ export class ZoomDOMProxy {
         if (removed.length > 0) {
             this.axes = this.axes.filter((entry) => {
                 if (removed.includes(entry.axisId)) {
-                    entry.destroy();
+                    entry.div.destroy();
                     return false;
                 }
                 return true;

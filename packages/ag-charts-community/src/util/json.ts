@@ -19,7 +19,7 @@ const CLASS_INSTANCE_TYPE = 'class-instance';
  * @param skip object keys to skip during diff
  * @returns `null` if no differences, or an object with the subset of properties that have changed.
  */
-export function jsonDiff<T extends unknown>(source: T, target: T, skip?: (keyof T)[]): Partial<T> | null {
+export function jsonDiff<T>(source: T, target: T, skip?: (keyof T)[]): Partial<T> | null {
     if (isArray(target)) {
         if (
             !isArray(source) ||
@@ -239,7 +239,7 @@ export function jsonApply<Target extends object, Source extends DeepPartial<Targ
                 if (currentValue == null) {
                     targetAny[property] = {};
                 }
-                jsonApply(currentValue ?? targetAny[property], newValue as any, {
+                jsonApply(currentValue ?? targetAny[property], newValue, {
                     ...params,
                     path: propertyPath,
                     matcherPath: propertyMatcherPath,

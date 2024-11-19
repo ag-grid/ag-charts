@@ -2,7 +2,7 @@ import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSuppo
 
 import { Menu, type MenuItem } from '../../components/menu/menu';
 
-const { ActionOnSet, Validate, BOOLEAN } = _ModuleSupport;
+const { ActionOnSet, Validate, BOOLEAN, Logger } = _ModuleSupport;
 
 const menuItems: MenuItem<AgPriceVolumeChartType>[] = [
     { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc-series', value: 'ohlc' },
@@ -91,7 +91,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
     private setChartType(chartType: AgPriceVolumeChartType) {
         const options: AgFinancialChartOptions = { chartType };
-        void this.ctx.chartService.publicApi?.updateDelta(options as any);
+        this.ctx.chartService.publicApi?.updateDelta(options as any).catch((e) => Logger.error(e));
     }
 
     private getChartType(): AgPriceVolumeChartType {

@@ -12,6 +12,7 @@ export type SpriteDimensions = {
 };
 
 export class SpriteRenderer {
+    // @eslint-ignore-next-line sonarjs/public-static-readonly
     public static offscreenCanvasCount = 0;
     private readonly offscreenCanvas: OffscreenCanvas;
     private readonly renderCtx: RenderContext;

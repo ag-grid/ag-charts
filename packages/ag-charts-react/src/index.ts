@@ -19,7 +19,7 @@ import {
 } from 'ag-charts-community';
 
 interface BaseChartProps {
-    options: {};
+    options: object;
     style?: CSSProperties;
     className?: string;
 }
@@ -49,16 +49,15 @@ function ChartWithConstructor<Props extends BaseChartProps>(
             return () => {
                 chart.destroy();
             };
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, []);
 
         // Avoid updating immediately after creating the chart
         const unsafeIsInitialMount = chartRef.current === undefined;
         useEffect(() => {
             if (!unsafeIsInitialMount) {
-                void chartRef.current?.update(getOptions(options, containerRef));
+                // eslint-disable-next-line no-console
+                chartRef.current?.update(getOptions(options, containerRef)).catch((e) => console.error(e));
             }
-            // eslint-disable-next-line react-hooks/exhaustive-deps
         }, [options]);
 
         // Note useLayoutEffect is called before useImperativeHandle

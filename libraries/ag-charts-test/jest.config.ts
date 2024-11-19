@@ -1,4 +1,3 @@
-/* eslint-disable */
 export default {
     displayName: 'ag-charts-test',
     preset: '../../jest.preset.js',

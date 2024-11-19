@@ -7,7 +7,6 @@ const {
     ZIndexMap,
     ActionOnSet,
     CategoryAxis,
-    GroupedCategoryAxis,
     TextUtils,
     Padding,
     Logger,
@@ -238,15 +237,9 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             if (thickness) {
                 size = thickness;
             } else {
-                // Because of the rotation technique used by axes rendering labels are padded 5px off,
-                // which need to be account for in these calculations to make sure labels aren't being clipped.
-                // This will become obsolete only once axes rotation technique would be removed.
-                const rotationPaddingFix = 5;
                 size =
                     (line.enabled ? line.width : 0) +
-                    (label.enabled
-                        ? TextUtils.getLineHeight(label.fontSize ?? 0) + label.padding + rotationPaddingFix
-                        : 0);
+                    (label.enabled ? TextUtils.getLineHeight(label.fontSize ?? 0) + label.padding : 0);
             }
 
             padding[position] = Math.ceil(size);
@@ -274,7 +267,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
                     break;
                 case 'right':
                 case 'left': {
-                    const isCategoryAxis = axis instanceof CategoryAxis || axis instanceof GroupedCategoryAxis;
+                    const isCategoryAxis = axis instanceof CategoryAxis;
                     axis.range = isCategoryAxis ? [0, seriesRect.height] : [seriesRect.height, 0];
                     axis.gridLength = seriesRect.width;
                     break;

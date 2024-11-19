@@ -19,7 +19,7 @@ const { NUMBER, OBJECT, STRING, BaseProperties, Validate, isObject, Logger } = _
 export class DisjointChannelProperties extends Annotation(
     Background(Line(Handle(Extendable(Stroke(LineStyle(BaseProperties))))))
 ) {
-    static is(value: unknown): value is DisjointChannelProperties {
+    static is(this: void, value: unknown): value is DisjointChannelProperties {
         return isObject(value) && value.type === AnnotationType.DisjointChannel;
     }
 

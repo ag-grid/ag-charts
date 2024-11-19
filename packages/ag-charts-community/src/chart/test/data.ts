@@ -506,11 +506,8 @@ export const DATA_BROWSER_MARKET_SHARE_MISSING_FIRST_Y = [
     },
 ];
 
-function groupedData(game: string, country: string): {} {
-    return {
-        labels: [game, country],
-        toString: () => `${country} - ${game}`,
-    };
+function groupedData(game: string, country: string): string[] {
+    return [country, game];
 }
 
 export const DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY = [

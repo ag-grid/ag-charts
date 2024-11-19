@@ -1,9 +1,7 @@
-import type { AgIconName } from 'ag-charts-types';
-
-import { BaseManager } from '../chart/baseManager';
 import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
 import { setAttribute } from '../util/attributeUtil';
+import { BaseManager } from '../util/baseManager';
 import { createElement, getDocument, getWindow } from '../util/dom';
 import { GuardedElement } from '../util/guardedElement';
 import { stopPageScrolling } from '../util/keynavUtil';
@@ -11,7 +9,6 @@ import { type Size, SizeMonitor } from '../util/sizeMonitor';
 // TODO move to utils
 import BASE_DOM from './domLayout.html';
 
-/* eslint-disable sonarjs/no-duplicate-string */
 const DOM_ELEMENT_CLASSES = [
     'styles',
     'canvas',
@@ -132,7 +129,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         this.destroyFns.push(stopPageScrolling(this.element));
 
-        const guardedElement = this.element.querySelector('.ag-charts-canvas-center') as HTMLElement | null;
+        const guardedElement = this.element.querySelector<HTMLElement>('.ag-charts-canvas-center');
         if (guardedElement == null) throw new Error('Error initializing tab guards');
         const topGuard = createTabGuardElement(guardedElement, 'beforebegin');
         const botGuard = createTabGuardElement(guardedElement, 'afterend');
@@ -459,9 +456,5 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
     setDataBoolean(name: string, value: boolean) {
         this.element.dataset[name] = String(value);
-    }
-
-    getIconClassNames(icon: AgIconName) {
-        return `ag-charts-icon ag-charts-icon-${icon}`;
     }
 }

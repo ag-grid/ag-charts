@@ -4,7 +4,7 @@ const { BaseProperties, Validate, OBJECT, BOOLEAN, NUMBER, NUMBER_ARRAY, Logger 
 
 class GaugeSegmentationIntervalProperties extends BaseProperties {
     @Validate(NUMBER_ARRAY, { optional: true })
-    values?: number[] | undefined;
+    values?: number[];
 
     @Validate(NUMBER, { optional: true })
     step?: number;

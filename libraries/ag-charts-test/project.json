@@ -24,8 +24,13 @@
       "outputs": []
     },
     "lint": {
-      "executor": "@nx/eslint:lint"
+      "executor": "nx:noop",
+      "dependsOn": ["lint:eslint"],
+      "configurations": {
+        "fix": {}
+      }
     },
+    "lint:eslint": {},
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],

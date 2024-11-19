@@ -20,14 +20,14 @@ describe('Pool', () => {
     it('should instantiate new items when empty', () => {
         const result = pool.obtain('create test 123');
 
-        expect(typeof result.item === 'symbol');
+        expect(typeof result.item).toEqual('symbol');
         expect(result.item.description).toEqual('create test 123');
     });
 
     it('should instantiate new items up to pool size', () => {
         for (let i = 0; i < testPoolSize; i++) {
             const result = pool.obtain('create test ' + i);
-            expect(typeof result.item === 'symbol');
+            expect(typeof result.item).toEqual('symbol');
             expect(result.item.description).toEqual('create test ' + i);
         }
     });

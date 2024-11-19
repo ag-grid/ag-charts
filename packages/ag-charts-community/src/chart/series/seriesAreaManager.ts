@@ -5,12 +5,12 @@ import { FocusSwapChain } from '../../dom/focusSwapChain';
 import type { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
 import { Transformable } from '../../scene/transformable';
+import { BaseManager } from '../../util/baseManager';
 import { createId } from '../../util/id';
 import { clamp } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
 import { excludesType } from '../../util/type-guards';
-import { BaseManager } from '../baseManager';
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
@@ -368,7 +368,7 @@ export class SeriesAreaManager extends BaseManager {
             focus: { series, seriesIndex: otherIndex, datumIndex },
             seriesRect,
         } = this;
-        if (series === undefined) return;
+        if (series == null) return;
         const pick = series.pickFocus({ datumIndex, datumIndexDelta, otherIndex, otherIndexDelta, seriesRect });
         this.updatePickedFocus(pick, refresh);
     }
@@ -387,7 +387,8 @@ export class SeriesAreaManager extends BaseManager {
 
         if (this.focusIndicator.isFocusVisible() && seriesRect) {
             const focusBBox = getPickedFocusBBox(pick);
-            if (!seriesRect.containsBBox(focusBBox)) {
+            const { x, y } = focusBBox.computeCenter();
+            if (!seriesRect.containsPoint(x, y)) {
                 this.chart.ctx.zoomManager.panToBBox(this.id, seriesRect, focusBBox);
             }
         }

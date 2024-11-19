@@ -1,4 +1,4 @@
-import { BaseManager } from '../baseManager';
+import { BaseManager } from '../../util/baseManager';
 
 // These interaction state are both bitflags and priorities.
 // Smaller numbers have higher priority, because it is possible to find the least

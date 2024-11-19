@@ -52,13 +52,11 @@ describe('RadialGaugeSeries', () => {
         await waitForChartStability(chart);
         const reference = await snapshot();
 
-        const canvasCount = ctx.getActiveCanvasInstances().length;
-
         const imageURL = await chart.getImageDataURL();
         const imagePNGData = Buffer.from(imageURL.split(',')[1], 'base64');
         expect(imagePNGData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
 
-        const imageRaw = ctx.getActiveCanvasInstances()[canvasCount];
+        const imageRaw = ctx.getActiveCanvasInstances().find((canvas) => canvas.width > 100 && canvas.height > 100)!;
         expect(imageRaw.toBuffer('raw')).toMatchImage(reference);
     };
 

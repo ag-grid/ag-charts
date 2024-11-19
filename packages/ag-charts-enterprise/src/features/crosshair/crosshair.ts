@@ -191,7 +191,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private isVertical(): boolean {
-        return this.axisCtx.direction === 'x';
+        return this.axisCtx.direction === ChartAxisDirection.X;
     }
 
     private formatValue(value: unknown): string {

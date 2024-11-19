@@ -6,7 +6,7 @@ import type { CssColor, Opacity, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions } from '../seriesOptions';
 
-export interface AgPyramidSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {}
+export type AgPyramidSeriesLabelOptions<TDatum, TParams> = AgChartLabelOptions<TDatum, TParams>;
 
 export interface AgPyramidSeriesStageLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
     /** Placement of the label in relation to the chart. */
@@ -22,7 +22,7 @@ export interface AgPyramidSeriesItemStylerParams<TDatum>
 
 export interface AgPyramidSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {}
 
-export type AgPyramidSeriesLabelFormatterParams = AgPyramidSeriesOptionsKeys & AgPyramidSeriesOptionsNames;
+export type AgPyramidSeriesLabelFormatterParams = AgPyramidSeriesOptionsKeys;
 
 export interface AgPyramidSeriesTooltipRendererParams<TDatum = any>
     extends AgPyramidSeriesOptionsKeys,

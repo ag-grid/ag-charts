@@ -17,6 +17,7 @@ const {
     animationValidation,
     computeBarFocusBounds,
     sanitizeHtml,
+    createDatumId,
     Color,
     ContinuousScale,
     motion,
@@ -126,7 +127,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return this.padBandExtent(keys);
     }
 
-    async createNodeData() {
+    override createNodeData() {
         const { visible, dataModel, processedData } = this;
 
         const xAxis = this.getCategoryAxis();
@@ -247,36 +248,31 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, data } = this;
         const {
-            xKey,
-            yName,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            showInLegend,
-            legendItemName,
+            id: seriesId,
+            ctx: { legendManager },
             visible,
-        } = this.properties;
+        } = this;
+        const { xKey, yName, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, showInLegend, legendItemName } =
+            this.properties;
 
-        if (!showInLegend || !data?.length || !xKey || legendType !== 'category') {
+        if (!xKey || legendType !== 'category') {
             return [];
         }
 
         return [
             {
                 legendType: 'category',
-                id,
-                itemId: id,
-                seriesId: id,
-                enabled: visible,
+                id: seriesId,
+                itemId: seriesId,
+                seriesId: seriesId,
+                enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: seriesId }),
                 label: {
-                    text: legendItemName ?? yName ?? id,
+                    text: legendItemName ?? yName ?? seriesId,
                 },
                 symbols: [{ marker: { fill, fillOpacity, stroke, strokeOpacity, strokeWidth } }],
                 legendItemName,
+                hideInLegend: !showInLegend,
             },
         ];
     }
@@ -319,7 +315,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             .map(([key, name, axis]) => sanitizeHtml(`${name ?? key}: ${axis.formatDatum(datum[key])}`))
             .join(title ? '<br/>' : ', ');
 
-        const { fill: formatFill } = this.getFormattedStyles(nodeDatum);
+        const { fill: formatFill } = this.getFormattedStyles(nodeDatum, 'tooltip');
 
         return tooltip.toTooltipHtml(
             { title, content, backgroundColor: fill },
@@ -362,7 +358,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return false;
     }
 
-    protected override async updateDatumSelection(opts: {
+    protected override updateDatumSelection(opts: {
         nodeData: BoxPlotNodeDatum[];
         datumSelection: _ModuleSupport.Selection<BoxPlotGroup, BoxPlotNodeDatum>;
         seriesIdx: number;
@@ -371,7 +367,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return opts.datumSelection.update(data);
     }
 
-    protected override async updateDatumNodes({
+    protected override updateDatumNodes({
         datumSelection,
         isHighlight: highlighted,
     }: {
@@ -381,7 +377,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const isVertical = this.isVertical();
         const isReversedValueAxis = this.getValueAxis()?.isReversed();
         datumSelection.each((boxPlotGroup, nodeDatum) => {
-            let activeStyles = this.getFormattedStyles(nodeDatum, highlighted);
+            let activeStyles = this.getFormattedStyles(nodeDatum, highlighted ? 'highlight' : 'node');
 
             if (highlighted) {
                 activeStyles = mergeDefaults(this.properties.highlightStyle.item, activeStyles);
@@ -406,11 +402,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    protected async updateLabelNodes() {
+    protected updateLabelNodes() {
         // Labels are unsupported.
     }
 
-    protected async updateLabelSelection(opts: {
+    protected updateLabelSelection(opts: {
         labelData: BoxPlotNodeDatum[];
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, BoxPlotNodeDatum>;
         seriesIdx: number;
@@ -423,12 +419,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return new BoxPlotGroup();
     }
 
-    getFormattedStyles(nodeDatum: BoxPlotNodeDatum, highlighted = false): AgBoxPlotSeriesStyle {
-        const {
-            id: seriesId,
-            ctx: { callbackCache },
-            properties,
-        } = this;
+    getFormattedStyles(nodeDatum: BoxPlotNodeDatum, scope: 'tooltip' | 'node' | 'highlight'): AgBoxPlotSeriesStyle {
+        const { id: seriesId, properties } = this;
         const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler, backgroundFill, cornerRadius } = properties;
         const { datum, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cap, whisker } = nodeDatum;
         let fill: string;
@@ -467,18 +459,20 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         };
 
         if (itemStyler) {
-            const formatStyles = callbackCache.call(itemStyler, {
-                datum,
-                seriesId,
-                highlighted,
-                ...activeStyles,
-                xKey,
-                minKey,
-                q1Key,
-                medianKey,
-                q3Key,
-                maxKey,
-            });
+            const formatStyles = this.cachedDatumCallback(createDatumId(datum.index, scope), () =>
+                itemStyler({
+                    datum,
+                    seriesId,
+                    highlighted: scope === 'highlight',
+                    ...activeStyles,
+                    xKey,
+                    minKey,
+                    q1Key,
+                    medianKey,
+                    q3Key,
+                    maxKey,
+                })
+            );
             if (formatStyles) {
                 return mergeDefaults(formatStyles, activeStyles);
             }

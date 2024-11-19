@@ -36,6 +36,8 @@ export type LineSpanPointDatum = {
 };
 
 export interface LineNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDatum {
+    readonly xValue: NonNullable<CartesianSeriesNodeDatum['xValue']>;
+    readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
     readonly point: NonNullable<CartesianSeriesNodeDatum['point']>;
     readonly labelText?: string;
     readonly selected: boolean | undefined;

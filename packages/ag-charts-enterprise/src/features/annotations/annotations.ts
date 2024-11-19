@@ -83,7 +83,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     // State
     private readonly state: AnnotationsStateMachine;
     private readonly annotationData: AnnotationPropertiesArray = new PropertiesArray<AnnotationProperties>(
-        this.createAnnotationDatum
+        Annotations.createAnnotationDatum
     );
     private readonly defaults = new AnnotationDefaults();
     private dataModel?: _ModuleSupport.DataModel<any, any>;
@@ -550,7 +550,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
      * of `AnnotationProperties` from the given config for its type. This method is only called when annotations
      * are added from the initial state.
      */
-    private createAnnotationDatum(params: { type: AnnotationType }) {
+    private static createAnnotationDatum(this: void, params: { type: AnnotationType }) {
         if (params.type in annotationConfigs) {
             return new annotationConfigs[params.type].datum().set(params);
         }

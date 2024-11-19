@@ -24,6 +24,10 @@ export function findRangeExtent(array: number[]) {
     return max - min;
 }
 
+export function inRange(value: number, range: [number, number], epsilon: number = 1e-10) {
+    return value >= range[0] - epsilon && value <= range[1] + epsilon;
+}
+
 export function isNumberEqual(a: number, b: number, epsilon: number = 1e-10) {
     return Math.abs(a - b) < epsilon;
 }

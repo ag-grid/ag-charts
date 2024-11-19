@@ -13,6 +13,7 @@ export enum CARTESIAN_POSITION {
 
 export enum CARTESIAN_AXIS_TYPE {
     CATEGORY = 'category',
+    GROUPED_CATEGORY = 'grouped-category',
     ORDINAL_TIME = 'ordinal-time',
     NUMBER = 'number',
     TIME = 'time',

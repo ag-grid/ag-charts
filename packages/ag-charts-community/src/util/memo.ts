@@ -14,7 +14,7 @@ export function memo<T, R>(params: T, fnGenerator: (params: T) => () => R): () =
 }
 
 export function simpleMemorize<F extends (...args: any[]) => any>(fn: F) {
-    const primitveCache = new Map<string | number, {}>();
+    const primitveCache = new Map<string | number, object>();
 
     const paramsToKeys = (...params: (WeakKey | string | number)[]) => {
         return params.map((v) => {

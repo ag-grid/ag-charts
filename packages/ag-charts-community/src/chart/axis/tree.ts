@@ -1,112 +1,118 @@
-interface Tick {
-    labels: string[];
-}
-
 /**
  * The tree layout is calculated in abstract x/y coordinates, where the root is at (0, 0)
  * and the tree grows downward from the root.
  */
 
+class Dimensions {
+    top: number = Infinity;
+    right: number = -Infinity;
+    bottom: number = -Infinity;
+    left: number = Infinity;
+
+    update(x: number, y: number) {
+        if (x > this.right) {
+            this.right = x;
+        }
+        if (x < this.left) {
+            this.left = x;
+        }
+        if (y > this.bottom) {
+            this.bottom = y;
+        }
+        if (y < this.top) {
+            this.top = y;
+        }
+    }
+}
+
 class TreeNode {
-    label: string;
     x: number = 0;
     y: number = 0;
     subtreeLeft: number = NaN;
     subtreeRight: number = NaN;
+    // screenX and screenY are meant to be recomputed from (layout) x and y
+    // when the tree is resized (without performing another layout)
     screenX: number = 0;
     screenY: number = 0;
-    parent?: TreeNode;
     children: TreeNode[] = [];
     leafCount: number = 0;
     depth: number;
     prelim: number = 0;
     mod: number = 0;
-    thread?: TreeNode;
     ancestor = this;
     change: number = 0;
     shift: number = 0;
-    number: number; // current number in sibling group (index)
+    index: number = 0;
 
-    constructor(label = '', parent?: any, number = 0) {
-        this.label = label;
-        // screenX and screenY are meant to be recomputed from (layout) x and y
-        // when the tree is resized (without performing another layout)
-        this.parent = parent;
+    constructor(
+        public label: string = '',
+        public parent?: TreeNode
+    ) {
         this.depth = parent ? parent.depth + 1 : 0;
-        this.number = number;
+    }
+
+    insertTick(tick: string[]) {
+        let root: TreeNode = this;
+        for (let i = tick.length - 1; i >= 0; i--) {
+            const pathPart = tick[i];
+            const isNotLeaf = i !== 0;
+            const { children } = root;
+            const existingNode = children.find((child) => child.label === pathPart);
+            if (existingNode && isNotLeaf) {
+                // the isNotLeaf check is to allow duplicate leafs
+                root = existingNode;
+            } else {
+                const node = new TreeNode(pathPart, root);
+                node.index = children.length;
+                children.push(node);
+                if (isNotLeaf) {
+                    root = node;
+                }
+            }
+        }
     }
 
     getLeftSibling(): TreeNode | undefined {
-        return this.number > 0 && this.parent ? this.parent.children[this.number - 1] : undefined;
+        return this.index > 0 ? this.parent?.children[this.index - 1] : undefined;
     }
 
     getLeftmostSibling(): TreeNode | undefined {
-        return this.number > 0 && this.parent ? this.parent.children[0] : undefined;
+        return this.index > 0 ? this.parent?.children[0] : undefined;
     }
 
     // traverse the left contour of a subtree, return the successor of v on this contour
     nextLeft(): TreeNode | undefined {
-        return this.children ? this.children[0] : this.thread;
+        return this.children[0];
     }
     // traverse the right contour of a subtree, return the successor of v on this contour
     nextRight(): TreeNode | undefined {
-        return this.children ? this.children[this.children.length - 1] : this.thread;
+        return this.children.at(-1);
     }
 
     getSiblings(): TreeNode[] {
-        return this.parent ? this.parent.children.filter((_, i) => i !== this.number) : [];
+        return this.parent?.children.filter((_, i) => i !== this.index) ?? [];
     }
 }
 
 /**
  * Converts an array of ticks, where each tick has an array of labels, to a label tree.
- * If `pad` is `true`, will ensure that every branch matches the depth of the tree by
- * creating empty labels.
+ * Ensures that every branch matches the depth of the tree by creating empty labels.
  */
-export function ticksToTree(ticks: Tick[], pad = true): TreeNode {
-    const root: any = new TreeNode();
-    let depth = 0;
-
-    if (pad) {
-        ticks.forEach((tick) => (depth = Math.max(depth, tick.labels.length)));
+export function ticksToTree(ticks: string[][]): TreeNode {
+    const maxDepth = ticks.reduce((depth, tick) => (depth < tick.length ? tick.length : depth), 0);
+    const root = new TreeNode();
+    for (const tick of ticks) {
+        while (tick.length < maxDepth) {
+            tick.unshift('');
+        }
+        root.insertTick(tick);
     }
-    ticks.forEach((tick) => {
-        if (pad) {
-            while (tick.labels.length < depth) {
-                tick.labels.unshift('');
-            }
-        }
-        insertTick(root, tick);
-    });
-
     return root;
-}
-
-function insertTick(root: TreeNode, tick: Tick) {
-    const pathParts = tick.labels.slice().reverse(); // path elements from root to leaf label
-    const lastPartIndex = pathParts.length - 1;
-
-    pathParts.forEach((pathPart, partIndex) => {
-        const children = root.children;
-        const existingNode = children.find((child) => child.label === pathPart);
-        const isNotLeaf = partIndex !== lastPartIndex;
-        if (existingNode && isNotLeaf) {
-            // the isNotLeaf check is to allow duplicate leafs
-            root = existingNode;
-        } else {
-            const node = new TreeNode(pathPart, root);
-            node.number = children.length;
-            children.push(node);
-            if (isNotLeaf) {
-                root = node;
-            }
-        }
-    });
 }
 
 // Shift the subtree.
 function moveSubtree(wm: TreeNode, wp: TreeNode, shift: number) {
-    const subtrees = wp.number - wm.number;
+    const subtrees = wp.index - wm.index;
     const ratio = shift / subtrees;
     wp.change -= ratio;
     wp.shift += shift;
@@ -120,25 +126,21 @@ function ancestor(vim: TreeNode, v: TreeNode, defaultAncestor: TreeNode): TreeNo
 }
 
 // Spaces out the children.
-function executeShifts(v: TreeNode) {
-    const children = v.children;
+function executeShifts({ children }: TreeNode) {
+    let shift = 0;
+    let change = 0;
 
-    if (children) {
-        let shift = 0;
-        let change = 0;
-
-        for (let i = children.length - 1; i >= 0; i--) {
-            const w = children[i];
-            w.prelim += shift;
-            w.mod += shift;
-            change += w.change;
-            shift += w.shift + change;
-        }
+    for (let i = children.length - 1; i >= 0; i--) {
+        const w = children[i];
+        w.prelim += shift;
+        w.mod += shift;
+        change += w.change;
+        shift += w.shift + change;
     }
 }
 
 // Moves current subtree with v as the root if some nodes are conflicting in space.
-function apportion(v: TreeNode, defaultAncestor: TreeNode, distance: number) {
+function apportion(v: TreeNode, defaultAncestor: TreeNode) {
     const w = v.getLeftSibling();
 
     if (w) {
@@ -157,7 +159,7 @@ function apportion(v: TreeNode, defaultAncestor: TreeNode, distance: number) {
             vom = vom.nextLeft()!;
             vop = vop.nextRight()!;
             vop.ancestor = v;
-            const shift = vim.prelim + sim - (vip.prelim + sip) + distance;
+            const shift = vim.prelim + sim - (vip.prelim + sip) + 1;
             if (shift > 0) {
                 moveSubtree(ancestor(vim, v, defaultAncestor), v, shift);
                 sip += shift;
@@ -170,11 +172,9 @@ function apportion(v: TreeNode, defaultAncestor: TreeNode, distance: number) {
         }
 
         if (vim.nextRight() && !vop.nextRight()) {
-            vop.thread = vim.nextRight();
             vop.mod += sim - sop;
         } else {
             if (vip.nextLeft() && !vom.nextLeft()) {
-                vom.thread = vip.nextLeft();
                 vom.mod += sip - som;
             }
             defaultAncestor = v;
@@ -185,59 +185,35 @@ function apportion(v: TreeNode, defaultAncestor: TreeNode, distance: number) {
 }
 
 // Compute the preliminary x-coordinate of node and its children (recursively).
-function firstWalk(node: TreeNode, distance: number) {
-    const children = node.children;
+function firstWalk(node: TreeNode) {
+    const { children } = node;
 
     if (children.length) {
-        let defaultAncestor = children[0];
-        children.forEach((child) => {
-            firstWalk(child, distance);
-            defaultAncestor = apportion(child, defaultAncestor, distance);
-        });
-
+        let [defaultAncestor] = children;
+        for (const child of children) {
+            firstWalk(child);
+            defaultAncestor = apportion(child, defaultAncestor);
+        }
         executeShifts(node);
 
         const midpoint = (children[0].prelim + children.at(-1)!.prelim) / 2;
         const leftSibling = node.getLeftSibling();
         if (leftSibling) {
-            node.prelim = leftSibling.prelim + distance;
+            node.prelim = leftSibling.prelim + 1;
             node.mod = node.prelim - midpoint;
         } else {
             node.prelim = midpoint;
         }
     } else {
         const leftSibling = node.getLeftSibling();
-        node.prelim = leftSibling ? leftSibling.prelim + distance : 0;
-    }
-}
-
-class Dimensions {
-    top: number = Infinity;
-    right: number = -Infinity;
-    bottom: number = -Infinity;
-    left: number = Infinity;
-
-    update(node: TreeNode, xy: (node: TreeNode) => { x: number; y: number }) {
-        const { x, y } = xy(node);
-        if (x > this.right) {
-            this.right = x;
-        }
-        if (x < this.left) {
-            this.left = x;
-        }
-        if (y > this.bottom) {
-            this.bottom = y;
-        }
-        if (y < this.top) {
-            this.top = y;
-        }
+        node.prelim = leftSibling ? leftSibling.prelim + 1 : 0;
     }
 }
 
 function secondWalk(v: TreeNode, m: number, layout: TreeLayout) {
     v.x = v.prelim + m;
     v.y = v.depth;
-    layout.update(v);
+    layout.insertNode(v);
     v.children.forEach((w) => secondWalk(w, m + v.mod, layout));
 }
 
@@ -266,10 +242,11 @@ function thirdWalk(v: TreeNode) {
     }
 }
 
-export function treeLayout(root: TreeNode): TreeLayout {
+export function treeLayout(ticks: string[][]): TreeLayout {
     const layout = new TreeLayout();
+    const root = ticksToTree(ticks);
 
-    firstWalk(root, 1);
+    firstWalk(root);
     secondWalk(root, -root.prelim, layout);
     thirdWalk(root);
 
@@ -277,62 +254,46 @@ export function treeLayout(root: TreeNode): TreeLayout {
 }
 
 export class TreeLayout {
-    dimensions = new Dimensions();
-    leafCount = 0;
-    nodes: TreeNode[] = [];
-    // One might want to process leaf nodes separately from the rest of the tree.
-    // For example, position labels corresponding to leafs vertically, rather than horizontally.
-    leafNodes: TreeNode[] = [];
-    nonLeafNodes: TreeNode[] = [];
-    depth = 0;
+    private readonly dimensions = new Dimensions();
 
-    update(node: TreeNode) {
-        this.dimensions.update(node, (n) => ({ x: n.x, y: n.y }));
-        if (node.children.length) {
-            this.nonLeafNodes.push(node);
-        } else {
-            this.leafCount++;
-            this.leafNodes.push(node);
-        }
-        if (node.depth > this.depth) {
+    public nodes: TreeNode[] = [];
+    public depth: number = 0;
+
+    insertNode(node: TreeNode) {
+        if (this.depth < node.depth) {
             this.depth = node.depth;
         }
+        this.dimensions.update(node.x, node.y);
         this.nodes.push(node);
     }
 
     resize(width: number, height: number, shiftX = 0, shiftY = 0, flipX: boolean = false) {
-        const xSteps = this.leafCount - 1;
-        const ySteps = this.depth;
-        const dimensions = this.dimensions;
+        const { dimensions } = this;
 
         let scalingX = 1;
         let scalingY = 1;
-        if (width > 0 && xSteps) {
-            const existingSpacingX = (dimensions.right - dimensions.left) / xSteps;
-            const desiredSpacingX = width / xSteps;
-            scalingX = desiredSpacingX / existingSpacingX;
+        if (width > 0) {
+            scalingX = width / (dimensions.right - dimensions.left);
             if (flipX) {
                 scalingX = -scalingX;
             }
         }
-        if (height > 0 && ySteps) {
-            const existingSpacingY = (dimensions.bottom - dimensions.top) / ySteps;
-            const desiredSpacingY = height / ySteps;
-            scalingY = desiredSpacingY / existingSpacingY;
+        if (height > 0) {
+            scalingY = height / (dimensions.bottom - dimensions.top);
         }
 
         const screenDimensions = new Dimensions();
-        this.nodes.forEach((node) => {
+        for (const node of this.nodes) {
             node.screenX = node.x * scalingX;
             node.screenY = node.y * scalingY;
-            screenDimensions.update(node, (n) => ({ x: n.screenX, y: n.screenY }));
-        });
+            screenDimensions.update(node.screenX, node.screenY);
+        }
         // Normalize so that root top and leftmost leaf left start at zero.
         const offsetX = -screenDimensions.left;
         const offsetY = -screenDimensions.top;
-        this.nodes.forEach((node) => {
+        for (const node of this.nodes) {
             node.screenX += offsetX + shiftX;
             node.screenY += offsetY + shiftY;
-        });
+        }
     }
 }

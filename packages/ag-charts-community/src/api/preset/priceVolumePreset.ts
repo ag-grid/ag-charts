@@ -32,10 +32,9 @@ import { Logger } from '../../util/logger';
 import { mergeDefaults } from '../../util/object';
 import { isObject } from '../../util/type-guards';
 
-function fromTheme<T>(
-    theme: AgChartTheme | AgChartThemeName | undefined,
-    cb: (theme: AgChartTheme) => T
-): T | undefined {
+type ThemeType = AgChartTheme | AgChartThemeName;
+
+function fromTheme<T>(theme: ThemeType | undefined, cb: (theme: AgChartTheme) => T): T | undefined {
     if (isObject(theme)) {
         return cb(theme);
     }
@@ -95,7 +94,7 @@ export function priceVolume(
     const annotationOpts = {
         annotations: {
             enabled: toolbar,
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             data,
             xKey: dateKey,
             volumeKey: volume ? volumeKey : undefined,
@@ -119,13 +118,16 @@ export function priceVolume(
     const zoomOpts = {
         zoom: {
             enabled: zoom,
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             enableIndependentAxes: true,
         } satisfies AgZoomOptions,
     };
 
     const toolbarOpts = {
         chartToolbar: { enabled: true },
+        ranges: {
+            enabled: rangeButtons,
+        },
         toolbar: {
             seriesType: {
                 enabled: toolbar,
@@ -135,9 +137,6 @@ export function priceVolume(
             },
             annotations: {
                 enabled: toolbar,
-            },
-            ranges: {
-                enabled: rangeButtons,
             },
         } satisfies AgToolbarOptions,
     };
@@ -152,7 +151,7 @@ export function priceVolume(
                   crosshair: { enabled: false },
                   gridLine: { enabled: false },
                   nice: false,
-                  // @ts-expect-error
+                  // @ts-expect-error undocumented option
                   layoutConstraints: {
                       stacked: false,
                       width: 20,
@@ -198,7 +197,7 @@ export function priceVolume(
                     enabled: true,
                     snap: false,
                 },
-                // @ts-expect-error
+                // @ts-expect-error undocumented option
                 layoutConstraints: {
                     stacked: false,
                     width: 100,
@@ -233,7 +232,7 @@ export function priceVolume(
 }
 
 function createVolumeSeries(
-    theme: AgChartThemeName | AgChartTheme | undefined,
+    theme: ThemeType | undefined,
     getTheme: () => ChartTheme,
     openKey: string,
     closeKey: string,
@@ -256,17 +255,17 @@ function createVolumeSeries(
             type: 'bar',
             xKey: 'date',
             yKey: volumeKey,
-            // @ts-expect-error
-            focusPriority: 1,
             tooltip: { enabled: false },
             highlight: { enabled: false },
             fillOpacity: fromTheme(theme, (t) => t.overrides?.bar?.series?.fillOpacity) ?? 0.5,
             ...itemStyler,
+            // @ts-expect-error undocumented option
+            focusPriority: 1,
+            fastDataProcessing: true,
         } satisfies AgBarSeriesOptions,
     ];
 }
 
-// eslint-disable-next-line sonarjs/no-duplicate-string
 const RANGE_AREA_TYPE = 'range-area';
 
 interface PriceSeriesCommon {
@@ -287,7 +286,7 @@ interface PriceSeriesSingleKeys {
 }
 
 function createPriceSeries(
-    theme: AgChartThemeName | AgChartTheme | undefined,
+    theme: ThemeType | undefined,
     chartType: AgPriceVolumePreset['chartType'],
     xKey: string,
     highKey: string,
@@ -335,7 +334,7 @@ function createPriceSeriesOHLC(common: PriceSeriesCommon, keys: PriceSeriesKeys)
     return [
         {
             type: 'ohlc',
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             ...keys,
@@ -345,13 +344,13 @@ function createPriceSeriesOHLC(common: PriceSeriesCommon, keys: PriceSeriesKeys)
 
 function createPriceSeriesLine(
     common: PriceSeriesCommon,
-    theme: AgChartThemeName | AgChartTheme | undefined,
+    theme: ThemeType | undefined,
     singleKeys: PriceSeriesSingleKeys
 ) {
     return [
         {
             type: 'line',
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             ...singleKeys,
@@ -363,13 +362,13 @@ function createPriceSeriesLine(
 
 function createPriceSeriesStepLine(
     common: PriceSeriesCommon,
-    theme: AgChartThemeName | AgChartTheme | undefined,
+    theme: ThemeType | undefined,
     singleKeys: PriceSeriesSingleKeys
 ) {
     return [
         {
             type: 'line',
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             ...singleKeys,
@@ -384,7 +383,7 @@ function createPriceSeriesStepLine(
 
 function createPriceSeriesHLC(
     common: PriceSeriesCommon,
-    theme: AgChartThemeName | AgChartTheme | undefined,
+    theme: ThemeType | undefined,
     singleKeys: PriceSeriesSingleKeys,
     { xKey, highKey, closeKey, lowKey }: PriceSeriesKeys
 ) {
@@ -393,7 +392,7 @@ function createPriceSeriesHLC(
     return [
         {
             type: RANGE_AREA_TYPE,
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             xKey,
@@ -406,7 +405,7 @@ function createPriceSeriesHLC(
         } satisfies AgRangeAreaSeriesOptions,
         {
             type: RANGE_AREA_TYPE,
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             xKey,
@@ -430,7 +429,7 @@ function createPriceSeriesHLC(
 
 function createPriceSeriesHighLow(
     common: PriceSeriesCommon,
-    theme: AgChartThemeName | AgChartTheme | undefined,
+    theme: ThemeType | undefined,
     { xKey, highKey, lowKey }: PriceSeriesKeys
 ) {
     const rangeBarColors = getThemeColors('range-bar', theme);
@@ -438,7 +437,7 @@ function createPriceSeriesHighLow(
     return [
         {
             type: 'range-bar',
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             xKey,
@@ -457,7 +456,7 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
     return [
         {
             type: 'candlestick',
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             ...keys,
@@ -474,7 +473,7 @@ function createPriceSeriesHollowCandlestick(
     return [
         {
             type: 'candlestick',
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             ...keys,

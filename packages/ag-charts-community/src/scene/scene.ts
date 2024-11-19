@@ -104,7 +104,7 @@ export class Scene {
         return false;
     }
 
-    async render(opts?: {
+    render(opts?: {
         debugSplitTimes: Record<string, number>;
         extraDebugStats: Record<string, number>;
         seriesRect?: BBox;

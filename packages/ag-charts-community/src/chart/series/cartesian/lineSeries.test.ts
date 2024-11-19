@@ -142,14 +142,12 @@ describe('LineSeries', () => {
                 await assertions(chart);
 
                 warnings.forEach((message, index) => {
-                    // eslint-disable-next-line no-console
                     expect(console.warn).toHaveBeenNthCalledWith(
                         index + 1,
                         ...(Array.isArray(message) ? message : [message])
                     );
                 });
                 if (warnings.length === 0) {
-                    // eslint-disable-next-line no-console
                     expect(console.warn).not.toHaveBeenCalled();
                 }
             }

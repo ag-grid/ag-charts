@@ -7,13 +7,13 @@ import { URL } from 'url';
 
 import { toMatchImage } from 'ag-charts-community-test';
 
-// @ts-expect-error
+// @ts-expect-error types don't exactly align
 global.Blob = Blob;
 
-// @ts-expect-error
+// @ts-expect-error types don't exactly align
 global.Path2D = Path2D;
 
-// @ts-expect-error
+// @ts-expect-error types don't exactly align
 global.URL = URL;
 
 applyPath2DToCanvasRenderingContext(CanvasRenderingContext2D);

@@ -1,5 +1,5 @@
+import { BaseManager } from '../../util/baseManager';
 import { StateTracker } from '../../util/stateTracker';
-import { BaseManager } from '../baseManager';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
 
 export interface HighlightNodeDatum extends SeriesNodeDatum {

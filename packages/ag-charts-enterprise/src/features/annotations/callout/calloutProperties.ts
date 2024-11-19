@@ -19,7 +19,7 @@ const DEFAULT_CALLOUT_PADDING = {
 };
 
 export class CalloutProperties extends Fill(Stroke(TextualStartEndProperties)) {
-    static is(value: unknown): value is CalloutProperties {
+    static is(this: void, value: unknown): value is CalloutProperties {
         return isObject(value) && value.type === AnnotationType.Callout;
     }
 

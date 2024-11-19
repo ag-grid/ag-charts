@@ -352,7 +352,7 @@ export abstract class Node {
             this.cachedBBox = Object.freeze(this.computeBBox()) as BBox;
         }
 
-        return this.cachedBBox!;
+        return this.cachedBBox;
     }
 
     protected computeBBox(): BBox | undefined {

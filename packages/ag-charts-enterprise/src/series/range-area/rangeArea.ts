@@ -152,7 +152,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         }
     }
 
-    async createNodeData() {
+    override createNodeData() {
         const { data, dataModel, processedData, axes, visible } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
@@ -354,11 +354,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return new MarkerShape();
     }
 
-    protected override async updatePathNodes(opts: {
-        paths: _ModuleSupport.Path[];
-        opacity: number;
-        visible: boolean;
-    }) {
+    protected override updatePathNodes(opts: { paths: _ModuleSupport.Path[]; opacity: number; visible: boolean }) {
         const { opacity, visible } = opts;
         const [fill, stroke] = opts.paths;
 
@@ -395,7 +391,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         updateClipPath(this, fill);
     }
 
-    protected override async updatePaths(opts: { contextData: RangeAreaContext; paths: _ModuleSupport.Path[] }) {
+    protected override updatePaths(opts: { contextData: RangeAreaContext; paths: _ModuleSupport.Path[] }) {
         this.updateAreaPaths(opts.paths, opts.contextData);
     }
 
@@ -430,7 +426,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         stroke.markDirty();
     }
 
-    protected override async updateMarkerSelection(opts: {
+    protected override updateMarkerSelection(opts: {
         nodeData: RangeAreaMarkerDatum[];
         markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
     }) {
@@ -442,7 +438,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
-    protected override async updateMarkerNodes(opts: {
+    protected override updateMarkerNodes(opts: {
         markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
     }) {
@@ -467,7 +463,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         }
     }
 
-    protected async updateLabelSelection(opts: {
+    protected updateLabelSelection(opts: {
         labelData: RangeAreaLabelDatum[];
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeAreaLabelDatum>;
     }) {
@@ -478,7 +474,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    protected async updateLabelNodes(opts: {
+    protected updateLabelNodes(opts: {
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RangeAreaLabelDatum>;
     }) {
         opts.labelSelection.each((textNode, datum) => {
@@ -558,6 +554,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             return [];
         }
 
+        const { id: seriesId, visible } = this;
+
         const {
             yLowKey,
             yHighKey,
@@ -569,17 +567,17 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             strokeWidth,
             strokeOpacity,
             lineDash,
-            visible,
             marker,
+            showInLegend,
         } = this.properties;
         const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
-
+        const itemId = `${yLowKey}-${yHighKey}`;
         return [
             {
                 legendType: 'category',
-                id: this.id,
-                itemId: `${yLowKey}-${yHighKey}`,
-                seriesId: this.id,
+                id: seriesId,
+                itemId,
+                seriesId,
                 enabled: visible,
                 label: { text: `${legendItemText}` },
                 symbols: [
@@ -600,6 +598,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                         },
                     },
                 ],
+                hideInLegend: !showInLegend,
             },
         ];
     }

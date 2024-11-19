@@ -67,8 +67,9 @@ export class MementoCaretaker {
      */
     private encode(originator: MementoOriginator, memento: any) {
         try {
-            return JSON.parse(JSON.stringify(memento, this.encodeTypes));
-        } catch (error) {
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            return JSON.parse(JSON.stringify(memento, MementoCaretaker.encodeTypes));
+        } catch (error: any) {
             throw new Error(`Failed to encode [${originator.mementoOriginatorKey}] value [${error}].`, {
                 cause: error,
             });
@@ -81,22 +82,23 @@ export class MementoCaretaker {
     private decode(originator: MementoOriginator, encoded: unknown) {
         if (encoded == null) return encoded;
         try {
-            return JSON.parse(JSON.stringify(encoded), this.decodeTypes) as unknown;
-        } catch (error) {
+            // eslint-disable-next-line @typescript-eslint/unbound-method
+            return JSON.parse(JSON.stringify(encoded), MementoCaretaker.decodeTypes) as unknown;
+        } catch (error: any) {
             throw new Error(`Failed to decode [${originator.mementoOriginatorKey}] value [${error}].`, {
                 cause: error,
             });
         }
     }
 
-    private encodeTypes(this: any, key: any, value: any) {
+    private static encodeTypes(this: any, key: any, value: any) {
         if (isDate(this[key])) {
             return { __type: 'date', value: this[key].toISOString() };
         }
         return value;
     }
 
-    private decodeTypes(this: any, key: any, value: any) {
+    private static decodeTypes(this: any, key: any, value: any) {
         if (isObject(this[key]) && '__type' in this[key] && this[key].__type === 'date') {
             return new Date(this[key].value);
         }

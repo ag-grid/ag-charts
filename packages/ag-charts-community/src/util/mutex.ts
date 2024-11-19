@@ -1,6 +1,6 @@
 import { Logger } from './logger';
 
-type MutexCallback = (...args: any[]) => Promise<void>;
+type MutexCallback = (...args: any[]) => Promise<void> | void;
 
 export class Mutex {
     private available: boolean = true;
@@ -26,7 +26,7 @@ export class Mutex {
     }
 
     public async waitForClearAcquireQueue() {
-        return this.acquire(async () => undefined);
+        return this.acquire(() => Promise.resolve(undefined));
     }
 
     private async dispatchNext() {

@@ -3,7 +3,7 @@ import { Debug } from './debug';
 const CLEANUP_TIMEOUT_MS = 100;
 
 export class Pool<T, P> {
-    static pools = new Map<string, Pool<any, any>>();
+    private static readonly pools = new Map<string, Pool<any, any>>();
 
     static getPool<T, P>(
         name: string,

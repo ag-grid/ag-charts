@@ -1,8 +1,15 @@
 import { Debug } from '../../util/debug';
 import { getWindow } from '../../util/dom';
 import type { ChartMode } from '../chartMode';
-import type { DataModelOptions, DatumPropertyDefinition, ProcessedData, PropertyDefinition } from './dataModel';
-import { DataModel } from './dataModel';
+import { type CachedData, canReuseCachedData } from './caching';
+import {
+    DataModel,
+    type DataModelOptions,
+    type DatumPropertyDefinition,
+    type ProcessedData,
+    type PropertyDefinition,
+    type UngroupedData,
+} from './dataModel';
 
 interface RequestedProcessing<
     D extends object,
@@ -57,7 +64,7 @@ export class DataController {
         });
     }
 
-    public execute() {
+    public execute(cachedData?: CachedData): CachedData {
         if (this.status !== 'setup') {
             throw new Error(`AG Charts - data request after data setup phase.`);
         }
@@ -74,31 +81,46 @@ export class DataController {
             getWindow<{ processedData: any[] }>().processedData = [];
         }
 
-        for (const { opts, data, resolves, rejects, ids } of merged) {
-            try {
-                const dataModel = new DataModel<any>(opts, this.mode);
-                const processedData = dataModel.processData(data, valid);
+        const nextCachedData: CachedData = [];
 
-                if (this.debug.check()) {
-                    getWindow<any[]>('processedData').push(processedData);
-                }
+        for (const { data, ids, opts, resolves, rejects } of merged) {
+            const reusableCache = cachedData?.find((cacheItem) => canReuseCachedData(cacheItem, data, ids, opts));
 
-                if (processedData?.partialValidDataCount === 0) {
-                    resolves.forEach((resolve) =>
-                        resolve({
-                            dataModel,
-                            processedData,
-                        })
-                    );
-                } else if (processedData) {
-                    this.splitResult(dataModel, processedData, ids, resolves);
-                } else {
-                    rejects.forEach((cb) => cb(new Error(`AG Charts - no processed data generated`)));
+            let dataModel: DataModel<any, string, undefined>;
+            let processedData: UngroupedData<any> | undefined;
+            if (reusableCache != null) {
+                ({ dataModel, processedData } = reusableCache);
+            } else {
+                try {
+                    dataModel = new DataModel<any>(opts, this.mode);
+                    processedData = dataModel.processData(data, valid);
+                } catch (error) {
+                    rejects.forEach((cb) => cb(error));
+                    continue;
                 }
-            } catch (error) {
-                rejects.forEach((cb) => cb(error));
+            }
+
+            nextCachedData.push({ opts, data, ids, dataModel, processedData });
+
+            if (this.debug.check()) {
+                getWindow<any[]>('processedData').push(processedData);
+            }
+
+            if (processedData?.partialValidDataCount === 0) {
+                resolves.forEach((resolve) =>
+                    resolve({
+                        dataModel,
+                        processedData,
+                    })
+                );
+            } else if (processedData) {
+                this.splitResult(dataModel, processedData, ids, resolves);
+            } else {
+                rejects.forEach((cb) => cb(new Error(`AG Charts - no processed data generated`)));
             }
         }
+
+        return nextCachedData;
     }
 
     private validateRequests(requested: RequestedProcessing<any, any, any>[]): RequestedProcessing<any, any, any>[] {
@@ -157,14 +179,20 @@ export class DataController {
                 .join(';');
         }
 
+        const { groupByData, groupByKeys = false, groupByFn, props } = opts;
+        const propsKeys = keys(props);
+
         return ([group]: RequestedProcessing<any, any, any>[]) =>
-            (opts.groupByData === false || group.data === data) &&
-            group.opts.groupByKeys === opts.groupByKeys &&
-            group.opts.groupByFn === opts.groupByFn &&
-            keys(group.opts.props) === keys(opts.props);
+            (groupByData === false || group.data === data) &&
+            (group.opts.groupByKeys ?? false) === groupByKeys &&
+            group.opts.groupByFn === groupByFn &&
+            keys(group.opts.props) === propsKeys;
     }
 
-    private static mergeRequests(requests: RequestedProcessing<any, any, any>[]): MergedRequests<any, any, any> {
+    private static mergeRequests(
+        this: void,
+        requests: RequestedProcessing<any, any, any>[]
+    ): MergedRequests<any, any, any> {
         return requests.reduce(
             (result, { id, data, resolve, reject, opts: { props, ...opts } }) => {
                 result.ids.push(id);

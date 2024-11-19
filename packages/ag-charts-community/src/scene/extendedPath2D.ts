@@ -29,6 +29,10 @@ export class ExtendedPath2D {
     openedPath: boolean = false;
     closedPath: boolean = false;
 
+    isEmpty() {
+        return this.commands.length === 0;
+    }
+
     isDirty() {
         return (
             this.closedPath !== this.previousClosedPath ||

@@ -19,8 +19,8 @@ export interface PreSceneRenderEvent {
 
 export interface PreDomUpdateEvent {
     type: 'pre-dom-update';
-    minRect?: undefined;
-    minVisibleRect?: undefined;
+    minRect?: never;
+    minVisibleRect?: never;
 }
 
 export interface PreSceneRenderEvent {

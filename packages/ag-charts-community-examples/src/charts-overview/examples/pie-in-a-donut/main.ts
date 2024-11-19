@@ -1,7 +1,7 @@
 import type {
   AgPieSeriesOptions,
   AgPolarChartOptions,
-  AgPolarSeriesOptions} from "ag-charts-community";
+} from "ag-charts-community";
 import {
   AgCharts
 } from "ag-charts-community"

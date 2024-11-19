@@ -98,7 +98,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
         };
     }
 
-    protected override async updateDatumNodes(opts: {
+    protected override updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, FunnelNodeDatum>;
         isHighlight: boolean;
     }) {
@@ -140,7 +140,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
-            const config = getRectConfig({
+            const config = getRectConfig(this, datum.itemId, {
                 datum,
                 isHighlighted: isHighlight,
                 style,

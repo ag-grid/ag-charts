@@ -78,7 +78,7 @@ describe('array module', () => {
         test('returns expected result with simple arrays', () => {
             expect(arraysEqual([1, 2, 3], [1, 2, 3])).toBe(true);
             expect(arraysEqual([1, 2, 3], [3, 2, 1])).toBe(false);
-            expect(arraysEqual([[1], 2, 3], [[1], 2, 4]));
+            expect(arraysEqual([[1], 2, 3], [[1], 2, 4])).toBe(false);
         });
 
         test('returns expected result with nested arrays', () => {

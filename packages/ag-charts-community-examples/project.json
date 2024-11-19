@@ -17,13 +17,13 @@
       }
     },
     "lint": {
-      "executor": "@nx/eslint:lint",
+      "executor": "nx:noop",
+      "dependsOn": ["lint:eslint"],
       "configurations": {
-        "fix": {
-          "fix": true
-        }
+        "fix": {}
       }
     },
+    "lint:eslint": {},
     "test": {
       "executor": "@nx/jest:jest",
       "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-community-examples.xml"],
