@@ -138,6 +138,17 @@ export type LinearGaugeLabelDatum = {
         | undefined;
 };
 
+type LinearGaugeDatumTypeMap = {
+    [NodeDataType.Node]: LinearGaugeNodeDatum;
+    [NodeDataType.Target]: LinearGaugeTargetDatum;
+};
+export function upcastToLinearGaugeDatum<T extends NodeDataType>(
+    datum: _ModuleSupport.SeriesNodeDatum & Partial<Pick<LinearGaugeDatumTypeMap[T], 'type'>>,
+    ...types: T[]
+): datum is LinearGaugeDatumTypeMap[T] {
+    return types.some((type) => type === datum.type);
+}
+
 class LinearGaugeDefaultTargetLabelProperties extends Label<never> {
     @Validate(NUMBER, { optional: true })
     spacing: number | undefined;
