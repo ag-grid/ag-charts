@@ -267,7 +267,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         const windowBBox = new BBox(0, 0, window.innerWidth, window.innerHeight);
         const container = this.getRawOverlayClientRect();
 
-        const containerBBox = BBox.fromDOMRect(container ?? this.getBoundingClientRect());
+        const containerBBox = BBox.fromDOMRect(container);
         return windowBBox.intersection(containerBBox)?.toDOMRect() ?? NULL_DOMRECT;
     }
 
@@ -278,10 +278,9 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         // to that elements bounding box.
         while (element != null) {
             const styleMap = element.computedStyleMap?.();
-            const overflowX = styleMap?.get('overflow-x')?.toString();
             const overflowY = styleMap?.get('overflow-y')?.toString();
 
-            if ((overflowX != null && overflowX !== 'visible') || (overflowY && overflowY !== 'visible')) {
+            if (overflowY === 'auto' || overflowY === 'scroll') {
                 return element.getBoundingClientRect();
             }
 
@@ -290,10 +289,8 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         // If in a shadow-DOM case, use the shadow-DOMs bounding-box, intersected with the window
         // viewport.
-        const docRoot = this.getShadowDocumentRoot();
-        if (docRoot) {
-            return docRoot.getBoundingClientRect();
-        }
+        const docRoot = this.getShadowDocumentRoot() ?? getWindow().document.documentElement;
+        return docRoot.getBoundingClientRect();
     }
 
     getShadowDocumentRoot(current = this.container) {

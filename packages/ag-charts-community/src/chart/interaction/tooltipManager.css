@@ -1,5 +1,4 @@
 .ag-chart-tooltip {
-    transition: transform 0.1s ease;
     width: max-content;
     z-index: 99999;
     font:
@@ -41,14 +40,6 @@
 .ag-chart-tooltip-no-interaction {
     pointer-events: none;
     user-select: none;
-}
-
-.ag-chart-tooltip-no-animation {
-    transition: none !important;
-}
-
-.ag-chart-tooltip-hidden {
-    visibility: hidden;
 }
 
 .ag-chart-tooltip-title {
