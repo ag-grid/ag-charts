@@ -3,7 +3,7 @@ import type { BBoxValues } from '../../util/bboxinterface';
 import { clamp } from '../../util/number';
 import { SliderWidget } from '../../widget/sliderWidget';
 import type { ToolbarWidget } from '../../widget/toolbarWidget';
-import type { DragWidgetEvent } from '../../widget/widgetEvents';
+import type { DragWidgetEvent, MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { MockEvent } from '../interaction/regionManager';
 
 export type NavigatorButtonType = 'min' | 'max' | 'pan';
@@ -12,6 +12,11 @@ type SliderDragHandlers = {
     onDragStart(type: NavigatorButtonType, event: { offsetX: number }): void;
     onDrag(type: NavigatorButtonType, event: { offsetX: number }): void;
 };
+
+type NavigatorDOMProxyModuleContext = Pick<
+    ModuleContext,
+    'zoomManager' | 'proxyInteractionService' | 'localeManager' | 'contextMenuRegistry'
+>;
 
 export class NavigatorDOMProxy {
     public _min = 0;
@@ -25,7 +30,8 @@ export class NavigatorDOMProxy {
     private readonly sliders: [SliderWidget, SliderWidget, SliderWidget];
 
     constructor(
-        private readonly ctx: Pick<ModuleContext, 'zoomManager' | 'proxyInteractionService' | 'localeManager'>,
+        private readonly ctx: NavigatorDOMProxyModuleContext,
+
         private readonly sliderHandlers: SliderDragHandlers
     ) {
         this.ctx = ctx;
@@ -67,6 +73,7 @@ export class NavigatorDOMProxy {
             slider.addListener('drag-start', (target, ev) => this.onDragStart(target, ev, key));
             slider.addListener('drag-move', (target, ev) => this.onDrag(target, ev, key));
             slider.addListener('drag-end', () => this.updateSliderRatios());
+            slider.addListener('contextmenu', (target, ev) => this.onContextMenu(target, ev));
         }
         this.sliders[0].addListener('change', () => this.onMinSliderChange());
         this.sliders[1].addListener('change', () => this.onPanSliderChange());
@@ -125,6 +132,14 @@ export class NavigatorDOMProxy {
 
     private onDrag(_slider: SliderWidget, event: DragWidgetEvent<'drag-move'>, key: NavigatorButtonType) {
         this.sliderHandlers.onDrag(key, this.toCanvasOffsets(event));
+    }
+
+    private onContextMenu(slider: SliderWidget, { sourceEvent, offsetX, offsetY }: MouseWidgetEvent<'contextmenu'>) {
+        const { x: toolbarX, y: toolbarY } = this.toolbar.getBounds();
+        const { x: sliderX, y: sliderY } = slider.getBounds();
+        const canvasX = offsetX + toolbarX + sliderX;
+        const canvasY = offsetY + toolbarY + sliderY;
+        this.ctx.contextMenuRegistry.dispatchContext('all', { sourceEvent, canvasX, canvasY }, {});
     }
 
     private onPanSliderChange() {
