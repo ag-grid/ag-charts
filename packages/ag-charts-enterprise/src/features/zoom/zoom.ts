@@ -682,7 +682,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         };
     }
 
-    testFindTarget(canvasX: number, canvasY: number): { target: HTMLElement; x: number; y: number } | undefined {
+    testFindTarget(canvasX: number, canvasY: number): _ModuleSupport.MockEvent | undefined {
         if (this.enabled && this.enableAxisDragging) {
             return this.domProxy.testFindTarget(canvasX, canvasY);
         }

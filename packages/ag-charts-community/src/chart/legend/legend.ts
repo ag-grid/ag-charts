@@ -49,6 +49,7 @@ import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
 import type { HighlightNodeDatum } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
+import type { MockEvent } from '../interaction/regionManager';
 import { LayoutElement } from '../layout/layoutManager';
 import type { Marker } from '../marker/marker';
 import { getMarker } from '../marker/util';
@@ -1241,13 +1242,13 @@ export class Legend extends BaseProperties {
         return [legendWidth, legendHeight];
     }
 
-    testFindTarget(canvasX: number, canvasY: number): { target: HTMLElement; x: number; y: number } | undefined {
+    testFindTarget(canvasX: number, canvasY: number): MockEvent | undefined {
         for (const node of Selection.selectByClass(this.group, LegendMarkerLabel)) {
             if (!node.proxyButton) return;
             const bbox = Transformable.toCanvas(node);
             if (bbox.containsPoint(canvasX, canvasY)) {
                 const { x, y } = Transformable.fromCanvasPoint(node, canvasX, canvasY);
-                return { target: node.proxyButton.getElement(), x, y };
+                return { target: node.proxyButton.getElement(), offsetX: x, offsetY: y };
             }
         }
     }

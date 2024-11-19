@@ -69,13 +69,13 @@ export class ZoomDOMProxy {
         }
     }
 
-    testFindTarget(canvasX: number, canvasY: number): { target: HTMLElement; x: number; y: number } | undefined {
+    testFindTarget(canvasX: number, canvasY: number): _ModuleSupport.MockEvent | undefined {
         for (const axis of this.axes) {
             const bbox = axis.div.getBounds();
             if (!axis.div.isHidden() && BBoxValues.containsPoint(bbox, canvasX, canvasY)) {
-                const x = canvasX - bbox.x;
-                const y = canvasY - bbox.y;
-                return { target: axis.div.getElement(), x, y };
+                const offsetX = canvasX - bbox.x;
+                const offsetY = canvasY - bbox.y;
+                return { target: axis.div.getElement(), offsetX, offsetY };
             }
         }
         return undefined;

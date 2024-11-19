@@ -19,7 +19,7 @@ import { ChartUpdateType } from '../chartUpdateType';
 import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import type { KeyNavEvent } from '../interaction/keyNavManager';
-import type { RegionEvent } from '../interaction/regionManager';
+import type { MockEvent, RegionEvent } from '../interaction/regionManager';
 import { TooltipManager } from '../interaction/tooltipManager';
 import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
@@ -579,15 +579,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    public testFindTarget(
-        canvasX: number,
-        canvasY: number
-    ): {
-        target: HTMLElement;
-        offsetX: number;
-        offsetY: number;
-        mockRegion?: Pick<RegionEvent, 'region' | 'canvasX' | 'canvasY' | 'regionX' | 'regionY'>;
-    } {
+    public testFindTarget(canvasX: number, canvasY: number): MockEvent {
         const target = this.chart.ctx.scene.canvas.element;
         const [offsetX, offsetY] = [NaN, NaN];
         if (this.seriesRect?.containsPoint(canvasX, canvasY)) {
