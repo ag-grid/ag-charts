@@ -1164,23 +1164,6 @@ export class LinearGaugeSeries
     }
 
     getCaptionText(): string {
-        // const { value, label, secondaryLabel } = this.properties;
-        const { value } = this.properties;
-
-        const description: string[] = [];
-
-        description.push(this.formatLabel(value));
-
-        // const labelText = getLabelText(this, label, value);
-        // if (labelText != null) {
-        //     description.push(labelText);
-        // }
-
-        // const secondaryLabelText = getLabelText(this, secondaryLabel, value);
-        // if (secondaryLabelText != null) {
-        //     description.push(secondaryLabelText);
-        // }
-
-        return description.join('. ');
+        return this.formatLabel(this.properties.value);
     }
 }
