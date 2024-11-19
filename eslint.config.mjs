@@ -109,6 +109,9 @@ export default [
             // Show this warning in IDE and PRs, but not when running at command line (to reduce clutter).
             'sonarjs/cognitive-complexity': env !== 'nx-task' ? 1 : 0,
             'sonarjs/no-duplicate-string': env !== 'nx-task' ? 1 : 0,
+            'sonarjs/sonar-max-params': env !== 'nx-task' ? 1 : 0,
+            'sonarjs/todo-tag': env !== 'nx-task' ? 1 : 0,
+            'sonarjs/fixme-tag': env !== 'nx-task' ? 1 : 0,
 
             // We don't really care about these.
             '@typescript-eslint/no-unsafe-return': 0,
@@ -118,21 +121,16 @@ export default [
             '@typescript-eslint/no-unsafe-argument': 0,
             '@typescript-eslint/no-unsafe-member-access': 0,
             '@typescript-eslint/no-base-to-string': 0,
+            '@typescript-eslint/no-this-alias': 0,
             'sonarjs/no-selector-parameter': 0,
             'sonarjs/redundant-type-aliases': 0,
             'sonarjs/new-cap': 0,
 
             // For review - new for eslint 9.
             'sonarjs/no-redeclare': 1,
-            '@typescript-eslint/ban-ts-comment': 1,
-            '@typescript-eslint/no-this-alias': 1,
             'sonarjs/public-static-readonly': 1,
             'sonarjs/updated-loop-counter': 1,
-            'sonarjs/todo-tag': 1,
             'sonarjs/function-return-type': 1,
-            'sonarjs/sonar-max-params': 1,
-            'sonarjs/no-redundant-type-constituents': 1,
-            'sonarjs/fixme-tag': 1,
 
             // Duplicates @typescript-eslint
             'sonarjs/sonar-no-unused-vars': 0,

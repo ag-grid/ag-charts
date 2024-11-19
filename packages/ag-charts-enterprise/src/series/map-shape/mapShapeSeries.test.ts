@@ -22,10 +22,8 @@ import {
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
 import { ukData } from '../map-test/ukData';
-// @ts-expect-error
 import ukTopology from '../map-test/ukTopology.json';
 import { usData } from '../map-test/usData';
-// @ts-expect-error
 import usTopology from '../map-test/usTopology.json';
 import type { MapShapeSeries } from './mapShapeSeries';
 

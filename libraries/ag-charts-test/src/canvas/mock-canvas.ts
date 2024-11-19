@@ -31,14 +31,13 @@ Object.defineProperty(NodeCanvasRenderingContext2D.prototype, 'createConicGradie
 // https://github.com/Automattic/node-canvas/issues/1852
 const context2dTransform = NodeCanvasRenderingContext2D.prototype.transform;
 Object.defineProperty(NodeCanvasRenderingContext2D.prototype, 'transform', {
-    value: function transform(...args: any[]) {
-        if (args[0] === 0) {
+    value: function transform(a: number, b: number, c: number, d: number, e: number, f: number) {
+        if (a === 0) {
             context2dTransform.call(this, 1e-6, 0, 0, 1e-6, 0, 0);
             return;
         }
 
-        // @ts-ignore
-        context2dTransform.call(this, ...args);
+        context2dTransform.call(this, a, b, c, d, e, f);
     },
     enumerable: false,
     writable: true,

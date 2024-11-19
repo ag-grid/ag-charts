@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-react",
-  "version": "10.3.3-beta.20241117",
+  "version": "10.3.3-beta.20241118",
   "description": "AG Charts React Component",
   "main": "./dist/package/index.cjs.js",
   "module": "./dist/package/index.esm.mjs",
@@ -35,7 +35,7 @@
   },
   "homepage": "https://ag-grid.com/charts/",
   "devDependencies": {
-    "ag-charts-community": "10.3.3-beta.20241117",
+    "ag-charts-community": "10.3.3-beta.20241118",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "react": "^16.9.0",
@@ -45,7 +45,7 @@
     "rimraf": "3.0.2"
   },
   "peerDependencies": {
-    "ag-charts-community": "10.3.3-beta.20241117",
+    "ag-charts-community": "10.3.3-beta.20241118",
     "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
   },
   "jest": {

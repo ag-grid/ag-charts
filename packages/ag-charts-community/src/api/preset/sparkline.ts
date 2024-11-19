@@ -101,7 +101,7 @@ const SPARKLINE_THEME: AgChartTheme = {
         },
         bar: {
             series: {
-                // @ts-expect-error
+                // @ts-expect-error undocumented option
                 sparklineMode: true,
             },
             tooltip: {
@@ -119,7 +119,7 @@ const SPARKLINE_THEME: AgChartTheme = {
             },
             axes: crossHairAxes,
             series: {
-                // @ts-expect-error
+                // @ts-expect-error undocumented option
                 sparklineMode: true,
                 strokeWidth: 1,
                 marker: {

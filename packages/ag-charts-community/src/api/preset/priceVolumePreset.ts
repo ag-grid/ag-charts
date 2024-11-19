@@ -94,7 +94,7 @@ export function priceVolume(
     const annotationOpts = {
         annotations: {
             enabled: toolbar,
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             data,
             xKey: dateKey,
             volumeKey: volume ? volumeKey : undefined,
@@ -118,7 +118,7 @@ export function priceVolume(
     const zoomOpts = {
         zoom: {
             enabled: zoom,
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             enableIndependentAxes: true,
         } satisfies AgZoomOptions,
     };
@@ -151,7 +151,7 @@ export function priceVolume(
                   crosshair: { enabled: false },
                   gridLine: { enabled: false },
                   nice: false,
-                  // @ts-expect-error
+                  // @ts-expect-error undocumented option
                   layoutConstraints: {
                       stacked: false,
                       width: 20,
@@ -197,7 +197,7 @@ export function priceVolume(
                     enabled: true,
                     snap: false,
                 },
-                // @ts-expect-error
+                // @ts-expect-error undocumented option
                 layoutConstraints: {
                     stacked: false,
                     width: 100,
@@ -259,7 +259,7 @@ function createVolumeSeries(
             highlight: { enabled: false },
             fillOpacity: fromTheme(theme, (t) => t.overrides?.bar?.series?.fillOpacity) ?? 0.5,
             ...itemStyler,
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 1,
             fastDataProcessing: true,
         } satisfies AgBarSeriesOptions,
@@ -334,7 +334,7 @@ function createPriceSeriesOHLC(common: PriceSeriesCommon, keys: PriceSeriesKeys)
     return [
         {
             type: 'ohlc',
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             ...keys,
@@ -350,7 +350,7 @@ function createPriceSeriesLine(
     return [
         {
             type: 'line',
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             ...singleKeys,
@@ -368,7 +368,7 @@ function createPriceSeriesStepLine(
     return [
         {
             type: 'line',
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             ...singleKeys,
@@ -392,7 +392,7 @@ function createPriceSeriesHLC(
     return [
         {
             type: RANGE_AREA_TYPE,
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             xKey,
@@ -405,7 +405,7 @@ function createPriceSeriesHLC(
         } satisfies AgRangeAreaSeriesOptions,
         {
             type: RANGE_AREA_TYPE,
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             xKey,
@@ -437,7 +437,7 @@ function createPriceSeriesHighLow(
     return [
         {
             type: 'range-bar',
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             xKey,
@@ -456,7 +456,7 @@ function createPriceSeriesCandlestick(common: PriceSeriesCommon, keys: PriceSeri
     return [
         {
             type: 'candlestick',
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             ...keys,
@@ -473,7 +473,7 @@ function createPriceSeriesHollowCandlestick(
     return [
         {
             type: 'candlestick',
-            // @ts-expect-error
+            // @ts-expect-error undocumented option
             focusPriority: 0,
             ...common,
             ...keys,

@@ -13,9 +13,9 @@ export { registerInbuiltModules as setupCommunityModules } from './chart/factory
 
 export const AgChartsCommunityModule: IntegratedModule = {
     VERSION,
-    // @ts-ignore
+    // @ts-expect-error types don't exactly match
     _Scene,
-    // @ts-ignore
+    // @ts-expect-error types don't exactly match
     _Theme,
     _Util,
     create: AgCharts.create.bind(AgCharts),

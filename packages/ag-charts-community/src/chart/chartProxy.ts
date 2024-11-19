@@ -189,7 +189,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
             // Add watermark if no license
             if (this.licenseManager?.isDisplayWatermark()) {
-                // @ts-expect-error
+                // @ts-expect-error undocumented option
                 processedOverrides.foreground = {
                     text: this.licenseManager.getWatermarkMessage(),
                     image: {

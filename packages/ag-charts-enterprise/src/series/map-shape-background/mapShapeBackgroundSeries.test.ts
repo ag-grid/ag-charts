@@ -12,7 +12,6 @@ import {
 } from 'ag-charts-community-test';
 
 import { prepareEnterpriseTestOptions } from '../../test/utils';
-// @ts-expect-error
 import ukTopology from '../map-test/ukTopology.json';
 
 const SIMPLIFIED_EXAMPLE: AgChartOptions = {
