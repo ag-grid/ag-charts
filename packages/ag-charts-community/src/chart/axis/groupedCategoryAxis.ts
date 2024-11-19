@@ -271,11 +271,11 @@ export class GroupedCategoryAxis extends CategoryAxis {
         lineBoxes.push(this.lineNode.getBBox());
 
         for (const datum of separatorData) {
+            const { x1, x2, y } = datum;
             if (inRange(datum.y, range)) {
-                const { x1, x2, y } = datum;
-                separatorLayout.set(y, Math.max(x2, separatorLayout.get(y) ?? 0));
                 lineBoxes.push(new BBox(Math.min(x1 * sideFlag, x2 * sideFlag), y, Math.abs(x1 - x2), 0));
             }
+            separatorLayout.set(y, Math.max(x2, separatorLayout.get(y) ?? 0));
         }
 
         const mergedBBox = BBox.merge(iterate(labelBBoxes.values(), lineBoxes));
