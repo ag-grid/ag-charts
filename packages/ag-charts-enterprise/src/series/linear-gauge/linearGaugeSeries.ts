@@ -1086,11 +1086,11 @@ export class LinearGaugeSeries
         return [NaN, NaN];
     }
 
-    override getLegendData(): _ModuleSupport.ChartLegendDatum<any>[] {
+    override getLegendData(): _ModuleSupport.ChartLegendDatum<_ModuleSupport.ChartLegendType>[] {
         return [];
     }
 
-    private readonly nodeDatum: any = { series: this, datum: {} };
+    private readonly nodeDatum = { series: this, datum: {} } as const;
     override pickNode(
         point: _ModuleSupport.Point,
         intent: _ModuleSupport.SeriesNodePickIntent
