@@ -111,7 +111,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
     parallel: boolean = false;
 
     @Validate(FUNCTION, { optional: true })
-    styler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
+    itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
 
     /**
      * In case {@param value} is a number, the {@param fractionDigits} parameter will

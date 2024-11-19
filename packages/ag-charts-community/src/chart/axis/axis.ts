@@ -534,8 +534,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             fontWeight: label.fontWeight,
         };
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
-        if (label.styler) {
-            stylerOutput = this.moduleCtx.callbackCache.call(label.styler, {
+        if (label.itemStyler) {
+            stylerOutput = this.moduleCtx.callbackCache.call(label.itemStyler, {
                 ...params,
                 ...defaultStyle,
             });
