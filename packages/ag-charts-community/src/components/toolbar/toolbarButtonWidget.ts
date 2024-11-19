@@ -12,7 +12,7 @@ export interface ToolbarButtonWidgetOptions {
 }
 
 export class ToolbarButtonWidget extends ButtonWidget {
-    constructor(private readonly ctx: ModuleContext) {
+    constructor(protected readonly ctx: ModuleContext) {
         super();
     }
 
@@ -20,7 +20,6 @@ export class ToolbarButtonWidget extends ButtonWidget {
         const { localeManager } = this.ctx;
 
         const element = this.getElement();
-        element.textContent = options.label ? localeManager.t(options.label) : null;
 
         if (options.tooltip) {
             element.title = localeManager.t(options.tooltip);

@@ -83,9 +83,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseModuleInstance implem
 
     private onButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
         if (!ToolbarManager.isGroup('annotations', event)) {
-            if (!ToolbarManager.isGroup('annotationOptions', event)) {
-                this.dispatch('pressed-unrelated');
-            }
+            this.dispatch('pressed-unrelated');
             return;
         }
 

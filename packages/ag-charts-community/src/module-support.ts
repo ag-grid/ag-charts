@@ -214,7 +214,9 @@ export * from './widget/exports';
 
 export * from './components/menu/menu';
 export * from './components/popover/anchoredPopover';
+export * from './components/popover/draggablePopover';
 export * from './components/popover/popover';
 export * from './components/toolbar/toolbarButtonProperties';
 export * from './components/toolbar/toolbarButtonWidget';
 export * from './components/toolbar/toolbar';
+export * from './components/toolbar/floatingToolbar';

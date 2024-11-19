@@ -1,0 +1,35 @@
+.ag-charts-floating-toolbar {
+    border: none;
+    display: flex;
+
+    /* TODO: move these out once toolbarStyles.css is cleaned up */
+    .ag-charts-toolbar__button--first {
+        border-bottom-left-radius: var(--ag-charts-button-radius);
+        border-top-left-radius: var(--ag-charts-button-radius);
+        margin: 0;
+    }
+
+    .ag-charts-toolbar__button--last {
+        border-bottom-right-radius: var(--ag-charts-button-radius);
+        border-top-right-radius: var(--ag-charts-button-radius);
+    }
+
+    .ag-charts-toolbar__drag-handle {
+        align-items: center;
+        background: var(--ag-charts-toolbar-background-color);
+        border: var(--ag-charts-toolbar-border);
+        border-bottom-left-radius: var(--ag-charts-button-radius);
+        border-top-left-radius: var(--ag-charts-button-radius);
+        cursor: grab;
+        display: flex;
+        justify-content: center;
+        min-width: 24px;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .ag-charts-toolbar {
+        align-items: unset;
+        position: unset;
+    }
+}

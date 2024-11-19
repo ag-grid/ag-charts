@@ -215,15 +215,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         const chartType = this.optionsType(options);
         const {
             axes: axesThemes = {},
-            annotations: { axesButtons = null, ...annotationsThemes } = {},
+            annotations = {},
             series: _,
             ...themeDefaults
         } = this.getSeriesThemeConfig(chartType, activeTheme);
 
+        const [annotationsOptions, annotationsThemes] = this.splitAnnotationsOptions(annotations);
+
         let processedOptions = mergeDefaults(
             processedOverrides,
             options,
-            axesButtons != null ? { annotations: { axesButtons } } : {},
+            annotationsOptions,
             themeDefaults,
             defaultAxes
         );
@@ -292,6 +294,12 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.axesTypeIntegrity(options);
         this.seriesTypeIntegrity(options);
         this.soloSeriesIntegrity(options);
+    }
+
+    private splitAnnotationsOptions(annotations: any) {
+        const { axesButtons = null, enabled = null, optionsToolbar = null, ...annotationsThemes } = annotations;
+        if (axesButtons == null && enabled == null && optionsToolbar == null) return [{}, annotationsThemes];
+        return [{ annotations: { axesButtons, enabled, optionsToolbar } }, annotationsThemes];
     }
 
     private processAxesOptions(options: T, axesThemes: any) {

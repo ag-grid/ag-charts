@@ -112,14 +112,14 @@ export abstract class Popover<Options extends PopoverOptions = PopoverOptions>
         return this.element.firstElementChild as HTMLDivElement | undefined;
     }
 
-    protected updatePosition(position: Vec2) {
+    protected updatePosition(position: Partial<Vec2>) {
         const popover = this.getPopoverElement();
         if (!popover) return;
 
-        popover.style.setProperty('top', 'unset');
+        popover.style.setProperty('right', 'unset');
         popover.style.setProperty('bottom', 'unset');
-        popover.style.setProperty('left', `${Math.floor(position.x)}px`);
-        popover.style.setProperty('top', `${Math.floor(position.y)}px`);
+        if (position.x != null) popover.style.setProperty('left', `${Math.floor(position.x)}px`);
+        if (position.y != null) popover.style.setProperty('top', `${Math.floor(position.y)}px`);
 
         // AG-13167 Deferred focus() call after position have been initialised
         this.initialFocus?.focus();
