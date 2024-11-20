@@ -89,7 +89,7 @@ export function isAtOrAfterVersion(major: number, minor: number, patch: number) 
 }
 
 export function prepareTestOptions<T extends AgChartOptions>(options: T, container: HTMLElement) {
-    if (getVersion()[0] < 10) {
+    if (!isAtOrAfterVersion(10, 0, 0)) {
         (options as any).autoSize = false;
     }
     options.width = 800;
