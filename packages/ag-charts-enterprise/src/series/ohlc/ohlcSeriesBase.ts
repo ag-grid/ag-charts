@@ -281,7 +281,6 @@ export abstract class OhlcSeriesBase<
 
         const xPosition = (index: number) => xScale.convert(xValues[index]) + groupOffset + barOffset;
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
-        console.log(dataAggregationFilter?.maxRange);
 
         if (dataAggregationFilter == null) {
             const [start, end] = visibleRange(rawData.length, x0, x1, xPosition);
