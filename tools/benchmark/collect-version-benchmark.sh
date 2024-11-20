@@ -50,4 +50,6 @@ for version in "${versions[@]}"; do
     git clean -fd
     # Reset the working tree state
     git restore --source HEAD -- ${included_files[@]}
+    # Remove intermediate test results
+    rm ./reports/packages/ag-charts-community/benchmarks/*.json
 done
