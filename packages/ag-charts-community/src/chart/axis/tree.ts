@@ -46,12 +46,13 @@ class TreeNode {
 
     constructor(
         public label: string = '',
-        public parent?: TreeNode
+        public parent?: TreeNode,
+        public refId?: number
     ) {
         this.depth = parent ? parent.depth + 1 : 0;
     }
 
-    insertTick(tick: string[]) {
+    insertTick(tick: string[], index: number) {
         let root: TreeNode = this;
         for (let i = tick.length - 1; i >= 0; i--) {
             const pathPart = tick[i];
@@ -62,7 +63,7 @@ class TreeNode {
                 // the isNotLeaf check is to allow duplicate leafs
                 root = existingNode;
             } else {
-                const node = new TreeNode(pathPart, root);
+                const node = new TreeNode(pathPart, root, index);
                 node.index = children.length;
                 children.push(node);
                 if (isNotLeaf) {
@@ -101,11 +102,12 @@ class TreeNode {
 export function ticksToTree(ticks: string[][]): TreeNode {
     const maxDepth = ticks.reduce((depth, tick) => (depth < tick.length ? tick.length : depth), 0);
     const root = new TreeNode();
-    for (const tick of ticks) {
+    for (let i = 0; i < ticks.length; i++) {
+        const tick = ticks[i];
         while (tick.length < maxDepth) {
             tick.unshift('');
         }
-        root.insertTick(tick);
+        root.insertTick(tick, i);
     }
     return root;
 }

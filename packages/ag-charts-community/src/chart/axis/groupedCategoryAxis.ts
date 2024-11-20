@@ -6,13 +6,11 @@ import { BBox } from '../../scene/bbox';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { normalizeAngle360, toRadians } from '../../util/angle';
-import { extent, unique } from '../../util/array';
+import { extent, sortBasedOnArray, unique } from '../../util/array';
 import { iterate } from '../../util/iterator';
 import { inRange, round } from '../../util/number';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';
-import { isNumber } from '../../util/type-guards';
-import { ChartAxisDirection } from '../chartAxisDirection';
 import { createDatumId } from '../data/processors';
 import { calculateLabelRotation } from '../label';
 import type { LabelNodeDatum, TickDatum } from './axis';
@@ -348,26 +346,19 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
     protected override calculateDomain() {
         const { direction } = this;
-        let isNumericX: boolean | null = null;
-
-        const flatDomains = this.boundSeries
-            .filter((s) => s.visible)
-            .flatMap((series) => {
-                if (direction === ChartAxisDirection.Y || isNumericX) {
-                    return series.getDomain(direction);
-                } else if (isNumericX === null) {
-                    // always add first X domain
-                    const domain = series.getDomain(direction);
-                    isNumericX = isNumber(domain[0]);
-                    return domain;
-                }
-                return [];
-            });
-
+        const flatDomains = this.boundSeries.filter((s) => s.visible).flatMap((series) => series.getDomain(direction));
         this.setDomain(extent(flatDomains) ?? unique(flatDomains));
 
         const domain: string[][] = this.dataDomain.domain.map((datum) => [].concat(datum).reverse());
         this.tickTreeLayout = treeLayout(domain);
+
+        const orderedDomain: string[][] = [];
+        for (const node of this.tickTreeLayout.nodes) {
+            if (node.leafCount || node.refId == null) continue;
+            orderedDomain.push(this.dataDomain.domain[node.refId]);
+        }
+
+        this.scale.domain = sortBasedOnArray(this.dataDomain.domain, orderedDomain);
         this.tickScale.domain = domain.concat([['']]);
         this.resizeTickTree();
     }
