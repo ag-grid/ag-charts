@@ -25,7 +25,7 @@ export interface ISeries<TDatum, TProps, TLabel = TDatum> {
     properties: TProps;
     hasEventListener(type: string): boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
-    updatePlacedLabels?(labels: PlacedLabel<TLabel>[]): void;
+    updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
     fireNodeClickEvent(event: Event, datum: SeriesNodeDatum): void;
     fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum): void;
     createNodeContextMenuActionEvent(event: Event, datum: TDatum): NodeContextMenuActionEvent;
