@@ -1,6 +1,8 @@
 import type { AgTooltipRendererResult } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
+import { SPAN, X_MAX, X_MIN, Y_MAX, Y_MIN, visibleRange } from '../../utils/aggregation';
+import { type RangeBarSeriesDataAggregationFilter, aggregateRangeBarData } from './rangeBarAggregation';
 import { RangeBarProperties } from './rangeBarProperties';
 
 const {
@@ -25,7 +27,9 @@ const {
     createDatumId,
     computeBarFocusBounds,
     sanitizeHtml,
+    findMinMax,
     ContinuousScale,
+    OrdinalTimeScale,
     Rect,
     PointerEvents,
     motion,
@@ -65,6 +69,8 @@ interface RangeBarNodeDatum
     readonly strokeWidth: number;
     readonly opacity: number;
     readonly clipBBox?: _ModuleSupport.BBox;
+
+    readonly crisp: boolean;
 }
 
 type RangeBarContext = _ModuleSupport.CartesianSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
@@ -101,6 +107,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
     override properties = new RangeBarProperties();
 
+    private dataAggregationFilters: RangeBarSeriesDataAggregationFilter[] | undefined = undefined;
+
     protected override readonly NodeEvent = RangeBarSeriesNodeEvent;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
@@ -129,7 +137,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             return;
         }
 
-        const { xKey, yLowKey, yHighKey } = this.properties;
+        const { xKey, yLowKey, yHighKey, fastDataProcessing } = this.properties;
+        const grouped = !fastDataProcessing;
 
         const xScale = this.getCategoryAxis()?.scale;
         const yScale = this.getValueAxis()?.scale;
@@ -144,7 +153,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const visibleProps = this.visible ? {} : { forceValue: 0 };
-        const { processedData } = await this.requestDataModel<any, any, true>(dataController, this.data, {
+        const { dataModel, processedData } = await this.requestDataModel(dataController, this.data, {
             props: [
                 keyProperty(xKey, xScaleType, { id: 'xValue' }),
                 valueProperty(yLowKey, yScaleType, { id: `yLowValue`, invalidValue: null, ...visibleProps }),
@@ -152,13 +161,34 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL, LARGEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
-            groupByKeys: true,
+            groupByKeys: grouped,
         });
 
         this.smallestDataInterval = processedData.reduced?.smallestKeyInterval;
         this.largestDataInterval = processedData.reduced?.largestKeyInterval;
 
+        this.dataAggregationFilters = this.aggregateData(dataModel, processedData);
+
         this.animationState.transition('updateData');
+    }
+
+    private aggregateData(
+        dataModel: _ModuleSupport.DataModel<any, any, any>,
+        processedData: _ModuleSupport.ProcessedData<any>
+    ) {
+        if (processedData.type !== 'grouped' || processedData.rawData.length === 0) return;
+
+        const xAxis = this.axes[ChartAxisDirection.X];
+        if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || OrdinalTimeScale.is(xAxis.scale))) return;
+
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);
+        const yLowValues = dataModel.resolveColumnById(this, `yLowValue`, processedData);
+
+        const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
+        const domain = processedData.domain.keys[index];
+
+        return aggregateRangeBarData(xValues, yHighValues, yLowValues, domain);
     }
 
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
@@ -200,16 +230,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (
-            !(
-                data &&
-                xAxis &&
-                yAxis &&
-                dataModel &&
-                processedData?.type === 'grouped' &&
-                processedData.rawData.length > 0
-            )
-        ) {
+        if (!(data && xAxis && yAxis && dataModel && processedData?.rawData.length)) {
             return;
         }
 
@@ -236,77 +257,156 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const yLowValues = dataModel.resolveColumnById(this, `yLowValue`, processedData);
         const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);
 
-        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
-        const barOffset = ContinuousScale.is(xScale) ? barWidth * -0.5 : 0;
-        processedData.groups.forEach(({ datumIndices }, groupedDataIndex) => {
-            datumIndices.forEach((datumIndex) => {
-                const datum = rawData[datumIndex];
-                const xDatum = xValues[datumIndex];
-                if (xDatum == null) return;
+        const { barWidth: effectiveBarWidth, groupIndex } = this.updateGroupScale(xAxis);
+        const barOffset = ContinuousScale.is(xScale) ? effectiveBarWidth * -0.5 : 0;
+        const groupOffset = groupScale.convert(String(groupIndex));
 
-                const x = Math.round(xScale.convert(xDatum)) + groupScale.convert(String(groupIndex)) + barOffset;
+        const defaultCrisp = checkCrisp(
+            xAxis?.scale,
+            xAxis?.visibleRange,
+            this.smallestDataInterval,
+            this.largestDataInterval
+        );
 
-                const rawLowValue = yLowValues[datumIndex];
-                const rawHighValue = yHighValues[datumIndex];
+        const xPosition = (datumIndex: number) =>
+            Math.round(xScale.convert(xValues[datumIndex])) + groupOffset + barOffset;
 
-                const yLowValue = Math.min(rawLowValue, rawHighValue);
-                const yHighValue = Math.max(rawLowValue, rawHighValue);
-                const yLow = Math.round(yScale.convert(yLowValue));
-                const yHigh = Math.round(yScale.convert(yHighValue));
+        const handleDatum = (
+            datumIndex: number,
+            groupedDataIndex: number,
+            x: number,
+            width: number,
+            yLow: number,
+            yHigh: number,
+            crisp: boolean
+        ) => {
+            const datum = rawData[datumIndex];
+            const xDatum = xValues[datumIndex];
+            if (xDatum == null) return;
 
-                const y = yHigh;
-                const bottomY = yLow;
-                const barHeight = Math.max(strokeWidth, Math.abs(bottomY - y));
+            const rawLowValue = yLowValues[datumIndex];
+            const rawHighValue = yHighValues[datumIndex];
 
-                const rect: Bounds = {
-                    x: barAlongX ? Math.min(y, bottomY) : x,
-                    y: barAlongX ? x : Math.min(y, bottomY),
-                    width: barAlongX ? barHeight : barWidth,
-                    height: barAlongX ? barWidth : barHeight,
-                };
+            if (!Number.isFinite(rawLowValue?.valueOf()) || !Number.isFinite(rawHighValue?.valueOf())) return;
 
-                const nodeMidPoint = {
-                    x: rect.x + rect.width / 2,
-                    y: rect.y + rect.height / 2,
-                };
+            const [yLowValue, yHighValue] =
+                rawLowValue < rawHighValue ? [rawLowValue, rawHighValue] : [rawHighValue, rawLowValue];
 
-                const labelData: RangeBarNodeDatum['labels'] = this.createLabelData({
-                    rect,
-                    barAlongX,
-                    yLowValue,
-                    yHighValue,
-                    datum: datum,
-                    series: this,
-                });
+            const y = Math.round(yScale.convert(yHigh));
+            const bottomY = Math.round(yScale.convert(yLow));
+            const height = Math.max(strokeWidth, Math.abs(bottomY - y));
 
-                const nodeDatum: RangeBarNodeDatum = {
-                    index: groupedDataIndex,
-                    valueIndex: datumIndex,
-                    series: this,
-                    itemId,
-                    datum: datum,
-                    xValue: xDatum,
-                    yLowValue: rawLowValue,
-                    yHighValue: rawHighValue,
-                    yLowKey,
-                    yHighKey,
-                    xKey,
-                    x: rect.x,
-                    y: rect.y,
-                    width: rect.width,
-                    height: rect.height,
-                    midPoint: nodeMidPoint,
-                    fill,
-                    stroke,
-                    strokeWidth,
-                    opacity: 1,
-                    labels: labelData,
-                };
+            const rect: Bounds = {
+                x: barAlongX ? Math.min(y, bottomY) : x,
+                y: barAlongX ? x : Math.min(y, bottomY),
+                width: barAlongX ? height : width,
+                height: barAlongX ? width : height,
+            };
 
-                context.nodeData.push(nodeDatum);
-                context.labelData.push(...labelData);
+            const nodeMidPoint = {
+                x: rect.x + rect.width / 2,
+                y: rect.y + rect.height / 2,
+            };
+
+            const labelData: RangeBarNodeDatum['labels'] = this.createLabelData({
+                rect,
+                barAlongX,
+                yLowValue,
+                yHighValue,
+                datum: datum,
+                series: this,
             });
-        });
+
+            const nodeDatum: RangeBarNodeDatum = {
+                index: groupedDataIndex,
+                valueIndex: datumIndex,
+                series: this,
+                itemId,
+                datum: datum,
+                xValue: xDatum,
+                yLowValue: rawLowValue,
+                yHighValue: rawHighValue,
+                yLowKey,
+                yHighKey,
+                xKey,
+                x: rect.x,
+                y: rect.y,
+                width: rect.width,
+                height: rect.height,
+                midPoint: nodeMidPoint,
+                fill,
+                stroke,
+                strokeWidth,
+                opacity: 1,
+                crisp,
+                labels: labelData,
+            };
+
+            context.nodeData.push(nodeDatum);
+            context.labelData.push(...labelData);
+        };
+
+        const { dataAggregationFilters } = this;
+        const [x0, x1] = findMinMax(xAxis.range);
+        const [r0, r1] = xScale.range;
+        const range = r1 - r0;
+
+        const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
+
+        if (dataAggregationFilter != null) {
+            const { maxRange, indexData } = dataAggregationFilter;
+            const [start, end] = visibleRange(maxRange, x0, x1, (index) => {
+                const aggIndex = index * SPAN;
+                const xMinIndex = indexData[aggIndex + X_MIN];
+                const xMaxIndex = indexData[aggIndex + X_MAX];
+                const midDatumIndex = ((xMinIndex + xMaxIndex) / 2) | 0;
+                return xMinIndex !== -1 ? xPosition(midDatumIndex) : NaN;
+            });
+
+            for (let i = start; i < end; i += 1) {
+                const aggIndex = i * SPAN;
+                const xMinIndex = indexData[aggIndex + X_MIN];
+                const xMaxIndex = indexData[aggIndex + X_MAX];
+                const yMinIndex = indexData[aggIndex + Y_MIN];
+                const yMaxIndex = indexData[aggIndex + Y_MAX];
+
+                if (xMinIndex === -1) continue;
+
+                const midDatumIndex = ((xMinIndex + xMaxIndex) / 2) | 0;
+
+                const xValue = xValues[midDatumIndex];
+                if (xValue == null) continue;
+
+                const x = xPosition(midDatumIndex);
+                const width = Math.abs(xPosition(xMinIndex) - xPosition(xMaxIndex)) + effectiveBarWidth;
+                const yLow = yLowValues[yMinIndex];
+                const yHigh = yHighValues[yMaxIndex];
+
+                handleDatum(midDatumIndex, 0, x, width, yLow, yHigh, false);
+            }
+        } else if (processedData.type === 'ungrouped') {
+            const [start, end] = visibleRange(rawData.length, x0, x1, xPosition);
+
+            for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
+                const x = xPosition(datumIndex);
+                const width = effectiveBarWidth;
+                const yLow = yLowValues[datumIndex];
+                const yHigh = yHighValues[datumIndex];
+
+                handleDatum(datumIndex, 0, x, width, yLow, yHigh, defaultCrisp);
+            }
+        } else {
+            processedData.groups.forEach(({ datumIndices }, groupedDataIndex) => {
+                datumIndices.forEach((datumIndex) => {
+                    const x = xPosition(datumIndex);
+                    const width = effectiveBarWidth;
+                    const yLow = yLowValues[datumIndex];
+                    const yHigh = yHighValues[datumIndex];
+
+                    handleDatum(datumIndex, groupedDataIndex, x, width, yLow, yHigh, defaultCrisp);
+                });
+            });
+        }
 
         return context;
     }
@@ -396,14 +496,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             shadow: fillShadow,
         } = this.properties;
 
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const crisp = checkCrisp(
-            xAxis?.scale,
-            xAxis?.visibleRange,
-            this.smallestDataInterval,
-            this.largestDataInterval
-        );
-
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         datumSelection.each((rect, datum) => {
@@ -431,7 +523,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 yLowKey,
                 yHighKey,
             });
-            config.crisp = crisp;
+            config.crisp = datum.crisp;
             config.visible = visible;
             updateRect(rect, config);
         });

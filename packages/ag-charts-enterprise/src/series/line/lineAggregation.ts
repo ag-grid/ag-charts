@@ -37,7 +37,7 @@ function aggregationContainsIndex(
     );
 }
 
-export function aggregateData(
+export function aggregateLineData(
     xValues: any[],
     yValues: any[],
     domain: number[]

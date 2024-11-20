@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { visibleRange } from '../../utils/aggregation';
-import { aggregateData } from './barAggregation';
+import { aggregateBarData } from './barAggregation';
 
 const { ChartAxisDirection, ContinuousScale, OrdinalTimeScale } = _ModuleSupport;
 
@@ -30,6 +30,6 @@ export class BarSeries extends _ModuleSupport.BarSeries {
         const { index } = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const domain = processedData.domain.keys[index];
 
-        return aggregateData(xValues, yValues, domain);
+        return aggregateBarData(xValues, yValues, domain);
     }
 }
