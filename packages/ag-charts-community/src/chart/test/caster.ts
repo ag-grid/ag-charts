@@ -118,8 +118,13 @@ function castArrayElementProperties<
     return thing as ReturnType<typeof castArrayElementProperties<T, V, K, L>>;
 }
 
-// FIXME: Each method returns a new object. This could be optimised.
+// This class converts an input value type into new types. There no compile-time
+// checks (uses `as` internally), but the method with check the types at runtime
+// (using the expect() jest function).
+//
+// This is similar to a Java cast or C++ dynamic_cast.
 export class Caster<T> {
+    // FIXME: Each method returns a new object. This could be optimised.
     constructor(readonly value: T) {}
 
     cast<NewT>(ctor: { new (...args: any[]): NewT }): Caster<NewT> {
