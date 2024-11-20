@@ -579,18 +579,4 @@ export class SeriesAreaManager extends BaseManager {
             this.update(ChartUpdateType.SERIES_UPDATE, { seriesToUpdate });
         }
     }
-
-    public testFindTarget(canvasX: number, canvasY: number): MockEvent {
-        const target = this.chart.ctx.scene.canvas.element;
-        const [offsetX, offsetY] = [NaN, NaN];
-        if (this.seriesRect?.containsPoint(canvasX, canvasY)) {
-            const regionX = canvasX - this.seriesRect.x;
-            const regionY = canvasY - this.seriesRect.y;
-            return { target, offsetX, offsetY, mockRegion: { region: 'series', canvasX, canvasY, regionX, regionY } };
-        } else {
-            const regionX = canvasX;
-            const regionY = canvasY;
-            return { target, offsetX, offsetY, mockRegion: { region: 'root', canvasX, canvasY, regionX, regionY } };
-        }
-    }
 }

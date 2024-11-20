@@ -1,4 +1,4 @@
-import { ToolbarWidget } from '../../module-support';
+import { BBox, Scene, ToolbarWidget } from '../../module-support';
 import { TranslatableGroup } from '../../scene/group';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
@@ -11,6 +11,7 @@ import { Navigator } from '../navigator/navigator';
 import { NavigatorDOMProxy } from '../navigator/navigatorDOMProxy';
 import { RangeHandle } from '../navigator/shapes/rangeHandle';
 import { RangeMask } from '../navigator/shapes/rangeMask';
+import { SeriesAreaManager } from '../series/seriesAreaManager';
 import { Caster } from './caster';
 
 function findLegendTarget(legendModule: unknown, canvasX: number, canvasY: number): MockEvent | undefined {
@@ -70,7 +71,29 @@ function findNavigatorTarget(navigatorModule: unknown, canvasX: number, canvasY:
 
 function findZoomTarget(zoom: unknown, canvasX: number, canvasY: number): MockEvent | undefined {}
 
-function findSeriesAreaTarget(seriesArea: unknown, canvasX: number, canvasY: number): MockEvent {}
+function findSeriesAreaTarget(seriesAreaModule: unknown, canvasX: number, canvasY: number): MockEvent {
+    const seriesArea = new Caster(seriesAreaModule)
+        .cast(SeriesAreaManager)
+        .findProperty('seriesRect')
+        .castProperty('seriesRect', BBox)
+        .findProperty('chart').value;
+
+    const { seriesRect } = seriesArea;
+
+    const scene = new Caster(seriesArea.chart).accessProperty('ctx').accessProperty('scene').cast(Scene).value;
+
+    const target = scene.canvas.element;
+    const [offsetX, offsetY] = [NaN, NaN];
+    if (seriesRect?.containsPoint(canvasX, canvasY)) {
+        const regionX = canvasX - seriesRect.x;
+        const regionY = canvasY - seriesRect.y;
+        return { target, offsetX, offsetY, mockRegion: { region: 'series', canvasX, canvasY, regionX, regionY } };
+    } else {
+        const regionX = canvasX;
+        const regionY = canvasY;
+        return { target, offsetX, offsetY, mockRegion: { region: 'root', canvasX, canvasY, regionX, regionY } };
+    }
+}
 
 export function findChartTarget(chart: Chart, canvasX: number, canvasY: number): MockEvent {
     const getModule = (s: string) => chart.modulesManager.getModule<unknown>(s);

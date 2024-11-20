@@ -36,4 +36,7 @@ export class Caster<T> {
     ): Caster<Omit<T, K> & { [P in K]: V }> {
         return new Caster(castProperty(this.value, propertyName, propertyCtor));
     }
+    accessProperty<K extends string>(propertyName: K): Caster<unknown> {
+        return new Caster(findProperty(this.value, propertyName)[propertyName]);
+    }
 }
