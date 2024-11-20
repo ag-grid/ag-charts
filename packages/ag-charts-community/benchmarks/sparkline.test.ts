@@ -1,13 +1,18 @@
 import { beforeEach, describe } from '@jest/globals';
 
 import { AgCartesianChartOptions } from '../src/main';
-import { benchmark, setupBenchmark } from './benchmark';
+import { benchmark, isAtOrAfterVersion, setupBenchmark } from './benchmark';
 
 const EXPECTATIONS = {
     expectedMaxMemoryMB: 2048,
 };
 
-describe('sparkline benchmark', () => {
+let suite: any = describe;
+if (!isAtOrAfterVersion(11, 0, 0)) {
+    suite = describe.skip;
+}
+
+suite('sparkline benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('simple-sparkline', {
         createApi: '__createSparkline',
     }).repeatCount(500);

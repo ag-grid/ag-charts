@@ -18,7 +18,7 @@ describe('large-dataset benchmark', () => {
     describe('after load', () => {
         beforeEach(async () => {
             await ctx.create();
-            addSeriesNodePoints(ctx, 0, 4);
+            await addSeriesNodePoints(ctx, 0, 4);
         }, 10_000);
 
         benchmark(

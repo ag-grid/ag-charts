@@ -18,9 +18,9 @@ describe('multi-series benchmark', () => {
     describe('after load', () => {
         beforeEach(async () => {
             await ctx.create();
-            addSeriesNodePoints(ctx, 2, 5);
-            addSeriesNodePoints(ctx, 3, 5);
-            addSeriesNodePoints(ctx, 5, 5);
+            await addSeriesNodePoints(ctx, 2, 5);
+            await addSeriesNodePoints(ctx, 3, 5);
+            await addSeriesNodePoints(ctx, 5, 5);
         });
 
         benchmark('1x legend toggle', ctx, EXPECTATIONS, async () => {
