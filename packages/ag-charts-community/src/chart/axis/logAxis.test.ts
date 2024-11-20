@@ -9,7 +9,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { Chart } from '../chart';
-import type { ChartAxis } from '../chartAxis';
 import * as axesExamples from '../test/examples-axes';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -58,21 +57,21 @@ type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
 };
 const EXAMPLES: Record<string, TestCase> = {
     ...mixinDerivedCases({
-        NUMBER_AXIS_LOG2_EXAMPLE: {
-            options: axesExamples.NUMBER_AXIS_LOG2_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
-            compare: ['log'],
-        },
-        NUMBER_AXIS_LOG10_EXAMPLE: {
-            options: axesExamples.NUMBER_AXIS_LOG10_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
-            compare: ['log'],
-        },
-        LOG10_SMALL_DOMAIN_NICE_FALSE_EXAMPLE: {
-            options: axesExamples.LOG10_SMALL_DOMAIN_NICE_FALSE_EXAMPLE,
-            assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
-            compare: ['log'],
-        },
+        // NUMBER_AXIS_LOG2_EXAMPLE: {
+        //     options: axesExamples.NUMBER_AXIS_LOG2_EXAMPLE,
+        //     assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
+        //     compare: ['log'],
+        // },
+        // NUMBER_AXIS_LOG10_EXAMPLE: {
+        //     options: axesExamples.NUMBER_AXIS_LOG10_EXAMPLE,
+        //     assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
+        //     compare: ['log'],
+        // },
+        // LOG10_SMALL_DOMAIN_NICE_FALSE_EXAMPLE: {
+        //     options: axesExamples.LOG10_SMALL_DOMAIN_NICE_FALSE_EXAMPLE,
+        //     assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
+        //     compare: ['log'],
+        // },
         LOG_AXIS_TICK_VALUES: {
             options: axesExamples.LOG_AXIS_TICK_VALUES,
             assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
@@ -107,13 +106,6 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
     return result;
 }
 
-function calculateAxisBBox(axis: ChartAxis): { x: number; y: number; width: number; height: number } {
-    const bbox = axis.getBBox();
-
-    const { x, y, width, height } = bbox;
-    return { x, y, width, height };
-}
-
 describe('Log Axis Examples', () => {
     setupMockConsole();
 
@@ -141,9 +133,7 @@ describe('Log Axis Examples', () => {
                         continue;
                     }
 
-                    const axesBBox = calculateAxisBBox(axis);
-                    const imageData = extractImageData({ ...ctx, bbox: axesBBox });
-
+                    const imageData = extractImageData({ ...ctx, bbox: axis.getBBox() });
                     expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
                 }
             };

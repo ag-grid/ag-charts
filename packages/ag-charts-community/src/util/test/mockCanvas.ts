@@ -21,6 +21,12 @@ export function extractImageData({
     let sourceCanvas = nodeCanvas;
     if (bbox && nodeCanvas) {
         const { x, y, width, height } = bbox;
+
+        // Canvas must have a valid size, otherwise node-canvas fails.
+        if (width < 0.5 || height < 0.5) {
+            throw new Error('Invalid image size provided, dimensions must be greater than zero.');
+        }
+
         sourceCanvas = createCanvas(width, height);
         sourceCanvas
             ?.getContext('2d')

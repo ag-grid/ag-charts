@@ -31,10 +31,14 @@ import {
 } from '../../test/utils';
 import { AreaSeries } from './areaSeries';
 
-const buildLogAxisTestCase = (data: any[]): CartesianOrPolarTestCase => {
+const buildLogAxisTestCase = (
+    data: any[],
+    extra?: { warnings?: string[]; skipWarningsReversed?: boolean }
+): CartesianOrPolarTestCase => {
     return {
         options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'area'),
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'log'], seriesTypes: ['area'] }),
+        ...extra,
     };
 };
 
@@ -157,7 +161,10 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
         AREA_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_POSITIVE_LOG_AXIS),
         AREA_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_NEGATIVE_LOG_AXIS),
         AREA_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase(DATA_FRACTIONAL_LOG_AXIS),
-        AREA_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase(DATA_ZERO_EXTENT_LOG_AXIS),
+        AREA_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase(DATA_ZERO_EXTENT_LOG_AXIS, {
+            warnings: ['AG Charts - the data domain has 0 extent, no data is rendered.'],
+            skipWarningsReversed: false,
+        }),
         NORMALISED_AREA_STACKED: {
             options: examples.NORMALISED_STACKED_AREA,
             assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('area', 4) }),

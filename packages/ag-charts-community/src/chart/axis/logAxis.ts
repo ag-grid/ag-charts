@@ -16,28 +16,15 @@ export class LogAxis extends NumberAxis {
 
     override normaliseDataDomain(d: number[]) {
         const { min, max } = this;
-
         const { extent, clipped } = normalisedExtentWithMetadata(d, min, max);
 
-        const isInverted = extent[0] > extent[1];
-        const crossesZero = extent[0] < 0 && extent[1] > 0;
-        const hasZeroExtent = extent[0] === 0 && extent[1] === 0;
-        const invalidDomain = isInverted || crossesZero || hasZeroExtent;
-
-        if (invalidDomain) {
-            if (crossesZero) {
-                Logger.warn(
-                    `the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.`
-                );
-            } else if (hasZeroExtent) {
-                Logger.warn(`the data domain has 0 extent, no data is rendered.`);
-            }
-        }
-        if (extent[0] === 0) {
-            extent[0] = 1;
-        }
-        if (extent[1] === 0) {
-            extent[1] = -1;
+        if (extent[0] < 0 && extent[1] > 0) {
+            Logger.warn(
+                `the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.`
+            );
+        } else if (extent[0] === 0 && extent[1] === 0) {
+            Logger.warn(`the data domain has 0 extent, no data is rendered.`);
+            return { domain: [1, -1], clipped };
         }
 
         return { domain: extent, clipped };

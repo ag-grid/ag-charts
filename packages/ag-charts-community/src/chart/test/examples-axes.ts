@@ -202,6 +202,13 @@ export const TIME_AXIS_TICK_VALUES: AgCartesianChartOptions = {
 
 export const LOG_AXIS_TICK_VALUES: AgCartesianChartOptions = {
     ...NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE,
+    data: NUMBER_AXIS_UNIFORM_BASIC_EXAMPLE.data?.map((d) => {
+        const datum = { ...d };
+        for (const key of Object.keys(datum)) {
+            datum[key] = Math.max(1, datum[key]);
+        }
+        return datum;
+    }),
     axes: [
         { type: 'number', position: 'bottom' },
         {
