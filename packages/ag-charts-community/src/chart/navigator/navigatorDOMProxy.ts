@@ -3,7 +3,8 @@ import type { BBoxValues } from '../../util/bboxinterface';
 import { clamp } from '../../util/number';
 import { SliderWidget } from '../../widget/sliderWidget';
 import type { ToolbarWidget } from '../../widget/toolbarWidget';
-import type { DragMoveWidgetEvent, DragStartWidgetEvent } from '../../widget/widgetEvents';
+import type { DragWidgetEvent } from '../../widget/widgetEvents';
+import type { MockEvent } from '../interaction/regionManager';
 
 export type NavigatorButtonType = 'min' | 'max' | 'pan';
 
@@ -115,14 +116,14 @@ export class NavigatorDOMProxy {
         return { offsetX: this.dragStartX + event.originDeltaX };
     }
 
-    private onDragStart(slider: SliderWidget, event: DragStartWidgetEvent, key: NavigatorButtonType) {
+    private onDragStart(slider: SliderWidget, event: DragWidgetEvent<'drag-start'>, key: NavigatorButtonType) {
         const toolbarLeft = this.toolbar.cssLeft();
         const sliderLeft = slider.cssLeft();
         this.dragStartX = toolbarLeft + sliderLeft + event.offsetX;
         this.sliderHandlers.onDragStart(key, this.toCanvasOffsets(event));
     }
 
-    private onDrag(_slider: SliderWidget, event: DragMoveWidgetEvent, key: NavigatorButtonType) {
+    private onDrag(_slider: SliderWidget, event: DragWidgetEvent<'drag-move'>, key: NavigatorButtonType) {
         this.sliderHandlers.onDrag(key, this.toCanvasOffsets(event));
     }
 
@@ -144,15 +145,11 @@ export class NavigatorDOMProxy {
         this.updateZoom();
     }
 
-    testFindTarget(
-        type: NavigatorButtonType,
-        canvasX: number,
-        canvasY: number
-    ): { target: HTMLElement; x: number; y: number } {
+    testFindTarget(type: NavigatorButtonType, canvasX: number, canvasY: number): MockEvent {
         const targetWidth = this.sliders[{ min: 0, pan: 1, max: 2 }[type]];
-        const x = canvasX - targetWidth.cssLeft() - this.toolbar.cssLeft();
-        const y = canvasY - targetWidth.cssTop() - this.toolbar.cssTop();
+        const offsetX = canvasX - targetWidth.cssLeft() - this.toolbar.cssLeft();
+        const offsetY = canvasY - targetWidth.cssTop() - this.toolbar.cssTop();
         const target = targetWidth.getElement();
-        return { target, x, y };
+        return { target, offsetX, offsetY };
     }
 }

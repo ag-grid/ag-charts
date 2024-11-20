@@ -8,7 +8,6 @@ const {
     Validate,
     BOOLEAN,
     createElement,
-    REGIONS,
     ChartAxisDirection,
     getIconClassNames,
     makeAccessibleClickListener,
@@ -43,13 +42,14 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
 
         this.snap = Boolean(axisCtx.scale.bandwidth);
 
-        const seriesRegion = this.ctx.regionManager.getRegion(REGIONS.SERIES);
+        const seriesRegion = this.ctx.regionManager.getRegion('series');
         const mouseMoveStates =
             InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
 
         ctx.domManager.addEventListener('focusin', ({ target }) => {
-            const isSeriesAreaChild = target instanceof HTMLElement && ctx.domManager.contains(target, 'series-area');
-            if (!isSeriesAreaChild) this.hide();
+            const htmlTarget = target instanceof HTMLElement ? target : undefined;
+            const isSeriesAreaChild = htmlTarget && ctx.domManager.contains(htmlTarget, 'series-area');
+            if (!isSeriesAreaChild && htmlTarget !== this.button) this.hide();
         });
 
         this.destroyFns.push(
@@ -99,8 +99,8 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.ctx.domManager.removeChild('canvas-overlay', DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
     }
 
-    private show(event: _ModuleSupport.PointerInteractionEvent<'hover' | 'drag'>) {
-        const { offsetX: x, offsetY: y } = event;
+    private show(event: _ModuleSupport.RegionEvent<'hover' | 'drag'>) {
+        const { canvasX: x, canvasY: y } = event;
 
         if (!(this.enabled && this.seriesRect.containsPoint(x, y))) {
             this.hide();

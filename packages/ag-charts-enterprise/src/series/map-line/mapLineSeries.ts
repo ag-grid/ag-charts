@@ -656,6 +656,6 @@ export class MapLineSeries extends TopologySeries<
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         const geometry = findFocusedGeoGeometry(this, opts);
-        return geometry ? _ModuleSupport.Transformable.toCanvas(geometry) : undefined;
+        return geometry ? geometry.getBBox() : undefined;
     }
 }

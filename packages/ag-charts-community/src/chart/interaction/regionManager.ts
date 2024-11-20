@@ -1,25 +1,39 @@
-import { Node } from '../../scene/node';
-import type { BBoxProvider } from '../../util/bboxinterface';
 import { Debug } from '../../util/debug';
 import { Listeners } from '../../util/listeners';
-import type { InteractionManager, PointerInteractionEvent, PointerInteractionTypes } from './interactionManager';
-import { DRAG_INTERACTION_TYPES, InteractionState, POINTER_INTERACTION_TYPES } from './interactionManager';
-import { type Unpreventable, buildPreventable } from './preventableEvent';
-import { NodeRegionBBoxProvider, type RegionBBoxProvider, type RegionName } from './regions';
+import type { Widget } from '../../widget/widget';
+import type { DragWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../../widget/widgetEvents';
+import { InteractionManager } from './interactionManager';
+import type { PointerInteractionTypes } from './interactionManager';
+import { InteractionState } from './interactionManager';
+import { type PreventableEvent, buildPreventable } from './preventableEvent';
+
+type RegionName = 'root' | 'series';
+
+export type RegionEvent<T extends PointerInteractionTypes = PointerInteractionTypes> = PreventableEvent & {
+    type: T;
+    region: RegionName;
+    regionX: number;
+    regionY: number;
+    canvasX: number;
+    canvasY: number;
+    deltaX: T extends 'wheel' ? number : never;
+    deltaY: T extends 'wheel' ? number : never;
+    sourceEvent: Event;
+};
+
+export type MockEvent = {
+    target: HTMLElement;
+    offsetX: number;
+    offsetY: number;
+    mockRegion?: Pick<RegionEvent, 'region' | 'canvasX' | 'canvasY' | 'regionX' | 'regionY'>;
+};
+
+type TWidgetEvent = DragWidgetEvent | MouseWidgetEvent | WheelWidgetEvent;
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
-type TypeInfo = { [K in PointerInteractionTypes]: PointerInteractionEvent<K> & RegionEventMixins };
+type TypeInfo = { [K in PointerInteractionTypes]: RegionEvent<K> };
 
-type RegionEventMixins = {
-    region: RegionName;
-    bboxProviderId?: string;
-    regionOffsetX: number;
-    regionOffsetY: number;
-};
-
-export type RegionEvent<T extends PointerInteractionTypes = PointerInteractionTypes> = PointerInteractionEvent &
-    RegionEventMixins & { type: T };
 type RegionHandler = (event: RegionEvent) => void;
 
 class RegionListeners extends Listeners<RegionEvent['type'], RegionHandler> {}
@@ -31,7 +45,7 @@ type Region = {
 
 export interface RegionProperties {
     readonly name: RegionName;
-    bboxproviders: RegionBBoxProvider[];
+    readonly widget: Widget;
 }
 
 function addHandler<T extends RegionEvent['type']>(
@@ -51,19 +65,6 @@ function addHandler<T extends RegionEvent['type']>(
     );
 }
 
-type RegionNodeType = NodeRegionBBoxProvider | Node | { id: string; node: Node };
-
-function nodeToBBoxProvider(node: RegionNodeType) {
-    if (node instanceof Node) {
-        return new NodeRegionBBoxProvider(node);
-    }
-    if (node instanceof NodeRegionBBoxProvider) {
-        return node;
-    }
-
-    return new NodeRegionBBoxProvider(node.node, node.id);
-}
-
 function getTooltipContainer(target: EventTarget | null): HTMLElement | undefined {
     if (target == null || !(target instanceof HTMLElement)) return undefined;
     let current: HTMLElement | null = target;
@@ -76,20 +77,16 @@ function getTooltipContainer(target: EventTarget | null): HTMLElement | undefine
     return undefined;
 }
 
-type EventUpcast<K extends keyof HTMLElement> = PointerInteractionEvent & {
-    sourceEvent: RegionEvent['sourceEvent'] & { target: (EventTarget & { [P in K]?: unknown }) | null };
-};
-
-function shouldIgnore(event: EventUpcast<'className' | 'classList' | 'ariaHidden'>): 'none' | 'leave' | 'wait' {
-    const { type, sourceEvent } = event;
-    const { className, classList, ariaHidden } = sourceEvent?.target ?? {};
+function shouldIgnore(event: TWidgetEvent): 'none' | 'leave' | 'wait' {
+    const { sourceEvent } = event;
+    const { className, classList, ariaHidden } = (event.sourceEvent?.target as HTMLElement) ?? {};
     if (className === 'ag-charts-proxy-elem' || !(classList instanceof DOMTokenList)) return 'leave';
 
-    const dragTypes: readonly string[] = DRAG_INTERACTION_TYPES;
     if (
         // Handle drag event on the axis 'add horizontal line annotation' button as canvas events.
-        (classList.contains('ag-charts-annotations__axis-button-icon') && !dragTypes.includes(type)) ||
+        classList.contains('ag-charts-annotations__axis-button-icon') ||
         className === 'ag-charts-swapchain' ||
+        className === 'ag-charts-canvas-container' ||
         className === 'ag-charts-canvas-proxy' ||
         sourceEvent?.target instanceof HTMLCanvasElement // This case is for nodeCanvas tests
     ) {
@@ -107,60 +104,52 @@ function shouldIgnore(event: EventUpcast<'className' | 'classList' | 'ariaHidden
 export class RegionManager {
     private readonly debug = Debug.create(true, 'region');
 
-    private current?: { region: Region; bboxProvider?: BBoxProvider };
-    private isDragging = false;
-    private leftCanvas = false;
-
-    private readonly regions: Map<RegionName, Region> = new Map();
+    private current?: Region;
+    private readonly regions: { root?: Region; series?: Region } = {};
     private readonly destroyFns: (() => void)[] = [];
     private readonly allRegionsListeners = new RegionListeners();
+    private deferredDragStart?: RegionEvent<'drag-start'>;
+    private isDragMoving = false;
+    private blockNextClickEvent = false;
 
-    constructor(private readonly interactionManager: InteractionManager) {
-        this.destroyFns.push(
-            ...POINTER_INTERACTION_TYPES.map((eventName) =>
-                interactionManager.addListener(eventName, this.processPointerEvent.bind(this), InteractionState.All)
-            )
-        );
-    }
+    constructor(private readonly interactionManager: InteractionManager) {}
 
     public destroy() {
         this.destroyFns.forEach((fn) => fn());
 
         this.current = undefined;
-        for (const region of this.regions.values()) {
-            region.listeners.destroy();
-        }
-
-        this.regions.clear();
+        this.regions.root?.listeners.destroy();
+        this.regions.series?.listeners.destroy();
+        delete this.regions.root;
+        delete this.regions.series;
     }
 
-    public addRegion(name: RegionName, ...nodes: RegionNodeType[]) {
-        if (this.regions.has(name)) {
+    private addRegion(name: RegionName, widget: Widget) {
+        if (this.regions[name] !== undefined) {
             throw new Error(`AG Charts - Region: ${name} already exists`);
         }
-        const region = {
-            properties: { name, bboxproviders: nodes.map(nodeToBBoxProvider) },
-            listeners: new RegionListeners(),
-        };
-        this.regions.set(name, region);
+        const region = { properties: { name, widget }, listeners: new RegionListeners() };
+        this.regions[name] = region;
         return this.makeObserver(region);
     }
 
-    public updateRegion(name: RegionName, ...nodes: RegionNodeType[]) {
-        const region = this.regions.get(name);
-        if (region) {
-            region.properties.bboxproviders = nodes.map(nodeToBBoxProvider);
-        } else {
-            throw new Error('AG Charts - unknown region: ' + name);
-        }
+    initRegions(root: Widget, series: Widget) {
+        this.addRegion('root', root);
+        this.addRegion('series', series);
+        root.addListener('wheel', this.processPointerEvent);
+        root.addListener('contextmenu', this.processPointerEvent);
+        root.addListener('click', this.processPointerEvent);
+        root.addListener('dblclick', this.processPointerEvent);
+        root.addListener('mouseenter', this.processPointerEvent);
+        root.addListener('mousemove', this.processPointerEvent);
+        root.addListener('mouseleave', this.processPointerEvent);
+        root.addListener('drag-start', this.processPointerEvent);
+        root.addListener('drag-move', this.processPointerEvent);
+        root.addListener('drag-end', this.processPointerEvent);
     }
 
-    public removeRegion(region: RegionName): void {
-        this.regions.delete(region);
-    }
-
-    public getRegion(name: RegionName) {
-        return this.makeObserver(this.regions.get(name));
+    getRegion(name: RegionName) {
+        return this.makeObserver(this.regions[name]);
     }
 
     listenAll<T extends RegionEvent['type']>(
@@ -187,146 +176,149 @@ export class RegionManager {
         return new ObservableRegionImplementation();
     }
 
-    private checkPointerHistory(targetRegion: Region, event: PointerInteractionEvent): boolean {
-        for (const historyEvent of event.pointerHistory) {
-            const { region: historyRegion } = this.pickRegion(historyEvent.offsetX, historyEvent.offsetY) ?? {};
-            if (targetRegion.properties.name !== historyRegion?.properties.name) {
-                return false;
+    private widgetEventTypeToRegionEventType(widgetEvent: TWidgetEvent, regionEventType?: 'leave' | 'enter') {
+        if (regionEventType !== undefined) return regionEventType;
+        const map = {
+            contextmenu: 'contextmenu',
+            click: 'click',
+            dblclick: 'dblclick',
+            mouseenter: 'enter',
+            mousemove: 'hover',
+            mouseleave: 'leave',
+            wheel: 'wheel',
+            'drag-start': 'drag-start',
+            'drag-move': 'drag',
+            'drag-end': 'drag-end',
+        } as const;
+        return map[widgetEvent.type];
+    }
+
+    private computeEventOffsets(current: Region, widget: Widget, widgetEvent: TWidgetEvent) {
+        const { deltaX, deltaY } = InteractionManager.getWheelDeltas(widgetEvent.sourceEvent);
+
+        if ('mockRegion' in widgetEvent.sourceEvent) {
+            const mockRegion = widgetEvent.sourceEvent.mockRegion as MockEvent['mockRegion'];
+            if (mockRegion) {
+                return { deltaX, deltaY, ...mockRegion };
             }
         }
-        return true;
+
+        const widgetRect = widget.getElement().getBoundingClientRect();
+        const currentWidgetRect = current.properties.widget.getElement().getBoundingClientRect();
+        return {
+            canvasX: widgetEvent.clientX - widgetRect.x,
+            canvasY: widgetEvent.clientY - widgetRect.y,
+            regionX: widgetEvent.clientX - currentWidgetRect.x,
+            regionY: widgetEvent.clientY - currentWidgetRect.y,
+            deltaX,
+            deltaY,
+        };
     }
 
     // Create and dispatch a copy of the InteractionEvent.
     private dispatch(
-        current: { region: Region; bboxProvider?: BBoxProvider } | undefined,
-        partialEvent: Unpreventable<PointerInteractionEvent>
+        current: Region | undefined,
+        widget: Widget,
+        widgetEvent: TWidgetEvent,
+        regionEventType?: 'leave' | 'enter'
     ) {
         if (current == null) return;
 
-        const mainBBoxProvider = current.region.properties.bboxproviders[0];
-        let regionOffsetX = 0;
-        let regionOffsetY = 0;
-        if ('offsetX' in partialEvent && 'offsetY' in partialEvent) {
-            ({ x: regionOffsetX, y: regionOffsetY } = mainBBoxProvider.fromCanvasPoint(
-                partialEvent.offsetX,
-                partialEvent.offsetY
-            ));
-        } else {
-            const regionBBox = mainBBoxProvider.toCanvasBBox();
-            regionOffsetX = regionBBox.width / 2;
-            regionOffsetY = regionBBox.height / 2;
-        }
-
         const event: RegionEvent = buildPreventable({
-            ...partialEvent,
-            region: current.region.properties.name,
-            bboxProviderId: current.bboxProvider?.id,
-            regionOffsetX,
-            regionOffsetY,
+            ...this.computeEventOffsets(current, widget, widgetEvent),
+            sourceEvent: widgetEvent.sourceEvent,
+            type: this.widgetEventTypeToRegionEventType(widgetEvent, regionEventType),
+            region: current.properties.name,
         });
-        this.debug('Dispatching region event: ', event);
-        this.allRegionsListeners.dispatch(event.type, event);
-        current.region.listeners.dispatch(event.type, event);
-    }
-
-    // Process events during a drag action. Returns false if this event should follow the standard
-    // RegionManager.processEvent flow, or true if this event already processed by this function.
-    private handleDragging(event: PointerInteractionEvent): boolean {
-        const { current } = this;
 
         switch (event.type) {
-            case 'drag-start':
-                this.isDragging = true;
-                this.leftCanvas = false;
+            case 'drag-start': {
+                this.deferredDragStart = event as RegionEvent<'drag-start'>;
                 break;
-            // If the user releases the mouse ('drag-end') outside of the canvas, then the region listeners
-            // would not be notified to the 'leave' event by the usual processEvent mechanism. So we need to
-            // fire a deferred 'leave' event if the mouse has left the canvas after a drag event.
-            case 'leave':
-                this.leftCanvas = true;
-                return this.isDragging;
-            case 'enter':
-                this.leftCanvas = false;
-                return this.isDragging;
-
-            // AG-10875 only dispatch followup drag event to the region that received the 'drag-start'
-            // This logic will deliberatly suppress 'leave' events from the InteractionManager when dragging,
-            // and defers it until the drag is done.
-            case 'drag':
-                if (this.isDragging) {
-                    this.dispatch(current, event);
-                    return true;
+            }
+            case 'drag': {
+                if (this.deferredDragStart) {
+                    this.dispatchEvent(current, this.deferredDragStart);
+                }
+                this.dispatchEvent(current, event);
+                this.deferredDragStart = undefined;
+                this.isDragMoving = true;
+                this.blockNextClickEvent = true;
+                break;
+            }
+            case 'drag-end': {
+                if (this.isDragMoving) {
+                    this.dispatchEvent(current, event);
+                }
+                this.deferredDragStart = undefined;
+                this.isDragMoving = false;
+                break;
+            }
+            case 'click': {
+                if (!this.blockNextClickEvent) {
+                    this.dispatchEvent(current, event);
+                }
+                this.blockNextClickEvent = false;
+                break;
+            }
+            case 'hover': {
+                if (!this.isDragMoving) {
+                    this.dispatchEvent(current, event);
+                    this.blockNextClickEvent = false;
                 }
                 break;
-            case 'drag-end':
-                if (this.isDragging) {
-                    this.isDragging = false;
-                    this.dispatch(current, event);
-                    if (this.leftCanvas) {
-                        this.dispatch(current, { ...event, type: 'leave' });
-                    }
-                    return true;
-                }
+            }
+            default: {
+                this.dispatchEvent(current, event);
                 break;
+            }
         }
-
-        return false;
     }
 
-    private processPointerEvent(event: PointerInteractionEvent) {
-        const ignore = shouldIgnore(event);
-        if (ignore === 'none' && this.handleDragging(event)) {
-            // We are current dragging, so do not send leave/enter events until dragging is done.
-            return;
-        }
+    private dispatchEvent(current: Region, event: RegionEvent) {
+        this.debug('Dispatching region event: ', event);
+        this.allRegionsListeners.dispatch(event.type, event);
+        current.listeners.dispatch(event.type, event);
+    }
 
+    private readonly processPointerEvent = (widget: Widget, event: TWidgetEvent) => {
+        const ignore = shouldIgnore(event);
         const { current } = this;
 
-        let newCurrent: ReturnType<RegionManager['pickRegion']>;
+        let newCurrent: Region | undefined;
         switch (ignore) {
             case 'wait':
                 return;
             case 'none':
-                newCurrent = this.pickRegion(event.offsetX, event.offsetY);
+                newCurrent = this.pickRegion(event);
                 break;
             case 'leave':
                 newCurrent = undefined;
                 break;
         }
 
-        const newRegion = newCurrent?.region;
-        if (current !== undefined && newRegion?.properties.name !== current.region.properties.name) {
-            this.dispatch(current, { ...event, type: 'leave' });
+        const newRegion = newCurrent;
+        if (current !== undefined && newRegion?.properties.name !== current.properties.name) {
+            this.dispatch(current, widget, event, 'leave');
         }
-        if (newRegion !== undefined && newRegion.properties.name !== current?.region.properties.name) {
-            this.dispatch(newCurrent, { ...event, type: 'enter' });
+        if (newRegion !== undefined && newRegion.properties.name !== current?.properties.name) {
+            this.dispatch(newCurrent, widget, event, 'enter');
         }
-        if (newRegion !== undefined && this.checkPointerHistory(newRegion, event)) {
-            this.dispatch(newCurrent, event);
+        if (newRegion !== undefined) {
+            this.dispatch(newCurrent, widget, event);
         }
         this.current = newCurrent;
-    }
+    };
 
-    private pickRegion(x: number, y: number) {
-        // Sort matches by area.
-        // This ensure that we prioritise smaller regions are contained inside larger regions.
-        let currentArea = Infinity;
-        let currentRegion: Region | undefined;
-        let currentBBoxProvider: RegionBBoxProvider | undefined;
-        for (const region of this.regions.values()) {
-            for (const provider of region.properties.bboxproviders) {
-                if (provider.visible === false) continue;
-
-                const bbox = provider.toCanvasBBox();
-                const area = bbox.width * bbox.height;
-                if (area < currentArea && bbox.containsPoint(x, y)) {
-                    currentArea = area;
-                    currentRegion = region;
-                    currentBBoxProvider = provider;
-                }
-            }
+    private pickRegion({ sourceEvent }: TWidgetEvent) {
+        if ('mockRegion' in sourceEvent && sourceEvent.mockRegion) {
+            return (sourceEvent.mockRegion as NonNullable<MockEvent['mockRegion']>).region === 'series'
+                ? this.regions.series
+                : this.regions.root;
         }
-        return currentRegion ? { region: currentRegion, bboxProvider: currentBBoxProvider } : undefined;
+        if (sourceEvent.target == this.regions.root?.properties.widget.getElement()) {
+            return this.regions.root;
+        }
+        return this.regions.series;
     }
 }

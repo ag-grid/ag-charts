@@ -401,6 +401,6 @@ export abstract class OhlcSeriesBase<
             width: width,
             height: height,
         };
-        return computeBarFocusBounds(datum, this.contentGroup, opts.seriesRect);
+        return computeBarFocusBounds(datum, opts.seriesRect);
     }
 }

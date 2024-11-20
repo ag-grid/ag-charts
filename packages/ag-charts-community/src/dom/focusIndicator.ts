@@ -23,11 +23,16 @@ export class FocusIndicator {
         this.swapChain.addListener('swap', (parent) => this.onSwap(parent));
     }
 
-    updateBounds(bounds: Path | BBoxValues | undefined) {
+    updateBounds(bounds: Path | BBoxValues | undefined, seriesRect?: { x: number; y: number }) {
         if (bounds === undefined) {
             // skip
         } else if (bounds instanceof Path) {
-            const transform = (x: number, y: number) => Transformable.toCanvasPoint(bounds, x, y);
+            const transform = (localX: number, localY: number) => {
+                let { x, y } = Transformable.toCanvasPoint(bounds, localX, localY);
+                x -= seriesRect?.x ?? 0;
+                y -= seriesRect?.y ?? 0;
+                return { x, y };
+            };
             this.path.setAttribute('d', bounds.svgPathData(transform));
             this.show(this.svg);
         } else {
