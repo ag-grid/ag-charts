@@ -354,11 +354,11 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         const orderedDomain: string[][] = [];
         for (let node of this.tickTreeLayout.nodes) {
-            if (node.leafCount) continue;
-            orderedDomain.push(this.dataDomain.domain[node.externalIndex ?? -1]);
+            if (node.leafCount || node.refId == null) continue;
+            orderedDomain.push(this.dataDomain.domain[node.refId]);
         }
 
-        this.setDomain(sortBasedOnArray(this.dataDomain.domain, orderedDomain));
+        this.scale.domain = sortBasedOnArray(this.dataDomain.domain, orderedDomain);
         this.tickScale.domain = domain.concat([['']]);
         this.resizeTickTree();
     }

@@ -46,8 +46,8 @@ class TreeNode {
 
     constructor(
         public label: string = '',
-        public externalIndex?: number,
-        public parent?: TreeNode
+        public parent?: TreeNode,
+        public refId?: number
     ) {
         this.depth = parent ? parent.depth + 1 : 0;
     }
@@ -63,7 +63,7 @@ class TreeNode {
                 // the isNotLeaf check is to allow duplicate leafs
                 root = existingNode;
             } else {
-                const node = new TreeNode(pathPart, index, root);
+                const node = new TreeNode(pathPart, root, index);
                 node.index = children.length;
                 children.push(node);
                 if (isNotLeaf) {
