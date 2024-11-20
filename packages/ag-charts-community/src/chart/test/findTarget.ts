@@ -91,8 +91,9 @@ function findZoomTarget(zoomModule: unknown, canvasX: number, canvasY: number): 
     return undefined;
 }
 
-function findSeriesAreaTarget(seriesAreaModule: unknown, canvasX: number, canvasY: number): MockEvent {
-    const caster = new Caster(seriesAreaModule)
+function findSeriesAreaTarget(chart: unknown, canvasX: number, canvasY: number): MockEvent {
+    const caster = new Caster(chart)
+        .accessProperty('seriesAreaManager')
         .cast(SeriesAreaManager)
         .findProperty('seriesRect')
         .castProperty('seriesRect', BBox);
@@ -119,6 +120,6 @@ export function findChartTarget(chart: Chart, canvasX: number, canvasY: number):
         findLegendTarget(getModule('legend'), canvasX, canvasY) ||
         findNavigatorTarget(getModule('navigator'), canvasX, canvasY) ||
         findZoomTarget(getModule('zoom'), canvasX, canvasY) ||
-        findSeriesAreaTarget((chart as any).seriesAreaManager, canvasX, canvasY)
+        findSeriesAreaTarget(chart, canvasX, canvasY)
     );
 }
