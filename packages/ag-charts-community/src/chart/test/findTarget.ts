@@ -64,15 +64,13 @@ function findNavigatorTarget(navigatorModule: unknown, canvasX: number, canvasY:
 function findZoomTarget(zoom: unknown, canvasX: number, canvasY: number): MockEvent | undefined {}
 
 function findSeriesAreaTarget(seriesAreaModule: unknown, canvasX: number, canvasY: number): MockEvent {
-    const seriesArea = new Caster(seriesAreaModule)
+    const caster = new Caster(seriesAreaModule)
         .cast(SeriesAreaManager)
         .findProperty('seriesRect')
-        .castProperty('seriesRect', BBox)
-        .findProperty('chart').value;
+        .castProperty('seriesRect', BBox);
 
-    const { seriesRect } = seriesArea;
-
-    const scene = new Caster(seriesArea.chart).accessProperty('ctx').accessProperty('scene').cast(Scene).value;
+    const seriesRect = caster.value.seriesRect;
+    const scene = caster.accessProperty('chart').accessProperty('ctx').accessProperty('scene').cast(Scene).value;
 
     const target = scene.canvas.element;
     const [offsetX, offsetY] = [NaN, NaN];
