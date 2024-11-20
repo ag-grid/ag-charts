@@ -372,7 +372,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    protected updateLabelSelection(opts: {
+    protected override updateLabelSelection(opts: {
         labelData: HeatmapLabelDatum[];
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, HeatmapLabelDatum>;
     }) {

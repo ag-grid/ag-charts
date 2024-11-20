@@ -1076,10 +1076,6 @@ export class LinearGaugeSeries
         this.resetAllAnimation();
     }
 
-    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
-        return [];
-    }
-
     override getSeriesDomain() {
         return [NaN, NaN];
     }

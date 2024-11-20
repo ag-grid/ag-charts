@@ -107,6 +107,7 @@ export class MapMarkerSeries
             moduleCtx,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
+            usesPlacedLabels: true,
         });
 
         this.animationState = new StateMachine<MapMarkerAnimationState, MapMarkerAnimationEvent>(
@@ -488,7 +489,7 @@ export class MapMarkerSeries
         const resize = this.checkResize(seriesRect);
         const scaleChange = this.checkScaleChange();
 
-        const { labelSelection, markerSelection, highlightMarkerSelection } = this;
+        const { markerSelection, highlightMarkerSelection } = this;
 
         this.updateSelections();
 
@@ -501,9 +502,6 @@ export class MapMarkerSeries
         }
 
         const nodeData = this.contextNodeData?.nodeData ?? [];
-
-        this.labelSelection = this.updateLabelSelection({ labelSelection });
-        this.updateLabelNodes({ labelSelection });
 
         this.markerSelection = this.updateMarkerSelection({ markerData: nodeData, markerSelection });
         this.updateMarkerNodes({ markerSelection, isHighlight: false, highlightedDatum });
@@ -524,14 +522,11 @@ export class MapMarkerSeries
         this.animationState.transition('update');
     }
 
-    private updateLabelSelection(opts: {
-        labelSelection: _ModuleSupport.Selection<
-            _ModuleSupport.Text,
-            _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
-        >;
-    }) {
-        const placedLabels = (this.isLabelEnabled() ? this.chart?.placeLabels().get(this) : undefined) ?? [];
-        return opts.labelSelection.update(placedLabels);
+    public override updatePlacedLabelData(labelData: _ModuleSupport.PlacedLabel<MapMarkerNodeLabelDatum>[]) {
+        this.labelSelection = this.labelSelection.update(labelData, (text) => {
+            text.pointerEvents = _ModuleSupport.PointerEvents.None;
+        });
+        this.updateLabelNodes({ labelSelection: this.labelSelection });
     }
 
     private updateLabelNodes(opts: {
@@ -623,7 +618,8 @@ export class MapMarkerSeries
         fromToMotion(this.id, 'markers', animationManager, [this.markerSelection, this.highlightMarkerSelection], fns);
     }
 
-    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
+    override getLabelData() {
+        if (!this.isLabelEnabled()) return [];
         return this.contextNodeData?.labelData ?? [];
     }
 

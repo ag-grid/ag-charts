@@ -8,7 +8,6 @@ import type { Node } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
-import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { Logger } from '../../../util/logger';
 import { clamp } from '../../../util/number';
 import { StateMachine } from '../../../util/stateMachine';
@@ -376,10 +375,6 @@ export abstract class HierarchySeries<
         if (!this.isProcessedDataAnimatable()) {
             this.ctx.animationManager.skipCurrentBatch();
         }
-    }
-
-    override getLabelData(): PointLabelDatum[] {
-        return [];
     }
 
     override getSeriesDomain() {

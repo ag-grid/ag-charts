@@ -585,10 +585,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         });
     }
 
-    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
-        return [];
-    }
-
     override getSeriesDomain(): any[] {
         return [NaN, NaN];
     }

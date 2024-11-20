@@ -1125,10 +1125,6 @@ export class RadialGaugeSeries
         this.resetAllAnimation();
     }
 
-    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
-        return [];
-    }
-
     override getSeriesDomain() {
         return [NaN, NaN];
     }

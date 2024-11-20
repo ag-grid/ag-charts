@@ -3,6 +3,7 @@ import type { AgContextMenuOptions } from 'ag-charts-types';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { Point, SizedPoint } from '../../scene/point';
+import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { TooltipContent } from '../tooltip/tooltip';
@@ -17,18 +18,20 @@ type NodeContextMenuActionEvent = Parameters<
     NonNullable<AgContextMenuOptions['extraNodeActions']>[number]['action']
 >[0];
 
-export interface ISeries<TDatum, TProps> {
+export interface ISeries<TDatum, TProps, TLabel = TDatum> {
     id: string;
     axes: Record<ChartAxisDirection, ChartAxisLike | undefined>;
     contentGroup: Group;
     properties: TProps;
     hasEventListener(type: string): boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
+    updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
     fireNodeClickEvent(event: Event, datum: SeriesNodeDatum): void;
     fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum): void;
     createNodeContextMenuActionEvent(event: Event, datum: TDatum): NodeContextMenuActionEvent;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
+    getLabelData(): (TLabel & PointLabelDatum)[];
     getTooltipHtml(seriesDatum: any): TooltipContent;
     getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;
     // BoundSeries

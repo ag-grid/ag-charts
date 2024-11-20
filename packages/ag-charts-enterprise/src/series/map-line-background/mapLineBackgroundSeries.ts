@@ -201,10 +201,6 @@ export class MapLineBackgroundSeries
         // No animations
     }
 
-    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
-        return [];
-    }
-
     override getSeriesDomain() {
         return [NaN, NaN];
     }

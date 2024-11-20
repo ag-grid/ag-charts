@@ -66,7 +66,7 @@ export class MapLineSeries extends TopologySeries<
     );
     private labelSelection: _ModuleSupport.Selection<
         _ModuleSupport.Text,
-        _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
+        _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>
     > = Selection.select(this.labelGroup, Text);
     private highlightDatumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(
         this.highlightNode,
@@ -80,6 +80,7 @@ export class MapLineSeries extends TopologySeries<
             moduleCtx,
             useLabelLayer: true,
             pickModes: [SeriesNodePickMode.EXACT_SHAPE_MATCH, SeriesNodePickMode.NEAREST_NODE],
+            usesPlacedLabels: true,
         });
     }
 
@@ -333,7 +334,7 @@ export class MapLineSeries extends TopologySeries<
     }
 
     override update() {
-        const { datumSelection, labelSelection, highlightDatumSelection } = this;
+        const { datumSelection, highlightDatumSelection } = this;
 
         this.updateSelections();
 
@@ -349,9 +350,6 @@ export class MapLineSeries extends TopologySeries<
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
         this.updateDatumNodes({ datumSelection, isHighlight: false });
-
-        this.labelSelection = this.updateLabelSelection({ labelSelection });
-        this.updateLabelNodes({ labelSelection });
 
         this.highlightDatumSelection = this.updateDatumSelection({
             nodeData: highlightedDatum != null ? [highlightedDatum] : [],
@@ -421,14 +419,11 @@ export class MapLineSeries extends TopologySeries<
         });
     }
 
-    private updateLabelSelection(opts: {
-        labelSelection: _ModuleSupport.Selection<
-            _ModuleSupport.Text,
-            _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
-        >;
-    }) {
-        const placedLabels = (this.isLabelEnabled() ? this.chart?.placeLabels().get(this) : undefined) ?? [];
-        return opts.labelSelection.update(placedLabels);
+    public override updatePlacedLabelData(labelData: _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>[]) {
+        this.labelSelection = this.labelSelection.update(labelData, (text) => {
+            text.pointerEvents = _ModuleSupport.PointerEvents.None;
+        });
+        this.updateLabelNodes({ labelSelection: this.labelSelection });
     }
 
     private updateLabelNodes(opts: {
@@ -459,7 +454,8 @@ export class MapLineSeries extends TopologySeries<
         // No animations
     }
 
-    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
+    override getLabelData() {
+        if (!this.isLabelEnabled()) return [];
         return this.contextNodeData?.labelData ?? [];
     }
 

@@ -5,9 +5,10 @@ import { ColorScale } from '../../../scale/colorScale';
 import { LinearScale } from '../../../scale/linearScale';
 import type { BBox } from '../../../scene/bbox';
 import { Group } from '../../../scene/group';
+import { PointerEvents } from '../../../scene/node';
 import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
-import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
+import type { PlacedLabel } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
@@ -77,6 +78,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 label: resetLabelFn,
                 marker: resetMarkerFn,
             },
+            usesPlacedLabels: true,
         });
     }
 
@@ -264,7 +266,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         return this.properties.marker.isDirty();
     }
 
-    override getLabelData(): PointLabelDatum[] {
+    override getLabelData() {
+        if (!this.isLabelEnabled()) return [];
         return this.contextNodeData?.labelData ?? [];
     }
 
@@ -316,21 +319,21 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         }
     }
 
-    protected updateLabelSelection(opts: {
-        labelData: BubbleNodeDatum[];
-        labelSelection: Selection<Text, BubbleNodeDatum>;
-    }) {
-        const placedLabels = this.properties.label.enabled ? this.chart?.placeLabels().get(this) ?? [] : [];
-        return opts.labelSelection.update(
-            placedLabels.map((v) => ({
-                ...(v.datum as BubbleNodeDatum),
+    public override updatePlacedLabelData(labelData: PlacedLabel<BubbleNodeDatum>[]) {
+        this.labelSelection.update(
+            labelData.map((v) => ({
+                ...v.datum,
                 point: {
                     x: v.x,
                     y: v.y,
                     size: v.datum.point.size,
                 },
-            }))
+            })),
+            (text) => {
+                text.pointerEvents = PointerEvents.None;
+            }
         );
+        this.updateLabelNodes({ labelSelection: this.labelSelection });
     }
 
     protected updateLabelNodes(opts: { labelSelection: Selection<Text, BubbleNodeDatum> }) {

@@ -106,7 +106,7 @@ export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends stri
         readonly type: TEvent,
         readonly event: Event,
         { datum }: TDatum,
-        series: ISeries<TDatum, unknown>
+        series: ISeries<TDatum, unknown, unknown>
     ) {
         this.datum = datum;
         this.seriesId = series.id;
@@ -148,6 +148,7 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     directionKeys?: SeriesDirectionKeysMapping<TProps>;
     directionNames?: SeriesDirectionKeysMapping<TProps>;
     canHaveAxes?: boolean;
+    usesPlacedLabels?: boolean;
 };
 
 export abstract class Series<
@@ -157,12 +158,13 @@ export abstract class Series<
         TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
     >
     extends Observable
-    implements ISeries<TDatum, TProps>
+    implements ISeries<TDatum, TProps, TLabel>
 {
     protected destroyFns: (() => void)[] = [];
     abstract readonly properties: TProps;
 
     pickModes: SeriesNodePickMode[];
+    usesPlacedLabels: boolean = false;
 
     get pickModeAxis(): 'main' | 'main-category' | undefined {
         return 'main';
@@ -222,7 +224,6 @@ export abstract class Series<
     chart?: {
         mode: ChartMode;
         isMiniChart: boolean;
-        placeLabels(padding?: number): Map<Series<any, any>, PlacedLabel[]>;
         seriesRect?: BBox;
     };
 
@@ -307,12 +308,20 @@ export abstract class Series<
     constructor(seriesOpts: SeriesConstructorOpts<TProps>) {
         super();
 
-        const { moduleCtx, pickModes, directionKeys = {}, directionNames = {}, canHaveAxes = false } = seriesOpts;
+        const {
+            moduleCtx,
+            pickModes,
+            directionKeys = {},
+            directionNames = {},
+            canHaveAxes = false,
+            usesPlacedLabels = false,
+        } = seriesOpts;
 
         this.ctx = moduleCtx;
         this.directionKeys = directionKeys;
         this.directionNames = directionNames;
         this.canHaveAxes = canHaveAxes;
+        this.usesPlacedLabels = usesPlacedLabels;
 
         this.highlightGroup = new TranslatableGroup({
             name: `${this.internalId}-highlight`,
@@ -599,7 +608,12 @@ export abstract class Series<
         throw new Error('AG Charts - Series.pickNodeMainAxisFirst() not implemented');
     }
 
-    abstract getLabelData(): PointLabelDatum[];
+    public getLabelData(): (TLabel & PointLabelDatum)[] {
+        return [];
+    }
+    public updatePlacedLabelData(_labels: PlacedLabel<TLabel>[]) {
+        return;
+    }
 
     fireNodeClickEvent(event: Event, datum: TDatum): void {
         this.fireEvent(new this.NodeEvent('nodeClick', event, datum, this));

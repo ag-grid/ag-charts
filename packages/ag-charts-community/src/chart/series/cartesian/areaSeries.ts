@@ -659,7 +659,7 @@ export class AreaSeries extends CartesianSeries<
         }
     }
 
-    protected updateLabelSelection(opts: {
+    protected override updateLabelSelection(opts: {
         labelData: LabelSelectionDatum[];
         labelSelection: Selection<Text, LabelSelectionDatum>;
     }) {

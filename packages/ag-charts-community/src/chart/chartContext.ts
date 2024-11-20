@@ -28,6 +28,7 @@ import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import type { Keyboard } from './keyboard';
 import { LayoutManager } from './layout/layoutManager';
+import { SeriesLabelLayoutManager } from './layout/seriesLabelLayoutManager';
 import { LegendManager } from './legend/legendManager';
 import { SeriesStateManager } from './series/seriesStateManager';
 import type { Tooltip } from './tooltip/tooltip';
@@ -43,6 +44,7 @@ export class ChartContext implements ModuleContext {
     readonly stateManager = new StateManager();
     readonly toolbarManager = new ToolbarManager();
     readonly zoomManager = new ZoomManager();
+    readonly seriesLabelLayoutManager = new SeriesLabelLayoutManager();
 
     animationManager: AnimationManager;
     annotationManager: AnnotationManager;

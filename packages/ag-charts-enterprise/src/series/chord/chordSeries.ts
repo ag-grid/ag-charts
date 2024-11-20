@@ -604,10 +604,6 @@ export class ChordSeries extends FlowProportionSeries<
         );
     }
 
-    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
-        return [];
-    }
-
     protected override computeFocusBounds({
         datumIndex,
     }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {

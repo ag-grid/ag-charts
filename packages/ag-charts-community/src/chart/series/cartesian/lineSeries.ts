@@ -494,7 +494,7 @@ export class LineSeries extends CartesianSeries<
         }
     }
 
-    protected updateLabelSelection(opts: {
+    protected override updateLabelSelection(opts: {
         labelData: LineNodeDatum[];
         labelSelection: Selection<Text, LineNodeDatum>;
     }) {

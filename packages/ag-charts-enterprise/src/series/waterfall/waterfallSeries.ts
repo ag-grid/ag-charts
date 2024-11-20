@@ -566,7 +566,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    protected updateLabelSelection(opts: {
+    protected override updateLabelSelection(opts: {
         labelData: WaterfallNodeDatum[];
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, WaterfallNodeDatum>;
     }) {

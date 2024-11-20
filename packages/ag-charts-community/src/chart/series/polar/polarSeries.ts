@@ -7,7 +7,6 @@ import { type Node, PointerEvents } from '../../../scene/node';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
-import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -204,10 +203,6 @@ export abstract class PolarSeries<
     }
 
     surroundingRadius?: number;
-
-    getLabelData(): PointLabelDatum[] {
-        return [];
-    }
 
     computeLabelsBBox(_options: { hideWhenNecessary: boolean }, _seriesRect: BBox): BBox | null | Promise<BBox | null> {
         return null;

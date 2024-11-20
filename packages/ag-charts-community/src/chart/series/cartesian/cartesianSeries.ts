@@ -9,7 +9,6 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
-import type { PointLabelDatum } from '../../../scene/util/labelPlacement';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
 import { StateMachine } from '../../../util/stateMachine';
@@ -174,7 +173,7 @@ export abstract class CartesianSeries<
     );
     private datumSelection: Selection<TNode, TDatum>;
     private markerSelection: Selection<Marker, TDatum>;
-    private labelSelection: Selection<Text, TLabel> = Selection.select(this.labelGroup, Text);
+    protected labelSelection: Selection<Text, TLabel> = Selection.select(this.labelGroup, Text);
 
     private highlightSelection = Selection.select(this.highlightNode, () =>
         this.opts.hasMarkers ? this.markerFactory() : this.nodeFactory()
@@ -428,7 +427,7 @@ export abstract class CartesianSeries<
 
         this.updatePaths({ seriesHighlighted, itemId, contextData, paths });
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
-        this.labelSelection = this.updateLabelSelection({ labelData, labelSelection });
+        this.labelSelection = this.updateLabelSelection({ labelData, labelSelection }) ?? labelSelection;
         if (this.opts.hasMarkers) {
             this.markerSelection = this.updateMarkerSelection({ nodeData, markerSelection });
         }
@@ -506,7 +505,9 @@ export abstract class CartesianSeries<
         }
 
         this.updateDatumNodes({ datumSelection, highlightedItems, isHighlight: false });
-        this.updateLabelNodes({ labelSelection });
+        if (!this.usesPlacedLabels) {
+            this.updateLabelNodes({ labelSelection });
+        }
         if (hasMarkers) {
             this.updateMarkerNodes({ markerSelection, isHighlight: false });
         }
@@ -737,10 +738,6 @@ export abstract class CartesianSeries<
     protected isPathOrSelectionDirty(): boolean {
         // Override point to allow more sophisticated dirty selection detection.
         return false;
-    }
-
-    getLabelData(): PointLabelDatum[] {
-        return [];
     }
 
     shouldFlipXY(): boolean {
@@ -1031,10 +1028,12 @@ export abstract class CartesianSeries<
         return animationData;
     }
 
-    protected abstract updateLabelSelection(opts: {
+    protected updateLabelSelection(opts: {
         labelData: TLabel[];
         labelSelection: Selection<Text, TLabel>;
-    }): Selection<Text, TLabel>;
+    }): Selection<Text, TLabel> {
+        return opts.labelSelection;
+    }
 
     protected abstract updateLabelNodes(opts: { labelSelection: Selection<Text, TLabel> }): void;
 

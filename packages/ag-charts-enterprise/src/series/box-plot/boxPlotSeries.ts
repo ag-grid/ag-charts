@@ -406,7 +406,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         // Labels are unsupported.
     }
 
-    protected updateLabelSelection(opts: {
+    protected override updateLabelSelection(opts: {
         labelData: BoxPlotNodeDatum[];
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, BoxPlotNodeDatum>;
         seriesIdx: number;

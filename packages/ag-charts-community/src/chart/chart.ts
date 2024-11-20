@@ -10,8 +10,6 @@ import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
-import type { PlacedLabel, PointLabelDatum } from '../scene/util/labelPlacement';
-import { isPointLabelDatum, placeLabels } from '../scene/util/labelPlacement';
 import { groupBy } from '../util/array';
 import { AsyncAwaitQueue, pause } from '../util/async';
 import { Debug } from '../util/debug';
@@ -581,8 +579,7 @@ export abstract class Chart extends Observable {
             case ChartUpdateType.SERIES_UPDATE: {
                 if (this.checkUpdateShortcut(ChartUpdateType.SERIES_UPDATE)) break;
 
-                const { seriesRect } = this;
-                await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
+                await this.updateSeries(seriesToUpdate);
 
                 updateSplits('🤔');
 
@@ -756,9 +753,6 @@ export abstract class Chart extends Observable {
                 get seriesRect() {
                     return chart.seriesRect;
                 },
-                placeLabels(padding?: number) {
-                    return chart.placeLabels(padding);
-                },
             };
 
             series.resetAnimation(this.chartAnimationPhase);
@@ -919,38 +913,6 @@ export abstract class Chart extends Observable {
         }
     }
 
-    placeLabels(padding?: number): Map<Series<any, any>, PlacedLabel[]> {
-        const visibleSeries: Series<any, any>[] = [];
-        const data: PointLabelDatum[][] = [];
-        for (const series of this.series) {
-            if (!series.visible) continue;
-
-            const labelData: PointLabelDatum[] = series.getLabelData();
-
-            if (isPointLabelDatum(labelData?.[0])) {
-                data.push(labelData);
-                visibleSeries.push(series);
-            }
-        }
-
-        const { seriesRect } = this;
-        const { top, right, bottom, left } = this.seriesArea.padding;
-        const labels: PlacedLabel[][] =
-            seriesRect && data.length > 0
-                ? placeLabels(
-                      data,
-                      {
-                          x: -left,
-                          y: -top,
-                          width: seriesRect.width + left + right,
-                          height: seriesRect.height + top + bottom,
-                      },
-                      padding
-                  )
-                : [];
-        return new Map(labels.map((l, i) => [visibleSeries[i], l]));
-    }
-
     private setCategoryLegendData(initialState?: AgInitialStateLegendOptions[]) {
         const {
             ctx: { legendManager, stateManager },
@@ -1018,6 +980,18 @@ export abstract class Chart extends Observable {
     protected seriesRect?: BBox;
     // BBox of the chart area containing animatable elements; if this changes, we skip animations.
     protected animationRect?: BBox;
+
+    private async updateSeries(seriesToUpdate: ISeries<unknown, unknown>[]) {
+        const { seriesRect } = this;
+
+        await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
+
+        this.ctx.seriesLabelLayoutManager.updateLabels(
+            this.series.filter((s) => s.visible && s.usesPlacedLabels),
+            this.padding,
+            this.seriesRect
+        );
+    }
 
     private readonly onSeriesNodeClick = (event: TypedEvent) => {
         this.fireEvent({ ...event, type: 'seriesNodeClick' });

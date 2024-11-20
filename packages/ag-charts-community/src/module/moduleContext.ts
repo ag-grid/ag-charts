@@ -18,6 +18,7 @@ import type { ToolbarManager } from '../chart/interaction/toolbarManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
 import type { ZoomManager } from '../chart/interaction/zoomManager';
 import type { LayoutManager } from '../chart/layout/layoutManager';
+import type { SeriesLabelLayoutManager } from '../chart/layout/seriesLabelLayoutManager';
 import type { LegendManager } from '../chart/legend/legendManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
 import type { UpdateService } from '../chart/updateService';
@@ -55,6 +56,7 @@ export interface ModuleContext {
     readonly proxyInteractionService: ProxyInteractionService;
     readonly regionManager: RegionManager;
     readonly seriesStateManager: SeriesStateManager;
+    readonly seriesLabelLayoutManager: SeriesLabelLayoutManager;
     readonly stateManager: StateManager;
     readonly syncManager: SyncManager;
     readonly toolbarManager: ToolbarManager;
