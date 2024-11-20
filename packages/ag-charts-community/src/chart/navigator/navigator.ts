@@ -191,17 +191,4 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
         if (!this.enabled) return;
         this.domProxy.updateZoom();
     }
-
-    testFindTarget(canvasX: number, canvasY: number): MockEvent | undefined {
-        if (!this.enabled) return undefined;
-
-        if (Transformable.toCanvas(this.minHandle).containsPoint(canvasX, canvasY)) {
-            return this.domProxy.testFindTarget('min', canvasX, canvasY);
-        } else if (Transformable.toCanvas(this.maxHandle).containsPoint(canvasX, canvasY)) {
-            return this.domProxy.testFindTarget('max', canvasX, canvasY);
-        } else if (Transformable.toCanvas(this.mask).containsPoint(canvasX, canvasY)) {
-            return this.domProxy.testFindTarget('pan', canvasX, canvasY);
-        }
-        return undefined;
-    }
 }

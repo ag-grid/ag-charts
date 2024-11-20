@@ -159,12 +159,4 @@ export class NavigatorDOMProxy {
         this._max = this.sliders[2].clampValueRatio(this._min + this.minRange, 1);
         this.updateZoom();
     }
-
-    testFindTarget(type: NavigatorButtonType, canvasX: number, canvasY: number): MockEvent {
-        const targetWidth = this.sliders[{ min: 0, pan: 1, max: 2 }[type]];
-        const offsetX = canvasX - targetWidth.cssLeft() - this.toolbar.cssLeft();
-        const offsetY = canvasY - targetWidth.cssTop() - this.toolbar.cssTop();
-        const target = targetWidth.getElement();
-        return { target, offsetX, offsetY };
-    }
 }
