@@ -17,7 +17,7 @@ export interface AgAngleCategoryAxisOptions extends Omit<AgBaseAxisOptions<AgAng
     shape?: AgPolarAxisShape;
     /** Angle in degrees to start ticks positioning from. */
     startAngle?: Degree;
-    /** Angle in degrees to end ticks positioning at. It should be greater than `startAngle`. */
+    /** Angle in degrees to end ticks positioning at. */
     endAngle?: Degree;
     /** Add cross lines or regions corresponding to data values. */
     crossLines?: AgAngleCrossLineOptions[];
