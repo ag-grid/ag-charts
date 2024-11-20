@@ -11,6 +11,12 @@ function findProperty<T, K extends string>(thing: T, propertyName: K): Omit<T, K
     return thing as T & { [P in K]: unknown };
 }
 
+function findBoolean<T, K extends string>(thing: T, propertyName: K): Omit<T, K> & { [P in K]: boolean } {
+    const property: unknown = findProperty(thing, propertyName)[propertyName];
+    expect(typeof property).toBe('boolean');
+    return thing as T & { [P in K]: boolean };
+}
+
 function castProperty<T, V, K extends keyof T>(
     thing: T,
     propertyName: K,
@@ -40,6 +46,9 @@ export class Caster<T> {
     }
     findProperty<K extends string>(propertyName: K): Caster<Omit<T, K> & { [P in K]: unknown }> {
         return new Caster(findProperty(this.value, propertyName));
+    }
+    findBoolean<K extends string>(propertyName: K): Caster<Omit<T, K> & { [P in K]: boolean }> {
+        return new Caster(findBoolean(this.value, propertyName));
     }
     castProperty<V, K extends keyof T>(
         propertyName: K,

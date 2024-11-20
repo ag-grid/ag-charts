@@ -30,7 +30,7 @@ function findLegendTarget(legendModule: unknown, canvasX: number, canvasY: numbe
 function findNavigatorTarget(navigatorModule: unknown, canvasX: number, canvasY: number): MockEvent | undefined {
     const caster = new Caster(navigatorModule);
 
-    const navigator = caster.cast(Navigator).findProperty('enabled').castProperty('enabled', Boolean).value;
+    const navigator = caster.cast(Navigator).findBoolean('enabled').value;
 
     const domProxy = caster
         .accessProperty('domProxy')
