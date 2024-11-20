@@ -25,7 +25,7 @@ export class TooltipManager {
     ) {
         tooltip.setup(domManager);
 
-        domManager.addListener('hidden', () => this.tooltip.toggle(false));
+        domManager.addListener('hidden', () => this.tooltip.hide());
     }
 
     public updateTooltip(callerId: string, meta?: TooltipMeta, content?: TooltipContent) {
@@ -63,7 +63,7 @@ export class TooltipManager {
 
         if (this.suppressState.stateValue() || state?.meta == null || state?.content == null) {
             this.appliedState = null;
-            this.tooltip.toggle(false);
+            this.tooltip.hide();
             return;
         }
 

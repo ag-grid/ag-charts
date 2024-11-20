@@ -1,5 +1,4 @@
 .ag-chart-tooltip {
-    transition: transform 0.1s ease;
     width: max-content;
     z-index: 99999;
     font:
@@ -7,6 +6,13 @@
         sans-serif;
     color: rgb(70, 70, 70);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+
+    /* Resets when using popover attribute */
+    inset: unset;
+    margin: 0;
+    border: none;
+    padding: 0;
+    overflow: visible;
 }
 
 .ag-chart-tooltip-wrap-always {
@@ -34,14 +40,6 @@
 .ag-chart-tooltip-no-interaction {
     pointer-events: none;
     user-select: none;
-}
-
-.ag-chart-tooltip-no-animation {
-    transition: none !important;
-}
-
-.ag-chart-tooltip-hidden {
-    visibility: hidden;
 }
 
 .ag-chart-tooltip-title {

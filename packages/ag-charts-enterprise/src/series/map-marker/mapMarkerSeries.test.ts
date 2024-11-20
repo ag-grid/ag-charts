@@ -214,7 +214,7 @@ describe('MapMarkerSeries', () => {
                 // Check the tooltip is shown
                 const tooltip = document.querySelector('.ag-chart-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
-                expect(tooltip?.classList.contains('ag-chart-tooltip-hidden')).toBe(false);
+                expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
                 // Check the tooltip text
                 const values = testParams.getDatumValues(item, series);
@@ -225,7 +225,7 @@ describe('MapMarkerSeries', () => {
             await hoverAction(8, 8)(chart);
             await waitForChartStability(chart);
             const tooltip = document.querySelector('.ag-chart-tooltip');
-            expect(tooltip?.classList.contains('ag-chart-tooltip-hidden')).toBe(true);
+            expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
         });
 
         it(`should highlight hovered items`, async () => {
