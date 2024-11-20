@@ -681,11 +681,4 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             scrollingStep: overrides?.scrollingStep ?? this.scrollingStep,
         };
     }
-
-    testFindTarget(canvasX: number, canvasY: number): _ModuleSupport.MockEvent | undefined {
-        if (this.enabled && this.enableAxisDragging) {
-            return this.domProxy.testFindTarget(canvasX, canvasY);
-        }
-        return undefined;
-    }
 }

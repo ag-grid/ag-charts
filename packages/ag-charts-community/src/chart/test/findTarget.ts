@@ -1,8 +1,12 @@
-import { BBox, Scene, ToolbarWidget } from '../../module-support';
+import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
+import { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
+import { BBoxValues } from '../../util/bboxinterface';
+import { NativeWidget } from '../../widget/nativeWidget';
 import { SliderWidget } from '../../widget/sliderWidget';
+import { ToolbarWidget } from '../../widget/toolbarWidget';
 import type { Chart } from '../chart';
 import type { MockEvent } from '../interaction/regionManager';
 import { Legend } from '../legend/legend';
@@ -61,7 +65,31 @@ function findNavigatorTarget(navigatorModule: unknown, canvasX: number, canvasY:
     return undefined;
 }
 
-function findZoomTarget(zoom: unknown, canvasX: number, canvasY: number): MockEvent | undefined {}
+function findZoomTarget(zoomModule: unknown, canvasX: number, canvasY: number): MockEvent | undefined {
+    const caster = new Caster(zoomModule);
+
+    const zoom = caster.findBoolean('enabled').findBoolean('enableAxisDragging').value;
+
+    if (zoom.enabled && zoom.enableAxisDragging) {
+        const domProxy = caster
+            .accessProperty('domProxy')
+            .findProperty('axes')
+            .castProperty('axes', Array)
+            .findArrayElementProperties('axes', 'div')
+            .castArrayElementProperties('axes', 'div', NativeWidget).value;
+
+        for (const axis of domProxy.axes) {
+            const bbox = axis.div.getBounds();
+            if (!axis.div.isHidden() && BBoxValues.containsPoint(bbox, canvasX, canvasY)) {
+                const offsetX = canvasX - bbox.x;
+                const offsetY = canvasY - bbox.y;
+                return { target: axis.div.getElement(), offsetX, offsetY };
+            }
+        }
+    }
+
+    return undefined;
+}
 
 function findSeriesAreaTarget(seriesAreaModule: unknown, canvasX: number, canvasY: number): MockEvent {
     const caster = new Caster(seriesAreaModule)
