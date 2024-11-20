@@ -1,53 +1,61 @@
 import { expect } from '@jest/globals';
 
-// Pick all properties from T that are of Array type
-// Example:
-//
-//   T = {
-//     name: string,
-//     emails: { domain: string, username: string }[],
-//     data: { purchaseId: number }[]
-//   }
-//   ArraysPropertiesOf<T> = {
-//     emails: { domain: string, username: string }[],
-//     data: { purchaseId: number }[]
-//  }
+/**
+ * Pick all properties from T that are of Array type
+ * Example:
+ *
+ *   T = {
+ *     name: string,
+ *     emails: { domain: string, username: string }[],
+ *     data: { purchaseId: number }[]
+ *   }
+ *   ArraysPropertiesOf<T> = {
+ *     emails: { domain: string, username: string }[],
+ *     data: { purchaseId: number }[]
+ *  }
+ */
 type ArraysPropertiesOf<T> = { [K in keyof T as T[K] extends Array<unknown> ? K : never]: T[K] };
 
-// Pick all types of all properties of Array type.
-// Example:
-//
-//   T = {
-//     name: string,
-//     emails: { domain: string, username: string }[],
-//     data: { purchaseId: number }[]
-//   }
-//   UnionOfArrayPropertiesOf<T> =
-//     { domain: string, username: string }[] | { purchaseId: number }[]
+/**
+ * Pick all types of all properties of Array type.
+ * Example:
+ *
+ *   T = {
+ *     name: string,
+ *     emails: { domain: string, username: string }[],
+ *     data: { purchaseId: number }[]
+ *   }
+ *   UnionOfArrayPropertiesOf<T> =
+ *     { domain: string, username: string }[] | { purchaseId: number }[]
+ */
 type UnionOfArrayPropertiesOf<T> = T[keyof ArraysPropertiesOf<T>];
 
-// Pick all element types of all properties of Array type.
-// Example:
-//
-//   T = {
-//     name: string,
-//     emails: { domain: string, username: string }[],
-//     data: { purchaseId: number }[]
-//   }
-//   UnionOfArrayPropertiesOf<T> =
-//     { domain: string, username: string } | { purchaseId: number }
+/**
+ * Pick all element types of all properties of Array type.
+ * Example:
+ *
+ *   T = {
+ *     name: string,
+ *     emails: { domain: string, username: string }[],
+ *     data: { purchaseId: number }[]
+ *   }
+ *   UnionOfArrayPropertiesOf<T> =
+ *     { domain: string, username: string } | { purchaseId: number }
+ */
 type ElementsOfArrayPropertiesOf<T> =
     UnionOfArrayPropertiesOf<T> extends Array<unknown> ? UnionOfArrayPropertiesOf<T>[number] : never;
 
-// Pick all keys that element types share in common.
-// Example:
-//
-//   T = {
-//     name: string,
-//     emails: { username: string, domain: string, date: Date }[],
-//     data: { purchaseId: number, domain: string, date: Date }[]
-//   }
-//   KeysOfUnionOfArrayPropertiesOf<T> = "domain" | "date"
+/**
+ * Pick all keys that element types share in common.
+ * Example:
+ *
+ *   T = {
+ *     name: string,
+ *     emails: { username: string, domain: string, date: Date }[],
+ *     data: { purchaseId: number, domain: string, date: Date }[]
+ *   }
+ *   KeysOfUnionOfArrayPropertiesOf<T> = "domain" | "date"
+ */
 type KeysOfUnionOfArrayPropertiesOf<T> = keyof ElementsOfArrayPropertiesOf<T>;
 
 function cast<T>(thing: unknown, ctor: { new (...args: unknown[]): T }): T {
@@ -118,11 +126,13 @@ function castArrayElementProperties<
     return thing as ReturnType<typeof castArrayElementProperties<T, V, K, L>>;
 }
 
-// This class converts an input value type into new types. There no compile-time
-// checks (uses `as` internally), but the method with check the types at runtime
-// (using the expect() jest function).
-//
-// This is similar to a Java cast or C++ dynamic_cast.
+/**
+ * This class converts an input value type into new types. There no compile-time
+ * checks (uses `as` internally), but the method with check the types at runtime
+ * (using the expect() jest function).
+ *
+ * This is similar to a Java cast or C++ dynamic_cast.
+ */
 export class Caster<T> {
     // FIXME: Each method returns a new object. This could be optimised.
     constructor(readonly value: T) {}
