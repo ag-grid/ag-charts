@@ -57,21 +57,21 @@ type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
 };
 const EXAMPLES: Record<string, TestCase> = {
     ...mixinDerivedCases({
-        // NUMBER_AXIS_LOG2_EXAMPLE: {
-        //     options: axesExamples.NUMBER_AXIS_LOG2_EXAMPLE,
-        //     assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
-        //     compare: ['log'],
-        // },
-        // NUMBER_AXIS_LOG10_EXAMPLE: {
-        //     options: axesExamples.NUMBER_AXIS_LOG10_EXAMPLE,
-        //     assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
-        //     compare: ['log'],
-        // },
-        // LOG10_SMALL_DOMAIN_NICE_FALSE_EXAMPLE: {
-        //     options: axesExamples.LOG10_SMALL_DOMAIN_NICE_FALSE_EXAMPLE,
-        //     assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
-        //     compare: ['log'],
-        // },
+        NUMBER_AXIS_LOG2_EXAMPLE: {
+            options: axesExamples.NUMBER_AXIS_LOG2_EXAMPLE,
+            assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
+            compare: ['log'],
+        },
+        NUMBER_AXIS_LOG10_EXAMPLE: {
+            options: axesExamples.NUMBER_AXIS_LOG10_EXAMPLE,
+            assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
+            compare: ['log'],
+        },
+        LOG10_SMALL_DOMAIN_NICE_FALSE_EXAMPLE: {
+            options: axesExamples.LOG10_SMALL_DOMAIN_NICE_FALSE_EXAMPLE,
+            assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
+            compare: ['log'],
+        },
         LOG_AXIS_TICK_VALUES: {
             options: axesExamples.LOG_AXIS_TICK_VALUES,
             assertions: cartesianChartAssertions({ axisTypes: ['number', 'log'], seriesTypes: ['line'] }),
