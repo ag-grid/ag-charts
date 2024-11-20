@@ -50,7 +50,7 @@ type ElementsOfArrayPropertiesOf<T> =
 //   KeysOfUnionOfArrayPropertiesOf<T> = "domain" | "date"
 type KeysOfUnionOfArrayPropertiesOf<T> = keyof ElementsOfArrayPropertiesOf<T>;
 
-function cast<T>(thing: unknown, ctor: { new (...args: any[]): T }): T {
+function cast<T>(thing: unknown, ctor: { new (...args: unknown[]): T }): T {
     expect(thing).toBeDefined();
     expect(thing).toBeInstanceOf(ctor);
     return thing as T;
@@ -127,7 +127,7 @@ export class Caster<T> {
     // FIXME: Each method returns a new object. This could be optimised.
     constructor(readonly value: T) {}
 
-    cast<NewT>(ctor: { new (...args: any[]): NewT }): Caster<NewT> {
+    cast<NewT>(ctor: { new (...args: unknown[]): NewT }): Caster<NewT> {
         return new Caster(cast(this.value, ctor));
     }
 
@@ -146,13 +146,13 @@ export class Caster<T> {
 
     castProperty<V, K extends keyof T>(
         propertyName: K,
-        propertyCtor: { new (...args: any[]): V }
+        propertyCtor: { new (...args: unknown[]): V }
     ): Caster<Omit<T, K> & { [P in K]: V }> {
         return new Caster(castProperty(this.value, propertyName, propertyCtor));
     }
     castPropertyArray<V, K extends keyof T>(
         propertyName: K,
-        elementCtor: { new (...args: any[]): V }
+        elementCtor: { new (...args: unknown[]): V }
     ): Caster<Omit<T, K> & { [P in K]: V[] }> {
         return new Caster(castPropertyArray(this.value, propertyName, elementCtor));
     }

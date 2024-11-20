@@ -27,6 +27,8 @@ export class Scene {
     private pendingSize: [number, number] | null = null;
     private isDirty: boolean = false;
 
+    constructor(canvasOptions: unknown);
+    constructor(canvasOptions: CanvasOptions);
     constructor(canvasOptions: CanvasOptions) {
         this.canvas = new HdpiCanvas(canvasOptions);
         this.layersManager = new LayersManager(this.canvas);

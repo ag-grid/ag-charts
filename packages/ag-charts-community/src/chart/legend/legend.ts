@@ -275,6 +275,8 @@ export class Legend extends BaseProperties {
     private readonly domProxy: LegendDOMProxy;
     private pendingHighlightDatum?: HighlightNodeDatum;
 
+    constructor(ctx: unknown);
+    constructor(ctx: ModuleContext);
     constructor(private readonly ctx: ModuleContext) {
         super();
 
