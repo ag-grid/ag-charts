@@ -325,6 +325,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         const xPosition = (index: number): number => xScale.convert(xValues[index]) + groupOffset + barOffset;
 
+        const bboxBottom = yScale.convert(0);
         const nodeDatum = ({
             datum,
             valueIndex,
@@ -362,11 +363,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
             const y = yScale.convert(currY);
             const bottomY = yScale.convert(prevY);
-
-            const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
-
             const bboxHeight = yScale.convert(yRange);
-            const bboxBottom = yScale.convert(0);
+            const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
 
             const xOffset = width * 0.5 * (1 - crossScale);
             const rect = {
