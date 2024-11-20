@@ -6,6 +6,7 @@ import { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 import { AgCharts } from '../src/main';
 import { Point } from '../src/scene/point';
 import { extractImageData, setupMockCanvas } from '../src/util/test/mockCanvas';
+import { isAtOrAfterVersion, isHistoricBenchmarkTest, prepareTestOptions, waitForUpdate } from './compatibility.ts';
 
 export interface BenchmarkExpectations {
     expectedMaxMemoryMB: number;
@@ -47,80 +48,17 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
     }
 
     async waitForUpdate() {
-        if (isAtOrAfterVersion(10, 0, 0)) {
+        if (isAtOrAfterVersion(11, 0, 0)) {
             await this.chart?.waitForUpdate();
             return;
         }
-        await (this.chart as any).chart.waitForUpdate();
+        await waitForUpdate(this.chart);
     }
 
     repeatCount(count: number) {
         this.repeat = count;
         return this;
     }
-}
-
-function isHistoricBenchmarkTest() {
-    return process.env.AG_LIBRARY_VERSION != null;
-}
-
-function getVersion() {
-    if (process.env.AG_LIBRARY_VERSION == null) return [11, 0, 0];
-
-    const result = process.env.AG_LIBRARY_VERSION.split('.')
-        .map((n) => /(\d+)/.exec(n)?.[1])
-        .map(Number);
-    if (result.length !== 3 || result.some((n) => isNaN(n))) {
-        throw new Error("Couldn't parse semver of: " + process.env.AG_LIBRARY_VERSION);
-    }
-    return result;
-}
-
-export function isAtOrAfterVersion(major: number, minor: number, patch: number) {
-    const current = getVersion();
-
-    if (major < current[0]) return true;
-    if (major > current[0]) return false;
-    if (minor < current[1]) return true;
-    if (minor > current[1]) return false;
-    if (patch < current[2]) return true;
-
-    return patch === current[2];
-}
-
-export function prepareTestOptions<T extends AgChartOptions>(options: T, container: HTMLElement) {
-    if (!isAtOrAfterVersion(10, 0, 0)) {
-        (options as any).autoSize = false;
-    }
-    options.width = 800;
-    options.height = 600;
-    options.container = container;
-
-    let baseTestTheme = {
-        baseTheme: 'ag-default',
-        palette: {
-            fills: ['#f3622d', '#fba71b', '#57b757', '#41a9c9', '#4258c9', '#9a42c8', '#c84164', '#888888'],
-            strokes: ['#aa4520', '#b07513', '#3d803d', '#2d768d', '#2e3e8d', '#6c2e8c', '#8c2d46', '#5f5f5f'],
-        },
-    };
-
-    if (typeof options?.theme === 'object' && options?.theme.palette != null) {
-        // Keep existing theme.
-        baseTestTheme = options.theme as any;
-    } else if (typeof options?.theme === 'object') {
-        // Keep theme supplied, just override palette colours.
-        baseTestTheme = {
-            ...options.theme,
-            palette: baseTestTheme.palette,
-        } as any;
-    } else if (typeof options?.theme === 'string') {
-        // Override colours.
-        baseTestTheme.baseTheme = options.theme;
-    }
-
-    options.theme = baseTestTheme as any;
-
-    return options;
 }
 
 export function benchmark(
@@ -198,35 +136,6 @@ export function setupBenchmark<T extends AgChartOptions>(
 
     beforeEach(() => {
         ctx.options = prepareTestOptions(loadBuiltExampleOptions(exampleName), globalThis.window.document.body);
-
-        if (!isAtOrAfterVersion(10, 0, 0)) {
-            ctx.options.series = ctx.options.series?.map((s) => {
-                if (s.type === 'scatter' && s.shape != null) {
-                    const { shape, ...sOther } = s;
-                    return { ...sOther, marker: { ...sOther.marker, shape } };
-                }
-                return s;
-            });
-
-            (ctx.options as any).axes = (ctx.options as any).axes?.map((a) => {
-                if (a.interval != null) {
-                    const { interval, ...aOther } = a;
-                    return { ...aOther, tick: { ...aOther.tick, ...interval } };
-                }
-                return a;
-            });
-        }
-
-        if (
-            !isAtOrAfterVersion(11, 0, 0) &&
-            ctx.options.mode === 'integrated' &&
-            (ctx.options.axes as any)?.some((a) => a.type === 'grouped-category')
-        ) {
-            ctx.options.data.forEach((d: object) => {
-                const labels = d['ag-Grid-AutoColumn'];
-                d['ag-Grid-AutoColumn'] = { labels, toString: () => labels.join(' - ') };
-            });
-        }
     });
 
     afterEach(() => {

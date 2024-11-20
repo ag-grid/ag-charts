@@ -1,7 +1,8 @@
 import { beforeEach, describe } from '@jest/globals';
 
 import { AgCartesianChartOptions } from '../src/main';
-import { benchmark, isAtOrAfterVersion, setupBenchmark } from './benchmark';
+import { benchmark, setupBenchmark } from './benchmark';
+import { isAtOrAfterVersion } from './compatibility';
 
 const EXPECTATIONS = {
     expectedMaxMemoryMB: 270,
