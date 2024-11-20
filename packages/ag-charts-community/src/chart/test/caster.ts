@@ -58,7 +58,9 @@ type ElementsOfArrayPropertiesOf<T> =
  */
 type KeysOfUnionOfArrayPropertiesOf<T> = keyof ElementsOfArrayPropertiesOf<T>;
 
-function cast<T>(thing: unknown, ctor: { new (...args: unknown[]): T }): T {
+type UnknownConstructor<T> = new (...args: unknown[]) => T;
+
+function cast<T>(thing: unknown, ctor: UnknownConstructor<T>): T {
     expect(thing).toBeDefined();
     expect(thing).toBeInstanceOf(ctor);
     return thing as T;
@@ -89,7 +91,7 @@ function findArrayElementProperties<T, K extends keyof ArraysPropertiesOf<T>, L 
 function castProperty<T, V, K extends keyof T>(
     thing: T,
     propertyName: K,
-    propertyCtor: { new (...args: unknown[]): V }
+    propertyCtor: UnknownConstructor<V>
 ): Omit<T, K> & { [P in K]: V } {
     expect(thing[propertyName]).toBeDefined();
     expect(thing[propertyName]).toBeInstanceOf(propertyCtor);
@@ -99,7 +101,7 @@ function castProperty<T, V, K extends keyof T>(
 function castPropertyArray<T, V, K extends keyof T>(
     thing: T,
     propertyName: K,
-    elementCtor: { new (...args: unknown[]): V }
+    elementCtor: UnknownConstructor<V>
 ): Omit<T, K> & { [P in K]: V[] } {
     for (const elem of castProperty(thing, propertyName, Array)[propertyName]) {
         expect(elem).toBeInstanceOf(elementCtor);
@@ -116,7 +118,7 @@ function castArrayElementProperties<
     thing: T,
     arrayName: K,
     elementPropertyName: L,
-    elementPropertyCtor: { new (...args: unknown[]): V }
+    elementPropertyCtor: UnknownConstructor<V>
 ): Omit<T, K> & { [Pk in K]: ArraysPropertiesOf<T>[K] & { [Pl in L]: V }[] } {
     expect(thing[arrayName]).toBeInstanceOf(Array);
     for (const unknownElem of thing[arrayName] as unknown[]) {
@@ -137,7 +139,7 @@ export class Caster<T> {
     // FIXME: Each method returns a new object. This could be optimised.
     constructor(readonly value: T) {}
 
-    cast<NewT>(ctor: { new (...args: unknown[]): NewT }): Caster<NewT> {
+    cast<NewT>(ctor: UnknownConstructor<NewT>): Caster<NewT> {
         return new Caster(cast(this.value, ctor));
     }
 
@@ -156,13 +158,13 @@ export class Caster<T> {
 
     castProperty<V, K extends keyof T>(
         propertyName: K,
-        propertyCtor: { new (...args: unknown[]): V }
+        propertyCtor: UnknownConstructor<V>
     ): Caster<Omit<T, K> & { [P in K]: V }> {
         return new Caster(castProperty(this.value, propertyName, propertyCtor));
     }
     castPropertyArray<V, K extends keyof T>(
         propertyName: K,
-        elementCtor: { new (...args: unknown[]): V }
+        elementCtor: UnknownConstructor<V>
     ): Caster<Omit<T, K> & { [P in K]: V[] }> {
         return new Caster(castPropertyArray(this.value, propertyName, elementCtor));
     }
@@ -174,7 +176,7 @@ export class Caster<T> {
     >(
         arrayName: K,
         elementPropertyName: L,
-        elementPropertyCtor: { new (...args: unknown[]): V }
+        elementPropertyCtor: UnknownConstructor<V>
     ): Caster<Omit<T, K> & ReturnType<typeof castArrayElementProperties<T, V, K, L>>> {
         return new Caster(castArrayElementProperties(this.value, arrayName, elementPropertyName, elementPropertyCtor));
     }
