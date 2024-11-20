@@ -57,7 +57,7 @@ export class ZoomSelector {
     }
 
     didUpdate(): boolean {
-        return this.rect.visible;
+        return this.rect.visible && this.rect.width > 0 && this.rect.height > 0;
     }
 
     private updateCoords(
