@@ -160,8 +160,10 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                 keys: [`results['${testName}'].timeMs`],
                 min: 0,
                 label: {
-                    formatter: (params) =>
-                        params.value == null ? params.value : formatMillis(Number(params.value), 0),
+                    formatter: (params) => {
+                        const ms = Number(params.value);
+                        return params.value == null ? params.value : formatMillis(ms, ms === 0 || ms > 10 ? 0 : 2);
+                    },
                 },
             },
             {
