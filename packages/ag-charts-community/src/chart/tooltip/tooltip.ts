@@ -331,7 +331,7 @@ export class Tooltip extends BaseProperties {
     }
 
     private toggle(visible: boolean) {
-        if (!this.element) return;
+        if (!this.element?.isConnected) return;
 
         const { classList } = this.element;
         const toggleClass = (name: string, include: boolean) =>
