@@ -14,11 +14,22 @@ function findProperty<T, K extends string>(thing: T, propertyName: K): Omit<T, K
 function castProperty<T, V, K extends keyof T>(
     thing: T,
     propertyName: K,
-    propertyCtor: { new (...args: any[]): V }
+    propertyCtor: { new (...args: unknown[]): V }
 ): Omit<T, K> & { [P in K]: V } {
     expect(thing[propertyName]).toBeDefined();
     expect(thing[propertyName]).toBeInstanceOf(propertyCtor);
     return thing as T & { [P in K]: V };
+}
+
+function castPropertyArray<T, V, K extends keyof T>(
+    thing: T,
+    propertyName: K,
+    elementCtor: { new (...args: unknown[]): V }
+): Omit<T, K> & { [P in K]: V[] } {
+    for (const elem of castProperty(thing, propertyName, Array)[propertyName]) {
+        expect(elem).toBeInstanceOf(elementCtor);
+    }
+    return thing as T & { [P in K]: V[] };
 }
 
 export class Caster<T> {
@@ -35,6 +46,12 @@ export class Caster<T> {
         propertyCtor: { new (...args: any[]): V }
     ): Caster<Omit<T, K> & { [P in K]: V }> {
         return new Caster(castProperty(this.value, propertyName, propertyCtor));
+    }
+    castPropertyArray<V, K extends keyof T>(
+        propertyName: K,
+        elementCtor: { new (...args: any[]): V }
+    ): Caster<Omit<T, K> & { [P in K]: V[] }> {
+        return new Caster(castPropertyArray(this.value, propertyName, elementCtor));
     }
     accessProperty<K extends string>(propertyName: K): Caster<unknown> {
         return new Caster(findProperty(this.value, propertyName)[propertyName]);

@@ -38,17 +38,17 @@ function findNavigatorTarget(navigatorModule: unknown, canvasX: number, canvasY:
         .findProperty('toolbar')
         .castProperty('toolbar', ToolbarWidget)
         .findProperty('sliders')
-        .castProperty('sliders', Array).value;
+        .castPropertyArray('sliders', SliderWidget).value;
 
     if (!navigator.enabled) return undefined;
 
     let targetWidget: SliderWidget | undefined;
     if (Transformable.toCanvas(navigator.minHandle).containsPoint(canvasX, canvasY)) {
-        targetWidget = domProxy.sliders[0] as SliderWidget; // TODO sanity-check
+        targetWidget = domProxy.sliders[0];
     } else if (Transformable.toCanvas(navigator.maxHandle).containsPoint(canvasX, canvasY)) {
-        targetWidget = domProxy.sliders[2] as SliderWidget; // TODO sanity-check
+        targetWidget = domProxy.sliders[2];
     } else if (Transformable.toCanvas(navigator.mask).containsPoint(canvasX, canvasY)) {
-        targetWidget = domProxy.sliders[1] as SliderWidget; // TODO sanity-check
+        targetWidget = domProxy.sliders[1];
     }
 
     if (targetWidget) {
