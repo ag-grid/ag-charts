@@ -9,6 +9,7 @@ import {
     aggregationIndexForXRatio,
     compactAggregationIndices,
     createAggregationIndices,
+    maxRangeFittingPoints,
     xRatioForDatumIndex,
 } from '../../utils/aggregation';
 
@@ -46,7 +47,7 @@ export function aggregateLineData(
 
     const [d0, d1] = aggregationDomain(domain);
 
-    let maxRange = (2 ** Math.ceil(Math.log2(xValues.length / MAX_POINTS))) | 0;
+    let maxRange = maxRangeFittingPoints(xValues, MAX_POINTS);
     const { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange);
 
     let indices: number[] = [];

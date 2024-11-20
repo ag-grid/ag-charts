@@ -218,7 +218,17 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             this.assignAxesToSeries();
             this.assignSeriesToAxes();
         }
-        await Promise.all(this.series.map((s) => s.processData(dataController)));
+
+        for (const axis of this.axes) {
+            axis.processData();
+        }
+
+        await Promise.all(
+            this.series.map((s) => {
+                s.resetDatumCallbackCache();
+                return s.processData(dataController);
+            })
+        );
     }
 
     computeAxisPadding() {

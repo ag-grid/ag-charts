@@ -287,6 +287,11 @@ export class LineSeries extends CartesianSeries<
         const xPosition = (index: number) => xScale.convert(xValues[index]) + xOffset;
         const yPosition = (index: number) => yScale.convert(yCumulativeValues[index]) + yOffset;
 
+        const capDefaults = {
+            lengthRatioMultiplier: this.properties.marker.getDiameter(),
+            lengthMax: Infinity,
+        };
+
         const nodeData: LineNodeDatum[] = [];
         let spanPoints: SpanPoints | undefined;
         const handleDatum = (index: number) => {
@@ -324,10 +329,7 @@ export class LineSeries extends CartesianSeries<
                     cumulativeValue: yEndDatum,
                     yValue: yDatum,
                     xValue: xDatum,
-                    capDefaults: {
-                        lengthRatioMultiplier: this.properties.marker.getDiameter(),
-                        lengthMax: Infinity,
-                    },
+                    capDefaults,
                     labelText,
                     selected,
                 });

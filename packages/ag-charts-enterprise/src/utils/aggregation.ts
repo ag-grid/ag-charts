@@ -8,6 +8,12 @@ export const Y_MIN = 2;
 export const Y_MAX = 3;
 export const SPAN = 4;
 
+export function maxRangeFittingPoints(data: any[], precision: number = 1) {
+    let power = Math.ceil(Math.log2(data.length / precision)) - 1;
+    power = Math.min(Math.max(power, 0), 16);
+    return (2 ** power) | 0;
+}
+
 export function aggregationDomain(domain: any[]): [number, number] {
     return findMinMax(domain.map((x) => Number(x))) as [number, number];
 }
@@ -45,19 +51,21 @@ export function createAggregationIndices(
         const yMin: number = yMinValue.valueOf();
         const aggIndex = aggregationIndexForXRatio(xRatio, maxRange);
 
-        if (Number.isNaN(valueData[aggIndex + X_MIN]) || xRatio < valueData[aggIndex + X_MIN]) {
+        const unset = indexData[aggIndex + X_MIN] === -1;
+
+        if (unset || xRatio < valueData[aggIndex + X_MIN]) {
             indexData[aggIndex + X_MIN] = datumIndex;
             valueData[aggIndex + X_MIN] = xRatio;
         }
-        if (Number.isNaN(valueData[aggIndex + X_MAX]) || xRatio > valueData[aggIndex + X_MAX]) {
+        if (unset || xRatio > valueData[aggIndex + X_MAX]) {
             indexData[aggIndex + X_MAX] = datumIndex;
             valueData[aggIndex + X_MAX] = xRatio;
         }
-        if (Number.isNaN(valueData[aggIndex + Y_MIN]) || yMin < valueData[aggIndex + Y_MIN]) {
+        if (unset || yMin < valueData[aggIndex + Y_MIN]) {
             indexData[aggIndex + Y_MIN] = datumIndex;
             valueData[aggIndex + Y_MIN] = yMin;
         }
-        if (Number.isNaN(valueData[aggIndex + Y_MAX]) || yMax > valueData[aggIndex + Y_MAX]) {
+        if (unset || yMax > valueData[aggIndex + Y_MAX]) {
             indexData[aggIndex + Y_MAX] = datumIndex;
             valueData[aggIndex + Y_MAX] = yMax;
         }
@@ -81,19 +89,21 @@ export function compactAggregationIndices(
         const index0 = (aggIndex * 2) | 0;
         const index1 = (index0 + SPAN) | 0;
 
-        const xMinAggIndex = valueData[index0 + X_MIN] < valueData[index1 + X_MIN] ? index0 : index1;
+        const index1Unset = indexData[index1 + X_MIN] === -1;
+
+        const xMinAggIndex = index1Unset || valueData[index0 + X_MIN] < valueData[index1 + X_MIN] ? index0 : index1;
         nextIndexData[aggIndex + X_MIN] = indexData[xMinAggIndex + X_MIN];
         nextValueData[aggIndex + X_MIN] = valueData[xMinAggIndex + X_MIN];
 
-        const xMaxAggIndex = valueData[index0 + X_MAX] > valueData[index1 + X_MAX] ? index0 : index1;
+        const xMaxAggIndex = index1Unset || valueData[index0 + X_MAX] > valueData[index1 + X_MAX] ? index0 : index1;
         nextIndexData[aggIndex + X_MAX] = indexData[xMaxAggIndex + X_MAX];
         nextValueData[aggIndex + X_MAX] = valueData[xMaxAggIndex + X_MAX];
 
-        const yMinAggIndex = valueData[index0 + Y_MIN] < valueData[index1 + Y_MIN] ? index0 : index1;
+        const yMinAggIndex = index1Unset || valueData[index0 + Y_MIN] < valueData[index1 + Y_MIN] ? index0 : index1;
         nextIndexData[aggIndex + Y_MIN] = indexData[yMinAggIndex + Y_MIN];
         nextValueData[aggIndex + Y_MIN] = valueData[yMinAggIndex + Y_MIN];
 
-        const yMaxAggIndex = valueData[index0 + Y_MAX] > valueData[index1 + Y_MAX] ? index0 : index1;
+        const yMaxAggIndex = index1Unset || valueData[index0 + Y_MAX] > valueData[index1 + Y_MAX] ? index0 : index1;
         nextIndexData[aggIndex + Y_MAX] = indexData[yMaxAggIndex + Y_MAX];
         nextValueData[aggIndex + Y_MAX] = valueData[yMaxAggIndex + Y_MAX];
     }

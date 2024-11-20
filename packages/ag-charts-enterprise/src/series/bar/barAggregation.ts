@@ -9,6 +9,7 @@ import {
     aggregationDomain,
     compactAggregationIndices,
     createAggregationIndices,
+    maxRangeFittingPoints,
 } from '../../utils/aggregation';
 
 const indexes: _ModuleSupport.BarSeriesAggregationIndexes = {
@@ -20,7 +21,7 @@ const indexes: _ModuleSupport.BarSeriesAggregationIndexes = {
 };
 
 const AGGREGATION_THRESHOLD = 1e3;
-const MAX_POINTS = 5;
+const PRECISION = 5;
 
 export function aggregateBarData(
     xValues: any[],
@@ -31,12 +32,12 @@ export function aggregateBarData(
 
     const [d0, d1] = aggregationDomain(domain);
 
-    let maxRange = (2 ** Math.ceil(Math.log2(xValues.length / MAX_POINTS))) | 0;
+    let maxRange = maxRangeFittingPoints(xValues, PRECISION);
     let { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange);
 
     const filters: _ModuleSupport.BarSeriesDataAggregationFilter[] = [{ maxRange, indexData, indexes }];
 
-    while (maxRange > MAX_POINTS && maxRange > 64) {
+    while (maxRange > 64) {
         ({ indexData, valueData, maxRange } = compactAggregationIndices(indexData, valueData, maxRange));
 
         filters.push({ maxRange, indexData, indexes });
