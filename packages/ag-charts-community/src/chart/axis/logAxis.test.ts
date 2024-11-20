@@ -9,7 +9,6 @@ import type {
 } from 'ag-charts-types';
 
 import type { Chart } from '../chart';
-import type { ChartAxis } from '../chartAxis';
 import * as axesExamples from '../test/examples-axes';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
@@ -107,13 +106,6 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
     return result;
 }
 
-function calculateAxisBBox(axis: ChartAxis): { x: number; y: number; width: number; height: number } {
-    const bbox = axis.getBBox();
-
-    const { x, y, width, height } = bbox;
-    return { x, y, width, height };
-}
-
 describe('Log Axis Examples', () => {
     setupMockConsole();
 
@@ -141,9 +133,7 @@ describe('Log Axis Examples', () => {
                         continue;
                     }
 
-                    const axesBBox = calculateAxisBBox(axis);
-                    const imageData = extractImageData({ ...ctx, bbox: axesBBox });
-
+                    const imageData = extractImageData({ ...ctx, bbox: axis.getBBox() });
                     expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
                 }
             };

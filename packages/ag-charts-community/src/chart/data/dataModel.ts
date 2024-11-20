@@ -2,7 +2,7 @@ import { Debug } from '../../util/debug';
 import { iterate } from '../../util/iterator';
 import { Logger } from '../../util/logger';
 import { isNegative } from '../../util/number';
-import { isFiniteNumber, isObject } from '../../util/type-guards';
+import { isObject } from '../../util/type-guards';
 import type { ChartMode } from '../chartMode';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
 
@@ -115,15 +115,8 @@ function round(val: number): number {
 }
 
 export function fixNumericExtent(extent: Array<number | Date> | null): [] | [number, number] {
-    if (extent == null) {
-        return [];
-    }
-    const [min, max] = extent.map(Number);
-    // If domain has a single valid value, 0, use the default extent of [0, 1].
-    if (min === 0 && max === 0) {
-        return [0, 1];
-    }
-    return isFiniteNumber(min) && isFiniteNumber(max) ? [min, max] : [];
+    const numberExtent = extent?.map(Number) as [number, number] | undefined;
+    return numberExtent?.every(Number.isFinite) ? numberExtent : [];
 }
 
 // AG-10337 Keep track of the number of missing values in each per-series data array.

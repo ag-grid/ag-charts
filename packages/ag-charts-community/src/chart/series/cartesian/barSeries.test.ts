@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, jest } from '@jest/globals';
+import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
 import type { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 
@@ -26,10 +26,14 @@ import {
 } from '../../test/utils';
 import type { CartesianOrPolarTestCase } from '../../test/utils';
 
-const buildLogAxisTestCase = (data: any[]): CartesianOrPolarTestCase => {
+const buildLogAxisTestCase = (
+    data: any[],
+    extra?: { warnings?: string[]; skipWarningsReversed?: boolean }
+): CartesianOrPolarTestCase => {
     return {
         options: examples.CARTESIAN_CATEGORY_X_AXIS_LOG_Y_AXIS(data, 'bar'),
         assertions: cartesianChartAssertions({ axisTypes: ['category', 'log'], seriesTypes: ['bar'] }),
+        ...extra,
     };
 };
 
@@ -89,7 +93,10 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase> = {
         COLUMN_CATEGORY_X_AXIS_POSITIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_POSITIVE_LOG_AXIS),
         COLUMN_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_NEGATIVE_LOG_AXIS),
         COLUMN_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase(DATA_FRACTIONAL_LOG_AXIS),
-        COLUMN_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase(DATA_ZERO_EXTENT_LOG_AXIS),
+        COLUMN_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase(DATA_ZERO_EXTENT_LOG_AXIS, {
+            warnings: ['AG Charts - the data domain has 0 extent, no data is rendered.'],
+            skipWarningsReversed: false,
+        }),
         COLUMN_SINGLE_DATE_CATEGORY_AXIS: {
             options: examples.COLUMN_SINGLE_DATE_CATEGORY_AXIS,
             assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: ['bar'] }),
@@ -140,6 +147,10 @@ describe('BarSeries', () => {
     };
 
     describe('#create', () => {
+        beforeEach(() => {
+            console.warn = jest.fn();
+        });
+
         test('no data', async () => {
             chart = AgCharts.create(prepareTestOptions({ data: [], series: [{ type: 'bar', xKey: 'x', yKey: 'y' }] }));
             await compare();
@@ -154,6 +165,16 @@ describe('BarSeries', () => {
                 chart = AgCharts.create(options);
                 await waitForChartStability(chart);
                 await example.assertions(chart);
+
+                example.warnings?.forEach((message, index) => {
+                    expect(console.warn).toHaveBeenNthCalledWith(
+                        index + 1,
+                        ...(Array.isArray(message) ? message : [message])
+                    );
+                });
+                if (!example.warnings?.length) {
+                    expect(console.warn).not.toHaveBeenCalled();
+                }
             }
         );
 
