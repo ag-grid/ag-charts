@@ -287,10 +287,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             const rawLowValue = yLowValues[datumIndex];
             const rawHighValue = yHighValues[datumIndex];
 
-            if (!Number.isFinite(rawLowValue) || !Number.isFinite(rawHighValue)) return;
+            if (!Number.isFinite(rawLowValue?.valueOf()) || !Number.isFinite(rawHighValue?.valueOf())) return;
 
-            const yLowValue = Math.min(rawLowValue, rawHighValue);
-            const yHighValue = Math.max(rawLowValue, rawHighValue);
+            const [yLowValue, yHighValue] =
+                rawLowValue < rawHighValue ? [rawLowValue, rawHighValue] : [rawHighValue, rawLowValue];
 
             const y = Math.round(yScale.convert(yHigh));
             const bottomY = Math.round(yScale.convert(yLow));
