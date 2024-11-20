@@ -79,7 +79,7 @@ function findArrayElementProperties<T, K extends keyof ArraysPropertiesOf<T>, L 
     thing: T,
     arrayName: K,
     elementPropertyName: L
-): Omit<T, K> & { [P in K]: ArraysPropertiesOf<T>[K] & { [P in L]: unknown }[] } {
+): Omit<T, K> & { [Pk in K]: ArraysPropertiesOf<T>[K] & { [Pl in L]: unknown }[] } {
     for (const elem of thing[arrayName] as unknown[]) {
         expect(elem).toHaveProperty(elementPropertyName);
     }
@@ -117,7 +117,7 @@ function castArrayElementProperties<
     arrayName: K,
     elementPropertyName: L,
     elementPropertyCtor: { new (...args: unknown[]): V }
-): Omit<T, K> & { [P in K]: ArraysPropertiesOf<T>[K] & { [P in L]: V }[] } {
+): Omit<T, K> & { [Pk in K]: ArraysPropertiesOf<T>[K] & { [Pl in L]: V }[] } {
     expect(thing[arrayName]).toBeInstanceOf(Array);
     for (const unknownElem of thing[arrayName] as unknown[]) {
         const elem = findProperty(unknownElem, elementPropertyName);
@@ -129,7 +129,7 @@ function castArrayElementProperties<
 /**
  * This class converts an input value type into new types. There no compile-time
  * checks (uses `as` internally), but the method with check the types at runtime
- * (using the expect() jest function).
+ * (using the `expect()` jest function).
  *
  * This is similar to a Java cast or C++ dynamic_cast.
  */

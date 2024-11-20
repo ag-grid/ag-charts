@@ -117,9 +117,9 @@ function findSeriesAreaTarget(chart: unknown, canvasX: number, canvasY: number):
 export function findChartTarget(chart: Chart, canvasX: number, canvasY: number): MockEvent {
     const getModule = (s: string) => chart.modulesManager.getModule<unknown>(s);
     return (
-        findLegendTarget(getModule('legend'), canvasX, canvasY) ||
-        findNavigatorTarget(getModule('navigator'), canvasX, canvasY) ||
-        findZoomTarget(getModule('zoom'), canvasX, canvasY) ||
+        findLegendTarget(getModule('legend'), canvasX, canvasY) ??
+        findNavigatorTarget(getModule('navigator'), canvasX, canvasY) ??
+        findZoomTarget(getModule('zoom'), canvasX, canvasY) ??
         findSeriesAreaTarget(chart, canvasX, canvasY)
     );
 }
