@@ -7,10 +7,10 @@ import {
     aggregationDomain,
     compactAggregationIndices,
     createAggregationIndices,
+    maxRangeFittingPoints,
 } from '../../utils/aggregation';
 
 const AGGREGATION_THRESHOLD = 1e3;
-const MAX_POINTS = 10;
 
 export const OPEN = X_MIN;
 export const HIGH = Y_MAX;
@@ -33,12 +33,12 @@ export function aggregateOhlcData(
 
     const [d0, d1] = aggregationDomain(domain);
 
-    let maxRange = (2 ** Math.ceil(Math.log2(xValues.length / MAX_POINTS))) | 0;
+    let maxRange = maxRangeFittingPoints(xValues);
     let { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange);
 
     const filters: OhlcSeriesDataAggregationFilter[] = [{ maxRange, indexData }];
 
-    while (maxRange > MAX_POINTS && maxRange > 64) {
+    while (maxRange > 64) {
         ({ indexData, valueData, maxRange } = compactAggregationIndices(indexData, valueData, maxRange));
 
         filters.push({ maxRange, indexData });

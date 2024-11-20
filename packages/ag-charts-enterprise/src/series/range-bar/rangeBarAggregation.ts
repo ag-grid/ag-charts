@@ -1,7 +1,12 @@
-import { aggregationDomain, compactAggregationIndices, createAggregationIndices } from '../../utils/aggregation';
+import {
+    aggregationDomain,
+    compactAggregationIndices,
+    createAggregationIndices,
+    maxRangeFittingPoints,
+} from '../../utils/aggregation';
 
 const AGGREGATION_THRESHOLD = 1e3;
-const MAX_POINTS = 5;
+const PRECISION = 5;
 
 export interface RangeBarSeriesDataAggregationFilter {
     indexData: Int32Array;
@@ -18,12 +23,12 @@ export function aggregateRangeBarData(
 
     const [d0, d1] = aggregationDomain(domain);
 
-    let maxRange = (2 ** Math.ceil(Math.log2(xValues.length / MAX_POINTS))) | 0;
+    let maxRange = maxRangeFittingPoints(xValues, PRECISION);
     let { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange);
 
     const filters: RangeBarSeriesDataAggregationFilter[] = [{ maxRange, indexData }];
 
-    while (maxRange > MAX_POINTS && maxRange > 64) {
+    while (maxRange > 64) {
         ({ indexData, valueData, maxRange } = compactAggregationIndices(indexData, valueData, maxRange));
 
         filters.push({ maxRange, indexData });
