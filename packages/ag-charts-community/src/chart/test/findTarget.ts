@@ -9,8 +9,6 @@ import { Legend } from '../legend/legend';
 import { LegendMarkerLabel } from '../legend/legendMarkerLabel';
 import { Navigator } from '../navigator/navigator';
 import { NavigatorDOMProxy } from '../navigator/navigatorDOMProxy';
-import { RangeHandle } from '../navigator/shapes/rangeHandle';
-import { RangeMask } from '../navigator/shapes/rangeMask';
 import { SeriesAreaManager } from '../series/seriesAreaManager';
 import { Caster } from './caster';
 
@@ -33,12 +31,6 @@ function findNavigatorTarget(navigatorModule: unknown, canvasX: number, canvasY:
     const navigator = new Caster(navigatorModule)
         .cast(Navigator)
         .findProperty('enabled')
-        .findProperty('mask')
-        .castProperty('mask', RangeMask)
-        .findProperty('minHandle')
-        .castProperty('minHandle', RangeHandle)
-        .findProperty('maxHandle')
-        .castProperty('maxHandle', RangeHandle)
         .findProperty('domProxy').value;
 
     const domProxy = new Caster(navigator.domProxy)
