@@ -194,7 +194,7 @@ export class Tooltip extends BaseProperties {
     constructor() {
         super();
 
-        this.destroyFns.push(this.springAnimation.addEventListener('update', this.onSpring.bind(this)));
+        this.destroyFns.push(this.springAnimation.addListener('update', this.onSpring.bind(this)));
     }
 
     setup(domManager: DOMManager) {

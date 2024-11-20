@@ -1,7 +1,12 @@
+import { Listeners } from '../../util/listeners';
+
 export interface SpringAnimationUpdateEvent {
+    type: 'update';
     x: number;
     y: number;
 }
+
+type UpdateEventHandler = (e: SpringAnimationUpdateEvent) => void;
 
 const M = 0.1;
 const K = 200;
@@ -9,7 +14,7 @@ const C = 12;
 
 const DELTA = 0.5;
 
-export class SpringAnimation {
+export class SpringAnimation extends Listeners<'update', UpdateEventHandler> {
     private x1 = NaN;
     private y1 = NaN;
     private x = NaN;
@@ -18,16 +23,6 @@ export class SpringAnimation {
     private vy = 0;
     private t0 = NaN;
     private animationFrameHandle: number | undefined = undefined;
-
-    private onUpdate: ((e: SpringAnimationUpdateEvent) => void) | null = null;
-
-    addEventListener(_type: 'update', handler: (e: SpringAnimationUpdateEvent) => void) {
-        this.onUpdate = handler;
-
-        return () => {
-            this.onUpdate = null;
-        };
-    }
 
     reset() {
         this.x = NaN;
@@ -109,6 +104,6 @@ export class SpringAnimation {
     }
 
     private emitUpdate() {
-        this.onUpdate?.({ x: this.x, y: this.y });
+        this.dispatch('update', { type: 'update', x: this.x, y: this.y });
     }
 }
