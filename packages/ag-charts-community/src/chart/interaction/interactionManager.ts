@@ -9,10 +9,10 @@ import { type PreventableEvent, type Unpreventable, buildPreventable, dispatchTy
 
 export { InteractionState };
 
-export const DRAG_INTERACTION_TYPES = ['drag-start', 'drag', 'drag-end'] as const;
-
 export const POINTER_INTERACTION_TYPES = [
-    ...DRAG_INTERACTION_TYPES,
+    'drag-start',
+    'drag',
+    'drag-end',
     'click',
     'dblclick',
     'contextmenu',
@@ -424,8 +424,20 @@ export class InteractionManager extends InteractionStateListener<InteractionType
         return { clientX, clientY, pageX, pageY, offsetX, offsetY };
     }
 
-    private isWheelEvent(event: Event): event is WheelEvent {
+    private static isWheelEvent(event: Event): event is WheelEvent {
         return event.type === 'wheel';
+    }
+
+    static getWheelDeltas(event: Event) {
+        let [deltaX, deltaY] = [NaN, NaN];
+        if (this.isWheelEvent(event)) {
+            // AG-10475 On Chrome (Windows), wheel clicks send deltaMode: 0 events with deltaY: -100 or +100.
+            // So we divide this by 100 to give us the desired step.
+            const factor = event.deltaMode === 0 ? 0.01 : 1;
+            deltaX = event.deltaX * factor;
+            deltaY = event.deltaY * factor;
+        }
+        return { deltaX, deltaY };
     }
 
     private buildPointerEvent(opts: {
@@ -452,14 +464,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             pageY = clientY - (pageRect?.top ?? 0);
         }
 
-        let [deltaX, deltaY] = [NaN, NaN];
-        if (this.isWheelEvent(event)) {
-            // AG-10475 On Chrome (Windows), wheel clicks send deltaMode: 0 events with deltaY: -100 or +100.
-            // So we divide this by 100 to give us the desired step.
-            const factor = event.deltaMode === 0 ? 0.01 : 1;
-            deltaX = event.deltaX * factor;
-            deltaY = event.deltaY * factor;
-        }
+        const { deltaX, deltaY } = InteractionManager.getWheelDeltas(event);
 
         // AG-8880 Because we are using listeners globally on the canvases, click events are always fired
         // whenever the mouse button is lifted. The pointerHistory allows listeners to check that click events

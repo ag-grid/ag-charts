@@ -31,7 +31,6 @@ const {
     BOOLEAN,
     NUMBER,
     RATIO,
-    REGIONS,
     UNION,
     OBJECT,
     OR,
@@ -167,11 +166,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const draggableState = Default | Animation | ZoomDrag;
         const clickableState = Default | Animation;
         const wheelableState = draggableState | Annotations | AnnotationsSelected;
-        const region = ctx.regionManager.getRegion(REGIONS.SERIES);
+        const region = ctx.regionManager.getRegion('series');
 
         this.domProxy = new ZoomDOMProxy({
             onDragStart: (id, dir) => this.onAxisDragStart(id, dir),
-            onDrag: (ev) => this.onDrag(ev),
+            onDrag: (ev) => this.onDrag({ regionX: ev.offsetX, regionY: ev.offsetY }),
             onDragEnd: () => this.onDragEnd(),
         });
 
@@ -224,9 +223,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDragStart(
-        event: Pick<_ModuleSupport.RegionEvent, 'offsetX' | 'offsetY' | 'sourceEvent' | 'button'> | undefined
-    ) {
+    private onDragStart(event: _ModuleSupport.RegionEvent<'drag-start'> | undefined) {
         const {
             enabled,
             enableAxisDragging,
@@ -236,7 +233,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx: { cursorManager, zoomManager },
         } = this;
 
-        if (!enabled || (event !== undefined && event.button !== 0)) return;
+        if (!enabled) return;
 
         this.panner.stopInteractions();
 
@@ -246,7 +243,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (enableAxisDragging && hoveredAxis) {
             newDragState = DragState.Axis;
         } else if (event != null) {
-            const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent as DragEvent);
+            const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent as MouseEvent);
             // Allow panning if either selection is disabled or the panning key is pressed.
             if (enablePanning && (!enableSelecting || panKeyPressed)) {
                 cursorManager.updateCursor(CURSOR_ID, 'grabbing');
@@ -266,7 +263,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDrag(event: _ModuleSupport.PointerOffsets) {
+    private onDrag(event: Pick<_ModuleSupport.RegionEvent, 'regionX' | 'regionY'>) {
         const {
             anchorPointX,
             anchorPointY,
@@ -685,7 +682,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         };
     }
 
-    testFindTarget(canvasX: number, canvasY: number): { target: HTMLElement; x: number; y: number } | undefined {
+    testFindTarget(canvasX: number, canvasY: number): _ModuleSupport.MockEvent | undefined {
         if (this.enabled && this.enableAxisDragging) {
             return this.domProxy.testFindTarget(canvasX, canvasY);
         }

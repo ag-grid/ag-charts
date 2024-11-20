@@ -84,13 +84,13 @@ export class TooltipManager {
         event: TooltipPointerEvent<'hover' | 'click' | 'dblclick' | 'keyboard'>,
         datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
     ): TooltipMeta {
-        const { offsetX, offsetY } = event;
+        const { canvasX, canvasY } = event;
         const tooltip = datum.series.properties.tooltip as SeriesTooltip<any>;
         const meta: TooltipMeta = {
-            offsetX,
-            offsetY,
+            canvasX,
+            canvasY,
             enableInteraction: tooltip.interaction?.enabled ?? false,
-            lastPointerEvent: { type: event.type, offsetX, offsetY },
+            lastPointerEvent: { type: event.type, canvasX, canvasY },
             showArrow: tooltip.showArrow,
             position: {
                 type: tooltip.position.type,
@@ -108,8 +108,8 @@ export class TooltipManager {
             const point = Transformable.toCanvasPoint(datum.series.contentGroup, x, y);
             return {
                 ...meta,
-                offsetX: Math.round(point.x),
-                offsetY: Math.round(point.y),
+                canvasX: Math.round(point.x),
+                canvasY: Math.round(point.y),
             };
         }
 

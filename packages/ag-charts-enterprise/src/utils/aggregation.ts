@@ -105,15 +105,15 @@ export function visibleRange(
     length: number,
     x0: number,
     x1: number,
-    xFor: (index: number) => number
+    xPosition: (index: number) => number
 ): [number, number] {
     let start = findMinValue(0, length - 1, (index) => {
-        const x = xFor(index);
+        const x = xPosition(index);
         return !Number.isFinite(x) || x > x0 ? index : undefined;
     });
     start = Math.max((start ?? 0) - 1, 0);
     let end = findMaxValue(0, length - 1, (index) => {
-        const x = xFor(index);
+        const x = xPosition(index);
         return !Number.isFinite(x) || x < x1 ? index : undefined;
     });
     // Two points needed over end so the spans draw correctly

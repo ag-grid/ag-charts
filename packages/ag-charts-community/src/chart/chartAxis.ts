@@ -1,4 +1,12 @@
-import type { AgAxisLabelFormatterParams, AgCartesianAxisPosition, FontOptions, Formatter } from 'ag-charts-types';
+import type {
+    AgAxisLabelFormatterParams,
+    AgAxisLabelStylerParams,
+    AgBaseAxisLabelStyleOptions,
+    AgCartesianAxisPosition,
+    FontOptions,
+    Formatter,
+    Styler,
+} from 'ag-charts-types';
 
 import type { AxisContext } from '../module/axisContext';
 import type { ModuleContextWithParent } from '../module/moduleContext';
@@ -57,6 +65,7 @@ export interface ChartAxis {
     isReversed(): boolean;
     resetAnimation(chartAnimationPhase: ChartAnimationPhase): unknown;
     setCrossLinesVisible(visible: boolean): void;
+    processData(): void;
     update(animated?: boolean): void;
     boundSeries: ISeries<unknown, unknown>[];
     crossLines?: CrossLine[];
@@ -94,6 +103,7 @@ export interface ChartAxisLabel extends FontOptions {
     enabled: boolean;
     format?: string;
     formatter?: Formatter<AgAxisLabelFormatterParams>;
+    itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
     minSpacing: number;
     mirrored: boolean;
     padding: number;

@@ -16,6 +16,7 @@
 
     position: absolute;
     touch-action: auto;
+    pointer-events: auto;
 
     display: flex;
     align-items: var(--ag-charts-align);

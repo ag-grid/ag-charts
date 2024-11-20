@@ -18,7 +18,6 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
-import type { PointerOffsets } from '../interaction/interactionManager';
 import { SpringAnimation, type SpringAnimationUpdateEvent } from './springAnimation';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
@@ -37,8 +36,9 @@ type TooltipPositionType =
     | 'bottom-left'
     | 'sparkline';
 
+type TooltipOffsets = { canvasX: number; canvasY: number };
 export type TooltipEventType = 'hover' | 'click' | 'dblclick' | 'keyboard';
-export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = PointerOffsets & { type: T };
+export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = TooltipOffsets & { type: T };
 
 export interface TooltipMetaPosition {
     type?: TooltipPositionType;
@@ -46,7 +46,7 @@ export interface TooltipMetaPosition {
     yOffset?: number;
 }
 
-export interface TooltipMeta extends PointerOffsets {
+export interface TooltipMeta extends TooltipOffsets {
     showArrow?: boolean;
     lastPointerEvent?: TooltipPointerEvent<TooltipEventType>;
     position?: TooltipMetaPosition;
@@ -219,13 +219,13 @@ export class Tooltip extends BaseProperties {
         if (element == null || positionParams == null) return;
 
         const { canvasRect, relativeRect, meta } = positionParams;
-        const { x: offsetX, y: offsetY } = e;
+        const { x: canvasX, y: canvasY } = e;
 
         const positionType = meta.position?.type ?? this.position.type;
         const xOffset = meta.position?.xOffset ?? 0;
         const yOffset = meta.position?.yOffset ?? 0;
 
-        const tooltipBounds = this.getTooltipBounds({ positionType, offsetX, offsetY, yOffset, xOffset, canvasRect });
+        const tooltipBounds = this.getTooltipBounds({ positionType, canvasX, canvasY, yOffset, xOffset, canvasRect });
 
         const position = calculatePlacement(element.clientWidth, element.clientHeight, relativeRect, tooltipBounds);
 
@@ -301,7 +301,7 @@ export class Tooltip extends BaseProperties {
             meta,
         };
 
-        this.springAnimation.update(meta.offsetX, meta.offsetY);
+        this.springAnimation.update(meta.canvasX, meta.canvasY);
         element.style.top = `${canvasRect.top}px`;
         element.style.left = `${canvasRect.left}px`;
 
@@ -359,15 +359,15 @@ export class Tooltip extends BaseProperties {
 
     private getTooltipBounds(opts: {
         positionType: TooltipPositionType;
-        offsetY: number;
-        offsetX: number;
+        canvasX: number;
+        canvasY: number;
         yOffset: number;
         xOffset: number;
         canvasRect: DOMRect;
     }): Bounds {
         if (!this.element) return {};
 
-        const { positionType, offsetX, offsetY, yOffset, xOffset, canvasRect } = opts;
+        const { positionType, canvasX, canvasY, yOffset, xOffset, canvasRect } = opts;
 
         const { clientWidth: tooltipWidth, clientHeight: tooltipHeight } = this.element;
         const bounds: Bounds = { width: tooltipWidth, height: tooltipHeight };
@@ -375,8 +375,8 @@ export class Tooltip extends BaseProperties {
         switch (positionType) {
             case 'node':
             case 'pointer': {
-                bounds.top = offsetY + yOffset - tooltipHeight - 8;
-                bounds.left = offsetX + xOffset - tooltipWidth / 2;
+                bounds.top = canvasY + yOffset - tooltipHeight - 8;
+                bounds.left = canvasX + xOffset - tooltipWidth / 2;
                 return bounds;
             }
             case 'top': {
@@ -425,9 +425,9 @@ export class Tooltip extends BaseProperties {
                     bounds.top = yOffset - tooltipHeight - 8;
                 } else {
                     // No cross lines
-                    bounds.top = offsetY + yOffset - tooltipHeight - 8;
+                    bounds.top = canvasY + yOffset - tooltipHeight - 8;
                 }
-                bounds.left = offsetX + xOffset - tooltipWidth / 2;
+                bounds.left = canvasX + xOffset - tooltipWidth / 2;
                 return bounds;
             }
         }

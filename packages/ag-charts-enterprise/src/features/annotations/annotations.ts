@@ -32,7 +32,6 @@ const {
     ObserveChanges,
     PropertiesArray,
     Validate,
-    REGIONS,
     ChartAxisDirection,
     Vec2,
     isValidDate,
@@ -432,12 +431,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const { ctx, optionsToolbar, toolbar } = this;
         const { All, Default, Annotations: AnnotationsState, AnnotationsSelected, ZoomDrag } = InteractionState;
 
-        const seriesRegion = ctx.regionManager.getRegion(REGIONS.SERIES);
-
-        const otherRegions = Object.values(REGIONS)
-            .filter((region) => REGIONS.SERIES !== region)
-            .map((region) => ctx.regionManager.getRegion(region));
-
+        const seriesRegion = ctx.regionManager.getRegion('series');
+        const rootRegion = ctx.regionManager.getRegion('root');
         const annotationsState = Default | ZoomDrag | AnnotationsState | AnnotationsSelected;
 
         this.destroyFns.push(
@@ -450,7 +445,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
             ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), All),
             ctx.interactionManager.addListener('keyup', this.onKeyUp.bind(this), All),
-            ...otherRegions.map((region) => region.addListener('click', this.onCancel.bind(this), All)),
+            rootRegion.addListener('click', this.onCancel.bind(this), All),
 
             // Services
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),

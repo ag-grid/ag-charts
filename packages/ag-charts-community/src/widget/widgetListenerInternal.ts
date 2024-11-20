@@ -1,32 +1,37 @@
 import { getWindow } from '../util/dom';
 import { partialAssign } from '../util/object';
-import { WidgetEventUtil } from './widgetEvents';
-import type { WidgetEventMap_Internal } from './widgetEvents';
+import type { DragWidgetEvent, WidgetEventMap_Internal } from './widgetEvents';
 
 type EventMap = WidgetEventMap_Internal;
 type EventType = keyof WidgetEventMap_Internal;
-type EventHandler<T> = (target: T, event: unknown) => unknown;
-type TargetableWidget = { getElement(): HTMLElement };
+type EventHandler<T, K extends EventType = EventType> = (target: T, event: EventMap[K]) => unknown;
+type Targetable = { getElement(): HTMLElement };
 
 type DragEvents = 'drag-start' | 'drag-move' | 'drag-end';
 type DragOrigin = { pageX: number; pageY: number; offsetX: number; offsetY: number };
-function makeDragEvent<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent: MouseEvent): EventMap[K] {
-    const event = WidgetEventUtil.alloc(type, sourceEvent);
+function makeDragEvent<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent: MouseEvent): DragWidgetEvent<K> {
     // [offsetX, offsetY] is relative to the sourceEvent.target, which can be another element
     // such as a legend button. Therefore, calculate [offsetX, offsetY] relative to the axis
     // element that fired the 'mousedown' event.
-    event.originDeltaX = sourceEvent.pageX - origin.pageX;
-    event.originDeltaY = sourceEvent.pageY - origin.pageY;
-    event.offsetX = origin.offsetX + event.originDeltaX;
-    event.offsetY = origin.offsetY + event.originDeltaY;
-    return event;
+    const originDeltaX = sourceEvent.pageX - origin.pageX;
+    const originDeltaY = sourceEvent.pageY - origin.pageY;
+    return {
+        type,
+        offsetX: origin.offsetX + originDeltaX,
+        offsetY: origin.offsetY + originDeltaY,
+        clientX: sourceEvent.clientX,
+        clientY: sourceEvent.clientY,
+        originDeltaX,
+        originDeltaY,
+        sourceEvent,
+    };
 }
 
-export class WidgetListenerInternal<T extends TargetableWidget> {
-    private dragTriggerRemovers?: Map<EventHandler<T>, () => void>;
-    private dragStartListeners?: EventHandler<T>[];
-    private dragMoveListeners?: EventHandler<T>[];
-    private dragEndListeners?: EventHandler<T>[];
+export class WidgetListenerInternal {
+    private dragTriggerRemovers?: Map<EventHandler<Targetable>, () => void>;
+    private dragStartListeners?: EventHandler<Targetable>[];
+    private dragMoveListeners?: EventHandler<Targetable>[];
+    private dragEndListeners?: EventHandler<Targetable>[];
 
     destroy(): void {
         this.dragTriggerRemovers?.forEach((fn) => fn());
@@ -36,8 +41,8 @@ export class WidgetListenerInternal<T extends TargetableWidget> {
         this.dragEndListeners = undefined;
     }
 
-    add<K extends EventType>(type: K, target: T, handler: (target: T, event: EventMap[K]) => unknown): void;
-    add<K extends EventType>(type: K, target: T, handler: EventHandler<T>): void {
+    add<T extends Targetable, K extends EventType>(type: K, target: T, handler: EventHandler<T, K>): void;
+    add<T extends Targetable, K extends EventType>(type: K, target: T, handler: EventHandler<unknown>): void {
         switch (type) {
             case 'drag-start': {
                 this.dragStartListeners ??= [];
@@ -58,8 +63,8 @@ export class WidgetListenerInternal<T extends TargetableWidget> {
         }
     }
 
-    remove<K extends EventType>(type: K, _target: T, handler: (target: T, event: EventMap[K]) => unknown): void;
-    remove<K extends EventType>(type: K, _target: T, handler: EventHandler<T>): void {
+    remove<T extends Targetable, K extends EventType>(type: K, _target: T, handler: EventHandler<T, K>): void;
+    remove<T extends Targetable, K extends EventType>(type: K, _target: T, handler: EventHandler<unknown>): void {
         switch (type) {
             case 'drag-start':
                 return this.removeHandler(this.dragStartListeners, handler);
@@ -70,12 +75,12 @@ export class WidgetListenerInternal<T extends TargetableWidget> {
         }
     }
 
-    private removeHandler(array: EventHandler<T>[] | undefined, handler: EventHandler<T>): void {
+    private removeHandler<T extends Targetable>(array: EventHandler<T>[] | undefined, handler: EventHandler<T>): void {
         const index = array?.indexOf(handler);
         if (index !== undefined) array?.splice(index, 1);
     }
 
-    private registerDragTrigger(target: T, handler: EventHandler<T>) {
+    private registerDragTrigger<T extends Targetable>(target: T, handler: EventHandler<unknown>) {
         const mouseDownHandler = (event: MouseEvent) => event.button === 0 && this.startDrag(target, event);
 
         target.getElement().addEventListener('mousedown', mouseDownHandler);
@@ -85,7 +90,7 @@ export class WidgetListenerInternal<T extends TargetableWidget> {
         );
     }
 
-    private startDrag(target: T, downEvent: MouseEvent) {
+    private startDrag<T extends Targetable>(target: T, downEvent: MouseEvent) {
         const window = getWindow();
         const origin: DragOrigin = { pageX: NaN, pageY: NaN, offsetX: NaN, offsetY: NaN };
         partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, downEvent);
@@ -106,11 +111,11 @@ export class WidgetListenerInternal<T extends TargetableWidget> {
 
         window.addEventListener('mousemove', mousemove);
         window.addEventListener('mouseup', mouseup);
-        const dragStartEvent = makeDragEvent('drag-end', origin, downEvent);
+        const dragStartEvent = makeDragEvent('drag-start', origin, downEvent);
         this.dispatch('drag-start', target, dragStartEvent);
     }
 
-    private dispatch<K extends EventType>(type: K, target: T, event: EventMap[K]): void {
+    private dispatch<T extends Targetable, K extends EventType>(type: K, target: T, event: EventMap[K]): void {
         switch (type) {
             case 'drag-start':
                 return this.dragStartListeners?.forEach((handler) => handler(target, event));

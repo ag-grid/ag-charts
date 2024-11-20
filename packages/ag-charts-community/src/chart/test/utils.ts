@@ -25,11 +25,12 @@ import {
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
-import type { PointerOffsets } from '../interaction/interactionManager';
 
 export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
 export * from '../../util/test/mockConsole';
+
+type TestTarget = ReturnType<Chart['testFindTarget']>;
 
 export type ChartOrProxy<O extends AgChartOptions | AgFinancialChartOptions = AgChartOptions> =
     | AgChartInstance<O>
@@ -173,36 +174,41 @@ export async function waitForChartStability<O extends AgChartOptions | AgFinanci
 
 function makeMouseEvent<T extends 'mousedown' | 'mouseup' | 'mousemove' | 'click' | 'dblclick' | 'contextmenu'>(
     type: T,
-    offsets: PointerOffsets
+    testTarget: TestTarget,
+    clientX: number,
+    clientY: number
 ): MouseEvent {
-    const event = new MouseEvent(type, { bubbles: true });
-    const { offsetX, offsetY, pageX = offsetX, pageY = offsetY } = offsets;
-    Object.assign(event, { offsetX, offsetY, pageX, pageY });
+    const { offsetX, offsetY } = testTarget;
+    const event = new MouseEvent(type, { bubbles: true, clientX, clientY });
+    Object.assign(event, { offsetX, offsetY, pageX: clientX, pageY: clientY });
+    if (testTarget.mockRegion) {
+        (event as { mockRegion?: unknown }).mockRegion = testTarget.mockRegion;
+    }
     return event;
 }
 
-function mouseDownEvent(offsets: PointerOffsets): MouseEvent {
-    return makeMouseEvent('mousedown', offsets);
+function mouseDownEvent(offsets: TestTarget, clientX: number, clientY: number): MouseEvent {
+    return makeMouseEvent('mousedown', offsets, clientX, clientY);
 }
 
-function mouseUpEvent(offsets: PointerOffsets): MouseEvent {
-    return makeMouseEvent('mouseup', offsets);
+function mouseUpEvent(offsets: TestTarget, clientX: number, clientY: number): MouseEvent {
+    return makeMouseEvent('mouseup', offsets, clientX, clientY);
 }
 
-function mouseMoveEvent(offsets: PointerOffsets): MouseEvent {
-    return makeMouseEvent('mousemove', offsets);
+function mouseMoveEvent(offsets: TestTarget, clientX: number, clientY: number): MouseEvent {
+    return makeMouseEvent('mousemove', offsets, clientX, clientY);
 }
 
-function clickEvent(offsets: PointerOffsets): MouseEvent {
-    return makeMouseEvent('click', offsets);
+function clickEvent(offsets: TestTarget, clientX: number, clientY: number): MouseEvent {
+    return makeMouseEvent('click', offsets, clientX, clientY);
 }
 
-function doubleClickEvent(offsets: PointerOffsets): MouseEvent {
-    return makeMouseEvent('dblclick', offsets);
+function doubleClickEvent(offsets: TestTarget, clientX: number, clientY: number): MouseEvent {
+    return makeMouseEvent('dblclick', offsets, clientX, clientY);
 }
 
-function contextMenuEvent(offsets: PointerOffsets): MouseEvent {
-    return makeMouseEvent('contextmenu', offsets);
+function contextMenuEvent(offsets: TestTarget, clientX: number, clientY: number): MouseEvent {
+    return makeMouseEvent('contextmenu', offsets, clientX, clientY);
 }
 
 export enum WheelDeltaMode {
@@ -297,31 +303,17 @@ export function gaugeAssertions() {
     };
 }
 
-const checkTargetValid = (target: HTMLElement) => {
+const checkTargetValid = ({ target }: TestTarget) => {
     if (!target.isConnected) throw new Error('Chart must be configured with a container for event testing to work');
 };
-
-type TestTarget = { target: HTMLElement; x: number; y: number };
-type TestModuleFns = { testFindTarget: (canvasX: number, canvasY: number) => TestTarget | undefined };
-
-function findTarget(chart: Chart, canvasX: number, canvasY: number): { target: HTMLElement; x: number; y: number } {
-    for (const moduleName of ['legend', 'navigator', 'zoom']) {
-        const mod = chart.modulesManager.getModule<TestModuleFns>(moduleName);
-        const modTarget = mod?.testFindTarget(canvasX, canvasY);
-        if (modTarget) {
-            return modTarget;
-        }
-    }
-    return { target: chart.ctx.scene.canvas.element, x: canvasX, y: canvasY };
-}
 
 export function hoverAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const { target, x, y } = findTarget(chart, canvasX, canvasY);
-        checkTargetValid(target);
+        const testTarget = chart.testFindTarget(canvasX, canvasY);
+        checkTargetValid(testTarget);
 
-        target?.dispatchEvent(mouseMoveEvent({ offsetX: x, offsetY: y }));
+        testTarget.target.dispatchEvent(mouseMoveEvent(testTarget, canvasX, canvasY));
         return delay(50);
     };
 }
@@ -333,17 +325,16 @@ export function clickAction(
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const { target, x, y } = findTarget(
-            chart,
+        const testTarget = chart.testFindTarget(
             opts?.mousedown?.offsetX ?? canvasX,
             opts?.mousedown?.offsetY ?? canvasY
         );
-        checkTargetValid(target);
+        checkTargetValid(testTarget);
 
-        const offsets = { offsetX: x, offsetY: y };
-        target?.dispatchEvent(mouseDownEvent(opts?.mousedown ?? offsets));
-        target?.dispatchEvent(mouseUpEvent(offsets));
-        target?.dispatchEvent(clickEvent(offsets));
+        const mousedownOffset = opts?.mousedown ? { ...testTarget, ...opts.mousedown } : testTarget;
+        testTarget.target?.dispatchEvent(mouseDownEvent(mousedownOffset, canvasX, canvasY));
+        testTarget.target?.dispatchEvent(mouseUpEvent(testTarget, canvasX, canvasY));
+        testTarget.target?.dispatchEvent(clickEvent(testTarget, canvasX, canvasY));
         return delay(50);
     };
 }
@@ -351,18 +342,17 @@ export function clickAction(
 export function doubleClickAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const { target, x, y } = findTarget(chart, canvasX, canvasY);
-        const offsets = { offsetX: x, offsetY: y };
+        const testTarget = chart.testFindTarget(canvasX, canvasY);
         // A double click is always preceded by two single clicks, simulate here to ensure correct handling
-        target?.dispatchEvent(mouseDownEvent(offsets));
-        target?.dispatchEvent(mouseUpEvent(offsets));
-        target?.dispatchEvent(clickEvent(offsets));
-        target?.dispatchEvent(mouseDownEvent(offsets));
-        target?.dispatchEvent(mouseUpEvent(offsets));
-        target?.dispatchEvent(clickEvent(offsets));
+        testTarget.target?.dispatchEvent(mouseDownEvent(testTarget, canvasX, canvasY));
+        testTarget.target?.dispatchEvent(mouseUpEvent(testTarget, canvasX, canvasY));
+        testTarget.target?.dispatchEvent(clickEvent(testTarget, canvasX, canvasY));
+        testTarget.target?.dispatchEvent(mouseDownEvent(testTarget, canvasX, canvasY));
+        testTarget.target?.dispatchEvent(mouseUpEvent(testTarget, canvasX, canvasY));
+        testTarget.target?.dispatchEvent(clickEvent(testTarget, canvasX, canvasY));
         await delay(50);
         await waitForChartStability(chart);
-        target?.dispatchEvent(doubleClickEvent(offsets));
+        testTarget.target?.dispatchEvent(doubleClickEvent(testTarget, canvasX, canvasY));
         return delay(50);
     };
 }
@@ -370,11 +360,10 @@ export function doubleClickAction(canvasX: number, canvasY: number): (chart: Cha
 export function contextMenuAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const { target, x, y } = findTarget(chart, canvasX, canvasY);
-        checkTargetValid(target);
+        const testTarget = chart.testFindTarget(canvasX, canvasY);
+        checkTargetValid(testTarget);
 
-        const offsets = { offsetX: x, offsetY: y };
-        target?.dispatchEvent(contextMenuEvent(offsets));
+        testTarget.target?.dispatchEvent(contextMenuEvent(testTarget, canvasX, canvasY));
         return delay(50);
     };
 }
@@ -385,27 +374,15 @@ export function dragAction(
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const fromTarget = findTarget(chart, from.x, from.y);
-        const toTarget = findTarget(chart, to.x, to.y);
-        const fromOffsets = {
-            offsetX: fromTarget.x,
-            offsetY: fromTarget.y,
-            pageX: from.x,
-            pageY: from.y,
-        };
-        const toOffsets = {
-            offsetX: toTarget.x,
-            offsetY: toTarget.y,
-            pageX: to.x,
-            pageY: to.y,
-        };
-        checkTargetValid(fromTarget.target);
-        checkTargetValid(toTarget.target);
+        const fromTarget = chart.testFindTarget(from.x, from.y);
+        const toTarget = chart.testFindTarget(to.x, to.y);
+        checkTargetValid(fromTarget);
+        checkTargetValid(toTarget);
 
-        fromTarget.target?.dispatchEvent(mouseDownEvent(fromOffsets));
-        fromTarget.target?.dispatchEvent(mouseMoveEvent(fromOffsets));
-        toTarget.target?.dispatchEvent(mouseMoveEvent(toOffsets));
-        toTarget.target?.dispatchEvent(mouseUpEvent(toOffsets));
+        fromTarget.target?.dispatchEvent(mouseDownEvent(fromTarget, from.x, from.y));
+        fromTarget.target?.dispatchEvent(mouseMoveEvent(fromTarget, from.x, from.y));
+        toTarget.target?.dispatchEvent(mouseMoveEvent(toTarget, to.x, to.y));
+        toTarget.target?.dispatchEvent(mouseUpEvent(toTarget, to.x, to.y));
 
         return delay(50);
     };
@@ -420,8 +397,8 @@ export function scrollAction(
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const { target, x, y } = findTarget(chart, canvasX, canvasY);
-        target?.dispatchEvent(wheelEvent({ clientX: x, clientY: y, deltaY, deltaX, deltaMode }));
+        const { target } = chart.testFindTarget(canvasX, canvasY);
+        target?.dispatchEvent(wheelEvent({ clientX: canvasX, clientY: canvasY, deltaY, deltaX, deltaMode }));
         await delay(50);
     };
 }

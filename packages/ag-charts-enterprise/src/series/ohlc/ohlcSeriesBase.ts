@@ -268,18 +268,14 @@ export abstract class OhlcSeriesBase<
         const { dataAggregationFilters } = this;
         const xScale = xAxis.scale;
         const [x0, x1] = findMinMax(xAxis.range);
-        const xFor = (index: number) => {
-            const xDatum = xValues[index];
-            return xScale.convert(xDatum) + groupOffset + barOffset;
-        };
-
         const [r0, r1] = xScale.range;
         const range = r1 - r0;
 
+        const xPosition = (index: number) => xScale.convert(xValues[index]) + groupOffset + barOffset;
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         if (dataAggregationFilter == null) {
-            const [start, end] = visibleRange(rawData.length, x0, x1, xFor);
+            const [start, end] = visibleRange(rawData.length, x0, x1, xPosition);
 
             for (let i = start; i < end; i += 1) {
                 const xValue = xValues[i];
@@ -318,7 +314,7 @@ export abstract class OhlcSeriesBase<
                 const openIndex = indexData[aggIndex + OPEN];
                 const closeIndex = indexData[aggIndex + CLOSE];
                 const midDatumIndex = ((openIndex + closeIndex) / 2) | 0;
-                return openIndex !== -1 ? xFor(midDatumIndex) : NaN;
+                return openIndex !== -1 ? xPosition(midDatumIndex) : NaN;
             });
 
             for (let i = start; i < end; i += 1) {
@@ -341,9 +337,7 @@ export abstract class OhlcSeriesBase<
                 const highValue = highValues[highIndex];
                 const lowValue = lowValues[lowIndex];
 
-                const width =
-                    Math.abs(xScale.convert(xValues[closeIndex]) - xScale.convert(xValues[openIndex])) +
-                    effectiveBarWidth;
+                const width = Math.abs(xPosition(closeIndex) - xPosition(openIndex)) + effectiveBarWidth;
 
                 handleDatum(datum, xValue, openValue, closeValue, highValue, lowValue, width, false);
             }
@@ -399,6 +393,6 @@ export abstract class OhlcSeriesBase<
             width: width,
             height: height,
         };
-        return computeBarFocusBounds(datum, this.contentGroup, opts.seriesRect);
+        return computeBarFocusBounds(datum, opts.seriesRect);
     }
 }

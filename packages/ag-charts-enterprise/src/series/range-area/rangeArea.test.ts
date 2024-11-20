@@ -190,6 +190,18 @@ describe('RangeAreaSeries', () => {
 
         chart = AgCharts.create(options);
         await compare();
+        expectWarningsCalls().toMatchInlineSnapshot(`
+[
+  [
+    "AG Charts - invalid value of type [string] for [RangeAreaSeries-1 / yLowValue] ignored:",
+    "[invalid]",
+  ],
+  [
+    "AG Charts - invalid value of type [string] for [RangeAreaSeries-1 / yHighValue] ignored:",
+    "[invalid]",
+  ],
+]
+`);
     });
 
     it(`should render a range-area chart with reversed axes`, async () => {

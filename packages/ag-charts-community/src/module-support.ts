@@ -54,7 +54,6 @@ export * from './chart/data/processors';
 export * from './chart/data/aggregateFunctions';
 export * from './chart/updateService';
 export * from './chart/layout/layoutManager';
-export * from './chart/interaction/regions';
 export * from './chart/interaction/animationManager';
 export * from './chart/interaction/chartEventManager';
 export * from './chart/interaction/contextMenuRegistry';
