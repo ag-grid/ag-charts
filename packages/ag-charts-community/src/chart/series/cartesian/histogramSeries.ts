@@ -407,7 +407,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         });
     }
 
-    protected updateLabelSelection(opts: {
+    protected override updateLabelSelection(opts: {
         labelData: HistogramNodeDatum[];
         labelSelection: Selection<Text, HistogramNodeDatum>;
     }) {

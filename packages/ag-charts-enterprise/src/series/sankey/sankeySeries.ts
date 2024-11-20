@@ -616,10 +616,6 @@ export class SankeySeries extends FlowProportionSeries<
         );
     }
 
-    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
-        return [];
-    }
-
     protected override computeFocusBounds({
         datumIndex,
         seriesRect,

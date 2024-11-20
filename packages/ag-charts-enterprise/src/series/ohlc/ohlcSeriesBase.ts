@@ -376,7 +376,7 @@ export abstract class OhlcSeriesBase<
         // Labels unsupported
     }
 
-    protected updateLabelSelection(opts: {
+    protected override updateLabelSelection(opts: {
         labelData: OhlcNodeDatum[];
         labelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, OhlcNodeDatum>;
         seriesIdx: number;

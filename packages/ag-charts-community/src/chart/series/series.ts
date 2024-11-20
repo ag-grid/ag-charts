@@ -14,7 +14,7 @@ import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
 import type { Path } from '../../scene/shape/path';
-import type { PointLabelDatum } from '../../scene/util/labelPlacement';
+import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
 import { jsonDiff } from '../../util/json';
@@ -106,7 +106,7 @@ export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends stri
         readonly type: TEvent,
         readonly event: Event,
         { datum }: TDatum,
-        series: ISeries<TDatum, unknown>
+        series: ISeries<TDatum, unknown, unknown>
     ) {
         this.datum = datum;
         this.seriesId = series.id;
@@ -158,7 +158,7 @@ export abstract class Series<
         TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
     >
     extends Observable
-    implements ISeries<TDatum, TProps>
+    implements ISeries<TDatum, TProps, TLabel>
 {
     protected destroyFns: (() => void)[] = [];
     abstract readonly properties: TProps;
@@ -608,7 +608,12 @@ export abstract class Series<
         throw new Error('AG Charts - Series.pickNodeMainAxisFirst() not implemented');
     }
 
-    abstract getLabelData(): PointLabelDatum[];
+    public getLabelData(): (TLabel & PointLabelDatum)[] {
+        return [];
+    }
+    public updatePlacedLabelData(_labels: PlacedLabel<TLabel>[]) {
+        return;
+    }
 
     fireNodeClickEvent(event: Event, datum: TDatum): void {
         this.fireEvent(new this.NodeEvent('nodeClick', event, datum, this));

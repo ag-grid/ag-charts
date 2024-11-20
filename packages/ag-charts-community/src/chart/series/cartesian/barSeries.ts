@@ -693,7 +693,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         });
     }
 
-    protected updateLabelSelection(opts: { labelData: BarNodeDatum[]; labelSelection: Selection<Text, BarNodeDatum> }) {
+    protected override updateLabelSelection(opts: {
+        labelData: BarNodeDatum[];
+        labelSelection: Selection<Text, BarNodeDatum>;
+    }) {
         const data = this.isLabelEnabled() ? opts.labelData : [];
         return opts.labelSelection.update(data, (text) => {
             text.pointerEvents = PointerEvents.None;

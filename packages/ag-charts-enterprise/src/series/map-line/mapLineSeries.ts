@@ -66,7 +66,7 @@ export class MapLineSeries extends TopologySeries<
     );
     private labelSelection: _ModuleSupport.Selection<
         _ModuleSupport.Text,
-        _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
+        _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>
     > = Selection.select(this.labelGroup, Text);
     private highlightDatumSelection: _ModuleSupport.Selection<GeoGeometry, MapLineNodeDatum> = Selection.select(
         this.highlightNode,
@@ -334,7 +334,7 @@ export class MapLineSeries extends TopologySeries<
     }
 
     override update() {
-        const { datumSelection, labelSelection, highlightDatumSelection } = this;
+        const { datumSelection, highlightDatumSelection } = this;
 
         this.updateSelections();
 
@@ -350,8 +350,6 @@ export class MapLineSeries extends TopologySeries<
 
         this.datumSelection = this.updateDatumSelection({ nodeData, datumSelection });
         this.updateDatumNodes({ datumSelection, isHighlight: false });
-
-        this.labelSelection = this.updateLabelSelection({ labelSelection });
 
         this.highlightDatumSelection = this.updateDatumSelection({
             nodeData: highlightedDatum != null ? [highlightedDatum] : [],
@@ -421,23 +419,11 @@ export class MapLineSeries extends TopologySeries<
         });
     }
 
-    private updateLabelSelection(opts: {
-        labelSelection: _ModuleSupport.Selection<
-            _ModuleSupport.Text,
-            _ModuleSupport.PlacedLabel<_ModuleSupport.PointLabelDatum>
-        >;
-    }) {
-        if (!this.isLabelEnabled()) return opts.labelSelection.update([]);
-
-        this.ctx.seriesLabelLayoutManager
-            .placeLabels(this.id, this.getLabelData())
-            .then((layoutResult) => {
-                const placedLabels = layoutResult.get(this.id) ?? [];
-                opts.labelSelection.update(placedLabels);
-                this.updateLabelNodes(opts);
-            })
-            .catch((e) => Logger.error(e));
-        return opts.labelSelection;
+    public override updatePlacedLabelData(labelData: _ModuleSupport.PlacedLabel<MapLineNodeLabelDatum>[]) {
+        this.labelSelection = this.labelSelection.update(labelData, (text) => {
+            text.pointerEvents = _ModuleSupport.PointerEvents.None;
+        });
+        this.updateLabelNodes({ labelSelection: this.labelSelection });
     }
 
     private updateLabelNodes(opts: {
@@ -468,7 +454,8 @@ export class MapLineSeries extends TopologySeries<
         // No animations
     }
 
-    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
+    override getLabelData() {
+        if (!this.isLabelEnabled()) return [];
         return this.contextNodeData?.labelData ?? [];
     }
 

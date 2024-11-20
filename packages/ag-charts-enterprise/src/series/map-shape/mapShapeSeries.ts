@@ -522,10 +522,6 @@ export class MapShapeSeries
         // No animations
     }
 
-    override getLabelData(): _ModuleSupport.PointLabelDatum[] {
-        return [];
-    }
-
     override getSeriesDomain() {
         return [NaN, NaN];
     }

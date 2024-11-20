@@ -1,15 +1,11 @@
 import type { BBox } from '../../scene/bbox';
-import { type LabelBounds, type PlacedLabel, type PointLabelDatum, placeLabels } from '../../scene/util/labelPlacement';
+import { type LabelBounds, type PointLabelDatum, placeLabels } from '../../scene/util/labelPlacement';
 import type { Padding } from '../../util/padding';
-
-type LayoutResult = Map<string, PlacedLabel<PointLabelDatum>[]>;
 
 export class SeriesLabelLayoutManager {
     private readonly labelData: Map<string, PointLabelDatum[]> = new Map();
     private readonly expectedSeriesId: Set<string> = new Set();
-    private nextResult?: Promise<LayoutResult>;
-    private nextResolve?: (r: LayoutResult) => void;
-    private nextBounds?: LabelBounds;
+    private bounds?: LabelBounds;
 
     public reset(expectedSeriesId: string[], seriesRect: BBox, padding: Padding) {
         this.expectedSeriesId.clear();
@@ -21,10 +17,7 @@ export class SeriesLabelLayoutManager {
                 this.labelData.delete(seriesId);
             }
         }
-        this.nextResult = new Promise((resolve) => {
-            this.nextResolve = resolve;
-        });
-        this.nextBounds = {
+        this.bounds = {
             x: -padding.left,
             y: -padding.top,
             width: seriesRect.width + padding.left + padding.right,
@@ -33,26 +26,14 @@ export class SeriesLabelLayoutManager {
     }
 
     public placeLabels(seriesId: string, labelData: PointLabelDatum[]) {
-        if (!this.expectedSeriesId.has(seriesId) || !this.nextResult) {
-            throw new Error('AG Charts - unexpected state in placeLabels().');
+        if (!this.expectedSeriesId.has(seriesId)) {
+            throw new Error('Unexpected state in placeLabels(), seriesId not recognized: ' + seriesId);
         }
 
         this.labelData.set(seriesId, labelData);
-        return this.nextResult;
     }
 
-    public resolveLabels() {
-        if (!this.nextResult || !this.nextResolve) {
-            throw new Error('AG Charts - reset() not called before label placement started.');
-        }
-
-        this.nextResolve(this.performLabelLayout());
-        this.nextResolve = undefined;
-
-        return this.nextResult;
-    }
-
-    private performLabelLayout(padding = 5) {
-        return placeLabels(this.labelData, this.nextBounds, padding);
+    public resolveLabels(padding = 5) {
+        return placeLabels(this.labelData, this.bounds, padding);
     }
 }

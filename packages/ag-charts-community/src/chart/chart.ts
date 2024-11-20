@@ -10,6 +10,7 @@ import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
+import { isPointLabelDatum } from '../scene/util/labelPlacement';
 import { groupBy } from '../util/array';
 import { AsyncAwaitQueue, pause } from '../util/async';
 import { Debug } from '../util/debug';
@@ -988,15 +989,24 @@ export abstract class Chart extends Observable {
         const { seriesRect } = this;
         const { seriesLabelLayoutManager } = this.ctx;
 
+        await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
+
+        const placedLabelSeries = this.series.filter((s) => s.visible && s.usesPlacedLabels);
         seriesLabelLayoutManager.reset(
-            this.series.filter((s) => s.visible && s.usesPlacedLabels).map((s) => s.id),
+            placedLabelSeries.map((s) => s.id),
             seriesRect ?? BBox.zero,
             this.padding
         );
-
-        await Promise.all(seriesToUpdate.map((series) => series.update({ seriesRect })));
-
-        await seriesLabelLayoutManager.resolveLabels();
+        for (const series of placedLabelSeries) {
+            const labelData = series.getLabelData();
+            if (labelData.every(isPointLabelDatum)) {
+                seriesLabelLayoutManager.placeLabels(series.id, labelData);
+            }
+        }
+        const placedLabels = seriesLabelLayoutManager.resolveLabels();
+        for (const series of placedLabelSeries) {
+            series.updatePlacedLabelData?.(placedLabels.get(series.id) ?? []);
+        }
     }
 
     private readonly onSeriesNodeClick = (event: TypedEvent) => {

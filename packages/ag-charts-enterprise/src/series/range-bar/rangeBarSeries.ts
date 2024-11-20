@@ -445,7 +445,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return labelItems.length > 0 ? labelItems : undefined;
     }
 
-    protected updateLabelSelection(opts: {
+    protected override updateLabelSelection(opts: {
         labelData: RangeBarNodeLabelDatum[];
         labelSelection: RangeBarAnimationData['labelSelection'];
     }) {
