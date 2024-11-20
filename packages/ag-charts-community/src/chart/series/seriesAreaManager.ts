@@ -19,7 +19,7 @@ import { ChartUpdateType } from '../chartUpdateType';
 import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import type { KeyNavEvent } from '../interaction/keyNavManager';
-import type { MockEvent, RegionEvent } from '../interaction/regionManager';
+import type { RegionEvent } from '../interaction/regionManager';
 import { TooltipManager } from '../interaction/tooltipManager';
 import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';

@@ -49,7 +49,6 @@ import type { Page } from '../gridLayout';
 import { gridLayout } from '../gridLayout';
 import type { HighlightNodeDatum } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
-import type { MockEvent } from '../interaction/regionManager';
 import { LayoutElement } from '../layout/layoutManager';
 import type { Marker } from '../marker/marker';
 import { getMarker } from '../marker/util';

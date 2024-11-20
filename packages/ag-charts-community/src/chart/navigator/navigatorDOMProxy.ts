@@ -4,7 +4,6 @@ import { clamp } from '../../util/number';
 import { SliderWidget } from '../../widget/sliderWidget';
 import type { ToolbarWidget } from '../../widget/toolbarWidget';
 import type { DragWidgetEvent, MouseWidgetEvent } from '../../widget/widgetEvents';
-import type { MockEvent } from '../interaction/regionManager';
 
 export type NavigatorButtonType = 'min' | 'max' | 'pan';
 

@@ -42,7 +42,6 @@ import { axisRegistry } from './factory/axisRegistry';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
 import { legendRegistry } from './factory/legendRegistry';
 import { seriesRegistry } from './factory/seriesRegistry';
-import type { MockEvent } from './interaction/regionManager';
 import { SyncManager } from './interaction/syncManager';
 import { Keyboard } from './keyboard';
 import { LayoutElement } from './layout/layoutManager';
