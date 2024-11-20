@@ -6,26 +6,33 @@ import type { RotatableText, TransformableText } from '../../scene/shape/text';
 import type { TranslatableType } from '../../scene/transformable';
 import { findMinMax } from '../../util/number';
 
-export type AxisLineDatum = { x: number; y1: number; y2: number };
-export type AxisDatum = {
-    translationY: number;
-    translationX?: number;
-};
+export interface AxisLineDatum {
+    x: number;
+    y1: number;
+    y2: number;
+}
 
-type AxisAnimationContext = { visible: boolean; min: number; max: number };
-type AxisGroupDatum = {
+interface AxisAnimationContext {
+    visible: boolean;
+    min: number;
+    max: number;
+}
+
+interface AxisGroupDatum {
     rotation: number;
     rotationCenterX: number;
     rotationCenterY: number;
     translationX: number;
     translationY: number;
-};
-type AxisNodeDatum = {
+}
+
+interface AxisNodeDatum {
     translationY: number;
     tickId: string;
     visible: boolean;
-};
-type AxisLabelDatum = {
+}
+
+interface AxisLabelDatum {
     tickId: string;
     x: number;
     y: number;
@@ -33,7 +40,7 @@ type AxisLabelDatum = {
     rotationCenterX: number;
     translationY: number;
     range: number[];
-};
+}
 
 export function prepareAxisAnimationContext(axis: { range: number[] }): AxisAnimationContext {
     const [requestedRangeMin, requestedRangeMax] = findMinMax(axis.range);

@@ -10,12 +10,12 @@ the relationships between data points on the graph. This section discusses the d
 
 A category axis is used to display distinct categories or groups of data in a chart.
 
-The category axis shows discrete categories or groups of data, unlike the [Number](#number) or
-[Time](#time) axes which use a continuous scale. For instance, in a bar chart of sales per product, the
-category axis shows the products as different groups, and the number axis displays the corresponding sale value for each group.
+The category axis shows discrete categories or groups of data, unlike the [Number](#number) or [Time](#time) axes which
+use a continuous scale. For instance, in a bar chart of sales per product, the category axis shows the products as
+different groups, and the number axis displays the corresponding sale value for each group.
 
-If no `axes` are supplied, a category axis will be used as the x-axis by default. However, it can also
-be explicitly configured as shown below:
+If no `axes` are supplied, a category axis will be used as the x-axis by default.
+However, it can also be explicitly configured as shown below:
 
 ```js
 axes: [
@@ -29,6 +29,43 @@ axes: [
 The category axis will attempt to render an [Axis Label](./axes-labels/), [Grid Line](./axes-grid-lines/) and Tick for each category with even spacing.
 
 For a full list of configuration options see [Category Axis Options](#reference-AgCategoryAxisOptions).
+
+## Grouped Category
+
+A grouped category axis displays nested categories or hierarchical groups of data in a chart.
+It is similar to the regular category axis but allows for hierarchical representation, where each category is an array
+of strings, with each string representing a level in the hierarchy.
+
+For example, in a chart comparing Olympic medal counts by location, the grouped category axis can show regions,
+countries, and cities in a nested structure, with labels and ticks displayed hierarchically.
+
+```js
+data: [
+    { location: ['Europe', 'United Kingdom', 'London'], gold: 27, silver: 23, bronze: 17 },
+    { location: ['Europe', 'United Kingdom', 'Manchester'], gold: 12, silver: 8, bronze: 10 },
+    { location: ['Asia', 'China', 'Beijing'], gold: 38, silver: 32, bronze: 18 },
+    { location: ['Asia', 'China', 'Shanghai'], gold: 20, silver: 15, bronze: 12 },
+    { location: ['Asia', 'Japan', 'Tokyo'], gold: 27, silver: 14, bronze: 17 },
+    { location: ['North America', 'United States', 'Los Angeles'], gold: 46, silver: 37, bronze: 38 },
+    { location: ['North America', 'Canada', 'Toronto'], gold: 8, silver: 6, bronze: 10 },
+],
+```
+
+To use a grouped category axis, you must explicitly define it. For example:
+
+```js
+axes: [
+    {
+        type: 'grouped-category',
+        position: 'bottom',
+    },
+],
+```
+
+The grouped category axis will render Axis Labels, Grid Lines, and Ticks for each level in the hierarchy, aligning them
+to visually represent the nested relationships between categories.
+
+{% chartExampleRunner title="Grouped Category" name="grouped-category" type="generated" /%}
 
 ## Number
 
