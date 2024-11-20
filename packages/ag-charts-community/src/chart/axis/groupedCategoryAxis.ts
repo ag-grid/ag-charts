@@ -353,7 +353,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.tickTreeLayout = treeLayout(domain);
 
         const orderedDomain: string[][] = [];
-        for (let node of this.tickTreeLayout.nodes) {
+        for (const node of this.tickTreeLayout.nodes) {
             if (node.leafCount || node.refId == null) continue;
             orderedDomain.push(this.dataDomain.domain[node.refId]);
         }
