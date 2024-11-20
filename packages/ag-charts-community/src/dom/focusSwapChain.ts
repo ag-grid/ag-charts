@@ -60,14 +60,6 @@ export class FocusSwapChain {
         }
     }
 
-    resizeContainer(dims: { width: number; height: number }) {
-        const parent = this.label1.parentElement!;
-        if (parent) {
-            parent.style.width = `${dims.width}px`;
-            parent.style.height = `${dims.height}px`;
-        }
-    }
-
     focus() {
         this.activeAnnouncer.focus();
     }

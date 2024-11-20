@@ -11,6 +11,7 @@ import { clamp } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
 import { excludesType } from '../../util/type-guards';
+import { NativeWidget } from '../../widget/nativeWidget';
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
@@ -18,8 +19,7 @@ import { ChartUpdateType } from '../chartUpdateType';
 import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import type { KeyNavEvent } from '../interaction/keyNavManager';
-import type { RegionEvent } from '../interaction/regionManager';
-import { REGIONS } from '../interaction/regions';
+import type { MockEvent, RegionEvent } from '../interaction/regionManager';
 import { TooltipManager } from '../interaction/tooltipManager';
 import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
@@ -52,6 +52,9 @@ export class SeriesAreaManager extends BaseManager {
     private series: Series<any, any>[] = [];
     private seriesRect?: BBox;
     private hoverRect?: BBox;
+    private readonly seriesWidget: NativeWidget<HTMLElement>;
+    private readonly chartWidget: NativeWidget<HTMLElement>;
+    private readonly containerWidget: NativeWidget<HTMLElement>;
     private readonly focusIndicator: FocusIndicator;
     private readonly swapChain: FocusSwapChain;
 
@@ -95,14 +98,19 @@ export class SeriesAreaManager extends BaseManager {
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
 
-        const seriesRegion = chart.ctx.regionManager.getRegion(REGIONS.SERIES);
         const mouseMoveStates =
             InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
         const keyState = InteractionState.Default | InteractionState.Animation;
 
+        const { domManager } = chart.ctx;
         const domElementClass = 'series-area';
-        const label1 = chart.ctx.domManager.addChild(domElementClass, 'series-area-aria-label1');
-        const label2 = chart.ctx.domManager.addChild(domElementClass, 'series-area-aria-label2');
+        const label1 = domManager.addChild(domElementClass, 'series-area-aria-label1');
+        const label2 = domManager.addChild(domElementClass, 'series-area-aria-label2');
+
+        this.seriesWidget = new NativeWidget(domManager.getParent(domElementClass));
+        this.chartWidget = new NativeWidget(domManager.getParent('canvas-proxy'));
+        this.containerWidget = new NativeWidget(domManager.getParent('canvas-container'));
+        chart.ctx.regionManager.initRegions(this.containerWidget, this.seriesWidget);
 
         this.swapChain = new FocusSwapChain(label1, label2, this.id, 'img');
         this.swapChain.addListener('blur', () => this.onBlur(keyState));
@@ -111,6 +119,7 @@ export class SeriesAreaManager extends BaseManager {
         this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
         this.chart.ctx.keyNavManager.focusIndicator = this.focusIndicator;
 
+        const seriesRegion = chart.ctx.regionManager.getRegion('series');
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild(domElementClass, 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild(domElementClass, 'series-area-aria-label2'),
@@ -183,7 +192,8 @@ export class SeriesAreaManager extends BaseManager {
     private layoutComplete(event: LayoutCompleteEvent): void {
         this.seriesRect = event.series.rect;
         this.hoverRect = event.series.paddedRect;
-        this.swapChain.resizeContainer(event.chart);
+        this.seriesWidget.setBounds(event.series.rect);
+        this.chartWidget.setBounds(event.chart);
     }
 
     private onContextMenu(event: RegionEvent<'contextmenu'>): void {
@@ -204,7 +214,7 @@ export class SeriesAreaManager extends BaseManager {
                 );
             }
         } else if (this.chart.ctx.interactionManager.getState() & (Default | ContextMenu)) {
-            const match = pickNode(this.series, { x: event.regionOffsetX, y: event.regionOffsetY }, 'context-menu');
+            const match = pickNode(this.series, { x: event.regionX, y: event.regionY }, 'context-menu');
             if (match) {
                 this.chart.ctx.highlightManager.updateHighlight(this.id);
                 pickedNode = match.datum;
@@ -233,8 +243,8 @@ export class SeriesAreaManager extends BaseManager {
         this.hoverScheduler.schedule();
 
         if (this.chart.ctx.interactionManager.getState() === InteractionState.Default) {
-            const { regionOffsetX, regionOffsetY } = event;
-            const found = pickNode(this.series, { x: regionOffsetX, y: regionOffsetY }, 'event');
+            const { regionX: x, regionY: y } = event;
+            const found = pickNode(this.series, { x, y }, 'event');
             if (found?.series.hasEventListener('nodeClick') || found?.series.hasEventListener('nodeDoubleClick')) {
                 this.chart.ctx.cursorManager.updateCursor(this.id, 'pointer');
             } else {
@@ -246,7 +256,7 @@ export class SeriesAreaManager extends BaseManager {
     private onClick(event: RegionEvent<'click' | 'dblclick'>) {
         this.hoverDevice = 'mouse';
         this.onHoverLikeEvent(event);
-        if (this.seriesRect?.containsPoint(event.offsetX, event.offsetY) && this.checkSeriesNodeClick(event)) {
+        if (this.seriesRect?.containsPoint(event.canvasX, event.canvasY) && this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
             event.preventDefault();
             return;
@@ -301,9 +311,9 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private checkSeriesNodeClick(event: RegionEvent<'click' | 'dblclick'> & { preventZoomDblClick?: boolean }) {
-        let point = { x: event.regionOffsetX, y: event.regionOffsetY };
+        let point = { x: event.regionX, y: event.regionY };
         if (event.region !== 'series') {
-            point = Transformable.fromCanvasPoint(this.chart.seriesRoot, event.offsetX, event.offsetY);
+            point = Transformable.fromCanvasPoint(this.chart.seriesRoot, event.canvasX, event.canvasY);
         }
         const result = pickNode(this.series, point, 'event');
         if (result == null) return false;
@@ -375,7 +385,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private updatePickedFocus(pick: PickFocusOutputs | undefined, refresh: boolean) {
         const { focus, seriesRect } = this;
-        if (pick === undefined || focus.series === undefined) return;
+        if (pick === undefined || focus.series === undefined || seriesRect === undefined) return;
 
         const { datum, datumIndex } = pick;
         focus.datumIndex = datumIndex;
@@ -385,7 +395,7 @@ export class SeriesAreaManager extends BaseManager {
             this.chart.ctx.animationManager.reset();
         }
 
-        if (this.focusIndicator.isFocusVisible() && seriesRect) {
+        if (this.focusIndicator.isFocusVisible()) {
             const focusBBox = getPickedFocusBBox(pick);
             const { x, y } = focusBBox.computeCenter();
             if (!seriesRect.containsPoint(x, y)) {
@@ -394,7 +404,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         // Update the bounds of the focus indicator:
-        const keyboardEvent = makeKeyboardPointerEvent(this.focusIndicator, pick);
+        const keyboardEvent = makeKeyboardPointerEvent(seriesRect, this.focusIndicator, pick);
 
         // Update highlight/tooltip for keyboard users:
         if (keyboardEvent !== undefined && this.hoverDevice === 'keyboard') {
@@ -472,15 +482,15 @@ export class SeriesAreaManager extends BaseManager {
         )
             return;
 
-        const { offsetX, offsetY } = event;
-        if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(offsetX, offsetY)) {
+        const { canvasX, canvasY } = event;
+        if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
             this.clearHighlight();
             return;
         }
 
-        let pickCoords = { x: event.regionOffsetX, y: event.regionOffsetY };
+        let pickCoords = { x: event.regionX, y: event.regionY };
         if (event.region !== 'series') {
-            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, offsetX, offsetY);
+            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, canvasX, canvasY);
         }
 
         const { range } = this.chart.highlight;
@@ -504,8 +514,9 @@ export class SeriesAreaManager extends BaseManager {
         )
             return;
 
-        const { offsetX, offsetY, targetElement, regionOffsetX, regionOffsetY } = event;
-        if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(offsetX, offsetY)) {
+        const { canvasX, canvasY, regionX, regionY, region } = event;
+        const targetElement = event.sourceEvent.target as HTMLElement;
+        if (redisplay ? this.chart.ctx.animationManager.isActive() : region !== 'series') {
             if (this.hoverDevice == 'mouse') this.clearTooltip();
             return;
         }
@@ -519,9 +530,9 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        let pickCoords = { x: regionOffsetX, y: regionOffsetY };
+        let pickCoords = { x: regionX, y: regionY };
         if (event.region !== 'series') {
-            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, offsetX, offsetY);
+            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, canvasX, canvasY);
         }
 
         const pick = pickNode(this.series, pickCoords, 'tooltip');
@@ -566,6 +577,20 @@ export class SeriesAreaManager extends BaseManager {
             this.update(ChartUpdateType.SERIES_UPDATE);
         } else {
             this.update(ChartUpdateType.SERIES_UPDATE, { seriesToUpdate });
+        }
+    }
+
+    public testFindTarget(canvasX: number, canvasY: number): MockEvent {
+        const target = this.chart.ctx.scene.canvas.element;
+        const [offsetX, offsetY] = [NaN, NaN];
+        if (this.seriesRect?.containsPoint(canvasX, canvasY)) {
+            const regionX = canvasX - this.seriesRect.x;
+            const regionY = canvasY - this.seriesRect.y;
+            return { target, offsetX, offsetY, mockRegion: { region: 'series', canvasX, canvasY, regionX, regionY } };
+        } else {
+            const regionX = canvasX;
+            const regionY = canvasY;
+            return { target, offsetX, offsetY, mockRegion: { region: 'root', canvasX, canvasY, regionX, regionY } };
         }
     }
 }

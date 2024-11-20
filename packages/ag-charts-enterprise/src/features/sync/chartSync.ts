@@ -127,10 +127,10 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                         chart.ctx.highlightManager.updateHighlight(chart.id, nodeDatum);
 
                         if (nodeDatum) {
-                            const offsetX = nodeDatum.midPoint?.x ?? nodeDatum.point?.x ?? 0;
-                            const offsetY = nodeDatum.midPoint?.y ?? nodeDatum.point?.y ?? 0;
+                            const canvasX = nodeDatum.midPoint?.x ?? nodeDatum.point?.x ?? 0;
+                            const canvasY = nodeDatum.midPoint?.y ?? nodeDatum.point?.y ?? 0;
                             const tooltipMeta = TooltipManager.makeTooltipMeta(
-                                { type: 'hover', offsetX, offsetY },
+                                { type: 'hover', canvasX, canvasY },
                                 nodeDatum
                             );
                             delete tooltipMeta.lastPointerEvent; // remove to prevent triggering TOOLTIP_RECALCULATION

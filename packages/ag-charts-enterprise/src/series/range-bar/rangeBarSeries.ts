@@ -632,6 +632,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         datumIndex,
         seriesRect,
     }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
-        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], this.contentGroup, seriesRect);
+        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], seriesRect);
     }
 }

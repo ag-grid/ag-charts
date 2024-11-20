@@ -15,14 +15,14 @@ export class ZoomSelector {
     }
 
     update(
-        event: _ModuleSupport.PointerOffsets,
+        event: { regionX: number; regionY: number },
         props: ZoomProperties,
         bbox?: _ModuleSupport.BBox,
         currentZoom?: _ModuleSupport.AxisZoomState
     ): void {
         this.rect.visible = true;
 
-        this.updateCoords(event.offsetX, event.offsetY, props, bbox, currentZoom);
+        this.updateCoords(event.regionX, event.regionY, props, bbox, currentZoom);
         this.updateRect(bbox);
     }
 

@@ -13,6 +13,7 @@ const DOM_ELEMENT_CLASSES = [
     'styles',
     'canvas',
     'canvas-center',
+    'canvas-container',
     'canvas-overlay',
     'canvas-proxy',
     'series-area',
@@ -315,6 +316,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         // Container is disconnected from the DOM, default to the container.
         return this.container;
+    }
+
+    getParent(domElementClass: DOMElementClass): HTMLElement {
+        return this.rootElements[domElementClass].element;
     }
 
     getChildBoundingClientRect(type: DOMElementClass) {

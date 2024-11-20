@@ -3,9 +3,9 @@ import type { AgContextMenuOptions } from 'ag-charts-types';
 import { Listeners } from '../../util/listeners';
 import type { CategoryLegendDatum } from '../legend/legendDatum';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
-import { InteractionState, type PointerInteractionEvent } from './interactionManager';
+import { InteractionState } from './interactionManager';
 import { type PreventableEvent, buildPreventable } from './preventableEvent';
-import type { RegionManager } from './regionManager';
+import type { RegionEvent, RegionManager } from './regionManager';
 
 type ContextTypeMap = {
     all: object;
@@ -63,7 +63,7 @@ export class ContextMenuRegistry {
         this.destroyFns.forEach((d) => d());
     }
 
-    private onContextMenu(event: PointerInteractionEvent<'contextmenu'> & { region: string }) {
+    private onContextMenu(event: RegionEvent<'contextmenu'>) {
         const type = ContextMenuRegistry.toContextType(event.region);
         if (type === 'all') {
             this.dispatchContext('all', event, {});
@@ -91,13 +91,13 @@ export class ContextMenuRegistry {
 
     public dispatchContext<T extends ContextType>(
         type: T,
-        pointerEvent: PointerInteractionEvent<'contextmenu'>,
+        pointerEvent: Pick<RegionEvent<'contextmenu'>, 'sourceEvent' | 'canvasX' | 'canvasY'>,
         context: ContextTypeMap[T],
         position?: { x: number; y: number }
     ) {
         const { sourceEvent } = pointerEvent;
-        const x = position?.x ?? pointerEvent.offsetX;
-        const y = position?.y ?? pointerEvent.offsetY;
+        const x = position?.x ?? pointerEvent.canvasX;
+        const y = position?.y ?? pointerEvent.canvasY;
         sourceEvent.stopPropagation();
         this.listeners.dispatch('', buildPreventable({ type, x, y, context, sourceEvent }));
     }

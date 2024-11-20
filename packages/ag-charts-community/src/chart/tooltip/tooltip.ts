@@ -18,7 +18,6 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
-import type { PointerOffsets } from '../interaction/interactionManager';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
 export const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-chart-dark-tooltip';
@@ -36,10 +35,11 @@ type TooltipPositionType =
     | 'bottom-left'
     | 'sparkline';
 
+type TooltipOffsets = { canvasX: number; canvasY: number };
 export type TooltipEventType = 'hover' | 'click' | 'dblclick' | 'keyboard';
-export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = PointerOffsets & { type: T };
+export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = TooltipOffsets & { type: T };
 
-export type TooltipMeta = PointerOffsets & {
+export type TooltipMeta = TooltipOffsets & {
     showArrow?: boolean;
     lastPointerEvent?: TooltipPointerEvent<TooltipEventType>;
     position?: {
@@ -372,8 +372,8 @@ export class Tooltip extends BaseProperties {
         switch (positionType) {
             case 'node':
             case 'pointer': {
-                bounds.top = meta.offsetY + yOffset - tooltipHeight - 8;
-                bounds.left = meta.offsetX + xOffset - tooltipWidth / 2;
+                bounds.top = meta.canvasY + yOffset - tooltipHeight - 8;
+                bounds.left = meta.canvasX + xOffset - tooltipWidth / 2;
                 return bounds;
             }
             case 'top': {
@@ -422,9 +422,9 @@ export class Tooltip extends BaseProperties {
                     bounds.top = yOffset - tooltipHeight - 8;
                 } else {
                     // No cross lines
-                    bounds.top = meta.offsetY + yOffset - tooltipHeight - 8;
+                    bounds.top = meta.canvasY + yOffset - tooltipHeight - 8;
                 }
-                bounds.left = meta.offsetX + xOffset - tooltipWidth / 2;
+                bounds.left = meta.canvasX + xOffset - tooltipWidth / 2;
                 return bounds;
             }
         }

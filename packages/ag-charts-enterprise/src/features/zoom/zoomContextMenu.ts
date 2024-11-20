@@ -70,14 +70,23 @@ export class ZoomContextMenu {
         }
     }
 
-    private onZoomToHere({ event }: AgChartContextMenuEvent) {
+    private computeOrigin(event: Event): { x: number; y: number } | undefined {
         const rect = this.getRect();
-        const { enabled, isScalingX, isScalingY, minRatioX, minRatioY } = this.getModuleProperties();
+        const { enabled } = this.getModuleProperties();
 
         if (!enabled || !rect || !event?.target || !(event instanceof MouseEvent)) return;
 
+        const relativeRect = { x: 0, y: 0, width: rect.width, height: rect.height };
+        return pointToRatio(relativeRect, event.offsetX, event.offsetY);
+    }
+
+    private onZoomToHere({ event }: AgChartContextMenuEvent) {
+        const origin = this.computeOrigin(event);
+        if (!origin) return;
+
+        const { isScalingX, isScalingY, minRatioX, minRatioY } = this.getModuleProperties();
+
         const zoom = definedZoomState(this.zoomManager.getZoom());
-        const origin = pointToRatio(rect, event.offsetX, event.offsetX);
 
         const scaledOriginX = origin.x * dx(zoom);
         const scaledOriginY = origin.y * dy(zoom);
@@ -97,13 +106,10 @@ export class ZoomContextMenu {
     }
 
     private onPanToHere({ event }: AgChartContextMenuEvent) {
-        const rect = this.getRect();
-        const { enabled } = this.getModuleProperties();
-
-        if (!enabled || !rect || !event?.target || !(event instanceof MouseEvent)) return;
+        const origin = this.computeOrigin(event);
+        if (!origin) return;
 
         const zoom = definedZoomState(this.zoomManager.getZoom());
-        const origin = pointToRatio(rect, event.offsetX, event.offsetY);
 
         const scaleX = dx(zoom);
         const scaleY = dy(zoom);
