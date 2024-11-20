@@ -28,12 +28,12 @@ function findLegendTarget(legendModule: unknown, canvasX: number, canvasY: numbe
 }
 
 function findNavigatorTarget(navigatorModule: unknown, canvasX: number, canvasY: number): MockEvent | undefined {
-    const navigator = new Caster(navigatorModule)
-        .cast(Navigator)
-        .findProperty('enabled')
-        .findProperty('domProxy').value;
+    const caster = new Caster(navigatorModule);
 
-    const domProxy = new Caster(navigator.domProxy)
+    const navigator = caster.cast(Navigator).findProperty('enabled').castProperty('enabled', Boolean).value;
+
+    const domProxy = caster
+        .accessProperty('domProxy')
         .cast(NavigatorDOMProxy)
         .findProperty('toolbar')
         .castProperty('toolbar', ToolbarWidget)
