@@ -9,11 +9,10 @@ if [[ ${#versions[@]} -eq 0 ]]; then
     exit 1
 fi
 
-# Benchmark command
-command="node --expose-gc ./node_modules/jest/bin/jest.js --config packages/ag-charts-community/jest.config.ts --runInBand --testPathPattern '.*/benchmarks/.*' -u"
-
 # Files to check out for each version
 included_files=(
+    "libraries/ag-charts-test/src"
+    "packages/ag-charts-types/src"
     "packages/ag-charts-community/src"
     "packages/ag-charts-community-examples/src"
     "packages/ag-charts-enterprise/src"
@@ -42,12 +41,15 @@ for version in "${versions[@]}"; do
     git restore --source "$version" -- ${included_files[@]}
     # Checkout any excluded files from the current version
     git checkout HEAD -- ${excluded_files[@]}
+    export AG_LIBRARY_VERSION=$(echo "$version" | sed 's/^origin\///')
     # Run the benchmark with the current version of the files
-    $command
+    node --expose-gc ./node_modules/jest/bin/jest.js --config packages/ag-charts-community/jest.config.ts --runInBand --testPathPattern '.*/benchmarks/.*'
     # Update the benchmark results for the current version (stripping any "origin/" prefix)
     node "$(dirname $0)/collate-reports.js" "$(echo "$version" | sed 's/^origin\///')"
     # Remove any untracked files created during this benchmark run
     git clean -fd
     # Reset the working tree state
     git restore --source HEAD -- ${included_files[@]}
+    # Remove intermediate test results
+    rm ./reports/packages/ag-charts-community/benchmarks/*.json
 done
