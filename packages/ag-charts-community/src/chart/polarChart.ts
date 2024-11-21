@@ -45,7 +45,7 @@ export class PolarChart extends Chart {
         });
     }
 
-    protected updateAxes(cx: number, cy: number, radius: number) {
+    protected updateAxes(seriesBox: BBox, cx: number, cy: number, radius: number) {
         const angleAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.X);
         const radiusAxis = this.axes.find((axis) => axis.direction === ChartAxisDirection.Y);
         if (!(angleAxis instanceof PolarAxis) || !(radiusAxis instanceof PolarAxis)) return;
@@ -62,8 +62,8 @@ export class PolarChart extends Chart {
         radiusAxis.range = [radius, radius * innerRadiusRatio];
 
         [angleAxis, radiusAxis].forEach((axis) => {
-            axis.translation.x = cx;
-            axis.translation.y = cy;
+            axis.translation.x = seriesBox.x + cx;
+            axis.translation.y = seriesBox.x + cy;
             axis.calculateLayout();
         });
     }
@@ -73,7 +73,7 @@ export class PolarChart extends Chart {
         const polarAxes = this.axes.filter(isPolarAxis);
 
         const setSeriesCircle = (cx: number, cy: number, r: number) => {
-            this.updateAxes(cx, cy, r);
+            this.updateAxes(seriesBox, cx, cy, r);
             polarSeries.forEach((series) => {
                 series.centerX = cx;
                 series.centerY = cy;
