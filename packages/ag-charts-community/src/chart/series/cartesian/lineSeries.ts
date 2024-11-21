@@ -382,7 +382,7 @@ export class LineSeries extends CartesianSeries<
         const indices = dataAggregationFilter?.indices;
         let [start, end] = this.visibleRangeIndices(xAxis.range, indices);
         start = Math.max(start - 1, 0);
-        end = Math.min(end + 2, indices?.length ?? xValues.length);
+        end = Math.min(end + 1, indices?.length ?? xValues.length);
         for (let i = start; i < end; i += 1) {
             handleDatum(indices?.[i] ?? i);
         }

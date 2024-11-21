@@ -304,6 +304,7 @@ export abstract class OhlcSeriesBase<
                 const x = xPosition(index);
                 return [x, x + effectiveBarWidth];
             });
+            console.log(start, end, rawData.length);
 
             for (let i = start; i < end; i += 1) {
                 const xValue = xValues[i];

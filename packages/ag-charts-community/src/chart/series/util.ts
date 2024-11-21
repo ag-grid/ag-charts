@@ -94,14 +94,15 @@ export function visibleRangeIndices(
     const xMinIndex =
         findMinIndex(0, length - 1, (index) => {
             const x = xRange(index);
-            return x == null || x[1] >= range0;
+            return x == null || x[1] > range0;
         }) ?? 0;
 
-    const xMaxIndex =
+    let xMaxIndex =
         findMaxIndex(0, length - 1, (index) => {
             const x = xRange(index);
-            return x == null || x[0] <= range1;
+            return x == null || x[0] < range1;
         }) ?? length - 1;
+    xMaxIndex = Math.min(xMaxIndex + 1, length);
 
     return [xMinIndex, xMaxIndex];
 }
