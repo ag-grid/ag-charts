@@ -49,10 +49,12 @@ export class MockContext {
     ctx: {
         nodeCanvas: Canvas;
         getRenderContext2D: () => CanvasRenderingContext2D;
-        getActiveCanvasInstances: () => (Canvas | OffscreenCanvas)[];
+        getActiveCanvasInstances: () => Canvas[];
+        getActiveOffscreenCanvasInstances: () => OffscreenCanvas[];
     };
     canvasStack: Canvas[];
-    canvases: WeakRef<Canvas | OffscreenCanvas>[] = [];
+    canvases: WeakRef<Canvas>[] = [];
+    offscreenCanvases: WeakRef<OffscreenCanvas>[] = [];
 
     constructor(
         width: number,
@@ -69,18 +71,29 @@ export class MockContext {
             nodeCanvas,
             getRenderContext2D: () => this.ctx.nodeCanvas.getContext('2d') as unknown as CanvasRenderingContext2D,
             getActiveCanvasInstances: this.getActiveCanvasInstances.bind(this),
+            getActiveOffscreenCanvasInstances: this.getActiveOffscreenCanvasInstances.bind(this),
         };
         this.canvasStack = [nodeCanvas];
         this.registerCanvasInstance(nodeCanvas);
     }
 
-    registerCanvasInstance(canvas: Canvas | OffscreenCanvas) {
+    registerCanvasInstance(canvas: Canvas) {
         this.canvases.push(new WeakRef(canvas));
+    }
+
+    registerOffscreenCanvasInstance(canvas: OffscreenCanvas) {
+        this.offscreenCanvases.push(new WeakRef(canvas));
     }
 
     getActiveCanvasInstances() {
         const instances = this.canvases.map((ref) => ref.deref());
         this.canvases = this.canvases.filter((_ref, index) => instances[index] != null);
+        return instances.filter((value): value is NonNullable<typeof value> => value != null);
+    }
+
+    getActiveOffscreenCanvasInstances() {
+        const instances = this.offscreenCanvases.map((ref) => ref.deref());
+        this.offscreenCanvases = this.offscreenCanvases.filter((_ref, index) => instances[index] != null);
         return instances.filter((value): value is NonNullable<typeof value> => value != null);
     }
 
@@ -157,7 +170,7 @@ export function setup(opts: {
     if (typeof window !== 'undefined') {
         (window as any).OffscreenCanvas = function (w: number, h: number) {
             const canvas = new mockCtx.realOffscreenCanvas(w, h);
-            mockCtx.registerCanvasInstance(canvas);
+            mockCtx.registerOffscreenCanvasInstance(canvas);
             return canvas;
         };
         (window as any).OffscreenCanvas.prototype = mockCtx.realOffscreenCanvas;

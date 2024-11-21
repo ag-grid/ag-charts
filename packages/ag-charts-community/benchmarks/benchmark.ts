@@ -98,7 +98,9 @@ export function benchmark(
 
             if (runCount > 1) global.gc?.();
             const memoryUsageAfter = process.memoryUsage();
-            const canvasInstances = ctx.canvasCtx.getActiveCanvasInstances();
+            const canvasInstances = (
+                ctx.canvasCtx.getActiveCanvasInstances() as { width: number; height: number }[]
+            ).concat(ctx.canvasCtx.getActiveOffscreenCanvasInstances());
             const { currentTestName, testPath } = expect.getState();
 
             if (testPath == null || currentTestName == null) {
