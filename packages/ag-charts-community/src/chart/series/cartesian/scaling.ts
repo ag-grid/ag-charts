@@ -1,3 +1,5 @@
+import { arraysEqual } from 'packages/ag-charts-community/src/util/array';
+
 export type Scaling = ContinuousScaling | CategoryScaling | LogScaling;
 
 export interface ContinuousScaling<T = 'continuous'> {
@@ -13,7 +15,8 @@ export interface LogScaling extends ContinuousScaling<'log'> {
 export interface CategoryScaling {
     type: 'category';
     domain: string[];
-    range: number[];
+    inset: number;
+    step: number;
 }
 
 function isContinuousScaling(scaling: Scaling): scaling is ContinuousScaling {
@@ -24,34 +27,21 @@ function isCategoryScaling(scaling: Scaling): scaling is CategoryScaling {
     return scaling.type === 'category';
 }
 
-function areEqual<D, R>(a: { domain: D[]; range: R[] }, b: { domain: D[]; range: R[] }): boolean {
-    return (
-        a.domain.length === b.domain.length &&
-        a.range.length === b.range.length &&
-        a.domain.every((val, index) => val === b.domain[index]) &&
-        a.range.every((val, index) => val === b.range[index])
-    );
-}
-
 export function areScalingEqual(a: Scaling | undefined, b: Scaling | undefined): boolean {
     if (a === undefined || b === undefined) {
         return a !== undefined || b !== undefined;
     }
     if (isContinuousScaling(a) && isContinuousScaling(b)) {
-        return a.type === b.type && areEqual(a, b);
+        return a.type === b.type && arraysEqual(a.domain, b.domain) && arraysEqual(a.range, b.range);
     }
     if (isCategoryScaling(a) && isCategoryScaling(b)) {
-        return areEqual(a, b);
+        return a.inset === b.inset && a.step === b.step && arraysEqual(a.domain, b.domain);
     }
     return false;
 }
 
 export function isScaleValid(scale?: Scaling) {
     if (scale == null) return false;
-    if (!scale.range.every((v) => Number.isFinite(v))) return false;
-
-    if (scale.type === 'category') {
-        return scale.domain.every((v) => v != null);
-    }
+    if (scale.type !== 'category' && !scale.range.every((v) => Number.isFinite(v))) return false;
     return scale.domain.every((v: any) => Number.isFinite(v) || v instanceof Date);
 }

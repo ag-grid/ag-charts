@@ -10,6 +10,9 @@ const options: AgCartesianChartOptions = {
         enabled: true,
         anchorPointX: 'pointer',
         anchorPointY: 'pointer',
+        autoScaling: {
+            enabled: true,
+        },
     },
     navigator: {
         enabled: true,

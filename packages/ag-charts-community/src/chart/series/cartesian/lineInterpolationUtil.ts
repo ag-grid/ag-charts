@@ -71,17 +71,18 @@ export function scale(val: number | string | Date, scaling?: Scaling) {
     if (scaling.type === 'log' && typeof val === 'number') {
         return scaling.convert(val);
     }
+    if (scaling.type !== 'category') return NaN;
 
     // Category axis case.
     const matchingIndex = scaling.domain.findIndex((d) => d === val);
     if (matchingIndex >= 0) {
-        return scaling.range[matchingIndex];
+        return scaling.inset + scaling.step * matchingIndex;
     }
 
     // Integrated Charts category case.
     const matchingIntegratedIndex = scaling.domain.findIndex((d) => integratedCategoryMatch(val, d));
     if (matchingIntegratedIndex >= 0) {
-        return scaling.range[matchingIntegratedIndex];
+        return scaling.inset + scaling.step * matchingIndex;
     }
 
     // We failed to convert using the scale.
