@@ -494,12 +494,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     _didAutoZoomOnMount = false;
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         this.domProxy.update(this.ctx);
-        const {
-            enabled,
-            autoScaling,
-            yAxisManuallyAdjusted,
-            ctx: { seriesBoundsManager },
-        } = this;
+        const { enabled } = this;
 
         if (!enabled) return;
 
@@ -511,12 +506,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.paddedRect = paddedRect;
         this.shouldFlipXY = shouldFlipXY;
 
-        if (!this._didAutoZoomOnMount && autoScaling.enabled && !yAxisManuallyAdjusted) {
+        if (!this._didAutoZoomOnMount) {
             const zoom = this.getZoom();
-
-            zoom.y = seriesBoundsManager.yZoomForXZoom([zoom.x.min, zoom.x.max], {
-                padding: autoScaling.padding,
-            });
+            zoom.y = this.autoScaleZoomY(zoom);
             this.updateZoom(zoom);
         }
 
@@ -635,19 +627,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private updatePrimaryAxisZoom(zoom: DefinedZoomState, direction: _ModuleSupport.ChartAxisDirection) {
-        const {
-            autoScaling,
-            yAxisManuallyAdjusted,
-            ctx: { zoomManager, seriesBoundsManager },
-        } = this;
+        let zoomInDirection = zoom[direction];
 
-        if (direction === ChartAxisDirection.Y && autoScaling.enabled && !yAxisManuallyAdjusted) {
-            zoom.y = seriesBoundsManager.yZoomForXZoom([zoom.x.min, zoom.x.max], {
-                padding: autoScaling.padding,
-            });
+        if (direction === ChartAxisDirection.Y) {
+            zoomInDirection = this.autoScaleZoomY(zoom);
         }
 
-        zoomManager.updatePrimaryAxisZoom('zoom', direction, zoom[direction]);
+        this.ctx.zoomManager.updatePrimaryAxisZoom('zoom', direction, zoomInDirection);
     }
 
     private updatePrimaryAxisZooms(zoom: DefinedZoomState) {
@@ -659,9 +645,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const {
             minRatioX,
             minRatioY,
-            autoScaling,
-            yAxisManuallyAdjusted,
-            ctx: { zoomManager, seriesBoundsManager },
+            ctx: { zoomManager },
         } = this;
         const dx_ = dx(zoom);
         const dy_ = dy(zoom);
@@ -675,11 +659,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             zoom.x = constrainAxisWithOld(zoom.x, oldZoom.x, minRatioX);
         }
 
-        if (autoScaling.enabled && !yAxisManuallyAdjusted) {
-            zoom.y = seriesBoundsManager.yZoomForXZoom([zoom.x.min, zoom.x.max], {
-                padding: autoScaling.padding,
-            });
-        }
+        zoom.y = this.autoScaleZoomY(zoom);
 
         if (zoomedInTooFarY) {
             zoom.y = constrainAxisWithOld(zoom.y, oldZoom.y, minRatioY);
@@ -731,6 +711,20 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private getResetZoom() {
         return definedZoomState(this.ctx.zoomManager.getRestoredZoom());
+    }
+
+    private autoScaleZoomY(zoom: DefinedZoomState) {
+        const {
+            ctx: { seriesBoundsManager },
+            autoScaling,
+            yAxisManuallyAdjusted,
+        } = this;
+
+        if (!autoScaling.enabled || yAxisManuallyAdjusted) return zoom.y;
+
+        return seriesBoundsManager.yZoomForXZoom([zoom.x.min, zoom.x.max], {
+            padding: autoScaling.padding,
+        });
     }
 
     private getModuleProperties(overrides?: Partial<ZoomProperties>): ZoomProperties {
