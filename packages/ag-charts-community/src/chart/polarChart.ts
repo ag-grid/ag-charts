@@ -35,6 +35,8 @@ export class PolarChart extends Chart {
         this.seriesRect = layoutBox;
         this.animationRect = layoutBox;
 
+        this.seriesRoot.translationX = layoutBox.x;
+        this.seriesRoot.translationY = layoutBox.y;
         await this.computeCircle(layoutBox);
         this.axes.forEach((axis) => axis.update());
 
@@ -93,8 +95,8 @@ export class PolarChart extends Chart {
             }
         };
 
-        const centerX = seriesBox.x + seriesBox.width / 2;
-        const centerY = seriesBox.y + seriesBox.height / 2;
+        const centerX = seriesBox.width / 2;
+        const centerY = seriesBox.height / 2;
         const initialRadius = Math.max(0, Math.min(seriesBox.width, seriesBox.height) / 2);
         let radius = initialRadius;
         setSeriesCircle(centerX, centerY, radius);
@@ -193,8 +195,8 @@ export class PolarChart extends Chart {
         const newHeight = padTop + 2 * newRadius + padBottom;
 
         return {
-            centerX: seriesBox.x + (seriesBox.width - newWidth) / 2 + padLeft + newRadius,
-            centerY: seriesBox.y + (seriesBox.height - newHeight) / 2 + padTop + newRadius,
+            centerX: (seriesBox.width - newWidth) / 2 + padLeft + newRadius,
+            centerY: (seriesBox.height - newHeight) / 2 + padTop + newRadius,
             radius: newRadius,
         };
     }
