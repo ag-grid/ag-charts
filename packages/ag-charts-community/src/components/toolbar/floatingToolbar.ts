@@ -4,6 +4,7 @@ import { BBox } from '../../scene/bbox';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { clamp } from '../../util/number';
 import type { Vec2 } from '../../util/vector';
+import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { DraggablePopover } from '../popover/draggablePopover';
 import type { PopoverOptions } from '../popover/popover';
 import { BaseToolbar, type ToolbarButtonOptions } from './toolbar';
@@ -103,7 +104,7 @@ export abstract class FloatingToolbar<
     constructor(
         ctx: ModuleContext,
         id: string,
-        onButtonPress: (button: ButtonOptions & { index: number; sourceEvent: MouseEvent }) => void,
+        onButtonPress: (button: ButtonOptions & { index: number }, event: MouseWidgetEvent<'click'>) => void,
         private readonly onToolbarMoved: (event: { buttonBounds: Array<BBoxValues>; popoverBounds: BBoxValues }) => void
     ) {
         super(ctx, onButtonPress, (event: MouseEvent, element: HTMLElement) =>

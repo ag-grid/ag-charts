@@ -126,6 +126,14 @@ export abstract class Widget<
         this.onChildAdded(child);
     }
 
+    addClass(token: string) {
+        this.elem.classList.add(token);
+    }
+
+    toggleClass(token: string, force?: boolean) {
+        this.elem.classList.toggle(token, force);
+    }
+
     protected appendChildToDOM(child: TChildWidget) {
         this.elem.appendChild(child.getElement());
     }

@@ -5,6 +5,7 @@ import { BaseProperties } from '../../util/properties';
 import type { ButtonWidget as BaseButtonWidget } from '../../widget/buttonWidget';
 import { NativeWidget } from '../../widget/nativeWidget';
 import { ToolbarWidget } from '../../widget/toolbarWidget';
+import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { ToolbarButtonWidget, type ToolbarButtonWidgetOptions } from './toolbarButtonWidget';
 
 const BUTTON_ACTIVE_CLASS = 'ag-charts-toolbar__button--active';
@@ -24,14 +25,14 @@ export abstract class BaseToolbar<
 
     constructor(
         protected readonly ctx: ModuleContext,
-        private readonly onButtonPress: (button: ButtonOptions & { index: number; sourceEvent: MouseEvent }) => void,
-        private readonly onDragStart?: (sourceEvent: MouseEvent, element: HTMLElement) => void
+        private readonly onButtonPress: (
+            button: ButtonOptions & { index: number },
+            event: MouseWidgetEvent<'click'>
+        ) => void,
+        private readonly onDragStart?: (event: MouseEvent, element: HTMLElement) => void
     ) {
         super();
-
-        const element = this.getElement();
-        element.classList.add('ag-charts-toolbar');
-
+        this.addClass('ag-charts-toolbar');
         this.createDragHandle();
     }
 
@@ -58,33 +59,27 @@ export abstract class BaseToolbar<
 
     public clearActiveButton() {
         for (const button of this.buttonWidgets) {
-            button.getElement().classList.toggle(BUTTON_ACTIVE_CLASS, false);
+            button.toggleClass(BUTTON_ACTIVE_CLASS, false);
         }
     }
 
     public toggleActiveButtonByIndex(index: number) {
         for (const [buttonIndex, button] of this.buttonWidgets.entries()) {
-            button.getElement().classList.toggle(BUTTON_ACTIVE_CLASS, index != null && index === buttonIndex);
+            button.toggleClass(BUTTON_ACTIVE_CLASS, index != null && index === buttonIndex);
         }
     }
 
     public toggleButtonEnabledByIndex(index: number, enabled: boolean) {
-        const buttonWidget = this.buttonWidgets.at(index);
-        if (!buttonWidget) return;
-        buttonWidget.getElement().ariaDisabled = (!enabled).toString();
+        this.buttonWidgets.at(index)?.setEnabled(enabled);
     }
 
     public toggleSwitchCheckedByIndex(index: number, checked: boolean) {
-        const buttonWidget = this.buttonWidgets.at(index);
-        if (!buttonWidget) return;
-        buttonWidget.getElement().ariaChecked = checked.toString();
+        this.buttonWidgets.at(index)?.setChecked(checked);
     }
 
     public toggleButtonVisibilities(visibleIndices: Array<number>) {
         for (const [index, buttonWidget] of this.buttonWidgets.entries()) {
-            buttonWidget
-                .getElement()
-                .classList.toggle('ag-charts-toolbar__button--hidden-toggled', !visibleIndices.includes(index));
+            buttonWidget.toggleClass('ag-charts-toolbar__button--hidden-toggled', !visibleIndices.includes(index));
         }
         this.refreshButtonClasses();
     }
@@ -110,22 +105,14 @@ export abstract class BaseToolbar<
         let section: string | null | undefined;
 
         for (const [index, buttonWidget] of buttonWidgets.entries()) {
-            const element = buttonWidget.getElement();
+            first = (onDragStart == null && index === 0) || section != buttonWidget.section;
+            last = index === buttonWidgets.length - 1 || buttonWidget.section != buttonWidgets.at(index + 1)?.section;
 
-            first = (onDragStart == null && index === 0) || section != element.getAttribute('data-section');
-            last =
-                index === buttonWidgets.length - 1 ||
-                element.getAttribute('data-section') !=
-                    buttonWidgets
-                        .at(index + 1)
-                        ?.getElement()
-                        .getAttribute('data-section');
+            buttonWidget.toggleClass('ag-charts-toolbar__button--first', first);
+            buttonWidget.toggleClass('ag-charts-toolbar__button--last', last);
+            buttonWidget.toggleClass('ag-charts-toolbar__button--gap', index > 0 && first);
 
-            element.classList.toggle('ag-charts-toolbar__button--first', first);
-            element.classList.toggle('ag-charts-toolbar__button--last', last);
-            element.classList.toggle('ag-charts-toolbar__button--gap', index > 0 && first);
-
-            section = element.getAttribute('data-section');
+            section = buttonWidget.section;
         }
     }
 
@@ -143,19 +130,14 @@ export abstract class BaseToolbar<
 
     private createButton(index: number, button: ButtonOptions) {
         const buttonWidget = this.createButtonWidget();
-        const element = buttonWidget.getElement();
-        element.classList.add('ag-charts-toolbar__button');
+        buttonWidget.addClass('ag-charts-toolbar__button');
 
-        element.addEventListener('click', (sourceEvent) => {
-            this.onButtonPress({
-                index,
-                ...(button instanceof BaseProperties ? button.toJson() : button),
-                sourceEvent,
-            });
+        buttonWidget.addListener('click', (_, event) => {
+            this.onButtonPress({ index, ...(button instanceof BaseProperties ? button.toJson() : button) }, event);
         });
 
         if (button.section) {
-            element.setAttribute('data-section', button.section);
+            buttonWidget.section = button.section;
         }
 
         this.buttonWidgets.push(buttonWidget);

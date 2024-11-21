@@ -296,13 +296,13 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         this.toolbar.updateButtons(this.buttons.toJson() as any);
     }
 
-    private onButtonPress(event: { value: any; sourceEvent: MouseEvent }) {
+    private onButtonPress(button: { value: any }, event: _ModuleSupport.MouseWidgetEvent<'click'>) {
         const datum = this.getActiveDatum();
         if (!datum) return;
 
         this.hideOverlays();
 
-        switch (event.value) {
+        switch (button.value) {
             case AnnotationOptions.LineStyleType: {
                 const lineStyle = hasLineStyle(datum) ? getLineStyle(datum.lineDash, datum.lineStyle) : undefined;
                 this.lineStyleTypeMenu.show<AgAnnotationLineStyleType>({
@@ -333,17 +333,17 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
             case AnnotationOptions.FillColor:
             case AnnotationOptions.TextColor: {
                 this.colorPicker.show({
-                    color: datum?.getDefaultColor(event.value),
-                    opacity: datum?.getDefaultOpacity(event.value),
+                    color: datum?.getDefaultColor(button.value),
+                    opacity: datum?.getDefaultOpacity(button.value),
                     sourceEvent: event.sourceEvent,
-                    onChange: datum != null ? this.onColorPickerChange.bind(this, event.value, datum) : undefined,
+                    onChange: datum != null ? this.onColorPickerChange.bind(this, button.value, datum) : undefined,
                     onChangeHide: ((type: AnnotationOptionsColorPickerType) => {
                         this.dispatch('save-color', {
                             type: datum.type,
-                            colorPickerType: event.value as AnnotationOptionsColorPickerType,
+                            colorPickerType: button.value as AnnotationOptionsColorPickerType,
                             color: datum.getDefaultColor(type),
                         });
-                    }).bind(this, event.value),
+                    }).bind(this, button.value),
                 });
                 break;
             }
@@ -373,7 +373,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
             }
 
             case AnnotationOptions.Settings: {
-                this.dispatch('pressed-settings', { sourceEvent: event.sourceEvent });
+                this.dispatch('pressed-settings', event);
                 break;
             }
         }
