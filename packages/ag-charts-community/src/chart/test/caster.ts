@@ -65,9 +65,9 @@ function convert<NewT>(caster: Caster<unknown>): Caster<NewT> {
 }
 
 /**
- * This class converts an input value type into new types. There no compile-time
- * checks (uses `as` internally), but the method with check the types at runtime
- * (using the `expect()` jest function).
+ * This class converts an input value type into new types. There are no
+ * compile-time checks (uses `as` internally), but the methods will check the
+ * types at runtime (using the `expect()` jest function).
  *
  * This is similar to a Java cast or C++ dynamic_cast.
  */
