@@ -5,6 +5,7 @@ import { isNegative } from '../../util/number';
 import { isObject } from '../../util/type-guards';
 import type { ChartMode } from '../chartMode';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
+import type { RangeLookup } from './rangeLookup';
 
 export interface ScopeProvider {
     id: string;
@@ -52,6 +53,7 @@ export interface UngroupedData<D> {
             uniqueKeys: boolean;
             orderedKeys: boolean;
         };
+        yRangeLookup?: RangeLookup;
     };
     defs: {
         keys: DatumPropertyDefinition<keyof D>[];

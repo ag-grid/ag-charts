@@ -47,13 +47,19 @@ export class CartesianChart extends Chart {
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);
+
+        this.ctx.seriesBoundsManager.axes = this.axes;
     }
 
     private firstSeriesTranslation = true;
 
     override onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         super.onAxisChange(newValue, oldValue);
-        this.ctx?.zoomManager.updateAxes(newValue);
+
+        if (this.ctx != null) {
+            this.ctx.zoomManager.updateAxes(newValue);
+            this.ctx.seriesBoundsManager.axes = newValue;
+        }
     }
 
     override destroySeries(series: Series<any, any>[]) {

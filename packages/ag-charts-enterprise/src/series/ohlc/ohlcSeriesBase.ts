@@ -1,6 +1,5 @@
 import { type AgOhlcSeriesItemType, _ModuleSupport } from 'ag-charts-community';
 
-import { visibleRange } from '../../utils/aggregation';
 import {
     CLOSE,
     HIGH,
@@ -16,15 +15,16 @@ import type { OhlcSeriesBaseProperties } from './ohlcSeriesProperties';
 const {
     fixNumericExtent,
     keyProperty,
-    findMinMax,
     createDatumId,
     SeriesNodePickMode,
     ChartAxisDirection,
     SMALLEST_KEY_INTERVAL,
     valueProperty,
+    yRangeLookup,
     diff,
     animationValidation,
     computeBarFocusBounds,
+    visibleRangeIndices,
     Logger,
     ContinuousScale,
     OrdinalTimeScale,
@@ -127,6 +127,7 @@ export abstract class OhlcSeriesBase<
                 valueProperty(closeKey, yScaleType, { id: `closeValue` }),
                 valueProperty(highKey, yScaleType, { id: `highValue` }),
                 valueProperty(lowKey, yScaleType, { id: `lowValue` }),
+                yRangeLookup({ highValues: 'highValue', lowValues: 'lowValue' }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
@@ -187,6 +188,25 @@ export abstract class OhlcSeriesBase<
         return this.padBandExtent(keys);
     }
 
+    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): [number, number] {
+        const { dataModel, processedData } = this;
+        const yRange = this.processedData?.reduced?.yRangeLookup;
+        if (!dataModel || !processedData || !yRange) return [NaN, NaN];
+
+        const xAxis = this.axes[ChartAxisDirection.X]!;
+        const xScale = xAxis.scale;
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+
+        const barWidth = xScale.bandwidth ?? 0;
+
+        const [x0, x1] = visibleRangeIndices(xValues.length, visibleRange, (index) => {
+            const x = xScale.convert(xValues[index]);
+            return [x, x + barWidth];
+        });
+
+        return yRange.rangeBetween(x0, x1);
+    }
+
     override createNodeData() {
         const { visible, dataModel, processedData } = this;
 
@@ -209,8 +229,8 @@ export abstract class OhlcSeriesBase<
         const { groupScale } = this;
         const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
         const groupOffset = groupScale.convert(String(groupIndex));
+        // CRT-340 Use atleast 1px width to prevent nothing being drawn.
         const effectiveBarWidth = barWidth >= 1 ? barWidth : groupScale.rawBandwidth;
-        const barOffset = ContinuousScale.is(xAxis.scale) ? effectiveBarWidth * -0.5 : 0;
 
         const context = {
             itemId: xKey,
@@ -231,8 +251,6 @@ export abstract class OhlcSeriesBase<
             width: number,
             crisp: boolean
         ) => {
-            // CRT-340 Use atleast 1px width to prevent nothing being drawn.
-
             const centerX = xAxis.scale.convert(xValue) + groupOffset + width / 2;
             const yOpen = yAxis.scale.convert(openValue);
             const yClose = yAxis.scale.convert(closeValue);
@@ -275,15 +293,17 @@ export abstract class OhlcSeriesBase<
 
         const { dataAggregationFilters } = this;
         const xScale = xAxis.scale;
-        const [x0, x1] = findMinMax(xAxis.range);
         const [r0, r1] = xScale.range;
         const range = r1 - r0;
 
-        const xPosition = (index: number) => xScale.convert(xValues[index]) + groupOffset + barOffset;
+        const xPosition = (index: number) => xScale.convert(xValues[index]) + groupOffset;
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         if (dataAggregationFilter == null) {
-            const [start, end] = visibleRange(rawData.length, x0, x1, xPosition);
+            const [start, end] = visibleRangeIndices(rawData.length, [r0, r1], (index) => {
+                const x = xPosition(index);
+                return [x, x + effectiveBarWidth];
+            });
 
             for (let i = start; i < end; i += 1) {
                 const xValue = xValues[i];
@@ -317,12 +337,12 @@ export abstract class OhlcSeriesBase<
             }
         } else {
             const { maxRange, indexData } = dataAggregationFilter;
-            const [start, end] = visibleRange(maxRange, x0, x1, (index) => {
+            const [start, end] = visibleRangeIndices(maxRange, [r0, r1], (index) => {
                 const aggIndex = index * SPAN;
                 const openIndex = indexData[aggIndex + OPEN];
                 const closeIndex = indexData[aggIndex + CLOSE];
-                const midDatumIndex = ((openIndex + closeIndex) / 2) | 0;
-                return openIndex !== -1 ? xPosition(midDatumIndex) : NaN;
+                if (openIndex === -1) return;
+                return [xPosition(openIndex), xPosition(closeIndex) + effectiveBarWidth];
             });
 
             for (let i = start; i < end; i += 1) {

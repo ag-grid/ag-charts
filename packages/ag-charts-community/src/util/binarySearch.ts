@@ -4,6 +4,55 @@
  * @template T
  * @param {number} min - The minimum number in the range.
  * @param {number} max - The maximum number in the range.
+ * @param {function(number): boolean} iteratee - A function that takes a number and returns a value of type T or undefined.
+ * @returns {number | undefined} - The maximum value that matches the condition, or undefined if no match is found.
+ */
+export function findMaxIndex(min: number, max: number, iteratee: (value: number) => boolean): number | undefined {
+    if (min > max) return;
+    let found: number | undefined;
+    while (max >= min) {
+        const index = Math.floor((max + min) / 2);
+        const value = iteratee(index);
+        if (value) {
+            found = index;
+            min = index + 1;
+        } else {
+            max = index - 1;
+        }
+    }
+    return found;
+}
+/**
+ * Finds the minimum value that matches a condition within a specified range.
+ *
+ * @template T
+ * @param {number} min - The minimum number in the range.
+ * @param {number} max - The maximum number in the range.
+ * @param {function(number): boolean} iteratee - A function that takes a number and returns a value of type T or undefined.
+ * @returns {number | undefined} - The minimum value that matches the condition, or undefined if no match is found.
+ */
+export function findMinIndex(min: number, max: number, iteratee: (value: number) => boolean): number | undefined {
+    if (min > max) return;
+    let found: number | undefined;
+    while (max >= min) {
+        const index = Math.floor((max + min) / 2);
+        const value = iteratee(index);
+        if (value) {
+            found = index;
+            max = index - 1;
+        } else {
+            min = index + 1;
+        }
+    }
+    return found;
+}
+
+/**
+ * Finds the maximum value that matches a condition within a specified range.
+ *
+ * @template T
+ * @param {number} min - The minimum number in the range.
+ * @param {number} max - The maximum number in the range.
  * @param {function(number): (T | undefined)} iteratee - A function that takes a number and returns a value of type T or undefined.
  * @returns {T | undefined} - The maximum value that matches the condition, or undefined if no match is found.
  */

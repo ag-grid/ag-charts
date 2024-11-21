@@ -12,7 +12,6 @@ import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
-import { findMinMax } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import { sanitizeHtml } from '../../../util/sanitize';
 import { isDefined } from '../../../util/type-guards';
@@ -29,6 +28,7 @@ import {
     keyProperty,
     normaliseGroupTo,
     valueProperty,
+    yRangeLookup,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { Marker } from '../../marker/marker';
@@ -36,7 +36,7 @@ import { getMarker } from '../../marker/util';
 import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { datumStylerProperties } from '../util';
+import { datumStylerProperties, visibleRangeIndices } from '../util';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
     CartesianSeries,
@@ -149,7 +149,8 @@ export class LineSeries extends CartesianSeries<
                 id: `yValueRaw`,
                 ...common,
                 invalidValue: undefined,
-            })
+            }),
+            yRangeLookup('yValueRaw')
         );
 
         if (yFilterKey != null) {
@@ -230,20 +231,31 @@ export class LineSeries extends CartesianSeries<
         }
     }
 
+    private visibleRangeIndices(visibleRange: [any, any], indices?: number[]) {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return [0, 0];
+
+        const xScale = this.axes[ChartAxisDirection.X]!.scale;
+        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+
+        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, (index) => {
+            const x = xScale.convert(xValues[indices?.[index] ?? index]);
+            return [x, x];
+        });
+    }
+
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
+        const yRange = this.processedData?.reduced?.yRangeLookup;
+        if (yRange == null) return [NaN, NaN];
+        const [x0, x1] = this.visibleRangeIndices(visibleRange);
+        return yRange.rangeBetween(x0, x1) ?? [NaN, NaN];
+    }
+
     protected aggregateData(
         _dataModel: DataModel<any, any, any>,
         _processedData: UngroupedData<any>
     ): LineSeriesDataAggregationFilter[] | undefined {
         return;
-    }
-
-    protected visibleRange(
-        length: number,
-        _x0: number,
-        _x1: number,
-        _xFor: (index: number) => number
-    ): [number, number] {
-        return [0, length];
     }
 
     override createNodeData() {
@@ -363,25 +375,16 @@ export class LineSeries extends CartesianSeries<
             }
         };
 
-        const [x0, x1] = findMinMax(xAxis.range);
         const [r0, r1] = xScale.range;
         const range = r1 - r0;
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
-        if (dataAggregationFilter != null) {
-            const { indices } = dataAggregationFilter;
-            const [start, end] = this.visibleRange(indices.length, x0, x1, (index) => xPosition(indices[index]));
-
-            for (let i = start; i < end; i += 1) {
-                handleDatum(indices[i]);
-            }
-        } else {
-            spanPoints = [];
-            const [start, end] = this.visibleRange(rawData.length, x0, x1, xPosition);
-
-            for (let i = start; i < end; i += 1) {
-                handleDatum(i);
-            }
+        const indices = dataAggregationFilter?.indices;
+        let [start, end] = this.visibleRangeIndices(xAxis.range, indices);
+        start = Math.max(start - 1, 0);
+        end = Math.min(end + 2, (indices?.length ?? xValues.length) - 1);
+        for (let i = start; i < end; i += 1) {
+            handleDatum(indices?.[i] ?? i);
         }
 
         const strokeSpans = spanPoints?.flatMap((p): LinePathSpan[] => {

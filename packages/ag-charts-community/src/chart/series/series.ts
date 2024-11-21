@@ -440,8 +440,16 @@ export abstract class Series<
         return moduleDomains.length !== 0 ? seriesDomain.concat(moduleDomains) : seriesDomain;
     }
 
+    getRange(direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] {
+        return this.getSeriesRange(direction, visibleRange);
+    }
+
     // Get the 'community' domain (excluding any additional data from series-option modules).
     abstract getSeriesDomain(direction: ChartAxisDirection): any[];
+
+    protected getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [number, number]): [number, number] {
+        return [NaN, NaN];
+    }
 
     // Fetch required values from the `chart.data` or `series.data` objects and process them.
     abstract processData(dataController: DataController): Promise<void> | void;

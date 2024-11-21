@@ -56,6 +56,14 @@ enum DragState {
     Select,
 }
 
+class ZoomAutoScaling extends _ModuleSupport.BaseProperties {
+    @Validate(BOOLEAN)
+    enabled = false;
+
+    @Validate(RATIO)
+    padding = 0;
+}
+
 export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @ActionOnSet<Zoom>({
         newValue(enabled) {
@@ -118,6 +126,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(ANCHOR_POINT)
     public anchorPointY: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_Y;
 
+    @Validate(OBJECT)
+    public readonly autoScaling = new ZoomAutoScaling();
+
     // Scenes
     private seriesRect?: _ModuleSupport.BBox;
     private paddedRect?: _ModuleSupport.BBox;
@@ -141,6 +152,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private shouldFlipXY?: boolean;
     private minRatioX = 0;
     private minRatioY = 0;
+    private yAxisManuallyAdjusted = false;
 
     private destroyContextMenuActions: (() => void) | undefined = undefined;
 
@@ -217,8 +229,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (hoveredAxis) {
             const { id, direction } = hoveredAxis;
+            if (hoveredAxis.direction === ChartAxisDirection.Y) {
+                this.yAxisManuallyAdjusted = false;
+            }
+
             this.updateAxisZoom(id, direction, zoom[direction]);
         } else if (!event.preventZoomDblClick) {
+            this.yAxisManuallyAdjusted = false;
             this.updateZoom(zoom);
         }
     }
@@ -242,6 +259,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (enableAxisDragging && hoveredAxis) {
             newDragState = DragState.Axis;
+
+            if (hoveredAxis.direction === ChartAxisDirection.Y) {
+                this.yAxisManuallyAdjusted = true;
+            }
         } else if (event != null) {
             const panKeyPressed = this.isPanningKeyPressed(event.sourceEvent as MouseEvent);
             // Allow panning if either selection is disabled or the panning key is pressed.
@@ -471,9 +492,15 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         event.preventDefault();
     }
 
+    _didAutoZoomOnMount = false;
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
         this.domProxy.update(this.ctx);
-        const { enabled } = this;
+        const {
+            enabled,
+            autoScaling,
+            yAxisManuallyAdjusted,
+            ctx: { seriesBoundsManager },
+        } = this;
 
         if (!enabled) return;
 
@@ -484,6 +511,17 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.seriesRect = rect;
         this.paddedRect = paddedRect;
         this.shouldFlipXY = shouldFlipXY;
+
+        if (!this._didAutoZoomOnMount && autoScaling.enabled && !yAxisManuallyAdjusted) {
+            const zoom = this.getZoom();
+
+            zoom.y = seriesBoundsManager.yZoomForXZoom([zoom.x.min, zoom.x.max], {
+                padding: autoScaling.padding,
+            });
+            this.updateZoom(zoom);
+        }
+
+        this._didAutoZoomOnMount = true;
     }
 
     private onUpdateComplete(event: { minRect?: _ModuleSupport.BBox; minVisibleRect?: _ModuleSupport.BBox }) {
@@ -598,15 +636,30 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private updatePrimaryAxisZooms(zoom: DefinedZoomState) {
-        this.ctx.zoomManager.updatePrimaryAxisZoom('zoom', ChartAxisDirection.X, zoom.x);
-        this.ctx.zoomManager.updatePrimaryAxisZoom('zoom', ChartAxisDirection.Y, zoom.y);
+        const {
+            autoScaling,
+            yAxisManuallyAdjusted,
+            ctx: { zoomManager, seriesBoundsManager },
+        } = this;
+
+        zoomManager.updatePrimaryAxisZoom('zoom', ChartAxisDirection.X, zoom.x);
+
+        if (autoScaling.enabled && !yAxisManuallyAdjusted) {
+            zoom.y = seriesBoundsManager.yZoomForXZoom([zoom.x.min, zoom.x.max], {
+                padding: autoScaling.padding,
+            });
+        } else {
+            zoomManager.updatePrimaryAxisZoom('zoom', ChartAxisDirection.Y, zoom.y);
+        }
     }
 
     private updateUnifiedZoom(zoom: DefinedZoomState) {
         const {
             minRatioX,
             minRatioY,
-            ctx: { zoomManager },
+            autoScaling,
+            yAxisManuallyAdjusted,
+            ctx: { zoomManager, seriesBoundsManager },
         } = this;
         const dx_ = dx(zoom);
         const dy_ = dy(zoom);
@@ -618,6 +671,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (zoomedInTooFarX) {
             zoom.x = constrainAxisWithOld(zoom.x, oldZoom.x, minRatioX);
+        }
+
+        if (autoScaling.enabled && !yAxisManuallyAdjusted) {
+            zoom.y = seriesBoundsManager.yZoomForXZoom([zoom.x.min, zoom.x.max], {
+                padding: autoScaling.padding,
+            });
         }
 
         if (zoomedInTooFarY) {
@@ -636,7 +695,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             enableIndependentAxes,
             minRatioX,
             minRatioY,
-            ctx: { zoomManager },
+            autoScaling,
+            ctx: { zoomManager, seriesBoundsManager },
         } = this;
 
         if (!axisZoom) return;
@@ -658,6 +718,18 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         zoomManager.updateAxisZoom('zoom', axisId, axisZoom);
+
+        if (direction === ChartAxisDirection.X || autoScaling.enabled) {
+            const zoomY = seriesBoundsManager.yZoomForXZoom([zoom.x.min, zoom.x.max], {
+                padding: autoScaling.padding,
+            });
+
+            for (const [yAxisId, yAxis] of Object.entries(zoomManager.getAxisZooms())) {
+                if (yAxis.direction === ChartAxisDirection.Y) {
+                    zoomManager.updateAxisZoom('zoom', yAxisId, zoomY);
+                }
+            }
+        }
     }
 
     private getZoom() {

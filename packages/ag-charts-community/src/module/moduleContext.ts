@@ -4,6 +4,7 @@ import type { AnnotationManager } from '../chart/annotation/annotationManager';
 import type { AxisManager } from '../chart/axis/axisManager';
 import type { ChartService } from '../chart/chartService';
 import type { DataService } from '../chart/data/dataService';
+import type { SeriesBoundsManager } from '../chart/data/seriesBoundsManager';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
 import type { ContextMenuRegistry } from '../chart/interaction/contextMenuRegistry';
@@ -55,6 +56,7 @@ export interface ModuleContext {
     readonly localeManager: LocaleManager;
     readonly proxyInteractionService: ProxyInteractionService;
     readonly regionManager: RegionManager;
+    readonly seriesBoundsManager: SeriesBoundsManager;
     readonly seriesStateManager: SeriesStateManager;
     readonly seriesLabelLayoutManager: SeriesLabelLayoutManager;
     readonly stateManager: StateManager;

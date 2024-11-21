@@ -36,6 +36,19 @@ export interface AgZoomButton extends ToolbarButton {
 
 export type AgZoomButtonValue = 'reset' | 'zoom-in' | 'zoom-out' | 'pan-left' | 'pan-right' | 'pan-start' | 'pan-end';
 
+export interface AgZoomAutoScaling {
+    /**
+     * Set to `true` to enable the auto scaling of the y axis when zooming.
+     *
+     * Default: `false`
+     */
+    enabled?: boolean;
+    /**
+     * Padding to apply between the zoomed data and the boundary of the series.
+     */
+    padding?: Ratio;
+}
+
 export interface AgZoomOptions {
     /**
      * The anchor point for the x-axis about which to zoom into when scrolling.
@@ -123,4 +136,8 @@ export interface AgZoomOptions {
      * Default: `0.1`
      */
     scrollingStep?: Ratio;
+    /**
+     * Zoom auto scaling options.
+     */
+    autoScaling?: AgZoomAutoScaling;
 }

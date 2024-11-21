@@ -37,6 +37,7 @@ export interface ISeries<TDatum, TProps, TLabel = TDatum> {
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };
     getDomain(direction: ChartAxisDirection): any[];
+    getRange(direction: ChartAxisDirection, visibleRange: [number, number]): [number, number];
     getKeys(direction: ChartAxisDirection): string[];
     getKeyProperties(direction: ChartAxisDirection): string[];
     getNames(direction: ChartAxisDirection): (string | undefined)[];
