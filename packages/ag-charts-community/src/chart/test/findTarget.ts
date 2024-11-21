@@ -17,6 +17,8 @@ import { SeriesAreaManager } from '../series/seriesAreaManager';
 import { Caster } from './caster';
 
 function findLegendTarget(legendModule: unknown, canvasX: number, canvasY: number): MockEvent | undefined {
+    if (legendModule === undefined) return undefined;
+
     const legend = new Caster(legendModule)
         .cast(Legend)
         .findProperty('group')
@@ -32,10 +34,10 @@ function findLegendTarget(legendModule: unknown, canvasX: number, canvasY: numbe
 }
 
 function findNavigatorTarget(navigatorModule: unknown, canvasX: number, canvasY: number): MockEvent | undefined {
+    if (navigatorModule === undefined) return undefined;
+
     const caster = new Caster(navigatorModule);
-
     const navigator = caster.cast(Navigator).findBoolean('enabled').value;
-
     const domProxy = caster
         .accessProperty('domProxy')
         .cast(NavigatorDOMProxy)
@@ -66,8 +68,9 @@ function findNavigatorTarget(navigatorModule: unknown, canvasX: number, canvasY:
 }
 
 function findZoomTarget(zoomModule: unknown, canvasX: number, canvasY: number): MockEvent | undefined {
-    const caster = new Caster(zoomModule);
+    if (zoomModule === undefined) return undefined;
 
+    const caster = new Caster(zoomModule);
     const zoom = caster.findBoolean('enabled').findBoolean('enableAxisDragging').value;
 
     if (zoom.enabled && zoom.enableAxisDragging) {
