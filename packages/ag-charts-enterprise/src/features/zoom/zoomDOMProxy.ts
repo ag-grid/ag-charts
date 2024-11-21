@@ -6,6 +6,7 @@ type AxesHandlers = {
     onDragStart: (id: string, direction: _ModuleSupport.ChartAxisDirection) => void;
     onDrag: (event: _Widget.DragWidgetEvent<'drag-move'>) => void;
     onDragEnd: () => void;
+    onDoubleClick: (id: string, direction: _ModuleSupport.ChartAxisDirection) => void;
 };
 
 type ProxyAxis = {
@@ -30,6 +31,7 @@ export class ZoomDOMProxy {
         div.addListener('drag-start', () => handlers.onDragStart(axisId, direction));
         div.addListener('drag-move', (_target, ev) => handlers.onDrag(ev));
         div.addListener('drag-end', handlers.onDragEnd);
+        div.addListener('dblclick', () => handlers.onDoubleClick(axisId, direction));
         return { axisId, div };
     }
 
