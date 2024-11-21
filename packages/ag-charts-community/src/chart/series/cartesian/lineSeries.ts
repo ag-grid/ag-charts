@@ -383,6 +383,9 @@ export class LineSeries extends CartesianSeries<
         let [start, end] = this.visibleRangeIndices(xAxis.range, indices);
         start = Math.max(start - 1, 0);
         end = Math.min(end + 1, indices?.length ?? xValues.length);
+        if (indices == null) {
+            spanPoints = [];
+        }
         for (let i = start; i < end; i += 1) {
             handleDatum(indices?.[i] ?? i);
         }

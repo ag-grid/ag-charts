@@ -10,7 +10,11 @@ interface IAxis {
 }
 
 export class SeriesBoundsManager {
-    axes: IAxis[] = [];
+    private axes: IAxis[] = [];
+
+    public updateAxes(nextAxes: IAxis[]) {
+        this.axes = nextAxes;
+    }
 
     public yZoomForXZoom(zoom: [number, number], { padding = 0 } = {}) {
         const [z0, z1] = zoom;
