@@ -1,7 +1,6 @@
-import { BandScale } from 'packages/ag-charts-community/src/integrated-charts-scene';
-
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
+import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { LogScale } from '../../../scale/logScale';
 import { BBox } from '../../../scene/bbox';

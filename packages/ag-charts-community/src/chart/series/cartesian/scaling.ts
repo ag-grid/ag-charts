@@ -1,4 +1,4 @@
-import { arraysEqual } from 'packages/ag-charts-community/src/util/array';
+import { arraysEqual } from '../../../util/array';
 
 export type Scaling = ContinuousScaling | CategoryScaling | LogScaling;
 
@@ -42,6 +42,9 @@ export function areScalingEqual(a: Scaling | undefined, b: Scaling | undefined):
 
 export function isScaleValid(scale?: Scaling) {
     if (scale == null) return false;
-    if (scale.type !== 'category' && !scale.range.every((v) => Number.isFinite(v))) return false;
-    return scale.domain.every((v: any) => Number.isFinite(v) || v instanceof Date);
+    if (scale.type === 'category') return scale.domain.every((v: any) => v != null);
+    return (
+        scale.domain.every((v: any) => Number.isFinite(v) || v instanceof Date) &&
+        scale.range.every((v) => Number.isFinite(v))
+    );
 }
