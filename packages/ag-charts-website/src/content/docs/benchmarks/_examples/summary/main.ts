@@ -35,7 +35,7 @@ const keys: TestName[][] = [
     ['resize benchmark after load 10x resize'],
     [
         'sparkline benchmark initial load',
-        'sparkline benchmark after load update',
+        'sparkline benchmark initial load (pooled)',
         'sparkline benchmark after load updateDelta',
     ],
 ];
