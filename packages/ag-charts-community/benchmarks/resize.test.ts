@@ -20,6 +20,10 @@ describe('resize benchmark', () => {
             delete ctx.options.width;
             delete ctx.options.height;
 
+            if (!isAtOrAfterVersion(10, 0, 0)) {
+                (ctx.options as any).autoSize = true;
+            }
+
             await ctx.create();
         });
 
