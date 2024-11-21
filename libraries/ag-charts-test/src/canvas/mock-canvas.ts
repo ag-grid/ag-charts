@@ -46,26 +46,25 @@ Object.defineProperty(NodeCanvasRenderingContext2D.prototype, 'transform', {
 
 export class MockContext {
     document: Document;
-    realCreateElement: Document['createElement'];
     ctx: {
         nodeCanvas: Canvas;
         getRenderContext2D: () => CanvasRenderingContext2D;
-        getActiveCanvasInstances: () => Canvas[];
+        getActiveCanvasInstances: () => (Canvas | OffscreenCanvas)[];
     };
     canvasStack: Canvas[];
-    canvases: WeakRef<Canvas>[] = [];
+    canvases: WeakRef<Canvas | OffscreenCanvas>[] = [];
 
     constructor(
         width: number,
         height: number,
         document: Document,
-        realCreateElement: Document['createElement'] = document.createElement
+        public realCreateElement: Document['createElement'] = document.createElement,
+        public realOffscreenCanvas: typeof global.OffscreenCanvas = global.OffscreenCanvas
     ) {
         this.document = document;
 
         const nodeCanvas = createCanvas(width, height);
 
-        this.realCreateElement = realCreateElement;
         this.ctx = {
             nodeCanvas,
             getRenderContext2D: () => this.ctx.nodeCanvas.getContext('2d') as unknown as CanvasRenderingContext2D,
@@ -75,7 +74,7 @@ export class MockContext {
         this.registerCanvasInstance(nodeCanvas);
     }
 
-    registerCanvasInstance(canvas: Canvas) {
+    registerCanvasInstance(canvas: Canvas | OffscreenCanvas) {
         this.canvases.push(new WeakRef(canvas));
     }
 
@@ -154,6 +153,15 @@ export function setup(opts: {
 
         return realCreateElement.call(document, element, options);
     };
+
+    if (typeof window !== 'undefined') {
+        (window as any).OffscreenCanvas = function (w: number, h: number) {
+            const canvas = new mockCtx.realOffscreenCanvas(w, h);
+            mockCtx.registerCanvasInstance(canvas);
+            return canvas;
+        };
+        (window as any).OffscreenCanvas.prototype = mockCtx.realOffscreenCanvas;
+    }
 
     return mockCtx;
 }
