@@ -22,9 +22,10 @@ export class LogAxis extends NumberAxis {
             Logger.warn(
                 `the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.`
             );
-        } else if (extent[0] === 0 && extent[1] === 0) {
+            return { domain: [], clipped };
+        } else if (extent[0] === 0 || extent[1] === 0) {
             Logger.warn(`the data domain has 0 extent, no data is rendered.`);
-            return { domain: [1, -1], clipped };
+            return { domain: [], clipped };
         }
 
         return { domain: extent, clipped };
