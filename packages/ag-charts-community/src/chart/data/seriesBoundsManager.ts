@@ -6,6 +6,7 @@ import type { ISeries } from '../series/seriesTypes';
 interface IAxis {
     direction: ChartAxisDirection;
     scale: Scale<any, any>;
+    range: [number, number];
     boundSeries: ISeries<any, any>[];
 }
 
@@ -43,6 +44,9 @@ export class SeriesBoundsManager {
             const [r0, r1] = findMinMax(scale.range);
             const r = r1 - r0;
 
+            const height = Math.max(...axis.range);
+            const zoomPadding = (height * padding) / r;
+
             for (const series of axis.boundSeries) {
                 const xRange = seriesXRanges.get(series);
                 if (xRange == null) continue;
@@ -56,8 +60,8 @@ export class SeriesBoundsManager {
 
                 y0 = (y0 - r0) / r;
                 y1 = (y1 - r0) / r;
-                bounds0 = Math.min(bounds0, Math.max(y0 - padding, 0), Math.max(y1 - padding, 0));
-                bounds1 = Math.max(bounds1, Math.min(y0 + padding, 1), Math.min(y1 + padding, 1));
+                bounds0 = Math.min(bounds0, Math.max(y0 - zoomPadding, 0), Math.max(y1 - zoomPadding, 0));
+                bounds1 = Math.max(bounds1, Math.min(y0 + zoomPadding, 1), Math.min(y1 + zoomPadding, 1));
             }
         }
 
