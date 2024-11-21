@@ -27,6 +27,7 @@ import { invertCoords } from './utils/values';
 
 const {
     BOOLEAN,
+    OBJECT,
     ChartUpdateType,
     InteractionState,
     ObserveChanges,
@@ -72,6 +73,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     @Validate(BOOLEAN)
     public enabled: boolean = true;
 
+    @Validate(OBJECT)
+    public optionsToolbar = new AnnotationOptionsToolbar(this.ctx, () => {
+        const active = this.state.getActive();
+        if (active == null) return;
+        return getTypedDatum(this.annotationData.at(active));
+    });
+
+    @Validate(OBJECT)
     public axesButtons = new AxesButtons();
 
     // Hidden options for use with measurer statistics
@@ -102,11 +111,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     private yAxis?: AnnotationAxis;
 
     private readonly toolbar = new AnnotationsToolbar(this.ctx);
-    private readonly optionsToolbar = new AnnotationOptionsToolbar(this.ctx, () => {
-        const active = this.state.getActive();
-        if (active == null) return;
-        return getTypedDatum(this.annotationData.at(active));
-    });
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -126,12 +130,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             resetToIdle: () => {
                 ctx.cursorManager.updateCursor('annotations');
                 ctx.interactionManager.popState(InteractionState.Annotations);
-                this.optionsToolbar.toggleVisibility(false);
+                this.optionsToolbar.hide();
                 ctx.tooltipManager.unsuppressTooltip('annotations');
                 this.hideOverlays();
                 this.deleteEphemeralAnnotations();
                 this.toolbar.resetButtonStates();
-                this.optionsToolbar.toggleAnnotationOptionsButtons();
+                this.optionsToolbar.toggleButtons();
                 this.update();
             },
 
@@ -211,17 +215,17 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 previousNode?.toggleActive(false);
 
                 // Hide the annotation options so it has time to update before being shown again
-                this.optionsToolbar.toggleVisibility(false);
+                this.optionsToolbar.hide();
 
                 if (selectedNode) {
                     this.ctx.interactionManager.pushState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
                     tooltipManager.suppressTooltip('annotations');
-                    this.optionsToolbar.toggleAnnotationOptionsButtons();
+                    this.optionsToolbar.toggleButtons();
                     this.postUpdateFns.push(() => {
                         // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
                         // element has a width and height that it can use in the anchor calculations.
-                        this.optionsToolbar.toggleVisibility(true);
+                        this.optionsToolbar.show();
                         this.optionsToolbar.setAnchorScene(selectedNode);
                     });
                 } else {
@@ -354,8 +358,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const node = this.annotations.at(active);
                 if (!node || isEphemeralType(this.annotationData.at(active))) return;
 
-                this.optionsToolbar.toggleAnnotationOptionsButtons();
-                this.optionsToolbar.toggleVisibility(true);
+                this.optionsToolbar.toggleButtons();
+                this.optionsToolbar.show();
                 this.optionsToolbar.setAnchorScene(node);
             },
 
@@ -865,7 +869,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const isHorizontal = direction === 'horizontal';
         state.transition(isHorizontal ? AnnotationType.HorizontalLine : AnnotationType.VerticalLine);
 
-        this.optionsToolbar.toggleVisibility(false);
+        this.optionsToolbar.hide();
 
         if (!coords) {
             return;

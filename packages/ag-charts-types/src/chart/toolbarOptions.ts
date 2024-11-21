@@ -4,7 +4,6 @@ import type { AgIconName } from './icons';
 export interface AgToolbarOptions extends Toggleable {
     seriesType?: AgToolbarSeriesTypeGroup;
     annotations?: AgToolbarAnnotationsGroup;
-    annotationOptions?: AgToolbarAnnotationOptionsGroup;
 }
 
 export interface AgToolbarGroup extends Toggleable {
@@ -97,26 +96,3 @@ export type AgToolbarAnnotationsButtonValue =
 
 /* Series Type */
 export interface AgToolbarSeriesTypeGroup extends AgToolbarGroup {}
-
-/* Annotation Options */
-export interface AgToolbarAnnotationOptionsGroup extends AgToolbarGroup {
-    buttons?: (AgToolbarAnnotationOptionsButton | AgToolbarAnnotationOptionsSwitch)[];
-}
-
-export interface AgToolbarAnnotationOptionsButton extends AgToolbarButton {
-    value: AgToolbarAnnotationOptionsButtonValue;
-}
-export interface AgToolbarAnnotationOptionsSwitch extends AgToolbarSwitch {
-    value: AgToolbarAnnotationOptionsButtonValue;
-}
-
-export type AgToolbarAnnotationOptionsButtonValue =
-    | 'line-stroke-width'
-    | 'line-style-type'
-    | 'line-color'
-    | 'fill-color'
-    | 'text-color'
-    | 'text-size'
-    | 'delete'
-    | 'lock'
-    | 'settings';

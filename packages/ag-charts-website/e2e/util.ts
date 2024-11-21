@@ -20,9 +20,6 @@ export const SELECTORS = {
 
     commentMenuItem: '[data-popover-id="comment"]',
     horizontalLineMenuItem: '[data-popover-id="horizontal-line"]',
-
-    annotationOptionsDeleteButton: '[data-toolbar-group="annotationOptions"][data-toolbar-id="delete"]',
-    annotationOptionsSettingsButton: '[data-toolbar-group="annotationOptions"][data-toolbar-id="settings"]',
 } as const;
 
 export function getExamples() {

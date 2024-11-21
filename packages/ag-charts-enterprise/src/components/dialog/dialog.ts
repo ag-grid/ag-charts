@@ -1,10 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
 import type { AgIconName } from 'ag-charts-types';
 
-import { ColorPicker } from '../../features/color-picker/colorPicker';
-import { Popover, type PopoverOptions } from '../popover/popover';
+import { ColorPicker } from '../color-picker/colorPicker';
 
 const {
+    Color,
+    DraggablePopover,
     Vec2,
     createButton,
     createCheckbox,
@@ -16,12 +17,11 @@ const {
     initRovingTabIndex,
     getWindow,
     mapValues,
-    Color,
     setAttribute,
     setAttributes,
 } = _ModuleSupport;
 
-export interface DialogOptions extends PopoverOptions {}
+export interface DialogOptions extends _ModuleSupport.PopoverOptions {}
 
 interface RadioGroupOptions<T extends string> {
     label: string;
@@ -59,12 +59,13 @@ interface ColorPickerOptions {
  *
  * Dialogs may also contain tabs, inputs and nested color pickers.
  */
-export abstract class Dialog<Options extends DialogOptions = DialogOptions> extends Popover<Options> {
+export abstract class Dialog<Options extends DialogOptions = DialogOptions> extends DraggablePopover<Options> {
     private static readonly offset = 60;
+
+    override dragHandleDraggingClass = 'ag-charts-dialog__drag-handle--dragging';
 
     private readonly colorPicker = new ColorPicker(this.ctx, { detached: true });
     private colorPickerAnchorElement?: HTMLElement;
-    private dragStartState?: { client: _ModuleSupport.Vec2; position: _ModuleSupport.Vec2 };
     private seriesRect?: _ModuleSupport.BBox;
 
     constructor(ctx: _ModuleSupport.ModuleContext, id: string) {
@@ -348,59 +349,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     private onKeyDown(event: KeyboardEvent) {
         if (event.altKey || event.ctrlKey || event.metaKey || event.isComposing || event.key !== 'Escape') return;
         this.hide();
-    }
-
-    private onDragStart(event: MouseEvent, dragHandle?: HTMLDivElement) {
-        const popover = this.getPopoverElement();
-        if (!popover) return;
-
-        const {
-            ctx: { domManager },
-        } = this;
-
-        // Prevent text selection while dragging
-        event.preventDefault();
-
-        this.dragStartState = {
-            client: Vec2.from(event.clientX, event.clientY),
-            position: Vec2.from(
-                Number(popover.style.getPropertyValue('left').replace('px', '')),
-                Number(popover.style.getPropertyValue('top').replace('px', ''))
-            ),
-        };
-        dragHandle?.classList.add('ag-charts-dialog__drag-handle--dragging');
-
-        const onDrag = this.onDrag.bind(this);
-        const onDragEnd = () => {
-            domManager.removeEventListener('mousemove', onDrag);
-            dragHandle?.classList.remove('ag-charts-dialog__drag-handle--dragging');
-        };
-
-        domManager.addEventListener('mousemove', onDrag);
-        domManager.addEventListener('mouseup', onDragEnd, { once: true });
-
-        // Catch `mouseup` events that do not propagate beyond the overlay
-        popover.addEventListener('mouseup', () => onDragEnd, { once: true });
-    }
-
-    private onDrag(event: MouseEvent) {
-        const { dragStartState } = this;
-        const popover = this.getPopoverElement();
-
-        if (!dragStartState || !popover) return;
-
-        const offset = Vec2.sub(Vec2.from(event.clientX, event.clientY), dragStartState.client);
-        const position = Vec2.add(dragStartState.position, offset);
-
-        const bounds = this.ctx.domManager.getBoundingClientRect();
-
-        if (position.x >= bounds.x && position.x + popover.offsetWidth <= bounds.width) {
-            popover.style.setProperty('left', `${position.x}px`);
-        }
-
-        if (position.y >= bounds.y && position.y + popover.offsetHeight <= bounds.height) {
-            popover.style.setProperty('top', `${position.y}px`);
-        }
     }
 
     private reposition() {

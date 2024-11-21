@@ -65,7 +65,9 @@ export class AnnotationManager
         this.styles = styles;
     }
 
-    public getAnnotationTypeStyles(type: keyof AgAnnotationsThemeableOptions) {
+    public getAnnotationTypeStyles(
+        type: keyof Omit<AgAnnotationsThemeableOptions, 'axesButtons' | 'enabled' | 'optionsToolbar'>
+    ) {
         return this.styles?.[type];
     }
 
