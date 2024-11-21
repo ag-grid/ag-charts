@@ -1,7 +1,7 @@
 import { type AgAnnotationLineStyleType, _ModuleSupport } from 'ag-charts-community';
 
+import type { ColorPickerOptions } from '../../../components/color-picker/colorPicker';
 import { Dialog, type DialogOptions } from '../../../components/dialog/dialog';
-import type { ColorPickerOptions } from '../../color-picker/colorPicker';
 import {
     type AnnotationOptionsColorPickerType,
     AnnotationType,

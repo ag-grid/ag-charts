@@ -1,8 +1,7 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
+import type { LabelIcon } from '../../dom/elements';
+import { createElement, getIconClassNames } from '../../util/dom';
+import { type MenuCloser, initMenuKeyNav, isButtonClickEvent } from '../../util/keynavUtil';
 import { AnchoredPopover, type AnchoredPopoverOptions } from '../popover/anchoredPopover';
-
-const { createElement, getIconClassNames, initMenuKeyNav, isButtonClickEvent } = _ModuleSupport;
 
 export interface MenuOptions<Value = any> extends AnchoredPopoverOptions {
     items: Array<MenuItem<Value>>;
@@ -12,7 +11,7 @@ export interface MenuOptions<Value = any> extends AnchoredPopoverOptions {
     menuItemRole?: 'menuitem' | 'menuitemradio';
 }
 
-export type MenuItem<Value = any> = _ModuleSupport.LabelIcon & {
+export type MenuItem<Value = any> = LabelIcon & {
     value: Value;
     strokeWidth?: number;
 };
@@ -21,7 +20,7 @@ export type MenuItem<Value = any> = _ModuleSupport.LabelIcon & {
  * An anchored popover containing a list of pressable items.
  */
 export class Menu extends AnchoredPopover {
-    protected menuCloser?: _ModuleSupport.MenuCloser;
+    protected menuCloser?: MenuCloser;
 
     public show<Value = any>(options: MenuOptions<Value>): void {
         const rows = options.items.map((item) => this.createRow(options, item));

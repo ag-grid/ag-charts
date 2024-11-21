@@ -3,13 +3,12 @@ import type { AgIconName } from 'ag-charts-types';
 export const TOOLBAR_ALIGNMENTS = ['start', 'center', 'end'] as const;
 export type ToolbarAlignment = (typeof TOOLBAR_ALIGNMENTS)[number];
 
-export const TOOLBAR_GROUPS = ['seriesType', 'annotations', 'annotationOptions'] as const;
+export const TOOLBAR_GROUPS = ['seriesType', 'annotations'] as const;
 export type ToolbarGroup = (typeof TOOLBAR_GROUPS)[number];
 
 export const TOOLBAR_GROUP_ORDERING: Record<ToolbarGroup, number> = {
     seriesType: 0,
     annotations: 1,
-    annotationOptions: 2,
 };
 
 export enum ToolbarPosition {

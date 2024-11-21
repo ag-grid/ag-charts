@@ -3,13 +3,14 @@ import { AgChartOptions } from 'ag-charts-types';
 import { ChartUpdateType } from '../src/chart/chartUpdateType';
 
 export function isHistoricBenchmarkTest() {
-    return process.env.AG_LIBRARY_VERSION != null;
+    return process.env.AG_LIBRARY_VERSION != null && process.env.AG_LIBRARY_VERSION !== 'latest';
 }
 
-function getVersion() {
-    if (process.env.AG_LIBRARY_VERSION == null) return [11, 0, 0];
+export function getVersion() {
+    if (!isHistoricBenchmarkTest()) return [11, 0, 0];
 
-    const result = process.env.AG_LIBRARY_VERSION.split('.')
+    const result = process.env
+        .AG_LIBRARY_VERSION!.split('.')
         .map((n) => /(\d+)/.exec(n)?.[1])
         .map(Number);
     if (result.length !== 3 || result.some((n) => isNaN(n))) {
@@ -31,25 +32,16 @@ export function isAtOrAfterVersion(major: number, minor: number, patch: number) 
 }
 
 export async function waitForUpdate(chart: any): Promise<void> {
-    const timeoutMs = 10_000;
-    const start = performance.now();
     chart = chart.chart;
 
-    if (chart._pendingFactoryUpdatesCount > 0) {
-        // wait until any pending updates are flushed through.
-        await chart.updateMutex.waitForClearAcquireQueue();
+    if (chart._pendingFactoryUpdatesCount > 0 || chart.performUpdateType !== ChartUpdateType.NONE) {
+        return new Promise((resolve) => {
+            const destroyFn = chart.ctx.updateService.addListener('update-complete', () => {
+                resolve();
+                destroyFn();
+            });
+        });
     }
-
-    while (chart.performUpdateType !== ChartUpdateType.NONE) {
-        if (performance.now() - start > timeoutMs) {
-            const message = `Chart.waitForUpdate() timeout of ${timeoutMs} reached - first chart update taking too long.`;
-            throw new Error(message);
-        }
-        await new Promise((resolve) => setTimeout(resolve, 1));
-    }
-
-    // wait until any remaining updates are flushed through.
-    await chart.updateMutex.waitForClearAcquireQueue();
 }
 
 export function prepareTestOptions<T extends AgChartOptions>(options: T, container: HTMLElement) {

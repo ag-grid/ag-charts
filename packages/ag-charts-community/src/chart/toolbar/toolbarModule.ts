@@ -63,78 +63,6 @@ const annotations: AgToolbarOptions['annotations'] = {
     ],
 };
 
-const annotationOptions: AgToolbarOptions['annotationOptions'] = {
-    enabled: true,
-    position: 'floating',
-    align: 'start',
-    draggable: true,
-    buttons: [
-        {
-            icon: 'text-annotation',
-            tooltip: 'toolbarAnnotationsTextColor',
-            value: 'text-color',
-            // @ts-expect-error undocumented option
-            haspopup: true,
-        },
-        {
-            icon: 'line-color',
-            tooltip: 'toolbarAnnotationsLineColor',
-            value: 'line-color',
-            // @ts-expect-error undocumented option
-            haspopup: true,
-        },
-        {
-            icon: 'fill-color',
-            tooltip: 'toolbarAnnotationsFillColor',
-            value: 'fill-color',
-            // @ts-expect-error undocumented option
-            haspopup: true,
-        },
-        {
-            tooltip: 'toolbarAnnotationsTextSize',
-            value: 'text-size',
-            // @ts-expect-error undocumented option
-            haspopup: true,
-        },
-        {
-            tooltip: 'toolbarAnnotationsLineStrokeWidth',
-            value: 'line-stroke-width',
-            // @ts-expect-error undocumented option
-            haspopup: true,
-        },
-        {
-            icon: 'line-style-solid',
-            tooltip: 'toolbarAnnotationsLineStyle',
-            value: 'line-style-type',
-            // @ts-expect-error undocumented option
-            haspopup: true,
-        },
-        {
-            icon: 'settings',
-            tooltip: 'toolbarAnnotationsSettings',
-            value: 'settings',
-            // @ts-expect-error undocumented option
-            haspopup: true,
-        },
-        {
-            role: 'switch',
-            icon: 'unlocked',
-            tooltip: 'toolbarAnnotationsLock',
-            ariaLabel: 'toolbarAnnotationsLock',
-            checkedOverrides: {
-                icon: 'locked',
-                tooltip: 'toolbarAnnotationsUnlock',
-            },
-            value: 'lock',
-        },
-        {
-            icon: 'delete',
-            tooltip: 'toolbarAnnotationsDelete',
-            value: 'delete',
-        },
-    ],
-};
-
 export const ToolbarModule: Module = {
     type: 'root',
     optionsKey: 'toolbar',
@@ -146,7 +74,6 @@ export const ToolbarModule: Module = {
             enabled: true,
             seriesType,
             annotations,
-            annotationOptions,
         },
     },
 };

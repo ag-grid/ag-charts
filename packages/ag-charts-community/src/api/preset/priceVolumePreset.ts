@@ -94,6 +94,9 @@ export function priceVolume(
     const annotationOpts = {
         annotations: {
             enabled: toolbar,
+            optionsToolbar: {
+                enabled: toolbar,
+            },
             // @ts-expect-error undocumented option
             data,
             xKey: dateKey,
@@ -133,9 +136,6 @@ export function priceVolume(
         },
         toolbar: {
             seriesType: {
-                enabled: toolbar,
-            },
-            annotationOptions: {
                 enabled: toolbar,
             },
             annotations: {

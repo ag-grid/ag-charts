@@ -90,13 +90,13 @@ test.describe('toolbar', () => {
         await page.hover(SELECTORS.canvas, { position: { x: 210, y: 190 } });
         await page.click(SELECTORS.canvas, { position: { x: 210, y: 190 } });
 
-        await page.locator('[data-toolbar-id="text-size"]').click();
+        await page.getByTitle('Text Size').click();
         await expect(page).toHaveScreenshot('text-8-font-size-popover.png', { animations: 'disabled' });
 
         await page.locator('.ag-charts-menu__label', { hasText: '46' }).click();
         await expect(page).toHaveScreenshot('text-9-change-font-size.png', { animations: 'disabled' });
 
-        await page.locator('[data-toolbar-id="delete"]').click();
+        await page.getByTitle('Delete').click();
         await expect(page).toHaveScreenshot('text-10-deleted.png', { animations: 'disabled' });
     });
 
@@ -122,7 +122,7 @@ test.describe('toolbar', () => {
 
         await page.hover(SELECTORS.canvas, { position: { x: 270, y: 140 } });
         await page.click(SELECTORS.canvas, { position: { x: 270, y: 140 } });
-        await page.locator('[data-toolbar-id="fill-color"]').click();
+        await page.getByTitle('Fill Color').click();
         await expect(page).toHaveScreenshot('callout-5-fill-color-popover.png', { animations: 'disabled' });
 
         await page.locator('.ag-charts-color-picker__hue-input').click({
@@ -168,7 +168,7 @@ test.describe('toolbar', () => {
         await page.locator(SELECTORS.textAnnotationMenu).click();
         await page.locator(SELECTORS.commentMenuItem).click();
         await page.mouse.click(hover.x, hover.y, { button: 'left' });
-        await page.locator(SELECTORS.annotationOptionsDeleteButton).click();
+        await page.getByTitle('Delete').click();
         await expect(page).toHaveScreenshot('delete-annotation-removed-no-crosshair.png', { animations: 'disabled' });
 
         // Test 4. Check that the Delete button works in idle state:
@@ -179,7 +179,7 @@ test.describe('toolbar', () => {
         await page.keyboard.type('Delete this temporary annotation');
         await page.mouse.click(leave.x, leave.y, { button: 'left' });
         await page.mouse.click(hover.x, hover.y, { button: 'left' });
-        await page.locator(SELECTORS.annotationOptionsDeleteButton).click();
+        await page.getByTitle('Delete').click();
         await expect(page).toHaveScreenshot('delete-annotation-removed-no-crosshair.png', { animations: 'disabled' });
     });
 
@@ -196,7 +196,7 @@ test.describe('toolbar', () => {
         await page.mouse.move(0, 0);
         await page.mouse.move(initX, initY);
 
-        const bbox = await page.locator(SELECTORS.annotationOptionsSettingsButton).boundingBox();
+        const bbox = await page.getByTitle('Settings').boundingBox();
         const [dragX, dragY] = [bbox.x + bbox.width / 2, bbox.y + bbox.height / 2];
         await page.mouse.down({ button: 'left' });
         await page.mouse.move(dragX, dragY, { steps: 10 });

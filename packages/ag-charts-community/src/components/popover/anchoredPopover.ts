@@ -1,12 +1,11 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
+import { getWindow } from '../../util/dom';
+import { clamp } from '../../util/number';
+import type { Vec2 } from '../../util/vector';
 import { Popover, type PopoverOptions } from './popover';
 
-const { clamp } = _ModuleSupport;
-
 export interface AnchoredPopoverOptions extends PopoverOptions {
-    anchor?: _ModuleSupport.Vec2;
-    fallbackAnchor?: _ModuleSupport.Vec2;
+    anchor?: Vec2;
+    fallbackAnchor?: Vec2;
 }
 
 /**
@@ -16,10 +15,10 @@ export interface AnchoredPopoverOptions extends PopoverOptions {
 export abstract class AnchoredPopover<
     Options extends AnchoredPopoverOptions = AnchoredPopoverOptions,
 > extends Popover<Options> {
-    private anchor?: _ModuleSupport.Vec2;
-    private fallbackAnchor?: Partial<_ModuleSupport.Vec2>;
+    private anchor?: Vec2;
+    private fallbackAnchor?: Partial<Vec2>;
 
-    public setAnchor(anchor: _ModuleSupport.Vec2, fallbackAnchor?: Partial<_ModuleSupport.Vec2>) {
+    public setAnchor(anchor: Vec2, fallbackAnchor?: Partial<Vec2>) {
         this.anchor = anchor;
         this.fallbackAnchor = fallbackAnchor;
 
@@ -40,7 +39,7 @@ export abstract class AnchoredPopover<
 
         // Wait for the DOM to be ready to reposition the element, so it is able to calculate if it will overflow the
         // bounding box
-        _ModuleSupport.getWindow().requestAnimationFrame(() => {
+        getWindow().requestAnimationFrame(() => {
             this.repositionWithinBounds();
         });
 

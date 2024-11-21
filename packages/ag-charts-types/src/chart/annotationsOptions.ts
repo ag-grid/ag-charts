@@ -7,6 +7,7 @@ import type {
     Toggleable,
     Visible,
 } from '../series/cartesian/commonOptions';
+import type { ToolbarButton, ToolbarSwitch } from './buttonOptions';
 import type { Formatter } from './callbackOptions';
 import type { PixelSize } from './types';
 
@@ -17,8 +18,8 @@ import type { PixelSize } from './types';
 export interface AgAnnotationsThemeableOptions {
     // Lines
     line?: AgLineAnnotationStyles;
-    'horizontal-line'?: AgLineAnnotationStyles;
-    'vertical-line'?: AgLineAnnotationStyles;
+    'horizontal-line'?: AgCrossLineAnnotationStyles;
+    'vertical-line'?: AgCrossLineAnnotationStyles;
 
     // Channels
     'disjoint-channel'?: AgChannelAnnotationStyles;
@@ -42,7 +43,9 @@ export interface AgAnnotationsThemeableOptions {
     'quick-date-price-range'?: AgQuickMeasurerAnnotationStyles;
 
     // Other
+    enabled?: boolean;
     axesButtons?: AgAnnotationAxesButtons;
+    optionsToolbar?: AgAnnotationOptionsToolbar;
 }
 
 export interface AgAnnotationAxesButtons extends Toggleable {
@@ -56,6 +59,10 @@ export interface AgAnnotationHandleStyles extends FillOptions, StrokeOptions, Li
 export interface AgLineAnnotationStyles extends Extendable, Lockable, Visible, StrokeOptions, LineOptions {
     handle?: AgAnnotationHandleStyles;
     text?: AgLineAnnotationTextOptions;
+}
+
+export interface AgCrossLineAnnotationStyles extends AgLineAnnotationStyles {
+    axisLabel?: AgAnnotationAxisLabel;
 }
 
 // Channels
@@ -81,7 +88,9 @@ export interface AgNoteAnnotationStyles extends AgTextAnnotationStyles, StrokeOp
 }
 
 // Shapes
-export interface AgShapeAnnotationStyles extends Lockable, Visible, FillOptions {}
+export interface AgShapeAnnotationStyles extends Lockable, Visible, FillOptions {
+    handle?: AgAnnotationHandleStyles;
+}
 
 // Measurers
 export interface AgMeasurerAnnotationStyles extends StrokeOptions, LineOptions, Extendable, Lockable, Visible {
@@ -105,6 +114,8 @@ export interface AgQuickMeasurerAnnotationDirectionStyles extends FillOptions, S
 export interface AgAnnotationsOptions extends Toggleable {
     /** The options for the axes buttons */
     axesButtons?: AgAnnotationAxesButtons;
+    /** TODO */
+    optionsToolbar?: AgAnnotationOptionsToolbar;
 }
 
 export type AgAnnotation =
@@ -441,3 +452,30 @@ interface Extendable {
 }
 
 export type AgAnnotationValue = string | number | AgStateSerializableDate;
+
+// *******************
+// * Options Toolbar *
+// *******************/
+
+export interface AgAnnotationOptionsToolbar extends Toggleable {
+    buttons?: (AgAnnotationOptionsToolbarButton | AgAnnotationOptionsToolbarSwitch)[];
+}
+
+export interface AgAnnotationOptionsToolbarButton extends ToolbarButton {
+    value: AgToolbarAnnotationOptionsButtonValue;
+}
+export interface AgAnnotationOptionsToolbarSwitch extends ToolbarSwitch {
+    value: AgToolbarAnnotationOptionsSwitchValue;
+}
+
+export type AgToolbarAnnotationOptionsButtonValue =
+    | 'line-stroke-width'
+    | 'line-style-type'
+    | 'line-color'
+    | 'fill-color'
+    | 'text-color'
+    | 'text-size'
+    | 'delete'
+    | 'settings';
+
+export type AgToolbarAnnotationOptionsSwitchValue = 'lock';

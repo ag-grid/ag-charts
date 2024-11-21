@@ -90,7 +90,7 @@
     },
     "benchmark": {
       "executor": "nx:run-commands",
-      "cache": true,
+      "cache": false,
       "inputs": ["jsOutputs"],
       "outputs": ["{workspaceRoot}/reports/{projectRoot}/benchmarks"],
       "options": {

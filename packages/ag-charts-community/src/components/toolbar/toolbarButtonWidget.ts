@@ -1,6 +1,7 @@
 import type { AgIconName } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
+import { setAttribute } from '../../util/attributeUtil';
 import { getIconClassNames } from '../../util/dom';
 import { ButtonWidget } from '../../widget/buttonWidget';
 
@@ -12,18 +13,17 @@ export interface ToolbarButtonWidgetOptions {
 }
 
 export class ToolbarButtonWidget extends ButtonWidget {
-    constructor(private readonly ctx: ModuleContext) {
+    public section?: string;
+
+    constructor(protected readonly ctx: ModuleContext) {
         super();
     }
 
     public update(options: ToolbarButtonWidgetOptions) {
         const { localeManager } = this.ctx;
 
-        const element = this.getElement();
-        element.textContent = options.label ? localeManager.t(options.label) : null;
-
         if (options.tooltip) {
-            element.title = localeManager.t(options.tooltip);
+            this.elem.title = localeManager.t(options.tooltip);
         }
 
         let innerHTML = '';
@@ -37,6 +37,10 @@ export class ToolbarButtonWidget extends ButtonWidget {
             innerHTML = `${innerHTML}<span class="ag-charts-toolbar__label">${label}</span>`;
         }
 
-        element.innerHTML = innerHTML;
+        this.elem.innerHTML = innerHTML;
+    }
+
+    public setChecked(checked: boolean) {
+        setAttribute(this.elem, 'aria-checked', checked);
     }
 }

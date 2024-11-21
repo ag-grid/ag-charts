@@ -10,3 +10,8 @@ export interface ToolbarButton {
     /** Tooltip text to display on hover over the button. */
     tooltip?: string;
 }
+
+export interface ToolbarSwitch extends ToolbarButton {
+    /** Overrides for the switch-button when checked. */
+    checkedOverrides?: ToolbarButton;
+}

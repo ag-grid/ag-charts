@@ -10,3 +10,34 @@
 
     --item-padding: 4px 8px;
 }
+
+.ag-charts-annotations-stroke-width-button::before {
+    content: '';
+    height: min(var(--stroke-width), 20px);
+    width: 12px;
+    background: var(--stroke-width-color);
+    margin-right: var(--ag-charts-toolbar-button-padding);
+}
+
+.ag-charts-annotations-stroke-width-button[aria-disabled='true']::before {
+    filter: grayscale(1);
+    opacity: 0.5;
+}
+
+.ag-charts-annotations-fill-button::after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: 3px;
+    left: 5px;
+    right: 5px;
+    height: 4px;
+    border-radius: 99px;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ag-charts-foreground-color) 10%, transparent);
+    background: var(--fill);
+}
+
+.ag-charts-annotations-fill-button[aria-disabled='true']::after {
+    filter: grayscale(1);
+    opacity: 0.5;
+}

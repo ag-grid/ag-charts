@@ -1,6 +1,5 @@
 import { type AgToolbarAnnotationsButtonValue, _ModuleSupport } from 'ag-charts-community';
 
-import { Menu, type MenuItem } from '../../components/menu/menu';
 import {
     ANNOTATION_BUTTONS,
     ANNOTATION_BUTTON_GROUPS,
@@ -14,7 +13,7 @@ import {
     TEXT_ANNOTATION_ITEMS,
 } from './annotationsMenuOptions';
 
-const { ToolbarManager, Logger } = _ModuleSupport;
+const { Logger, Menu, ToolbarManager } = _ModuleSupport;
 
 interface EventMap {
     'cancel-create-annotation': void;
@@ -84,9 +83,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseModuleInstance implem
 
     private onButtonPress(event: _ModuleSupport.ToolbarButtonPressedEvent) {
         if (!ToolbarManager.isGroup('annotations', event)) {
-            if (!ToolbarManager.isGroup('annotationOptions', event)) {
-                this.dispatch('pressed-unrelated');
-            }
+            this.dispatch('pressed-unrelated');
             return;
         }
 
@@ -121,7 +118,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseModuleInstance implem
     private onButtonPressShowMenu(
         event: _ModuleSupport.ToolbarButtonPressedEvent,
         ariaLabel: string,
-        items: Array<MenuItem<AnnotationType>>
+        items: Array<_ModuleSupport.MenuItem<AnnotationType>>
     ) {
         const { x, y, width } = event.rect;
 
@@ -149,7 +146,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseModuleInstance implem
 
     private onButtonPressMenuCreateAnnotation(
         event: _ModuleSupport.ToolbarButtonPressedEvent<AgToolbarAnnotationsButtonValue>,
-        item: MenuItem<AnnotationType>
+        item: _ModuleSupport.MenuItem<AnnotationType>
     ) {
         const { toolbarManager } = this.ctx;
 

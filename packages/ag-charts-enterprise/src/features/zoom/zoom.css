@@ -5,6 +5,7 @@
     justify-content: center;
     overflow: hidden;
     padding-bottom: 10px;
+    pointer-events: none;
     width: 100%;
 
     .ag-charts-toolbar {
@@ -16,6 +17,7 @@
         height: var(--ag-charts-toolbar-size);
         justify-content: center;
         opacity: 1;
+        pointer-events: auto;
         transition:
             opacity 0.2s ease-in-out,
             transform 0.4s ease-in-out;
@@ -31,15 +33,15 @@
             border-top-right-radius: var(--ag-charts-button-radius);
         }
     }
-}
 
-.ag-charts-zoom-buttons__button--gap {
-    margin-left: var(--ag-charts-toolbar-gap);
-}
+    .ag-charts-toolbar__button--gap {
+        margin-left: var(--ag-charts-toolbar-gap);
+    }
 
-.ag-charts-zoom-buttons__toolbar--hidden {
-    opacity: 0;
-    transition:
-        opacity 0.4s ease-in-out,
-        transform 0.4s ease-in-out;
+    .ag-charts-zoom-buttons__toolbar--hidden {
+        opacity: 0;
+        transition:
+            opacity 0.4s ease-in-out,
+            transform 0.4s ease-in-out;
+    }
 }

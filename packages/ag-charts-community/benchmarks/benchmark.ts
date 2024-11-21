@@ -6,7 +6,17 @@ import { AgChartInstance, AgChartOptions } from 'ag-charts-types';
 import { AgCharts } from '../src/main';
 import { Point } from '../src/scene/point';
 import { extractImageData, setupMockCanvas } from '../src/util/test/mockCanvas';
-import { isAtOrAfterVersion, isHistoricBenchmarkTest, prepareTestOptions, waitForUpdate } from './compatibility.ts';
+import {
+    getVersion,
+    isAtOrAfterVersion,
+    isHistoricBenchmarkTest,
+    prepareTestOptions,
+    waitForUpdate,
+} from './compatibility.ts';
+
+if (isHistoricBenchmarkTest()) {
+    console.warn('Attempting to run against version: ', getVersion().join('.'));
+}
 
 export interface BenchmarkExpectations {
     expectedMaxMemoryMB: number;
@@ -36,7 +46,8 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
             await this.chart?.update(this.options);
             return;
         }
-        await (AgCharts as any).update(this.chart, this.options);
+        (AgCharts as any).update(this.chart, this.options);
+        await this.waitForUpdate();
     }
 
     async updateDelta(options: Partial<T>) {
@@ -87,7 +98,9 @@ export function benchmark(
 
             if (runCount > 1) global.gc?.();
             const memoryUsageAfter = process.memoryUsage();
-            const canvasInstances = ctx.canvasCtx.getActiveCanvasInstances();
+            const canvasInstances = (
+                ctx.canvasCtx.getActiveCanvasInstances() as { width: number; height: number }[]
+            ).concat(ctx.canvasCtx.getActiveOffscreenCanvasInstances());
             const { currentTestName, testPath } = expect.getState();
 
             if (testPath == null || currentTestName == null) {
@@ -112,7 +125,11 @@ export function benchmark(
                 },
             });
 
-            if (expectations.autoSnapshot ?? !isHistoricBenchmarkTest()) {
+            if (isHistoricBenchmarkTest()) {
+                return;
+            }
+
+            if (expectations.autoSnapshot ?? true) {
                 const newImageData = extractImageData(ctx.canvasCtx);
                 expect(newImageData).toMatchImageSnapshot({ failureThresholdType: 'pixel', failureThreshold: 5 });
             }
