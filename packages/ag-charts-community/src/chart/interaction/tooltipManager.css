@@ -8,6 +8,7 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 
     /* Resets when using popover attribute */
+    position: fixed;
     inset: unset;
     margin: 0;
     border: none;
