@@ -35,7 +35,7 @@ const keys: TestName[][] = [
     ['resize benchmark after load 10x resize'],
     [
         'sparkline benchmark initial load',
-        'sparkline benchmark after load update',
+        'sparkline benchmark initial load (pooled)',
         'sparkline benchmark after load updateDelta',
     ],
 ];
@@ -162,6 +162,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                 label: {
                     formatter: (params) => {
                         const ms = Number(params.value);
+                        if (ms === 0) return '0';
                         return params.value == null ? params.value : formatMillis(ms, ms === 0 || ms > 10 ? 0 : 2);
                     },
                 },
@@ -172,7 +173,11 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                 keys: [`results['${testName}'].heapUsed`, `results['${testName}'].canvasBytes`],
                 min: 0,
                 label: {
-                    formatter: (params) => (params.value == null ? params.value : formatBytes(Number(params.value))),
+                    formatter: (params) => {
+                        const bytes = Number(params.value);
+                        if (bytes === 0) return '0';
+                        return params.value == null ? params.value : formatBytes(bytes);
+                    },
                 },
             },
         ],

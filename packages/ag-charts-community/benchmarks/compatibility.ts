@@ -3,13 +3,14 @@ import { AgChartOptions } from 'ag-charts-types';
 import { ChartUpdateType } from '../src/chart/chartUpdateType';
 
 export function isHistoricBenchmarkTest() {
-    return process.env.AG_LIBRARY_VERSION != null;
+    return process.env.AG_LIBRARY_VERSION != null && process.env.AG_LIBRARY_VERSION !== 'latest';
 }
 
 export function getVersion() {
-    if (process.env.AG_LIBRARY_VERSION == null) return [11, 0, 0];
+    if (!isHistoricBenchmarkTest()) return [11, 0, 0];
 
-    const result = process.env.AG_LIBRARY_VERSION.split('.')
+    const result = process.env
+        .AG_LIBRARY_VERSION!.split('.')
         .map((n) => /(\d+)/.exec(n)?.[1])
         .map(Number);
     if (result.length !== 3 || result.some((n) => isNaN(n))) {

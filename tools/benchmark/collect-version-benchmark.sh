@@ -34,7 +34,6 @@ fi
 
 # Files to check out for each version
 included_files=(
-    "libraries/ag-charts-test/src"
     "packages/ag-charts-types/src"
     "packages/ag-charts-community/src"
     "packages/ag-charts-community-examples/src"
