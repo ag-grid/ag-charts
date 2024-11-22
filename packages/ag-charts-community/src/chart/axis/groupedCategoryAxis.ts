@@ -257,8 +257,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const lineBoxes = [this.lineNode.getBBox(), new BBox(0, 0, separatorLayout[0] * sideFlag, 0)];
         const mergedBBox = BBox.merge(iterate(labelBBoxes.values(), lineBoxes));
 
-        // console.log({ separatorSize, separatorData, separatorData2, separatorLayout, tickTreeLayout });
-
         return {
             bbox: this.getTransformBox(mergedBBox),
             separatorLayout,

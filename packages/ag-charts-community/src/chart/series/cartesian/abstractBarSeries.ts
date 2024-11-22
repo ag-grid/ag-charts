@@ -8,7 +8,6 @@ import { extent } from '../../../util/array';
 import { isFiniteNumber } from '../../../util/type-guards';
 import { DIRECTION, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
-import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { fixNumericExtent } from '../../data/dataModel';
@@ -99,9 +98,7 @@ export abstract class AbstractBarSeries<
         groupScale.domain = domain;
         groupScale.range = [0, xBandWidth ?? 0];
 
-        if (xAxis instanceof GroupedCategoryAxis) {
-            groupScale.padding = 0.1;
-        } else if (xAxis instanceof CategoryAxis) {
+        if (xAxis instanceof CategoryAxis) {
             groupScale.paddingInner = xAxis.groupPaddingInner;
         } else {
             // Number or Time axis
