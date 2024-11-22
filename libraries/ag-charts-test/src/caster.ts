@@ -1,5 +1,3 @@
-import { expect } from '@jest/globals';
-
 /**
  * Pick all properties from T that are of Array type
  * Example:
