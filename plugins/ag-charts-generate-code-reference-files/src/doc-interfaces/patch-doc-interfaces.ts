@@ -50,10 +50,7 @@ function patchAgChartOptionsReference(reference: ApiReferenceType) {
 
             if (member.name === 'axes') {
                 const axisOption = reference.get(member.type.type);
-                // Ignore `groupedCategory` axis, as it is an implementation detail
-                const axisOptionUnion = getTypeUnion(axisOption).filter(
-                    (name) => name !== 'AgGroupedCategoryAxisOptions'
-                );
+                const axisOptionUnion = getTypeUnion(axisOption);
                 axisOptions.push(...axisOptionUnion);
             } else if (member.name === 'series') {
                 const series = getTypeUnion(reference.get(member.type.type));

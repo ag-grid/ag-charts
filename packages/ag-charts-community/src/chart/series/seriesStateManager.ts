@@ -58,8 +58,9 @@ export class SeriesStateManager {
     }
 
     public getVisiblePeerGroupIndex({ type, seriesGrouping, visible }: SeriesLike): SeriesGroupingResult {
-        if (!seriesGrouping)
+        if (!seriesGrouping) {
             return { visibleGroupCount: visible ? 1 : 0, visibleSameStackCount: visible ? 1 : 0, index: 0 };
+        }
 
         const visibleGroupsSet = new Set<number>();
         const visibleSameStackSet = new Set<number>();

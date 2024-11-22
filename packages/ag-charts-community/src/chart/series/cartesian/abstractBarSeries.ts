@@ -100,16 +100,15 @@ export abstract class AbstractBarSeries<
         groupScale.range = [0, xBandWidth ?? 0];
 
         if (xAxis instanceof GroupedCategoryAxis) {
-            groupScale.padding = 0.1;
+            groupScale.paddingInner = xAxis.groupPaddingInner;
         } else if (xAxis instanceof CategoryAxis) {
             groupScale.paddingInner = xAxis.groupPaddingInner;
+            // To get exactly `0` padding we need to turn off rounding
+            groupScale.round = groupScale.padding !== 0;
         } else {
             // Number or Time axis
             groupScale.padding = 0;
         }
-
-        // To get exactly `0` padding we need to turn off rounding
-        groupScale.round = groupScale.padding !== 0;
 
         const barWidth =
             groupScale.bandwidth >= 1

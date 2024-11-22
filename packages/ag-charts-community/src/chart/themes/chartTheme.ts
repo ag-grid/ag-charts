@@ -275,8 +275,8 @@ export class ChartTheme {
         [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults({
             tick: { enabled: true },
             label: { padding: 5 },
-            paddingOuter: 0.1,
-            paddingInner: 0.2,
+            paddingInner: 0.4,
+            groupPaddingInner: 0.2,
         }),
         [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } }),
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({
