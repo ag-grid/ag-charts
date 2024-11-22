@@ -13,7 +13,6 @@ import { BaseProperties } from '../../util/properties';
 import {
     BOOLEAN,
     COLOR_STRING,
-    DEGREE,
     FONT_STYLE,
     FONT_WEIGHT,
     FUNCTION,
@@ -68,7 +67,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
      * The value of this config is used as the angular offset/deflection
      * from the default rotation.
      */
-    @Validate(DEGREE, { optional: true })
+    @Validate(NUMBER, { optional: true })
     rotation?: number;
 
     /**

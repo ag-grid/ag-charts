@@ -12,7 +12,6 @@ import { BaseProperties } from '../../../util/properties';
 import {
     BOOLEAN,
     COLOR_STRING_ARRAY,
-    DEGREE,
     FUNCTION,
     LINE_DASH,
     NUMBER,
@@ -37,7 +36,7 @@ class PieSeriesCalloutLabel extends Label<AgPieSeriesLabelFormatterParams> {
     @Validate(POSITIVE_NUMBER)
     offset = 3; // from the callout line
 
-    @Validate(DEGREE)
+    @Validate(NUMBER)
     minAngle = 0;
 
     @Validate(POSITIVE_NUMBER)
@@ -130,7 +129,7 @@ export class PieSeriesProperties extends SeriesProperties<AgPieSeriesOptions> {
     @Validate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgPieSeriesItemStylerParams<unknown>, AgPieSeriesStyle>;
 
-    @Validate(DEGREE)
+    @Validate(NUMBER)
     rotation: number = 0;
 
     @Validate(NUMBER)

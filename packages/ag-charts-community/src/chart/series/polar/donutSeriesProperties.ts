@@ -14,7 +14,6 @@ import {
     BOOLEAN,
     COLOR_STRING,
     COLOR_STRING_ARRAY,
-    DEGREE,
     FUNCTION,
     LINE_DASH,
     NUMBER,
@@ -60,7 +59,7 @@ class DonutSeriesCalloutLabel extends Label<AgDonutSeriesLabelFormatterParams> {
     @Validate(POSITIVE_NUMBER)
     offset = 3; // from the callout line
 
-    @Validate(DEGREE)
+    @Validate(NUMBER)
     minAngle = 0;
 
     @Validate(POSITIVE_NUMBER)
@@ -167,7 +166,7 @@ export class DonutSeriesProperties extends SeriesProperties<AgDonutSeriesOptions
     @Validate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgDonutSeriesItemStylerParams<unknown>, AgDonutSeriesStyle>;
 
-    @Validate(DEGREE)
+    @Validate(NUMBER)
     rotation: number = 0;
 
     @Validate(NUMBER)

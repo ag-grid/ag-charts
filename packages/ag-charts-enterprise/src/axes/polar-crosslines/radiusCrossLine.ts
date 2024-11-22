@@ -5,7 +5,7 @@ import { PolarCrossLine, PolarCrossLineLabel } from './polarCrossLine';
 const {
     ChartAxisDirection,
     Validate,
-    DEGREE,
+    NUMBER,
     validateCrossLineValues,
     clamp,
     normalizeAngle360,
@@ -18,7 +18,7 @@ const {
 } = _ModuleSupport;
 
 class RadiusCrossLineLabel extends PolarCrossLineLabel {
-    @Validate(DEGREE, { optional: true })
+    @Validate(NUMBER, { optional: true })
     positionAngle?: number = undefined;
 }
 

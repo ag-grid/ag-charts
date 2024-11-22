@@ -7,7 +7,7 @@ const {
     ChartAxisDirection,
     Default,
     ZIndexMap,
-    DEGREE,
+    NUMBER,
     BOOLEAN,
     Validate,
     isNumberEqual,
@@ -23,14 +23,14 @@ class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
     @Validate(BOOLEAN, { optional: true })
     autoRotate?: boolean;
 
-    @Validate(DEGREE)
+    @Validate(NUMBER)
     autoRotateAngle: number = 335;
 }
 
 export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
 
-    @Validate(DEGREE)
+    @Validate(NUMBER)
     @Default(0)
     positionAngle: number = 0;
 
