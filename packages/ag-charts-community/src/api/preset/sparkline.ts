@@ -77,9 +77,6 @@ const barAxisDefaults: AgCommonThemeableAxisOptions = {
     number: {
         gridLine: barGridLineDefaults,
     },
-    log: {
-        gridLine: barGridLineDefaults,
-    },
     time: {
         gridLine: barGridLineDefaults,
     },
