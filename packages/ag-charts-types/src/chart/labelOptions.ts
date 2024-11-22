@@ -15,7 +15,7 @@ export interface AgChartLabelOptions<TDatum, TParams> extends Toggleable, FontOp
     formatter?: Formatter<AgChartLabelFormatterParams<TDatum> & TParams>;
 }
 
-export interface AgChartLabelFormatterParams<TDatum> extends AgChartCallbackParams<TDatum> {
+export interface AgChartLabelFormatterParams<TDatum = any> extends AgChartCallbackParams<TDatum> {
     /** The default label value that would have been used without a formatter. */
     value: any;
 }
