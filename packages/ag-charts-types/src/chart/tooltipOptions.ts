@@ -61,7 +61,7 @@ export interface AgTooltipRendererResult {
     class?: CssColor;
 }
 
-export interface AgSeriesTooltipRendererParams<TDatum = any> extends AgChartCallbackParams<TDatum> {
+export interface AgSeriesTooltipRendererParams<TDatum> extends AgChartCallbackParams<TDatum> {
     /** Series title or yName depending on series configuration. */
     readonly title?: string;
     /** Series primary colour, as selected from the active theme, series options or formatter. */

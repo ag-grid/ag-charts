@@ -208,7 +208,7 @@ export function sparklineDataPreset(data: any[] | undefined): {
             const mappedData = data.map((y, x) => ({ x, y }));
             return { data: mappedData, series: [{ xKey: 'x', yKey: 'y' }] };
         } else if (Array.isArray(firstItem)) {
-            const mappedData = data.filter((item) => !!item).map(([x, y]) => ({ x, y }));
+            const mappedData = data.map(([x, y]) => ({ x, y }));
             return { data: mappedData, series: [{ xKey: 'x', yKey: 'y' }] };
         }
     }
@@ -219,10 +219,6 @@ function axisPreset(
     opts: AgSparklineAxisOptions | undefined,
     defaultType: AgCartesianAxisOptions['type']
 ): AgCartesianAxisOptions {
-    opts = {
-        ...opts,
-        type: opts?.type ?? defaultType,
-    } as any as AgSparklineAxisOptions;
     switch (opts?.type) {
         case 'number': {
             const { type, visible: _visible, stroke: _stroke, strokeWidth: _strokeWidth, min, max, reverse } = opts;
