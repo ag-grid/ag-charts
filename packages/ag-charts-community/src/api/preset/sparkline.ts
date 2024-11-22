@@ -7,6 +7,7 @@ import {
     type AgCategoryAxisOptions,
     type AgChartTheme,
     type AgChartThemeName,
+    type AgCommonThemeableAxisOptions,
     type AgNumberAxisOptions,
     type AgSparklineAxisOptions,
     type AgSparklineOptions,
@@ -67,6 +68,26 @@ const crossHairTooltip = {
     },
 };
 
+const barGridLineDefaults: AgAxisGridLineOptions = {
+    style: [{ stroke: DEFAULT_AXIS_GRID_COLOUR }],
+    width: 2,
+};
+
+const barAxisDefaults: AgCommonThemeableAxisOptions = {
+    number: {
+        gridLine: barGridLineDefaults,
+    },
+    log: {
+        gridLine: barGridLineDefaults,
+    },
+    time: {
+        gridLine: barGridLineDefaults,
+    },
+    category: {
+        gridLine: barGridLineDefaults,
+    },
+};
+
 const SPARKLINE_THEME: AgChartTheme = {
     overrides: {
         common: {
@@ -111,6 +132,7 @@ const SPARKLINE_THEME: AgChartTheme = {
             tooltip: {
                 range: 'nearest',
             },
+            axes: barAxisDefaults,
         },
         line: {
             seriesArea: {
@@ -248,20 +270,16 @@ function gridLinePreset(
     sparkOpts: AgSparklineOptions
 ): AgAxisGridLineOptions {
     const gridLineOpts: AgAxisGridLineOptions = {};
-    const isBarVertical = sparkOpts.type === 'bar' && sparkOpts.direction !== 'horizontal';
 
     if (opts?.stroke != null) {
         gridLineOpts.style = [{ stroke: opts?.stroke }];
-        gridLineOpts.enabled ??= true;
-    } else if (isBarVertical) {
-        gridLineOpts.style = [{ stroke: DEFAULT_AXIS_GRID_COLOUR }];
         gridLineOpts.enabled ??= true;
     }
     if (opts?.strokeWidth != null) {
         gridLineOpts.width = opts?.strokeWidth;
         gridLineOpts.enabled ??= true;
-    } else if (isBarVertical) {
-        gridLineOpts.width = 2;
+    }
+    if (sparkOpts.type === 'bar' && sparkOpts.direction !== 'horizontal') {
         gridLineOpts.enabled ??= true;
     }
     if (opts?.visible != null) {
