@@ -14,8 +14,16 @@
         "production": {}
       }
     },
-    "build:types": {},
-    "build:package": {},
+    "build:types": {
+      "options": {
+        "additionalEntryPoints": ["{projectRoot}/src/main-scene.ts"]
+      }
+    },
+    "build:package": {
+      "options": {
+        "additionalEntryPoints": ["{projectRoot}/src/main-scene.ts"]
+      }
+    },
     "docs-debug-interfaces": {
       "executor": "ag-charts-generate-code-reference-files:generate",
       "dependsOn": ["ag-charts-generate-code-reference-files:build"],

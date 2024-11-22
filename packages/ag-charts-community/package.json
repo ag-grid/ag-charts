@@ -11,6 +11,12 @@
       "require": "./dist/package/main.cjs.js",
       "types": "./dist/types/src/main.d.ts",
       "default": "./dist/package/main.cjs.js"
+    },
+    "./scene": {
+      "import": "./dist/package/integrated-charts-scene.esm.mjs",
+      "require": "./dist/package/integrated-charts-scene.cjs.js",
+      "types": "./dist/types/src/integrated-charts-scene.d.ts",
+      "default": "./dist/package/integrated-charts-scene.cjs.js"
     }
   },
   "scripts": {
