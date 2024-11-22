@@ -51,8 +51,6 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private panStart?: number;
     private readonly domProxy: NavigatorDOMProxy;
 
-    constructor(ctx: unknown);
-    constructor(ctx: ModuleContext);
     constructor(private readonly ctx: ModuleContext) {
         super();
 

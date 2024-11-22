@@ -56,8 +56,6 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         return nearestSquared(x, y, boxes);
     }
 
-    constructor(x: unknown, y: unknown, width: unknown, height: unknown);
-    constructor(x: number, y: number, width: number, height: number);
     constructor(
         public x: number,
         public y: number,

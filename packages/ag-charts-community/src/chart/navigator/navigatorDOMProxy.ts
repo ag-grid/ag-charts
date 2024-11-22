@@ -28,8 +28,6 @@ export class NavigatorDOMProxy {
     private readonly toolbar: ToolbarWidget;
     private readonly sliders: [SliderWidget, SliderWidget, SliderWidget];
 
-    constructor(ctx: unknown, sliderHandlers: unknown);
-    constructor(ctx: NavigatorDOMProxyModuleContext, sliderHandlers: SliderDragHandlers);
     constructor(
         private readonly ctx: NavigatorDOMProxyModuleContext,
         private readonly sliderHandlers: SliderDragHandlers

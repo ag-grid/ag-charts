@@ -95,8 +95,6 @@ export class SeriesAreaManager extends BaseManager {
         datum: undefined as SeriesNodeDatum | undefined,
     };
 
-    public constructor(chart: unknown);
-    public constructor(chart: SeriesAreaChartDependencies);
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
 

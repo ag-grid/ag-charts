@@ -14,15 +14,32 @@ import { LegendMarkerLabel } from '../legend/legendMarkerLabel';
 import { Navigator } from '../navigator/navigator';
 import { NavigatorDOMProxy } from '../navigator/navigatorDOMProxy';
 import { SeriesAreaManager } from '../series/seriesAreaManager';
-import { Caster } from './caster';
+import { Caster, ClassTypePair } from './caster';
+
+const CAST_INFO = {
+    Array: new ClassTypePair<unknown[], typeof Array>(Array),
+
+    BBox: new ClassTypePair<BBox, typeof BBox>(BBox),
+    TranslatableGroup: new ClassTypePair<TranslatableGroup, typeof TranslatableGroup>(TranslatableGroup),
+    Scene: new ClassTypePair<Scene, typeof Scene>(Scene),
+
+    Legend: new ClassTypePair<Legend, typeof Legend>(Legend),
+    Navigator: new ClassTypePair<Navigator, typeof Navigator>(Navigator),
+    NavigatorDOMProxy: new ClassTypePair<NavigatorDOMProxy, typeof NavigatorDOMProxy>(NavigatorDOMProxy),
+    SeriesAreaManager: new ClassTypePair<SeriesAreaManager, typeof SeriesAreaManager>(SeriesAreaManager),
+
+    ToolbarWidget: new ClassTypePair<ToolbarWidget, typeof ToolbarWidget>(ToolbarWidget),
+    SliderWidget: new ClassTypePair<SliderWidget, typeof SliderWidget>(SliderWidget),
+    NativeWidget: new ClassTypePair<NativeWidget, typeof NativeWidget>(NativeWidget),
+} as const;
 
 function findLegendTarget(legendModule: unknown, canvasX: number, canvasY: number): MockEvent | undefined {
     if (legendModule === undefined) return undefined;
 
     const legend = new Caster(legendModule)
-        .cast(Legend)
+        .cast(CAST_INFO.Legend)
         .findProperty('group')
-        .castProperty('group', TranslatableGroup).value;
+        .castProperty('group', CAST_INFO.TranslatableGroup).value;
     for (const node of Selection.selectByClass(legend.group, LegendMarkerLabel)) {
         if (!node.proxyButton) return;
         const bbox = Transformable.toCanvas(node);
@@ -37,14 +54,14 @@ function findNavigatorTarget(navigatorModule: unknown, canvasX: number, canvasY:
     if (navigatorModule === undefined) return undefined;
 
     const caster = new Caster(navigatorModule);
-    const navigator = caster.cast(Navigator).findBoolean('enabled').value;
+    const navigator = caster.cast(CAST_INFO.Navigator).findBoolean('enabled').value;
     const domProxy = caster
         .accessProperty('domProxy')
-        .cast(NavigatorDOMProxy)
+        .cast(CAST_INFO.NavigatorDOMProxy)
         .findProperty('toolbar')
-        .castProperty('toolbar', ToolbarWidget)
+        .castProperty('toolbar', CAST_INFO.ToolbarWidget)
         .findProperty('sliders')
-        .castPropertyArray('sliders', SliderWidget).value;
+        .castPropertyArray('sliders', CAST_INFO.SliderWidget).value;
 
     if (!navigator.enabled) return undefined;
 
@@ -77,9 +94,9 @@ function findZoomTarget(zoomModule: unknown, canvasX: number, canvasY: number): 
         const domProxy = caster
             .accessProperty('domProxy')
             .findProperty('axes')
-            .castProperty('axes', Array)
+            .castProperty('axes', CAST_INFO.Array)
             .findArrayElementProperties('axes', 'div')
-            .castArrayElementProperties('axes', 'div', NativeWidget).value;
+            .castArrayElementProperties('axes', 'div', CAST_INFO.NativeWidget).value;
 
         for (const axis of domProxy.axes) {
             const bbox = axis.div.getBounds();
@@ -97,12 +114,16 @@ function findZoomTarget(zoomModule: unknown, canvasX: number, canvasY: number): 
 function findSeriesAreaTarget(chart: unknown, canvasX: number, canvasY: number): MockEvent {
     const caster = new Caster(chart)
         .accessProperty('seriesAreaManager')
-        .cast(SeriesAreaManager)
+        .cast(CAST_INFO.SeriesAreaManager)
         .findProperty('seriesRect')
-        .castProperty('seriesRect', BBox);
+        .castProperty('seriesRect', CAST_INFO.BBox);
 
     const seriesRect = caster.value.seriesRect;
-    const scene = caster.accessProperty('chart').accessProperty('ctx').accessProperty('scene').cast(Scene).value;
+    const scene = caster
+        .accessProperty('chart')
+        .accessProperty('ctx')
+        .accessProperty('scene')
+        .cast(CAST_INFO.Scene).value;
 
     const target = scene.canvas.element;
     const [offsetX, offsetY] = [NaN, NaN];
