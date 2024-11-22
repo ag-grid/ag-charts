@@ -44,19 +44,14 @@ export class GroupedCategoryAxis extends CategoryAxis {
     private resizeTickTree() {
         if (!this.tickTreeLayout) return;
 
-        const s = this.scale;
-        const { bandwidth = 0 } = s;
-        const range = s.domain.length ? [s.convert(s.domain[0]), s.convert(s.domain.at(-1)!)] : s.range;
+        const { range, step, inset, bandwidth } = this.scale;
         const lineHeight = TextUtils.getLineHeight(this.label.fontSize!);
         const { depth } = this.tickTreeLayout;
 
-        this.tickTreeLayout.resize(
-            Math.abs(range[1] - range[0]),
-            depth * lineHeight,
-            (Math.min(range[0], range[1]) || 0) + bandwidth / 2,
-            -depth * lineHeight,
-            range[1] - range[0] < 0
-        );
+        const width = Math.abs(range[1] - range[0]) - step;
+        const height = depth * lineHeight;
+
+        this.tickTreeLayout.resize(width, height, inset + bandwidth / 2, range[0] > range[1]);
     }
 
     private computedLayout: ComputedGroupAxisLayout | undefined;
@@ -85,10 +80,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const { scale, label, range, title } = this;
         const formatter = title.formatter ?? ((p: AgAxisCaptionFormatterParams) => p.defaultValue);
 
-        const [rangeStart, rangeEnd] = scale.range;
-        const rangeLength = Math.abs(rangeEnd - rangeStart);
-        const bandwidth = rangeLength / scale.domain.length || 0;
-        const keepEvery = Math.ceil(label.fontSize! / bandwidth);
+        const { step } = scale;
+        const keepEvery = Math.ceil(label.fontSize! / step);
         const rotation = toRadians(this.rotation);
         const isHorizontal = Math.abs(Math.cos(rotation)) < 1e-8;
         const sideFlag = label.getSideFlag();
@@ -196,7 +189,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                     tempText.translationX += labelBBoxes.get(index)?.width ?? 0;
                 }
             } else {
-                const availableRange = datum.leafCount * bandwidth;
+                const availableRange = datum.leafCount * step;
                 const bbox = labelBBoxes.get(index);
 
                 tempText.translationX +=
@@ -361,5 +354,11 @@ export class GroupedCategoryAxis extends CategoryAxis {
             line.strokeWidth = width;
             line.lineDash = lineDash;
         });
+    }
+
+    override updateScale(opts?: { domain?: any[]; skipDomainCalculation?: boolean }): void {
+        super.updateScale(opts);
+        // Outer padding must equal half inner padding to keep groups center point aligned.
+        this.scale.paddingOuter = this.scale.paddingInner / 2;
     }
 }
