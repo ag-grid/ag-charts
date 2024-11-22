@@ -111,15 +111,6 @@ export function stringToAnnotationType(value: unknown) {
     }
 }
 
-export type HandleKeys<Datum, Point> = {
-    [Key in keyof Datum]: Datum[Key] extends Point ? Key : never;
-}[keyof Datum];
-export type HandleName<Datum> = Extract<HandleKeys<Datum, Point>, string>;
-
-// type KeysOfType<O, T> = {
-//     [K in keyof O]: O[K] extends T ? K : never
-//   }[keyof O]
-
 export interface Bounds {
     x: number;
     y: number;
