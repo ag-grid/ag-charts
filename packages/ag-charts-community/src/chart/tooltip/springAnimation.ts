@@ -17,8 +17,8 @@ const DELTA = 0.5;
 export class SpringAnimation extends Listeners<'update', UpdateEventHandler> {
     private x1 = NaN;
     private y1 = NaN;
-    private x = NaN;
-    private y = NaN;
+    public x = NaN;
+    public y = NaN;
     private vx = 0;
     private vy = 0;
     private t0 = NaN;
