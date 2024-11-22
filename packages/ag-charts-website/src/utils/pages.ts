@@ -1,6 +1,7 @@
 import type { InternalFramework, Library } from '@ag-grid-types';
 import type { CollectionEntry } from 'astro:content';
-import fs from 'fs/promises';
+import fs from 'fs';
+import fsPromise from 'fs/promises';
 import glob from 'glob';
 
 import {
@@ -53,22 +54,38 @@ export const DEV_FILE_PATH_MAP: Record<string, string> = {
     'ag-charts-thumbnails/**': 'dist/generated-thumbnails/ag-charts-website/gallery/_examples/**/*.{png,webp}',
 };
 
+let rootUrl: URL;
 /**
  * The root url where the monorepo exists
  */
 export const getRootUrl = (): URL => {
-    // Relative to the folder of this file
-    const root = '../../../../';
-    return new URL(root, import.meta.url);
+    if (rootUrl == null) {
+        let url = new URL(import.meta.url);
+        while (!fs.existsSync(new URL('./.git', url))) {
+            url = new URL('../', url);
+        }
+
+        rootUrl = url;
+    }
+
+    return rootUrl;
 };
 
+let websiteRootUrl: URL;
 /**
  * The `ag-charts-website` root url where the monorepo exists
  */
 const getWebsiteRootUrl = (): URL => {
-    // Relative to the folder of this file
-    const root = '../../';
-    return new URL(root, import.meta.url);
+    if (websiteRootUrl == null) {
+        let url = new URL(import.meta.url);
+        while (!fs.existsSync(new URL('./package.json', url))) {
+            url = new URL('../', url);
+        }
+
+        websiteRootUrl = url;
+    }
+
+    return websiteRootUrl;
 };
 
 export const getPublicFileUrl = (): URL => {
@@ -108,7 +125,7 @@ export const getDebugPageUrls = async ({
     allFiles?: boolean;
 } = {}) => {
     const debugFolder = getDebugFolderUrl();
-    const pages = await fs.readdir(debugFolder);
+    const pages = await fsPromise.readdir(debugFolder);
     const filteredPages = allFiles
         ? pages
         : pages.filter((pageName) => {
