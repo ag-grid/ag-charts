@@ -589,6 +589,13 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return [NaN, NaN];
     }
 
+    override getSeriesRange(
+        _direction: _ModuleSupport.ChartAxisDirection,
+        _visibleRange: [any, any]
+    ): [number, number] {
+        return [NaN, NaN];
+    }
+
     override pickNodeClosestDatum({ x, y }: _ModuleSupport.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;

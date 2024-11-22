@@ -14,7 +14,6 @@ import {
     type ReducerOutputPropertyDefinition,
     datumKeys,
 } from './dataModel';
-import { RangeLookup } from './rangeLookup';
 
 function basicContinuousCheckDatumValidation(value: any) {
     return value != null && isContinuous(value);
@@ -360,29 +359,6 @@ export function animationValidation(valueKeyIds?: string[]): ProcessorOutputProp
                 uniqueKeys: (validation & ANIMATION_VALIDATION_UNIQUE_KEYS) !== 0,
                 orderedKeys: (validation & ANIMATION_VALIDATION_ORDERED_KEYS) !== 0,
             };
-        },
-    };
-}
-
-export function yRangeLookup(
-    yKey: string | { highValues: string; lowValues: string }
-): ProcessorOutputPropertyDefinition {
-    return {
-        type: 'processor',
-        property: 'yRangeLookup',
-        calculate(result: ProcessedData<any>) {
-            const highKey = typeof yKey === 'string' ? yKey : yKey.highValues;
-            const lowKey = typeof yKey === 'string' ? yKey : yKey.lowValues;
-            const highValueDefIdx = result.defs.values.findIndex((v) => v.id === highKey);
-            const lowValueDefIdx = result.defs.values.findIndex((v) => v.id === lowKey);
-            if (highValueDefIdx === -1 || lowValueDefIdx === -1) {
-                throw new Error(`No keys found`);
-            }
-
-            const highValues = result.columns[highValueDefIdx];
-            const lowValues = result.columns[lowValueDefIdx];
-
-            return new RangeLookup({ highValues, lowValues });
         },
     };
 }

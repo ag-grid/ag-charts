@@ -103,6 +103,7 @@ exports[`DataModel empty data set processing should generated the expected resul
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "ungrouped",
+  Symbol(domain-ranges): Map {},
 }
 `;
 
@@ -374,6 +375,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   },
   "time": Any<Number>,
   "type": "grouped",
+  Symbol(domain-ranges): Map {},
 }
 `;
 
@@ -666,6 +668,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   },
   "time": Any<Number>,
   "type": "grouped",
+  Symbol(domain-ranges): Map {},
 }
 `;
 
@@ -896,6 +899,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
   },
   "time": Any<Number>,
   "type": "grouped",
+  Symbol(domain-ranges): Map {},
 }
 `;
 
@@ -1182,6 +1186,7 @@ exports[`DataModel grouped processing - grouped example should generated the exp
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "grouped",
+  Symbol(domain-ranges): Map {},
 }
 `;
 
@@ -1787,6 +1792,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "grouped",
+  Symbol(domain-ranges): Map {},
 }
 `;
 
@@ -2135,6 +2141,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "grouped",
+  Symbol(domain-ranges): Map {},
 }
 `;
 
@@ -2518,6 +2525,7 @@ exports[`DataModel grouped processing - stacked example should generated the exp
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "grouped",
+  Symbol(domain-ranges): Map {},
 }
 `;
 
@@ -2905,6 +2913,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "grouped",
+  Symbol(domain-ranges): Map {},
 }
 `;
 
@@ -3246,6 +3255,7 @@ exports[`DataModel grouped processing - stacked with accumulation example should
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "grouped",
+  Symbol(domain-ranges): Map {},
 }
 `;
 
@@ -3561,6 +3571,7 @@ exports[`DataModel missing and invalid data processing - multiple scopes should 
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "ungrouped",
+  Symbol(domain-ranges): Map {},
 }
 `;
 
@@ -3830,6 +3841,7 @@ exports[`DataModel missing and invalid data processing should generated the expe
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "ungrouped",
+  Symbol(domain-ranges): Map {},
 }
 `;
 
@@ -3936,6 +3948,7 @@ exports[`DataModel repeated property processing should generated the expected re
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "ungrouped",
+  Symbol(domain-ranges): Map {},
 }
 `;
 
@@ -4085,6 +4098,7 @@ exports[`DataModel ungrouped processing - accumulated and normalised properties 
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "ungrouped",
+  Symbol(domain-ranges): Map {},
 }
 `;
 
@@ -4588,5 +4602,6 @@ exports[`DataModel ungrouped processing should generated the expected results 1`
   "rawDataSources": undefined,
   "time": Any<Number>,
   "type": "ungrouped",
+  Symbol(domain-ranges): Map {},
 }
 `;

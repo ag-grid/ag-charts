@@ -257,6 +257,13 @@ export abstract class BaseFunnelSeries<
         }
     }
 
+    override getSeriesRange(
+        _direction: _ModuleSupport.ChartAxisDirection,
+        _visibleRange: [any, any]
+    ): [number, number] {
+        return [NaN, NaN];
+    }
+
     override createNodeData() {
         const {
             hasData,

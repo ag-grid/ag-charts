@@ -1,36 +1,37 @@
-const minIndex = (i: number) => i * 2;
-const maxIndex = (i: number) => i * 2 + 1;
+const MIN = 0;
+const MAX = 1;
+const SPAN = 2;
 
 export class RangeLookup {
     private readonly maxLevelSize: number;
-    private buffer: Float64Array | undefined = undefined;
+    private readonly buffer: Float64Array;
 
-    constructor(private readonly values: { highValues: number[]; lowValues: number[] }) {
-        const { highValues } = values;
-        const sizePower = 32 - Math.clz32(highValues.length);
+    constructor(allValues: number[][]) {
+        const dataLength = allValues.reduce((acc, v) => Math.max(acc, v.length), 0);
+        const sizePower = 32 - Math.clz32(dataLength);
         let maxLevelSize = 1 << sizePower;
-        if (highValues.length === maxLevelSize / 2) {
+        if (dataLength === maxLevelSize / 2) {
             maxLevelSize = maxLevelSize >>> 1;
         }
         this.maxLevelSize = maxLevelSize;
-    }
 
-    private getBuffer() {
-        let { buffer } = this;
-        if (buffer != null) return buffer;
+        const buffer = new Float64Array((maxLevelSize * 2 - 1) * 2).fill(NaN);
 
-        const {
-            maxLevelSize,
-            values: { highValues, lowValues },
-        } = this;
-
-        buffer = new Float64Array((maxLevelSize * 2 - 1) * 2).fill(NaN);
-
-        for (let i = 0; i < lowValues.length; i += 1) {
-            buffer[minIndex(maxLevelSize + i - 1)] = Number(lowValues[i]);
-        }
-        for (let i = 0; i < highValues.length; i += 1) {
-            buffer[maxIndex(maxLevelSize + i - 1)] = Number(highValues[i]);
+        for (const values of allValues) {
+            for (let i = 0; i < values.length; i += 1) {
+                const value = Number(values[i]);
+                const bufferIndex = maxLevelSize + i - 1;
+                const bufferMinIndex = ((bufferIndex * SPAN) | 0) + MIN;
+                const bufferMaxIndex = ((bufferIndex * SPAN) | 0) + MAX;
+                const prevMinValue = buffer[bufferMinIndex];
+                const prevMaxValue = buffer[bufferMaxIndex];
+                if (!Number.isFinite(prevMinValue) || value < prevMinValue) {
+                    buffer[bufferMinIndex] = value;
+                }
+                if (!Number.isFinite(prevMaxValue) || value > prevMaxValue) {
+                    buffer[bufferMaxIndex] = value;
+                }
+            }
         }
 
         for (let size = (maxLevelSize / 2) | 0; size >= 1; size = (size / 2) | 0) {
@@ -41,19 +42,17 @@ export class RangeLookup {
                 const leftIndex = end + i * 2;
                 const rightIndex = leftIndex + 1;
 
-                const aMin = buffer[minIndex(leftIndex)];
-                const bMin = buffer[minIndex(rightIndex)];
-                buffer[minIndex(nodeIndex)] = !Number.isFinite(bMin) || aMin < bMin ? aMin : bMin;
+                const aMin = buffer[((leftIndex * SPAN) | 0) + MIN];
+                const bMin = buffer[((rightIndex * SPAN) | 0) + MIN];
+                buffer[((nodeIndex * SPAN) | 0) + MIN] = !Number.isFinite(bMin) || aMin < bMin ? aMin : bMin;
 
-                const aMax = buffer[maxIndex(leftIndex)];
-                const bMax = buffer[maxIndex(rightIndex)];
-                buffer[maxIndex(nodeIndex)] = !Number.isFinite(bMax) || aMax > bMax ? aMax : bMax;
+                const aMax = buffer[((leftIndex * SPAN) | 0) + MAX];
+                const bMax = buffer[((rightIndex * SPAN) | 0) + MAX];
+                buffer[((nodeIndex * SPAN) | 0) + MAX] = !Number.isFinite(bMax) || aMax > bMax ? aMax : bMax;
             }
         }
 
         this.buffer = buffer;
-
-        return buffer;
     }
 
     private computeRangeInto(
@@ -70,8 +69,8 @@ export class RangeLookup {
         if (currentEnd < start || currentStart > end) return into;
 
         if (currentStart >= start && currentEnd <= end) {
-            const min = buffer[minIndex(bufferIndex)];
-            const max = buffer[maxIndex(bufferIndex)];
+            const min = buffer[((bufferIndex * SPAN) | 0) + MIN];
+            const max = buffer[((bufferIndex * SPAN) | 0) + MAX];
             if (Number.isFinite(min)) into[0] = Math.min(into[0], min);
             if (Number.isFinite(max)) into[1] = Math.max(into[1], max);
         } else if (step > 1) {
@@ -85,15 +84,14 @@ export class RangeLookup {
     }
 
     rangeBetween(start: number, end: number) {
-        const { maxLevelSize } = this;
+        const { maxLevelSize, buffer } = this;
         const range: [number, number] = [Infinity, -Infinity];
-        const buffer = this.getBuffer();
         this.computeRangeInto(buffer, start, end, 0, 0, maxLevelSize, range);
         return range;
     }
 
     get range(): [number, number] {
-        const buffer = this.getBuffer();
-        return [buffer[minIndex(0)], buffer[maxIndex(0)]];
+        const { buffer } = this;
+        return [buffer[MIN], buffer[MAX]];
     }
 }

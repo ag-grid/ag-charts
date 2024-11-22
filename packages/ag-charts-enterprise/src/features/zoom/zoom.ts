@@ -716,15 +716,19 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private autoScaleZoomY(zoom: DefinedZoomState) {
         const {
             ctx: { seriesBoundsManager },
+            enableIndependentAxes,
             autoScaling,
             yAxisManuallyAdjusted,
         } = this;
 
         if (!autoScaling.enabled || yAxisManuallyAdjusted) return zoom.y;
 
-        return seriesBoundsManager.yZoomForXZoom([zoom.x.min, zoom.x.max], {
-            padding: autoScaling.padding,
-        });
+        const { padding } = autoScaling;
+        if (enableIndependentAxes) {
+            return seriesBoundsManager.primaryAxisZoom(ChartAxisDirection.Y, zoom.x, { padding });
+        } else {
+            return seriesBoundsManager.combinedAxisZoom(ChartAxisDirection.Y, zoom.x, { padding });
+        }
     }
 
     private getModuleProperties(overrides?: Partial<ZoomProperties>): ZoomProperties {

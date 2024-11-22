@@ -12,6 +12,7 @@ import { Logger } from '../../../util/logger';
 import { clamp } from '../../../util/number';
 import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
+import type { ChartAxisDirection } from '../../chartAxisDirection';
 import type { HighlightNodeDatum } from '../../interaction/highlightManager';
 import type { ChartLegendType, GradientLegendDatum } from '../../legend/legendDatum';
 import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
@@ -378,6 +379,10 @@ export abstract class HierarchySeries<
     }
 
     override getSeriesDomain() {
+        return [NaN, NaN];
+    }
+
+    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
         return [NaN, NaN];
     }
 

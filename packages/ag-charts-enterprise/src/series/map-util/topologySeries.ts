@@ -25,4 +25,15 @@ export abstract class TopologySeries<
             })
         );
     }
+
+    override getSeriesDomain() {
+        return [NaN, NaN];
+    }
+
+    override getSeriesRange(
+        _direction: _ModuleSupport.ChartAxisDirection,
+        _visibleRange: [any, any]
+    ): [number, number] {
+        return [NaN, NaN];
+    }
 }

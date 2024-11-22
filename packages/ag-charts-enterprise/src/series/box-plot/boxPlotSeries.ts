@@ -127,6 +127,13 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return this.padBandExtent(keys);
     }
 
+    override getSeriesRange(
+        _direction: _ModuleSupport.ChartAxisDirection,
+        _visibleRange: [any, any]
+    ): [number, number] {
+        return [NaN, NaN];
+    }
+
     override createNodeData() {
         const { visible, dataModel, processedData } = this;
 

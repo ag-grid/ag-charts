@@ -20,7 +20,6 @@ const {
     ChartAxisDirection,
     SMALLEST_KEY_INTERVAL,
     valueProperty,
-    yRangeLookup,
     diff,
     animationValidation,
     computeBarFocusBounds,
@@ -127,7 +126,6 @@ export abstract class OhlcSeriesBase<
                 valueProperty(closeKey, yScaleType, { id: `closeValue` }),
                 valueProperty(highKey, yScaleType, { id: `highValue` }),
                 valueProperty(lowKey, yScaleType, { id: `lowValue` }),
-                yRangeLookup({ highValues: 'highValue', lowValues: 'lowValue' }),
                 ...(isContinuousX ? [SMALLEST_KEY_INTERVAL] : []),
                 ...extraProps,
             ],
@@ -190,8 +188,7 @@ export abstract class OhlcSeriesBase<
 
     override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): [number, number] {
         const { dataModel, processedData } = this;
-        const yRange = this.processedData?.reduced?.yRangeLookup;
-        if (!dataModel || !processedData || !yRange) return [NaN, NaN];
+        if (!dataModel || !processedData) return [NaN, NaN];
 
         const xAxis = this.axes[ChartAxisDirection.X]!;
         const xScale = xAxis.scale;
@@ -204,7 +201,7 @@ export abstract class OhlcSeriesBase<
             return [x, x + barWidth];
         });
 
-        return yRange.rangeBetween(x0, x1);
+        return dataModel.getDomainBetweenRange(this, ['highValue', 'lowValue'], [x0, x1], processedData);
     }
 
     override createNodeData() {

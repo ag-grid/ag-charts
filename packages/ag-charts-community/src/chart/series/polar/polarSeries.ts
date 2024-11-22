@@ -273,4 +273,8 @@ export abstract class PolarSeries<
         }
         return undefined;
     }
+
+    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
+        return [NaN, NaN];
+    }
 }

@@ -155,6 +155,13 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         }
     }
 
+    override getSeriesRange(
+        _direction: _ModuleSupport.ChartAxisDirection,
+        _visibleRange: [any, any]
+    ): [number, number] {
+        return [NaN, NaN];
+    }
+
     override createNodeData() {
         const { data, visible, axes, dataModel, processedData } = this;
 

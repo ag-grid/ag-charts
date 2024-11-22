@@ -1,7 +1,7 @@
 import type { AgTooltipRendererResult } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { SPAN, X_MAX, X_MIN, Y_MAX, Y_MIN, visibleRange } from '../../utils/aggregation';
+import { SPAN, X_MAX, X_MIN, Y_MAX, Y_MIN } from '../../utils/aggregation';
 import { type RangeBarSeriesDataAggregationFilter, aggregateRangeBarData } from './rangeBarAggregation';
 import { RangeBarProperties } from './rangeBarProperties';
 
@@ -27,7 +27,7 @@ const {
     createDatumId,
     computeBarFocusBounds,
     sanitizeHtml,
-    findMinMax,
+    visibleRangeIndices,
     ContinuousScale,
     OrdinalTimeScale,
     Rect,
@@ -219,6 +219,21 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         }
     }
 
+    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): [number, number] {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return [NaN, NaN];
+
+        const xScale = this.axes[ChartAxisDirection.X]!.scale;
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const barWidth = xScale.bandwidth ?? 0;
+
+        const [x0, x1] = visibleRangeIndices(xValues.length, visibleRange, (index) => {
+            const x = xScale.convert(xValues[index]);
+            return [x, x + barWidth];
+        });
+        return dataModel.getDomainBetweenRange(this, ['yHighValue', 'yLowValue'], [x0, x1], processedData);
+    }
+
     override createNodeData() {
         const {
             data,
@@ -347,7 +362,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         };
 
         const { dataAggregationFilters } = this;
-        const [x0, x1] = findMinMax(xAxis.range);
         const [r0, r1] = xScale.range;
         const range = r1 - r0;
 
@@ -355,12 +369,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (dataAggregationFilter != null) {
             const { maxRange, indexData } = dataAggregationFilter;
-            const [start, end] = visibleRange(maxRange, x0, x1, (index) => {
+            const [start, end] = visibleRangeIndices(maxRange, xAxis.range, (index) => {
                 const aggIndex = index * SPAN;
                 const xMinIndex = indexData[aggIndex + X_MIN];
                 const xMaxIndex = indexData[aggIndex + X_MAX];
+                if (xMinIndex === -1) return;
                 const midDatumIndex = ((xMinIndex + xMaxIndex) / 2) | 0;
-                return xMinIndex !== -1 ? xPosition(midDatumIndex) : NaN;
+                return [xPosition(midDatumIndex), xPosition(xMaxIndex) + effectiveBarWidth];
             });
 
             for (let i = start; i < end; i += 1) {
@@ -385,7 +400,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 handleDatum(midDatumIndex, 0, x, width, yLow, yHigh, false);
             }
         } else if (processedData.type === 'ungrouped') {
-            const [start, end] = visibleRange(rawData.length, x0, x1, xPosition);
+            const [start, end] = visibleRangeIndices(rawData.length, xAxis.range, (index) => {
+                const x = xPosition(index);
+                return [x, effectiveBarWidth];
+            });
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
                 const x = xPosition(datumIndex);

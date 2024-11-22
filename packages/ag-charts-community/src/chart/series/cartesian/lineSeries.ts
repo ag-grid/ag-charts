@@ -28,7 +28,6 @@ import {
     keyProperty,
     normaliseGroupTo,
     valueProperty,
-    yRangeLookup,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { Marker } from '../../marker/marker';
@@ -149,8 +148,7 @@ export class LineSeries extends CartesianSeries<
                 id: `yValueRaw`,
                 ...common,
                 invalidValue: undefined,
-            }),
-            yRangeLookup('yValueRaw')
+            })
         );
 
         if (yFilterKey != null) {
@@ -245,10 +243,10 @@ export class LineSeries extends CartesianSeries<
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const yRange = this.processedData?.reduced?.yRangeLookup;
-        if (yRange == null) return [NaN, NaN];
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return [NaN, NaN];
         const [x0, x1] = this.visibleRangeIndices(visibleRange);
-        return yRange.rangeBetween(x0, x1) ?? [NaN, NaN];
+        return dataModel.getDomainBetweenRange(this, ['yValueRaw'], [x0, x1], processedData);
     }
 
     protected aggregateData(
