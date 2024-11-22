@@ -22,7 +22,7 @@ export interface AgBarSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOp
     padding?: PixelSize;
 }
 
-export interface AgBarSeriesItemStylerParams<TDatum = any>
+export interface AgBarSeriesItemStylerParams<TDatum>
     extends DatumCallbackParams<TDatum>,
         AgBarSeriesOptionsKeys,
         Required<AgBarSeriesStyle> {
