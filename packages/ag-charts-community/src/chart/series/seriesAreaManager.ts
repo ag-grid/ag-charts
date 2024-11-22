@@ -19,7 +19,7 @@ import { ChartUpdateType } from '../chartUpdateType';
 import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import type { KeyNavEvent } from '../interaction/keyNavManager';
-import type { MockEvent, RegionEvent } from '../interaction/regionManager';
+import type { RegionEvent } from '../interaction/regionManager';
 import { TooltipManager } from '../interaction/tooltipManager';
 import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
@@ -577,20 +577,6 @@ export class SeriesAreaManager extends BaseManager {
             this.update(ChartUpdateType.SERIES_UPDATE);
         } else {
             this.update(ChartUpdateType.SERIES_UPDATE, { seriesToUpdate });
-        }
-    }
-
-    public testFindTarget(canvasX: number, canvasY: number): MockEvent {
-        const target = this.chart.ctx.scene.canvas.element;
-        const [offsetX, offsetY] = [NaN, NaN];
-        if (this.seriesRect?.containsPoint(canvasX, canvasY)) {
-            const regionX = canvasX - this.seriesRect.x;
-            const regionY = canvasY - this.seriesRect.y;
-            return { target, offsetX, offsetY, mockRegion: { region: 'series', canvasX, canvasY, regionX, regionY } };
-        } else {
-            const regionX = canvasX;
-            const regionY = canvasY;
-            return { target, offsetX, offsetY, mockRegion: { region: 'root', canvasX, canvasY, regionX, regionY } };
         }
     }
 }

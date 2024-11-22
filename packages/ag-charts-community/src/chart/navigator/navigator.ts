@@ -3,13 +3,11 @@ import { BaseModuleInstance } from '../../module/module';
 import type { ModuleContext } from '../../module/moduleContext';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
-import { Transformable } from '../../scene/transformable';
 import type { BBoxProvider } from '../../util/bboxinterface';
 import { clamp } from '../../util/number';
 import { ObserveChanges } from '../../util/proxy';
 import { BOOLEAN, OBJECT, POSITIVE_NUMBER, Validate } from '../../util/validation';
 import { InteractionState } from '../interaction/interactionManager';
-import type { MockEvent } from '../interaction/regionManager';
 import type { ZoomChangeEvent } from '../interaction/zoomManager';
 import { type LayoutCompleteEvent, LayoutElement } from '../layout/layoutManager';
 import { type NavigatorButtonType, NavigatorDOMProxy } from './navigatorDOMProxy';
@@ -190,18 +188,5 @@ export class Navigator extends BaseModuleInstance implements ModuleInstance {
     private updateZoom() {
         if (!this.enabled) return;
         this.domProxy.updateZoom();
-    }
-
-    testFindTarget(canvasX: number, canvasY: number): MockEvent | undefined {
-        if (!this.enabled) return undefined;
-
-        if (Transformable.toCanvas(this.minHandle).containsPoint(canvasX, canvasY)) {
-            return this.domProxy.testFindTarget('min', canvasX, canvasY);
-        } else if (Transformable.toCanvas(this.maxHandle).containsPoint(canvasX, canvasY)) {
-            return this.domProxy.testFindTarget('max', canvasX, canvasY);
-        } else if (Transformable.toCanvas(this.mask).containsPoint(canvasX, canvasY)) {
-            return this.domProxy.testFindTarget('pan', canvasX, canvasY);
-        }
-        return undefined;
     }
 }

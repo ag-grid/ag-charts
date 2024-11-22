@@ -42,7 +42,6 @@ import { axisRegistry } from './factory/axisRegistry';
 import { EXPECTED_ENTERPRISE_MODULES } from './factory/expectedEnterpriseModules';
 import { legendRegistry } from './factory/legendRegistry';
 import { seriesRegistry } from './factory/seriesRegistry';
-import type { MockEvent } from './interaction/regionManager';
 import { SyncManager } from './interaction/syncManager';
 import { Keyboard } from './keyboard';
 import { LayoutElement } from './layout/layoutManager';
@@ -1536,17 +1535,5 @@ export abstract class Chart extends Observable {
                 source.addEventListener(property, listener);
             }
         }
-    }
-
-    public testFindTarget(x: number, y: number): MockEvent {
-        type TestModuleFns = { testFindTarget: Chart['testFindTarget'] };
-        for (const moduleName of ['legend', 'navigator', 'zoom']) {
-            const mod = this.modulesManager.getModule<TestModuleFns>(moduleName);
-            const modTarget = mod?.testFindTarget(x, y);
-            if (modTarget) {
-                return modTarget;
-            }
-        }
-        return this.seriesAreaManager.testFindTarget(x, y);
     }
 }
