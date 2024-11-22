@@ -266,13 +266,11 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     getOverlayClientRect() {
         const window = getWindow();
         const windowBBox = new BBox(0, 0, window.innerWidth, window.innerHeight);
-        const container = this.getRawOverlayClientRect();
-
-        const containerBBox = BBox.fromDOMRect(container);
+        const containerBBox = this.getRawOverlayClientRect();
         return windowBBox.intersection(containerBBox)?.toDOMRect() ?? NULL_DOMRECT;
     }
 
-    private getRawOverlayClientRect() {
+    private getRawOverlayClientRect(): BBox {
         let element: HTMLElement | null = this.element;
 
         // Try and find a parent which will clip rendering of children - if found we should restrict
@@ -282,7 +280,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             const overflowY = styleMap?.get('overflow-y')?.toString();
 
             if (overflowY === 'auto' || overflowY === 'scroll') {
-                return element.getBoundingClientRect();
+                return BBox.fromDOMRect(element.getBoundingClientRect());
             }
 
             element = element.parentElement;
@@ -290,8 +288,11 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
 
         // If in a shadow-DOM case, use the shadow-DOMs bounding-box, intersected with the window
         // viewport.
-        const docRoot = this.getShadowDocumentRoot() ?? getWindow().document.documentElement;
-        return docRoot.getBoundingClientRect();
+        const docRoot = this.getShadowDocumentRoot();
+        if (docRoot != null) return BBox.fromDOMRect(docRoot.getBoundingClientRect());
+
+        const { innerWidth, innerHeight } = getWindow();
+        return new BBox(0, 0, innerWidth, innerHeight);
     }
 
     getShadowDocumentRoot(current = this.container) {
