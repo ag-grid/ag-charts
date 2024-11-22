@@ -28,7 +28,7 @@ const {
     Validate,
     BOOLEAN,
     COLOR_STRING,
-    DEGREE,
+    NUMBER,
     LINE_DASH,
     OBJECT,
     POSITIVE_NUMBER,
@@ -64,7 +64,7 @@ export class RadarSeriesProperties<T extends AgBaseRadarSeriesOptions> extends S
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
 
-    @Validate(DEGREE)
+    @Validate(NUMBER)
     rotation: number = 0;
 
     @Validate(OBJECT)

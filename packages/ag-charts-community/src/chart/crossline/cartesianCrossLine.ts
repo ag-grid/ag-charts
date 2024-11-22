@@ -23,7 +23,6 @@ import {
     ARRAY,
     BOOLEAN,
     COLOR_STRING,
-    DEGREE,
     FONT_STYLE,
     FONT_WEIGHT,
     LINE_DASH,
@@ -103,7 +102,7 @@ class CartesianCrossLineLabel extends BaseProperties implements AgCartesianCross
     @Validate(CROSSLINE_LABEL_POSITION, { optional: true })
     position?: CrossLineLabelPosition;
 
-    @Validate(DEGREE, { optional: true })
+    @Validate(NUMBER, { optional: true })
     rotation?: number;
 
     @Validate(BOOLEAN, { optional: true })
