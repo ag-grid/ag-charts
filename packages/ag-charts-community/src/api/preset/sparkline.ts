@@ -313,9 +313,6 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
 
     const seriesOptions = optsRest as any as AgCartesianSeriesOptions;
 
-    if (seriesOptions.highlightStyle?.item && seriesOptions.type !== 'bar') {
-    }
-
     // Assign is safe as it comes from a rest object
     if (seriesOverrides != null) Object.assign(seriesOptions, seriesOverrides);
 

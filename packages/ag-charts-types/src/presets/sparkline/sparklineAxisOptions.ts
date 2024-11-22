@@ -1,6 +1,8 @@
 import type { CssColor, PixelSize, Ratio } from '../../chart/types';
 
 export interface AgSparklineBaseAxisOptions {
+    /** Type of axis. Defaults to 'category' if undefined. */
+    type?: string;
     /** Whether the axis should be shown. */
     visible?: boolean;
     /** The colour of the axis line. */
@@ -28,20 +30,21 @@ export interface AgSparklineContinuousAxisOptions<TDatum extends Date | number> 
 }
 
 export interface AgSparklineCategoryAxisOptions extends AgSparklineBaseCategoryAxisOptions {
-    type?: 'category';
+    type: 'category';
 }
 
 export interface AgSparklineNumberAxisOptions
     extends AgSparklineBaseAxisOptions,
         AgSparklineContinuousAxisOptions<number> {
-    type?: 'number';
+    type: 'number';
 }
 
 export interface AgSparklineTimeAxisOptions extends AgSparklineBaseAxisOptions, AgSparklineContinuousAxisOptions<Date> {
-    type?: 'time';
+    type: 'time';
 }
 
 export type AgSparklineAxisOptions =
     | AgSparklineCategoryAxisOptions
     | AgSparklineNumberAxisOptions
-    | AgSparklineTimeAxisOptions;
+    | AgSparklineTimeAxisOptions
+    | AgSparklineBaseAxisOptions;
