@@ -1,3 +1,5 @@
+import { Caster, ClassTypePair } from 'ag-charts-test';
+
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
 import { Scene } from '../../scene/scene';
@@ -14,7 +16,6 @@ import { LegendMarkerLabel } from '../legend/legendMarkerLabel';
 import { Navigator } from '../navigator/navigator';
 import { NavigatorDOMProxy } from '../navigator/navigatorDOMProxy';
 import { SeriesAreaManager } from '../series/seriesAreaManager';
-import { Caster, ClassTypePair } from './caster';
 
 const CAST_INFO = {
     Array: new ClassTypePair<unknown[], typeof Array>(Array),
