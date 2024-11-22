@@ -10,7 +10,7 @@ import type {
     TypeNode,
     TypeParameterNode,
 } from '@generate-code-reference-plugin/doc-interfaces/types';
-import Flexsearch from 'flexsearch';
+import type Flexsearch from 'flexsearch';
 
 type PossibleTypeNode = TypeNode | undefined | PossibleTypeNode[];
 
