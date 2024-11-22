@@ -18,7 +18,7 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
-import { SpringAnimation, type SpringAnimationUpdateEvent } from './springAnimation';
+import { SpringAnimation } from './springAnimation';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
 export const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-chart-dark-tooltip';
@@ -194,7 +194,7 @@ export class Tooltip extends BaseProperties {
     constructor() {
         super();
 
-        this.destroyFns.push(this.springAnimation.addListener('update', this.onSpring.bind(this)));
+        this.destroyFns.push(this.springAnimation.addListener('update', this.updateTooltipPosition.bind(this)));
     }
 
     setup(domManager: DOMManager) {
@@ -214,12 +214,12 @@ export class Tooltip extends BaseProperties {
         return !this.element?.classList.contains(DEFAULT_TOOLTIP_CLASS + '-hidden');
     }
 
-    private onSpring(e: SpringAnimationUpdateEvent) {
+    private updateTooltipPosition() {
         const { element, positionParams } = this;
         if (element == null || positionParams == null) return;
 
         const { canvasRect, relativeRect, meta } = positionParams;
-        const { x: canvasX, y: canvasY } = e;
+        const { x: canvasX, y: canvasY } = this.springAnimation;
 
         const positionType = meta.position?.type ?? this.position.type;
         const xOffset = meta.position?.xOffset ?? 0;
@@ -347,6 +347,12 @@ export class Tooltip extends BaseProperties {
         classList.toggle(DEFAULT_TOOLTIP_DARK_CLASS, this.darkTheme);
 
         this.element.togglePopover(visible);
+
+        if (visible) {
+            // We can only measure the element when it's actually visible
+            // This removes a possible jump for the tooltip
+            this.updateTooltipPosition();
+        }
 
         for (const wrapType of this.wrapTypes) {
             classList.toggle(`${DEFAULT_TOOLTIP_CLASS}-wrap-${wrapType}`, wrapType === this.wrapping);
