@@ -14,7 +14,6 @@ import type {
     AgPriceVolumePreset,
     AgRangeAreaSeriesOptions,
     AgRangeBarSeriesOptions,
-    AgToolbarOptions,
     AgZoomOptions,
 } from 'ag-charts-types';
 
@@ -94,6 +93,9 @@ export function priceVolume(
     const annotationOpts = {
         annotations: {
             enabled: toolbar,
+            toolbar: {
+                enabled: toolbar,
+            },
             optionsToolbar: {
                 enabled: toolbar,
             },
@@ -130,18 +132,12 @@ export function priceVolume(
     };
 
     const toolbarOpts = {
-        chartToolbar: { enabled: true },
+        chartToolbar: {
+            enabled: toolbar,
+        },
         ranges: {
             enabled: rangeButtons,
         },
-        toolbar: {
-            seriesType: {
-                enabled: toolbar,
-            },
-            annotations: {
-                enabled: toolbar,
-            },
-        } satisfies AgToolbarOptions,
     };
 
     const volumeAxis = volume

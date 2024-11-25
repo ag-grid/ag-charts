@@ -14,12 +14,6 @@ export const SELECTORS = {
     legendItem0: '#ag-charts-legend-item-0',
     legendItem1: '#ag-charts-legend-item-1',
     legendItem2: '#ag-charts-legend-item-2',
-
-    textAnnotationMenu: '[data-toolbar-group="annotations"][data-toolbar-id="text-menu"]',
-    lineAnnotationMenu: '[data-toolbar-group="annotations"][data-toolbar-id="line-menu"]',
-
-    commentMenuItem: '[data-popover-id="comment"]',
-    horizontalLineMenuItem: '[data-popover-id="horizontal-line"]',
 } as const;
 
 export function getExamples() {

@@ -375,62 +375,6 @@ exports[`ChartOptions #prepareOptions for ADV_CHART_CUSTOMISATION it should prep
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
-  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -846,62 +790,6 @@ exports[`ChartOptions #prepareOptions for ADV_COMBINATION_SERIES_CHART_EXAMPLE i
     "text": "Cattle Holdings and Beef Exports (UK)",
     "textAlign": "center",
     "wrapping": "hyphenate",
-  },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -1464,62 +1352,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_MARKER_SHAPES_EXAMPLE it sh
     "text": "Taxed Alcohol Consumption (UK)",
     "textAlign": "center",
     "wrapping": "hyphenate",
-  },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -2086,62 +1918,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
-  },
   "tooltip": {
     "class": "my-tooltip",
     "darkTheme": false,
@@ -2354,62 +2130,6 @@ exports[`ChartOptions #prepareOptions for ADV_PER_MARKER_CUSTOMISATION_EXAMPLE i
     "text": "Worldwide Earthquakes",
     "textAlign": "center",
     "wrapping": "hyphenate",
-  },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -2811,62 +2531,6 @@ exports[`ChartOptions #prepareOptions for ADV_TIME_AXIS_WITH_IRREGULAR_INTERVALS
     "text": "Earthquake Magnitudes by Source",
     "textAlign": "center",
     "wrapping": "hyphenate",
-  },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -3390,62 +3054,6 @@ exports[`ChartOptions #prepareOptions for AREA_GRAPH_WITH_NEGATIVE_VALUES_EXAMPL
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
-  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -3673,62 +3281,6 @@ by Occupation",
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
-  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -3953,62 +3505,6 @@ exports[`ChartOptions #prepareOptions for BAR_CHART_WITH_LABELS_EXAMPLE it shoul
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
-  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -4219,62 +3715,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_CATEGORIES_EXAMPLE i
     "text": "Punch Card of Github",
     "textAlign": "center",
     "wrapping": "hyphenate",
-  },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -4488,62 +3928,6 @@ exports[`ChartOptions #prepareOptions for BUBBLE_GRAPH_WITH_NEGATIVE_VALUES_EXAM
     "text": "Most Populous Cities",
     "textAlign": "center",
     "wrapping": "hyphenate",
-  },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -4875,62 +4259,6 @@ exports[`ChartOptions #prepareOptions for COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAM
     "text": "Changes in Prison Population",
     "textAlign": "center",
     "wrapping": "hyphenate",
-  },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -5266,62 +4594,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_BAR_CHART_EXAMPLE it should pr
     "text": "Annual Growth in Pay",
     "textAlign": "center",
     "wrapping": "hyphenate",
-  },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -5900,62 +5172,6 @@ exports[`ChartOptions #prepareOptions for GROUPED_COLUMN_EXAMPLE it should prepa
     "text": "Regular Internet Users",
     "textAlign": "center",
     "wrapping": "hyphenate",
-  },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -6952,62 +6168,6 @@ exports[`ChartOptions #prepareOptions for LINE_GRAPH_WITH_GAPS_EXAMPLE it should
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
-  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -7224,62 +6384,6 @@ exports[`ChartOptions #prepareOptions for LOG_AXIS_EXAMPLE it should prepare opt
     "text": "World Population Over Time",
     "textAlign": "center",
     "wrapping": "hyphenate",
-  },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -7953,62 +7057,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_AREA_GRAPH
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
-  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -8397,62 +7445,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_BAR_EXAMPL
     "text": "Internet Users by Geographical Location",
     "textAlign": "center",
     "wrapping": "hyphenate",
-  },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -8985,62 +7977,6 @@ exports[`ChartOptions #prepareOptions for ONE_HUNDRED_PERCENT_STACKED_COLUMNS_EX
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
-  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -9475,62 +8411,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_AREA_GRAPH_EXAMPLE it should pr
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
-  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -9750,62 +8630,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_COLUMN_CHART_EXAMPLE it should 
     "text": "Total Visitors to Museums and Galleries",
     "textAlign": "center",
     "wrapping": "hyphenate",
-  },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -10354,62 +9178,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_LINE_CHART_EXAMPLE it should pr
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
-  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -10772,62 +9540,6 @@ exports[`ChartOptions #prepareOptions for SIMPLE_SCATTER_CHART_EXAMPLE it should
     "text": "Height vs Weight for Major League Baseball Players",
     "textAlign": "center",
     "wrapping": "hyphenate",
-  },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -11462,62 +10174,6 @@ exports[`ChartOptions #prepareOptions for STACKED_AREA_GRAPH_EXAMPLE it should p
     "textAlign": "center",
     "wrapping": "hyphenate",
   },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
-  },
   "tooltip": {
     "darkTheme": false,
     "delay": 0,
@@ -11935,62 +10591,6 @@ exports[`ChartOptions #prepareOptions for STACKED_BAR_CHART_EXAMPLE it should pr
     "text": "UK Housing Stock",
     "textAlign": "center",
     "wrapping": "hyphenate",
-  },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
   },
   "tooltip": {
     "darkTheme": false,
@@ -12479,62 +11079,6 @@ exports[`ChartOptions #prepareOptions for STACKED_COLUMN_GRAPH_EXAMPLE it should
     "text": "Average Station Entries",
     "textAlign": "center",
     "wrapping": "hyphenate",
-  },
-  "toolbar": {
-    "annotations": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "icon": "trend-line-drawing",
-          "section": "line-annotations",
-          "tooltip": "toolbarAnnotationsLineAnnotations",
-          "value": "line-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "text-annotation",
-          "section": "text-annotations",
-          "tooltip": "toolbarAnnotationsTextAnnotations",
-          "value": "text-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "arrow-drawing",
-          "section": "shape-annotations",
-          "tooltip": "toolbarAnnotationsShapeAnnotations",
-          "value": "shape-menu",
-        },
-        {
-          "haspopup": true,
-          "icon": "measurer-drawing",
-          "section": "measure-annotations",
-          "tooltip": "toolbarAnnotationsMeasurerAnnotations",
-          "value": "measurer-menu",
-        },
-        {
-          "icon": "delete",
-          "section": "tools",
-          "tooltip": "toolbarAnnotationsClearAll",
-          "value": "clear",
-        },
-      ],
-      "enabled": true,
-      "position": "left",
-    },
-    "enabled": true,
-    "seriesType": {
-      "align": "start",
-      "buttons": [
-        {
-          "haspopup": true,
-          "tooltip": "toolbarSeriesTypeDropdown",
-          "value": "type",
-        },
-      ],
-      "enabled": false,
-      "position": "left",
-    },
   },
   "tooltip": {
     "darkTheme": false,

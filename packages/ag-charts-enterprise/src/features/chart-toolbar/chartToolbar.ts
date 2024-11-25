@@ -1,6 +1,6 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
 
-const { BOOLEAN, ActionOnSet, Menu, Validate, Logger } = _ModuleSupport;
+const { BOOLEAN, ActionOnSet, LayoutElement, Logger, Menu, Toolbar, Validate } = _ModuleSupport;
 
 const menuItems: _ModuleSupport.MenuItem<AgPriceVolumeChartType>[] = [
     { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc-series', value: 'ohlc' },
@@ -12,9 +12,6 @@ const menuItems: _ModuleSupport.MenuItem<AgPriceVolumeChartType>[] = [
     { label: 'toolbarSeriesTypeHighLow', icon: 'high-low-series', value: 'high-low' },
 ];
 
-const BUTTON_GROUP = 'seriesType';
-const BUTTON_VALUE = 'type';
-
 export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
     @ActionOnSet<ChartToolbar>({
@@ -24,66 +21,73 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     })
     enabled: boolean = false;
 
+    private readonly toolbar = new Toolbar(this.ctx, this.onButtonPressed.bind(this));
     private readonly menu = new Menu(this.ctx, 'chart-toolbar');
+    private readonly horizontalSpacing = 10;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.destroyFns.push(
-            ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
-            ctx.toolbarManager.addListener('button-moved', this.onToolbarButtonMoved.bind(this)),
-            ctx.toolbarManager.addListener('button-pressed', this.onToolbarButtonPressed.bind(this))
-        );
+        this.toolbar.addClass('ag-charts-chart-toolbar');
+        this.toolbar.orientation = 'vertical';
+        ctx.domManager.addChild('canvas-overlay', 'chart-toolbar', this.toolbar.getElement());
+
+        this.destroyFns.push(ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)));
     }
 
     private onEnableChanged(enabled: boolean) {
-        this.ctx.toolbarManager.toggleGroup('chart-toolbar', BUTTON_GROUP, { visible: enabled });
+        if (!this.toolbar) return;
+        this.toolbar.toggleButtonVisibilities(enabled ? [0] : []);
     }
 
-    private onLayoutComplete() {
-        if (!this.enabled) return;
+    private onLayoutStart(event: _ModuleSupport.LayoutContext) {
+        const { horizontalSpacing, toolbar } = this;
+        const { layoutBox } = event;
 
         const chartType = this.getChartType();
         const icon = menuItems.find((item) => item.value === chartType)?.icon;
+
         if (icon != null) {
-            this.ctx.toolbarManager.updateButton(BUTTON_GROUP, BUTTON_VALUE, { icon });
+            this.toolbar.updateButtons([{ icon, tooltip: 'toolbarSeriesTypeDropdown' }]);
         }
+
+        const width = toolbar.getBounds().width;
+        toolbar.setBounds({
+            x: layoutBox.x,
+            y: layoutBox.y,
+            width: width,
+        });
+
+        layoutBox.shrink({ left: width + horizontalSpacing });
     }
 
-    private setAnchor(anchor: _ModuleSupport.BBox) {
-        this.menu.setAnchor({ x: anchor.x + anchor.width + 6, y: anchor.y });
-    }
-
-    private onToolbarButtonMoved(e: _ModuleSupport.ToolbarButtonMovedEvent<any>) {
-        if (e.group !== BUTTON_GROUP) return;
-        this.setAnchor(e.rect);
-    }
-
-    private onToolbarButtonPressed(e: _ModuleSupport.ToolbarButtonPressedEvent<any>) {
-        if (e.group !== BUTTON_GROUP) return;
-
-        this.setAnchor(e.rect);
-
+    private onButtonPressed(
+        event: _ModuleSupport.MouseWidgetEvent<'click'>,
+        _: _ModuleSupport.ToolbarButtonOptions,
+        buttonBounds: _ModuleSupport.BBoxValues
+    ) {
+        this.menu.setAnchor({ x: buttonBounds.x + buttonBounds.width + 6, y: buttonBounds.y });
         this.menu.show({
             items: menuItems,
             menuItemRole: 'menuitemradio',
             ariaLabel: this.ctx.localeManager.t('toolbarSeriesTypeDropdown'),
+            class: 'ag-charts-chart-toolbar__menu',
             value: this.getChartType(),
-            sourceEvent: e.sourceEvent,
+            sourceEvent: event.sourceEvent,
             onPress: (item) => {
                 this.setChartType(item.value);
                 this.hidePopover();
             },
             onHide: () => {
-                this.ctx.toolbarManager.toggleButton(BUTTON_GROUP, BUTTON_VALUE, { active: false });
+                this.toolbar.clearActiveButton();
             },
         });
 
-        this.ctx.toolbarManager.toggleButton(BUTTON_GROUP, BUTTON_VALUE, { active: true });
+        this.toolbar.toggleActiveButtonByIndex(0);
     }
 
     private hidePopover() {
-        this.ctx.toolbarManager.toggleButton(BUTTON_GROUP, BUTTON_VALUE, { active: false });
+        this.toolbar.clearActiveButton();
         this.menu.hide();
     }
 

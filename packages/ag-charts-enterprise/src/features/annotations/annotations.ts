@@ -59,9 +59,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         if (newValue === oldValue) return;
 
-        // TODO: This should call `target.toolbar.toggle(Boolean(newValue))`, but `target.toolbar` is undefined when
-        // the module is first enabled.
-        target.ctx.toolbarManager.toggleGroup('annotations', 'annotations', { visible: Boolean(newValue) });
+        target.toolbar?.toggleVisibility(Boolean(newValue));
 
         // Restore the annotations only if this module was previously disabled
         if (oldValue === false && newValue === true) {
@@ -72,6 +70,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     })
     @Validate(BOOLEAN)
     public enabled: boolean = true;
+
+    @Validate(OBJECT)
+    public readonly toolbar = new AnnotationsToolbar(this.ctx);
 
     @Validate(OBJECT)
     public optionsToolbar = new AnnotationOptionsToolbar(this.ctx, () => {
@@ -109,8 +110,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private xAxis?: AnnotationAxis;
     private yAxis?: AnnotationAxis;
-
-    private readonly toolbar = new AnnotationsToolbar(this.ctx);
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();

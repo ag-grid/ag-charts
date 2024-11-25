@@ -19,7 +19,6 @@ export * from './chart/navigatorOptions';
 export * from './chart/polarAxisOptions';
 export * from './chart/rangesOptions';
 export * from './chart/themeOptions';
-export * from './chart/toolbarOptions';
 export * from './chart/tooltipOptions';
 export * from './chart/types';
 export * from './chart/zoomOptions';

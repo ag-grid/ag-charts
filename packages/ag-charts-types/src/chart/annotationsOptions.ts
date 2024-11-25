@@ -110,6 +110,8 @@ export interface AgAnnotationsOptions extends Toggleable {
     /** The options for the axes buttons */
     axesButtons?: AgAnnotationAxesButtons;
     /** TODO */
+    toolbar?: AgAnnotationsToolbar;
+    /** TODO */
     optionsToolbar?: AgAnnotationOptionsToolbar;
 }
 
@@ -447,6 +449,34 @@ interface Extendable {
 }
 
 export type AgAnnotationValue = string | number | AgStateSerializableDate;
+
+// ***********
+// * Toolbar *
+// ***********/
+
+export interface AgAnnotationsToolbar extends Toggleable {
+    buttons?: Array<AgAnnotationsToolbarButton>;
+}
+
+export interface AgAnnotationsToolbarButton extends ToolbarButton {
+    value: AgAnnotationsToolbarButtonValue;
+}
+
+export type AgAnnotationsToolbarButtonValue =
+    | 'line-menu'
+    | 'text-menu'
+    | 'shape-menu'
+    | 'measurer-menu'
+    | 'line'
+    | 'horizontal-line'
+    | 'vertical-line'
+    | 'parallel-channel'
+    | 'disjoint-channel'
+    | 'text'
+    | 'comment'
+    | 'callout'
+    | 'note'
+    | 'clear';
 
 // *******************
 // * Options Toolbar *
