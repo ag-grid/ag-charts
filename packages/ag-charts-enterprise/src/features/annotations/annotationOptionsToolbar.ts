@@ -39,21 +39,23 @@ const {
 interface EventMap {
     'pressed-delete': void;
     'pressed-settings': { sourceEvent: Event };
-    'save-color': {
+    'pressed-lock': void;
+    'hid-overlays': void;
+    'saved-color': {
         type: HasColorAnnotationType;
         colorPickerType: AnnotationOptionsColorPickerType;
         color: string | undefined;
     };
-    'update-color': {
+    'updated-color': {
         type: HasColorAnnotationType;
         colorPickerType: AnnotationOptionsColorPickerType;
         colorOpacity: string;
         color: string;
         opacity: number;
     };
-    'update-font-size': { type: HasFontSizeAnnotationType; fontSize: number };
-    'update-line-style': { type: HasLineStyleAnnotationType; lineStyleType: AgAnnotationLineStyleType };
-    'update-line-width': { type: HasLineStyleAnnotationType; strokeWidth: number };
+    'updated-font-size': { type: HasFontSizeAnnotationType; fontSize: number };
+    'updated-line-style': { type: HasLineStyleAnnotationType; lineStyleType: AgAnnotationLineStyleType };
+    'updated-line-width': { type: HasLineStyleAnnotationType; strokeWidth: number };
 }
 
 class AnnotationOptionsButtonProperties extends ToolbarButtonProperties {
@@ -107,13 +109,13 @@ class AnnotationOptionsButtonWidget extends ToolbarButtonWidget {
 
     private updateFillColor(options: AnnotationOptionsButtonOptions) {
         const element = this.getElement();
-        element.classList.add('ag-charts-annotations-fill-button');
+        element.classList.add('ag-charts-annotations__fill-button');
         element.style.setProperty('--fill', options.fill ?? null);
     }
 
     private updateLineStrokeWidth(options: AnnotationOptionsButtonOptions) {
         const element = this.getElement();
-        element.classList.add('ag-charts-annotations-stroke-width-button');
+        element.classList.add('ag-charts-annotations__stroke-width-button');
         element.style.setProperty('--stroke-width', `${options.strokeWidth}px`);
     }
 }
@@ -190,7 +192,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         this.toolbar.hide();
     }
 
-    public toggleButtons() {
+    public refreshButtons() {
         const datum = this.getActiveDatum();
         if (!datum) return;
 
@@ -235,10 +237,16 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     }
 
     public hideOverlays() {
+        this.toolbar.clearActiveButton();
         this.colorPicker.hide({ lastFocus: null });
         this.textSizeMenu.hide();
         this.lineStyleTypeMenu.hide();
         this.lineStrokeWidthMenu.hide();
+        this.dispatch('hid-overlays');
+    }
+
+    public clearActiveButton() {
+        this.toolbar.clearActiveButton();
     }
 
     private updateFills(datum: AnnotationProperties) {
@@ -296,7 +304,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         this.toolbar.updateButtons(this.buttons.toJson() as any);
     }
 
-    private onButtonPress(button: { value: any }, event: _ModuleSupport.MouseWidgetEvent<'click'>) {
+    private onButtonPress(event: _ModuleSupport.MouseWidgetEvent<'click'>, button: { index: number; value: any }) {
         const datum = this.getActiveDatum();
         if (!datum) return;
 
@@ -311,7 +319,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
                     value: lineStyle,
                     sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onLineStyleTypeMenuPress(item, datum),
-                    class: 'annotations__line-style-type',
+                    class: 'ag-charts-annotations__line-style-type-menu',
                 });
                 break;
             }
@@ -324,7 +332,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
                     value: strokeWidth,
                     sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onLineStrokeWidthMenuPress(item, datum),
-                    class: 'annotations__line-stroke-width',
+                    class: 'ag-charts-annotations__line-stroke-width-menu',
                 });
                 break;
             }
@@ -332,13 +340,14 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
             case AnnotationOptions.LineColor:
             case AnnotationOptions.FillColor:
             case AnnotationOptions.TextColor: {
+                this.toolbar.toggleActiveButtonByIndex(button.index);
                 this.colorPicker.show({
                     color: datum?.getDefaultColor(button.value),
                     opacity: datum?.getDefaultOpacity(button.value),
                     sourceEvent: event.sourceEvent,
                     onChange: datum != null ? this.onColorPickerChange.bind(this, button.value, datum) : undefined,
                     onChangeHide: ((type: AnnotationOptionsColorPickerType) => {
-                        this.dispatch('save-color', {
+                        this.dispatch('saved-color', {
                             type: datum.type,
                             colorPickerType: button.value as AnnotationOptionsColorPickerType,
                             color: datum.getDefaultColor(type),
@@ -356,7 +365,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
                     value: fontSize,
                     sourceEvent: event.sourceEvent,
                     onPress: (item) => this.onTextSizeMenuPress(item, datum),
-                    class: 'ag-charts-annotations-text-size-menu',
+                    class: 'ag-charts-annotations__text-size-menu',
                 });
                 break;
             }
@@ -368,11 +377,13 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
 
             case AnnotationOptions.Lock: {
                 datum.locked = !datum.locked;
-                this.toggleButtons();
+                this.refreshButtons();
+                this.dispatch('pressed-lock');
                 break;
             }
 
             case AnnotationOptions.Settings: {
+                this.toolbar.toggleActiveButtonByIndex(button.index);
                 this.dispatch('pressed-settings', event);
                 break;
             }
@@ -421,7 +432,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         color: string,
         opacity: number
     ) {
-        this.dispatch('update-color', { type: datum.type, colorPickerType, colorOpacity, color, opacity });
+        this.dispatch('updated-color', { type: datum.type, colorPickerType, colorOpacity, color, opacity });
         this.updateColorPickerFill(colorPickerType, colorOpacity);
     }
 
@@ -429,7 +440,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         if (!hasFontSize(datum)) return;
 
         const fontSize = item.value;
-        this.dispatch('update-font-size', { type: datum.type, fontSize });
+        this.dispatch('updated-font-size', { type: datum.type, fontSize });
         this.textSizeMenu.hide();
         this.updateFontSize(fontSize);
     }
@@ -441,7 +452,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         if (!hasLineStyle(datum)) return;
 
         const type = item.value;
-        this.dispatch('update-line-style', { type: datum.type, lineStyleType: type });
+        this.dispatch('updated-line-style', { type: datum.type, lineStyleType: type });
         this.lineStyleTypeMenu.hide();
         this.updateLineStyleType(item);
     }
@@ -452,7 +463,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         }
 
         const strokeWidth = item.value;
-        this.dispatch('update-line-width', { type: datum.type, strokeWidth });
+        this.dispatch('updated-line-width', { type: datum.type, strokeWidth });
         this.lineStrokeWidthMenu.hide();
         this.updateStrokeWidth(item);
     }

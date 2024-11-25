@@ -135,7 +135,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 this.hideOverlays();
                 this.deleteEphemeralAnnotations();
                 this.toolbar.resetButtonStates();
-                this.optionsToolbar.toggleButtons();
+                this.optionsToolbar.refreshButtons();
                 this.update();
             },
 
@@ -221,7 +221,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     this.ctx.interactionManager.pushState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
                     tooltipManager.suppressTooltip('annotations');
-                    this.optionsToolbar.toggleButtons();
+                    this.optionsToolbar.refreshButtons();
                     this.postUpdateFns.push(() => {
                         // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
                         // element has a width and height that it can use in the anchor calculations.
@@ -358,7 +358,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const node = this.annotations.at(active);
                 if (!node || isEphemeralType(this.annotationData.at(active))) return;
 
-                this.optionsToolbar.toggleButtons();
+                this.optionsToolbar.refreshButtons();
                 this.optionsToolbar.show();
                 this.optionsToolbar.setAnchorScene(node);
             },
@@ -432,7 +432,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private setupListeners() {
-        const { ctx, optionsToolbar, toolbar } = this;
+        const { ctx, optionsToolbar, settingsDialog, toolbar } = this;
         const { All, Default, Annotations: AnnotationsState, AnnotationsSelected, ZoomDrag } = InteractionState;
 
         const seriesRegion = ctx.regionManager.getRegion('series');
@@ -491,23 +491,34 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             optionsToolbar.addListener('pressed-settings', ({ sourceEvent }) => {
                 this.state.transition('toolbarPressSettings', sourceEvent);
             }),
-            optionsToolbar.addListener('save-color', ({ type, colorPickerType, color }) => {
+            optionsToolbar.addListener('pressed-lock', () => {
+                this.update();
+            }),
+            optionsToolbar.addListener('hid-overlays', () => {
+                this.settingsDialog.hide();
+            }),
+            optionsToolbar.addListener('saved-color', ({ type, colorPickerType, color }) => {
                 this.recordActionAfterNextUpdate(`Change ${type} ${colorPickerType} to ${color}`, [
                     'annotations',
                     'defaults',
                 ]);
             }),
-            optionsToolbar.addListener('update-color', ({ type, colorPickerType, colorOpacity, color, opacity }) => {
+            optionsToolbar.addListener('updated-color', ({ type, colorPickerType, colorOpacity, color, opacity }) => {
                 this.setColorAndDefault(type, colorPickerType, colorOpacity, color, opacity);
             }),
-            optionsToolbar.addListener('update-font-size', ({ type, fontSize }) => {
+            optionsToolbar.addListener('updated-font-size', ({ type, fontSize }) => {
                 this.setFontSizeAndDefault(type, fontSize);
             }),
-            optionsToolbar.addListener('update-line-style', ({ type, lineStyleType }) => {
+            optionsToolbar.addListener('updated-line-style', ({ type, lineStyleType }) => {
                 this.setLineStyleTypeAndDefault(type, lineStyleType);
             }),
-            optionsToolbar.addListener('update-line-width', ({ type, strokeWidth }) => {
+            optionsToolbar.addListener('updated-line-width', ({ type, strokeWidth }) => {
                 this.setLineStyleWidthAndDefault(type, strokeWidth);
+            }),
+
+            // Settings Dialog
+            settingsDialog.addListener('hidden', () => {
+                this.optionsToolbar.clearActiveButton();
             }),
 
             // DOM

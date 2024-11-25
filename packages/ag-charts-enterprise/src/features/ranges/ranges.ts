@@ -11,16 +11,14 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
     @Validate(OBJECT)
     public buttons = new PropertiesArray(RangesButtonProperties);
 
-    private readonly verticalSpacing = 10;
-
     private readonly toolbar = new Toolbar(this.ctx, this.onButtonPress.bind(this));
+    private readonly verticalSpacing = 10;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        const element = this.toolbar.getElement();
-        element.classList.add('ag-charts-range-buttons');
-        ctx.domManager.addChild('canvas-overlay', 'range-buttons', element);
+        this.toolbar.addClass('ag-charts-range-buttons');
+        ctx.domManager.addChild('canvas-overlay', 'range-buttons', this.toolbar.getElement());
 
         this.destroyFns.push(
             ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
@@ -33,9 +31,9 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
         const { buttons, toolbar, verticalSpacing } = this;
         const { layoutBox } = event;
 
-        this.toolbar.updateButtons(buttons);
+        toolbar.updateButtons(buttons);
 
-        const height = toolbar.getElement().offsetHeight;
+        const height = toolbar.getBounds().height;
         toolbar.setBounds({
             x: layoutBox.x,
             y: layoutBox.y + layoutBox.height - height,
@@ -50,8 +48,7 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
         this.toolbar.clearActiveButton();
     }
 
-    private onButtonPress(event: { index: number }) {
-        const { index } = event;
+    private onButtonPress(_: _ModuleSupport.MouseWidgetEvent<'click'>, { index }: { index: number }) {
         const { zoomManager } = this.ctx;
 
         const button = this.buttons.at(index);

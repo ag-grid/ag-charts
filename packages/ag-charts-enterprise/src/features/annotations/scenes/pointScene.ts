@@ -19,7 +19,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         handle: _ModuleSupport.Vec2;
     };
 
-    protected anchor: _ModuleSupport.ToolbarAnchor = {
+    protected anchor: _ModuleSupport.FloatingToolbarAnchor = {
         x: 0,
         y: 0,
         position: 'above',
@@ -88,7 +88,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         return copiedDatum;
     }
 
-    override getAnchor(): _ModuleSupport.ToolbarAnchor {
+    override getAnchor(): _ModuleSupport.FloatingToolbarAnchor {
         return this.anchor;
     }
 

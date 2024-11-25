@@ -1,17 +1,24 @@
-import type { ToolbarAnchor } from '../../chart/toolbar/toolbarTypes';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import type { BBoxValues } from '../../util/bboxinterface';
+import { createElement, getIconClassNames } from '../../util/dom';
 import { clamp } from '../../util/number';
 import type { Vec2 } from '../../util/vector';
+import { NativeWidget } from '../../widget/nativeWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { DraggablePopover } from '../popover/draggablePopover';
 import type { PopoverOptions } from '../popover/popover';
 import { BaseToolbar, type ToolbarButtonOptions } from './toolbar';
 import type { ToolbarButtonWidget } from './toolbarButtonWidget';
 
+export interface FloatingToolbarAnchor {
+    x: number;
+    y: number;
+    position?: 'above' | 'above-left' | 'right' | 'below';
+}
+
 class FloatingToolbarPopover extends DraggablePopover<PopoverOptions> {
-    override dragHandleDraggingClass = 'ag-charts-toolbar__drag-handle--dragging';
+    override dragHandleDraggingClass = 'ag-charts-floating-toolbar__drag-handle--dragging';
 
     constructor(
         ctx: ModuleContext,
@@ -47,7 +54,7 @@ class FloatingToolbarPopover extends DraggablePopover<PopoverOptions> {
         return this.dragged;
     }
 
-    public setAnchor(anchor: ToolbarAnchor, horizontalSpacing: number, verticalSpacing: number) {
+    public setAnchor(anchor: FloatingToolbarAnchor, horizontalSpacing: number, verticalSpacing: number) {
         const element = this.getPopoverElement();
         if (!element) return;
 
@@ -99,18 +106,19 @@ export abstract class FloatingToolbar<
     ButtonOptions extends ToolbarButtonOptions,
     ButtonWidget extends ToolbarButtonWidget,
 > extends BaseToolbar<ButtonOptions, ButtonWidget> {
+    protected override hasPrefix = true;
+
     private readonly popover: FloatingToolbarPopover;
 
     constructor(
         ctx: ModuleContext,
         id: string,
-        onButtonPress: (button: ButtonOptions & { index: number }, event: MouseWidgetEvent<'click'>) => void,
+        onButtonPress: (event: MouseWidgetEvent<'click'>, button: ButtonOptions & { index: number }) => void,
         private readonly onToolbarMoved: (event: { buttonBounds: Array<BBoxValues>; popoverBounds: BBoxValues }) => void
     ) {
-        super(ctx, onButtonPress, (event: MouseEvent, element: HTMLElement) =>
-            this.popover.startDragging(event, element)
-        );
+        super(ctx, onButtonPress);
         this.popover = new FloatingToolbarPopover(ctx, id, this.onPopoverMoved.bind(this));
+        this.createDragHandle();
     }
 
     public show(options: PopoverOptions) {
@@ -121,7 +129,7 @@ export abstract class FloatingToolbar<
         this.popover.hide();
     }
 
-    public setAnchor(anchor: ToolbarAnchor) {
+    public setAnchor(anchor: FloatingToolbarAnchor) {
         this.popover.setAnchor(anchor, this.horizontalSpacing, this.verticalSpacing);
     }
 
@@ -143,5 +151,20 @@ export abstract class FloatingToolbar<
             (bounds) => new BBox(bounds.x + popoverBounds.x, bounds.y + popoverBounds.y, bounds.width, bounds.height)
         );
         this.onToolbarMoved({ popoverBounds, buttonBounds });
+    }
+
+    private createDragHandle() {
+        const { popover } = this;
+
+        const dragHandle = new NativeWidget<HTMLElement>(
+            createElement('div', 'ag-charts-floating-toolbar__drag-handle')
+        );
+        dragHandle.getElement().innerHTML = `<span class="${getIconClassNames('drag-handle')} ag-charts-toolbar__icon"></span>`;
+        dragHandle.getElement().addEventListener('mousedown', (event) => {
+            popover.startDragging(event, dragHandle.getElement());
+        });
+        dragHandle.getElement().title = this.ctx.localeManager.t('toolbarAnnotationsDragHandle');
+
+        this.appendChild(dragHandle);
     }
 }

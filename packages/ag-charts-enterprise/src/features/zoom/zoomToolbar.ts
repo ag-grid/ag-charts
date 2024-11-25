@@ -74,9 +74,8 @@ export class ZoomToolbar extends BaseProperties {
         super();
 
         this.container = new NativeWidget(createElement('div'));
-        const element = this.container.getElement();
-        element.classList.add('ag-charts-zoom-buttons');
-        ctx.domManager.addChild('canvas-overlay', 'zoom-buttons', element);
+        this.container.addClass('ag-charts-zoom-buttons');
+        ctx.domManager.addChild('canvas-overlay', 'zoom-buttons', this.container.getElement());
 
         this.container.appendChild(this.toolbar);
 
@@ -108,7 +107,7 @@ export class ZoomToolbar extends BaseProperties {
         this.toolbar.updateButtons(buttons);
         this.toggleButtons(definedZoomState(this.ctx.zoomManager.getZoom()), this.getModuleProperties());
 
-        const height = container.getElement().offsetHeight;
+        const height = container.getBounds().height;
         container.setBounds({ y: rect.y + rect.height - height });
     }
 
@@ -137,12 +136,12 @@ export class ZoomToolbar extends BaseProperties {
     private toggleVisibility(visible: boolean) {
         const { container, toolbar, verticalSpacing } = this;
 
-        const element = toolbar.getElement();
+        toolbar.toggleClass('ag-charts-zoom-buttons__toolbar--hidden', !visible);
 
-        element.classList.toggle('ag-charts-zoom-buttons__toolbar--hidden', !visible);
+        const element = toolbar.getElement();
         element.style.transform = visible
             ? 'translateY(0)'
-            : `translateY(${container.getElement().offsetHeight + verticalSpacing}px)`;
+            : `translateY(${container.getBounds().height + verticalSpacing}px)`;
     }
 
     private toggleButtons(zoom: DefinedZoomState, props: ZoomProperties) {
@@ -177,17 +176,17 @@ export class ZoomToolbar extends BaseProperties {
         }
     }
 
-    private onButtonPress(event: { value: AgZoomButtonValue }) {
+    private onButtonPress(_: _ModuleSupport.MouseWidgetEvent<'click'>, button: { value: AgZoomButtonValue }) {
         const props = this.getModuleProperties();
 
-        if (props.independentAxes && event.value !== 'reset') {
+        if (props.independentAxes && button.value !== 'reset') {
             const axisZooms = this.ctx.zoomManager.getAxisZooms();
             for (const [axisId, { direction, zoom }] of Object.entries(axisZooms)) {
                 if (zoom == null) continue;
-                this.onButtonPressAxis(event, props, axisId, direction, zoom);
+                this.onButtonPressAxis(button, props, axisId, direction, zoom);
             }
         } else {
-            this.onButtonPressUnified(event, props);
+            this.onButtonPressUnified(button, props);
         }
     }
 
