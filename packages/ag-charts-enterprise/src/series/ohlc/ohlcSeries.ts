@@ -187,7 +187,11 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, data } = this;
+        const {
+            id,
+            data,
+            ctx: { legendManager },
+        } = this;
         const {
             xKey,
             yName,
@@ -217,7 +221,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
                 id,
                 itemId: id,
                 seriesId: id,
-                enabled: visible,
+                enabled: visible && legendManager.getItemEnabled({ seriesId: id, itemId: id }),
                 label: {
                     text: legendItemName ?? yName ?? id,
                 },
