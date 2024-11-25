@@ -12,8 +12,6 @@ import ImageCarousel from '../components/homepage/components/hero/ImageCarousel'
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { Version } from '@ag-website-shared/components/whats-new/components/Version';
 import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
-import { getIsProduction, getIsArchive } from '@utils/env';
-import { agGridVersion, GRID_STAGING_SITE_URL } from '@constants';
 import { HomepageGalleryExamples } from '@components/homepage/components/HomepageGalleryExamples';
 import HomepageDocsExample from '@components/homepage/components/HomepageDocsExample.astro';
 
@@ -100,18 +98,7 @@ const frameworksData = [
 ];
 
 const mapExampleHeights = 360;
-
-const isProduction = getIsProduction();
-const isArchive = getIsArchive();
-
-const AG_GRID_CHARTS_CDN_URL = isArchive
-    ? `https://www.ag-grid.com/archive/${agGridVersion}/files/ag-grid-enterprise/dist/ag-grid-enterprise.min.js`
-    : isProduction
-      ? `https://cdn.jsdelivr.net/npm/ag-grid-enterprise@${agGridVersion}/dist/ag-grid-enterprise.min.js`
-      : `${GRID_STAGING_SITE_URL}/files/ag-grid-enterprise/dist/ag-grid-enterprise.min.js`;
 ---
-
-<script is:inline src={AG_GRID_CHARTS_CDN_URL}></script>
 
 <Layout
     title="JavaScript Charts | AG Charts"

@@ -25,12 +25,12 @@ import {
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
+import type { MockEvent } from '../interaction/regionManager';
+import { findChartTarget } from './findTarget';
 
 export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
 export * from '../../util/test/mockConsole';
-
-type TestTarget = ReturnType<Chart['testFindTarget']>;
 
 export type ChartOrProxy<O extends AgChartOptions | AgFinancialChartOptions = AgChartOptions> =
     | AgChartInstance<O>
@@ -174,7 +174,7 @@ export async function waitForChartStability<O extends AgChartOptions | AgFinanci
 
 function makeMouseEvent<T extends 'mousedown' | 'mouseup' | 'mousemove' | 'click' | 'dblclick' | 'contextmenu'>(
     type: T,
-    testTarget: TestTarget,
+    testTarget: MockEvent,
     clientX: number,
     clientY: number
 ): MouseEvent {
@@ -187,27 +187,27 @@ function makeMouseEvent<T extends 'mousedown' | 'mouseup' | 'mousemove' | 'click
     return event;
 }
 
-function mouseDownEvent(offsets: TestTarget, clientX: number, clientY: number): MouseEvent {
+function mouseDownEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
     return makeMouseEvent('mousedown', offsets, clientX, clientY);
 }
 
-function mouseUpEvent(offsets: TestTarget, clientX: number, clientY: number): MouseEvent {
+function mouseUpEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
     return makeMouseEvent('mouseup', offsets, clientX, clientY);
 }
 
-function mouseMoveEvent(offsets: TestTarget, clientX: number, clientY: number): MouseEvent {
+function mouseMoveEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
     return makeMouseEvent('mousemove', offsets, clientX, clientY);
 }
 
-function clickEvent(offsets: TestTarget, clientX: number, clientY: number): MouseEvent {
+function clickEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
     return makeMouseEvent('click', offsets, clientX, clientY);
 }
 
-function doubleClickEvent(offsets: TestTarget, clientX: number, clientY: number): MouseEvent {
+function doubleClickEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
     return makeMouseEvent('dblclick', offsets, clientX, clientY);
 }
 
-function contextMenuEvent(offsets: TestTarget, clientX: number, clientY: number): MouseEvent {
+function contextMenuEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
     return makeMouseEvent('contextmenu', offsets, clientX, clientY);
 }
 
@@ -303,14 +303,14 @@ export function gaugeAssertions() {
     };
 }
 
-const checkTargetValid = ({ target }: TestTarget) => {
+const checkTargetValid = ({ target }: MockEvent) => {
     if (!target.isConnected) throw new Error('Chart must be configured with a container for event testing to work');
 };
 
 export function hoverAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const testTarget = chart.testFindTarget(canvasX, canvasY);
+        const testTarget = findChartTarget(chart, canvasX, canvasY);
         checkTargetValid(testTarget);
 
         testTarget.target.dispatchEvent(mouseMoveEvent(testTarget, canvasX, canvasY));
@@ -325,7 +325,8 @@ export function clickAction(
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const testTarget = chart.testFindTarget(
+        const testTarget = findChartTarget(
+            chart,
             opts?.mousedown?.offsetX ?? canvasX,
             opts?.mousedown?.offsetY ?? canvasY
         );
@@ -342,7 +343,7 @@ export function clickAction(
 export function doubleClickAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const testTarget = chart.testFindTarget(canvasX, canvasY);
+        const testTarget = findChartTarget(chart, canvasX, canvasY);
         // A double click is always preceded by two single clicks, simulate here to ensure correct handling
         testTarget.target?.dispatchEvent(mouseDownEvent(testTarget, canvasX, canvasY));
         testTarget.target?.dispatchEvent(mouseUpEvent(testTarget, canvasX, canvasY));
@@ -360,7 +361,7 @@ export function doubleClickAction(canvasX: number, canvasY: number): (chart: Cha
 export function contextMenuAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const testTarget = chart.testFindTarget(canvasX, canvasY);
+        const testTarget = findChartTarget(chart, canvasX, canvasY);
         checkTargetValid(testTarget);
 
         testTarget.target?.dispatchEvent(contextMenuEvent(testTarget, canvasX, canvasY));
@@ -374,8 +375,8 @@ export function dragAction(
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const fromTarget = chart.testFindTarget(from.x, from.y);
-        const toTarget = chart.testFindTarget(to.x, to.y);
+        const fromTarget = findChartTarget(chart, from.x, from.y);
+        const toTarget = findChartTarget(chart, to.x, to.y);
         checkTargetValid(fromTarget);
         checkTargetValid(toTarget);
 
@@ -397,7 +398,7 @@ export function scrollAction(
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const { target } = chart.testFindTarget(canvasX, canvasY);
+        const { target } = findChartTarget(chart, canvasX, canvasY);
         target?.dispatchEvent(wheelEvent({ clientX: canvasX, clientY: canvasY, deltaY, deltaX, deltaMode }));
         await delay(50);
     };

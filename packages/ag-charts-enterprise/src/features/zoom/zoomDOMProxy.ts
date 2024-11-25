@@ -6,6 +6,7 @@ type AxesHandlers = {
     onDragStart: (id: string, direction: _ModuleSupport.ChartAxisDirection) => void;
     onDrag: (event: _Widget.DragWidgetEvent<'drag-move'>) => void;
     onDragEnd: () => void;
+    onDoubleClick: (id: string, direction: _ModuleSupport.ChartAxisDirection) => void;
 };
 
 type ProxyAxis = {
@@ -30,6 +31,7 @@ export class ZoomDOMProxy {
         div.addListener('drag-start', () => handlers.onDragStart(axisId, direction));
         div.addListener('drag-move', (_target, ev) => handlers.onDrag(ev));
         div.addListener('drag-end', handlers.onDragEnd);
+        div.addListener('dblclick', () => handlers.onDoubleClick(axisId, direction));
         return { axisId, div };
     }
 
@@ -67,18 +69,6 @@ export class ZoomDOMProxy {
                 axis.div.setBounds(bbox);
             }
         }
-    }
-
-    testFindTarget(canvasX: number, canvasY: number): _ModuleSupport.MockEvent | undefined {
-        for (const axis of this.axes) {
-            const bbox = axis.div.getBounds();
-            if (!axis.div.isHidden() && BBoxValues.containsPoint(bbox, canvasX, canvasY)) {
-                const offsetX = canvasX - bbox.x;
-                const offsetY = canvasY - bbox.y;
-                return { target: axis.div.getElement(), offsetX, offsetY };
-            }
-        }
-        return undefined;
     }
 
     private diffAxisIds(axesCtx: _ModuleSupport.AxisContext[]) {

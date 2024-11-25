@@ -145,6 +145,9 @@ const gridOptions: GridOptions = {
     chartToolPanelsDef: {
         defaultToolPanel: 'settings',
     },
+    rowSelection: {
+        mode: 'multiRow',
+    },
 };
 
 function getDarkModeChartThemes(darkMode: boolean) {

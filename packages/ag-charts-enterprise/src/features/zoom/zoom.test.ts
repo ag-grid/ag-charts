@@ -176,6 +176,18 @@ describe('Zoom', () => {
             await doubleClickAction(cx, cy)(chart);
             await compare();
         });
+        it('should reset the X axis zoom', async () => {
+            await prepareChart();
+            await scrollAction(cx, cy, -1)(chart);
+            await doubleClickAction(400, 578)(chart);
+            await compare();
+        });
+        it('should reset the Y axis zoom', async () => {
+            await prepareChart();
+            await scrollAction(cx, cy, -1)(chart);
+            await doubleClickAction(32, 300)(chart);
+            await compare();
+        });
     });
 
     describe('panning', () => {

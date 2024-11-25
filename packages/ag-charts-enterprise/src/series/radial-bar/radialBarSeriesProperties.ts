@@ -13,10 +13,9 @@ const {
     SeriesTooltip,
     Validate,
     COLOR_STRING,
-    DEGREE,
+    NUMBER,
     FUNCTION,
     LINE_DASH,
-    NUMBER,
     OBJECT,
     POSITIVE_NUMBER,
     RATIO,
@@ -64,7 +63,7 @@ export class RadialBarSeriesProperties<T extends AgRadialBarSeriesOptions> exten
     @Validate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgRadialSeriesItemStylerParams<unknown>, AgRadialSeriesStyle>;
 
-    @Validate(DEGREE)
+    @Validate(NUMBER)
     rotation: number = 0;
 
     @Validate(STRING, { optional: true })

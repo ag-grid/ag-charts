@@ -29,7 +29,8 @@ export class Pool<T, P> {
         private readonly buildItem: (params: P) => T,
         private readonly releaseItem: (item: T) => void,
         private readonly destroyItem: (item: T) => void,
-        private readonly maxPoolSize: number
+        private readonly maxPoolSize: number,
+        private readonly cleanupTimeMs = CLEANUP_TIMEOUT_MS
     ) {}
 
     public isFull() {
@@ -83,7 +84,7 @@ export class Pool<T, P> {
         }
         this.cleanPoolTimer = setTimeout(() => {
             this.cleanPool();
-        }, CLEANUP_TIMEOUT_MS);
+        }, this.cleanupTimeMs);
     }
 
     private cleanPool() {

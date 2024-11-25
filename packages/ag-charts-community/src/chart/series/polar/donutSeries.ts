@@ -931,10 +931,10 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
     }
 
     private getLabelOverflow(text: string, box: BBox, seriesRect: BBox) {
-        const seriesLeft = seriesRect.x - this.centerX;
-        const seriesRight = seriesRect.x + seriesRect.width - this.centerX;
-        const seriesTop = seriesRect.y - this.centerY;
-        const seriesBottom = seriesRect.y + seriesRect.height - this.centerY;
+        const seriesLeft = -this.centerX;
+        const seriesRight = seriesLeft + seriesRect.width;
+        const seriesTop = -this.centerY;
+        const seriesBottom = seriesTop + seriesRect.height;
         const errPx = 1; // Prevents errors related to floating point calculations
         let visibleTextPart = 1;
         if (box.x + errPx < seriesLeft) {
@@ -1216,7 +1216,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
             // Hide labels intersecting or above the title
             if (titleBox) {
-                const seriesTop = seriesRect.y - this.centerY;
+                const seriesTop = -this.centerY;
                 const titleCleanArea = new BBox(
                     titleBox.x - minSpacing,
                     seriesTop,

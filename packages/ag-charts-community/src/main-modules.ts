@@ -11,11 +11,9 @@ export { AgCharts } from './api/agCharts';
 export { VERSION } from './version';
 export { registerInbuiltModules as setupCommunityModules } from './chart/factory/registerInbuiltModules';
 
-export const AgChartsCommunityModule: IntegratedModule = {
+export const AgChartsCommunityModule = {
     VERSION,
-    // @ts-expect-error types don't exactly match
     _Scene,
-    // @ts-expect-error types don't exactly match
     _Theme,
     _Util,
     create: AgCharts.create.bind(AgCharts),
@@ -24,4 +22,4 @@ export const AgChartsCommunityModule: IntegratedModule = {
     setGridContext: AgCharts.setGridContext.bind(AgCharts),
     setLicenseKey: AgCharts.setLicenseKey.bind(AgCharts),
     isEnterprise: false,
-};
+} satisfies IntegratedModule;

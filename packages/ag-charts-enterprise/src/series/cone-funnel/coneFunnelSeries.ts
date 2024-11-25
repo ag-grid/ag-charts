@@ -27,8 +27,16 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
         });
     }
 
-    override get hasData() {
-        return this.data != null && this.data.length > 1;
+    override get hasData(): boolean {
+        const {
+            id: seriesId,
+            ctx: { legendManager },
+        } = this;
+        const visibleItems = this.data?.reduce(
+            (accum, _, datumIndex) => accum + (legendManager.getItemEnabled({ seriesId, itemId: datumIndex }) ? 1 : 0),
+            0
+        );
+        return visibleItems != null && visibleItems > 1;
     }
 
     override getBandScalePadding() {

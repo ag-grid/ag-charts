@@ -120,7 +120,6 @@ export const REAL_NUMBER = predicateWithMessage((value) => isNumber(value) && !i
 export const NAN = predicateWithMessage((value) => isNumber(value) && isNaN(value), 'NaN');
 export const POSITIVE_NUMBER = NUMBER.restrict({ min: 0 });
 export const RATIO = NUMBER.restrict({ min: 0, max: 1 });
-export const DEGREE = NUMBER.restrict({ min: -360, max: 360 });
 export const NUMBER_OR_NAN = OR(NUMBER, NAN);
 export const ARRAY: ValidateArrayPredicate = attachArrayRestrictions(predicateWithMessage(isArray, 'an array'));
 

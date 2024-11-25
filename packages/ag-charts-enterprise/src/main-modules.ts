@@ -12,9 +12,7 @@ export function setupEnterpriseModules() {
 
 export const AgChartsEnterpriseModule: IntegratedModule = {
     VERSION,
-    // @ts-expect-error types don't exactly match
     _Scene,
-    // @ts-expect-error types don't exactly match
     _Theme,
     _Util,
     create: AgCharts.create.bind(AgCharts),

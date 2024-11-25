@@ -1,4 +1,4 @@
-import { BOOLEAN, DEGREE, Validate } from '../../util/validation';
+import { BOOLEAN, NUMBER, Validate } from '../../util/validation';
 import { AxisLabel } from './axisLabel';
 
 export class CartesianAxisLabel extends AxisLabel {
@@ -12,6 +12,6 @@ export class CartesianAxisLabel extends AxisLabel {
     /**
      * Rotation angle to use when autoRotate is applied.
      */
-    @Validate(DEGREE)
+    @Validate(NUMBER)
     autoRotateAngle: number = 335;
 }

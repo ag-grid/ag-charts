@@ -7,6 +7,7 @@ import {
     type AgCategoryAxisOptions,
     type AgChartTheme,
     type AgChartThemeName,
+    type AgCommonThemeableAxisOptions,
     type AgNumberAxisOptions,
     type AgSparklineAxisOptions,
     type AgSparklineOptions,
@@ -67,6 +68,23 @@ const crossHairTooltip = {
     },
 };
 
+const barGridLineDefaults: AgAxisGridLineOptions = {
+    style: [{ stroke: DEFAULT_AXIS_GRID_COLOUR }],
+    width: 2,
+};
+
+const barAxisDefaults: AgCommonThemeableAxisOptions = {
+    number: {
+        gridLine: barGridLineDefaults,
+    },
+    time: {
+        gridLine: barGridLineDefaults,
+    },
+    category: {
+        gridLine: barGridLineDefaults,
+    },
+};
+
 const SPARKLINE_THEME: AgChartTheme = {
     overrides: {
         common: {
@@ -103,10 +121,15 @@ const SPARKLINE_THEME: AgChartTheme = {
             series: {
                 // @ts-expect-error undocumented option
                 sparklineMode: true,
+                label: {
+                    placement: 'inside-end',
+                    padding: 4,
+                },
             },
             tooltip: {
                 range: 'nearest',
             },
+            axes: barAxisDefaults,
         },
         line: {
             seriesArea: {
@@ -186,7 +209,6 @@ export function sparklineDataPreset(data: any[] | undefined): {
             return { data: mappedData, series: [{ xKey: 'x', yKey: 'y' }] };
         }
     }
-
     return { data };
 }
 
@@ -235,14 +257,22 @@ function axisPreset(
     return { type: defaultType };
 }
 
-function gridLinePreset(opts: AgSparklineAxisOptions | undefined, defaultEnabled: boolean): AgAxisGridLineOptions {
+function gridLinePreset(
+    opts: AgSparklineAxisOptions | undefined,
+    defaultEnabled: boolean,
+    sparkOpts: AgSparklineOptions
+): AgAxisGridLineOptions {
     const gridLineOpts: AgAxisGridLineOptions = {};
+
     if (opts?.stroke != null) {
         gridLineOpts.style = [{ stroke: opts?.stroke }];
         gridLineOpts.enabled ??= true;
     }
     if (opts?.strokeWidth != null) {
         gridLineOpts.width = opts?.strokeWidth;
+        gridLineOpts.enabled ??= true;
+    }
+    if (sparkOpts.type === 'bar' && sparkOpts.direction !== 'horizontal') {
         gridLineOpts.enabled ??= true;
     }
     if (opts?.visible != null) {
@@ -293,6 +323,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     const { data, series: [seriesOverrides] = [] } = sparklineDataPreset(baseData);
 
     const seriesOptions = optsRest as any as AgCartesianSeriesOptions;
+
     // Assign is safe as it comes from a rest object
     if (seriesOverrides != null) Object.assign(seriesOptions, seriesOverrides);
 
@@ -310,7 +341,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     };
     const yAxis: AgCartesianAxisOptions = {
         type: 'number',
-        gridLine: gridLinePreset(axis, false),
+        gridLine: gridLinePreset(axis, false, opts),
         position: yAxisPosition,
         ...pickProps<Pick<AgNumberAxisOptions, 'min' | 'max'>>(opts, { min, max }),
     };
