@@ -898,5 +898,24 @@ export function getData() {
                 },
             },
         },
+        {
+            name: 'add-enterprise-benchmarks',
+            results: {
+                'large-dataset benchmark initial load': {
+                    timeMs: 1894.5658339999998,
+                    memoryUsage: 429235952,
+                    heapUsed: 421555640,
+                    canvasCount: 9,
+                    canvasBytes: 7680312,
+                },
+                'large-dataset benchmark after load 100x zoom': {
+                    timeMs: 12081.924625,
+                    memoryUsage: 504494712,
+                    heapUsed: 498734400,
+                    canvasCount: 8,
+                    canvasBytes: 5760312,
+                },
+            },
+        },
     ];
 }

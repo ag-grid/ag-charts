@@ -35,7 +35,7 @@ export function getData() {
         currentPrice += (random() * 2 - 1) * maxDailyPriceChange;
         const volume = maxDailyVolume * random();
 
-        const timestamp = new Date(2024, 0, 1, -i);
+        const timestamp = new Date(2024, 0, 1, -i).getTime();
 
         return { timestamp, price, volume };
     }).reverse();

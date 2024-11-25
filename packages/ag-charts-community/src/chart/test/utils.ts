@@ -393,6 +393,7 @@ export function scrollAction(
     canvasX: number,
     canvasY: number,
     deltaY: number,
+    delayMs = 50,
     deltaMode: WheelDeltaMode = WheelDeltaMode.Lines,
     deltaX: number = 0
 ): (chart: ChartOrProxy) => Promise<void> {
@@ -400,7 +401,7 @@ export function scrollAction(
         const chart = deproxy(chartOrProxy);
         const { target } = findChartTarget(chart, canvasX, canvasY);
         target?.dispatchEvent(wheelEvent({ clientX: canvasX, clientY: canvasY, deltaY, deltaX, deltaMode }));
-        await delay(50);
+        await delay(delayMs);
     };
 }
 
