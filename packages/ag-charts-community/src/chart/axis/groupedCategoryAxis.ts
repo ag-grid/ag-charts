@@ -1,4 +1,4 @@
-import type { AgAxisCaptionFormatterParams, FontStyle, FontWeight } from 'ag-charts-types';
+import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { BandScale } from '../../scale/bandScale';
@@ -134,10 +134,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.calculateDomain();
         this.updateScale();
         this.updateRange();
-        this.updateTitle();
 
         const { scale, label, range, title } = this;
-        const formatter = title.formatter ?? ((p: AgAxisCaptionFormatterParams) => p.defaultValue);
 
         const { step } = scale;
         const keepEvery = Math.ceil(label.fontSize! / step);
@@ -176,22 +174,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         const setLabelProps = (datum: TreeNode, index: number) => {
             if (index === 0) {
-                if (isCaptionEnabled) {
-                    tempText.setProperties({
-                        text: this.moduleCtx.callbackCache.call(formatter, this.getTitleFormatterParams()),
-                        fill: title.color,
-                        fontFamily: title.fontFamily,
-                        fontSize: title.fontSize,
-                        fontStyle: title.fontStyle,
-                        fontWeight: title.fontWeight,
-                        textAlign: 'center',
-                        textBaseline: 'hanging',
-                        translationX: (title.fontSize * 0.25 - datum.screenY) * sideFlag,
-                        translationY: datum.screenX,
-                    });
-                    return true;
-                }
-                return false;
+                return isCaptionEnabled;
             }
 
             if (index % keepEvery !== 0 || !inRange(datum.screenX, range)) {
@@ -320,8 +303,14 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const separatorLayout = [...separatorSize.values()];
         separatorLayout.push(separatorLayout[0]);
 
-        const lineBoxes = [this.lineNode.getBBox(), new BBox(0, 0, separatorLayout[0] * sideFlag, 0)];
-        const mergedBBox = BBox.merge(iterate(labelBBoxes.values(), lineBoxes));
+        const axisBoxes = [this.lineNode.getBBox(), new BBox(0, 0, separatorLayout[0] * sideFlag, 0)];
+
+        if (isCaptionEnabled) {
+            this.updateTitle(false, separatorLayout[0]);
+            axisBoxes.push(this.title.caption.node.getBBox());
+        }
+
+        const mergedBBox = BBox.merge(iterate(labelBBoxes.values(), axisBoxes));
 
         return {
             bbox: this.getTransformBox(mergedBBox),

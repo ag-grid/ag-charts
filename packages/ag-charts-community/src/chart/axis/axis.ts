@@ -1232,14 +1232,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
     }
 
-    protected updateTitle(noVisibleTicks?: boolean): void {
+    protected updateTitle(noVisibleTicks?: boolean, spacing?: number): void {
         const { title, lineNode, tickLineGroup, tickLabelGroup } = this;
 
-        let spacing = 0;
-        if (title.enabled && !noVisibleTicks) {
+        if (title.enabled && !noVisibleTicks && spacing == null) {
             const tickBBox = Group.computeChildrenBBox([tickLineGroup, tickLabelGroup, lineNode]);
-            spacing += tickBBox.width + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
+            spacing = tickBBox.width + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
         }
+        spacing ??= 0;
+
         this.setTitleProps(title.caption, { spacing });
     }
 
