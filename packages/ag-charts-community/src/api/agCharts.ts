@@ -329,7 +329,7 @@ class AgChartsInternal {
             this.createChartInstance,
             this.detachAndClear,
             this.destroy,
-            50
+            Infinity // AG-13480 - Prevent Grid exhausting pool during sorting.
         );
     }
 }
