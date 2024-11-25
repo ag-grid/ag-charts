@@ -6,6 +6,7 @@ import { benchmark, setupBenchmark } from './benchmark';
 
 const EXPECTATIONS = {
     expectedMaxMemoryMB: 450,
+    autoSnapshot: false,
 };
 
 describe('large-dataset benchmark', () => {
