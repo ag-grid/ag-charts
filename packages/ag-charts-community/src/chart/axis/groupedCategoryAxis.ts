@@ -1,4 +1,4 @@
-import type { AgAxisCaptionFormatterParams } from 'ag-charts-types';
+import type { AgAxisCaptionFormatterParams, FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { BandScale } from '../../scale/bandScale';
@@ -12,27 +12,72 @@ import { inRange } from '../../util/number';
 import { BaseProperties, PropertiesArray } from '../../util/properties';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';
-import { OBJECT, OBJECT_ARRAY, Validate } from '../../util/validation';
+import {
+    BOOLEAN,
+    COLOR_STRING,
+    FONT_STYLE,
+    FONT_WEIGHT,
+    NUMBER,
+    OBJECT,
+    OBJECT_ARRAY,
+    POSITIVE_NUMBER,
+    STRING,
+    Validate,
+} from '../../util/validation';
 import { createDatumId } from '../data/processors';
 import { calculateLabelRotation } from '../label';
 import type { LabelNodeDatum, TickDatum } from './axis';
-import { AxisLabel } from './axisLabel';
-import { AxisTick } from './axisTick';
 import { CategoryAxis } from './categoryAxis';
 import type { TreeLayout } from './tree';
 import { treeLayout } from './tree';
+
+type TreeNode = TreeLayout['nodes'][number];
 
 interface ComputedGroupAxisLayout {
     tickLabelLayout: LabelNodeDatum[];
     separatorLayout: number[];
 }
 
-class DepthProperties extends BaseProperties {
-    @Validate(OBJECT, { optional: true })
-    label = new AxisLabel();
+class DepthLabelProperties extends BaseProperties {
+    @Validate(BOOLEAN)
+    enabled = true;
 
-    @Validate(OBJECT, { optional: true })
-    tick = new AxisTick();
+    @Validate(COLOR_STRING, { optional: true })
+    color?: string;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    padding?: number;
+
+    @Validate(FONT_STYLE, { optional: true })
+    fontStyle?: FontStyle;
+
+    @Validate(FONT_WEIGHT, { optional: true })
+    fontWeight?: FontWeight;
+
+    @Validate(NUMBER.restrict({ min: 1 }), { optional: true })
+    fontSize?: number;
+
+    @Validate(STRING, { optional: true })
+    fontFamily?: string;
+}
+
+class DepthTickProperties extends BaseProperties {
+    @Validate(BOOLEAN)
+    enabled = true;
+
+    @Validate(POSITIVE_NUMBER, { optional: true })
+    width?: number;
+
+    @Validate(COLOR_STRING, { optional: true })
+    stroke?: string;
+}
+
+class DepthProperties extends BaseProperties {
+    @Validate(OBJECT)
+    label = new DepthLabelProperties();
+
+    @Validate(OBJECT)
+    tick = new DepthTickProperties();
 }
 
 export class GroupedCategoryAxis extends CategoryAxis {
@@ -61,10 +106,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         const { range, step, inset, bandwidth } = this.scale;
         const lineHeight = TextUtils.getLineHeight(this.label.fontSize!);
-        const { depth } = this.tickTreeLayout;
 
         const width = Math.abs(range[1] - range[0]) - step;
-        const height = depth * lineHeight;
+        const height = this.tickTreeLayout.depth * lineHeight;
 
         this.tickTreeLayout.resize(width, height, inset + bandwidth / 2, range[0] > range[1]);
     }
@@ -106,7 +150,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const lineHeight = TextUtils.getLineHeight(label.fontSize!);
 
         // Render ticks and labels.
-        const { tickTreeLayout } = this;
+        const { tickTreeLayout, depthOptions } = this;
+        const maxDepth = tickTreeLayout?.depth ?? 0;
         const treeLabels = tickTreeLayout?.nodes ?? [];
         const isCaptionEnabled = title?.enabled && scale.domain.length > 0;
         // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
@@ -127,9 +172,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         const tickLabelLayout: LabelNodeDatum[] = [];
         const labelBBoxes: Map<number, BBox> = new Map();
-        const tempText = new TransformableText();
+        const tempText: TransformableText & { padding?: number } = new TransformableText();
 
-        const setLabelProps = (datum: (typeof treeLabels)[number], index: number) => {
+        const setLabelProps = (datum: TreeNode, index: number) => {
             if (index === 0) {
                 if (isCaptionEnabled) {
                     tempText.setProperties({
@@ -153,9 +198,13 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 return false;
             }
 
+            const depth = maxDepth - datum.depth;
+            const text = this.formatTick(datum.label, index);
+            const labelStyles = this.getLabelStyles({ value: text, depth }, depthOptions[depth]?.label);
+
             tempText.setProperties({
-                ...this.getLabelStyles({ value: datum.label, depth: datum.depth - 1 }),
-                text: this.formatTick(datum.label, index),
+                ...labelStyles,
+                text,
                 textAlign: 'center',
                 textBaseline: parallelFlipFlag === -1 ? 'bottom' : 'hanging',
                 translationX: (title.fontSize * 0.25 - datum.screenY) * sideFlag,
@@ -165,23 +214,29 @@ export class GroupedCategoryAxis extends CategoryAxis {
             return true;
         };
 
+        const leafPadding = depthOptions[0]?.label.padding ?? 0;
         let maxLeafLabelWidth = 0;
+
         treeLabels.forEach((datum, index) => {
             const isVisible = setLabelProps(datum, index);
-            if (!isVisible) return;
 
-            const bbox = tempText.getBBox();
-            if (!bbox) return;
+            if (!isVisible || !tempText.getBBox()) return;
+
+            const bbox = tempText.getBBox().clone();
+            const isLeaf = !datum.children.length;
+
+            if (isLeaf) {
+                if (maxLeafLabelWidth < bbox.width) {
+                    maxLeafLabelWidth = bbox.width;
+                }
+            } else {
+                bbox.grow(tempText.padding ?? 0, 'vertical');
+            }
 
             labelBBoxes.set(index, bbox);
-            const isLeaf = !datum.children.length;
-            if (isLeaf && maxLeafLabelWidth < bbox.width) {
-                maxLeafLabelWidth = bbox.width;
-            }
         });
 
         const idGenerator = createIdsGenerator();
-        const labelX = sideFlag * label.padding;
         const titleY = isCaptionEnabled ? sideFlag * -(title.spacing ?? 0) : 0;
 
         const separatorSize: Map<number, number> = new Map();
@@ -190,6 +245,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
         treeLabels.forEach((datum, index) => {
             const isLeaf = !datum.children.length;
             let visible = setLabelProps(datum, index);
+
+            // const labelPadding = tempText.padding ?? 0;
+            const labelX = sideFlag * leafPadding;
 
             tempText.x = labelX;
             tempText.y = index === 0 ? titleY : 0;
@@ -208,7 +266,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 const bbox = labelBBoxes.get(index);
 
                 tempText.translationX +=
-                    sideFlag * (maxLeafLabelWidth + label.padding) + (label.mirrored ? 0 : lineHeight);
+                    sideFlag * (maxLeafLabelWidth + leafPadding * 2) + (label.mirrored ? 0 : lineHeight);
 
                 if (bbox && bbox.width > availableRange) {
                     visible = false;
@@ -222,7 +280,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
             if (datum.parent) {
                 registerSeparator(
                     isLeaf ? datum.x : datum.x - (datum.leafCount - 1) / 2,
-                    maxLeafLabelWidth + label.padding * 2 - datum.screenY
+                    maxLeafLabelWidth + leafPadding * 2 - datum.screenY
                 );
             }
 

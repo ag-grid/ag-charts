@@ -524,7 +524,10 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return { x1, x2, y };
     }
 
-    protected getLabelStyles(params: { value: string; depth?: number }) {
+    protected getLabelStyles(
+        params: { value: string; depth?: number },
+        additionalStyles?: AgBaseAxisLabelStyleOptions
+    ) {
         const { label } = this;
         const defaultStyle: AgBaseAxisLabelStyleOptions = {
             color: label.color,
@@ -532,6 +535,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             fontSize: label.fontSize,
             fontStyle: label.fontStyle,
             fontWeight: label.fontWeight,
+            padding: label.padding,
         };
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
         if (label.itemStyler) {
@@ -540,8 +544,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 ...defaultStyle,
             });
         }
-        const { color: fill, fontFamily, fontSize, fontStyle, fontWeight } = mergeDefaults(stylerOutput, defaultStyle);
-        return { fill, fontFamily, fontSize, fontStyle, fontWeight };
+        const {
+            color: fill,
+            fontFamily,
+            fontSize,
+            fontStyle,
+            fontWeight,
+            padding,
+        } = mergeDefaults(stylerOutput, additionalStyles, defaultStyle);
+        return { fill, fontFamily, fontSize, fontStyle, fontWeight, padding };
     }
 
     private getTickLabelProps(
