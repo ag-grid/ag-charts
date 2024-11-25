@@ -327,6 +327,9 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     // Assign is safe as it comes from a rest object
     if (seriesOverrides != null) Object.assign(seriesOptions, seriesOverrides);
 
+    chartOpts.tooltip = {
+        class: 'ag-chart-tooltip-compact',
+    };
     chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME);
     chartOpts.data = data;
     chartOpts.series = [seriesOptions];

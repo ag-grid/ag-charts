@@ -1,10 +1,10 @@
 .ag-chart-tooltip {
     width: max-content;
-    z-index: 99999;
     font:
         12px Verdana,
         sans-serif;
     color: rgb(70, 70, 70);
+    border-radius: var(--ag-charts-tooltip-border-radius);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 
     /* Resets when using popover attribute */
@@ -12,8 +12,14 @@
     inset: unset;
     margin: 0;
     border: none;
+    background: none;
     padding: 0;
     overflow: visible;
+}
+
+.ag-chart-tooltip-compact {
+    --ag-charts-tooltip-title-padding: var(--ag-charts-tooltip-compact-title-padding);
+    --ag-charts-tooltip-content-padding: var(--ag-charts-tooltip-compact-content-padding);
 }
 
 .ag-chart-tooltip-wrap-always {
@@ -46,9 +52,9 @@
 .ag-chart-tooltip-title {
     overflow: hidden;
     position: relative;
-    padding: 8px 14px;
-    border-top-left-radius: 2px;
-    border-top-right-radius: 2px;
+    padding: var(--ag-charts-tooltip-title-padding);
+    border-top-left-radius: var(--ag-charts-tooltip-border-radius);
+    border-top-right-radius: var(--ag-charts-tooltip-border-radius);
     color: white;
     background-color: #888888;
     z-index: 1;
@@ -56,19 +62,24 @@
 }
 
 .ag-chart-tooltip-title:only-child {
-    border-bottom-left-radius: 2px;
-    border-bottom-right-radius: 2px;
+    border-bottom-left-radius: var(--ag-charts-tooltip-border-radius);
+    border-bottom-right-radius: var(--ag-charts-tooltip-border-radius);
 }
 
 .ag-chart-tooltip-content {
     overflow: hidden;
-    padding: 6px 14px;
+    padding: var(--ag-charts-tooltip-content-padding);
     line-height: 1.7em;
     background: white;
-    border-bottom-left-radius: 2px;
-    border-bottom-right-radius: 2px;
+    border-bottom-left-radius: var(--ag-charts-tooltip-border-radius);
+    border-bottom-right-radius: var(--ag-charts-tooltip-border-radius);
     border: 1px solid rgba(0, 0, 0, 0.15);
     text-overflow: inherit;
+}
+
+.ag-chart-tooltip-content:only-child {
+    border-top-left-radius: var(--ag-charts-tooltip-border-radius);
+    border-top-right-radius: var(--ag-charts-tooltip-border-radius);
 }
 
 .ag-chart-tooltip-arrow::before {

@@ -12,8 +12,10 @@ import {
     INTERACTION_RANGE,
     NUMBER,
     OBJECT,
+    OR,
     POSITIVE_NUMBER,
     STRING,
+    STRING_ARRAY,
     TEXT_WRAP,
     UNION,
     Validate,
@@ -146,8 +148,8 @@ export class Tooltip extends BaseProperties {
     showArrow?: boolean;
 
     @ObserveChanges<Tooltip>((target) => target.resetClass())
-    @Validate(STRING, { optional: true })
-    class?: string;
+    @Validate(OR(STRING, STRING_ARRAY), { optional: true })
+    class?: string | string[];
 
     @Validate(POSITIVE_NUMBER)
     delay: number = 0;
@@ -178,6 +180,7 @@ export class Tooltip extends BaseProperties {
 
     private showTimeout: NodeJS.Timeout | number = 0;
     private _showArrow = true;
+    private _visible = false;
 
     private positionParams:
         | {
@@ -211,7 +214,7 @@ export class Tooltip extends BaseProperties {
     }
 
     isVisible(): boolean {
-        return !this.element?.classList.contains(DEFAULT_TOOLTIP_CLASS + '-hidden');
+        return this._visible;
     }
 
     private updateTooltipPosition() {
@@ -235,11 +238,22 @@ export class Tooltip extends BaseProperties {
         const maxY = relativeRect.height - element.clientHeight + minY;
 
         const left = clamp(minX, position.x, maxX);
-        const top = clamp(minY, position.y, maxY);
+        let top = position.y;
+        if (
+            positionType === 'sparkline' &&
+            enterpriseModule.isEnterprise &&
+            top < minY &&
+            maxY - minY >= canvasRect.height
+        ) {
+            top = canvasRect.height;
+        }
+        top = clamp(minY, top, maxY);
 
         const constrained = left !== position.x || top !== position.y;
         const defaultShowArrow =
-            (positionType === 'node' || positionType === 'pointer' || positionType === 'sparkline') &&
+            (positionType === 'node' ||
+                positionType === 'pointer' ||
+                (positionType === 'sparkline' && !enterpriseModule.isEnterprise)) &&
             !constrained &&
             !xOffset &&
             !yOffset;
@@ -250,16 +264,15 @@ export class Tooltip extends BaseProperties {
     }
 
     private resetClass() {
-        const { element } = this;
+        const { element, class: className } = this;
         if (element == null) return;
 
-        // AG-13316 The `hidden` class is used to determine if the `no-animation` class is required.
-        const hiddenClass = `${DEFAULT_TOOLTIP_CLASS}-hidden`;
-        const classNameSuffix = element.classList.contains(hiddenClass) ? ` ${hiddenClass}` : '';
-        element.className = `${DEFAULT_TOOLTIP_CLASS}${classNameSuffix}`;
+        element.className = DEFAULT_TOOLTIP_CLASS;
 
-        if (this.class != null) {
-            element.classList.add(this.class);
+        if (Array.isArray(className)) {
+            element.classList.add(...className);
+        } else if (className != null) {
+            element.classList.add(className);
         }
     }
 
@@ -332,6 +345,8 @@ export class Tooltip extends BaseProperties {
 
     private toggle(visible: boolean) {
         if (!this.element?.isConnected) return;
+
+        this._visible = visible;
 
         const { classList } = this.element;
         const toggleClass = (name: string, include: boolean) =>
@@ -428,7 +443,7 @@ export class Tooltip extends BaseProperties {
             case 'sparkline': {
                 if (enterpriseModule.isEnterprise) {
                     // Crosslines enabled
-                    bounds.top = yOffset - tooltipHeight - 8;
+                    bounds.top = yOffset - tooltipHeight;
                 } else {
                     // No cross lines
                     bounds.top = canvasY + yOffset - tooltipHeight - 8;
