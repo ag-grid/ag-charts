@@ -31,7 +31,8 @@ export class BenchmarkContext<T extends AgChartOptions = AgChartOptions> {
 
     public constructor(
         readonly canvasCtx: ReturnType<typeof setupMockCanvas>,
-        readonly createApi: 'create' | '__createSparkline'
+        readonly createApi: 'create' | '__createSparkline',
+        readonly isEnterprise: boolean
     ) {}
 
     async create(extraOpts?: object) {
@@ -145,6 +146,7 @@ export function setupBenchmark<T extends AgChartOptions>(
     exampleName: string,
     opts?: {
         createApi: 'create' | '__createSparkline';
+        isEnterprise?: boolean;
     }
 ): BenchmarkContext<T> {
     const canvasCtx = setupMockCanvas();
@@ -152,7 +154,11 @@ export function setupBenchmark<T extends AgChartOptions>(
     setupMockConsole();
 
     beforeEach(() => {
-        ctx.options = prepareTestOptions(loadBuiltExampleOptions(exampleName), globalThis.window.document.body);
+        const { isEnterprise, options } = loadBuiltExampleOptions(exampleName);
+        if (isEnterprise && !ctx.isEnterprise) {
+            throw new Error('Cannot exercise enterprise example in ag-charts-community');
+        }
+        ctx.options = prepareTestOptions(options, globalThis.window.document.body, ctx.isEnterprise);
     });
 
     afterEach(() => {
@@ -166,7 +172,7 @@ export function setupBenchmark<T extends AgChartOptions>(
         logTimings();
     });
 
-    const ctx = new BenchmarkContext<T>(canvasCtx, createApi);
+    const ctx = new BenchmarkContext<T>(canvasCtx, createApi, opts?.isEnterprise ?? false);
     return ctx;
 }
 

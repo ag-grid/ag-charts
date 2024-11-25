@@ -44,13 +44,20 @@ export async function waitForUpdate(chart: any): Promise<void> {
     }
 }
 
-export function prepareTestOptions<T extends AgChartOptions>(options: T, container: HTMLElement) {
+export function prepareTestOptions<T extends AgChartOptions>(options: T, container: HTMLElement, enterprise: boolean) {
     if (!isAtOrAfterVersion(10, 0, 0)) {
         (options as any).autoSize = false;
     }
     options.width = 800;
     options.height = 600;
     options.container = container;
+
+    if (enterprise) {
+        if (!options.animation) {
+            // Default to animation off.
+            options.animation ??= { enabled: false };
+        }
+    }
 
     let baseTestTheme = {
         baseTheme: 'ag-default',

@@ -64,5 +64,17 @@ export function loadBuiltExampleOptions(name: string) {
             `dist/generated-examples/ag-charts-website/docs/benchmarks/_examples/${name}/plain/vanilla/contents.json`
         )
         .toString();
-    return JSON.parse(JSON.parse(fileContent)['files']['_options.json'])['myChart'];
+
+    const { isEnterprise, files } = JSON.parse(fileContent);
+    const optionsJson = files['_options.json'];
+    if (optionsJson == null) {
+        throw new Error(
+            'Example is missing extracted options, check /* @ag-options-extract */ is specified in main.ts'
+        );
+    }
+
+    const options = JSON.parse(optionsJson)['myChart'];
+    if (options == null) throw new Error("Couldn't find chart myChart in options.");
+
+    return { isEnterprise, options };
 }
