@@ -1,6 +1,7 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import { extent } from '../../util/array';
+import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { AND, DATE_OR_DATETIME_MS, GREATER_THAN, LESS_THAN, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
@@ -55,5 +56,23 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
             this.labelFormatter = this.scale.tickFormat({ ticks, domain });
             this.datumFormatter = this.scale.tickFormat({ ticks, domain, formatOffset: 1 });
         }
+    }
+
+    override updateSecondaryAxisTicks(primaryTickCount: number | undefined): any[] {
+        if (!this.dataDomain?.domain.length) {
+            return [];
+        }
+
+        const { domain, ticks } = calculateNiceSecondaryAxis(
+            this.dataDomain.domain.map(Number),
+            primaryTickCount ?? 0,
+            this.reverse
+        );
+
+        this.scale.nice = false;
+        this.scale.domain = domain.map((d) => new Date(d));
+        this.scale.update();
+
+        return ticks;
     }
 }

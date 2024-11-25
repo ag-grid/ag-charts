@@ -3,6 +3,7 @@ import { LogScale } from '../../scale/logScale';
 import { normalisedExtentWithMetadata } from '../../util/array';
 import { Default } from '../../util/default';
 import { Logger } from '../../util/logger';
+import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { isNumber } from '../../util/type-guards';
 import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate, predicateWithMessage } from '../../util/validation';
 import { NumberAxis } from './numberAxis';
@@ -48,5 +49,23 @@ export class LogAxis extends NumberAxis {
 
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx, new LogScale());
+    }
+
+    override updateSecondaryAxisTicks(primaryTickCount: number | undefined): any[] {
+        if (!this.dataDomain?.domain.length) {
+            return [];
+        }
+
+        const { domain, ticks } = calculateNiceSecondaryAxis(
+            this.dataDomain.domain,
+            primaryTickCount ?? 0,
+            this.reverse
+        );
+
+        this.scale.nice = false;
+        this.scale.domain = domain;
+        this.scale.update();
+
+        return ticks;
     }
 }
