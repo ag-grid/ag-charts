@@ -647,19 +647,20 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             minRatioY,
             ctx: { zoomManager },
         } = this;
-        const dx_ = dx(zoom);
-        const dy_ = dy(zoom);
 
         const oldZoom = this.getZoom();
 
+        const dx_ = dx(zoom);
         const zoomedInTooFarX = dx_ <= dx(oldZoom) && dx_ < minRatioX;
-        const zoomedInTooFarY = dy_ <= dy(oldZoom) && dy_ < minRatioY;
 
         if (zoomedInTooFarX) {
             zoom.x = constrainAxisWithOld(zoom.x, oldZoom.x, minRatioX);
         }
 
         zoom.y = this.autoScaleZoomY(zoom);
+
+        const dy_ = dy(zoom);
+        const zoomedInTooFarY = dy_ <= dy(oldZoom) && dy_ < minRatioY;
 
         if (zoomedInTooFarY) {
             zoom.y = constrainAxisWithOld(zoom.y, oldZoom.y, minRatioY);
