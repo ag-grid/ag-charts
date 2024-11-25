@@ -8,7 +8,7 @@ import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { isPoint, validateDatumPoint } from '../utils/validation';
-import { convertPoint, invertCoords } from '../utils/values';
+import { invertCoords } from '../utils/values';
 import type { ParallelChannelProperties } from './parallelChannelProperties';
 
 const { Vec2, Vec4 } = _ModuleSupport;
@@ -123,20 +123,6 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         if (!datum.isValidWithContext(context)) {
             datum.set(prev);
         }
-    }
-
-    protected override getOtherCoords(
-        datum: ParallelChannelProperties,
-        topLeft: _ModuleSupport.Vec2,
-        topRight: _ModuleSupport.Vec2,
-        context: AnnotationContext
-    ): _ModuleSupport.Vec2[] {
-        const height = convertPoint(datum.bottom.start, context).y - convertPoint(datum.start, context).y;
-
-        const bottomLeft = Vec2.add(topLeft, Vec2.from(0, height));
-        const bottomRight = Vec2.add(topRight, Vec2.from(0, height));
-
-        return [bottomLeft, bottomRight];
     }
 
     override containsPoint(x: number, y: number) {

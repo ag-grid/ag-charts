@@ -169,13 +169,4 @@ export abstract class LinearScene<
 
         return copiedDatum;
     }
-
-    protected getOtherCoords(
-        _datum: Datum,
-        _topLeft: _ModuleSupport.Vec2,
-        _topRight: _ModuleSupport.Vec2,
-        _context: AnnotationContext
-    ): Array<_ModuleSupport.Vec2> {
-        return [];
-    }
 }
