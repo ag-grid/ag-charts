@@ -9,11 +9,15 @@ import { normalizeAngle360, toRadians } from '../../util/angle';
 import { extent, sortBasedOnArray, unique } from '../../util/array';
 import { iterate } from '../../util/iterator';
 import { inRange } from '../../util/number';
+import { BaseProperties, PropertiesArray } from '../../util/properties';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';
+import { OBJECT, OBJECT_ARRAY, Validate } from '../../util/validation';
 import { createDatumId } from '../data/processors';
 import { calculateLabelRotation } from '../label';
 import type { LabelNodeDatum, TickDatum } from './axis';
+import { AxisLabel } from './axisLabel';
+import { AxisTick } from './axisTick';
 import { CategoryAxis } from './categoryAxis';
 import type { TreeLayout } from './tree';
 import { treeLayout } from './tree';
@@ -21,6 +25,14 @@ import { treeLayout } from './tree';
 interface ComputedGroupAxisLayout {
     tickLabelLayout: LabelNodeDatum[];
     separatorLayout: number[];
+}
+
+class DepthProperties extends BaseProperties {
+    @Validate(OBJECT, { optional: true })
+    label = new AxisLabel();
+
+    @Validate(OBJECT, { optional: true })
+    tick = new AxisTick();
 }
 
 export class GroupedCategoryAxis extends CategoryAxis {
@@ -32,6 +44,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
     readonly tickScale = new BandScale<string[]>();
 
     private tickTreeLayout?: TreeLayout;
+
+    @Validate(OBJECT_ARRAY, { optional: true })
+    depthOptions = new PropertiesArray(DepthProperties);
 
     constructor(moduleCtx: ModuleContext) {
         super(moduleCtx);

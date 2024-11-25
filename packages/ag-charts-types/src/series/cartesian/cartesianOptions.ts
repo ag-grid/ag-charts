@@ -1,5 +1,6 @@
 import type { AgAnnotationsOptions } from '../../chart/annotationsOptions';
 import type {
+    AgAxisBaseTickOptions,
     AgAxisCaptionOptions,
     AgAxisContinuousIntervalOptions,
     AgAxisLabelStylerParams,
@@ -62,6 +63,11 @@ export interface AgBaseCartesianChartOptions {
     annotations?: AgAnnotationsOptions;
 }
 
+export interface AgGroupedCategoryDepthOptions {
+    label?: AgBaseAxisLabelOptions;
+    tick?: AgAxisBaseTickOptions;
+}
+
 export interface AgCategoryAxisOptions extends AgBaseCartesianAxisOptions {
     type: 'category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
@@ -72,18 +78,20 @@ export interface AgCategoryAxisOptions extends AgBaseCartesianAxisOptions {
     groupPaddingInner?: Ratio;
 }
 
-export interface AgOrdinalTimeAxisOptions extends Omit<AgCategoryAxisOptions, 'type'> {
-    type: 'ordinal-time';
-    /** Configuration for the axis ticks interval. */
-    interval?: AgAxisContinuousIntervalOptions<TimeInterval | number>;
-}
-
 export interface AgGroupedCategoryAxisOptions extends AgBaseCartesianAxisOptions<AgGroupedCategoryAxisLabelOptions> {
     type: 'grouped-category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
     /** This property is for grouped column/bar series plotted on a category axis. It is a proportion between 0 and 1 which determines the size of the gap between the bars or columns within a single group along the axis. */
     groupPaddingInner?: Ratio;
+    /** Depth options */
+    depthOptions?: AgGroupedCategoryDepthOptions[];
+}
+
+export interface AgOrdinalTimeAxisOptions extends Omit<AgCategoryAxisOptions, 'type'> {
+    type: 'ordinal-time';
+    /** Configuration for the axis ticks interval. */
+    interval?: AgAxisContinuousIntervalOptions<TimeInterval | number>;
 }
 
 export interface AgNumberAxisOptions extends Omit<AgBaseCartesianAxisOptions, 'interval'>, AgContinuousAxisOptions {
