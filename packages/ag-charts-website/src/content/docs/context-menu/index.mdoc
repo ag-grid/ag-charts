@@ -3,23 +3,28 @@ title: 'Context Menu'
 enterprise: true
 ---
 
-The context menu can be used to take less common and context-aware actions with the chart and nodes.
-
-To enable these features, set `contextMenu.enabled` to `true`.
-
-```ts
-contextMenu: {
-    enabled: true,
-}
-```
-
-A user will now be able to use the context menu by right clicking anywhere on the chart, as in the following example.
+The Context Menu provides context-aware interactions with the chart elements.
 
 {% chartExampleRunner title="Context Menu" name="context-menu" type="generated" /%}
 
+In this example:
+
+-   Right clicking anywhere on the chart show the Context Menu with the option to download the chart.
+-   Right clicking on a legend item will show the Context Menu with additional options to toggle series visibility.
+
+The context Menu is enabled by default, to disable set `contextMenu.enabled` to `false`.
+
+```ts
+contextMenu: {
+    enabled: false,
+}
+```
+
 ## Custom Actions
 
-You can add extra actions to the context menu which can run any arbitrary function.
+The Context Menu's extra actions can be used to run arbitrary functions based on the element that is right-clicked.
+
+{% chartExampleRunner title="Context Menu Custom Actions" name="context-menu-actions" type="generated" /%}
 
 ```ts
 contextMenu: {
@@ -35,7 +40,12 @@ contextMenu: {
 }
 ```
 
-{% chartExampleRunner title="Context Menu Custom Actions" name="context-menu-actions" type="generated" /%}
+In this configuration:
+
+-   A single additional action is added for the chart, the series node and the legend items.
+    Multiple actions per item can be specified within the array if required.
+-   Right clicking on the chart, a bar or a legend item will show these additional actions in the Context Menu.
+-   Clicking these extra actions will show an alert box, displaying information to demonstrate that the action is aware of details about the right-clicked item.
 
 ## API Reference
 

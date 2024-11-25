@@ -66,6 +66,7 @@ This release includes the following behaviour changes:
 ### Other Changes
 
 -   All series and axis labels default to removing trailing zeros. Use the `format` and `formatter` options to modify.
+    -   Additionally some incorrect rounding scenarios have been fixed, e.g. 5.555 now correctly rounds to 5.56 instead of 5.55.
 -   Pie and Donut Series labels default to displaying two decimal places without trailing zeros. Use the `formatter` functions to modify.
 -   A stacked normalized area series datum where all the values are 0 will connect to a point at 0 rather than leaving a gap.
 -   Scrolling events on a chart with zoom enabled, will now be passed to the parent if zoom is at minimum or maximum levels.

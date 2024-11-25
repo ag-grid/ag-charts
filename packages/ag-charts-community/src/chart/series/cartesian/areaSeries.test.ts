@@ -162,7 +162,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
         AREA_CATEGORY_X_AXIS_NEGATIVE_LOG_Y_AXIS: buildLogAxisTestCase(DATA_NEGATIVE_LOG_AXIS),
         AREA_CATEGORY_X_AXIS_FRACTIONAL_LOG_Y_AXIS: buildLogAxisTestCase(DATA_FRACTIONAL_LOG_AXIS),
         AREA_CATEGORY_X_AXIS_ZERO_EXTENT_LOG_Y_AXIS: buildLogAxisTestCase(DATA_ZERO_EXTENT_LOG_AXIS, {
-            warnings: ['AG Charts - the data domain has 0 extent, no data is rendered.'],
+            warnings: ['AG Charts - The log axis domain contains a value of 0, the chart data cannot be rendered. See log axis documentation for more information.'],
             skipWarningsReversed: false,
         }),
         NORMALISED_AREA_STACKED: {

@@ -5,7 +5,6 @@ const options: AgCartesianChartOptions = {
     title: {
         text: 'Sweaters made',
     },
-    legend: {},
     contextMenu: {
         extraActions: [
             {
