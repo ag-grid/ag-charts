@@ -67,11 +67,11 @@ describe('Pool', () => {
                 results.push(pool.obtain('create test ' + i));
             }
 
-            results.forEach((r) => r.release());
-            results.forEach((r) => {
+            for (const r of results) {
+                r.release();
                 expect(released).toHaveBeenCalledWith(r.item);
-            });
-
+            }
+            expect(destroy).not.toHaveBeenCalled();
             await new Promise((r) => setTimeout(r, 50));
             expect(destroy).not.toHaveBeenCalled();
 
@@ -102,19 +102,18 @@ describe('Pool', () => {
             }
         });
 
-        /** Temp fix build */
-        it.skip('should destroy freed items after 100ms', async () => {
+        it('should destroy freed items after 100ms', async () => {
             const results = [];
             for (let i = 0; i < 100; i++) {
                 results.push(pool.obtain('create test ' + i));
             }
 
-            results.forEach((r) => r.release());
-            results.forEach((r) => {
+            for (const r of results) {
+                r.release();
                 expect(released).toHaveBeenCalledWith(r.item);
-            });
-
+            }
             expect(destroy).not.toHaveBeenCalled();
+
             await new Promise((r) => setTimeout(r, 50));
             expect(destroy).not.toHaveBeenCalled();
 
