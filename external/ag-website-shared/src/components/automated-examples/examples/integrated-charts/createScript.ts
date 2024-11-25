@@ -328,7 +328,18 @@ export const createScript = ({
             actionParams: {
                 target: 'chartsLegendItem',
                 targetParams: {
-                    index: 5,
+                    index: 3,
+                },
+            },
+        },
+        { type: 'wait', duration: 600 },
+        {
+            type: 'agAction',
+            actionType: 'moveToElementAndClick',
+            actionParams: {
+                target: 'chartsLegendItem',
+                targetParams: {
+                    index: 1,
                 },
             },
         },
@@ -350,18 +361,7 @@ export const createScript = ({
             actionParams: {
                 target: 'chartsLegendItem',
                 targetParams: {
-                    index: 5,
-                },
-            },
-        },
-        { type: 'wait', duration: 600 },
-        {
-            type: 'agAction',
-            actionType: 'moveToElementAndClick',
-            actionParams: {
-                target: 'chartsLegendItem',
-                targetParams: {
-                    index: 3,
+                    index: 1,
                 },
             },
         },
