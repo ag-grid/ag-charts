@@ -6,7 +6,7 @@ import { FibonacciProperties } from '../properties/fibonacciProperties';
 const { STRING, Validate, isObject } = _ModuleSupport;
 
 export class FibonacciRetracementProperties extends FibonacciProperties {
-    static is(value: unknown): value is FibonacciRetracementProperties {
+    static is(this: void, value: unknown): value is FibonacciRetracementProperties {
         return isObject(value) && value.type === AnnotationType.FibonacciRetracement;
     }
 
