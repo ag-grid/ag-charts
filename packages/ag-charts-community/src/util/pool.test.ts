@@ -102,8 +102,7 @@ describe('Pool', () => {
             }
         });
 
-        /** Temp fix build */
-        it.skip('should destroy freed items after 100ms', async () => {
+        it('should destroy freed items after 100ms', async () => {
             const results = [];
             for (let i = 0; i < 100; i++) {
                 results.push(pool.obtain('create test ' + i));
