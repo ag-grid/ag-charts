@@ -7,6 +7,10 @@ export class LicenseManager {
         // No-op.
     }
 
+    public static setGridContext(): void {
+        // No-op.
+    }
+
     public isDisplayWatermark() {
         return false;
     }
