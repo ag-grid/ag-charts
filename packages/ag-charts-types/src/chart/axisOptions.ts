@@ -136,8 +136,8 @@ export interface AgAxisLabelFormatterParams {
 }
 
 export interface AgAxisLabelStylerParams extends AgBaseAxisLabelStyleOptions {
+    /** The label value that would be used, after applying formating. */
     readonly value: any;
-    readonly depth?: number;
 }
 
 export interface AgBaseAxisLabelOptions extends AgBaseAxisLabelStyleOptions {
