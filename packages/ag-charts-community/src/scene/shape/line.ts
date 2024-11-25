@@ -107,7 +107,7 @@ export class Line extends Shape implements DistantObject {
         element.setAttribute('y1', String(this.y1));
         element.setAttribute('x2', String(this.x2));
         element.setAttribute('y2', String(this.y2));
-        element.setAttribute('stroke', this.stroke ?? 'none');
+        element.setAttribute('stroke', typeof this.stroke === 'string' ? this.stroke : 'none');
         element.setAttribute('stroke-opacity', String(this.strokeOpacity));
         element.setAttribute('stroke-width', String(this.strokeWidth));
 

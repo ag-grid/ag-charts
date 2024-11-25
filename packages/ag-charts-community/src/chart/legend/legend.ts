@@ -50,15 +50,15 @@ import { gridLayout } from '../gridLayout';
 import type { HighlightNodeDatum } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import { LayoutElement } from '../layout/layoutManager';
-import type { Marker } from '../marker/marker';
 import { getMarker } from '../marker/util';
 import { Pagination } from '../pagination/pagination';
 import { type TooltipMeta, type TooltipPointerEvent, toTooltipHtml } from '../tooltip/tooltip';
 import { ZIndexMap } from '../zIndexMap';
 import { LegendDOMProxy } from './legendDOMProxy';
-import type { CategoryLegendDatum, LegendSymbolOptions } from './legendDatum';
+import type { CategoryLegendDatum } from './legendDatum';
 import type { LegendChangeEvent } from './legendManager';
 import { LegendMarkerLabel } from './legendMarkerLabel';
+import type { LegendSymbolOptions } from './legendSymbol';
 
 class LegendLabel extends BaseProperties {
     @Validate(POSITIVE_NUMBER, { optional: true })
@@ -532,23 +532,23 @@ export class Legend extends BaseProperties {
         let spriteHeight = 0;
         let markerWidth = 0;
         this.itemSelection.each((_, datum) => {
-            datum.symbols.forEach((symbol) => {
-                const {
-                    markerLength,
-                    markerStrokeWidth,
-                    lineLength,
-                    lineStrokeWidth,
-                    customMarkerSize = -Infinity,
-                } = this.calcSymbolsLengths(symbol);
-                const markerTotalLength = markerLength + markerStrokeWidth;
-                markerWidth = Math.max(markerWidth, lineLength, customMarkerSize, markerLength);
-                spriteWidth = Math.max(spriteWidth, lineLength, customMarkerSize, markerTotalLength);
-                spriteHeight = Math.max(spriteHeight, lineStrokeWidth, markerTotalLength);
-                // Add +0.5 padding to handle cases where the X/Y pixel coordinates are not integers
-                // (We need this extra row/column of pixels because legend's sprite render will use
-                // integers for X/Y coords).
-                spriteAAPadding = Math.max(spriteAAPadding, markerStrokeWidth + 0.5);
-            });
+            const { symbol } = datum;
+
+            const {
+                markerLength,
+                markerStrokeWidth,
+                lineLength,
+                lineStrokeWidth,
+                customMarkerSize = -Infinity,
+            } = this.calcSymbolsLengths(symbol);
+            const markerTotalLength = markerLength + markerStrokeWidth;
+            markerWidth = Math.max(markerWidth, lineLength, customMarkerSize, markerLength);
+            spriteWidth = Math.max(spriteWidth, lineLength, customMarkerSize, markerTotalLength);
+            spriteHeight = Math.max(spriteHeight, lineStrokeWidth, markerTotalLength);
+            // Add +0.5 padding to handle cases where the X/Y pixel coordinates are not integers
+            // (We need this extra row/column of pixels because legend's sprite render will use
+            // integers for X/Y coords).
+            spriteAAPadding = Math.max(spriteAAPadding, markerStrokeWidth + 0.5);
         });
         spriteWidth += spriteAAPadding * 2;
         spriteHeight += spriteAAPadding * 2;
@@ -564,57 +564,47 @@ export class Legend extends BaseProperties {
     ): number {
         const { marker: itemMarker, paddingX } = this.item;
         const { markerWidth } = spriteDims;
-        const dimensionProps: { length: number; spacing: number; isCustomMarker: boolean }[] = [];
+        const { symbol } = datum;
         let paddedSymbolWidth = paddingX;
 
         if (this._symbolsDirty) {
-            const markers: Marker[] = [];
-            const lines: Line[] = [];
+            const { shape: markerShape = symbol.marker.shape } = itemMarker;
+            const MarkerCtr = getMarker(markerShape);
 
-            datum.symbols.forEach((symbol) => {
-                const { shape: markerShape = symbol.marker.shape } = itemMarker;
-                const MarkerCtr = getMarker(markerShape);
-
-                lines.push(new Line({ zIndex: 0 }));
-                markers.push(new MarkerCtr({ zIndex: 1 }));
-            });
-
-            markerLabel.updateSymbols(markers, lines);
+            markerLabel.updateSymbols(new MarkerCtr({ zIndex: 1 }), new Line({ zIndex: 0 }));
         }
 
-        datum.symbols.forEach((symbol, i) => {
-            const spacing = symbol.marker.padding ?? itemMarker.padding;
-            const { markerEnabled, lineEnabled, isCustomMarker } = this.calcSymbolsEnabled(symbol);
+        const spacing = itemMarker.padding;
+        const { markerEnabled, lineEnabled, isCustomMarker } = this.calcSymbolsEnabled(symbol);
 
-            markerLabel.markers[i].size = markerEnabled || !lineEnabled ? itemMarker.size : 0;
-            dimensionProps.push({ length: markerWidth, spacing, isCustomMarker });
+        const { marker, line } = markerLabel;
+        if (marker != null) {
+            marker.size = markerEnabled || !lineEnabled ? itemMarker.size : 0;
+        }
+        const dimensionProps = { length: markerWidth, spacing, isCustomMarker };
 
-            if (markerEnabled || lineEnabled) {
-                paddedSymbolWidth += spacing + markerWidth;
-            }
+        if (markerEnabled || lineEnabled) {
+            paddedSymbolWidth += spacing + markerWidth;
+        }
 
-            const marker = markerLabel.markers[i];
-            const line = markerLabel.lines[i];
+        if (marker) {
+            const { strokeWidth, fill, stroke, fillOpacity, strokeOpacity } = this.getMarkerStyles(symbol);
 
-            if (marker) {
-                const { strokeWidth, fill, stroke, fillOpacity, strokeOpacity } = this.getMarkerStyles(symbol);
+            marker.fill = fill;
+            marker.stroke = stroke;
+            marker.strokeWidth = strokeWidth;
+            marker.fillOpacity = fillOpacity;
+            marker.strokeOpacity = strokeOpacity;
+        }
 
-                marker.fill = fill;
-                marker.stroke = stroke;
-                marker.strokeWidth = strokeWidth;
-                marker.fillOpacity = fillOpacity;
-                marker.strokeOpacity = strokeOpacity;
-            }
+        if (line) {
+            const lineStyles = this.getLineStyles(symbol);
 
-            if (line) {
-                const lineStyles = this.getLineStyles(symbol);
-
-                line.stroke = lineStyles.stroke;
-                line.strokeOpacity = lineStyles.strokeOpacity;
-                line.strokeWidth = lineStyles.strokeWidth;
-                line.lineDash = lineStyles.lineDash;
-            }
-        });
+            line.stroke = lineStyles.stroke;
+            line.strokeOpacity = lineStyles.strokeOpacity;
+            line.strokeWidth = lineStyles.strokeWidth;
+            line.lineDash = lineStyles.lineDash;
+        }
 
         markerLabel.update(spriteRenderer, spriteDims, dimensionProps);
         return paddedSymbolWidth;

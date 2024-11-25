@@ -114,7 +114,7 @@ export class Text extends Shape {
         }
 
         if (stroke && strokeWidth) {
-            ctx.strokeStyle = stroke;
+            this.applyStroke(ctx);
             ctx.lineWidth = strokeWidth;
             ctx.globalAlpha *= this.opacity * this.strokeOpacity;
 

@@ -67,13 +67,14 @@ export abstract class Shape extends Node {
     @SceneChangeDetection({ changeCb: (s: Shape) => s.onFillChange() })
     fill?: string | Gradient = Shape.defaultStyles.fill;
 
-    protected onFillChange() {
-        const { fill } = this;
-
+    private getGradient(pattern: string | Gradient | undefined) {
         let linearGradientMatch: RegExpMatchArray | null;
-        if (fill instanceof Gradient) {
-            this.gradient = fill;
-        } else if (fill?.startsWith('linear-gradient') && (linearGradientMatch = LINEAR_GRADIENT_REGEXP.exec(fill))) {
+        if (pattern instanceof Gradient) {
+            return pattern;
+        } else if (
+            pattern?.startsWith('linear-gradient') &&
+            (linearGradientMatch = LINEAR_GRADIENT_REGEXP.exec(pattern))
+        ) {
             const angle = parseFloat(linearGradientMatch[1]);
             const colors = [];
             const colorsPart = linearGradientMatch[2];
@@ -82,17 +83,21 @@ export abstract class Shape extends Node {
             while ((c = colorRegex.exec(colorsPart))) {
                 colors.push(c[0]);
             }
-            this.gradient = new LinearGradient(
+            return new LinearGradient(
                 'rgb',
                 colors.map((color, index) => ({ color, offset: index / (colors.length - 1) })),
                 angle
             );
         } else {
-            this.gradient = undefined;
+            return undefined;
         }
     }
 
-    protected gradient: Gradient | undefined;
+    protected onFillChange() {
+        this.fillGradient = this.getGradient(this.fill);
+    }
+
+    protected fillGradient: Gradient | undefined;
 
     /**
      * Note that `strokeStyle = null` means invisible stroke,
@@ -104,8 +109,14 @@ export abstract class Shape extends Node {
      * The preferred way of making the stroke invisible is setting the `lineWidth` to zero,
      * unless specific looks that is achieved by having an invisible stroke is desired.
      */
-    @SceneChangeDetection()
-    stroke?: string = Shape.defaultStyles.stroke;
+    @SceneChangeDetection({ changeCb: (s: Shape) => s.onStrokeChange() })
+    stroke?: string | Gradient = Shape.defaultStyles.stroke;
+
+    protected onStrokeChange() {
+        this.strokeGradient = this.getGradient(this.stroke);
+    }
+
+    protected strokeGradient: Gradient | undefined;
 
     @SceneChangeDetection()
     strokeWidth: number = Shape.defaultStyles.strokeWidth;
@@ -181,8 +192,15 @@ export abstract class Shape extends Node {
 
     protected applyFill(ctx: CanvasContext) {
         ctx.fillStyle =
-            this.gradient?.createGradient(ctx as any, this.getBBox()) ??
+            this.fillGradient?.createGradient(ctx as any, this.getBBox()) ??
             (typeof this.fill === 'string' ? this.fill : undefined) ??
+            'black';
+    }
+
+    protected applyStroke(ctx: CanvasContext) {
+        ctx.strokeStyle =
+            this.strokeGradient?.createGradient(ctx as any, this.getBBox()) ??
+            (typeof this.stroke === 'string' ? this.stroke : undefined) ??
             'black';
     }
 
@@ -207,7 +225,7 @@ export abstract class Shape extends Node {
     protected renderStroke(ctx: CanvasContext, path?: Path2D) {
         if (this.stroke && this.strokeWidth) {
             const { globalAlpha } = ctx;
-            ctx.strokeStyle = this.stroke;
+            this.applyStroke(ctx);
             ctx.globalAlpha *= this.opacity * this.strokeOpacity;
 
             ctx.lineWidth = this.strokeWidth;

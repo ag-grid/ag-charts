@@ -108,7 +108,7 @@ export class ErrorBarNode extends _ModuleSupport.Group {
         return { whiskerStyle, capsStyle };
     }
 
-    private applyStyling(target: ErrorBarStylingOptions, source?: ErrorBarStylingOptions) {
+    private applyStyling(target: _ModuleSupport.Path, source?: ErrorBarStylingOptions) {
         // Style can be any object, including user data (e.g. formatter
         // result). So filter out anything that isn't styling options:
         partialAssign(

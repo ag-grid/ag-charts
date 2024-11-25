@@ -646,7 +646,7 @@ export abstract class BaseFunnelSeries<
                     seriesId,
                     enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
                     label: { text: stageValue },
-                    symbols: [{ marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } }],
+                    symbol: { marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } },
                     skipAnimations: true,
                     hideInLegend: !showInLegend,
                 };

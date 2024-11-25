@@ -153,7 +153,7 @@ export class Path extends Shape implements DistantObject {
         element.setAttribute('fill', typeof this.fill === 'string' ? this.fill : 'none');
         element.setAttribute('fill-opacity', String(this.fillOpacity));
         if (this.stroke != null) {
-            element.setAttribute('stroke', this.stroke);
+            element.setAttribute('stroke', typeof this.stroke === 'string' ? this.stroke : 'none');
             element.setAttribute('stroke-opacity', String(this.strokeOpacity));
             element.setAttribute('stroke-width', String(this.strokeWidth));
         }

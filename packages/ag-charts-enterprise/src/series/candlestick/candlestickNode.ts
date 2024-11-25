@@ -105,7 +105,7 @@ export class CandlestickNode extends OhlcBaseNode {
 
         ctx.globalAlpha *= wickStrokeOpacity;
 
-        if (wickStroke != null) {
+        if (typeof wickStroke === 'string') {
             ctx.strokeStyle = wickStroke;
         }
         ctx.lineWidth = wickStrokeWidth;

@@ -246,6 +246,26 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             return [];
         }
 
+        const fill = new _ModuleSupport.LinearGradient(
+            'rgb',
+            [
+                { color: up.fill, offset: 0 },
+                { color: up.fill, offset: 0.5 },
+                { color: down.fill, offset: 0.5 },
+            ],
+            90
+        );
+
+        const stroke = new _ModuleSupport.LinearGradient(
+            'rgb',
+            [
+                { color: up.stroke, offset: 0 },
+                { color: up.stroke, offset: 0.5 },
+                { color: down.stroke, offset: 0.5 },
+            ],
+            90
+        );
+
         return [
             {
                 legendType: 'category',
@@ -256,27 +276,15 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
                 label: {
                     text: legendItemName ?? yName ?? id,
                 },
-                symbols: [
-                    {
-                        marker: {
-                            fill: up.fill,
-                            fillOpacity: up.fillOpacity,
-                            stroke: up.stroke,
-                            strokeWidth: up.strokeWidth ?? 1,
-                            strokeOpacity: up.strokeOpacity ?? 1,
-                            padding: 0,
-                        },
+                symbol: {
+                    marker: {
+                        fill,
+                        fillOpacity: up.fillOpacity,
+                        stroke: stroke,
+                        strokeWidth: up.strokeWidth ?? 1,
+                        strokeOpacity: up.strokeOpacity ?? 1,
                     },
-                    {
-                        marker: {
-                            fill: down.fill,
-                            fillOpacity: down.fillOpacity,
-                            stroke: down.stroke,
-                            strokeWidth: down.strokeWidth ?? 1,
-                            strokeOpacity: down.strokeOpacity ?? 1,
-                        },
-                    },
-                ],
+                },
                 legendItemName,
                 hideInLegend: !showInLegend,
             },
