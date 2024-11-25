@@ -53,7 +53,7 @@ export abstract class AnnotationScene extends _ModuleSupport.Group {
             return;
         }
 
-        if (node == null) {
+        if (isConfigured && node == null) {
             node = new constructor();
             this.appendChild(node);
         }
