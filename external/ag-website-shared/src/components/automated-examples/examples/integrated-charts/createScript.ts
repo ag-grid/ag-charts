@@ -339,7 +339,7 @@ export const createScript = ({
             actionParams: {
                 target: 'chartsLegendItem',
                 targetParams: {
-                    index: 1,
+                    index: 3,
                 },
             },
         },
@@ -361,7 +361,7 @@ export const createScript = ({
             actionParams: {
                 target: 'chartsLegendItem',
                 targetParams: {
-                    index: 1,
+                    index: 3,
                 },
             },
         },
