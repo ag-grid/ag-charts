@@ -66,6 +66,9 @@
         }
       ]
     },
+    "benchmark": {
+      "dependsOn": ["build", "ag-charts-website-benchmarks_enterprise-1M-line-series_main.ts:generate-example"]
+    },
     "pack": {
       "executor": "nx:run-commands",
       "dependsOn": ["build"],

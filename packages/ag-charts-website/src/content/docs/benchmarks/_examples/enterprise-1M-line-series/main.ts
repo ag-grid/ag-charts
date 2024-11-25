@@ -1,3 +1,4 @@
+/* @ag-options-extract */
 import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';

@@ -19,6 +19,7 @@ if (swcJestConfig.swcrc === undefined) {
 const pathToGlob = (path: string) => path.replace('./', '**/');
 
 const tests = glob.sync('packages/ag-charts-enterprise/src/**/*.test.ts');
+const benchmarks = glob.sync('packages/ag-charts-enterprise/benchmarks/**/*.test.ts').map(pathToGlob);
 const e2eTests = tests
     .filter((path) => {
         const fileContents = readFileSync(path).toString();
@@ -72,6 +73,12 @@ export default {
             // maxWorkers: 1,
             // WIP discussion: https://github.com/facebook/jest/pull/10912
             // maxConcurrency: 1,
+            ...commonConfig,
+        },
+        {
+            displayName: 'ag-charts-community - benchmarks',
+            testMatch: benchmarks.map(pathFix),
+            runner: 'jest-serial-runner',
             ...commonConfig,
         },
     ],
