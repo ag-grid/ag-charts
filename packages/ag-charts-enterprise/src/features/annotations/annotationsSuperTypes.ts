@@ -13,8 +13,8 @@ import type { HorizontalLineProperties, VerticalLineProperties } from './cross-l
 import type { CrossLineScene } from './cross-line/crossLineScene';
 import type { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
 import type { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
-import type { FibonacciRetracementProperties } from './fibonacciRetracement/fibonacciRetracementProperties';
-import type { FibonacciRetracementScene } from './fibonacciRetracement/fibonacciRetracementScene';
+import type { FibonacciRetracementProperties } from './fibonacci-retracement/fibonacciRetracementProperties';
+import type { FibonacciRetracementScene } from './fibonacci-retracement/fibonacciRetracementScene';
 import type { ArrowProperties, LineProperties } from './line/lineProperties';
 import type { LineScene } from './line/lineScene';
 import type {

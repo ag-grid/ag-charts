@@ -9,7 +9,7 @@ import { CalloutProperties } from '../callout/calloutProperties';
 import { CommentProperties } from '../comment/commentProperties';
 import { HorizontalLineProperties, VerticalLineProperties } from '../cross-line/crossLineProperties';
 import { DisjointChannelProperties } from '../disjoint-channel/disjointChannelProperties';
-import { FibonacciRetracementProperties } from '../fibonacciRetracement/fibonacciRetracementProperties';
+import { FibonacciRetracementProperties } from '../fibonacci-retracement/fibonacciRetracementProperties';
 import { ArrowProperties, LineProperties } from '../line/lineProperties';
 import {
     DatePriceRangeProperties,

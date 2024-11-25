@@ -1,5 +1,3 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
 import { LineTypeStateMachine } from '../line/lineState';
 import { FibonacciRetracementProperties } from './fibonacciRetracementProperties';
 

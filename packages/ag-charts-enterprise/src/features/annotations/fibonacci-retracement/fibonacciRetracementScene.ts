@@ -1,5 +1,3 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
 import { AnnotationScene } from '../scenes/annotationScene';
 import { FibonacciScene } from '../scenes/fibonacciScene';
 import type { FibonacciRetracementProperties } from './fibonacciRetracementProperties';

@@ -106,7 +106,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
     private updateRanges(datum: Datum, coords: _ModuleSupport.Vec4, context: AnnotationContext) {
         const data = createFibonacciRangesData(coords, context, datum.reverse);
 
-        const getDatumId = (datum: FibonacciRangeDatum) => datum.id;
+        const getDatumId = (d: FibonacciRangeDatum) => d.id;
         this.rangeFillsGroupSelection.update(data, undefined, getDatumId);
         this.rangeStrokesGroupSelection.update(data, undefined, getDatumId);
         this.labelsGroupSelection.update(data, undefined, getDatumId);
