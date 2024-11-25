@@ -31,11 +31,7 @@ export class NumberAxis extends CartesianAxis<LinearScale | LogScale, number> {
     max: number = NaN;
 
     override updateSecondaryAxisTicks(primaryTickCount: number | undefined): any[] {
-        if (this.dataDomain == null) {
-            throw new Error('AG Charts - dataDomain not calculated, cannot perform tick calculation.');
-        }
-
-        if (this.dataDomain.domain.length === 0) {
+        if (!this.dataDomain?.domain.length) {
             return [];
         }
 
