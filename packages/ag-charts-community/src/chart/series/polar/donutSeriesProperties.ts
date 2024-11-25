@@ -59,7 +59,7 @@ class DonutSeriesCalloutLabel extends Label<AgDonutSeriesLabelFormatterParams> {
     @Validate(POSITIVE_NUMBER)
     offset = 3; // from the callout line
 
-    @Validate(NUMBER)
+    @Validate(NUMBER.restrict({ min: 0, max: 360 }))
     minAngle = 0;
 
     @Validate(POSITIVE_NUMBER)
