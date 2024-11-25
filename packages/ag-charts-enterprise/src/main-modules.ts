@@ -1,9 +1,15 @@
 import { AgCharts, VERSION, _Scene, _Theme, _Util, setupCommunityModules } from 'ag-charts-community';
 import type { IntegratedModule } from 'ag-charts-types';
 
+import { LicenseManager as RealLicenseManager } from './license/licenseManager';
 import { setupEnterpriseModules as internalSetup } from './setup';
 
-export { AgCharts, VERSION };
+const LicenseManager = {
+    setLicenseKey(key: string) {
+        RealLicenseManager.setLicenseKey(key);
+    },
+};
+export { AgCharts, VERSION, LicenseManager };
 
 export function setupEnterpriseModules() {
     internalSetup();
@@ -18,7 +24,7 @@ export const AgChartsEnterpriseModule: IntegratedModule = {
     create: AgCharts.create.bind(AgCharts),
     createSparkline: AgCharts.__createSparkline.bind(AgCharts),
     setup: setupEnterpriseModules,
-    setGridContext: AgCharts.setGridContext.bind(AgCharts),
-    setLicenseKey: AgCharts.setLicenseKey.bind(AgCharts),
+    setGridContext: RealLicenseManager.setGridContext.bind(RealLicenseManager),
+    setLicenseKey: RealLicenseManager.setLicenseKey.bind(RealLicenseManager),
     isEnterprise: true,
 };

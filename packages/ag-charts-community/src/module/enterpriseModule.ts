@@ -3,7 +3,6 @@ import type { AgChartOptions } from 'ag-charts-types';
 import type { DOMManager } from '../dom/domManager';
 
 export interface LicenseManager {
-    setLicenseKey: (key?: string, gridContext?: boolean) => void;
     validateLicense: () => void;
     isDisplayWatermark: () => boolean;
     getWatermarkMessage: () => string;

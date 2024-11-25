@@ -16,8 +16,8 @@ const LICENSING_HELP_URL = 'https://ag-grid.com/charts/licensing/';
 
 export class LicenseManager {
     private static readonly RELEASE_INFORMATION: string = 'MTczMTQ5NDc0NzMyNw==';
-    private licenseKey?: string;
-    private gridContext: boolean = false;
+    private static licenseKey?: string;
+    private static gridContext: boolean = false;
     private watermarkMessage: string | undefined = undefined;
 
     private readonly md5: MD5;
@@ -33,7 +33,7 @@ export class LicenseManager {
     }
 
     public validateLicense(): void {
-        const licenseDetails = this.getLicenseDetails(this.licenseKey!, this.gridContext);
+        const licenseDetails = this.getLicenseDetails(LicenseManager.licenseKey!, LicenseManager.gridContext);
         const currentLicenseName = `AG ${
             licenseDetails.currentLicenseType === 'BOTH' ? 'Grid and ' : ''
         }Charts Enterprise`;
@@ -292,9 +292,12 @@ export class LicenseManager {
         return t;
     }
 
-    public setLicenseKey(licenseKey?: string, gridContext = false): void {
-        this.gridContext = gridContext;
-        this.licenseKey = licenseKey;
+    public static setGridContext(gridContext = false) {
+        LicenseManager.gridContext = gridContext;
+    }
+
+    public static setLicenseKey(licenseKey?: string): void {
+        LicenseManager.licenseKey = licenseKey;
     }
 
     private static extractBracketedInformation(licenseKey: string): [string | null, boolean | null, string?] {
@@ -333,7 +336,7 @@ export class LicenseManager {
         currentLicenseName: string,
         suppliedLicenseName: string
     ) {
-        if (!this.gridContext) {
+        if (!LicenseManager.gridContext) {
             if (incorrectLicenseType) {
                 // TC4, TC5,TC10
                 this.centerPadAndOutput('');
@@ -367,7 +370,7 @@ export class LicenseManager {
         currentLicenseName: string,
         suppliedLicenseName: string
     ) {
-        if (!this.gridContext) {
+        if (!LicenseManager.gridContext) {
             // TC14
             this.centerPadAndOutput('');
             this.centerPadAndOutput(` ${currentLicenseName} License `);
@@ -386,7 +389,7 @@ export class LicenseManager {
     }
 
     private outputMissingLicenseKey(currentLicenseName: string) {
-        if (!this.gridContext) {
+        if (!LicenseManager.gridContext) {
             // TC6, TC12
             this.centerPadAndOutput('');
             this.centerPadAndOutput(` ${currentLicenseName} License `);
@@ -406,7 +409,7 @@ export class LicenseManager {
 
     private outputExpiredKey(formattedExpiryDate: string, formattedReleaseDate: string, currentLicenseName: string) {
         // TC2
-        if (!this.gridContext) {
+        if (!LicenseManager.gridContext) {
             this.centerPadAndOutput('');
             this.centerPadAndOutput(` ${currentLicenseName} License `);
             this.centerPadAndOutput(' Incompatible Software Version ');
