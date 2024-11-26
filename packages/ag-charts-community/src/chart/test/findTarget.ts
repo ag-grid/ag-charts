@@ -2,6 +2,7 @@ import { Caster, ClassTypePair } from 'ag-charts-test';
 
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
+import { Node } from '../../scene/node';
 import { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
@@ -13,9 +14,15 @@ import type { Chart } from '../chart';
 import type { MockEvent } from '../interaction/regionManager';
 import { Legend } from '../legend/legend';
 import { LegendMarkerLabel } from '../legend/legendMarkerLabel';
-import { Navigator } from '../navigator/navigator';
-import { NavigatorDOMProxy } from '../navigator/navigatorDOMProxy';
 import { SeriesAreaManager } from '../series/seriesAreaManager';
+
+type Navigator = {
+    minHandle: Node;
+    maxHandle: Node;
+    mask: Node;
+};
+
+type NavigatorDOMProxy = object;
 
 const CAST_INFO = {
     Array: new ClassTypePair<unknown[], typeof Array>(Array),
@@ -25,8 +32,8 @@ const CAST_INFO = {
     Scene: new ClassTypePair<Scene, typeof Scene>(Scene),
 
     Legend: new ClassTypePair<Legend, typeof Legend>(Legend),
-    Navigator: new ClassTypePair<Navigator, typeof Navigator>(Navigator),
-    NavigatorDOMProxy: new ClassTypePair<NavigatorDOMProxy, typeof NavigatorDOMProxy>(NavigatorDOMProxy),
+    Navigator: new ClassTypePair<Navigator, Navigator>(Object as any),
+    NavigatorDOMProxy: new ClassTypePair<NavigatorDOMProxy, NavigatorDOMProxy>(Object as any),
     SeriesAreaManager: new ClassTypePair<SeriesAreaManager, typeof SeriesAreaManager>(SeriesAreaManager),
 
     ToolbarWidget: new ClassTypePair<ToolbarWidget, typeof ToolbarWidget>(ToolbarWidget),

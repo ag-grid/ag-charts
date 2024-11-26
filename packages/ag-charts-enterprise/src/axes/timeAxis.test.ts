@@ -1,19 +1,23 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
-import type { AgCartesianChartOptions } from 'ag-charts-types';
-
-import { AgCharts } from '../../api/agCharts';
-import type { ChartAxis } from '../chartAxis';
+import { AgCharts, _ModuleSupport } from 'ag-charts-community';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     deproxy,
     extractImageData,
-    prepareTestOptions,
     setupMockCanvas,
     waitForChartStability,
-} from '../test/utils';
+} from 'ag-charts-community-test';
+import type { AgCartesianChartOptions } from 'ag-charts-types';
 
-function calculateAxisBBox(axis: ChartAxis): { x: number; y: number; width: number; height: number } {
+import { prepareEnterpriseTestOptions } from '../test/utils';
+
+function calculateAxisBBox(axis: { getBBox(): _ModuleSupport.BBox }): {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+} {
     const bbox = axis.getBBox();
 
     const { x, y, width, height } = bbox;
@@ -106,7 +110,7 @@ describe('Time Axis Examples', () => {
         ];
         for (const [start, end] of ZOOM_LEVELS) {
             it(`for should render as expected as zoom [${start}, ${end}]`, async () => {
-                chart = AgCharts.create(prepareTestOptions({ ...TIME_AXIS_EXAMPLE }));
+                chart = AgCharts.create(prepareEnterpriseTestOptions({ ...TIME_AXIS_EXAMPLE }));
                 await chart.updateDelta({ initialState: { zoom: { ratioX: { start, end } } } });
                 await axisCompare();
             });
