@@ -130,10 +130,15 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const optionsMap = [];
         const { depthOptions, label } = this;
         for (let i = 0; i < maxDepth; i++) {
-            optionsMap.push({
-                padding: depthOptions[i]?.label.padding ?? label.padding,
-                lineHeight: TextUtils.getLineHeight(depthOptions[i]?.label.fontSize ?? label.fontSize ?? 10),
-            });
+            optionsMap.push(
+                label.enabled && depthOptions[i]?.label.enabled
+                    ? {
+                          enabled: true,
+                          padding: depthOptions[i]?.label.padding ?? label.padding,
+                          lineHeight: TextUtils.getLineHeight(depthOptions[i]?.label.fontSize ?? label.fontSize ?? 10),
+                      }
+                    : { enabled: false, padding: 0, lineHeight: 0 }
+            );
         }
         return optionsMap;
     }
@@ -196,11 +201,12 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const optionsMap = this.getDepthOptionsMap(maxDepth);
 
         const setLabelProps = (datum: TreeNode, index: number) => {
-            if (index % keepEvery !== 0 || !inRange(datum.screenX, range)) {
+            const depth = maxDepth - datum.depth;
+
+            if (!optionsMap[depth]?.enabled || index % keepEvery !== 0 || !inRange(datum.screenX, range)) {
                 return false;
             }
 
-            const depth = maxDepth - datum.depth;
             const text = this.formatTick(datum.label, index - 1);
             const labelStyles = this.getLabelStyles({ value: text, depth }, depthOptions[depth]?.label);
 
