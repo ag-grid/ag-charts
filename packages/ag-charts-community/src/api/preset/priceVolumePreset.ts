@@ -7,6 +7,7 @@ import type {
     AgCartesianChartOptions,
     AgChartTheme,
     AgChartThemeName,
+    AgChartToolbarOptions,
     AgLineSeriesOptions,
     AgNavigatorOptions,
     AgNumberAxisOptions,
@@ -14,6 +15,7 @@ import type {
     AgPriceVolumePreset,
     AgRangeAreaSeriesOptions,
     AgRangeBarSeriesOptions,
+    AgRangesOptions,
     AgZoomOptions,
 } from 'ag-charts-types';
 
@@ -134,10 +136,10 @@ export function priceVolume(
     const toolbarOpts = {
         chartToolbar: {
             enabled: toolbar,
-        },
+        } satisfies AgChartToolbarOptions,
         ranges: {
             enabled: rangeButtons,
-        },
+        } satisfies AgRangesOptions,
     };
 
     const volumeAxis = volume

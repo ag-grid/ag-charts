@@ -4,6 +4,7 @@ export * from './chart/annotationsOptions';
 export * from './chart/axisOptions';
 export * from './chart/callbackOptions';
 export * from './chart/chartOptions';
+export * from './chart/chartToolbarOptions';
 export * from './chart/contextMenuOptions';
 export * from './chart/crossLineOptions';
 export * from './chart/crosshairOptions';

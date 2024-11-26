@@ -1,6 +1,7 @@
 import type { AgInitialStateOptions } from '../api/initialStateOptions';
 import type { AgAnimationOptions } from './animationOptions';
 import type { AgChartBackgroundImage } from './backgroundOptions';
+import type { AgChartToolbarOptions } from './chartToolbarOptions';
 import type { AgContextMenuOptions } from './contextMenuOptions';
 import type { AgDataSourceOptions } from './dataSourceOptions';
 import type { AgBaseChartListeners } from './eventOptions';
@@ -201,6 +202,8 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     ranges?: AgRangesOptions;
     /** Keyboard navigation options. */
     keyboard?: AgKeyboardOptions;
+    /** Configuration for the chart toolbar. */
+    chartToolbar?: AgChartToolbarOptions;
 
     // Cartesian-specific options - special care required.
     /** Configuration for the Navigator. */
