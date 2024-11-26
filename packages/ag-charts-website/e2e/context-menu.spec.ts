@@ -1,5 +1,6 @@
 import { expect, test } from './fixture';
 import {
+    SELECTORS,
     canvasToPageTransformer,
     gotoExample,
     locateCanvas,
@@ -72,14 +73,14 @@ test.describe('context-menu', () => {
         const { url } = toExamplePageUrl('accessibility-test', 'opening-context-menu-second-chart', 'vanilla');
         await gotoExample(page, url);
 
-        await page.mouse.click(360, 580, { button: 'right' });
+        await page.mouse.click(360, 570, { button: 'right' });
         await expect(page).toHaveScreenshot('AG-13359-context-menu-chart1-legend-item.png', { animations: 'disabled' });
 
         await page.keyboard.press('PageDown');
         await page.keyboard.press('PageDown');
         await page.keyboard.press('PageDown');
 
-        await page.mouse.click(400, 300, { button: 'right' });
+        await page.locator(SELECTORS.wrapper).nth(1).click( { button: 'right' });
         await expect(page).toHaveScreenshot('AG-13359-context-menu-chart2-series-area.png', { animations: 'disabled' });
     });
 });
