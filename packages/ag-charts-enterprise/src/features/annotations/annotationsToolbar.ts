@@ -50,9 +50,13 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         this.toolbar.addClass('ag-charts-annotations__toolbar');
         ctx.domManager.addChild('canvas-overlay', 'annotations-toolbar', this.toolbar.getElement());
 
+        const onKeyDown = this.onKeyDown.bind(this);
+        this.toolbar.addListener('keydown', onKeyDown);
+
         this.destroyFns.push(
             this.toolbar.addToolbarListener('button-pressed', this.onToolbarButtonPress.bind(this)),
-            ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this))
+            ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
+            () => this.toolbar.removeListener('keydown', onKeyDown)
         );
     }
 
@@ -205,6 +209,12 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         this.annotationMenu.hide();
     }
 
+    private onKeyDown(_: _ModuleSupport.Widget, { sourceEvent }: _ModuleSupport.KeyboardWidgetEvent) {
+        if (sourceEvent.key === 'Escape') {
+            this.dispatch('cancel-create-annotation');
+        }
+    }
+
     private updateButtonByIndex(index: number, change: Partial<AnnotationsToolbarButtonOptions>) {
         const button = this.buttons.at(index);
         if (!button) return;
@@ -223,11 +233,4 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
             value: button.value,
         });
     }
-
-    // TODO: handle esc key
-    // private onCancelled(event: any) {
-    //     if (event.group === 'annotations') {
-    //         this.dispatch('cancel-create-annotation');
-    //     }
-    // }
 }
