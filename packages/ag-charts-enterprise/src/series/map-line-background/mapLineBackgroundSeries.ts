@@ -201,10 +201,6 @@ export class MapLineBackgroundSeries
         // No animations
     }
 
-    override getSeriesDomain() {
-        return [NaN, NaN];
-    }
-
     override getLegendData() {
         return [];
     }

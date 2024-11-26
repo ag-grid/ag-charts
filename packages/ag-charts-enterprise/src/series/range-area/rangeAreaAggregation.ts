@@ -10,7 +10,6 @@ import {
 } from '../../utils/aggregation';
 
 const AGGREGATION_THRESHOLD = 1e3;
-const MAX_POINTS = 10;
 
 export interface RangeAreaSeriesDataAggregationFilter {
     maxRange: number;
@@ -62,7 +61,7 @@ export function aggregateData(
 
     const [d0, d1] = aggregationDomain(domain);
 
-    let maxRange = maxRangeFittingPoints(xValues, MAX_POINTS);
+    let maxRange = maxRangeFittingPoints(xValues);
     const { indexData, valueData } = createAggregationIndices(xValues, highValues, lowValues, d0, d1, maxRange);
 
     let topIndices: number[] = [];
@@ -78,7 +77,7 @@ export function aggregateData(
 
     const filters: RangeAreaSeriesDataAggregationFilter[] = [{ maxRange, topIndices, bottomIndices }];
 
-    while (topIndices.length > MAX_POINTS && maxRange > 64) {
+    while (maxRange > 64) {
         ({ maxRange } = compactAggregationIndices(indexData, valueData, maxRange, { inPlace: true }));
         topIndices = topIndices.filter(aggregationContainsTopIndex.bind(null, xValues, d0, d1, indexData, maxRange));
         bottomIndices = bottomIndices.filter(

@@ -208,6 +208,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
     }
 
+    override getSeriesRange(
+        _direction: _ModuleSupport.ChartAxisDirection,
+        _visibleRange: [any, any]
+    ): [number, number] {
+        return [NaN, NaN];
+    }
+
     override createNodeData() {
         const { data, dataModel, processedData } = this;
         const categoryAxis = this.getCategoryAxis();

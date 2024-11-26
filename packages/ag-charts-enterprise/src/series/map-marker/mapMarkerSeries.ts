@@ -623,10 +623,6 @@ export class MapMarkerSeries
         return this.contextNodeData?.labelData ?? [];
     }
 
-    override getSeriesDomain() {
-        return [NaN, NaN];
-    }
-
     override pickNodeClosestDatum(p: _ModuleSupport.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         const { x: x0, y: y0 } = p;
 

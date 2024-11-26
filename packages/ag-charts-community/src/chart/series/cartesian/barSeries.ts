@@ -33,7 +33,7 @@ import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/toolti
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
-import { datumStylerProperties } from '../util';
+import { datumStylerProperties, visibleRangeIndices } from '../util';
 import { AbstractBarSeries } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
 import {
@@ -110,6 +110,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
     override properties = new BarSeriesProperties();
 
+    override connectsToYAxis = true;
+
     private dataAggregationFilters: BarSeriesDataAggregationFilter[] | undefined = undefined;
 
     override get pickModeAxis() {
@@ -148,11 +150,11 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             return;
         }
 
+        const { xKey, yKey, yFilterKey, normalizedTo, fastDataProcessing } = this.properties;
         const { seriesGrouping: { groupIndex = this.id } = {}, data } = this;
         const groupCount = this.seriesGrouping?.groupCount ?? 0;
         const stackCount = this.seriesGrouping?.stackCount ?? 0;
-        const grouped = !this.properties.fastDataProcessing || groupCount > 1 || stackCount > 1;
-        const { xKey, yKey, yFilterKey, normalizedTo } = this.properties;
+        const grouped = !fastDataProcessing || normalizedTo != null || groupCount > 1 || stackCount > 1;
 
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
@@ -275,6 +277,27 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             const fixedYExtent = [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])];
             return fixNumericExtent(fixedYExtent);
         }
+    }
+
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return [NaN, NaN];
+
+        const xScale = this.axes[ChartAxisDirection.X]!.scale;
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const barWidth = xScale.bandwidth ?? 0;
+
+        const [x0, x1] = visibleRangeIndices(xValues.length, visibleRange, (index) => {
+            const x = xScale.convert(xValues[index]);
+            return [x, x + barWidth];
+        });
+        const [y0, y1] = dataModel.getDomainBetweenRange(
+            this,
+            processedData.type === 'ungrouped' ? ['yValue-raw'] : ['yValue-end'],
+            [x0, x1],
+            processedData
+        );
+        return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 
     protected aggregateData(

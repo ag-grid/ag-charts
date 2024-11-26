@@ -220,6 +220,10 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         return fixNumericExtent(yDomain);
     }
 
+    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
+        return [NaN, NaN];
+    }
+
     override createNodeData() {
         const { id: seriesId, axes, processedData } = this;
 

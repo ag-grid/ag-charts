@@ -38,7 +38,7 @@ import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/toolti
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
-import { datumStylerProperties } from '../util';
+import { datumStylerProperties, visibleRangeIndices } from '../util';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
     type AreaSeriesNodeDataContext,
@@ -85,6 +85,8 @@ export class AreaSeries extends CartesianSeries<
     static readonly type = 'area' as const;
 
     override properties = new AreaSeriesProperties();
+
+    override connectsToYAxis = true;
 
     readonly backgroundGroup = new Group({
         name: `${this.id}-background`,
@@ -255,6 +257,21 @@ export class AreaSeries extends CartesianSeries<
             const fixedYExtent = [yExtent[0] > 0 ? 0 : yExtent[0], yExtent[1] < 0 ? 0 : yExtent[1]];
             return fixNumericExtent(fixedYExtent);
         }
+    }
+
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return [NaN, NaN];
+
+        const xScale = this.axes[ChartAxisDirection.X]!.scale;
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+
+        const [x0, x1] = visibleRangeIndices(xValues.length, visibleRange, (index) => {
+            const x = xScale.convert(xValues[index]);
+            return [x, x];
+        });
+        const [y0, y1] = dataModel.getDomainBetweenRange(this, ['yValueEnd'], [x0, x1], processedData);
+        return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 
     override createNodeData() {

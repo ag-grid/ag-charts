@@ -5,6 +5,7 @@ import { isNegative } from '../../util/number';
 import { isObject } from '../../util/type-guards';
 import type { ChartMode } from '../chartMode';
 import { ContinuousDomain, DiscreteDomain, type IDataDomain } from './dataDomain';
+import { RangeLookup } from './rangeLookup';
 
 export interface ScopeProvider {
     id: string;
@@ -25,6 +26,8 @@ export interface UngroupedDataItem<I, D, V> {
     datum: D;
     validScopes?: Set<string>;
 }
+
+const DOMAIN_RANGES = Symbol('domain-ranges');
 
 export interface UngroupedData<D> {
     type: 'ungrouped';
@@ -60,6 +63,7 @@ export interface UngroupedData<D> {
     };
     partialValidDataCount: number;
     time: number;
+    [DOMAIN_RANGES]: Map<string, RangeLookup>;
 }
 
 export type ProcessedOutputDiff = {
@@ -93,6 +97,7 @@ export interface GroupedData<D> {
     defs: UngroupedData<D>['defs'];
     partialValidDataCount: number;
     time: number;
+    [DOMAIN_RANGES]: UngroupedData<D>[typeof DOMAIN_RANGES];
 }
 
 export type ProcessedData<D> = UngroupedData<D> | GroupedData<D>;
@@ -463,6 +468,24 @@ export class DataModel<
         return domains?.[this.resolveProcessedDataIndexById(scope, searchId)] ?? [];
     }
 
+    getDomainBetweenRange(
+        scope: ScopeProvider,
+        searchIds: string[],
+        [i0, i1]: [number, number],
+        processedData: ProcessedData<K>
+    ): [number, number] {
+        const columnIndices = searchIds.map((searchId) => this.resolveProcessedDataIndexById(scope, searchId));
+        const cacheKey = columnIndices.join(':');
+        const domainRanges = processedData[DOMAIN_RANGES];
+        let rangeLookup = domainRanges.get(cacheKey);
+        if (rangeLookup == null) {
+            const values = columnIndices.map((columnIndex) => processedData.columns[columnIndex]);
+            rangeLookup = new RangeLookup(values);
+            domainRanges.set(cacheKey, rangeLookup);
+        }
+        return rangeLookup.rangeBetween(i0, i1);
+    }
+
     private getDomainsByType(type: PropertyDefinition<any>['type'], processedData: ProcessedData<K>) {
         switch (type) {
             case 'key':
@@ -719,6 +742,7 @@ export class DataModel<
             },
             partialValidDataCount,
             time: 0,
+            [DOMAIN_RANGES]: new Map(),
         };
     }
 

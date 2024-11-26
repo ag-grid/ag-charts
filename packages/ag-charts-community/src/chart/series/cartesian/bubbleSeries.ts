@@ -145,6 +145,10 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         return fixNumericExtent(extent(domain));
     }
 
+    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
+        return [NaN, NaN];
+    }
+
     override createNodeData() {
         const { axes, dataModel, processedData, colorScale, sizeScale } = this;
         const {

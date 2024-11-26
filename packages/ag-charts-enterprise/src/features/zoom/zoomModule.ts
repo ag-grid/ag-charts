@@ -62,6 +62,10 @@ export const ZoomModule: _ModuleSupport.Module = {
             minVisibleItemsY: 2,
             panKey: 'alt',
             scrollingStep: 0.1,
+            autoScaling: {
+                enabled: false,
+                padding: 0.05,
+            },
         },
     },
 };

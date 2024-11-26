@@ -1129,6 +1129,13 @@ export class RadialGaugeSeries
         return [NaN, NaN];
     }
 
+    override getSeriesRange(
+        _direction: _ModuleSupport.ChartAxisDirection,
+        _visibleRange: [any, any]
+    ): [number, number] {
+        return [NaN, NaN];
+    }
+
     override getLegendData(): _ModuleSupport.ChartLegendDatum<any>[] {
         return [];
     }
