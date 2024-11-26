@@ -5,10 +5,10 @@ type EventMap = WidgetEventMap_HTML;
 type EventType = keyof WidgetEventMap_HTML;
 type SourceEventMap = WidgetSourceEventMap_HTML;
 type Targetable = { getElement(): HTMLElement };
-type Handler<T, K extends EventType> = (event: EventMap[K], target: T) => unknown;
+type Handler<T, K extends EventType> = (event: EventMap[K], current: T) => unknown;
 
 type TypedMap<K extends EventType> = Map<
-    (widgetEvent: EventMap[K], target: Targetable) => unknown,
+    (widgetEvent: EventMap[K], current: Targetable) => unknown,
     (this: HTMLElement, sourceEvent: SourceEventMap[K]) => void
 >;
 

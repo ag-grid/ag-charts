@@ -13,9 +13,9 @@ export class SliderWidget extends Widget<HTMLInputElement> {
     private _step: Readonly<SliderStep> = SliderWidget.STEP_ONE;
     private _keyboardStep?: {
         step: Readonly<SliderStep>;
-        onKeyDown: (ev: KeyboardWidgetEvent, target: SliderWidget) => void;
-        onKeyUp: (ev: KeyboardWidgetEvent, target: SliderWidget) => void;
-        onBlur: (ev: FocusWidgetEvent, target: SliderWidget) => void;
+        onKeyDown: (ev: KeyboardWidgetEvent, current: SliderWidget) => void;
+        onKeyUp: (ev: KeyboardWidgetEvent, current: SliderWidget) => void;
+        onBlur: (ev: FocusWidgetEvent, current: SliderWidget) => void;
     };
 
     public get step() {
@@ -96,9 +96,9 @@ export class SliderWidget extends Widget<HTMLInputElement> {
         }
     }
 
-    private static onKeyDown(this: void, ev: KeyboardWidgetEvent, target: SliderWidget) {
+    private static onKeyDown(this: void, ev: KeyboardWidgetEvent, current: SliderWidget) {
         let ignoredKeys: string[] = [];
-        const { orientation } = target;
+        const { orientation } = current;
         if (orientation === 'horizontal') {
             ignoredKeys = ['ArrowUp', 'ArrowDown'];
         } else if (orientation === 'vertical') {

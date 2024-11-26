@@ -67,10 +67,10 @@ export class NavigatorDOMProxy {
             slider.keyboardStep = SliderWidget.STEP_ONE;
             slider.orientation = 'horizontal';
             slider.setPreventsDefault(false);
-            slider.addListener('drag-start', (ev, target) => this.onDragStart(target, ev, key));
-            slider.addListener('drag-move', (ev, target) => this.onDrag(target, ev, key));
+            slider.addListener('drag-start', (ev) => this.onDragStart(slider, ev, key));
+            slider.addListener('drag-move', (ev) => this.onDrag(slider, ev, key));
             slider.addListener('drag-end', () => this.updateSliderRatios());
-            slider.addListener('contextmenu', (ev, target) => this.onContextMenu(target, ev));
+            slider.addListener('contextmenu', (ev) => this.onContextMenu(slider, ev));
         }
         this.sliders[0].addListener('change', () => this.onMinSliderChange());
         this.sliders[1].addListener('change', () => this.onPanSliderChange());

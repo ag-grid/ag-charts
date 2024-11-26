@@ -4,7 +4,7 @@ import type { DragWidgetEvent, WidgetEventMap_Internal } from './widgetEvents';
 
 type EventMap = WidgetEventMap_Internal;
 type EventType = keyof WidgetEventMap_Internal;
-type EventHandler<T, K extends EventType = EventType> = (event: EventMap[K], target: T) => unknown;
+type EventHandler<T, K extends EventType = EventType> = (event: EventMap[K], current: T) => unknown;
 type Targetable = { getElement(): HTMLElement };
 
 type DragEvents = 'drag-start' | 'drag-move' | 'drag-end';
@@ -90,14 +90,14 @@ export class WidgetListenerInternal {
         );
     }
 
-    private startDrag<T extends Targetable>(target: T, downEvent: MouseEvent) {
+    private startDrag<T extends Targetable>(current: T, downEvent: MouseEvent) {
         const window = getWindow();
         const origin: DragOrigin = { pageX: NaN, pageY: NaN, offsetX: NaN, offsetY: NaN };
         partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, downEvent);
 
         const mousemove = (moveEvent: MouseEvent) => {
             const dragMoveEvent = makeDragEvent('drag-move', origin, moveEvent);
-            this.dispatch('drag-move', target, dragMoveEvent);
+            this.dispatch('drag-move', current, dragMoveEvent);
         };
 
         const mouseup = (upEvent: MouseEvent) => {
@@ -105,24 +105,24 @@ export class WidgetListenerInternal {
                 window.removeEventListener('mousemove', mousemove);
                 window.removeEventListener('mouseup', mouseup);
                 const dragEndEvent = makeDragEvent('drag-end', origin, upEvent);
-                this.dispatch('drag-end', target, dragEndEvent);
+                this.dispatch('drag-end', current, dragEndEvent);
             }
         };
 
         window.addEventListener('mousemove', mousemove);
         window.addEventListener('mouseup', mouseup);
         const dragStartEvent = makeDragEvent('drag-start', origin, downEvent);
-        this.dispatch('drag-start', target, dragStartEvent);
+        this.dispatch('drag-start', current, dragStartEvent);
     }
 
-    private dispatch<T extends Targetable, K extends EventType>(type: K, target: T, event: EventMap[K]): void {
+    private dispatch<T extends Targetable, K extends EventType>(type: K, current: T, event: EventMap[K]): void {
         switch (type) {
             case 'drag-start':
-                return this.dragStartListeners?.forEach((handler) => handler(event, target));
+                return this.dragStartListeners?.forEach((handler) => handler(event, current));
             case 'drag-move':
-                return this.dragMoveListeners?.forEach((handler) => handler(event, target));
+                return this.dragMoveListeners?.forEach((handler) => handler(event, current));
             case 'drag-end':
-                return this.dragEndListeners?.forEach((handler) => handler(event, target));
+                return this.dragEndListeners?.forEach((handler) => handler(event, current));
         }
     }
 }
