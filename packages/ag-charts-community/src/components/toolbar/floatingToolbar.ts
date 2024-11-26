@@ -166,6 +166,6 @@ export abstract class FloatingToolbar<
         });
         dragHandle.getElement().title = this.ctx.localeManager.t('toolbarAnnotationsDragHandle');
 
-        this.appendChild(dragHandle);
+        this.addChild(dragHandle);
     }
 }

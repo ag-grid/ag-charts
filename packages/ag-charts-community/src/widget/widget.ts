@@ -126,8 +126,7 @@ export abstract class Widget<
         setAttribute(this.elem, 'tabindex', tabIndex);
     }
 
-    // TODO: olegat rename to addChild.
-    appendChild(child: TChildWidget) {
+    addChild(child: TChildWidget) {
         this.addChildToDOM(child, this.getBefore(child));
         this.children.push(child);
         child.index = this.children.length - 1;
