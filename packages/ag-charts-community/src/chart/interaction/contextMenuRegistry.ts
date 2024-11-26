@@ -55,8 +55,11 @@ export class ContextMenuRegistry {
     private readonly destroyFns: (() => void)[];
 
     public constructor(regionManager: RegionManager) {
-        const { Default, ContextMenu } = InteractionState;
-        this.destroyFns = [regionManager.listenAll('contextmenu', (e) => this.onContextMenu(e), Default | ContextMenu)];
+        const state = InteractionState.Default | InteractionState.ContextMenu;
+        this.destroyFns = [
+            regionManager.getRegion('root').addListener('contextmenu', (e) => this.onContextMenu(e), state),
+            regionManager.getRegion('series').addListener('contextmenu', (e) => this.onContextMenu(e), state),
+        ];
     }
 
     public destroy() {
