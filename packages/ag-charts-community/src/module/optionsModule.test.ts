@@ -1638,7 +1638,7 @@ describe('ChartOptions', () => {
             expect(preparedOptions.axes?.[0]?.label?.avoidCollisions).toBe(
                 theme.config.line.axes.time.label.avoidCollisions
             );
-            // @ts-expect-error
+            // @ts-expect-error not all cartesian axes support `label.autoRotate`, i.e. grouped-category
             expect(preparedOptions.axes?.[0]?.label?.autoRotate).toBe(theme.config.line.axes.time.label.autoRotate);
             expect(preparedOptions.axes?.[0]?.label?.minSpacing).toBe(theme.config.line.axes.time.label.minSpacing);
 
