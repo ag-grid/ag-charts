@@ -299,6 +299,7 @@ export class MapLineSeries extends TopologySeries<
                 series: this,
                 itemId: idKey,
                 datum,
+                datumIndex,
                 stroke: color,
                 strokeWidth: size,
                 idValue,
@@ -497,6 +498,35 @@ export class MapLineSeries extends TopologySeries<
         return point;
     }
 
+    private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
+        const { dataModel, processedData, properties } = this;
+        const { strokeWidth, strokeOpacity, lineDash } = properties;
+
+        let { stroke } = properties;
+        if (datumIndex != null && this.isColorScaleValid()) {
+            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
+            const colorValue = colorValues[datumIndex];
+            stroke = this.colorScale.convert(colorValue);
+        }
+
+        return {
+            marker: {
+                fill: undefined,
+                fillOpacity: 0,
+                stroke: undefined,
+                strokeWidth: 0,
+                strokeOpacity: 0,
+                enabled: false,
+            },
+            line: {
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+                lineDash,
+            },
+        };
+    }
+
     override getLegendData(
         legendType: _ModuleSupport.ChartLegendType
     ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
@@ -505,20 +535,7 @@ export class MapLineSeries extends TopologySeries<
 
         const { id: seriesId, visible } = this;
 
-        const {
-            title,
-            legendItemName,
-            idKey,
-            idName,
-            colorKey,
-            colorName,
-            colorRange,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            showInLegend,
-        } = this.properties;
+        const { title, legendItemName, idKey, idName, colorKey, colorName, colorRange, showInLegend } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
             const colorDomain =
@@ -540,22 +557,7 @@ export class MapLineSeries extends TopologySeries<
                 seriesId,
                 enabled: visible,
                 label: { text: legendItemName ?? title ?? idName ?? idKey },
-                symbol: {
-                    marker: {
-                        fill: stroke,
-                        fillOpacity: strokeOpacity,
-                        stroke: undefined,
-                        strokeWidth: 0,
-                        strokeOpacity: 0,
-                        enabled: false,
-                    },
-                    line: {
-                        stroke,
-                        strokeOpacity,
-                        strokeWidth,
-                        lineDash,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: !showInLegend,
             };
@@ -563,6 +565,65 @@ export class MapLineSeries extends TopologySeries<
         } else {
             return [];
         }
+    }
+
+    override getTooltip2(seriesDatum: any): _ModuleSupport.TooltipContent2 | undefined {
+        const { dataModel, processedData, properties } = this;
+        const {
+            idKey,
+            colorKey,
+            colorName = colorKey,
+            sizeKey,
+            sizeName = sizeKey,
+            labelKey,
+            labelName = labelKey,
+            legendItemName,
+        } = properties;
+        if (!dataModel || !processedData?.rawData.length) return;
+
+        const { datumIndex } = seriesDatum;
+
+        const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
+        const labelValues =
+            labelKey != null ? dataModel.resolveColumnById<string>(this, `labelValue`, processedData) : undefined;
+        const sizeValues =
+            sizeKey != null ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
+        const colorValues =
+            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
+
+        const rows: _ModuleSupport.TooltipContentRow[] = [];
+
+        const seriesTitle = properties.title ?? legendItemName;
+        if (seriesTitle != null) {
+            rows.push({ value: seriesTitle });
+        }
+        if (sizeValues != null) {
+            rows.push({
+                label: sizeName ?? '',
+                value: String(sizeValues[datumIndex]),
+            });
+        }
+        if (colorValues != null) {
+            rows.push({
+                label: colorName ?? '',
+                value: String(colorValues[datumIndex]),
+            });
+        }
+        if (labelValues != null && labelKey !== idKey) {
+            rows.push({
+                label: labelName ?? '',
+                value: String(labelValues[datumIndex]),
+            });
+        }
+
+        if (rows.length > 0) {
+            rows[0].symbol = this.legendItemSymbol(datumIndex);
+        }
+
+        return {
+            title: idValues[datumIndex],
+            rows,
+        };
     }
 
     override getTooltipHtml(nodeDatum: MapLineNodeDatum): _ModuleSupport.TooltipContent {

@@ -18,9 +18,15 @@ import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum } from '../../legend/legendDatum';
+import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import {
+    EMPTY_TOOLTIP_CONTENT,
+    type TooltipContent,
+    type TooltipContent2,
+    type TooltipContentRow,
+} from '../../tooltip/tooltip';
 import type { PickFocusInputs, SeriesNodeEventTypes } from '../series';
 import { SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
@@ -240,6 +246,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 yKey,
                 xKey,
                 datum,
+                datumIndex,
                 xValue: xDatum,
                 yValue: yDatum,
                 sizeValue,
@@ -353,6 +360,58 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         });
     }
 
+    override getTooltip2(nodeDatum: BubbleNodeDatum): TooltipContent2 | undefined {
+        const { dataModel, processedData, axes, properties } = this;
+        const {
+            xKey,
+            xName = xKey,
+            yKey,
+            yName = yKey,
+            legendItemName = yName,
+            sizeKey,
+            sizeName = sizeKey,
+        } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
+        }
+
+        const { datumIndex } = nodeDatum;
+        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
+        const sizeValues =
+            sizeKey != null ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
+
+        const xValue = xValues[datumIndex];
+        const yValue = yValues[datumIndex];
+
+        if (xValue == null) return;
+
+        const rows: TooltipContentRow[] = [
+            {
+                symbol: this.legendItemSymbol(),
+                label: xName,
+                value: xAxis.formatDatum(xValue),
+            },
+            {
+                label: legendItemName,
+                value: yAxis.formatDatum(yValue),
+            },
+        ];
+
+        if (sizeValues != null) {
+            const sizeValue = sizeValues[datumIndex];
+            rows.push({
+                label: sizeName,
+                value: String(sizeValue),
+            });
+        }
+
+        return { rows };
+    }
+
     getTooltipHtml(nodeDatum: BubbleNodeDatum): TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
@@ -418,6 +477,22 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         );
     }
 
+    private legendItemSymbol(): LegendSymbolOptions {
+        const { marker } = this.properties;
+        const { shape, fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
+
+        return {
+            marker: {
+                shape,
+                fill: fill ?? 'rgba(0, 0, 0, 0)',
+                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity: fillOpacity ?? 1,
+                strokeOpacity: strokeOpacity ?? 1,
+                strokeWidth: strokeWidth ?? 0,
+            },
+        };
+    }
+
     getLegendData(): CategoryLegendDatum[] {
         if (!this.properties.isValid()) {
             return [];
@@ -429,8 +504,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             visible,
         } = this;
 
-        const { yKey: itemId, yName, title, marker } = this.properties;
-        const { shape, fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
+        const { yKey: itemId, yName, title } = this.properties;
 
         return [
             {
@@ -442,16 +516,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 label: {
                     text: title ?? yName ?? itemId,
                 },
-                symbol: {
-                    marker: {
-                        shape,
-                        fill: fill ?? 'rgba(0, 0, 0, 0)',
-                        stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                        fillOpacity: fillOpacity ?? 1,
-                        strokeOpacity: strokeOpacity ?? 1,
-                        strokeWidth: strokeWidth ?? 0,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
             },
         ];
     }

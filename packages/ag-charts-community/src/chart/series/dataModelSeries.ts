@@ -11,6 +11,10 @@ import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesNodeDatum } from './seriesTypes';
 
+export interface DataModelSeriesNodeDatum extends SeriesNodeDatum {
+    datumIndex: number;
+}
+
 export abstract class DataModelSeries<
     TDatum extends SeriesNodeDatum,
     TProps extends SeriesProperties<any>,

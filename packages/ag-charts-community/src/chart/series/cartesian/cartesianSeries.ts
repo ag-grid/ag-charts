@@ -18,7 +18,7 @@ import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { DataModelSeries } from '../dataModelSeries';
+import { DataModelSeries, type DataModelSeriesNodeDatum } from '../dataModelSeries';
 import type {
     SeriesConstructorOpts,
     SeriesDirectionKeysMapping,
@@ -31,7 +31,7 @@ import { SeriesProperties } from '../seriesProperties';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
 import type { Scaling } from './scaling';
 
-export interface CartesianSeriesNodeDatum extends SeriesNodeDatum {
+export interface CartesianSeriesNodeDatum extends DataModelSeriesNodeDatum {
     readonly xKey: string;
     readonly yKey?: string;
     readonly xValue?: any;

@@ -3,17 +3,16 @@
     font:
         12px Verdana,
         sans-serif;
-    color: rgb(70, 70, 70);
+    color: var(--ag-charts-tooltip-foreground-color);
+    background: var(--ag-charts-tooltip-background-color);
+    border: var(--ag-charts-tooltip-border);
     border-radius: var(--ag-charts-tooltip-border-radius);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-    /* Background isn't visible, but helps performance of box-shadow */
-    background: var(--ag-charts-background-color);
 
     /* Resets when using popover attribute */
     position: fixed;
     inset: unset;
     margin: 0;
-    border: none;
     padding: 0;
     overflow: visible;
 }
@@ -91,7 +90,8 @@
     left: 50%;
     transform: translateX(-50%);
 
-    border: 5px solid #d9d9d9;
+    border: var(--ag-charts-tooltip-border);
+    border-width: 5px;
 
     border-left-color: transparent;
     border-right-color: transparent;
@@ -111,7 +111,7 @@
     left: 50%;
     transform: translateX(-50%);
 
-    border: 5px solid white;
+    border: 5px solid var(--ag-charts-tooltip-background-color);
 
     border-left-color: transparent;
     border-right-color: transparent;
@@ -121,4 +121,51 @@
     height: 0;
 
     margin: 0 auto;
+}
+
+/** TOOLTIP REFACTOR */
+.ag-chart-tooltip__content {
+    display: grid;
+    grid: auto-flow auto / 1fr auto;
+    padding: 8px 12px;
+    gap: 8px;
+}
+
+.ag-chart-tooltip__content:has(.ag-chart-tooltip__symbol) {
+    grid: auto-flow auto / auto 1fr auto;
+}
+
+.ag-chart-tooltip__title {
+    grid-column: -3 / -1;
+}
+
+.ag-chart-tooltip__row {
+    grid-column: 1 / -1;
+    display: grid;
+    grid: auto-flow auto / subgrid;
+    align-items: baseline;
+}
+
+.ag-chart-tooltip__symbol {
+    align-self: center;
+}
+
+.ag-chart-tooltip__symbol svg {
+    /* Fixes vertical alignment */
+    display: block;
+}
+
+.ag-chart-tooltip__label {
+    grid-column: -3 / span 1;
+}
+
+/* Todo - refactor to avoid this selector */
+/* .ag-chart-tooltip__content:has(.ag-chart-tooltip__symbol)
+    .ag-chart-tooltip__row:not(:has(.ag-chart-tooltip__symbol))
+    .ag-chart-tooltip__label {
+    grid-column: -4 / span 2;
+} */
+
+.ag-chart-tooltip__value {
+    justify-self: end;
 }

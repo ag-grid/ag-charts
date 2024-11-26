@@ -415,11 +415,12 @@ export class SeriesAreaManager extends BaseManager {
             this.highlight.pendingHoverEvent = undefined;
             this.highlight.stashedHoverEvent = undefined;
 
-            const html = focus.series.getTooltipHtml(datum);
+            const tooltipContent = focus.series.getTooltip2(datum) ?? focus.series.getTooltipHtml(datum);
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, datum);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, html);
+            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
             if (!refresh) {
+                const html = focus.series.getTooltipHtml(datum);
                 this.swapChain.update(this.getDatumAriaText(datum, html));
             }
         }
@@ -542,12 +543,12 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         this.hoverDevice = 'mouse';
-        const html = pick.series.getTooltipHtml(pick.datum);
+        const content = pick.series.getTooltip2(pick.datum) ?? pick.series.getTooltipHtml(pick.datum);
         const tooltipEnabled = this.chart.tooltip.enabled && pick.series.tooltipEnabled;
-        const shouldUpdateTooltip = tooltipEnabled && html != null;
+        const shouldUpdateTooltip = tooltipEnabled && content != null;
         if (shouldUpdateTooltip) {
             const meta = TooltipManager.makeTooltipMeta(event, pick.datum);
-            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, html);
+            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, content);
         }
     }
 

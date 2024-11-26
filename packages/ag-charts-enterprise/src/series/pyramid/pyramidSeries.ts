@@ -31,7 +31,7 @@ export type PyramidNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
     readonly visible: boolean;
 };
 
-export interface PyramidNodeDatum extends _ModuleSupport.SeriesNodeDatum, Readonly<_ModuleSupport.Point> {
+export interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Readonly<_ModuleSupport.Point> {
     readonly index: number;
     readonly xValue: string;
     readonly yValue: number;
@@ -335,6 +335,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 series: this,
                 itemId: valueKey,
                 datum,
+                datumIndex,
                 index: datumIndex,
                 xValue,
                 yValue,
@@ -532,6 +533,41 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         }
     }
 
+    override getTooltip2(nodeDatum: PyramidNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+        const { dataModel, processedData, properties } = this;
+        const { stageKey, valueKey } = properties;
+
+        if (!dataModel || !processedData || processedData.rawData.length === 0) {
+            return;
+        }
+
+        const { datumIndex } = nodeDatum;
+        const xValues = dataModel.resolveColumnById(this, 'xValue', processedData);
+        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
+
+        const xValue = xValues[datumIndex];
+        const yValue = yValues[datumIndex];
+
+        if (xValue == null) return;
+
+        const value = this.getLabelText(this.properties.stageLabel, {
+            datum: processedData.rawData[datumIndex],
+            value: yValue,
+            stageKey,
+            valueKey,
+        });
+
+        return {
+            rows: [
+                {
+                    symbol: this.legendItemSymbol(datumIndex),
+                    label: String(xValue),
+                    value: value,
+                },
+            ],
+        };
+    }
+
     override getTooltipHtml(nodeDatum: any): _ModuleSupport.TooltipContent {
         const { id: seriesId } = this;
 
@@ -604,6 +640,13 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
     }
 
+    private legendItemSymbol(datumIndex: number) {
+        const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity } = this.properties;
+        const fill = fills[datumIndex % fills.length] ?? 'black';
+        const stroke = strokes[datumIndex % strokes.length] ?? 'black';
+        return { marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } };
+    }
+
     override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const {
             processedData,
@@ -617,15 +660,13 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             return [];
         }
 
-        const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, showInLegend } = this.properties;
+        const { showInLegend } = this.properties;
 
         const legendData: _ModuleSupport.CategoryLegendDatum[] = [];
         const stageValues = dataModel.resolveColumnById<string>(this, `xValue`, processedData);
 
         processedData.rawData.forEach((_datum, datumIndex) => {
             const stageValue = stageValues[datumIndex];
-            const fill = fills[datumIndex % fills.length] ?? 'black';
-            const stroke = strokes[datumIndex % strokes.length] ?? 'black';
 
             legendData.push({
                 legendType: 'category',
@@ -634,7 +675,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 seriesId,
                 enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
                 label: { text: stageValue },
-                symbol: { marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } },
+                symbol: this.legendItemSymbol(datumIndex),
                 hideInLegend: !showInLegend,
             });
         });

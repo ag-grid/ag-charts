@@ -7,6 +7,7 @@ import { clamp } from '../../util/number';
 import { type Bounds, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
+import { sanitizeHtml } from '../../util/sanitize';
 import {
     BOOLEAN,
     INTERACTION_RANGE,
@@ -20,6 +21,7 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
+import { type LegendSymbolOptions, legendSymbolSvg } from '../legend/legendSymbol';
 import { SpringAnimation } from './springAnimation';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
@@ -60,6 +62,19 @@ export type TooltipContent = {
     class: string | undefined;
     ariaLabel: string;
 };
+
+export interface TooltipContentRow {
+    symbol?: LegendSymbolOptions;
+    label?: string;
+    value: string;
+}
+
+export interface TooltipContent2 {
+    groupKey?: string;
+    title?: string;
+    // symbol?: LegendSymbolOptions;
+    rows?: TooltipContentRow[];
+}
 
 export const EMPTY_TOOLTIP_CONTENT: Readonly<TooltipContent> = { html: '', class: undefined, ariaLabel: '' };
 
@@ -109,6 +124,43 @@ export function toTooltipHtml(
         ariaLabel: toAccessibleText(`${titleAria}${content}`),
     };
 }
+
+function tooltipContentHtml(content: TooltipContent2) {
+    let html = '';
+
+    // const topLevelSymbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
+    // if (topLevelSymbol != null) {
+    //     html += `<span class="${DEFAULT_TOOLTIP_CLASS}__symbol">${topLevelSymbol}</span>`;
+    // }
+    if (content.title != null) {
+        html += `<span class="${DEFAULT_TOOLTIP_CLASS}__title">${sanitizeHtml(content.title)}</span>`;
+    }
+
+    content.rows?.forEach((row) => {
+        let rowHtml = '';
+
+        const symbol = row.symbol == null ? undefined : legendSymbolSvg(row.symbol, 12);
+        if (symbol != null) {
+            rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__symbol">${symbol}</span>`;
+        }
+
+        if (row.label == null) {
+            rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(row.value)}</span>`;
+        } else {
+            rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(row.label)}</span>`;
+            rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(row.value)}</span>`;
+        }
+
+        rowHtml = `<div class="${DEFAULT_TOOLTIP_CLASS}__row">${rowHtml}</div>`;
+
+        html += rowHtml;
+    });
+
+    html = `<div class="${DEFAULT_TOOLTIP_CLASS}__content">${html}</div>`;
+
+    return html;
+}
+
 export class TooltipPosition extends BaseProperties {
     @Validate(
         UNION(
@@ -284,18 +336,22 @@ export class Tooltip extends BaseProperties {
         boundingRect: DOMRect,
         canvasRect: DOMRect,
         meta: TooltipMeta,
-        content?: TooltipContent | null,
+        content?: TooltipContent | TooltipContent2 | null,
         instantly = false
     ) {
         const { element } = this;
 
         if (element != null && content != null) {
             this.resetClass();
-            if (content.class != null) {
+            if ('class' in content && content.class != null) {
                 element.classList.add(content.class);
             }
 
-            element.innerHTML = content.html;
+            if ('html' in content) {
+                element.innerHTML = content.html;
+            } else {
+                element.innerHTML = tooltipContentHtml(content);
+            }
         } else if (element == null || element.innerHTML === '') {
             this.toggle(false);
             return;

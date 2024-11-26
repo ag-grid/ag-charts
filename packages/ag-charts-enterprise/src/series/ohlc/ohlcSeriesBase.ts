@@ -222,7 +222,7 @@ export abstract class OhlcSeriesBase<
         if (!visible) return context;
 
         const handleDatum = (
-            datum: any,
+            datumIndex: number,
             xValue: any,
             openValue: any,
             closeValue: any,
@@ -232,6 +232,7 @@ export abstract class OhlcSeriesBase<
             crisp: boolean
         ) => {
             // CRT-340 Use atleast 1px width to prevent nothing being drawn.
+            const datum = rawData[datumIndex];
 
             const centerX = xAxis.scale.convert(xValue) + groupOffset + width / 2;
             const yOpen = yAxis.scale.convert(openValue);
@@ -254,6 +255,7 @@ export abstract class OhlcSeriesBase<
                 series: this,
                 itemId,
                 datum,
+                datumIndex,
                 xKey,
                 xValue,
                 openValue,
@@ -285,15 +287,14 @@ export abstract class OhlcSeriesBase<
         if (dataAggregationFilter == null) {
             const [start, end] = visibleRange(rawData.length, x0, x1, xPosition);
 
-            for (let i = start; i < end; i += 1) {
-                const xValue = xValues[i];
+            for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
+                const xValue = xValues[datumIndex];
                 if (xValue == null) continue;
 
-                const datum = rawData[i];
-                const openValue = openValues[i];
-                const closeValue = closeValues[i];
-                const highValue = highValues[i];
-                const lowValue = lowValues[i];
+                const openValue = openValues[datumIndex];
+                const closeValue = closeValues[datumIndex];
+                const highValue = highValues[datumIndex];
+                const lowValue = lowValues[datumIndex];
 
                 // compare unscaled values
                 const validLowValue = lowValue != null && lowValue <= openValue && lowValue <= closeValue;
@@ -313,7 +314,7 @@ export abstract class OhlcSeriesBase<
                     continue;
                 }
 
-                handleDatum(datum, xValue, openValue, closeValue, highValue, lowValue, effectiveBarWidth, true);
+                handleDatum(datumIndex, xValue, openValue, closeValue, highValue, lowValue, effectiveBarWidth, true);
             }
         } else {
             const { maxRange, indexData } = dataAggregationFilter;
@@ -339,7 +340,6 @@ export abstract class OhlcSeriesBase<
                 const xValue = xValues[midDatumIndex];
                 if (xValue == null) continue;
 
-                const datum = rawData[midDatumIndex];
                 const openValue = openValues[openIndex];
                 const closeValue = closeValues[closeIndex];
                 const highValue = highValues[highIndex];
@@ -347,7 +347,7 @@ export abstract class OhlcSeriesBase<
 
                 const width = Math.abs(xPosition(closeIndex) - xPosition(openIndex)) + effectiveBarWidth;
 
-                handleDatum(datum, xValue, openValue, closeValue, highValue, lowValue, width, false);
+                handleDatum(midDatumIndex, xValue, openValue, closeValue, highValue, lowValue, width, false);
             }
         }
 
@@ -385,6 +385,60 @@ export abstract class OhlcSeriesBase<
     }) {
         const { labelData, labelSelection } = opts;
         return labelSelection.update(labelData);
+    }
+
+    override getTooltip2(nodeDatum: OhlcNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+        const { dataModel, processedData, axes, properties } = this;
+        const {
+            openKey,
+            openName = openKey,
+            highKey,
+            highName = highKey,
+            lowKey,
+            lowName = lowKey,
+            closeKey,
+            closeName = closeKey,
+        } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
+        }
+
+        const { datumIndex } = nodeDatum;
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const openValues = dataModel.resolveColumnById(this, `openValue`, processedData);
+        const highValues = dataModel.resolveColumnById(this, `highValue`, processedData);
+        const lowValues = dataModel.resolveColumnById(this, `lowValue`, processedData);
+        const closeValues = dataModel.resolveColumnById(this, `closeValue`, processedData);
+
+        const xValue = xValues[datumIndex];
+
+        if (xValue == null) return;
+
+        return {
+            groupKey: xValue,
+            title: xAxis.formatDatum(xValue),
+            rows: [
+                {
+                    label: openName,
+                    value: yAxis.formatDatum(openValues[datumIndex]),
+                },
+                {
+                    label: highName,
+                    value: yAxis.formatDatum(highValues[datumIndex]),
+                },
+                {
+                    label: lowName,
+                    value: yAxis.formatDatum(lowValues[datumIndex]),
+                },
+                {
+                    label: closeName,
+                    value: yAxis.formatDatum(closeValues[datumIndex]),
+                },
+            ],
+        };
     }
 
     protected getDatumId(datum: OhlcNodeDatum) {

@@ -322,7 +322,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 valueIndex: datumIndex,
                 series: this,
                 itemId,
-                datum: datum,
+                datum,
+                datumIndex,
                 xValue: xDatum,
                 yLowValue: rawLowValue,
                 yHighValue: rawHighValue,
@@ -553,6 +554,37 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
+    override getTooltip2(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+        const { dataModel, processedData, axes } = this;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
+        }
+
+        const { datumIndex } = nodeDatum;
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);
+        const yLowValues = dataModel.resolveColumnById(this, `yLowValue`, processedData);
+
+        const xValue = xValues[datumIndex];
+        const yHighValue = yHighValues[datumIndex];
+        const yLowValue = yLowValues[datumIndex];
+
+        if (xValue == null) return;
+
+        return {
+            rows: [
+                {
+                    symbol: this.legendItemSymbol(),
+                    label: xAxis.formatDatum(xValue),
+                    value: `${yAxis.formatDatum(yHighValue)} - ${yAxis.formatDatum(yLowValue)}`,
+                },
+            ],
+        };
+    }
+
     getTooltipHtml(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent {
         const { id: seriesId } = this;
 
@@ -646,6 +678,11 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
+    private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
+        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity } = this.properties;
+        return { marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } };
+    }
+
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         if (legendType !== 'category') {
             return [];
@@ -653,19 +690,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { id: seriesId, visible } = this;
 
-        const {
-            fill,
-            stroke,
-            strokeWidth,
-            fillOpacity,
-            strokeOpacity,
-            yName,
-            yLowName,
-            yHighName,
-            yLowKey,
-            yHighKey,
-            showInLegend,
-        } = this.properties;
+        const { yName, yLowName, yHighName, yLowKey, yHighKey, showInLegend } = this.properties;
         const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
         const itemId = `${yLowKey}-${yHighKey}`;
 
@@ -677,7 +702,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 seriesId,
                 enabled: visible,
                 label: { text: `${legendItemText}` },
-                symbol: { marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } },
+                symbol: this.legendItemSymbol(),
                 hideInLegend: !showInLegend,
             },
         ];

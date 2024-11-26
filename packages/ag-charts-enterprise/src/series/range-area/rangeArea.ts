@@ -232,6 +232,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                         series: this,
                         itemId: id,
                         datum,
+                        datumIndex,
                         midPoint: { x, y },
                         yHighValue,
                         yLowValue,
@@ -549,6 +550,37 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return highlightItems.length > 0 ? highlightItems : undefined;
     }
 
+    override getTooltip2(nodeDatum: RangeAreaMarkerDatum): _ModuleSupport.TooltipContent2 | undefined {
+        const { dataModel, processedData, axes } = this;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
+        }
+
+        const { datumIndex } = nodeDatum;
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);
+        const yLowValues = dataModel.resolveColumnById(this, `yLowValue`, processedData);
+
+        const xValue = xValues[datumIndex];
+        const yHighValue = yHighValues[datumIndex];
+        const yLowValue = yLowValues[datumIndex];
+
+        if (xValue == null) return;
+
+        return {
+            rows: [
+                {
+                    symbol: this.legendItemSymbol(),
+                    label: xAxis.formatDatum(xValue),
+                    value: `${yAxis.formatDatum(yHighValue)} - ${yAxis.formatDatum(yLowValue)}`,
+                },
+            ],
+        };
+    }
+
     getTooltipHtml(nodeDatum: RangeAreaMarkerDatum): _ModuleSupport.TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
@@ -600,6 +632,27 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         );
     }
 
+    private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
+        const { fill, stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.properties;
+
+        return {
+            marker: {
+                shape: marker.shape,
+                fill: marker.fill ?? fill,
+                stroke: marker.stroke ?? stroke,
+                fillOpacity: marker.fillOpacity,
+                strokeOpacity: marker.strokeOpacity,
+                strokeWidth: marker.strokeWidth,
+            },
+            line: {
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+            },
+        };
+    }
+
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         if (legendType !== 'category') {
             return [];
@@ -607,20 +660,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         const { id: seriesId, visible } = this;
 
-        const {
-            yLowKey,
-            yHighKey,
-            yName,
-            yLowName,
-            yHighName,
-            fill,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            marker,
-            showInLegend,
-        } = this.properties;
+        const { yLowKey, yHighKey, yName, yLowName, yHighName, showInLegend } = this.properties;
         const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
         const itemId = `${yLowKey}-${yHighKey}`;
         return [
@@ -631,22 +671,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 seriesId,
                 enabled: visible,
                 label: { text: `${legendItemText}` },
-                symbol: {
-                    marker: {
-                        shape: marker.shape,
-                        fill: marker.fill ?? fill,
-                        stroke: marker.stroke ?? stroke,
-                        fillOpacity: marker.fillOpacity,
-                        strokeOpacity: marker.strokeOpacity,
-                        strokeWidth: marker.strokeWidth,
-                    },
-                    line: {
-                        stroke,
-                        strokeOpacity,
-                        strokeWidth,
-                        lineDash,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 hideInLegend: !showInLegend,
             },
         ];

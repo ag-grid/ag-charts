@@ -360,6 +360,7 @@ export abstract class BaseFunnelSeries<
                 series: this,
                 itemId,
                 datum,
+                datumIndex,
                 xValue: xDatum,
                 yValue: yDatum,
                 xKey: stageKey,
@@ -512,6 +513,35 @@ export abstract class BaseFunnelSeries<
         });
     }
 
+    override getTooltip2(nodeDatum: FunnelNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+        const { dataModel, processedData } = this;
+        const xAxis = this.getCategoryAxis();
+        const yAxis = this.getValueAxis();
+
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
+        }
+
+        const { datumIndex } = nodeDatum;
+        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
+        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
+
+        const xValue = xValues[datumIndex];
+        const yValue = yValues[datumIndex];
+
+        if (xValue == null) return;
+
+        return {
+            rows: [
+                {
+                    symbol: this.legendItemSymbol(datumIndex),
+                    label: xAxis.formatDatum(xValue),
+                    value: yAxis.formatDatum(yValue),
+                },
+            ],
+        };
+    }
+
     getTooltipHtml(nodeDatum: FunnelNodeDatum): _ModuleSupport.TooltipContent {
         const { id: seriesId } = this;
 
@@ -613,6 +643,15 @@ export abstract class BaseFunnelSeries<
         return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], seriesRect);
     }
 
+    private legendItemSymbol(datumIndex: number): _ModuleSupport.LegendSymbolOptions {
+        const { strokeWidth, fillOpacity, strokeOpacity } = this.barStyle();
+        const { fills, strokes } = this.properties;
+        const fill = fills[datumIndex % fills.length] ?? 'black';
+        const stroke = strokes[datumIndex % strokes.length] ?? 'black';
+
+        return { marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } };
+    }
+
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const {
             id: seriesId,
@@ -626,8 +665,7 @@ export abstract class BaseFunnelSeries<
             return [];
         }
 
-        const { strokeWidth, fillOpacity, strokeOpacity } = this.barStyle();
-        const { fills, strokes, showInLegend } = this.properties;
+        const { showInLegend } = this.properties;
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
 
@@ -636,9 +674,6 @@ export abstract class BaseFunnelSeries<
                 const stageValue = xValues[datumIndex];
                 if (stageValue == null) return;
 
-                const fill = fills[datumIndex % fills.length] ?? 'black';
-                const stroke = strokes[datumIndex % strokes.length] ?? 'black';
-
                 return {
                     legendType: 'category',
                     id: seriesId,
@@ -646,7 +681,7 @@ export abstract class BaseFunnelSeries<
                     seriesId,
                     enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
                     label: { text: stageValue },
-                    symbol: { marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } },
+                    symbol: this.legendItemSymbol(datumIndex),
                     skipAnimations: true,
                     hideInLegend: !showInLegend,
                 };

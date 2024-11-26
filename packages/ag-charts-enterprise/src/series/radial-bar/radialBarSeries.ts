@@ -50,7 +50,7 @@ interface RadialBarLabelNodeDatum {
     textBaseline: CanvasTextBaseline;
 }
 
-export interface RadialBarNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+export interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly label?: RadialBarLabelNodeDatum;
     readonly angleValue: any;
     readonly radiusValue: any;
@@ -325,6 +325,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             nodeData.push({
                 series: this,
                 datum,
+                datumIndex,
                 point: { x, y, size: 0 },
                 midPoint: { x, y },
                 label: labelNodeDatum,
@@ -500,6 +501,38 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         seriesLabelFadeOutAnimation(this, 'labels', animationManager, this.labelSelection);
     }
 
+    override getTooltip2(nodeDatum: RadialBarNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+        const { dataModel, processedData, axes, properties } = this;
+        const { angleKey, angleName = angleKey } = properties;
+        const angleAxis = axes[ChartAxisDirection.X];
+        const radiusAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !angleAxis || !radiusAxis) {
+            return;
+        }
+
+        const { datumIndex } = nodeDatum;
+        const radiusValues = dataModel.resolveKeysById(this, `radiusValue`, processedData);
+        const angleValues = dataModel.resolveColumnById(this, `angleValue-raw`, processedData);
+
+        const radiusValue = radiusValues[datumIndex];
+        const angleValue = angleValues[datumIndex];
+
+        if (radiusValue == null) return;
+
+        return {
+            groupKey: radiusValue,
+            title: radiusAxis.formatDatum(radiusValue),
+            rows: [
+                {
+                    symbol: this.legendItemSymbol(),
+                    label: angleName,
+                    value: angleAxis.formatDatum(angleValue),
+                },
+            ],
+        };
+    }
+
     getTooltipHtml(nodeDatum: RadialBarNodeDatum): _ModuleSupport.TooltipContent {
         const { id: seriesId, axes, dataModel } = this;
         const {
@@ -575,6 +608,20 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return this.pickNodeNearestDistantObject(point, this.itemSelection.nodes());
     }
 
+    private legendItemSymbol() {
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = this.properties;
+
+        return {
+            marker: {
+                fill: fill ?? 'rgba(0, 0, 0, 0)',
+                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity: fillOpacity ?? 1,
+                strokeOpacity: strokeOpacity ?? 1,
+                strokeWidth,
+            },
+        };
+    }
+
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         if (!this.properties.isValid() || legendType !== 'category') {
             return [];
@@ -582,8 +629,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         const { id: seriesId, visible } = this;
 
-        const { angleKey, angleName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, showInLegend } =
-            this.properties;
+        const { angleKey, angleName, showInLegend } = this.properties;
 
         return [
             {
@@ -595,15 +641,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 label: {
                     text: angleName ?? angleKey,
                 },
-                symbol: {
-                    marker: {
-                        fill: fill ?? 'rgba(0, 0, 0, 0)',
-                        stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                        fillOpacity: fillOpacity ?? 1,
-                        strokeOpacity: strokeOpacity ?? 1,
-                        strokeWidth,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 hideInLegend: !showInLegend,
             },
         ];

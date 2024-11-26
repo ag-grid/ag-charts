@@ -26,7 +26,6 @@ const {
 } = _ModuleSupport;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum {
-    size: number;
     centerX: number;
     centerY: number;
     innerRadius: number;
@@ -110,7 +109,6 @@ export class ChordSeries extends FlowProportionSeries<
         const { nodeGraph, links } = this.getNodeGraph(
             (node) => ({
                 ...node,
-                size: 0,
                 centerX,
                 centerY,
                 innerRadius: NaN,

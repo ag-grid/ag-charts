@@ -117,6 +117,7 @@ export * from './chart/chartAxis';
 export * from './chart/crossline/crossLine';
 export * from './chart/crossline/crossLineLabelPosition';
 export * from './chart/legend/legendDatum';
+export * from './chart/legend/legendSymbol';
 export * from './chart/tooltip/tooltip';
 export * from './motion/animation';
 export * as Motion from './motion/easing';

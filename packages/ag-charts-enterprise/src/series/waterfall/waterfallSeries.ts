@@ -249,7 +249,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const yRawValues = dataModel.resolveColumnById(this, `yRaw`, processedData);
-        const totalTypeValues = dataModel.resolveColumnById<AgWaterfallSeriesItemType>(
+        const totalTypeValues = dataModel.resolveColumnById<AgWaterfallSeriesItemType | undefined>(
             this,
             `totalTypeValue`,
             processedData
@@ -388,6 +388,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 series: this,
                 itemId: seriesItemType,
                 datum,
+                datumIndex,
                 cumulativeValue: cumulativeValue ?? 0,
                 xValue: xDatum,
                 yValue: value,
@@ -462,11 +463,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    private isSubtotal(datumType: AgWaterfallSeriesItemType) {
+    private isSubtotal(datumType: AgWaterfallSeriesItemType | undefined) {
         return datumType === 'subtotal';
     }
 
-    private isTotal(datumType: AgWaterfallSeriesItemType) {
+    private isTotal(datumType: AgWaterfallSeriesItemType | undefined) {
         return datumType === 'total';
     }
 
@@ -592,6 +593,62 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
+    override getTooltip2(nodeDatum: WaterfallNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+        const { dataModel, processedData, axes } = this;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
+        }
+
+        const { datumIndex } = nodeDatum;
+        const totalTypeValues = dataModel.resolveColumnById<AgWaterfallSeriesItemType | undefined>(
+            this,
+            `totalTypeValue`,
+            processedData
+        );
+
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const yValues = dataModel.resolveColumnById(this, `yRaw`, processedData);
+        const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
+
+        const xValue = xValues[datumIndex];
+        if (xValue == null) return;
+
+        const yValue = yValues[datumIndex];
+
+        const datumType = totalTypeValues[datumIndex];
+        const isPositive = (yValue ?? 0) >= 0;
+
+        const seriesItemType = this.getSeriesItemType(isPositive, datumType);
+
+        let total: number;
+        if (this.isTotal(datumType)) {
+            total = yCurrTotalValues[datumIndex];
+        } else if (this.isSubtotal(datumType)) {
+            total = yCurrTotalValues[datumIndex];
+            for (let previousIndex = datumIndex - 1; previousIndex >= 0; previousIndex -= 1) {
+                if (this.isSubtotal(totalTypeValues[previousIndex])) {
+                    total = total - yCurrTotalValues[previousIndex];
+                    break;
+                }
+            }
+        } else {
+            total = yValue;
+        }
+
+        return {
+            rows: [
+                {
+                    symbol: this.legendItemSymbol(seriesItemType),
+                    label: xAxis.formatDatum(xValue),
+                    value: yAxis.formatDatum(total),
+                },
+            ],
+        };
+    }
+
     getTooltipHtml(nodeDatum: WaterfallNodeDatum): _ModuleSupport.TooltipContent {
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();
@@ -666,6 +723,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         );
     }
 
+    private legendItemSymbol(item: AgWaterfallSeriesItemType): _ModuleSupport.LegendSymbolOptions {
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = this.getItemConfig(item);
+        return { marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } };
+    }
+
     getLegendData(legendType: _ModuleSupport.ChartLegendType) {
         if (legendType !== 'category') {
             return [];
@@ -678,7 +740,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { showInLegend } = this.properties;
 
         seriesItemTypes.forEach((item) => {
-            const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, name } = this.getItemConfig(item);
+            const { name } = this.getItemConfig(item);
             legendData.push({
                 legendType: 'category',
                 id,
@@ -686,7 +748,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 seriesId: id,
                 enabled: true,
                 label: { text: name ?? capitalise(item) },
-                symbol: { marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } },
+                symbol: this.legendItemSymbol(item),
                 hideInLegend: !showInLegend,
             });
         });

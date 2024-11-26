@@ -4,7 +4,7 @@ import { createId } from '../util/id';
 import type { BBox } from './bbox';
 import { type CanvasOptions, HdpiCanvas } from './canvas/hdpiCanvas';
 import { LayersManager } from './layersManager';
-import type { Node, RenderContext } from './node';
+import { Node, type RenderContext } from './node';
 import {
     DebugSelectors,
     buildDirtyTree,
@@ -214,23 +214,9 @@ export class Scene {
     }
 
     toSVG() {
-        const svg = this.root?.toSVG();
-
-        if (svg == null) return;
-
-        const root = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        root.setAttribute('width', String(this.width));
-        root.setAttribute('height', String(this.height));
-
-        if (svg.defs != null) {
-            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
-            defs.append(...svg.defs);
-            root.append(defs);
-        }
-
-        root.append(...svg.elements);
-
-        return root.outerHTML;
+        const { root, width, height } = this;
+        if (root == null) return;
+        return Node.toSVG(root, width, height);
     }
 
     /** Alternative to destroy() that preserves re-usable resources. */

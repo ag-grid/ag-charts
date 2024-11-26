@@ -31,9 +31,10 @@ import {
     valueProperty,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
+import { type LegendSymbolOptions, legendSymbolSvg } from '../../legend/legendSymbol';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import { EMPTY_TOOLTIP_CONTENT, type TooltipContent, type TooltipContent2 } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { datumStylerProperties } from '../util';
@@ -294,15 +295,15 @@ export class LineSeries extends CartesianSeries<
 
         const nodeData: LineNodeDatum[] = [];
         let spanPoints: SpanPoints | undefined;
-        const handleDatum = (index: number) => {
-            const datum = rawData[index];
-            const xDatum = xValues[index];
-            const yDatum = yValues[index];
-            const yEndDatum = yEndValues?.[index];
-            const selected = selectionValues?.[index];
+        const handleDatum = (datumIndex: number) => {
+            const datum = rawData[datumIndex];
+            const xDatum = xValues[datumIndex];
+            const yDatum = yValues[datumIndex];
+            const yEndDatum = yEndValues?.[datumIndex];
+            const selected = selectionValues?.[datumIndex];
 
-            const x = xPosition(index);
-            const y = yPosition(index);
+            const x = xPosition(datumIndex);
+            const y = yPosition(datumIndex);
 
             if (!Number.isFinite(x)) return;
 
@@ -322,6 +323,7 @@ export class LineSeries extends CartesianSeries<
                 nodeData.push({
                     series: this,
                     datum,
+                    datumIndex,
                     yKey,
                     xKey,
                     point: { x, y, size },
@@ -525,6 +527,38 @@ export class LineSeries extends CartesianSeries<
         });
     }
 
+    override getTooltip2(nodeDatum: LineNodeDatum): TooltipContent2 | undefined {
+        const { dataModel, processedData, axes, properties } = this;
+        const { yKey, yName = yKey } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
+        }
+
+        const { datumIndex } = nodeDatum;
+        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+        const yValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
+
+        const xValue = xValues[datumIndex];
+        const yValue = yValues[datumIndex];
+
+        if (xValue == null) return;
+
+        return {
+            groupKey: xValue,
+            title: xAxis.formatDatum(xValue),
+            rows: [
+                {
+                    symbol: this.legendItemSymbol(),
+                    label: yName,
+                    value: yAxis.formatDatum(yValue),
+                },
+            ],
+        };
+    }
+
     getTooltipHtml(nodeDatum: LineNodeDatum): TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
@@ -540,7 +574,7 @@ export class LineSeries extends CartesianSeries<
         const xString = xAxis.formatDatum(xValue);
         const yString = yAxis.formatDatum(yValue);
         const title = sanitizeHtml(this.properties.title ?? yName);
-        const content = sanitizeHtml(xString + ': ' + yString);
+        const content = legendSymbolSvg(this.legendItemSymbol(), 12) + sanitizeHtml(xString + ': ' + yString);
 
         const baseStyle = mergeDefaults({ fill: marker.stroke }, marker.getStyle(), { strokeWidth });
         const { fill: color } = this.getMarkerStyle(
@@ -569,6 +603,29 @@ export class LineSeries extends CartesianSeries<
         );
     }
 
+    private legendItemSymbol(): LegendSymbolOptions {
+        const color0 = 'rgba(0, 0, 0, 0)';
+        const { stroke, strokeOpacity, strokeWidth, lineDash, marker } = this.properties;
+
+        return {
+            marker: {
+                shape: marker.shape,
+                fill: marker.fill ?? color0,
+                stroke: marker.stroke ?? stroke ?? color0,
+                fillOpacity: marker.fillOpacity ?? 1,
+                strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
+                strokeWidth: marker.strokeWidth ?? 0,
+                enabled: marker.enabled,
+            },
+            line: {
+                stroke: stroke ?? color0,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+            },
+        };
+    }
+
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
         if (!(this.properties.isValid() && legendType === 'category')) {
             return [];
@@ -580,20 +637,8 @@ export class LineSeries extends CartesianSeries<
             visible,
         } = this;
 
-        const {
-            yKey: itemId,
-            yName,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
-            lineDash,
-            title,
-            marker,
-            legendItemName,
-            showInLegend,
-        } = this.properties;
+        const { yKey: itemId, yName, title, legendItemName, showInLegend } = this.properties;
 
-        const color0 = 'rgba(0, 0, 0, 0)';
         return [
             {
                 legendType: 'category',
@@ -605,23 +650,7 @@ export class LineSeries extends CartesianSeries<
                 label: {
                     text: legendItemName ?? title ?? yName ?? itemId,
                 },
-                symbol: {
-                    marker: {
-                        shape: marker.shape,
-                        fill: marker.fill ?? color0,
-                        stroke: marker.stroke ?? stroke ?? color0,
-                        fillOpacity: marker.fillOpacity ?? 1,
-                        strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
-                        strokeWidth: marker.strokeWidth ?? 0,
-                        enabled: marker.enabled,
-                    },
-                    line: {
-                        stroke: stroke ?? color0,
-                        strokeOpacity,
-                        strokeWidth,
-                        lineDash,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 hideInLegend: !showInLegend,
             },
         ];

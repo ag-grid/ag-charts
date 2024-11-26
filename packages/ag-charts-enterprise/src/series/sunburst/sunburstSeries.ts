@@ -490,6 +490,47 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         );
     }
 
+    override getTooltip2(nodeDatum: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent2 | undefined {
+        const { colorKey, colorName = colorKey, labelKey, sizeKey, sizeName = sizeKey } = this.properties;
+        const { datum, depth } = nodeDatum;
+        if (datum == null || depth == null) return;
+
+        const format = this.getSectorFormat(nodeDatum, false);
+        const color = format?.fill ?? nodeDatum.fill;
+
+        const rows: _ModuleSupport.TooltipContentRow[] = [];
+
+        const label = labelKey != null ? datum[labelKey] : undefined;
+        if (label != null) {
+            rows.push({ value: label });
+        }
+
+        const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
+        if (datumSize != null) {
+            rows.push({ label: sizeName!, value: datumSize });
+        }
+
+        const datumColor = colorKey != null ? datum[colorKey] : undefined;
+        if (datumColor != null) {
+            rows.push({ label: colorName!, value: datumColor });
+        }
+
+        if (rows.length === 0) return;
+
+        rows[0].symbol = {
+            marker: {
+                shape: 'square',
+                fill: color,
+                fillOpacity: 1,
+                stroke: undefined,
+                strokeWidth: 0,
+                strokeOpacity: 1,
+            },
+        };
+
+        return { rows };
+    }
+
     override getTooltipHtml(node: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent {
         const { id: seriesId } = this;
         const {

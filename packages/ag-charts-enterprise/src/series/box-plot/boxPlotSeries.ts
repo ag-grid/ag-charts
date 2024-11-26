@@ -20,6 +20,7 @@ const {
     createDatumId,
     Color,
     ContinuousScale,
+    ChartAxisDirection,
     motion,
 } = _ModuleSupport;
 
@@ -227,6 +228,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 series: this,
                 itemId: xValue,
                 datum,
+                datumIndex,
                 xKey,
                 bandwidth,
                 scaledValues,
@@ -247,14 +249,27 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return context;
     }
 
+    private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = this.properties;
+
+        return {
+            marker: {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+            },
+        };
+    }
+
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const {
             id: seriesId,
             ctx: { legendManager },
             visible,
         } = this;
-        const { xKey, yName, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, showInLegend, legendItemName } =
-            this.properties;
+        const { xKey, yName, showInLegend, legendItemName } = this.properties;
 
         if (!xKey || legendType !== 'category') {
             return [];
@@ -270,11 +285,82 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 label: {
                     text: legendItemName ?? yName ?? seriesId,
                 },
-                symbol: { marker: { fill, fillOpacity, stroke, strokeOpacity, strokeWidth } },
+                symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: !showInLegend,
             },
         ];
+    }
+
+    override getTooltip2(nodeDatum: BoxPlotNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+        const { dataModel, processedData, axes, properties } = this;
+        const {
+            yName,
+            medianKey,
+            medianName = medianKey,
+            q1Key,
+            q1Name = q1Key,
+            q3Key,
+            q3Name = q3Key,
+            minKey,
+            minName = minKey,
+            maxKey,
+            maxName = maxKey,
+        } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
+        }
+
+        const { datumIndex } = nodeDatum;
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const minValues = dataModel.resolveColumnById(this, `minValue`, processedData);
+        const q1Values = dataModel.resolveColumnById(this, `q1Value`, processedData);
+        const medianValues = dataModel.resolveColumnById(this, `medianValue`, processedData);
+        const q3Values = dataModel.resolveColumnById(this, `q3Value`, processedData);
+        const maxValues = dataModel.resolveColumnById(this, `maxValue`, processedData);
+
+        const xValue = xValues[datumIndex];
+
+        if (xValue == null) return;
+
+        const rows: _ModuleSupport.TooltipContentRow[] = [];
+
+        if (yName != null) {
+            rows.push({ value: yName });
+        }
+
+        rows.push(
+            {
+                label: minName,
+                value: yAxis.formatDatum(minValues[datumIndex]),
+            },
+            {
+                label: q1Name,
+                value: yAxis.formatDatum(q1Values[datumIndex]),
+            },
+            {
+                label: medianName,
+                value: yAxis.formatDatum(medianValues[datumIndex]),
+            },
+            {
+                label: q3Name,
+                value: yAxis.formatDatum(q3Values[datumIndex]),
+            },
+            {
+                label: maxName,
+                value: yAxis.formatDatum(maxValues[datumIndex]),
+            }
+        );
+
+        rows[0].symbol = this.legendItemSymbol();
+
+        return {
+            title: xAxis.formatDatum(xValue),
+            rows,
+        };
     }
 
     getTooltipHtml(nodeDatum: BoxPlotNodeDatum): _ModuleSupport.TooltipContent {

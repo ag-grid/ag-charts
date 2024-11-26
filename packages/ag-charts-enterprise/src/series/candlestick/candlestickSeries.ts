@@ -231,24 +231,8 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
         );
     }
 
-    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const {
-            id,
-            data,
-            ctx: { legendManager },
-        } = this;
-        const {
-            xKey,
-            yName,
-            item: { up, down },
-            showInLegend,
-            legendItemName,
-            visible,
-        } = this.properties;
-
-        if (!data?.length || !xKey || legendType !== 'category') {
-            return [];
-        }
+    private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
+        const { up, down } = this.properties.item;
 
         const fill = new _ModuleSupport.LinearGradient(
             'rgb',
@@ -270,6 +254,29 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             90
         );
 
+        return {
+            marker: {
+                fill,
+                fillOpacity: up.fillOpacity,
+                stroke: stroke,
+                strokeWidth: up.strokeWidth ?? 1,
+                strokeOpacity: up.strokeOpacity ?? 1,
+            },
+        };
+    }
+
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
+        const {
+            id,
+            data,
+            ctx: { legendManager },
+        } = this;
+        const { xKey, yName, showInLegend, legendItemName, visible } = this.properties;
+
+        if (!data?.length || !xKey || legendType !== 'category') {
+            return [];
+        }
+
         return [
             {
                 legendType: 'category',
@@ -280,15 +287,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
                 label: {
                     text: legendItemName ?? yName ?? id,
                 },
-                symbol: {
-                    marker: {
-                        fill,
-                        fillOpacity: up.fillOpacity,
-                        stroke: stroke,
-                        strokeWidth: up.strokeWidth ?? 1,
-                        strokeOpacity: up.strokeOpacity ?? 1,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: !showInLegend,
             },

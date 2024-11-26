@@ -19,7 +19,13 @@ import type { AggregatePropertyDefinition, GroupByFn, PropertyDefinition } from 
 import { fixNumericExtent } from '../../data/dataModel';
 import { SORT_DOMAIN_GROUPS, createDatumId, diff, keyProperty, valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import type { LegendSymbolOptions } from '../../legend/legendSymbol';
+import {
+    EMPTY_TOOLTIP_CONTENT,
+    type TooltipContent,
+    type TooltipContent2,
+    type TooltipContentRow,
+} from '../../tooltip/tooltip';
 import { type PickFocusInputs, Series, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import {
@@ -303,6 +309,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
 
             nodeData.push({
                 series: this,
+                datumIndex: groupIndex,
                 datum, // required by SeriesNodeDatum, but might not make sense here
                 // since each selection is an aggregation of multiple data.
                 aggregatedValue: total,
@@ -452,6 +459,43 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         return findQuadtreeMatch(this, point);
     }
 
+    override getTooltip2(nodeDatum: HistogramNodeDatum): TooltipContent2 | undefined {
+        const { dataModel, processedData, axes, properties } = this;
+        const { xKey, xName = xKey, yKey, yName = yKey } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || processedData?.type !== 'grouped' || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
+        }
+
+        const groupIndex = nodeDatum.datumIndex;
+        const { aggregation, datumIndices, keys } = processedData.groups[groupIndex];
+        const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
+        const frequency = datumIndices.length;
+        const domain = keys;
+        const [rangeMin, rangeMax] = domain;
+        const aggregatedValue = negativeAgg + positiveAgg;
+
+        const rows: TooltipContentRow[] = [
+            {
+                label: xName,
+                value: yAxis.formatDatum(frequency),
+            },
+        ];
+
+        if (yKey) {
+            rows.push({
+                label: yName ?? yKey,
+                value: yAxis.formatDatum(aggregatedValue),
+            });
+        }
+
+        rows[0].symbol = this.legendItemSymbol();
+
+        return { title: `${xAxis.formatDatum(rangeMin)} - ${xAxis.formatDatum(rangeMax)}`, rows };
+    }
+
     getTooltipHtml(nodeDatum: HistogramNodeDatum): TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
@@ -498,6 +542,20 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         });
     }
 
+    private legendItemSymbol(): LegendSymbolOptions {
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = this.properties;
+
+        return {
+            marker: {
+                fill: fill ?? 'rgba(0, 0, 0, 0)',
+                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity: fillOpacity,
+                strokeOpacity: strokeOpacity,
+                strokeWidth,
+            },
+        };
+    }
+
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
         if (legendType !== 'category') {
             return [];
@@ -509,16 +567,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             visible,
         } = this;
 
-        const {
-            xKey: itemId,
-            yName,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            showInLegend,
-        } = this.properties;
+        const { xKey: itemId, yName, showInLegend } = this.properties;
 
         return [
             {
@@ -530,15 +579,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                 label: {
                     text: yName ?? itemId ?? 'Frequency',
                 },
-                symbol: {
-                    marker: {
-                        fill: fill ?? 'rgba(0, 0, 0, 0)',
-                        stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                        fillOpacity: fillOpacity,
-                        strokeOpacity: strokeOpacity,
-                        strokeWidth,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 hideInLegend: !showInLegend,
             },
         ];

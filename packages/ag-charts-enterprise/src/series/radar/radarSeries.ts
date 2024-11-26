@@ -242,6 +242,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             return {
                 series: this,
                 datum,
+                datumIndex,
                 index: datumIndex,
                 point: { x, y, size: marker.size },
                 midPoint: { x, y },
@@ -387,6 +388,38 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         });
     }
 
+    override getTooltip2(nodeDatum: RadarNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+        const { dataModel, processedData, axes, properties } = this;
+        const { radiusKey, radiusName = radiusKey } = properties;
+        const angleAxis = axes[ChartAxisDirection.X];
+        const radiusAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !angleAxis || !radiusAxis) {
+            return;
+        }
+
+        const { datumIndex } = nodeDatum;
+        const angleValues = dataModel.resolveColumnById(this, `angleValue`, processedData);
+        const radiusValues = dataModel.resolveColumnById(this, `radiusValue`, processedData);
+
+        const angleValue = angleValues[datumIndex];
+        const radiusValue = radiusValues[datumIndex];
+
+        if (angleValue == null) return;
+
+        return {
+            groupKey: angleValue,
+            title: angleAxis.formatDatum(angleValue),
+            rows: [
+                {
+                    symbol: this.legendItemSymbol(),
+                    label: radiusName,
+                    value: radiusAxis.formatDatum(radiusValue),
+                },
+            ],
+        };
+    }
+
     getTooltipHtml(nodeDatum: RadarNodeDatum): _ModuleSupport.TooltipContent {
         if (!this.properties.isValid()) {
             return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
@@ -446,6 +479,28 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         );
     }
 
+    private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
+        const { stroke, strokeWidth, strokeOpacity, lineDash, marker } = this.properties;
+
+        return {
+            marker: {
+                shape: marker.shape,
+                fill: this.getMarkerFill() ?? marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
+                stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity: marker.fillOpacity ?? 1,
+                strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
+                strokeWidth: marker.strokeWidth ?? 0,
+                enabled: marker.enabled || strokeWidth <= 0,
+            },
+            line: {
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+            },
+        };
+    }
+
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         if (!this.properties.isValid() || legendType !== 'category') {
             return [];
@@ -457,8 +512,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             visible,
         } = this;
 
-        const { radiusKey, radiusName, stroke, strokeWidth, strokeOpacity, lineDash, marker, showInLegend } =
-            this.properties;
+        const { radiusKey, radiusName, showInLegend } = this.properties;
 
         return [
             {
@@ -470,23 +524,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 label: {
                     text: radiusName ?? radiusKey,
                 },
-                symbol: {
-                    marker: {
-                        shape: marker.shape,
-                        fill: this.getMarkerFill() ?? marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
-                        stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
-                        fillOpacity: marker.fillOpacity ?? 1,
-                        strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
-                        strokeWidth: marker.strokeWidth ?? 0,
-                        enabled: marker.enabled || strokeWidth <= 0,
-                    },
-                    line: {
-                        stroke,
-                        strokeOpacity,
-                        strokeWidth,
-                        lineDash,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 hideInLegend: !showInLegend,
             },
         ];

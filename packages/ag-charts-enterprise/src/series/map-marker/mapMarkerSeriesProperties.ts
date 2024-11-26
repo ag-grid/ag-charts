@@ -32,7 +32,7 @@ const {
 
 export interface MapMarkerNodeLabelDatum extends _ModuleSupport.PointLabelDatum {}
 
-export interface MapMarkerNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
     readonly fill: string | undefined;
     readonly idValue: string | undefined;

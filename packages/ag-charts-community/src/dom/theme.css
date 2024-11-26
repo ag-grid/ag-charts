@@ -35,11 +35,14 @@
     --ag-charts-axis-label-color: #ffffff;
 
     /* Tooltip */
+    --ag-charts-tooltip-background-color: #fafafb;
+    --ag-charts-tooltip-foreground-color: var(--ag-charts-foreground-color);
+    --ag-charts-tooltip-border: 1px solid var(--ag-charts-border-color);
     --ag-charts-tooltip-title-padding: 8px 14px;
     --ag-charts-tooltip-content-padding: 6px 14px;
     --ag-charts-tooltip-compact-title-padding: 1px 6px;
     --ag-charts-tooltip-compact-content-padding: 1px 6px;
-    --ag-charts-tooltip-border-radius: 2px;
+    --ag-charts-tooltip-border-radius: 4px;
 
     /* Toolbar */
     --ag-charts-toolbar-foreground-color: var(--ag-header-foreground-color, var(--ag-charts-foreground-color));
@@ -146,6 +149,10 @@
     /* Axis Labels */
     --ag-charts-axis-label-background-color: #9caebb;
     --ag-charts-axis-label-color: #000000;
+
+    /* Tooltip */
+    --ag-charts-tooltip-background-color: #28313e;
+    --ag-charts-tooltip-border: 1px solid #474e59;
 
     /* Toolbar */
     --ag-charts-toolbar-background-color: var(--ag-header-background-color, color-mix(in srgb, #fff, #182230 93%));

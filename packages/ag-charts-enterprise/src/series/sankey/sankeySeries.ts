@@ -81,7 +81,6 @@ export class SankeySeries extends FlowProportionSeries<
         } = this.getNodeGraph(
             (node) => ({
                 ...node,
-                size: 0,
                 x: NaN,
                 y: NaN,
                 width: nodeWidth,

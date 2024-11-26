@@ -366,6 +366,7 @@ export class MapShapeSeries
                 series: this,
                 itemId: idKey,
                 datum,
+                datumIndex,
                 idValue,
                 colorValue,
                 labelValue,
@@ -560,6 +561,28 @@ export class MapShapeSeries
         return point;
     }
 
+    private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
+        const { dataModel, processedData, properties } = this;
+        const { fillOpacity, stroke, strokeWidth, strokeOpacity } = properties;
+
+        let { fill } = properties;
+        if (datumIndex != null && this.isColorScaleValid()) {
+            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
+            const colorValue = colorValues[datumIndex];
+            fill = this.colorScale.convert(colorValue);
+        }
+
+        return {
+            marker: {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            },
+        };
+    }
+
     override getLegendData(
         legendType: _ModuleSupport.ChartLegendType
     ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
@@ -568,21 +591,7 @@ export class MapShapeSeries
 
         const { id: seriesId, visible } = this;
 
-        const {
-            title,
-            legendItemName,
-            idKey,
-            idName,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            colorKey,
-            colorName,
-            colorRange,
-            showInLegend,
-        } = this.properties;
+        const { title, legendItemName, idKey, idName, colorKey, colorName, colorRange, showInLegend } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
             const colorDomain =
@@ -604,15 +613,7 @@ export class MapShapeSeries
                 seriesId,
                 enabled: visible,
                 label: { text: legendItemName ?? title ?? idName ?? idKey },
-                symbol: {
-                    marker: {
-                        fill,
-                        fillOpacity,
-                        stroke,
-                        strokeWidth,
-                        strokeOpacity,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: !showInLegend,
             };
@@ -620,6 +621,48 @@ export class MapShapeSeries
         } else {
             return [];
         }
+    }
+
+    override getTooltip2(seriesDatum: any): _ModuleSupport.TooltipContent2 | undefined {
+        const { dataModel, processedData, properties } = this;
+        const { idKey, colorKey, colorName = colorKey, labelKey, labelName = labelKey, legendItemName } = properties;
+        if (!dataModel || !processedData?.rawData.length) return;
+
+        const { datumIndex } = seriesDatum;
+
+        const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
+        const labelValues =
+            labelKey != null ? dataModel.resolveColumnById<string>(this, `labelValue`, processedData) : undefined;
+        const colorValues =
+            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
+
+        const rows: _ModuleSupport.TooltipContentRow[] = [];
+
+        const seriesTitle = properties.title ?? legendItemName;
+        if (seriesTitle != null) {
+            rows.push({ value: seriesTitle });
+        }
+        if (colorValues != null) {
+            rows.push({
+                label: colorName ?? '',
+                value: String(colorValues[datumIndex]),
+            });
+        }
+        if (labelValues != null && labelKey !== idKey) {
+            rows.push({
+                label: labelName ?? '',
+                value: String(labelValues[datumIndex]),
+            });
+        }
+
+        if (rows.length > 0) {
+            rows[0].symbol = this.legendItemSymbol(datumIndex);
+        }
+
+        return {
+            title: idValues[datumIndex],
+            rows,
+        };
     }
 
     override getTooltipHtml(nodeDatum: MapShapeNodeDatum): _ModuleSupport.TooltipContent {

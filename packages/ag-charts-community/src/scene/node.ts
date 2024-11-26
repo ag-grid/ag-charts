@@ -51,6 +51,26 @@ export type ChildNodeCounts = {
 export abstract class Node {
     private static _nextSerialNumber = 0;
 
+    static toSVG(node: Node, width: number, height: number) {
+        const svg = node?.toSVG();
+
+        if (svg == null || (!svg.elements.length && !svg.defs?.length)) return;
+
+        const root = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        root.setAttribute('width', String(width));
+        root.setAttribute('height', String(height));
+
+        if (svg.defs?.length) {
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            defs.append(...svg.defs);
+            root.append(defs);
+        }
+
+        root.append(...svg.elements);
+
+        return root.outerHTML;
+    }
+
     static *extractBBoxes(nodes: Iterable<Node>, skipInvisible?: boolean) {
         for (const n of nodes) {
             if (!skipInvisible || (n.visible && !n.transitionOut)) {

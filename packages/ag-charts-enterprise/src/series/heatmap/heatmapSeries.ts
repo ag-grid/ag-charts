@@ -245,6 +245,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             nodeData.push({
                 series: this,
                 itemId: yKey,
+                datumIndex,
                 yKey,
                 xKey,
                 xValue: xDatum,
@@ -404,6 +405,65 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
             text.pointerEvents = PointerEvents.None;
         });
+    }
+
+    override getTooltip2(nodeDatum: HeatmapNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+        const { dataModel, processedData, axes, properties, colorScale } = this;
+        const { xKey, xName = xKey, yKey, yName = yKey, colorKey, colorName = colorKey, colorRange } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
+        }
+
+        const { datumIndex } = nodeDatum;
+        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
+        const colorValues = colorKey
+            ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)
+            : undefined;
+
+        const xValue = xValues[datumIndex];
+        const yValue = yValues[datumIndex];
+        const colorValue = colorValues?.[datumIndex];
+
+        if (xValue == null) return;
+
+        const rows: _ModuleSupport.TooltipContentRow[] = [];
+
+        if (colorValue != null) {
+            const fill = this.isColorScaleValid() ? colorScale.convert(colorValue) : colorRange[0];
+            rows.push({
+                symbol: {
+                    marker: {
+                        shape: 'square',
+                        fill: fill,
+                        fillOpacity: 1,
+                        stroke: undefined,
+                        strokeWidth: 0,
+                        strokeOpacity: 1,
+                    },
+                },
+                label: colorName ?? '',
+                value: String(colorValue),
+            });
+        }
+
+        rows.push(
+            {
+                label: xName,
+                value: xAxis.formatDatum(xValue),
+            },
+            {
+                label: yName,
+                value: yAxis.formatDatum(yValue),
+            }
+        );
+
+        return {
+            rows,
+        };
     }
 
     getTooltipHtml(nodeDatum: HeatmapNodeDatum): _ModuleSupport.TooltipContent {

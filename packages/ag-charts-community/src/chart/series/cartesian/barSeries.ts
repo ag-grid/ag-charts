@@ -29,7 +29,8 @@ import {
     valueProperty,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import type { LegendSymbolOptions } from '../../legend/legendSymbol';
+import { EMPTY_TOOLTIP_CONTENT, type TooltipContent, type TooltipContent2 } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
@@ -312,8 +313,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         const yReversed = yAxis.isReversed();
 
-        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
-        const groupOffset = groupScale.convert(String(groupIndex));
+        const { barWidth, groupIndex: groupScaleIndex } = this.updateGroupScale(xAxis);
+        const groupOffset = groupScale.convert(String(groupScaleIndex));
         const barOffset = ContinuousScale.is(xScale) ? barWidth * -0.5 : 0;
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
@@ -328,6 +329,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const bboxBottom = yScale.convert(0);
         const nodeDatum = ({
             datum,
+            datumIndex,
             valueIndex,
             xValue,
             yValue,
@@ -344,6 +346,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             crossScale = 1,
         }: {
             datum: any;
+            datumIndex: number;
             valueIndex: number;
             xValue: string;
             yValue: number;
@@ -389,6 +392,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 series: this,
                 itemId: phantom ? createDatumId(yKey, phantom) : yKey,
                 datum,
+                datumIndex,
                 valueIndex,
                 cumulativeValue,
                 phantom,
@@ -474,6 +478,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
             const nodeData = nodeDatum({
                 datum: rawData[datumIndex],
+                datumIndex,
                 valueIndex,
                 xValue,
                 yValue: yFilterValue ?? yRawValue,
@@ -495,6 +500,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             if (yFilterValue != null) {
                 const phantomNodeData = nodeDatum({
                     datum: rawData[datumIndex],
+                    datumIndex,
                     valueIndex,
                     xValue,
                     yValue: yFilterValue,
@@ -704,6 +710,38 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         });
     }
 
+    override getTooltip2(nodeDatum: BarNodeDatum): TooltipContent2 | undefined {
+        const { dataModel, processedData, axes, properties } = this;
+        const { yKey, yName = yKey, legendItemName = yName } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
+        }
+
+        const { datumIndex } = nodeDatum;
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const yValues = dataModel.resolveColumnById(this, `yValue-raw`, processedData);
+
+        const xValue = xValues[datumIndex];
+        const yValue = yValues[datumIndex];
+
+        if (xValue == null) return;
+
+        return {
+            groupKey: xValue,
+            title: xAxis.formatDatum(xValue),
+            rows: [
+                {
+                    symbol: this.legendItemSymbol(),
+                    label: legendItemName,
+                    value: yAxis.formatDatum(yValue),
+                },
+            ],
+        };
+    }
+
     getTooltipHtml(nodeDatum: BarNodeDatum): TooltipContent {
         const { id: seriesId, processedData } = this;
         const xAxis = this.getCategoryAxis();
@@ -766,6 +804,20 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         );
     }
 
+    private legendItemSymbol(): LegendSymbolOptions {
+        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity } = this.properties;
+
+        return {
+            marker: {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            },
+        };
+    }
+
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
         const { showInLegend } = this.properties;
 
@@ -779,16 +831,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             visible,
         } = this;
 
-        const {
-            yKey: itemId,
-            yName,
-            fill,
-            stroke,
-            strokeWidth,
-            fillOpacity,
-            strokeOpacity,
-            legendItemName,
-        } = this.properties;
+        const { yKey: itemId, yName, legendItemName } = this.properties;
         return [
             {
                 legendType: 'category',
@@ -797,15 +840,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 seriesId,
                 enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
                 label: { text: legendItemName ?? yName ?? itemId },
-                symbol: {
-                    marker: {
-                        fill,
-                        fillOpacity,
-                        stroke,
-                        strokeWidth,
-                        strokeOpacity,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: !showInLegend,
             },

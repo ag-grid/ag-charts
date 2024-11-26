@@ -33,7 +33,7 @@ import type { DataController } from '../data/dataController';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../interaction/chartEventManager';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
-import type { TooltipContent } from '../tooltip/tooltip';
+import type { TooltipContent, TooltipContent2 } from '../tooltip/tooltip';
 import type { SeriesEventType } from './seriesEvents';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
@@ -518,6 +518,10 @@ export abstract class Series<
         return this.moduleMap
             .mapModules((module) => module.getTooltipParams())
             .reduce((total, current) => Object.assign(total, current), {});
+    }
+
+    getTooltip2(_seriesDatum: any): TooltipContent2 | undefined {
+        return undefined;
     }
 
     abstract getTooltipHtml(seriesDatum: any): TooltipContent;

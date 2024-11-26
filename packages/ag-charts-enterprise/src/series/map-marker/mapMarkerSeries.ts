@@ -417,6 +417,7 @@ export class MapMarkerSeries
                     series: this,
                     itemId: latitudeKey,
                     datum,
+                    datumIndex,
                     index: -1,
                     fill: color,
                     idValue,
@@ -439,6 +440,7 @@ export class MapMarkerSeries
                         series: this,
                         itemId: latitudeKey,
                         datum,
+                        datumIndex,
                         index,
                         fill: color,
                         idValue,
@@ -647,6 +649,29 @@ export class MapMarkerSeries
         return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
     }
 
+    private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
+        const { dataModel, processedData, properties } = this;
+        const { shape, fillOpacity, stroke, strokeWidth, strokeOpacity } = properties;
+
+        let { fill } = properties;
+        if (datumIndex != null && this.isColorScaleValid()) {
+            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
+            const colorValue = colorValues[datumIndex];
+            fill = this.colorScale.convert(colorValue);
+        }
+
+        return {
+            marker: {
+                shape,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            },
+        };
+    }
+
     override getLegendData(
         legendType: _ModuleSupport.ChartLegendType
     ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
@@ -655,22 +680,7 @@ export class MapMarkerSeries
 
         const { id: seriesId, visible } = this;
 
-        const {
-            title,
-            legendItemName,
-            idName,
-            idKey,
-            colorKey,
-            colorName,
-            colorRange,
-            shape,
-            fill,
-            stroke,
-            fillOpacity,
-            strokeOpacity,
-            strokeWidth,
-            showInLegend,
-        } = this.properties;
+        const { title, legendItemName, idName, idKey, colorKey, colorName, colorRange, showInLegend } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
             const colorDomain =
@@ -692,16 +702,7 @@ export class MapMarkerSeries
                 seriesId,
                 enabled: visible,
                 label: { text: legendItemName ?? title ?? idName ?? idKey ?? seriesId },
-                symbol: {
-                    marker: {
-                        shape,
-                        fill,
-                        fillOpacity,
-                        stroke,
-                        strokeWidth,
-                        strokeOpacity,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: !showInLegend,
             };
@@ -709,6 +710,81 @@ export class MapMarkerSeries
         } else {
             return [];
         }
+    }
+
+    override getTooltip2(seriesDatum: any): _ModuleSupport.TooltipContent2 | undefined {
+        const { dataModel, processedData, properties } = this;
+        const {
+            idKey,
+            latitudeKey,
+            longitudeKey,
+            colorKey,
+            colorName = colorKey,
+            sizeKey,
+            sizeName = sizeKey,
+            labelKey,
+            labelName = labelKey,
+            legendItemName,
+        } = properties;
+        if (!dataModel || !processedData?.rawData.length) return;
+
+        const { datumIndex } = seriesDatum;
+
+        const idValues =
+            idKey != null ? dataModel.resolveColumnById<string>(this, `idValue`, processedData) : undefined;
+        const latValues =
+            latitudeKey != null ? dataModel.resolveColumnById<number>(this, `latValue`, processedData) : undefined;
+        const lonValues =
+            longitudeKey != null ? dataModel.resolveColumnById<number>(this, `lonValue`, processedData) : undefined;
+        const labelValues =
+            labelKey != null ? dataModel.resolveColumnById<string>(this, `labelValue`, processedData) : undefined;
+        const sizeValues =
+            sizeKey != null ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
+        const colorValues =
+            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
+
+        const rows: _ModuleSupport.TooltipContentRow[] = [];
+
+        const seriesTitle = properties.title ?? legendItemName;
+        if (seriesTitle != null) {
+            rows.push({ value: seriesTitle });
+        }
+        if (sizeValues != null) {
+            rows.push({
+                label: sizeName ?? '',
+                value: String(sizeValues[datumIndex]),
+            });
+        }
+        if (colorValues != null) {
+            rows.push({
+                label: colorName ?? '',
+                value: String(colorValues[datumIndex]),
+            });
+        }
+        if (labelValues != null && labelKey !== idKey) {
+            rows.push({
+                label: labelName ?? '',
+                value: String(labelValues[datumIndex]),
+            });
+        }
+
+        if (rows.length > 0) {
+            rows[0].symbol = this.legendItemSymbol(datumIndex);
+        }
+
+        let title: string | undefined;
+        if (idValues != null) {
+            title = idValues?.[datumIndex];
+        } else if (latValues != null && lonValues != null) {
+            const latValue = latValues[datumIndex];
+            const lonValue = lonValues[datumIndex];
+            title = `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${lonValue >= 0 ? 'W' : 'E'}`;
+        }
+
+        return {
+            title,
+            rows,
+        };
     }
 
     override getTooltipHtml(nodeDatum: MapMarkerNodeDatum): _ModuleSupport.TooltipContent {

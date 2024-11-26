@@ -18,9 +18,15 @@ import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
 import { valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
+import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import {
+    EMPTY_TOOLTIP_CONTENT,
+    type TooltipContent,
+    type TooltipContent2,
+    type TooltipContentRow,
+} from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData } from './cartesianSeries';
@@ -185,6 +191,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 yKey,
                 xKey,
                 datum,
+                datumIndex,
                 xValue: xDatum,
                 yValue: yDatum,
                 capDefaults: { lengthRatioMultiplier: marker.getDiameter(), lengthMax: Infinity },
@@ -289,6 +296,47 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         });
     }
 
+    override getTooltip2(nodeDatum: ScatterNodeDatum): TooltipContent2 | undefined {
+        const { dataModel, processedData, axes, properties } = this;
+        const { xKey, xName = xKey, yKey, yName = yKey, title, legendItemName = yName } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
+        }
+
+        const { datumIndex } = nodeDatum;
+        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
+
+        const xValue = xValues[datumIndex];
+        const yValue = yValues[datumIndex];
+
+        if (xValue == null) return;
+
+        const rows: TooltipContentRow[] = [];
+
+        if (title != null) {
+            rows.push({ value: title });
+        }
+
+        rows.push(
+            {
+                label: xName,
+                value: xAxis.formatDatum(xValue),
+            },
+            {
+                label: legendItemName,
+                value: yAxis.formatDatum(yValue),
+            }
+        );
+
+        rows[0].symbol = this.legendItemSymbol();
+
+        return { rows };
+    }
+
     getTooltipHtml(nodeDatum: ScatterNodeDatum): TooltipContent {
         const xAxis = this.axes[ChartAxisDirection.X];
         const yAxis = this.axes[ChartAxisDirection.Y];
@@ -341,13 +389,27 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         );
     }
 
+    private legendItemSymbol(): LegendSymbolOptions {
+        const { shape, fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = this.properties.marker;
+
+        return {
+            marker: {
+                shape,
+                fill: fill ?? 'rgba(0, 0, 0, 0)',
+                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity: fillOpacity ?? 1,
+                strokeOpacity: strokeOpacity ?? 1,
+                strokeWidth: strokeWidth ?? 0,
+            },
+        };
+    }
+
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
         if (!this.properties.isValid() || legendType !== 'category') {
             return [];
         }
 
-        const { yKey: itemId, yName, title, marker, showInLegend } = this.properties;
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
+        const { yKey: itemId, yName, title, showInLegend } = this.properties;
 
         const {
             id: seriesId,
@@ -365,16 +427,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 label: {
                     text: title ?? yName ?? itemId,
                 },
-                symbol: {
-                    marker: {
-                        shape: marker.shape,
-                        fill: marker.fill ?? fill ?? 'rgba(0, 0, 0, 0)',
-                        stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
-                        fillOpacity: fillOpacity ?? 1,
-                        strokeOpacity: strokeOpacity ?? 1,
-                        strokeWidth: strokeWidth ?? 0,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 hideInLegend: !showInLegend,
             },
         ];
