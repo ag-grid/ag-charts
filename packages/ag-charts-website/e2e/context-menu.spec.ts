@@ -80,7 +80,7 @@ test.describe('context-menu', () => {
         await page.keyboard.press('PageDown');
         await page.keyboard.press('PageDown');
 
-        await page.locator(SELECTORS.wrapper).nth(1).click( { button: 'right' });
+        await page.locator(SELECTORS.wrapper).nth(1).click({ button: 'right' });
         await expect(page).toHaveScreenshot('AG-13359-context-menu-chart2-series-area.png', { animations: 'disabled' });
     });
 });
