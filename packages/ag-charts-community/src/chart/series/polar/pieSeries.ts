@@ -1390,17 +1390,15 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 label: {
                     text: labelParts.join(' - '),
                 },
-                symbols: [
-                    {
-                        marker: {
-                            fill: sectorFormat.fill,
-                            stroke: sectorFormat.stroke,
-                            fillOpacity: this.properties.fillOpacity,
-                            strokeOpacity: this.properties.strokeOpacity,
-                            strokeWidth: this.properties.strokeWidth,
-                        },
+                symbol: {
+                    marker: {
+                        fill: sectorFormat.fill,
+                        stroke: sectorFormat.stroke,
+                        fillOpacity: this.properties.fillOpacity,
+                        strokeOpacity: this.properties.strokeOpacity,
+                        strokeWidth: this.properties.strokeWidth,
                     },
-                ],
+                },
                 legendItemName: legendItemKey != null ? datum[legendItemKey] : undefined,
                 hideInLegend: !showInLegend,
             });

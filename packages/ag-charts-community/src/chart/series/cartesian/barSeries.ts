@@ -797,7 +797,15 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 seriesId,
                 enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
                 label: { text: legendItemName ?? yName ?? itemId },
-                symbols: [{ marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } }],
+                symbol: {
+                    marker: {
+                        fill,
+                        fillOpacity,
+                        stroke,
+                        strokeWidth,
+                        strokeOpacity,
+                    },
+                },
                 legendItemName,
                 hideInLegend: !showInLegend,
             },

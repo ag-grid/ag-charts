@@ -7,9 +7,8 @@ import type { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
 import type { SpriteDimensions, SpriteRenderer } from '../../scene/spriteRenderer';
 import { Translatable } from '../../scene/transformable';
-import { arraysEqual } from '../../util/array';
-import { iterate } from '../../util/iterator';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
+import { isDefined } from '../../util/type-guards';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import type { Marker } from '../marker/marker';
 import type { MarkerConstructor } from '../marker/util';
@@ -31,7 +30,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
     constructor() {
         super({ name: 'markerLabelGroup' });
 
-        const { markers, label, lines } = this;
+        const { marker, label, line } = this;
         label.textBaseline = 'middle';
         label.fontSize = 12;
         label.fontFamily = 'Verdana, sans-serif';
@@ -39,7 +38,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
         // For better looking vertical alignment of labels to markers.
         label.y = 1;
 
-        this.updateSymbols(markers, lines);
+        this.updateSymbols(marker, line);
         this.append([this.symbolsGroup, label]);
     }
 
@@ -70,24 +69,24 @@ export class LegendMarkerLabel extends Translatable(Group) {
     @ProxyPropertyOnWrite('label', 'fill')
     color?: string;
 
-    private _markers: Marker[] = [];
-    get markers(): Marker[] {
-        return this._markers;
+    private _marker: Marker | undefined = undefined;
+    get marker(): Marker | undefined {
+        return this._marker;
     }
 
-    private _lines: Line[] = [];
-    get lines(): Line[] {
-        return this._lines;
+    private _line: Line | undefined = undefined;
+    get line(): Line | undefined {
+        return this._line;
     }
 
-    updateSymbols(markers: Marker[], lines: Line[]) {
-        if (arraysEqual(this._markers, markers) && arraysEqual(this._lines, lines)) return;
+    updateSymbols(marker: Marker | undefined, line: Line | undefined) {
+        if (this._marker === marker && this._line === line) return;
 
         this.bitmapDirty = true;
-        this._markers = markers;
-        this._lines = lines;
+        this._marker = marker;
+        this._line = line;
         this.symbolsGroup.clear();
-        this.symbolsGroup.append([this.bitmap, ...lines, ...markers]);
+        this.symbolsGroup.append([this.bitmap, line, marker].filter(isDefined));
     }
 
     setEnabled(enabled: boolean) {
@@ -104,8 +103,13 @@ export class LegendMarkerLabel extends Translatable(Group) {
     }
 
     private setBitmapVisibility(visible: boolean) {
-        const { lines, markers } = this;
-        [lines, markers].forEach((shapes) => shapes.forEach((shape) => (shape.visible = !visible)));
+        const { line, marker } = this;
+        if (marker != null) {
+            marker.visible = !visible;
+        }
+        if (line != null) {
+            line.visible = !visible;
+        }
         this.bitmap.visible = visible;
     }
 
@@ -114,66 +118,53 @@ export class LegendMarkerLabel extends Translatable(Group) {
     update(
         spriteRenderer: SpriteRenderer,
         { spriteAAPadding, spritePixelRatio: scale }: SpriteDimensions,
-        dimensionProps: { length: number; spacing: number; isCustomMarker: boolean }[]
+        dimensionProps: { length: number; spacing: number; isCustomMarker: boolean }
     ) {
-        const { markers, lines } = this;
+        const { marker, line } = this;
+        const { length, spacing, isCustomMarker } = dimensionProps;
 
-        let spriteX = 0;
-        let spriteY = 0;
-        let shift = 0;
-        for (let i = 0; i < Math.max(markers.length, lines.length); i++) {
-            const { length, spacing, isCustomMarker } = dimensionProps[i] ?? 0;
-            const marker = markers[i];
-            const line = lines[i];
+        let lineTop = Infinity;
+        let lineX1 = Infinity;
+        let lineX2 = Infinity;
+        let markerTop = Infinity;
+        let markerLeft = Infinity;
+        if (marker) {
+            const { size } = marker;
+            const center = (marker.constructor as MarkerConstructor).center;
+            const radius = (size + marker.strokeWidth) / 2;
 
-            const size = marker?.size ?? 0;
-
-            let lineTop = Infinity;
-            let lineX1 = Infinity;
-            let lineX2 = Infinity;
-            let markerTop = Infinity;
-            let markerLeft = Infinity;
-            if (marker) {
-                const center = (marker.constructor as MarkerConstructor).center;
-                const radius = (size + marker.strokeWidth) / 2;
-
-                if (isCustomMarker) {
-                    marker.x = 0;
-                    marker.y = 0;
-                    marker.translationX = (center.x - 0.5) * size + length / 2 + shift;
-                    marker.translationY = (center.y - 0.5) * size;
-                    markerTop = marker.translationY - radius;
-                    markerLeft = marker.translationX - radius;
-                } else {
-                    marker.x = (center.x - 0.5) * size + length / 2 + shift;
-                    marker.y = (center.y - 0.5) * size;
-                    markerTop = marker.y - radius;
-                    markerLeft = marker.x - radius;
-                }
+            if (isCustomMarker) {
+                marker.x = 0;
+                marker.y = 0;
+                marker.translationX = (center.x - 0.5) * size + length / 2;
+                marker.translationY = (center.y - 0.5) * size;
+                markerTop = marker.translationY - radius;
+                markerLeft = marker.translationX - radius;
+            } else {
+                marker.x = (center.x - 0.5) * size + length / 2;
+                marker.y = (center.y - 0.5) * size;
+                markerTop = marker.y - radius;
+                markerLeft = marker.x - radius;
             }
-
-            if (line) {
-                line.x1 = shift;
-                line.x2 = shift + length;
-                line.y1 = 0;
-                line.y2 = 0;
-                line.markDirty();
-                lineTop = -line.strokeWidth / 2;
-                lineX1 = line.x1;
-                lineX2 = line.x2;
-            }
-
-            shift += spacing + Math.max(length, size);
-            spriteX = Math.min(spriteX, lineX1, lineX2, markerLeft);
-            spriteY = Math.min(spriteY, lineTop, markerTop);
         }
 
-        const lastSymbolProps = dimensionProps.at(-1);
-        const lastLine = this.lines.at(-1);
-        const lastMarker = this.markers.at(-1);
-        const lineEnd = lastLine ? lastLine.x2 : -Infinity;
-        const markerEnd = (lastMarker?.x ?? 0) + (lastMarker?.size ?? 0) / 2;
-        this.label.x = Math.max(lineEnd, markerEnd) + (lastSymbolProps?.spacing ?? 0);
+        if (line) {
+            line.x1 = 0;
+            line.x2 = length;
+            line.y1 = 0;
+            line.y2 = 0;
+            line.markDirty();
+            lineTop = -line.strokeWidth / 2;
+            lineX1 = line.x1;
+            lineX2 = line.x2;
+        }
+
+        const spriteX = Math.min(lineX1, lineX2, markerLeft);
+        const spriteY = Math.min(lineTop, markerTop);
+
+        const lineEnd = line?.x2 ?? -Infinity;
+        const markerEnd = (marker?.x ?? 0) + (marker?.size ?? 0) / 2;
+        this.label.x = Math.max(lineEnd, markerEnd) + spacing;
 
         if (this.bitmapDirty) {
             this.setBitmapVisibility(false);
@@ -190,24 +181,13 @@ export class LegendMarkerLabel extends Translatable(Group) {
 
             this.refreshVisibilities();
         }
-
-        if (dimensionProps.length < 2) {
-            return;
-        }
-
-        // clip the symbols to the size of a single symbol to match the size of other legend items
-        const bbox = this.symbolsGroup.getBBox();
-        const clippedWidth = Math.max(lastMarker?.size ?? 0, lastSymbolProps?.length ?? 0);
-        const clipRect = new BBox(bbox.x + clippedWidth / 2, bbox.y, clippedWidth, bbox.height);
-
-        this.symbolsGroup.setClipRect(clipRect);
     }
 
     protected override computeBBox(): BBox {
         // The Image node (bitmap) includes some padding to render antialiasing pixel correctly, but we do
         // not want to include this padding in the layout bounds. So just compute the bounds for the Line
         // and Marker nodes directly rather than Group's default behaviour of computing this.bitmap's BBox.
-        const { label, lines, markers } = this;
-        return this.toParent(Group.computeChildrenBBox(iterate([label], lines, markers), false));
+        const { label, line, marker } = this;
+        return this.toParent(Group.computeChildrenBBox([label, line, marker].filter(isDefined), false));
     }
 }

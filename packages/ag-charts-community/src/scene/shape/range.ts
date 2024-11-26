@@ -80,7 +80,7 @@ export class Range extends Shape {
         if (strokeActive) {
             const { strokeOpacity, lineDash, lineDashOffset, lineCap, lineJoin } = this;
 
-            ctx.strokeStyle = stroke;
+            this.applyStroke(ctx);
             ctx.globalAlpha = opacity * strokeOpacity;
 
             ctx.lineWidth = strokeWidth;

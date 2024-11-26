@@ -187,7 +187,11 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const { id, data } = this;
+        const {
+            id,
+            data,
+            ctx: { legendManager },
+        } = this;
         const {
             xKey,
             yName,
@@ -201,37 +205,35 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
             return [];
         }
 
+        const stroke = new _ModuleSupport.LinearGradient(
+            'rgb',
+            [
+                { color: up.stroke, offset: 0 },
+                { color: up.stroke, offset: 0.5 },
+                { color: down.stroke, offset: 0.5 },
+            ],
+            90
+        );
+
         return [
             {
                 legendType: 'category',
                 id,
                 itemId: id,
                 seriesId: id,
-                enabled: visible,
+                enabled: visible && legendManager.getItemEnabled({ seriesId: id, itemId: id }),
                 label: {
                     text: legendItemName ?? yName ?? id,
                 },
-                symbols: [
-                    {
-                        marker: {
-                            fill: undefined,
-                            fillOpacity: 1,
-                            stroke: up.stroke,
-                            strokeWidth: up.strokeWidth ?? 1,
-                            strokeOpacity: up.strokeOpacity ?? 1,
-                            padding: 0,
-                        },
+                symbol: {
+                    marker: {
+                        fill: undefined,
+                        fillOpacity: 1,
+                        stroke,
+                        strokeWidth: up.strokeWidth ?? 1,
+                        strokeOpacity: up.strokeOpacity ?? 1,
                     },
-                    {
-                        marker: {
-                            fill: undefined,
-                            fillOpacity: 1,
-                            stroke: down.stroke,
-                            strokeWidth: down.strokeWidth ?? 1,
-                            strokeOpacity: down.strokeOpacity ?? 1,
-                        },
-                    },
-                ],
+                },
                 legendItemName,
                 hideInLegend: !showInLegend,
             },

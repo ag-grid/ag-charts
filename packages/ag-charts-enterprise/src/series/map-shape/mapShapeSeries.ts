@@ -604,17 +604,15 @@ export class MapShapeSeries
                 seriesId,
                 enabled: visible,
                 label: { text: legendItemName ?? title ?? idName ?? idKey },
-                symbols: [
-                    {
-                        marker: {
-                            fill,
-                            fillOpacity,
-                            stroke,
-                            strokeWidth,
-                            strokeOpacity,
-                        },
+                symbol: {
+                    marker: {
+                        fill,
+                        fillOpacity,
+                        stroke,
+                        strokeWidth,
+                        strokeOpacity,
                     },
-                ],
+                },
                 legendItemName,
                 hideInLegend: !showInLegend,
             };

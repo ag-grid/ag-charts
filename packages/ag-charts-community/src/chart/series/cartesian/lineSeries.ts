@@ -605,25 +605,23 @@ export class LineSeries extends CartesianSeries<
                 label: {
                     text: legendItemName ?? title ?? yName ?? itemId,
                 },
-                symbols: [
-                    {
-                        marker: {
-                            shape: marker.shape,
-                            fill: marker.fill ?? color0,
-                            stroke: marker.stroke ?? stroke ?? color0,
-                            fillOpacity: marker.fillOpacity ?? 1,
-                            strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
-                            strokeWidth: marker.strokeWidth ?? 0,
-                            enabled: marker.enabled,
-                        },
-                        line: {
-                            stroke: stroke ?? color0,
-                            strokeOpacity,
-                            strokeWidth,
-                            lineDash,
-                        },
+                symbol: {
+                    marker: {
+                        shape: marker.shape,
+                        fill: marker.fill ?? color0,
+                        stroke: marker.stroke ?? stroke ?? color0,
+                        fillOpacity: marker.fillOpacity ?? 1,
+                        strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
+                        strokeWidth: marker.strokeWidth ?? 0,
+                        enabled: marker.enabled,
                     },
-                ],
+                    line: {
+                        stroke: stroke ?? color0,
+                        strokeOpacity,
+                        strokeWidth,
+                        lineDash,
+                    },
+                },
                 hideInLegend: !showInLegend,
             },
         ];
