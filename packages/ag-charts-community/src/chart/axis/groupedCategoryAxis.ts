@@ -10,6 +10,7 @@ import { extent, sortBasedOnArray, unique } from '../../util/array';
 import { iterate } from '../../util/iterator';
 import { inRange } from '../../util/number';
 import { BaseProperties, PropertiesArray } from '../../util/properties';
+import { countLines } from '../../util/string.util';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';
 import {
@@ -28,8 +29,7 @@ import { createDatumId } from '../data/processors';
 import { calculateLabelRotation } from '../label';
 import type { LabelNodeDatum, TickDatum } from './axis';
 import { CategoryAxis } from './categoryAxis';
-import type { TreeLayout } from './tree';
-import { treeLayout } from './tree';
+import { type TreeLayout, treeLayout } from './tree';
 
 type TreeNode = TreeLayout['nodes'][number];
 
@@ -90,7 +90,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
     private tickTreeLayout?: TreeLayout;
 
-    @Validate(OBJECT_ARRAY, { optional: true })
+    @Validate(OBJECT_ARRAY)
     depthOptions = new PropertiesArray(DepthProperties);
 
     constructor(moduleCtx: ModuleContext) {
@@ -104,13 +104,38 @@ export class GroupedCategoryAxis extends CategoryAxis {
     private resizeTickTree() {
         if (!this.tickTreeLayout) return;
 
+        const { nodes } = this.tickTreeLayout;
         const { range, step, inset, bandwidth } = this.scale;
-        const lineHeight = TextUtils.getLineHeight(this.label.fontSize!);
 
         const width = Math.abs(range[1] - range[0]) - step;
-        const height = this.tickTreeLayout.depth * lineHeight;
+        const scalingX = this.tickTreeLayout.scalingX(width, range[0] > range[1]);
+        const shiftX = inset + bandwidth / 2;
 
-        this.tickTreeLayout.resize(width, height, inset + bandwidth / 2, range[0] > range[1]);
+        let offsetX = 0;
+        for (const node of nodes) {
+            const screenX = node.x * scalingX;
+            if (offsetX > screenX) {
+                offsetX = screenX;
+            }
+            node.screenX = screenX + shiftX;
+        }
+
+        // Normalize so that root top and leftmost leaf starts at zero.
+        for (const node of nodes) {
+            node.screenX -= offsetX;
+        }
+    }
+
+    private getDepthOptionsMap(maxDepth: number) {
+        const optionsMap = [];
+        const { depthOptions, label } = this;
+        for (let i = 0; i < maxDepth; i++) {
+            optionsMap.push({
+                padding: depthOptions[i]?.label.padding ?? label.padding,
+                lineHeight: TextUtils.getLineHeight(depthOptions[i]?.label.fontSize ?? label.fontSize ?? 10),
+            });
+        }
+        return optionsMap;
     }
 
     private computedLayout: ComputedGroupAxisLayout | undefined;
@@ -134,6 +159,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.calculateDomain();
         this.updateScale();
         this.updateRange();
+        this.resizeTickTree();
 
         const { scale, label, range, title } = this;
 
@@ -143,14 +169,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const isHorizontal = Math.abs(Math.cos(rotation)) < 1e-8;
         const sideFlag = label.getSideFlag();
 
-        // The Text `node` of the Caption is not used to render the title of the grouped category axis.
-        // The phantom root of the tree layout is used instead.
-        const lineHeight = TextUtils.getLineHeight(label.fontSize!);
-
-        // Render ticks and labels.
-        const { tickTreeLayout, depthOptions } = this;
-        const maxDepth = tickTreeLayout?.depth ?? 0;
-        const treeLabels = tickTreeLayout?.nodes ?? [];
         // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
         // flip the labels to avoid upside-down text, when the axis is rotated
         // such that it is in the right hemisphere, i.e. the angle of rotation
@@ -171,6 +189,12 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const labelBBoxes: Map<number, BBox> = new Map();
         const tempText: TransformableText & { padding?: number } = new TransformableText();
 
+        // Render ticks and labels.
+        const { tickTreeLayout, depthOptions } = this;
+        const maxDepth = tickTreeLayout?.depth ?? 0;
+        const treeLabels = tickTreeLayout?.nodes ?? [];
+        const optionsMap = this.getDepthOptionsMap(maxDepth);
+
         const setLabelProps = (datum: TreeNode, index: number) => {
             if (index % keepEvery !== 0 || !inRange(datum.screenX, range)) {
                 return false;
@@ -185,17 +209,24 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 text,
                 textAlign: 'center',
                 textBaseline: parallelFlipFlag === -1 ? 'bottom' : 'hanging',
-                translationX: datum.screenY * -sideFlag,
+                translationX: 0,
                 translationY: datum.screenX,
             });
 
             return true;
         };
 
-        const leafPadding = depthOptions[0]?.label.padding ?? label.padding;
         let maxLeafLabelWidth = 0;
-
+        const depthLines: Record<number, number> = {};
         treeLabels.forEach((datum, index) => {
+            const depth = maxDepth - datum.depth;
+            const nodeLines = countLines(datum.label);
+
+            depthLines[depth] ??= 1;
+            if (depthLines[depth] < nodeLines) {
+                depthLines[depth] = nodeLines;
+            }
+
             const isVisible = setLabelProps(datum, index);
             if (!isVisible || !tempText.getBBox()) return;
             const bbox = tempText.getBBox().clone();
@@ -210,17 +241,36 @@ export class GroupedCategoryAxis extends CategoryAxis {
         });
 
         const idGenerator = createIdsGenerator();
-
+        const labelX = sideFlag * optionsMap[0].padding;
         const separatorSize: Map<number, number> = new Map();
-        const registerSeparator = (k: number, v: number) => separatorSize.has(k) || separatorSize.set(k, v);
+        const nestedPadding = (d: number) => {
+            let v = maxLeafLabelWidth;
+            for (let i = 1; i <= d; i++) {
+                v += optionsMap[i].padding;
+                if (label.mirrored || i !== d) {
+                    v += depthLines[i] * optionsMap[i].lineHeight;
+                }
+            }
+            return v;
+        };
+        const registerSeparator = (k: number, d: number) => {
+            if (separatorSize.has(k)) return;
+            let v = maxLeafLabelWidth;
+            for (let i = 0; i <= d; i++) {
+                v += optionsMap[i].padding;
+                if (i !== 0) {
+                    v += depthLines[i] * optionsMap[i].lineHeight;
+                }
+            }
+            separatorSize.set(k, v);
+        };
 
         treeLabels.forEach((datum, index) => {
             if (index === 0) return;
 
-            const isLeaf = !datum.children.length;
             let visible = setLabelProps(datum, index);
-
-            const labelX = sideFlag * leafPadding;
+            const isLeaf = !datum.children.length;
+            const depth = maxDepth - datum.depth;
 
             tempText.x = labelX;
             tempText.y = 0;
@@ -232,7 +282,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 tempText.textBaseline = 'middle';
 
                 if (label.mirrored) {
-                    tempText.translationX += labelBBoxes.get(index)?.width ?? 0;
+                    tempText.translationX = labelBBoxes.get(index)?.width ?? 0;
                 }
             } else {
                 const availableRange = datum.leafCount * step;
@@ -242,20 +292,14 @@ export class GroupedCategoryAxis extends CategoryAxis {
                     visible = false;
                     labelBBoxes.delete(index);
                 } else {
-                    const labelPadding = tempText.padding ?? 0;
-                    // bbox?.grow(tempText.padding ?? 0, 'vertical');
                     tempText.rotation = isHorizontal ? defaultRotation : -Math.PI / 2;
-                    tempText.translationX +=
-                        sideFlag * (maxLeafLabelWidth + leafPadding + labelPadding) + (label.mirrored ? 0 : lineHeight);
+                    tempText.translationX = sideFlag * nestedPadding(depth);
                 }
             }
 
             // Calculate sizes of label separators for all nodes except the root.
             if (datum.parent) {
-                registerSeparator(
-                    isLeaf ? datum.x : datum.x - (datum.leafCount - 1) / 2,
-                    maxLeafLabelWidth + leafPadding * 2 - datum.screenY
-                );
+                registerSeparator(isLeaf ? datum.x : datum.x - (datum.leafCount - 1) / 2, depth);
             }
 
             if (visible) {
@@ -363,7 +407,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
     protected override updateRange() {
         super.updateRange();
-        this.resizeTickTree();
         this.tickScale.range = this.scale.range;
     }
 
@@ -383,7 +426,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         this.scale.domain = sortBasedOnArray(this.dataDomain.domain, orderedDomain);
         this.tickScale.domain = domain.concat([['']]);
-        this.resizeTickTree();
     }
 
     protected override updateGridLines() {
