@@ -137,7 +137,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const { depthOptions, label } = this;
         for (let i = 0; i < maxDepth; i++) {
             optionsMap.push(
-                label.enabled && depthOptions[i]?.label.enabled
+                label.enabled && depthOptions[i]?.label.enabled !== false
                     ? {
                           enabled: true,
                           padding: depthOptions[i]?.label.padding ?? label.padding,
@@ -302,6 +302,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
             if (datum.parent) {
                 const separatorX = isLeaf ? datum.x : datum.x - (datum.leafCount - 1) / 2;
                 if (!separatorData.has(separatorX)) {
+                    const tickOptions = this.depthOptions[depth]?.tick;
                     let v = maxLeafLabelWidth;
                     for (let i = 0; i <= depth; i++) {
                         v += optionsMap[i].padding;
@@ -311,8 +312,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
                     }
                     separatorData.set(separatorX, {
                         tickSize: v,
-                        tickStroke: this.depthOptions[depth]?.tick.stroke,
-                        tickWidth: this.depthOptions[depth]?.tick.enabled ? this.depthOptions[depth]?.tick.width : 0,
+                        tickStroke: tickOptions?.stroke,
+                        tickWidth: tickOptions?.enabled !== false ? tickOptions?.width : 0,
                     });
                 }
             }

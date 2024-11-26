@@ -8,9 +8,9 @@ import type {
     AgPolarChartOptions,
 } from 'ag-charts-types';
 
-import type { ChartAxis } from '../chartAxis';
 import * as examples from '../test/examples';
 import * as axesExamples from '../test/examples-axes';
+import type { ChartOrProxy } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
@@ -23,7 +23,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-import type { ChartOrProxy } from '../test/utils';
 
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {
@@ -129,13 +128,6 @@ function mixinDerivedCases<T extends AgBaseChartOptions>(
     return result;
 }
 
-function calculateAxisBBox(axis: ChartAxis): { x: number; y: number; width: number; height: number } {
-    const bbox = axis.getBBox();
-
-    const { x, y, width, height } = bbox;
-    return { x, y, width, height };
-}
-
 describe('Grouped Category Axis Examples', () => {
     setupMockConsole();
 
@@ -170,7 +162,7 @@ describe('Grouped Category Axis Examples', () => {
                         continue;
                     }
 
-                    const axesBBox = calculateAxisBBox(axis);
+                    const axesBBox = axis.getBBox();
                     const imageData = extractImageData({ ...ctx, bbox: axesBBox });
 
                     expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
