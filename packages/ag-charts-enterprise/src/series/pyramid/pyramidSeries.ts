@@ -634,7 +634,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 seriesId,
                 enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
                 label: { text: stageValue },
-                symbols: [{ marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } }],
+                symbol: { marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } },
                 hideInLegend: !showInLegend,
             });
         });

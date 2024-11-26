@@ -68,7 +68,7 @@ export function preparePieSeriesAnimationFunctions(
 
         if (status === 'updated') {
             fill = (sect.fill as any) ?? fill;
-            stroke = sect.stroke ?? stroke;
+            stroke = (typeof sect.stroke === 'string' ? sect.stroke : undefined) ?? stroke;
         }
 
         return { startAngle, endAngle, innerRadius, outerRadius, fill, stroke, phase };

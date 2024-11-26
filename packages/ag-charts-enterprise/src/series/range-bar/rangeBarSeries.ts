@@ -677,7 +677,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 seriesId,
                 enabled: visible,
                 label: { text: `${legendItemText}` },
-                symbols: [{ marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } }],
+                symbol: { marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } },
                 hideInLegend: !showInLegend,
             },
         ];

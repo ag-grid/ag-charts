@@ -1,6 +1,7 @@
-import type { AgChartLegendListeners, AgMarkerShape } from 'ag-charts-types';
+import type { AgChartLegendListeners } from 'ag-charts-types';
 
 import type { Scene } from '../../scene/scene';
+import type { LegendSymbolOptions } from './legendSymbol';
 
 export interface ChartLegend {
     attachLegend(scene: Scene): void;
@@ -27,30 +28,12 @@ export interface BaseChartLegendDatum {
     hideInLegend?: boolean;
 }
 
-export interface LegendSymbolOptions {
-    marker: {
-        shape?: AgMarkerShape;
-        fill?: string;
-        stroke?: string;
-        fillOpacity: number;
-        strokeOpacity: number;
-        strokeWidth: number;
-        enabled?: boolean;
-        padding?: number;
-    };
-    line?: {
-        stroke: string;
-        strokeOpacity: number;
-        strokeWidth: number;
-        lineDash: number[];
-    };
-}
 export interface CategoryLegendDatum extends BaseChartLegendDatum {
     legendType: 'category';
     id: string; // component ID
     itemId: any; // sub-component ID
     datum?: any; // series datum
-    symbols: LegendSymbolOptions[];
+    symbol: LegendSymbolOptions;
     /** Optional deduplication id - used to coordinate synced toggling of multiple items. */
     legendItemName?: string;
     label: {

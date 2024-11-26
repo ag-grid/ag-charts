@@ -484,17 +484,15 @@ export abstract class FlowProportionSeries<
                 seriesId: this.id,
                 enabled: true,
                 label: { text: label ?? id },
-                symbols: [
-                    {
-                        marker: {
-                            fill,
-                            fillOpacity: 1,
-                            stroke,
-                            strokeWidth: 0,
-                            strokeOpacity: 1,
-                        },
+                symbol: {
+                    marker: {
+                        fill,
+                        fillOpacity: 1,
+                        stroke,
+                        strokeWidth: 0,
+                        strokeOpacity: 1,
                     },
-                ],
+                },
                 hideInLegend: !showInLegend,
             })
         );

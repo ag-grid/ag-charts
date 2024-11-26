@@ -540,24 +540,22 @@ export class MapLineSeries extends TopologySeries<
                 seriesId,
                 enabled: visible,
                 label: { text: legendItemName ?? title ?? idName ?? idKey },
-                symbols: [
-                    {
-                        marker: {
-                            fill: stroke,
-                            fillOpacity: strokeOpacity,
-                            stroke: undefined,
-                            strokeWidth: 0,
-                            strokeOpacity: 0,
-                            enabled: false,
-                        },
-                        line: {
-                            stroke,
-                            strokeOpacity,
-                            strokeWidth,
-                            lineDash,
-                        },
+                symbol: {
+                    marker: {
+                        fill: stroke,
+                        fillOpacity: strokeOpacity,
+                        stroke: undefined,
+                        strokeWidth: 0,
+                        strokeOpacity: 0,
+                        enabled: false,
                     },
-                ],
+                    line: {
+                        stroke,
+                        strokeOpacity,
+                        strokeWidth,
+                        lineDash,
+                    },
+                },
                 legendItemName,
                 hideInLegend: !showInLegend,
             };

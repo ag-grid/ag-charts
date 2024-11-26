@@ -8,11 +8,13 @@ interface Props {
     tag: string;
     heading?: string;
     headingHtml?: string;
-    subHeading: string;
+    subHeading?: string;
+    subHeadingHtml?: string;
     learnMoreTitle?: string;
     ctaTitle?: string;
     ctaUrl?: string;
     sectionClass?: string;
+    showBackgroundGradient?: boolean;
     children: ReactNode;
 }
 
@@ -21,13 +23,19 @@ export const LandingPageSection: FunctionComponent<Props> = ({
     heading,
     headingHtml,
     subHeading,
+    subHeadingHtml,
     ctaTitle,
     ctaUrl,
     sectionClass,
+    showBackgroundGradient,
     children,
 }) => {
     return (
-        <div className={classnames(styles.sectionContent, sectionClass)}>
+        <div
+            className={classnames(styles.sectionContent, sectionClass, {
+                [styles.withBackgroundGradient]: showBackgroundGradient,
+            })}
+        >
             <header className={styles.headingContainer}>
                 <h2 className={styles.tag}>{tag}</h2>
 
@@ -40,7 +48,11 @@ export const LandingPageSection: FunctionComponent<Props> = ({
                     <h3 className={styles.heading}>{heading}</h3>
                 )}
 
-                <h4 className={styles.subHeading}>{subHeading}</h4>
+                {subHeadingHtml ? (
+                    <h4 className={styles.subHeading} dangerouslySetInnerHTML={{ __html: subHeadingHtml }}></h4>
+                ) : (
+                    <h4 className={styles.subHeading}>{subHeading}</h4>
+                )}
 
                 {ctaUrl && (
                     <a href={ctaUrl} className={classnames([styles.ctaButton, 'button-tertiary'])}>

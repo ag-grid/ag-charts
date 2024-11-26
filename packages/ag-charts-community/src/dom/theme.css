@@ -34,6 +34,13 @@
     --ag-charts-axis-label-background-color: #474747;
     --ag-charts-axis-label-color: #ffffff;
 
+    /* Tooltip */
+    --ag-charts-tooltip-title-padding: 8px 14px;
+    --ag-charts-tooltip-content-padding: 6px 14px;
+    --ag-charts-tooltip-compact-title-padding: 1px 6px;
+    --ag-charts-tooltip-compact-content-padding: 1px 6px;
+    --ag-charts-tooltip-border-radius: 2px;
+
     /* Toolbar */
     --ag-charts-toolbar-foreground-color: var(--ag-header-foreground-color, var(--ag-charts-foreground-color));
     --ag-charts-toolbar-background-color: var(

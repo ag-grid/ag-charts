@@ -15,7 +15,11 @@ import {
     type AgTooltipPositionType,
 } from 'ag-charts-types';
 
-import { DEFAULT_AXIS_GRID_COLOUR, IS_ENTERPRISE } from '../../chart/themes/symbols';
+import {
+    DEFAULT_AXIS_GRID_COLOUR,
+    DEFAULT_SPARKLINE_CROSSHAIR_STROKE,
+    IS_ENTERPRISE,
+} from '../../chart/themes/symbols';
 import { simpleMemorize } from '../../util/memo';
 import { IGNORED_PROP, pickProps } from './presetUtils';
 
@@ -34,7 +38,7 @@ const commonAxisProperties = {
     },
     crosshair: {
         enabled: false,
-        stroke: DEFAULT_AXIS_GRID_COLOUR,
+        stroke: DEFAULT_SPARKLINE_CROSSHAIR_STROKE,
         lineDash: [0],
         label: {
             enabled: false,
@@ -327,6 +331,9 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     // Assign is safe as it comes from a rest object
     if (seriesOverrides != null) Object.assign(seriesOptions, seriesOverrides);
 
+    chartOpts.tooltip = {
+        class: 'ag-chart-tooltip-compact',
+    };
     chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME);
     chartOpts.data = data;
     chartOpts.series = [seriesOptions];

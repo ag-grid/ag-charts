@@ -67,11 +67,11 @@ describe('Pool', () => {
                 results.push(pool.obtain('create test ' + i));
             }
 
-            results.forEach((r) => r.release());
-            results.forEach((r) => {
+            for (const r of results) {
+                r.release();
                 expect(released).toHaveBeenCalledWith(r.item);
-            });
-
+            }
+            expect(destroy).not.toHaveBeenCalled();
             await new Promise((r) => setTimeout(r, 50));
             expect(destroy).not.toHaveBeenCalled();
 
@@ -108,12 +108,12 @@ describe('Pool', () => {
                 results.push(pool.obtain('create test ' + i));
             }
 
-            results.forEach((r) => r.release());
-            results.forEach((r) => {
+            for (const r of results) {
+                r.release();
                 expect(released).toHaveBeenCalledWith(r.item);
-            });
-
+            }
             expect(destroy).not.toHaveBeenCalled();
+
             await new Promise((r) => setTimeout(r, 50));
             expect(destroy).not.toHaveBeenCalled();
 

@@ -172,6 +172,11 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             onDragStart: (id, dir) => this.onAxisDragStart(id, dir),
             onDrag: (ev) => this.onDrag({ regionX: ev.offsetX, regionY: ev.offsetY }),
             onDragEnd: () => this.onDragEnd(),
+            onDoubleClick: (id, direction) => {
+                this.hoveredAxis = { id, direction };
+                this.onDoubleClick();
+                this.hoveredAxis = undefined;
+            },
         });
 
         const dragStartEventType = 'drag-start';
@@ -208,7 +213,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.buttons.toggle(enabled, zoom, props);
     }
 
-    private onDoubleClick(event: _ModuleSupport.RegionEvent<'dblclick'> & { preventZoomDblClick?: boolean }) {
+    private onDoubleClick(event?: _ModuleSupport.RegionEvent<'dblclick'> & { preventZoomDblClick?: boolean }) {
         const { enabled, enableDoubleClickToReset, hoveredAxis } = this;
 
         if (!enabled || !enableDoubleClickToReset) return;
@@ -218,7 +223,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (hoveredAxis) {
             const { id, direction } = hoveredAxis;
             this.updateAxisZoom(id, direction, zoom[direction]);
-        } else if (!event.preventZoomDblClick) {
+        } else if (!event?.preventZoomDblClick) {
             this.updateZoom(zoom);
         }
     }

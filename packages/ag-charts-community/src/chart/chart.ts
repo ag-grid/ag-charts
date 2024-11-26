@@ -8,6 +8,7 @@ import type { ModuleContext } from '../module/moduleContext';
 import type { ChartOptions } from '../module/optionsModule';
 import type { SeriesOptionModule } from '../module/optionsModuleTypes';
 import { BBox } from '../scene/bbox';
+import type { Gradient } from '../scene/gradient/gradient';
 import { Group, TranslatableGroup } from '../scene/group';
 import type { Scene } from '../scene/scene';
 import { groupBy } from '../util/array';
@@ -930,12 +931,12 @@ export abstract class Chart extends Observable {
 
         if (this.mode !== 'integrated') {
             // Validate each series that shares a legend item label uses the same fill colour
-            const seriesMarkerFills: { [key: string]: { [key: string]: string | undefined } } = {};
+            const seriesMarkerFills: { [key: string]: { [key: string]: string | Gradient | undefined } } = {};
             const seriesTypeMap = new Map(this.series.map((s) => [s.id, s.type]));
 
             for (const {
                 seriesId,
-                symbols: [{ marker }],
+                symbol: { marker },
                 label,
             } of legendData.filter((d) => !d.hideInLegend)) {
                 if (marker.fill == null) continue;

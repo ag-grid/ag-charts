@@ -686,7 +686,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 seriesId: id,
                 enabled: true,
                 label: { text: name ?? capitalise(item) },
-                symbols: [{ marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } }],
+                symbol: { marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } },
                 hideInLegend: !showInLegend,
             });
         });

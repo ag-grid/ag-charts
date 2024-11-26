@@ -460,7 +460,7 @@ export class Rect extends Path implements DistantObject {
                 ctx.clip(borderClipPath.getPath2D());
             }
 
-            ctx.strokeStyle = stroke;
+            this.applyStroke(ctx);
             ctx.globalAlpha *= opacity * strokeOpacity * microPixelEffectOpacity;
             ctx.lineWidth = effectiveStrokeWidth;
 

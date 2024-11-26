@@ -692,18 +692,16 @@ export class MapMarkerSeries
                 seriesId,
                 enabled: visible,
                 label: { text: legendItemName ?? title ?? idName ?? idKey ?? seriesId },
-                symbols: [
-                    {
-                        marker: {
-                            shape,
-                            fill,
-                            fillOpacity,
-                            stroke,
-                            strokeWidth,
-                            strokeOpacity,
-                        },
+                symbol: {
+                    marker: {
+                        shape,
+                        fill,
+                        fillOpacity,
+                        stroke,
+                        strokeWidth,
+                        strokeOpacity,
                     },
-                ],
+                },
                 legendItemName,
                 hideInLegend: !showInLegend,
             };
