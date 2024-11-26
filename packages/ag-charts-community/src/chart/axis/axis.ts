@@ -103,7 +103,9 @@ export interface TickDatum {
     tick: any;
     tickId: string;
     translationY: number;
-    size?: number;
+    tickSize?: number;
+    tickStroke?: string;
+    tickWidth?: number;
 }
 
 export interface LabelNodeDatum {
@@ -1117,8 +1119,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { tick, label } = this;
         const sideFlag = label.getSideFlag();
         this.tickLineGroupSelection.each((line, datum) => {
-            line.strokeWidth = tick.width;
-            line.stroke = tick.stroke;
+            line.strokeWidth = datum.tickWidth ?? tick.width;
+            line.stroke = datum.tickStroke ?? tick.stroke;
             line.x1 = sideFlag * (datum.tickSize ?? this.getTickSize());
             line.x2 = 0;
         });

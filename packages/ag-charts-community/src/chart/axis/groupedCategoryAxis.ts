@@ -33,9 +33,15 @@ import { type TreeLayout, treeLayout } from './tree';
 
 type TreeNode = TreeLayout['nodes'][number];
 
+interface SeparatorDatum {
+    tickSize: number;
+    tickStroke?: string;
+    tickWidth?: number;
+}
+
 interface ComputedGroupAxisLayout {
     tickLabelLayout: LabelNodeDatum[];
-    separatorLayout: number[];
+    separatorLayout: SeparatorDatum[];
 }
 
 class DepthLabelProperties extends BaseProperties {
@@ -192,7 +198,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         const tickLabelLayout: LabelNodeDatum[] = [];
         const labelBBoxes: Map<number, BBox> = new Map();
-        const tempText: TransformableText & { padding?: number } = new TransformableText();
+        const tempText: TransformableText = new TransformableText();
 
         // Render ticks and labels.
         const { tickTreeLayout, depthOptions } = this;
@@ -248,7 +254,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         const idGenerator = createIdsGenerator();
         const labelX = sideFlag * optionsMap[0].padding;
-        const separatorSize: Map<number, number> = new Map();
+        const separatorData: Map<number, SeparatorDatum> = new Map();
         const nestedPadding = (d: number) => {
             let v = maxLeafLabelWidth;
             for (let i = 1; i <= d; i++) {
@@ -258,17 +264,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 }
             }
             return v;
-        };
-        const registerSeparator = (k: number, d: number) => {
-            if (separatorSize.has(k)) return;
-            let v = maxLeafLabelWidth;
-            for (let i = 0; i <= d; i++) {
-                v += optionsMap[i].padding;
-                if (i !== 0) {
-                    v += depthLines[i] * optionsMap[i].lineHeight;
-                }
-            }
-            separatorSize.set(k, v);
         };
 
         treeLabels.forEach((datum, index) => {
@@ -305,7 +300,21 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
             // Calculate sizes of label separators for all nodes except the root.
             if (datum.parent) {
-                registerSeparator(isLeaf ? datum.x : datum.x - (datum.leafCount - 1) / 2, depth);
+                const separatorX = isLeaf ? datum.x : datum.x - (datum.leafCount - 1) / 2;
+                if (!separatorData.has(separatorX)) {
+                    let v = maxLeafLabelWidth;
+                    for (let i = 0; i <= depth; i++) {
+                        v += optionsMap[i].padding;
+                        if (i !== 0) {
+                            v += depthLines[i] * optionsMap[i].lineHeight;
+                        }
+                    }
+                    separatorData.set(separatorX, {
+                        tickSize: v,
+                        tickStroke: this.depthOptions[depth]?.tick.stroke,
+                        tickWidth: this.depthOptions[depth]?.tick.enabled ? this.depthOptions[depth]?.tick.width : 0,
+                    });
+                }
             }
 
             if (visible) {
@@ -339,13 +348,13 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.lineNode.datum = { x: 0, y1: range[0], y2: range[1] };
         this.lineNode.setProperties({ stroke, strokeWidth: enabled ? width : 0 });
 
-        const separatorLayout = [...separatorSize.values()];
+        const separatorLayout = [...separatorData.values()];
         separatorLayout.push(separatorLayout[0]);
 
-        const axisBoxes = [this.lineNode.getBBox(), new BBox(0, 0, separatorLayout[0] * sideFlag, 0)];
+        const axisBoxes = [this.lineNode.getBBox(), new BBox(0, 0, separatorLayout[0].tickSize * sideFlag, 0)];
 
         if (title.enabled) {
-            this.updateTitle(false, separatorLayout[0]);
+            this.updateTitle(false, separatorLayout[0].tickSize);
             axisBoxes.push(title.caption.node.getBBox());
         }
 
@@ -377,11 +386,11 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const { tickScale } = this;
         const { separatorLayout } = this.computedLayout;
         const ticksData: TickDatum[] = tickScale.ticks().map((tick, index) => ({
+            ...separatorLayout[index],
             tick,
             tickId: createDatumId(tick, index),
             tickLabel: tick.filter(Boolean).join(' - '),
             translationY: Math.round(tickScale.convert(tick)),
-            tickSize: separatorLayout[index],
         }));
 
         this.gridLineGroupSelection.update(this.gridLength ? ticksData : []);
