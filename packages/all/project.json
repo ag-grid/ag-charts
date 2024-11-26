@@ -130,7 +130,7 @@
       "command": "./tools/nuke.sh"
     },
     "benchmark": {
-      "dependsOn": ["ag-charts-community:benchmark"],
+      "dependsOn": ["^benchmark"],
       "cache": false,
       "command": "node ./tools/benchmark/collate-reports.js"
     },

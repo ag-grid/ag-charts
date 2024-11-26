@@ -208,6 +208,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
     }
 
+    override getSeriesRange(
+        _direction: _ModuleSupport.ChartAxisDirection,
+        _visibleRange: [any, any]
+    ): [number, number] {
+        return [NaN, NaN];
+    }
+
     override createNodeData() {
         const { data, dataModel, processedData } = this;
         const categoryAxis = this.getCategoryAxis();
@@ -508,7 +515,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { id: seriesId, ctx } = this;
+        const { id: seriesId } = this;
         const {
             yKey,
             highlightStyle: { item: itemHighlightStyle },
@@ -557,7 +564,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 itemStyler,
                 seriesId,
                 itemId: datum.itemId,
-                ctx,
                 value: datum.yValue,
                 yKey,
             });

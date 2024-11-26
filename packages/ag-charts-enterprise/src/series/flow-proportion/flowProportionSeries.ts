@@ -497,6 +497,13 @@ export abstract class FlowProportionSeries<
         };
     }
 
+    override getSeriesRange(
+        _direction: _ModuleSupport.ChartAxisDirection,
+        _visibleRange: [any, any]
+    ): [number, number] {
+        return [NaN, NaN];
+    }
+
     private legendItemSymbol(_type: FlowProportionDatumType, nodeIndex: number): _ModuleSupport.LegendSymbolOptions {
         const { fills, strokes } = this.properties;
 

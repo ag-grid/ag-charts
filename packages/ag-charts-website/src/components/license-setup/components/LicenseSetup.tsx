@@ -4,6 +4,7 @@ import Success from '@ag-website-shared/components/alert/Success';
 import Warning from '@ag-website-shared/components/alert/Warning';
 import { LinkIcon } from '@ag-website-shared/components/link-icon/LinkIcon';
 import { Snippet } from '@ag-website-shared/components/snippet/Snippet';
+import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classnames from 'classnames';
 import { useMemo } from 'react';
 import type { FunctionComponent } from 'react';
@@ -157,6 +158,12 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework, pat
                     {dependenciesSnippet && (
                         <Snippet framework={framework} content={dependenciesSnippet} copyToClipboard />
                     )}
+
+                    <Note>
+                        If you are using an older version of AG Charts, before v11.0.0, please see the relevant{' '}
+                        <a href={urlWithBaseUrl('/documentation-archive')}>documentation</a> for help on installing your
+                        license key
+                    </Note>
 
                     <p>Or install using npm:</p>
 

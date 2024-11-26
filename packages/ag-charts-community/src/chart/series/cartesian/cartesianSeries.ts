@@ -1,5 +1,6 @@
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
+import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { LogScale } from '../../../scale/logScale';
 import { BBox } from '../../../scene/bbox';
@@ -1064,13 +1065,14 @@ export abstract class CartesianSeries<
                     domain: [domain[0], domain[1]],
                     range: [range[0], range[1]],
                 };
-            } else if (axis.scale) {
+            } else if (axis.scale instanceof BandScale) {
                 const { domain } = axis.scale;
 
                 result[direction] = {
                     type: 'category',
                     domain,
-                    range: domain.map((d) => axis.scale.convert(d)),
+                    inset: axis.scale.inset,
+                    step: axis.scale.step,
                 };
             }
         }

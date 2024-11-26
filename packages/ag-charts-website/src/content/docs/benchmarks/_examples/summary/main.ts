@@ -38,6 +38,7 @@ const keys: TestName[][] = [
         'sparkline benchmark initial load (pooled)',
         'sparkline benchmark after load updateDelta',
     ],
+    ['zoom-large-dataset benchmark initial load', 'zoom-large-dataset benchmark after load 100x zoom'],
 ];
 
 let row = 0;
@@ -105,6 +106,14 @@ const chartOptions16: AgCartesianChartOptions = {
     container: document.getElementById('myChart16'),
     ...generatePerformanceChart(2, row++),
 };
+const chartOptions17: AgCartesianChartOptions = {
+    container: document.getElementById('myChart17'),
+    ...generatePerformanceChart(0, row),
+};
+const chartOptions18: AgCartesianChartOptions = {
+    container: document.getElementById('myChart18'),
+    ...generatePerformanceChart(1, row++),
+};
 
 AgCharts.create(chartOptions1);
 AgCharts.create(chartOptions2);
@@ -122,6 +131,8 @@ AgCharts.create(chartOptions13);
 AgCharts.create(chartOptions14);
 AgCharts.create(chartOptions15);
 AgCharts.create(chartOptions16);
+AgCharts.create(chartOptions17);
+AgCharts.create(chartOptions18);
 
 function generatePerformanceChart(keyX: number, keyY: number) {
     const yName = (key: TestName) => {

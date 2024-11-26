@@ -297,9 +297,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private splitAnnotationsOptions(annotations: any) {
-        const { axesButtons = null, enabled = null, optionsToolbar = null, ...annotationsThemes } = annotations;
-        if (axesButtons == null && enabled == null && optionsToolbar == null) return [{}, annotationsThemes];
-        return [{ annotations: { axesButtons, enabled, optionsToolbar } }, annotationsThemes];
+        const {
+            axesButtons = null,
+            enabled = null,
+            optionsToolbar = null,
+            toolbar = null,
+            ...annotationsThemes
+        } = annotations;
+
+        if (axesButtons == null && enabled == null && optionsToolbar == null && toolbar == null) {
+            return [{}, annotationsThemes];
+        }
+
+        return [{ annotations: { axesButtons, enabled, optionsToolbar, toolbar } }, annotationsThemes];
     }
 
     private processAxesOptions(options: T, axesThemes: any) {

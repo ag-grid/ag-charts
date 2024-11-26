@@ -43,7 +43,6 @@ export const ZoomModule: _ModuleSupport.Module = {
     optionsKey: 'zoom',
     packageType: 'enterprise',
     chartTypes: ['cartesian', 'topology'],
-    dependencies: ['toolbar'],
     moduleFactory: (ctx) => new Zoom(ctx),
     themeTemplate: {
         zoom: {
@@ -62,6 +61,10 @@ export const ZoomModule: _ModuleSupport.Module = {
             minVisibleItemsY: 2,
             panKey: 'alt',
             scrollingStep: 0.1,
+            autoScaling: {
+                enabled: false,
+                padding: 0.05,
+            },
         },
     },
 };

@@ -19,9 +19,9 @@ describe('Annotations', () => {
         axes: [{ type: 'number' }, { type: 'time' }],
         annotations: {
             enabled: true,
-        },
-        toolbar: {
-            enabled: false,
+            toolbar: {
+                enabled: false,
+            },
         },
     };
 

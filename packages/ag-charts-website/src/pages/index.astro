@@ -6,7 +6,7 @@ import { FrameworkSelector } from '../components/framework-selector/FrameworkSel
 import { getEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
-import { AutomatedIntegratedChartsWrapper } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWrapper';
+import { AutomatedIntegratedChartsWithPackages } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWithPackages';
 import { Faqs } from '../components/homepage/components/faqs/Faqs';
 import ImageCarousel from '../components/homepage/components/hero/ImageCarousel';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
@@ -248,7 +248,7 @@ const mapExampleHeights = 360;
                         > to access all of the Enterprise features in both AG Grid and AG Charts.
                     </h4>
                 </div>
-                <AutomatedIntegratedChartsWrapper client:visible />
+                <AutomatedIntegratedChartsWithPackages client:visible visibilityThreshold={0.8} />
             </div>
         </div>
         <div class={styles.section}>

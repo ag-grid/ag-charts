@@ -1,6 +1,5 @@
 import type { AgBarSeriesItemStylerParams, AgBarSeriesStyle, Styler } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../../module/moduleContext';
 import type { FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
 import { ContinuousScale } from '../../../scale/continuousScale';
@@ -75,7 +74,6 @@ export function getRectConfig<
         highlightStyle: SeriesItemHighlightStyle;
         itemStyler?: Styler<Params & ExtraParams, AgBarSeriesStyle>;
         seriesId: string;
-        ctx: ModuleContext;
     } & ExtraParams
 ): RectConfig {
     const {

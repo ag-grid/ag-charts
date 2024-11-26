@@ -114,10 +114,10 @@ export function setElementBBox(element: HTMLElement | undefined, bbox: Partial<B
 }
 
 export function getElementBBox(element: HTMLElement): BBoxValues {
-    const width = parseFloat(element.style.width) || 0;
-    const height = parseFloat(element.style.height) || 0;
-    const x = parseFloat(element.style.left) || 0;
-    const y = parseFloat(element.style.top) || 0;
+    const width = parseFloat(element.style.width) || element.offsetWidth;
+    const height = parseFloat(element.style.height) || element.offsetHeight;
+    const x = parseFloat(element.style.left) || element.offsetLeft;
+    const y = parseFloat(element.style.top) || element.offsetTop;
     return { x, y, width, height };
 }
 

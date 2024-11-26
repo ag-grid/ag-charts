@@ -203,10 +203,6 @@ export class MapShapeBackgroundSeries
         // No animations
     }
 
-    override getSeriesDomain() {
-        return [NaN, NaN];
-    }
-
     override getLegendData() {
         return [];
     }

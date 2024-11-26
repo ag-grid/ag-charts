@@ -4,6 +4,7 @@ import type { AnnotationManager } from '../chart/annotation/annotationManager';
 import type { AxisManager } from '../chart/axis/axisManager';
 import type { ChartService } from '../chart/chartService';
 import type { DataService } from '../chart/data/dataService';
+import type { SeriesBoundsManager } from '../chart/data/seriesBoundsManager';
 import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
 import type { ContextMenuRegistry } from '../chart/interaction/contextMenuRegistry';
@@ -14,7 +15,6 @@ import type { InteractionManager } from '../chart/interaction/interactionManager
 import type { KeyNavManager } from '../chart/interaction/keyNavManager';
 import type { RegionManager } from '../chart/interaction/regionManager';
 import type { SyncManager } from '../chart/interaction/syncManager';
-import type { ToolbarManager } from '../chart/interaction/toolbarManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
 import type { ZoomManager } from '../chart/interaction/zoomManager';
 import type { LayoutManager } from '../chart/layout/layoutManager';
@@ -55,11 +55,11 @@ export interface ModuleContext {
     readonly localeManager: LocaleManager;
     readonly proxyInteractionService: ProxyInteractionService;
     readonly regionManager: RegionManager;
+    readonly seriesBoundsManager: SeriesBoundsManager;
     readonly seriesStateManager: SeriesStateManager;
     readonly seriesLabelLayoutManager: SeriesLabelLayoutManager;
     readonly stateManager: StateManager;
     readonly syncManager: SyncManager;
-    readonly toolbarManager: ToolbarManager;
     readonly tooltipManager: TooltipManager;
     readonly zoomManager: ZoomManager;
 }

@@ -1,12 +1,10 @@
 .ag-charts-menu {
+    --item-padding: 6px 12px;
+    --icon-color: var(--ag-charts-popover-foreground-color);
     display: grid;
     grid: auto-flow auto / 1fr;
     column-gap: 12px;
-    min-width: 200px;
     font-size: var(--ag-charts-popover-font-size-small);
-
-    --item-padding: 6px 12px;
-    --icon-color: var(--ag-charts-popover-foreground-color);
 }
 
 .ag-charts-menu:has(.ag-charts-menu__icon, .ag-charts-menu__row--stroke-width-visible) {

@@ -523,10 +523,6 @@ export class MapShapeSeries
         // No animations
     }
 
-    override getSeriesDomain() {
-        return [NaN, NaN];
-    }
-
     override pickNodeClosestDatum({ x, y }: _ModuleSupport.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
         let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;

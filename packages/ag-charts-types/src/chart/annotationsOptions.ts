@@ -15,7 +15,7 @@ import type { PixelSize } from './types';
 // * Theme *
 // *********/
 
-export interface AgAnnotationsThemeableOptions {
+export interface AgAnnotationsThemeableOptions extends AgAnnotationsOptions {
     // Lines
     line?: AgLineAnnotationStyles;
     'horizontal-line'?: AgCrossLineAnnotationStyles;
@@ -41,11 +41,6 @@ export interface AgAnnotationsThemeableOptions {
     'price-range'?: AgMeasurerAnnotationStyles;
     'date-price-range'?: AgMeasurerAnnotationStyles;
     'quick-date-price-range'?: AgQuickMeasurerAnnotationStyles;
-
-    // Other
-    enabled?: boolean;
-    axesButtons?: AgAnnotationAxesButtons;
-    optionsToolbar?: AgAnnotationOptionsToolbar;
 }
 
 export interface AgAnnotationAxesButtons extends Toggleable {
@@ -114,6 +109,8 @@ export interface AgQuickMeasurerAnnotationDirectionStyles extends FillOptions, S
 export interface AgAnnotationsOptions extends Toggleable {
     /** The options for the axes buttons */
     axesButtons?: AgAnnotationAxesButtons;
+    /** TODO */
+    toolbar?: AgAnnotationsToolbar;
     /** TODO */
     optionsToolbar?: AgAnnotationOptionsToolbar;
 }
@@ -453,22 +450,51 @@ interface Extendable {
 
 export type AgAnnotationValue = string | number | AgStateSerializableDate;
 
+// ***********
+// * Toolbar *
+// ***********/
+
+export interface AgAnnotationsToolbar extends Toggleable {
+    buttons?: Array<AgAnnotationsToolbarButton>;
+}
+
+export interface AgAnnotationsToolbarButton extends ToolbarButton {
+    value: AgAnnotationsToolbarButtonValue;
+}
+
+export type AgAnnotationsToolbarButtonValue =
+    | 'line-menu'
+    | 'text-menu'
+    | 'shape-menu'
+    | 'measurer-menu'
+    | 'line'
+    | 'horizontal-line'
+    | 'vertical-line'
+    | 'parallel-channel'
+    | 'disjoint-channel'
+    | 'text'
+    | 'comment'
+    | 'callout'
+    | 'note'
+    | 'clear';
+
 // *******************
 // * Options Toolbar *
 // *******************/
 
 export interface AgAnnotationOptionsToolbar extends Toggleable {
-    buttons?: (AgAnnotationOptionsToolbarButton | AgAnnotationOptionsToolbarSwitch)[];
+    buttons?: Array<AgAnnotationOptionsToolbarButton | AgAnnotationOptionsToolbarSwitch>;
 }
 
 export interface AgAnnotationOptionsToolbarButton extends ToolbarButton {
-    value: AgToolbarAnnotationOptionsButtonValue;
-}
-export interface AgAnnotationOptionsToolbarSwitch extends ToolbarSwitch {
-    value: AgToolbarAnnotationOptionsSwitchValue;
+    value: AgAnnotationOptionsToolbarButtonValue;
 }
 
-export type AgToolbarAnnotationOptionsButtonValue =
+export interface AgAnnotationOptionsToolbarSwitch extends ToolbarSwitch {
+    value: AgAnnotationOptionsToolbarSwitchValue;
+}
+
+export type AgAnnotationOptionsToolbarButtonValue =
     | 'line-stroke-width'
     | 'line-style-type'
     | 'line-color'
@@ -478,4 +504,4 @@ export type AgToolbarAnnotationOptionsButtonValue =
     | 'delete'
     | 'settings';
 
-export type AgToolbarAnnotationOptionsSwitchValue = 'lock';
+export type AgAnnotationOptionsToolbarSwitchValue = 'lock';

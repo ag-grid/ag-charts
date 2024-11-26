@@ -94,7 +94,6 @@ const SPARKLINE_THEME: AgChartTheme = {
         common: {
             animation: { enabled: false },
             contextMenu: { enabled: false },
-            toolbar: { enabled: false },
             keyboard: { enabled: false },
             background: { visible: false },
             padding: {

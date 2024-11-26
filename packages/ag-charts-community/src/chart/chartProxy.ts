@@ -15,7 +15,6 @@ import { ActionOnSet } from '../util/proxy';
 import type { DeepPartial } from '../util/types';
 import type { Chart } from './chart';
 import { ChartUpdateType } from './chartUpdateType';
-import { isAgCartesianChartOptions } from './mapping/types';
 
 export interface AgChartProxy extends AgChartInstance {
     chart: Chart;
@@ -182,10 +181,6 @@ export class AgChartInstanceProxy implements AgChartProxy {
         if (isEnterprise) {
             // Disable enterprise features that may interfere with image generation.
             processedOverrides.animation = { enabled: false };
-
-            if (isAgCartesianChartOptions(userOptions)) {
-                processedOverrides.toolbar = { enabled: false };
-            }
 
             // Add watermark if no license
             if (this.licenseManager?.isDisplayWatermark()) {

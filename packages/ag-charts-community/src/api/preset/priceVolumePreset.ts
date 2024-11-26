@@ -7,6 +7,7 @@ import type {
     AgCartesianChartOptions,
     AgChartTheme,
     AgChartThemeName,
+    AgChartToolbarOptions,
     AgLineSeriesOptions,
     AgNavigatorOptions,
     AgNumberAxisOptions,
@@ -14,7 +15,7 @@ import type {
     AgPriceVolumePreset,
     AgRangeAreaSeriesOptions,
     AgRangeBarSeriesOptions,
-    AgToolbarOptions,
+    AgRangesOptions,
     AgZoomOptions,
 } from 'ag-charts-types';
 
@@ -94,6 +95,9 @@ export function priceVolume(
     const annotationOpts = {
         annotations: {
             enabled: toolbar,
+            toolbar: {
+                enabled: toolbar,
+            },
             optionsToolbar: {
                 enabled: toolbar,
             },
@@ -121,24 +125,21 @@ export function priceVolume(
     const zoomOpts = {
         zoom: {
             enabled: zoom,
+            autoScaling: {
+                enabled: true,
+            },
             // @ts-expect-error undocumented option
             enableIndependentAxes: true,
         } satisfies AgZoomOptions,
     };
 
     const toolbarOpts = {
-        chartToolbar: { enabled: true },
+        chartToolbar: {
+            enabled: toolbar,
+        } satisfies AgChartToolbarOptions,
         ranges: {
             enabled: rangeButtons,
-        },
-        toolbar: {
-            seriesType: {
-                enabled: toolbar,
-            },
-            annotations: {
-                enabled: toolbar,
-            },
-        } satisfies AgToolbarOptions,
+        } satisfies AgRangesOptions,
     };
 
     const volumeAxis = volume

@@ -16,7 +16,6 @@ import { LineSeriesModule } from '../series/cartesian/lineSeriesModule';
 import { ScatterSeriesModule } from '../series/cartesian/scatterSeriesModule';
 import { DonutSeriesModule } from '../series/polar/donutSeriesModule';
 import { PieSeriesModule } from '../series/polar/pieSeriesModule';
-import { ToolbarModule } from '../toolbar/toolbarModule';
 import { axisRegistry } from './axisRegistry';
 
 export function registerInbuiltModules() {
@@ -25,7 +24,6 @@ export function registerInbuiltModules() {
         CommunityLegendModule,
         LocaleModule,
         NavigatorModule,
-        ToolbarModule,
         AreaSeriesModule,
         BarSeriesModule,
         BubbleSeriesModule,

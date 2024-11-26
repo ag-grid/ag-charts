@@ -51,7 +51,7 @@ export abstract class RovingTabContainerWidget extends Widget<HTMLDivElement, Ro
 
     private readonly onChildKeyDown = (child: RovingChildWidgets, event: KeyboardWidgetEvent): void => {
         const rovingOrientation = this.orientation;
-        const [primaryKeys, seconardKeys]: [RovingKeys, RovingKeys | undefined] =
+        const [primaryKeys, secondaryKeys]: [RovingKeys, RovingKeys | undefined] =
             rovingOrientation === 'both'
                 ? [PREV_NEXT_KEYS['horizontal'], PREV_NEXT_KEYS['vertical']]
                 : [PREV_NEXT_KEYS[rovingOrientation], undefined];
@@ -59,9 +59,9 @@ export abstract class RovingTabContainerWidget extends Widget<HTMLDivElement, Ro
         let targetIndex = -1;
         if (hasNoModifiers(event.sourceEvent)) {
             const key = event.sourceEvent.key;
-            if (key === primaryKeys.nextKey || key === seconardKeys?.nextKey) {
+            if (key === primaryKeys.nextKey || key === secondaryKeys?.nextKey) {
                 targetIndex = child.index + 1;
-            } else if (key === primaryKeys.prevKey || key === seconardKeys?.prevKey) {
+            } else if (key === primaryKeys.prevKey || key === secondaryKeys?.prevKey) {
                 targetIndex = child.index - 1;
             }
         }
