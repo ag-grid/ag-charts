@@ -151,7 +151,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const { tickTreeLayout, depthOptions } = this;
         const maxDepth = tickTreeLayout?.depth ?? 0;
         const treeLabels = tickTreeLayout?.nodes ?? [];
-        const isCaptionEnabled = title?.enabled && scale.domain.length > 0;
         // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
         // flip the labels to avoid upside-down text, when the axis is rotated
         // such that it is in the right hemisphere, i.e. the angle of rotation
@@ -173,16 +172,12 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const tempText: TransformableText & { padding?: number } = new TransformableText();
 
         const setLabelProps = (datum: TreeNode, index: number) => {
-            if (index === 0) {
-                return isCaptionEnabled;
-            }
-
             if (index % keepEvery !== 0 || !inRange(datum.screenX, range)) {
                 return false;
             }
 
             const depth = maxDepth - datum.depth;
-            const text = this.formatTick(datum.label, index);
+            const text = this.formatTick(datum.label, index - 1);
             const labelStyles = this.getLabelStyles({ value: text, depth }, depthOptions[depth]?.label);
 
             tempText.setProperties({
@@ -190,50 +185,45 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 text,
                 textAlign: 'center',
                 textBaseline: parallelFlipFlag === -1 ? 'bottom' : 'hanging',
-                translationX: (title.fontSize * 0.25 - datum.screenY) * sideFlag,
+                translationX: datum.screenY * -sideFlag,
                 translationY: datum.screenX,
             });
 
             return true;
         };
 
-        const leafPadding = depthOptions[0]?.label.padding ?? 0;
+        const leafPadding = depthOptions[0]?.label.padding ?? label.padding;
         let maxLeafLabelWidth = 0;
 
         treeLabels.forEach((datum, index) => {
             const isVisible = setLabelProps(datum, index);
-
             if (!isVisible || !tempText.getBBox()) return;
-
             const bbox = tempText.getBBox().clone();
-            const isLeaf = !datum.children.length;
 
-            if (isLeaf) {
+            if (!datum.leafCount) {
                 if (maxLeafLabelWidth < bbox.width) {
                     maxLeafLabelWidth = bbox.width;
                 }
-            } else {
-                bbox.grow(tempText.padding ?? 0, 'vertical');
             }
 
             labelBBoxes.set(index, bbox);
         });
 
         const idGenerator = createIdsGenerator();
-        const titleY = isCaptionEnabled ? sideFlag * -(title.spacing ?? 0) : 0;
 
         const separatorSize: Map<number, number> = new Map();
         const registerSeparator = (k: number, v: number) => separatorSize.has(k) || separatorSize.set(k, v);
 
         treeLabels.forEach((datum, index) => {
+            if (index === 0) return;
+
             const isLeaf = !datum.children.length;
             let visible = setLabelProps(datum, index);
 
-            // const labelPadding = tempText.padding ?? 0;
             const labelX = sideFlag * leafPadding;
 
             tempText.x = labelX;
-            tempText.y = index === 0 ? titleY : 0;
+            tempText.y = 0;
             tempText.rotationCenterX = labelX;
 
             if (isLeaf) {
@@ -248,14 +238,15 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 const availableRange = datum.leafCount * step;
                 const bbox = labelBBoxes.get(index);
 
-                tempText.translationX +=
-                    sideFlag * (maxLeafLabelWidth + leafPadding * 2) + (label.mirrored ? 0 : lineHeight);
-
                 if (bbox && bbox.width > availableRange) {
                     visible = false;
                     labelBBoxes.delete(index);
                 } else {
+                    const labelPadding = tempText.padding ?? 0;
+                    // bbox?.grow(tempText.padding ?? 0, 'vertical');
                     tempText.rotation = isHorizontal ? defaultRotation : -Math.PI / 2;
+                    tempText.translationX +=
+                        sideFlag * (maxLeafLabelWidth + leafPadding + labelPadding) + (label.mirrored ? 0 : lineHeight);
                 }
             }
 
@@ -268,28 +259,26 @@ export class GroupedCategoryAxis extends CategoryAxis {
             }
 
             if (visible) {
-                if (index !== 0) {
-                    const { text = '' } = tempText;
-                    tickLabelLayout.push({
-                        text,
-                        visible: true,
-                        range: this.scale.range,
-                        tickId: idGenerator(text),
-                        fill: tempText.fill as string,
-                        fontFamily: tempText.fontFamily,
-                        fontSize: tempText.fontSize,
-                        fontStyle: tempText.fontStyle,
-                        fontWeight: tempText.fontWeight,
-                        rotation: tempText.rotation,
-                        rotationCenterX: tempText.rotationCenterX,
-                        textAlign: tempText.textAlign,
-                        textBaseline: tempText.textBaseline,
-                        translationX: tempText.translationX,
-                        translationY: tempText.translationY,
-                        x: tempText.x,
-                        y: tempText.y,
-                    });
-                }
+                const { text = '' } = tempText;
+                tickLabelLayout.push({
+                    text,
+                    visible: true,
+                    range: this.scale.range,
+                    tickId: idGenerator(text),
+                    fill: tempText.fill as string,
+                    fontFamily: tempText.fontFamily,
+                    fontSize: tempText.fontSize,
+                    fontStyle: tempText.fontStyle,
+                    fontWeight: tempText.fontWeight,
+                    rotation: tempText.rotation,
+                    rotationCenterX: tempText.rotationCenterX,
+                    textAlign: tempText.textAlign,
+                    textBaseline: tempText.textBaseline,
+                    translationX: tempText.translationX,
+                    translationY: tempText.translationY,
+                    x: tempText.x,
+                    y: tempText.y,
+                });
                 labelBBoxes.set(index, Transformable.toCanvas(tempText));
             } else {
                 labelBBoxes.delete(index);
@@ -305,9 +294,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         const axisBoxes = [this.lineNode.getBBox(), new BBox(0, 0, separatorLayout[0] * sideFlag, 0)];
 
-        if (isCaptionEnabled) {
+        if (title.enabled) {
             this.updateTitle(false, separatorLayout[0]);
-            axisBoxes.push(this.title.caption.node.getBBox());
+            axisBoxes.push(title.caption.node.getBBox());
         }
 
         const mergedBBox = BBox.merge(iterate(labelBBoxes.values(), axisBoxes));

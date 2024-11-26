@@ -1558,7 +1558,7 @@ describe('ChartOptions', () => {
                 expect(preparedOptions).toHaveProperty('data', options.data);
                 expect(preparedOptions).toMatchSnapshot({
                     container: expect.any(HTMLElement),
-                    data: expect.any(options.data instanceof Array ? Array : Object),
+                    data: expect.any(Array.isArray(options.data) ? Array : Object),
                 });
             } else {
                 const optionsCopy = { ...preparedOptions };
@@ -1638,6 +1638,7 @@ describe('ChartOptions', () => {
             expect(preparedOptions.axes?.[0]?.label?.avoidCollisions).toBe(
                 theme.config.line.axes.time.label.avoidCollisions
             );
+            // @ts-expect-error
             expect(preparedOptions.axes?.[0]?.label?.autoRotate).toBe(theme.config.line.axes.time.label.autoRotate);
             expect(preparedOptions.axes?.[0]?.label?.minSpacing).toBe(theme.config.line.axes.time.label.minSpacing);
 
