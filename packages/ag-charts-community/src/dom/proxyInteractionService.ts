@@ -14,8 +14,6 @@ import { ToolbarWidget } from '../widget/toolbarWidget';
 import type { Widget } from '../widget/widget';
 import type { DOMManager } from './domManager';
 
-type IWidget = { getElement(): HTMLElement };
-
 type ParentProperties<T = NativeWidget<HTMLDivElement>> =
     | { readonly parent: T }
     | { readonly domManagerId: string; readonly where: 'beforebegin' | 'afterend' };
@@ -28,6 +26,7 @@ type ElemParams<T extends ProxyElementType> = {
 
 type InteractParams<T extends ProxyElementType> = ElemParams<T> & {
     readonly tabIndex?: number;
+    readonly domIndex?: number;
     readonly onclick?: (ev: MouseEvent) => void;
     readonly ondblclick?: (ev: MouseEvent) => void;
     readonly onmouseenter?: (ev: MouseEvent) => void;
@@ -228,7 +227,7 @@ export class ProxyInteractionService {
         return meta.result;
     }
 
-    private initElement<T extends ProxyElementType>(params: ElemParams<T>, widget: IWidget) {
+    private initElement<T extends ProxyElementType>(params: ElemParams<T>, widget: Widget) {
         const element = widget.getElement();
         setAttribute(element, 'id', params.id);
         setElementStyle(element, 'cursor', params.cursor);
@@ -236,12 +235,17 @@ export class ProxyInteractionService {
         return element;
     }
 
-    private initInteract<T extends ProxyElementType>(params: InteractParams<T>, widget: IWidget) {
-        const { onclick, ondblclick, onmouseenter, onmouseleave, oncontextmenu, onfocus, onblur, tabIndex } = params;
+    private initInteract<T extends ProxyElementType>(params: InteractParams<T>, widget: Widget) {
+        const { onclick, ondblclick, onmouseenter, onmouseleave, oncontextmenu, onfocus, onblur, tabIndex, domIndex } =
+            params;
         const element = this.initElement(params, widget);
 
         if (tabIndex !== undefined) {
             element.tabIndex = tabIndex;
+        }
+
+        if (domIndex !== undefined) {
+            widget.domIndex = domIndex;
         }
 
         if (onclick) {
