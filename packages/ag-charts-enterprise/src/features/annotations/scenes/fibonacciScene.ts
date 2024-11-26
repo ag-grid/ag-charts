@@ -4,10 +4,10 @@ import type { AnnotationContext } from '../annotationTypes';
 import type { FibonacciProperties } from '../properties/fibonacciProperties';
 import { FIBONACCI_COLORS, FibonacciNodeTag, createFibonacciRangesData } from '../utils/fibonacci';
 import type { FibonacciRangeDatum } from '../utils/fibonacci';
+import { updateLineText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
 import { CollidableLine } from './collidableLineScene';
 import { CollidableText } from './collidableTextScene';
-import { LineWithTextScene } from './lineWithTextScene';
 import { StartEndScene } from './startEndScene';
 
 const { Vec2, Vec4 } = _ModuleSupport;
@@ -178,7 +178,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
             const { text, ...coords } = datum.label;
             const labelProperties = trendLineProperties.label;
 
-            LineWithTextScene.updateLineText(line, labelProperties, coords, textNode);
+            updateLineText(line, labelProperties, coords, textNode);
 
             textNode.setProperties({
                 text,
@@ -192,8 +192,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
             const xWithinBounds = x >= xAxis.bounds.x && x <= xAxis.bounds.x + xAxis.bounds.width;
 
-            if (!xWithinBounds)
-                LineWithTextScene.updateLineText(line, labelProperties, coords, textNode, text, strokeWidth);
+            if (!xWithinBounds) updateLineText(line, labelProperties, coords, textNode, text, strokeWidth);
 
             textNode.setProperties({
                 stroke: stroke ?? color,
@@ -207,7 +206,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         const { text: textProperties, strokeWidth } = datum;
         this.text = this.updateNode(CollidableText, this.text, !!textProperties.label);
 
-        LineWithTextScene.updateLineText(oneLine, textProperties, coords, this.text, textProperties.label, strokeWidth);
+        updateLineText(oneLine, textProperties, coords, this.text, textProperties.label, strokeWidth);
     }
 
     override updateAnchor(

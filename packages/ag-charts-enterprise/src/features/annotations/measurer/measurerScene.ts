@@ -5,9 +5,9 @@ import { AnnotationScene } from '../scenes/annotationScene';
 import { ArrowCapScene } from '../scenes/capScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
-import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { StartEndScene } from '../scenes/startEndScene';
 import { WithBackgroundScene } from '../scenes/withBackgroundScene';
+import { updateLineText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
 import {
     DateRangeProperties,
@@ -192,14 +192,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
         this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
 
-        const clip = LineWithTextScene.updateLineText(
-            line,
-            datum.text,
-            textCoords,
-            this.text,
-            this.text?.text,
-            datum.strokeWidth
-        );
+        const clip = updateLineText(line, datum.text, textCoords, this.text, this.text?.text, datum.strokeWidth);
 
         let verticalClipMask;
 

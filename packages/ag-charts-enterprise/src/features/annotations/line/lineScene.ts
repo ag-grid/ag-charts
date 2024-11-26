@@ -6,8 +6,8 @@ import { ArrowCapScene, type CapScene } from '../scenes/capScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle } from '../scenes/handle';
-import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { StartEndScene } from '../scenes/startEndScene';
+import { updateLineText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
 import type { LineTypeProperties } from './lineProperties';
 
@@ -69,7 +69,7 @@ export class LineScene extends StartEndScene<LineTypeProperties> {
 
     private updateText(datum: LineTypeProperties, coords: _ModuleSupport.Vec4) {
         this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
-        LineWithTextScene.updateLineText(this.line, datum.text, coords, this.text, datum.text.label, datum.strokeWidth);
+        updateLineText(this.line, datum.text, coords, this.text, datum.text.label, datum.strokeWidth);
     }
 
     private updateCaps(datum: LineTypeProperties, coords: _ModuleSupport.Vec4) {

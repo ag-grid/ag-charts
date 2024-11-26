@@ -6,7 +6,7 @@ import { AxisLabelScene } from '../scenes/axisLabelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
 import { CollidableText } from '../scenes/collidableTextScene';
 import { UnivariantHandle } from '../scenes/handle';
-import { LineWithTextScene } from '../scenes/lineWithTextScene';
+import { updateLineText } from '../utils/lineWithText';
 import { convert, invert, invertCoords } from '../utils/values';
 import { type CrossLineProperties, HorizontalLineProperties } from './crossLineProperties';
 
@@ -106,7 +106,7 @@ export class CrossLineScene extends AnnotationScene {
     private updateText(datum: CrossLineProperties, coords: _ModuleSupport.Vec4) {
         this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
 
-        LineWithTextScene.updateLineText(this.line, datum.text, coords, this.text, datum.text.label, datum.strokeWidth);
+        updateLineText(this.line, datum.text, coords, this.text, datum.text.label, datum.strokeWidth);
     }
 
     private createAxisLabel(context: AnnotationAxisContext) {
