@@ -26,12 +26,7 @@ export abstract class LinearScene<
         end: _ModuleSupport.Vec2;
     };
 
-    protected extendLine(
-        { x1, y1, x2, y2 }: _ModuleSupport.Vec4,
-        datum: Datum,
-        context: AnnotationContext,
-        direction?: 'vertical' | 'horizontal'
-    ) {
+    protected extendLine({ x1, y1, x2, y2 }: _ModuleSupport.Vec4, datum: Datum, context: AnnotationContext) {
         // Clone the points to prevent mutating the original
         const linePoints = { x1, y1, x2, y2 };
 
@@ -45,24 +40,21 @@ export abstract class LinearScene<
         const isFlippedY = linePoints.y1 >= linePoints.y2;
         const isVertical = linePoints.x2 === linePoints.x1;
 
-        const extendY = !direction || direction === 'vertical';
-        const extendX = !direction || direction === 'horizontal';
-
         if (datum.extendEnd) {
-            if (isVertical && extendY) {
+            if (isVertical) {
                 linePoints.y2 = isFlippedY ? right.y : left.y;
             } else {
-                if (extendX) linePoints.x2 = isFlippedX ? left.x : right.x;
-                if (extendY) linePoints.y2 = isFlippedX ? left.y : right.y;
+                linePoints.x2 = isFlippedX ? left.x : right.x;
+                linePoints.y2 = isFlippedX ? left.y : right.y;
             }
         }
 
         if (datum.extendStart) {
-            if (isVertical && extendY) {
+            if (isVertical) {
                 linePoints.y1 = isFlippedY ? left.y : right.y;
             } else {
-                if (extendX) linePoints.x1 = isFlippedX ? right.x : left.x;
-                if (extendY) linePoints.y1 = isFlippedX ? right.y : left.y;
+                linePoints.x1 = isFlippedX ? right.x : left.x;
+                linePoints.y1 = isFlippedX ? right.y : left.y;
             }
         }
 

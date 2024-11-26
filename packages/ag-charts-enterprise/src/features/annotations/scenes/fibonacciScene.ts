@@ -56,13 +56,35 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         this.updateHandles(datum, coords);
         this.updateAnchor(datum, coords, context);
 
-        const horizontalLinePoints = this.extendLine(coords, datum, context, 'horizontal');
-        this.updateRanges(datum, horizontalLinePoints, context);
-
         const { reverse } = datum;
-        const y = reverse ? horizontalLinePoints.y2 : horizontalLinePoints.y1;
-        const oneLinePoints = { ...horizontalLinePoints, y1: y, y2: y };
+
+        const extendedCoords = this.extendLine(coords, datum, context);
+        this.updateRanges(datum, extendedCoords, context);
+
+        const y = reverse ? coords.y2 : coords.y1;
+        const oneLinePoints = { ...extendedCoords, y1: y, y2: y };
         this.updateText(datum, oneLinePoints);
+    }
+
+    protected override extendLine({ x1, y1, x2, y2 }: _ModuleSupport.Vec4, datum: Datum, context: AnnotationContext) {
+        // Clone the points to prevent mutating the original
+        const linePoints = { x1, y1, x2, y2 };
+
+        if (!datum.extendStart && !datum.extendEnd) {
+            return linePoints;
+        }
+
+        const { x, width } = context.xAxis.bounds;
+
+        if (datum.extendEnd) {
+            linePoints.x2 = x + width;
+        }
+
+        if (datum.extendStart) {
+            linePoints.x1 = x;
+        }
+
+        return linePoints;
     }
 
     private updateTrendLine(datum: Datum, coords: _ModuleSupport.Vec4) {
