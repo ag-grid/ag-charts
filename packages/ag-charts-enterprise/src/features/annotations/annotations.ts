@@ -129,12 +129,10 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             resetToIdle: () => {
                 ctx.cursorManager.updateCursor('annotations');
                 ctx.interactionManager.popState(InteractionState.Annotations);
-                this.optionsToolbar.hide();
                 ctx.tooltipManager.unsuppressTooltip('annotations');
                 this.hideOverlays();
+                this.optionsToolbar.hide();
                 this.deleteEphemeralAnnotations();
-                this.toolbar.resetButtonStates();
-                this.optionsToolbar.refreshButtons();
                 this.update();
             },
 
@@ -197,10 +195,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             select: (index?: number, previous?: number) => {
                 const {
                     annotations,
-                    ctx: { tooltipManager },
+                    optionsToolbar,
+                    toolbar,
+                    ctx: { interactionManager, tooltipManager },
                 } = this;
 
                 this.hideOverlays();
+                toolbar.clearActiveButton();
+                toolbar.resetButtonIcons();
 
                 const selectedNode = index != null ? annotations.at(index) : null;
                 const previousNode = previous != null ? annotations.at(previous) : null;
@@ -214,27 +216,24 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 previousNode?.toggleActive(false);
 
                 // Hide the annotation options so it has time to update before being shown again
-                this.optionsToolbar.hide();
+                optionsToolbar.hide();
 
                 if (selectedNode) {
-                    this.ctx.interactionManager.pushState(InteractionState.AnnotationsSelected);
+                    interactionManager.pushState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
                     tooltipManager.suppressTooltip('annotations');
-                    this.optionsToolbar.refreshButtons();
+                    optionsToolbar.updateButtons(this.annotationData.at(index!)!);
                     this.postUpdateFns.push(() => {
                         // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
                         // element has a width and height that it can use in the anchor calculations.
-                        this.optionsToolbar.show();
-                        this.optionsToolbar.setAnchorScene(selectedNode);
+                        optionsToolbar.show();
+                        optionsToolbar.setAnchorScene(selectedNode);
                     });
                 } else {
-                    this.ctx.interactionManager.popState(InteractionState.AnnotationsSelected);
-                    this.ctx.interactionManager.popState(InteractionState.Annotations);
+                    interactionManager.popState(InteractionState.AnnotationsSelected);
+                    interactionManager.popState(InteractionState.Annotations);
                     tooltipManager.unsuppressTooltip('annotations');
                 }
-
-                // Reset the icons on the annotation toolbars
-                this.toolbar.resetButtonIcons();
 
                 this.deleteEphemeralAnnotations();
                 this.update();
@@ -357,7 +356,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 const node = this.annotations.at(active);
                 if (!node || isEphemeralType(this.annotationData.at(active))) return;
 
-                this.optionsToolbar.refreshButtons();
+                this.optionsToolbar.updateButtons(this.annotationData.at(active)!);
                 this.optionsToolbar.show();
                 this.optionsToolbar.setAnchorScene(node);
             },
@@ -372,7 +371,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     (colorType: AnnotationOptionsColorPickerType) =>
                     (colorOpacity: string, color: string, opacity: number) => {
                         this.setColorAndDefault(datum.type, colorType, colorOpacity, color, opacity);
-                        this.optionsToolbar.updateColorPickerFill(colorType, color, opacity);
+                        this.optionsToolbar.updateColorPickerColor(colorType, color, opacity);
                     };
                 const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => () => {
                     this.recordActionAfterNextUpdate(
@@ -460,7 +459,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             // Toolbar
             toolbar.addListener('cancel-create-annotation', () => {
                 this.cancel();
-                this.toolbar.resetButtonStates();
                 this.reset();
                 this.update();
             }),
@@ -582,7 +580,6 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
 
         this.injectDatumDependencies(datum);
-        this.toolbar.resetButtonStates();
 
         this.update();
     }

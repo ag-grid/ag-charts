@@ -19,6 +19,10 @@ interface EventMap {
     'pressed-unrelated': void;
 }
 
+interface AnnotationsToolbarButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
+    value: AnnotationsToolbarButtonValue;
+}
+
 type AnnotationsToolbarButtonValue = 'line-menu' | 'text-menu' | 'shape-menu' | 'measurer-menu' | 'clear';
 
 class AnnotationsToolbarButtonProperties extends ToolbarButtonProperties {
@@ -35,9 +39,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
 
     private readonly events = new _ModuleSupport.Listeners<keyof EventMap, any>();
 
-    private readonly toolbar = new Toolbar<
-        _ModuleSupport.ToolbarButtonOptions & { value: AnnotationsToolbarButtonValue }
-    >(this.ctx, this.onToolbarButtonPress.bind(this));
+    private readonly toolbar = new Toolbar<AnnotationsToolbarButtonOptions>(this.ctx, 'vertical');
     private readonly annotationMenu = new Menu(this.ctx, 'annotations');
 
     private readonly destroyFns: (() => void)[] = [];
@@ -46,10 +48,12 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         super();
 
         this.toolbar.addClass('ag-charts-annotations__toolbar');
-        this.toolbar.orientation = 'vertical';
         ctx.domManager.addChild('canvas-overlay', 'annotations-toolbar', this.toolbar.getElement());
 
-        this.destroyFns.push(ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)));
+        this.destroyFns.push(
+            this.toolbar.addToolbarListener('button-pressed', this.onToolbarButtonPress.bind(this)),
+            ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this))
+        );
     }
 
     public destroy() {
@@ -75,26 +79,25 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         for (const [index, button] of this.buttons.entries()) {
             switch (button.value) {
                 case 'line-menu':
-                    this.toolbar.updateButtonByIndex(index, { icon: 'trend-line-drawing', value: 'line-menu' });
+                    this.updateButtonByIndex(index, { icon: 'trend-line-drawing', value: 'line-menu' });
                     break;
 
                 case 'text-menu':
-                    this.toolbar.updateButtonByIndex(index, { icon: 'text-annotation', value: 'text-menu' });
+                    this.updateButtonByIndex(index, { icon: 'text-annotation', value: 'text-menu' });
                     break;
 
                 case 'shape-menu':
-                    this.toolbar.updateButtonByIndex(index, { icon: 'arrow-drawing', value: 'shape-menu' });
+                    this.updateButtonByIndex(index, { icon: 'arrow-drawing', value: 'shape-menu' });
                     break;
             }
         }
     }
 
     public hideOverlays() {
-        this.toolbar.clearActiveButton();
         this.annotationMenu.hide();
     }
 
-    public resetButtonStates() {
+    public clearActiveButton() {
         this.toolbar.clearActiveButton();
     }
 
@@ -119,11 +122,11 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         // ChartToolbar, which has already shrunk the layout box.
     }
 
-    private onToolbarButtonPress(
-        event: _ModuleSupport.MouseWidgetEvent<'click'>,
-        button: { index: number; value: AnnotationsToolbarButtonValue },
-        buttonBounds: _ModuleSupport.BBoxValues
-    ) {
+    private onToolbarButtonPress({
+        event,
+        button,
+        buttonBounds,
+    }: _ModuleSupport.ToolbarEventMap<AnnotationsToolbarButtonOptions>['button-pressed']) {
         switch (button.value) {
             case 'clear':
                 this.dispatch('pressed-clear');
@@ -197,12 +200,28 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         item: _ModuleSupport.MenuItem<AnnotationType>
     ) {
         const index = this.buttons.findIndex((button) => button.value === menu);
-        const button = this.buttons.at(index)!;
-
-        this.toolbar.updateButtonByIndex(index, { ...button, icon: item.icon });
-
+        this.updateButtonByIndex(index, { icon: item.icon });
         this.dispatch('pressed-create-annotation', { annotation: item.value });
         this.annotationMenu.hide();
+    }
+
+    private updateButtonByIndex(index: number, change: Partial<AnnotationsToolbarButtonOptions>) {
+        const button = this.buttons.at(index);
+        if (!button) return;
+
+        button.ariaLabel = change.ariaLabel ?? button.ariaLabel;
+        button.icon = change.icon ?? button.icon;
+        button.label = change.label ?? button.label;
+        button.tooltip = change.tooltip ?? button.tooltip;
+        button.value = change.value ?? button.value;
+
+        this.toolbar.updateButtonByIndex(index, {
+            ariaLabel: button.ariaLabel,
+            icon: button.icon,
+            label: button.label,
+            tooltip: button.tooltip,
+            value: button.value,
+        });
     }
 
     // TODO: handle esc key

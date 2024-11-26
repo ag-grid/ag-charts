@@ -5,16 +5,22 @@ import { createElement, getIconClassNames } from '../../util/dom';
 import { clamp } from '../../util/number';
 import type { Vec2 } from '../../util/vector';
 import { NativeWidget } from '../../widget/nativeWidget';
-import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { DraggablePopover } from '../popover/draggablePopover';
 import type { PopoverOptions } from '../popover/popover';
-import { BaseToolbar, type ToolbarButtonOptions } from './toolbar';
+import { BaseToolbar, type ToolbarButtonOptions, type ToolbarEventMap } from './toolbar';
 import type { ToolbarButtonWidget } from './toolbarButtonWidget';
 
 export interface FloatingToolbarAnchor {
     x: number;
     y: number;
     position?: 'above' | 'above-left' | 'right' | 'below';
+}
+
+interface FloatingToolbarEventMap<ButtonOptions extends ToolbarButtonOptions> extends ToolbarEventMap<ButtonOptions> {
+    'toolbar-moved': {
+        buttonBounds: Array<BBoxValues>;
+        popoverBounds: BBoxValues;
+    };
 }
 
 class FloatingToolbarPopover extends DraggablePopover<PopoverOptions> {
@@ -105,18 +111,13 @@ class FloatingToolbarPopover extends DraggablePopover<PopoverOptions> {
 export abstract class FloatingToolbar<
     ButtonOptions extends ToolbarButtonOptions,
     ButtonWidget extends ToolbarButtonWidget,
-> extends BaseToolbar<ButtonOptions, ButtonWidget> {
+> extends BaseToolbar<ButtonOptions, ButtonWidget, FloatingToolbarEventMap<ButtonOptions>> {
     protected override hasPrefix = true;
 
     private readonly popover: FloatingToolbarPopover;
 
-    constructor(
-        ctx: ModuleContext,
-        id: string,
-        onButtonPress: (event: MouseWidgetEvent<'click'>, button: ButtonOptions & { index: number }) => void,
-        private readonly onToolbarMoved: (event: { buttonBounds: Array<BBoxValues>; popoverBounds: BBoxValues }) => void
-    ) {
-        super(ctx, onButtonPress);
+    constructor(ctx: ModuleContext, id: string) {
+        super(ctx);
         this.popover = new FloatingToolbarPopover(ctx, id, this.onPopoverMoved.bind(this));
         this.createDragHandle();
     }
@@ -150,7 +151,7 @@ export abstract class FloatingToolbar<
         const buttonBounds = this.getButtonBounds().map(
             (bounds) => new BBox(bounds.x + popoverBounds.x, bounds.y + popoverBounds.y, bounds.width, bounds.height)
         );
-        this.onToolbarMoved({ popoverBounds, buttonBounds });
+        this.events.dispatch('toolbar-moved', { popoverBounds, buttonBounds });
     }
 
     private createDragHandle() {

@@ -78,7 +78,7 @@ class AnnotationOptionsButtonProperties extends ToolbarButtonProperties {
     checkedOverrides = new ToolbarButtonProperties();
 
     @Validate(STRING, { optional: true })
-    fill?: string;
+    color?: string;
 
     @Validate(NUMBER, { optional: true })
     strokeWidth?: number;
@@ -86,7 +86,7 @@ class AnnotationOptionsButtonProperties extends ToolbarButtonProperties {
 
 interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
     value: AnnotationOptions;
-    fill?: string;
+    color?: string;
     strokeWidth?: number;
 }
 
@@ -109,8 +109,8 @@ class AnnotationOptionsButtonWidget extends ToolbarButtonWidget {
 
     private updateFillColor(options: AnnotationOptionsButtonOptions) {
         const element = this.getElement();
-        element.classList.add('ag-charts-annotations__fill-button');
-        element.style.setProperty('--fill', options.fill ?? null);
+        element.classList.add('ag-charts-annotations__color-picker-button');
+        element.style.setProperty('--color', options.color ?? null);
     }
 
     private updateLineStrokeWidth(options: AnnotationOptionsButtonOptions) {
@@ -139,13 +139,9 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     private readonly destroyFns: (() => void)[] = [];
 
     private readonly events = new Listeners<keyof EventMap, any>();
+    private visibleButtons: Array<AnnotationOptionsButtonProperties> = [];
 
-    private readonly toolbar = new FloatingAnnotationOptionsToolbar(
-        this.ctx,
-        'annotation-options',
-        this.onButtonPress.bind(this),
-        this.onToolbarMoved.bind(this)
-    );
+    private readonly toolbar = new FloatingAnnotationOptionsToolbar(this.ctx, 'annotation-options');
     private readonly colorPicker = new ColorPicker(this.ctx);
     private readonly textSizeMenu = new Menu(this.ctx, 'text-size');
     private readonly lineStyleTypeMenu = new Menu(this.ctx, 'annotations-line-style-type');
@@ -159,9 +155,10 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
 
         const seriesRegion = ctx.regionManager.getRegion('series');
         this.destroyFns.push(
+            this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
+            this.toolbar.addToolbarListener('toolbar-moved', this.onToolbarMoved.bind(this)),
             seriesRegion.addListener('drag-start', this.onDragStart.bind(this), InteractionState.All),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), InteractionState.All),
-            ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             () => this.colorPicker.destroy()
         );
     }
@@ -192,12 +189,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         this.toolbar.hide();
     }
 
-    public refreshButtons() {
-        const datum = this.getActiveDatum();
-        if (!datum) return;
-
-        const locked = datum.locked ?? false;
-
+    public updateButtons(datum: AnnotationProperties) {
         const visible = {
             [AnnotationOptions.LineStyleType]: hasLineStyle(datum),
             [AnnotationOptions.LineStrokeWidth]: hasLineStyle(datum),
@@ -209,26 +201,12 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
             [AnnotationOptions.Lock]: true,
             [AnnotationOptions.Delete]: true,
         };
+        this.visibleButtons = this.buttons.filter((button) => visible[button.value]);
 
-        const visibleIndices = [];
+        this.toolbar.clearButtons();
+        this.toolbar.updateButtons(this.visibleButtons);
 
-        for (const [index, button] of this.buttons.entries()) {
-            if (!button) continue;
-
-            if (visible[button.value]) visibleIndices.push(index);
-
-            if (button.value === AnnotationOptions.Lock) {
-                this.toolbar.toggleSwitchCheckedByIndex(index, locked);
-            } else {
-                this.toolbar.toggleButtonEnabledByIndex(index, !locked);
-            }
-        }
-
-        this.toolbar.toggleButtonVisibilities(visibleIndices);
-
-        this.updateFontSize('fontSize' in datum ? datum.fontSize : undefined);
-        this.updateFills(datum);
-        this.updateLineStyles(datum);
+        this.refreshButtons(datum);
     }
 
     public setAnchorScene(scene: AnnotationScene) {
@@ -249,32 +227,30 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         this.toolbar.clearActiveButton();
     }
 
-    private updateFills(datum: AnnotationProperties) {
-        this.updateColorPickerFill(
+    private updateColors(datum: AnnotationProperties) {
+        this.updateColorPickerColor(
             AnnotationOptions.LineColor,
             datum.getDefaultColor(AnnotationOptions.LineColor),
             datum.getDefaultOpacity(AnnotationOptions.LineColor)
         );
-        this.updateColorPickerFill(
+        this.updateColorPickerColor(
             AnnotationOptions.FillColor,
             datum.getDefaultColor(AnnotationOptions.FillColor),
             datum.getDefaultOpacity(AnnotationOptions.FillColor)
         );
-        this.updateColorPickerFill(
+        this.updateColorPickerColor(
             AnnotationOptions.TextColor,
             datum.getDefaultColor(AnnotationOptions.TextColor),
             datum.getDefaultOpacity(AnnotationOptions.TextColor)
         );
     }
 
-    public updateColorPickerFill(colorPickerType: AnnotationOptionsColorPickerType, color?: string, opacity?: number) {
+    public updateColorPickerColor(colorPickerType: AnnotationOptionsColorPickerType, color?: string, opacity?: number) {
         if (color != null && opacity != null) {
             const { r, g, b } = Color.fromString(color);
             color = Color.fromArray([r, g, b, opacity]).toHexString();
         }
-        this.updateButtonByValue(colorPickerType as any, {
-            fill: color,
-        });
+        this.updateButtonByValue(colorPickerType as any, { color });
     }
 
     private updateFontSize(fontSize: number | undefined) {
@@ -300,11 +276,10 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         this.events.dispatch(eventType, event);
     }
 
-    private onLayoutComplete() {
-        this.toolbar.updateButtons(this.buttons.toJson() as any);
-    }
-
-    private onButtonPress(event: _ModuleSupport.MouseWidgetEvent<'click'>, button: { index: number; value: any }) {
+    private onButtonPress({
+        event,
+        button,
+    }: _ModuleSupport.ToolbarEventMap<AnnotationOptionsButtonOptions>['button-pressed']) {
         const datum = this.getActiveDatum();
         if (!datum) return;
 
@@ -377,7 +352,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
 
             case AnnotationOptions.Lock: {
                 datum.locked = !datum.locked;
-                this.refreshButtons();
+                this.refreshButtons(datum);
                 this.dispatch('pressed-lock');
                 break;
             }
@@ -403,7 +378,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         this.colorPicker.setAnchor(colorPickerAnchor, colorPickerFallbackAnchor);
 
         for (const [index, bounds] of buttonBounds.entries()) {
-            const button = this.buttons.at(index);
+            const button = this.visibleButtons.at(index);
             if (!button) continue;
 
             const anchor = { x: bounds.x, y: bounds.y + bounds.height - 1 };
@@ -433,7 +408,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         opacity: number
     ) {
         this.dispatch('updated-color', { type: datum.type, colorPickerType, colorOpacity, color, opacity });
-        this.updateColorPickerFill(colorPickerType, colorOpacity);
+        this.updateColorPickerColor(colorPickerType, colorOpacity);
     }
 
     private onTextSizeMenuPress(item: _ModuleSupport.MenuItem<number>, datum?: AnnotationProperties) {
@@ -468,10 +443,26 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         this.updateStrokeWidth(item);
     }
 
-    private updateLineStyles(datum: AnnotationProperties) {
-        if (!hasLineStyle(datum)) {
-            return;
+    private refreshButtons(datum: AnnotationProperties) {
+        const locked = datum.locked ?? false;
+
+        for (const [index, button] of this.visibleButtons.entries()) {
+            if (!button) continue;
+            if (button.value === AnnotationOptions.Lock) {
+                this.toolbar.toggleSwitchCheckedByIndex(index, locked);
+            } else {
+                this.toolbar.toggleButtonEnabledByIndex(index, !locked);
+            }
         }
+
+        if (hasFontSize(datum)) this.updateFontSize(datum.fontSize);
+        this.updateColors(datum);
+        this.updateLineStyles(datum);
+    }
+
+    private updateLineStyles(datum: AnnotationProperties) {
+        if (!hasLineStyle(datum)) return;
+
         const strokeWidth = datum.strokeWidth ?? 1;
         const lineStyleType = getLineStyle(datum.lineDash, datum.lineStyle);
 
@@ -487,9 +478,10 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     }
 
     private updateButtonByValue(value: AnnotationOptions, change: Partial<AnnotationOptionsButtonOptions>) {
-        const index = this.buttons.findIndex((button) => button.value === value);
-        const button = this.buttons.at(index)!;
-        this.buttons[index].set({ ...button.toJson(), value, ...change });
+        const index = this.visibleButtons.findIndex((button) => button.value === value);
+        if (index === -1) return;
+        const button = this.visibleButtons.at(index)!;
+        this.visibleButtons.at(index)!.set({ ...button.toJson(), value, ...change });
         this.toolbar.updateButtonByIndex(index, { ...button.toJson(), value, ...change });
     }
 }

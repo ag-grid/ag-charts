@@ -1,6 +1,7 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import type { BBoxValues } from '../../util/bboxinterface';
+import { Listeners } from '../../util/listeners';
 import { BaseProperties } from '../../util/properties';
 import type { ButtonWidget as BaseButtonWidget } from '../../widget/buttonWidget';
 import type { RovingDirection } from '../../widget/rovingDirection';
@@ -14,33 +15,46 @@ export interface ToolbarButtonOptions extends ToolbarButtonWidgetOptions {
     section?: string;
 }
 
+export interface ToolbarEventMap<ButtonOptions extends ToolbarButtonOptions = ToolbarButtonOptions> {
+    'button-pressed': {
+        event: MouseWidgetEvent<'click'>;
+        button: ButtonOptions & { index: number };
+        buttonBounds: BBoxValues;
+    };
+}
+
 export abstract class BaseToolbar<
     ButtonOptions extends ToolbarButtonOptions = ToolbarButtonOptions,
     ButtonWidget extends ToolbarButtonWidget = ToolbarButtonWidget,
+    EventMap extends ToolbarEventMap<ButtonOptions> = ToolbarEventMap<ButtonOptions>,
 > extends ToolbarWidget {
     public horizontalSpacing = 10;
     public verticalSpacing = 10;
 
+    protected readonly events = new Listeners<keyof EventMap & string, any>();
     protected hasPrefix = false;
 
     private readonly buttonWidgets: Array<ButtonWidget> = [];
 
-    public override set orientation(orientation: RovingDirection) {
-        super.orientation = orientation;
+    constructor(
+        protected readonly ctx: ModuleContext,
+        orientation: RovingDirection = 'horizontal'
+    ) {
+        super(orientation);
+        this.addClass('ag-charts-toolbar');
         this.toggleClass('ag-charts-toolbar--horizontal', orientation === 'horizontal');
         this.toggleClass('ag-charts-toolbar--vertical', orientation === 'vertical');
     }
 
-    constructor(
-        protected readonly ctx: ModuleContext,
-        private readonly onButtonPress: (
-            event: MouseWidgetEvent<'click'>,
-            button: ButtonOptions & { index: number },
-            buttonBounds: BBoxValues
-        ) => void
-    ) {
-        super();
-        this.addClass('ag-charts-toolbar');
+    public addToolbarListener<K extends keyof EventMap & string>(eventType: K, handler: (event: EventMap[K]) => void) {
+        return this.events.addListener(eventType, handler);
+    }
+
+    public clearButtons() {
+        for (const button of this.buttonWidgets) {
+            button.destroy();
+        }
+        this.buttonWidgets.splice(0);
     }
 
     public updateButtons(buttons: Array<ButtonOptions>) {
@@ -57,6 +71,7 @@ export abstract class BaseToolbar<
             button?.destroy();
         }
 
+        this.buttonWidgets.splice(buttons.length);
         this.refreshButtonClasses();
     }
 
@@ -85,13 +100,6 @@ export abstract class BaseToolbar<
     public toggleSwitchCheckedByIndex(index: number, checked: boolean) {
         if (index === -1) return;
         this.buttonWidgets.at(index)?.setChecked(checked);
-    }
-
-    public toggleButtonVisibilities(visibleIndices: Array<number>) {
-        for (const [index, buttonWidget] of this.buttonWidgets.entries()) {
-            buttonWidget.setHidden(!visibleIndices.includes(index));
-        }
-        this.refreshButtonClasses();
     }
 
     public getButtonBounds() {
@@ -130,7 +138,7 @@ export abstract class BaseToolbar<
         buttonWidget.addListener('click', (_, event) => {
             const buttonOptions = { index, ...(button instanceof BaseProperties ? button.toJson() : button) };
             const buttonBounds = this.getButtonWidgetBounds(buttonWidget);
-            this.onButtonPress(event, buttonOptions, buttonBounds);
+            this.events.dispatch('button-pressed', { event, button: buttonOptions, buttonBounds });
         });
 
         if (button.section) {

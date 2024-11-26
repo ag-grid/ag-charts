@@ -56,7 +56,7 @@ export class ZoomToolbar extends BaseProperties {
     private readonly detectionRange = 38;
 
     private readonly container: _ModuleSupport.NativeWidget<HTMLDivElement>;
-    private readonly toolbar = new Toolbar<ZoomToolbarButtonOptions>(this.ctx, this.onButtonPress.bind(this));
+    private readonly toolbar = new Toolbar<ZoomToolbarButtonOptions>(this.ctx);
 
     private readonly destroyFns: Array<() => void> = [];
 
@@ -82,6 +82,7 @@ export class ZoomToolbar extends BaseProperties {
         this.toggleVisibility(false);
 
         this.destroyFns.push(
+            this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             ctx.interactionManager.addListener('hover', this.onHover.bind(this), InteractionState.All),
             ctx.interactionManager.addListener('leave', this.onLeave.bind(this), InteractionState.All),
             ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
@@ -176,7 +177,7 @@ export class ZoomToolbar extends BaseProperties {
         }
     }
 
-    private onButtonPress(_: _ModuleSupport.MouseWidgetEvent<'click'>, button: { value: AgZoomButtonValue }) {
+    private onButtonPress({ button }: _ModuleSupport.ToolbarEventMap<ZoomToolbarButtonOptions>['button-pressed']) {
         const props = this.getModuleProperties();
 
         if (props.independentAxes && button.value !== 'reset') {

@@ -15,13 +15,13 @@ const menuItems: _ModuleSupport.MenuItem<AgPriceVolumeChartType>[] = [
 export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     @Validate(BOOLEAN)
     @ActionOnSet<ChartToolbar>({
-        changeValue: function (enabled) {
-            this.onEnableChanged(enabled);
+        changeValue(enabled) {
+            this.toolbar?.setHidden(!enabled);
         },
     })
     enabled: boolean = false;
 
-    private readonly toolbar = new Toolbar(this.ctx, this.onButtonPressed.bind(this));
+    private readonly toolbar = new Toolbar(this.ctx, 'vertical');
     private readonly menu = new Menu(this.ctx, 'chart-toolbar');
     private readonly horizontalSpacing = 10;
 
@@ -32,24 +32,17 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         this.toolbar.orientation = 'vertical';
         ctx.domManager.addChild('canvas-overlay', 'chart-toolbar', this.toolbar.getElement());
 
-        this.destroyFns.push(ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)));
-    }
-
-    private onEnableChanged(enabled: boolean) {
-        if (!this.toolbar) return;
-        this.toolbar.toggleButtonVisibilities(enabled ? [0] : []);
+        this.destroyFns.push(
+            this.toolbar.addToolbarListener('button-pressed', this.onButtonPressed.bind(this)),
+            ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this))
+        );
     }
 
     private onLayoutStart(event: _ModuleSupport.LayoutContext) {
         const { horizontalSpacing, toolbar } = this;
         const { layoutBox } = event;
 
-        const chartType = this.getChartType();
-        const icon = menuItems.find((item) => item.value === chartType)?.icon;
-
-        if (icon != null) {
-            this.toolbar.updateButtons([{ icon, tooltip: 'toolbarSeriesTypeDropdown' }]);
-        }
+        this.updateButton();
 
         const width = toolbar.getBounds().width;
         toolbar.setBounds({
@@ -61,11 +54,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         layoutBox.shrink({ left: width + horizontalSpacing });
     }
 
-    private onButtonPressed(
-        event: _ModuleSupport.MouseWidgetEvent<'click'>,
-        _: _ModuleSupport.ToolbarButtonOptions,
-        buttonBounds: _ModuleSupport.BBoxValues
-    ) {
+    private onButtonPressed({ event, buttonBounds }: _ModuleSupport.ToolbarEventMap['button-pressed']) {
         this.menu.setAnchor({ x: buttonBounds.x + buttonBounds.width + 6, y: buttonBounds.y });
         this.menu.show({
             items: menuItems,
@@ -84,6 +73,15 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         });
 
         this.toolbar.toggleActiveButtonByIndex(0);
+    }
+
+    private updateButton() {
+        const chartType = this.getChartType();
+        const icon = menuItems.find((item) => item.value === chartType)?.icon;
+
+        if (icon != null) {
+            this.toolbar.updateButtons([{ icon, tooltip: 'toolbarSeriesTypeDropdown' }]);
+        }
     }
 
     private hidePopover() {

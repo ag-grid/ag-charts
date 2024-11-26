@@ -11,7 +11,7 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
     @Validate(OBJECT)
     public buttons = new PropertiesArray(RangesButtonProperties);
 
-    private readonly toolbar = new Toolbar(this.ctx, this.onButtonPress.bind(this));
+    private readonly toolbar = new Toolbar(this.ctx);
     private readonly verticalSpacing = 10;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
@@ -21,6 +21,7 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
         ctx.domManager.addChild('canvas-overlay', 'range-buttons', this.toolbar.getElement());
 
         this.destroyFns.push(
+            this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
             ctx.zoomManager.addListener('zoom-change', this.onZoomChanged.bind(this)),
             () => this.toolbar.destroy()
@@ -48,7 +49,7 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
         this.toolbar.clearActiveButton();
     }
 
-    private onButtonPress(_: _ModuleSupport.MouseWidgetEvent<'click'>, { index }: { index: number }) {
+    private onButtonPress({ button: { index } }: _ModuleSupport.ToolbarEventMap['button-pressed']) {
         const { zoomManager } = this.ctx;
 
         const button = this.buttons.at(index);
