@@ -1,4 +1,5 @@
 import type { Point } from '../../scene/point';
+import { findMaxIndex, findMinIndex } from '../../util/binarySearch';
 import type { Series, SeriesNodePickIntent } from './series';
 import type { SeriesNodeDatum } from './seriesTypes';
 
@@ -83,4 +84,25 @@ export function datumStylerProperties<TDatum extends { xValue: any; yValue: any 
         min,
         max,
     };
+}
+
+export function visibleRangeIndices(
+    length: number,
+    [range0, range1]: [number, number],
+    xRange: (index: number) => [number, number] | undefined
+) {
+    const xMinIndex =
+        findMinIndex(0, length - 1, (index) => {
+            const x1 = xRange(index)?.[1];
+            return !Number.isFinite(x1) || x1! > range0;
+        }) ?? 0;
+
+    let xMaxIndex =
+        findMaxIndex(0, length - 1, (index) => {
+            const x0 = xRange(index)?.[0];
+            return !Number.isFinite(x0) || x0! < range1;
+        }) ?? length - 1;
+    xMaxIndex = Math.min(xMaxIndex + 1, length);
+
+    return [xMinIndex, xMaxIndex];
 }

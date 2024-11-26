@@ -1,6 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { visibleRange } from '../../utils/aggregation';
 import { type RangeAreaSeriesDataAggregationFilter, aggregateData } from './rangeAreaAggregation';
 import { type RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties';
 import { type RangeAreaContext, type RangeAreaLabelDatum, prepareRangeAreaPathAnimation } from './rangeAreaUtil';
@@ -34,7 +33,7 @@ const {
     sanitizeHtml,
     extent,
     getMarker,
-    findMinMax,
+    visibleRangeIndices,
     PointerEvents,
     Group,
     BBox,
@@ -180,6 +179,26 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         }
     }
 
+    private visibleRangeIndices(visibleRange: [any, any], indices?: number[]) {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return [0, 0];
+
+        const xScale = this.axes[ChartAxisDirection.X]!.scale;
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+
+        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, (index) => {
+            const x = xScale.convert(xValues[indices?.[index] ?? index]);
+            return [x, x];
+        });
+    }
+
+    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): [number, number] {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return [NaN, NaN];
+        const [x0, x1] = this.visibleRangeIndices(visibleRange);
+        return dataModel.getDomainBetweenRange(this, ['yLowValue', 'yHighValue'], [x0, x1], processedData);
+    }
+
     override createNodeData() {
         const { data, dataModel, processedData, axes, visible } = this;
 
@@ -295,27 +314,20 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         };
 
         const { dataAggregationFilters } = this;
-        const [x0, x1] = findMinMax(xAxis.range);
         const [r0, r1] = xScale.range;
         const range = r1 - r0;
 
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
+        const topIndices = dataAggregationFilter?.topIndices;
+        const bottomIndices = dataAggregationFilter?.bottomIndices;
 
-        if (dataAggregationFilter == null) {
-            const [start, end] = visibleRange(rawData.length, x0, x1, xPosition);
-
-            for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
-                handleDatumPoint(datumIndex, yHighValues[datumIndex], yLowValues[datumIndex]);
-            }
-        } else {
-            const { topIndices, bottomIndices } = dataAggregationFilter;
-            const [start, end] = visibleRange(topIndices.length, x0, x1, (index) => xPosition(topIndices[index]));
-
-            for (let i = start; i < end; i += 1) {
-                const topDatumIndex = topIndices[i];
-                const bottomDatumIndex = bottomIndices[i];
-                handleDatumPoint(topDatumIndex, yHighValues[topDatumIndex], yLowValues[bottomDatumIndex]);
-            }
+        let [start, end] = this.visibleRangeIndices(xAxis.range, topIndices);
+        start = Math.max(start - 1, 0);
+        end = Math.min(end + 1, topIndices?.length ?? xValues.length);
+        for (let i = start; i < end; i += 1) {
+            const topDatumIndex = topIndices?.[i] ?? i;
+            const bottomDatumIndex = bottomIndices?.[i] ?? i;
+            handleDatumPoint(topDatumIndex, yHighValues[topDatumIndex], yLowValues[bottomDatumIndex]);
         }
 
         const highSpans = spanPoints.flatMap((p): _ModuleSupport.LinePathSpan[] => {
