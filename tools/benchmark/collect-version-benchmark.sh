@@ -70,6 +70,11 @@ benchmark() {
                 --config packages/ag-charts-community/jest.config.ts \
                 --runInBand \
                 --testPathPattern '.*/benchmarks/.*'
+            node \
+                --expose-gc ./node_modules/jest/bin/jest.js \
+                --config packages/ag-charts-enterprise/jest.config.ts \
+                --runInBand \
+                --testPathPattern '.*/benchmarks/.*'
         ) ; then
             node "$(dirname $0)/collate-reports.js" "$(echo "$version" | sed 's/^origin\///')"
         else

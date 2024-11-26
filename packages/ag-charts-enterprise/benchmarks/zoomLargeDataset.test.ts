@@ -9,7 +9,7 @@ const EXPECTATIONS = {
     autoSnapshot: false,
 };
 
-describe('large-dataset benchmark', () => {
+describe('zoom-large-dataset benchmark', () => {
     const ctx = setupBenchmark<AgCartesianChartOptions>('enterprise-1M-line-series', { isEnterprise: true });
 
     benchmark('initial load', ctx, EXPECTATIONS, async () => {
