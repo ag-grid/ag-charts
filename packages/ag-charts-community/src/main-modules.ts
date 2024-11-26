@@ -19,7 +19,5 @@ export const AgChartsCommunityModule = {
     create: AgCharts.create.bind(AgCharts),
     createSparkline: AgCharts.__createSparkline.bind(AgCharts),
     setup: registerInbuiltModules,
-    setGridContext: AgCharts.setGridContext.bind(AgCharts),
-    setLicenseKey: AgCharts.setLicenseKey.bind(AgCharts),
     isEnterprise: false,
 } satisfies IntegratedModule;
