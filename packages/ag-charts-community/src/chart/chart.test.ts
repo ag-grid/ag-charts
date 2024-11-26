@@ -79,7 +79,7 @@ describe('Chart', () => {
         getTooltipRenderedValues: (tooltipRendererParams: any) => any[];
         getHighlightNode: (chart: any, series: any) => any;
     }) => {
-        const format = (...values: any[]) => values.join(': ');
+        const format = (...values: any[]) => values.join(' ');
 
         const createChartPreset = async (params: {
             hasTooltip: boolean;
@@ -267,7 +267,7 @@ describe('Chart', () => {
             getDatumValues: (item, series) => {
                 const xValue = item.datum[series.properties['xKey']];
                 const yValue = item.datum[series.properties['yKey']];
-                return [xValue, yValue];
+                return [xValue, datasets.economy.valueKey, yValue];
             },
         });
     });
@@ -289,7 +289,7 @@ describe('Chart', () => {
             getDatumValues: (item, series) => {
                 const xValue = item.datum[series.properties.xKey];
                 const yValue = item.datum[series.properties.yKey];
-                return [xValue, yValue];
+                return [xValue, datasets.economy.valueKey, yValue];
             },
         });
     });
@@ -314,7 +314,7 @@ describe('Chart', () => {
             getDatumValues: (item, series) => {
                 const xValue = item.datum[series.properties['xKey']];
                 const yValue = item.datum[series.properties['yKey']];
-                return [xValue, yValue];
+                return [datasets.economy.categoryKey, xValue, datasets.economy.valueKey, yValue];
             },
         });
     });
@@ -333,7 +333,7 @@ describe('Chart', () => {
             getDatumValues: (item, series) => {
                 const xValue = item.datum[series.properties.xKey];
                 const yValue = item.datum[series.properties.yKey];
-                return [xValue, yValue];
+                return [xValue, datasets.economy.valueKey, yValue];
             },
         });
     });

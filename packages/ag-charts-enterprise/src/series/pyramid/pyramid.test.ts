@@ -93,7 +93,7 @@ describe('PyramidSeries', () => {
         getTooltipRenderedValues: (tooltipRendererParams: any) => any[];
         getHighlightNode: (chart: any, series: any) => any;
     }) => {
-        const format = (...values: any[]) => values.join(': ');
+        const format = (...values: any[]) => values.join(' ');
 
         const createChart = async (params: {
             hasTooltip: boolean;
@@ -283,11 +283,9 @@ describe('PyramidSeries', () => {
             },
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getNodePoint: (item) => [item.midPoint.x, item.midPoint.y],
-            getDatumValues: (item, series) => {
+            getDatumValues: (item) => {
                 const { datum } = item;
-                return datum != null
-                    ? [datum[series.properties.fromKey], datum[series.properties.toKey]]
-                    : [item.label];
+                return [datum[datasets.stageKey], datum[datasets.valueKey]];
             },
             getTooltipRenderedValues: (params) => {
                 const { datum } = params;

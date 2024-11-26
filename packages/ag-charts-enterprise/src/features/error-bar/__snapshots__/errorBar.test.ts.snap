@@ -10,9 +10,55 @@ NodeList [
     style="transform: translate(314px, 200px); top: 0px; left: 0px; pointer-events: none;"
   >
     <div
-      class="ag-chart-tooltip-content"
+      class="ag-chart-tooltip__content"
     >
-      May: 14.5
+      <span
+        class="ag-chart-tooltip__title"
+      >
+        May
+      </span>
+       
+      <div
+        class="ag-chart-tooltip__row"
+      >
+        <span
+          class="ag-chart-tooltip__symbol"
+        >
+          <svg
+            height="12"
+            width="20"
+          >
+            <line
+              stroke="#f3622d"
+              stroke-opacity="1"
+              stroke-width="2"
+              x1="0"
+              x2="20"
+              y1="6"
+              y2="6"
+            />
+            <path
+              d="M 16 6 C 16 9.31370849898476 13.31370849898476 12 10 12 C 6.68629150101524 12 4 9.313708498984761 4 6.000000000000001 C 3.9999999999999996 2.6862915010152406 6.686291501015238 6.0871837598836e-16 9.999999999999998 0 C 13.31370849898476 -6.0871837598836e-16 16 2.686291501015238 16 5.999999999999998 Z"
+              fill="#f3622d"
+              fill-opacity="1"
+              stroke="#aa4520"
+              stroke-opacity="1"
+              stroke-width="0"
+            />
+          </svg>
+        </span>
+        <span
+          class="ag-chart-tooltip__label"
+        >
+          temperature
+        </span>
+         
+        <span
+          class="ag-chart-tooltip__value"
+        >
+          14.5
+        </span>
+      </div>
     </div>
   </div>,
 ]
@@ -28,17 +74,56 @@ NodeList [
     style="transform: translate(413px, 380px); top: 0px; left: 0px; pointer-events: none;"
   >
     <div
-      class="ag-chart-tooltip-content"
+      class="ag-chart-tooltip__content"
     >
-      <b>
-        volume
-      </b>
-      : 2.5
-      <br />
-      <b>
-        pressure
-      </b>
-      : 4.2
+      <div
+        class="ag-chart-tooltip__row"
+      >
+        <span
+          class="ag-chart-tooltip__symbol"
+        >
+          <svg
+            height="13"
+            width="13"
+          >
+            <path
+              d="M 12.5 6.5 C 12.5 9.81370849898476 9.81370849898476 12.5 6.5 12.5 C 3.1862915010152397 12.5 0.5000000000000004 9.813708498984761 0.5 6.500000000000001 C 0.4999999999999996 3.1862915010152406 3.186291501015239 0.5000000000000006 6.499999999999999 0.5 C 9.81370849898476 0.4999999999999994 12.5 3.186291501015238 12.5 6.499999999999998 Z"
+              fill="#f3622d"
+              fill-opacity="0.8"
+              stroke="#aa4520"
+              stroke-opacity="1"
+              stroke-width="1"
+            />
+          </svg>
+        </span>
+        <span
+          class="ag-chart-tooltip__label"
+        >
+          volume
+        </span>
+         
+        <span
+          class="ag-chart-tooltip__value"
+        >
+          2.5
+        </span>
+      </div>
+       
+      <div
+        class="ag-chart-tooltip__row"
+      >
+        <span
+          class="ag-chart-tooltip__label"
+        >
+          pressure
+        </span>
+         
+        <span
+          class="ag-chart-tooltip__value"
+        >
+          4.2
+        </span>
+      </div>
     </div>
   </div>,
 ]

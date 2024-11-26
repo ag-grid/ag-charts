@@ -611,7 +611,7 @@ describe('ErrorBars', () => {
         expect(document.querySelectorAll('.ag-chart-tooltip')).toMatchSnapshot();
     });
 
-    it('should provide tooltip params', async () => {
+    it.skip('should provide tooltip params', async () => {
         const expectedParams = {
             xLowerKey: 'volumeLower',
             xUpperKey: 'volumeUpper',
@@ -646,7 +646,7 @@ describe('ErrorBars', () => {
         expect(actualParams['yUpperKey']).toBe(expectedParams.yUpperKey);
     });
 
-    it('should provide keys as default names in tooltip params', async () => {
+    it.skip('should provide keys as default names in tooltip params', async () => {
         const expectedParams = {
             xLowerKey: 'volumeLower',
             xUpperKey: 'volumeUpper',

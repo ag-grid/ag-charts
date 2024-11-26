@@ -148,10 +148,15 @@ function tooltipContentHtml(content: TooltipContent2) {
             rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(row.value)}</span>`;
         } else {
             rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(row.label)}</span>`;
+            rowHtml += ' ';
             rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(row.value)}</span>`;
         }
 
         rowHtml = `<div class="${DEFAULT_TOOLTIP_CLASS}__row">${rowHtml}</div>`;
+
+        if (html !== '') {
+            html += ' ';
+        }
 
         html += rowHtml;
     });
