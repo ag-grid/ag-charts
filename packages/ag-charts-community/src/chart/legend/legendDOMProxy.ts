@@ -103,13 +103,13 @@ export class LegendDOMProxy {
             // The method parameter `datum` gets destroyed when the data is refreshed
             // using Series.getLegendData(). But the scene node will stay the same.
             const button = markerLabel.proxyButton;
-            button.addListener('click', (_t, ev) => itemListener.onClick(ev.sourceEvent, markerLabel.datum, button));
-            button.addListener('dblclick', (_t, ev) => itemListener.onDoubleClick(ev.sourceEvent, markerLabel.datum));
-            button.addListener('mouseenter', (_t, ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
+            button.addListener('click', (ev) => itemListener.onClick(ev.sourceEvent, markerLabel.datum, button));
+            button.addListener('dblclick', (ev) => itemListener.onDoubleClick(ev.sourceEvent, markerLabel.datum));
+            button.addListener('mouseenter', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
             button.addListener('mouseleave', () => itemListener.onLeave());
-            button.addListener('contextmenu', (_t, ev) => itemListener.onContextClick(ev.sourceEvent, markerLabel));
+            button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev.sourceEvent, markerLabel));
             button.addListener('blur', () => itemListener.onLeave());
-            button.addListener('focus', (_t, ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
+            button.addListener('focus', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
         });
         this.dirty = false;
     }
@@ -164,7 +164,7 @@ export class LegendDOMProxy {
                     tabIndex: 0,
                     parent: this.paginationGroup,
                 });
-                this.prevButton.addListener('click', (_t, ev) => pagination.onClick(ev.sourceEvent, 'previous'));
+                this.prevButton.addListener('click', (ev) => pagination.onClick(ev.sourceEvent, 'previous'));
                 this.prevButton.addListener('mouseenter', () => pagination.onMouseHover('previous'));
                 this.prevButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
 
@@ -175,7 +175,7 @@ export class LegendDOMProxy {
                     tabIndex: 0,
                     parent: this.paginationGroup,
                 });
-                this.nextButton.addListener('click', (_t, ev) => pagination.onClick(ev.sourceEvent, 'next'));
+                this.nextButton.addListener('click', (ev) => pagination.onClick(ev.sourceEvent, 'next'));
                 this.nextButton.addListener('mouseenter', () => pagination.onMouseHover('next'));
                 this.nextButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
             } else {

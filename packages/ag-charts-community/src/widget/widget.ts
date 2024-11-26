@@ -169,8 +169,8 @@ export abstract class Widget<
             .reduce<R | undefined>((prev, curr) => (!prev || curr.domIndex < prev.domIndex ? curr : prev), undefined);
     }
 
-    addListener<K extends EventType>(type: K, listener: (target: typeof this, ev: EventMap[K]) => unknown): void;
-    addListener<K extends EventType>(type: K, listener: (target: typeof this, ev: unknown) => unknown): void {
+    addListener<K extends EventType>(type: K, listener: (ev: EventMap[K], target: typeof this) => unknown): void;
+    addListener<K extends EventType>(type: K, listener: (ev: unknown, target: typeof this) => unknown): void {
         if (WidgetEventUtil.isHTMLEvent(type)) {
             this.htmlListener ??= new WidgetListenerHTML();
             this.htmlListener.add(type, this, listener);
@@ -180,8 +180,8 @@ export abstract class Widget<
         }
     }
 
-    removeListener<K extends EventType>(type: K, listener: (target: typeof this, ev: EventMap[K]) => unknown): void;
-    removeListener<K extends EventType>(type: K, listener: (target: typeof this, ev: unknown) => unknown): void {
+    removeListener<K extends EventType>(type: K, listener: (ev: EventMap[K], target: typeof this) => unknown): void;
+    removeListener<K extends EventType>(type: K, listener: (ev: unknown, target: typeof this) => unknown): void {
         if (WidgetEventUtil.isHTMLEvent(type)) {
             this.htmlListener?.remove(type, this, listener);
         } else if (this.htmlListener != null) {

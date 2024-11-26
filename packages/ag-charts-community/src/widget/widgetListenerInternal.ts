@@ -4,7 +4,7 @@ import type { DragWidgetEvent, WidgetEventMap_Internal } from './widgetEvents';
 
 type EventMap = WidgetEventMap_Internal;
 type EventType = keyof WidgetEventMap_Internal;
-type EventHandler<T, K extends EventType = EventType> = (target: T, event: EventMap[K]) => unknown;
+type EventHandler<T, K extends EventType = EventType> = (event: EventMap[K], target: T) => unknown;
 type Targetable = { getElement(): HTMLElement };
 
 type DragEvents = 'drag-start' | 'drag-move' | 'drag-end';
@@ -118,11 +118,11 @@ export class WidgetListenerInternal {
     private dispatch<T extends Targetable, K extends EventType>(type: K, target: T, event: EventMap[K]): void {
         switch (type) {
             case 'drag-start':
-                return this.dragStartListeners?.forEach((handler) => handler(target, event));
+                return this.dragStartListeners?.forEach((handler) => handler(event, target));
             case 'drag-move':
-                return this.dragMoveListeners?.forEach((handler) => handler(target, event));
+                return this.dragMoveListeners?.forEach((handler) => handler(event, target));
             case 'drag-end':
-                return this.dragEndListeners?.forEach((handler) => handler(target, event));
+                return this.dragEndListeners?.forEach((handler) => handler(event, target));
         }
     }
 }

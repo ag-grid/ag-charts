@@ -42,14 +42,14 @@ export abstract class RovingTabContainerWidget extends Widget<HTMLDivElement, Ro
         child.removeListener('keydown', this.onChildKeyDown);
     }
 
-    private readonly onChildFocus = (child: RovingChildWidgets, _event: FocusWidgetEvent): void => {
+    private readonly onChildFocus = (_event: FocusWidgetEvent, child: RovingChildWidgets): void => {
         const oldFocus = this.children[this.focusedChildIndex];
         this.focusedChildIndex = child.index;
         oldFocus?.setTabIndex(-1);
         child.setTabIndex(0);
     };
 
-    private readonly onChildKeyDown = (child: RovingChildWidgets, event: KeyboardWidgetEvent): void => {
+    private readonly onChildKeyDown = (event: KeyboardWidgetEvent, child: RovingChildWidgets): void => {
         const rovingOrientation = this.orientation;
         const [primaryKeys, secondaryKeys]: [RovingKeys, RovingKeys | undefined] =
             rovingOrientation === 'both'

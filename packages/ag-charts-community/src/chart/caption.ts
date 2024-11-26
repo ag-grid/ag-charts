@@ -114,8 +114,8 @@ export class Caption extends BaseProperties implements CaptionLike {
                 this.proxyText ??= proxyInteractionService.createProxyElement({ type: 'text', domManagerId, where });
                 this.proxyText.textContent = this.text;
                 this.proxyText.setBounds(bbox);
-                this.proxyText.addListener('mousemove', (_target, ev) => this.handleMouseMove(moduleCtx, ev));
-                this.proxyText.addListener('mouseleave', (_target, ev) => this.handleMouseLeave(moduleCtx, ev));
+                this.proxyText.addListener('mousemove', (ev) => this.handleMouseMove(moduleCtx, ev));
+                this.proxyText.addListener('mouseleave', (ev) => this.handleMouseLeave(moduleCtx, ev));
             }
         } else {
             this.proxyText?.destroy();
