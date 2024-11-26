@@ -120,9 +120,14 @@ export class SeriesAreaManager extends BaseManager {
         this.chart.ctx.keyNavManager.focusIndicator = this.focusIndicator;
 
         const seriesRegion = chart.ctx.regionManager.getRegion('series');
+        const rootRegion = chart.ctx.regionManager.getRegion('root');
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild(domElementClass, 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild(domElementClass, 'series-area-aria-label2'),
+            rootRegion.addListener('click', (event) => this.onClick(event)),
+            rootRegion.addListener('dblclick', (event) => this.onClick(event)),
+            seriesRegion.addListener('click', (event) => this.onClick(event)),
+            seriesRegion.addListener('dblclick', (event) => this.onClick(event)),
             seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All),
             seriesRegion.addListener('drag', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
             seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
@@ -134,8 +139,6 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event), keyState),
             chart.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event), keyState),
             chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
-            chart.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
-            chart.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
             chart.ctx.zoomManager.addListener('zoom-change', () => this.clearAll()),
             chart.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearAll())

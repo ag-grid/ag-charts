@@ -107,7 +107,6 @@ export class RegionManager {
     private current?: Region;
     private readonly regions: { root?: Region; series?: Region } = {};
     private readonly destroyFns: (() => void)[] = [];
-    private readonly allRegionsListeners = new RegionListeners();
     private deferredDragStart?: RegionEvent<'drag-start'>;
     private isDragMoving = false;
     private blockNextClickEvent = false;
@@ -150,14 +149,6 @@ export class RegionManager {
 
     getRegion(name: RegionName) {
         return this.makeObserver(this.regions[name]);
-    }
-
-    listenAll<T extends RegionEvent['type']>(
-        type: T,
-        handler: (event: TypeInfo[T]) => void,
-        triggeringStates: InteractionState = InteractionState.Default
-    ): () => void {
-        return addHandler(this.allRegionsListeners, this.interactionManager, type, handler, triggeringStates);
     }
 
     // This method return a wrapper object that matches the interface of InteractionManager.addListener.
@@ -277,7 +268,6 @@ export class RegionManager {
 
     private dispatchEvent(current: Region, event: RegionEvent) {
         this.debug('Dispatching region event: ', event);
-        this.allRegionsListeners.dispatch(event.type, event);
         current.listeners.dispatch(event.type, event);
     }
 
