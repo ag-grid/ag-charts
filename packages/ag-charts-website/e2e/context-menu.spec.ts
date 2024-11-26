@@ -4,6 +4,7 @@ import {
     gotoExample,
     locateCanvas,
     setupIntrinsicAssertions,
+    toExamplePageUrl,
     toExamplePageUrls,
 } from './util';
 
@@ -66,4 +67,19 @@ test.describe('context-menu', () => {
             });
         });
     }
+
+    test('AG-13359 context menu on multiple charts', async ({ page }) => {
+        const { url } = toExamplePageUrl('accessibility-test', 'opening-context-menu-second-chart', 'vanilla');
+        await gotoExample(page, url);
+
+        await page.mouse.click(360, 580, { button: 'right' });
+        await expect(page).toHaveScreenshot('AG-13359-context-menu-chart1-legend-item.png', { animations: 'disabled' });
+
+        await page.keyboard.press('PageDown');
+        await page.keyboard.press('PageDown');
+        await page.keyboard.press('PageDown');
+
+        await page.mouse.click(400, 300, { button: 'right' });
+        await expect(page).toHaveScreenshot('AG-13359-context-menu-chart2-series-area.png', { animations: 'disabled' });
+    });
 });
