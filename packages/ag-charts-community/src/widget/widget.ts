@@ -126,8 +126,8 @@ export abstract class Widget<
         this.onChildAdded(child);
     }
 
-    addClass(token: string) {
-        this.elem.classList.add(token);
+    addClass(...tokens: string[]) {
+        this.elem.classList.add(...tokens);
     }
 
     toggleClass(token: string, force?: boolean) {

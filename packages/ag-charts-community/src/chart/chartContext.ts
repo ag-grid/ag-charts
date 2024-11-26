@@ -24,7 +24,6 @@ import { InteractionManager } from './interaction/interactionManager';
 import { KeyNavManager } from './interaction/keyNavManager';
 import { RegionManager } from './interaction/regionManager';
 import type { SyncManager } from './interaction/syncManager';
-import { ToolbarManager } from './interaction/toolbarManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { ZoomManager } from './interaction/zoomManager';
 import type { Keyboard } from './keyboard';
@@ -44,7 +43,6 @@ export class ChartContext implements ModuleContext {
     readonly seriesBoundsManager = new SeriesBoundsManager();
     readonly seriesStateManager = new SeriesStateManager();
     readonly stateManager = new StateManager();
-    readonly toolbarManager = new ToolbarManager();
     readonly zoomManager = new ZoomManager();
     readonly seriesLabelLayoutManager = new SeriesLabelLayoutManager();
 

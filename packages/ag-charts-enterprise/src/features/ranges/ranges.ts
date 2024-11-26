@@ -11,18 +11,17 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
     @Validate(OBJECT)
     public buttons = new PropertiesArray(RangesButtonProperties);
 
+    private readonly toolbar = new Toolbar(this.ctx);
     private readonly verticalSpacing = 10;
-
-    private readonly toolbar = new Toolbar(this.ctx, this.onButtonPress.bind(this));
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        const element = this.toolbar.getElement();
-        element.classList.add('ag-charts-range-buttons');
-        ctx.domManager.addChild('canvas-overlay', 'range-buttons', element);
+        this.toolbar.addClass('ag-charts-range-buttons');
+        ctx.domManager.addChild('canvas-overlay', 'range-buttons', this.toolbar.getElement());
 
         this.destroyFns.push(
+            this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
             ctx.zoomManager.addListener('zoom-change', this.onZoomChanged.bind(this)),
             () => this.toolbar.destroy()
@@ -33,9 +32,9 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
         const { buttons, toolbar, verticalSpacing } = this;
         const { layoutBox } = event;
 
-        this.toolbar.updateButtons(buttons);
+        toolbar.updateButtons(buttons);
 
-        const height = toolbar.getElement().offsetHeight;
+        const height = toolbar.getBounds().height;
         toolbar.setBounds({
             x: layoutBox.x,
             y: layoutBox.y + layoutBox.height - height,
@@ -50,8 +49,7 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
         this.toolbar.clearActiveButton();
     }
 
-    private onButtonPress(event: { index: number }) {
-        const { index } = event;
+    private onButtonPress({ button: { index } }: _ModuleSupport.ToolbarEventMap['button-pressed']) {
         const { zoomManager } = this.ctx;
 
         const button = this.buttons.at(index);

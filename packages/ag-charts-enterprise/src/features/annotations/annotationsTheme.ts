@@ -1,6 +1,7 @@
 import {
     type AgAnnotationOptionsToolbar,
     type AgAnnotationsThemeableOptions,
+    type AgAnnotationsToolbar,
     _ModuleSupport,
 } from 'ag-charts-community';
 
@@ -68,6 +69,36 @@ const measurer = {
     handle: { ...handle },
     text: { ...lineText },
     statistics: { ...measurerStatistics },
+};
+
+const toolbar: AgAnnotationsToolbar = {
+    buttons: [
+        {
+            icon: 'trend-line-drawing',
+            tooltip: 'toolbarAnnotationsLineAnnotations',
+            value: 'line-menu',
+        },
+        {
+            icon: 'text-annotation',
+            tooltip: 'toolbarAnnotationsTextAnnotations',
+            value: 'text-menu',
+        },
+        {
+            icon: 'arrow-drawing',
+            tooltip: 'toolbarAnnotationsShapeAnnotations',
+            value: 'shape-menu',
+        },
+        {
+            icon: 'measurer-drawing',
+            tooltip: 'toolbarAnnotationsMeasurerAnnotations',
+            value: 'measurer-menu',
+        },
+        {
+            icon: 'delete',
+            tooltip: 'toolbarAnnotationsClearAll',
+            value: 'clear',
+        },
+    ],
 };
 
 const optionsToolbar: AgAnnotationOptionsToolbar = {
@@ -274,5 +305,6 @@ export const annotationsTheme: AgAnnotationsThemeableOptions = {
     axesButtons: {
         enabled: true,
     },
+    toolbar,
     optionsToolbar,
 };
