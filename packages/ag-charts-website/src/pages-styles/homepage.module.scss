@@ -9,14 +9,6 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     flex-direction: column;
 }
 
-.container > div:nth-child(even) {
-    background-color: var(--color-gray-50);
-
-    #{$selector-darkmode} & {
-        background-color: var(--color-util-gray-200);
-    }
-}
-
 .container > div:last-child {
     padding-bottom: $spacing-size-48;
 }
