@@ -12,6 +12,9 @@ export class FibonacciProperties extends LineTypeProperties {
     @Validate(BOOLEAN, { optional: true })
     reverse: boolean = false;
 
+    @Validate(BOOLEAN, { optional: true })
+    showFill: boolean = true;
+
     @Validate(COLOR_STRING_ARRAY)
     strokes: string[] = [];
 }

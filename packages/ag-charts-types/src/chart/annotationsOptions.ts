@@ -26,7 +26,7 @@ export interface AgAnnotationsThemeableOptions extends AgAnnotationsOptions {
     'parallel-channel'?: AgChannelAnnotationStyles;
 
     // Fibonaccis
-    'fibonacci-retracement'?: AgFibonacciAnnotationStyles; // MANA FIX THIS
+    'fibonacci-retracement'?: AgFibonacciAnnotationStyles;
 
     // Texts
     callout?: AgCalloutAnnotationStyles;
@@ -75,6 +75,8 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
 // Fibonaccis
 export interface AgFibonacciAnnotationStyles extends AgLineAnnotationStyles {
     label?: AgLineAnnotationTextOptions;
+    /** Whether to show the fills between the Fibonacci range lines. */
+    showFill?: boolean;
     /** The colours to cycle through for the strokes of the Fibonacci lines. */
     strokes?: CssColor[];
 }

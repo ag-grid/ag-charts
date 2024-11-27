@@ -217,6 +217,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogHeaderChannel: 'Channel',
     // Text for the annotation dialog's header line tab label
     dialogHeaderLine: 'Line',
+    // Text for the annotation dialog's header fibonacci range line tab label
+    dialogHeaderFibonacciRange: 'Fibonacci Range',
     // Text for the annotation dialog's header date range tab label
     dialogHeaderDateRange: 'Date Range',
     // Text for the annotation dialog's header price range tab label
@@ -251,6 +253,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputExtendLeft: 'Extend left',
     // Text for the annotation dialog's extend right checkbox
     dialogInputExtendRight: 'Extend right',
+    // Text for the annotation dialog's reverse checkbox
+    dialogInputReverse: 'Reverse',
+    // Text for the annotation dialog's show fill checkbox
+    dialogInputShowFill: 'Show Fill',
     // Text for the annotation dialog's font size select box label
     dialogInputFontSize: 'Size',
     // Text for the annotation dialog's font size select box alt text
