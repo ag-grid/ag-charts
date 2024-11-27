@@ -9,7 +9,7 @@ import type {
 } from '../series/cartesian/commonOptions';
 import type { ToolbarButton, ToolbarSwitch } from './buttonOptions';
 import type { Formatter } from './callbackOptions';
-import type { PixelSize } from './types';
+import type { CssColor, PixelSize } from './types';
 
 // *********
 // * Theme *
@@ -75,6 +75,8 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
 // Fibonaccis
 export interface AgFibonacciAnnotationStyles extends AgLineAnnotationStyles {
     label?: AgLineAnnotationTextOptions;
+    /** The colours to cycle through for the strokes of the Fibonacci lines. */
+    strokes?: CssColor[];
 }
 
 // Texts

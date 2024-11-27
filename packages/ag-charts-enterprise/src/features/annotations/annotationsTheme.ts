@@ -208,7 +208,7 @@ export const annotationsTheme: AgAnnotationsThemeableOptions = {
     // Fibonnaccis
     'fibonacci-retracement': {
         ...stroke,
-        stroke: undefined,
+        strokes: ThemeSymbols.DEFAULT_FIBONACCI_STROKES as unknown as string[],
         handle: { ...handle },
         text: { ...lineText, position: 'center' },
         label: { ...lineText, position: 'center', alignment: 'left', fontSize: 10 },

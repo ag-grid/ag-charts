@@ -37,6 +37,7 @@ import {
     DEFAULT_CAPTION_LAYOUT_STYLE,
     DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
+    DEFAULT_FIBONACCI_STROKES,
     DEFAULT_FONT_FAMILY,
     DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
     DEFAULT_GAUGE_SERIES_COLOR_RANGE,
@@ -482,6 +483,7 @@ export class ChartTheme {
         params.set(DEFAULT_CAPTION_ALIGNMENT, 'center');
         params.set(DEFAULT_HIERARCHY_FILLS, ['#ffffff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
         params.set(DEFAULT_HIERARCHY_STROKES, ['#ffffff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
+        params.set(DEFAULT_FIBONACCI_STROKES, [...Object.values(DEFAULT_STROKES), '#648096']);
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);
 
         params.set(DEFAULT_ANNOTATION_COLOR, DEFAULT_FILLS.BLUE);

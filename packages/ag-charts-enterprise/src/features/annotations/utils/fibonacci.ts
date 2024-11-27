@@ -6,20 +6,6 @@ export const FIBONACCI_RETRACEMENT_RATIOS = [0, 23.6, 38.2, 50, 61.8, 78.6];
 export const FIBONACCI_EXTENSION_RATIOS = [100, 161.8, 261.8, 361.8, 423.6];
 export const FIBONACCI_RATIOS = [...FIBONACCI_RETRACEMENT_RATIOS, ...FIBONACCI_EXTENSION_RATIOS];
 
-export const FIBONACCI_COLORS = [
-    '#5090dc',
-    '#ffa03a',
-    '#459d55',
-    '#34bfe1',
-    '#e1cc00',
-    '#9669cb',
-    '#b5b5b5',
-    '#bd5aa7',
-    '#8a6224',
-    '#ef5452',
-    'blue',
-];
-
 export const FIBONACCI_RANGE_LABEL_PADDING = 10;
 
 export enum FibonacciNodeTag {

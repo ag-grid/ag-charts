@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { FibonacciProperties } from '../properties/fibonacciProperties';
-import { FIBONACCI_COLORS, FibonacciNodeTag, createFibonacciRangesData } from '../utils/fibonacci';
+import { FibonacciNodeTag, createFibonacciRangesData } from '../utils/fibonacci';
 import type { FibonacciRangeDatum } from '../utils/fibonacci';
 import { updateLineText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
@@ -110,17 +110,18 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
     }
 
     private updateRangeStrokes(datum: Datum) {
-        const { lineDashOffset, strokeWidth, strokeOpacity, stroke } = datum;
+        const { lineDashOffset, strokeWidth, strokeOpacity, strokes } = datum;
 
+        const firstStroke = strokes[0];
         this.rangeStrokesGroupSelection.each((line, { x1, x2, y2, tag }, index) => {
             const y = y2;
-            const color = FIBONACCI_COLORS[index];
+            const color = strokes[index] ?? firstStroke;
             line.setProperties({
                 x1,
                 x2,
                 y1: y,
                 y2: y,
-                stroke: stroke ?? color,
+                stroke: color,
                 strokeOpacity,
                 strokeWidth,
                 lineCap: datum.getLineCap(),
@@ -145,10 +146,11 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
     }
 
     private updateRangeFills(datum: Datum) {
-        const { lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+        const { lineDashOffset, strokeWidth, strokeOpacity, strokes: colors } = datum;
 
+        const firstColor = colors[0];
         this.rangeFillsGroupSelection.each((range, { x1, x2, y1, y2 }, index) => {
-            const color = FIBONACCI_COLORS[index];
+            const color = colors[index] ?? firstColor;
             range.setProperties({
                 x1,
                 x2,
@@ -157,9 +159,9 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
                 startLine: false,
                 endLine: false,
                 isRange: true,
-                stroke: stroke ?? color,
+                stroke: color,
                 strokeOpacity,
-                fill: stroke ?? color,
+                fill: color,
                 fillOpacity: 0.15,
                 strokeWidth,
                 lineCap: datum.getLineCap(),
@@ -171,9 +173,11 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
     private updateRangeLabels(trendLineProperties: Datum, { xAxis }: AnnotationContext) {
         const { rangeStrokesGroupSelection } = this;
-        const { stroke, strokeWidth } = trendLineProperties;
+        const { strokes: colors, strokeWidth } = trendLineProperties;
+
+        const firstColor = colors[0];
         this.labelsGroupSelection.each((textNode, datum, index) => {
-            const color = FIBONACCI_COLORS[index];
+            const color = colors[index] ?? firstColor;
 
             const line = rangeStrokesGroupSelection.at(index);
 
@@ -201,8 +205,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
             if (!xWithinBounds) updateLineText(line, labelProperties, coords, textNode, text, strokeWidth);
 
             textNode.setProperties({
-                stroke: stroke ?? color,
-                fill: stroke ?? color,
+                fill: color,
             });
         });
     }
@@ -236,7 +239,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
     protected getHandleStyles(datum: Datum) {
         return {
             fill: datum.handle.fill,
-            stroke: datum.handle.stroke ?? '#2b5c95',
+            stroke: datum.handle.stroke ?? datum.stroke,
             strokeOpacity: datum.handle.strokeOpacity ?? datum.strokeOpacity,
             strokeWidth: datum.handle.strokeWidth ?? datum.strokeWidth,
         };
