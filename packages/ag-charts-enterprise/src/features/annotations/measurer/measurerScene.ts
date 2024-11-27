@@ -192,7 +192,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
         this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
 
-        const clip = updateLineText(line, datum.text, textCoords, this.text, this.text?.text, datum.strokeWidth);
+        const clip = updateLineText(line, datum.text, textCoords, this.text, datum.text.label, datum.strokeWidth);
 
         let verticalClipMask;
 
