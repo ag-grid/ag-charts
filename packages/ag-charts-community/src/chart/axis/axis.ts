@@ -286,7 +286,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected readonly layout: Pick<AxisLayout, 'label'> = {
         label: {
             fractionDigits: 0,
-            padding: this.label.spacing,
+            spacing: this.label.spacing,
             format: this.label.format,
         },
     };
@@ -751,7 +751,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     private updateLayoutState(fractionDigits: number) {
         this.layout.label = {
             fractionDigits: fractionDigits,
-            padding: this.label.spacing,
+            spacing: this.label.spacing,
             format: this.label.format,
         };
     }
