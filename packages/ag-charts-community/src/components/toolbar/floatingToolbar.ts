@@ -48,12 +48,12 @@ class FloatingToolbarPopover extends DraggablePopover<PopoverOptions> {
 
     public getBounds() {
         const element = this.getPopoverElement();
-        return {
-            x: element?.offsetLeft ?? 0,
-            y: element?.offsetTop ?? 0,
-            width: element?.offsetWidth ?? 0,
-            height: element?.offsetHeight ?? 0,
-        };
+        return new BBox(
+            element?.offsetLeft ?? 0,
+            element?.offsetTop ?? 0,
+            element?.offsetWidth ?? 0,
+            element?.offsetHeight ?? 0
+        );
     }
 
     public hasBeenDragged() {
@@ -115,6 +115,7 @@ export abstract class FloatingToolbar<
     protected override hasPrefix = true;
 
     private readonly popover: FloatingToolbarPopover;
+    private popoverBounds?: BBox;
 
     constructor(ctx: ModuleContext, id: string) {
         super(ctx);
@@ -148,9 +149,15 @@ export abstract class FloatingToolbar<
 
     private onPopoverMoved() {
         const popoverBounds = this.popover.getBounds();
+
+        // Prevent triggering a 'toolbar-moved' event unless the position has actually changed
+        if (this.popoverBounds?.equals(popoverBounds)) return;
+
+        this.popoverBounds = popoverBounds.clone();
         const buttonBounds = this.getButtonBounds().map(
             (bounds) => new BBox(bounds.x + popoverBounds.x, bounds.y + popoverBounds.y, bounds.width, bounds.height)
         );
+
         this.events.dispatch('toolbar-moved', { popoverBounds, buttonBounds });
     }
 
