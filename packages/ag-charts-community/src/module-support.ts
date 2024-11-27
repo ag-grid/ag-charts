@@ -92,6 +92,7 @@ export * from './chart/series/cartesian/interpolationProperties';
 export * from './chart/series/dataModelSeries';
 export * from './chart/series/polar/polarSeries';
 export * from './chart/series/polar/pieUtil';
+export * from './chart/series/polar/polarZIndexMap';
 export * from './chart/series/hierarchy/hierarchySeries';
 export * from './chart/series/hierarchy/hierarchySeriesProperties';
 export * from './chart/series/topologySeries';

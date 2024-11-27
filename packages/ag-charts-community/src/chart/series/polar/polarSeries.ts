@@ -168,10 +168,8 @@ export abstract class PolarSeries<
     override setSeriesIndex(index: number) {
         if (!super.setSeriesIndex(index)) return false;
 
-        // Unlike most series, highlights on polars appear on top of all other polar series
-        // This is to fix highlights for nightingale
-        this.contentGroup.zIndex = [PolarZIndexMap.FOREGROUND, index];
-        this.highlightGroup.zIndex = [PolarZIndexMap.HIGHLIGHT, index];
+        this.contentGroup.zIndex = [index, PolarZIndexMap.FOREGROUND];
+        this.highlightGroup.zIndex = [index, PolarZIndexMap.HIGHLIGHT];
 
         return true;
     }
