@@ -50,9 +50,13 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         this.toolbar.addClass('ag-charts-annotations__toolbar');
         ctx.domManager.addChild('canvas-overlay', 'annotations-toolbar', this.toolbar.getElement());
 
+        const onKeyDown = this.onKeyDown.bind(this);
+        this.toolbar.addListener('keydown', onKeyDown);
+
         this.destroyFns.push(
             this.toolbar.addToolbarListener('button-pressed', this.onToolbarButtonPress.bind(this)),
-            ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this))
+            ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
+            () => this.toolbar.removeListener('keydown', onKeyDown)
         );
     }
 
@@ -205,29 +209,16 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         this.annotationMenu.hide();
     }
 
+    private onKeyDown(_: _ModuleSupport.Widget, { sourceEvent }: _ModuleSupport.KeyboardWidgetEvent) {
+        if (sourceEvent.key === 'Escape') {
+            this.dispatch('cancel-create-annotation');
+        }
+    }
+
     private updateButtonByIndex(index: number, change: Partial<AnnotationsToolbarButtonOptions>) {
         const button = this.buttons.at(index);
         if (!button) return;
-
-        button.ariaLabel = change.ariaLabel ?? button.ariaLabel;
-        button.icon = change.icon ?? button.icon;
-        button.label = change.label ?? button.label;
-        button.tooltip = change.tooltip ?? button.tooltip;
-        button.value = change.value ?? button.value;
-
-        this.toolbar.updateButtonByIndex(index, {
-            ariaLabel: button.ariaLabel,
-            icon: button.icon,
-            label: button.label,
-            tooltip: button.tooltip,
-            value: button.value,
-        });
+        button.set({ ...button.toJson(), ...change, value: change.value ?? button.value });
+        this.toolbar.updateButtonByIndex(index, { ...button.toJson() } as any);
     }
-
-    // TODO: handle esc key
-    // private onCancelled(event: any) {
-    //     if (event.group === 'annotations') {
-    //         this.dispatch('cancel-create-annotation');
-    //     }
-    // }
 }

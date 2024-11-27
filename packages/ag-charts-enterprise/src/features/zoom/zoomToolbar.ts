@@ -77,7 +77,7 @@ export class ZoomToolbar extends BaseProperties {
         this.container.addClass('ag-charts-zoom-buttons');
         ctx.domManager.addChild('canvas-overlay', 'zoom-buttons', this.container.getElement());
 
-        this.container.appendChild(this.toolbar);
+        this.container.addChild(this.toolbar);
 
         this.toggleVisibility(false);
 

@@ -1,7 +1,6 @@
-import { BBox } from '../../../scene/bbox';
-import { Path } from '../../../scene/shape/path';
+import { _ModuleSupport } from 'ag-charts-community';
 
-export class RangeMask extends Path {
+export class RangeMask extends _ModuleSupport.Path {
     static override readonly className = 'RangeMask';
 
     override zIndex = 2;
@@ -37,14 +36,14 @@ export class RangeMask extends Path {
 
     protected override computeBBox() {
         const { x, y, width, height } = this;
-        return new BBox(x, y, width, height);
+        return new _ModuleSupport.BBox(x, y, width, height);
     }
 
     computeVisibleRangeBBox() {
         const { x, y, width, height, min, max } = this;
         const minX = x + width * min;
         const maxX = x + width * max;
-        return new BBox(minX, y, maxX - minX, height);
+        return new _ModuleSupport.BBox(minX, y, maxX - minX, height);
     }
 
     override updatePath() {

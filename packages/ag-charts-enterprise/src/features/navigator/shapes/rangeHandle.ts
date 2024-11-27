@@ -1,9 +1,8 @@
-import { BBox } from '../../../scene/bbox';
-import { ScenePathChangeDetection } from '../../../scene/shape/path';
-import { Path } from '../../../scene/shape/path';
-import { POSITIVE_NUMBER, Validate } from '../../../util/validation';
+import { _ModuleSupport } from 'ag-charts-community';
 
-export class RangeHandle extends Path {
+const { Validate, ScenePathChangeDetection, POSITIVE_NUMBER, BBox } = _ModuleSupport;
+
+export class RangeHandle extends _ModuleSupport.Path {
     static override readonly className = 'RangeHandle';
 
     override zIndex = 3;

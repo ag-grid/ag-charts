@@ -1,7 +1,6 @@
 import type { InteractionRange, TextWrap } from 'ag-charts-types';
 
 import type { DOMManager } from '../../dom/domManager';
-import { enterpriseModule } from '../../module/enterpriseModule';
 import { getWindow } from '../../util/dom';
 import { clamp } from '../../util/number';
 import { type Bounds, calculatePlacement } from '../../util/placement';
@@ -38,7 +37,8 @@ type TooltipPositionType =
     | 'top-right'
     | 'bottom-right'
     | 'bottom-left'
-    | 'sparkline';
+    | 'sparkline'
+    | 'sparkline-constrained';
 
 type TooltipOffsets = { canvasX: number; canvasY: number };
 export type TooltipEventType = 'hover' | 'click' | 'dblclick' | 'keyboard';
@@ -132,6 +132,7 @@ export class TooltipPosition extends BaseProperties {
                 'bottom-right',
                 'bottom-left',
                 { value: 'sparkline', undocumented: true },
+                { value: 'sparkline-', undocumented: true },
             ],
             'a position type'
         )
@@ -236,35 +237,32 @@ export class Tooltip extends BaseProperties {
         const xOffset = meta.position?.xOffset ?? 0;
         const yOffset = meta.position?.yOffset ?? 0;
 
-        const tooltipBounds = this.getTooltipBounds({ positionType, canvasX, canvasY, yOffset, xOffset, canvasRect });
-
-        const position = calculatePlacement(element.clientWidth, element.clientHeight, relativeRect, tooltipBounds);
-
         const minX = relativeRect.x;
         const minY = relativeRect.y;
         const maxX = relativeRect.width - element.clientWidth - 1 + minX;
         const maxY = relativeRect.height - element.clientHeight + minY;
 
-        const left = clamp(minX, position.x, maxX);
-        let top = position.y;
-        if (
-            positionType === 'sparkline' &&
-            enterpriseModule.isEnterprise &&
-            top < minY &&
-            maxY - minY >= canvasRect.height
-        ) {
-            top = canvasRect.height;
+        let tooltipBounds = this.getTooltipBounds({ positionType, canvasX, canvasY, yOffset, xOffset, canvasRect });
+        let position = calculatePlacement(element.clientWidth, element.clientHeight, relativeRect, tooltipBounds);
+
+        if (positionType === 'sparkline' && (position.x <= minX || position.x >= maxX)) {
+            tooltipBounds = this.getTooltipBounds({
+                positionType: 'sparkline-constrained',
+                canvasX,
+                canvasY,
+                yOffset,
+                xOffset,
+                canvasRect,
+            });
+            position = calculatePlacement(element.clientWidth, element.clientHeight, relativeRect, tooltipBounds);
         }
-        top = clamp(minY, top, maxY);
+
+        const left = clamp(minX, position.x, maxX);
+        const top = clamp(minY, position.y, maxY);
 
         const constrained = left !== position.x || top !== position.y;
         const defaultShowArrow =
-            (positionType === 'node' ||
-                positionType === 'pointer' ||
-                (positionType === 'sparkline' && !enterpriseModule.isEnterprise)) &&
-            !constrained &&
-            !xOffset &&
-            !yOffset;
+            (positionType === 'node' || positionType === 'pointer') && !constrained && !xOffset && !yOffset;
         const showArrow = meta.showArrow ?? this.showArrow ?? defaultShowArrow;
         this.updateShowArrow(showArrow);
 
@@ -449,14 +447,13 @@ export class Tooltip extends BaseProperties {
                 return bounds;
             }
             case 'sparkline': {
-                if (enterpriseModule.isEnterprise) {
-                    // Crosslines enabled
-                    bounds.top = yOffset - tooltipHeight;
-                } else {
-                    // No cross lines
-                    bounds.top = canvasY + yOffset - tooltipHeight - 8;
-                }
-                bounds.left = canvasX + xOffset - tooltipWidth / 2;
+                bounds.top = canvasY + yOffset - tooltipHeight / 2;
+                bounds.left = canvasX + xOffset + 8;
+                return bounds;
+            }
+            case 'sparkline-constrained': {
+                bounds.top = canvasY + yOffset - tooltipHeight / 2;
+                bounds.left = canvasX + xOffset - 8 - tooltipWidth;
                 return bounds;
             }
         }
