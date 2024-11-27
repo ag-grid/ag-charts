@@ -1,4 +1,5 @@
 const twoPi = Math.PI * 2;
+const halfPi = Math.PI / 2;
 
 /**
  * Normalize the given angle to be in the [0, 2π) interval.
@@ -76,7 +77,7 @@ export function angleDiff(angle0: number, angle1: number, counterClockwise: bool
 export function angleBetween(angle0: number, angle1: number) {
     angle0 = normalizeAngle360(angle0);
     angle1 = normalizeAngle360(angle1);
-    return angle1 - angle0 + (angle0 > angle1 ? 2 * Math.PI : 0);
+    return angle1 - angle0 + (angle0 > angle1 ? twoPi : 0);
 }
 
 export function displacePointFromVector(
@@ -101,9 +102,31 @@ export function clockwiseAngle(angle: number, relativeToStartAngle: number) {
 }
 
 export function clockwiseAngles(startAngle: number, endAngle: number, relativeToStartAngle = 0) {
-    const fullPie = Math.abs(endAngle - startAngle) >= 2 * Math.PI;
-    const sweepAngle = fullPie ? 2 * Math.PI : normalizeAngle360(endAngle - startAngle);
+    const fullPie = Math.abs(endAngle - startAngle) >= twoPi;
+    const sweepAngle = fullPie ? twoPi : normalizeAngle360(endAngle - startAngle);
     startAngle = clockwiseAngle(startAngle, relativeToStartAngle);
     endAngle = startAngle + sweepAngle;
     return { startAngle, endAngle };
+}
+
+/**
+ * Calculates the ratio of an angle in radians based on its proximity to 0, π/2, π, or 3π/2.
+ *
+ * - 0 and π return ratios decreasing linearly to 0 at these angles.
+ * - π/2 and 3π/2 return ratios increasing linearly to 1 at these angles.
+ *
+ * @param angle - The input angle in radians.
+ * @returns The ratio (a number between 0 and 1).
+ */
+export function getAngleRatioRadians(angle: number): number {
+    const normalizedAngle = normalizeAngle360(angle);
+    if (normalizedAngle <= halfPi) {
+        return normalizedAngle / halfPi;
+    } else if (normalizedAngle <= Math.PI) {
+        return (Math.PI - normalizedAngle) / halfPi;
+    } else if (normalizedAngle <= 1.5 * Math.PI) {
+        return (normalizedAngle - Math.PI) / halfPi;
+    } else {
+        return (twoPi - normalizedAngle) / halfPi;
+    }
 }

@@ -5,7 +5,7 @@ import { BandScale } from '../../scale/bandScale';
 import { BBox } from '../../scene/bbox';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
-import { normalizeAngle360, toRadians } from '../../util/angle';
+import { getAngleRatioRadians, normalizeAngle360, toRadians } from '../../util/angle';
 import { extent, sortBasedOnArray, unique } from '../../util/array';
 import { iterate } from '../../util/iterator';
 import { inRange } from '../../util/number';
@@ -52,7 +52,7 @@ class DepthLabelProperties extends BaseProperties {
     color?: string;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
-    padding?: number;
+    spacing?: number;
 
     @Validate(FONT_STYLE, { optional: true })
     fontStyle?: FontStyle;
@@ -140,10 +140,10 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 depthOptions[i]?.label.enabled ?? label.enabled
                     ? {
                           enabled: true,
-                          padding: depthOptions[i]?.label.padding ?? label.spacing,
+                          spacing: depthOptions[i]?.label.spacing ?? label.spacing,
                           lineHeight: TextUtils.getLineHeight(depthOptions[i]?.label.fontSize ?? label.fontSize ?? 10),
                       }
-                    : { enabled: false, padding: 0, lineHeight: 0 }
+                    : { enabled: false, spacing: 0, lineHeight: 0 }
             );
         }
         return optionsMap;
@@ -221,6 +221,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 text,
                 textAlign: 'center',
                 textBaseline: parallelFlipFlag === -1 ? 'bottom' : 'hanging',
+                rotation: 0,
                 translationX: 0,
                 translationY: datum.screenX,
             });
@@ -241,24 +242,24 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
             const isVisible = setLabelProps(datum, index);
             if (!isVisible || !tempText.getBBox()) return;
-            const bbox = tempText.getBBox().clone();
+            labelBBoxes.set(index, tempText.getBBox());
 
             if (!datum.leafCount) {
-                if (maxLeafLabelWidth < bbox.width) {
-                    maxLeafLabelWidth = bbox.width;
+                tempText.rotation = configuredRotation;
+                const { width } = tempText.getBBox();
+                if (maxLeafLabelWidth < width) {
+                    maxLeafLabelWidth = width;
                 }
             }
-
-            labelBBoxes.set(index, bbox);
         });
 
         const idGenerator = createIdsGenerator();
-        const labelX = sideFlag * optionsMap[0].padding;
+        const labelX = sideFlag * optionsMap[0].spacing;
         const separatorData: Map<number, SeparatorDatum> = new Map();
         const nestedPadding = (d: number) => {
-            let v = maxLeafLabelWidth;
+            let v = Math.max(maxLeafLabelWidth, depthLines[0] * optionsMap[0].lineHeight);
             for (let i = 1; i <= d; i++) {
-                v += optionsMap[i].padding;
+                v += optionsMap[i].spacing;
                 if (label.mirrored || i !== d) {
                     v += depthLines[i] * optionsMap[i].lineHeight;
                 }
@@ -273,31 +274,6 @@ export class GroupedCategoryAxis extends CategoryAxis {
             const isLeaf = !datum.children.length;
             const depth = maxDepth - datum.depth;
 
-            tempText.x = labelX;
-            tempText.y = 0;
-            tempText.rotationCenterX = labelX;
-
-            if (isLeaf) {
-                tempText.rotation = configuredRotation;
-                tempText.textAlign = 'end';
-                tempText.textBaseline = 'middle';
-
-                if (label.mirrored) {
-                    tempText.translationX = labelBBoxes.get(index)?.width ?? 0;
-                }
-            } else {
-                const availableRange = datum.leafCount * step;
-                const bbox = labelBBoxes.get(index);
-
-                if (bbox && bbox.width > availableRange) {
-                    visible = false;
-                    labelBBoxes.delete(index);
-                } else {
-                    tempText.rotation = isHorizontal ? defaultRotation : -Math.PI / 2;
-                    tempText.translationX = sideFlag * nestedPadding(depth);
-                }
-            }
-
             // Calculate sizes of label separators for all nodes except the root.
             if (datum.parent) {
                 const separatorX = isLeaf ? datum.x : datum.x - (datum.leafCount - 1) / 2;
@@ -305,7 +281,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                     const tickOptions = this.depthOptions[depth]?.tick;
                     let v = maxLeafLabelWidth;
                     for (let i = 0; i <= depth; i++) {
-                        v += optionsMap[i].padding;
+                        v += optionsMap[i].spacing;
                         if (i !== 0) {
                             v += depthLines[i] * optionsMap[i].lineHeight;
                         }
@@ -318,31 +294,62 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 }
             }
 
-            if (visible) {
-                const { text = '' } = tempText;
-                tickLabelLayout.push({
-                    text,
-                    visible: true,
-                    range: this.scale.range,
-                    tickId: idGenerator(text),
-                    fill: tempText.fill as string,
-                    fontFamily: tempText.fontFamily,
-                    fontSize: tempText.fontSize,
-                    fontStyle: tempText.fontStyle,
-                    fontWeight: tempText.fontWeight,
-                    rotation: tempText.rotation,
-                    rotationCenterX: tempText.rotationCenterX,
-                    textAlign: tempText.textAlign,
-                    textBaseline: tempText.textBaseline,
-                    translationX: tempText.translationX,
-                    translationY: tempText.translationY,
-                    x: tempText.x,
-                    y: tempText.y,
-                });
-                labelBBoxes.set(index, Transformable.toCanvas(tempText));
+            if (!visible) return;
+
+            tempText.x = labelX;
+            tempText.y = 0;
+
+            if (isLeaf) {
+                const labelWidth = labelBBoxes.get(index)?.width ?? 0;
+                // const labelHeight = labelBBoxes.get(index)?.height ?? 0;
+
+                tempText.rotation = configuredRotation;
+                tempText.textAlign = 'end';
+                tempText.textBaseline = 'middle';
+                tempText.rotationCenterX = labelX - labelWidth / 2;
+                tempText.translationX =
+                    ((labelWidth - depthLines[depth] * optionsMap[depth].lineHeight) / 2) *
+                    getAngleRatioRadians(configuredRotation) *
+                    -sideFlag;
+
+                if (label.mirrored) {
+                    tempText.translationX += labelWidth;
+                }
             } else {
-                labelBBoxes.delete(index);
+                const availableRange = datum.leafCount * step;
+                const bbox = labelBBoxes.get(index);
+
+                if (bbox && bbox.width > availableRange) {
+                    labelBBoxes.delete(index);
+                    return;
+                }
+
+                tempText.rotation = isHorizontal ? defaultRotation : -Math.PI / 2;
+                tempText.rotationCenterX = labelX;
+                tempText.translationX = sideFlag * nestedPadding(depth);
             }
+
+            const { text = '' } = tempText;
+            tickLabelLayout.push({
+                text,
+                visible: true,
+                range: this.scale.range,
+                tickId: idGenerator(text),
+                fill: tempText.fill as string,
+                fontFamily: tempText.fontFamily,
+                fontSize: tempText.fontSize,
+                fontStyle: tempText.fontStyle,
+                fontWeight: tempText.fontWeight,
+                rotation: tempText.rotation,
+                rotationCenterX: tempText.rotationCenterX,
+                textAlign: tempText.textAlign,
+                textBaseline: tempText.textBaseline,
+                translationX: tempText.translationX,
+                translationY: tempText.translationY,
+                x: tempText.x,
+                y: tempText.y,
+            });
+            labelBBoxes.set(index, Transformable.toCanvas(tempText));
         });
 
         const { enabled, stroke, width } = this.line;
