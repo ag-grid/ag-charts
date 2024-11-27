@@ -9,7 +9,7 @@ export const FIBONACCI_RATIOS = [...FIBONACCI_RETRACEMENT_RATIOS, ...FIBONACCI_E
 const FIBONACCI_RATIOS_MAP: Record<FibonacciBands, number[]> = {
     10: FIBONACCI_RATIOS,
     6: FIBONACCI_RETRACEMENT_RATIOS,
-    4: FIBONACCI_RETRACEMENT_RATIOS.filter((r) => r !== 78.6),
+    4: FIBONACCI_RETRACEMENT_RATIOS.filter((r) => r !== 78.6 && r !== 23.6),
 };
 
 export const FIBONACCI_RANGE_LABEL_PADDING = 10;
