@@ -4,6 +4,7 @@ import { calloutConfig } from './callout/calloutConfig';
 import { commentConfig } from './comment/commentConfig';
 import { horizontalLineConfig, verticalLineConfig } from './cross-line/crossLineConfig';
 import { disjointChannelConfig } from './disjoint-channel/disjointChannelConfig';
+import { fibonacciRetracementConfig } from './fibonacciRetracement/fibonacciRetracementConfig';
 import { arrowConfig, lineConfig } from './line/lineConfig';
 import {
     datePriceRangeConfig,
@@ -24,6 +25,9 @@ export const annotationConfigs = {
     // Channels
     [parallelChannelConfig.type]: parallelChannelConfig,
     [disjointChannelConfig.type]: disjointChannelConfig,
+
+    // Fibonaccis
+    [fibonacciRetracementConfig.type]: fibonacciRetracementConfig,
 
     // Texts
     [calloutConfig.type]: calloutConfig,

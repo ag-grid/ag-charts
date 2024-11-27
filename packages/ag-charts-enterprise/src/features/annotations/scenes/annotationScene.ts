@@ -42,4 +42,22 @@ export abstract class AnnotationScene extends _ModuleSupport.Group {
             _ModuleSupport.Group.computeChildrenBBox(this.nonHandleChildren())
         );
     }
+
+    protected updateNode<TNode extends _ModuleSupport.Node>(
+        constructor: new () => TNode,
+        node?: TNode,
+        isConfigured?: boolean
+    ) {
+        if (!isConfigured && node) {
+            this.removeChild(node);
+            return;
+        }
+
+        if (node == null) {
+            node = new constructor();
+            this.appendChild(node);
+        }
+
+        return node;
+    }
 }

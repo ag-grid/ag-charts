@@ -36,3 +36,56 @@ export function snapToAngle(
         y: cy + r * Math.sin(snapTheta) * direction,
     };
 }
+
+export function getDragStartState<PointName extends string>(
+    points: Record<PointName, Point>,
+    context: AnnotationContext
+) {
+    const dragState = {} as Record<PointName, _ModuleSupport.Vec2>;
+
+    Object.entries(points).forEach(([name, point]) => {
+        dragState[name as PointName] = convertPoint(point as Point, context);
+    });
+
+    return dragState;
+}
+
+export function translate<VectorName extends string>({
+    vectors,
+    translation,
+    context,
+}: {
+    vectors: Record<VectorName, _ModuleSupport.Vec2>;
+    translation: _ModuleSupport.Vec2;
+    context: AnnotationContext;
+}) {
+    const vecs: _ModuleSupport.Vec2[] = [];
+    const result: Partial<Record<VectorName, _ModuleSupport.Vec2>> = {};
+
+    Object.entries(vectors).forEach(([name, vector]) => {
+        const translatedVec = Vec2.add(vector as _ModuleSupport.Vec2, translation);
+        vecs.push(translatedVec);
+        const point = invertCoords(translatedVec, context);
+
+        result[name as VectorName] = point;
+    });
+
+    const { xAxis, yAxis } = context;
+
+    // Only move the points along each axis if all the corners are within the axis, allowing the annotation to
+    // slide along the perpendicular axis.
+    const within = (min: number, value: number, max: number) => value >= min && value <= max;
+
+    let translateX,
+        translateY = false;
+
+    if (vecs.every((vec) => within(xAxis.bounds.x, vec.x, xAxis.bounds.x + xAxis.bounds.width))) {
+        translateX = true;
+    }
+
+    if (vecs.every((vec) => within(yAxis.bounds.y, vec.y, yAxis.bounds.y + yAxis.bounds.height))) {
+        translateY = true;
+    }
+
+    return { vectors: result, translateX, translateY };
+}

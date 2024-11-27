@@ -196,6 +196,7 @@ export { Group, TranslatableGroup } from './scene/group';
 export { Scene } from './scene/scene';
 export { Arc } from './scene/shape/arc';
 export { Line } from './scene/shape/line';
+export { Range } from './scene/shape/range';
 export { Path } from './scene/shape/path';
 export { RadialColumnShape, getRadialColumnWidth } from './scene/shape/radialColumnShape';
 export { Rect } from './scene/shape/rect';

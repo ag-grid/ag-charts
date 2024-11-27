@@ -2,6 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { type AnnotationType } from './annotationTypes';
 import {
+    FIBONACCI_ANNOTATION_ITEMS,
     LINE_ANNOTATION_ITEMS,
     MEASURER_ANNOTATION_ITEMS,
     SHAPE_ANNOTATION_ITEMS,
@@ -23,7 +24,13 @@ interface AnnotationsToolbarButtonOptions extends _ModuleSupport.ToolbarButtonOp
     value: AnnotationsToolbarButtonValue;
 }
 
-type AnnotationsToolbarButtonValue = 'line-menu' | 'text-menu' | 'shape-menu' | 'measurer-menu' | 'clear';
+type AnnotationsToolbarButtonValue =
+    | 'line-menu'
+    | 'fibonacci-menu'
+    | 'text-menu'
+    | 'shape-menu'
+    | 'measurer-menu'
+    | 'clear';
 
 class AnnotationsToolbarButtonProperties extends ToolbarButtonProperties {
     @Validate(UNION(['line-menu', 'text-menu', 'shape-menu', 'measurer-menu', 'clear']))
@@ -80,6 +87,10 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
             switch (button.value) {
                 case 'line-menu':
                     this.updateButtonByIndex(index, { icon: 'trend-line-drawing', value: 'line-menu' });
+                    break;
+
+                case 'fibonacci-menu':
+                    this.updateButtonByIndex(index, { icon: 'fibonacci-drawing', value: 'fibonacci-menu' });
                     break;
 
                 case 'text-menu':
@@ -139,6 +150,16 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
                     button.value,
                     'toolbarAnnotationsLineAnnotations',
                     LINE_ANNOTATION_ITEMS
+                );
+                break;
+
+            case 'fibonacci-menu':
+                this.onToolbarButtonPressShowMenu(
+                    event,
+                    buttonBounds,
+                    button.value,
+                    'toolbarAnnotationsFibonacciAnnotations',
+                    FIBONACCI_ANNOTATION_ITEMS
                 );
                 break;
 

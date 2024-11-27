@@ -4,7 +4,7 @@ import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ArrowCapScene } from '../scenes/capScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
-import type { CollidableText } from '../scenes/collidableTextScene';
+import { CollidableText } from '../scenes/collidableTextScene';
 import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { StartEndScene } from '../scenes/startEndScene';
 import { WithBackgroundScene } from '../scenes/withBackgroundScene';
@@ -190,7 +190,16 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             textCoords.y2 = center.y;
         }
 
-        const clip = LineWithTextScene.updateLineText.call(this, line, datum, textCoords);
+        this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
+
+        const clip = LineWithTextScene.updateLineText(
+            line,
+            datum.text,
+            textCoords,
+            this.text,
+            this.text?.text,
+            datum.strokeWidth
+        );
 
         let verticalClipMask;
 

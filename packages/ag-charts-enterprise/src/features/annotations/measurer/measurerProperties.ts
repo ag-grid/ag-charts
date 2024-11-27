@@ -44,12 +44,17 @@ export class MeasurerTypeProperties extends Localisable(Background(Stroke(LineSt
 
     public getVolume: (from: Point['x'], to: Point['x']) => number | undefined = () => 0;
 
+    @Validate(OBJECT, { optional: true })
+    text = new LineTextProperties();
+
     override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
         switch (colorPickerType) {
             case `fill-color`:
                 return this.background.fill;
             case `line-color`:
                 return this.stroke;
+            case `text-color`:
+                return this.text.color;
         }
     }
 
@@ -85,24 +90,7 @@ function PriceRange<T extends Constructor>(Parent: T) {
     return PriceRangeInternal;
 }
 
-function LineText<
-    T extends Constructor<{
-        getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType): string | undefined;
-    }>,
->(Parent: T) {
-    class LineTextInternal extends Parent {
-        @Validate(OBJECT, { optional: true })
-        text = new LineTextProperties();
-
-        override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
-            if (colorPickerType === 'text-color') return this.text.color;
-            return super.getDefaultColor(colorPickerType);
-        }
-    }
-    return LineTextInternal;
-}
-
-export class DateRangeProperties extends DateRange(LineText(MeasurerTypeProperties)) {
+export class DateRangeProperties extends DateRange(MeasurerTypeProperties) {
     static is(this: void, value: unknown): value is DateRangeProperties {
         return isObject(value) && value.type === AnnotationType.DateRange;
     }
@@ -119,7 +107,7 @@ export class DateRangeProperties extends DateRange(LineText(MeasurerTypeProperti
     override direction = 'horizontal' as const;
 }
 
-export class PriceRangeProperties extends PriceRange(LineText(MeasurerTypeProperties)) {
+export class PriceRangeProperties extends PriceRange(MeasurerTypeProperties) {
     static is(this: void, value: unknown): value is PriceRangeProperties {
         return isObject(value) && value.type === AnnotationType.PriceRange;
     }
@@ -136,7 +124,7 @@ export class PriceRangeProperties extends PriceRange(LineText(MeasurerTypeProper
     override direction = 'vertical' as const;
 }
 
-export class DatePriceRangeProperties extends DateRange(PriceRange(LineText(MeasurerTypeProperties))) {
+export class DatePriceRangeProperties extends DateRange(PriceRange(MeasurerTypeProperties)) {
     static is(this: void, value: unknown): value is DatePriceRangeProperties {
         return isObject(value) && value.type === AnnotationType.DatePriceRange;
     }

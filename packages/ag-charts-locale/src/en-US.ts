@@ -99,6 +99,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarSeriesTypeStepLine: 'Step Line',
     // Text for the annotation toolbar's trend line button
     toolbarAnnotationsTrendLine: 'Trend Line',
+    // Text for the annotation toolbar's Fibonacci Retracement button
+    toolbarAnnotationsFibonacciRetracement: 'Fibonacci Retracement',
     // Text for the annotation toolbar's horizontal line button
     toolbarAnnotationsHorizontalLine: 'Horizontal Line',
     // Text for the annotation toolbar's vertical line button
@@ -133,6 +135,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Drag Toolbar',
     // Text for the annotation toolbar's line drawings menu button
     toolbarAnnotationsLineAnnotations: 'Trend Lines',
+    // Text for the annotation toolbar's Fibonacci drawings menu button
+    toolbarAnnotationsFibonacciAnnotations: 'Fibonacci',
     // Text for the annotation toolbar's text annotations menu button
     toolbarAnnotationsTextAnnotations: 'Text Annotations',
     // Text for the annotation toolbar's shapes menu button

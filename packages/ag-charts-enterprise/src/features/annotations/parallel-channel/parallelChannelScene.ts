@@ -4,6 +4,7 @@ import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
+import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { isPoint, validateDatumPoint } from '../utils/validation';
@@ -225,7 +226,19 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         });
     }
 
-    override updateText = LineWithTextScene.updateChannelText.bind(this, true);
+    updateText(datum: ParallelChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
+        this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
+
+        LineWithTextScene.updateChannelText(
+            true,
+            top,
+            bottom,
+            datum.text,
+            datum.strokeWidth,
+            this.text,
+            datum.text.label
+        );
+    }
 
     override getBackgroundPoints(
         datum: ParallelChannelProperties,

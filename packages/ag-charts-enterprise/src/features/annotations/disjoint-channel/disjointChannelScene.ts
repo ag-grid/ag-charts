@@ -3,6 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
+import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
 import { LineWithTextScene } from '../scenes/lineWithTextScene';
 import { convertPoint, invertCoords } from '../utils/values';
@@ -176,7 +177,19 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         });
     }
 
-    override updateText = LineWithTextScene.updateChannelText.bind(this, false);
+    updateText(datum: DisjointChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
+        this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
+
+        LineWithTextScene.updateChannelText(
+            false,
+            top,
+            bottom,
+            datum.text,
+            datum.strokeWidth,
+            this.text,
+            datum.text.label
+        );
+    }
 
     override getBackgroundPoints(
         datum: DisjointChannelProperties,

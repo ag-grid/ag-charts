@@ -25,6 +25,9 @@ export interface AgAnnotationsThemeableOptions extends AgAnnotationsOptions {
     'disjoint-channel'?: AgChannelAnnotationStyles;
     'parallel-channel'?: AgChannelAnnotationStyles;
 
+    // Fibonaccis
+    'fibonacci-retracement'?: AgFibonacciAnnotationStyles; // MANA FIX THIS
+
     // Texts
     callout?: AgCalloutAnnotationStyles;
     comment?: AgCommentAnnotationStyles;
@@ -67,6 +70,11 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
     /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
     text?: AgChannelAnnotationTextOptions;
+}
+
+// Fibonaccis
+export interface AgFibonacciAnnotationStyles extends AgLineAnnotationStyles {
+    label?: AgLineAnnotationTextOptions;
 }
 
 // Texts
@@ -464,6 +472,7 @@ export interface AgAnnotationsToolbarButton extends ToolbarButton {
 
 export type AgAnnotationsToolbarButtonValue =
     | 'line-menu'
+    | 'fibonacci-menu'
     | 'text-menu'
     | 'shape-menu'
     | 'measurer-menu'
@@ -472,6 +481,7 @@ export type AgAnnotationsToolbarButtonValue =
     | 'vertical-line'
     | 'parallel-channel'
     | 'disjoint-channel'
+    | 'fibonacci-retracement'
     | 'text'
     | 'comment'
     | 'callout'

@@ -9,6 +9,7 @@ import { CalloutProperties } from '../callout/calloutProperties';
 import { CommentProperties } from '../comment/commentProperties';
 import { HorizontalLineProperties, VerticalLineProperties } from '../cross-line/crossLineProperties';
 import { DisjointChannelProperties } from '../disjoint-channel/disjointChannelProperties';
+import { FibonacciRetracementProperties } from '../fibonacciRetracement/fibonacciRetracementProperties';
 import { ArrowProperties, LineProperties } from '../line/lineProperties';
 import {
     DatePriceRangeProperties,
@@ -29,6 +30,7 @@ export function isLineType(datum: unknown): datum is LinePropertiesType {
         LineProperties.is(datum) ||
         HorizontalLineProperties.is(datum) ||
         VerticalLineProperties.is(datum) ||
+        FibonacciRetracementProperties.is(datum) ||
         ArrowProperties.is(datum)
     );
 }

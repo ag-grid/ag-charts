@@ -1,0 +1,229 @@
+import { _ModuleSupport } from 'ag-charts-community';
+
+import type { AnnotationContext } from '../annotationTypes';
+import type { FibonacciProperties } from '../properties/fibonacciProperties';
+import { FIBONACCI_COLORS, FibonacciNodeTag, createFibonacciRangesData } from '../utils/fibonacci';
+import type { FibonacciRangeDatum } from '../utils/fibonacci';
+import { convertLine } from '../utils/values';
+import { CollidableLine } from './collidableLineScene';
+import { CollidableText } from './collidableTextScene';
+import { LineWithTextScene } from './lineWithTextScene';
+import { StartEndScene } from './startEndScene';
+
+const { Vec2, Vec4 } = _ModuleSupport;
+
+export abstract class FibonacciScene<Datum extends FibonacciProperties> extends StartEndScene<Datum> {
+    private readonly trendLine = new CollidableLine();
+    public text?: CollidableText;
+
+    private readonly rangeFillsGroup: _ModuleSupport.Group = new _ModuleSupport.Group({
+        name: `${this.id}-range-fills`,
+    });
+    private readonly rangeFillsGroupSelection: _ModuleSupport.Selection<_ModuleSupport.Range, FibonacciRangeDatum> =
+        _ModuleSupport.Selection.select(this.rangeFillsGroup, _ModuleSupport.Range);
+
+    private readonly rangeStrokesGroup: _ModuleSupport.Group = new _ModuleSupport.Group({
+        name: `${this.id}-range-strokes`,
+    });
+    private readonly rangeStrokesGroupSelection: _ModuleSupport.Selection<CollidableLine, FibonacciRangeDatum> =
+        _ModuleSupport.Selection.select(this.rangeStrokesGroup, CollidableLine);
+
+    private readonly labelsGroup: _ModuleSupport.Group = new _ModuleSupport.Group({
+        name: `${this.id}-ranges-labels`,
+    });
+    private readonly labelsGroupSelection: _ModuleSupport.Selection<CollidableText, FibonacciRangeDatum> =
+        _ModuleSupport.Selection.select(this.labelsGroup, CollidableText);
+
+    constructor() {
+        super();
+        this.append([this.trendLine, this.rangeFillsGroup, this.rangeStrokesGroup, this.labelsGroup]);
+    }
+
+    public override update(datum: Datum, context: AnnotationContext) {
+        let coords = convertLine(datum, context);
+
+        if (coords == null) {
+            this.visible = false;
+            return;
+        }
+
+        coords = Vec4.round(coords);
+
+        this.visible = datum.visible ?? true;
+        if (!this.visible) return;
+
+        this.updateTrendLine(datum, coords);
+        this.updateHandles(datum, coords);
+        this.updateAnchor(datum, coords, context);
+
+        const horizontalLinePoints = this.extendLine(coords, datum, context, 'horizontal');
+        this.updateRanges(datum, horizontalLinePoints, context);
+
+        const { reverse } = datum;
+        const y = reverse ? horizontalLinePoints.y2 : horizontalLinePoints.y1;
+        const oneLinePoints = { ...horizontalLinePoints, y1: y, y2: y };
+        this.updateText(datum, oneLinePoints);
+    }
+
+    private updateTrendLine(datum: Datum, coords: _ModuleSupport.Vec4) {
+        const { trendLine } = this;
+        const { lineDashOffset, strokeWidth, strokeOpacity } = datum;
+
+        trendLine.setProperties({
+            ...coords,
+            lineCap: datum.getLineCap(),
+            lineDash: [3, 4],
+            lineDashOffset,
+            strokeWidth,
+            strokeOpacity,
+            fillOpacity: 0,
+            stroke: '#2b5c95', // shouldn't change with the floating toolbar, not sure if any way to configure?
+        });
+    }
+
+    private updateRangeStrokes(datum: Datum) {
+        const { lineDashOffset, strokeWidth, strokeOpacity, stroke } = datum;
+
+        this.rangeStrokesGroupSelection.each((line, { x1, x2, y2, tag }, index) => {
+            const y = y2;
+            const color = FIBONACCI_COLORS[index];
+            line.setProperties({
+                x1,
+                x2,
+                y1: y,
+                y2: y,
+                stroke: stroke ?? color,
+                strokeOpacity,
+                strokeWidth,
+                lineCap: datum.getLineCap(),
+                lineDash: datum.getLineDash(),
+                lineDashOffset,
+                tag,
+            });
+        });
+    }
+
+    private updateRanges(datum: Datum, coords: _ModuleSupport.Vec4, context: AnnotationContext) {
+        const data = createFibonacciRangesData(coords, context, datum.reverse);
+
+        const getDatumId = (datum: FibonacciRangeDatum) => datum.id;
+        this.rangeFillsGroupSelection.update(data, undefined, getDatumId);
+        this.rangeStrokesGroupSelection.update(data, undefined, getDatumId);
+        this.labelsGroupSelection.update(data, undefined, getDatumId);
+
+        this.updateRangeFills(datum);
+        this.updateRangeStrokes(datum);
+        this.updateRangeLabels(datum, context);
+    }
+
+    private updateRangeFills(datum: Datum) {
+        const { lineDashOffset, stroke, strokeWidth, strokeOpacity } = datum;
+
+        this.rangeFillsGroupSelection.each((range, { x1, x2, y1, y2 }, index) => {
+            const color = FIBONACCI_COLORS[index];
+            range.setProperties({
+                x1,
+                x2,
+                y1,
+                y2,
+                startLine: false,
+                endLine: false,
+                isRange: true,
+                stroke: stroke ?? color,
+                strokeOpacity,
+                fill: stroke ?? color,
+                fillOpacity: 0.15,
+                strokeWidth,
+                lineCap: datum.getLineCap(),
+                lineDash: datum.getLineDash(),
+                lineDashOffset,
+            });
+        });
+    }
+
+    private updateRangeLabels(trendLineProperties: Datum, { xAxis }: AnnotationContext) {
+        const { rangeStrokesGroupSelection } = this;
+        const { stroke, strokeWidth } = trendLineProperties;
+        this.labelsGroupSelection.each((textNode, datum, index) => {
+            const color = FIBONACCI_COLORS[index];
+
+            const line = rangeStrokesGroupSelection.at(index);
+
+            if (!line) {
+                return;
+            }
+
+            const { text, ...coords } = datum.label;
+            const labelProperties = trendLineProperties.label;
+
+            LineWithTextScene.updateLineText(line, labelProperties, coords, textNode);
+
+            textNode.setProperties({
+                text,
+                x: coords.x1,
+                y: coords.y1,
+                textBaseline: 'middle',
+                textAlign: 'end',
+            });
+
+            const { x } = textNode.getBBox();
+
+            const xWithinBounds = x >= xAxis.bounds.x && x <= xAxis.bounds.x + xAxis.bounds.width;
+
+            if (!xWithinBounds)
+                LineWithTextScene.updateLineText(line, labelProperties, coords, textNode, text, strokeWidth);
+
+            textNode.setProperties({
+                stroke: stroke ?? color,
+                fill: stroke ?? color,
+            });
+        });
+    }
+
+    private updateText(datum: Datum, coords: _ModuleSupport.Vec4) {
+        const oneLine = this.rangeStrokesGroupSelection.selectByTag<CollidableLine>(FibonacciNodeTag.OneLine)[0];
+        const { text: textProperties, strokeWidth } = datum;
+        this.text = this.updateNode(CollidableText, this.text, !!textProperties.label);
+
+        LineWithTextScene.updateLineText(oneLine, textProperties, coords, this.text, textProperties.label, strokeWidth);
+    }
+
+    override updateAnchor(
+        _datum: Datum,
+        coords: _ModuleSupport.Vec4,
+        _context: AnnotationContext,
+        _bbox?: _ModuleSupport.BBox
+    ) {
+        const point = Vec4.topCenter(coords);
+        Vec2.apply(this.anchor, _ModuleSupport.Transformable.toCanvasPoint(this.trendLine, point.x, point.y));
+    }
+
+    override containsPoint(x: number, y: number) {
+        const { trendLine, rangeStrokesGroupSelection, text } = this;
+        let isInStrokePath = false;
+        rangeStrokesGroupSelection.each((line) => (isInStrokePath ||= line.isPointInPath(x, y)));
+        return (
+            isInStrokePath ||
+            super.containsPoint(x, y) ||
+            trendLine.isPointInPath(x, y) ||
+            Boolean(text?.containsPoint(x, y))
+        );
+    }
+
+    public override getNodeAtCoords(x: number, y: number): string | undefined {
+        if (this.text?.containsPoint(x, y)) return 'text';
+
+        if (this.trendLine.isPointInPath(x, y)) return 'line';
+
+        return super.getNodeAtCoords(x, y);
+    }
+
+    protected override getHandleStyles(datum: Datum) {
+        return {
+            fill: datum.handle.fill,
+            stroke: datum.handle.stroke ?? '#2b5c95',
+            strokeOpacity: datum.handle.strokeOpacity ?? datum.strokeOpacity,
+            strokeWidth: datum.handle.strokeWidth ?? datum.strokeWidth,
+        };
+    }
+}

@@ -42,6 +42,14 @@ export const LINE_ANNOTATION_ITEMS: _ModuleSupport.MenuItem<AnnotationType>[] = 
     },
 ];
 
+export const FIBONACCI_ANNOTATION_ITEMS: _ModuleSupport.MenuItem<AnnotationType>[] = [
+    {
+        label: 'toolbarAnnotationsFibonacciRetracement',
+        icon: 'fibonacci-retracement-drawing',
+        value: AnnotationType.FibonacciRetracement,
+    },
+];
+
 export const TEXT_ANNOTATION_ITEMS: _ModuleSupport.MenuItem<AnnotationType>[] = [
     { label: 'toolbarAnnotationsText', icon: 'text-annotation', value: AnnotationType.Text },
     { label: 'toolbarAnnotationsComment', icon: 'comment-annotation', value: AnnotationType.Comment },

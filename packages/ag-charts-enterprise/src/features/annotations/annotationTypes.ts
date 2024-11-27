@@ -12,6 +12,9 @@ export enum AnnotationType {
     DisjointChannel = 'disjoint-channel',
     ParallelChannel = 'parallel-channel',
 
+    // Fibonacci
+    FibonacciRetracement = 'fibonacci-retracement',
+
     // Texts
     Callout = 'callout',
     Comment = 'comment',
@@ -80,6 +83,9 @@ export const ANNOTATION_BUTTONS = [
     AnnotationType.DisjointChannel,
     AnnotationType.ParallelChannel,
 
+    // Fibonaccis
+    AnnotationType.FibonacciRetracement,
+
     // Texts
     AnnotationType.Callout,
     AnnotationType.Comment,
@@ -91,13 +97,28 @@ export const ANNOTATION_BUTTONS = [
     AnnotationType.ArrowUp,
     AnnotationType.ArrowDown,
 ] as const;
-export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu', 'shape-menu', 'measurer-menu'] as const;
+export const ANNOTATION_BUTTON_GROUPS = [
+    'line-menu',
+    'fibonacci-menu',
+    'text-menu',
+    'shape-menu',
+    'measurer-menu',
+] as const;
 
 export function stringToAnnotationType(value: unknown) {
     for (const t of ANNOTATION_TYPES) {
         if (t === value) return t;
     }
 }
+
+export type HandleKeys<Datum, Point> = {
+    [Key in keyof Datum]: Datum[Key] extends Point ? Key : never;
+}[keyof Datum];
+export type HandleName<Datum> = Extract<HandleKeys<Datum, Point>, string>;
+
+// type KeysOfType<O, T> = {
+//     [K in keyof O]: O[K] extends T ? K : never
+//   }[keyof O]
 
 export interface Bounds {
     x: number;

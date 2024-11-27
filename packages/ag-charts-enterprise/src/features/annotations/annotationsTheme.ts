@@ -79,6 +79,11 @@ const toolbar: AgAnnotationsToolbar = {
             value: 'line-menu',
         },
         {
+            icon: 'fibonacci-drawing',
+            tooltip: 'toolbarAnnotationsFibonacciAnnotations',
+            value: 'fibonacci-menu',
+        },
+        {
             icon: 'text-annotation',
             tooltip: 'toolbarAnnotationsTextAnnotations',
             value: 'text-menu',
@@ -198,6 +203,15 @@ export const annotationsTheme: AgAnnotationsThemeableOptions = {
         },
         handle: { ...handle },
         text: { ...lineText },
+    },
+
+    // Fibonnaccis
+    'fibonacci-retracement': {
+        ...stroke,
+        stroke: undefined,
+        handle: { ...handle },
+        text: { ...lineText, position: 'center' },
+        label: { ...lineText, position: 'center', alignment: 'left', fontSize: 10 },
     },
 
     // Texts

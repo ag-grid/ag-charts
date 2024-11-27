@@ -1,7 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 import type { ChannelTextProperties, LineTextProperties } from '../annotationProperties';
-import type { AnnotationScene } from './annotationScene';
 import type { CollidableLine } from './collidableLineScene';
 import { CollidableText } from './collidableTextScene';
 import { DivariantHandle } from './handle';
@@ -18,32 +17,27 @@ interface Numbers {
 }
 
 export class LineWithTextScene {
-    static updateLineText<Datum extends { strokeWidth?: number; text?: LineTextProperties }>(
-        this: AnnotationScene & { text?: CollidableText },
+    static updateLineText(
         line: CollidableLine,
-        datum: Datum,
-        coords: _ModuleSupport.Vec4
+        textProperties: LineTextProperties,
+        coords: _ModuleSupport.Vec4,
+
+        textNode?: CollidableText,
+        text?: string,
+        lineWidth?: number
     ) {
-        if (!datum.text?.label && this.text) {
-            this.removeChild(this.text);
+        const { alignment, position } = textProperties;
+
+        if (!text || !textNode) {
             line.setClipMask();
-            this.text = undefined;
+            return;
         }
 
-        if (!datum.text?.label) return;
-
-        if (this.text == null) {
-            this.text = new CollidableText();
-            this.appendChild(this.text);
-        }
-
-        const { alignment, position } = datum.text;
-
-        const numbers = LineWithTextScene.getNumbers(coords, datum.text.fontSize, datum.strokeWidth);
+        const numbers = LineWithTextScene.getNumbers(coords, textProperties.fontSize, lineWidth);
         const { point, textBaseline } = LineWithTextScene.positionAndAlignment(numbers, position, alignment);
-        LineWithTextScene.setProperties(this.text, datum.text, point, numbers.angle, textBaseline);
+        LineWithTextScene.setProperties(textNode, text, textProperties, point, numbers.angle, textBaseline);
 
-        const { x, y, width, height } = this.text.getBBox();
+        const { x, y, width, height } = textNode.getBBox();
         const diameter = Vec2.length(Vec2.from(width, height));
         const clipMask = {
             x: x + width / 2,
@@ -60,26 +54,20 @@ export class LineWithTextScene {
         return { clipMask, numbers };
     }
 
-    static updateChannelText<Datum extends { strokeWidth?: number; text?: ChannelTextProperties }>(
-        this: AnnotationScene & { text?: _ModuleSupport.TransformableText },
+    static updateChannelText(
         offsetInsideTextLabel: boolean,
-        datum: Datum,
         top: _ModuleSupport.Vec4,
-        bottom: _ModuleSupport.Vec4
+        bottom: _ModuleSupport.Vec4,
+
+        textProperties: ChannelTextProperties,
+        lineWidth?: number,
+
+        textNode?: CollidableText,
+        text?: string
     ) {
-        if (!datum.text?.label && this.text) {
-            this.removeChild(this.text);
-            this.text = undefined;
-        }
+        if (!text || !textNode) return;
 
-        if (!datum.text?.label) return;
-
-        if (this.text == null) {
-            this.text = new CollidableText();
-            this.appendChild(this.text);
-        }
-
-        const { alignment, position } = datum.text;
+        const { alignment, position } = textProperties;
 
         const [actualTop, actualBottom] = top.y1 <= bottom.y1 ? [top, bottom] : [bottom, top];
 
@@ -95,14 +83,15 @@ export class LineWithTextScene {
             };
         }
 
-        const numbers = LineWithTextScene.getNumbers(relativeLine, datum.text.fontSize, datum.strokeWidth);
+        const numbers = LineWithTextScene.getNumbers(relativeLine, textProperties.fontSize, lineWidth);
         const { point, textBaseline } = LineWithTextScene.positionAndAlignment(
             numbers,
             position === 'inside' ? 'center' : position,
             alignment,
             offsetInsideTextLabel
         );
-        LineWithTextScene.setProperties(this.text, datum.text, point, numbers.angle, textBaseline);
+
+        LineWithTextScene.setProperties(textNode, text, textProperties, point, numbers.angle, textBaseline);
     }
 
     static getNumbers(coords: _ModuleSupport.Vec4, fontSize?: number, strokeWidth?: number): Numbers {
@@ -151,13 +140,14 @@ export class LineWithTextScene {
 
     static setProperties(
         scene: _ModuleSupport.TransformableText,
-        datum: LineTextProperties | ChannelTextProperties,
+        text: string,
+        textProperties: LineTextProperties | ChannelTextProperties,
         point: _ModuleSupport.Vec2,
         angle: number,
         textBaseline: CanvasTextBaseline
     ) {
         scene.setProperties({
-            text: datum.label,
+            text,
 
             x: point.x,
             y: point.y,
@@ -165,12 +155,12 @@ export class LineWithTextScene {
             rotationCenterX: point.x,
             rotationCenterY: point.y,
 
-            fill: datum.color,
-            fontFamily: datum.fontFamily,
-            fontSize: datum.fontSize,
-            fontStyle: datum.fontStyle,
-            fontWeight: datum.fontWeight,
-            textAlign: datum.alignment,
+            fill: textProperties.color,
+            fontFamily: textProperties.fontFamily,
+            fontSize: textProperties.fontSize,
+            fontStyle: textProperties.fontStyle,
+            fontWeight: textProperties.fontWeight,
+            textAlign: textProperties.alignment,
             textBaseline: textBaseline,
         });
     }

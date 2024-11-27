@@ -2,8 +2,9 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext } from '../annotationTypes';
+import { getDragStartState, translate } from '../utils/coords';
 import { boundsIntersections } from '../utils/line';
-import { convertLine, convertPoint, invertCoords } from '../utils/values';
+import { convertLine, convertPoint } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 
 const { Vec2 } = _ModuleSupport;
@@ -25,7 +26,12 @@ export abstract class LinearScene<
         end: _ModuleSupport.Vec2;
     };
 
-    protected extendLine({ x1, y1, x2, y2 }: _ModuleSupport.Vec4, datum: Datum, context: AnnotationContext) {
+    protected extendLine(
+        { x1, y1, x2, y2 }: _ModuleSupport.Vec4,
+        datum: Datum,
+        context: AnnotationContext,
+        direction?: 'vertical' | 'horizontal'
+    ) {
         // Clone the points to prevent mutating the original
         const linePoints = { x1, y1, x2, y2 };
 
@@ -39,21 +45,24 @@ export abstract class LinearScene<
         const isFlippedY = linePoints.y1 >= linePoints.y2;
         const isVertical = linePoints.x2 === linePoints.x1;
 
+        const extendY = !direction || direction === 'vertical';
+        const extendX = !direction || direction === 'horizontal';
+
         if (datum.extendEnd) {
-            if (isVertical) {
+            if (isVertical && extendY) {
                 linePoints.y2 = isFlippedY ? right.y : left.y;
             } else {
-                linePoints.x2 = isFlippedX ? left.x : right.x;
-                linePoints.y2 = isFlippedX ? left.y : right.y;
+                if (extendX) linePoints.x2 = isFlippedX ? left.x : right.x;
+                if (extendY) linePoints.y2 = isFlippedX ? left.y : right.y;
             }
         }
 
         if (datum.extendStart) {
-            if (isVertical) {
+            if (isVertical && extendY) {
                 linePoints.y1 = isFlippedY ? left.y : right.y;
             } else {
-                linePoints.x1 = isFlippedX ? right.x : left.x;
-                linePoints.y1 = isFlippedX ? right.y : left.y;
+                if (extendX) linePoints.x1 = isFlippedX ? right.x : left.x;
+                if (extendY) linePoints.y1 = isFlippedX ? right.y : left.y;
             }
         }
 
@@ -63,8 +72,7 @@ export abstract class LinearScene<
     public dragStart(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext) {
         this.dragState = {
             offset: target,
-            start: convertPoint(datum.start, context),
-            end: convertPoint(datum.end, context),
+            ...getDragStartState({ start: datum.start, end: datum.end }, context),
         };
     }
 
@@ -112,32 +120,23 @@ export abstract class LinearScene<
         translation: _ModuleSupport.Vec2;
         context: AnnotationContext;
     }) {
-        const translatedStart = Vec2.add(start, translation);
-        const translatedEnd = Vec2.add(end, translation);
+        const { vectors, translateX, translateY } = translate({
+            vectors: {
+                start,
+                end,
+            },
+            translation,
+            context,
+        });
 
-        const startPoint = invertCoords(translatedStart, context);
-        const endPoint = invertCoords(translatedEnd, context);
-
-        const { xAxis, yAxis } = context;
-
-        // Only move the points along each axis if all the corners are within the axis, allowing the annotation to
-        // slide along the perpendicular axis.
-        const within = (min: number, value: number, max: number) => value >= min && value <= max;
-        const coords = [translatedStart, translatedEnd].concat(
-            ...this.getOtherCoords(datum, translatedStart, translatedEnd, context)
-        );
-
-        if (coords.every((coord) => within(xAxis.bounds.x, coord.x, xAxis.bounds.x + xAxis.bounds.width))) {
-            datum.start.x = startPoint.x;
-            datum.end.x = endPoint.x;
+        if (translateX) {
+            datum.start.x = vectors.start?.x;
+            datum.end.x = vectors.end?.x;
         }
 
-        if (
-            this.ignoreYBounds ||
-            coords.every((coord) => within(yAxis.bounds.y, coord.y, yAxis.bounds.y + yAxis.bounds.height))
-        ) {
-            datum.start.y = startPoint.y;
-            datum.end.y = endPoint.y;
+        if (this.ignoreYBounds || translateY) {
+            datum.start.y = vectors.start?.y;
+            datum.end.y = vectors.end?.y;
         }
     }
 
