@@ -34,7 +34,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
     private readonly labelsGroupSelection: _ModuleSupport.Selection<CollidableText, FibonacciRangeDatum> =
         _ModuleSupport.Selection.select(this.labelsGroup, CollidableText);
 
-    protected anchor: _ModuleSupport.ToolbarAnchor = {
+    protected anchor: _ModuleSupport.FloatingToolbarAnchor = {
         x: 0,
         y: 0,
         position: 'above',
