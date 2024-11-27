@@ -192,7 +192,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
             const presetParams = this.userOptions as any as AgPresetOptions;
 
-            // Note financial charts defines the theme in its returned options
+            // Note financial charts defines the theme in its returned options,
             // so we need to get the theme before and after applying the preset
             const presetSubType = (this.userOptions as any).type as keyof AgPresetOverrides | undefined;
             const presetTheme =
@@ -235,7 +235,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.annotationThemes = annotationsThemes;
 
-        // Create isolated copy of options before we start mutations - this is performance sensitive
+        // Create isolated copy of options before we start mutations - this is performance sensitive,
         // so we aim to only do this once in the processing flow.
         processedOptions = deepClone(processedOptions, ChartOptions.OPTIONS_CLONE_OPTS);
 
@@ -261,10 +261,6 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.debug('AgCharts.createOrUpdate() - processed options', processedOptions);
 
         return { activeTheme, processedOptions, defaultAxes };
-    }
-
-    getOptions() {
-        return this.processedOptions ?? {};
     }
 
     diffOptions(other?: ChartOptions): Partial<T> {
@@ -561,7 +557,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     // global option (`chart.tooltip.range`) that could override the theme. But now, the tooltip range
     // option is series-specific.
     //
-    // To preserve backward compatiblity, the `chart.tooltip.range` theme default has been changed from
+    // To preserve backward compatibility, the `chart.tooltip.range` theme default has been changed from
     // 'nearest' to undefined.
     private getTooltipRangeDefaults(options: T, seriesType: SeriesType) {
         return {
@@ -572,8 +568,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private axesTypeIntegrity(options: Partial<T>) {
-        if ('axes' in options) {
-            const axes = (options.axes ?? []) as AgBaseAxisOptions[];
+        if ('axes' in options && options.axes) {
+            const axes = options.axes as AgBaseAxisOptions[];
             for (const { type } of axes) {
                 // If any of the axes type is invalid remove all user provided options in favour of our defaults.
                 if (!isAxisOptionType(type)) {

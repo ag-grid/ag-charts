@@ -44,14 +44,14 @@ export interface AgCartesianAxisLabelOptions extends AgBaseAxisLabelOptions {
     autoRotateAngle?: Degree;
 }
 
-export interface AgGroupedCategoryAxisLabelOptions extends AgBaseAxisLabelOptions {
+export interface AgGroupedCategoryAxisLabelOptions extends Omit<AgBaseAxisLabelOptions, 'itemStyler'> {
     /** Function used to style axis labels. */
     itemStyler?: Styler<AgGroupedCategoryAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
 }
 
 export interface AgGroupedCategoryAxisLabelStylerParams extends AgAxisLabelStylerParams {
     /** The depth of the label, used by `grouped-category` axes. */
-    readonly depth?: number;
+    readonly depth: number;
 }
 
 export interface AgBaseCartesianChartOptions {
