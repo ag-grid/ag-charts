@@ -8,18 +8,6 @@ import {
 
 import { getData } from './data';
 
-const categoryAxis: AgCategoryAxisOptions = {
-    type: 'category',
-    position: 'bottom',
-    label: {},
-};
-
-const numberAxis: AgNumberAxisOptions = {
-    type: 'number',
-    position: 'left',
-    label: {},
-};
-
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -30,12 +18,24 @@ const options: AgCartesianChartOptions = {
             yKey: 'value',
         },
     ],
-    axes: [categoryAxis, numberAxis],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+            label: {},
+        },
+        {
+            type: 'number',
+            position: 'left',
+            label: {},
+        },
+    ],
 };
 
 const chart = AgCharts.create(options);
 
 function reset() {
+    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
     const element = document.getElementsByClassName('ag-chart-wrapper')![0]! as HTMLElement;
     element.style.width = '100%';
     element.style.height = '100%';
@@ -52,6 +52,9 @@ function reset() {
 }
 
 function disableRotation() {
+    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
+    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+
     delete categoryAxis.label!.rotation;
     delete numberAxis.label!.rotation;
     categoryAxis.label!.autoRotate = false;
@@ -61,6 +64,9 @@ function disableRotation() {
 }
 
 function fixedRotation() {
+    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
+    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+
     categoryAxis.label!.rotation = 45;
     numberAxis.label!.rotation = 45;
     categoryAxis.label!.autoRotate = false;
@@ -70,6 +76,9 @@ function fixedRotation() {
 }
 
 function autoRotation() {
+    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
+    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+
     delete categoryAxis.label!.rotation;
     delete numberAxis.label!.rotation;
     categoryAxis.label!.autoRotate = true;
@@ -89,6 +98,9 @@ function irregularLabels() {
 }
 
 function noCollisionDetection() {
+    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
+    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+
     categoryAxis.label!.avoidCollisions = false;
     numberAxis.label!.avoidCollisions = false;
 
@@ -96,6 +108,9 @@ function noCollisionDetection() {
 }
 
 function autoCollisionDetection() {
+    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
+    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+
     categoryAxis.label!.avoidCollisions = true;
     numberAxis.label!.avoidCollisions = true;
 
