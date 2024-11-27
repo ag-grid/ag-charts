@@ -1,5 +1,4 @@
 // @ag-skip-fws
-// AgCharts import needed for dark-mode skippet
 import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 const action = () => window.alert('Hello world!');
@@ -8,6 +7,7 @@ const legendItemAction = (event: any) => window.alert(`Hello ${event.itemId}!`);
 
 // Chart Options
 const options1: AgCartesianChartOptions = {
+    container: document.getElementById('myChart1'),
     title: { text: 'Chart 1' },
     legend: {},
     height: 600,
@@ -29,6 +29,7 @@ const options1: AgCartesianChartOptions = {
 };
 
 const options2: AgCartesianChartOptions = {
+    container: document.getElementById('myChart2'),
     title: { text: 'Chart 2' },
     contextMenu: { enabled: true },
     height: 600,
@@ -41,32 +42,5 @@ const options2: AgCartesianChartOptions = {
     series: [{ type: 'bar', xKey: 'month', yKey: 'sweaters', yName: 'Sweaters Made' }],
 };
 
-const script = [...document.querySelectorAll('script').values()]
-    .map((e) => e.src)
-    .filter((s) => s.includes('ag-charts-enterprise'))[0];
-
-document.open();
-document.write(`
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-  </head>
-  <body>
-    <div style="overflow: auto">
-      <div id="myChart1"></div>
-      <div style="height: 600px; width: 800px; background-color: rgba(0,255,0,255);"></div>
-      <div id="myChart2"></div>
-    </div>
-
-    <script src="${script}"></script>
-    <script>
-      options1.container = document.getElementById('myChart1'),
-      options2.container = document.getElementById('myChart2'),
-      AgCharts.create(options1);
-      AgCharts.create(options2);
-    </script>
-  </body>
-</html>
-`);
-document?.close();
+AgCharts.create(options1);
+AgCharts.create(options2);
