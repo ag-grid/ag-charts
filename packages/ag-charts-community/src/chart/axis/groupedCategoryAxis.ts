@@ -11,6 +11,7 @@ import { iterate } from '../../util/iterator';
 import { inRange } from '../../util/number';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';
+import { BOOLEAN, Validate } from '../../util/validation';
 import { createDatumId } from '../data/processors';
 import { calculateLabelRotation } from '../label';
 import type { LabelNodeDatum, TickDatum } from './axis';
@@ -26,6 +27,10 @@ interface ComputedGroupAxisLayout {
 export class GroupedCategoryAxis extends CategoryAxis {
     static override readonly className = 'GroupedCategoryAxis';
     static override readonly type = 'grouped-category' as const;
+
+    // Undocumented - only used for mini chart
+    @Validate(BOOLEAN)
+    topLevelCategoriesOnly: boolean = false;
 
     // Label scale (labels are positioned between ticks, tick count = label count + 1).
     // We don't call is `labelScale` for consistency with other axes.
@@ -44,12 +49,13 @@ export class GroupedCategoryAxis extends CategoryAxis {
     private resizeTickTree() {
         if (!this.tickTreeLayout) return;
 
+        const { topLevelCategoriesOnly } = this;
         const { range, step, inset, bandwidth } = this.scale;
         const lineHeight = TextUtils.getLineHeight(this.label.fontSize!);
         const { depth } = this.tickTreeLayout;
 
         const width = Math.abs(range[1] - range[0]) - step;
-        const height = depth * lineHeight;
+        const height = (topLevelCategoriesOnly ? 1 : depth) * lineHeight;
 
         this.tickTreeLayout.resize(width, height, inset + bandwidth / 2, range[0] > range[1]);
     }
@@ -77,7 +83,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.updateRange();
         this.updateTitle();
 
-        const { scale, label, range, title } = this;
+        const { scale, label, range, title, topLevelCategoriesOnly } = this;
         const formatter = title.formatter ?? ((p: AgAxisCaptionFormatterParams) => p.defaultValue);
 
         const { step } = scale;
@@ -152,6 +158,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         let maxLeafLabelWidth = 0;
         treeLabels.forEach((datum, index) => {
+            if (topLevelCategoriesOnly && datum.depth > 1) return;
+
             const isVisible = setLabelProps(datum, index);
             if (!isVisible) return;
 
@@ -173,6 +181,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const registerSeparator = (k: number, v: number) => separatorSize.has(k) || separatorSize.set(k, v);
 
         treeLabels.forEach((datum, index) => {
+            if (topLevelCategoriesOnly && datum.depth > 1) return;
+
             const isLeaf = !datum.children.length;
             let visible = setLabelProps(datum, index);
 

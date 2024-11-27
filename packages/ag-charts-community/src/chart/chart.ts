@@ -1280,6 +1280,11 @@ export abstract class Chart extends Observable {
 
             horizontalAxis.line.enabled = false;
 
+            if (horizontalAxis.type === 'grouped-category') {
+                // @ts-expect-error Undocumented option
+                horizontalAxis.topLevelCategoriesOnly = true;
+            }
+
             horizontalAxis.label.set(
                 without(labelOptions, ['interval', 'rotation', 'minSpacing', 'autoRotate', 'autoRotateAngle'])
             );
