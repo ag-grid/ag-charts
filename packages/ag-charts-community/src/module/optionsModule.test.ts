@@ -1558,7 +1558,7 @@ describe('ChartOptions', () => {
                 expect(preparedOptions).toHaveProperty('data', options.data);
                 expect(preparedOptions).toMatchSnapshot({
                     container: expect.any(HTMLElement),
-                    data: expect.any(options.data instanceof Array ? Array : Object),
+                    data: expect.any(Array.isArray(options.data) ? Array : Object),
                 });
             } else {
                 const optionsCopy = { ...preparedOptions };
@@ -1631,22 +1631,18 @@ describe('ChartOptions', () => {
             expect(numberAxis?.tick?.width).toBe(theme.config.line.axes.time.tick.width);
             expect(numberAxis?.tick?.size).toBe(theme.config.line.axes.time.tick.size);
 
-            expect(preparedOptions.axes?.[0]?.title?.enabled).toBe(false);
-            expect(preparedOptions.axes?.[0]?.title?.text).toBe(theme.config.line.axes.time.title.text);
+            expect(numberAxis?.title?.enabled).toBe(false);
+            expect(numberAxis?.title?.text).toBe(theme.config.line.axes.time.title.text);
 
-            expect(preparedOptions.axes?.[0]?.label?.enabled).toBe(false);
-            expect(preparedOptions.axes?.[0]?.label?.avoidCollisions).toBe(
-                theme.config.line.axes.time.label.avoidCollisions
-            );
-            expect(preparedOptions.axes?.[0]?.label?.autoRotate).toBe(theme.config.line.axes.time.label.autoRotate);
-            expect(preparedOptions.axes?.[0]?.label?.minSpacing).toBe(theme.config.line.axes.time.label.minSpacing);
+            expect(numberAxis?.label?.enabled).toBe(false);
+            expect(numberAxis?.label?.avoidCollisions).toBe(theme.config.line.axes.time.label.avoidCollisions);
+            expect(numberAxis?.label?.autoRotate).toBe(theme.config.line.axes.time.label.autoRotate);
+            expect(numberAxis?.label?.minSpacing).toBe(theme.config.line.axes.time.label.minSpacing);
 
-            expect(preparedOptions.axes?.[0]?.crossLines?.[0]?.enabled).toBe(false);
-            expect(preparedOptions.axes?.[0]?.crossLines?.[0]?.type).toBe(theme.config.line.axes.time.crossLines.type);
-            expect(preparedOptions.axes?.[0]?.crossLines?.[0]?.label?.enabled).toBe(false);
-            expect(preparedOptions.axes?.[0]?.crossLines?.[0]?.label?.text).toBe(
-                theme.config.line.axes.time.crossLines.label.text
-            );
+            expect(numberAxis?.crossLines?.[0]?.enabled).toBe(false);
+            expect(numberAxis?.crossLines?.[0]?.type).toBe(theme.config.line.axes.time.crossLines.type);
+            expect(numberAxis?.crossLines?.[0]?.label?.enabled).toBe(false);
+            expect(numberAxis?.crossLines?.[0]?.label?.text).toBe(theme.config.line.axes.time.crossLines.label.text);
 
             expect(preparedOptions.axes![1]?.title?.enabled).toBe(true);
             expect(preparedOptions.axes![1]?.title?.text).toBe('Custom Left Axis Title');

@@ -44,7 +44,7 @@ const options: AgChartOptions = {
             paddingInner: 0.4,
             label: {
                 formatter: ({ value }) => (value.includes('1 ') ? value.substring(2) : ''),
-                padding: 0,
+                spacing: 0,
             },
             gridLine: {
                 enabled: true,

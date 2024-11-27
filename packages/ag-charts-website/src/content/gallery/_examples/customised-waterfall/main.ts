@@ -78,7 +78,7 @@ const options: AgChartOptions = {
             position: 'right',
             type: 'number',
             label: {
-                padding: 20,
+                spacing: 20,
                 formatter: ({ value }) => `${value}%`,
             },
             crosshair: {
@@ -96,7 +96,7 @@ const options: AgChartOptions = {
             },
             label: {
                 autoRotate: false,
-                padding: 20,
+                spacing: 20,
                 formatter: ({ value }) =>
                     `${
                         value === 'Net\nVariation'

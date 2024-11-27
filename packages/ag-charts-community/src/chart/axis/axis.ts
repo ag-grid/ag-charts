@@ -103,7 +103,9 @@ export interface TickDatum {
     tick: any;
     tickId: string;
     translationY: number;
-    size?: number;
+    tickSize?: number;
+    tickStroke?: string;
+    tickWidth?: number;
 }
 
 export interface LabelNodeDatum {
@@ -284,7 +286,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected readonly layout: Pick<AxisLayout, 'label'> = {
         label: {
             fractionDigits: 0,
-            padding: this.label.padding,
+            spacing: this.label.spacing,
             format: this.label.format,
         },
     };
@@ -524,10 +526,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         return { x1, x2, y };
     }
 
-    protected getLabelStyles(params: { value: string; depth?: number }) {
+    protected getLabelStyles(
+        params: { value: string; depth?: number },
+        additionalStyles?: AgBaseAxisLabelStyleOptions
+    ) {
         const { label } = this;
         const defaultStyle: AgBaseAxisLabelStyleOptions = {
             color: label.color,
+            spacing: label.spacing,
             fontFamily: label.fontFamily,
             fontSize: label.fontSize,
             fontStyle: label.fontStyle,
@@ -540,8 +546,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
                 ...defaultStyle,
             });
         }
-        const { color: fill, fontFamily, fontSize, fontStyle, fontWeight } = mergeDefaults(stylerOutput, defaultStyle);
-        return { fill, fontFamily, fontSize, fontStyle, fontWeight };
+        const {
+            color: fill,
+            fontFamily,
+            fontSize,
+            fontStyle,
+            fontWeight,
+            spacing,
+        } = mergeDefaults(stylerOutput, additionalStyles, defaultStyle);
+        return { fill, fontFamily, fontSize, fontStyle, fontWeight, spacing: spacing };
     }
 
     private getTickLabelProps(
@@ -557,7 +570,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { combinedRotation, textBaseline, textAlign, range } = params;
         const text = datum.tickLabel;
         const sideFlag = label.getSideFlag();
-        const labelX = sideFlag * (this.getTickSize() + label.padding + this.seriesAreaPadding);
+        const labelX = sideFlag * (this.getTickSize() + label.spacing + this.seriesAreaPadding);
         const visible = text !== '' && text != null;
 
         return {
@@ -662,7 +675,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         regularFlipRotation: number
     ) {
         const sideFlag = this.label.getSideFlag();
-        const labelX = sideFlag * (this.getTickSize() + this.label.padding + this.seriesAreaPadding);
+        const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
 
         const ticksEnabled = this.label.enabled || this.tick.enabled || this.gridLine.enabled;
         const tickGenerationResult = ticksEnabled
@@ -738,7 +751,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     private updateLayoutState(fractionDigits: number) {
         this.layout.label = {
             fractionDigits: fractionDigits,
-            padding: this.label.padding,
+            spacing: this.label.spacing,
             format: this.label.format,
         };
     }
@@ -1106,8 +1119,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { tick, label } = this;
         const sideFlag = label.getSideFlag();
         this.tickLineGroupSelection.each((line, datum) => {
-            line.strokeWidth = tick.width;
-            line.stroke = tick.stroke;
+            line.strokeWidth = datum.tickWidth ?? tick.width;
+            line.stroke = datum.tickStroke ?? tick.stroke;
             line.x1 = sideFlag * (datum.tickSize ?? this.getTickSize());
             line.x2 = 0;
         });
@@ -1221,14 +1234,15 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         });
     }
 
-    protected updateTitle(noVisibleTicks?: boolean): void {
+    protected updateTitle(noVisibleTicks?: boolean, spacing?: number): void {
         const { title, lineNode, tickLineGroup, tickLabelGroup } = this;
 
-        let spacing = 0;
-        if (title.enabled && !noVisibleTicks) {
+        if (title.enabled && !noVisibleTicks && spacing == null) {
             const tickBBox = Group.computeChildrenBBox([tickLineGroup, tickLabelGroup, lineNode]);
-            spacing += tickBBox.width + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
+            spacing = tickBBox.width + (this.tickLabelGroup.visible ? 0 : this.seriesAreaPadding);
         }
+        spacing ??= 0;
+
         this.setTitleProps(title.caption, { spacing });
     }
 

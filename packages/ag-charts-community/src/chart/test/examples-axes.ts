@@ -441,7 +441,7 @@ const extremeAxisConfig = {
         width: 400,
     },
     label: {
-        padding: 5,
+        spacing: 5,
     },
 };
 

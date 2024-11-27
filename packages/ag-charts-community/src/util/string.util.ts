@@ -56,3 +56,21 @@ export function stringifyValue(value: any, maxLength = Infinity): string {
             return value;
     }
 }
+
+/**
+ * Efficiently counts the number of lines in a string.
+ * Processes the string in a single pass, counting newline (`\n`) characters
+ * by their ASCII value (10). Optimized for performance in scenarios with
+ * large datasets or tight loops.
+ * @param {string} text The input string.
+ * @returns {number} The number of lines, with at least one line for non-empty strings.
+ */
+export function countLines(text: string) {
+    let count = 1;
+    for (let i = 0; i < text.length; i++) {
+        if (text.charCodeAt(i) === 10) {
+            count++;
+        }
+    }
+    return count;
+}

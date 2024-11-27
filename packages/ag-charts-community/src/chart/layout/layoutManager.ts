@@ -14,7 +14,7 @@ export interface AxisLayout {
     tickSize: number;
     label: {
         fractionDigits: number;
-        padding: number;
+        spacing: number;
         format?: string;
     };
     direction: ChartAxisDirection;

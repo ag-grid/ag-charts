@@ -303,7 +303,7 @@ export abstract class AngleAxis<
 
         const labelData: AngleAxisLabelDatum[] = ticks.map((datum, index) => {
             const { value } = datum;
-            const distance = radius + label.padding + tick.size;
+            const distance = radius + label.spacing + tick.size;
             const angle = scale.convert(value);
             const cos = Math.cos(angle);
             const sin = Math.sin(angle);

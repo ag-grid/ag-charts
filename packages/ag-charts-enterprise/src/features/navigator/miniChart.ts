@@ -246,7 +246,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             } else {
                 size =
                     (line.enabled ? line.width : 0) +
-                    (label.enabled ? TextUtils.getLineHeight(label.fontSize ?? 0) + label.padding : 0);
+                    (label.enabled ? TextUtils.getLineHeight(label.fontSize ?? 0) + label.spacing : 0);
             }
 
             padding[position] = Math.ceil(size);

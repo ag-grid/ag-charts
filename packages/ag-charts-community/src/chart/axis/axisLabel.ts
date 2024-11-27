@@ -44,7 +44,7 @@ export class AxisLabel extends BaseProperties implements ChartAxisLabel {
      * The padding between the labels and the ticks.
      */
     @Validate(POSITIVE_NUMBER)
-    padding: number = 5;
+    spacing: number = 5;
 
     /**
      * Minimum gap in pixels between the axis labels before being removed to avoid collisions.

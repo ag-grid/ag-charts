@@ -38,7 +38,7 @@ export interface AgAxisCaptionOptions {
     formatter?: Formatter<AgAxisCaptionFormatterParams>;
 }
 
-export interface AgBaseAxisOptions<LabelType = AgBaseAxisLabelOptions> {
+export interface AgBaseAxisOptions<LabelType = any> {
     /** Axis type identifier. */
     type: string;
     /** An array of keys determining which series are charted on this axis. */
@@ -124,7 +124,7 @@ export interface AgBaseAxisLabelStyleOptions {
     /** The font family to use for the labels */
     fontFamily?: FontFamily;
     /** Padding in pixels between the axis label and the tick. */
-    padding?: PixelSize;
+    spacing?: PixelSize;
     /** The colour to use for the labels */
     color?: CssColor;
 }
@@ -136,8 +136,8 @@ export interface AgAxisLabelFormatterParams {
 }
 
 export interface AgAxisLabelStylerParams extends AgBaseAxisLabelStyleOptions {
+    /** The label value that would be used, after applying formating. */
     readonly value: any;
-    readonly depth?: number;
 }
 
 export interface AgBaseAxisLabelOptions extends AgBaseAxisLabelStyleOptions {
