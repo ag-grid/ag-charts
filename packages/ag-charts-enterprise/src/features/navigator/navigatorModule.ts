@@ -12,9 +12,33 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
     moduleFactory: (ctx) => new Navigator(ctx),
     removable: false, // Toggling this module causes zoom state flakiness.
     themeTemplate: {
-        ..._ModuleSupport.NavigatorModule.themeTemplate,
         navigator: {
-            ..._ModuleSupport.NavigatorModule.themeTemplate.navigator,
+            enabled: false,
+            height: 30,
+            mask: {
+                fill: '#999999',
+                stroke: '#999999',
+                strokeWidth: 1,
+                fillOpacity: 0.2,
+            },
+            minHandle: {
+                fill: '#f2f2f2',
+                stroke: '#999999',
+                strokeWidth: 1,
+                width: 9,
+                height: 16,
+                gripLineGap: 1,
+                gripLineLength: 8,
+            },
+            maxHandle: {
+                fill: '#f2f2f2',
+                stroke: '#999999',
+                strokeWidth: 1,
+                width: 9,
+                height: 16,
+                gripLineGap: 1,
+                gripLineLength: 8,
+            },
             miniChart: {
                 enabled: false,
                 label: {
