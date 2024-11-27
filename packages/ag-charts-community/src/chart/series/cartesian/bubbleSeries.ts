@@ -11,7 +11,6 @@ import { Text } from '../../../scene/shape/text';
 import type { PlacedLabel } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
-import { sanitizeHtml } from '../../../util/sanitize';
 import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -21,12 +20,7 @@ import type { CategoryLegendDatum } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import {
-    EMPTY_TOOLTIP_CONTENT,
-    type TooltipContent,
-    type TooltipContent2,
-    type TooltipContentRow,
-} from '../../tooltip/tooltip';
+import { type TooltipContent, type TooltipContentRow } from '../../tooltip/tooltip';
 import type { PickFocusInputs, SeriesNodeEventTypes } from '../series';
 import { SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
@@ -364,7 +358,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         });
     }
 
-    override getTooltip2(nodeDatum: BubbleNodeDatum): TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: BubbleNodeDatum): TooltipContent | undefined {
         const { dataModel, processedData, axes, properties } = this;
         const {
             xKey,
@@ -414,71 +408,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         }
 
         return { rows };
-    }
-
-    getTooltipHtml(nodeDatum: BubbleNodeDatum): TooltipContent {
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const yAxis = this.axes[ChartAxisDirection.Y];
-
-        if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const { xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName, marker, tooltip } = this.properties;
-        const title = this.properties.title ?? yName;
-
-        const baseStyle = mergeDefaults(
-            { fill: nodeDatum.fill, strokeWidth: this.getStrokeWidth(marker.strokeWidth) },
-            marker.getStyle()
-        );
-
-        const { fill: color = 'gray' } = this.getMarkerStyle(
-            marker,
-            { datum: nodeDatum, highlighted: false, xKey, yKey, sizeKey, labelKey },
-            baseStyle
-        );
-
-        const {
-            datum,
-            xValue,
-            yValue,
-            sizeValue,
-            label: { text: labelText },
-            itemId,
-        } = nodeDatum;
-        const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yString = sanitizeHtml(yAxis.formatDatum(yValue));
-
-        let content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` +
-            `<b>${sanitizeHtml(yName ?? yKey)}</b>: ${yString}`;
-
-        if (sizeKey) {
-            content += `<br><b>${sanitizeHtml(sizeName ?? sizeKey)}</b>: ${sanitizeHtml(String(sizeValue))}`;
-        }
-
-        if (labelKey) {
-            content = `<b>${sanitizeHtml(labelName ?? labelKey)}</b>: ${sanitizeHtml(labelText)}<br>` + content;
-        }
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
-            {
-                datum,
-                itemId,
-                xKey,
-                xName,
-                yKey,
-                yName,
-                sizeKey,
-                sizeName,
-                labelKey,
-                labelName,
-                title,
-                color,
-                seriesId: this.id,
-            }
-        );
     }
 
     private legendItemSymbol(): LegendSymbolOptions {

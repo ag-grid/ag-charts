@@ -1,4 +1,4 @@
-import { type AgMapShapeSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { extendBbox } from '../map-util/bboxUtil';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -23,7 +23,6 @@ const {
     SeriesNodePickMode,
     valueProperty,
     computeMarkerFocusBounds,
-    sanitizeHtml,
     Logger,
     ColorScale,
     LinearScale,
@@ -708,7 +707,7 @@ export class MapMarkerSeries
         }
     }
 
-    override getTooltip2(seriesDatum: any): _ModuleSupport.TooltipContent2 | undefined {
+    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | undefined {
         const { dataModel, processedData, properties } = this;
         const {
             idKey,
@@ -743,7 +742,7 @@ export class MapMarkerSeries
 
         const seriesTitle = properties.title ?? legendItemName;
         if (seriesTitle != null) {
-            rows.push({ value: seriesTitle });
+            rows.push({ label: seriesTitle });
         }
         if (sizeValues != null) {
             rows.push({
@@ -781,113 +780,6 @@ export class MapMarkerSeries
             title,
             rows,
         };
-    }
-
-    override getTooltipHtml(nodeDatum: MapMarkerNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId, processedData, properties } = this;
-
-        if (!processedData || !this.properties.isValid()) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const {
-            legendItemName,
-            idKey,
-            idName,
-            latitudeKey,
-            longitudeKey,
-            sizeKey,
-            sizeName,
-            colorKey,
-            colorName,
-            labelKey,
-            labelName,
-            itemStyler,
-            tooltip,
-            latitudeName,
-            longitudeName,
-            shape,
-            size,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-        } = properties;
-        const { datum, fill, idValue, latValue, lonValue, sizeValue, colorValue, labelValue, itemId } = nodeDatum;
-
-        const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
-        const contentLines: string[] = [];
-        if (idValue != null) {
-            contentLines.push(sanitizeHtml((idName != null ? `${idName}: ` : '') + idValue));
-        }
-        if (colorValue != null) {
-            contentLines.push(sanitizeHtml((colorName ?? colorKey) + ': ' + colorValue));
-        }
-        if (sizeValue != null) {
-            contentLines.push(sanitizeHtml((sizeName ?? sizeKey) + ': ' + sizeValue));
-        }
-        if (labelValue != null && (idKey == null || idKey !== labelKey)) {
-            contentLines.push(sanitizeHtml((labelName ?? labelKey) + ': ' + labelValue));
-        }
-        if (latValue != null && lonValue != null) {
-            contentLines.push(
-                sanitizeHtml(
-                    `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'W' : 'E'}`
-                )
-            );
-        }
-        const content = contentLines.join('<br>');
-
-        let format: AgMapShapeSeriesStyle | undefined;
-
-        if (itemStyler) {
-            format = this.cachedDatumCallback(createDatumId(datum.idValue, 'tooltip'), () =>
-                itemStyler({
-                    highlighted: false,
-                    seriesId,
-                    datum,
-                    idKey,
-                    sizeKey,
-                    colorKey,
-                    labelKey,
-                    latitudeKey,
-                    longitudeKey,
-                    shape,
-                    size,
-                    fill: fill!,
-                    fillOpacity,
-                    stroke: stroke!,
-                    strokeWidth,
-                    strokeOpacity,
-                })
-            );
-        }
-
-        const color = format?.fill ?? fill ?? properties.fill;
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
-            {
-                seriesId,
-                datum,
-                idKey,
-                latitudeKey,
-                longitudeKey,
-                title,
-                color,
-                colorKey,
-                colorName,
-                idName,
-                itemId,
-                labelKey,
-                labelName,
-                latitudeName,
-                longitudeName,
-                sizeKey,
-                sizeName,
-                ...this.getModuleTooltipParams(),
-            }
-        );
     }
 
     public getMapMarkerStyle(markerDatum: MapMarkerNodeDatum, highlighted: boolean) {

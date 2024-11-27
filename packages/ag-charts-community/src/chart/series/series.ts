@@ -33,7 +33,7 @@ import type { DataController } from '../data/dataController';
 import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from '../interaction/chartEventManager';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
-import type { TooltipContent, TooltipContent2 } from '../tooltip/tooltip';
+import type { TooltipContent } from '../tooltip/tooltip';
 import type { SeriesEventType } from './seriesEvents';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
@@ -529,11 +529,7 @@ export abstract class Series<
             .reduce((total, current) => Object.assign(total, current), {});
     }
 
-    getTooltip2(_seriesDatum: any): TooltipContent2 | undefined {
-        return undefined;
-    }
-
-    abstract getTooltipHtml(seriesDatum: any): TooltipContent;
+    abstract getTooltipContent(_seriesDatum: any): TooltipContent | undefined;
 
     protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
     pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {

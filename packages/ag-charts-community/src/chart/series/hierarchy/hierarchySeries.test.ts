@@ -38,7 +38,7 @@ class ExampleHierarchySeries extends HierarchySeries<
         throw new Error('Method not implemented.');
     }
 
-    override getTooltipHtml(_seriesDatum: never): never {
+    override getTooltipContent(): never {
         throw new Error('Method not implemented.');
     }
 

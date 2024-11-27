@@ -27,7 +27,6 @@ const {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     computeBarFocusBounds,
-    sanitizeHtml,
     isContinuous,
     Rect,
     motion,
@@ -599,7 +598,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    override getTooltip2(nodeDatum: WaterfallNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: WaterfallNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { dataModel, processedData, axes } = this;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -653,80 +652,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 },
             ],
         };
-    }
-
-    getTooltipHtml(nodeDatum: WaterfallNodeDatum): _ModuleSupport.TooltipContent {
-        const categoryAxis = this.getCategoryAxis();
-        const valueAxis = this.getValueAxis();
-
-        if (!this.properties.isValid() || !categoryAxis || !valueAxis) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const { id: seriesId } = this;
-        const { xKey, yKey, xName, yName, tooltip } = this.properties;
-        const { index, datum, itemId, xValue, yValue } = nodeDatum;
-        const {
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash = [],
-            lineDashOffset,
-            cornerRadius,
-            name,
-            itemStyler,
-        } = this.getItemConfig(itemId);
-
-        let format;
-
-        if (itemStyler) {
-            format = this.cachedDatumCallback(createDatumId(index, 'tooltip'), () =>
-                itemStyler({
-                    datum,
-                    xKey,
-                    yKey,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                    cornerRadius,
-                    highlighted: false,
-                    seriesId,
-                    itemId: nodeDatum.itemId,
-                })
-            );
-        }
-
-        const color = format?.fill ?? fill ?? 'gray';
-
-        const xString = sanitizeHtml(categoryAxis.formatDatum(xValue));
-        const yString = sanitizeHtml(valueAxis.formatDatum(yValue));
-
-        const isTotal = this.isTotal(itemId);
-        const isSubtotal = this.isSubtotal(itemId);
-        let ySubheading;
-        if (isTotal) {
-            ySubheading = 'Total';
-        } else if (isSubtotal) {
-            ySubheading = 'Subtotal';
-        } else {
-            ySubheading = name ?? yName ?? yKey;
-        }
-
-        const title = sanitizeHtml(yName);
-        const content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br/>` +
-            `<b>${sanitizeHtml(ySubheading)}</b>: ${yString}`;
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
-            { seriesId, itemId, datum, xKey, yKey, xName, yName, color, title }
-        );
     }
 
     private legendItemSymbol(item: AgWaterfallSeriesItemType): _ModuleSupport.LegendSymbolOptions {

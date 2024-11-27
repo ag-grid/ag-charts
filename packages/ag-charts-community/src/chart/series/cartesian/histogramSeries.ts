@@ -1,5 +1,3 @@
-import type { AgTooltipRendererResult } from 'ag-charts-types';
-
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { BBox } from '../../../scene/bbox';
@@ -9,7 +7,6 @@ import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
-import { sanitizeHtml } from '../../../util/sanitize';
 import { createTicks, tickStep } from '../../../util/ticks';
 import { isNumber } from '../../../util/type-guards';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -20,12 +17,7 @@ import { fixNumericExtent } from '../../data/dataModel';
 import { SORT_DOMAIN_GROUPS, createDatumId, diff, keyProperty, valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
-import {
-    EMPTY_TOOLTIP_CONTENT,
-    type TooltipContent,
-    type TooltipContent2,
-    type TooltipContentRow,
-} from '../../tooltip/tooltip';
+import { type TooltipContent, type TooltipContentRow } from '../../tooltip/tooltip';
 import { type PickFocusInputs, Series, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import {
@@ -463,7 +455,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         return findQuadtreeMatch(this, point);
     }
 
-    override getTooltip2(nodeDatum: HistogramNodeDatum): TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: HistogramNodeDatum): TooltipContent | undefined {
         const { dataModel, processedData, axes, properties } = this;
         const { xKey, xName = xKey, yKey, yName = yKey } = properties;
         const xAxis = axes[ChartAxisDirection.X];
@@ -498,52 +490,6 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         rows[0].symbol = this.legendItemSymbol();
 
         return { title: `${xAxis.formatDatum(rangeMin)} - ${xAxis.formatDatum(rangeMax)}`, rows };
-    }
-
-    getTooltipHtml(nodeDatum: HistogramNodeDatum): TooltipContent {
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const yAxis = this.axes[ChartAxisDirection.Y];
-
-        if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const { xKey, yKey, xName, yName, fill: color, aggregation, tooltip } = this.properties;
-        const {
-            aggregatedValue,
-            frequency,
-            domain: [rangeMin, rangeMax],
-            itemId,
-        } = nodeDatum;
-        const title = `${sanitizeHtml(xName ?? xKey)}: ${xAxis.formatDatum(rangeMin)} - ${xAxis.formatDatum(rangeMax)}`;
-        let content = yKey
-            ? `<b>${sanitizeHtml(yName ?? yKey)} (${aggregation})</b>: ${yAxis.formatDatum(aggregatedValue)}<br>`
-            : '';
-
-        content += `<b>Frequency</b>: ${frequency}`;
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            backgroundColor: color,
-            content,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            datum: {
-                data: nodeDatum.datum,
-                aggregatedValue: nodeDatum.aggregatedValue,
-                domain: nodeDatum.domain,
-                frequency: nodeDatum.frequency,
-            },
-            itemId,
-            xKey,
-            xName,
-            yKey,
-            yName,
-            color,
-            title,
-            seriesId: this.id,
-        });
     }
 
     private legendItemSymbol(): LegendSymbolOptions {

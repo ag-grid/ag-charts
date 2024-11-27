@@ -12,7 +12,6 @@ const {
     ChartAxisDirection,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
-    sanitizeHtml,
     createDatumId,
     Logger,
     ColorScale,
@@ -414,7 +413,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    override getTooltip2(nodeDatum: HeatmapNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: HeatmapNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { dataModel, processedData, axes, properties, colorScale } = this;
         const { xKey, xName = xKey, yKey, yName = yKey, colorKey, colorName = colorKey, colorRange } = properties;
         const xAxis = axes[ChartAxisDirection.X];
@@ -471,84 +470,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return {
             rows,
         };
-    }
-
-    getTooltipHtml(nodeDatum: HeatmapNodeDatum): _ModuleSupport.TooltipContent {
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const yAxis = this.axes[ChartAxisDirection.Y];
-
-        if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const {
-            xKey,
-            yKey,
-            colorKey,
-            xName,
-            yName,
-            colorName,
-            stroke,
-            strokeWidth,
-            strokeOpacity = 1,
-            colorRange,
-            itemStyler,
-            tooltip,
-        } = this.properties;
-        const { colorScale, id: seriesId } = this;
-
-        const { datum, xValue, yValue, colorValue, itemId } = nodeDatum;
-        const fill = this.isColorScaleValid() ? colorScale.convert(colorValue) : colorRange[0];
-
-        let format: AgHeatmapSeriesStyle | undefined;
-
-        if (itemStyler) {
-            format = this.cachedDatumCallback(createDatumId(datum.index, 'tooltip'), () =>
-                itemStyler({
-                    datum,
-                    xKey,
-                    yKey,
-                    colorKey,
-                    fill,
-                    fillOpacity: 1,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    highlighted: false,
-                    seriesId,
-                })
-            );
-        }
-
-        const color = format?.fill ?? fill ?? 'gray';
-        const title = this.properties.title ?? yName;
-        const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yString = sanitizeHtml(yAxis.formatDatum(yValue));
-
-        let content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` +
-            `<b>${sanitizeHtml(yName ?? yKey)}</b>: ${yString}`;
-
-        if (colorKey) {
-            content = `<b>${sanitizeHtml(colorName ?? colorKey)}</b>: ${sanitizeHtml(colorValue)}<br>` + content;
-        }
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
-            {
-                seriesId,
-                datum,
-                xKey,
-                yKey,
-                xName,
-                yName,
-                title,
-                color,
-                colorKey,
-                colorName,
-                itemId,
-            }
-        );
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.GradientLegendDatum[] {

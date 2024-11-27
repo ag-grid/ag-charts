@@ -14,12 +14,10 @@ import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
 import { normalizeAngle180, toRadians } from '../../../util/angle';
-import { formatValue } from '../../../util/format.util';
 import { jsonDiff } from '../../../util/json';
 import { Logger } from '../../../util/logger';
 import { mod } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
-import { sanitizeHtml } from '../../../util/sanitize';
 import type { Has } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { ChartUpdateType } from '../../chartUpdateType';
@@ -38,7 +36,7 @@ import {
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Circle } from '../../marker/circle';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent, type TooltipContent2 } from '../../tooltip/tooltip';
+import { type TooltipContent } from '../../tooltip/tooltip';
 import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { SeriesNodeEvent, type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
@@ -1345,24 +1343,11 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     protected override readonly NodeEvent = DonutSeriesNodeEvent;
 
-    private getDatumLegendName(nodeDatum: DonutNodeDatum) {
-        const { angleKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
-        const { sectorLabel, calloutLabel, legendItem } = nodeDatum;
-
-        if (legendItemKey && legendItem !== undefined) {
-            return legendItem.text;
-        } else if (calloutLabelKey && calloutLabelKey !== angleKey && calloutLabel?.text !== undefined) {
-            return calloutLabel.text;
-        } else if (sectorLabelKey && sectorLabelKey !== angleKey && sectorLabel?.text !== undefined) {
-            return sectorLabel.text;
-        }
-    }
-
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         return pickByMatchingAngle(this, point);
     }
 
-    override getTooltip2(nodeDatum: DonutNodeDatum): TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: DonutNodeDatum): TooltipContent | undefined {
         const { dataModel, processedData, properties } = this;
         const { calloutLabelKey, sectorLabelKey, angleKey } = properties;
 
@@ -1393,47 +1378,6 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 },
             ],
         };
-    }
-
-    getTooltipHtml(nodeDatum: DonutNodeDatum): TooltipContent {
-        if (!this.properties.isValid()) {
-            return EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const {
-            datum,
-            angleValue,
-            sectorFormat: { fill: color },
-            itemId,
-        } = nodeDatum;
-
-        const title = sanitizeHtml(this.properties.title?.text);
-        const content = formatValue(angleValue);
-        const labelText = this.getDatumLegendName(nodeDatum);
-
-        return this.properties.tooltip.toTooltipHtml(
-            {
-                title: title ?? labelText,
-                content: title && labelText ? `${labelText}: ${content}` : content,
-                backgroundColor: color,
-            },
-            {
-                datum,
-                itemId,
-                title,
-                color,
-                seriesId: this.id,
-                angleKey: this.properties.angleKey,
-                angleName: this.properties.angleName,
-                radiusKey: this.properties.radiusKey,
-                radiusName: this.properties.radiusName,
-                calloutLabelKey: this.properties.calloutLabelKey,
-                calloutLabelName: this.properties.calloutLabelName,
-                sectorLabelKey: this.properties.sectorLabelKey,
-                sectorLabelName: this.properties.sectorLabelName,
-                legendItemKey: this.properties.legendItemKey,
-            }
-        );
     }
 
     private legendItemSymbol(datumIndex: number): LegendSymbolOptions {

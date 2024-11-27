@@ -205,8 +205,8 @@ export class MapLineBackgroundSeries
         return [];
     }
 
-    override getTooltipHtml(): _ModuleSupport.TooltipContent {
-        return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
+    override getTooltipContent(_seriesDatum: any): _ModuleSupport.TooltipContent | undefined {
+        return;
     }
 
     protected override computeFocusBounds(_opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {

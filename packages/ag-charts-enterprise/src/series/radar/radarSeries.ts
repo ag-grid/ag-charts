@@ -12,12 +12,10 @@ const {
     markerFadeInAnimation,
     resetMarkerFn,
     animationValidation,
-    formatValue,
     computeMarkerFocusBounds,
     isFiniteNumber,
     extent,
     isNumberEqual,
-    sanitizeHtml,
     createDatumId,
     BBox,
     Group,
@@ -388,7 +386,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         });
     }
 
-    override getTooltip2(nodeDatum: RadarNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: RadarNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { dataModel, processedData, axes, properties } = this;
         const { radiusKey, radiusName = radiusKey } = properties;
         const angleAxis = axes[ChartAxisDirection.X];
@@ -418,65 +416,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 },
             ],
         };
-    }
-
-    getTooltipHtml(nodeDatum: RadarNodeDatum): _ModuleSupport.TooltipContent {
-        if (!this.properties.isValid()) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const { id: seriesId } = this;
-        const { angleKey, radiusKey, angleName, radiusName, marker, tooltip } = this.properties;
-        const { index, datum, angleValue, radiusValue, itemId } = nodeDatum;
-
-        const formattedAngleValue = formatValue(angleValue);
-        const formattedRadiusValue = formatValue(radiusValue);
-        const title = sanitizeHtml(radiusName);
-        const content = sanitizeHtml(`${formattedAngleValue}: ${formattedRadiusValue}`);
-
-        const {
-            itemStyler,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth = this.properties.strokeWidth,
-            strokeOpacity,
-            shape,
-            size,
-        } = marker;
-
-        const { fill: color } = (itemStyler &&
-            this.cachedDatumCallback(createDatumId(index, 'tooltip'), () =>
-                itemStyler({
-                    datum,
-                    angleKey,
-                    radiusKey,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    shape,
-                    size,
-                    highlighted: false,
-                    seriesId,
-                })
-            )) ?? { fill };
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
-            {
-                datum,
-                angleKey,
-                angleName,
-                radiusKey,
-                radiusName,
-                title,
-                color,
-                seriesId,
-                itemId,
-            }
-        );
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {

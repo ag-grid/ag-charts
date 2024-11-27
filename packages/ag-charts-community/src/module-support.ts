@@ -179,7 +179,7 @@ export { Square } from './chart/marker/square';
 export { Triangle } from './chart/marker/triangle';
 export { ArrowUp } from './chart/marker/arrowUp';
 export { ArrowDown } from './chart/marker/arrowDown';
-export { Tooltip, toTooltipHtml } from './chart/tooltip/tooltip';
+export { Tooltip } from './chart/tooltip/tooltip';
 export type { TooltipMeta } from './chart/tooltip/tooltip';
 export { SectorBox } from './scene/sectorBox';
 export { HdpiCanvas } from './scene/canvas/hdpiCanvas';

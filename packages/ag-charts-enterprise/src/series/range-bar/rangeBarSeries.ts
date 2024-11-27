@@ -1,4 +1,3 @@
-import type { AgTooltipRendererResult } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { SPAN, X_MAX, X_MIN, Y_MAX, Y_MIN } from '../../utils/aggregation';
@@ -24,9 +23,7 @@ const {
     seriesLabelFadeInAnimation,
     resetLabelFn,
     animationValidation,
-    createDatumId,
     computeBarFocusBounds,
-    sanitizeHtml,
     visibleRangeIndices,
     ContinuousScale,
     OrdinalTimeScale,
@@ -571,7 +568,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    override getTooltip2(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { dataModel, processedData, axes } = this;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -600,99 +597,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 },
             ],
         };
-    }
-
-    getTooltipHtml(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId } = this;
-
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
-
-        if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const {
-            xKey,
-            yLowKey,
-            yHighKey,
-            xName,
-            yLowName,
-            yHighName,
-            yName,
-            fill,
-            strokeWidth,
-            itemStyler,
-            tooltip,
-            fillOpacity,
-            stroke,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            cornerRadius,
-        } = this.properties;
-        const { datum, xValue, yLowValue, yHighValue } = nodeDatum;
-
-        let format;
-        if (itemStyler) {
-            format = this.cachedDatumCallback(createDatumId(this.getDatumId(nodeDatum), 'tooltip'), () =>
-                itemStyler({
-                    highlighted: false,
-                    seriesId,
-                    datum,
-                    xKey,
-                    yLowKey,
-                    yHighKey,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                    cornerRadius,
-                })
-            );
-        }
-
-        const color = format?.fill ?? fill ?? 'gray';
-
-        const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yLowString = sanitizeHtml(yAxis.formatDatum(yLowValue));
-        const yHighString = sanitizeHtml(yAxis.formatDatum(yHighValue));
-
-        const xSubheading = xName ?? xKey;
-        const yLowSubheading = yLowName ?? yLowKey;
-        const yHighSubheading = yHighName ?? yHighKey;
-
-        const title = sanitizeHtml(yName);
-
-        const content = yName
-            ? `<b>${sanitizeHtml(xSubheading)}</b>: ${xString}<br>` +
-              `<b>${sanitizeHtml(yLowSubheading)}</b>: ${yLowString}<br>` +
-              `<b>${sanitizeHtml(yHighSubheading)}</b>: ${yHighString}<br>`
-            : `${xString}: ${yLowString} - ${yHighString}`;
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            content,
-            backgroundColor: color,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            itemId: undefined,
-            datum,
-            xKey,
-            xName,
-            yLowKey,
-            yLowName,
-            yHighKey,
-            yHighName,
-            yName,
-            color,
-            seriesId,
-            title,
-        });
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {

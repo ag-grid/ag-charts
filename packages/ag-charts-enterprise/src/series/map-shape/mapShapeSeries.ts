@@ -24,7 +24,6 @@ const {
     Validate,
     CachedTextMeasurerPool,
     TextUtils,
-    sanitizeHtml,
     Logger,
     ColorScale,
     Group,
@@ -619,7 +618,7 @@ export class MapShapeSeries
         }
     }
 
-    override getTooltip2(seriesDatum: any): _ModuleSupport.TooltipContent2 | undefined {
+    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | undefined {
         const { dataModel, processedData, properties } = this;
         const { idKey, colorKey, colorName = colorKey, labelKey, labelName = labelKey, legendItemName } = properties;
         if (!dataModel || !processedData?.rawData.length) return;
@@ -636,7 +635,7 @@ export class MapShapeSeries
 
         const seriesTitle = properties.title ?? legendItemName;
         if (seriesTitle != null) {
-            rows.push({ value: seriesTitle });
+            rows.push({ label: seriesTitle });
         }
         if (colorValues != null) {
             rows.push({
@@ -659,86 +658,6 @@ export class MapShapeSeries
             title: idValues[datumIndex],
             rows,
         };
-    }
-
-    override getTooltipHtml(nodeDatum: MapShapeNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId, processedData, properties } = this;
-
-        if (!processedData || !properties.isValid()) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const {
-            legendItemName,
-            idKey,
-            idName,
-            colorKey,
-            colorName,
-            labelKey,
-            labelName,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            fillOpacity,
-            lineDash,
-            lineDashOffset,
-            itemStyler,
-            tooltip,
-        } = properties;
-        const { datum, fill, idValue, colorValue, labelValue, itemId } = nodeDatum;
-
-        const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
-        const contentLines: string[] = [];
-        contentLines.push(sanitizeHtml((idName != null ? `${idName}: ` : '') + idValue));
-        if (colorValue != null) {
-            contentLines.push(sanitizeHtml((colorName ?? colorKey) + ': ' + colorValue));
-        }
-        if (labelValue != null && labelKey !== idKey) {
-            contentLines.push(sanitizeHtml((labelName ?? labelKey) + ': ' + labelValue));
-        }
-        const content = contentLines.join('<br>');
-
-        let format: AgMapShapeSeriesStyle | undefined;
-
-        if (itemStyler) {
-            format = this.cachedDatumCallback(createDatumId(datum.idValue, 'tooltip'), () =>
-                itemStyler({
-                    seriesId,
-                    datum,
-                    idKey,
-                    colorKey,
-                    labelKey,
-                    fill,
-                    stroke,
-                    strokeWidth: this.getStrokeWidth(strokeWidth),
-                    highlighted: false,
-                    fillOpacity,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                })
-            );
-        }
-
-        const color = format?.fill ?? fill;
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
-            {
-                seriesId,
-                datum,
-                idKey,
-                title,
-                color,
-                colorKey,
-                colorName,
-                idName,
-                itemId,
-                labelKey,
-                labelName,
-                ...this.getModuleTooltipParams(),
-            }
-        );
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.Path | undefined {

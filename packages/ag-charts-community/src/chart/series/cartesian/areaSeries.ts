@@ -14,8 +14,7 @@ import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
-import { sanitizeHtml } from '../../../util/sanitize';
-import { isDefined, isFiniteNumber } from '../../../util/type-guards';
+import { isDefined } from '../../../util/type-guards';
 import { isContinuous } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
@@ -35,7 +34,7 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDa
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent, type TooltipContent2 } from '../../tooltip/tooltip';
+import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
@@ -711,7 +710,7 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    override getTooltip2(nodeDatum: MarkerSelectionDatum): TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: MarkerSelectionDatum): TooltipContent | undefined {
         const { dataModel, processedData, axes, properties } = this;
         const { yKey, yName = yKey, legendItemName = yName } = properties;
         const xAxis = axes[ChartAxisDirection.X];
@@ -741,51 +740,6 @@ export class AreaSeries extends CartesianSeries<
                 },
             ],
         };
-    }
-
-    getTooltipHtml(nodeDatum: MarkerSelectionDatum): TooltipContent {
-        const { id: seriesId, axes, dataModel } = this;
-        const { xKey, xName, yName, tooltip, marker } = this.properties;
-        const { yKey, xValue, yValue, datum, itemId } = nodeDatum;
-        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        if (!this.properties.isValid() || !(xAxis && yAxis && isFiniteNumber(yValue)) || !dataModel) {
-            return EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const xString = xAxis.formatDatum(xValue);
-        const yString = yAxis.formatDatum(yValue);
-        const title = sanitizeHtml(yName);
-        const content = sanitizeHtml(xString + ': ' + yString);
-
-        const baseStyle = mergeDefaults({ fill: this.properties.fill }, marker.getStyle(), {
-            stroke: this.properties.stroke,
-            strokeWidth: this.properties.strokeWidth,
-        });
-        const { fill: color } = this.getMarkerStyle(
-            marker,
-            { ...datumStylerProperties(nodeDatum, xKey, yKey, xDomain, yDomain), highlighted: false },
-            baseStyle
-        );
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
-            {
-                datum,
-                itemId,
-                xKey,
-                xName,
-                yKey,
-                yName,
-                color,
-                title,
-                seriesId,
-            }
-        );
     }
 
     legendItemSymbol(): LegendSymbolOptions {

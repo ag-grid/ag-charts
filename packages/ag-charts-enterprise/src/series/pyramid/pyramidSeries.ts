@@ -1,7 +1,6 @@
 import {
     type AgPyramidSeriesLabelFormatterParams,
     type AgPyramidSeriesStyle,
-    type AgTooltipRendererResult,
     _ModuleSupport,
 } from 'ag-charts-community';
 
@@ -13,7 +12,6 @@ const {
     SeriesNodePickMode,
     CachedTextMeasurerPool,
     TextUtils,
-    sanitizeHtml,
     createDatumId,
     BBox,
     Group,
@@ -533,7 +531,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         }
     }
 
-    override getTooltip2(nodeDatum: PyramidNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: PyramidNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { dataModel, processedData, properties } = this;
         const { stageKey, valueKey } = properties;
 
@@ -566,59 +564,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 },
             ],
         };
-    }
-
-    override getTooltipHtml(nodeDatum: any): _ModuleSupport.TooltipContent {
-        const { id: seriesId } = this;
-
-        if (!this.properties.isValid()) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const { stageKey, valueKey, itemStyler, tooltip } = this.properties;
-        const { strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
-        const { datum, xValue, yValue, fill, stroke } = nodeDatum;
-
-        let format;
-        if (itemStyler) {
-            format = this.cachedDatumCallback(createDatumId(nodeDatum.index, 'tooltip'), () =>
-                itemStyler({
-                    highlighted: false,
-                    seriesId,
-                    datum,
-                    stageKey,
-                    valueKey,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                })
-            );
-        }
-
-        const color = format?.fill ?? fill ?? 'gray';
-
-        const title = sanitizeHtml(String(xValue));
-        const content = sanitizeHtml(String(yValue));
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            content,
-            backgroundColor: color,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            itemId: undefined,
-            datum,
-            stageKey,
-            valueKey,
-            color,
-            seriesId,
-            title,
-        });
     }
 
     override getSeriesDomain(): any[] {

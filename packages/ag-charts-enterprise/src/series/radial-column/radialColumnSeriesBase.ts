@@ -6,7 +6,6 @@ import type { RadialColumnSeriesBaseProperties } from './radialColumnSeriesBaseP
 
 const {
     isDefined,
-    isFiniteNumber,
     ChartAxisDirection,
     PolarAxis,
     diff,
@@ -23,7 +22,6 @@ const {
     createDatumId,
     SeriesNodePickMode,
     normalizeAngle360,
-    sanitizeHtml,
     BandScale,
     motion,
 } = _ModuleSupport;
@@ -509,7 +507,7 @@ export abstract class RadialColumnSeriesBase<
         seriesLabelFadeOutAnimation(this, 'labels', animationManager, this.labelSelection);
     }
 
-    override getTooltip2(nodeDatum: RadialColumnNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: RadialColumnNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { dataModel, processedData, axes, properties } = this;
         const { radiusKey, radiusName = radiusKey } = properties;
         const angleAxis = axes[ChartAxisDirection.X];
@@ -539,75 +537,6 @@ export abstract class RadialColumnSeriesBase<
                 },
             ],
         };
-    }
-
-    getTooltipHtml(nodeDatum: RadialColumnNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId, axes, dataModel } = this;
-        const {
-            angleKey,
-            radiusKey,
-            angleName,
-            radiusName,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            cornerRadius,
-            itemStyler,
-            tooltip,
-        } = this.properties;
-        const { angleValue, radiusValue, datum, itemId } = nodeDatum;
-
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        if (!this.properties.isValid() || !(xAxis && yAxis && isFiniteNumber(radiusValue)) || !dataModel) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const angleString = xAxis.formatDatum(angleValue);
-        const radiusString = yAxis.formatDatum(radiusValue);
-        const title = sanitizeHtml(radiusName);
-        const content = sanitizeHtml(`${angleString}: ${radiusString}`);
-
-        const { fill: color } = (itemStyler &&
-            this.cachedDatumCallback(createDatumId(this.getDatumId(datum), 'tooltip'), () =>
-                itemStyler({
-                    highlighted: false,
-                    seriesId,
-                    datum,
-                    angleKey,
-                    radiusKey,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                    cornerRadius,
-                })
-            )) ?? { fill };
-
-        return tooltip.toTooltipHtml(
-            { title, backgroundColor: fill, content },
-            {
-                seriesId,
-                datum,
-                color,
-                title,
-                angleKey,
-                radiusKey,
-                angleName,
-                radiusName,
-                angleValue,
-                itemId,
-                radiusValue,
-            }
-        );
     }
 
     protected override pickNodeClosestDatum(

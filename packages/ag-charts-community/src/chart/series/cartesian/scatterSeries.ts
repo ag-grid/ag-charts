@@ -1,5 +1,3 @@
-import type { AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
-
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
 import type { BBox } from '../../../scene/bbox';
@@ -10,9 +8,7 @@ import { Text } from '../../../scene/shape/text';
 import type { PlacedLabel } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
-import { sanitizeHtml } from '../../../util/sanitize';
 import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
-import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
@@ -21,12 +17,7 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDa
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import {
-    EMPTY_TOOLTIP_CONTENT,
-    type TooltipContent,
-    type TooltipContent2,
-    type TooltipContentRow,
-} from '../../tooltip/tooltip';
+import { type TooltipContent, type TooltipContentRow } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData } from './cartesianSeries';
@@ -300,7 +291,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         });
     }
 
-    override getTooltip2(nodeDatum: ScatterNodeDatum): TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: ScatterNodeDatum): TooltipContent | undefined {
         const { dataModel, processedData, axes, properties } = this;
         const { xKey, xName = xKey, yKey, yName = yKey, title, legendItemName = yName } = properties;
         const xAxis = axes[ChartAxisDirection.X];
@@ -322,7 +313,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const rows: TooltipContentRow[] = [];
 
         if (title != null) {
-            rows.push({ value: title });
+            rows.push({ label: title });
         }
 
         rows.push(
@@ -339,58 +330,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         rows[0].symbol = this.legendItemSymbol();
 
         return { rows };
-    }
-
-    getTooltipHtml(nodeDatum: ScatterNodeDatum): TooltipContent {
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const yAxis = this.axes[ChartAxisDirection.Y];
-
-        if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const { xKey, yKey, labelKey, xName, yName, labelName, title = yName, marker, tooltip } = this.properties;
-        const { datum, xValue, yValue, label, itemId } = nodeDatum;
-
-        const baseStyle = mergeDefaults(
-            { fill: nodeDatum.fill, strokeWidth: this.getStrokeWidth(marker.strokeWidth) },
-            marker.getStyle()
-        );
-
-        const { fill: color = 'gray' } = this.getMarkerStyle(
-            marker,
-            { datum: nodeDatum, highlighted: false, xKey, yKey, labelKey },
-            baseStyle
-        );
-
-        const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yString = sanitizeHtml(yAxis.formatDatum(yValue));
-
-        let content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` +
-            `<b>${sanitizeHtml(yName ?? yKey)}</b>: ${yString}`;
-
-        if (labelKey) {
-            content = `<b>${sanitizeHtml(labelName ?? labelKey)}</b>: ${sanitizeHtml(label.text)}<br>` + content;
-        }
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
-            {
-                datum,
-                itemId,
-                xKey,
-                xName,
-                yKey,
-                yName,
-                labelKey,
-                labelName,
-                title,
-                color,
-                seriesId: this.id,
-                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
-            }
-        );
     }
 
     private legendItemSymbol(): LegendSymbolOptions {

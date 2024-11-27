@@ -15,11 +15,9 @@ const {
     TextWrapper,
     TextUtils,
     createDatumId,
-    EMPTY_TOOLTIP_CONTENT,
     angleBetween,
     normalizeAngle360,
     isBetweenAngles,
-    sanitizeHtml,
     Logger,
     Sector,
     evaluateBezier,
@@ -494,112 +492,6 @@ export class ChordSeries extends FlowProportionSeries<
             link.lineDashOffset = highlightStyle?.lineDashOffset ?? format?.lineDashOffset ?? lineDashOffset;
             link.tension = format?.tension ?? tension;
         });
-    }
-
-    override getTooltipHtml(nodeDatum: ChordDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId, processedData, properties } = this;
-
-        if (!processedData || !properties.isValid()) {
-            return EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
-        const { index, datum, itemId, size } = nodeDatum;
-
-        let title: string;
-        const contentLines: string[] = [];
-        let fill: string;
-        if (nodeDatum.type === FlowProportionDatumType.Link) {
-            const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, tension, itemStyler } =
-                properties.link;
-            const { fromNode, toNode } = nodeDatum;
-            title = `${fromNode.label ?? fromNode.id} - ${toNode.label ?? toNode.id}`;
-            if (sizeKey != null) {
-                contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
-            }
-
-            fill = properties.link.fill ?? fromNode.fill;
-            const stroke = properties.link.stroke ?? fromNode.stroke;
-
-            let format: AgChordSeriesLinkStyle | undefined;
-            if (itemStyler != null) {
-                format = this.cachedDatumCallback(createDatumId(index, 'link-tooltip'), () =>
-                    itemStyler({
-                        seriesId,
-                        datum: datum.datum,
-                        fromKey,
-                        toKey,
-                        sizeKey,
-                        fill,
-                        fillOpacity,
-                        strokeOpacity,
-                        stroke,
-                        strokeWidth,
-                        lineDash,
-                        lineDashOffset,
-                        tension,
-                        highlighted: true,
-                    })
-                );
-            }
-
-            fill = format?.fill ?? fill;
-        } else {
-            const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, itemStyler } = properties.node;
-            const { id, label } = nodeDatum;
-            title = label ?? id;
-            if (sizeKey != null) {
-                contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
-            }
-
-            fill = properties.link.fill ?? nodeDatum.fill;
-            const stroke = properties.link.stroke ?? nodeDatum.stroke;
-
-            let format: AgChordSeriesNodeStyle | undefined;
-            if (itemStyler != null) {
-                format = this.cachedDatumCallback(createDatumId(index, 'node-tooltip'), () =>
-                    itemStyler({
-                        seriesId,
-                        datum: datum.datum,
-                        label,
-                        size,
-                        fromKey,
-                        toKey,
-                        sizeKey,
-                        fill,
-                        fillOpacity,
-                        strokeOpacity,
-                        stroke,
-                        strokeWidth,
-                        lineDash,
-                        lineDashOffset,
-                        highlighted: true,
-                    })
-                );
-            }
-
-            fill = format?.fill ?? nodeDatum.fill;
-        }
-        const content = contentLines.join('<br>');
-
-        const color = fill;
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
-            {
-                seriesId,
-                datum,
-                title,
-                color,
-                itemId,
-                fromKey,
-                toKey,
-                sizeKey,
-                sizeName,
-                size,
-                ...this.getModuleTooltipParams(),
-            }
-        );
     }
 
     protected override computeFocusBounds({

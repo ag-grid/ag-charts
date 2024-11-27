@@ -16,7 +16,6 @@ const {
     diff,
     animationValidation,
     computeBarFocusBounds,
-    sanitizeHtml,
     createDatumId,
     Color,
     ContinuousScale,
@@ -299,7 +298,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         ];
     }
 
-    override getTooltip2(nodeDatum: BoxPlotNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: BoxPlotNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { dataModel, processedData, axes, properties } = this;
         const {
             yName,
@@ -336,7 +335,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const rows: _ModuleSupport.TooltipContentRow[] = [];
 
         if (yName != null) {
-            rows.push({ value: yName });
+            rows.push({ label: yName });
         }
 
         rows.push(
@@ -368,72 +367,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             title: xAxis.formatDatum(xValue),
             rows,
         };
-    }
-
-    getTooltipHtml(nodeDatum: BoxPlotNodeDatum): _ModuleSupport.TooltipContent {
-        const {
-            xKey,
-            minKey,
-            q1Key,
-            medianKey,
-            q3Key,
-            maxKey,
-            xName,
-            yName,
-            minName,
-            q1Name,
-            medianName,
-            q3Name,
-            maxName,
-            tooltip,
-            fill,
-        } = this.properties;
-        const { datum, itemId } = nodeDatum;
-
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
-
-        if (!xAxis || !yAxis || !this.properties.isValid()) return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-
-        const title = sanitizeHtml(yName);
-        const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [
-            [xKey, xName, xAxis],
-            [minKey, minName, yAxis],
-            [q1Key, q1Name, yAxis],
-            [medianKey, medianName, yAxis],
-            [q3Key, q3Name, yAxis],
-            [maxKey, maxName, yAxis],
-        ];
-        const content = contentData
-            .map(([key, name, axis]) => sanitizeHtml(`${name ?? key}: ${axis.formatDatum(datum[key])}`))
-            .join(title ? '<br/>' : ', ');
-
-        const { fill: formatFill } = this.getFormattedStyles(nodeDatum, 'tooltip');
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: fill },
-            {
-                seriesId: this.id,
-                itemId,
-                datum,
-                fill,
-                xKey,
-                minKey,
-                q1Key,
-                medianKey,
-                q3Key,
-                maxKey,
-                xName,
-                minName,
-                q1Name,
-                medianName,
-                q3Name,
-                maxName,
-                yName,
-                title,
-                color: fill ?? formatFill,
-            }
-        );
     }
 
     protected override animateEmptyUpdateReady({

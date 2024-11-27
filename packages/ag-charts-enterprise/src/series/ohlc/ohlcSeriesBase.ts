@@ -405,7 +405,7 @@ export abstract class OhlcSeriesBase<
         return labelSelection.update(labelData);
     }
 
-    override getTooltip2(nodeDatum: OhlcNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: OhlcNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { dataModel, processedData, axes, properties } = this;
         const {
             openKey,

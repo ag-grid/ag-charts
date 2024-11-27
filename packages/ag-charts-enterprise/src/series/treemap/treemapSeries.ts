@@ -1,5 +1,4 @@
 import {
-    type AgTooltipRendererResult,
     type AgTreemapSeriesStyle,
     type FontOptions,
     type TextAlign,
@@ -17,7 +16,6 @@ const {
     Logger,
     clamp,
     isNumberEqual,
-    sanitizeHtml,
     createDatumId,
     Rect,
     Group,
@@ -717,7 +715,7 @@ export class TreemapSeries<
         return this.pickNodeNearestDistantObject(point, this.groupSelection.nodes());
     }
 
-    override getTooltip2(nodeDatum: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent | undefined {
         const { colorKey, colorName = colorKey, labelKey, sizeKey, sizeName = sizeKey } = this.properties;
         const { datum, depth } = nodeDatum;
         if (datum == null || depth == null) return;
@@ -729,7 +727,7 @@ export class TreemapSeries<
 
         const label = labelKey != null ? datum[labelKey] : undefined;
         if (label != null) {
-            rows.push({ value: label });
+            rows.push({ label });
         }
 
         const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
@@ -756,77 +754,6 @@ export class TreemapSeries<
         };
 
         return { rows };
-    }
-
-    getTooltipHtml(node: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent {
-        const { datum, depth } = node;
-        const { id: seriesId } = this;
-        const {
-            tooltip,
-            colorKey,
-            colorName = colorKey,
-            labelKey,
-            secondaryLabelKey,
-            sizeKey,
-            sizeName = sizeKey,
-            childrenKey,
-        } = this.properties;
-        const isLeaf = node.children.length === 0;
-        const interactive = isLeaf || this.properties.group.interactive;
-        if (datum == null || depth == null || !interactive) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const title = labelKey != null ? datum[labelKey] : undefined;
-
-        const format = this.getTileFormat(node, false);
-        const color = format?.fill ?? this.getNodeFill(node);
-
-        if (!tooltip.renderer && !title) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const contentArray: string[] = [];
-
-        const datumSecondaryLabel = secondaryLabelKey != null ? datum[secondaryLabelKey] : undefined;
-        if (datumSecondaryLabel != null && secondaryLabelKey !== colorKey && secondaryLabelKey !== sizeKey) {
-            contentArray.push(sanitizeHtml(datumSecondaryLabel));
-        }
-
-        const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
-        if (datumSize != null) {
-            contentArray.push(`${sizeName!}: ${sanitizeHtml(datumSize)}`);
-        }
-
-        const datumColor = colorKey != null ? datum[colorKey] : undefined;
-        if (datumColor != null) {
-            contentArray.push(`${colorName!}: ${sanitizeHtml(datumColor)}`);
-        }
-
-        const content = contentArray.join('<br>');
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            color: isLeaf ? this.properties.tile.label.color : this.properties.group.label.color,
-            backgroundColor: color,
-            content,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            depth,
-            datum,
-            colorKey,
-            labelKey,
-            secondaryLabelKey,
-            sizeKey,
-            title,
-            color,
-            seriesId,
-            childrenKey,
-            colorName,
-            itemId: undefined,
-            sizeName,
-        });
     }
 
     private focusSorted?: { childAt: (i: number) => _ModuleSupport.HierarchyNode<TDatum> };

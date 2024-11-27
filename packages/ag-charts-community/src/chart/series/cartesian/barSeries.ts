@@ -1,5 +1,3 @@
-import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
-
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { ContinuousScale } from '../../../scale/continuousScale';
@@ -10,9 +8,7 @@ import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import { findMinMax } from '../../../util/number';
-import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
-import type { RequireOptional } from '../../../util/types';
 import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -30,7 +26,7 @@ import {
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent, type TooltipContent2 } from '../../tooltip/tooltip';
+import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
@@ -732,7 +728,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         });
     }
 
-    override getTooltip2(nodeDatum: BarNodeDatum): TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: BarNodeDatum): TooltipContent | undefined {
         const { dataModel, processedData, axes, properties } = this;
         const { yKey, yName = yKey, legendItemName = yName } = properties;
         const xAxis = axes[ChartAxisDirection.X];
@@ -762,68 +758,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 },
             ],
         };
-    }
-
-    getTooltipHtml(nodeDatum: BarNodeDatum): TooltipContent {
-        const { id: seriesId, processedData } = this;
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
-
-        if (!processedData || !this.properties.isValid() || !xAxis || !yAxis) {
-            return EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, tooltip, itemStyler, stackGroup, legendItemName } =
-            this.properties;
-        const { xValue, yValue, datum, itemId } = nodeDatum;
-
-        const xString = xAxis.formatDatum(xValue);
-        const yString = yAxis.formatDatum(yValue);
-        const title = sanitizeHtml(yName);
-        const content = sanitizeHtml(xString + ': ' + yString);
-
-        let format: AgBarSeriesStyle | undefined;
-
-        if (itemStyler) {
-            const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
-            const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-            format = this.cachedDatumCallback(createDatumId(this.getDatumId(datum), 'tooltip'), () =>
-                itemStyler({
-                    seriesId,
-                    ...datumStylerProperties(nodeDatum, xKey, yKey, xDomain, yDomain),
-                    stackGroup,
-                    fill,
-                    stroke,
-                    strokeWidth: this.getStrokeWidth(strokeWidth),
-                    highlighted: false,
-                    cornerRadius: this.properties.cornerRadius,
-                    fillOpacity: this.properties.fillOpacity,
-                    strokeOpacity: this.properties.strokeOpacity,
-                    lineDash: this.properties.lineDash ?? [],
-                    lineDashOffset: this.properties.lineDashOffset,
-                })
-            );
-        }
-
-        const color = format?.fill ?? fill;
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
-            {
-                seriesId,
-                itemId,
-                datum,
-                xKey,
-                yKey,
-                xName,
-                yName,
-                stackGroup,
-                title,
-                color,
-                legendItemName,
-                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
-            }
-        );
     }
 
     private legendItemSymbol(): LegendSymbolOptions {

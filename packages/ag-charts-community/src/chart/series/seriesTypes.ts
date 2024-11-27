@@ -6,7 +6,7 @@ import type { Point, SizedPoint } from '../../scene/point';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
-import type { TooltipContent, TooltipContent2 } from '../tooltip/tooltip';
+import type { TooltipContent } from '../tooltip/tooltip';
 
 // Breaks circular dependency between ISeries and ChartAxis.
 interface ChartAxisLike {
@@ -32,8 +32,7 @@ export interface ISeries<TDatum, TProps, TLabel = TDatum> {
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getLabelData(): (TLabel & PointLabelDatum)[];
-    getTooltip2(seriesDatum: any): TooltipContent2 | undefined;
-    getTooltipHtml(seriesDatum: any): TooltipContent;
+    getTooltipContent(seriesDatum: any): TooltipContent | undefined;
     getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };

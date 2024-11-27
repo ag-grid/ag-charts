@@ -34,7 +34,6 @@ const {
     createDatumId,
     ChartAxisDirection,
     CachedTextMeasurerPool,
-    EMPTY_TOOLTIP_CONTENT,
     toRadians,
     BBox,
     Group,
@@ -1127,38 +1126,22 @@ export class LinearGaugeSeries
         }
     }
 
-    override getTooltipHtml(nodeDatum: _ModuleSupport.SeriesNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId, properties } = this;
+    override getTooltipContent(nodeDatum: _ModuleSupport.SeriesNodeDatum): _ModuleSupport.TooltipContent | undefined {
+        const { properties } = this;
 
-        if (!properties.isValid()) {
-            return EMPTY_TOOLTIP_CONTENT;
-        }
+        if (!properties.isValid()) return;
 
         const highlightDatum = this.highlightDatum(nodeDatum);
 
         const value = highlightDatum?.value ?? properties.value;
         const text = highlightDatum?.text;
-        const { tooltip } = properties;
 
         const title = text ?? '';
-        const content = this.formatLabel(value);
 
-        const itemId = highlightDatum?.itemId;
-        const datum = undefined;
-        const color = highlightDatum?.fill;
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
-            {
-                seriesId,
-                itemId,
-                title,
-                datum,
-                color,
-                value,
-                ...this.getModuleTooltipParams(),
-            }
-        );
+        return {
+            title,
+            rows: [{ label: this.formatLabel(value) }],
+        };
     }
 
     override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {

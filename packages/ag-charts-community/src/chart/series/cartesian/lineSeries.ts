@@ -1,5 +1,3 @@
-import type { AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
-
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
@@ -13,9 +11,7 @@ import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
-import { sanitizeHtml } from '../../../util/sanitize';
 import { isDefined } from '../../../util/type-guards';
-import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModel, DataModelOptions, DatumPropertyDefinition, UngroupedData } from '../../data/dataModel';
@@ -30,10 +26,10 @@ import {
     valueProperty,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
-import { type LegendSymbolOptions, legendSymbolSvg } from '../../legend/legendSymbol';
+import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent, type TooltipContent2 } from '../../tooltip/tooltip';
+import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
@@ -531,7 +527,7 @@ export class LineSeries extends CartesianSeries<
         });
     }
 
-    override getTooltip2(nodeDatum: LineNodeDatum): TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: LineNodeDatum): TooltipContent | undefined {
         const { dataModel, processedData, axes, properties } = this;
         const { yKey, yName = yKey } = properties;
         const xAxis = axes[ChartAxisDirection.X];
@@ -561,50 +557,6 @@ export class LineSeries extends CartesianSeries<
                 },
             ],
         };
-    }
-
-    getTooltipHtml(nodeDatum: LineNodeDatum): TooltipContent {
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const yAxis = this.axes[ChartAxisDirection.Y];
-
-        if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const { xKey, yKey, xName, yName, strokeWidth, marker, tooltip } = this.properties;
-        const { datum, xValue, yValue, itemId } = nodeDatum;
-        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-        const xString = xAxis.formatDatum(xValue);
-        const yString = yAxis.formatDatum(yValue);
-        const title = sanitizeHtml(this.properties.title ?? yName);
-        const content = legendSymbolSvg(this.legendItemSymbol(), 12) + sanitizeHtml(xString + ': ' + yString);
-
-        const baseStyle = mergeDefaults({ fill: marker.stroke }, marker.getStyle(), { strokeWidth });
-        const { fill: color } = this.getMarkerStyle(
-            marker,
-            {
-                ...datumStylerProperties(nodeDatum, xKey, yKey, xDomain, yDomain),
-                highlighted: false,
-            },
-            baseStyle
-        );
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
-            {
-                datum,
-                itemId,
-                xKey,
-                xName,
-                yKey,
-                yName,
-                title,
-                color,
-                seriesId: this.id,
-                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
-            }
-        );
     }
 
     private legendItemSymbol(): LegendSymbolOptions {

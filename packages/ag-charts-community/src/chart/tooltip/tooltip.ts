@@ -1,4 +1,4 @@
-import type { AgTooltipRendererResult, InteractionRange, TextWrap } from 'ag-charts-types';
+import type { InteractionRange, TextWrap } from 'ag-charts-types';
 
 import type { DOMManager } from '../../dom/domManager';
 import { enterpriseModule } from '../../module/enterpriseModule';
@@ -57,81 +57,25 @@ export interface TooltipMeta extends TooltipOffsets {
     enableInteraction?: boolean;
 }
 
-export type TooltipContent = {
-    html: string;
-    class: string | undefined;
-    ariaLabel: string;
-};
-
 export interface TooltipContentRow {
     symbol?: LegendSymbolOptions;
-    label?: string;
-    value: string;
+    label: string;
+    value?: string;
 }
 
-export interface TooltipContent2 {
+export interface TooltipContent {
     groupKey?: string;
     title?: string;
-    // symbol?: LegendSymbolOptions;
     rows?: TooltipContentRow[];
 }
 
-export const EMPTY_TOOLTIP_CONTENT: Readonly<TooltipContent> = { html: '', class: undefined, ariaLabel: '' };
-
-function toAccessibleText(inputHtml: string): string {
-    const lineConverter = (_match: unknown, offset: number, str: string) => {
-        if (offset === 0 || str[offset - 1] !== '.') {
-            return '. ';
-        }
-        return ' ';
-    };
-    return inputHtml
-        .replace(/<br\s*\/?>/g, lineConverter)
-        .replace(/<\/p\s+>/g, lineConverter)
-        .replace(/<\/li\s*>/g, lineConverter)
-        .replace(/<[^<>]+>/g, '')
-        .replace(/\n+/g, ' ')
-        .replace(/\s+/g, ' ');
+export function tooltipContentAriaLabel(_content: TooltipContent) {
+    return '';
 }
 
-export function toTooltipHtml(
-    input: string | AgTooltipRendererResult,
-    defaults?: AgTooltipRendererResult
-): TooltipContent {
-    if (typeof input === 'string') {
-        return { html: input, class: undefined, ariaLabel: input };
-    }
-
-    const {
-        content = defaults?.content ?? '',
-        title = defaults?.title,
-        color = defaults?.color ?? 'white',
-        backgroundColor = defaults?.backgroundColor ?? '#888',
-        class: className = defaults?.class,
-    } = input;
-
-    const titleHtml = title
-        ? `<div class="${DEFAULT_TOOLTIP_CLASS}-title"
-        style="color: ${color}; background-color: ${backgroundColor}">${title}</div>`
-        : '';
-    const titleAria = title ? `${title}: ` : '';
-
-    const contentHtml = content ? `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${content}</div>` : '';
-
-    return {
-        html: `${titleHtml}${contentHtml}`,
-        class: className,
-        ariaLabel: toAccessibleText(`${titleAria}${content}`),
-    };
-}
-
-function tooltipContentHtml(content: TooltipContent2) {
+function tooltipContentHtml(content: TooltipContent) {
     let html = '';
 
-    // const topLevelSymbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
-    // if (topLevelSymbol != null) {
-    //     html += `<span class="${DEFAULT_TOOLTIP_CLASS}__symbol">${topLevelSymbol}</span>`;
-    // }
     if (content.title != null) {
         html += `<span class="${DEFAULT_TOOLTIP_CLASS}__title">${sanitizeHtml(content.title)}</span>`;
     }
@@ -144,10 +88,9 @@ function tooltipContentHtml(content: TooltipContent2) {
             rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__symbol">${symbol}</span>`;
         }
 
-        if (row.label == null) {
-            rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(row.value)}</span>`;
-        } else {
-            rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(row.label)}</span>`;
+        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(row.label)}</span>`;
+
+        if (row.value != null) {
             rowHtml += ' ';
             rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(row.value)}</span>`;
         }
@@ -341,22 +284,18 @@ export class Tooltip extends BaseProperties {
         boundingRect: DOMRect,
         canvasRect: DOMRect,
         meta: TooltipMeta,
-        content?: TooltipContent | TooltipContent2 | null,
+        content?: TooltipContent | null,
         instantly = false
     ) {
         const { element } = this;
 
         if (element != null && content != null) {
             this.resetClass();
-            if ('class' in content && content.class != null) {
-                element.classList.add(content.class);
-            }
+            // if (content.class != null) {
+            //     element.classList.add(content.class);
+            // }
 
-            if ('html' in content) {
-                element.innerHTML = content.html;
-            } else {
-                element.innerHTML = tooltipContentHtml(content);
-            }
+            element.innerHTML = tooltipContentHtml(content);
         } else if (element == null || element.innerHTML === '') {
             this.toggle(false);
             return;

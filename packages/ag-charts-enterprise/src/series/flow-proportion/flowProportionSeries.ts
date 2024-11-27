@@ -475,7 +475,7 @@ export abstract class FlowProportionSeries<
         return [];
     }
 
-    override getTooltip2(seriesDatum: TDatum<TNodeDatum, TLinkDatum>): _ModuleSupport.TooltipContent2 | undefined {
+    override getTooltipContent(seriesDatum: TDatum<TNodeDatum, TLinkDatum>): _ModuleSupport.TooltipContent | undefined {
         const { sizeKey, sizeName = sizeKey } = this.properties;
 
         const nodeIndex =

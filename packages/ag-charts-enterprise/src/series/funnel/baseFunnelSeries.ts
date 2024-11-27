@@ -1,4 +1,3 @@
-import type { AgTooltipRendererResult } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
@@ -21,8 +20,6 @@ const {
     resetLabelFn,
     animationValidation,
     computeBarFocusBounds,
-    sanitizeHtml,
-    createDatumId,
     ContinuousScale,
     Group,
     Selection,
@@ -520,7 +517,7 @@ export abstract class BaseFunnelSeries<
         });
     }
 
-    override getTooltip2(nodeDatum: FunnelNodeDatum): _ModuleSupport.TooltipContent2 | undefined {
+    override getTooltipContent(nodeDatum: FunnelNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { dataModel, processedData } = this;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
@@ -547,65 +544,6 @@ export abstract class BaseFunnelSeries<
                 },
             ],
         };
-    }
-
-    getTooltipHtml(nodeDatum: FunnelNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId } = this;
-
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
-
-        if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const { stageKey, valueKey, itemStyler, tooltip } = this.properties;
-        const { strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.barStyle();
-        const { datum, xValue, yValue, fill, stroke } = nodeDatum;
-
-        let format;
-        if (itemStyler) {
-            format = this.cachedDatumCallback(createDatumId(datum.index, 'tooltip'), () =>
-                itemStyler({
-                    highlighted: false,
-                    seriesId,
-                    datum,
-                    stageKey,
-                    valueKey,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                })
-            );
-        }
-
-        const color = format?.fill ?? fill ?? 'gray';
-
-        const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yString = sanitizeHtml(yAxis.formatDatum(yValue));
-
-        const title = xString;
-        const content = yString;
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            content,
-            backgroundColor: color,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            itemId: undefined,
-            datum,
-            stageKey,
-            valueKey,
-            color,
-            seriesId,
-            title,
-        });
     }
 
     protected override resetAllAnimation(

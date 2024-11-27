@@ -16,7 +16,6 @@ const {
     valueProperty,
     CachedTextMeasurerPool,
     Validate,
-    sanitizeHtml,
     Logger,
     ColorScale,
     LinearScale,
@@ -563,7 +562,7 @@ export class MapLineSeries extends TopologySeries<
         }
     }
 
-    override getTooltip2(seriesDatum: any): _ModuleSupport.TooltipContent2 | undefined {
+    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | undefined {
         const { dataModel, processedData, properties } = this;
         const {
             idKey,
@@ -591,7 +590,7 @@ export class MapLineSeries extends TopologySeries<
 
         const seriesTitle = properties.title ?? legendItemName;
         if (seriesTitle != null) {
-            rows.push({ value: seriesTitle });
+            rows.push({ label: seriesTitle });
         }
         if (sizeValues != null) {
             rows.push({
@@ -620,89 +619,6 @@ export class MapLineSeries extends TopologySeries<
             title: idValues[datumIndex],
             rows,
         };
-    }
-
-    override getTooltipHtml(nodeDatum: MapLineNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId, processedData, properties } = this;
-
-        if (!processedData || !properties.isValid()) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const {
-            legendItemName,
-            idKey,
-            idName,
-            colorKey,
-            colorName,
-            sizeKey,
-            sizeName,
-            labelKey,
-            labelName,
-            itemStyler,
-            tooltip,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-        } = properties;
-        const { datum, stroke, idValue, colorValue, sizeValue, labelValue, itemId } = nodeDatum;
-
-        const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
-        const contentLines: string[] = [];
-        contentLines.push(sanitizeHtml((idName != null ? `${idName}: ` : '') + idValue));
-        if (colorValue != null) {
-            contentLines.push(sanitizeHtml((colorName ?? colorKey) + ': ' + colorValue));
-        }
-        if (sizeValue != null) {
-            contentLines.push(sanitizeHtml((sizeName ?? sizeKey) + ': ' + sizeValue));
-        }
-        if (labelValue != null && labelKey !== idKey) {
-            contentLines.push(sanitizeHtml((labelName ?? labelKey) + ': ' + labelValue));
-        }
-        const content = contentLines.join('<br>');
-
-        let format: AgMapLineSeriesStyle | undefined;
-
-        if (itemStyler) {
-            format = this.cachedDatumCallback(createDatumId(datum.idValue, 'tooltip'), () =>
-                itemStyler({
-                    highlighted: false,
-                    seriesId,
-                    datum,
-                    idKey,
-                    sizeKey,
-                    colorKey,
-                    labelKey,
-                    stroke: stroke!,
-                    strokeWidth: this.getStrokeWidth(nodeDatum.strokeWidth ?? properties.strokeWidth),
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                })
-            );
-        }
-
-        const color = format?.stroke ?? stroke ?? properties.stroke;
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
-            {
-                seriesId,
-                datum,
-                idKey,
-                title,
-                color,
-                itemId,
-                sizeKey,
-                colorKey,
-                colorName,
-                idName,
-                labelKey,
-                labelName,
-                sizeName,
-                ...this.getModuleTooltipParams(),
-            }
-        );
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {

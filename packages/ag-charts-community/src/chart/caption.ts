@@ -23,7 +23,6 @@ import {
 import type { BoundedTextWidget } from '../widget/boundedTextWidget';
 import type { MouseWidgetEvent } from '../widget/widgetEvents';
 import type { CaptionLike } from './captionLike';
-import { toTooltipHtml } from './tooltip/tooltip';
 
 export class Caption extends BaseProperties implements CaptionLike {
     static readonly SMALL_PADDING = 10;
@@ -132,7 +131,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             moduleCtx.tooltipManager.updateTooltip(
                 this.id,
                 { canvasX, canvasY, lastPointerEvent, showArrow: false },
-                toTooltipHtml({ content: this.text })
+                { title: this.text }
             );
         }
     }
