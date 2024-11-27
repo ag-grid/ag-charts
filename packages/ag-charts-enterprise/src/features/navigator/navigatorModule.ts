@@ -21,7 +21,7 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
                     color: DEFAULT_LABEL_COLOUR,
                     fontSize: 10,
                     fontFamily: DEFAULT_FONT_FAMILY,
-                    padding: 5,
+                    spacing: 5,
                 },
                 padding: {
                     top: 0,

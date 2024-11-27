@@ -74,7 +74,7 @@ const options: AgChartOptions = {
             },
             label: {
                 formatter: ({ value }) => `${value / 1000}K`,
-                padding: 15,
+                spacing: 15,
             },
             title: {
                 text: 'Website Visits',
@@ -97,7 +97,7 @@ const options: AgChartOptions = {
             },
             label: {
                 formatter: ({ value }) => `${value / 1000}K`,
-                padding: 15,
+                spacing: 15,
             },
             crosshair: {
                 label: {
@@ -113,7 +113,7 @@ const options: AgChartOptions = {
             },
             label: {
                 format: '%b %y',
-                padding: 10,
+                spacing: 10,
             },
             tick: {
                 size: 30,

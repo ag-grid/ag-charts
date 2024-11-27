@@ -286,7 +286,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     protected readonly layout: Pick<AxisLayout, 'label'> = {
         label: {
             fractionDigits: 0,
-            padding: this.label.padding,
+            padding: this.label.spacing,
             format: this.label.format,
         },
     };
@@ -533,11 +533,11 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { label } = this;
         const defaultStyle: AgBaseAxisLabelStyleOptions = {
             color: label.color,
+            spacing: label.spacing,
             fontFamily: label.fontFamily,
             fontSize: label.fontSize,
             fontStyle: label.fontStyle,
             fontWeight: label.fontWeight,
-            padding: label.padding,
         };
         let stylerOutput: AgBaseAxisLabelStyleOptions | undefined;
         if (label.itemStyler) {
@@ -552,9 +552,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             fontSize,
             fontStyle,
             fontWeight,
-            padding,
+            spacing,
         } = mergeDefaults(stylerOutput, additionalStyles, defaultStyle);
-        return { fill, fontFamily, fontSize, fontStyle, fontWeight, padding };
+        return { fill, fontFamily, fontSize, fontStyle, fontWeight, spacing: spacing };
     }
 
     private getTickLabelProps(
@@ -570,7 +570,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         const { combinedRotation, textBaseline, textAlign, range } = params;
         const text = datum.tickLabel;
         const sideFlag = label.getSideFlag();
-        const labelX = sideFlag * (this.getTickSize() + label.padding + this.seriesAreaPadding);
+        const labelX = sideFlag * (this.getTickSize() + label.spacing + this.seriesAreaPadding);
         const visible = text !== '' && text != null;
 
         return {
@@ -675,7 +675,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         regularFlipRotation: number
     ) {
         const sideFlag = this.label.getSideFlag();
-        const labelX = sideFlag * (this.getTickSize() + this.label.padding + this.seriesAreaPadding);
+        const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
 
         const ticksEnabled = this.label.enabled || this.tick.enabled || this.gridLine.enabled;
         const tickGenerationResult = ticksEnabled
@@ -751,7 +751,7 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     private updateLayoutState(fractionDigits: number) {
         this.layout.label = {
             fractionDigits: fractionDigits,
-            padding: this.label.padding,
+            padding: this.label.spacing,
             format: this.label.format,
         };
     }

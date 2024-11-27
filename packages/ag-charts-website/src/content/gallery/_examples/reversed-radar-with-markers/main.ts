@@ -28,7 +28,7 @@ const options: AgChartOptions = {
         {
             type: 'angle-number',
             label: {
-                padding: 0,
+                spacing: 0,
             },
             line: {
                 enabled: false,

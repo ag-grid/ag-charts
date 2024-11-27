@@ -21,7 +21,7 @@ export const NIGHTINGALE_SERIES_THEME = {
             groupPaddingInner: 0,
             paddingInner: 0,
             label: {
-                padding: 10,
+                spacing: 10,
             },
         },
         [POLAR_AXIS_TYPE.RADIUS_NUMBER]: {

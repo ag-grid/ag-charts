@@ -140,7 +140,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 label.enabled && depthOptions[i]?.label.enabled !== false
                     ? {
                           enabled: true,
-                          padding: depthOptions[i]?.label.padding ?? label.padding,
+                          padding: depthOptions[i]?.label.padding ?? label.spacing,
                           lineHeight: TextUtils.getLineHeight(depthOptions[i]?.label.fontSize ?? label.fontSize ?? 10),
                       }
                     : { enabled: false, padding: 0, lineHeight: 0 }
