@@ -8,6 +8,18 @@ import {
 
 import { getData } from './data';
 
+const categoryAxis: AgCategoryAxisOptions = {
+    type: 'category',
+    position: 'bottom',
+    label: {},
+};
+
+const numberAxis: AgNumberAxisOptions = {
+    type: 'number',
+    position: 'left',
+    label: {},
+};
+
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -18,22 +30,8 @@ const options: AgCartesianChartOptions = {
             yKey: 'value',
         },
     ],
-    axes: [
-        {
-            type: 'category',
-            position: 'bottom',
-            label: {},
-        },
-        {
-            type: 'number',
-            position: 'left',
-            label: {},
-        },
-    ],
+    axes: [categoryAxis, numberAxis],
 };
-
-const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
-const numberAxis = options.axes![1] as AgNumberAxisOptions;
 
 const chart = AgCharts.create(options);
 
