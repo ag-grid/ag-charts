@@ -218,19 +218,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
     private updateButtonByIndex(index: number, change: Partial<AnnotationsToolbarButtonOptions>) {
         const button = this.buttons.at(index);
         if (!button) return;
-
-        button.ariaLabel = change.ariaLabel ?? button.ariaLabel;
-        button.icon = change.icon ?? button.icon;
-        button.label = change.label ?? button.label;
-        button.tooltip = change.tooltip ?? button.tooltip;
-        button.value = change.value ?? button.value;
-
-        this.toolbar.updateButtonByIndex(index, {
-            ariaLabel: button.ariaLabel,
-            icon: button.icon,
-            label: button.label,
-            tooltip: button.tooltip,
-            value: button.value,
-        });
+        button.set({ ...button.toJson(), ...change, value: change.value ?? button.value });
+        this.toolbar.updateButtonByIndex(index, { ...button.toJson() } as any);
     }
 }

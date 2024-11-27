@@ -450,10 +450,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
             if (!button) continue;
             if (button.value === AnnotationOptions.Lock) {
                 this.toolbar.toggleSwitchCheckedByIndex(index, locked);
-                this.updateButtonByValue(
-                    AnnotationOptions.Lock,
-                    locked ? button.checkedOverrides.toJson() : button.toJson()
-                );
+                this.updateButtonByIndex(index, locked ? button.checkedOverrides.toJson() : button.toJson());
             } else {
                 this.toolbar.toggleButtonEnabledByIndex(index, !locked);
             }
@@ -484,7 +481,12 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     private updateButtonByValue(value: AnnotationOptions, change: Partial<AnnotationOptionsButtonOptions>) {
         const index = this.visibleButtons.findIndex((button) => button.value === value);
         if (index === -1) return;
-        const button = this.visibleButtons.at(index)!;
-        this.toolbar.updateButtonByIndex(index, { ...button.toJson(), value, ...change });
+        this.updateButtonByIndex(index, change);
+    }
+
+    private updateButtonByIndex(index: number, change: Partial<AnnotationOptionsButtonOptions>) {
+        const button = this.visibleButtons.at(index);
+        if (!button) return;
+        this.toolbar.updateButtonByIndex(index, { ...button.toJson(), ...change, value: change.value ?? button.value });
     }
 }
