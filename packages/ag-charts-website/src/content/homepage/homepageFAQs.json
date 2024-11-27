@@ -9,7 +9,7 @@
     },
     {
         "question": "Are AG Charts JavaScript charts responsive?",
-        "answer": "Yes, AG Charts [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) are fully responsive out of the box. They automatically adjust to different screen sizes and devices, ensuring your [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) look great on desktops, tablets, and mobile phones."
+        "answer": "Yes, AG Charts [JavaScript charts](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) are fully responsive out of the box. They automatically adjust to different screen sizes and devices, ensuring your [JavaScript charts](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) look great on desktops, tablets, and mobile phones."
     },
     {
         "question": "Can I create real time updating JavaScript charts with AG Charts?",
