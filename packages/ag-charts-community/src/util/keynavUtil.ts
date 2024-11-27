@@ -178,7 +178,7 @@ class MenuCloserImp implements MenuCloser {
         // AG-13359 If the user triggered a 'mousedown' outside the bounds of this HTML menu, then `this.lastFocus` is
         // irrelevant from a focus perspective because the web-browser will focus onto the HTML element under the pointer.
         if (!mousedown) {
-            this.lastFocus?.focus();
+            this.lastFocus?.focus({ preventScroll: true });
         }
         this.lastFocus = undefined;
     }
@@ -231,7 +231,7 @@ export function initMenuKeyNav(opts: {
         }
     }
 
-    buttons[0]?.focus();
+    buttons[0]?.focus({ preventScroll: true });
     return menuCloser;
 }
 
