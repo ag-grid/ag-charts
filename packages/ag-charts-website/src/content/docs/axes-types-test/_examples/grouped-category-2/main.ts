@@ -24,16 +24,11 @@ const options: AgCartesianChartOptions = {
         {
             type: 'grouped-category',
             position: 'bottom',
-            label: {
-                itemStyler: (params) => {
-                    switch (params.depth) {
-                        case 0:
-                            return { fontSize: 10 };
-                        case 1:
-                            return { fontWeight: 'bold' };
-                    }
-                },
-            },
+            depthOptions: [
+                { tick: { enabled: false } },
+                { label: { fontWeight: 'bold' } },
+                { label: { fontSize: 10 } },
+            ],
         },
         {
             type: 'number',
