@@ -84,7 +84,7 @@ export interface AgGroupedCategoryAxisOptions extends AgBaseCartesianAxisOptions
     paddingInner?: Ratio;
     /** This property is for grouped column/bar series plotted on a category axis. It is a proportion between 0 and 1 which determines the size of the gap between the bars or columns within a single group along the axis. */
     groupPaddingInner?: Ratio;
-    /** Depth options */
+    /** An array of depth options, starting from the leafs. */
     depthOptions?: AgGroupedCategoryDepthOptions[];
 }
 
