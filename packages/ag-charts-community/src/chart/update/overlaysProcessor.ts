@@ -55,7 +55,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         const loadingShown = isLoading;
         const noDataShown = !isLoading && !hasData;
         const noVisibleSeriesShown = hasData && !anySeriesVisible;
-        const unsupportedBrowser = isUnsupportedBrowser();
+        const unsupportedBrowser = this.overlays.unsupportedBrowser.enabled && isUnsupportedBrowser();
 
         if (loadingShown) {
             this.showOverlay(this.overlays.loading, rect);

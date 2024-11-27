@@ -19,7 +19,7 @@ export function isUnsupportedBrowser() {
             Logger.warnOnce(`Unsupported Safari version: ${version} ; ${userAgent}`);
         }
 
-        return supported;
+        return !supported;
     } else if (isChromeRegexp.test(userAgent) && !isEdge.test(userAgent) && !isOpera.test(userAgent)) {
         const version = parseInt(chromeVersionRegexp.exec(userAgent)?.[1] ?? '0', 10);
 
@@ -29,7 +29,7 @@ export function isUnsupportedBrowser() {
             Logger.warnOnce(`Unsupported Chrome version: ${version} ; ${userAgent}`);
         }
 
-        return supported;
+        return !supported;
     }
 
     return false;
