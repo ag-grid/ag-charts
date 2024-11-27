@@ -23,7 +23,8 @@ export function isUnsupportedBrowser() {
     } else if (isChromeRegexp.test(userAgent) && !isEdge.test(userAgent) && !isOpera.test(userAgent)) {
         const version = parseInt(chromeVersionRegexp.exec(userAgent)?.[1] ?? '0', 10);
 
-        const supported = version > 129;
+        // 127 as that is the minimum version for Playwright e2e tests.
+        const supported = version > 126;
 
         if (!supported) {
             Logger.warnOnce(`Unsupported Chrome version: ${version} ; ${userAgent}`);
