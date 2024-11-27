@@ -1,7 +1,7 @@
 [
     {
         "question": "What are AG Charts JavaScript charts?",
-        "answer": "AG Charts [JavaScript charts](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) are powerful, interactive data visualization tools for web applications. They offer a wide range of chart types and customization options, making them ideal for creating dynamic and responsive [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs)"
+        "answer": "AG Charts [JavaScript charts](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) are powerful, interactive data visualization tools for web applications. They offer a wide range of chart types and customization options, making them ideal for creating dynamic and responsive [JavaScript charts](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs)."
     },
     {
         "question": "How do AG Charts compare to other JavaScript chart libraries?",
