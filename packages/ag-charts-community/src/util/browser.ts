@@ -14,7 +14,7 @@ export function isUnsupportedBrowser() {
     if (isSafariRegexp.test(userAgent)) {
         const version = parseFloat(safariVersionRegexp.exec(userAgent)?.[1] ?? '0');
 
-        const supported = version > 16;
+        const supported = Math.floor(version) > 16;
         if (!supported) {
             Logger.warnOnce(`Unsupported Safari version: ${version} ; ${userAgent}`);
         }
