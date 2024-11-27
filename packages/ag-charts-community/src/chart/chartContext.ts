@@ -48,7 +48,6 @@ export class ChartContext implements ModuleContext {
     readonly seriesBoundsManager = new SeriesBoundsManager();
     readonly seriesStateManager = new SeriesStateManager();
     readonly stateManager = new StateManager();
-    readonly toolbarManager = new ToolbarManager();
     readonly zoomManager = new ZoomManager();
     readonly seriesLabelLayoutManager = new SeriesLabelLayoutManager();
 
@@ -70,6 +69,7 @@ export class ChartContext implements ModuleContext {
     regionManager: RegionManager;
     scene: Scene;
     syncManager: SyncManager;
+    toolbarManager: ToolbarManager;
     tooltipManager: TooltipManager;
     updateService: UpdateService;
 
@@ -130,6 +130,7 @@ export class ChartContext implements ModuleContext {
         this.historyManager = new HistoryManager(this.keyNavManager);
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.animationManager);
+        this.toolbarManager = new ToolbarManager(this.domManager, this.localeManager);
         this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip);
 
         this.zoomManager.addLayoutListeners(this.layoutManager);

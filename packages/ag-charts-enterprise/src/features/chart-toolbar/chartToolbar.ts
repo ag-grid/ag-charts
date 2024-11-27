@@ -27,7 +27,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.toolbar = ctx.toolbarManager.getSharedToolbar(ctx);
+        this.toolbar = ctx.toolbarManager.getSharedToolbar();
 
         this.destroyFns.push(
             this.toolbar.addToolbarSectionListener('chartToolbar', 'button-pressed', this.onButtonPressed.bind(this)),

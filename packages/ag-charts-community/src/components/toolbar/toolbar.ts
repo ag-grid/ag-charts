@@ -1,4 +1,4 @@
-import type { ModuleContext } from '../../module/moduleContext';
+import type { LocaleManager } from '../../locale/localeManager';
 import { BBox } from '../../scene/bbox';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { Listeners } from '../../util/listeners';
@@ -36,7 +36,7 @@ export abstract class BaseToolbar<
     private readonly buttonWidgets: Array<ButtonWidget> = [];
 
     constructor(
-        protected readonly ctx: ModuleContext,
+        protected readonly localeManager: LocaleManager,
         orientation: RovingDirection = 'horizontal'
     ) {
         super(orientation);
@@ -164,6 +164,6 @@ export class Toolbar<ButtonOptions extends ToolbarButtonOptions> extends BaseToo
     ToolbarButtonWidget
 > {
     protected createButtonWidget() {
-        return new ToolbarButtonWidget(this.ctx);
+        return new ToolbarButtonWidget(this.localeManager);
     }
 }

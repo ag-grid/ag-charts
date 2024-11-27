@@ -1,6 +1,6 @@
 import { BaseToolbar, type ToolbarButtonOptions, type ToolbarEventMap } from '../../components/toolbar/toolbar';
 import { ToolbarButtonWidget } from '../../components/toolbar/toolbarButtonWidget';
-import type { ModuleContext } from '../../module/moduleContext';
+import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
 
 type SharedToolbarSection = 'annotations' | 'chartToolbar';
@@ -14,8 +14,8 @@ export class SharedToolbar<ButtonOptions extends ToolbarButtonOptions = ToolbarB
 
     private lastLayoutSection?: string;
 
-    constructor(ctx: ModuleContext) {
-        super(ctx, 'vertical');
+    constructor(localeManager: LocaleManager) {
+        super(localeManager, 'vertical');
         this.addClass('ag-charts-shared-toolbar');
     }
 
@@ -89,7 +89,7 @@ export class SharedToolbar<ButtonOptions extends ToolbarButtonOptions = ToolbarB
     }
 
     protected createButtonWidget() {
-        return new ToolbarButtonWidget(this.ctx);
+        return new ToolbarButtonWidget(this.localeManager);
     }
 
     private getIndex(section: SharedToolbarSection, index: number) {

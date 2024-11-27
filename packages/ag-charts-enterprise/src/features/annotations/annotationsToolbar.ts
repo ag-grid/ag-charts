@@ -52,7 +52,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.toolbar = ctx.toolbarManager.getSharedToolbar(ctx);
+        this.toolbar = ctx.toolbarManager.getSharedToolbar();
 
         const onKeyDown = this.onKeyDown.bind(this);
         this.toolbar.addListener('keydown', onKeyDown);
