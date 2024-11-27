@@ -146,11 +146,15 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
     }
 
     private updateRangeFills(datum: Datum) {
-        const { lineDashOffset, strokeWidth, strokeOpacity, strokes: colors } = datum;
+        const { lineDashOffset, strokeWidth, strokeOpacity, strokes: colors, showFill } = datum;
 
         const firstColor = colors[0];
         this.rangeFillsGroupSelection.each((range, { x1, x2, y1, y2 }, index) => {
             const color = colors[index] ?? firstColor;
+            if (!showFill) {
+                range.visible = false;
+                return;
+            }
             range.setProperties({
                 x1,
                 x2,
@@ -167,6 +171,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
                 lineCap: datum.getLineCap(),
                 lineDash: datum.getLineDash(),
                 lineDashOffset,
+                visible: true,
             });
         });
     }
