@@ -514,9 +514,9 @@ export class SeriesAreaManager extends BaseManager {
         )
             return;
 
-        const { canvasX, canvasY, regionX, regionY, region } = event;
+        const { canvasX, canvasY, regionX, regionY } = event;
         const targetElement = event.sourceEvent.target as HTMLElement;
-        if (redisplay ? this.chart.ctx.animationManager.isActive() : region !== 'series') {
+        if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
             if (this.hoverDevice == 'mouse') this.clearTooltip();
             return;
         }
