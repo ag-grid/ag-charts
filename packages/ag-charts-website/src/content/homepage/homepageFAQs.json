@@ -1,0 +1,42 @@
+[
+    {
+        "question": "What are AG Charts JavaScript charts?",
+        "answer": "AG Charts [JavaScript charts](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) are powerful, interactive data visualization tools for web applications. They offer a wide range of chart types and customization options, making them ideal for creating dynamic and responsive [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs)"
+    },
+    {
+        "question": "How do AG Charts compare to other JavaScript chart libraries?",
+        "answer": "AG Charts stands out among JavaScript chart libraries with its high performance, extensive customization options, and seamless integration with [AG Grid](https://www.ag-grid.com/?utm_source=charts-homepage&amp;utm_medium=faqs). It also provides superior [documentation](https://www.ag-grid.com/charts/react/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) and support compared to many other JavaScript chart solutions."
+    },
+    {
+        "question": "Are AG Charts JavaScript charts responsive?",
+        "answer": "Yes, AG Charts [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) are fully responsive out of the box. They automatically adjust to different screen sizes and devices, ensuring your [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) look great on desktops, tablets, and mobile phones."
+    },
+    {
+        "question": "Can I create real time updating JavaScript charts with AG Charts?",
+        "answer": "Absolutely! AG Charts supports [real time](https://blog.ag-grid.com/updating-bar-chart-in-real-time/?utm_source=charts-homepage&amp;utm_medium=faqs) data updates for [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs). You can easily create dynamic charts that update as new data becomes available, making it perfect for live dashboards and monitoring applications."
+    },
+    {
+        "question": "What interactivity features do AG Charts JavaScript charts offer?",
+        "answer": "AG Charts [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) provide rich interactivity options, including [tooltips](https://www.ag-grid.com/charts/react/tooltips/?utm_source=charts-homepage&amp;utm_medium=faqs), [zooming](https://www.ag-grid.com/charts/react/zoom/?utm_source=charts-homepage&amp;utm_medium=faqs) and [panning](https://www.ag-grid.com/charts/react/navigator/?utm_source=charts-homepage&amp;utm_medium=faqs), [context menus](https://www.ag-grid.com/charts/react/context-menu/?utm_source=charts-homepage&amp;utm_medium=faqs) and [click events](https://www.ag-grid.com/charts/react/events/?utm_source=charts-homepage&amp;utm_medium=faqs). You can customize these features to create engaging user experiences with your [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs)."
+    },
+    {
+        "question": "Can I export AG Charts JavaScript charts as images?",
+        "answer": "Yes, AG Charts offers built-in export functionality for [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs). You can easily [export your charts](https://www.ag-grid.com/charts/react/api-download) as PNG files, making it simple to include them in reports or share them with others."
+    },
+    {
+        "question": "How do I integrate AG Charts JavaScript charts with React?",
+        "answer": "AG Charts provides official React wrappers for its [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs), making integration seamless. Simply install the [AG Charts React](https://www.ag-grid.com/charts/react/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) package and use the provided components to create [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) in your React projects."
+    },
+    {
+        "question": "Are AG Charts JavaScript charts accessible?",
+        "answer": "Yes, AG Charts [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) are designed with [accessibility](https://www.ag-grid.com/charts/react/accessibility/?utm_source=charts-homepage&amp;utm_medium=faqs) in mind. They include features like keyboard navigation and ARIA labels to ensure your charts are usable by people with disabilities and comply with [accessibility](https://www.ag-grid.com/charts/react/accessibility/?utm_source=charts-homepage&amp;utm_medium=faqs) standards."
+    },
+    {
+        "question": "How customizable are AG Charts JavaScript charts?",
+        "answer": "AG Charts [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) offer extensive customization options. You can easily modify colors, fonts, styles, and layouts to match your application's design. The API also allows for advanced customizations for your [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs)."
+    },
+    {
+        "question": "How do AG Charts JavaScript charts perform with large datasets?",
+        "answer": "AG Charts [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) are optimized for performance with large datasets. We use efficient rendering techniques to handle hundreds of thousands of data points smoothly, ensuring your [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) remain responsive even with substantial amounts of data."
+    }
+]

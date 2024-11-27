@@ -7,8 +7,8 @@ import { getEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import { AutomatedIntegratedChartsWithPackages } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWithPackages';
-import { Faqs } from '../components/homepage/components/faqs/Faqs';
 import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
+import { LandingPageFAQ } from '@ag-website-shared/components/landing-pages/LandingPageFAQ';
 import ImageCarousel from '../components/homepage/components/hero/ImageCarousel';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { Version } from '@ag-website-shared/components/whats-new/components/Version';
@@ -20,6 +20,7 @@ const { blogPrefix } = whatsNewData['charts'];
 
 // All Gallery Examples
 const galleryEntry = await getEntry('gallery', 'data');
+const { data: FAQData } = await getEntry('homepage', 'homepageFAQs');
 const { data: versionsData } = await getEntry('versions', 'ag-charts-versions');
 
 // Extract Specific Community Examples from Gallery
@@ -258,7 +259,7 @@ const mapExampleHeights = 360;
             heading="FAQs"
             subHeading="Answers to common questions about AG Charts, and JavaScript Charting in general."
         >
-            <Faqs client:load />
+            <LandingPageFAQ client:load FAQData={FAQData} framework={'react'} />
         </LandingPageSection>
     </div>
 </Layout>
