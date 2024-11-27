@@ -262,10 +262,8 @@ export class RegionManager {
                 break;
             }
             case 'hover': {
-                if (!this.isDragMoving) {
-                    this.dispatchEvent(current, event);
-                    this.blockNextClickEvent = false;
-                }
+                this.blockNextClickEvent = false;
+                this.dispatchEvent(current, event);
                 break;
             }
             default: {

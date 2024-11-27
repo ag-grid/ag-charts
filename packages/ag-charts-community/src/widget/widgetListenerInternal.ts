@@ -96,21 +96,25 @@ export class WidgetListenerInternal {
         partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, downEvent);
 
         const mousemove = (moveEvent: MouseEvent) => {
+            moveEvent.stopPropagation();
+            moveEvent.stopImmediatePropagation();
             const dragMoveEvent = makeDragEvent('drag-move', origin, moveEvent);
             this.dispatch('drag-move', current, dragMoveEvent);
         };
 
         const mouseup = (upEvent: MouseEvent) => {
             if (upEvent.button === 0) {
-                window.removeEventListener('mousemove', mousemove);
-                window.removeEventListener('mouseup', mouseup);
+                upEvent.stopPropagation();
+                upEvent.stopImmediatePropagation();
+                window.removeEventListener('mousemove', mousemove, { capture: true });
+                window.removeEventListener('mouseup', mouseup, { capture: true });
                 const dragEndEvent = makeDragEvent('drag-end', origin, upEvent);
                 this.dispatch('drag-end', current, dragEndEvent);
             }
         };
 
-        window.addEventListener('mousemove', mousemove);
-        window.addEventListener('mouseup', mouseup);
+        window.addEventListener('mousemove', mousemove, { capture: true });
+        window.addEventListener('mouseup', mouseup, { capture: true });
         const dragStartEvent = makeDragEvent('drag-start', origin, downEvent);
         this.dispatch('drag-start', current, dragStartEvent);
     }
