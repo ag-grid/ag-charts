@@ -126,17 +126,17 @@
 /** TOOLTIP REFACTOR */
 .ag-chart-tooltip__content {
     display: grid;
-    grid: auto-flow auto / 1fr auto;
+    grid: auto-flow auto / 1fr;
     padding: 8px 12px;
     gap: 8px;
 }
 
 .ag-chart-tooltip__content:has(.ag-chart-tooltip__symbol) {
-    grid: auto-flow auto / auto 1fr auto;
+    grid: auto-flow auto / auto 1fr;
 }
 
 .ag-chart-tooltip__title {
-    grid-column: -3 / -1;
+    grid-column: 1 / -1;
 }
 
 .ag-chart-tooltip__row {
@@ -147,6 +147,7 @@
 }
 
 .ag-chart-tooltip__symbol {
+    grid-column: 1 / 2;
     align-self: center;
 }
 
@@ -155,8 +156,15 @@
     display: block;
 }
 
+.ag-chart-tooltip__label-value,
 .ag-chart-tooltip__label {
-    grid-column: -3 / span 1;
+    grid-column: -2 / -1;
+}
+
+.ag-chart-tooltip__label-value {
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
 }
 
 /* Todo - refactor to avoid this selector */
@@ -165,7 +173,3 @@
     .ag-chart-tooltip__label {
     grid-column: -4 / span 2;
 } */
-
-.ag-chart-tooltip__value {
-    justify-self: end;
-}

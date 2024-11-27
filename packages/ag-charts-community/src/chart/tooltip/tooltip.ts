@@ -88,11 +88,13 @@ function tooltipContentHtml(content: TooltipContent) {
             rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__symbol">${symbol}</span>`;
         }
 
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(row.label)}</span>`;
+        const labelHtml = `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(row.label)}</span>`;
 
-        if (row.value != null) {
-            rowHtml += ' ';
-            rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(row.value)}</span>`;
+        if (row.value == null) {
+            rowHtml += labelHtml;
+        } else {
+            const valueHtml = `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(row.value)}</span>`;
+            rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label-value">${labelHtml} ${valueHtml}`;
         }
 
         rowHtml = `<div class="${DEFAULT_TOOLTIP_CLASS}__row">${rowHtml}</div>`;

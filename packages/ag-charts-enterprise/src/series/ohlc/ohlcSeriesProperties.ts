@@ -4,6 +4,9 @@ import type {
     AgOhlcSeriesItemStylerParams,
     AgOhlcSeriesOptions,
     AgOhlcSeriesTooltipRendererParams,
+    FillOptions,
+    LineDashOptions,
+    StrokeOptions,
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
@@ -50,6 +53,8 @@ class OhlcSeriesItems extends BaseProperties {
 export abstract class OhlcSeriesBaseProperties<
     T extends AgOhlcSeriesBaseOptions,
 > extends AbstractBarSeriesProperties<T> {
+    abstract item: Record<'up' | 'down', FillOptions & StrokeOptions & LineDashOptions>;
+
     @Validate(STRING)
     xKey!: string;
 

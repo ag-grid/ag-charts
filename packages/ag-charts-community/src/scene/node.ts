@@ -59,6 +59,7 @@ export abstract class Node {
         const root = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         root.setAttribute('width', String(width));
         root.setAttribute('height', String(height));
+        root.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
         if (svg.defs?.length) {
             const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');

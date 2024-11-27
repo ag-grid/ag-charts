@@ -57,8 +57,10 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
         const marker = new Marker();
         const { center } = Marker;
         marker.size = size;
-        marker.x = width / 2 + (center.x - 0.5) * size;
-        marker.y = height / 2 + (center.y - 0.5) * size;
+        marker.x = 0;
+        marker.y = 0;
+        marker.translationX = width / 2 + (center.x - 0.5) * size;
+        marker.translationY = height / 2 + (center.y - 0.5) * size;
         marker.fill = fill;
         marker.fillOpacity = fillOpacity;
         marker.stroke = stroke;

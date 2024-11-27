@@ -599,7 +599,8 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override getTooltipContent(nodeDatum: WaterfallNodeDatum): _ModuleSupport.TooltipContent | undefined {
-        const { dataModel, processedData, axes } = this;
+        const { dataModel, processedData, axes, properties } = this;
+        const { yName } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -643,13 +644,20 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             total = yValue;
         }
 
+        const value = yAxis.formatDatum(total);
         return {
+            title: xAxis.formatDatum(xValue),
             rows: [
-                {
-                    symbol: this.legendItemSymbol(seriesItemType),
-                    label: xAxis.formatDatum(xValue),
-                    value: yAxis.formatDatum(total),
-                },
+                yName != null
+                    ? {
+                          symbol: this.legendItemSymbol(seriesItemType),
+                          label: yName,
+                          value,
+                      }
+                    : {
+                          symbol: this.legendItemSymbol(seriesItemType),
+                          label: value,
+                      },
             ],
         };
     }

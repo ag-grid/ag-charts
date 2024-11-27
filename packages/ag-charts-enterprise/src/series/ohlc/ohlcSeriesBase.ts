@@ -408,6 +408,7 @@ export abstract class OhlcSeriesBase<
     override getTooltipContent(nodeDatum: OhlcNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { dataModel, processedData, axes, properties } = this;
         const {
+            item: { up, down },
             openKey,
             openName = openKey,
             highKey,
@@ -425,15 +426,15 @@ export abstract class OhlcSeriesBase<
         }
 
         const { datumIndex } = nodeDatum;
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const openValues = dataModel.resolveColumnById(this, `openValue`, processedData);
-        const highValues = dataModel.resolveColumnById(this, `highValue`, processedData);
-        const lowValues = dataModel.resolveColumnById(this, `lowValue`, processedData);
-        const closeValues = dataModel.resolveColumnById(this, `closeValue`, processedData);
-
-        const xValue = xValues[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
+        const openValue = dataModel.resolveColumnById(this, `openValue`, processedData)[datumIndex];
+        const highValue = dataModel.resolveColumnById(this, `highValue`, processedData)[datumIndex];
+        const lowValue = dataModel.resolveColumnById(this, `lowValue`, processedData)[datumIndex];
+        const closeValue = dataModel.resolveColumnById(this, `closeValue`, processedData)[datumIndex];
 
         if (xValue == null) return;
+
+        const item = closeValue >= openValue ? up : down;
 
         return {
             groupKey: xValue,
@@ -441,19 +442,28 @@ export abstract class OhlcSeriesBase<
             rows: [
                 {
                     label: openName,
-                    value: yAxis.formatDatum(openValues[datumIndex]),
+                    value: yAxis.formatDatum(openValue),
+                    symbol: {
+                        marker: {
+                            fill: item.fill,
+                            fillOpacity: item.fillOpacity ?? 1,
+                            stroke: item.stroke,
+                            strokeWidth: item.strokeWidth ?? 1,
+                            strokeOpacity: item.strokeOpacity ?? 1,
+                        },
+                    },
                 },
                 {
                     label: highName,
-                    value: yAxis.formatDatum(highValues[datumIndex]),
+                    value: yAxis.formatDatum(highValue),
                 },
                 {
                     label: lowName,
-                    value: yAxis.formatDatum(lowValues[datumIndex]),
+                    value: yAxis.formatDatum(lowValue),
                 },
                 {
                     label: closeName,
-                    value: yAxis.formatDatum(closeValues[datumIndex]),
+                    value: yAxis.formatDatum(closeValue),
                 },
             ],
         };

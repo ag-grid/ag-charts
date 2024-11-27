@@ -562,7 +562,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override getTooltipContent(nodeDatum: RangeAreaMarkerDatum): _ModuleSupport.TooltipContent | undefined {
-        const { dataModel, processedData, axes } = this;
+        const { dataModel, processedData, axes, properties } = this;
+        const { yName } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -581,13 +582,20 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         if (xValue == null) return;
 
+        const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
         return {
+            title: xAxis.formatDatum(xValue),
             rows: [
-                {
-                    symbol: this.legendItemSymbol(),
-                    label: xAxis.formatDatum(xValue),
-                    value: `${yAxis.formatDatum(yHighValue)} - ${yAxis.formatDatum(yLowValue)}`,
-                },
+                yName != null
+                    ? {
+                          symbol: this.legendItemSymbol(),
+                          label: yName,
+                          value,
+                      }
+                    : {
+                          symbol: this.legendItemSymbol(),
+                          label: value,
+                      },
             ],
         };
     }
