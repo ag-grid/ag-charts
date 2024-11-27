@@ -137,7 +137,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const { depthOptions, label } = this;
         for (let i = 0; i < maxDepth; i++) {
             optionsMap.push(
-                label.enabled && depthOptions[i]?.label.enabled !== false
+                depthOptions[i]?.label.enabled
                     ? {
                           enabled: true,
                           padding: depthOptions[i]?.label.padding ?? label.spacing,
