@@ -9,14 +9,6 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     flex-direction: column;
 }
 
-.container > div:nth-child(even) {
-    background-color: var(--color-gray-50);
-
-    #{$selector-darkmode} & {
-        background-color: var(--color-util-gray-200);
-    }
-}
-
 .container > div:last-child {
     padding-bottom: $spacing-size-48;
 }
@@ -211,10 +203,8 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
 }
 
 .homepageFrameworks {
-    background-color: var(--color-brand-100);
     padding-top: $spacing-size-4;
     padding-bottom: $spacing-size-12;
-
     border-bottom: 1px solid transparent;
 
     @media screen and (min-width: 640px) {
@@ -222,7 +212,6 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     }
 
     #{$selector-darkmode} & {
-        background-color: var(--color-bg-primary);
         border-bottom-color: var(--color-border-primary);
     }
 }
