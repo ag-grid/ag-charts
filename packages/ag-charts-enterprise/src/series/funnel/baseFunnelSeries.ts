@@ -536,9 +536,9 @@ export abstract class BaseFunnelSeries<
         if (xValue == null) return;
 
         return {
-            rows: [
+            symbol: this.legendItemSymbol(datumIndex),
+            data: [
                 {
-                    symbol: this.legendItemSymbol(datumIndex),
                     label: xAxis.formatDatum(xValue),
                     value: yAxis.formatDatum(yValue),
                 },

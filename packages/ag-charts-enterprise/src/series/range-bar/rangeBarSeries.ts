@@ -591,18 +591,13 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
         return {
-            title: xAxis.formatDatum(xValue),
-            rows: [
-                yName != null
-                    ? {
-                          symbol: this.legendItemSymbol(),
-                          label: yName,
-                          value,
-                      }
-                    : {
-                          symbol: this.legendItemSymbol(),
-                          label: value,
-                      },
+            groupTitle: xAxis.formatDatum(xValue),
+            symbol: this.legendItemSymbol(),
+            data: [
+                {
+                    label: yName ?? '',
+                    value,
+                },
             ],
         };
     }

@@ -487,9 +487,9 @@ export abstract class FlowProportionSeries<
 
         return {
             title,
-            rows: [
+            symbol: this.legendItemSymbol(seriesDatum.type, nodeIndex),
+            data: [
                 {
-                    symbol: this.legendItemSymbol(seriesDatum.type, nodeIndex),
                     label: sizeName ?? 'Size',
                     value: String(seriesDatum.size),
                 },

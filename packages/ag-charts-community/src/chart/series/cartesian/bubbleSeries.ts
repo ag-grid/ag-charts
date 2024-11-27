@@ -20,7 +20,7 @@ import type { CategoryLegendDatum } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { type TooltipContent, type TooltipContentRow } from '../../tooltip/tooltip';
+import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
 import type { PickFocusInputs, SeriesNodeEventTypes } from '../series';
 import { SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
@@ -368,6 +368,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             legendItemName = yName,
             sizeKey,
             sizeName = sizeKey,
+            title,
         } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -387,9 +388,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
         if (xValue == null) return;
 
-        const rows: TooltipContentRow[] = [
+        const data: TooltipContentDataRow[] = [
             {
-                symbol: this.legendItemSymbol(),
                 label: xName,
                 value: xAxis.formatDatum(xValue),
             },
@@ -401,13 +401,17 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
         if (sizeValues != null) {
             const sizeValue = sizeValues[datumIndex];
-            rows.push({
+            data.push({
                 label: sizeName,
                 value: String(sizeValue),
             });
         }
 
-        return { rows };
+        return {
+            title,
+            symbol: this.legendItemSymbol(),
+            data,
+        };
     }
 
     private legendItemSymbol(): LegendSymbolOptions {

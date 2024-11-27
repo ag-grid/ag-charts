@@ -17,7 +17,7 @@ import { fixNumericExtent } from '../../data/dataModel';
 import { SORT_DOMAIN_GROUPS, createDatumId, diff, keyProperty, valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
-import { type TooltipContent, type TooltipContentRow } from '../../tooltip/tooltip';
+import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
 import { type PickFocusInputs, Series, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import {
@@ -473,7 +473,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         const [rangeMin, rangeMax] = domain;
         const aggregatedValue = negativeAgg + positiveAgg;
 
-        const rows: TooltipContentRow[] = [
+        const data: TooltipContentDataRow[] = [
             {
                 label: xName,
                 value: yAxis.formatDatum(frequency),
@@ -481,15 +481,17 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         ];
 
         if (yKey) {
-            rows.push({
+            data.push({
                 label: yName ?? yKey,
                 value: yAxis.formatDatum(aggregatedValue),
             });
         }
 
-        rows[0].symbol = this.legendItemSymbol();
-
-        return { title: `${xAxis.formatDatum(rangeMin)} - ${xAxis.formatDatum(rangeMax)}`, rows };
+        return {
+            groupTitle: `${xAxis.formatDatum(rangeMin)} - ${xAxis.formatDatum(rangeMax)}`,
+            symbol: this.legendItemSymbol(),
+            data,
+        };
     }
 
     private legendItemSymbol(): LegendSymbolOptions {

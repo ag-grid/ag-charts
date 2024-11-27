@@ -730,11 +730,10 @@ export class AreaSeries extends CartesianSeries<
         if (xValue == null) return;
 
         return {
-            groupKey: xValue,
-            title: xAxis.formatDatum(xValue),
-            rows: [
+            groupTitle: xAxis.formatDatum(xValue),
+            symbol: this.legendItemSymbol(),
+            data: [
                 {
-                    symbol: this.legendItemSymbol(),
                     label: legendItemName,
                     value: yAxis.formatDatum(yValue),
                 },

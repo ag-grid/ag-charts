@@ -126,24 +126,17 @@
 /** TOOLTIP REFACTOR */
 .ag-chart-tooltip__content {
     display: grid;
-    grid: auto-flow auto / 1fr;
+    grid: auto-flow minmax(1em, auto) / 1fr;
     padding: 8px 12px;
     gap: 8px;
 }
 
 .ag-chart-tooltip__content:has(.ag-chart-tooltip__symbol) {
-    grid: auto-flow auto / auto 1fr;
+    grid: auto-flow minmax(1em, auto) / auto 1fr;
 }
 
-.ag-chart-tooltip__title {
+.ag-chart-tooltip__group-title {
     grid-column: 1 / -1;
-}
-
-.ag-chart-tooltip__row {
-    grid-column: 1 / -1;
-    display: grid;
-    grid: auto-flow auto / subgrid;
-    align-items: baseline;
 }
 
 .ag-chart-tooltip__symbol {
@@ -151,25 +144,23 @@
     align-self: center;
 }
 
+.ag-chart-tooltip__title {
+    grid-column: -2 / -1;
+}
+
+.ag-chart-tooltip__row {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.ag-chart-tooltip__row--inline {
+    grid-column: -2 / -1;
+}
+
 .ag-chart-tooltip__symbol svg {
     /* Fixes vertical alignment */
     display: block;
 }
-
-.ag-chart-tooltip__label-value,
-.ag-chart-tooltip__label {
-    grid-column: -2 / -1;
-}
-
-.ag-chart-tooltip__label-value {
-    display: flex;
-    gap: 16px;
-    justify-content: space-between;
-}
-
-/* Todo - refactor to avoid this selector */
-/* .ag-chart-tooltip__content:has(.ag-chart-tooltip__symbol)
-    .ag-chart-tooltip__row:not(:has(.ag-chart-tooltip__symbol))
-    .ag-chart-tooltip__label {
-    grid-column: -4 / span 2;
-} */

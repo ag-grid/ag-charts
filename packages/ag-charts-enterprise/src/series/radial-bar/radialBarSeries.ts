@@ -519,11 +519,10 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         if (radiusValue == null) return;
 
         return {
-            groupKey: radiusValue,
-            title: radiusAxis.formatDatum(radiusValue),
-            rows: [
+            groupTitle: radiusAxis.formatDatum(radiusValue),
+            symbol: this.legendItemSymbol(),
+            data: [
                 {
-                    symbol: this.legendItemSymbol(),
                     label: angleName,
                     value: angleAxis.formatDatum(angleValue),
                 },

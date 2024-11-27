@@ -415,7 +415,17 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
     override getTooltipContent(nodeDatum: HeatmapNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { dataModel, processedData, axes, properties, colorScale } = this;
-        const { xKey, xName = xKey, yKey, yName = yKey, colorKey, colorName = colorKey, colorRange } = properties;
+        const {
+            xKey,
+            xName = xKey,
+            yKey,
+            yName = yKey,
+            colorKey,
+            colorName = colorKey,
+            colorRange,
+            title,
+            legendItemName,
+        } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -436,27 +446,16 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         if (xValue == null) return;
 
-        const rows: _ModuleSupport.TooltipContentRow[] = [];
+        const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
         if (colorValue != null) {
-            const fill = this.isColorScaleValid() ? colorScale.convert(colorValue) : colorRange[0];
-            rows.push({
-                symbol: {
-                    marker: {
-                        shape: 'square',
-                        fill: fill,
-                        fillOpacity: 1,
-                        stroke: undefined,
-                        strokeWidth: 0,
-                        strokeOpacity: 1,
-                    },
-                },
+            data.push({
                 label: colorName ?? '',
                 value: String(colorValue),
             });
         }
 
-        rows.push(
+        data.push(
             {
                 label: xName,
                 value: xAxis.formatDatum(xValue),
@@ -467,8 +466,24 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             }
         );
 
+        const fill = this.isColorScaleValid() && colorValue != null ? colorScale.convert(colorValue) : colorRange[0];
+
         return {
-            rows,
+            title: title ?? legendItemName,
+            symbol:
+                fill != null
+                    ? {
+                          marker: {
+                              shape: 'square',
+                              fill: fill,
+                              fillOpacity: 1,
+                              stroke: undefined,
+                              strokeWidth: 0,
+                              strokeOpacity: 1,
+                          },
+                      }
+                    : undefined,
+            data,
         };
     }
 

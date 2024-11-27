@@ -437,21 +437,21 @@ export abstract class OhlcSeriesBase<
         const item = closeValue >= openValue ? up : down;
 
         return {
-            groupKey: xValue,
-            title: xAxis.formatDatum(xValue),
-            rows: [
+            groupTitle: xAxis.formatDatum(xValue),
+            title: this.properties.legendItemName,
+            symbol: {
+                marker: {
+                    fill: item.fill,
+                    fillOpacity: item.fillOpacity ?? 1,
+                    stroke: item.stroke,
+                    strokeWidth: item.strokeWidth ?? 1,
+                    strokeOpacity: item.strokeOpacity ?? 1,
+                },
+            },
+            data: [
                 {
                     label: openName,
                     value: yAxis.formatDatum(openValue),
-                    symbol: {
-                        marker: {
-                            fill: item.fill,
-                            fillOpacity: item.fillOpacity ?? 1,
-                            stroke: item.stroke,
-                            strokeWidth: item.strokeWidth ?? 1,
-                            strokeOpacity: item.strokeOpacity ?? 1,
-                        },
-                    },
                 },
                 {
                     label: highName,

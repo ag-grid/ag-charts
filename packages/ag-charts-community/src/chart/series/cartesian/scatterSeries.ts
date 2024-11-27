@@ -17,7 +17,7 @@ import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDa
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { type TooltipContent, type TooltipContentRow } from '../../tooltip/tooltip';
+import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData } from './cartesianSeries';
@@ -310,26 +310,20 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
         if (xValue == null) return;
 
-        const rows: TooltipContentRow[] = [];
-
-        if (title != null) {
-            rows.push({ label: title });
-        }
-
-        rows.push(
-            {
-                label: xName,
-                value: xAxis.formatDatum(xValue),
-            },
-            {
-                label: legendItemName,
-                value: yAxis.formatDatum(yValue),
-            }
-        );
-
-        rows[0].symbol = this.legendItemSymbol();
-
-        return { rows };
+        return {
+            symbol: this.legendItemSymbol(),
+            title,
+            data: [
+                {
+                    label: xName,
+                    value: xAxis.formatDatum(xValue),
+                },
+                {
+                    label: legendItemName,
+                    value: yAxis.formatDatum(yValue),
+                },
+            ],
+        };
     }
 
     private legendItemSymbol(): LegendSymbolOptions {

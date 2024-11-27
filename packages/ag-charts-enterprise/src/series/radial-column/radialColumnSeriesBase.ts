@@ -527,11 +527,10 @@ export abstract class RadialColumnSeriesBase<
         if (angleValue == null) return;
 
         return {
-            groupKey: angleValue,
-            title: angleAxis.formatDatum(angleValue),
-            rows: [
+            groupTitle: angleAxis.formatDatum(angleValue),
+            symbol: this.legendItemSymbol(),
+            data: [
                 {
-                    symbol: this.legendItemSymbol(),
                     label: radiusName,
                     value: radiusAxis.formatDatum(radiusValue),
                 },

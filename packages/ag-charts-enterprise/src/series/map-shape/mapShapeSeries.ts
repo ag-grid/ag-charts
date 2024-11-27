@@ -631,32 +631,26 @@ export class MapShapeSeries
         const colorValues =
             colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
 
-        const rows: _ModuleSupport.TooltipContentRow[] = [];
+        const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        const seriesTitle = properties.title ?? legendItemName;
-        if (seriesTitle != null) {
-            rows.push({ label: seriesTitle });
-        }
         if (colorValues != null) {
-            rows.push({
+            data.push({
                 label: colorName ?? '',
                 value: String(colorValues[datumIndex]),
             });
         }
         if (labelValues != null && labelKey !== idKey) {
-            rows.push({
+            data.push({
                 label: labelName ?? '',
                 value: String(labelValues[datumIndex]),
             });
         }
 
-        if (rows.length > 0) {
-            rows[0].symbol = this.legendItemSymbol(datumIndex);
-        }
-
         return {
-            title: idValues[datumIndex],
-            rows,
+            groupTitle: idValues[datumIndex],
+            title: properties.title ?? legendItemName,
+            symbol: this.legendItemSymbol(datumIndex),
+            data,
         };
     }
 

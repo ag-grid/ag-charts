@@ -646,18 +646,13 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const value = yAxis.formatDatum(total);
         return {
-            title: xAxis.formatDatum(xValue),
-            rows: [
-                yName != null
-                    ? {
-                          symbol: this.legendItemSymbol(seriesItemType),
-                          label: yName,
-                          value,
-                      }
-                    : {
-                          symbol: this.legendItemSymbol(seriesItemType),
-                          label: value,
-                      },
+            groupTitle: xAxis.formatDatum(xValue),
+            symbol: this.legendItemSymbol(seriesItemType),
+            data: [
+                {
+                    label: yName ?? '',
+                    value,
+                },
             ],
         };
     }

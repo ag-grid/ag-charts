@@ -57,16 +57,16 @@ export interface TooltipMeta extends TooltipOffsets {
     enableInteraction?: boolean;
 }
 
-export interface TooltipContentRow {
-    symbol?: LegendSymbolOptions;
+export interface TooltipContentDataRow {
     label: string;
     value?: string;
 }
 
 export interface TooltipContent {
-    groupKey?: string;
+    groupTitle?: string;
     title?: string;
-    rows?: TooltipContentRow[];
+    symbol?: LegendSymbolOptions;
+    data?: TooltipContentDataRow[];
 }
 
 export function tooltipContentAriaLabel(_content: TooltipContent) {
@@ -74,30 +74,36 @@ export function tooltipContentAriaLabel(_content: TooltipContent) {
 }
 
 function tooltipContentHtml(content: TooltipContent) {
+    const dataInline = content.title == null && content.data?.length === 1;
+
     let html = '';
+
+    if (content.groupTitle != null) {
+        html += `<span class="${DEFAULT_TOOLTIP_CLASS}__group-title">${sanitizeHtml(content.groupTitle)}</span>`;
+    }
+
+    const symbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
+    if (symbol != null && (content.title != null || content.data?.length)) {
+        html += `<span class="${DEFAULT_TOOLTIP_CLASS}__symbol">${symbol}</span>`;
+    }
 
     if (content.title != null) {
         html += `<span class="${DEFAULT_TOOLTIP_CLASS}__title">${sanitizeHtml(content.title)}</span>`;
     }
 
-    content.rows?.forEach((row) => {
+    content.data?.forEach((datum) => {
         let rowHtml = '';
 
-        const symbol = row.symbol == null ? undefined : legendSymbolSvg(row.symbol, 12);
-        if (symbol != null) {
-            rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__symbol">${symbol}</span>`;
+        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(datum.label)}</span>`;
+
+        if (datum.value != null) {
+            rowHtml += ' ';
+            rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(datum.value)}</span>`;
         }
 
-        const labelHtml = `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(row.label)}</span>`;
-
-        if (row.value == null) {
-            rowHtml += labelHtml;
-        } else {
-            const valueHtml = `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(row.value)}</span>`;
-            rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label-value">${labelHtml} ${valueHtml}`;
-        }
-
-        rowHtml = `<div class="${DEFAULT_TOOLTIP_CLASS}__row">${rowHtml}</div>`;
+        const rowClassNames = [`${DEFAULT_TOOLTIP_CLASS}__row`];
+        if (dataInline) rowClassNames.push(`${DEFAULT_TOOLTIP_CLASS}__row--inline`);
+        rowHtml = `<div class="${rowClassNames.join(' ')}">${rowHtml}</div>`;
 
         if (html !== '') {
             html += ' ';

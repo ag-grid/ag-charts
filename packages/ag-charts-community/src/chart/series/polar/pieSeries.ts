@@ -1281,9 +1281,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         if (label == null) return;
 
         return {
-            rows: [
+            symbol: this.legendItemSymbol(datumIndex),
+            data: [
                 {
-                    symbol: this.legendItemSymbol(datumIndex),
                     label,
                     value: String(angleRawValue),
                 },

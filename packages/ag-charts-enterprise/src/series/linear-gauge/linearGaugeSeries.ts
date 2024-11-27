@@ -1136,11 +1136,8 @@ export class LinearGaugeSeries
         const value = highlightDatum?.value ?? properties.value;
         const text = highlightDatum?.text;
 
-        const title = text ?? '';
-
         return {
-            title,
-            rows: [{ label: this.formatLabel(value) }],
+            data: [{ label: text ?? '', value: this.formatLabel(value) }],
         };
     }
 

@@ -332,40 +332,32 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (xValue == null) return;
 
-        const rows: _ModuleSupport.TooltipContentRow[] = [];
-
-        if (yName != null) {
-            rows.push({ label: yName });
-        }
-
-        rows.push(
-            {
-                label: minName,
-                value: yAxis.formatDatum(minValues[datumIndex]),
-            },
-            {
-                label: q1Name,
-                value: yAxis.formatDatum(q1Values[datumIndex]),
-            },
-            {
-                label: medianName,
-                value: yAxis.formatDatum(medianValues[datumIndex]),
-            },
-            {
-                label: q3Name,
-                value: yAxis.formatDatum(q3Values[datumIndex]),
-            },
-            {
-                label: maxName,
-                value: yAxis.formatDatum(maxValues[datumIndex]),
-            }
-        );
-
-        rows[0].symbol = this.legendItemSymbol();
-
         return {
-            title: xAxis.formatDatum(xValue),
-            rows,
+            groupTitle: xAxis.formatDatum(xValue),
+            title: yName,
+            symbol: this.legendItemSymbol(),
+            data: [
+                {
+                    label: minName,
+                    value: yAxis.formatDatum(minValues[datumIndex]),
+                },
+                {
+                    label: q1Name,
+                    value: yAxis.formatDatum(q1Values[datumIndex]),
+                },
+                {
+                    label: medianName,
+                    value: yAxis.formatDatum(medianValues[datumIndex]),
+                },
+                {
+                    label: q3Name,
+                    value: yAxis.formatDatum(q3Values[datumIndex]),
+                },
+                {
+                    label: maxName,
+                    value: yAxis.formatDatum(maxValues[datumIndex]),
+                },
+            ],
         };
     }
 

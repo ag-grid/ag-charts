@@ -723,37 +723,32 @@ export class TreemapSeries<
         const format = this.getTileFormat(nodeDatum, false);
         const color = format?.fill ?? nodeDatum.fill;
 
-        const rows: _ModuleSupport.TooltipContentRow[] = [];
-
-        const label = labelKey != null ? datum[labelKey] : undefined;
-        if (label != null) {
-            rows.push({ label });
-        }
+        const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
         const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
         if (datumSize != null) {
-            rows.push({ label: sizeName!, value: datumSize });
+            data.push({ label: sizeName!, value: datumSize });
         }
 
         const datumColor = colorKey != null ? datum[colorKey] : undefined;
         if (datumColor != null) {
-            rows.push({ label: colorName!, value: datumColor });
+            data.push({ label: colorName!, value: datumColor });
         }
 
-        if (rows.length === 0) return;
-
-        rows[0].symbol = {
-            marker: {
-                shape: 'square',
-                fill: color,
-                fillOpacity: 1,
-                stroke: undefined,
-                strokeWidth: 0,
-                strokeOpacity: 1,
+        return {
+            title: labelKey != null ? datum[labelKey] : undefined,
+            symbol: {
+                marker: {
+                    shape: 'square',
+                    fill: color,
+                    fillOpacity: 1,
+                    stroke: undefined,
+                    strokeWidth: 0,
+                    strokeOpacity: 1,
+                },
             },
+            data,
         };
-
-        return { rows };
     }
 
     private focusSorted?: { childAt: (i: number) => _ModuleSupport.HierarchyNode<TDatum> };

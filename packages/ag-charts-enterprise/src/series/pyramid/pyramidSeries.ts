@@ -556,9 +556,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         });
 
         return {
-            rows: [
+            symbol: this.legendItemSymbol(datumIndex),
+            data: [
                 {
-                    symbol: this.legendItemSymbol(datumIndex),
                     label: String(xValue),
                     value: value,
                 },

@@ -1370,9 +1370,9 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         if (label == null) return;
 
         return {
-            rows: [
+            symbol: this.legendItemSymbol(datumIndex),
+            data: [
                 {
-                    symbol: this.legendItemSymbol(datumIndex),
                     label,
                     value: String(angleRawValue),
                 },

@@ -738,47 +738,41 @@ export class MapMarkerSeries
         const colorValues =
             colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
 
-        const rows: _ModuleSupport.TooltipContentRow[] = [];
+        const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        const seriesTitle = properties.title ?? legendItemName;
-        if (seriesTitle != null) {
-            rows.push({ label: seriesTitle });
-        }
         if (sizeValues != null) {
-            rows.push({
+            data.push({
                 label: sizeName ?? '',
                 value: String(sizeValues[datumIndex]),
             });
         }
         if (colorValues != null) {
-            rows.push({
+            data.push({
                 label: colorName ?? '',
                 value: String(colorValues[datumIndex]),
             });
         }
         if (labelValues != null && labelKey !== idKey) {
-            rows.push({
+            data.push({
                 label: labelName ?? '',
                 value: String(labelValues[datumIndex]),
             });
         }
 
-        if (rows.length > 0) {
-            rows[0].symbol = this.legendItemSymbol(datumIndex);
-        }
-
-        let title: string | undefined;
+        let groupTitle: string | undefined;
         if (idValues != null) {
-            title = idValues?.[datumIndex];
+            groupTitle = idValues?.[datumIndex];
         } else if (latValues != null && lonValues != null) {
             const latValue = latValues[datumIndex];
             const lonValue = lonValues[datumIndex];
-            title = `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${lonValue >= 0 ? 'W' : 'E'}`;
+            groupTitle = `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${lonValue >= 0 ? 'W' : 'E'}`;
         }
 
         return {
-            title,
-            rows,
+            groupTitle,
+            title: properties.title ?? legendItemName,
+            symbol: this.legendItemSymbol(datumIndex),
+            data,
         };
     }
 
