@@ -32,10 +32,10 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-const chart = AgCharts.create(options);
-
 const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
 const numberAxis = options.axes![1] as AgNumberAxisOptions;
+
+const chart = AgCharts.create(options);
 
 function reset() {
     const element = document.getElementsByClassName('ag-chart-wrapper')![0]! as HTMLElement;
