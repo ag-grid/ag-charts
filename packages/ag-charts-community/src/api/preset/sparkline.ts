@@ -15,11 +15,7 @@ import {
     type AgTooltipPositionType,
 } from 'ag-charts-types';
 
-import {
-    DEFAULT_AXIS_GRID_COLOUR,
-    DEFAULT_SPARKLINE_CROSSHAIR_STROKE,
-    IS_ENTERPRISE,
-} from '../../chart/themes/symbols';
+import { DEFAULT_AXIS_GRID_COLOUR, DEFAULT_SPARKLINE_CROSSHAIR_STROKE } from '../../chart/themes/symbols';
 import { simpleMemorize } from '../../util/memo';
 import { IGNORED_PROP, pickProps } from './presetUtils';
 
@@ -51,21 +47,6 @@ const numericAxisProperties = {
     nice: false,
 };
 
-const bottomCrossHairAxisProperties = {
-    bottom: {
-        crosshair: {
-            enabled: IS_ENTERPRISE,
-        },
-    },
-};
-
-const crossHairAxes = {
-    category: bottomCrossHairAxisProperties,
-    number: bottomCrossHairAxisProperties,
-    log: bottomCrossHairAxisProperties,
-    time: bottomCrossHairAxisProperties,
-};
-
 const crossHairTooltip = {
     position: {
         type: 'sparkline' as any as AgTooltipPositionType,
@@ -94,7 +75,6 @@ const SPARKLINE_THEME: AgChartTheme = {
         common: {
             animation: { enabled: false },
             contextMenu: { enabled: false },
-            toolbar: { enabled: false },
             keyboard: { enabled: false },
             background: { visible: false },
             padding: {
@@ -144,7 +124,6 @@ const SPARKLINE_THEME: AgChartTheme = {
                     left: 2,
                 },
             },
-            axes: crossHairAxes,
             series: {
                 // @ts-expect-error undocumented option
                 sparklineMode: true,
@@ -165,7 +144,6 @@ const SPARKLINE_THEME: AgChartTheme = {
                     left: 0,
                 },
             },
-            axes: crossHairAxes,
             series: {
                 strokeWidth: 1,
                 fillOpacity: 0.4,
@@ -332,6 +310,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     if (seriesOverrides != null) Object.assign(seriesOptions, seriesOverrides);
 
     chartOpts.tooltip = {
+        ...chartOpts.tooltip,
         class: 'ag-chart-tooltip-compact',
     };
     chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME);

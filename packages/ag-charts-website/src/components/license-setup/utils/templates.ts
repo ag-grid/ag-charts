@@ -167,19 +167,19 @@ export default {
 
 export const CHARTS_LICENSE_TEMPLATES: ChartsLicenseTemplate = {
     react: ({ license }) => `import { AgCharts } from "ag-charts-react";
-import { AgCharts as AgChartsEnterprise } from "ag-charts-enterprise";
+import { LicenseManager } from "ag-charts-enterprise";
 
-AgChartsEnterprise.setLicenseKey("${license}");`,
+LicenseManager.setLicenseKey("${license}");`,
     angular: ({ license }) => `import { AgCharts } from "ag-charts-angular";
-import { AgCharts as AgChartsEnterprise } from "ag-charts-enterprise";
+import { LicenseManager } from "ag-charts-enterprise";
 
-AgChartsEnterprise.setLicenseKey("${license}");`,
+LicenseManager.setLicenseKey("${license}");`,
     javascript: ({ license }) => `import { AgCharts } from "ag-charts-community";
-import { AgCharts as AgChartsEnterprise } from "ag-charts-enterprise";
+import { LicenseManager } from "ag-charts-enterprise";
 
-AgChartsEnterprise.setLicenseKey("${license}");`,
+LicenseManager.setLicenseKey("${license}");`,
     vue: ({ license }) => `import { AgCharts } from "ag-charts-vue3";
-import { AgCharts as AgChartsEnterprise } from "ag-charts-enterprise";
+import { LicenseManager } from "ag-charts-enterprise";
 
-AgChartsEnterprise.setLicenseKey("${license}");`,
+LicenseManager.setLicenseKey("${license}");`,
 };

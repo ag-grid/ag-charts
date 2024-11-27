@@ -3,7 +3,11 @@ export class LicenseManager {
         return true;
     }
 
-    public setLicenseKey(_licenseKey: string): void {
+    public static setLicenseKey(_licenseKey: string): void {
+        // No-op.
+    }
+
+    public static setGridContext(): void {
         // No-op.
     }
 

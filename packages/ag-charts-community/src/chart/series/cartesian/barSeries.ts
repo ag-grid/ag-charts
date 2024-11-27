@@ -683,7 +683,6 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
         opts.datumSelection.each((rect, datum) => {
             const rectParams = {
-                ctx: this.ctx,
                 seriesId: this.id,
                 isHighlighted: opts.isHighlight,
                 highlightStyle: itemHighlightStyle,

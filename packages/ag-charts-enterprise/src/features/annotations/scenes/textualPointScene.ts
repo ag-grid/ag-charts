@@ -11,7 +11,7 @@ export abstract class TextualPointScene<Datum extends TextualPointProperties> ex
 
     protected readonly label = new _ModuleSupport.Text({ zIndex: 1 });
 
-    protected override anchor: _ModuleSupport.ToolbarAnchor = {
+    protected override anchor: _ModuleSupport.FloatingToolbarAnchor = {
         x: 0,
         y: 0,
         position: 'above-left',

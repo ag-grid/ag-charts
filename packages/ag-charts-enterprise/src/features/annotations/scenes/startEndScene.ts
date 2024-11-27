@@ -19,7 +19,7 @@ export abstract class StartEndScene<Datum extends StartEndProperties> extends Li
     protected readonly start = new DivariantHandle();
     protected readonly end = new DivariantHandle();
 
-    protected anchor: _ModuleSupport.ToolbarAnchor = {
+    protected anchor: _ModuleSupport.FloatingToolbarAnchor = {
         x: 0,
         y: 0,
         position: 'above',

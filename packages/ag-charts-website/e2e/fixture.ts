@@ -5,9 +5,14 @@ function stabilityProxy(page: Page, instance: any) {
         get(target, prop, receiver) {
             const value = target[prop];
             if (value instanceof Function) {
-                return async function (...args) {
-                    await expect(page.locator('.ag-charts-wrapper')).toHaveAttribute('data-update-pending', 'false');
-                    await expect(page.locator('.ag-charts-wrapper')).toHaveAttribute('data-animating', 'false');
+                return async function (...args: unknown[]) {
+                    for (const elements of await page.locator('.ag-charts-wrapper').all()) {
+                        const count: number = await elements.count();
+                        for (let i = 0; i < count; i++) {
+                            await expect(elements.nth(i)).toHaveAttribute('data-update-pending', 'false');
+                            await expect(elements.nth(i)).toHaveAttribute('data-animating', 'false');
+                        }
+                    }
                     return target[prop].apply(this === receiver ? target : this, args);
                 };
             }

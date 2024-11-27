@@ -1,0 +1,29 @@
+.ag-charts-annotations__toolbar {
+    gap: var(--ag-charts-toolbar-gap);
+
+    .ag-charts-toolbar__button {
+        border-radius: var(--ag-charts-button-radius);
+        margin: 0;
+    }
+}
+
+.ag-charts-annotations__toolbar-menu {
+    min-width: 200px;
+}
+
+.ag-charts-annotations__text-size-menu {
+    --item-padding: 4px 8px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    width: 34px;
+}
+
+.ag-charts-annotations__line-stroke-width-menu {
+    --item-padding: 6px;
+    column-gap: 6px;
+}
+
+.ag-charts-annotations__line-style-type-menu {
+    --item-padding: 6px;
+    column-gap: 0;
+}

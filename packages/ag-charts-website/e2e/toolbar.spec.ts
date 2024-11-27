@@ -18,10 +18,10 @@ test.describe('toolbar', () => {
 
         const { bbox } = await locateCanvas(page);
 
-        await page.locator('[data-toolbar-group="annotations"][data-toolbar-id="line-menu"]').click();
+        await page.getByTitle('Trend Lines').click();
         await expect(page).toHaveScreenshot('line-1-popover.png', { animations: 'disabled' });
 
-        await page.locator('[data-popover-id="line"]').click();
+        await page.getByText('Trend Line').click();
         await expect(page).toHaveScreenshot('line-2-button-active.png', { animations: 'disabled' });
 
         await page.hover(SELECTORS.canvas, { position: { x: 100, y: 100 } });
@@ -54,13 +54,13 @@ test.describe('toolbar', () => {
     test('text', async ({ page }) => {
         await gotoExample(page, url);
 
-        await page.locator('[data-toolbar-group="annotations"][data-toolbar-id="text-menu"]').click();
+        await page.getByTitle('Text Annotations').click();
         await expect(page).toHaveScreenshot('text-1-popover.png', { animations: 'disabled' });
 
-        await page.locator('[data-popover-id="text"]').hover();
+        await page.getByText('Text').hover();
         await expect(page).toHaveScreenshot('text-2-button-hover.png', { animations: 'disabled' });
 
-        await page.locator('[data-popover-id="text"]').click();
+        await page.getByText('Text').click();
         await expect(page).toHaveScreenshot('text-3-button-active.png', { animations: 'disabled' });
 
         await page.hover(SELECTORS.canvas, { position: { x: 200, y: 200 } });
@@ -103,8 +103,8 @@ test.describe('toolbar', () => {
     test('callout', async ({ page }) => {
         await gotoExample(page, url);
 
-        await page.locator('[data-toolbar-group="annotations"][data-toolbar-id="text-menu"]').click();
-        await page.locator('[data-popover-id="callout"]').click();
+        await page.getByTitle('Text Annotations').click();
+        await page.getByText('Callout').click();
 
         await page.hover(SELECTORS.canvas, { position: { x: 200, y: 200 } });
         await page.click(SELECTORS.canvas, { position: { x: 200, y: 200 } });
@@ -143,8 +143,8 @@ test.describe('toolbar', () => {
         const leave = point(300, 400);
 
         // Test 1. Check that the Delete & Backspace keys work:
-        await page.locator(SELECTORS.textAnnotationMenu).click();
-        await page.locator(SELECTORS.commentMenuItem).click();
+        await page.getByTitle('Text Annotations').click();
+        await page.getByText('Comment').click();
         await page.mouse.move(hover.x, hover.y);
         await page.mouse.click(hover.x, hover.y, { button: 'left' });
         await page.keyboard.type('this sentence is missing a word');
@@ -165,16 +165,16 @@ test.describe('toolbar', () => {
         await expect(page).toHaveScreenshot('delete-annotation-removed.png', { animations: 'disabled' });
 
         // Test 3. Check that the Delete button works in text-editing state:
-        await page.locator(SELECTORS.textAnnotationMenu).click();
-        await page.locator(SELECTORS.commentMenuItem).click();
+        await page.getByTitle('Text Annotations').click();
+        await page.getByText('Comment').click();
         await page.mouse.click(hover.x, hover.y, { button: 'left' });
         await page.getByTitle('Delete').click();
         await expect(page).toHaveScreenshot('delete-annotation-removed-no-crosshair.png', { animations: 'disabled' });
 
         // Test 4. Check that the Delete button works in idle state:
         // (Click away from the annotation, then reclick it to go into idle state)
-        await page.locator(SELECTORS.textAnnotationMenu).click();
-        await page.locator(SELECTORS.commentMenuItem).click();
+        await page.getByTitle('Text Annotations').click();
+        await page.getByText('Comment').click();
         await page.mouse.click(hover.x, hover.y, { button: 'left' });
         await page.keyboard.type('Delete this temporary annotation');
         await page.mouse.click(leave.x, leave.y, { button: 'left' });
@@ -187,8 +187,8 @@ test.describe('toolbar', () => {
         await gotoExample(page, url);
 
         const [initX, initY] = [400, 300];
-        await page.locator(SELECTORS.lineAnnotationMenu).click();
-        await page.locator(SELECTORS.horizontalLineMenuItem).click();
+        await page.getByTitle('Trend Lines').click();
+        await page.getByText('Horizontal Line').click();
         await page.mouse.move(initX, initY);
         await page.mouse.click(initY, initY, { button: 'left' });
 

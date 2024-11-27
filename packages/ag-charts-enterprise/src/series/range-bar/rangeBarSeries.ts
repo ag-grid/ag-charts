@@ -500,7 +500,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { id: seriesId, ctx } = this;
+        const { id: seriesId } = this;
         const {
             yLowKey,
             yHighKey,
@@ -537,7 +537,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 highlightStyle: itemHighlightStyle,
                 itemStyler,
                 seriesId,
-                ctx,
                 yLowKey,
                 yHighKey,
             });

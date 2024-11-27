@@ -21,11 +21,13 @@ export class LogAxis extends NumberAxis {
 
         if (extent[0] < 0 && extent[1] > 0) {
             Logger.warn(
-                `the data domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.`
+                `The log axis domain crosses zero, the chart data cannot be rendered. See log axis documentation for more information.`
             );
             return { domain: [], clipped };
         } else if (extent[0] === 0 || extent[1] === 0) {
-            Logger.warn(`the data domain has 0 extent, no data is rendered.`);
+            Logger.warn(
+                `The log axis domain contains a value of 0, the chart data cannot be rendered. See log axis documentation for more information.`
+            );
             return { domain: [], clipped };
         }
 

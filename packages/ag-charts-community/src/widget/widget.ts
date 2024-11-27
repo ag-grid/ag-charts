@@ -16,9 +16,12 @@ type EventType = keyof WidgetEventMap;
 
 interface IWidget<TElement extends HTMLElement> {
     index: number;
+    domIndex?: number;
     destroy(): void;
     getElement(): TElement;
 }
+
+export type BeforeWidget<T extends IWidget<HTMLElement>> = T & { domIndex: number };
 
 abstract class WidgetBounds {
     protected readonly elem: HTMLElement;
@@ -53,6 +56,10 @@ export abstract class Widget<
     implements IWidget<TElement>
 {
     public index: number = NaN;
+
+    // WARNING (not implemented): setting domIndex will not move it in the DOM. This property is currently only used
+    // when adding child widgets.
+    public domIndex?: number;
 
     protected readonly children: TChildWidget[] = [];
     protected htmlListener?: WidgetListenerHTML;
@@ -119,23 +126,31 @@ export abstract class Widget<
         setAttribute(this.elem, 'tabindex', tabIndex);
     }
 
-    appendChild(child: TChildWidget) {
-        this.appendChildToDOM(child);
+    addChild(child: TChildWidget) {
+        this.addChildToDOM(child, this.getBefore(child));
         this.children.push(child);
         child.index = this.children.length - 1;
         this.onChildAdded(child);
     }
 
-    addClass(token: string) {
-        this.elem.classList.add(token);
+    addClass(...tokens: string[]) {
+        this.elem.classList.add(...tokens);
     }
 
     toggleClass(token: string, force?: boolean) {
         this.elem.classList.toggle(token, force);
     }
 
-    protected appendChildToDOM(child: TChildWidget) {
-        this.elem.appendChild(child.getElement());
+    protected appendOrInsert(child: HTMLElement, before: TChildWidget | undefined) {
+        if (before) {
+            before.getElement().insertAdjacentElement('beforebegin', child);
+        } else {
+            this.elem.appendChild(child);
+        }
+    }
+
+    protected addChildToDOM(child: TChildWidget, before: TChildWidget | undefined) {
+        this.appendOrInsert(child.getElement(), before);
     }
 
     protected removeChildFromDOM(child: TChildWidget): void {
@@ -144,6 +159,15 @@ export abstract class Widget<
 
     protected onChildAdded(_child: TChildWidget): void {}
     protected onChildRemoved(_child: TChildWidget): void {}
+
+    private getBefore({ domIndex }: TChildWidget) {
+        type R = BeforeWidget<TChildWidget>;
+
+        if (domIndex === undefined) return undefined;
+        return this.children
+            .filter((child): child is R => child.domIndex !== undefined && child.domIndex > domIndex)
+            .reduce<R | undefined>((prev, curr) => (!prev || curr.domIndex < prev.domIndex ? curr : prev), undefined);
+    }
 
     addListener<K extends EventType>(type: K, listener: (target: typeof this, ev: EventMap[K]) => unknown): void;
     addListener<K extends EventType>(type: K, listener: (target: typeof this, ev: unknown) => unknown): void {

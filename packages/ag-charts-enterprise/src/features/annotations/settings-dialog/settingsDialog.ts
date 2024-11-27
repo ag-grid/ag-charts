@@ -18,7 +18,7 @@ import type {
 } from '../annotationsSuperTypes';
 import { isChannelType } from '../utils/types';
 
-const { focusCursorAtEnd } = _ModuleSupport;
+const { Listeners, focusCursorAtEnd } = _ModuleSupport;
 
 export interface LinearSettingsDialogOptions extends DialogOptions {
     initialSelectedTab: 'line' | 'text';
@@ -55,12 +55,23 @@ type LinearDialogPropertiesType = Exclude<
     EphemeralPropertiesType
 >;
 
+interface EventMap {
+    hidden: void;
+}
+
 export class AnnotationSettingsDialog extends Dialog {
+    private readonly events = new Listeners<keyof EventMap, any>();
+
     constructor(ctx: _ModuleSupport.ModuleContext) {
         super(ctx, 'settings');
+        this.hideFns.push(() => this.events.dispatch('hidden'));
     }
 
-    show(datum: LinearDialogPropertiesType, options: LinearSettingsDialogOptions) {
+    public addListener<K extends keyof EventMap>(eventType: K, handler: (event: EventMap[K]) => void) {
+        return this.events.addListener(eventType, handler);
+    }
+
+    public show(datum: LinearDialogPropertiesType, options: LinearSettingsDialogOptions) {
         const lineTab = this.createLinearLineTab(datum, options);
         const textTab = this.createLinearTextTab(datum, options);
 

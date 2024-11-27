@@ -161,21 +161,25 @@ class MenuCloserImp implements MenuCloser {
         private lastFocus: HTMLElement | undefined,
         public readonly closeCallback: () => void
     ) {
-        this.destroyFns.push(addMouseCloseListener(this.destroyFns, menu, () => this.close()));
+        this.destroyFns.push(addMouseCloseListener(this.destroyFns, menu, () => this.close(true)));
     }
 
-    close() {
+    close(mousedown?: true) {
         this.destroyFns.forEach((d) => d());
         this.destroyFns.length = 0;
         this.closeCallback();
-        this.finishClosing();
+        this.finishClosing(mousedown);
     }
 
-    finishClosing() {
+    finishClosing(mousedown?: true) {
         this.destroyFns.forEach((d) => d());
         this.destroyFns.length = 0;
         setAttribute(this.lastFocus, 'aria-expanded', false);
-        this.lastFocus?.focus();
+        // AG-13359 If the user triggered a 'mousedown' outside the bounds of this HTML menu, then `this.lastFocus` is
+        // irrelevant from a focus perspective because the web-browser will focus onto the HTML element under the pointer.
+        if (!mousedown) {
+            this.lastFocus?.focus({ preventScroll: true });
+        }
         this.lastFocus = undefined;
     }
 }
@@ -227,7 +231,7 @@ export function initMenuKeyNav(opts: {
         }
     }
 
-    buttons[0]?.focus();
+    buttons[0]?.focus({ preventScroll: true });
     return menuCloser;
 }
 

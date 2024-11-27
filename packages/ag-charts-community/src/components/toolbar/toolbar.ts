@@ -1,9 +1,9 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
-import { createElement, getIconClassNames } from '../../util/dom';
+import type { BBoxValues } from '../../util/bboxinterface';
+import { Listeners } from '../../util/listeners';
 import { BaseProperties } from '../../util/properties';
-import type { ButtonWidget as BaseButtonWidget } from '../../widget/buttonWidget';
-import { NativeWidget } from '../../widget/nativeWidget';
+import type { RovingDirection } from '../../widget/rovingDirection';
 import { ToolbarWidget } from '../../widget/toolbarWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import { ToolbarButtonWidget, type ToolbarButtonWidgetOptions } from './toolbarButtonWidget';
@@ -14,26 +14,46 @@ export interface ToolbarButtonOptions extends ToolbarButtonWidgetOptions {
     section?: string;
 }
 
+export interface ToolbarEventMap<ButtonOptions extends ToolbarButtonOptions = ToolbarButtonOptions> {
+    'button-pressed': {
+        event: MouseWidgetEvent<'click'>;
+        button: ButtonOptions & { index: number };
+        buttonBounds: BBoxValues;
+    };
+}
+
 export abstract class BaseToolbar<
-    ButtonOptions extends ToolbarButtonOptions,
-    ButtonWidget extends ToolbarButtonWidget,
+    ButtonOptions extends ToolbarButtonOptions = ToolbarButtonOptions,
+    ButtonWidget extends ToolbarButtonWidget = ToolbarButtonWidget,
+    EventMap extends ToolbarEventMap<ButtonOptions> = ToolbarEventMap<ButtonOptions>,
 > extends ToolbarWidget {
     public horizontalSpacing = 10;
     public verticalSpacing = 10;
+
+    protected readonly events = new Listeners<keyof EventMap & string, any>();
+    protected hasPrefix = false;
 
     private readonly buttonWidgets: Array<ButtonWidget> = [];
 
     constructor(
         protected readonly ctx: ModuleContext,
-        private readonly onButtonPress: (
-            button: ButtonOptions & { index: number },
-            event: MouseWidgetEvent<'click'>
-        ) => void,
-        private readonly onDragStart?: (event: MouseEvent, element: HTMLElement) => void
+        orientation: RovingDirection = 'horizontal'
     ) {
-        super();
+        super(orientation);
         this.addClass('ag-charts-toolbar');
-        this.createDragHandle();
+        this.toggleClass('ag-charts-toolbar--horizontal', orientation === 'horizontal');
+        this.toggleClass('ag-charts-toolbar--vertical', orientation === 'vertical');
+    }
+
+    public addToolbarListener<K extends keyof EventMap & string>(eventType: K, handler: (event: EventMap[K]) => void) {
+        return this.events.addListener(eventType, handler);
+    }
+
+    public clearButtons() {
+        for (const button of this.buttonWidgets) {
+            button.destroy();
+        }
+        this.buttonWidgets.splice(0);
     }
 
     public updateButtons(buttons: Array<ButtonOptions>) {
@@ -50,6 +70,7 @@ export abstract class BaseToolbar<
             button?.destroy();
         }
 
+        this.buttonWidgets.splice(buttons.length);
         this.refreshButtonClasses();
     }
 
@@ -64,48 +85,41 @@ export abstract class BaseToolbar<
     }
 
     public toggleActiveButtonByIndex(index: number) {
+        if (index === -1) return;
         for (const [buttonIndex, button] of this.buttonWidgets.entries()) {
             button.toggleClass(BUTTON_ACTIVE_CLASS, index != null && index === buttonIndex);
         }
     }
 
     public toggleButtonEnabledByIndex(index: number, enabled: boolean) {
+        if (index === -1) return;
         this.buttonWidgets.at(index)?.setEnabled(enabled);
     }
 
     public toggleSwitchCheckedByIndex(index: number, checked: boolean) {
+        if (index === -1) return;
         this.buttonWidgets.at(index)?.setChecked(checked);
     }
 
-    public toggleButtonVisibilities(visibleIndices: Array<number>) {
-        for (const [index, buttonWidget] of this.buttonWidgets.entries()) {
-            buttonWidget.toggleClass('ag-charts-toolbar__button--hidden-toggled', !visibleIndices.includes(index));
-        }
-        this.refreshButtonClasses();
+    public getButtonBounds() {
+        return this.buttonWidgets.map((buttonWidget) => this.getButtonWidgetBounds(buttonWidget));
     }
 
-    public getButtonBounds() {
-        return this.buttonWidgets.map((buttonWidget) => {
-            const element = buttonWidget.getElement();
-            const parent = element.offsetParent as HTMLElement | null;
-            return new BBox(
-                element.offsetLeft + (parent?.offsetLeft ?? 0),
-                element.offsetTop + (parent?.offsetTop ?? 0),
-                element.offsetWidth,
-                element.offsetHeight
-            );
-        });
+    private getButtonWidgetBounds(buttonWidget: ButtonWidget) {
+        const parent = this.getBounds();
+        const bounds = buttonWidget.getBounds();
+        return new BBox(bounds.x + parent.x, bounds.y + parent.y, bounds.width, bounds.height);
     }
 
     private refreshButtonClasses() {
-        const { buttonWidgets, onDragStart } = this;
+        const { buttonWidgets, hasPrefix } = this;
 
         let first: boolean;
         let last: boolean;
         let section: string | null | undefined;
 
         for (const [index, buttonWidget] of buttonWidgets.entries()) {
-            first = (onDragStart == null && index === 0) || section != buttonWidget.section;
+            first = (!hasPrefix && index === 0) || section != buttonWidget.section;
             last = index === buttonWidgets.length - 1 || buttonWidget.section != buttonWidgets.at(index + 1)?.section;
 
             buttonWidget.toggleClass('ag-charts-toolbar__button--first', first);
@@ -116,24 +130,14 @@ export abstract class BaseToolbar<
         }
     }
 
-    private createDragHandle() {
-        const { onDragStart } = this;
-        if (!onDragStart) return;
-
-        const dragHandle = new NativeWidget<HTMLElement>(createElement('div', 'ag-charts-toolbar__drag-handle'));
-        dragHandle.getElement().innerHTML = `<span class="${getIconClassNames('drag-handle')} ag-charts-toolbar__icon"></span>`;
-        dragHandle.getElement().addEventListener('mousedown', (event) => {
-            onDragStart(event, dragHandle.getElement());
-        });
-        this.appendChild(dragHandle);
-    }
-
     private createButton(index: number, button: ButtonOptions) {
         const buttonWidget = this.createButtonWidget();
         buttonWidget.addClass('ag-charts-toolbar__button');
 
         buttonWidget.addListener('click', (_, event) => {
-            this.onButtonPress({ index, ...(button instanceof BaseProperties ? button.toJson() : button) }, event);
+            const buttonOptions = { index, ...(button instanceof BaseProperties ? button.toJson() : button) };
+            const buttonBounds = this.getButtonWidgetBounds(buttonWidget);
+            this.events.dispatch('button-pressed', { event, button: buttonOptions, buttonBounds });
         });
 
         if (button.section) {
@@ -141,7 +145,7 @@ export abstract class BaseToolbar<
         }
 
         this.buttonWidgets.push(buttonWidget);
-        this.appendChild(buttonWidget as BaseButtonWidget);
+        this.addChild(buttonWidget);
 
         return buttonWidget;
     }

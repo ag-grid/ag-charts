@@ -103,7 +103,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { id: seriesId, ctx } = this;
+        const { id: seriesId } = this;
         const {
             stageKey,
             valueKey,
@@ -147,7 +147,6 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
                 highlightStyle: itemHighlightStyle,
                 itemStyler,
                 seriesId,
-                ctx,
                 stageKey,
                 valueKey,
             });

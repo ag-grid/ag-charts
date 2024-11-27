@@ -7,7 +7,6 @@ import { NumberAxis } from '../axis/numberAxis';
 import { TimeAxis } from '../axis/timeAxis';
 import { BackgroundModule } from '../background/backgroundModule';
 import { CommunityLegendModule } from '../legend/legendModule';
-import { NavigatorModule } from '../navigator/navigatorModule';
 import { AreaSeriesModule } from '../series/cartesian/areaSeriesModule';
 import { BarSeriesModule } from '../series/cartesian/barSeriesModule';
 import { BubbleSeriesModule } from '../series/cartesian/bubbleSeriesModule';
@@ -16,7 +15,6 @@ import { LineSeriesModule } from '../series/cartesian/lineSeriesModule';
 import { ScatterSeriesModule } from '../series/cartesian/scatterSeriesModule';
 import { DonutSeriesModule } from '../series/polar/donutSeriesModule';
 import { PieSeriesModule } from '../series/polar/pieSeriesModule';
-import { ToolbarModule } from '../toolbar/toolbarModule';
 import { axisRegistry } from './axisRegistry';
 
 export function registerInbuiltModules() {
@@ -24,8 +22,6 @@ export function registerInbuiltModules() {
         BackgroundModule,
         CommunityLegendModule,
         LocaleModule,
-        NavigatorModule,
-        ToolbarModule,
         AreaSeriesModule,
         BarSeriesModule,
         BubbleSeriesModule,

@@ -14,7 +14,7 @@ export abstract class TextualStartEndScene<Datum extends TextualStartEndProperti
 
     protected readonly label = new _ModuleSupport.Text({ zIndex: 1 });
 
-    protected override anchor: _ModuleSupport.ToolbarAnchor = {
+    protected override anchor: _ModuleSupport.FloatingToolbarAnchor = {
         x: 0,
         y: 0,
         position: 'above-left',
