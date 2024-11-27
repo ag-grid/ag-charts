@@ -95,6 +95,11 @@ export class WidgetListenerInternal {
         const origin: DragOrigin = { pageX: NaN, pageY: NaN, offsetX: NaN, offsetY: NaN };
         partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, downEvent);
 
+        const mousegeneral = (generalEvent: MouseEvent) => {
+            generalEvent.stopPropagation();
+            generalEvent.stopImmediatePropagation();
+        };
+
         const mousemove = (moveEvent: MouseEvent) => {
             moveEvent.stopPropagation();
             moveEvent.stopImmediatePropagation();
@@ -106,6 +111,11 @@ export class WidgetListenerInternal {
             if (upEvent.button === 0) {
                 upEvent.stopPropagation();
                 upEvent.stopImmediatePropagation();
+                window.removeEventListener('mousedown', mousegeneral, { capture: true });
+                window.removeEventListener('mouseenter', mousegeneral, { capture: true });
+                window.removeEventListener('mouseleave', mousegeneral, { capture: true });
+                window.removeEventListener('mouseout', mousegeneral, { capture: true });
+                window.removeEventListener('mouseover', mousegeneral, { capture: true });
                 window.removeEventListener('mousemove', mousemove, { capture: true });
                 window.removeEventListener('mouseup', mouseup, { capture: true });
                 const dragEndEvent = makeDragEvent('drag-end', origin, upEvent);
@@ -113,6 +123,11 @@ export class WidgetListenerInternal {
             }
         };
 
+        window.addEventListener('mousedown', mousegeneral, { capture: true });
+        window.addEventListener('mouseenter', mousegeneral, { capture: true });
+        window.addEventListener('mouseleave', mousegeneral, { capture: true });
+        window.addEventListener('mouseout', mousegeneral, { capture: true });
+        window.addEventListener('mouseover', mousegeneral, { capture: true });
         window.addEventListener('mousemove', mousemove, { capture: true });
         window.addEventListener('mouseup', mouseup, { capture: true });
         const dragStartEvent = makeDragEvent('drag-start', origin, downEvent);
