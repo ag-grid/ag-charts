@@ -30,8 +30,8 @@ export interface FibonacciRangeDatum extends _ModuleSupport.Vec4 {
 export function createFibonacciRangesData(
     { x1, y1, x2, y2 }: _ModuleSupport.Vec4,
     context: AnnotationContext,
-    bands: FibonacciBands = 10,
-    reverse: boolean
+    reverse: boolean,
+    bands: FibonacciBands = 10
 ): FibonacciRangeDatum[] {
     const verticalDistance = y2 - y1;
 
