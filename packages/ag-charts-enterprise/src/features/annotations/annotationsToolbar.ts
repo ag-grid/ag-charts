@@ -33,7 +33,7 @@ type AnnotationsToolbarButtonValue =
     | 'clear';
 
 class AnnotationsToolbarButtonProperties extends ToolbarButtonProperties {
-    @Validate(UNION(['line-menu', 'text-menu', 'shape-menu', 'measurer-menu', 'clear']))
+    @Validate(UNION(['line-menu', 'fibonacci-menu', 'text-menu', 'shape-menu', 'measurer-menu', 'clear']))
     value!: AnnotationsToolbarButtonValue;
 }
 
