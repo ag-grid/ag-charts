@@ -3,7 +3,7 @@ import Markdoc, { type ConfigType, type Node } from '@markdoc/markdoc';
 import Slugger from 'github-slugger';
 import React from 'react';
 
-import markdocConfig from '../../markdoc.config';
+import markdocConfig from '../../../markdoc.config';
 
 interface Params {
     framework: Framework;

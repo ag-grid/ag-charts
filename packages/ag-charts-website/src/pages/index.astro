@@ -2,13 +2,13 @@
 import Layout from '@layouts/Layout.astro';
 import styles from '@pages-styles/homepage.module.scss';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
-import { FrameworkSelector } from '../components/framework-selector/FrameworkSelector';
 import { getEntry } from 'astro:content';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
 import { urlWithPrefix } from '@utils/urlWithPrefix';
 import { AutomatedIntegratedChartsWithPackages } from '@ag-website-shared/components/automated-examples/AutomatedIntegratedChartsWithPackages';
 import { LandingPageSection } from '@ag-website-shared/components/landing-pages/LandingPageSection';
 import { LandingPageFAQ } from '@ag-website-shared/components/landing-pages/LandingPageFAQ';
+import { LandingPageFWSelector } from '@ag-website-shared/components/landing-pages/LandingPageFWSelector';
 import ImageCarousel from '../components/homepage/components/hero/ImageCarousel';
 import { parseVersion } from '@ag-website-shared/utils/parseVersion';
 import { Version } from '@ag-website-shared/components/whats-new/components/Version';
@@ -128,8 +128,7 @@ const mapExampleHeights = 360;
 
         <div class={styles.homepageFrameworks}>
             <div class:list={[styles.frameworksInner, 'layout-max-width-small']}>
-                <span class:list={[styles.frameworksLabel, 'text-secondary']}>Get&nbsp;started</span>
-                <FrameworkSelector data={frameworksData} isFullWidth />
+                <LandingPageFWSelector client:load data={frameworksData} isFullWidth />
             </div>
         </div>
 
