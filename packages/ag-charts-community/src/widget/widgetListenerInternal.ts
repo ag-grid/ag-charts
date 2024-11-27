@@ -140,10 +140,8 @@ export class WidgetListenerInternal {
         const elem = target.getElement();
         const rect = elem.getBoundingClientRect();
         if (!BBoxValues.containsPoint(rect, clientX, clientY)) {
-            if (MouseEvent !== undefined) {
-                elem.dispatchEvent(new MouseEvent('mouseleave', sourceEvent));
-                sourceEvent.target?.dispatchEvent(new MouseEvent('mouseenter', sourceEvent));
-            }
+            elem.dispatchEvent(new MouseEvent('mouseleave', sourceEvent));
+            sourceEvent.target?.dispatchEvent(new MouseEvent('mouseenter', sourceEvent));
         }
     }
     private dispatch<T extends Targetable, K extends EventType>(type: K, current: T, event: EventMap[K]): void {
