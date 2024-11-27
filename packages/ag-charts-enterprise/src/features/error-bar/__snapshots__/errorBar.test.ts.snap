@@ -13,40 +13,45 @@ NodeList [
       class="ag-chart-tooltip__content"
     >
       <span
-        class="ag-chart-tooltip__title"
+        class="ag-chart-tooltip__group-title"
       >
         May
       </span>
        
-      <div
-        class="ag-chart-tooltip__row"
+      <span
+        class="ag-chart-tooltip__symbol"
       >
-        <span
-          class="ag-chart-tooltip__symbol"
+        <svg
+          height="12"
+          viewBox="0 0 20 12"
+          width="20"
         >
-          <svg
-            height="12"
-            width="20"
+          <line
+            stroke="#f3622d"
+            stroke-opacity="1"
+            stroke-width="2"
+            x1="0"
+            x2="20"
+            y1="6"
+            y2="6"
+          />
+          <g
+            transform="matrix(1 0 0 1 10 6)"
           >
-            <line
-              stroke="#f3622d"
-              stroke-opacity="1"
-              stroke-width="2"
-              x1="0"
-              x2="20"
-              y1="6"
-              y2="6"
-            />
             <path
-              d="M 16 6 C 16 9.31370849898476 13.31370849898476 12 10 12 C 6.68629150101524 12 4 9.313708498984761 4 6.000000000000001 C 3.9999999999999996 2.6862915010152406 6.686291501015238 6.0871837598836e-16 9.999999999999998 0 C 13.31370849898476 -6.0871837598836e-16 16 2.686291501015238 16 5.999999999999998 Z"
+              d="M 6 0 C 6 3.3137084989847603 3.3137084989847607 6 3.6739403974420594e-16 6 C -3.31370849898476 6 -6 3.313708498984761 -6 7.347880794884119e-16 C -6 -3.3137084989847594 -3.313708498984761 -5.999999999999999 -1.102182119232618e-15 -6 C 3.3137084989847594 -6.000000000000001 5.999999999999999 -3.3137084989847616 6 -1.4695761589768238e-15 Z"
               fill="#f3622d"
               fill-opacity="1"
               stroke="#aa4520"
               stroke-opacity="1"
               stroke-width="0"
             />
-          </svg>
-        </span>
+          </g>
+        </svg>
+      </span>
+      <div
+        class="ag-chart-tooltip__row ag-chart-tooltip__row--inline"
+      >
         <span
           class="ag-chart-tooltip__label"
         >
@@ -76,26 +81,31 @@ NodeList [
     <div
       class="ag-chart-tooltip__content"
     >
-      <div
-        class="ag-chart-tooltip__row"
+      <span
+        class="ag-chart-tooltip__symbol"
       >
-        <span
-          class="ag-chart-tooltip__symbol"
+        <svg
+          height="13"
+          viewBox="0 0 13 13"
+          width="13"
         >
-          <svg
-            height="13"
-            width="13"
+          <g
+            transform="matrix(1 0 0 1 6.5 6.5)"
           >
             <path
-              d="M 12.5 6.5 C 12.5 9.81370849898476 9.81370849898476 12.5 6.5 12.5 C 3.1862915010152397 12.5 0.5000000000000004 9.813708498984761 0.5 6.500000000000001 C 0.4999999999999996 3.1862915010152406 3.186291501015239 0.5000000000000006 6.499999999999999 0.5 C 9.81370849898476 0.4999999999999994 12.5 3.186291501015238 12.5 6.499999999999998 Z"
+              d="M 6 0 C 6 3.3137084989847603 3.3137084989847607 6 3.6739403974420594e-16 6 C -3.31370849898476 6 -6 3.313708498984761 -6 7.347880794884119e-16 C -6 -3.3137084989847594 -3.313708498984761 -5.999999999999999 -1.102182119232618e-15 -6 C 3.3137084989847594 -6.000000000000001 5.999999999999999 -3.3137084989847616 6 -1.4695761589768238e-15 Z"
               fill="#f3622d"
               fill-opacity="0.8"
               stroke="#aa4520"
               stroke-opacity="1"
               stroke-width="1"
             />
-          </svg>
-        </span>
+          </g>
+        </svg>
+      </span>
+      <div
+        class="ag-chart-tooltip__row"
+      >
         <span
           class="ag-chart-tooltip__label"
         >

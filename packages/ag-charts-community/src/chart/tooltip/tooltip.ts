@@ -80,6 +80,7 @@ function tooltipContentHtml(content: TooltipContent) {
 
     if (content.groupTitle != null) {
         html += `<span class="${DEFAULT_TOOLTIP_CLASS}__group-title">${sanitizeHtml(content.groupTitle)}</span>`;
+        html += ' ';
     }
 
     const symbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
@@ -89,30 +90,28 @@ function tooltipContentHtml(content: TooltipContent) {
 
     if (content.title != null) {
         html += `<span class="${DEFAULT_TOOLTIP_CLASS}__title">${sanitizeHtml(content.title)}</span>`;
+        html += ' ';
     }
 
     content.data?.forEach((datum) => {
         let rowHtml = '';
 
         rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(datum.label)}</span>`;
+        rowHtml += ' ';
 
         if (datum.value != null) {
-            rowHtml += ' ';
             rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(datum.value)}</span>`;
         }
 
         const rowClassNames = [`${DEFAULT_TOOLTIP_CLASS}__row`];
         if (dataInline) rowClassNames.push(`${DEFAULT_TOOLTIP_CLASS}__row--inline`);
-        rowHtml = `<div class="${rowClassNames.join(' ')}">${rowHtml}</div>`;
-
-        if (html !== '') {
-            html += ' ';
-        }
+        rowHtml = `<div class="${rowClassNames.join(' ')}">${rowHtml.trimEnd()}</div>`;
 
         html += rowHtml;
+        html += ' ';
     });
 
-    html = `<div class="${DEFAULT_TOOLTIP_CLASS}__content">${html}</div>`;
+    html = `<div class="${DEFAULT_TOOLTIP_CLASS}__content">${html.trimEnd()}</div>`;
 
     return html;
 }
