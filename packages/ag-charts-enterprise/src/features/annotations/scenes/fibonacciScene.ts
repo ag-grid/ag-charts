@@ -6,13 +6,13 @@ import { FIBONACCI_COLORS, FibonacciNodeTag, createFibonacciRangesData } from '.
 import type { FibonacciRangeDatum } from '../utils/fibonacci';
 import { updateLineText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
+import { AnnotationScene } from './annotationScene';
 import { CollidableLine } from './collidableLineScene';
 import { CollidableText } from './collidableTextScene';
-import { StartEndScene } from './startEndScene';
 
 const { Vec2, Vec4 } = _ModuleSupport;
 
-export abstract class FibonacciScene<Datum extends FibonacciProperties> extends StartEndScene<Datum> {
+export abstract class FibonacciScene<Datum extends FibonacciProperties> extends AnnotationScene {
     private readonly trendLine = new CollidableLine();
     public text?: CollidableText;
 
@@ -34,12 +34,18 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
     private readonly labelsGroupSelection: _ModuleSupport.Selection<CollidableText, FibonacciRangeDatum> =
         _ModuleSupport.Selection.select(this.labelsGroup, CollidableText);
 
+    protected anchor: _ModuleSupport.ToolbarAnchor = {
+        x: 0,
+        y: 0,
+        position: 'above',
+    };
+
     constructor() {
         super();
         this.append([this.trendLine, this.rangeFillsGroup, this.rangeStrokesGroup, this.labelsGroup]);
     }
 
-    public override update(datum: Datum, context: AnnotationContext) {
+    public update(datum: Datum, context: AnnotationContext) {
         let coords = convertLine(datum, context);
 
         if (coords == null) {
@@ -66,7 +72,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         this.updateText(datum, oneLinePoints);
     }
 
-    protected override extendLine({ x1, y1, x2, y2 }: _ModuleSupport.Vec4, datum: Datum, context: AnnotationContext) {
+    protected extendLine({ x1, y1, x2, y2 }: _ModuleSupport.Vec4, datum: Datum, context: AnnotationContext) {
         // Clone the points to prevent mutating the original
         const linePoints = { x1, y1, x2, y2 };
 
@@ -209,37 +215,25 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         updateLineText(oneLine, textProperties, coords, this.text, textProperties.label, strokeWidth);
     }
 
-    override updateAnchor(
-        _datum: Datum,
-        coords: _ModuleSupport.Vec4,
-        _context: AnnotationContext,
-        _bbox?: _ModuleSupport.BBox
-    ) {
+    updateAnchor(_datum: Datum, coords: _ModuleSupport.Vec4, _context: AnnotationContext, _bbox?: _ModuleSupport.BBox) {
         const point = Vec4.topCenter(coords);
         Vec2.apply(this.anchor, _ModuleSupport.Transformable.toCanvasPoint(this.trendLine, point.x, point.y));
     }
 
-    override containsPoint(x: number, y: number) {
+    containsPoint(x: number, y: number) {
         const { trendLine, rangeStrokesGroupSelection, text } = this;
         let isInStrokePath = false;
         rangeStrokesGroupSelection.each((line) => (isInStrokePath ||= line.isPointInPath(x, y)));
-        return (
-            isInStrokePath ||
-            super.containsPoint(x, y) ||
-            trendLine.isPointInPath(x, y) ||
-            Boolean(text?.containsPoint(x, y))
-        );
+        return isInStrokePath || trendLine.isPointInPath(x, y) || Boolean(text?.containsPoint(x, y));
     }
 
     public override getNodeAtCoords(x: number, y: number): string | undefined {
         if (this.text?.containsPoint(x, y)) return 'text';
 
         if (this.trendLine.isPointInPath(x, y)) return 'line';
-
-        return super.getNodeAtCoords(x, y);
     }
 
-    protected override getHandleStyles(datum: Datum) {
+    protected getHandleStyles(datum: Datum) {
         return {
             fill: datum.handle.fill,
             stroke: datum.handle.stroke ?? '#2b5c95',
@@ -247,4 +241,53 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
             strokeWidth: datum.handle.strokeWidth ?? datum.strokeWidth,
         };
     }
+
+    public drag(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext, snapping: boolean) {
+        if (datum.locked) return;
+
+        if (this.activeHandle) {
+            this.dragHandle(datum, target, context, snapping);
+        } else {
+            this.dragAll(datum, target, context);
+        }
+    }
+
+    protected abstract dragHandle(
+        datum: Datum,
+        target: _ModuleSupport.Vec2,
+        context: AnnotationContext,
+        snapping: boolean
+    ): void;
+
+    protected abstract dragAll(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext): void;
+
+    public abstract translatePoints({
+        datum,
+        start,
+        end,
+        translation,
+        context,
+    }: {
+        datum: Datum;
+        start: _ModuleSupport.Vec2;
+        end: _ModuleSupport.Vec2;
+        translation: _ModuleSupport.Vec2;
+        context: AnnotationContext;
+    }): void;
+
+    public abstract translate(datum: Datum, translation: _ModuleSupport.Vec2, context: AnnotationContext): void;
+
+    public abstract copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext): void;
+
+    public abstract snapToAngle(datum: Datum, coords: _ModuleSupport.Vec2, context: AnnotationContext): void;
+
+    override getAnchor() {
+        return this.anchor;
+    }
+
+    override getCursor() {
+        return 'pointer';
+    }
+
+    protected abstract updateHandles(datum: Datum, coords: _ModuleSupport.Vec4, bbox?: _ModuleSupport.BBox): void;
 }
