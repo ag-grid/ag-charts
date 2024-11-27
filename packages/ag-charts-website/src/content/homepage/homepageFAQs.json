@@ -29,7 +29,7 @@
     },
     {
         "question": "Are AG Charts JavaScript charts accessible?",
-        "answer": "Yes, AG Charts [JavaScript charts.](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) are designed with [accessibility](https://www.ag-grid.com/charts/react/accessibility/?utm_source=charts-homepage&amp;utm_medium=faqs) in mind. They include features like keyboard navigation and ARIA labels to ensure your charts are usable by people with disabilities and comply with [accessibility](https://www.ag-grid.com/charts/react/accessibility/?utm_source=charts-homepage&amp;utm_medium=faqs) standards."
+        "answer": "Yes, AG Charts [JavaScript charts](https://www.ag-grid.com/charts/javascript/quick-start/?utm_source=charts-homepage&amp;utm_medium=faqs) are designed with [accessibility](https://www.ag-grid.com/charts/react/accessibility/?utm_source=charts-homepage&amp;utm_medium=faqs) in mind. They include features like keyboard navigation and ARIA labels to ensure your charts are usable by people with disabilities and comply with [accessibility](https://www.ag-grid.com/charts/react/accessibility/?utm_source=charts-homepage&amp;utm_medium=faqs) standards."
     },
     {
         "question": "How customizable are AG Charts JavaScript charts?",
