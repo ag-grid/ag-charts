@@ -12,54 +12,48 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
     const isGaugeChart = isAgGaugeChartOptions(options);
     const optsType = optionsType(options);
     const optionsChartType = optsType ? chartTypes.get(optsType) : 'unknown';
-    for (const {
-        type,
-        chartTypes: moduleChartTypes,
-        optionsKey,
-        optionsInnerKey,
-        identifier,
-        community,
-    } of EXPECTED_ENTERPRISE_MODULES) {
-        if (optionsChartType !== 'unknown' && !moduleChartTypes.includes(optionsChartType)) continue;
+    for (const module of EXPECTED_ENTERPRISE_MODULES) {
+        if (optionsChartType !== 'unknown' && !module.chartTypes.includes(optionsChartType)) continue;
 
-        if (type === 'root' || type === 'legend') {
-            const optionValue = options[optionsKey as keyof T] as any;
+        if (module.type === 'root' || module.type === 'legend') {
+            const optionValue = options[module.optionsKey as keyof T] as any;
             if (optionValue == null) continue;
 
-            if (!optionsInnerKey) {
-                usedOptions.push(optionsKey);
-                delete options[optionsKey as keyof T];
-            } else if (optionValue[optionsInnerKey]) {
-                usedOptions.push(`${optionsKey}.${optionsInnerKey}`);
-                delete optionValue[optionsInnerKey];
+            if (!module.optionsInnerKey) {
+                usedOptions.push(module.optionsKey);
+                delete options[module.optionsKey as keyof T];
+            } else if (optionValue[module.optionsInnerKey]) {
+                usedOptions.push(`${module.optionsKey}.${module.optionsInnerKey}`);
+                delete optionValue[module.optionsInnerKey];
             }
-        } else if (type === 'axis') {
-            if (!('axes' in options) || !options.axes?.some((axis) => axis.type === identifier)) continue;
+        } else if (module.type === 'axis') {
+            if (!('axes' in options) || !options.axes?.some((axis) => axis.type === module.identifier)) continue;
 
-            usedOptions.push(`axis[type=${identifier}]`);
-            options.axes = (options.axes as any).filter((axis: any) => axis.type !== identifier);
-        } else if (type === 'axis-option') {
-            if (!('axes' in options) || !options.axes?.some((axis) => axis[optionsKey as keyof typeof axis])) continue;
+            usedOptions.push(`axis[type=${module.identifier}]`);
+            options.axes = (options.axes as any).filter((axis: any) => axis.type !== module.identifier);
+        } else if (module.type === 'axis-option') {
+            if (!('axes' in options) || !options.axes?.some((axis) => axis[module.optionsKey as keyof typeof axis]))
+                continue;
 
-            usedOptions.push(`axis.${optionsKey}`);
+            usedOptions.push(`axis.${module.optionsKey}`);
             options.axes.forEach((axis) => {
-                if (axis[optionsKey as keyof typeof axis]) {
-                    delete axis[optionsKey as keyof typeof axis];
+                if (axis[module.optionsKey as keyof typeof axis]) {
+                    delete axis[module.optionsKey as keyof typeof axis];
                 }
             });
-        } else if (type === 'series') {
-            if (community) continue;
-            if (!options.series?.some((series) => series.type === identifier)) continue;
+        } else if (module.type === 'series') {
+            if (module.community) continue;
+            if (!options.series?.some((series) => series.type === module.identifier)) continue;
 
-            usedOptions.push(`series[type=${identifier}]`);
-            options.series = (options.series as any).filter((series: any) => series.type !== identifier);
-        } else if (type === 'series-option') {
-            if (!options.series?.some((series) => series[optionsKey as keyof typeof series])) continue;
+            usedOptions.push(`series[type=${module.identifier}]`);
+            options.series = (options.series as any).filter((series: any) => series.type !== module.identifier);
+        } else if (module.type === 'series-option') {
+            if (!options.series?.some((series) => series[module.optionsKey as keyof typeof series])) continue;
 
-            usedOptions.push(`series.${optionsKey}`);
+            usedOptions.push(`series.${module.optionsKey}`);
             options.series.forEach((series) => {
-                if (series[optionsKey as keyof typeof series]) {
-                    delete series[optionsKey as keyof typeof series];
+                if (series[module.optionsKey as keyof typeof series]) {
+                    delete series[module.optionsKey as keyof typeof series];
                 }
             });
         }

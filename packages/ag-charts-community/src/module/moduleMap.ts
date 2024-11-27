@@ -1,7 +1,7 @@
 import { isString } from '../util/type-guards';
-import type { BaseModule, ModuleInstance } from './baseModule';
+import type { BaseOptionsModule, ModuleInstance } from './baseModule';
 
-interface Module<I extends ModuleInstance = ModuleInstance, C = object> extends BaseModule {
+interface Module<I extends ModuleInstance = ModuleInstance, C = object> extends BaseOptionsModule {
     moduleFactory: (ctx: C) => I;
 }
 

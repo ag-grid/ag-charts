@@ -4,6 +4,9 @@ import { StateManager } from '../api/state/stateManager';
 import { DOMManager } from '../dom/domManager';
 import { ProxyInteractionService } from '../dom/proxyInteractionService';
 import { LocaleManager } from '../locale/localeManager';
+import type { ModuleInstance } from '../module/baseModule';
+import type { ContextModule } from '../module/coreModules';
+import { moduleRegistry } from '../module/module';
 import type { ModuleContext } from '../module/moduleContext';
 import type { Group } from '../scene/group';
 import { Scene } from '../scene/scene';
@@ -14,6 +17,7 @@ import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
 import { DataService } from './data/dataService';
 import { SeriesBoundsManager } from './data/seriesBoundsManager';
+import type { ChartType } from './factory/chartTypes';
 import { AnimationManager } from './interaction/animationManager';
 import { ChartEventManager } from './interaction/chartEventManager';
 import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
@@ -67,9 +71,12 @@ export class ChartContext implements ModuleContext {
     tooltipManager: TooltipManager;
     updateService: UpdateService;
 
+    private readonly contextModules: ModuleInstance[] = [];
+
     constructor(
         chart: ChartService & { annotationRoot: Group; keyboard: Keyboard; tooltip: Tooltip },
         vars: {
+            chartType: ChartType;
             scene?: Scene;
             root: Group;
             syncManager: SyncManager;
@@ -80,7 +87,17 @@ export class ChartContext implements ModuleContext {
             pixelRatio?: number;
         }
     ) {
-        const { scene, root, syncManager, container, updateCallback, updateMutex, pixelRatio, styleContainer } = vars;
+        const {
+            scene,
+            root,
+            syncManager,
+            container,
+            updateCallback,
+            updateMutex,
+            pixelRatio,
+            styleContainer,
+            chartType,
+        } = vars;
 
         this.chartService = chart;
         this.syncManager = syncManager;
@@ -114,6 +131,14 @@ export class ChartContext implements ModuleContext {
         this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip);
 
         this.zoomManager.addLayoutListeners(this.layoutManager);
+
+        for (const module of moduleRegistry.byType<ContextModule>('context')) {
+            if (!module.chartTypes.includes(chartType)) continue;
+
+            const moduleInstance = module.moduleFactory(this);
+            this.contextModules.push(moduleInstance);
+            (this as any)[module.contextKey] = moduleInstance;
+        }
     }
 
     destroy() {
@@ -133,5 +158,6 @@ export class ChartContext implements ModuleContext {
         this.syncManager.destroy();
         this.tooltipManager.destroy();
         this.zoomManager.destroy();
+        this.contextModules.forEach((m) => m.destroy());
     }
 }
