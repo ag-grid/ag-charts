@@ -191,6 +191,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
             id,
             data,
             ctx: { legendManager },
+            visible,
         } = this;
         const {
             xKey,
@@ -198,7 +199,6 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
             item: { up, down },
             showInLegend,
             legendItemName,
-            visible,
         } = this.properties;
 
         if (!data?.length || !xKey || legendType !== 'category') {

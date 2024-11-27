@@ -97,15 +97,6 @@ export abstract class RadialColumnSeriesBase<
         });
     }
 
-    override addChartEventListeners(): void {
-        this.destroyFns.push(
-            this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event)),
-            this.ctx.chartEventManager?.addListener('legend-item-double-click', (event) =>
-                this.onLegendItemDoubleClick(event)
-            )
-        );
-    }
-
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
@@ -122,10 +113,11 @@ export abstract class RadialColumnSeriesBase<
     protected abstract getStackId(): string;
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { angleKey, radiusKey, normalizedTo, visible } = this.properties;
+        const { visible } = this;
+        const { angleKey, radiusKey, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
-        if (!this.properties.isValid() || !(visible || animationEnabled)) return;
+        if (!this.properties.isValid()) return;
 
         const stackGroupId = this.getStackId();
         const stackGroupTrailingId = `${stackGroupId}-trailing`;
