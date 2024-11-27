@@ -16,10 +16,13 @@ export class ChartOverlays extends BaseProperties {
     @Validate(OBJECT)
     readonly noVisibleSeries = new Overlay('ag-chart-no-visible-series', 'overlayNoVisibleSeries');
 
+    @Validate(OBJECT)
+    readonly unsupportedBrowser = new Overlay('ag-chart-unsupported-browser', 'overlayUnsupportedBrowser');
+
     getFocusInfo(
         localeManager: LocaleManager
     ): { text: string; rect: { x: number; y: number; width: number; height: number } } | undefined {
-        for (const overlay of [this.loading, this.noData, this.noVisibleSeries]) {
+        for (const overlay of [this.loading, this.noData, this.noVisibleSeries, this.unsupportedBrowser]) {
             if (overlay.focusBox !== undefined) {
                 return { text: overlay.getText(localeManager), rect: overlay.focusBox };
             }
@@ -31,5 +34,6 @@ export class ChartOverlays extends BaseProperties {
         this.loading.removeElement();
         this.noData.removeElement();
         this.noVisibleSeries.removeElement();
+        this.unsupportedBrowser.removeElement();
     }
 }
