@@ -2,6 +2,7 @@ import type { DOMManager } from '../../dom/domManager';
 import type { LocaleManager } from '../../locale/localeManager';
 import type { BBox } from '../../scene/bbox';
 import { setAttribute } from '../../util/attributeUtil';
+import { isUnsupportedBrowser } from '../../util/browser';
 import type { DataService } from '../data/dataService';
 import type { AnimationManager } from '../interaction/animationManager';
 import type { LayoutCompleteEvent, LayoutManager } from '../layout/layoutManager';
@@ -54,6 +55,7 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
         const loadingShown = isLoading;
         const noDataShown = !isLoading && !hasData;
         const noVisibleSeriesShown = hasData && !anySeriesVisible;
+        const unsupportedBrowser = isUnsupportedBrowser();
 
         if (loadingShown) {
             this.showOverlay(this.overlays.loading, rect);
@@ -73,11 +75,19 @@ export class OverlaysProcessor<D extends object> implements UpdateProcessor {
             this.hideOverlay(this.overlays.noVisibleSeries);
         }
 
-        const shown = loadingShown || noDataShown || noVisibleSeriesShown;
+        if (unsupportedBrowser) {
+            this.showOverlay(this.overlays.unsupportedBrowser, rect);
+        } else {
+            this.hideOverlay(this.overlays.unsupportedBrowser);
+        }
+
+        const shown = loadingShown || noDataShown || noVisibleSeriesShown || unsupportedBrowser;
         setAttribute(this.overlayElem, 'aria-hidden', !shown);
     }
 
     private showOverlay(overlay: Overlay, seriesRect: BBox) {
+        if (!overlay.enabled) return;
+
         const element = overlay.getElement(this.animationManager, this.localeManager, seriesRect);
         this.overlayElem.appendChild(element);
     }
