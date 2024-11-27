@@ -261,6 +261,12 @@ export class RegionManager {
                 this.blockNextClickEvent = false;
                 break;
             }
+            case 'leave':
+            case 'enter':
+                if (!this.isDragMoving || this.deferredDragStart != null) {
+                    this.dispatchEvent(current, event);
+                }
+                break;
             case 'hover': {
                 this.blockNextClickEvent = false;
                 this.dispatchEvent(current, event);
@@ -283,16 +289,18 @@ export class RegionManager {
         const ignore = shouldIgnore(event);
         const { current } = this;
 
-        let newCurrent: Region | undefined;
-        switch (ignore) {
-            case 'wait':
-                return;
-            case 'none':
-                newCurrent = this.pickRegion(event);
-                break;
-            case 'leave':
-                newCurrent = undefined;
-                break;
+        let newCurrent: Region | undefined = current;
+        if (!this.isDragMoving && this.deferredDragStart == null) {
+            switch (ignore) {
+                case 'wait':
+                    return;
+                case 'none':
+                    newCurrent = this.pickRegion(event);
+                    break;
+                case 'leave':
+                    newCurrent = undefined;
+                    break;
+            }
         }
 
         const newRegion = newCurrent;
