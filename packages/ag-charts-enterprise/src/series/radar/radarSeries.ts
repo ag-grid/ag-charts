@@ -308,7 +308,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         selection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadarNodeDatum>,
         highlight: boolean
     ) {
-        const { angleKey, radiusKey, marker, visible } = this.properties;
+        const { visible } = this;
+        const { angleKey, radiusKey, marker } = this.properties;
         const { itemStyler } = marker;
 
         let selectionData: RadarNodeDatum[] = [];

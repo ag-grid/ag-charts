@@ -236,6 +236,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             id,
             data,
             ctx: { legendManager },
+            visible,
         } = this;
         const {
             xKey,
@@ -243,7 +244,6 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             item: { up, down },
             showInLegend,
             legendItemName,
-            visible,
         } = this.properties;
 
         if (!data?.length || !xKey || legendType !== 'category') {
