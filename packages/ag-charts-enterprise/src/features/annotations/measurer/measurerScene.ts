@@ -192,7 +192,9 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
 
         this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
 
-        const clip = updateLineText(line, datum.text, textCoords, this.text, datum.text.label, datum.strokeWidth);
+        const { id } = line;
+
+        const clip = updateLineText(id, line, datum.text, textCoords, this.text, datum.text.label, datum.strokeWidth);
 
         let verticalClipMask;
 
@@ -212,7 +214,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             }
         }
 
-        this.verticalLine.setClipMask(verticalClipMask);
+        this.verticalLine.setClipMask(id, verticalClipMask);
     }
 
     private updateCaps(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {

@@ -106,7 +106,7 @@ export class CrossLineScene extends AnnotationScene {
     private updateText(datum: CrossLineProperties, coords: _ModuleSupport.Vec4) {
         this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
 
-        updateLineText(this.line, datum.text, coords, this.text, datum.text.label, datum.strokeWidth);
+        updateLineText(this.line.id, this.line, datum.text, coords, this.text, datum.text.label, datum.strokeWidth);
     }
 
     private createAxisLabel(context: AnnotationAxisContext) {

@@ -17,6 +17,7 @@ interface Numbers {
 }
 
 export function updateLineText(
+    id: string,
     line: CollidableLine,
     textProperties: LineTextProperties,
     coords: _ModuleSupport.Vec4,
@@ -28,7 +29,7 @@ export function updateLineText(
     const { alignment, position } = textProperties;
 
     if (!text || !textNode) {
-        line.setClipMask();
+        line.setClipMask(id);
         return;
     }
 
@@ -45,9 +46,9 @@ export function updateLineText(
     };
 
     if (position === 'center') {
-        line.setClipMask(clipMask);
+        line.setClipMask(id, clipMask);
     } else {
-        line.setClipMask();
+        line.setClipMask(id);
     }
 
     return { clipMask, numbers };

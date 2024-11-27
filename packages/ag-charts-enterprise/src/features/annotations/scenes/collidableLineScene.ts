@@ -8,7 +8,7 @@ export class CollidableLine extends _ModuleSupport.Line {
     public collisionBBox?: _ModuleSupport.BBox;
     private readonly growCollisionBox = 9;
 
-    protected clipMask?: ShapeClipMask;
+    protected clipMask: Map<string, ShapeClipMask> = new Map();
 
     override setProperties<T>(styles: { [K in keyof T]?: T[K] | undefined }, pickKeys?: (keyof T)[]): T {
         super.setProperties(styles, pickKeys);
@@ -56,12 +56,17 @@ export class CollidableLine extends _ModuleSupport.Line {
         this.closeClipMask(renderCtx.ctx);
     }
 
-    public setClipMask(mask?: ShapeClipMask) {
-        if (_ModuleSupport.jsonDiff(this.clipMask, mask) != null) {
+    public setClipMask(id: string, mask?: ShapeClipMask) {
+        const cm = this.clipMask.get(id);
+        if (_ModuleSupport.jsonDiff(cm, mask) != null) {
             this.markDirty();
         }
 
-        this.clipMask = mask;
+        if (!mask) {
+            this.clipMask.delete(id);
+        } else {
+            this.clipMask.set(id, mask);
+        }
     }
 
     /**
@@ -69,23 +74,30 @@ export class CollidableLine extends _ModuleSupport.Line {
      */
     protected applyClipMask(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
         const { clipMask } = this;
-        if (!clipMask) return;
 
-        const { x, y, radius } = clipMask;
+        if (clipMask.size === 0) {
+            return;
+        }
 
-        ctx.save();
+        this.clipMask.forEach((mask) => {
+            const { x, y, radius } = mask;
 
-        // Draw a blank rect clockwise across the whole canvas, then negate it with an ellipse drawn counter-clockwise.
-        // This clips any subsequent paths within the ellipse.
-        ctx.beginPath();
-        ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
-        ctx.ellipse(x, y, radius, radius, 0, Math.PI * 2, 0, true);
+            ctx.save();
 
-        ctx.clip();
+            // Draw a blank rect clockwise across the whole canvas, then negate it with an ellipse drawn counter-clockwise.
+            // This clips any subsequent paths within the ellipse.
+            ctx.beginPath();
+            ctx.rect(0, 0, ctx.canvas.width, ctx.canvas.height);
+            ctx.ellipse(x, y, radius, radius, 0, Math.PI * 2, 0, true);
+
+            ctx.clip();
+        });
     }
 
     protected closeClipMask(ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D) {
-        if (!this.clipMask) return;
+        if (this.clipMask.size === 0) {
+            return;
+        }
         ctx.restore();
     }
 }

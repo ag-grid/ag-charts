@@ -188,7 +188,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
             const { text, ...coords } = datum.label;
             const labelProperties = trendLineProperties.label;
 
-            updateLineText(line, labelProperties, coords, textNode);
+            updateLineText(textNode.id, line, labelProperties, coords, textNode);
 
             textNode.setProperties({
                 text,
@@ -202,7 +202,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
             const xWithinBounds = x >= xAxis.bounds.x && x <= xAxis.bounds.x + xAxis.bounds.width;
 
-            if (!xWithinBounds) updateLineText(line, labelProperties, coords, textNode, text, strokeWidth);
+            if (!xWithinBounds) updateLineText(textNode.id, line, labelProperties, coords, textNode, text, strokeWidth);
 
             textNode.setProperties({
                 fill: color,
@@ -215,7 +215,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         const { text: textProperties, strokeWidth } = datum;
         this.text = this.updateNode(CollidableText, this.text, !!textProperties.label);
 
-        updateLineText(oneLine, textProperties, coords, this.text, textProperties.label, strokeWidth);
+        updateLineText(oneLine.id, oneLine, textProperties, coords, this.text, textProperties.label, strokeWidth);
     }
 
     updateAnchor(_datum: Datum, coords: _ModuleSupport.Vec4, _context: AnnotationContext, _bbox?: _ModuleSupport.BBox) {
