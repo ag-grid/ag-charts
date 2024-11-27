@@ -3,7 +3,6 @@ import { BBox } from '../../scene/bbox';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { Listeners } from '../../util/listeners';
 import { BaseProperties } from '../../util/properties';
-import type { ButtonWidget as BaseButtonWidget } from '../../widget/buttonWidget';
 import type { RovingDirection } from '../../widget/rovingDirection';
 import { ToolbarWidget } from '../../widget/toolbarWidget';
 import type { MouseWidgetEvent } from '../../widget/widgetEvents';
@@ -146,7 +145,7 @@ export abstract class BaseToolbar<
         }
 
         this.buttonWidgets.push(buttonWidget);
-        this.appendChild(buttonWidget as BaseButtonWidget);
+        this.addChild(buttonWidget);
 
         return buttonWidget;
     }

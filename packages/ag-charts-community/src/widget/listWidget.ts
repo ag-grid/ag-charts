@@ -1,9 +1,9 @@
 import { setAttribute, setElementStyle } from '../util/attributeUtil';
 import { getDocument } from '../util/dom';
 import { RovingTabContainerWidget } from './rovingTabContainerWidget';
-import { Widget } from './widget';
+import { type BeforeWidget, Widget } from './widget';
 
-type TChildWidget = Parameters<RovingTabContainerWidget['appendChildToDOM']>[0];
+type TChildWidget = Parameters<RovingTabContainerWidget['addChildToDOM']>[0];
 
 export class ListWidget extends RovingTabContainerWidget {
     constructor() {
@@ -14,12 +14,12 @@ export class ListWidget extends RovingTabContainerWidget {
         this.children.forEach((c) => c.getElement().parentElement!.remove());
     }
 
-    protected override appendChildToDOM(child: TChildWidget) {
+    protected override addChildToDOM(child: TChildWidget, before: BeforeWidget<TChildWidget> | undefined) {
         const listitem: HTMLDivElement = getDocument().createElement('div');
         setAttribute(listitem, 'role', 'listitem');
         setElementStyle(listitem, 'position', 'absolute');
         Widget.setElementContainer(child, listitem);
-        this.elem.appendChild(listitem);
+        this.appendOrInsert(listitem, before);
         this.setHidden(false);
     }
 

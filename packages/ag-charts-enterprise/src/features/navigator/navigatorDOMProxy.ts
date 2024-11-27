@@ -41,12 +41,14 @@ export class NavigatorDOMProxy {
         this.sliders = [
             ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
+                domIndex: 1,
                 ariaLabel: { id: 'ariaLabelNavigatorMinimum' },
                 parent: this.toolbar,
                 cursor: 'ew-resize',
             }),
             ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
+                domIndex: 0,
                 ariaLabel: { id: 'ariaLabelNavigatorRange' },
                 parent: this.toolbar,
                 cursor: 'grab',
