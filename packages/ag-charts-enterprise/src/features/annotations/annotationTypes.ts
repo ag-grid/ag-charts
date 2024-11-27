@@ -130,6 +130,7 @@ export interface Padding {
     left: number;
 }
 
+export type FibonacciBands = 10 | 6 | 4;
 export interface AnnotationAxisContext
     extends Pick<
         _ModuleSupport.AxisContext,

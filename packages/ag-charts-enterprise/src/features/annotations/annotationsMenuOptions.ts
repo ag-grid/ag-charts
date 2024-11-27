@@ -50,6 +50,12 @@ export const FIBONACCI_ANNOTATION_ITEMS: _ModuleSupport.MenuItem<AnnotationType>
     },
 ];
 
+export const FIBONACCI_RATIO_ITEMS: _ModuleSupport.MenuItem<number>[] = [
+    { label: 'Fibonacci - Extended', value: 10 },
+    { label: 'Fibonacci - 6 Band', value: 6 },
+    { label: 'Fibonacci - 4 Band', value: 4 },
+];
+
 export const TEXT_ANNOTATION_ITEMS: _ModuleSupport.MenuItem<AnnotationType>[] = [
     { label: 'toolbarAnnotationsText', icon: 'text-annotation', value: AnnotationType.Text },
     { label: 'toolbarAnnotationsComment', icon: 'comment-annotation', value: AnnotationType.Comment },

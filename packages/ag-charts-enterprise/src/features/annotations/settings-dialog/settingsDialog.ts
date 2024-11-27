@@ -9,7 +9,7 @@ import {
     type LineTextAlignment,
     type LineTextPosition,
 } from '../annotationTypes';
-import { LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
+import { FIBONACCI_RATIO_ITEMS, LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
 import type {
     ChannelPropertiesType,
     EphemeralPropertiesType,
@@ -45,6 +45,7 @@ export interface LinearSettingsDialogLineChangeProps {
     extendRight?: boolean;
     reverse?: boolean;
     showFill?: boolean;
+    bands?: number;
 }
 
 export interface LinearSettingsDialogTextChangeProps {
@@ -157,6 +158,12 @@ export class AnnotationSettingsDialog extends Dialog {
         groupTwo.append(lineStyle);
 
         panel.append(groupOne, groupTwo);
+
+        if ('bands' in datum) {
+            panel.append(
+                this.createFibonacciRatioSelect(datum.bands ?? 10, (bands) => options.onChangeLine({ bands }))
+            );
+        }
 
         if ('extendStart' in datum && 'extendEnd' in datum) {
             panel.append(
@@ -277,6 +284,16 @@ export class AnnotationSettingsDialog extends Dialog {
             altText: 'dialogInputStrokeWidthAltText',
             options: LINE_STROKE_WIDTH_ITEMS.map(({ label, value }) => ({ label: label!, value: `${value}` })),
             value: String(strokeWidth),
+            onChange: (value) => onChange(Number(value)),
+        });
+    }
+
+    private createFibonacciRatioSelect(bands: number, onChange: (value: number) => void) {
+        return this.createSelect({
+            label: 'dialogInputFibonacciBands',
+            altText: 'dialogInputFibonacciBandsAltText',
+            options: FIBONACCI_RATIO_ITEMS.map(({ label, value }) => ({ label: label!, value: `${value}` })),
+            value: String(bands),
             onChange: (value) => onChange(Number(value)),
         });
     }

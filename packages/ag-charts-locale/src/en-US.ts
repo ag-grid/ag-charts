@@ -269,6 +269,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputStrokeWidth: 'Weight',
     // Text for the annotation dialog's stroke width label
     dialogInputStrokeWidthAltText: 'Line Weight',
+    // Text for the annotation dialog's Fibonacci bands label
+    dialogInputFibonacciBands: 'Bands',
+    // Text for the annotation dialog's Fibonacci bands label
+    dialogInputFibonacciBandsAltText: 'Fibonacci Bands',
     // Text for text area input placeholders
     inputTextareaPlaceholder: 'Add Text',
     // Text for the measurer statistics date range bars value

@@ -1,10 +1,16 @@
 import type { _ModuleSupport } from 'ag-charts-community';
 
-import type { AnnotationContext } from '../annotationTypes';
+import type { AnnotationContext, FibonacciBands } from '../annotationTypes';
 
-export const FIBONACCI_RETRACEMENT_RATIOS = [0, 23.6, 38.2, 50, 61.8, 78.6];
-export const FIBONACCI_EXTENSION_RATIOS = [100, 161.8, 261.8, 361.8, 423.6];
+export const FIBONACCI_RETRACEMENT_RATIOS = [0, 23.6, 38.2, 50, 61.8, 78.6, 100];
+export const FIBONACCI_EXTENSION_RATIOS = [161.8, 261.8, 361.8, 423.6];
 export const FIBONACCI_RATIOS = [...FIBONACCI_RETRACEMENT_RATIOS, ...FIBONACCI_EXTENSION_RATIOS];
+
+const FIBONACCI_RATIOS_MAP: Record<FibonacciBands, number[]> = {
+    10: FIBONACCI_RATIOS,
+    6: FIBONACCI_RETRACEMENT_RATIOS,
+    4: FIBONACCI_RETRACEMENT_RATIOS.filter((r) => r !== 78.6),
+};
 
 export const FIBONACCI_RANGE_LABEL_PADDING = 10;
 
@@ -24,6 +30,7 @@ export interface FibonacciRangeDatum extends _ModuleSupport.Vec4 {
 export function createFibonacciRangesData(
     { x1, y1, x2, y2 }: _ModuleSupport.Vec4,
     context: AnnotationContext,
+    bands: FibonacciBands = 10,
     reverse: boolean
 ): FibonacciRangeDatum[] {
     const verticalDistance = y2 - y1;
@@ -33,7 +40,7 @@ export function createFibonacciRangesData(
     let startY = y;
     const data: FibonacciRangeDatum[] = [];
 
-    FIBONACCI_RATIOS.forEach((ratio, index) => {
+    FIBONACCI_RATIOS_MAP[bands].forEach((ratio, index) => {
         const endY = y + verticalDistance * (ratio / 100) * direction;
         const yDatumVal = context.yAxis.scaleInvert(endY);
 
