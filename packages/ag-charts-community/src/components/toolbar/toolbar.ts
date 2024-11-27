@@ -134,7 +134,7 @@ export abstract class BaseToolbar<
         const buttonWidget = this.createButtonWidget();
         buttonWidget.addClass('ag-charts-toolbar__button');
 
-        buttonWidget.addListener('click', (_, event) => {
+        buttonWidget.addListener('click', (event) => {
             const buttonOptions = { index, ...(button instanceof BaseProperties ? button.toJson() : button) };
             const buttonBounds = this.getButtonWidgetBounds(buttonWidget);
             this.events.dispatch('button-pressed', { event, button: buttonOptions, buttonBounds });
