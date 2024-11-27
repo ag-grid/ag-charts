@@ -1,3 +1,4 @@
+import { BBoxValues } from '../util/bboxinterface';
 import { getWindow } from '../util/dom';
 import { partialAssign } from '../util/object';
 import type { DragWidgetEvent, WidgetEventMap_Internal } from './widgetEvents';
@@ -120,6 +121,7 @@ export class WidgetListenerInternal {
                 window.removeEventListener('mouseup', mouseup, { capture: true });
                 const dragEndEvent = makeDragEvent('drag-end', origin, upEvent);
                 this.dispatch('drag-end', current, dragEndEvent);
+                this.endDrag(current, dragEndEvent);
             }
         };
 
@@ -134,6 +136,16 @@ export class WidgetListenerInternal {
         this.dispatch('drag-start', current, dragStartEvent);
     }
 
+    private endDrag(target: Targetable, { sourceEvent, clientX, clientY }: DragWidgetEvent<'drag-end'>) {
+        const elem = target.getElement();
+        const rect = elem.getBoundingClientRect();
+        if (!BBoxValues.containsPoint(rect, clientX, clientY)) {
+            if (MouseEvent !== undefined) {
+                elem.dispatchEvent(new MouseEvent('mouseleave', sourceEvent));
+                sourceEvent.target?.dispatchEvent(new MouseEvent('mouseenter', sourceEvent));
+            }
+        }
+    }
     private dispatch<T extends Targetable, K extends EventType>(type: K, current: T, event: EventMap[K]): void {
         switch (type) {
             case 'drag-start':
