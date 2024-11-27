@@ -105,6 +105,12 @@ export abstract class BaseToolbar<
         return this.buttonWidgets.map((buttonWidget) => this.getButtonWidgetBounds(buttonWidget));
     }
 
+    protected setButtonHiddenByIndex(index: number, hidden: boolean) {
+        // This method should be usually be avoided as it breaks keyboard navigation if a single
+        // button in a toolbar is hidden.
+        this.buttonWidgets.at(index)?.setHidden(hidden);
+    }
+
     private getButtonWidgetBounds(buttonWidget: ButtonWidget) {
         const parent = this.getBounds();
         const bounds = buttonWidget.getBounds();

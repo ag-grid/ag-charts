@@ -35,6 +35,7 @@ import { LayoutManager } from './layout/layoutManager';
 import { SeriesLabelLayoutManager } from './layout/seriesLabelLayoutManager';
 import { LegendManager } from './legend/legendManager';
 import { SeriesStateManager } from './series/seriesStateManager';
+import { ToolbarManager } from './toolbar/toolbarManager';
 import type { Tooltip } from './tooltip/tooltip';
 import { type UpdateCallback, UpdateService } from './updateService';
 
@@ -47,6 +48,7 @@ export class ChartContext implements ModuleContext {
     readonly seriesBoundsManager = new SeriesBoundsManager();
     readonly seriesStateManager = new SeriesStateManager();
     readonly stateManager = new StateManager();
+    readonly toolbarManager = new ToolbarManager();
     readonly zoomManager = new ZoomManager();
     readonly seriesLabelLayoutManager = new SeriesLabelLayoutManager();
 

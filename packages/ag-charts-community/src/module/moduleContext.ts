@@ -21,6 +21,7 @@ import type { LayoutManager } from '../chart/layout/layoutManager';
 import type { SeriesLabelLayoutManager } from '../chart/layout/seriesLabelLayoutManager';
 import type { LegendManager } from '../chart/legend/legendManager';
 import type { SeriesStateManager } from '../chart/series/seriesStateManager';
+import type { ToolbarManager } from '../chart/toolbar/toolbarManager';
 import type { UpdateService } from '../chart/updateService';
 import type { DOMManager } from '../dom/domManager';
 import type { ProxyInteractionService } from '../dom/proxyInteractionService';
@@ -60,6 +61,7 @@ export interface ModuleContext {
     readonly seriesLabelLayoutManager: SeriesLabelLayoutManager;
     readonly stateManager: StateManager;
     readonly syncManager: SyncManager;
+    readonly toolbarManager: ToolbarManager;
     readonly tooltipManager: TooltipManager;
     readonly zoomManager: ZoomManager;
 }
