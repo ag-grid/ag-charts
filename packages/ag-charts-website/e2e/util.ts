@@ -110,9 +110,12 @@ export async function gotoExample(page: Page, url: string) {
         await expect(elements).toBeVisible();
     }
     for (const elements of await page.locator(SELECTORS.wrapper).all()) {
-        await expect(elements).toHaveAttribute('data-scene-renders', { timeout: 5_000 });
-        await expect(elements).toHaveAttribute('data-update-pending', 'false', { timeout: 5_000 });
-        await expect(elements).toHaveAttribute('data-animating', 'false', { timeout: 5_000 });
+        const count: number = await elements.count();
+        for (let i = 0; i < count; i++) {
+            await expect(elements.nth(i)).toHaveAttribute('data-scene-renders', { timeout: 5_000 });
+            await expect(elements.nth(i)).toHaveAttribute('data-update-pending', 'false', { timeout: 5_000 });
+            await expect(elements.nth(i)).toHaveAttribute('data-animating', 'false', { timeout: 5_000 });
+        }
     }
 }
 
