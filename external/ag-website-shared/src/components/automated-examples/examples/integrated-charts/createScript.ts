@@ -179,7 +179,7 @@ export const createScript = ({
             actionParams: {
                 target: 'chartSeriesButton',
                 targetParams: {
-                    heading: 'Bar',
+                    groupTitle: 'Bar',
                     seriesTitle: 'Stacked',
                 },
                 scrollOffsetY: -35,
@@ -207,7 +207,7 @@ export const createScript = ({
             actionParams: {
                 target: 'chartToolPanelPickerField',
                 targetParams: {
-                    heading: 'Categories',
+                    groupTitle: 'Categories',
                     // NOTE: Categories label is hidden
                     selectLabel: '',
                     index: 0,
@@ -234,7 +234,7 @@ export const createScript = ({
             actionParams: {
                 target: 'chartToolPanelToggle',
                 targetParams: {
-                    heading: 'Categories',
+                    groupTitle: 'Categories',
                     toggleLabel: 'Aggregate',
                 },
             },
@@ -248,7 +248,7 @@ export const createScript = ({
             actionParams: {
                 target: 'chartToolPanelToggle',
                 targetParams: {
-                    heading: 'Series',
+                    groupTitle: 'Series',
                     toggleLabel: 'Switch Category / Series',
                 },
             },
@@ -288,7 +288,7 @@ export const createScript = ({
             actionParams: {
                 target: 'chartToolPanelToggle',
                 targetParams: {
-                    heading: 'Titles',
+                    groupTitle: 'Titles',
                     toggleLabel: 'Chart Title',
                 },
             },
@@ -302,7 +302,7 @@ export const createScript = ({
             actionParams: {
                 target: 'chartToolPanelTextInput',
                 targetParams: {
-                    heading: 'Titles',
+                    groupTitle: 'Titles',
                     inputLabel: 'Title',
                     index: 0,
                 },
@@ -314,7 +314,7 @@ export const createScript = ({
             actionType: 'typeInTextInput',
             actionParams: {
                 text: 'Total Monthly Earning by Country',
-                heading: 'Titles',
+                groupTitle: 'Titles',
                 inputLabel: 'Title',
                 index: 0,
             },

@@ -4,7 +4,7 @@ import { waitFor } from './waitFor';
 interface Params {
     agElementFinder: AgElementFinder;
     text: string;
-    heading: string;
+    groupTitle: string;
     inputLabel: string;
     index?: number;
     speedPerCharacter?: number;
@@ -47,18 +47,20 @@ async function typeText({
 export async function typeInTextInput({
     agElementFinder,
     text,
-    heading,
+    groupTitle,
     inputLabel,
     index,
     speedPerCharacter,
 }: Params) {
     const textInput = agElementFinder.get('chartToolPanelTextInput', {
-        heading,
+        groupTitle,
         inputLabel,
         index,
     });
     if (!textInput) {
-        throw new Error(`Text input not found: ${heading} > ${inputLabel}${index === undefined ? '' : ` [${index}]`}`);
+        throw new Error(
+            `Text input not found: ${groupTitle} > ${inputLabel}${index === undefined ? '' : ` [${index}]`}`
+        );
     }
 
     const textInputEl = textInput.get() as HTMLInputElement;

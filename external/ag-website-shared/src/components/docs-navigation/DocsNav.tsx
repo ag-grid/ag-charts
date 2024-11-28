@@ -99,7 +99,7 @@ function Group({
     return (
         <div className={classnames(styles.group, isOpen ? styles.isOpen : '')}>
             <button
-                className={classnames('button-style-none', styles.heading)}
+                className={classnames('button-style-none', styles.groupTitle)}
                 onClick={() => {
                     if (isOpen) {
                         setOpenGroup(undefined);

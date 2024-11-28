@@ -81,30 +81,30 @@ export interface AgElementsConfigItem {
     groupCellToggle: AgElementByFindConfig<{ colIndex: number; rowIndex: number }>;
     headerCell: AgElementByFindConfig<{ text: string }>;
     chartToolPanelGroupItemInput: AgElementByFindConfig<{
-        heading: string;
+        groupTitle: string;
         itemTitle: string;
     }>;
     chartSeriesButton: AgElementByFindConfig<{
-        heading: string;
+        groupTitle: string;
         seriesTitle: string;
     }>;
     chartToolPanelPickerField: AgElementByFindConfig<{
-        heading: string;
+        groupTitle: string;
         selectLabel: string;
         usePickerDisplayFieldSelector?: boolean;
         index?: number;
     }>;
     chartToolPanelToggle: AgElementByFindConfig<{
-        heading: string;
+        groupTitle: string;
         toggleLabel: string;
         index?: number;
     }>;
     chartToolPanelSliderInput: AgElementByFindConfig<{
-        heading: string;
+        groupTitle: string;
         sliderLabel: string;
     }>;
     chartToolPanelTextInput: AgElementByFindConfig<{
-        heading: string;
+        groupTitle: string;
         inputLabel: string;
         index?: number;
     }>;
@@ -210,14 +210,14 @@ export const agElementsConfig: AgElementsConfigItem = {
     },
     chartToolPanelGroupItemInput: {
         find: ({ getElement, params }) => {
-            const { heading, itemTitle } = params;
+            const { groupTitle, itemTitle } = params;
             const groupTitleEl = getElement('chartToolPanelGroupTitle', {
-                text: heading,
+                text: groupTitle,
             })?.get();
 
             const groupEl = groupTitleEl?.closest(AG_GROUP_SELECTOR);
             if (!groupEl) {
-                console.error(`No group title found: ${heading}`);
+                console.error(`No group title found: ${groupTitle}`);
                 return;
             }
 
@@ -231,13 +231,13 @@ export const agElementsConfig: AgElementsConfigItem = {
     },
     chartSeriesButton: {
         find: ({ getElement, params }) => {
-            const { heading, seriesTitle } = params;
+            const { groupTitle, seriesTitle } = params;
             const groupTitleEl = getElement('chartToolSeriesGroupTitle', {
-                text: heading,
+                text: groupTitle,
             })?.get();
             const groupEl = groupTitleEl?.closest(AG_GROUP_SELECTOR);
             if (!groupEl) {
-                console.error(`No group title found: ${heading}`);
+                console.error(`No group title found: ${groupTitle}`);
                 return;
             }
 
@@ -249,13 +249,13 @@ export const agElementsConfig: AgElementsConfigItem = {
         // Picker element requires mousedown
         useMouseDown: true,
         find: ({ getElement, params }) => {
-            const { heading, selectLabel, usePickerDisplayFieldSelector, index } = params;
+            const { groupTitle, selectLabel, usePickerDisplayFieldSelector, index } = params;
             const groupTitleEl = getElement('chartToolPanelGroupTitle', {
-                text: heading,
+                text: groupTitle,
             })?.get();
             const groupEl = groupTitleEl?.closest(AG_GROUP_SELECTOR) as HTMLElement;
             if (!groupEl) {
-                console.error(`No group title found: ${heading}`);
+                console.error(`No group title found: ${groupTitle}`);
                 return;
             }
 
@@ -282,13 +282,13 @@ export const agElementsConfig: AgElementsConfigItem = {
     },
     chartToolPanelToggle: {
         find: ({ getElement, params }) => {
-            const { heading, toggleLabel, index } = params;
+            const { groupTitle, toggleLabel, index } = params;
             const groupTitleEl = getElement('chartToolPanelGroupTitle', {
-                text: heading,
+                text: groupTitle,
             })?.get();
             const groupEl = groupTitleEl?.closest(AG_GROUP_SELECTOR) as HTMLElement;
             if (!groupEl) {
-                console.error(`No group title found: ${heading}`);
+                console.error(`No group title found: ${groupTitle}`);
                 return;
             }
 
@@ -310,13 +310,13 @@ export const agElementsConfig: AgElementsConfigItem = {
     },
     chartToolPanelSliderInput: {
         find: ({ getElement, params }) => {
-            const { heading, sliderLabel } = params;
+            const { groupTitle, sliderLabel } = params;
             const groupTitleEl = getElement('chartToolPanelGroupTitle', {
-                text: heading,
+                text: groupTitle,
             })?.get();
             const groupEl = groupTitleEl?.closest(AG_GROUP_SELECTOR) as HTMLElement;
             if (!groupEl) {
-                console.error(`No group title found: ${heading}`);
+                console.error(`No group title found: ${groupTitle}`);
                 return;
             }
 
@@ -341,14 +341,14 @@ export const agElementsConfig: AgElementsConfigItem = {
     },
     chartToolPanelTextInput: {
         find: ({ getElement, params }) => {
-            const { heading, inputLabel, index } = params;
+            const { groupTitle, inputLabel, index } = params;
             const groupTitleEl = getElement('chartToolPanelGroupTitle', {
-                text: heading,
+                text: groupTitle,
             })?.get();
 
             const groupEl = groupTitleEl?.closest(AG_GROUP_SELECTOR) as HTMLElement;
             if (!groupEl) {
-                console.error(`No group title found: ${heading}`);
+                console.error(`No group title found: ${groupTitle}`);
                 return;
             }
 
@@ -359,7 +359,7 @@ export const agElementsConfig: AgElementsConfigItem = {
                 index,
             });
             if (!labelEl) {
-                console.error(`No label title found: ${heading} > ${inputLabel}`);
+                console.error(`No label title found: ${groupTitle} > ${inputLabel}`);
                 return;
             }
 
