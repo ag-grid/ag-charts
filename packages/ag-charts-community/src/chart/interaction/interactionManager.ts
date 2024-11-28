@@ -311,7 +311,7 @@ export class InteractionManager extends InteractionStateListener<InteractionType
 
             case 'touchmove':
             case 'mousemove':
-                if (!!this.isEventOverElement(event)) {
+                if (!this.isEventOverElement(event)) {
                     return;
                 }
                 return 'hover';
