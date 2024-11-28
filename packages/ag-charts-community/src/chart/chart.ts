@@ -213,6 +213,9 @@ export abstract class Chart extends Observable {
     @ProxyProperty('chartCaptions.footnote')
     readonly footnote!: Caption;
 
+    @Validate(BOOLEAN)
+    suppressFieldDotNotation: boolean = false;
+
     public destroyed = false;
 
     private readonly _destroyFns: (() => void)[] = [];
@@ -892,7 +895,7 @@ export abstract class Chart extends Observable {
             axis.processData();
         }
 
-        const dataController = new DataController(this.mode);
+        const dataController = new DataController(this.mode, this.suppressFieldDotNotation);
         const seriesPromises = this.series.map((s) => {
             s.resetDatumCallbackCache();
             return s.processData(dataController);
