@@ -1126,8 +1126,11 @@ export class LinearGaugeSeries
         }
     }
 
-    override getTooltipContent(nodeDatum: _ModuleSupport.SeriesNodeDatum): _ModuleSupport.TooltipContent | undefined {
-        const { properties } = this;
+    override getTooltipContent(
+        nodeDatum: _ModuleSupport.SeriesNodeDatum
+    ): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, properties } = this;
+        const { tooltip } = properties;
 
         if (!properties.isValid()) return;
 
@@ -1136,9 +1139,12 @@ export class LinearGaugeSeries
         const value = highlightDatum?.value ?? properties.value;
         const text = highlightDatum?.text;
 
-        return {
-            data: [{ label: text ?? '', value: this.formatLabel(value) }],
-        };
+        return tooltip.formatTooltip(
+            {
+                data: [{ label: text ?? '', value: this.formatLabel(value) }],
+            },
+            { seriesId, title: undefined, datum: undefined, value }
+        );
     }
 
     override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {

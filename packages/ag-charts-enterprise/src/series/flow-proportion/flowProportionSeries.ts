@@ -29,7 +29,7 @@ export interface FlowProportionLinkDatum<TNodeDatum extends FlowProportionNodeDa
     size: number;
 }
 
-export interface FlowProportionNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+export interface FlowProportionNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     type: FlowProportionDatumType.Node;
     index: number;
     id: string;
@@ -194,6 +194,7 @@ export abstract class FlowProportionSeries<
                     series: this,
                     itemId: undefined,
                     datum: {}, // Must be a referential object for tooltips
+                    datumIndex,
                     type: FlowProportionDatumType.Node,
                     index: datumIndex,
                     id,
@@ -243,6 +244,7 @@ export abstract class FlowProportionSeries<
                     series: this,
                     itemId: undefined,
                     datum,
+                    datumIndex,
                     type: FlowProportionDatumType.Node,
                     index: datumIndex,
                     id,
@@ -475,8 +477,11 @@ export abstract class FlowProportionSeries<
         return [];
     }
 
-    override getTooltipContent(seriesDatum: TDatum<TNodeDatum, TLinkDatum>): _ModuleSupport.TooltipContent | undefined {
-        const { sizeKey, sizeName = sizeKey } = this.properties;
+    override getTooltipContent(
+        seriesDatum: TDatum<TNodeDatum, TLinkDatum>
+    ): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, processedData, nodesProcessedData, properties } = this;
+        const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
 
         const nodeIndex =
             seriesDatum.type === FlowProportionDatumType.Link ? seriesDatum.fromNode.index : seriesDatum.index;
@@ -484,17 +489,29 @@ export abstract class FlowProportionSeries<
             seriesDatum.type === FlowProportionDatumType.Link
                 ? `${seriesDatum.fromNode.label} - ${seriesDatum.toNode.label}`
                 : seriesDatum.label;
+        const datum =
+            seriesDatum.type === FlowProportionDatumType.Link
+                ? processedData?.rawData[seriesDatum.datumIndex]
+                : nodesProcessedData?.rawData[seriesDatum.datumIndex];
+        const size = seriesDatum.size;
 
-        return {
-            title,
-            symbol: this.legendItemSymbol(seriesDatum.type, nodeIndex),
-            data: [
-                {
-                    label: sizeName ?? 'Size',
-                    value: String(seriesDatum.size),
-                },
-            ],
-        };
+        return tooltip.formatTooltip(
+            {
+                title,
+                symbol: this.legendItemSymbol(seriesDatum.type, nodeIndex),
+                data: [{ label: sizeName ?? sizeKey ?? '', value: String(size) }],
+            },
+            {
+                seriesId,
+                datum,
+                title,
+                fromKey,
+                toKey,
+                sizeKey,
+                sizeName,
+                size,
+            }
+        );
     }
 
     override getSeriesRange(

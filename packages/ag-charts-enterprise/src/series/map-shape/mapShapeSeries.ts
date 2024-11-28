@@ -618,40 +618,35 @@ export class MapShapeSeries
         }
     }
 
-    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | undefined {
-        const { dataModel, processedData, properties } = this;
-        const { idKey, colorKey, colorName = colorKey, labelKey, labelName = labelKey, legendItemName } = properties;
+    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, properties } = this;
+        const { idKey, idName, colorKey, colorName, labelKey, labelName, legendItemName, title, tooltip } = properties;
         if (!dataModel || !processedData?.rawData.length) return;
 
         const { datumIndex } = seriesDatum;
-
-        const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
-        const labelValues =
-            labelKey != null ? dataModel.resolveColumnById<string>(this, `labelValue`, processedData) : undefined;
-        const colorValues =
-            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
+        const datum = processedData.rawData[datumIndex];
+        const idValue = dataModel.resolveColumnById<string>(this, `idValue`, processedData)[datumIndex];
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        if (colorValues != null) {
-            data.push({
-                label: colorName ?? '',
-                value: String(colorValues[datumIndex]),
-            });
+        if (colorKey != null) {
+            const colorValue = dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+            data.push({ label: colorName ?? colorKey, value: String(colorValue) });
         }
-        if (labelValues != null && labelKey !== idKey) {
-            data.push({
-                label: labelName ?? '',
-                value: String(labelValues[datumIndex]),
-            });
+        if (labelKey != null && labelKey !== idKey) {
+            const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
+            data.push({ label: labelName ?? labelKey, value: labelValue });
         }
 
-        return {
-            groupTitle: idValues[datumIndex],
-            title: properties.title ?? legendItemName,
-            symbol: this.legendItemSymbol(datumIndex),
-            data,
-        };
+        return tooltip.formatTooltip(
+            {
+                heading: idValue,
+                title: title ?? legendItemName,
+                symbol: this.legendItemSymbol(datumIndex),
+                data,
+            },
+            { seriesId, datum, title, idKey, idName, colorKey, colorName, labelKey, labelName }
+        );
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.Path | undefined {

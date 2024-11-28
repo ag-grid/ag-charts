@@ -1347,16 +1347,26 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         return pickByMatchingAngle(this, point);
     }
 
-    override getTooltipContent(nodeDatum: DonutNodeDatum): TooltipContent | undefined {
-        const { dataModel, processedData, properties } = this;
-        const { calloutLabelKey, sectorLabelKey, angleKey } = properties;
+    override getTooltipContent(nodeDatum: DonutNodeDatum): TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, properties } = this;
+        const {
+            legendItemKey,
+            calloutLabelKey,
+            calloutLabelName,
+            sectorLabelKey,
+            sectorLabelName,
+            angleKey,
+            angleName,
+            radiusKey,
+            radiusName,
+            tooltip,
+        } = properties;
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0) {
-            return;
-        }
+        if (!dataModel || !processedData || processedData.rawData.length === 0) return;
 
         const { datumIndex } = nodeDatum;
 
+        const datum = processedData.rawData[datumIndex];
         const { angleRawValues, legendItemValues, calloutLabelValues, sectorLabelValues } = this.getProcessedDataValues(
             dataModel,
             processedData
@@ -1369,15 +1379,31 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             (sectorLabelKey === angleKey ? undefined : sectorLabelValues?.[datumIndex]);
         if (label == null) return;
 
-        return {
-            symbol: this.legendItemSymbol(datumIndex),
-            data: [
-                {
-                    label,
-                    value: String(angleRawValue),
-                },
-            ],
-        };
+        return tooltip.formatTooltip(
+            {
+                symbol: this.legendItemSymbol(datumIndex),
+                data: [
+                    {
+                        label,
+                        value: String(angleRawValue),
+                    },
+                ],
+            },
+            {
+                seriesId,
+                datum,
+                title: angleName,
+                legendItemKey,
+                calloutLabelKey,
+                calloutLabelName,
+                sectorLabelKey,
+                sectorLabelName,
+                angleKey,
+                angleName,
+                radiusKey,
+                radiusName,
+            }
+        );
     }
 
     private legendItemSymbol(datumIndex: number): LegendSymbolOptions {

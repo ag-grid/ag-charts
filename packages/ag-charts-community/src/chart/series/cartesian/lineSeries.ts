@@ -1,3 +1,5 @@
+import type { AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { pathMotion } from '../../../motion/pathMotion';
@@ -12,6 +14,7 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { isDefined } from '../../../util/type-guards';
+import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModel, DataModelOptions, DatumPropertyDefinition, UngroupedData } from '../../data/dataModel';
@@ -527,9 +530,9 @@ export class LineSeries extends CartesianSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: LineNodeDatum): TooltipContent | undefined {
-        const { dataModel, processedData, axes, properties } = this;
-        const { yKey, yName = yKey } = properties;
+    override getTooltipContent(nodeDatum: LineNodeDatum): TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { xKey, xName, yKey, yName, legendItemName, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -538,24 +541,29 @@ export class LineSeries extends CartesianSeries<
         }
 
         const { datumIndex } = nodeDatum;
-        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
-
-        const xValue = xValues[datumIndex];
-        const yValue = yValues[datumIndex];
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
 
         if (xValue == null) return;
 
-        return {
-            groupTitle: xAxis.formatDatum(xValue),
-            symbol: this.legendItemSymbol(),
-            data: [
-                {
-                    label: yName,
-                    value: yAxis.formatDatum(yValue),
-                },
-            ],
-        };
+        return tooltip.formatTooltip(
+            {
+                heading: xAxis.formatDatum(xValue),
+                symbol: this.legendItemSymbol(),
+                data: [{ label: legendItemName ?? yName ?? yKey, value: yAxis.formatDatum(yValue) }],
+            },
+            {
+                seriesId,
+                datum,
+                title: yName,
+                xKey,
+                xName,
+                yKey,
+                yName,
+                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
+            }
+        );
     }
 
     private legendItemSymbol(): LegendSymbolOptions {

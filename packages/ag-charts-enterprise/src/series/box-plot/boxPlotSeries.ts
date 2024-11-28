@@ -298,20 +298,24 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         ];
     }
 
-    override getTooltipContent(nodeDatum: BoxPlotNodeDatum): _ModuleSupport.TooltipContent | undefined {
-        const { dataModel, processedData, axes, properties } = this;
+    override getTooltipContent(nodeDatum: BoxPlotNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const {
+            xKey,
+            xName,
             yName,
             medianKey,
-            medianName = medianKey,
+            medianName,
             q1Key,
-            q1Name = q1Key,
+            q1Name,
             q3Key,
-            q3Name = q3Key,
+            q3Name,
             minKey,
-            minName = minKey,
+            minName,
             maxKey,
-            maxName = maxKey,
+            maxName,
+            legendItemName,
+            tooltip,
         } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -321,44 +325,48 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const { datumIndex } = nodeDatum;
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const minValues = dataModel.resolveColumnById(this, `minValue`, processedData);
-        const q1Values = dataModel.resolveColumnById(this, `q1Value`, processedData);
-        const medianValues = dataModel.resolveColumnById(this, `medianValue`, processedData);
-        const q3Values = dataModel.resolveColumnById(this, `q3Value`, processedData);
-        const maxValues = dataModel.resolveColumnById(this, `maxValue`, processedData);
-
-        const xValue = xValues[datumIndex];
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
+        const minValue = dataModel.resolveColumnById(this, `minValue`, processedData)[datumIndex];
+        const q1Value = dataModel.resolveColumnById(this, `q1Value`, processedData)[datumIndex];
+        const medianValue = dataModel.resolveColumnById(this, `medianValue`, processedData)[datumIndex];
+        const q3Value = dataModel.resolveColumnById(this, `q3Value`, processedData)[datumIndex];
+        const maxValue = dataModel.resolveColumnById(this, `maxValue`, processedData)[datumIndex];
 
         if (xValue == null) return;
 
-        return {
-            groupTitle: xAxis.formatDatum(xValue),
-            title: yName,
-            symbol: this.legendItemSymbol(),
-            data: [
-                {
-                    label: minName,
-                    value: yAxis.formatDatum(minValues[datumIndex]),
-                },
-                {
-                    label: q1Name,
-                    value: yAxis.formatDatum(q1Values[datumIndex]),
-                },
-                {
-                    label: medianName,
-                    value: yAxis.formatDatum(medianValues[datumIndex]),
-                },
-                {
-                    label: q3Name,
-                    value: yAxis.formatDatum(q3Values[datumIndex]),
-                },
-                {
-                    label: maxName,
-                    value: yAxis.formatDatum(maxValues[datumIndex]),
-                },
-            ],
-        };
+        return tooltip.formatTooltip(
+            {
+                heading: xAxis.formatDatum(xValue),
+                title: legendItemName ?? yName,
+                symbol: this.legendItemSymbol(),
+                data: [
+                    { label: minName ?? minKey, value: yAxis.formatDatum(minValue) },
+                    { label: q1Name ?? q1Key, value: yAxis.formatDatum(q1Value) },
+                    { label: medianName ?? medianKey, value: yAxis.formatDatum(medianValue) },
+                    { label: q3Name ?? q3Key, value: yAxis.formatDatum(q3Value) },
+                    { label: maxName ?? maxKey, value: yAxis.formatDatum(maxValue) },
+                ],
+            },
+            {
+                seriesId,
+                datum,
+                title: yName,
+                xKey,
+                xName,
+                yName,
+                medianKey,
+                medianName,
+                q1Key,
+                q1Name,
+                q3Key,
+                q3Name,
+                minKey,
+                minName,
+                maxKey,
+                maxName,
+            }
+        );
     }
 
     protected override animateEmptyUpdateReady({

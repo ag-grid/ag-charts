@@ -455,9 +455,9 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         return findQuadtreeMatch(this, point);
     }
 
-    override getTooltipContent(nodeDatum: HistogramNodeDatum): TooltipContent | undefined {
-        const { dataModel, processedData, axes, properties } = this;
-        const { xKey, xName = xKey, yKey, yName = yKey } = properties;
+    override getTooltipContent(nodeDatum: HistogramNodeDatum): TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { xKey, xName, yKey, yName, legendItemName, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -466,6 +466,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         }
 
         const groupIndex = nodeDatum.datumIndex;
+        const datum = null!;
         const { aggregation, datumIndices, keys } = processedData.groups[groupIndex];
         const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
         const frequency = datumIndices.length;
@@ -473,25 +474,20 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         const [rangeMin, rangeMax] = domain;
         const aggregatedValue = negativeAgg + positiveAgg;
 
-        const data: TooltipContentDataRow[] = [
-            {
-                label: xName,
-                value: yAxis.formatDatum(frequency),
-            },
-        ];
+        const data: TooltipContentDataRow[] = [{ label: xName ?? xKey, value: yAxis.formatDatum(frequency) }];
 
-        if (yKey) {
-            data.push({
-                label: yName ?? yKey,
-                value: yAxis.formatDatum(aggregatedValue),
-            });
+        if (yKey != null) {
+            data.push({ label: legendItemName ?? yName ?? yKey, value: yAxis.formatDatum(aggregatedValue) });
         }
 
-        return {
-            groupTitle: `${xAxis.formatDatum(rangeMin)} - ${xAxis.formatDatum(rangeMax)}`,
-            symbol: this.legendItemSymbol(),
-            data,
-        };
+        return tooltip.formatTooltip(
+            {
+                heading: `${xAxis.formatDatum(rangeMin)} - ${xAxis.formatDatum(rangeMax)}`,
+                symbol: this.legendItemSymbol(),
+                data,
+            },
+            { seriesId, datum, title: yName, xKey, xName, yKey, yName }
+        );
     }
 
     private legendItemSymbol(): LegendSymbolOptions {

@@ -87,14 +87,16 @@ export abstract class OhlcSeriesBaseProperties<
 
     @Validate(STRING, { optional: true })
     lowName?: string;
+
+    abstract override readonly tooltip: _ModuleSupport.SeriesTooltip<AgOhlcSeriesTooltipRendererParams<any>>;
 }
 
 export class OhlcSeriesProperties extends OhlcSeriesBaseProperties<AgOhlcSeriesOptions> {
     @Validate(OBJECT)
-    readonly item = new OhlcSeriesItems();
+    readonly tooltip = new SeriesTooltip<AgOhlcSeriesTooltipRendererParams<any>>();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgOhlcSeriesTooltipRendererParams<any>>();
+    readonly item = new OhlcSeriesItems();
 
     @Validate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgOhlcSeriesItemStylerParams<unknown>, AgOhlcSeriesItemOptions>;

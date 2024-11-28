@@ -63,23 +63,26 @@ export interface TooltipContentDataRow {
 }
 
 export interface TooltipContent {
-    groupTitle?: string;
+    heading?: string;
     title?: string;
     symbol?: LegendSymbolOptions;
     data?: TooltipContentDataRow[];
+    class?: string;
 }
 
-export function tooltipContentAriaLabel(_content: TooltipContent) {
+export function tooltipContentAriaLabel(_content: TooltipContent | string) {
     return '';
 }
 
-function tooltipContentHtml(content: TooltipContent) {
+function tooltipContentHtml(content: TooltipContent | string) {
+    if (typeof content === 'string') return content;
+
     const dataInline = content.title == null && content.data?.length === 1;
 
     let html = '';
 
-    if (content.groupTitle != null) {
-        html += `<span class="${DEFAULT_TOOLTIP_CLASS}__group-title">${sanitizeHtml(content.groupTitle)}</span>`;
+    if (content.heading != null) {
+        html += `<span class="${DEFAULT_TOOLTIP_CLASS}__group-title">${sanitizeHtml(content.heading)}</span>`;
         html += ' ';
     }
 
@@ -289,16 +292,16 @@ export class Tooltip extends BaseProperties {
         boundingRect: DOMRect,
         canvasRect: DOMRect,
         meta: TooltipMeta,
-        content?: TooltipContent | null,
+        content?: TooltipContent | string | null,
         instantly = false
     ) {
         const { element } = this;
 
         if (element != null && content != null) {
             this.resetClass();
-            // if (content.class != null) {
-            //     element.classList.add(content.class);
-            // }
+            if (typeof content !== 'string' && content.class != null) {
+                element.classList.add(content.class);
+            }
 
             element.innerHTML = tooltipContentHtml(content);
         } else if (element == null || element.innerHTML === '') {

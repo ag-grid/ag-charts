@@ -1,6 +1,6 @@
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
-import type { CssColor, PixelSize, Ratio } from '../../chart/types';
+import type { PixelSize, Ratio } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
@@ -50,7 +50,7 @@ export interface AgBoxPlotSeriesTooltipRendererParams<TDatum>
     extends BoxPlotOptionsKeys,
         BoxPlotOptionsNames,
         AgSeriesTooltipRendererParams<TDatum> {
-    fill?: CssColor;
+    // @todo(AG-10574) fill?: CssColor;
 }
 
 export interface AgBoxPlotSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {

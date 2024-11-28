@@ -531,20 +531,18 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         }
     }
 
-    override getTooltipContent(nodeDatum: PyramidNodeDatum): _ModuleSupport.TooltipContent | undefined {
-        const { dataModel, processedData, properties } = this;
-        const { stageKey, valueKey } = properties;
+    override getTooltipContent(nodeDatum: PyramidNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, properties } = this;
+        const { stageKey, valueKey, tooltip } = properties;
 
         if (!dataModel || !processedData || processedData.rawData.length === 0) {
             return;
         }
 
         const { datumIndex } = nodeDatum;
-        const xValues = dataModel.resolveColumnById(this, 'xValue', processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
-
-        const xValue = xValues[datumIndex];
-        const yValue = yValues[datumIndex];
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, 'xValue', processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
         if (xValue == null) return;
 
@@ -555,15 +553,24 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             valueKey,
         });
 
-        return {
-            symbol: this.legendItemSymbol(datumIndex),
-            data: [
-                {
-                    label: String(xValue),
-                    value: value,
-                },
-            ],
-        };
+        return tooltip.formatTooltip(
+            {
+                symbol: this.legendItemSymbol(datumIndex),
+                data: [
+                    {
+                        label: String(xValue),
+                        value: value,
+                    },
+                ],
+            },
+            {
+                seriesId,
+                datum,
+                title: undefined,
+                stageKey,
+                valueKey,
+            }
+        );
     }
 
     override getSeriesDomain(): any[] {

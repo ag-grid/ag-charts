@@ -1,3 +1,5 @@
+import type { AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import { ContinuousScale } from '../../../scale/continuousScale';
@@ -9,6 +11,7 @@ import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import { findMinMax } from '../../../util/number';
 import { isFiniteNumber } from '../../../util/type-guards';
+import type { RequireOptional } from '../../../util/types';
 import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
@@ -728,9 +731,9 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         });
     }
 
-    override getTooltipContent(nodeDatum: BarNodeDatum): TooltipContent | undefined {
-        const { dataModel, processedData, axes, properties } = this;
-        const { yKey, yName = yKey, legendItemName = yName } = properties;
+    override getTooltipContent(nodeDatum: BarNodeDatum): TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { xKey, xName, yKey, yName, legendItemName, stackGroup, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -739,24 +742,31 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         }
 
         const { datumIndex } = nodeDatum;
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValue-raw`, processedData);
-
-        const xValue = xValues[datumIndex];
-        const yValue = yValues[datumIndex];
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
 
         if (xValue == null) return;
 
-        return {
-            groupTitle: xAxis.formatDatum(xValue),
-            symbol: this.legendItemSymbol(),
-            data: [
-                {
-                    label: legendItemName,
-                    value: yAxis.formatDatum(yValue),
-                },
-            ],
-        };
+        return tooltip.formatTooltip(
+            {
+                heading: xAxis.formatDatum(xValue),
+                symbol: this.legendItemSymbol(),
+                data: [{ label: legendItemName ?? yName ?? yKey, value: yAxis.formatDatum(yValue) }],
+            },
+            {
+                seriesId,
+                datum,
+                title: yName,
+                xKey,
+                xName,
+                yKey,
+                yName,
+                legendItemName,
+                stackGroup,
+                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
+            }
+        );
     }
 
     private legendItemSymbol(): LegendSymbolOptions {

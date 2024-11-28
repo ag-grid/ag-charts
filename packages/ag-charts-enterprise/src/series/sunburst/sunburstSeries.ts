@@ -482,8 +482,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         );
     }
 
-    override getTooltipContent(nodeDatum: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent | undefined {
-        const { colorKey, colorName = colorKey, labelKey, sizeKey, sizeName = sizeKey } = this.properties;
+    override getTooltipContent(
+        nodeDatum: _ModuleSupport.HierarchyNode
+    ): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, properties } = this;
+        const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
+            properties;
         const { datum, depth } = nodeDatum;
         if (datum == null || depth == null) return;
 
@@ -494,28 +498,43 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
         if (datumSize != null) {
-            data.push({ label: sizeName!, value: datumSize });
+            data.push({ label: sizeName ?? sizeKey ?? '', value: datumSize });
         }
 
         const datumColor = colorKey != null ? datum[colorKey] : undefined;
         if (datumColor != null) {
-            data.push({ label: colorName!, value: datumColor });
+            data.push({ label: colorName ?? colorKey ?? '', value: datumColor });
         }
 
-        return {
-            title: labelKey != null ? datum[labelKey] : undefined,
-            symbol: {
-                marker: {
-                    shape: 'square',
-                    fill: color,
-                    fillOpacity: 1,
-                    stroke: undefined,
-                    strokeWidth: 0,
-                    strokeOpacity: 1,
+        return tooltip.formatTooltip(
+            {
+                title: labelKey != null ? datum[labelKey] : undefined,
+                symbol: {
+                    marker: {
+                        shape: 'square',
+                        fill: color,
+                        fillOpacity: 1,
+                        stroke: undefined,
+                        strokeWidth: 0,
+                        strokeOpacity: 1,
+                    },
                 },
+                data,
             },
-            data,
-        };
+            {
+                seriesId,
+                datum,
+                title: undefined,
+                depth,
+                labelKey,
+                secondaryLabelKey,
+                childrenKey,
+                sizeKey,
+                sizeName,
+                colorKey,
+                colorName,
+            }
+        );
     }
 
     override createNodeData() {

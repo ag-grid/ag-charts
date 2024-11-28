@@ -562,57 +562,51 @@ export class MapLineSeries extends TopologySeries<
         }
     }
 
-    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | undefined {
-        const { dataModel, processedData, properties } = this;
+    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, properties } = this;
         const {
             idKey,
+            idName,
             colorKey,
-            colorName = colorKey,
+            colorName,
             sizeKey,
-            sizeName = sizeKey,
+            sizeName,
             labelKey,
-            labelName = labelKey,
+            labelName,
+            title,
             legendItemName,
+            tooltip,
         } = properties;
         if (!dataModel || !processedData?.rawData.length) return;
 
         const { datumIndex } = seriesDatum;
 
+        const datum = processedData.rawData[datumIndex];
         const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
-        const labelValues =
-            labelKey != null ? dataModel.resolveColumnById<string>(this, `labelValue`, processedData) : undefined;
-        const sizeValues =
-            sizeKey != null ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
-        const colorValues =
-            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
-
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        if (sizeValues != null) {
-            data.push({
-                label: sizeName ?? '',
-                value: String(sizeValues[datumIndex]),
-            });
+        if (sizeKey != null) {
+            const sizeValue = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
+            data.push({ label: sizeName ?? sizeKey, value: String(sizeValue) });
         }
-        if (colorValues != null) {
-            data.push({
-                label: colorName ?? '',
-                value: String(colorValues[datumIndex]),
-            });
+        if (colorKey != null) {
+            const colorValue = dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+            data.push({ label: colorName ?? colorKey, value: String(colorValue) });
         }
-        if (labelValues != null && labelKey !== idKey) {
-            data.push({
-                label: labelName ?? '',
-                value: String(labelValues[datumIndex]),
-            });
+        if (labelKey != null && labelKey !== idKey) {
+            const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
+            data.push({ label: labelName ?? labelKey, value: labelValue });
         }
 
-        return {
-            groupTitle: idValues[datumIndex],
-            title: properties.title ?? legendItemName,
-            symbol: this.legendItemSymbol(datumIndex),
-            data,
-        };
+        return tooltip.formatTooltip(
+            {
+                heading: idValues[datumIndex],
+                title: title ?? legendItemName,
+                symbol: this.legendItemSymbol(datumIndex),
+                data,
+            },
+            { seriesId, datum, title, idKey, idName, colorKey, colorName, sizeKey, sizeName, labelKey, labelName }
+        );
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {

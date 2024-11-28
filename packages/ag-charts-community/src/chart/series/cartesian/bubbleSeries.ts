@@ -1,4 +1,4 @@
-import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+import type { AgErrorBoundSeriesTooltipRendererParams, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
@@ -12,6 +12,7 @@ import type { PlacedLabel } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
+import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
@@ -358,18 +359,10 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         });
     }
 
-    override getTooltipContent(nodeDatum: BubbleNodeDatum): TooltipContent | undefined {
-        const { dataModel, processedData, axes, properties } = this;
-        const {
-            xKey,
-            xName = xKey,
-            yKey,
-            yName = yKey,
-            legendItemName = yName,
-            sizeKey,
-            sizeName = sizeKey,
-            title,
-        } = properties;
+    override getTooltipContent(nodeDatum: BubbleNodeDatum): TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { xKey, xName, yKey, yName, legendItemName, sizeKey, sizeName, labelKey, labelName, title, tooltip } =
+            properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -378,40 +371,43 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         }
 
         const { datumIndex } = nodeDatum;
-        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
-        const sizeValues =
-            sizeKey != null ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
-
-        const xValue = xValues[datumIndex];
-        const yValue = yValues[datumIndex];
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
         if (xValue == null) return;
 
         const data: TooltipContentDataRow[] = [
-            {
-                label: xName,
-                value: xAxis.formatDatum(xValue),
-            },
-            {
-                label: legendItemName,
-                value: yAxis.formatDatum(yValue),
-            },
+            { label: xName ?? xKey, value: xAxis.formatDatum(xValue) },
+            { label: legendItemName ?? yName ?? yKey, value: yAxis.formatDatum(yValue) },
         ];
 
-        if (sizeValues != null) {
-            const sizeValue = sizeValues[datumIndex];
-            data.push({
-                label: sizeName,
-                value: String(sizeValue),
-            });
+        if (sizeKey != null) {
+            const sizeValue = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
+            data.push({ label: sizeName ?? sizeKey, value: String(sizeValue) });
         }
 
-        return {
-            title,
-            symbol: this.legendItemSymbol(),
-            data,
-        };
+        return tooltip.formatTooltip(
+            {
+                title,
+                symbol: this.legendItemSymbol(),
+                data,
+            },
+            {
+                seriesId,
+                datum,
+                title: yKey,
+                xKey,
+                xName,
+                yKey,
+                yName,
+                sizeKey,
+                sizeName,
+                labelKey,
+                labelName,
+                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
+            }
+        );
     }
 
     private legendItemSymbol(): LegendSymbolOptions {

@@ -405,18 +405,23 @@ export abstract class OhlcSeriesBase<
         return labelSelection.update(labelData);
     }
 
-    override getTooltipContent(nodeDatum: OhlcNodeDatum): _ModuleSupport.TooltipContent | undefined {
-        const { dataModel, processedData, axes, properties } = this;
+    override getTooltipContent(nodeDatum: OhlcNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const {
             item: { up, down },
+            xKey,
+            xName,
+            yName,
             openKey,
-            openName = openKey,
+            openName,
             highKey,
-            highName = highKey,
+            highName,
             lowKey,
-            lowName = lowKey,
+            lowName,
             closeKey,
-            closeName = closeKey,
+            closeName,
+            legendItemName,
+            tooltip,
         } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -426,6 +431,7 @@ export abstract class OhlcSeriesBase<
         }
 
         const { datumIndex } = nodeDatum;
+        const datum = processedData.rawData[datumIndex];
         const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
         const openValue = dataModel.resolveColumnById(this, `openValue`, processedData)[datumIndex];
         const highValue = dataModel.resolveColumnById(this, `highValue`, processedData)[datumIndex];
@@ -436,37 +442,43 @@ export abstract class OhlcSeriesBase<
 
         const item = closeValue >= openValue ? up : down;
 
-        return {
-            groupTitle: xAxis.formatDatum(xValue),
-            title: this.properties.legendItemName,
-            symbol: {
-                marker: {
-                    fill: item.fill,
-                    fillOpacity: item.fillOpacity ?? 1,
-                    stroke: item.stroke,
-                    strokeWidth: item.strokeWidth ?? 1,
-                    strokeOpacity: item.strokeOpacity ?? 1,
+        return tooltip.formatTooltip(
+            {
+                heading: xAxis.formatDatum(xValue),
+                title: legendItemName,
+                symbol: {
+                    marker: {
+                        fill: item.fill,
+                        fillOpacity: item.fillOpacity ?? 1,
+                        stroke: item.stroke,
+                        strokeWidth: item.strokeWidth ?? 1,
+                        strokeOpacity: item.strokeOpacity ?? 1,
+                    },
                 },
+                data: [
+                    { label: openName ?? openKey, value: yAxis.formatDatum(openValue) },
+                    { label: highName ?? highKey, value: yAxis.formatDatum(highValue) },
+                    { label: lowName ?? lowKey, value: yAxis.formatDatum(lowValue) },
+                    { label: closeName ?? closeKey, value: yAxis.formatDatum(closeValue) },
+                ],
             },
-            data: [
-                {
-                    label: openName,
-                    value: yAxis.formatDatum(openValue),
-                },
-                {
-                    label: highName,
-                    value: yAxis.formatDatum(highValue),
-                },
-                {
-                    label: lowName,
-                    value: yAxis.formatDatum(lowValue),
-                },
-                {
-                    label: closeName,
-                    value: yAxis.formatDatum(closeValue),
-                },
-            ],
-        };
+            {
+                seriesId,
+                datum,
+                title: yName,
+                xKey,
+                xName,
+                yName,
+                openKey,
+                openName,
+                highKey,
+                highName,
+                lowKey,
+                lowName,
+                closeKey,
+                closeName,
+            }
+        );
     }
 
     protected getDatumId(datum: OhlcNodeDatum) {

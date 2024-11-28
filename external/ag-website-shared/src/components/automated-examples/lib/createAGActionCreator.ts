@@ -155,7 +155,7 @@ interface TypeInInputAction {
     actionType: 'typeInTextInput';
     actionParams: {
         text: string;
-        groupTitle: string;
+        heading: string;
         inputLabel: string;
         index?: number;
         speedPerCharacter?: number;
@@ -301,7 +301,7 @@ export function createAGActionCreator({
             return typeInTextInput({
                 agElementFinder,
                 text: action.actionParams?.text,
-                groupTitle: action.actionParams?.groupTitle,
+                heading: action.actionParams?.heading,
                 inputLabel: action.actionParams?.inputLabel,
                 index: action.actionParams?.index,
                 speedPerCharacter: action.actionParams?.speedPerCharacter,

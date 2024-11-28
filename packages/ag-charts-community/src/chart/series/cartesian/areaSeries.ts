@@ -1,4 +1,4 @@
-import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+import type { AgErrorBoundSeriesTooltipRendererParams, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -15,6 +15,7 @@ import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { isDefined } from '../../../util/type-guards';
+import type { RequireOptional } from '../../../util/types';
 import { isContinuous } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
@@ -710,9 +711,9 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: MarkerSelectionDatum): TooltipContent | undefined {
-        const { dataModel, processedData, axes, properties } = this;
-        const { yKey, yName = yKey, legendItemName = yName } = properties;
+    override getTooltipContent(nodeDatum: MarkerSelectionDatum): TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { xKey, xName, yKey, yName, legendItemName, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -721,24 +722,29 @@ export class AreaSeries extends CartesianSeries<
         }
 
         const { datumIndex } = nodeDatum;
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValueRaw`, processedData);
-
-        const xValue = xValues[datumIndex];
-        const yValue = yValues[datumIndex];
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
 
         if (xValue == null) return;
 
-        return {
-            groupTitle: xAxis.formatDatum(xValue),
-            symbol: this.legendItemSymbol(),
-            data: [
-                {
-                    label: legendItemName,
-                    value: yAxis.formatDatum(yValue),
-                },
-            ],
-        };
+        return tooltip.formatTooltip(
+            {
+                heading: xAxis.formatDatum(xValue),
+                symbol: this.legendItemSymbol(),
+                data: [{ label: legendItemName ?? yName ?? yKey, value: yAxis.formatDatum(yValue) }],
+            },
+            {
+                seriesId,
+                datum,
+                title: yName,
+                xKey,
+                xName,
+                yKey,
+                yName,
+                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
+            }
+        );
     }
 
     legendItemSymbol(): LegendSymbolOptions {

@@ -1,4 +1,8 @@
-import type { _ModuleSupport } from 'ag-charts-community';
+import type {
+    AgChordSeriesTooltipRendererParams,
+    AgSankeySeriesTooltipRendererParams,
+    _ModuleSupport,
+} from 'ag-charts-community';
 
 export interface FlowProportionSeriesProperties<SeriesOptions extends object>
     extends _ModuleSupport.SeriesProperties<SeriesOptions> {
@@ -13,4 +17,7 @@ export interface FlowProportionSeriesProperties<SeriesOptions extends object>
     sizeName: string | undefined;
     fills: string[];
     strokes: string[];
+    tooltip: _ModuleSupport.SeriesTooltip<
+        AgChordSeriesTooltipRendererParams<any> & AgSankeySeriesTooltipRendererParams<any>
+    >;
 }

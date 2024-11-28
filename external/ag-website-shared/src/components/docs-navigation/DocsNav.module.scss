@@ -106,7 +106,7 @@
 }
 
 .sectionTitle,
-.groupTitle,
+.heading,
 .item {
     display: flex;
     align-items: center;
@@ -131,7 +131,7 @@
     background-color: var(--color-border-secondary);
 }
 
-.groupTitle {
+.heading {
     position: relative;
     width: 100%;
     padding-left: calc(var(--indent-size) + var(--indent-initial-offset));
@@ -161,7 +161,7 @@
         transform $transition-default-timing,
         fill $transition-default-timing;
 
-    .groupTitle:hover & {
+    .heading:hover & {
         transform: translate(2px, 0);
     }
 

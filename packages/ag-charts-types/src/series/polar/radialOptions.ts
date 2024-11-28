@@ -35,12 +35,7 @@ export type AgRadialSeriesLabelFormatterParams = AgRadialSeriesOptionsKeys & AgR
 export interface AgRadialSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgRadialSeriesOptionsKeys,
-        AgRadialSeriesOptionsNames {
-    /** xValue as read from series data via the xKey property. */
-    readonly angleValue?: any;
-    /** yValue as read from series data via the yKey property. */
-    readonly radiusValue?: any;
-}
+        AgRadialSeriesOptionsNames {}
 
 export type AgRadialSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgRadialSeriesOptionsKeys &

@@ -707,73 +707,80 @@ export class MapMarkerSeries
         }
     }
 
-    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | undefined {
-        const { dataModel, processedData, properties } = this;
+    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, properties } = this;
         const {
             idKey,
+            idName,
             latitudeKey,
+            latitudeName,
             longitudeKey,
+            longitudeName,
             colorKey,
-            colorName = colorKey,
+            colorName,
             sizeKey,
-            sizeName = sizeKey,
+            sizeName,
             labelKey,
-            labelName = labelKey,
+            labelName,
+            title,
             legendItemName,
+            tooltip,
         } = properties;
         if (!dataModel || !processedData?.rawData.length) return;
 
         const { datumIndex } = seriesDatum;
-
-        const idValues =
-            idKey != null ? dataModel.resolveColumnById<string>(this, `idValue`, processedData) : undefined;
-        const latValues =
-            latitudeKey != null ? dataModel.resolveColumnById<number>(this, `latValue`, processedData) : undefined;
-        const lonValues =
-            longitudeKey != null ? dataModel.resolveColumnById<number>(this, `lonValue`, processedData) : undefined;
-        const labelValues =
-            labelKey != null ? dataModel.resolveColumnById<string>(this, `labelValue`, processedData) : undefined;
-        const sizeValues =
-            sizeKey != null ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData) : undefined;
-        const colorValues =
-            colorKey != null ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData) : undefined;
+        const datum = processedData.rawData[datumIndex];
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        if (sizeValues != null) {
-            data.push({
-                label: sizeName ?? '',
-                value: String(sizeValues[datumIndex]),
-            });
+        if (sizeKey != null) {
+            const sizeValue = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
+            data.push({ label: sizeName ?? '', value: String(sizeValue) });
         }
-        if (colorValues != null) {
-            data.push({
-                label: colorName ?? '',
-                value: String(colorValues[datumIndex]),
-            });
+        if (colorKey != null) {
+            const colorValue = dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+            data.push({ label: colorName ?? '', value: String(colorValue) });
         }
-        if (labelValues != null && labelKey !== idKey) {
-            data.push({
-                label: labelName ?? '',
-                value: String(labelValues[datumIndex]),
-            });
+        if (labelKey != null && labelKey !== idKey) {
+            const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
+            data.push({ label: labelName ?? '', value: labelValue });
         }
 
-        let groupTitle: string | undefined;
-        if (idValues != null) {
-            groupTitle = idValues?.[datumIndex];
-        } else if (latValues != null && lonValues != null) {
-            const latValue = latValues[datumIndex];
-            const lonValue = lonValues[datumIndex];
-            groupTitle = `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${lonValue >= 0 ? 'W' : 'E'}`;
+        let heading: string | undefined;
+        if (idKey != null) {
+            const idValue = dataModel.resolveColumnById<string>(this, `idValue`, processedData)[datumIndex];
+            heading = idValue;
+        } else if (latitudeKey != null && longitudeKey != null) {
+            const latValue = dataModel.resolveColumnById<number>(this, `latValue`, processedData)[datumIndex];
+            const lonValue = dataModel.resolveColumnById<number>(this, `lonValue`, processedData)[datumIndex];
+            heading = `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${lonValue >= 0 ? 'W' : 'E'}`;
         }
 
-        return {
-            groupTitle,
-            title: properties.title ?? legendItemName,
-            symbol: this.legendItemSymbol(datumIndex),
-            data,
-        };
+        return tooltip.formatTooltip(
+            {
+                heading,
+                title: title ?? legendItemName,
+                symbol: this.legendItemSymbol(datumIndex),
+                data,
+            },
+            {
+                seriesId,
+                datum,
+                title,
+                idKey,
+                idName,
+                latitudeKey,
+                latitudeName,
+                longitudeKey,
+                longitudeName,
+                colorKey,
+                colorName,
+                sizeKey,
+                sizeName,
+                labelKey,
+                labelName,
+            }
+        );
     }
 
     public getMapMarkerStyle(markerDatum: MapMarkerNodeDatum, highlighted: boolean) {

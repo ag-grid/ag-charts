@@ -71,7 +71,7 @@ export class CandlestickSeriesProperties<T extends AgOhlcSeriesBaseOptions> exte
     readonly item = new CandlestickSeriesItems();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgCandlestickSeriesTooltipRendererParams<any>>();
+    override readonly tooltip = new SeriesTooltip<AgCandlestickSeriesTooltipRendererParams<any>>();
 
     @Validate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgCandlestickSeriesItemStylerParams<unknown>, AgCandlestickSeriesItemOptions>;

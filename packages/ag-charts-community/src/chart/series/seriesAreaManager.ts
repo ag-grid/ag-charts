@@ -425,7 +425,7 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private getDatumAriaText(datum: SeriesNodeDatum, tooltipContent: TooltipContent | undefined): string {
+    private getDatumAriaText(datum: SeriesNodeDatum, tooltipContent: TooltipContent | string | undefined): string {
         const description = tooltipContent == null ? '' : tooltipContentAriaLabel(tooltipContent);
         return this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
             datum: datum.series.getDatumAriaText?.(datum, description) ?? description,

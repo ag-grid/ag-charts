@@ -568,9 +568,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent | undefined {
-        const { dataModel, processedData, axes, properties } = this;
-        const { yName } = properties;
+    override getTooltipContent(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { xKey, xName, yName, yLowKey, yHighKey, yLowName, yHighName, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -579,27 +579,33 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const { datumIndex } = nodeDatum;
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const yHighValues = dataModel.resolveColumnById(this, `yHighValue`, processedData);
-        const yLowValues = dataModel.resolveColumnById(this, `yLowValue`, processedData);
-
-        const xValue = xValues[datumIndex];
-        const yHighValue = yHighValues[datumIndex];
-        const yLowValue = yLowValues[datumIndex];
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
+        const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
+        const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];
 
         if (xValue == null) return;
 
         const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
-        return {
-            groupTitle: xAxis.formatDatum(xValue),
-            symbol: this.legendItemSymbol(),
-            data: [
-                {
-                    label: yName ?? '',
-                    value,
-                },
-            ],
-        };
+        return tooltip.formatTooltip(
+            {
+                heading: xAxis.formatDatum(xValue),
+                symbol: this.legendItemSymbol(),
+                data: [{ label: yName ?? '', value }],
+            },
+            {
+                seriesId,
+                datum,
+                title: yName,
+                xKey,
+                xName,
+                yName,
+                yLowKey,
+                yHighKey,
+                yLowName,
+                yHighName,
+            }
+        );
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {

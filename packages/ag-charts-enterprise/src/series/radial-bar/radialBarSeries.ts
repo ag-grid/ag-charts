@@ -499,9 +499,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         seriesLabelFadeOutAnimation(this, 'labels', animationManager, this.labelSelection);
     }
 
-    override getTooltipContent(nodeDatum: RadialBarNodeDatum): _ModuleSupport.TooltipContent | undefined {
-        const { dataModel, processedData, axes, properties } = this;
-        const { angleKey, angleName = angleKey } = properties;
+    override getTooltipContent(nodeDatum: RadialBarNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { angleKey, angleName, radiusKey, radiusName, tooltip } = properties;
         const angleAxis = axes[ChartAxisDirection.X];
         const radiusAxis = axes[ChartAxisDirection.Y];
 
@@ -510,24 +510,28 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         }
 
         const { datumIndex } = nodeDatum;
-        const radiusValues = dataModel.resolveKeysById(this, `radiusValue`, processedData);
-        const angleValues = dataModel.resolveColumnById(this, `angleValue-raw`, processedData);
-
-        const radiusValue = radiusValues[datumIndex];
-        const angleValue = angleValues[datumIndex];
+        const datum = processedData.rawData[datumIndex];
+        const radiusValue = dataModel.resolveKeysById(this, `radiusValue`, processedData)[datumIndex];
+        const angleValue = dataModel.resolveColumnById(this, `angleValue-raw`, processedData)[datumIndex];
 
         if (radiusValue == null) return;
 
-        return {
-            groupTitle: radiusAxis.formatDatum(radiusValue),
-            symbol: this.legendItemSymbol(),
-            data: [
-                {
-                    label: angleName,
-                    value: angleAxis.formatDatum(angleValue),
-                },
-            ],
-        };
+        return tooltip.formatTooltip(
+            {
+                heading: radiusAxis.formatDatum(radiusValue),
+                symbol: this.legendItemSymbol(),
+                data: [{ label: angleName ?? angleKey, value: angleAxis.formatDatum(angleValue) }],
+            },
+            {
+                seriesId,
+                datum,
+                title: angleName,
+                angleKey,
+                angleName,
+                radiusKey,
+                radiusName,
+            }
+        );
     }
 
     protected override pickNodeClosestDatum(

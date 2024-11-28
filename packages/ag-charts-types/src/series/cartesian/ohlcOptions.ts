@@ -1,6 +1,5 @@
 import type { Styler } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AxisOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 import type {
@@ -14,7 +13,7 @@ export type AgOhlcSeriesItemStylerParams<TDatum> = AgOhlcSeriesBaseItemStylerPar
 export interface AgOhlcSeriesTooltipRendererParams<TDatum>
     extends AgOhlcSeriesBaseTooltipRendererParams<TDatum>,
         AgOhlcSeriesBaseOptions {
-    stroke?: CssColor;
+    // @todo(AG-10574) stroke?: CssColor;
 }
 
 export type AgOhlcSeriesItemOptions = StrokeOptions & LineDashOptions;

@@ -1,8 +1,9 @@
+import type { _ModuleSupport } from 'ag-charts-community';
 import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult, InteractionRange } from 'ag-charts-types';
 
 import { BaseProperties } from '../../util/properties';
 import { BOOLEAN, FUNCTION, INTERACTION_RANGE, OBJECT, STRING, Validate } from '../../util/validation';
-import { TooltipPosition } from '../tooltip/tooltip';
+import { type TooltipContent, TooltipPosition } from '../tooltip/tooltip';
 
 type TooltipRenderer<P> = (params: P) => string | AgTooltipRendererResult;
 
@@ -19,7 +20,7 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends
     showArrow?: boolean;
 
     @Validate(FUNCTION, { optional: true })
-    renderer?: TooltipRenderer<P>;
+    renderer?: TooltipRenderer<_ModuleSupport.RequireOptional<P>>;
 
     @Validate(OBJECT)
     readonly interaction = new SeriesTooltipInteraction();
@@ -32,4 +33,11 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends
 
     @Validate(STRING, { optional: true })
     class?: string = undefined;
+
+    public formatTooltip(content: TooltipContent, params: _ModuleSupport.RequireOptional<P>): TooltipContent | string {
+        const overrides = this.renderer?.(params);
+        if (typeof overrides === 'string') return overrides;
+        if (overrides != null) return { ...content, ...overrides };
+        return content;
+    }
 }

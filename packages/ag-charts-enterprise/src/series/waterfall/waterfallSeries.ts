@@ -598,9 +598,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: WaterfallNodeDatum): _ModuleSupport.TooltipContent | undefined {
-        const { dataModel, processedData, axes, properties } = this;
-        const { yName } = properties;
+    override getTooltipContent(nodeDatum: WaterfallNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { xKey, xName, yKey, yName, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -609,20 +609,17 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         }
 
         const { datumIndex } = nodeDatum;
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yRaw`, processedData)[datumIndex];
+        const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
         const totalTypeValues = dataModel.resolveColumnById<AgWaterfallSeriesItemType | undefined>(
             this,
             `totalTypeValue`,
             processedData
         );
 
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, `yRaw`, processedData);
-        const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
-
-        const xValue = xValues[datumIndex];
         if (xValue == null) return;
-
-        const yValue = yValues[datumIndex];
 
         const datumType = totalTypeValues[datumIndex];
         const isPositive = (yValue ?? 0) >= 0;
@@ -644,17 +641,19 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             total = yValue;
         }
 
-        const value = yAxis.formatDatum(total);
-        return {
-            groupTitle: xAxis.formatDatum(xValue),
-            symbol: this.legendItemSymbol(seriesItemType),
-            data: [
-                {
-                    label: yName ?? '',
-                    value,
-                },
-            ],
-        };
+        return tooltip.formatTooltip(
+            {
+                heading: xAxis.formatDatum(xValue),
+                symbol: this.legendItemSymbol(seriesItemType),
+                data: [
+                    {
+                        label: yName ?? yKey,
+                        value: yAxis.formatDatum(total),
+                    },
+                ],
+            },
+            { seriesId, datum, title: yName, xKey, xName, yKey, yName }
+        );
     }
 
     private legendItemSymbol(item: AgWaterfallSeriesItemType): _ModuleSupport.LegendSymbolOptions {

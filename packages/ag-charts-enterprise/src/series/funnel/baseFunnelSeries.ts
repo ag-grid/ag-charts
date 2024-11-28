@@ -517,8 +517,9 @@ export abstract class BaseFunnelSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: FunnelNodeDatum): _ModuleSupport.TooltipContent | undefined {
-        const { dataModel, processedData } = this;
+    override getTooltipContent(nodeDatum: FunnelNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, properties } = this;
+        const { stageKey, valueKey, tooltip } = properties;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -527,23 +528,30 @@ export abstract class BaseFunnelSeries<
         }
 
         const { datumIndex } = nodeDatum;
-        const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
-
-        const xValue = xValues[datumIndex];
-        const yValue = yValues[datumIndex];
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, 'xValue', processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
         if (xValue == null) return;
 
-        return {
-            symbol: this.legendItemSymbol(datumIndex),
-            data: [
-                {
-                    label: xAxis.formatDatum(xValue),
-                    value: yAxis.formatDatum(yValue),
-                },
-            ],
-        };
+        return tooltip.formatTooltip(
+            {
+                symbol: this.legendItemSymbol(datumIndex),
+                data: [
+                    {
+                        label: xAxis.formatDatum(xValue),
+                        value: yAxis.formatDatum(yValue),
+                    },
+                ],
+            },
+            {
+                seriesId,
+                datum,
+                title: stageKey,
+                stageKey,
+                valueKey,
+            }
+        );
     }
 
     protected override resetAllAnimation(

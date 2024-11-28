@@ -413,19 +413,10 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: HeatmapNodeDatum): _ModuleSupport.TooltipContent | undefined {
-        const { dataModel, processedData, axes, properties, colorScale } = this;
-        const {
-            xKey,
-            xName = xKey,
-            yKey,
-            yName = yKey,
-            colorKey,
-            colorName = colorKey,
-            colorRange,
-            title,
-            legendItemName,
-        } = properties;
+    override getTooltipContent(nodeDatum: HeatmapNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties, colorScale } = this;
+        const { xKey, xName, yKey, yName, colorKey, colorName, colorRange, title, legendItemName, tooltip } =
+            properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -434,15 +425,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         }
 
         const { datumIndex } = nodeDatum;
-        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
-        const colorValues = colorKey
-            ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
+        const colorValue = colorKey
+            ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex]
             : undefined;
-
-        const xValue = xValues[datumIndex];
-        const yValue = yValues[datumIndex];
-        const colorValue = colorValues?.[datumIndex];
 
         if (xValue == null) return;
 
@@ -450,41 +438,54 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
 
         if (colorValue != null) {
             data.push({
-                label: colorName ?? '',
+                label: colorName ?? colorKey ?? '',
                 value: String(colorValue),
             });
         }
 
         data.push(
             {
-                label: xName,
+                label: xName ?? xKey,
                 value: xAxis.formatDatum(xValue),
             },
             {
-                label: yName,
+                label: yName ?? yKey,
                 value: yAxis.formatDatum(yValue),
             }
         );
 
         const fill = this.isColorScaleValid() && colorValue != null ? colorScale.convert(colorValue) : colorRange[0];
 
-        return {
-            title: title ?? legendItemName,
-            symbol:
-                fill != null
-                    ? {
-                          marker: {
-                              shape: 'square',
-                              fill: fill,
-                              fillOpacity: 1,
-                              stroke: undefined,
-                              strokeWidth: 0,
-                              strokeOpacity: 1,
-                          },
-                      }
-                    : undefined,
-            data,
-        };
+        return tooltip.formatTooltip(
+            {
+                title: title ?? legendItemName,
+                symbol:
+                    fill != null
+                        ? {
+                              marker: {
+                                  shape: 'square',
+                                  fill: fill,
+                                  fillOpacity: 1,
+                                  stroke: undefined,
+                                  strokeWidth: 0,
+                                  strokeOpacity: 1,
+                              },
+                          }
+                        : undefined,
+                data,
+            },
+            {
+                seriesId,
+                datum,
+                title,
+                xKey,
+                xName,
+                yKey,
+                yName,
+                colorKey,
+                colorName,
+            }
+        );
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.GradientLegendDatum[] {

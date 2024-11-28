@@ -1,5 +1,5 @@
 import type { AgChartCallbackParams } from './callbackOptions';
-import type { CssColor, DurationMs, InteractionRange, PixelSize, TextWrap } from './types';
+import type { DurationMs, InteractionRange, PixelSize, TextWrap } from './types';
 
 export interface AgChartTooltipOptions {
     /** Set to `false` to disable tooltips for all series in the chart. */
@@ -48,24 +48,25 @@ export interface AgTooltipPositionOptions {
     yOffset?: PixelSize;
 }
 
+export interface AgTooltipRendererDataRow {
+    label: string;
+    value?: string;
+}
+
 export interface AgTooltipRendererResult {
+    /** Content text for the tooltip body. */
+    heading?: string;
     /** Title text for the tooltip header. */
     title?: string;
     /** Content text for the tooltip body. */
-    content?: string;
-    /** Tooltip title text colour. */
-    color?: CssColor;
-    /** Tooltip title background colour. */
-    backgroundColor?: CssColor;
+    data?: AgTooltipRendererDataRow[];
     /** Tooltip CSS class. */
     class?: string;
 }
 
-export interface AgSeriesTooltipRendererParams<TDatum> extends AgChartCallbackParams<TDatum> {
+export interface AgSeriesTooltipRendererParams<TDatum> extends Omit<AgChartCallbackParams<TDatum>, 'itemId'> {
     /** Series title or yName depending on series configuration. */
     readonly title?: string;
-    /** Series primary colour, as selected from the active theme, series options or formatter. */
-    readonly color?: CssColor;
 }
 
 export interface AgSeriesTooltip<TParams extends AgSeriesTooltipRendererParams<any>> {

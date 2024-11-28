@@ -32,7 +32,7 @@ export interface ISeries<TDatum, TProps, TLabel = TDatum> {
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
     getLabelData(): (TLabel & PointLabelDatum)[];
-    getTooltipContent(seriesDatum: any): TooltipContent | undefined;
+    getTooltipContent(seriesDatum: any): TooltipContent | string | undefined;
     getDatumAriaText?(seriesDatum: TDatum, description: string): string | undefined;
     // BoundSeries
     getBandScalePadding?(): { inner: number; outer: number };
