@@ -1,4 +1,11 @@
 .ag-chart-tooltip {
+    /* Popover attribute resets */
+    position: fixed;
+    inset: unset;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+
     width: max-content;
     font:
         12px Verdana,
@@ -8,16 +15,9 @@
     border: var(--ag-charts-tooltip-border);
     border-radius: var(--ag-charts-tooltip-border-radius);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
-
-    /* Resets when using popover attribute */
-    position: fixed;
-    inset: unset;
-    margin: 0;
-    padding: 0;
-    overflow: visible;
 }
 
-.ag-chart-tooltip-compact {
+.ag-chart-tooltip--compact {
     --ag-charts-tooltip-title-padding: var(--ag-charts-tooltip-compact-title-padding);
     --ag-charts-tooltip-content-padding: var(--ag-charts-tooltip-compact-content-padding);
 }
@@ -49,37 +49,45 @@
     user-select: none;
 }
 
-.ag-chart-tooltip-title {
-    overflow: hidden;
-    position: relative;
-    padding: var(--ag-charts-tooltip-title-padding);
-    border-top-left-radius: var(--ag-charts-tooltip-border-radius);
-    border-top-right-radius: var(--ag-charts-tooltip-border-radius);
-    color: white;
-    background-color: #888888;
-    z-index: 1;
-    text-overflow: inherit;
+.ag-chart-tooltip__content {
+    display: grid;
+    grid: auto-flow minmax(1em, auto) / 1fr;
+    padding: 8px 12px;
+    gap: 8px;
 }
 
-.ag-chart-tooltip-title:only-child {
-    border-bottom-left-radius: var(--ag-charts-tooltip-border-radius);
-    border-bottom-right-radius: var(--ag-charts-tooltip-border-radius);
+.ag-chart-tooltip__content:has(.ag-chart-tooltip__symbol) {
+    grid: auto-flow minmax(1em, auto) / auto 1fr;
 }
 
-.ag-chart-tooltip-content {
-    overflow: hidden;
-    padding: var(--ag-charts-tooltip-content-padding);
-    line-height: 1.7em;
-    background: white;
-    border-bottom-left-radius: var(--ag-charts-tooltip-border-radius);
-    border-bottom-right-radius: var(--ag-charts-tooltip-border-radius);
-    border: 1px solid rgba(0, 0, 0, 0.15);
-    text-overflow: inherit;
+.ag-chart-tooltip__group-title {
+    grid-column: 1 / -1;
 }
 
-.ag-chart-tooltip-content:only-child {
-    border-top-left-radius: var(--ag-charts-tooltip-border-radius);
-    border-top-right-radius: var(--ag-charts-tooltip-border-radius);
+.ag-chart-tooltip__symbol {
+    grid-column: 1 / 2;
+    align-self: center;
+}
+
+.ag-chart-tooltip__title {
+    grid-column: -2 / -1;
+}
+
+.ag-chart-tooltip__row {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+    justify-content: space-between;
+}
+
+.ag-chart-tooltip__row--inline {
+    grid-column: -2 / -1;
+}
+
+.ag-chart-tooltip__symbol svg {
+    /* Fixes vertical alignment */
+    display: block;
 }
 
 .ag-chart-tooltip-arrow::before {
@@ -121,46 +129,4 @@
     height: 0;
 
     margin: 0 auto;
-}
-
-/** TOOLTIP REFACTOR */
-.ag-chart-tooltip__content {
-    display: grid;
-    grid: auto-flow minmax(1em, auto) / 1fr;
-    padding: 8px 12px;
-    gap: 8px;
-}
-
-.ag-chart-tooltip__content:has(.ag-chart-tooltip__symbol) {
-    grid: auto-flow minmax(1em, auto) / auto 1fr;
-}
-
-.ag-chart-tooltip__group-title {
-    grid-column: 1 / -1;
-}
-
-.ag-chart-tooltip__symbol {
-    grid-column: 1 / 2;
-    align-self: center;
-}
-
-.ag-chart-tooltip__title {
-    grid-column: -2 / -1;
-}
-
-.ag-chart-tooltip__row {
-    grid-column: 1 / -1;
-    display: flex;
-    gap: 16px;
-    align-items: baseline;
-    justify-content: space-between;
-}
-
-.ag-chart-tooltip__row--inline {
-    grid-column: -2 / -1;
-}
-
-.ag-chart-tooltip__symbol svg {
-    /* Fixes vertical alignment */
-    display: block;
 }

@@ -499,7 +499,7 @@ export abstract class FlowProportionSeries<
             {
                 title,
                 symbol: this.legendItemSymbol(seriesDatum.type, nodeIndex),
-                data: [{ label: sizeName ?? sizeKey ?? '', value: String(size) }],
+                data: sizeKey != null ? [{ label: sizeName, fallbackLabel: sizeKey, value: String(size) }] : [],
             },
             {
                 seriesId,

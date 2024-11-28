@@ -12,50 +12,13 @@ NodeList [
     <div
       class="ag-chart-tooltip__content"
     >
-      <span
-        class="ag-chart-tooltip__group-title"
-      >
-        May
-      </span>
-       
-      <span
-        class="ag-chart-tooltip__symbol"
-      >
-        <svg
-          height="12"
-          viewBox="0 0 20 12"
-          width="20"
-        >
-          <line
-            stroke="#f3622d"
-            stroke-opacity="1"
-            stroke-width="2"
-            x1="0"
-            x2="20"
-            y1="6"
-            y2="6"
-          />
-          <g
-            transform="matrix(1 0 0 1 10 6)"
-          >
-            <path
-              d="M 6 0 C 6 3.3137084989847603 3.3137084989847607 6 3.6739403974420594e-16 6 C -3.31370849898476 6 -6 3.313708498984761 -6 7.347880794884119e-16 C -6 -3.3137084989847594 -3.313708498984761 -5.999999999999999 -1.102182119232618e-15 -6 C 3.3137084989847594 -6.000000000000001 5.999999999999999 -3.3137084989847616 6 -1.4695761589768238e-15 Z"
-              fill="#f3622d"
-              fill-opacity="1"
-              stroke="#aa4520"
-              stroke-opacity="1"
-              stroke-width="0"
-            />
-          </g>
-        </svg>
-      </span>
       <div
-        class="ag-chart-tooltip__row ag-chart-tooltip__row--inline"
+        class="ag-chart-tooltip__row"
       >
         <span
           class="ag-chart-tooltip__label"
         >
-          temperature
+          May
         </span>
          
         <span

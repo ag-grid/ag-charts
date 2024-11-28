@@ -57,10 +57,9 @@ export interface TooltipMeta extends TooltipOffsets {
     enableInteraction?: boolean;
 }
 
-export interface TooltipContentDataRow {
-    label: string;
-    value?: string;
-}
+export type TooltipContentDataRow =
+    | { label: string; fallbackLabel?: string; value?: string }
+    | { label: undefined; fallbackLabel: string; value?: string };
 
 export interface TooltipContent {
     heading?: string;
@@ -74,45 +73,62 @@ export function tooltipContentAriaLabel(_content: TooltipContent | string) {
     return '';
 }
 
+function dataHtml(label: string, value: string | undefined, inline: boolean) {
+    let rowHtml = '';
+
+    rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(label)}</span>`;
+
+    if (value != null) {
+        rowHtml += ' ';
+        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(value)}</span>`;
+    }
+
+    const rowClassNames = [`${DEFAULT_TOOLTIP_CLASS}__row`];
+    if (inline) rowClassNames.push(`${DEFAULT_TOOLTIP_CLASS}__row--inline`);
+    rowHtml = `<div class="${rowClassNames.join(' ')}">${rowHtml}</div>`;
+
+    return rowHtml;
+}
+
 function tooltipContentHtml(content: TooltipContent | string) {
     if (typeof content === 'string') return content;
 
-    const dataInline = content.title == null && content.data?.length === 1;
-
     let html = '';
 
-    if (content.heading != null) {
-        html += `<span class="${DEFAULT_TOOLTIP_CLASS}__group-title">${sanitizeHtml(content.heading)}</span>`;
-        html += ' ';
-    }
+    if (
+        (content.heading == null) !== (content.title == null) &&
+        content.data?.length === 1 &&
+        content.data[0].label == null &&
+        content.data[0].value != null
+    ) {
+        // Compact rendering
+        const datum = content.data[0];
 
-    const symbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
-    if (symbol != null && (content.title != null || content.data?.length)) {
-        html += `<span class="${DEFAULT_TOOLTIP_CLASS}__symbol">${symbol}</span>`;
-    }
+        html += dataHtml((content.heading ?? content.title)!, datum.value, false);
+    } else {
+        // Full rendering
+        const dataInline = content.title == null && content.data?.length === 1;
 
-    if (content.title != null) {
-        html += `<span class="${DEFAULT_TOOLTIP_CLASS}__title">${sanitizeHtml(content.title)}</span>`;
-        html += ' ';
-    }
-
-    content.data?.forEach((datum) => {
-        let rowHtml = '';
-
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(datum.label)}</span>`;
-        rowHtml += ' ';
-
-        if (datum.value != null) {
-            rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(datum.value)}</span>`;
+        if (content.heading != null) {
+            html += `<span class="${DEFAULT_TOOLTIP_CLASS}__group-title">${sanitizeHtml(content.heading)}</span>`;
+            html += ' ';
         }
 
-        const rowClassNames = [`${DEFAULT_TOOLTIP_CLASS}__row`];
-        if (dataInline) rowClassNames.push(`${DEFAULT_TOOLTIP_CLASS}__row--inline`);
-        rowHtml = `<div class="${rowClassNames.join(' ')}">${rowHtml.trimEnd()}</div>`;
+        const symbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
+        if (symbol != null && (content.title != null || content.data?.length)) {
+            html += `<span class="${DEFAULT_TOOLTIP_CLASS}__symbol">${symbol}</span>`;
+        }
 
-        html += rowHtml;
-        html += ' ';
-    });
+        if (content.title != null) {
+            html += `<span class="${DEFAULT_TOOLTIP_CLASS}__title">${sanitizeHtml(content.title)}</span>`;
+            html += ' ';
+        }
+
+        content.data?.forEach((datum) => {
+            html += dataHtml(datum.label ?? datum.fallbackLabel, datum.value, dataInline);
+            html += ' ';
+        });
+    }
 
     html = `<div class="${DEFAULT_TOOLTIP_CLASS}__content">${html.trimEnd()}</div>`;
 

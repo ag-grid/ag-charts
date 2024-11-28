@@ -311,7 +311,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
 
     chartOpts.tooltip = {
         ...chartOpts.tooltip,
-        class: 'ag-chart-tooltip-compact',
+        class: 'ag-chart-tooltip--compact',
     };
     chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME);
     chartOpts.data = data;

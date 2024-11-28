@@ -481,7 +481,9 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             domain: domain as any,
         };
 
-        const data: TooltipContentDataRow[] = [{ label: xName ?? xKey, value: yAxis.formatDatum(frequency) }];
+        const data: TooltipContentDataRow[] = [
+            { label: xName, fallbackLabel: xKey, value: yAxis.formatDatum(frequency) },
+        ];
 
         if (yKey != null) {
             data.push({ label: legendItemName ?? yName ?? yKey, value: yAxis.formatDatum(aggregatedValue) });

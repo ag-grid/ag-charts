@@ -732,7 +732,7 @@ export class AreaSeries extends CartesianSeries<
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: legendItemName ?? yName ?? yKey, value: yAxis.formatDatum(yValue) }],
+                data: [{ label: legendItemName ?? yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) }],
             },
             {
                 seriesId,

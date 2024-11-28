@@ -520,7 +520,7 @@ export abstract class RadialColumnSeriesBase<
             {
                 heading: angleAxis.formatDatum(angleValue),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: radiusName ?? radiusKey, value: radiusAxis.formatDatum(radiusValue) }],
+                data: [{ label: radiusName, fallbackLabel: radiusKey, value: radiusAxis.formatDatum(radiusValue) }],
             },
             {
                 seriesId,

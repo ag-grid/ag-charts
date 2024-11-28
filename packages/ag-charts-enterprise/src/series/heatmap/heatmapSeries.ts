@@ -428,19 +428,21 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const datum = processedData.rawData[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
-        const colorValue = colorKey
-            ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex]
-            : undefined;
 
         if (xValue == null) return;
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        if (colorValue != null) {
+        let fill: string;
+        if (colorKey != null && this.isColorScaleValid()) {
+            const colorValue = dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+            fill = colorScale.convert(colorValue);
             data.push({
-                label: colorName ?? colorKey ?? '',
+                label: colorName ?? colorKey,
                 value: String(colorValue),
             });
+        } else {
+            fill = colorRange[0];
         }
 
         data.push(
@@ -453,8 +455,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 value: yAxis.formatDatum(yValue),
             }
         );
-
-        const fill = this.isColorScaleValid() && colorValue != null ? colorScale.convert(colorValue) : colorRange[0];
 
         return tooltip.formatTooltip(
             {

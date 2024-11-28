@@ -512,7 +512,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             {
                 heading: radiusAxis.formatDatum(radiusValue),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: angleName ?? angleKey, value: angleAxis.formatDatum(angleValue) }],
+                data: [{ label: angleName, fallbackLabel: angleKey, value: angleAxis.formatDatum(angleValue) }],
             },
             {
                 seriesId,
