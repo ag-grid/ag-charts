@@ -1,0 +1,26 @@
+{
+  "name": "angular-package-tests",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tests/angular-package-tests",
+  "projectType": "",
+  "targets": {
+    "test:package": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "dependsOn": ["^pack"],
+      "options": {
+        "parallel": false,
+        "commands": ["{projectRoot}/run.sh 17", "{projectRoot}/run.sh 18", "{projectRoot}/run.sh 19"]
+      }
+    }
+  },
+  "implicitDependencies": [
+    "ag-charts-community",
+    "ag-charts-enterprise",
+    "ag-charts-locale",
+    "ag-charts-types",
+    "ag-charts-angular",
+    "ag-charts-react",
+    "ag-charts-vue3"
+  ]
+}
