@@ -48,7 +48,9 @@ interface ColorPickerOptions {
     label: string;
     color?: string;
     opacity?: number;
-    onChange: (colorOpacity: string, color: string, opacity: number) => void;
+    isMultiColor?: boolean;
+    hasMultiColorOption: boolean;
+    onChange: (colorOpacity: string, color: string, opacity: number, isMultiColor: boolean) => void;
     onChangeHide: () => void;
 }
 
@@ -262,7 +264,16 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         return group;
     }
 
-    protected createColorPicker({ color, opacity, label, altText, onChange, onChangeHide }: ColorPickerOptions) {
+    protected createColorPicker({
+        color,
+        opacity,
+        label,
+        altText,
+        onChange,
+        onChangeHide,
+        isMultiColor,
+        hasMultiColorOption,
+    }: ColorPickerOptions) {
         const group = this.createInputGroup(label);
 
         const altTextT = this.ctx.localeManager.t(altText);
@@ -278,10 +289,21 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                         fallbackAnchor,
                         color,
                         opacity,
+                        isMultiColor,
+                        hasMultiColorOption,
                         sourceEvent: event,
-                        onChange: (newColorOpacity: string, newColor: string, newOpacity: number) => {
+                        onChange: (
+                            newColorOpacity: string,
+                            newColor: string,
+                            newOpacity: number,
+                            isMultiColor: boolean
+                        ) => {
                             colorEl.style.setProperty('--color', newColorOpacity);
-                            onChange(newColorOpacity, newColor, newOpacity);
+                            colorEl.classList.toggle(
+                                '.ag-charts-dialog__color-picker-button--multi-color',
+                                isMultiColor
+                            );
+                            onChange(newColorOpacity, newColor, newOpacity, isMultiColor);
                         },
                         onChangeHide,
                     });
@@ -295,7 +317,9 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             }
         );
 
-        if (color) {
+        if (isMultiColor) {
+            colorEl.classList.toggle('.ag-charts-dialog__color-picker-button--multi-color');
+        } else if (color) {
             const hex = Color.fromHexString(color);
             const hexWithOpacity = new Color(hex.r, hex.g, hex.b, opacity);
             colorEl.style.setProperty('--color', hexWithOpacity.toHexString());

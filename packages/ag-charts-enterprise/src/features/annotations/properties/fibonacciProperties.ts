@@ -22,7 +22,10 @@ export class FibonacciProperties extends LineTypeProperties {
     @Validate(BOOLEAN, { optional: true })
     showFill: boolean = true;
 
-    @Validate(COLOR_STRING_ARRAY)
+    @Validate(BOOLEAN, { optional: true })
+    isMultiColor: boolean = true;
+
+    @Validate(COLOR_STRING_ARRAY, { optional: true })
     strokes: string[] = [];
 
     @Validate(FIBONACCI_BANDS, { optional: true })

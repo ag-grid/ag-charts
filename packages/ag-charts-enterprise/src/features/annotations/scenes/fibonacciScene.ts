@@ -110,12 +110,11 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
     }
 
     private updateRangeStrokes(datum: Datum) {
-        const { lineDashOffset, strokeWidth, strokeOpacity, strokes } = datum;
+        const { lineDashOffset, strokeWidth, strokeOpacity, strokes, stroke, isMultiColor } = datum;
 
-        const firstStroke = strokes[0];
         this.rangeStrokesGroupSelection.each((line, { x1, x2, y2, tag }, index) => {
             const y = y2;
-            const color = strokes[index] ?? firstStroke;
+            const color = isMultiColor ? strokes[index] : stroke;
             line.setProperties({
                 x1,
                 x2,
@@ -146,11 +145,10 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
     }
 
     private updateRangeFills(datum: Datum) {
-        const { lineDashOffset, strokeWidth, strokeOpacity, strokes: colors, showFill } = datum;
+        const { lineDashOffset, strokeWidth, strokeOpacity, strokes: colors, stroke, showFill, isMultiColor } = datum;
 
-        const firstColor = colors[0];
         this.rangeFillsGroupSelection.each((range, { x1, x2, y1, y2 }, index) => {
-            const color = colors[index] ?? firstColor;
+            const color = isMultiColor ? colors[index] : stroke;
             if (!showFill) {
                 range.visible = false;
                 return;
@@ -178,11 +176,10 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
     private updateRangeLabels(trendLineProperties: Datum, { xAxis }: AnnotationContext) {
         const { rangeStrokesGroupSelection } = this;
-        const { strokes: colors, strokeWidth } = trendLineProperties;
+        const { strokes: colors, strokeWidth, stroke, isMultiColor } = trendLineProperties;
 
-        const firstColor = colors[0];
         this.labelsGroupSelection.each((textNode, datum, index) => {
-            const color = colors[index] ?? firstColor;
+            const color = isMultiColor ? colors[index] : stroke;
 
             const line = rangeStrokesGroupSelection.at(index);
 

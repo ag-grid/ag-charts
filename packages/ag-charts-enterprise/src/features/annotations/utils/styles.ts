@@ -33,7 +33,8 @@ export function setColor(
     colorPickerType: AnnotationOptionsColorPickerType,
     colorOpacity: string,
     color: string,
-    opacity: number
+    opacity: number,
+    isMultiColor: boolean
 ) {
     switch (colorPickerType) {
         case `fill-color`: {
@@ -59,10 +60,9 @@ export function setColor(
                 datum.fillOpacity = opacity;
             } else {
                 if ('strokeOpacity' in datum) datum.strokeOpacity = opacity;
-                if ('strokes' in datum) {
-                    datum.strokes = [color];
-                } else if ('stroke' in datum) {
-                    datum.stroke = color;
+                if ('stroke' in datum) datum.stroke = color;
+                if ('isMultiColor' in datum) {
+                    datum.isMultiColor = isMultiColor;
                 }
             }
 

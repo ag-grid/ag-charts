@@ -52,6 +52,7 @@ interface EventMap {
         colorOpacity: string;
         color: string;
         opacity: number;
+        isMultiColor: boolean;
     };
     'updated-font-size': { type: HasFontSizeAnnotationType; fontSize: number };
     'updated-line-style': { type: HasLineStyleAnnotationType; lineStyleType: AgAnnotationLineStyleType };
@@ -82,12 +83,16 @@ class AnnotationOptionsButtonProperties extends ToolbarButtonProperties {
 
     @Validate(NUMBER, { optional: true })
     strokeWidth?: number;
+
+    @Validate(Boolean, { optional: true })
+    isMultiColor?: boolean;
 }
 
 interface AnnotationOptionsButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
     value: AnnotationOptions;
     color?: string;
     strokeWidth?: number;
+    isMultiColor?: boolean;
 }
 
 class AnnotationOptionsButtonWidget extends ToolbarButtonWidget {
@@ -110,6 +115,7 @@ class AnnotationOptionsButtonWidget extends ToolbarButtonWidget {
     private updateFillColor(options: AnnotationOptionsButtonOptions) {
         const element = this.getElement();
         element.classList.add('ag-charts-annotations__color-picker-button');
+        element.classList.toggle('ag-charts-annotations__color-picker-button--multi-color', options.isMultiColor);
         element.style.setProperty('--color', options.color ?? null);
     }
 
@@ -245,12 +251,17 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         );
     }
 
-    public updateColorPickerColor(colorPickerType: AnnotationOptionsColorPickerType, color?: string, opacity?: number) {
+    public updateColorPickerColor(
+        colorPickerType: AnnotationOptionsColorPickerType,
+        color?: string,
+        opacity?: number,
+        isMultiColor?: boolean
+    ) {
         if (color != null && opacity != null) {
             const { r, g, b } = Color.fromString(color);
             color = Color.fromArray([r, g, b, opacity]).toHexString();
         }
-        this.updateButtonByValue(colorPickerType as any, { color });
+        this.updateButtonByValue(colorPickerType as any, { color, isMultiColor });
     }
 
     private updateFontSize(fontSize: number | undefined) {
@@ -320,6 +331,8 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
                     color: datum?.getDefaultColor(button.value),
                     opacity: datum?.getDefaultOpacity(button.value),
                     sourceEvent: event.sourceEvent,
+                    hasMultiColorOption: 'isMultiColor' in datum,
+                    isMultiColor: 'isMultiColor' in datum && datum?.isMultiColor,
                     onChange: datum != null ? this.onColorPickerChange.bind(this, button.value, datum) : undefined,
                     onChangeHide: ((type: AnnotationOptionsColorPickerType) => {
                         this.dispatch('saved-color', {
@@ -405,9 +418,17 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         datum: AnnotationProperties,
         colorOpacity: string,
         color: string,
-        opacity: number
+        opacity: number,
+        isMultiColor: boolean
     ) {
-        this.dispatch('updated-color', { type: datum.type, colorPickerType, colorOpacity, color, opacity });
+        this.dispatch('updated-color', {
+            type: datum.type,
+            colorPickerType,
+            colorOpacity,
+            color,
+            opacity,
+            isMultiColor,
+        });
         this.updateColorPickerColor(colorPickerType, colorOpacity);
     }
 

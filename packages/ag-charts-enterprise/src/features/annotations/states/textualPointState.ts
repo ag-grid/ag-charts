@@ -81,18 +81,20 @@ export abstract class TextualPointStateMachine<
             colorOpacity,
             color,
             opacity,
+            isMultiColor,
         }: {
             colorPickerType: AnnotationOptionsColorPickerType;
             colorOpacity: string;
             color: string;
             opacity: number;
+            isMultiColor: boolean;
         }) => {
             if (!this.datum) return;
 
             if (colorPickerType === 'text-color') {
                 ctx.updateTextInputColor(color);
             }
-            setColor(this.datum as any, colorPickerType, colorOpacity, color, opacity);
+            setColor(this.datum as any, colorPickerType, colorOpacity, color, opacity, isMultiColor);
             ctx.update();
         };
 

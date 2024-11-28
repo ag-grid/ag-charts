@@ -6,9 +6,12 @@ const { createElement, Color, clamp } = _ModuleSupport;
 
 export interface ColorPickerOptions extends _ModuleSupport.AnchoredPopoverOptions {
     color?: string;
+    multiColor?: boolean;
     opacity?: number;
+    isMultiColor?: boolean;
+    hasMultiColorOption: boolean;
     sourceEvent: Event;
-    onChange?: (colorOpacity: string, color: string, opacity: number) => void;
+    onChange?: (colorOpacity: string, color: string, opacity: number, isMultiColor: boolean) => void;
     onChangeHide?: () => void;
 }
 
@@ -44,6 +47,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
     }
 
     private createColorPicker(opts: ColorPickerOptions) {
+        let isMultiColor = opts.isMultiColor ?? false;
         let [h, s, v, a] = getHsva(opts.color ?? '#f00') ?? [0, 1, 0.5, 1];
         a = opts.opacity ?? a;
 
@@ -53,8 +57,17 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
 
         const paletteInput = colorPicker.querySelector<HTMLDivElement>('.ag-charts-color-picker__palette')!;
         const hueInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__hue-input')!;
+        const multiColorButton = colorPicker.querySelector<HTMLButtonElement>(
+            '.ag-charts-color-picker__multi-color-button'
+        )!;
         const alphaInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__alpha-input')!;
         const colorInput = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-input')!;
+        const colorInputLabel = colorPicker.querySelector<HTMLInputElement>('.ag-charts-color-picker__color-label')!;
+
+        multiColorButton.classList.toggle(
+            'ag-charts-color-picker__multi-color-button--hidden',
+            !opts.hasMultiColorOption
+        );
 
         const update = (trackChange = true) => {
             const color = Color.fromHSB(h, s, v, a);
@@ -72,13 +85,17 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
 
             alphaInput.classList.toggle('ag-charts-color-picker__alpha-input--opaque', a === 1);
 
+            multiColorButton.classList.toggle('ag-charts-color-picker__multi-color-button--active', isMultiColor);
+
+            colorInputLabel.classList.toggle('ag-charts-color-picker__color-label--multi-color', isMultiColor);
+
             if (document.activeElement !== colorInput) {
-                colorInput.value = colorString.toUpperCase();
+                colorInput.value = isMultiColor ? 'Multi Colour' : colorString.toUpperCase();
             }
 
             if (trackChange || opts.color == null) {
                 const plainColor = Color.fromHSB(h, s, v, 1).toHexString();
-                opts.onChange?.(colorString, plainColor, a);
+                opts.onChange?.(colorString, plainColor, a, isMultiColor);
             }
 
             if (trackChange) this.hasChanged = true;
@@ -93,6 +110,7 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             const rect = currentTarget.getBoundingClientRect();
 
             const mouseMove = ({ pageX, pageY }: MouseEvent) => {
+                isMultiColor = false;
                 s = Math.min(Math.max((pageX - rect.left) / rect.width, 0), 1);
                 v = 1 - Math.min(Math.max((pageY - rect.top) / rect.height, 0), 1);
                 update();
@@ -137,15 +155,22 @@ export class ColorPicker extends _ModuleSupport.AnchoredPopover<ColorPickerOptio
             e.preventDefault();
             update();
         });
+        multiColorButton.addEventListener('click', () => {
+            isMultiColor = !isMultiColor;
+            update();
+        });
         hueInput.addEventListener('input', (e) => {
+            isMultiColor = false;
             h = (e.currentTarget as HTMLInputElement).valueAsNumber ?? 0;
             update();
         });
         alphaInput.addEventListener('input', (e) => {
+            isMultiColor = false;
             a = (e.currentTarget as HTMLInputElement).valueAsNumber ?? 0;
             update();
         });
         colorInput.addEventListener('input', (e) => {
+            isMultiColor = false;
             const hsva = getHsva((e.currentTarget as HTMLInputElement).value);
             if (hsva == null) return;
             [h, s, v, a] = hsva;

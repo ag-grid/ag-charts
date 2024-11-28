@@ -146,6 +146,19 @@
     width: 26px;
 }
 
+.ag-charts-dialog__color-picker-button--multi-color {
+    background: linear-gradient(
+        135deg,
+        #f00 calc(100% * 0 / 6),
+        #ff0 calc(100% * 1 / 6),
+        #0f0 calc(100% * 2 / 6),
+        #0ff calc(100% * 3 / 6),
+        #00f calc(100% * 4 / 6),
+        #f0f calc(100% * 5 / 6),
+        #f00 calc(100% * 6 / 6)
+    );
+}
+
 .ag-charts-dialog__color-picker-button:hover {
     background: var(--color);
 }

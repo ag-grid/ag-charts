@@ -192,18 +192,20 @@ class AnnotationsMainStateMachine extends StateMachine<States, AnnotationStateEv
             colorOpacity,
             color,
             opacity,
+            isMultiColor,
         }: {
             colorPickerType: AnnotationOptionsColorPickerType;
             colorOpacity: string;
             color: string;
             opacity: number;
+            isMultiColor: boolean;
         }) => {
             if (!this.datum) return;
 
             if (colorPickerType === 'text-color') {
                 ctx.updateTextInputColor(color);
             }
-            setColor(this.datum, colorPickerType, colorOpacity, color, opacity);
+            setColor(this.datum, colorPickerType, colorOpacity, color, opacity, isMultiColor);
             ctx.update();
         };
 
