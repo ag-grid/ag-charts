@@ -26,20 +26,6 @@ const sharedSeriesOptions: AgPieSeriesOptions = {
   fills: ["#49afda", "#57cc8b", "#f4b944", "#fb7451", "#b7b5ba"],
   strokeWidth: 0,
   legendItemKey: "browser",
-  tooltip: {
-    renderer: ({ datum, color, sectorLabelKey }) => {
-      return [
-        `<div style="background-color: ${color}; padding: 4px 8px; border-top-left-radius: 5px; border-top-right-radius: 5px; color: white; font-weight: bold;">`,
-        datum["year"],
-        `</div>`,
-        `<div style="padding: 4px 8px;">`,
-        `  <strong>${datum["browser"]}:</strong> ${numFormatter.format(
-          datum[sectorLabelKey!]
-        )}`,
-        `</div>`,
-      ].join("\n")
-    },
-  },
   highlightStyle: {
     item: {
       fillOpacity: 0,

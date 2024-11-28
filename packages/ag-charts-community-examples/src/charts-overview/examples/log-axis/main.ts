@@ -66,11 +66,6 @@ const options: AgCartesianChartOptions = {
       type: "line",
       xKey: "year",
       yKey: "population",
-      tooltip: {
-        renderer: ({datum, xKey, yKey}) => ({
-          content: `${datum[xKey]} CE: ${formatter.format(datum[yKey] ?? 0)}`,
-        }),
-      },
     },
   ],
   axes: logAxes

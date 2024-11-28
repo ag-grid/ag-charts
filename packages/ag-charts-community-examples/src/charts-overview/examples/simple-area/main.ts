@@ -11,12 +11,6 @@ const options: AgChartOptions = {
             area: {
                 series: {
                     fillOpacity: 0.8,
-                    tooltip: {
-                        renderer: ({ datum, xKey, yKey }) => {
-                            const date = Intl.DateTimeFormat('en-GB').format(datum[xKey]);
-                            return { content: `${date}: ${Math.round(datum[yKey] / 100) / 10 + 'k'}` };
-                        },
-                    },
                 },
             },
         },

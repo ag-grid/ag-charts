@@ -50,15 +50,6 @@ const options: AgChartOptions = {
                 '#49afda',
             ],
             strokeWidth: 0,
-            tooltip: {
-                renderer: ({ datum, color }) => {
-                    return [
-                        `<div style="background-color: ${color}; padding: 4px 8px; border-top-left-radius: 5px; border-top-right-radius: 5px; font-weight: bold; color: white;">${datum['country']}</div>`,
-                        `<div style="padding: 4px 8px"><strong>Population:</strong> ${numFormatter.format(datum['population'])}</div>`,
-                        `<div style="padding: 4px 8px"><strong>GDP per Capita:</strong> ${usdFormatter.format(datum['gdpPerCapita'])}</div>`,
-                    ].join('\n');
-                },
-            },
             highlightStyle: {
                 item: {
                     fillOpacity: 0,

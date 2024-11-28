@@ -68,16 +68,6 @@ const options: AgChartOptions = {
           strokeWidth: 1,
         },
       },
-      tooltip: {
-        renderer: ({ datum, calloutLabelKey, title, sectorLabelKey }) => {
-          return {
-            title,
-            content: `${datum[calloutLabelKey!]}: ${numFormatter.format(
-              datum[sectorLabelKey!]
-            )}`,
-          }
-        },
-      },
     },
   ],
 }

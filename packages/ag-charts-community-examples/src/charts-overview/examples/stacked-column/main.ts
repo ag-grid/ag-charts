@@ -1,19 +1,8 @@
-import type {
-  AgCartesianSeriesTooltipRendererParams,
-  AgChartOptions,
-  AgTooltipRendererResult} from "ag-charts-community";
+import type { AgChartOptions } from "ag-charts-community";
 import {
   AgCharts
 } from "ag-charts-community"
 import { getData } from "./data"
-
-const numFormatter = new Intl.NumberFormat("en-US")
-const tooltip = {
-  renderer: ({ title, datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
-    title,
-    content: `${datum[xKey]}: ${numFormatter.format(datum[yKey])}`,
-  }),
-}
 
 const options: AgChartOptions = {
   container: document.getElementById("myChart"),
@@ -54,7 +43,6 @@ const options: AgChartOptions = {
       yKey: "early",
       stacked: true,
       yName: "Early",
-      tooltip,
     },
     {
       type: "bar",
@@ -62,7 +50,6 @@ const options: AgChartOptions = {
       yKey: "morningPeak",
       yName: "Morning peak",
       stacked: true,
-      tooltip,
     },
     {
       type: "bar",
@@ -70,7 +57,6 @@ const options: AgChartOptions = {
       yKey: "interPeak",
       yName: "Between peak",
       stacked: true,
-      tooltip,
     },
     {
       type: "bar",
@@ -78,7 +64,6 @@ const options: AgChartOptions = {
       yKey: "afternoonPeak",
       yName: "Afternoon peak",
       stacked: true,
-      tooltip,
     },
     {
       type: "bar",
@@ -86,7 +71,6 @@ const options: AgChartOptions = {
       yKey: "evening",
       yName: "Evening",
       stacked: true,
-      tooltip,
     },
   ],
   axes: [
