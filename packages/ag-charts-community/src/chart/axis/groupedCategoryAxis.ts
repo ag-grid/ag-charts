@@ -270,7 +270,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         treeLabels.forEach((datum, index) => {
             if (index === 0) return;
 
-            let visible = setLabelProps(datum, index);
+            const visible = setLabelProps(datum, index);
             const isLeaf = !datum.children.length;
             const depth = maxDepth - datum.depth;
 

@@ -12,7 +12,11 @@ const options: AgCartesianChartOptions = {
         {
             type: 'grouped-category',
             position: 'bottom',
-            depthOptions: [{}, { label: { fontWeight: 'bold' } }, { label: { fontSize: 10 } }],
+            depthOptions: [
+                { tick: { enabled: false } },
+                { label: { fontWeight: 'bold' } },
+                { label: { fontSize: 10 } },
+            ],
         },
         {
             type: 'number',
