@@ -1,6 +1,8 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
 
-const { BOOLEAN, ActionOnSet, LayoutElement, Logger, Menu, Toolbar, Validate } = _ModuleSupport;
+import type { SharedToolbarWidget } from '../shared-toolbar/sharedToolbarWidget';
+
+const { BOOLEAN, ActionOnSet, LayoutElement, Logger, Menu, Validate } = _ModuleSupport;
 
 const menuItems: _ModuleSupport.MenuItem<AgPriceVolumeChartType>[] = [
     { label: 'toolbarSeriesTypeOHLC', icon: 'ohlc-series', value: 'ohlc' },
@@ -16,42 +18,29 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     @Validate(BOOLEAN)
     @ActionOnSet<ChartToolbar>({
         changeValue(enabled) {
-            this.toolbar?.setHidden(!enabled);
+            this.toolbar?.setSectionHidden('chartToolbar', !enabled);
         },
     })
     enabled: boolean = false;
 
-    private readonly toolbar = new Toolbar(this.ctx, 'vertical');
+    private readonly toolbar: SharedToolbarWidget;
     private readonly menu = new Menu(this.ctx, 'chart-toolbar');
-    private readonly horizontalSpacing = 10;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.toolbar.addClass('ag-charts-chart-toolbar');
-        this.toolbar.orientation = 'vertical';
-        ctx.domManager.addChild('canvas-overlay', 'chart-toolbar', this.toolbar.getElement());
+        this.toolbar = (ctx as any).sharedToolbar.getSharedToolbar();
 
         this.destroyFns.push(
-            this.toolbar.addToolbarListener('button-pressed', this.onButtonPressed.bind(this)),
+            this.toolbar.addToolbarSectionListener('chartToolbar', 'button-pressed', this.onButtonPressed.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this))
         );
     }
 
     private onLayoutStart(event: _ModuleSupport.LayoutContext) {
-        const { horizontalSpacing, toolbar } = this;
-        const { layoutBox } = event;
-
+        if (!this.enabled) return;
         this.updateButton();
-
-        const width = toolbar.getBounds().width;
-        toolbar.setBounds({
-            x: layoutBox.x,
-            y: layoutBox.y,
-            width: width,
-        });
-
-        layoutBox.shrink({ left: width + horizontalSpacing });
+        this.toolbar.layout('chartToolbar', event.layoutBox);
     }
 
     private onButtonPressed({ event, buttonBounds }: _ModuleSupport.ToolbarEventMap['button-pressed']) {
@@ -72,7 +61,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
             },
         });
 
-        this.toolbar.toggleActiveButtonByIndex(0);
+        this.toolbar.toggleActiveButtonBySectionIndex('chartToolbar', 0);
     }
 
     private updateButton() {
@@ -80,7 +69,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         const icon = menuItems.find((item) => item.value === chartType)?.icon;
 
         if (icon != null) {
-            this.toolbar.updateButtons([{ icon, tooltip: 'toolbarSeriesTypeDropdown' }]);
+            this.toolbar.updateSectionButtons('chartToolbar', [{ icon, tooltip: 'toolbarSeriesTypeDropdown' }]);
         }
     }
 

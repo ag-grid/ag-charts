@@ -4,10 +4,10 @@ import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ArrowCapScene } from '../scenes/capScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
-import type { CollidableText } from '../scenes/collidableTextScene';
-import { LineWithTextScene } from '../scenes/lineWithTextScene';
+import { CollidableText } from '../scenes/collidableTextScene';
 import { StartEndScene } from '../scenes/startEndScene';
 import { WithBackgroundScene } from '../scenes/withBackgroundScene';
+import { updateLineText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
 import {
     DateRangeProperties,
@@ -190,7 +190,11 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             textCoords.y2 = center.y;
         }
 
-        const clip = LineWithTextScene.updateLineText.call(this, line, datum, textCoords);
+        this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
+
+        const { id } = line;
+
+        const clip = updateLineText(id, line, datum.text, textCoords, this.text, datum.text.label, datum.strokeWidth);
 
         let verticalClipMask;
 
@@ -210,7 +214,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
             }
         }
 
-        this.verticalLine.setClipMask(verticalClipMask);
+        this.verticalLine.setClipMask(id, verticalClipMask);
     }
 
     private updateCaps(datum: MeasurerTypeProperties, coords: _ModuleSupport.Vec4) {

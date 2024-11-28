@@ -11,7 +11,7 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
     @Validate(OBJECT)
     public buttons = new PropertiesArray(RangesButtonProperties);
 
-    private readonly toolbar = new Toolbar(this.ctx);
+    private readonly toolbar = new Toolbar(this.ctx.localeManager);
     private readonly verticalSpacing = 10;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {

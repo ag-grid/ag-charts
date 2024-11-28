@@ -92,7 +92,7 @@ export class Menu extends AnchoredPopover {
         row.addEventListener('click', onclick);
 
         row.addEventListener('mousemove', () => {
-            row.focus();
+            row.focus({ preventScroll: true });
         });
 
         return row;

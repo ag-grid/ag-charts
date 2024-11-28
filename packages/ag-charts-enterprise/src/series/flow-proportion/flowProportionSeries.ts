@@ -72,7 +72,6 @@ export abstract class FlowProportionSeries<
     protected nodeCount: number = 0;
     protected linkCount: number = 0;
 
-    private readonly nodesDataController = new DataController('standalone');
     protected nodesDataModel: _ModuleSupport.DataModel<any, any, true> | undefined = undefined;
     protected nodesProcessedData: _ModuleSupport.ProcessedData<any> | undefined = undefined;
 
@@ -129,7 +128,7 @@ export abstract class FlowProportionSeries<
     protected abstract nodeFactory(): TNode;
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
-        const { nodesDataController, data, nodes } = this;
+        const { data, nodes } = this;
 
         if (data == null || !this.properties.isValid()) {
             return;
@@ -137,6 +136,7 @@ export abstract class FlowProportionSeries<
 
         const { fromKey, toKey, sizeKey, idKey, labelKey } = this.properties;
 
+        const nodesDataController = new DataController('standalone', dataController.suppressFieldDotNotation);
         const nodesDataModelPromise =
             nodes != null
                 ? nodesDataController.request<any, any, true>(this.id, nodes, {

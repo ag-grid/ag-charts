@@ -4,17 +4,17 @@ import type { AnnotationContext, Point } from '../annotationTypes';
 import type { AnnotationsCreateStateMachineContext } from '../annotationsSuperTypes';
 import type { AnnotationStateEvents } from '../states/stateTypes';
 import { snapPoint } from '../utils/coords';
-import { ArrowProperties, LineProperties } from './lineProperties';
+import { ArrowProperties, LineProperties, LineTypeProperties } from './lineProperties';
 import type { LineScene } from './lineScene';
 
 const { StateMachine, StateMachineProperty, Debug } = _ModuleSupport;
 
-interface LineStateMachineContext<Datum extends ArrowProperties | LineProperties>
+interface LineStateMachineContext<Datum extends LineTypeProperties>
     extends Omit<AnnotationsCreateStateMachineContext, 'create'> {
     create: (datum: Datum) => void;
 }
 
-abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperties> extends StateMachine<
+export abstract class LineTypeStateMachine<Datum extends LineTypeProperties> extends StateMachine<
     'start' | 'waiting-first-render' | 'end',
     Pick<
         AnnotationStateEvents,
@@ -62,7 +62,7 @@ abstract class LineTypeStateMachine<Datum extends ArrowProperties | LineProperti
 
         const onExitEnd = () => {
             ctx.showAnnotationOptions();
-            ctx.recordAction(`Create ${this.datum?.type} annotation`);
+            ctx.recordAction(`Create ${(this.datum as any)?.type} annotation`);
         };
 
         super('start', {

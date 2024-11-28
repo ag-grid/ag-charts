@@ -56,7 +56,7 @@ export class ZoomToolbar extends BaseProperties {
     private readonly detectionRange = 38;
 
     private readonly container: _ModuleSupport.NativeWidget<HTMLDivElement>;
-    private readonly toolbar = new Toolbar<ZoomToolbarButtonOptions>(this.ctx);
+    private readonly toolbar = new Toolbar<ZoomToolbarButtonOptions>(this.ctx.localeManager);
 
     private readonly destroyFns: Array<() => void> = [];
 

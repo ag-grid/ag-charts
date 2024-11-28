@@ -44,7 +44,11 @@ export interface AgSeriesAreaOptions {
 }
 
 export interface AgChartOverlayOptions {
-    /** Enabled or disable use of the overlay. Defaults to true. */
+    /**
+     * Enabled or disable use of the overlay.
+     *
+     * Default: `true`
+     */
     enabled?: boolean;
     /** Text to render in the overlay. */
     text?: string;
@@ -216,6 +220,12 @@ export interface AgBaseThemeableChartOptions<TDatum = any> {
     sync?: AgChartSyncOptions;
     /** Configuration for the zoom options. */
     zoom?: AgZoomOptions;
+    /**
+     * Suppress treatment of series keys as JavaScript paths when `true`.
+     *
+     * Default: `false`
+     */
+    suppressFieldDotNotation?: boolean;
     /** A map of event names to event listeners. */
     listeners?: AgBaseChartListeners<TDatum>;
 }

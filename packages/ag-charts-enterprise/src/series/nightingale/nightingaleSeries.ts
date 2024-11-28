@@ -5,7 +5,7 @@ import { RadialColumnSeriesBase } from '../radial-column/radialColumnSeriesBase'
 import { RadialColumnSeriesBaseProperties } from '../radial-column/radialColumnSeriesBaseProperties';
 import { getRadii, prepareNightingaleAnimationFunctions, resetNightingaleSelectionFn } from './nightingaleUtil';
 
-const { Sector, SectorBox } = _ModuleSupport;
+const { Sector, SectorBox, PolarZIndexMap } = _ModuleSupport;
 
 export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sector> {
     static readonly className = 'NightingaleSeries';
@@ -19,6 +19,17 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super(moduleCtx, { animationResetFns: { item: resetNightingaleSelectionFn } });
+    }
+
+    override setSeriesIndex(index: number) {
+        if (!super.setSeriesIndex(index)) return false;
+
+        // Ensures highlights always appear on top
+        this.contentGroup.zIndex = [0, PolarZIndexMap.FOREGROUND, index];
+        this.highlightGroup.zIndex = [0, PolarZIndexMap.HIGHLIGHT, index];
+        this.labelGroup.zIndex = [0, PolarZIndexMap.LABEL, index];
+
+        return true;
     }
 
     protected getStackId() {

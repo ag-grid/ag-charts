@@ -16,6 +16,7 @@ import { ErrorBarsModule } from './features/error-bar/errorBarModule';
 import { ForegroundModule } from './features/foreground/main';
 import { NavigatorModule } from './features/navigator/navigatorModule';
 import { RangesModule } from './features/ranges/rangesModule';
+import { SharedToolbarModule } from './features/shared-toolbar/sharedToolbarModule';
 import { StatusBarModule } from './features/status-bar/main';
 import { SyncModule } from './features/sync/syncModule';
 import { ZoomModule } from './features/zoom/main';
@@ -97,6 +98,7 @@ export function setupEnterpriseModules() {
         RangesModule,
         PyramidModule,
         SankeyModule,
+        SharedToolbarModule,
         SunburstModule,
         SyncModule,
         TreemapModule,

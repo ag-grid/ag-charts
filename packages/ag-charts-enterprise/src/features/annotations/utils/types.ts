@@ -1,6 +1,7 @@
 import type {
     ChannelPropertiesType,
     EphemeralPropertiesType,
+    FibonacciPropertiesType,
     LinePropertiesType,
     MeasurerPropertiesType,
     TextualPropertiesType,
@@ -9,6 +10,7 @@ import { CalloutProperties } from '../callout/calloutProperties';
 import { CommentProperties } from '../comment/commentProperties';
 import { HorizontalLineProperties, VerticalLineProperties } from '../cross-line/crossLineProperties';
 import { DisjointChannelProperties } from '../disjoint-channel/disjointChannelProperties';
+import { FibonacciRetracementProperties } from '../fibonacci-retracement/fibonacciRetracementProperties';
 import { ArrowProperties, LineProperties } from '../line/lineProperties';
 import {
     DatePriceRangeProperties,
@@ -29,12 +31,17 @@ export function isLineType(datum: unknown): datum is LinePropertiesType {
         LineProperties.is(datum) ||
         HorizontalLineProperties.is(datum) ||
         VerticalLineProperties.is(datum) ||
-        ArrowProperties.is(datum)
+        ArrowProperties.is(datum) ||
+        isFibonacciType(datum)
     );
 }
 
 export function isChannelType(datum: unknown): datum is ChannelPropertiesType {
     return DisjointChannelProperties.is(datum) || ParallelChannelProperties.is(datum);
+}
+
+export function isFibonacciType(datum: unknown): datum is FibonacciPropertiesType {
+    return FibonacciRetracementProperties.is(datum);
 }
 
 export function isTextType(datum: unknown): datum is TextualPropertiesType {

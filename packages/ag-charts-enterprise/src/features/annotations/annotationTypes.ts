@@ -12,6 +12,9 @@ export enum AnnotationType {
     DisjointChannel = 'disjoint-channel',
     ParallelChannel = 'parallel-channel',
 
+    // Fibonacci
+    FibonacciRetracement = 'fibonacci-retracement',
+
     // Texts
     Callout = 'callout',
     Comment = 'comment',
@@ -80,6 +83,9 @@ export const ANNOTATION_BUTTONS = [
     AnnotationType.DisjointChannel,
     AnnotationType.ParallelChannel,
 
+    // Fibonaccis
+    AnnotationType.FibonacciRetracement,
+
     // Texts
     AnnotationType.Callout,
     AnnotationType.Comment,
@@ -91,7 +97,13 @@ export const ANNOTATION_BUTTONS = [
     AnnotationType.ArrowUp,
     AnnotationType.ArrowDown,
 ] as const;
-export const ANNOTATION_BUTTON_GROUPS = ['line-menu', 'text-menu', 'shape-menu', 'measurer-menu'] as const;
+export const ANNOTATION_BUTTON_GROUPS = [
+    'line-menu',
+    'fibonacci-menu',
+    'text-menu',
+    'shape-menu',
+    'measurer-menu',
+] as const;
 
 export function stringToAnnotationType(value: unknown) {
     for (const t of ANNOTATION_TYPES) {
@@ -118,6 +130,7 @@ export interface Padding {
     left: number;
 }
 
+export type FibonacciBands = 10 | 6 | 4;
 export interface AnnotationAxisContext
     extends Pick<
         _ModuleSupport.AxisContext,

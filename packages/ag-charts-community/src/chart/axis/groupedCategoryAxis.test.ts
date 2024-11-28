@@ -15,7 +15,6 @@ import {
     IMAGE_SNAPSHOT_DEFAULTS,
     cartesianChartAssertions,
     createChart,
-    deproxy,
     extractImageData,
     repeat,
     reverseAxes,
@@ -59,6 +58,7 @@ type TestCase<T extends AgBaseChartOptions = AgCartesianChartOptions> = {
     extraScreenshotActions?: (chart: ChartOrProxy) => Promise<void>;
     compare?: AgCartesianAxisType[];
 };
+
 const EXAMPLES: Record<string, TestCase> = {
     ...mixinDerivedCases({
         GROUPED_CATEGORY_AXIS: {
@@ -71,6 +71,14 @@ const EXAMPLES: Record<string, TestCase> = {
         },
         INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: {
             options: examples.INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE,
+            assertions: cartesianChartAssertions({
+                axisTypes: ['grouped-category', 'number'],
+                seriesTypes: repeat('bar', 3),
+            }),
+            compare: ['grouped-category'],
+        },
+        GROUPED_CATEGORY_AXIS_DEPTH_OPTIONS_EXAMPLE: {
+            options: examples.GROUPED_CATEGORY_CHART_EXAMPLE,
             assertions: cartesianChartAssertions({
                 axisTypes: ['grouped-category', 'number'],
                 seriesTypes: repeat('bar', 3),
@@ -156,26 +164,8 @@ describe('Grouped Category Axis Examples', () => {
         });
 
         it(`for ${exampleName} it should render to canvas as expected`, async () => {
-            const axisCompare = () => {
-                for (const axis of deproxy(chart).axes) {
-                    if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
-                        continue;
-                    }
-
-                    const axesBBox = axis.getBBox();
-                    const imageData = extractImageData({ ...ctx, bbox: axesBBox });
-
-                    expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
-                }
-            };
-
             chart = await createChart(example.options);
-            axisCompare();
-
-            if (example.extraScreenshotActions) {
-                await example.extraScreenshotActions(chart);
-                axisCompare();
-            }
+            expect(extractImageData(ctx)).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
         });
     }
 

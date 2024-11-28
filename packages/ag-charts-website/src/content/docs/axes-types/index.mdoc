@@ -67,6 +67,18 @@ to visually represent the nested relationships between categories.
 
 {% chartExampleRunner title="Grouped Category" name="grouped-category" type="generated" /%}
 
+Ticks and labels for all levels inherit styles from the axis options by default.
+To style each level differently, use the depthOptions array, where each entry corresponds to a hierarchy level. (leaf to root)
+
+```js
+type: 'grouped-category',
+depthOptions: [
+    {}, // Skip depth 0, no unique styles.
+    { label: { fontWeight: 'bold' } },
+    { label: { fontSize: 10 } },
+],
+```
+
 ## Number
 
 A number axis is used to display continuous numerical values in a chart.

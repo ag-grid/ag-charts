@@ -1,4 +1,4 @@
-import type { ModuleContext } from '../../module/moduleContext';
+import type { LocaleManager } from '../../locale/localeManager';
 import { BBox } from '../../scene/bbox';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { Listeners } from '../../util/listeners';
@@ -36,7 +36,7 @@ export abstract class BaseToolbar<
     private readonly buttonWidgets: Array<ButtonWidget> = [];
 
     constructor(
-        protected readonly ctx: ModuleContext,
+        protected readonly localeManager: LocaleManager,
         orientation: RovingDirection = 'horizontal'
     ) {
         super(orientation);
@@ -105,6 +105,12 @@ export abstract class BaseToolbar<
         return this.buttonWidgets.map((buttonWidget) => this.getButtonWidgetBounds(buttonWidget));
     }
 
+    protected setButtonHiddenByIndex(index: number, hidden: boolean) {
+        // This method should be usually be avoided as it breaks keyboard navigation if a single
+        // button in a toolbar is hidden.
+        this.buttonWidgets.at(index)?.setHidden(hidden);
+    }
+
     private getButtonWidgetBounds(buttonWidget: ButtonWidget) {
         const parent = this.getBounds();
         const bounds = buttonWidget.getBounds();
@@ -158,6 +164,6 @@ export class Toolbar<ButtonOptions extends ToolbarButtonOptions> extends BaseToo
     ToolbarButtonWidget
 > {
     protected createButtonWidget() {
-        return new ToolbarButtonWidget(this.ctx);
+        return new ToolbarButtonWidget(this.localeManager);
     }
 }
