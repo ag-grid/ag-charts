@@ -186,7 +186,7 @@ export class RegionManager {
         return map[widgetEvent.type];
     }
 
-    private computeEventOffsets(currentWidget: Widget, widget: Widget, widgetEvent: TWidgetEvent) {
+    private computeEventOffsets(currentWidget: Widget, rootWidget: Widget, widgetEvent: TWidgetEvent) {
         const { deltaX, deltaY } = InteractionManager.getWheelDeltas(widgetEvent.sourceEvent);
 
         if ('mockRegion' in widgetEvent.sourceEvent) {
@@ -196,11 +196,11 @@ export class RegionManager {
             }
         }
 
-        const widgetRect = widget.getElement().getBoundingClientRect();
+        const rootRect = rootWidget.getElement().getBoundingClientRect();
         const currentWidgetRect = currentWidget.getElement().getBoundingClientRect();
         return {
-            canvasX: widgetEvent.clientX - widgetRect.x,
-            canvasY: widgetEvent.clientY - widgetRect.y,
+            canvasX: widgetEvent.clientX - rootRect.x,
+            canvasY: widgetEvent.clientY - rootRect.y,
             regionX: widgetEvent.clientX - currentWidgetRect.x,
             regionY: widgetEvent.clientY - currentWidgetRect.y,
             deltaX,
@@ -209,17 +209,13 @@ export class RegionManager {
     }
 
     // Create and dispatch a copy of the InteractionEvent.
-    private dispatch(
-        current: Region | undefined,
-        widget: Widget,
-        widgetEvent: TWidgetEvent,
-        regionEventType?: 'leave' | 'enter'
-    ) {
+    private dispatch(current: Region | undefined, widgetEvent: TWidgetEvent, regionEventType?: 'leave' | 'enter') {
         const { widget: currentWidget } = current?.properties ?? {};
-        if (current == null || currentWidget == null) return;
+        const { widget: rootWidget } = this.regions.root.properties;
+        if (current == null || currentWidget == null || rootWidget == null) return;
 
         const event: RegionEvent = buildPreventable({
-            ...this.computeEventOffsets(currentWidget, widget, widgetEvent),
+            ...this.computeEventOffsets(currentWidget, rootWidget, widgetEvent),
             sourceEvent: widgetEvent.sourceEvent,
             type: this.widgetEventTypeToRegionEventType(widgetEvent, regionEventType),
             region: current.properties.name,
@@ -279,7 +275,7 @@ export class RegionManager {
         current.listeners.dispatch(event.type, event);
     }
 
-    private readonly processPointerEvent = (event: TWidgetEvent, widget: Widget) => {
+    private readonly processPointerEvent = (event: TWidgetEvent) => {
         const ignore = shouldIgnore(event);
         const { current } = this;
 
@@ -299,13 +295,13 @@ export class RegionManager {
 
         const newRegion = newCurrent;
         if (current !== undefined && newRegion?.properties.name !== current.properties.name) {
-            this.dispatch(current, widget, event, 'leave');
+            this.dispatch(current, event, 'leave');
         }
         if (newRegion !== undefined && newRegion.properties.name !== current?.properties.name) {
-            this.dispatch(newCurrent, widget, event, 'enter');
+            this.dispatch(newCurrent, event, 'enter');
         }
         if (newRegion !== undefined) {
-            this.dispatch(newCurrent, widget, event);
+            this.dispatch(newCurrent, event);
         }
         this.current = newCurrent;
     };
