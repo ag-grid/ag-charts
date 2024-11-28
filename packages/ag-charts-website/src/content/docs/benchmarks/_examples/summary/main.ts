@@ -197,45 +197,30 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                 type: 'bar',
                 xKey: 'name',
                 yKey: `results['${testName}'].timeMs`,
-                yName: `time`,
+                yName: `Time`,
                 stackGroup: 'time',
                 tooltip: {
                     enabled: true,
-                    // renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => ({
-                    //     content: formatMillis(datum.results[testName]!.timeMs, 2),
-                    // }),
                 },
             },
             {
                 type: 'bar',
                 xKey: 'name',
                 yKey: `results['${testName}'].heapUsed`,
-                yName: `heap`,
+                yName: `Heap`,
                 stackGroup: 'memory',
                 tooltip: {
                     enabled: true,
-                    // renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => {
-                    //     const { heapUsed } = datum.results[testName]!;
-                    //     return {
-                    //         content: `${formatBytes(heapUsed)}`,
-                    //     };
-                    // },
                 },
             },
             {
                 type: 'bar',
                 xKey: 'name',
                 yKey: `results['${testName}'].canvasBytes`,
-                yName: `canvas`,
+                yName: `Canvas`,
                 stackGroup: 'memory',
                 tooltip: {
                     enabled: true,
-                    // renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => {
-                    //     const { canvasBytes, canvasCount } = datum.results[testName]!;
-                    //     return {
-                    //         content: `${formatBytes(canvasBytes)} in ${canvasCount} canvases`,
-                    //     };
-                    // },
                 },
             },
         ],
@@ -244,8 +229,14 @@ function generatePerformanceChart(keyX: number, keyY: number) {
     return options;
 }
 
+const msNumberFormatter = new Intl.NumberFormat('en-US', {
+    maximumFractionDigits: 0,
+});
+
 function formatMillis(ms: number, precision: number): string {
-    return `${ms.toFixed(precision)}ms`;
+    return `${new Intl.NumberFormat('en-US', {
+        maximumFractionDigits: precision,
+    }).format(ms)}ms`;
 }
 
 function formatBytes(bytes: number): string {
