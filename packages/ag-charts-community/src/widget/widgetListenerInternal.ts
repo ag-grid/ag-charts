@@ -92,7 +92,7 @@ export class WidgetListenerInternal {
     }
 
     private startDrag<T extends Targetable>(current: T, downEvent: MouseEvent) {
-        if (current.getElement() !== downEvent.target) return;
+        if (current.getElement() !== downEvent.currentTarget) return;
 
         const window = getWindow();
         const origin: DragOrigin = { pageX: NaN, pageY: NaN, offsetX: NaN, offsetY: NaN };

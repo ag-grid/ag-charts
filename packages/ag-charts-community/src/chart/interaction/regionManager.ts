@@ -143,9 +143,9 @@ export class RegionManager {
         root.addListener('mouseenter', this.processPointerEvent);
         root.addListener('mousemove', this.processPointerEvent);
         root.addListener('mouseleave', this.processPointerEvent);
-        root.addListener('drag-start', this.processPointerEvent);
-        root.addListener('drag-move', this.processPointerEvent);
-        root.addListener('drag-end', this.processPointerEvent);
+        series.addListener('drag-start', this.processPointerEvent);
+        series.addListener('drag-move', this.processPointerEvent);
+        series.addListener('drag-end', this.processPointerEvent);
     }
 
     getRegion(name: RegionName) {
