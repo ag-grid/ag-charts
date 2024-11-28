@@ -61,7 +61,9 @@ export function setColor(
                 if ('strokeOpacity' in datum) datum.strokeOpacity = opacity;
                 if ('strokes' in datum) {
                     datum.strokes = [color];
-                } else if ('stroke' in datum) datum.stroke = color;
+                } else if ('stroke' in datum) {
+                    datum.stroke = color;
+                }
             }
 
             break;
