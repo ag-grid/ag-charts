@@ -57,8 +57,6 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
         const marker = new Marker();
         const { center } = Marker;
         marker.size = size;
-        marker.x = 0;
-        marker.y = 0;
         marker.translationX = width / 2 + (center.x - 0.5) * size;
         marker.translationY = height / 2 + (center.y - 0.5) * size;
         marker.fill = fill;
@@ -67,10 +65,21 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
         marker.strokeOpacity = strokeOpacity;
         marker.strokeWidth = strokeWidth;
 
-        const bbox = marker.getBBox();
-        const scale = Math.min(width / (bbox.x + bbox.width), height / (bbox.y + bbox.height), 1);
-        marker.scalingX = scale;
-        marker.scalingY = scale;
+        const x = width / 2 + (center.x - 0.5) * size;
+        const y = height / 2 + (center.y - 0.5) * size;
+
+        if (typeof shape === 'string') {
+            marker.x = x;
+            marker.y = y;
+        } else {
+            // Custom marker - force it to fit in the box
+            const bbox = marker.getBBox();
+            const scale = Math.min(width / bbox.width, height / bbox.height, 1);
+            marker.translationX = x * scale - bbox.x * scale + (width - bbox.width * scale) / 2;
+            marker.translationY = y * scale - bbox.y * scale + (height - bbox.height * scale) / 2;
+            marker.scalingX = scale;
+            marker.scalingY = scale;
+        }
 
         group.append(marker);
     }
