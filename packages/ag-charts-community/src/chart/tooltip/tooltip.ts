@@ -58,8 +58,8 @@ export interface TooltipMeta extends TooltipOffsets {
 }
 
 export type TooltipContentDataRow =
-    | { label: string; fallbackLabel?: string; value?: string }
-    | { label: undefined; fallbackLabel: string; value?: string };
+    | { label: string; fallbackLabel?: string; value: string }
+    | { label: undefined; fallbackLabel: string; value: string };
 
 export interface TooltipContent {
     heading?: string;
@@ -73,15 +73,12 @@ export function tooltipContentAriaLabel(_content: TooltipContent | string) {
     return '';
 }
 
-function dataHtml(label: string, value: string | undefined, inline: boolean) {
+function dataHtml(label: string, value: string, inline: boolean) {
     let rowHtml = '';
 
     rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(label)}</span>`;
-
-    if (value != null) {
-        rowHtml += ' ';
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(value)}</span>`;
-    }
+    rowHtml += ' ';
+    rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(value)}</span>`;
 
     const rowClassNames = [`${DEFAULT_TOOLTIP_CLASS}__row`];
     if (inline) rowClassNames.push(`${DEFAULT_TOOLTIP_CLASS}__row--inline`);

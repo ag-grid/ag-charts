@@ -50,7 +50,7 @@ export interface AgTooltipPositionOptions {
 
 export interface AgTooltipRendererDataRow {
     label: string;
-    value?: string;
+    value: string;
 }
 
 export interface AgTooltipRendererResult {
