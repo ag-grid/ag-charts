@@ -34,7 +34,7 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends
     @Validate(STRING, { optional: true })
     class?: string = undefined;
 
-    public formatTooltip(content: TooltipContent, params: _ModuleSupport.RequireOptional<P>): TooltipContent | string {
+    public formatTooltip(content: TooltipContent, params: RequireOptional<P>): TooltipContent | string {
         const overrides = this.renderer?.(params);
         if (typeof overrides === 'string') return overrides;
         if (overrides != null) return { ...content, ...overrides };
