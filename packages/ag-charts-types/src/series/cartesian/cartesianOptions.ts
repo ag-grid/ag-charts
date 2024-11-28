@@ -64,8 +64,11 @@ export interface AgBaseCartesianChartOptions {
 }
 
 export interface AgGroupedCategoryDepthOptions {
-    label?: AgBaseAxisLabelOptions;
-    tick?: AgAxisBaseTickOptions;
+    label?: Pick<
+        AgBaseAxisLabelOptions,
+        'enabled' | 'avoidCollisions' | 'color' | 'fontFamily' | 'fontSize' | 'fontStyle' | 'fontWeight'
+    >;
+    tick?: Pick<AgAxisBaseTickOptions, 'enabled' | 'stroke' | 'width'>;
 }
 
 export interface AgCategoryAxisOptions extends AgBaseCartesianAxisOptions {

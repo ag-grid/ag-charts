@@ -6,7 +6,7 @@ import { BBox } from '../../scene/bbox';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
 import { getAngleRatioRadians, normalizeAngle360, toRadians } from '../../util/angle';
-import { extent, sortBasedOnArray, unique } from '../../util/array';
+import { extent, sortBasedOnArray, toArray, unique } from '../../util/array';
 import { iterate } from '../../util/iterator';
 import { inRange } from '../../util/number';
 import { BaseProperties, PropertiesArray } from '../../util/properties';
@@ -47,6 +47,9 @@ interface ComputedGroupAxisLayout {
 class DepthLabelProperties extends BaseProperties {
     @Validate(BOOLEAN)
     enabled = true;
+
+    @Validate(BOOLEAN, { optional: true })
+    avoidCollisions?: boolean;
 
     @Validate(COLOR_STRING, { optional: true })
     color?: string;
@@ -94,6 +97,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
     // We don't call is `labelScale` for consistency with other axes.
     readonly tickScale = new BandScale<string[]>();
 
+    private computedLayout?: ComputedGroupAxisLayout;
     private tickTreeLayout?: TreeLayout;
 
     @Validate(OBJECT_ARRAY)
@@ -142,14 +146,13 @@ export class GroupedCategoryAxis extends CategoryAxis {
                           enabled: true,
                           spacing: depthOptions[i]?.label.spacing ?? label.spacing,
                           lineHeight: TextUtils.getLineHeight(depthOptions[i]?.label.fontSize ?? label.fontSize ?? 10),
+                          avoidCollisions: depthOptions[i]?.label.avoidCollisions ?? label.avoidCollisions,
                       }
-                    : { enabled: false, spacing: 0, lineHeight: 0 }
+                    : { enabled: false, spacing: 0, lineHeight: 0, avoidCollisions: false }
             );
         }
         return optionsMap;
     }
-
-    private computedLayout: ComputedGroupAxisLayout | undefined;
 
     private updateCategoryLabels() {
         if (!this.computedLayout) return;
@@ -167,18 +170,26 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
     private computeLayout() {
         this.updateDirection();
-        this.calculateDomain();
         this.updateScale();
         this.updateRange();
         this.resizeTickTree();
 
-        const { scale, label, range, title } = this;
+        if (!this.tickTreeLayout?.depth) {
+            return { bbox: BBox.NaN, separatorLayout: [], tickLabelLayout: [] };
+        }
 
-        const { step } = scale;
+        const { step } = this.scale;
+        const { title, label, range, depthOptions } = this;
+        const { depth: maxDepth, nodes: treeLabels } = this.tickTreeLayout;
+
         const keepEvery = Math.ceil(label.fontSize! / step);
         const rotation = toRadians(this.rotation);
-        const isHorizontal = Math.abs(Math.cos(rotation)) < 1e-8;
+        const isHorizontal = this.position === 'top' || this.position === 'bottom';
         const sideFlag = label.getSideFlag();
+
+        const tickLabelLayout: LabelNodeDatum[] = [];
+        const labelBBoxes: Map<number, BBox> = new Map();
+        const tempText = new TransformableText();
 
         // When labels are parallel to the axis line, the `parallelFlipFlag` is used to
         // flip the labels to avoid upside-down text, when the axis is rotated
@@ -189,21 +200,13 @@ export class GroupedCategoryAxis extends CategoryAxis {
         // and then rotated, zero rotation means 12 (not 3) o-clock.
         // -1 = flip
         //  1 = don't flip (default)
-        const { defaultRotation, configuredRotation, parallelFlipFlag } = calculateLabelRotation({
+        const { defaultRotation, configuredRotation } = calculateLabelRotation({
             rotation: label.rotation,
             parallel: label.parallel,
             regularFlipRotation: normalizeAngle360(rotation - Math.PI / 2),
             parallelFlipRotation: normalizeAngle360(rotation),
         });
-
-        const tickLabelLayout: LabelNodeDatum[] = [];
-        const labelBBoxes: Map<number, BBox> = new Map();
-        const tempText: TransformableText = new TransformableText();
-
-        // Render ticks and labels.
-        const { tickTreeLayout, depthOptions } = this;
-        const maxDepth = tickTreeLayout?.depth ?? 0;
-        const treeLabels = tickTreeLayout?.nodes ?? [];
+        const labelRotation = defaultRotation + configuredRotation;
         const optionsMap = this.getDepthOptionsMap(maxDepth);
 
         const setLabelProps = (datum: TreeNode, index: number) => {
@@ -220,7 +223,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
                 ...labelStyles,
                 text,
                 textAlign: 'center',
-                textBaseline: parallelFlipFlag === -1 ? 'bottom' : 'hanging',
+                textBaseline: label.parallel ? 'hanging' : 'bottom',
                 rotation: 0,
                 translationX: 0,
                 translationY: datum.screenX,
@@ -245,7 +248,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
             labelBBoxes.set(index, tempText.getBBox());
 
             if (!datum.leafCount) {
-                tempText.rotation = configuredRotation;
+                tempText.rotation = labelRotation;
                 const { width } = tempText.getBBox();
                 if (maxLeafLabelWidth < width) {
                     maxLeafLabelWidth = width;
@@ -301,9 +304,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
             if (isLeaf) {
                 const { width } = labelBBoxes.get(index)!;
-                const angleRatio = getAngleRatioRadians(configuredRotation);
+                const angleRatio = getAngleRatioRadians(labelRotation);
 
-                tempText.rotation = configuredRotation;
+                tempText.rotation = labelRotation;
                 tempText.textAlign = 'end';
                 tempText.textBaseline = 'middle';
                 tempText.rotationCenterX = labelX - width / 2;
@@ -313,17 +316,17 @@ export class GroupedCategoryAxis extends CategoryAxis {
                     tempText.translationX += width;
                 }
             } else {
-                const availableRange = datum.leafCount * step;
-                const bbox = labelBBoxes.get(index);
-
-                if (bbox && bbox.width > availableRange) {
-                    labelBBoxes.delete(index);
-                    return;
-                }
-
                 tempText.rotation = isHorizontal ? defaultRotation : -Math.PI / 2;
                 tempText.rotationCenterX = labelX;
                 tempText.translationX = sideFlag * nestedPadding(depth);
+            }
+
+            if (optionsMap[depth].avoidCollisions) {
+                const availableRange = isLeaf ? step : datum.leafCount * step;
+                if (tempText.getBBox().height > availableRange) {
+                    labelBBoxes.delete(index);
+                    return;
+                }
             }
 
             const { text = '' } = tempText;
@@ -433,9 +436,10 @@ export class GroupedCategoryAxis extends CategoryAxis {
     protected override calculateDomain() {
         const { direction } = this;
         const flatDomains = this.boundSeries.filter((s) => s.visible).flatMap((series) => series.getDomain(direction));
+
         this.setDomain(extent(flatDomains) ?? unique(flatDomains));
 
-        const domain: string[][] = this.dataDomain.domain.map((datum) => [].concat(datum).reverse());
+        const domain: string[][] = this.dataDomain.domain.map(toArray);
         this.tickTreeLayout = treeLayout(domain);
 
         const orderedDomain: string[][] = [];

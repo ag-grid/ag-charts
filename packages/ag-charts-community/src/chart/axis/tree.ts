@@ -54,9 +54,9 @@ class TreeNode {
 
     insertTick(tick: string[], index: number) {
         let root: TreeNode = this;
-        for (let i = tick.length - 1; i >= 0; i--) {
+        for (let i = 0; i < tick.length; i++) {
             const pathPart = tick[i];
-            const isNotLeaf = i !== 0;
+            const isNotLeaf = i !== tick.length - 1;
             const { children } = root;
             const existingNode = children.find((child) => child.label === pathPart);
             if (existingNode && isNotLeaf) {
@@ -105,7 +105,7 @@ export function ticksToTree(ticks: string[][]): TreeNode {
     for (let i = 0; i < ticks.length; i++) {
         const tick = ticks[i];
         while (tick.length < maxDepth) {
-            tick.unshift('');
+            tick.push('');
         }
         root.insertTick(tick, i);
     }

@@ -276,7 +276,7 @@ export class ChartTheme {
         }),
         [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults({
             tick: { enabled: true },
-            label: { spacing: 10 },
+            label: { spacing: 10, rotation: 270 },
             paddingInner: 0.4,
             groupPaddingInner: 0.2,
         }),
