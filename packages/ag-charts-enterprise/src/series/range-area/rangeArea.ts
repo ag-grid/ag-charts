@@ -590,6 +590,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 seriesId,
                 datum,
                 title: yName,
+                itemId: nodeDatum.itemId,
                 xName,
                 yName,
                 yLowKey,

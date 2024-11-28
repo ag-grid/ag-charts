@@ -11,7 +11,10 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 export interface AgRangeAreaSeriesTooltipRendererParams
     extends Omit<AgCartesianSeriesTooltipRendererParams, 'xKey' | 'xName' | 'yKey' | 'yName'>,
         AgRangeAreaSeriesOptionsKeys,
-        AgRangeAreaSeriesOptionsNames {}
+        AgRangeAreaSeriesOptionsNames {
+    /** Hovered marker */
+    itemId: 'up' | 'down';
+}
 
 export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {
     /** Padding in pixels between the label and the edge of the marker. */

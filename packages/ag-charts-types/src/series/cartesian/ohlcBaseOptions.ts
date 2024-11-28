@@ -40,6 +40,10 @@ export type AgOhlcSeriesBaseItemStylerParams<TDatum> = OhlcItemCallbackParams<TD
     AgOhlcSeriesOptionsKeys &
     Required<StrokeOptions & LineDashOptions>;
 
-export type AgOhlcSeriesBaseTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
-    AgOhlcSeriesOptionsKeys &
-    AgOhlcSeriesOptionsNames;
+export interface AgOhlcSeriesBaseTooltipRendererParams<TDatum>
+    extends AgSeriesTooltipRendererParams<TDatum>,
+        AgOhlcSeriesOptionsKeys,
+        AgOhlcSeriesOptionsNames {
+    /** Direction of the datum */
+    itemId: 'up' | 'down';
+}

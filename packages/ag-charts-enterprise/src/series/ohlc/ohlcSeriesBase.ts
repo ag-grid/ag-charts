@@ -408,7 +408,6 @@ export abstract class OhlcSeriesBase<
     override getTooltipContent(nodeDatum: OhlcNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const {
-            item: { up, down },
             xKey,
             xName,
             yName,
@@ -440,7 +439,8 @@ export abstract class OhlcSeriesBase<
 
         if (xValue == null) return;
 
-        const item = closeValue >= openValue ? up : down;
+        const itemId = closeValue >= openValue ? 'up' : 'down';
+        const item = this.properties.item[itemId];
 
         return tooltip.formatTooltip(
             {
@@ -466,6 +466,7 @@ export abstract class OhlcSeriesBase<
                 seriesId,
                 datum,
                 title: yName,
+                itemId,
                 xKey,
                 xName,
                 yName,

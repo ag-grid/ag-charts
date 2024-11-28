@@ -647,7 +647,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 symbol: this.legendItemSymbol(seriesItemType),
                 data: [{ label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(total) }],
             },
-            { seriesId, datum, title: yName, xKey, xName, yKey, yName }
+            { seriesId, datum, title: yName, itemId: seriesItemType, xKey, xName, yKey, yName }
         );
     }
 
