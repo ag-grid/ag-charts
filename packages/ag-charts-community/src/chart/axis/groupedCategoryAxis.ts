@@ -257,7 +257,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const labelX = sideFlag * optionsMap[0].spacing;
         const separatorData: Map<number, SeparatorDatum> = new Map();
         const nestedPadding = (d: number) => {
-            let v = Math.max(maxLeafLabelWidth, depthLines[0] * optionsMap[0].lineHeight);
+            let v = maxLeafLabelWidth;
             for (let i = 1; i <= d; i++) {
                 v += optionsMap[i].spacing;
                 if (label.mirrored || i !== d) {
@@ -300,20 +300,17 @@ export class GroupedCategoryAxis extends CategoryAxis {
             tempText.y = 0;
 
             if (isLeaf) {
-                const labelWidth = labelBBoxes.get(index)?.width ?? 0;
-                // const labelHeight = labelBBoxes.get(index)?.height ?? 0;
+                const { width } = labelBBoxes.get(index)!;
+                const angleRatio = getAngleRatioRadians(configuredRotation);
 
                 tempText.rotation = configuredRotation;
                 tempText.textAlign = 'end';
                 tempText.textBaseline = 'middle';
-                tempText.rotationCenterX = labelX - labelWidth / 2;
-                tempText.translationX =
-                    ((labelWidth - depthLines[depth] * optionsMap[depth].lineHeight) / 2) *
-                    getAngleRatioRadians(configuredRotation) *
-                    -sideFlag;
+                tempText.rotationCenterX = labelX - width / 2;
+                tempText.translationX = ((optionsMap[depth].spacing - width) / 2) * angleRatio * sideFlag;
 
                 if (label.mirrored) {
-                    tempText.translationX += labelWidth;
+                    tempText.translationX += width;
                 }
             } else {
                 const availableRange = datum.leafCount * step;
