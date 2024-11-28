@@ -10,9 +10,6 @@ import { type PreventableEvent, type Unpreventable, buildPreventable, dispatchTy
 export { InteractionState };
 
 export const POINTER_INTERACTION_TYPES = [
-    'drag-start',
-    'drag',
-    'drag-end',
     'click',
     'dblclick',
     'contextmenu',
@@ -50,6 +47,7 @@ type SUPPORTED_EVENTS =
 const SHADOW_DOM_HANDLERS: SUPPORTED_EVENTS[] = ['mousemove', 'mouseup'];
 const WINDOW_EVENT_HANDLERS: SUPPORTED_EVENTS[] = ['pagehide', 'mousemove', 'mouseup'];
 const EVENT_HANDLERS = [
+    'click',
     'dblclick',
     'contextmenu',
     'mousedown',
@@ -128,10 +126,6 @@ export class InteractionManager extends InteractionStateListener<InteractionType
     private rootElement: HTMLElement | undefined;
 
     private readonly eventHandler = (event: SupportedEvent) => this.processEvent(event);
-    private mouseDown = false;
-    private touchDown = false;
-    private dragPreStartElement?: HTMLElement;
-    private dragStartElement?: HTMLElement;
     private readonly clickHistory: [PointerHistoryEvent] = [{ offsetX: NaN, offsetY: NaN, type: 'mousedown' }];
     private readonly dblclickHistory: [PointerHistoryEvent, PointerHistoryEvent, PointerHistoryEvent] = [
         { offsetX: NaN, offsetY: NaN, type: 'mousedown' },
@@ -285,29 +279,21 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[2], this.dblclickHistory[0]);
             partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[0], event);
         }
-        this.dragPreStartElement = this.getEventHTMLTarget(event);
     }
 
     private recordUp(event: SupportedEvent) {
         if (event instanceof MouseEvent) {
             partialAssign(['offsetX', 'offsetY'], this.dblclickHistory[1], event);
         }
-        this.dragPreStartElement = undefined;
-        if (this.dragStartElement) {
-            this.dragStartElement = undefined;
-            return true;
-        }
-        return false;
     }
 
     private decideInteractionEventTypes(event: SupportedEvent): InteractionTypes | InteractionTypes[] | undefined {
-        const dragStart = 'drag-start';
-
         switch (event.type) {
             case 'keydown':
             case 'keyup':
                 return this.keyboardOptions.enabled ? event.type : undefined;
 
+            case 'click':
             case 'dblclick':
                 return event.type;
 
@@ -315,51 +301,28 @@ export class InteractionManager extends InteractionStateListener<InteractionType
             case 'wheel':
                 return event.type;
 
+            case 'touchstart':
             case 'mousedown':
                 if (!this.isEventOverElement(event)) {
                     return;
                 }
-                this.mouseDown = true;
-                this.recordDown(event);
-                return;
-            case 'touchstart':
-                if (!this.isEventOverElement(event)) {
-                    return;
-                }
-                this.touchDown = true;
                 this.recordDown(event);
                 return;
 
             case 'touchmove':
             case 'mousemove':
-                if (!this.mouseDown && !this.touchDown && !this.isEventOverElement(event)) {
-                    // We only care about these events if the target is the canvas, unless
-                    // we're in the middle of a drag/slide.
+                if (!!this.isEventOverElement(event)) {
                     return;
                 }
-                if (!this.mouseDown && !this.touchDown) return 'hover';
-                if (this.dragStartElement) return 'drag';
-
-                this.dragStartElement = this.dragPreStartElement;
-                this.dragPreStartElement = undefined;
-                return [dragStart, 'drag'];
+                return 'hover';
 
             case 'mouseup':
-                if (!this.mouseDown && !this.isEventOverElement(event)) {
-                    // We only care about these events if the target is the canvas, unless
-                    // we're in the middle of a drag.
-                    return;
-                }
-                this.mouseDown = false;
-                return this.recordUp(event) ? 'drag-end' : 'click';
             case 'touchend':
-                if (!this.touchDown && !this.isEventOverElement(event)) {
-                    // We only care about these events if the target is the canvas, unless
-                    // we're in the middle of a slide.
+                if (!this.isEventOverElement(event)) {
                     return;
                 }
-                this.touchDown = false;
-                return this.recordUp(event) ? 'drag-end' : 'click';
+                this.recordUp(event);
+                return;
 
             case 'mouseleave':
             case 'touchcancel':
@@ -410,17 +373,8 @@ export class InteractionManager extends InteractionStateListener<InteractionType
 
         const target = this.getEventHTMLTarget(event);
         const { x = 0, y = 0 } = target ? this.domManager.calculateCanvasPosition(target) : {};
-        if (this.dragStartElement != null && event.target !== this.dragStartElement) {
-            // Offsets need to be relative to the drag-start element to avoid jumps when
-            // the pointer moves between element boundaries.
-
-            const offsetDragStart = this.domManager.calculateCanvasPosition(this.dragStartElement);
-            offsetX -= offsetDragStart.x - x;
-            offsetY -= offsetDragStart.y - y;
-        } else {
-            offsetX += x;
-            offsetY += y;
-        }
+        offsetX += x;
+        offsetY += y;
         return { clientX, clientY, pageX, pageY, offsetX, offsetY };
     }
 

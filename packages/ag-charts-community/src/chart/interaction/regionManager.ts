@@ -8,8 +8,9 @@ import { InteractionState } from './interactionManager';
 import { type PreventableEvent, buildPreventable } from './preventableEvent';
 
 type RegionName = 'root' | 'series';
+type RegionInteractionTypes = PointerInteractionTypes | 'drag-start' | 'drag' | 'drag-end';
 
-export type RegionEvent<T extends PointerInteractionTypes = PointerInteractionTypes> = PreventableEvent & {
+export type RegionEvent<T extends RegionInteractionTypes = RegionInteractionTypes> = PreventableEvent & {
     type: T;
     region: RegionName;
     regionX: number;
@@ -32,7 +33,7 @@ type TWidgetEvent = DragWidgetEvent | MouseWidgetEvent | WheelWidgetEvent;
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
-type TypeInfo = { [K in PointerInteractionTypes]: RegionEvent<K> };
+type TypeInfo = { [K in RegionInteractionTypes]: RegionEvent<K> };
 
 type RegionHandler = (event: RegionEvent) => void;
 
@@ -45,7 +46,7 @@ type Region = {
 
 export interface RegionProperties {
     readonly name: RegionName;
-    readonly widget: Widget;
+    widget?: Widget;
 }
 
 function addHandler<T extends RegionEvent['type']>(
@@ -105,7 +106,10 @@ export class RegionManager {
     private readonly debug = Debug.create(true, 'region');
 
     private current?: Region;
-    private readonly regions: { root?: Region; series?: Region } = {};
+    private readonly regions: { root: Region; series: Region } = {
+        root: { properties: { name: 'root' }, listeners: new RegionListeners() },
+        series: { properties: { name: 'series' }, listeners: new RegionListeners() },
+    };
     private readonly destroyFns: (() => void)[] = [];
     private readonly allRegionsListeners = new RegionListeners();
     private deferredDragStart?: RegionEvent<'drag-start'>;
@@ -118,24 +122,13 @@ export class RegionManager {
         this.destroyFns.forEach((fn) => fn());
 
         this.current = undefined;
-        this.regions.root?.listeners.destroy();
-        this.regions.series?.listeners.destroy();
-        delete this.regions.root;
-        delete this.regions.series;
-    }
-
-    private addRegion(name: RegionName, widget: Widget) {
-        if (this.regions[name] !== undefined) {
-            throw new Error(`AG Charts - Region: ${name} already exists`);
-        }
-        const region = { properties: { name, widget }, listeners: new RegionListeners() };
-        this.regions[name] = region;
-        return this.makeObserver(region);
+        this.regions.root.listeners.destroy();
+        this.regions.series.listeners.destroy();
     }
 
     initRegions(root: Widget, series: Widget) {
-        this.addRegion('root', root);
-        this.addRegion('series', series);
+        this.regions.root.properties.widget = root;
+        this.regions.series.properties.widget = series;
         root.addListener('wheel', this.processPointerEvent);
         root.addListener('contextmenu', this.processPointerEvent);
         root.addListener('click', this.processPointerEvent);
@@ -193,7 +186,7 @@ export class RegionManager {
         return map[widgetEvent.type];
     }
 
-    private computeEventOffsets(current: Region, widget: Widget, widgetEvent: TWidgetEvent) {
+    private computeEventOffsets(currentWidget: Widget, widget: Widget, widgetEvent: TWidgetEvent) {
         const { deltaX, deltaY } = InteractionManager.getWheelDeltas(widgetEvent.sourceEvent);
 
         if ('mockRegion' in widgetEvent.sourceEvent) {
@@ -204,7 +197,7 @@ export class RegionManager {
         }
 
         const widgetRect = widget.getElement().getBoundingClientRect();
-        const currentWidgetRect = current.properties.widget.getElement().getBoundingClientRect();
+        const currentWidgetRect = currentWidget.getElement().getBoundingClientRect();
         return {
             canvasX: widgetEvent.clientX - widgetRect.x,
             canvasY: widgetEvent.clientY - widgetRect.y,
@@ -222,10 +215,11 @@ export class RegionManager {
         widgetEvent: TWidgetEvent,
         regionEventType?: 'leave' | 'enter'
     ) {
-        if (current == null) return;
+        const { widget: currentWidget } = current?.properties ?? {};
+        if (current == null || currentWidget == null) return;
 
         const event: RegionEvent = buildPreventable({
-            ...this.computeEventOffsets(current, widget, widgetEvent),
+            ...this.computeEventOffsets(currentWidget, widget, widgetEvent),
             sourceEvent: widgetEvent.sourceEvent,
             type: this.widgetEventTypeToRegionEventType(widgetEvent, regionEventType),
             region: current.properties.name,
@@ -322,7 +316,7 @@ export class RegionManager {
                 ? this.regions.series
                 : this.regions.root;
         }
-        if (sourceEvent.target == this.regions.root?.properties.widget.getElement()) {
+        if (sourceEvent.target == this.regions.root?.properties.widget?.getElement()) {
             return this.regions.root;
         }
         return this.regions.series;
