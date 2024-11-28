@@ -1,20 +1,21 @@
-import { BaseToolbar, type ToolbarButtonOptions, type ToolbarEventMap } from '../../components/toolbar/toolbar';
-import { ToolbarButtonWidget } from '../../components/toolbar/toolbarButtonWidget';
-import type { LocaleManager } from '../../locale/localeManager';
-import type { BBox } from '../../scene/bbox';
+import { _ModuleSupport } from 'ag-charts-community';
+
+const { BaseToolbar, ToolbarButtonWidget } = _ModuleSupport;
 
 type SharedToolbarSection = 'annotations' | 'chartToolbar';
 
-export class SharedToolbar<ButtonOptions extends ToolbarButtonOptions = ToolbarButtonOptions> extends BaseToolbar<
+export class SharedToolbarWidget<
+    ButtonOptions extends _ModuleSupport.ToolbarButtonOptions = _ModuleSupport.ToolbarButtonOptions,
+> extends BaseToolbar<
     ButtonOptions,
-    ToolbarButtonWidget,
-    ToolbarEventMap<ButtonOptions>
+    _ModuleSupport.ToolbarButtonWidget,
+    _ModuleSupport.ToolbarEventMap<ButtonOptions>
 > {
     static readonly SECTION_ORDER: Array<SharedToolbarSection> = ['chartToolbar', 'annotations'];
 
     private lastLayoutSection?: string;
 
-    constructor(localeManager: LocaleManager) {
+    constructor(localeManager: _ModuleSupport.ModuleContext['localeManager']) {
         super(localeManager, 'vertical');
         this.addClass('ag-charts-shared-toolbar');
     }
@@ -24,7 +25,7 @@ export class SharedToolbar<ButtonOptions extends ToolbarButtonOptions = ToolbarB
         chartToolbar: [],
     };
 
-    public layout(section: SharedToolbarSection, layoutBox: BBox) {
+    public layout(section: SharedToolbarSection, layoutBox: _ModuleSupport.BBox) {
         // Only perform the layout for the first section to call to prevent multiple shrinkings per update
         if (this.lastLayoutSection != null && this.lastLayoutSection !== section) return;
         this.lastLayoutSection = section;
@@ -39,10 +40,10 @@ export class SharedToolbar<ButtonOptions extends ToolbarButtonOptions = ToolbarB
         layoutBox.shrink({ left: width + this.horizontalSpacing });
     }
 
-    public addToolbarSectionListener<K extends keyof ToolbarEventMap & string>(
+    public addToolbarSectionListener<K extends keyof _ModuleSupport.ToolbarEventMap & string>(
         section: SharedToolbarSection,
         eventType: K,
-        handler: (event: ToolbarEventMap<ButtonOptions>[K]) => void
+        handler: (event: _ModuleSupport.ToolbarEventMap<ButtonOptions>[K]) => void
     ) {
         return this.addToolbarListener(eventType, (sharedEvent) => {
             const sectionIndex = this.getSectionIndex(section, sharedEvent.button.index);
@@ -57,7 +58,7 @@ export class SharedToolbar<ButtonOptions extends ToolbarButtonOptions = ToolbarB
 
     public updateSectionButtons(section: SharedToolbarSection, buttons: Array<ButtonOptions>) {
         this.sectionButtons[section] = buttons;
-        const sharedButtons = SharedToolbar.SECTION_ORDER.flatMap((order) => this.sectionButtons[order]);
+        const sharedButtons = SharedToolbarWidget.SECTION_ORDER.flatMap((order) => this.sectionButtons[order]);
         this.updateButtons(sharedButtons);
     }
 
@@ -76,7 +77,7 @@ export class SharedToolbar<ButtonOptions extends ToolbarButtonOptions = ToolbarB
     public setSectionHidden(section: SharedToolbarSection, hidden: boolean) {
         let sum = 0;
 
-        for (const order of SharedToolbar.SECTION_ORDER) {
+        for (const order of SharedToolbarWidget.SECTION_ORDER) {
             if (order !== section) {
                 sum += this.sectionButtons[order].length;
                 continue;
@@ -94,7 +95,7 @@ export class SharedToolbar<ButtonOptions extends ToolbarButtonOptions = ToolbarB
 
     private getIndex(section: SharedToolbarSection, index: number) {
         let sum = 0;
-        for (const order of SharedToolbar.SECTION_ORDER) {
+        for (const order of SharedToolbarWidget.SECTION_ORDER) {
             if (order === section) return sum + index;
             sum += this.sectionButtons[order].length;
         }
@@ -103,7 +104,7 @@ export class SharedToolbar<ButtonOptions extends ToolbarButtonOptions = ToolbarB
 
     private getSectionIndex(section: SharedToolbarSection, index: number) {
         let sum = 0;
-        for (const order of SharedToolbar.SECTION_ORDER) {
+        for (const order of SharedToolbarWidget.SECTION_ORDER) {
             if (order === section) {
                 if (index >= sum + this.sectionButtons[section].length) return -1;
                 return index - sum;

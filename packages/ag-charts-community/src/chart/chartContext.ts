@@ -35,7 +35,6 @@ import { LayoutManager } from './layout/layoutManager';
 import { SeriesLabelLayoutManager } from './layout/seriesLabelLayoutManager';
 import { LegendManager } from './legend/legendManager';
 import { SeriesStateManager } from './series/seriesStateManager';
-import { ToolbarManager } from './toolbar/toolbarManager';
 import type { Tooltip } from './tooltip/tooltip';
 import { type UpdateCallback, UpdateService } from './updateService';
 
@@ -69,7 +68,6 @@ export class ChartContext implements ModuleContext {
     regionManager: RegionManager;
     scene: Scene;
     syncManager: SyncManager;
-    toolbarManager: ToolbarManager;
     tooltipManager: TooltipManager;
     updateService: UpdateService;
 
@@ -130,7 +128,6 @@ export class ChartContext implements ModuleContext {
         this.historyManager = new HistoryManager(this.keyNavManager);
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.animationManager);
-        this.toolbarManager = new ToolbarManager(this.domManager, this.localeManager);
         this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip);
 
         this.zoomManager.addLayoutListeners(this.layoutManager);

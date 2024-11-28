@@ -96,6 +96,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     { type: 'series', optionsKey: 'series[]', chartTypes: ['gauge'], identifier: 'linear-gauge' },
     { type: 'series', optionsKey: 'series[]', chartTypes: ['gauge'], identifier: 'radial-gauge' },
     { type: 'series-option', optionsKey: 'errorBar', chartTypes: ['cartesian'], identifier: 'error-bars' },
+    { type: 'context', contextKey: 'sharedToolbar', chartTypes: ['cartesian'] },
 ];
 
 export function isEnterpriseSeriesType(type: string) {

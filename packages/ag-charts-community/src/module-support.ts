@@ -216,5 +216,3 @@ export * from './components/toolbar/toolbarButtonProperties';
 export * from './components/toolbar/toolbarButtonWidget';
 export * from './components/toolbar/toolbar';
 export * from './components/toolbar/floatingToolbar';
-export * from './chart/toolbar/toolbarManager';
-export * from './chart/toolbar/sharedToolbar';

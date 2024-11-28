@@ -1,5 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
+import type { SharedToolbarWidget } from '../shared-toolbar/sharedToolbarWidget';
 import { type AnnotationType } from './annotationTypes';
 import {
     LINE_ANNOTATION_ITEMS,
@@ -44,7 +45,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
 
     private readonly events = new _ModuleSupport.Listeners<keyof EventMap, any>();
 
-    private readonly toolbar: _ModuleSupport.SharedToolbar<AnnotationsToolbarButtonOptions>;
+    private readonly toolbar: SharedToolbarWidget<AnnotationsToolbarButtonOptions>;
     private readonly annotationMenu = new Menu(this.ctx, 'annotations');
 
     private readonly destroyFns: (() => void)[] = [];
@@ -52,7 +53,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.toolbar = ctx.toolbarManager.getSharedToolbar();
+        this.toolbar = (ctx as any).sharedToolbar.getSharedToolbar();
 
         const onKeyDown = this.onKeyDown.bind(this);
         this.toolbar.addListener('keydown', onKeyDown);

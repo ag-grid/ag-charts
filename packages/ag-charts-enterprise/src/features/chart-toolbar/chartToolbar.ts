@@ -1,5 +1,7 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
 
+import type { SharedToolbarWidget } from '../shared-toolbar/sharedToolbarWidget';
+
 const { BOOLEAN, ActionOnSet, LayoutElement, Logger, Menu, Validate } = _ModuleSupport;
 
 const menuItems: _ModuleSupport.MenuItem<AgPriceVolumeChartType>[] = [
@@ -21,13 +23,13 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     })
     enabled: boolean = false;
 
-    private readonly toolbar: _ModuleSupport.SharedToolbar;
+    private readonly toolbar: SharedToolbarWidget;
     private readonly menu = new Menu(this.ctx, 'chart-toolbar');
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.toolbar = ctx.toolbarManager.getSharedToolbar();
+        this.toolbar = (ctx as any).sharedToolbar.getSharedToolbar();
 
         this.destroyFns.push(
             this.toolbar.addToolbarSectionListener('chartToolbar', 'button-pressed', this.onButtonPressed.bind(this)),
