@@ -27,6 +27,7 @@ export class NightingaleSeries extends RadialColumnSeriesBase<_ModuleSupport.Sec
         // Ensures highlights always appear on top
         this.contentGroup.zIndex = [0, PolarZIndexMap.FOREGROUND, index];
         this.highlightGroup.zIndex = [0, PolarZIndexMap.HIGHLIGHT, index];
+        this.labelGroup.zIndex = [0, PolarZIndexMap.LABEL, index];
 
         return true;
     }

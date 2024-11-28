@@ -170,6 +170,7 @@ export abstract class PolarSeries<
 
         this.contentGroup.zIndex = [index, PolarZIndexMap.FOREGROUND];
         this.highlightGroup.zIndex = [index, PolarZIndexMap.HIGHLIGHT];
+        this.labelGroup.zIndex = [index, PolarZIndexMap.LABEL];
 
         return true;
     }
