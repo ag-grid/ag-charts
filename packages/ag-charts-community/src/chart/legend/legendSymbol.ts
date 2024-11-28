@@ -69,8 +69,8 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
         const y = height / 2 + (center.y - 0.5) * size;
 
         if (typeof shape === 'string') {
-            marker.x = x;
-            marker.y = y;
+            marker.translationX = x;
+            marker.translationY = y;
         } else {
             // Custom marker - force it to fit in the box
             const bbox = marker.getBBox();

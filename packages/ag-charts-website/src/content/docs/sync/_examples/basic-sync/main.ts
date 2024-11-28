@@ -10,7 +10,6 @@ const commonOptions: AgChartOptions = {
             type: 'line',
             xKey: 'date',
             yKey: 'value',
-            yName: 'Price',
         },
     ],
     sync: {

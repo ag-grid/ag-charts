@@ -2,11 +2,6 @@ import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const numberFormatter = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-});
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -93,7 +88,6 @@ const options: AgChartOptions = {
             },
             label: {
                 enabled: false,
-                formatter: (params) => numberFormatter.format(params.value),
             },
             crosshair: {
                 enabled: false,
