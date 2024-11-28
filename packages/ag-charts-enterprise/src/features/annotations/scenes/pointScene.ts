@@ -2,6 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { PointProperties } from '../properties/pointProperties';
+import { getDragStartState } from '../utils/coords';
 import { validateDatumPoint } from '../utils/validation';
 import { convertPoint, invertCoords } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
@@ -35,7 +36,7 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
     public dragStart(datum: Datum, target: _ModuleSupport.Vec2, context: AnnotationContext) {
         this.dragState = {
             offset: target,
-            handle: convertPoint(datum, context),
+            ...getDragStartState({ handle: datum }, context),
         };
     }
 

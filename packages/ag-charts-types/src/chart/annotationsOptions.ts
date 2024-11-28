@@ -9,7 +9,7 @@ import type {
 } from '../series/cartesian/commonOptions';
 import type { ToolbarButton, ToolbarSwitch } from './buttonOptions';
 import type { Formatter } from './callbackOptions';
-import type { PixelSize } from './types';
+import type { CssColor, PixelSize } from './types';
 
 // *********
 // * Theme *
@@ -24,6 +24,9 @@ export interface AgAnnotationsThemeableOptions extends AgAnnotationsOptions {
     // Channels
     'disjoint-channel'?: AgChannelAnnotationStyles;
     'parallel-channel'?: AgChannelAnnotationStyles;
+
+    // Fibonaccis
+    'fibonacci-retracement'?: AgFibonacciAnnotationStyles;
 
     // Texts
     callout?: AgCalloutAnnotationStyles;
@@ -67,6 +70,15 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
     /** The fill colour for the middle of the channel. */
     background?: AgChannelAnnotationBackground;
     text?: AgChannelAnnotationTextOptions;
+}
+
+// Fibonaccis
+export interface AgFibonacciAnnotationStyles extends AgLineAnnotationStyles {
+    label?: AgLineAnnotationTextOptions;
+    /** Whether to show the fills between the Fibonacci range lines. */
+    showFill?: boolean;
+    /** The colours to cycle through for the strokes of the Fibonacci lines. */
+    strokes?: CssColor[];
 }
 
 // Texts
@@ -464,6 +476,7 @@ export interface AgAnnotationsToolbarButton extends ToolbarButton {
 
 export type AgAnnotationsToolbarButtonValue =
     | 'line-menu'
+    | 'fibonacci-menu'
     | 'text-menu'
     | 'shape-menu'
     | 'measurer-menu'
@@ -472,6 +485,7 @@ export type AgAnnotationsToolbarButtonValue =
     | 'vertical-line'
     | 'parallel-channel'
     | 'disjoint-channel'
+    | 'fibonacci-retracement'
     | 'text'
     | 'comment'
     | 'callout'

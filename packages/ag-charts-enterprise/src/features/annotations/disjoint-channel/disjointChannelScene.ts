@@ -3,9 +3,10 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
+import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
-import { LineWithTextScene } from '../scenes/lineWithTextScene';
-import { convertPoint, invertCoords } from '../utils/values';
+import { updateChannelText } from '../utils/lineWithText';
+import { invertCoords } from '../utils/values';
 import type { DisjointChannelProperties } from './disjointChannelProperties';
 
 const { Vec2, Vec4 } = _ModuleSupport;
@@ -123,21 +124,6 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         }
     }
 
-    protected override getOtherCoords(
-        datum: DisjointChannelProperties,
-        topLeft: _ModuleSupport.Vec2,
-        topRight: _ModuleSupport.Vec2,
-        context: AnnotationContext
-    ): _ModuleSupport.Vec2[] {
-        const startHeight = convertPoint(datum.bottom.start, context).y - convertPoint(datum.start, context).y;
-        const endHeight = convertPoint(datum.bottom.end, context).y - convertPoint(datum.end, context).y;
-
-        const bottomLeft = Vec2.add(topLeft, Vec2.from(0, startHeight));
-        const bottomRight = Vec2.add(topRight, Vec2.from(0, endHeight));
-
-        return [bottomLeft, bottomRight];
-    }
-
     override updateLines(datum: DisjointChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
         const { topLine, bottomLine } = this;
         const { lineDashOffset, stroke, strokeOpacity, strokeWidth } = datum;
@@ -176,7 +162,11 @@ export class DisjointChannelScene extends ChannelScene<DisjointChannelProperties
         });
     }
 
-    override updateText = LineWithTextScene.updateChannelText.bind(this, false);
+    updateText(datum: DisjointChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
+        this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
+
+        updateChannelText(false, top, bottom, datum.text, datum.strokeWidth, this.text, datum.text.label);
+    }
 
     override getBackgroundPoints(
         datum: DisjointChannelProperties,

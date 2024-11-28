@@ -9,14 +9,15 @@ import {
     type LineTextAlignment,
     type LineTextPosition,
 } from '../annotationTypes';
-import { LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
+import { FIBONACCI_RATIO_ITEMS, LINE_STROKE_WIDTH_ITEMS, TEXT_SIZE_ITEMS } from '../annotationsMenuOptions';
 import type {
     ChannelPropertiesType,
     EphemeralPropertiesType,
+    FibonacciPropertiesType,
     LinePropertiesType,
     MeasurerPropertiesType,
 } from '../annotationsSuperTypes';
-import { isChannelType } from '../utils/types';
+import { isChannelType, isFibonacciType } from '../utils/types';
 
 const { Listeners, focusCursorAtEnd } = _ModuleSupport;
 
@@ -42,6 +43,9 @@ export interface LinearSettingsDialogLineChangeProps {
     extendBelow?: boolean;
     extendLeft?: boolean;
     extendRight?: boolean;
+    reverse?: boolean;
+    showFill?: boolean;
+    bands?: number;
 }
 
 export interface LinearSettingsDialogTextChangeProps {
@@ -51,7 +55,7 @@ export interface LinearSettingsDialogTextChangeProps {
 }
 
 type LinearDialogPropertiesType = Exclude<
-    LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType,
+    LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType | FibonacciPropertiesType,
     EphemeralPropertiesType
 >;
 
@@ -78,6 +82,8 @@ export class AnnotationSettingsDialog extends Dialog {
         let lineLabel = 'dialogHeaderLine';
         if (isChannelType(datum)) {
             lineLabel = 'dialogHeaderChannel';
+        } else if (isFibonacciType(datum)) {
+            lineLabel = 'dialogHeaderFibonacciRange';
         } else if (datum.type === AnnotationType.DateRange) {
             lineLabel = 'dialogHeaderDateRange';
         } else if (datum.type === AnnotationType.PriceRange) {
@@ -104,7 +110,7 @@ export class AnnotationSettingsDialog extends Dialog {
     }
 
     private createLinearLineTab(
-        datum: LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType,
+        datum: LinePropertiesType | ChannelPropertiesType | MeasurerPropertiesType | FibonacciPropertiesType,
         options: LinearSettingsDialogOptions
     ) {
         const panel = this.createTabPanel();
@@ -123,6 +129,8 @@ export class AnnotationSettingsDialog extends Dialog {
         const strokeWidth = this.createStrokeWidthSelect(datum.strokeWidth ?? 2, options.onChangeLineStyleWidth);
         const lineStyle = this.createLineStyleRadioGroup(datum.lineStyle ?? 'solid', options.onChangeLineStyleType);
 
+        groupOne.append(lineColorPicker);
+
         if ('background' in datum) {
             const fillColorPicker = this.createColorPickerInput(
                 'fill-color',
@@ -132,14 +140,30 @@ export class AnnotationSettingsDialog extends Dialog {
                 options.onChangeHideFillColor
             );
 
-            groupOne.append(lineColorPicker, fillColorPicker);
-            groupTwo.append(strokeWidth, lineStyle);
+            groupOne.append(fillColorPicker);
+            groupTwo.append(strokeWidth);
+        } else if ('showFill' in datum) {
+            groupOne.append(
+                this.createCheckbox({
+                    label: 'dialogInputShowFill',
+                    checked: datum.showFill ?? true,
+                    onChange: (showFill) => options.onChangeLine({ showFill }),
+                })
+            );
+            groupTwo.append(strokeWidth);
         } else {
-            groupOne.append(lineColorPicker, strokeWidth);
-            groupTwo.append(lineStyle);
+            groupOne.append(strokeWidth);
         }
 
+        groupTwo.append(lineStyle);
+
         panel.append(groupOne, groupTwo);
+
+        if ('bands' in datum) {
+            panel.append(
+                this.createFibonacciRatioSelect(datum.bands ?? 10, (bands) => options.onChangeLine({ bands }))
+            );
+        }
 
         if ('extendStart' in datum && 'extendEnd' in datum) {
             panel.append(
@@ -182,6 +206,16 @@ export class AnnotationSettingsDialog extends Dialog {
                     label: 'dialogInputExtendRight',
                     checked: datum.extendRight ?? false,
                     onChange: (extendRight) => options.onChangeLine({ extendRight }),
+                })
+            );
+        }
+
+        if ('reverse' in datum && 'showFill' in datum) {
+            panel.append(
+                this.createCheckbox({
+                    label: 'dialogInputReverse',
+                    checked: datum.reverse ?? false,
+                    onChange: (reverse) => options.onChangeLine({ reverse }),
                 })
             );
         }
@@ -250,6 +284,16 @@ export class AnnotationSettingsDialog extends Dialog {
             altText: 'dialogInputStrokeWidthAltText',
             options: LINE_STROKE_WIDTH_ITEMS.map(({ label, value }) => ({ label: label!, value: `${value}` })),
             value: String(strokeWidth),
+            onChange: (value) => onChange(Number(value)),
+        });
+    }
+
+    private createFibonacciRatioSelect(bands: number, onChange: (value: number) => void) {
+        return this.createSelect({
+            label: 'dialogInputFibonacciBands',
+            altText: 'dialogInputFibonacciBandsAltText',
+            options: FIBONACCI_RATIO_ITEMS.map(({ label, value }) => ({ label: label!, value: `${value}` })),
+            value: String(bands),
             onChange: (value) => onChange(Number(value)),
         });
     }

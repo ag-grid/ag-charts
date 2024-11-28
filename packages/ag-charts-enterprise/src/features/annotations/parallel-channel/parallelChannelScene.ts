@@ -4,10 +4,11 @@ import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { ChannelScene } from '../scenes/channelScene';
 import { CollidableLine } from '../scenes/collidableLineScene';
+import { CollidableText } from '../scenes/collidableTextScene';
 import { DivariantHandle, UnivariantHandle } from '../scenes/handle';
-import { LineWithTextScene } from '../scenes/lineWithTextScene';
+import { updateChannelText } from '../utils/lineWithText';
 import { isPoint, validateDatumPoint } from '../utils/validation';
-import { convertPoint, invertCoords } from '../utils/values';
+import { invertCoords } from '../utils/values';
 import type { ParallelChannelProperties } from './parallelChannelProperties';
 
 const { Vec2, Vec4 } = _ModuleSupport;
@@ -124,20 +125,6 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         }
     }
 
-    protected override getOtherCoords(
-        datum: ParallelChannelProperties,
-        topLeft: _ModuleSupport.Vec2,
-        topRight: _ModuleSupport.Vec2,
-        context: AnnotationContext
-    ): _ModuleSupport.Vec2[] {
-        const height = convertPoint(datum.bottom.start, context).y - convertPoint(datum.start, context).y;
-
-        const bottomLeft = Vec2.add(topLeft, Vec2.from(0, height));
-        const bottomRight = Vec2.add(topRight, Vec2.from(0, height));
-
-        return [bottomLeft, bottomRight];
-    }
-
     override containsPoint(x: number, y: number) {
         return (
             super.containsPoint(x, y) ||
@@ -225,7 +212,11 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
         });
     }
 
-    override updateText = LineWithTextScene.updateChannelText.bind(this, true);
+    updateText(datum: ParallelChannelProperties, top: _ModuleSupport.Vec4, bottom: _ModuleSupport.Vec4) {
+        this.text = this.updateNode(CollidableText, this.text, !!datum.text.label);
+
+        updateChannelText(true, top, bottom, datum.text, datum.strokeWidth, this.text, datum.text.label);
+    }
 
     override getBackgroundPoints(
         datum: ParallelChannelProperties,

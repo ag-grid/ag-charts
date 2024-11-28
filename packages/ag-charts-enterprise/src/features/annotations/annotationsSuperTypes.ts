@@ -13,6 +13,8 @@ import type { HorizontalLineProperties, VerticalLineProperties } from './cross-l
 import type { CrossLineScene } from './cross-line/crossLineScene';
 import type { DisjointChannelProperties } from './disjoint-channel/disjointChannelProperties';
 import type { DisjointChannelScene } from './disjoint-channel/disjointChannelScene';
+import type { FibonacciRetracementProperties } from './fibonacci-retracement/fibonacciRetracementProperties';
+import type { FibonacciRetracementScene } from './fibonacci-retracement/fibonacciRetracementScene';
 import type { ArrowProperties, LineProperties } from './line/lineProperties';
 import type { LineScene } from './line/lineScene';
 import type {
@@ -33,6 +35,7 @@ import type { TextScene } from './text/textScene';
 type ShapePropertiesType = ArrowUpProperties | ArrowDownProperties;
 export type TextualPropertiesType = CalloutProperties | CommentProperties | NoteProperties | TextProperties;
 export type LinePropertiesType = LineProperties | HorizontalLineProperties | VerticalLineProperties | ArrowProperties;
+export type FibonacciPropertiesType = FibonacciRetracementProperties;
 export type ChannelPropertiesType = ParallelChannelProperties | DisjointChannelProperties;
 export type MeasurerPropertiesType =
     | DateRangeProperties
@@ -43,6 +46,7 @@ export type MeasurerPropertiesType =
 export type AnnotationProperties =
     | LinePropertiesType
     | ChannelPropertiesType
+    | FibonacciPropertiesType
     | TextualPropertiesType
     | ShapePropertiesType
     | MeasurerPropertiesType;
@@ -57,6 +61,9 @@ export type AnnotationScene =
     // Channels
     | ParallelChannelScene
     | DisjointChannelScene
+
+    // Fibonaccis
+    | FibonacciRetracementScene
 
     // Shapes
     | ArrowUpScene

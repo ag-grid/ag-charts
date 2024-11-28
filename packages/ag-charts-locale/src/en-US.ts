@@ -101,6 +101,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarSeriesTypeStepLine: 'Step Line',
     // Text for the annotation toolbar's trend line button
     toolbarAnnotationsTrendLine: 'Trend Line',
+    // Text for the annotation toolbar's Fibonacci Retracement button
+    toolbarAnnotationsFibonacciRetracement: 'Fibonacci Retracement',
     // Text for the annotation toolbar's horizontal line button
     toolbarAnnotationsHorizontalLine: 'Horizontal Line',
     // Text for the annotation toolbar's vertical line button
@@ -135,6 +137,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     toolbarAnnotationsDragHandle: 'Drag Toolbar',
     // Text for the annotation toolbar's line drawings menu button
     toolbarAnnotationsLineAnnotations: 'Trend Lines',
+    // Text for the annotation toolbar's Fibonacci drawings menu button
+    toolbarAnnotationsFibonacciAnnotations: 'Fibonacci',
     // Text for the annotation toolbar's text annotations menu button
     toolbarAnnotationsTextAnnotations: 'Text Annotations',
     // Text for the annotation toolbar's shapes menu button
@@ -215,6 +219,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogHeaderChannel: 'Channel',
     // Text for the annotation dialog's header line tab label
     dialogHeaderLine: 'Line',
+    // Text for the annotation dialog's header fibonacci range line tab label
+    dialogHeaderFibonacciRange: 'Fibonacci Range',
     // Text for the annotation dialog's header date range tab label
     dialogHeaderDateRange: 'Date Range',
     // Text for the annotation dialog's header price range tab label
@@ -249,6 +255,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputExtendLeft: 'Extend left',
     // Text for the annotation dialog's extend right checkbox
     dialogInputExtendRight: 'Extend right',
+    // Text for the annotation dialog's reverse checkbox
+    dialogInputReverse: 'Reverse',
+    // Text for the annotation dialog's show fill checkbox
+    dialogInputShowFill: 'Show Fill',
     // Text for the annotation dialog's font size select box label
     dialogInputFontSize: 'Size',
     // Text for the annotation dialog's font size select box alt text
@@ -261,6 +271,10 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogInputStrokeWidth: 'Weight',
     // Text for the annotation dialog's stroke width label
     dialogInputStrokeWidthAltText: 'Line Weight',
+    // Text for the annotation dialog's Fibonacci bands label
+    dialogInputFibonacciBands: 'Bands',
+    // Text for the annotation dialog's Fibonacci bands label
+    dialogInputFibonacciBandsAltText: 'Fibonacci Bands',
     // Text for text area input placeholders
     inputTextareaPlaceholder: 'Add Text',
     // Text for the measurer statistics date range bars value
