@@ -46,7 +46,7 @@ const options: AgChartOptions = {
                 return {
                     heading: undefined,
                     data: [
-                        { label: 'Grade', value: xName },
+                        { label: 'Grade', value: xName! },
                         { label: 'Score', value: domain.join(' - ') },
                     ],
                 };
