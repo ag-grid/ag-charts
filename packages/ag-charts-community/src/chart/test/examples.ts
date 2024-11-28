@@ -38,6 +38,7 @@ export const DOCS_EXAMPLES = {
     'custom-tooltips': loadExampleOptions('custom-tooltips'),
     'grouped-bar': loadExampleOptions('grouped-bar'),
     'grouped-column': loadExampleOptions('grouped-column'),
+    'grouped-category': loadExampleOptions('grouped-category'),
     'histogram-with-specified-bins': loadExampleOptions('histogram-with-specified-bins'),
     'line-with-gaps': loadExampleOptions('line-with-gaps'),
     'log-axis': loadExampleOptions('log-axis'),
@@ -66,6 +67,7 @@ export const DOCS_EXAMPLES = {
     'xy-histogram-with-mean-aggregation': loadExampleOptions('xy-histogram-with-mean-aggregation'),
 };
 
+export const GROUPED_CATEGORY_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['grouped-category'];
 export const BAR_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-bar'];
 export const GROUPED_BAR_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['grouped-bar'];
 export const STACKED_BAR_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['stacked-bar'];
@@ -81,7 +83,6 @@ export const COLUMN_CHART_WITH_NEGATIVE_VALUES_EXAMPLE: AgCartesianChartOptions 
 export const SIMPLE_PIE_CHART_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-pie'];
 export const SIMPLE_DONUT_CHART_EXAMPLE: AgPolarChartOptions = DOCS_EXAMPLES['simple-donut'];
 export const PIE_IN_A_DONUT: AgPolarChartOptions = DOCS_EXAMPLES['pie-in-a-donut'];
-export const PIE_WITH_VARIABLE_RADIUS: AgPolarChartOptions = DOCS_EXAMPLES['pie-with-variable-radius'];
 export const SIMPLE_LINE_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-line'];
 export const LINE_GRAPH_WITH_GAPS_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['line-with-gaps'];
 export const SIMPLE_SCATTER_CHART_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['simple-scatter'];
@@ -107,59 +108,53 @@ export const XY_HISTOGRAM_WITH_MEAN_EXAMPLE: AgCartesianChartOptions =
     DOCS_EXAMPLES['xy-histogram-with-mean-aggregation'];
 export const CROSS_LINES_EXAMPLE: AgCartesianChartOptions = DOCS_EXAMPLES['cross-lines'];
 
-export const GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOptions = {};
-{
-    const usdFormatter = ({ value }: { value: number }) => {
-        const absolute = Math.abs(value);
-        let standardised = '';
-
-        if (absolute < 1e3) {
-            standardised = String(absolute);
-        }
-        if (absolute >= 1e3 && absolute < 1e6) {
-            standardised = '$' + +(absolute / 1e3).toFixed(1) + 'K';
-        }
-        if (absolute >= 1e6 && absolute < 1e9) {
-            standardised = '$' + +(absolute / 1e6).toFixed(1) + 'M';
-        }
-        if (absolute >= 1e9 && absolute < 1e12) {
-            standardised = '$' + +(absolute / 1e9).toFixed(1) + 'B';
-        }
-        if (absolute >= 1e12) {
-            standardised = '$' + +(absolute / 1e12).toFixed(1) + 'T';
-        }
-        return value < 0 ? '-' + standardised : standardised;
-    };
-
-    Object.assign(GROUPED_CATEGORY_AXIS_EXAMPLE, {
-        data: DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY,
-        axes: [
-            { type: 'grouped-category', position: 'bottom' },
-            { type: 'number', position: 'left', label: { formatter: usdFormatter } },
-        ],
-        series: [
-            {
-                xKey: 'grouping',
-                xName: 'Group',
-                yKey: 'totalWinnings',
-                yName: 'Total Winnings',
-                showInLegend: false,
-                grouped: true,
-                type: 'bar',
-            },
-        ],
-        title: {
-            text: 'Total Winnings by Country & Game',
+export const GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOptions = {
+    data: DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY,
+    axes: [
+        { type: 'grouped-category', position: 'bottom' },
+        { type: 'number', position: 'left', label: { formatter: usdFormatter } },
+    ],
+    series: [
+        {
+            xKey: 'grouping',
+            xName: 'Group',
+            yKey: 'totalWinnings',
+            yName: 'Total Winnings',
+            showInLegend: false,
+            grouped: true,
+            type: 'bar',
         },
-    });
+    ],
+    title: {
+        text: 'Total Winnings by Country & Game',
+    },
+};
+
+function usdFormatter({ value }: { value: number }) {
+    const absolute = Math.abs(value);
+    let standardised = '';
+
+    if (absolute < 1e3) {
+        standardised = String(absolute);
+    }
+    if (absolute >= 1e3 && absolute < 1e6) {
+        standardised = '$' + +(absolute / 1e3).toFixed(1) + 'K';
+    }
+    if (absolute >= 1e6 && absolute < 1e9) {
+        standardised = '$' + +(absolute / 1e6).toFixed(1) + 'M';
+    }
+    if (absolute >= 1e9 && absolute < 1e12) {
+        standardised = '$' + +(absolute / 1e9).toFixed(1) + 'B';
+    }
+    if (absolute >= 1e12) {
+        standardised = '$' + +(absolute / 1e12).toFixed(1) + 'T';
+    }
+    return value < 0 ? '-' + standardised : standardised;
 }
 
 export const INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOptions & { mode: string } = {
     mode: 'integrated',
     data: [
-        {
-            'ag-Grid-AutoColumn-country': ['Enchanted Kingdom of Celestria', '', ''],
-        },
         {
             'ag-Grid-AutoColumn-country': ['Enchanted Kingdom of Celestria', '2008'],
             gold: 8,
@@ -213,9 +208,6 @@ export const INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOp
             gold: 4,
             silver: 2,
             bronze: 0,
-        },
-        {
-            'ag-Grid-AutoColumn-country': ['Mystical Realm of Eldoria'],
         },
     ],
     axes: [

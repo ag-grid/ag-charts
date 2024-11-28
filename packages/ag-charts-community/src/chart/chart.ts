@@ -28,6 +28,7 @@ import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
 import { isDefined, isFiniteNumber, isFunction } from '../util/type-guards';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
+import type { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
 import type { ChartAxis } from './chartAxis';
@@ -1286,6 +1287,19 @@ export abstract class Chart extends Observable {
             horizontalAxis.tick.set(
                 without(intervalOptions, ['enabled', 'width', 'size', 'color', 'interval', 'step'])
             );
+
+            if (horizontalAxis.type === 'grouped-category') {
+                horizontalAxis.label.enabled = false;
+                horizontalAxis.label.rotation = 90;
+                const { depthOptions } = horizontalAxis as GroupedCategoryAxis;
+                if (depthOptions.length === 0) {
+                    depthOptions.set([{ label: { enabled: true } }]);
+                } else {
+                    for (let i = 1; i < depthOptions.length; i++) {
+                        depthOptions[i].label.enabled = false;
+                    }
+                }
+            }
 
             const step = intervalOptions?.step;
             if (step != null) {
