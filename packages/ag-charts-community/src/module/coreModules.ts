@@ -15,7 +15,7 @@ import type {
 
 import type { ChartLegend, ChartLegendType } from '../chart/legend/legendDatum';
 import type { Series } from '../chart/series/series';
-import type { BaseModule, ChartTypes, ModuleInstance } from './baseModule';
+import type { BaseModule, BaseOptionsModule, ChartTypes, ModuleInstance } from './baseModule';
 import type { RequiredSeriesType, SeriesPaletteFactory } from './coreModulesTypes';
 import type { ModuleContext } from './moduleContext';
 
@@ -23,7 +23,15 @@ type ModuleInstanceFactory<M> = (moduleContext: ModuleContext) => M;
 export type SeriesFactory = ModuleInstanceFactory<Series<any, any>>;
 export type LegendFactory = ModuleInstanceFactory<ChartLegend>;
 
-export interface RootModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
+export interface ContextModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
+    type: 'context';
+
+    moduleFactory: ModuleInstanceFactory<M>;
+
+    contextKey: string;
+}
+
+export interface RootModule<M extends ModuleInstance = ModuleInstance> extends BaseOptionsModule {
     type: 'root';
 
     moduleFactory: ModuleInstanceFactory<M>;
@@ -34,7 +42,7 @@ export interface RootModule<M extends ModuleInstance = ModuleInstance> extends B
     removable?: boolean;
 }
 
-export interface LegendModule extends BaseModule {
+export interface LegendModule extends BaseOptionsModule {
     type: 'legend';
 
     identifier: ChartLegendType;
@@ -79,7 +87,7 @@ export type SeriesTooltipDefaults = {
 export interface SeriesModule<
     SeriesType extends RequiredSeriesType = RequiredSeriesType,
     ChartType extends ChartTypes = ChartTypes,
-> extends BaseModule<ChartType> {
+> extends BaseOptionsModule<ChartType> {
     type: 'series';
 
     identifier: SeriesType;

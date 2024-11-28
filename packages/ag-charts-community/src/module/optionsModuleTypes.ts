@@ -13,7 +13,7 @@ import type { PropertyDefinition } from '../chart/data/dataModel';
 import type { SeriesNodeDatum } from '../chart/series/seriesTypes';
 import type { ScaleType } from '../scale/scale';
 import type { Point } from '../scene/point';
-import type { BaseModule, ModuleInstance } from './baseModule';
+import type { BaseOptionsModule, ModuleInstance } from './baseModule';
 import type { SeriesContext } from './moduleContext';
 
 export type PickNodeDatumResult = { datum: SeriesNodeDatum; distanceSquared: number } | undefined;
@@ -43,7 +43,7 @@ export interface SeriesOptionInstance extends ModuleInstance {
     getTooltipParams(): object;
 }
 
-export interface SeriesOptionModule<M extends SeriesOptionInstance = SeriesOptionInstance> extends BaseModule {
+export interface SeriesOptionModule<M extends SeriesOptionInstance = SeriesOptionInstance> extends BaseOptionsModule {
     type: 'series-option';
     seriesTypes: readonly SeriesType[];
     moduleFactory: (ctx: SeriesContext) => M;

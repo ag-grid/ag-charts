@@ -1,5 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { AxisOptionModule } from './axisOptionModule';
+import { RootModule } from './coreModules';
 import { BaseModuleInstance, Module, ModuleRegistry } from './module';
 
 describe('Module', () => {
@@ -40,7 +42,7 @@ describe('Module', () => {
             moduleRegistry.register(one, two, three);
 
             const order = [];
-            for (const module of moduleRegistry.byType('root')) {
+            for (const module of moduleRegistry.byType<RootModule>('root')) {
                 order.push(module.optionsKey);
             }
 
@@ -51,7 +53,7 @@ describe('Module', () => {
             moduleRegistry.register(one, two, three);
 
             const order = [];
-            for (const module of moduleRegistry.byType('axis-option')) {
+            for (const module of moduleRegistry.byType<AxisOptionModule>('axis-option')) {
                 order.push(module.optionsKey);
             }
 
@@ -90,7 +92,7 @@ describe('Module', () => {
             moduleRegistry.register(one, two, three);
 
             const order = [];
-            for (const module of moduleRegistry.byType('root')) {
+            for (const module of moduleRegistry.byType<RootModule>('root')) {
                 order.push(module.optionsKey);
             }
 
