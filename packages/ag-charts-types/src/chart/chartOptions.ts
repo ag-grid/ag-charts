@@ -44,7 +44,11 @@ export interface AgSeriesAreaOptions {
 }
 
 export interface AgChartOverlayOptions {
-    /** Enabled or disable use of the overlay. Defaults to true. */
+    /**
+     * Enabled or disable use of the overlay.
+     *
+     * Default: `true`
+     */
     enabled?: boolean;
     /** Text to render in the overlay. */
     text?: string;
