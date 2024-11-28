@@ -92,6 +92,8 @@ export class WidgetListenerInternal {
     }
 
     private startDrag<T extends Targetable>(current: T, downEvent: MouseEvent) {
+        if (current.getElement() !== downEvent.target) return;
+
         const window = getWindow();
         const origin: DragOrigin = { pageX: NaN, pageY: NaN, offsetX: NaN, offsetY: NaN };
         partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, downEvent);
