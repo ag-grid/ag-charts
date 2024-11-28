@@ -16,7 +16,7 @@ const options: AgChartOptions = {
             },
             tooltip: {
                 renderer: ({ datum }) => ({
-                    content: datum.size != null ? `Size: ${datum.size.toFixed(0)} kb` : undefined,
+                    data: datum?.size != null ? [{ label: `Size`, value: `${datum.size.toFixed(0)} kb` }] : undefined,
                 }),
             },
         },

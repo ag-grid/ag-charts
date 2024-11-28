@@ -1,36 +1,6 @@
-import { AgBoxPlotSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
-
-const tooltip = {
-    renderer: (params: AgBoxPlotSeriesTooltipRendererParams<any>) => {
-        const {
-            datum,
-            xKey,
-            xName,
-            minKey,
-            minName,
-            q1Key,
-            q1Name,
-            medianKey,
-            medianName,
-            q3Key,
-            q3Name,
-            maxKey,
-            maxName,
-            yName,
-        } = params;
-        const values = [
-            `${xName}: ${datum[xKey]}`,
-            `${minName}: ${datum[minKey]}`,
-            `${q1Name}: ${datum[q1Key]}`,
-            `${medianName}: ${datum[medianKey]}`,
-            `${q3Name}: ${datum[q3Key]}`,
-            `${maxName}: ${datum[maxKey]}`,
-        ];
-        return `<div class="ag-chart-tooltip-title">${yName}</div><div class="ag-chart-tooltip-content">${values.join('<br>')}</div>`;
-    },
-};
 
 const shared = {
     xKey: 'countryOfArrival',
@@ -75,14 +45,14 @@ const options: AgChartOptions = {
             type: 'box-plot',
             data: data['Jan - Mar 2023'],
             yName: 'Jan - Mar 2023',
-            tooltip,
+            // tooltip,
             ...shared,
         },
         {
             type: 'box-plot',
             data: data['April - June 2023'],
             yName: 'April - June 2023',
-            tooltip,
+            // tooltip,
             ...shared,
         },
     ],

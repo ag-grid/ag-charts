@@ -45,14 +45,6 @@ const options: AgChartOptions = {
                     spacing: 10,
                 },
             ],
-            tooltip: {
-                renderer: ({ datum, calloutLabelKey, title, sectorLabelKey }) => {
-                    return {
-                        title,
-                        content: `${datum[calloutLabelKey!]}: ${numFormatter.format(datum[sectorLabelKey!])}`,
-                    };
-                },
-            },
             sectorSpacing: 3,
         },
     ],

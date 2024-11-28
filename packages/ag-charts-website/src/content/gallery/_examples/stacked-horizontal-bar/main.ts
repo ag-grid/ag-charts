@@ -22,7 +22,7 @@ const options: AgChartOptions = {
                     }),
                     tooltip: {
                         renderer: ({ datum, xKey, yKey }: AgBarSeriesTooltipRendererParams) => ({
-                            content: `${datum[xKey]}: ${Math.abs(datum[yKey])}`,
+                            data: [{ label: `${datum[xKey]}`, value: `${Math.abs(datum[yKey])}` }],
                         }),
                     },
                 },

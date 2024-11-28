@@ -202,7 +202,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                 tooltip: {
                     enabled: true,
                     renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => ({
-                        content: formatMillis(datum.results[testName]!.timeMs, 2),
+                        // content: formatMillis(datum.results[testName]!.timeMs, 2),
                     }),
                 },
             },
@@ -217,7 +217,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                     renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => {
                         const { heapUsed } = datum.results[testName]!;
                         return {
-                            content: `${formatBytes(heapUsed)}`,
+                            // content: `${formatBytes(heapUsed)}`,
                         };
                     },
                 },
@@ -233,7 +233,7 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                     renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => {
                         const { canvasBytes, canvasCount } = datum.results[testName]!;
                         return {
-                            content: `${formatBytes(canvasBytes)} in ${canvasCount} canvases`,
+                            // content: `${formatBytes(canvasBytes)} in ${canvasCount} canvases`,
                         };
                     },
                 },

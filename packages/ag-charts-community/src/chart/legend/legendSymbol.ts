@@ -66,6 +66,12 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
         marker.stroke = stroke;
         marker.strokeOpacity = strokeOpacity;
         marker.strokeWidth = strokeWidth;
+
+        const bbox = marker.getBBox();
+        const scale = Math.min(width / (bbox.x + bbox.width), height / (bbox.y + bbox.height), 1);
+        marker.scalingX = scale;
+        marker.scalingY = scale;
+
         group.append(marker);
     }
 

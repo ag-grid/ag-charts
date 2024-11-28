@@ -24,17 +24,6 @@ const options: AgChartOptions = {
                         enabled: true,
                         formatter: ({ value }) => `${numFormatter.format(value)}`,
                     },
-                    tooltip: {
-                        renderer: ({
-                            title,
-                            datum,
-                            xKey,
-                            yKey,
-                        }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
-                            title,
-                            content: `${datum[xKey]}: ${numFormatter.format(datum[yKey])}`,
-                        }),
-                    },
                 },
             },
         },

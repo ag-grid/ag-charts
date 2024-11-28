@@ -5,7 +5,7 @@ import { getData } from './data';
 function renderer(params: AgCartesianSeriesTooltipRendererParams) {
     return (
         '<div class="ag-chart-tooltip-title" style="background-color:' +
-        params.color +
+        'white' + // @todo(AG-10574) params.color +
         '">' +
         params.datum[params.xKey] +
         '</div>' +

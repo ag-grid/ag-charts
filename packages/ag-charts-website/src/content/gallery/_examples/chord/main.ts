@@ -48,12 +48,13 @@ const options: AgChartOptions = {
             toKey: 'to',
             sizeKey: 'frequency',
             tooltip: {
-                renderer: ({ datum, fromKey, toKey, sizeKey }) => ({
-                    content:
-                        datum[sizeKey!] != null
-                            ? `${numberFormatter.format(datum[sizeKey!])} ${datum[fromKey!]} developers want to learn ${datum[toKey!]}`
-                            : '',
-                }),
+                renderer: ({ datum, fromKey, toKey, sizeKey }) =>
+                    datum != null
+                        ? {
+                              title: `${numberFormatter.format(datum[sizeKey!])} ${datum[fromKey!]} developers want to learn ${datum[toKey!]}`,
+                              data: [],
+                          }
+                        : { data: [] },
             },
         },
     ],

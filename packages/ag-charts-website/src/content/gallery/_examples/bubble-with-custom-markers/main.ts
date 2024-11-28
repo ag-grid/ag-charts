@@ -1,9 +1,4 @@
-import {
-    AgCartesianSeriesTooltipRendererParams,
-    AgChartOptions,
-    AgCharts,
-    AgMarkerShapeFnParams,
-} from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AgMarkerShapeFnParams } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -30,16 +25,6 @@ const formatNumber = (value: number) => {
     return `${Math.round(value)}mm`;
 };
 
-const tooltip = {
-    renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
-        const season = seasons[Math.round(datum[xKey]) - 1];
-        return {
-            title: season,
-            content: `Volume: ${formatNumber(datum[yKey])}`,
-        };
-    },
-};
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -59,7 +44,6 @@ const options: AgChartOptions = {
             size: 3,
             maxSize: 25,
             shape: rainDrop,
-            tooltip,
         },
     ],
     axes: [

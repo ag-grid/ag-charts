@@ -31,7 +31,10 @@ const first: AgGaugeOptions = {
         enabled: true,
         renderer: ({ value }) => ({
             title: 'Tech',
-            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${250}`,
+            data: [
+                { label: `Revenue 2020 YTD`, value: `${value}` },
+                { label: `Target`, value: '250' },
+            ],
         }),
     },
 };
@@ -66,7 +69,10 @@ const second: AgGaugeOptions = {
         enabled: true,
         renderer: ({ value }) => ({
             title: 'Energy',
-            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${250}`,
+            data: [
+                { label: `Revenue 2020 YTD`, value: `${value}` },
+                { label: `Target`, value: '220' },
+            ],
         }),
     },
 };
@@ -101,7 +107,10 @@ const third: AgGaugeOptions = {
         enabled: true,
         renderer: ({ value }) => ({
             title: 'Government',
-            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${330}`,
+            data: [
+                { label: `Revenue 2020 YTD`, value: `${value}` },
+                { label: `Target`, value: '215' },
+            ],
         }),
     },
 };
@@ -136,7 +145,10 @@ const fourth: AgGaugeOptions = {
         enabled: true,
         renderer: ({ value }) => ({
             title: 'Travel',
-            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${250}`,
+            data: [
+                { label: `Revenue 2020 YTD`, value: `${value}` },
+                { label: `Target`, value: '220' },
+            ],
         }),
     },
 };
@@ -171,7 +183,10 @@ const fifth: AgGaugeOptions = {
         enabled: true,
         renderer: ({ value }) => ({
             title: 'Education',
-            content: `<b>Revenue 2020 YTD: </b>${value}<br/><b>Target: </b>${120}`,
+            data: [
+                { label: `Revenue 2020 YTD`, value: `${value}` },
+                { label: `Target`, value: '120' },
+            ],
         }),
     },
 };

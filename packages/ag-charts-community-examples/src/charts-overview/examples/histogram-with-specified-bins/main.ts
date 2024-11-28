@@ -30,24 +30,6 @@ const options: AgChartOptions = {
                 [3000, 4500],
             ],
             areaPlot: true,
-            tooltip: {
-                renderer: (params) => {
-                    const paramsMax = params.datum.domain[1];
-                    // eslint-disable-next-line no-nested-ternary, sonarjs/no-nested-conditional
-                    const sizeName = paramsMax === 2000 ? 'small' : paramsMax === 3000 ? 'medium' : 'large';
-
-                    return {
-                        content:
-                            '<b>' +
-                            params.datum.frequency +
-                            '</b> vehicles in the <b>' +
-                            sizeName +
-                            '</b> category by <b>' +
-                            params.xName!.toLowerCase() +
-                            '</b>',
-                    };
-                },
-            },
         },
     ],
     axes: [

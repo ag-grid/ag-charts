@@ -9,10 +9,12 @@ import { getData } from './data';
 
 const data = getData();
 
+const dateFormatter = new Intl.DateTimeFormat('en-GB');
 const tooltip = {
     renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
-        const date = Intl.DateTimeFormat('en-GB').format(datum[xKey]);
-        return { content: `${date}: ${Math.round(datum[yKey] / 100) / 10 + 'k'}` };
+        return {
+            data: [{ label: dateFormatter.format(datum[xKey]), value: `${Math.round(datum[yKey] / 100) / 10 + 'k'}` }],
+        };
     },
 };
 

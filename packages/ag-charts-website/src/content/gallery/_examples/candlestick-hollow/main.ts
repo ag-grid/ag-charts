@@ -27,16 +27,6 @@ const options: AgChartOptions = {
             openName: 'Open',
             closeKey: 'close',
             closeName: 'Close',
-            tooltip: {
-                renderer: ({ datum, openKey, highKey, lowKey, closeKey }) => {
-                    return {
-                        content: `<b>O</b> ${datum[openKey].toLocaleString()}</br><b>H</b> ${datum[
-                            highKey
-                        ].toLocaleString()}<br/><b>L</b> ${datum[lowKey].toLocaleString()}
-                           <br/><b>C</b> ${datum[closeKey].toLocaleString()}`,
-                    };
-                },
-            },
             item: {
                 up: {
                     fill: 'transparent',

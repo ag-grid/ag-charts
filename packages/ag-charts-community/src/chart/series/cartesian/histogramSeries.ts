@@ -1,3 +1,5 @@
+import type { AgHistogramBinDatum } from 'ag-charts-types';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
 import type { BBox } from '../../../scene/bbox';
@@ -466,13 +468,18 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         }
 
         const groupIndex = nodeDatum.datumIndex;
-        const datum = null!;
         const { aggregation, datumIndices, keys } = processedData.groups[groupIndex];
         const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
         const frequency = datumIndices.length;
         const domain = keys;
         const [rangeMin, rangeMax] = domain;
         const aggregatedValue = negativeAgg + positiveAgg;
+        const datum: AgHistogramBinDatum<any> = {
+            data: datumIndices.map((datumIndex) => processedData.rawData[datumIndex]),
+            aggregatedValue,
+            frequency,
+            domain: domain as any,
+        };
 
         const data: TooltipContentDataRow[] = [{ label: xName ?? xKey, value: yAxis.formatDatum(frequency) }];
 

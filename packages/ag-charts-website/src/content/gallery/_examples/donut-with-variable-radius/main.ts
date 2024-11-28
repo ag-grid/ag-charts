@@ -1,16 +1,26 @@
-import { AgChartOptions, AgCharts, AgPieSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+import {
+    AgCharts,
+    AgDonutSeriesTooltipRendererParams,
+    AgPolarChartOptions,
+    AgSeriesTooltip,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
 const data = getData();
 const numFormatter = new Intl.NumberFormat('en-US');
-const tooltip = {
-    renderer: ({ datum, angleKey }: AgPieSeriesTooltipRendererParams<any>) => ({
-        content: `${numFormatter.format(datum[angleKey] / 1000000)}M`,
+const tooltip: AgSeriesTooltip<AgDonutSeriesTooltipRendererParams<any>> = {
+    renderer: ({ datum, sectorLabelKey, calloutLabelKey, angleKey }) => ({
+        data: [
+            {
+                label: datum[sectorLabelKey! ?? calloutLabelKey!],
+                value: `${numFormatter.format(datum[angleKey] / 1000000)}M`,
+            },
+        ],
     }),
 };
 
-const options: AgChartOptions = {
+const options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
     title: {
         text: 'Oxford Street Selfridges',
@@ -52,7 +62,7 @@ const options: AgChartOptions = {
             innerRadiusRatio: 0,
             tooltip: {
                 renderer: ({ datum, angleKey }) => ({
-                    content: `Total: ${numFormatter.format(datum[angleKey] / 1000000000)}B`,
+                    data: [{ label: `Total`, value: `${numFormatter.format(datum[angleKey] / 1000000000)}B` }],
                 }),
             },
         },

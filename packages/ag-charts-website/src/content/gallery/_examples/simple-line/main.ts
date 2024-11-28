@@ -9,9 +9,8 @@ import { getData } from './data';
 
 const dateFormatter = new Intl.DateTimeFormat('en-US');
 const tooltip = {
-    renderer: ({ title, datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
-        title,
-        content: `${dateFormatter.format(datum[xKey])}: ${datum[yKey]}`,
+    renderer: ({ datum, xKey }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
+        heading: dateFormatter.format(datum[xKey]),
     }),
 };
 
@@ -29,12 +28,14 @@ const options: AgChartOptions = {
             type: 'line',
             xKey: 'date',
             yKey: 'petrol',
+            yName: 'Petrol',
             tooltip,
         },
         {
             type: 'line',
             xKey: 'date',
             yKey: 'diesel',
+            yName: 'Diesel',
             tooltip,
         },
     ],

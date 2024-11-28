@@ -23,8 +23,8 @@ const options: AgChartOptions = {
                     const [day, month] = params.datum.quarter.split(' ');
                     const key = day === '1' ? `${month}` : `Mid-${month}`;
                     return {
-                        title: params.radiusName,
-                        content: `${key}: ${params.datum.product}`,
+                        heading: undefined,
+                        data: [{ label: key, value: params.datum.product }],
                     };
                 },
             },

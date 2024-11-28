@@ -32,8 +32,7 @@ const options: AgChartOptions = {
             },
             tooltip: {
                 renderer: ({ datum, angleKey, calloutLabelKey = 'ingredient' }) => ({
-                    title: `${datum[calloutLabelKey]}`,
-                    content: `${datum[angleKey]}g`,
+                    data: [{ label: `${datum[calloutLabelKey]}`, value: `${datum[angleKey]}g` }],
                 }),
             },
             title: {

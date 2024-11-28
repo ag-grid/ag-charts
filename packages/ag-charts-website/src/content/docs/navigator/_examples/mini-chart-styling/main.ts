@@ -18,12 +18,6 @@ const numberFormatter = new Intl.NumberFormat('en-US', {
     currency: 'USD',
 });
 
-const tooltip: AgSeriesTooltip<AgCartesianSeriesTooltipRendererParams> = {
-    renderer: ({ datum, xKey, yKey }) => ({
-        content: `${dateFormatter.format(datum[xKey])}: ${numberFormatter.format(datum[yKey])}`,
-    }),
-};
-
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -41,7 +35,6 @@ const options: AgCartesianChartOptions = {
             marker: {
                 enabled: false,
             },
-            tooltip,
         },
         {
             type: 'line',
@@ -50,7 +43,6 @@ const options: AgCartesianChartOptions = {
             marker: {
                 enabled: false,
             },
-            tooltip,
         },
         {
             type: 'line',
@@ -59,7 +51,6 @@ const options: AgCartesianChartOptions = {
             marker: {
                 enabled: false,
             },
-            tooltip,
         },
     ],
     axes: [

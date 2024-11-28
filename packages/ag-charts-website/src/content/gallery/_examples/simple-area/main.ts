@@ -1,13 +1,6 @@
-import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
-
-const tooltip = {
-    renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
-        const date = Intl.DateTimeFormat('en-GB').format(datum[xKey]);
-        return { content: `${date}: ${Math.round(datum[yKey] / 100) / 10 + 'k'}` };
-    },
-};
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -24,28 +17,24 @@ const options: AgChartOptions = {
             xKey: 'date',
             yKey: 'Tate Modern',
             yName: 'Tate Modern',
-            tooltip,
         },
         {
             type: 'area',
             xKey: 'date',
             yKey: 'Tate Britain',
             yName: 'Tate Britain',
-            tooltip,
         },
         {
             type: 'area',
             xKey: 'date',
             yKey: 'Tate Liverpool',
             yName: 'Tate Liverpool',
-            tooltip,
         },
         {
             type: 'area',
             xKey: 'date',
             yKey: 'Tate St Ives',
             yName: 'Tate St Ives',
-            tooltip,
         },
     ],
     axes: [

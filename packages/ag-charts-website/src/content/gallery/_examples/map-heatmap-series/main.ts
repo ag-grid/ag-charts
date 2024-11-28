@@ -24,9 +24,8 @@ const options: AgChartOptions = {
             colorKey: 'gdp',
             labelKey: 'code',
             tooltip: {
-                renderer: ({ datum, title }) => ({
-                    title,
-                    content: `GDP: ${numberFormatter.format(datum.gdp)} million`,
+                renderer: ({ datum }) => ({
+                    data: [{ label: 'GDP', value: `${numberFormatter.format(datum.gdp)} million` }],
                 }),
             },
         },

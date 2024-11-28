@@ -18,10 +18,10 @@ const sharedSeriesOptions: AgPolarSeriesOptions = {
     },
     legendItemKey: 'browser',
     tooltip: {
-        renderer: ({ datum, sectorLabelKey = 'share' }) => {
+        renderer: ({ datum, legendItemKey, angleKey }) => {
             return {
                 title: datum['year'],
-                content: `${datum['browser']}: ${numFormatter.format(datum[sectorLabelKey])}`,
+                data: [{ label: datum[legendItemKey!], value: numFormatter.format(datum[angleKey!]) }],
             };
         },
     },

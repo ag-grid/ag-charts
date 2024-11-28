@@ -44,8 +44,11 @@ const options: AgChartOptions = {
         tooltip: {
             renderer: ({ datum: { domain }, xName }) => {
                 return {
-                    title: `Grade: ${xName}`,
-                    content: `Score: ${domain.join(' - ')}`,
+                    heading: undefined,
+                    data: [
+                        { label: 'Grade', value: xName },
+                        { label: 'Score', value: domain.join(' - ') },
+                    ],
                 };
             },
         },

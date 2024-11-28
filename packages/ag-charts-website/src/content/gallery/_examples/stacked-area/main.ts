@@ -3,12 +3,6 @@ import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from
 import { getData } from './data';
 
 const interpolation = { type: 'smooth' } as const;
-const tooltip = {
-    renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
-        const date = Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(datum[xKey]);
-        return { content: `${date}: ${Math.round(datum[yKey] / 100) / 10 + 'k'}` };
-    },
-};
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -27,7 +21,6 @@ const options: AgChartOptions = {
             yKey: 'Science Museum',
             yName: 'Science Museum',
             interpolation,
-            tooltip,
         },
         {
             type: 'area',
@@ -36,7 +29,6 @@ const options: AgChartOptions = {
             yKey: 'National Media Museum',
             yName: 'National Media Museum',
             interpolation,
-            tooltip,
         },
         {
             type: 'area',
@@ -45,7 +37,6 @@ const options: AgChartOptions = {
             yKey: 'National Railway Museum',
             yName: 'National Railway Museum',
             interpolation,
-            tooltip,
         },
         {
             type: 'area',
@@ -54,7 +45,6 @@ const options: AgChartOptions = {
             yKey: 'Locomotion',
             yName: 'Locomotion',
             interpolation,
-            tooltip,
         },
         {
             type: 'area',
@@ -63,7 +53,6 @@ const options: AgChartOptions = {
             yName: 'Museum of Science and Industry, Manchester',
             stacked: true,
             interpolation,
-            tooltip,
         },
         {
             type: 'area',
@@ -72,7 +61,6 @@ const options: AgChartOptions = {
             yName: 'National Coal Mining Museum for England',
             stacked: true,
             interpolation,
-            tooltip,
         },
     ],
     axes: [

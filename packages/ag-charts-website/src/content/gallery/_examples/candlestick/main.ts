@@ -28,17 +28,6 @@ const options: AgChartOptions = {
             openName: 'Open',
             closeKey: 'close',
             closeName: 'Close',
-            tooltip: {
-                renderer: ({ datum, openKey, highKey, lowKey, closeKey }) => {
-                    return {
-                        content: `<b>O</b>${datum[openKey].toLocaleString()} <b>H</b>${datum[
-                            highKey
-                        ].toLocaleString()} <b>L</b>${datum[lowKey].toLocaleString()}
-                         <b>C</b>${datum[closeKey].toLocaleString()}
-                         <br/><b>Volume: </b>${datum['volume'].toLocaleString()}`,
-                    };
-                },
-            },
         },
     ],
     zoom: {

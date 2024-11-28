@@ -47,14 +47,13 @@ function customTooltipRenderer(params: AgLineSeriesTooltipRendererParams) {
     const priceUpper = datum[yUpperKey!];
     const priceLower = datum[yLowerKey!];
 
-    const content = `
-        <ul style="margin-left: -25px;">
-            <li><b>Expiry</b>: ${expiryLower} to ${expiryUpper} months</li>
-            <li><b>Price</b>: ${priceLower} to ${priceUpper} pounds</li>
-        </ul>
-    `;
-
-    return { content };
+    return {
+        heading: undefined,
+        data: [
+            { label: 'Expiry', value: `${expiryLower} to ${expiryUpper} months` },
+            { label: 'Price', value: `${priceLower} to ${priceUpper} pounds` },
+        ],
+    };
 }
 
 AgCharts.create(options);

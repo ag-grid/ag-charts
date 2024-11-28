@@ -1,6 +1,11 @@
-import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
+
+const numberFormatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+});
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -16,13 +21,6 @@ const options: AgChartOptions = {
             area: {
                 series: {
                     strokeWidth: 2,
-                    tooltip: {
-                        renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
-                            return {
-                                content: `${datum[xKey]}: $${Math.round(datum[yKey] / 1000000)}M`,
-                            };
-                        },
-                    },
                 },
             },
         },
@@ -95,6 +93,7 @@ const options: AgChartOptions = {
             },
             label: {
                 enabled: false,
+                formatter: (params) => numberFormatter.format(params.value),
             },
             crosshair: {
                 enabled: false,

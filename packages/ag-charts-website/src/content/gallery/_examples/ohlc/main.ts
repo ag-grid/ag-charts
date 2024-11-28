@@ -28,16 +28,6 @@ const options: AgChartOptions = {
             openName: 'Open',
             closeKey: 'close',
             closeName: 'Close',
-            tooltip: {
-                renderer: ({ datum, openKey, highKey, lowKey, closeKey }) => {
-                    return {
-                        content: `<b>0</b>${datum[openKey].toFixed(4)} <b>H</b>${datum[highKey].toFixed(
-                            4
-                        )} <b>L</b>${datum[lowKey].toFixed(4)}
-                           <b>C</b>${datum[closeKey].toFixed(4)}`,
-                    };
-                },
-            },
         },
     ],
     zoom: {

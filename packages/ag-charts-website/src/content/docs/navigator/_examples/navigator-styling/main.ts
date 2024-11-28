@@ -7,16 +7,6 @@ import {
 
 import { getData } from './data';
 
-const tooltip: AgSeriesTooltip<AgCartesianSeriesTooltipRendererParams> = {
-    renderer: ({ datum, xKey, yKey }) => ({
-        content: `${datum[xKey].toLocaleString('en-GB', {
-            day: 'numeric',
-            month: 'long',
-            year: 'numeric',
-        })}: ${datum[yKey]}`,
-    }),
-};
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -30,7 +20,6 @@ const options: AgChartOptions = {
             yKey: 'Tate Modern',
             fill: '#c16068',
             stroke: '#874349',
-            tooltip,
         },
         {
             type: 'area',
@@ -38,7 +27,6 @@ const options: AgChartOptions = {
             yKey: 'Tate Britain',
             fill: '#a2bf8a',
             stroke: '#718661',
-            tooltip,
         },
         {
             type: 'area',
@@ -46,7 +34,6 @@ const options: AgChartOptions = {
             yKey: 'Tate Liverpool',
             fill: '#ebcc87',
             stroke: '#a48f5f',
-            tooltip,
         },
         {
             type: 'area',
@@ -54,7 +41,6 @@ const options: AgChartOptions = {
             yKey: 'Tate St Ives',
             fill: '#80a0c3',
             stroke: '#5a7088',
-            tooltip,
         },
     ],
     axes: [
