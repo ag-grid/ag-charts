@@ -118,7 +118,7 @@ export abstract class FloatingToolbar<
     private popoverBounds?: BBox;
 
     constructor(ctx: ModuleContext, id: string) {
-        super(ctx);
+        super(ctx.localeManager);
         this.popover = new FloatingToolbarPopover(ctx, id, this.onPopoverMoved.bind(this));
         this.createDragHandle();
     }
@@ -162,7 +162,7 @@ export abstract class FloatingToolbar<
     }
 
     private createDragHandle() {
-        const { popover } = this;
+        const { localeManager, popover } = this;
 
         const dragHandle = new NativeWidget<HTMLElement>(
             createElement('div', 'ag-charts-floating-toolbar__drag-handle')
@@ -171,7 +171,7 @@ export abstract class FloatingToolbar<
         dragHandle.getElement().addEventListener('mousedown', (event) => {
             popover.startDragging(event, dragHandle.getElement());
         });
-        dragHandle.getElement().title = this.ctx.localeManager.t('toolbarAnnotationsDragHandle');
+        dragHandle.getElement().title = localeManager.t('toolbarAnnotationsDragHandle');
 
         this.addChild(dragHandle);
     }

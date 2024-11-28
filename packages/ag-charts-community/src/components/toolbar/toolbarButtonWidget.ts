@@ -1,6 +1,6 @@
 import type { AgIconName } from 'ag-charts-types';
 
-import type { ModuleContext } from '../../module/moduleContext';
+import type { LocaleManager } from '../../locale/localeManager';
 import { setAttribute } from '../../util/attributeUtil';
 import { getIconClassNames } from '../../util/dom';
 import { ButtonWidget } from '../../widget/buttonWidget';
@@ -15,12 +15,12 @@ export interface ToolbarButtonWidgetOptions {
 export class ToolbarButtonWidget extends ButtonWidget {
     public section?: string;
 
-    constructor(protected readonly ctx: ModuleContext) {
+    constructor(private readonly localeManager: LocaleManager) {
         super();
     }
 
     public update(options: ToolbarButtonWidgetOptions) {
-        const { localeManager } = this.ctx;
+        const { localeManager } = this;
 
         if (options.tooltip) {
             this.elem.title = localeManager.t(options.tooltip);
