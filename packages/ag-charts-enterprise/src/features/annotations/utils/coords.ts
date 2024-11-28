@@ -50,15 +50,11 @@ export function getDragStartState<PointName extends string>(
     return dragState;
 }
 
-export function translate<VectorName extends string>({
-    vectors,
-    translation,
-    context,
-}: {
-    vectors: Record<VectorName, _ModuleSupport.Vec2>;
-    translation: _ModuleSupport.Vec2;
-    context: AnnotationContext;
-}) {
+export function translate<VectorName extends string>(
+    vectors: Record<VectorName, _ModuleSupport.Vec2>,
+    translation: _ModuleSupport.Vec2,
+    context: AnnotationContext
+) {
     const vecs: _ModuleSupport.Vec2[] = [];
     const result: Partial<Record<VectorName, _ModuleSupport.Vec2>> = {};
 

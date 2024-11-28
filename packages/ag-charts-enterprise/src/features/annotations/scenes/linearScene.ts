@@ -112,14 +112,14 @@ export abstract class LinearScene<
         translation: _ModuleSupport.Vec2;
         context: AnnotationContext;
     }) {
-        const { vectors, translateX, translateY } = translate({
-            vectors: {
+        const { vectors, translateX, translateY } = translate(
+            {
                 start,
                 end,
             },
             translation,
-            context,
-        });
+            context
+        );
 
         if (translateX) {
             datum.start.x = vectors.start?.x;
