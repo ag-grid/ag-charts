@@ -69,8 +69,18 @@ export interface TooltipContent {
     class?: string;
 }
 
-export function tooltipContentAriaLabel(_content: TooltipContent | string) {
-    return '';
+export function tooltipContentAriaLabel(content: TooltipContent | string) {
+    if (typeof content === 'string') return '';
+
+    const ariaLabel: string[] = [];
+
+    if (content.heading != null) ariaLabel.push(content.heading);
+    if (content.title != null) ariaLabel.push(content.title);
+    content.data?.forEach((datum) => {
+        ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
+    });
+
+    return ariaLabel.join(' ');
 }
 
 function dataHtml(label: string, value: string, inline: boolean) {
