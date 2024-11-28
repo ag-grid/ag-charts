@@ -306,7 +306,7 @@ export abstract class BaseFunnelSeries<
             visible: this.visible,
         };
 
-        const isVisible = this.visible && this.properties.visible;
+        const isVisible = this.visible;
         if (!isVisible) return context;
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);

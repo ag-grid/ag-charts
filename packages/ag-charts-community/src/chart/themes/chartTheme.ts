@@ -145,7 +145,7 @@ export class ChartTheme {
             label: {
                 fontSize: FONT_SIZE.SMALL,
                 fontFamily: DEFAULT_FONT_FAMILY,
-                padding: 11,
+                spacing: 11,
                 color: DEFAULT_LABEL_COLOUR,
                 avoidCollisions: true,
             },
@@ -275,7 +275,7 @@ export class ChartTheme {
         }),
         [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults({
             tick: { enabled: true },
-            label: { padding: 5 },
+            label: { spacing: 10 },
             paddingInner: 0.4,
             groupPaddingInner: 0.2,
         }),
@@ -286,11 +286,11 @@ export class ChartTheme {
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
         }),
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: ChartTheme.getAxisDefaults({
-            label: { padding: 5 },
+            label: { spacing: 5 },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
         }),
         [POLAR_AXIS_TYPE.ANGLE_NUMBER]: ChartTheme.getAxisDefaults({
-            label: { padding: 5 },
+            label: { spacing: 5 },
             gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED },
         }),
         [POLAR_AXIS_TYPE.RADIUS_CATEGORY]: ChartTheme.getAxisDefaults({

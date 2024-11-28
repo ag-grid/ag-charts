@@ -74,8 +74,9 @@ export abstract class SeriesProperties<T extends object> extends BaseProperties<
     @Validate(STRING, { optional: true })
     id?: string;
 
+    // Private - use series.visible
     @Validate(BOOLEAN)
-    visible: boolean = true;
+    protected readonly visible: boolean = true;
 
     @Validate(REAL_NUMBER, { optional: true })
     focusPriority?: number = Infinity;

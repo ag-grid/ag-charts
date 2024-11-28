@@ -151,7 +151,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     }
 
     override createNodeData() {
-        const { axes, dataModel, processedData, colorScale, sizeScale } = this;
+        const { axes, dataModel, processedData, colorScale, sizeScale, visible } = this;
         const {
             xKey,
             yKey,
@@ -167,7 +167,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             label,
             colorKey,
             marker,
-            visible,
         } = this.properties;
         const markerShape = getMarker(marker.shape);
         const { placement } = label;

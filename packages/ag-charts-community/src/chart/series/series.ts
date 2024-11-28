@@ -253,6 +253,7 @@ export abstract class Series<
     }
 
     set visible(value: boolean) {
+        // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
         this.properties.visible = value;
         this.ctx.legendManager.toggleItem({ enabled: value, seriesId: this.id });
         this.ctx.legendManager.update();
@@ -260,6 +261,7 @@ export abstract class Series<
     }
 
     get visible() {
+        // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
         return this.properties.visible && this.ctx.legendManager.getSeriesEnabled(this.id);
     }
 

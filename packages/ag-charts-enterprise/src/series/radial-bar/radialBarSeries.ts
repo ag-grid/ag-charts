@@ -91,15 +91,6 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         return new Sector();
     }
 
-    override addChartEventListeners(): void {
-        this.destroyFns.push(
-            this.ctx.chartEventManager?.addListener('legend-item-click', (event) => this.onLegendItemClick(event)),
-            this.ctx.chartEventManager?.addListener('legend-item-double-click', (event) =>
-                this.onLegendItemDoubleClick(event)
-            )
-        );
-    }
-
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
@@ -114,10 +105,11 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        const { angleKey, radiusKey, normalizedTo, visible } = this.properties;
+        const { visible } = this;
+        const { angleKey, radiusKey, normalizedTo } = this.properties;
         const animationEnabled = !this.ctx.animationManager.isSkipped();
 
-        if (!this.properties.isValid() || !(visible || animationEnabled)) return;
+        if (!this.properties.isValid()) return;
 
         const stackGroupId = this.getStackId();
         const stackGroupTrailingId = `${stackGroupId}-trailing`;
@@ -135,7 +127,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             extraProps.push(animationValidation());
         }
 
-        const visibleProps = this.visible || !animationEnabled ? {} : { forceValue: 0 };
+        const visibleProps = visible || !animationEnabled ? {} : { forceValue: 0 };
 
         const radiusScaleType = this.axes[ChartAxisDirection.Y]?.scale.type;
         const angleScaleType = this.axes[ChartAxisDirection.X]?.scale.type;

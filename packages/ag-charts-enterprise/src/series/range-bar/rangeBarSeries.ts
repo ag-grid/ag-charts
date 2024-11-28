@@ -232,13 +232,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override createNodeData() {
-        const {
-            data,
-            dataModel,
-            groupScale,
-            processedData,
-            properties: { visible },
-        } = this;
+        const { data, dataModel, groupScale, processedData, visible } = this;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 

@@ -31,7 +31,7 @@ const options: AgChartOptions = {
             positionAngle: 90,
             label: {
                 rotation: -90,
-                padding: 12,
+                spacing: 12,
                 formatter: ({ value }) => `$${value}M`,
             },
             line: {
@@ -48,7 +48,7 @@ const options: AgChartOptions = {
                 enabled: true,
             },
             label: {
-                padding: 5,
+                spacing: 5,
             },
         },
     ],

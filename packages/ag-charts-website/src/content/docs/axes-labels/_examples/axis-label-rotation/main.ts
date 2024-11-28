@@ -1,4 +1,10 @@
-import { AgBarSeriesOptions, AgCartesianChartOptions, AgCharts } from 'ag-charts-community';
+import {
+    AgBarSeriesOptions,
+    AgCartesianChartOptions,
+    AgCategoryAxisOptions,
+    AgCharts,
+    AgNumberAxisOptions,
+} from 'ag-charts-community';
 
 import { getData } from './data';
 
@@ -29,40 +35,52 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function reset() {
-    delete options.axes![0].label!.rotation;
-    delete options.axes![0].label!.autoRotate;
-    delete options.axes![0].label!.avoidCollisions;
-    delete options.axes![1].label!.rotation;
-    delete options.axes![1].label!.autoRotate;
-    delete options.axes![1].label!.avoidCollisions;
+    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
+    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+
+    delete categoryAxis.label!.rotation;
+    delete categoryAxis.label!.autoRotate;
+    delete categoryAxis.label!.avoidCollisions;
+    delete numberAxis.label!.rotation;
+    delete numberAxis.label!.autoRotate;
+    delete numberAxis.label!.avoidCollisions;
 
     (options.series![0] as AgBarSeriesOptions).xKey = 'year';
     chart.update(options);
 }
 
 function disableRotation() {
-    delete options.axes![0].label!.rotation;
-    delete options.axes![1].label!.rotation;
-    options.axes![0].label!.autoRotate = false;
-    options.axes![1].label!.autoRotate = false;
+    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
+    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+
+    delete categoryAxis.label!.rotation;
+    delete numberAxis.label!.rotation;
+    categoryAxis.label!.autoRotate = false;
+    numberAxis.label!.autoRotate = false;
 
     chart.update(options);
 }
 
 function fixedRotation() {
-    options.axes![0].label!.rotation = 45;
-    options.axes![1].label!.rotation = 45;
-    options.axes![0].label!.autoRotate = false;
-    options.axes![1].label!.autoRotate = false;
+    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
+    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+
+    categoryAxis.label!.rotation = 45;
+    numberAxis.label!.rotation = 45;
+    categoryAxis.label!.autoRotate = false;
+    numberAxis.label!.autoRotate = false;
 
     chart.update(options);
 }
 
 function autoRotation() {
-    delete options.axes![0].label!.rotation;
-    delete options.axes![1].label!.rotation;
-    options.axes![0].label!.autoRotate = true;
-    options.axes![1].label!.autoRotate = true;
+    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
+    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+
+    delete categoryAxis.label!.rotation;
+    delete numberAxis.label!.rotation;
+    categoryAxis.label!.autoRotate = true;
+    numberAxis.label!.autoRotate = true;
 
     chart.update(options);
 }
@@ -78,15 +96,21 @@ function longLabels() {
 }
 
 function noCollisionDetection() {
-    options.axes![0].label!.avoidCollisions = false;
-    options.axes![1].label!.avoidCollisions = false;
+    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
+    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+
+    categoryAxis.label!.avoidCollisions = false;
+    numberAxis.label!.avoidCollisions = false;
 
     chart.update(options);
 }
 
 function autoCollisionDetection() {
-    options.axes![0].label!.avoidCollisions = true;
-    options.axes![1].label!.avoidCollisions = true;
+    const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
+    const numberAxis = options.axes![1] as AgNumberAxisOptions;
+
+    categoryAxis.label!.avoidCollisions = true;
+    numberAxis.label!.avoidCollisions = true;
 
     chart.update(options);
 }

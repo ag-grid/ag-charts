@@ -209,7 +209,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         this.annotationMenu.hide();
     }
 
-    private onKeyDown(_: _ModuleSupport.Widget, { sourceEvent }: _ModuleSupport.KeyboardWidgetEvent) {
+    private onKeyDown({ sourceEvent }: _ModuleSupport.KeyboardWidgetEvent) {
         if (sourceEvent.key === 'Escape') {
             this.dispatch('cancel-create-annotation');
         }

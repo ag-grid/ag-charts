@@ -48,7 +48,7 @@ const options: AgChartOptions = {
                 stroke: 'black',
             },
             label: {
-                padding: 5,
+                spacing: 5,
             },
             line: {
                 stroke: 'transparent',
@@ -66,7 +66,7 @@ const options: AgChartOptions = {
                 stroke: 'black',
             },
             label: {
-                padding: 5,
+                spacing: 5,
             },
             line: {
                 stroke: 'transparent',

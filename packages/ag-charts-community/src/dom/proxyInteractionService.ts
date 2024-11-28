@@ -27,13 +27,6 @@ type ElemParams<T extends ProxyElementType> = {
 type InteractParams<T extends ProxyElementType> = ElemParams<T> & {
     readonly tabIndex?: number;
     readonly domIndex?: number;
-    readonly onclick?: (ev: MouseEvent) => void;
-    readonly ondblclick?: (ev: MouseEvent) => void;
-    readonly onmouseenter?: (ev: MouseEvent) => void;
-    readonly onmouseleave?: (ev: MouseEvent) => void;
-    readonly oncontextmenu?: (ev: MouseEvent) => void;
-    readonly onfocus?: (ev: FocusEvent) => void;
-    readonly onblur?: (ev: FocusEvent) => void;
 };
 
 type TranslationKey = { id: string; params?: Record<string, any> };
@@ -236,38 +229,14 @@ export class ProxyInteractionService {
     }
 
     private initInteract<T extends ProxyElementType>(params: InteractParams<T>, widget: Widget) {
-        const { onclick, ondblclick, onmouseenter, onmouseleave, oncontextmenu, onfocus, onblur, tabIndex, domIndex } =
-            params;
+        const { tabIndex, domIndex } = params;
         const element = this.initElement(params, widget);
 
         if (tabIndex !== undefined) {
             element.tabIndex = tabIndex;
         }
-
         if (domIndex !== undefined) {
             widget.domIndex = domIndex;
-        }
-
-        if (onclick) {
-            element.addEventListener('click', onclick);
-        }
-        if (ondblclick) {
-            element.addEventListener('dblclick', ondblclick);
-        }
-        if (onmouseenter) {
-            element.addEventListener('mouseenter', onmouseenter);
-        }
-        if (onmouseleave) {
-            element.addEventListener('mouseleave', onmouseleave);
-        }
-        if (oncontextmenu) {
-            element.addEventListener('contextmenu', oncontextmenu);
-        }
-        if (onfocus) {
-            element.addEventListener('focus', onfocus);
-        }
-        if (onblur) {
-            element.addEventListener('blur', onblur);
         }
     }
 

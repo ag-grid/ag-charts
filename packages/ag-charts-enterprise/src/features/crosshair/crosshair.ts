@@ -382,7 +382,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         const { width, height } = label.getBBox();
         const axisPosition = this.axisCtx.position;
-        let padding = this.axisLayout.label.padding + this.axisLayout.tickSize;
+        let padding = this.axisLayout.label.spacing + this.axisLayout.tickSize;
 
         if (this.axisCtx.direction === ChartAxisDirection.X) {
             padding -= 4;

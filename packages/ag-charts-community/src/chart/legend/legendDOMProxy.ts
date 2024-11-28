@@ -98,17 +98,18 @@ export class LegendDOMProxy {
                 ariaChecked: !!markerLabel.datum.enabled,
                 ariaDescribedBy: this.itemDescription.id,
                 parent: this.itemList,
-                // Retrieve the datum from the node rather than from the method parameter.
-                // The method parameter `datum` gets destroyed when the data is refreshed
-                // using Series.getLegendData(). But the scene node will stay the same.
-                onclick: (ev) => itemListener.onClick(ev, markerLabel.datum, markerLabel.proxyButton!),
-                ondblclick: (ev) => itemListener.onDoubleClick(ev, markerLabel.datum),
-                onmouseenter: (ev) => itemListener.onHover(ev, markerLabel),
-                onmouseleave: () => itemListener.onLeave(),
-                oncontextmenu: (ev) => itemListener.onContextClick(ev, markerLabel),
-                onblur: () => itemListener.onLeave(),
-                onfocus: (ev) => itemListener.onHover(ev, markerLabel),
             });
+            // Retrieve the datum from the node rather than from the each() parameter.
+            // The method parameter `datum` gets destroyed when the data is refreshed
+            // using Series.getLegendData(). But the scene node will stay the same.
+            const button = markerLabel.proxyButton;
+            button.addListener('click', (ev) => itemListener.onClick(ev.sourceEvent, markerLabel.datum, button));
+            button.addListener('dblclick', (ev) => itemListener.onDoubleClick(ev.sourceEvent, markerLabel.datum));
+            button.addListener('mouseenter', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
+            button.addListener('mouseleave', () => itemListener.onLeave());
+            button.addListener('contextmenu', (ev) => itemListener.onContextClick(ev.sourceEvent, markerLabel));
+            button.addListener('blur', () => itemListener.onLeave());
+            button.addListener('focus', (ev) => itemListener.onHover(ev.sourceEvent, markerLabel));
         });
         this.dirty = false;
     }
@@ -162,20 +163,21 @@ export class LegendDOMProxy {
                     textContent: { id: 'ariaLabelLegendPagePrevious' },
                     tabIndex: 0,
                     parent: this.paginationGroup,
-                    onclick: (ev) => pagination.onClick(ev, 'previous'),
-                    onmouseenter: () => pagination.onMouseHover('previous'),
-                    onmouseleave: () => pagination.onMouseHover(undefined),
                 });
+                this.prevButton.addListener('click', (ev) => pagination.onClick(ev.sourceEvent, 'previous'));
+                this.prevButton.addListener('mouseenter', () => pagination.onMouseHover('previous'));
+                this.prevButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
+
                 this.nextButton ??= ctx.proxyInteractionService.createProxyElement({
                     type: 'button',
                     id: `${this.idPrefix}-next-page`,
                     textContent: { id: 'ariaLabelLegendPageNext' },
                     tabIndex: 0,
                     parent: this.paginationGroup,
-                    onclick: (ev) => pagination.onClick(ev, 'next'),
-                    onmouseenter: () => pagination.onMouseHover('next'),
-                    onmouseleave: () => pagination.onMouseHover(undefined),
                 });
+                this.nextButton.addListener('click', (ev) => pagination.onClick(ev.sourceEvent, 'next'));
+                this.nextButton.addListener('mouseenter', () => pagination.onMouseHover('next'));
+                this.nextButton.addListener('mouseleave', () => pagination.onMouseHover(undefined));
             } else {
                 this.nextButton?.destroy();
                 this.prevButton?.destroy();

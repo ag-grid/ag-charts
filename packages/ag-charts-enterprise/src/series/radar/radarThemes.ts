@@ -25,7 +25,7 @@ const BASE_RADAR_SERIES_THEME = {
     axes: {
         [POLAR_AXIS_TYPE.ANGLE_CATEGORY]: {
             label: {
-                padding: 10,
+                spacing: 10,
             },
         },
     },

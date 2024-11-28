@@ -16,9 +16,12 @@ export interface ModuleInstance {
 export type ChartTypes = 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'standalone' | 'gauge';
 
 export interface BaseModule<T extends ChartTypes = ChartTypes> {
-    optionsKey: string;
     packageType: 'community' | 'enterprise';
     chartTypes: T[];
     identifier?: string;
     dependencies?: string[];
+}
+
+export interface BaseOptionsModule<T extends ChartTypes = ChartTypes> extends BaseModule<T> {
+    optionsKey: string;
 }

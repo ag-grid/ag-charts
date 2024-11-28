@@ -5,10 +5,10 @@ type EventMap = WidgetEventMap_HTML;
 type EventType = keyof WidgetEventMap_HTML;
 type SourceEventMap = WidgetSourceEventMap_HTML;
 type Targetable = { getElement(): HTMLElement };
-type Handler<T, K extends EventType> = (target: T, event: EventMap[K]) => unknown;
+type Handler<T, K extends EventType> = (event: EventMap[K], current: T) => unknown;
 
 type TypedMap<K extends EventType> = Map<
-    (target: Targetable, widgetEvent: EventMap[K]) => unknown,
+    (widgetEvent: EventMap[K], current: Targetable) => unknown,
     (this: HTMLElement, sourceEvent: SourceEventMap[K]) => void
 >;
 
@@ -31,7 +31,7 @@ export class WidgetListenerHTML {
 
         const sourceHandler = (sourceEvent: SourceEventMap[K]): void => {
             const widgetEvent = WidgetEventUtil.alloc(type, sourceEvent);
-            handler(target, widgetEvent);
+            handler(widgetEvent, target);
         };
         target.getElement().addEventListener(type, sourceHandler);
         map.set(handler, sourceHandler);

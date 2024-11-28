@@ -115,21 +115,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     }
 
     override createNodeData() {
-        const { axes, dataModel, processedData, colorScale } = this;
-        const {
-            xKey,
-            yKey,
-            xFilterKey,
-            yFilterKey,
-            labelKey,
-            colorKey,
-            xName,
-            yName,
-            labelName,
-            marker,
-            label,
-            visible,
-        } = this.properties;
+        const { axes, dataModel, processedData, colorScale, visible } = this;
+        const { xKey, yKey, xFilterKey, yFilterKey, labelKey, colorKey, xName, yName, labelName, marker, label } =
+            this.properties;
         const { placement } = label;
         const markerShape = getMarker(marker.shape);
 

@@ -1,10 +1,11 @@
 import type { AxisModule } from './axisModule';
 import type { AxisOptionModule } from './axisOptionModule';
 import type { ModuleInstance } from './baseModule';
-import type { LegendModule, RootModule, SeriesModule } from './coreModules';
+import type { ContextModule, LegendModule, RootModule, SeriesModule } from './coreModules';
 import type { SeriesOptionModule } from './optionsModuleTypes';
 
 export type Module<M extends ModuleInstance = ModuleInstance> =
+    | ContextModule<M>
     | RootModule<M>
     | AxisModule
     | AxisOptionModule
@@ -35,7 +36,7 @@ export class ModuleRegistry {
             const otherModule = this.modules.find(
                 (other) =>
                     module.type === other.type &&
-                    module.optionsKey === other.optionsKey &&
+                    ('optionsKey' in module && 'optionsKey' in other ? module.optionsKey === other.optionsKey : true) &&
                     module.identifier === other.identifier
             );
 
@@ -44,11 +45,15 @@ export class ModuleRegistry {
                     // Replace the community module with an enterprise version
                     const index = this.modules.indexOf(otherModule);
                     this.modules.splice(index, 1, module);
-                    this.modulesByOptionKey.set(module.optionsKey, module);
+                    if ('optionsKey' in module) {
+                        this.modulesByOptionKey.set(module.optionsKey, module);
+                    }
                 }
             } else {
                 this.modules.push(module);
-                this.modulesByOptionKey.set(module.optionsKey, module);
+                if ('optionsKey' in module) {
+                    this.modulesByOptionKey.set(module.optionsKey, module);
+                }
             }
         }
     }
@@ -57,10 +62,10 @@ export class ModuleRegistry {
         return this.modules.some((m) => m.packageType === 'enterprise');
     }
 
-    *byType<T extends Module>(...types: Module['type'][]): Generator<T> {
+    *byType<T extends Module>(...types: T['type'][]): Generator<T> {
         const yielded = new Set();
 
-        const modulesByType = this.modules.filter((module) => types.includes(module.type));
+        const modulesByType = this.modules.filter((module): module is T => types.includes(module.type));
 
         const calculateDependencies = (module: string): string[] => {
             const deps = this.dependencies.get(module);
@@ -72,9 +77,10 @@ export class ModuleRegistry {
         // Iterate through modules yielding those that have no dependencies and repeating while any modules still have
         // un-yielded dependencies. Escape out if circular or missing dependencies.
         for (const module of modulesByType) {
-            if (yielded.has(module.optionsKey)) continue;
+            const uniqueKey = 'optionsKey' in module ? module.optionsKey : module.contextKey;
+            if (yielded.has(uniqueKey)) continue;
 
-            for (const dependency of calculateDependencies(module.optionsKey)) {
+            for (const dependency of calculateDependencies(uniqueKey)) {
                 if (yielded.has(dependency)) continue;
                 const dependencyModule = this.modulesByOptionKey.get(dependency);
                 if (!dependencyModule) {
@@ -88,8 +94,8 @@ export class ModuleRegistry {
                 yielded.add(dependency);
             }
 
-            yield module as T;
-            yielded.add(module.optionsKey);
+            yield module;
+            yielded.add(uniqueKey);
         }
 
         if (unresolvable.length > 0) {
@@ -100,7 +106,8 @@ export class ModuleRegistry {
     private registerDependencies(module: Module) {
         if (module.dependencies == null || module.dependencies.length === 0) return;
 
-        this.dependencies.set(module.optionsKey, module.dependencies);
+        const uniqueKey = 'optionsKey' in module ? module.optionsKey : module.contextKey;
+        this.dependencies.set(uniqueKey, module.dependencies);
     }
 }
 

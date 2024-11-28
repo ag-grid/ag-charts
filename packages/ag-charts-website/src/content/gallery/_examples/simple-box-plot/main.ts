@@ -81,7 +81,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             label: {
-                padding: 10,
+                spacing: 10,
             },
         },
         {

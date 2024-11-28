@@ -44,7 +44,7 @@ const options: AgChartOptions = {
                 enabled: false,
             },
             label: {
-                padding: 15,
+                spacing: 15,
                 formatter: ({ value }) => `${value} ℃`,
             },
             crossLines: [

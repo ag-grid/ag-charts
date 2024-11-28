@@ -177,9 +177,10 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
         const {
             id,
             data,
+            visible,
             ctx: { legendManager },
         } = this;
-        const { xKey, yName, showInLegend, legendItemName, visible } = this.properties;
+        const { xKey, yName, showInLegend, legendItemName } = this.properties;
 
         if (!data?.length || !xKey || legendType !== 'category') {
             return [];

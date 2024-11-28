@@ -281,7 +281,7 @@ export class RegionManager {
         current.listeners.dispatch(event.type, event);
     }
 
-    private readonly processPointerEvent = (widget: Widget, event: TWidgetEvent) => {
+    private readonly processPointerEvent = (event: TWidgetEvent, widget: Widget) => {
         const ignore = shouldIgnore(event);
         const { current } = this;
 

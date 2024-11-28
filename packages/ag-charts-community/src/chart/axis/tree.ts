@@ -30,10 +30,6 @@ class TreeNode {
     y: number = 0;
     subtreeLeft: number = NaN;
     subtreeRight: number = NaN;
-    // screenX and screenY are meant to be recomputed from (layout) x and y
-    // when the tree is resized (without performing another layout)
-    screenX: number = 0;
-    screenY: number = 0;
     children: TreeNode[] = [];
     leafCount: number = 0;
     depth: number;
@@ -43,6 +39,10 @@ class TreeNode {
     change: number = 0;
     shift: number = 0;
     index: number = 0;
+    // screenX and screenY are meant to be recomputed from (layout) x and y
+    // when the tree is resized (without performing another layout)
+    screenX: number = 0;
+    screenY: number = 0;
 
     constructor(
         public label: string = '',
@@ -271,33 +271,27 @@ export class TreeLayout {
         this.nodes.push(node);
     }
 
-    resize(width: number, height: number, shiftX: number, flipX?: boolean) {
-        const { dimensions } = this;
-
+    scalingX(width: number, flip?: boolean) {
         let scalingX = 1;
-        let scalingY = 1;
         if (width > 0) {
-            scalingX = width / (dimensions.right - dimensions.left);
-            if (flipX) {
-                scalingX = -scalingX;
-            }
+            const { left, right } = this.dimensions;
+            scalingX = width / (right - left);
         }
-        if (height > 0) {
-            scalingY = height / (dimensions.bottom - dimensions.top);
+        if (flip) {
+            scalingX *= -1;
         }
+        return scalingX;
+    }
 
-        const screenDimensions = new Dimensions();
-        for (const node of this.nodes) {
-            node.screenX = node.x * scalingX;
-            node.screenY = node.y * scalingY;
-            screenDimensions.update(node.screenX, node.screenY);
+    scalingY(height: number, flip?: boolean) {
+        let scalingY = 1;
+        if (height > 0) {
+            const { top, bottom } = this.dimensions;
+            scalingY = height / (bottom - top);
         }
-        // Normalize so that root top and leftmost leaf left start at zero.
-        const offsetX = -screenDimensions.left;
-        const offsetY = -screenDimensions.top;
-        for (const node of this.nodes) {
-            node.screenX += offsetX + shiftX;
-            node.screenY += offsetY - height;
+        if (flip) {
+            scalingY *= -1;
         }
+        return scalingY;
     }
 }

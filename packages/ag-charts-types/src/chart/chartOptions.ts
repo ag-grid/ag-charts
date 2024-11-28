@@ -44,6 +44,8 @@ export interface AgSeriesAreaOptions {
 }
 
 export interface AgChartOverlayOptions {
+    /** Enabled or disable use of the overlay. Defaults to true. */
+    enabled?: boolean;
     /** Text to render in the overlay. */
     text?: string;
     /** A function for generating HTML element or string for overlay content. */
@@ -57,6 +59,8 @@ export interface AgChartOverlaysOptions {
     noData?: AgChartOverlayOptions;
     /** An overlay to be displayed when there are no series visible. */
     noVisibleSeries?: AgChartOverlayOptions;
+    /** An overlay to be displayed when chart is running in an unsupported browser. */
+    unsupportedBrowser?: AgChartOverlayOptions;
 }
 
 export interface AgChartCaptionOptions {

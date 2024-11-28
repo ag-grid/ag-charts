@@ -1,13 +1,20 @@
 type EnterpriseModuleStub = {
-    type: 'axis' | 'axis-option' | 'series' | 'series-option' | 'root' | 'legend';
     packageType?: 'enterprise';
     identifier?: string;
-    optionsKey: string;
     chartTypes: ('cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'standalone' | 'gauge')[];
     useCount?: number;
     optionsInnerKey?: string;
     community?: boolean;
-};
+} & (
+    | {
+          type: 'axis' | 'axis-option' | 'series' | 'series-option' | 'root' | 'legend';
+          optionsKey: string;
+      }
+    | {
+          type: 'context';
+          contextKey: string;
+      }
+);
 
 export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
     {
@@ -53,7 +60,7 @@ export const EXPECTED_ENTERPRISE_MODULES: EnterpriseModuleStub[] = [
         chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'standalone', 'gauge'],
         identifier: 'gradient',
     },
-    { type: 'root', optionsKey: 'navigator', chartTypes: ['cartesian'], optionsInnerKey: 'miniChart' },
+    { type: 'root', optionsKey: 'navigator', chartTypes: ['cartesian'] },
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'angle-category' },
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'angle-number' },
     { type: 'axis', optionsKey: 'axes[]', chartTypes: ['polar'], identifier: 'radius-category' },
@@ -141,7 +148,8 @@ export function verifyIfModuleExpected(module: UnknownPackage) {
     const stub = EXPECTED_ENTERPRISE_MODULES.find((s) => {
         return (
             s.type === module.type &&
-            s.optionsKey === module.optionsKey &&
+            ('optionsKey' in s && 'optionsKey' in module ? s.optionsKey === module.optionsKey : true) &&
+            ('contextKey' in s && 'contextKey' in module ? s.contextKey === module.contextKey : true) &&
             s.identifier === module.identifier &&
             module.chartTypes.every((t) => s.chartTypes.includes(t))
         );
