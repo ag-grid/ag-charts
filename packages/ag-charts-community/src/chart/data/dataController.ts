@@ -48,7 +48,10 @@ export class DataController {
     private readonly requested: RequestedProcessing<any, any, any>[] = [];
     private status: 'setup' | 'executed' = 'setup';
 
-    public constructor(private readonly mode: ChartMode) {}
+    public constructor(
+        private readonly mode: ChartMode,
+        readonly suppressFieldDotNotation: boolean
+    ) {}
 
     public async request<
         D extends object,
@@ -88,16 +91,16 @@ export class DataController {
 
             let dataModel: DataModel<any, string, undefined>;
             let processedData: UngroupedData<any> | undefined;
-            if (reusableCache != null) {
-                ({ dataModel, processedData } = reusableCache);
-            } else {
+            if (reusableCache == null) {
                 try {
-                    dataModel = new DataModel<any>(opts, this.mode);
+                    dataModel = new DataModel<any>(opts, this.mode, this.suppressFieldDotNotation);
                     processedData = dataModel.processData(data, valid);
                 } catch (error) {
                     rejects.forEach((cb) => cb(error));
                     continue;
                 }
+            } else {
+                ({ dataModel, processedData } = reusableCache);
             }
 
             nextCachedData.push({ opts, data, ids, dataModel, processedData });
@@ -231,12 +234,12 @@ export class DataController {
     private static mergeIdsMap(fromMap: Map<string, Set<string>>, toMap: Map<string, Set<string>>) {
         for (const [scope, ids] of fromMap) {
             const toMapValue = toMap.get(scope);
-            if (toMapValue != null) {
+            if (toMapValue == null) {
+                toMap.set(scope, new Set(ids));
+            } else {
                 for (const id of ids) {
                     toMapValue.add(id);
                 }
-            } else {
-                toMap.set(scope, new Set(ids));
             }
         }
     }
