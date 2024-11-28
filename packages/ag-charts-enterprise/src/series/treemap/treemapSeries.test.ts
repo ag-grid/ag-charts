@@ -324,7 +324,7 @@ describe('TreemapSeries', () => {
             },
             getDatumValues: (item, series) => {
                 const { datum } = item.datum;
-                return [datum[series.properties.labelKey], series.properties.sizeKey, datum[series.properties.sizeKey]];
+                return [datum[series.properties.labelKey], datum[series.properties.sizeKey]];
             },
             getTooltipRenderedValues: (params) => {
                 const { datum } = params;

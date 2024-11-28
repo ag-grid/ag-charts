@@ -267,7 +267,7 @@ describe('Chart', () => {
             getDatumValues: (item, series) => {
                 const xValue = item.datum[series.properties['xKey']];
                 const yValue = item.datum[series.properties['yKey']];
-                return [xValue, datasets.economy.valueKey, yValue];
+                return [xValue, yValue];
             },
         });
     });
@@ -289,7 +289,7 @@ describe('Chart', () => {
             getDatumValues: (item, series) => {
                 const xValue = item.datum[series.properties.xKey];
                 const yValue = item.datum[series.properties.yKey];
-                return [xValue, datasets.economy.valueKey, yValue];
+                return [xValue, yValue];
             },
         });
     });
@@ -314,7 +314,7 @@ describe('Chart', () => {
             getDatumValues: (item, series) => {
                 const xValue = item.datum[series.properties['xKey']];
                 const yValue = item.datum[series.properties['yKey']];
-                return [datasets.economy.categoryKey, xValue, datasets.economy.valueKey, yValue];
+                return [xValue, yValue];
             },
         });
     });
@@ -333,7 +333,7 @@ describe('Chart', () => {
             getDatumValues: (item, series) => {
                 const xValue = item.datum[series.properties.xKey];
                 const yValue = item.datum[series.properties.yKey];
-                return [xValue, datasets.economy.valueKey, yValue];
+                return [xValue, yValue];
             },
         });
     });

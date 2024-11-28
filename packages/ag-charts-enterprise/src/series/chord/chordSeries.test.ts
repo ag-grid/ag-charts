@@ -296,11 +296,13 @@ describe('ChordSeries', () => {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getNodePoint: (item) => [item.midPoint.x, item.midPoint.y],
             getDatumValues: (item) => {
-                return [item.id ?? `${item.fromNode.id} - ${item.toNode.id}`, 'Size', item.size];
+                return item.type === FlowProportionDatumType.Link
+                    ? [item.fromNode.id, item.toNode.id, item.size]
+                    : ['(node)'];
             },
             getTooltipRenderedValues: (params) => {
                 const { datum } = params;
-                return datum != null ? [datum[params.fromKey], datum[params.toKey]] : [params.title];
+                return datum != null ? [datum[params.fromKey], datum[params.toKey], 1] : ['(node)'];
             },
             getHighlightNode: (chartInstance, series) => {
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();

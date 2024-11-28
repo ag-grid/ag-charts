@@ -611,8 +611,7 @@ describe('ErrorBars', () => {
         expect(document.querySelectorAll('.ag-chart-tooltip')).toMatchSnapshot();
     });
 
-    // @todo tooltip renderer
-    it.skip('should provide tooltip params', async () => {
+    it('should provide tooltip params', async () => {
         const expectedParams = {
             xLowerKey: 'volumeLower',
             xUpperKey: 'volumeUpper',
@@ -626,7 +625,7 @@ describe('ErrorBars', () => {
         let actualParams: any = undefined;
         function renderer(params: AgScatterSeriesTooltipRendererParams) {
             actualParams = params;
-            return { content: '' };
+            return '';
         }
 
         chart = await createEnterpriseChart({
@@ -647,8 +646,7 @@ describe('ErrorBars', () => {
         expect(actualParams['yUpperKey']).toBe(expectedParams.yUpperKey);
     });
 
-    // @todo tooltip renderer
-    it.skip('should provide keys as default names in tooltip params', async () => {
+    it('should provide keys as default names in tooltip params', async () => {
         const expectedParams = {
             xLowerKey: 'volumeLower',
             xUpperKey: 'volumeUpper',
@@ -658,7 +656,7 @@ describe('ErrorBars', () => {
         let actualParams: any = undefined;
         function renderer(params: AgScatterSeriesTooltipRendererParams) {
             actualParams = params;
-            return { content: '' };
+            return '';
         }
 
         chart = await createEnterpriseChart({

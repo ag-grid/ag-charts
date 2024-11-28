@@ -269,7 +269,7 @@ describe('FunnelSeries', () => {
 
         const cartesianTestParams = {
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
-            getTooltipRenderedValues: (params) => [params.xValue, params.yValue],
+            getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
             // Returns a highlighted node
             getHighlightNode: (_, series) => series.highlightNode.children().next().value,
         } as Parameters<typeof testPointerEvents>[0];
@@ -293,10 +293,7 @@ describe('FunnelSeries', () => {
                 const { datum } = item;
                 return [datum[datasets.stageKey], datum[datasets.valueKey]];
             },
-            getTooltipRenderedValues: (params) => {
-                const { datum } = params;
-                return datum != null ? [datum[params.fromKey], datum[params.toKey]] : [params.title];
-            },
+            getTooltipRenderedValues: (params) => [params.datum[params.stageKey], params.datum[params.valueKey]],
             getHighlightNode: (chartInstance, series) => {
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
                 return [...series.highlightNode.children()].find(
