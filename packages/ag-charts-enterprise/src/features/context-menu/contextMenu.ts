@@ -306,7 +306,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         el.textContent = this.ctx.localeManager.t(label);
         el.role = 'menuitem';
         el.onclick = makeAccessibleClickListener(el, this.createButtonOnClick(type, callback));
-        el.addEventListener('mouseover', () => el.focus());
+        el.addEventListener('mouseover', () => el.focus({ preventScroll: true }));
         return el;
     }
 
