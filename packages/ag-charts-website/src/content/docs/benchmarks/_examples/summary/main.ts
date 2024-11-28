@@ -1,5 +1,5 @@
 /* @ag-options-extract */
-import { AgCartesianChartOptions, AgCartesianSeriesTooltipRendererParams, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -201,9 +201,9 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                 stackGroup: 'time',
                 tooltip: {
                     enabled: true,
-                    renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => ({
-                        // content: formatMillis(datum.results[testName]!.timeMs, 2),
-                    }),
+                    // renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => ({
+                    //     content: formatMillis(datum.results[testName]!.timeMs, 2),
+                    // }),
                 },
             },
             {
@@ -214,12 +214,12 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                 stackGroup: 'memory',
                 tooltip: {
                     enabled: true,
-                    renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => {
-                        const { heapUsed } = datum.results[testName]!;
-                        return {
-                            // content: `${formatBytes(heapUsed)}`,
-                        };
-                    },
+                    // renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => {
+                    //     const { heapUsed } = datum.results[testName]!;
+                    //     return {
+                    //         content: `${formatBytes(heapUsed)}`,
+                    //     };
+                    // },
                 },
             },
             {
@@ -230,12 +230,12 @@ function generatePerformanceChart(keyX: number, keyY: number) {
                 stackGroup: 'memory',
                 tooltip: {
                     enabled: true,
-                    renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => {
-                        const { canvasBytes, canvasCount } = datum.results[testName]!;
-                        return {
-                            // content: `${formatBytes(canvasBytes)} in ${canvasCount} canvases`,
-                        };
-                    },
+                    // renderer: ({ datum }: AgCartesianSeriesTooltipRendererParams<Suite>) => {
+                    //     const { canvasBytes, canvasCount } = datum.results[testName]!;
+                    //     return {
+                    //         content: `${formatBytes(canvasBytes)} in ${canvasCount} canvases`,
+                    //     };
+                    // },
                 },
             },
         ],

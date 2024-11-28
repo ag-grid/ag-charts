@@ -24,7 +24,7 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function renderer(params: AgCartesianSeriesTooltipRendererParams) {
-    return `<div class="ag-chart-tooltip-title" style="background-color: ${params.color}">
+    return `<div class="ag-chart-tooltip-title" style="background-color: ${'black' /* @todo(AG-10574) params.color */}">
       ${params.datum[params.xKey]}
     </div>
     <div class="ag-chart-tooltip-content">

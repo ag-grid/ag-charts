@@ -15,14 +15,14 @@ const tooltip: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<any>> = {
             title: datum[xKey],
             data: [
                 {
-                    label: yLowName,
+                    label: yLowName!,
                     value: datum[yLowKey].toLocaleString('en-GB', {
                         notation: 'compact',
                         compactDisplay: 'short',
                     }),
                 },
                 {
-                    label: yHighName,
+                    label: yHighName!,
                     value: datum[yHighKey].toLocaleString('en-GB', {
                         notation: 'compact',
                         compactDisplay: 'short',
