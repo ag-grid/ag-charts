@@ -2,8 +2,6 @@ import type { AgChartOptions } from 'ag-charts-community';
 import { AgCharts } from 'ag-charts-community';
 import { getData } from './data';
 
-const numFormatter = new Intl.NumberFormat('en-US');
-const usdFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 const usdShortOptions: any = { style: 'currency', currency: 'USD', notation: 'compact' };
 const usdShortFormatter = new Intl.NumberFormat('en-US', usdShortOptions);
 
