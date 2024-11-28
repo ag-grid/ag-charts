@@ -169,36 +169,6 @@ describe('Grouped Category Axis Examples', () => {
         });
     }
 
-    // for (const [exampleName, example] of Object.entries(EXAMPLES_AXIS)) {
-    //     it(`for ${exampleName} it should create chart instance as expected`, async () => {
-    //         chart = await createChart(example.options);
-    //         await example.assertions(chart);
-    //     });
-    //
-    //     it(`for ${exampleName} it should render axis to canvas as expected`, async () => {
-    //         const axisCompare = () => {
-    //             for (const axis of deproxy(chart).axes) {
-    //                 if (example.compare != null && !example.compare.includes(axis.type as AgCartesianAxisType)) {
-    //                     continue;
-    //                 }
-    //
-    //                 const axesBBox = axis.getBBox();
-    //                 const imageData = extractImageData({ ...ctx, bbox: axesBBox });
-    //
-    //                 expect(imageData).toMatchImageSnapshot(IMAGE_SNAPSHOT_DEFAULTS);
-    //             }
-    //         };
-    //
-    //         chart = await createChart(example.options);
-    //         axisCompare();
-    //
-    //         if (example.extraScreenshotActions) {
-    //             await example.extraScreenshotActions(chart);
-    //             axisCompare();
-    //         }
-    //     });
-    // }
-
     describe('grid and tick line clipping cases', () => {
         for (const [exampleName, example] of Object.entries(EXAMPLES_CLIPPING)) {
             it(`for ${exampleName} it should create chart instance as expected`, async () => {
