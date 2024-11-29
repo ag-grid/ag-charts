@@ -6,7 +6,6 @@ const { createElement, Color, clamp } = _ModuleSupport;
 
 export interface ColorPickerOptions extends _ModuleSupport.AnchoredPopoverOptions {
     color?: string;
-    multiColor?: boolean;
     opacity?: number;
     isMultiColor?: boolean;
     hasMultiColorOption: boolean;
