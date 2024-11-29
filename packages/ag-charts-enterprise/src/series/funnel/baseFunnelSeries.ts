@@ -20,6 +20,7 @@ const {
     resetLabelFn,
     animationValidation,
     computeBarFocusBounds,
+    createDatumId,
     ContinuousScale,
     Group,
     Selection,
@@ -50,8 +51,6 @@ export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum
     readonly width: number;
     readonly height: number;
     readonly label: FunnelNodeLabelDatum | undefined;
-    readonly fill: string;
-    readonly stroke: string;
     readonly strokeWidth: number;
     readonly opacity: number;
     readonly clipBBox?: _ModuleSupport.BBox;
@@ -60,6 +59,7 @@ export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum
 
 export interface FunnelConnectorDatum {
     readonly datum: FunnelNodeDatum;
+    readonly datumIndex: number;
     readonly x0: number;
     readonly y0: number;
     readonly x1: number;
@@ -68,8 +68,6 @@ export interface FunnelConnectorDatum {
     readonly y2: number;
     readonly x3: number;
     readonly y3: number;
-    readonly fill: string;
-    readonly stroke: string;
     readonly opacity: number;
 }
 
@@ -95,9 +93,9 @@ class FunnelSeriesNodeEvent<
 }
 
 export interface FunnelSeriesShapeStyle {
-    fill: string | undefined;
+    fill?: string;
     fillOpacity: number;
-    stroke: string | undefined;
+    stroke?: string;
     strokeWidth: number;
     strokeOpacity: number;
     lineDash: number[];
@@ -292,7 +290,7 @@ export abstract class BaseFunnelSeries<
         const yScale = yAxis.scale;
 
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
-        const { stageKey, valueKey, fills, strokes } = this.properties;
+        const { stageKey, valueKey } = this.properties;
         const { strokeWidth } = this.barStyle();
 
         const itemId = `${valueKey}`;
@@ -318,8 +316,8 @@ export abstract class BaseFunnelSeries<
         interface ConnectorConfig {
             itemId: string;
             rect: Bounds;
-            fill: string;
-            stroke: string;
+            nodeDatum: FunnelNodeDatum;
+            datumIndex: number;
         }
         let previousConnection: ConnectorConfig | undefined;
         processedData.rawData.forEach((datum, datumIndex) => {
@@ -356,9 +354,6 @@ export abstract class BaseFunnelSeries<
                 visible,
             });
 
-            const fill = fills[datumIndex % fills.length] ?? 'black';
-            const stroke = strokes[datumIndex % strokes.length] ?? 'black';
-
             const nodeDatum: FunnelNodeDatum = {
                 index: datumIndex,
                 series: this,
@@ -374,8 +369,6 @@ export abstract class BaseFunnelSeries<
                 width: rect.width,
                 height: rect.height,
                 midPoint: nodeMidPoint,
-                fill,
-                stroke,
                 strokeWidth,
                 opacity: 1,
                 label: labelData,
@@ -390,9 +383,12 @@ export abstract class BaseFunnelSeries<
 
             if (previousConnection != null) {
                 const prevRect = previousConnection.rect;
+                const startNodeDatum = previousConnection.nodeDatum;
+                const startDatumIndex = previousConnection.datumIndex;
                 if (barAlongX) {
                     context.connectorData.push({
-                        datum: nodeDatum,
+                        datum: startNodeDatum,
+                        datumIndex: startDatumIndex,
                         x0: prevRect.x,
                         y0: prevRect.y + prevRect.height,
                         x1: prevRect.x + prevRect.width,
@@ -401,13 +397,12 @@ export abstract class BaseFunnelSeries<
                         y2: rect.y,
                         x3: rect.x,
                         y3: rect.y,
-                        fill: previousConnection.fill,
-                        stroke: previousConnection.stroke,
                         opacity: 1,
                     });
                 } else {
                     context.connectorData.push({
-                        datum: nodeDatum,
+                        datum: startNodeDatum,
+                        datumIndex: startDatumIndex,
                         x0: prevRect.x + prevRect.width,
                         y0: prevRect.y,
                         x1: rect.x,
@@ -416,15 +411,18 @@ export abstract class BaseFunnelSeries<
                         y2: rect.y + rect.height,
                         x3: prevRect.x + prevRect.width,
                         y3: prevRect.y + prevRect.height,
-                        fill: previousConnection.fill,
-                        stroke: previousConnection.stroke,
                         opacity: 1,
                     });
                 }
             }
 
             if (visible) {
-                previousConnection = { itemId, rect, fill, stroke };
+                previousConnection = {
+                    itemId,
+                    rect,
+                    nodeDatum,
+                    datumIndex: datumIndex,
+                };
             }
         });
 
@@ -478,14 +476,16 @@ export abstract class BaseFunnelSeries<
     private updateConnectorNodes(opts: {
         connectorSelection: _ModuleSupport.Selection<FunnelConnector, FunnelConnectorDatum>;
     }) {
+        const { fills, strokes } = this.properties;
         const { fill, fillOpacity, stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
             this.connectorStyle();
 
         opts.connectorSelection.each((connector, datum) => {
+            const { datumIndex } = datum;
             connector.setProperties(resetConnectorSelectionsFn(connector, datum));
-            connector.fill = fill ?? datum.fill;
+            connector.fill = fill ?? fills[datumIndex % fills.length];
             connector.fillOpacity = fillOpacity;
-            connector.stroke = stroke ?? datum.stroke;
+            connector.stroke = stroke ?? strokes[datumIndex % strokes.length];
             connector.strokeOpacity = strokeOpacity;
             connector.strokeWidth = strokeWidth;
             connector.lineDash = lineDash;
@@ -519,7 +519,7 @@ export abstract class BaseFunnelSeries<
 
     override getTooltipContent(nodeDatum: FunnelNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
-        const { stageKey, valueKey, tooltip } = properties;
+        const { fills, strokes, stageKey, valueKey, tooltip, itemStyler } = properties;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -534,23 +534,31 @@ export abstract class BaseFunnelSeries<
 
         if (xValue == null) return;
 
+        const format = {
+            fill: fills[datumIndex % fills.length],
+            stroke: strokes[datumIndex % strokes.length],
+            ...this.barStyle(),
+        };
+        if (itemStyler != null) {
+            const itemStyle = this.cachedDatumCallback(createDatumId(String(datumIndex), 'node'), () => {
+                return itemStyler({
+                    seriesId,
+                    datum,
+                    stageKey,
+                    valueKey,
+                    highlighted: false,
+                    ...format,
+                });
+            });
+            Object.assign(format, itemStyle);
+        }
+
         return tooltip.formatTooltip(
             {
                 symbol: this.legendItemSymbol(datumIndex),
-                data: [
-                    {
-                        label: xAxis.formatDatum(xValue),
-                        value: yAxis.formatDatum(yValue),
-                    },
-                ],
+                data: [{ label: xAxis.formatDatum(xValue), value: yAxis.formatDatum(yValue) }],
             },
-            {
-                seriesId,
-                datum,
-                title: stageKey,
-                stageKey,
-                valueKey,
-            }
+            { seriesId, datum, title: stageKey, stageKey, valueKey, ...format }
         );
     }
 

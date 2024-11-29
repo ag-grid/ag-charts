@@ -1,4 +1,9 @@
-import type { AgErrorBoundSeriesTooltipRendererParams, AgSeriesMarkerStyle } from 'ag-charts-types';
+import type {
+    AgErrorBoundSeriesTooltipRendererParams,
+    AgSeriesMarkerStyle,
+    FillOptions,
+    StrokeOptions,
+} from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -25,6 +30,7 @@ import type { DatumPropertyDefinition } from '../../data/dataModel';
 import { fixNumericExtent } from '../../data/dataModel';
 import {
     animationValidation,
+    createDatumId,
     groupAccumulativeValueProperty,
     groupStackValueProperty,
     keyProperty,
@@ -646,6 +652,49 @@ export class AreaSeries extends CartesianSeries<
         return markerSelection.update(markersEnabled ? nodeData : []);
     }
 
+    private getMarkerItemBaseStyle(highlighted = false): RequireOptional<FillOptions & StrokeOptions> {
+        const { marker } = this.properties;
+        const highlightStyle = highlighted ? this.properties.highlightStyle.item : undefined;
+        return {
+            fill: highlightStyle?.fill ?? marker.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
+            stroke: highlightStyle?.stroke ?? marker.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? marker.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
+        };
+    }
+
+    private getMarkerItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        xValue: any,
+        yValue: any,
+        format: RequireOptional<FillOptions & StrokeOptions>,
+        highlighted = false
+    ) {
+        const { marker } = this.properties;
+        const { itemStyler } = marker;
+        if (itemStyler == null) return;
+
+        const { id: seriesId, properties } = this;
+        const { xKey, yKey } = properties;
+
+        const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
+            xDomain: this.getSeriesDomain(ChartAxisDirection.X),
+            yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
+        }));
+        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+            return itemStyler({
+                seriesId,
+                ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
+                xValue,
+                yValue,
+                highlighted,
+                ...format,
+            });
+        });
+    }
+
     protected override updateMarkerNodes(opts: {
         markerSelection: Selection<Marker, MarkerSelectionDatum>;
         isHighlight: boolean;
@@ -728,6 +777,9 @@ export class AreaSeries extends CartesianSeries<
 
         if (xValue == null) return;
 
+        const format = this.getMarkerItemBaseStyle();
+        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datum, xValue, yValue, format));
+
         return tooltip.formatTooltip(
             {
                 heading: xAxis.formatDatum(xValue),
@@ -742,6 +794,7 @@ export class AreaSeries extends CartesianSeries<
                 xName,
                 yKey,
                 yName,
+                ...format,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );

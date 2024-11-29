@@ -575,7 +575,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         let format: AgDonutSeriesStyle | undefined;
         if (itemStyler) {
             format = this.cachedDatumCallback(
-                createDatumId(this.getDatumId(datum), highlighted ? 'highlight' : 'hide'),
+                createDatumId(this.getDatumIdFromData(datum), highlighted ? 'highlight' : 'hide'),
                 () =>
                     itemStyler({
                         datum,
@@ -1402,6 +1402,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 angleName,
                 radiusKey,
                 radiusName,
+                ...this.getSectorFormat(datum, datumIndex, false),
             }
         );
     }

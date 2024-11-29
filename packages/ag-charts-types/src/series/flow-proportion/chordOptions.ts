@@ -97,6 +97,9 @@ export interface AgChordSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgChordSeriesOptionsKeys,
         AgChordSeriesOptionsNames,
-        SizeParams {}
+        SizeParams,
+        FillOptions,
+        StrokeOptions,
+        LineDashOptions {}
 
 export interface AgChordSeriesLabelFormatterParams<_TDatum = any> extends AgChordSeriesOptionsKeys, SizeParams {}

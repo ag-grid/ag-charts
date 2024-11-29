@@ -7,7 +7,9 @@ import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTo
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgHistogramSeriesTooltipRendererParams<TDatum>
-    extends Omit<AgCartesianSeriesTooltipRendererParams<AgHistogramBinDatum<TDatum>>, 'yKey'> {
+    extends Omit<AgCartesianSeriesTooltipRendererParams<AgHistogramBinDatum<TDatum>>, 'yKey'>,
+        FillOptions,
+        StrokeOptions {
     /** yKey as specified on series options. */
     readonly yKey?: string;
 }

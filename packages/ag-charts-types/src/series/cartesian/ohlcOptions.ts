@@ -12,9 +12,8 @@ export type AgOhlcSeriesItemStylerParams<TDatum> = AgOhlcSeriesBaseItemStylerPar
 
 export interface AgOhlcSeriesTooltipRendererParams<TDatum>
     extends AgOhlcSeriesBaseTooltipRendererParams<TDatum>,
-        AgOhlcSeriesBaseOptions {
-    // @todo(AG-10574) stroke?: CssColor;
-}
+        AgOhlcSeriesBaseOptions,
+        AgOhlcSeriesItemOptions {}
 
 export type AgOhlcSeriesItemOptions = StrokeOptions & LineDashOptions;
 

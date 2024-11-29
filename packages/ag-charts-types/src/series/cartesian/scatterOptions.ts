@@ -6,12 +6,15 @@ import type { LabelPlacement } from '../../chart/types';
 import type { AgSeriesMarkerStyle } from '../markerOptions';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgErrorBoundSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
+import type { FillOptions, StrokeOptions } from './commonOptions';
 
 export interface AgScatterSeriesTooltipRendererParams<TDatum = any>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgScatterSeriesOptionsKeys,
         AgScatterSeriesOptionsNames,
-        AgErrorBoundSeriesTooltipRendererParams {}
+        AgErrorBoundSeriesTooltipRendererParams,
+        FillOptions,
+        StrokeOptions {}
 
 export type AgScatterSeriesLabelFormatterParams = AgScatterSeriesOptionsKeys & AgScatterSeriesOptionsNames;
 

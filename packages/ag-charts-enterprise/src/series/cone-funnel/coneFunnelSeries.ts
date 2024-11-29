@@ -49,9 +49,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
 
     protected override barStyle(): FunnelSeriesShapeStyle {
         return {
-            fill: undefined,
             fillOpacity: 1,
-            stroke: undefined,
             strokeOpacity: 1,
             strokeWidth: 0,
             lineDash: [],
@@ -62,9 +60,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
     protected override connectorStyle(): FunnelSeriesShapeStyle {
         const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
         return {
-            fill: undefined,
             fillOpacity,
-            stroke: undefined,
             strokeOpacity,
             strokeWidth,
             lineDash,

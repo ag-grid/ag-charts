@@ -51,6 +51,7 @@ export type AgBarSeriesLabelFormatterParams = AgBarSeriesOptionsKeys & AgBarSeri
 export interface AgBarSeriesTooltipRendererParams<TDatum = any>
     extends AgBarSeriesOptionsKeys,
         AgBarSeriesOptionsNames,
+        AgBarSeriesStyle,
         AgErrorBoundSeriesTooltipRendererParams,
         AgSeriesTooltipRendererParams<TDatum> {
     readonly stackGroup?: string;
