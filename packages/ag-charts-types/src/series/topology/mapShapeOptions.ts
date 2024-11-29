@@ -5,9 +5,11 @@ import type { CssColor, GeoJSON, PixelSize } from '../../chart/types';
 import type { FillOptions, LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
-export type AgMapShapeSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
-    AgMapShapeSeriesOptionsKeys &
-    AgMapShapeSeriesOptionsNames;
+export interface AgMapShapeSeriesTooltipRendererParams<TDatum>
+    extends AgSeriesTooltipRendererParams<TDatum>,
+        AgMapShapeSeriesOptionsKeys,
+        AgMapShapeSeriesOptionsNames,
+        AgMapShapeSeriesStyle {}
 
 export type AgMapShapeSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & FillOptions & StrokeOptions;
 

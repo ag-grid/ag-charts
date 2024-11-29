@@ -35,6 +35,8 @@ const {
 export interface MapShapeNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {}
 
+type ItemStyle = Required<AgMapShapeSeriesStyle>;
+
 const fixedScale = _ModuleSupport.MercatorScale.fixedScale();
 
 interface LabelLayout {
@@ -301,14 +303,12 @@ export class MapShapeSeries
 
     private previousLabelLayouts: Map<string, LabelLayout> | undefined = undefined;
     override createNodeData() {
-        const { id: seriesId, dataModel, processedData, colorScale, properties, scale, previousLabelLayouts } = this;
-        const { idKey, colorKey, labelKey, label, fill: fillProperty } = properties;
+        const { id: seriesId, dataModel, processedData, properties, scale, previousLabelLayouts } = this;
+        const { idKey, colorKey, labelKey, label } = properties;
 
         if (dataModel == null || processedData == null || processedData.rawData.length === 0) return;
 
         const scaling = scale != null ? (scale.range[1][0] - scale.range[0][0]) / scale.bounds.width : NaN;
-
-        const colorScaleValid = this.isColorScaleValid();
 
         const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
         const featureValues = dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(
@@ -339,9 +339,6 @@ export class MapShapeSeries
                 missingGeometries.push(idValue);
             }
 
-            const color: string | undefined =
-                colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
-
             const labelLayout = this.getLabelLayout(
                 datum,
                 labelValue,
@@ -369,7 +366,6 @@ export class MapShapeSeries
                 idValue,
                 colorValue,
                 labelValue,
-                fill: color ?? fillProperty,
                 projectedGeometry,
             });
         });
@@ -434,57 +430,89 @@ export class MapShapeSeries
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
 
+    private getItemBaseStyle(highlighted = false): ItemStyle {
+        const { properties } = this;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
+
+        return {
+            fill: highlightStyle?.fill ?? properties.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+            stroke: highlightStyle?.stroke ?? properties.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+        };
+    }
+
+    protected getItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        colorValue: number | undefined,
+        format: ItemStyle,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties, colorScale } = this;
+        const { colorRange, itemStyler } = properties;
+
+        let overrides: Partial<ItemStyle> | undefined;
+
+        if (colorValue != null) {
+            overrides ??= {};
+            overrides.fill = this.isColorScaleValid()
+                ? colorScale.convert(colorValue)
+                : colorRange?.[0] ?? properties.fill;
+        }
+
+        if (itemStyler != null) {
+            const itemStyle = this.cachedDatumCallback(
+                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                () => {
+                    return itemStyler({
+                        seriesId,
+                        datum,
+                        highlighted,
+                        ...format,
+                        ...overrides,
+                    });
+                }
+            );
+
+            overrides ??= {};
+            Object.assign(overrides, itemStyle);
+        }
+
+        return overrides;
+    }
+
     private updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<GeoGeometry, MapShapeNodeDatum>;
         isHighlight: boolean;
     }) {
-        const { id: seriesId, properties } = this;
         const { datumSelection, isHighlight } = opts;
-        const { idKey, colorKey, labelKey, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, itemStyler } =
-            properties;
-        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
-        datumSelection.each((geoGeometry, datum) => {
-            const { projectedGeometry } = datum;
+        const format = this.getItemBaseStyle(isHighlight);
+
+        datumSelection.each((geoGeometry, nodeDatum) => {
+            const { datum, datumIndex, colorValue, projectedGeometry } = nodeDatum;
             if (projectedGeometry == null) {
                 geoGeometry.visible = false;
                 geoGeometry.projectedGeometry = undefined;
                 return;
             }
 
-            let format: AgMapShapeSeriesStyle | undefined;
-            if (itemStyler != null) {
-                format = this.cachedDatumCallback(
-                    createDatumId(datum.idValue, isHighlight ? 'highlight' : 'node'),
-                    () =>
-                        itemStyler({
-                            seriesId,
-                            datum: datum.datum,
-                            idKey,
-                            colorKey,
-                            labelKey,
-                            fill: datum.fill,
-                            fillOpacity,
-                            strokeOpacity,
-                            stroke,
-                            strokeWidth,
-                            lineDash,
-                            lineDashOffset,
-                            highlighted: isHighlight,
-                        })
-                );
-            }
+            const overrides = this.getItemStyleOverrides(String(datumIndex), datum, colorValue, format);
 
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
-            geoGeometry.fill = highlightStyle?.fill ?? format?.fill ?? datum.fill;
-            geoGeometry.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
-            geoGeometry.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke;
-            geoGeometry.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
-            geoGeometry.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
-            geoGeometry.lineDash = highlightStyle?.lineDash ?? format?.lineDash ?? lineDash;
-            geoGeometry.lineDashOffset = highlightStyle?.lineDashOffset ?? format?.lineDashOffset ?? lineDashOffset;
+            geoGeometry.fill = overrides?.fill ?? format.fill;
+            geoGeometry.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
+            geoGeometry.stroke = overrides?.stroke ?? format.stroke;
+            geoGeometry.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
+            geoGeometry.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
+            geoGeometry.lineDash = overrides?.lineDash ?? format.lineDash;
+            geoGeometry.lineDashOffset = overrides?.lineDashOffset ?? format.lineDashOffset;
         });
     }
 
@@ -626,17 +654,23 @@ export class MapShapeSeries
         const { datumIndex } = seriesDatum;
         const datum = processedData.rawData[datumIndex];
         const idValue = dataModel.resolveColumnById<string>(this, `idValue`, processedData)[datumIndex];
+        const colorValue =
+            colorKey != null
+                ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex]
+                : undefined;
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        if (colorKey != null) {
-            const colorValue = dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
-            data.push({ label: colorName ?? colorKey, value: String(colorValue) });
+        if (colorValue != null) {
+            data.push({ label: colorName ?? colorKey!, value: String(colorValue) });
         }
         if (labelKey != null && labelKey !== idKey) {
             const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
             data.push({ label: labelName ?? labelKey, value: labelValue });
         }
+
+        const format = this.getItemBaseStyle();
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, colorValue, format));
 
         return tooltip.formatTooltip(
             {
@@ -645,7 +679,7 @@ export class MapShapeSeries
                 symbol: this.legendItemSymbol(datumIndex),
                 data,
             },
-            { seriesId, datum, title, idKey, idName, colorKey, colorName, labelKey, labelName }
+            { seriesId, datum, title, idKey, idName, colorKey, colorName, labelKey, labelName, ...format }
         );
     }
 

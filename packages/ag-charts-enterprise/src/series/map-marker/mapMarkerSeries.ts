@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 
 import { extendBbox } from '../map-util/bboxUtil';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -45,6 +45,8 @@ type MapMarkerAnimationEvent = {
     reset: undefined;
     skip: undefined;
 };
+
+type ItemStyle = Required<AgMapMarkerSeriesStyle>;
 
 export class MapMarkerSeries
     extends TopologySeries<
@@ -343,12 +345,10 @@ export class MapMarkerSeries
     }
 
     override createNodeData() {
-        const { id: seriesId, dataModel, processedData, colorScale, sizeScale, properties, scale } = this;
+        const { id: seriesId, dataModel, processedData, sizeScale, properties, scale } = this;
         const { idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, label } = properties;
 
         if (dataModel == null || processedData == null || processedData.rawData.length === 0 || scale == null) return;
-
-        const colorScaleValid = this.isColorScaleValid();
 
         const hasLatLon = latitudeKey != null && longitudeKey != null;
 
@@ -396,7 +396,6 @@ export class MapMarkerSeries
             const sizeValue = sizeValues?.[datumIndex];
             const labelValue = labelValues?.[datumIndex];
 
-            const color = colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
             const size = sizeValue != null ? sizeScale.convert(sizeValue, true) : properties.size;
 
             const projectedGeometry = idValue != null ? projectedGeometries?.get(idValue) : undefined;
@@ -418,7 +417,6 @@ export class MapMarkerSeries
                     datum,
                     datumIndex,
                     index: -1,
-                    fill: color,
                     idValue,
                     lonValue,
                     latValue,
@@ -441,7 +439,6 @@ export class MapMarkerSeries
                         datum,
                         datumIndex,
                         index,
-                        fill: color,
                         idValue,
                         lonValue,
                         latValue,
@@ -565,26 +562,92 @@ export class MapMarkerSeries
         );
     }
 
+    private getMarkerItemBaseStyle(highlighted = false): ItemStyle {
+        const { properties } = this;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
+
+        return {
+            size: properties.size,
+            fill: highlightStyle?.fill ?? properties.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+            stroke: highlightStyle?.stroke ?? properties.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+        };
+    }
+
+    protected getMarkerItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        colorValue: number | undefined,
+        sizeValue: number | undefined,
+        format: ItemStyle,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties, colorScale, sizeScale } = this;
+        const { colorRange, itemStyler } = properties;
+
+        let overrides: Partial<ItemStyle> | undefined;
+
+        if (colorValue != null) {
+            overrides ??= {};
+            overrides.fill = this.isColorScaleValid()
+                ? colorScale.convert(colorValue)
+                : colorRange?.[0] ?? properties.fill;
+        }
+
+        if (sizeValue != null) {
+            overrides ??= {};
+            overrides.size = sizeScale.convert(sizeValue, true);
+        }
+
+        if (itemStyler != null) {
+            const itemStyle = this.cachedDatumCallback(
+                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                () => {
+                    return itemStyler({
+                        seriesId,
+                        datum,
+                        highlighted,
+                        ...format,
+                        ...overrides,
+                    });
+                }
+            );
+
+            overrides ??= {};
+            Object.assign(overrides, itemStyle);
+        }
+
+        return overrides;
+    }
+
     private updateMarkerNodes(opts: {
         markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum>;
         isHighlight: boolean;
         highlightedDatum: MapMarkerNodeDatum | undefined;
     }) {
-        const { properties } = this;
         const { markerSelection, isHighlight, highlightedDatum } = opts;
-        const { fill, fillOpacity, stroke, strokeOpacity } = properties;
-        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
+
+        const format = this.getMarkerItemBaseStyle(isHighlight);
 
         markerSelection.each((marker, markerDatum) => {
-            const { datum, point } = markerDatum;
-            const format = this.getMapMarkerStyle(markerDatum, isHighlight);
-            marker.size = format?.size ?? point.size;
-            marker.fill = highlightStyle?.fill ?? format?.fill ?? markerDatum.fill ?? fill;
-            marker.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
-            marker.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke;
-            marker.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
-            marker.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
+            const { datumIndex, datum, point, colorValue, sizeValue } = markerDatum;
+            const overrides = this.getMarkerItemStyleOverrides(
+                String(datumIndex),
+                datum,
+                colorValue,
+                sizeValue,
+                format
+            );
+
+            marker.size = overrides?.size ?? format.size;
+            marker.fill = overrides?.fill ?? format.fill;
+            marker.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
+            marker.stroke = overrides?.stroke ?? format.stroke;
+            marker.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
+            marker.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
             marker.translationX = point.x;
             marker.translationY = point.y;
             marker.zIndex = !isHighlight && highlightedDatum != null && datum === highlightedDatum.datum ? 1 : 0;
@@ -730,20 +793,26 @@ export class MapMarkerSeries
 
         const { datumIndex } = seriesDatum;
         const datum = processedData.rawData[datumIndex];
+        const sizeValue =
+            sizeKey != null
+                ? dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex]
+                : undefined;
+        const colorValue =
+            colorKey != null
+                ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex]
+                : undefined;
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        if (sizeKey != null) {
-            const sizeValue = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
-            data.push({ label: sizeName ?? '', value: String(sizeValue) });
+        if (sizeValue != null) {
+            data.push({ label: sizeName ?? sizeKey!, value: String(sizeValue) });
         }
-        if (colorKey != null) {
-            const colorValue = dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
-            data.push({ label: colorName ?? '', value: String(colorValue) });
+        if (colorValue != null) {
+            data.push({ label: colorName ?? colorKey!, value: String(colorValue) });
         }
         if (labelKey != null && labelKey !== idKey) {
             const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
-            data.push({ label: labelName ?? '', value: labelValue });
+            data.push({ label: labelName ?? labelKey, value: labelValue });
         }
 
         let heading: string | undefined;
@@ -755,6 +824,12 @@ export class MapMarkerSeries
             const lonValue = dataModel.resolveColumnById<number>(this, `lonValue`, processedData)[datumIndex];
             heading = `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${lonValue >= 0 ? 'W' : 'E'}`;
         }
+
+        const format = this.getMarkerItemBaseStyle();
+        Object.assign(
+            format,
+            this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format)
+        );
 
         return tooltip.formatTooltip(
             {
@@ -779,55 +854,19 @@ export class MapMarkerSeries
                 sizeName,
                 labelKey,
                 labelName,
+                ...format,
             }
         );
     }
 
-    public getMapMarkerStyle(markerDatum: MapMarkerNodeDatum, highlighted: boolean) {
-        const { id: seriesId, properties } = this;
-        const { datum, point } = markerDatum;
-        const {
-            idKey,
-            latitudeKey,
-            longitudeKey,
-            labelKey,
-            sizeKey,
-            colorKey,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeOpacity,
-            shape,
-            itemStyler,
-        } = properties;
-        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
-        if (itemStyler !== undefined) {
-            return this.cachedDatumCallback(createDatumId(datum.idValue, highlighted ? 'highlight' : 'node'), () =>
-                itemStyler({
-                    seriesId,
-                    datum,
-                    size: point.size,
-                    idKey,
-                    latitudeKey,
-                    longitudeKey,
-                    labelKey,
-                    sizeKey,
-                    colorKey,
-                    fill: fill!,
-                    fillOpacity,
-                    stroke: stroke!,
-                    strokeWidth,
-                    strokeOpacity,
-                    shape,
-                    highlighted,
-                })
-            );
-        }
-    }
-
     public getFormattedMarkerStyle(markerDatum: MapMarkerNodeDatum) {
-        const style = this.getMapMarkerStyle(markerDatum, true);
-        return { size: style?.size ?? markerDatum.point.size };
+        const { datumIndex, colorValue, sizeValue } = markerDatum;
+        const format = this.getMarkerItemBaseStyle();
+        Object.assign(
+            format,
+            this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format)
+        );
+        return { size: format.size };
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {

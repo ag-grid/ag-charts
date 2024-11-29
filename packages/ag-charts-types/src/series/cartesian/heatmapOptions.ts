@@ -15,7 +15,8 @@ export type AgHeatmapSeriesLabelFormatterParams = AgHeatmapSeriesOptionsKeys & A
 
 export type AgHeatmapSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
     AgHeatmapSeriesOptionsKeys &
-    AgHeatmapSeriesOptionsNames;
+    AgHeatmapSeriesOptionsNames &
+    AgHeatmapSeriesStyle;
 
 export interface AgHeatmapSeriesThemeableOptions<TDatum = any>
     extends StrokeOptions,
