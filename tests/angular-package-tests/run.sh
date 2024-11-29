@@ -104,7 +104,6 @@ for filename in ../patches/* ; do
 done
 
 mv ../e2e ../playwright.config.ts ./
-npm i 
 export ANGULAR_VERSION=${version}
 
 if ${interactive} ; then
@@ -113,6 +112,8 @@ if ${interactive} ; then
     npx playwright test $(${update} && echo "-u" || echo "") || echo "Tests failed"
     /bin/bash -il
 else
+    echo ">>> ng build"
     ng build
+    echo ">>> playwright test"
     npx playwright test $(${update} && echo "-u" || echo "")
 fi
