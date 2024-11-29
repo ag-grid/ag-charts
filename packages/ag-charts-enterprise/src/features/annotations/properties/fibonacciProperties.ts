@@ -1,10 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { LineTextProperties } from '../annotationProperties';
-import type { FibonacciBands } from '../annotationTypes';
+import type { AnnotationOptionsColorPickerType, FibonacciBands } from '../annotationTypes';
 import { LineTypeProperties } from '../line/lineProperties';
 
-const { OBJECT, BOOLEAN, COLOR_STRING_ARRAY, Validate, predicateWithMessage, isFiniteNumber } = _ModuleSupport;
+const { OBJECT, BOOLEAN, COLOR_STRING, COLOR_STRING_ARRAY, Validate, predicateWithMessage, isFiniteNumber } =
+    _ModuleSupport;
 
 const fibonacciBands = [10, 6, 4];
 const FIBONACCI_BANDS = predicateWithMessage(
@@ -28,6 +29,18 @@ export class FibonacciProperties extends LineTypeProperties {
     @Validate(COLOR_STRING_ARRAY, { optional: true })
     strokes: string[] = [];
 
+    @Validate(COLOR_STRING, { optional: true })
+    rangeStroke?: string;
+
     @Validate(FIBONACCI_BANDS, { optional: true })
     bands?: FibonacciBands = 10;
+
+    override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
+        switch (colorPickerType) {
+            case 'line-color':
+                return this.rangeStroke ?? this.stroke;
+            case 'text-color':
+                return this.text.color;
+        }
+    }
 }

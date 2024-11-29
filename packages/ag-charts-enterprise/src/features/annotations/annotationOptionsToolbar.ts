@@ -237,17 +237,20 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
         this.updateColorPickerColor(
             AnnotationOptions.LineColor,
             datum.getDefaultColor(AnnotationOptions.LineColor),
-            datum.getDefaultOpacity(AnnotationOptions.LineColor)
+            datum.getDefaultOpacity(AnnotationOptions.LineColor),
+            'isMultiColor' in datum && datum?.isMultiColor
         );
         this.updateColorPickerColor(
             AnnotationOptions.FillColor,
             datum.getDefaultColor(AnnotationOptions.FillColor),
-            datum.getDefaultOpacity(AnnotationOptions.FillColor)
+            datum.getDefaultOpacity(AnnotationOptions.FillColor),
+            'isMultiColor' in datum && datum?.isMultiColor
         );
         this.updateColorPickerColor(
             AnnotationOptions.TextColor,
             datum.getDefaultColor(AnnotationOptions.TextColor),
-            datum.getDefaultOpacity(AnnotationOptions.TextColor)
+            datum.getDefaultOpacity(AnnotationOptions.TextColor),
+            'isMultiColor' in datum && datum?.isMultiColor
         );
     }
 
@@ -429,7 +432,7 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
             opacity,
             isMultiColor,
         });
-        this.updateColorPickerColor(colorPickerType, colorOpacity);
+        this.updateColorPickerColor(colorPickerType, colorOpacity, opacity, isMultiColor);
     }
 
     private onTextSizeMenuPress(item: _ModuleSupport.MenuItem<number>, datum?: AnnotationProperties) {

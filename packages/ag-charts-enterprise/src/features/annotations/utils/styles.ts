@@ -60,10 +60,10 @@ export function setColor(
                 datum.fillOpacity = opacity;
             } else {
                 if ('strokeOpacity' in datum) datum.strokeOpacity = opacity;
-                if ('stroke' in datum) datum.stroke = color;
-                if ('isMultiColor' in datum) {
+                if ('isMultiColor' in datum && 'rangeStroke' in datum) {
                     datum.isMultiColor = isMultiColor;
-                }
+                    datum.rangeStroke = color;
+                } else if ('stroke' in datum) datum.stroke = color;
             }
 
             break;
