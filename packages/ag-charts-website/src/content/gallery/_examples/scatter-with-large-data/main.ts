@@ -1,16 +1,7 @@
-import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { chromosomes, getData } from './data';
 
-const tooltip = {
-    renderer: ({ datum, xKey, yKey, xName }: AgCartesianSeriesTooltipRendererParams) => {
-        const region = `${datum[yKey] < 0 ? 'p' : 'q'}${Math.abs(datum[yKey]).toFixed(1)}`;
-        return {
-            title: `${xName} ${datum[xKey]}`,
-            content: `Region: ${region}`,
-        };
-    },
-};
 const data = getData();
 const options: AgChartOptions = {
     title: {
@@ -27,7 +18,6 @@ const options: AgChartOptions = {
         xName: 'Chromosome',
         yKey: 'region',
         yName: `C${chromosome}`,
-        tooltip,
     })),
     seriesArea: {
         padding: {

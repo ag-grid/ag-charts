@@ -9,23 +9,11 @@ import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTo
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
 
 export interface AgRangeAreaSeriesTooltipRendererParams
-    extends Omit<AgCartesianSeriesTooltipRendererParams, 'yKey' | 'yValue'> {
-    /** The Id to distinguish the type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
-    itemId: string;
-
-    /** yKey as specified on series options. */
-    readonly yLowKey: string;
-    /** yLowValue as read from series data via the yLowKey property. */
-    readonly yLowValue?: any;
-    /** yLowName as specified on series options. */
-    readonly yLowName?: string;
-
-    /** yKey as specified on series options. */
-    readonly yHighKey: string;
-    /** yHighValue as read from series data via the yHighKey property. */
-    readonly yHighValue?: any;
-    /** yHighName as specified on series options. */
-    readonly yHighName?: string;
+    extends Omit<AgCartesianSeriesTooltipRendererParams, 'xKey' | 'xName' | 'yKey' | 'yName'>,
+        AgRangeAreaSeriesOptionsKeys,
+        AgRangeAreaSeriesOptionsNames {
+    /** Hovered marker */
+    itemId: 'up' | 'down';
 }
 
 export interface AgRangeAreaSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {

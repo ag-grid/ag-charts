@@ -51,18 +51,6 @@ const options: AgChartOptions = {
         "#b7b5ba",
       ],
       strokeWidth: 0,
-      tooltip: {
-        renderer: ({ datum, color, calloutLabelKey, sectorLabelKey }) => {
-          return [
-            `<div style="background-color: ${color}; padding: 4px 8px; border-top-left-radius: 5px; border-top-right-radius: 5px; font-weight: bold; color: white;">${
-              datum[calloutLabelKey!]
-            }</div>`,
-            `<div style="padding: 4px 8px">${numFormatter.format(
-              datum[sectorLabelKey!]
-            )}</div>`,
-          ].join("\n")
-        },
-      },
       highlightStyle: {
         item: {
           fillOpacity: 0,

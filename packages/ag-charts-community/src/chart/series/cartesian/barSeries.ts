@@ -1,4 +1,4 @@
-import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
+import type { AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -10,7 +10,6 @@ import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import { findMinMax } from '../../../util/number';
-import { sanitizeHtml } from '../../../util/sanitize';
 import { isFiniteNumber } from '../../../util/type-guards';
 import type { RequireOptional } from '../../../util/types';
 import { LogAxis } from '../../axis/logAxis';
@@ -29,7 +28,8 @@ import {
     valueProperty,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import type { LegendSymbolOptions } from '../../legend/legendSymbol';
+import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
@@ -335,8 +335,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         const yReversed = yAxis.isReversed();
 
-        const { barWidth, groupIndex } = this.updateGroupScale(xAxis);
-        const groupOffset = groupScale.convert(String(groupIndex));
+        const { barWidth, groupIndex: groupScaleIndex } = this.updateGroupScale(xAxis);
+        const groupOffset = groupScale.convert(String(groupScaleIndex));
         const barOffset = ContinuousScale.is(xScale) ? barWidth * -0.5 : 0;
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
@@ -351,6 +351,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         const bboxBottom = yScale.convert(0);
         const nodeDatum = ({
             datum,
+            datumIndex,
             valueIndex,
             xValue,
             yValue,
@@ -367,6 +368,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             crossScale = 1,
         }: {
             datum: any;
+            datumIndex: number;
             valueIndex: number;
             xValue: string;
             yValue: number;
@@ -412,6 +414,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 series: this,
                 itemId: phantom ? createDatumId(yKey, phantom) : yKey,
                 datum,
+                datumIndex,
                 valueIndex,
                 cumulativeValue,
                 phantom,
@@ -497,6 +500,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
             const nodeData = nodeDatum({
                 datum: rawData[datumIndex],
+                datumIndex,
                 valueIndex,
                 xValue,
                 yValue: yFilterValue ?? yRawValue,
@@ -518,6 +522,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             if (yFilterValue != null) {
                 const phantomNodeData = nodeDatum({
                     datum: rawData[datumIndex],
+                    datumIndex,
                     valueIndex,
                     xValue,
                     yValue: yFilterValue,
@@ -726,66 +731,56 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         });
     }
 
-    getTooltipHtml(nodeDatum: BarNodeDatum): TooltipContent {
-        const { id: seriesId, processedData } = this;
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
+    override getTooltipContent(nodeDatum: BarNodeDatum): TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { xKey, xName, yKey, yName, legendItemName, stackGroup, tooltip } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!processedData || !this.properties.isValid() || !xAxis || !yAxis) {
-            return EMPTY_TOOLTIP_CONTENT;
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
         }
 
-        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, tooltip, itemStyler, stackGroup, legendItemName } =
-            this.properties;
-        const { xValue, yValue, datum, itemId } = nodeDatum;
+        const { datumIndex } = nodeDatum;
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue-raw`, processedData)[datumIndex];
 
-        const xString = xAxis.formatDatum(xValue);
-        const yString = yAxis.formatDatum(yValue);
-        const title = sanitizeHtml(yName);
-        const content = sanitizeHtml(xString + ': ' + yString);
+        if (xValue == null) return;
 
-        let format: AgBarSeriesStyle | undefined;
-
-        if (itemStyler) {
-            const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
-            const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-            format = this.cachedDatumCallback(createDatumId(this.getDatumId(datum), 'tooltip'), () =>
-                itemStyler({
-                    seriesId,
-                    ...datumStylerProperties(nodeDatum, xKey, yKey, xDomain, yDomain),
-                    stackGroup,
-                    fill,
-                    stroke,
-                    strokeWidth: this.getStrokeWidth(strokeWidth),
-                    highlighted: false,
-                    cornerRadius: this.properties.cornerRadius,
-                    fillOpacity: this.properties.fillOpacity,
-                    strokeOpacity: this.properties.strokeOpacity,
-                    lineDash: this.properties.lineDash ?? [],
-                    lineDashOffset: this.properties.lineDashOffset,
-                })
-            );
-        }
-
-        const color = format?.fill ?? fill;
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
+        return tooltip.formatTooltip(
+            {
+                heading: xAxis.formatDatum(xValue),
+                symbol: this.legendItemSymbol(),
+                data: [{ label: legendItemName ?? yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) }],
+            },
             {
                 seriesId,
-                itemId,
                 datum,
+                title: yName,
                 xKey,
-                yKey,
                 xName,
+                yKey,
                 yName,
-                stackGroup,
-                title,
-                color,
                 legendItemName,
+                stackGroup,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
+    }
+
+    private legendItemSymbol(): LegendSymbolOptions {
+        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity } = this.properties;
+
+        return {
+            marker: {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            },
+        };
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
@@ -801,16 +796,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             visible,
         } = this;
 
-        const {
-            yKey: itemId,
-            yName,
-            fill,
-            stroke,
-            strokeWidth,
-            fillOpacity,
-            strokeOpacity,
-            legendItemName,
-        } = this.properties;
+        const { yKey: itemId, yName, legendItemName } = this.properties;
         return [
             {
                 legendType: 'category',
@@ -819,15 +805,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 seriesId,
                 enabled: visible && legendManager.getItemEnabled({ seriesId, itemId }),
                 label: { text: legendItemName ?? yName ?? itemId },
-                symbol: {
-                    marker: {
-                        fill,
-                        fillOpacity,
-                        stroke,
-                        strokeWidth,
-                        strokeOpacity,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: !showInLegend,
             },

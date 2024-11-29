@@ -19,13 +19,6 @@ const options: AgChartOptions = {
                     return params.value.toFixed(2) + '%';
                 },
             },
-            tooltip: {
-                renderer: (params) => {
-                    return {
-                        content: `<b>Change</b>: ${params.datum.change.toFixed(2)}%`,
-                    };
-                },
-            },
         },
     ],
     title: {

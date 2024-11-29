@@ -2,10 +2,6 @@ import { AgCartesianChartOptions, AgCartesianSeriesTooltipRendererParams, AgChar
 
 import { getData } from './data';
 
-function tooltipRenderer({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) {
-    return { content: `${datum[xKey]}: ${datum[yKey]}%` };
-}
-
 const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -20,7 +16,7 @@ const options: AgCartesianChartOptions = {
             yKey: 'women',
             yName: 'Women',
             grouped: true,
-            tooltip: { renderer: tooltipRenderer },
+            tooltip: { enabled: true },
         },
         {
             type: 'bar',
@@ -28,14 +24,14 @@ const options: AgCartesianChartOptions = {
             yKey: 'men',
             yName: 'Men',
             grouped: true,
-            tooltip: { renderer: tooltipRenderer },
+            tooltip: { enabled: true },
         },
         {
             type: 'line',
             xKey: 'year',
             yKey: 'portions',
             yName: 'Portions',
-            tooltip: { renderer: tooltipRenderer },
+            tooltip: { enabled: true },
         },
     ],
     axes: [

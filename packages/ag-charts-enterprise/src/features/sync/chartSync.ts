@@ -138,7 +138,7 @@ export class ChartSync extends BaseProperties implements _ModuleSupport.ModuleIn
                             chart.ctx.tooltipManager.updateTooltip(
                                 chart.id,
                                 tooltipMeta,
-                                series.getTooltipHtml(nodeDatum)
+                                series.getTooltipContent(nodeDatum)
                             );
                         } else {
                             chart.ctx.tooltipManager.removeTooltip(chart.id);

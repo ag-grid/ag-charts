@@ -1,7 +1,6 @@
 import {
     AgCartesianChartOptions,
     AgCartesianSeriesTooltipRendererParams,
-    AgChartInstance,
     AgChartOptions,
     AgCharts,
     AgPolarChartOptions,
@@ -12,9 +11,8 @@ import { getData } from './data';
 
 const numFormatter = new Intl.NumberFormat('en-US');
 const tooltip = {
-    renderer: ({ title, datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
-        title,
-        content: `${datum[xKey]}: ${numFormatter.format(datum[yKey])}`,
+    renderer: ({ datum, yKey, yName }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
+        data: [{ label: yName!, value: numFormatter.format(datum[yKey]) }],
     }),
 };
 

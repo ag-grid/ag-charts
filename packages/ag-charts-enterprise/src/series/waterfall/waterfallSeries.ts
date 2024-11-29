@@ -27,7 +27,6 @@ const {
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
     computeBarFocusBounds,
-    sanitizeHtml,
     isContinuous,
     Rect,
     motion,
@@ -256,7 +255,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
         const yRawValues = dataModel.resolveColumnById(this, `yRaw`, processedData);
-        const totalTypeValues = dataModel.resolveColumnById<AgWaterfallSeriesItemType>(
+        const totalTypeValues = dataModel.resolveColumnById<AgWaterfallSeriesItemType | undefined>(
             this,
             `totalTypeValue`,
             processedData
@@ -395,6 +394,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 series: this,
                 itemId: seriesItemType,
                 datum,
+                datumIndex,
                 cumulativeValue: cumulativeValue ?? 0,
                 xValue: xDatum,
                 yValue: value,
@@ -469,11 +469,11 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    private isSubtotal(datumType: AgWaterfallSeriesItemType) {
+    private isSubtotal(datumType: AgWaterfallSeriesItemType | undefined) {
         return datumType === 'subtotal';
     }
 
-    private isTotal(datumType: AgWaterfallSeriesItemType) {
+    private isTotal(datumType: AgWaterfallSeriesItemType | undefined) {
         return datumType === 'total';
     }
 
@@ -598,78 +598,62 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    getTooltipHtml(nodeDatum: WaterfallNodeDatum): _ModuleSupport.TooltipContent {
-        const categoryAxis = this.getCategoryAxis();
-        const valueAxis = this.getValueAxis();
+    override getTooltipContent(nodeDatum: WaterfallNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { xKey, xName, yKey, yName, tooltip } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!this.properties.isValid() || !categoryAxis || !valueAxis) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
         }
 
-        const { id: seriesId } = this;
-        const { xKey, yKey, xName, yName, tooltip } = this.properties;
-        const { index, datum, itemId, xValue, yValue } = nodeDatum;
-        const {
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash = [],
-            lineDashOffset,
-            cornerRadius,
-            name,
-            itemStyler,
-        } = this.getItemConfig(itemId);
-
-        let format;
-
-        if (itemStyler) {
-            format = this.cachedDatumCallback(createDatumId(index, 'tooltip'), () =>
-                itemStyler({
-                    datum,
-                    xKey,
-                    yKey,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                    cornerRadius,
-                    highlighted: false,
-                    seriesId,
-                    itemId: nodeDatum.itemId,
-                })
-            );
-        }
-
-        const color = format?.fill ?? fill ?? 'gray';
-
-        const xString = sanitizeHtml(categoryAxis.formatDatum(xValue));
-        const yString = sanitizeHtml(valueAxis.formatDatum(yValue));
-
-        const isTotal = this.isTotal(itemId);
-        const isSubtotal = this.isSubtotal(itemId);
-        let ySubheading;
-        if (isTotal) {
-            ySubheading = 'Total';
-        } else if (isSubtotal) {
-            ySubheading = 'Subtotal';
-        } else {
-            ySubheading = name ?? yName ?? yKey;
-        }
-
-        const title = sanitizeHtml(yName);
-        const content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br/>` +
-            `<b>${sanitizeHtml(ySubheading)}</b>: ${yString}`;
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
-            { seriesId, itemId, datum, xKey, yKey, xName, yName, color, title }
+        const { datumIndex } = nodeDatum;
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yRaw`, processedData)[datumIndex];
+        const yCurrTotalValues = dataModel.resolveColumnById<number>(this, 'yCurrentTotal', processedData);
+        const totalTypeValues = dataModel.resolveColumnById<AgWaterfallSeriesItemType | undefined>(
+            this,
+            `totalTypeValue`,
+            processedData
         );
+
+        if (xValue == null) return;
+
+        const datumType = totalTypeValues[datumIndex];
+        const isPositive = (yValue ?? 0) >= 0;
+
+        const seriesItemType = this.getSeriesItemType(isPositive, datumType);
+
+        let total: number;
+        if (this.isTotal(datumType)) {
+            total = yCurrTotalValues[datumIndex];
+        } else if (this.isSubtotal(datumType)) {
+            total = yCurrTotalValues[datumIndex];
+            for (let previousIndex = datumIndex - 1; previousIndex >= 0; previousIndex -= 1) {
+                if (this.isSubtotal(totalTypeValues[previousIndex])) {
+                    total = total - yCurrTotalValues[previousIndex];
+                    break;
+                }
+            }
+        } else {
+            total = yValue;
+        }
+
+        return tooltip.formatTooltip(
+            {
+                heading: xAxis.formatDatum(xValue),
+                symbol: this.legendItemSymbol(seriesItemType),
+                data: [{ label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(total) }],
+            },
+            { seriesId, datum, title: yName, itemId: seriesItemType, xKey, xName, yKey, yName }
+        );
+    }
+
+    private legendItemSymbol(item: AgWaterfallSeriesItemType): _ModuleSupport.LegendSymbolOptions {
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = this.getItemConfig(item);
+        return { marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } };
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType) {
@@ -684,7 +668,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const { showInLegend } = this.properties;
 
         seriesItemTypes.forEach((item) => {
-            const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, name } = this.getItemConfig(item);
+            const { name } = this.getItemConfig(item);
             legendData.push({
                 legendType: 'category',
                 id,
@@ -692,7 +676,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 seriesId: id,
                 enabled: true,
                 label: { text: name ?? capitalise(item) },
-                symbol: { marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } },
+                symbol: this.legendItemSymbol(item),
                 hideInLegend: !showInLegend,
             });
         });

@@ -2,8 +2,6 @@ import type { AgCartesianAxisOptions, AgCartesianChartOptions} from "ag-charts-c
 import { AgCharts } from "ag-charts-community"
 import { getData } from "./data"
 
-const formatter = new Intl.NumberFormat()
-
 const logAxes: AgCartesianAxisOptions[] = [
   {
     type: "log",
@@ -66,11 +64,6 @@ const options: AgCartesianChartOptions = {
       type: "line",
       xKey: "year",
       yKey: "population",
-      tooltip: {
-        renderer: ({datum, xKey, yKey}) => ({
-          content: `${datum[xKey]} CE: ${formatter.format(datum[yKey] ?? 0)}`,
-        }),
-      },
     },
   ],
   axes: logAxes

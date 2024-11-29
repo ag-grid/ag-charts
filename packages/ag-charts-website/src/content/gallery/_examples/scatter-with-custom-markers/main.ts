@@ -24,18 +24,6 @@ function npmLogo({ path }: AgMarkerShapeFnParams) {
     updatePath(pathData, path, 0.75, 5, 11);
 }
 
-const tooltip = {
-    renderer: ({ datum, xName, yName, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
-        return {
-            content: `<b>${xName}:</b> ${datum[xKey].toLocaleString('en-GB', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-            })}<br/><b>${yName}: </b>${datum[yKey].toLocaleString('en-GB')}`,
-        };
-    },
-};
-
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     title: {
@@ -51,7 +39,6 @@ const options: AgChartOptions = {
             yName: 'Daily Website Visits',
             shape: agChartsLogo,
             fillOpacity: 1,
-            tooltip,
         },
         {
             type: 'scatter',
@@ -61,7 +48,6 @@ const options: AgChartOptions = {
             yName: 'NPM Downloads',
             shape: npmLogo,
             fillOpacity: 1,
-            tooltip,
         },
     ],
     axes: [

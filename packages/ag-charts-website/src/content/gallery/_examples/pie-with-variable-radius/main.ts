@@ -29,8 +29,10 @@ const options: AgChartOptions = {
             tooltip: {
                 renderer: ({ datum }) => {
                     return {
-                        title: `GDP Per Capita: $${datum['gdpPerCapita'].toLocaleString()}`,
-                        content: `Population: ${datum['population'].toLocaleString()}`,
+                        data: [
+                            { label: `GDP Per Capita`, value: `$${datum['gdpPerCapita'].toLocaleString()}` },
+                            { label: `Population`, value: `${datum['population'].toLocaleString()}` },
+                        ],
                     };
                 },
             },

@@ -123,6 +123,7 @@ class SankeySeriesNodeProperties extends BaseProperties<AgSankeySeriesNodeOption
     @Validate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgSankeySeriesNodeItemStylerParams<unknown>, AgSankeySeriesNodeStyle>;
 }
+
 export class SankeySeriesProperties extends SeriesProperties<AgSankeySeriesOptions> {
     @Validate(ARRAY, { optional: true })
     nodes: any[] | undefined = undefined;

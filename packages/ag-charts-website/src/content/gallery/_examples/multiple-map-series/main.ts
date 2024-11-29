@@ -27,6 +27,7 @@ const options: AgChartOptions = {
             topology: islandTopology,
             idKey: 'name',
             sizeKey: 'population',
+            sizeName: 'Population',
             shape: 'pin',
             size: 8,
             maxSize: 32,
@@ -44,7 +45,7 @@ const options: AgChartOptions = {
             sizeDomain,
             tooltip: {
                 renderer: ({ datum }) => ({
-                    content: `${datum.int_name}<br>Duration: ${datum.duration}`,
+                    heading: datum.int_name,
                 }),
             },
         },

@@ -531,7 +531,7 @@ export abstract class Series<
             .reduce((total, current) => Object.assign(total, current), {});
     }
 
-    abstract getTooltipHtml(seriesDatum: any): TooltipContent;
+    abstract getTooltipContent(_seriesDatum: any): TooltipContent | string | undefined;
 
     protected _pickNodeCache = new LRUCache<string, PickResult | undefined>();
     pickNode(point: Point, intent: SeriesNodePickIntent, exactMatchOnly = false): PickResult | undefined {

@@ -3,7 +3,7 @@ import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult, Interactio
 import { BaseProperties } from '../../util/properties';
 import type { RequireOptional } from '../../util/types';
 import { BOOLEAN, FUNCTION, INTERACTION_RANGE, OBJECT, STRING, Validate } from '../../util/validation';
-import { TooltipPosition, toTooltipHtml } from '../tooltip/tooltip';
+import { type TooltipContent, TooltipPosition } from '../tooltip/tooltip';
 
 type TooltipRenderer<P> = (params: P) => string | AgTooltipRendererResult;
 
@@ -20,7 +20,7 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends
     showArrow?: boolean;
 
     @Validate(FUNCTION, { optional: true })
-    renderer?: TooltipRenderer<P>;
+    renderer?: TooltipRenderer<RequireOptional<P>>;
 
     @Validate(OBJECT)
     readonly interaction = new SeriesTooltipInteraction();
@@ -34,11 +34,10 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends
     @Validate(STRING, { optional: true })
     class?: string = undefined;
 
-    toTooltipHtml(defaults: AgTooltipRendererResult, params: RequireOptional<P>) {
-        const defaultsWithClass = defaults.class == null ? { ...defaults, class: this.class } : defaults;
-        if (this.renderer) {
-            return toTooltipHtml(this.renderer(params as P), defaultsWithClass);
-        }
-        return toTooltipHtml(defaultsWithClass);
+    public formatTooltip(content: TooltipContent, params: RequireOptional<P>): TooltipContent | string {
+        const overrides = this.renderer?.(params);
+        if (typeof overrides === 'string') return overrides;
+        if (overrides != null) return { ...content, ...overrides };
+        return content;
     }
 }

@@ -1,4 +1,3 @@
-import type { AgTooltipRendererResult } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
@@ -21,8 +20,6 @@ const {
     resetLabelFn,
     animationValidation,
     computeBarFocusBounds,
-    sanitizeHtml,
-    createDatumId,
     ContinuousScale,
     Group,
     Selection,
@@ -367,6 +364,7 @@ export abstract class BaseFunnelSeries<
                 series: this,
                 itemId,
                 datum,
+                datumIndex,
                 xValue: xDatum,
                 yValue: yDatum,
                 xKey: stageKey,
@@ -519,63 +517,41 @@ export abstract class BaseFunnelSeries<
         });
     }
 
-    getTooltipHtml(nodeDatum: FunnelNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId } = this;
-
+    override getTooltipContent(nodeDatum: FunnelNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, properties } = this;
+        const { stageKey, valueKey, tooltip } = properties;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
         }
 
-        const { stageKey, valueKey, itemStyler, tooltip } = this.properties;
-        const { strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.barStyle();
-        const { datum, xValue, yValue, fill, stroke } = nodeDatum;
+        const { datumIndex } = nodeDatum;
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, 'xValue', processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
-        let format;
-        if (itemStyler) {
-            format = this.cachedDatumCallback(createDatumId(datum.index, 'tooltip'), () =>
-                itemStyler({
-                    highlighted: false,
-                    seriesId,
-                    datum,
-                    stageKey,
-                    valueKey,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                })
-            );
-        }
+        if (xValue == null) return;
 
-        const color = format?.fill ?? fill ?? 'gray';
-
-        const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yString = sanitizeHtml(yAxis.formatDatum(yValue));
-
-        const title = xString;
-        const content = yString;
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            content,
-            backgroundColor: color,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            itemId: undefined,
-            datum,
-            stageKey,
-            valueKey,
-            color,
-            seriesId,
-            title,
-        });
+        return tooltip.formatTooltip(
+            {
+                symbol: this.legendItemSymbol(datumIndex),
+                data: [
+                    {
+                        label: xAxis.formatDatum(xValue),
+                        value: yAxis.formatDatum(yValue),
+                    },
+                ],
+            },
+            {
+                seriesId,
+                datum,
+                title: stageKey,
+                stageKey,
+                valueKey,
+            }
+        );
     }
 
     protected override resetAllAnimation(
@@ -620,6 +596,15 @@ export abstract class BaseFunnelSeries<
         return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], seriesRect);
     }
 
+    private legendItemSymbol(datumIndex: number): _ModuleSupport.LegendSymbolOptions {
+        const { strokeWidth, fillOpacity, strokeOpacity } = this.barStyle();
+        const { fills, strokes } = this.properties;
+        const fill = fills[datumIndex % fills.length] ?? 'black';
+        const stroke = strokes[datumIndex % strokes.length] ?? 'black';
+
+        return { marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } };
+    }
+
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const {
             id: seriesId,
@@ -633,8 +618,7 @@ export abstract class BaseFunnelSeries<
             return [];
         }
 
-        const { strokeWidth, fillOpacity, strokeOpacity } = this.barStyle();
-        const { fills, strokes, showInLegend } = this.properties;
+        const { showInLegend } = this.properties;
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
 
@@ -643,9 +627,6 @@ export abstract class BaseFunnelSeries<
                 const stageValue = xValues[datumIndex];
                 if (stageValue == null) return;
 
-                const fill = fills[datumIndex % fills.length] ?? 'black';
-                const stroke = strokes[datumIndex % strokes.length] ?? 'black';
-
                 return {
                     legendType: 'category',
                     id: seriesId,
@@ -653,7 +634,7 @@ export abstract class BaseFunnelSeries<
                     seriesId,
                     enabled: visible && legendManager.getItemEnabled({ seriesId, itemId: datumIndex }),
                     label: { text: stageValue },
-                    symbol: { marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } },
+                    symbol: this.legendItemSymbol(datumIndex),
                     skipAnimations: true,
                     hideInLegend: !showInLegend,
                 };

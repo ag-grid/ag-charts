@@ -20,14 +20,6 @@ const options: AgChartOptions = {
                             dimOpacity: 0.2,
                         },
                     },
-                    tooltip: {
-                        renderer: ({ datum, xKey, yKey }) => {
-                            const date = Intl.DateTimeFormat('en-GB', { month: 'long', year: 'numeric' }).format(
-                                datum[xKey]
-                            );
-                            return { content: `${date}: ${Math.round(datum[yKey] / 100) / 10 + 'k'}` };
-                        },
-                    },
                 },
             },
         },

@@ -13,6 +13,7 @@ export interface BaseFunnelProperties<SeriesOptions extends object>
     extends _ModuleSupport.AbstractBarSeriesProperties<SeriesOptions> {
     stageKey: string;
     valueKey: string;
+    valueName?: string;
     fills: string[];
     strokes: string[];
     itemStyler?: Styler<AgFunnelSeriesItemStylerParams<unknown>, AgFunnelSeriesStyle>;

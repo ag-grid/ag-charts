@@ -1,4 +1,4 @@
-import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+import type { AgErrorBoundSeriesTooltipRendererParams, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -14,8 +14,8 @@ import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
-import { sanitizeHtml } from '../../../util/sanitize';
-import { isDefined, isFiniteNumber } from '../../../util/type-guards';
+import { isDefined } from '../../../util/type-guards';
+import type { RequireOptional } from '../../../util/types';
 import { isContinuous } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
@@ -32,9 +32,10 @@ import {
     valueProperty,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
+import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
@@ -369,6 +370,7 @@ export class AreaSeries extends CartesianSeries<
                         series: this,
                         itemId: yKey,
                         datum: seriesDatum,
+                        datumIndex,
                         midPoint: { x: point.x, y: point.y },
                         cumulativeValue: yValueEnd,
                         yValue: yDatum,
@@ -709,49 +711,63 @@ export class AreaSeries extends CartesianSeries<
         });
     }
 
-    getTooltipHtml(nodeDatum: MarkerSelectionDatum): TooltipContent {
-        const { id: seriesId, axes, dataModel } = this;
-        const { xKey, xName, yName, tooltip, marker } = this.properties;
-        const { yKey, xValue, yValue, datum, itemId } = nodeDatum;
-        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-
+    override getTooltipContent(nodeDatum: MarkerSelectionDatum): TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { xKey, xName, yKey, yName, legendItemName, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!this.properties.isValid() || !(xAxis && yAxis && isFiniteNumber(yValue)) || !dataModel) {
-            return EMPTY_TOOLTIP_CONTENT;
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
         }
 
-        const xString = xAxis.formatDatum(xValue);
-        const yString = yAxis.formatDatum(yValue);
-        const title = sanitizeHtml(yName);
-        const content = sanitizeHtml(xString + ': ' + yString);
+        const { datumIndex } = nodeDatum;
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
 
-        const baseStyle = mergeDefaults({ fill: this.properties.fill }, marker.getStyle(), {
-            stroke: this.properties.stroke,
-            strokeWidth: this.properties.strokeWidth,
-        });
-        const { fill: color } = this.getMarkerStyle(
-            marker,
-            { ...datumStylerProperties(nodeDatum, xKey, yKey, xDomain, yDomain), highlighted: false },
-            baseStyle
-        );
+        if (xValue == null) return;
 
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
+        return tooltip.formatTooltip(
             {
+                heading: xAxis.formatDatum(xValue),
+                symbol: this.legendItemSymbol(),
+                data: [{ label: legendItemName ?? yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) }],
+            },
+            {
+                seriesId,
                 datum,
-                itemId,
+                title: yName,
                 xKey,
                 xName,
                 yKey,
                 yName,
-                color,
-                title,
-                seriesId,
+                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
+    }
+
+    legendItemSymbol(): LegendSymbolOptions {
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, marker } = this.properties;
+        const useAreaFill = !marker.enabled || marker.fill === undefined;
+
+        return {
+            marker: {
+                shape: marker.shape,
+                fill: useAreaFill ? fill : marker.fill,
+                fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
+                stroke: marker.stroke ?? stroke,
+                strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
+                strokeWidth: marker.strokeWidth ?? 0,
+                enabled: marker.enabled || strokeWidth <= 0,
+            },
+            line: {
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+            },
+        };
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
@@ -765,21 +781,8 @@ export class AreaSeries extends CartesianSeries<
             visible,
         } = this;
 
-        const {
-            yKey: itemId,
-            yName,
-            fill,
-            stroke,
-            fillOpacity,
-            strokeOpacity,
-            strokeWidth,
-            lineDash,
-            marker,
-            legendItemName,
-            showInLegend,
-        } = this.properties;
+        const { yKey: itemId, yName, legendItemName, showInLegend } = this.properties;
 
-        const useAreaFill = !marker.enabled || marker.fill === undefined;
         return [
             {
                 legendType,
@@ -790,23 +793,7 @@ export class AreaSeries extends CartesianSeries<
                 label: {
                     text: legendItemName ?? yName ?? itemId,
                 },
-                symbol: {
-                    marker: {
-                        shape: marker.shape,
-                        fill: useAreaFill ? fill : marker.fill,
-                        fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
-                        stroke: marker.stroke ?? stroke,
-                        strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
-                        strokeWidth: marker.strokeWidth ?? 0,
-                        enabled: marker.enabled || strokeWidth <= 0,
-                    },
-                    line: {
-                        stroke,
-                        strokeOpacity,
-                        strokeWidth,
-                        lineDash,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: !showInLegend,
             },

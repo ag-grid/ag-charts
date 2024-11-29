@@ -9,15 +9,26 @@ import {
 import { getData } from './data';
 
 const tooltip: AgSeriesTooltip<AgRangeBarSeriesTooltipRendererParams<any>> = {
-    renderer: ({ datum, xName, xKey, yLowKey, yHighKey, yLowName, yHighName }) => {
+    renderer: ({ datum, xKey, yLowKey, yHighKey, yLowName, yHighName }) => {
         return {
-            content: `<b>${xName}:</b> ${datum[xKey]}<br/><b>${yLowName}: </b>${datum[yLowKey].toLocaleString('en-GB', {
-                notation: 'compact',
-                compactDisplay: 'short',
-            })}<br/><b>${yHighName}: </b>${datum[yHighKey].toLocaleString('en-GB', {
-                notation: 'compact',
-                compactDisplay: 'short',
-            })}`,
+            heading: undefined,
+            title: datum[xKey],
+            data: [
+                {
+                    label: yLowName!,
+                    value: datum[yLowKey].toLocaleString('en-GB', {
+                        notation: 'compact',
+                        compactDisplay: 'short',
+                    }),
+                },
+                {
+                    label: yHighName!,
+                    value: datum[yHighKey].toLocaleString('en-GB', {
+                        notation: 'compact',
+                        compactDisplay: 'short',
+                    }),
+                },
+            ],
         };
     },
 };

@@ -5,7 +5,7 @@ import { OhlcSeriesBase } from './ohlcSeriesBase';
 import type { OhlcNodeDatum } from './ohlcSeriesBase';
 import { OhlcSeriesProperties } from './ohlcSeriesProperties';
 
-const { sanitizeHtml, createDatumId } = _ModuleSupport;
+const { createDatumId } = _ModuleSupport;
 
 export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
     static readonly className = 'ohlc';
@@ -95,95 +95,6 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
             // Ignore highlight style
             node.strokeAlignment = (format?.strokeWidth ?? (isRising ? upStrokeWidth : downStrokeWidth)) / 2;
         });
-    }
-
-    getTooltipHtml(nodeDatum: OhlcNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId, properties } = this;
-        const {
-            xKey,
-            openKey,
-            closeKey,
-            highKey,
-            lowKey,
-            xName,
-            yName,
-            openName,
-            closeName,
-            highName,
-            lowName,
-            tooltip,
-            item: { up, down },
-            itemStyler,
-        } = properties;
-        const { datum, itemId, isRising } = nodeDatum;
-
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
-
-        if (!xAxis || !yAxis || !this.properties.isValid()) return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-
-        const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.substring(1);
-
-        const title = sanitizeHtml(yName);
-        const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [
-            [xKey, xName, xAxis],
-            [openKey, openName, yAxis],
-            [highKey, highName, yAxis],
-            [lowKey, lowName, yAxis],
-            [closeKey, closeName, yAxis],
-        ];
-
-        const content = contentData
-            .map(([key, name, axis]) => sanitizeHtml(`${name ?? capitalise(key)}: ${axis.formatDatum(datum[key])}`))
-            .join('<br/>');
-
-        const item = isRising ? up : down;
-        let format: AgOhlcSeriesItemOptions | undefined;
-        if (itemStyler != null) {
-            const { stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = item;
-            format = this.cachedDatumCallback(createDatumId(this.getDatumId(datum), 'tooltip'), () =>
-                itemStyler({
-                    seriesId,
-                    itemId: datum.itemId,
-                    xKey,
-                    highKey,
-                    lowKey,
-                    openKey,
-                    closeKey,
-                    datum: datum.datum,
-                    strokeOpacity,
-                    stroke,
-                    strokeWidth,
-                    lineDash,
-                    lineDashOffset,
-                    highlighted: false,
-                })
-            );
-        }
-
-        const stroke = format?.stroke ?? item.stroke;
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: stroke },
-            {
-                seriesId: this.id,
-                itemId,
-                highlighted: false,
-                datum,
-                xKey,
-                openKey,
-                closeKey,
-                highKey,
-                lowKey,
-                xName,
-                yName,
-                openName,
-                closeName,
-                highName,
-                lowName,
-                stroke,
-            }
-        );
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

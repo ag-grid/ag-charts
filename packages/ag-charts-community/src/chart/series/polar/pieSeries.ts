@@ -13,12 +13,10 @@ import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
 import { normalizeAngle180, toRadians } from '../../../util/angle';
-import { formatValue } from '../../../util/format.util';
 import { jsonDiff } from '../../../util/json';
 import { Logger } from '../../../util/logger';
 import { mod } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
-import { sanitizeHtml } from '../../../util/sanitize';
 import type { Has } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { ChartUpdateType } from '../../chartUpdateType';
@@ -35,11 +33,12 @@ import {
     valueProperty,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
+import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { Circle } from '../../marker/circle';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import { type TooltipContent } from '../../tooltip/tooltip';
+import type { DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { SeriesNodeEvent, type SeriesNodeEventTypes, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation, seriesLabelFadeOutAnimation } from '../seriesLabelUtil';
-import type { SeriesNodeDatum } from '../seriesTypes';
 import type { PieTitle } from './pieSeriesProperties';
 import { PieSeriesProperties } from './pieSeriesProperties';
 import { pickByMatchingAngle, preparePieSeriesAnimationFunctions, resetPieSelectionsFn } from './pieUtil';
@@ -70,8 +69,7 @@ interface PieCalloutLabelDatum {
     box?: BBox;
 }
 
-interface PieNodeDatum extends SeriesNodeDatum {
-    readonly index: number;
+interface PieNodeDatum extends DataModelSeriesNodeDatum {
     readonly radius: number; // in the [0, 1] range
     readonly innerRadius: number;
     readonly outerRadius: number;
@@ -419,7 +417,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 itemId: datumIndex,
                 series: this,
                 datum,
-                index: datumIndex,
+                datumIndex,
                 angleValue,
                 midAngle,
                 midCos: Math.cos(midAngle),
@@ -543,16 +541,16 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         return quadrantTextOpts[quadrantIndex];
     }
 
-    private getSectorFormat(datum: any, formatIndex: number, highlighted: boolean) {
+    private getSectorFormat(datum: any, datumIndex: number, highlighted: boolean) {
         const { angleKey, radiusKey, calloutLabelKey, sectorLabelKey, legendItemKey, fills, strokes, itemStyler } =
             this.properties;
 
-        const defaultStroke: string | undefined = strokes[formatIndex % strokes.length];
+        const defaultStroke: string | undefined = strokes[datumIndex % strokes.length];
         const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset, cornerRadius } =
             mergeDefaults(
                 highlighted && this.properties.highlightStyle.item,
                 {
-                    fill: fills.length > 0 ? fills[formatIndex % fills.length] : undefined,
+                    fill: fills.length > 0 ? fills[datumIndex % fills.length] : undefined,
                     stroke: defaultStroke,
                     strokeWidth: this.getStrokeWidth(this.properties.strokeWidth),
                     strokeOpacity: this.getOpacity(),
@@ -1256,62 +1254,82 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
     protected override readonly NodeEvent = PieSeriesNodeEvent;
 
-    private getDatumLegendName(nodeDatum: PieNodeDatum) {
-        const { angleKey, calloutLabelKey, sectorLabelKey, legendItemKey } = this.properties;
-        const { sectorLabel, calloutLabel, legendItem } = nodeDatum;
-
-        if (legendItemKey && legendItem !== undefined) {
-            return legendItem.text;
-        } else if (calloutLabelKey && calloutLabelKey !== angleKey && calloutLabel?.text !== undefined) {
-            return calloutLabel.text;
-        } else if (sectorLabelKey && sectorLabelKey !== angleKey && sectorLabel?.text !== undefined) {
-            return sectorLabel.text;
-        }
-    }
-
     protected override pickNodeClosestDatum(point: Point): SeriesNodePickMatch | undefined {
         return pickByMatchingAngle(this, point);
     }
 
-    getTooltipHtml(nodeDatum: PieNodeDatum): TooltipContent {
-        if (!this.properties.isValid()) {
-            return EMPTY_TOOLTIP_CONTENT;
-        }
-
+    override getTooltipContent(nodeDatum: PieNodeDatum): TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, properties } = this;
         const {
-            datum,
-            angleValue,
-            sectorFormat: { fill: color },
-            itemId,
-        } = nodeDatum;
+            legendItemKey,
+            calloutLabelKey,
+            calloutLabelName,
+            sectorLabelKey,
+            sectorLabelName,
+            angleKey,
+            angleName,
+            radiusKey,
+            radiusName,
+            tooltip,
+        } = properties;
 
-        const title = sanitizeHtml(this.properties.title?.text);
-        const content = formatValue(angleValue);
-        const labelText = this.getDatumLegendName(nodeDatum);
+        if (!dataModel || !processedData || processedData.rawData.length === 0) return;
 
-        return this.properties.tooltip.toTooltipHtml(
+        const { datumIndex } = nodeDatum;
+
+        const datum = processedData.rawData[datumIndex];
+        const { angleRawValues, legendItemValues, calloutLabelValues, sectorLabelValues } = this.getProcessedDataValues(
+            dataModel,
+            processedData
+        );
+        const angleRawValue = angleRawValues[datumIndex];
+
+        const label =
+            legendItemValues?.[datumIndex] ??
+            (calloutLabelKey === angleKey ? undefined : calloutLabelValues?.[datumIndex]) ??
+            (sectorLabelKey === angleKey ? undefined : sectorLabelValues?.[datumIndex]);
+        if (label == null) return;
+
+        return tooltip.formatTooltip(
             {
-                title: title ?? labelText,
-                content: title && labelText ? `${labelText}: ${content}` : content,
-                backgroundColor: color,
+                symbol: this.legendItemSymbol(datumIndex),
+                data: [
+                    {
+                        label,
+                        value: String(angleRawValue),
+                    },
+                ],
             },
             {
+                seriesId,
                 datum,
-                itemId,
-                title,
-                color,
-                seriesId: this.id,
-                angleKey: this.properties.angleKey,
-                angleName: this.properties.angleName,
-                radiusKey: this.properties.radiusKey,
-                radiusName: this.properties.radiusName,
-                calloutLabelKey: this.properties.calloutLabelKey,
-                calloutLabelName: this.properties.calloutLabelName,
-                sectorLabelKey: this.properties.sectorLabelKey,
-                sectorLabelName: this.properties.sectorLabelName,
-                legendItemKey: this.properties.legendItemKey,
+                title: angleName,
+                legendItemKey,
+                calloutLabelKey,
+                calloutLabelName,
+                sectorLabelKey,
+                sectorLabelName,
+                angleKey,
+                angleName,
+                radiusKey,
+                radiusName,
             }
         );
+    }
+
+    private legendItemSymbol(datumIndex: number): LegendSymbolOptions {
+        const datum = this.processedData?.rawData[datumIndex];
+        const sectorFormat = this.getSectorFormat(datum, datumIndex, false);
+
+        return {
+            marker: {
+                fill: sectorFormat.fill,
+                stroke: sectorFormat.stroke,
+                fillOpacity: this.properties.fillOpacity,
+                strokeOpacity: this.properties.strokeOpacity,
+                strokeWidth: this.properties.strokeWidth,
+            },
+        };
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
@@ -1378,8 +1396,6 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
 
             if (labelParts.length === 0) continue;
 
-            const sectorFormat = this.getSectorFormat(datum, datumIndex, false);
-
             legendData.push({
                 legendType: 'category',
                 id: seriesId,
@@ -1390,15 +1406,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 label: {
                     text: labelParts.join(' - '),
                 },
-                symbol: {
-                    marker: {
-                        fill: sectorFormat.fill,
-                        stroke: sectorFormat.stroke,
-                        fillOpacity: this.properties.fillOpacity,
-                        strokeOpacity: this.properties.strokeOpacity,
-                        strokeWidth: this.properties.strokeWidth,
-                    },
-                },
+                symbol: this.legendItemSymbol(datumIndex),
                 legendItemName: legendItemKey != null ? datum[legendItemKey] : undefined,
                 hideInLegend: !showInLegend,
             });
@@ -1524,9 +1532,9 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
     }
 
     getDatumId(datum: PieNodeDatum) {
-        const { index } = datum;
+        const { datumIndex } = datum;
 
         const datumId = this.getDatumIdFromData(datum.datum);
-        return datumId != null ? String(datumId) : `${index}`;
+        return datumId != null ? String(datumId) : `${datumIndex}`;
     }
 }

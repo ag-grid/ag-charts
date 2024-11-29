@@ -79,7 +79,7 @@ describe('Chart', () => {
         getTooltipRenderedValues: (tooltipRendererParams: any) => any[];
         getHighlightNode: (chart: any, series: any) => any;
     }) => {
-        const format = (...values: any[]) => values.join(': ');
+        const format = (...values: any[]) => values.join(' ');
 
         const createChartPreset = async (params: {
             hasTooltip: boolean;

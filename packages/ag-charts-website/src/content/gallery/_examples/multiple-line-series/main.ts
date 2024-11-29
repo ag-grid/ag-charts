@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts, AgLineSeriesTooltipRendererParams } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -18,12 +18,6 @@ const options: AgChartOptions = {
                     },
                     marker: {
                         enabled: false,
-                    },
-                    tooltip: {
-                        renderer: ({ title, datum, xKey, yKey, xName }: AgLineSeriesTooltipRendererParams) => ({
-                            title,
-                            content: `${xName} ${datum[xKey].toFixed(0)}: ${formatNumber(datum[yKey])}`,
-                        }),
                     },
                 },
             },

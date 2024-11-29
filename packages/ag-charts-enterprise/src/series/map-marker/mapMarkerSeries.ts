@@ -1,4 +1,4 @@
-import { type AgMapShapeSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
 import { extendBbox } from '../map-util/bboxUtil';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -23,7 +23,6 @@ const {
     SeriesNodePickMode,
     valueProperty,
     computeMarkerFocusBounds,
-    sanitizeHtml,
     Logger,
     ColorScale,
     LinearScale,
@@ -417,6 +416,7 @@ export class MapMarkerSeries
                     series: this,
                     itemId: latitudeKey,
                     datum,
+                    datumIndex,
                     index: -1,
                     fill: color,
                     idValue,
@@ -439,6 +439,7 @@ export class MapMarkerSeries
                         series: this,
                         itemId: latitudeKey,
                         datum,
+                        datumIndex,
                         index,
                         fill: color,
                         idValue,
@@ -643,6 +644,29 @@ export class MapMarkerSeries
         return minDatum != null ? { datum: minDatum, distance: Math.sqrt(minDistanceSquared) } : undefined;
     }
 
+    private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
+        const { dataModel, processedData, properties } = this;
+        const { shape, fillOpacity, stroke, strokeWidth, strokeOpacity } = properties;
+
+        let { fill } = properties;
+        if (datumIndex != null && this.isColorScaleValid()) {
+            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
+            const colorValue = colorValues[datumIndex];
+            fill = this.colorScale.convert(colorValue);
+        }
+
+        return {
+            marker: {
+                shape,
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            },
+        };
+    }
+
     override getLegendData(
         legendType: _ModuleSupport.ChartLegendType
     ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
@@ -651,22 +675,7 @@ export class MapMarkerSeries
 
         const { id: seriesId, visible } = this;
 
-        const {
-            title,
-            legendItemName,
-            idName,
-            idKey,
-            colorKey,
-            colorName,
-            colorRange,
-            shape,
-            fill,
-            stroke,
-            fillOpacity,
-            strokeOpacity,
-            strokeWidth,
-            showInLegend,
-        } = this.properties;
+        const { title, legendItemName, idName, idKey, colorKey, colorName, colorRange, showInLegend } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
             const colorDomain =
@@ -688,16 +697,7 @@ export class MapMarkerSeries
                 seriesId,
                 enabled: visible,
                 label: { text: legendItemName ?? title ?? idName ?? idKey ?? seriesId },
-                symbol: {
-                    marker: {
-                        shape,
-                        fill,
-                        fillOpacity,
-                        stroke,
-                        strokeWidth,
-                        strokeOpacity,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: !showInLegend,
             };
@@ -707,109 +707,78 @@ export class MapMarkerSeries
         }
     }
 
-    override getTooltipHtml(nodeDatum: MapMarkerNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId, processedData, properties } = this;
-
-        if (!processedData || !this.properties.isValid()) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-        }
-
+    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, properties } = this;
         const {
-            legendItemName,
             idKey,
             idName,
             latitudeKey,
+            latitudeName,
             longitudeKey,
-            sizeKey,
-            sizeName,
+            longitudeName,
             colorKey,
             colorName,
+            sizeKey,
+            sizeName,
             labelKey,
             labelName,
-            itemStyler,
+            title,
+            legendItemName,
             tooltip,
-            latitudeName,
-            longitudeName,
-            shape,
-            size,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
         } = properties;
-        const { datum, fill, idValue, latValue, lonValue, sizeValue, colorValue, labelValue, itemId } = nodeDatum;
+        if (!dataModel || !processedData?.rawData.length) return;
 
-        const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
-        const contentLines: string[] = [];
-        if (idValue != null) {
-            contentLines.push(sanitizeHtml((idName != null ? `${idName}: ` : '') + idValue));
-        }
-        if (colorValue != null) {
-            contentLines.push(sanitizeHtml((colorName ?? colorKey) + ': ' + colorValue));
-        }
-        if (sizeValue != null) {
-            contentLines.push(sanitizeHtml((sizeName ?? sizeKey) + ': ' + sizeValue));
-        }
-        if (labelValue != null && (idKey == null || idKey !== labelKey)) {
-            contentLines.push(sanitizeHtml((labelName ?? labelKey) + ': ' + labelValue));
-        }
-        if (latValue != null && lonValue != null) {
-            contentLines.push(
-                sanitizeHtml(
-                    `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'W' : 'E'}`
-                )
-            );
-        }
-        const content = contentLines.join('<br>');
+        const { datumIndex } = seriesDatum;
+        const datum = processedData.rawData[datumIndex];
 
-        let format: AgMapShapeSeriesStyle | undefined;
+        const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
-        if (itemStyler) {
-            format = this.cachedDatumCallback(createDatumId(datum.idValue, 'tooltip'), () =>
-                itemStyler({
-                    highlighted: false,
-                    seriesId,
-                    datum,
-                    idKey,
-                    sizeKey,
-                    colorKey,
-                    labelKey,
-                    latitudeKey,
-                    longitudeKey,
-                    shape,
-                    size,
-                    fill: fill!,
-                    fillOpacity,
-                    stroke: stroke!,
-                    strokeWidth,
-                    strokeOpacity,
-                })
-            );
+        if (sizeKey != null) {
+            const sizeValue = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
+            data.push({ label: sizeName ?? '', value: String(sizeValue) });
+        }
+        if (colorKey != null) {
+            const colorValue = dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+            data.push({ label: colorName ?? '', value: String(colorValue) });
+        }
+        if (labelKey != null && labelKey !== idKey) {
+            const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
+            data.push({ label: labelName ?? '', value: labelValue });
         }
 
-        const color = format?.fill ?? fill ?? properties.fill;
+        let heading: string | undefined;
+        if (idKey != null) {
+            const idValue = dataModel.resolveColumnById<string>(this, `idValue`, processedData)[datumIndex];
+            heading = idValue;
+        } else if (latitudeKey != null && longitudeKey != null) {
+            const latValue = dataModel.resolveColumnById<number>(this, `latValue`, processedData)[datumIndex];
+            const lonValue = dataModel.resolveColumnById<number>(this, `lonValue`, processedData)[datumIndex];
+            heading = `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${lonValue >= 0 ? 'W' : 'E'}`;
+        }
 
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
+        return tooltip.formatTooltip(
+            {
+                heading,
+                title: title ?? legendItemName,
+                symbol: this.legendItemSymbol(datumIndex),
+                data,
+            },
             {
                 seriesId,
                 datum,
-                idKey,
-                latitudeKey,
-                longitudeKey,
                 title,
-                color,
+                idKey,
+                idName,
+                latitudeKey,
+                latitudeName,
+                longitudeKey,
+                longitudeName,
                 colorKey,
                 colorName,
-                idName,
-                itemId,
-                labelKey,
-                labelName,
-                latitudeName,
-                longitudeName,
                 sizeKey,
                 sizeName,
-                ...this.getModuleTooltipParams(),
+                labelKey,
+                labelName,
             }
         );
     }

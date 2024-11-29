@@ -1,4 +1,4 @@
-import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -16,13 +16,6 @@ const options: AgChartOptions = {
             area: {
                 series: {
                     strokeWidth: 2,
-                    tooltip: {
-                        renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
-                            return {
-                                content: `${datum[xKey]}: $${Math.round(datum[yKey] / 1000000)}M`,
-                            };
-                        },
-                    },
                 },
             },
         },

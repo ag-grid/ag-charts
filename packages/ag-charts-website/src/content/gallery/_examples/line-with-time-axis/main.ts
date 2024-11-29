@@ -23,14 +23,6 @@ const options: AgChartOptions = {
                     marker: {
                         enabled: false,
                     },
-                    tooltip: {
-                        renderer: ({ datum, xKey, yKey }) => {
-                            const date = Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short' }).format(
-                                datum[xKey]
-                            );
-                            return { content: `${date}: ${datum[yKey].toFixed(0)}` };
-                        },
-                    },
                 },
             },
         },

@@ -10,9 +10,23 @@ NodeList [
     style="transform: translate(314px, 200px); top: 0px; left: 0px; pointer-events: none;"
   >
     <div
-      class="ag-chart-tooltip-content"
+      class="ag-chart-tooltip__content"
     >
-      May: 14.5
+      <div
+        class="ag-chart-tooltip__row"
+      >
+        <span
+          class="ag-chart-tooltip__label"
+        >
+          May
+        </span>
+         
+        <span
+          class="ag-chart-tooltip__value"
+        >
+          14.5
+        </span>
+      </div>
     </div>
   </div>,
 ]
@@ -28,17 +42,61 @@ NodeList [
     style="transform: translate(413px, 380px); top: 0px; left: 0px; pointer-events: none;"
   >
     <div
-      class="ag-chart-tooltip-content"
+      class="ag-chart-tooltip__content"
     >
-      <b>
-        volume
-      </b>
-      : 2.5
-      <br />
-      <b>
-        pressure
-      </b>
-      : 4.2
+      <span
+        class="ag-chart-tooltip__symbol"
+      >
+        <svg
+          height="13"
+          viewBox="0 0 13 13"
+          width="13"
+        >
+          <g
+            transform="matrix(1 0 0 1 6.5 6.5)"
+          >
+            <path
+              d="M 6 0 C 6 3.3137084989847603 3.3137084989847607 6 3.6739403974420594e-16 6 C -3.31370849898476 6 -6 3.313708498984761 -6 7.347880794884119e-16 C -6 -3.3137084989847594 -3.313708498984761 -5.999999999999999 -1.102182119232618e-15 -6 C 3.3137084989847594 -6.000000000000001 5.999999999999999 -3.3137084989847616 6 -1.4695761589768238e-15 Z"
+              fill="#f3622d"
+              fill-opacity="0.8"
+              stroke="#aa4520"
+              stroke-opacity="1"
+              stroke-width="1"
+            />
+          </g>
+        </svg>
+      </span>
+      <div
+        class="ag-chart-tooltip__row"
+      >
+        <span
+          class="ag-chart-tooltip__label"
+        >
+          volume
+        </span>
+         
+        <span
+          class="ag-chart-tooltip__value"
+        >
+          2.5
+        </span>
+      </div>
+       
+      <div
+        class="ag-chart-tooltip__row"
+      >
+        <span
+          class="ag-chart-tooltip__label"
+        >
+          pressure
+        </span>
+         
+        <span
+          class="ag-chart-tooltip__value"
+        >
+          4.2
+        </span>
+      </div>
     </div>
   </div>,
 ]

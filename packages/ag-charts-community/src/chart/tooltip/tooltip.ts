@@ -1,4 +1,4 @@
-import type { AgTooltipRendererResult, InteractionRange, TextWrap } from 'ag-charts-types';
+import type { InteractionRange, TextWrap } from 'ag-charts-types';
 
 import type { DOMManager } from '../../dom/domManager';
 import { getWindow } from '../../util/dom';
@@ -6,6 +6,7 @@ import { clamp } from '../../util/number';
 import { type Bounds, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
+import { sanitizeHtml } from '../../util/sanitize';
 import {
     BOOLEAN,
     INTERACTION_RANGE,
@@ -19,6 +20,7 @@ import {
     UNION,
     Validate,
 } from '../../util/validation';
+import { type LegendSymbolOptions, legendSymbolSvg } from '../legend/legendSymbol';
 import { SpringAnimation } from './springAnimation';
 
 export const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
@@ -55,60 +57,91 @@ export interface TooltipMeta extends TooltipOffsets {
     enableInteraction?: boolean;
 }
 
-export type TooltipContent = {
-    html: string;
-    class: string | undefined;
-    ariaLabel: string;
-};
+export type TooltipContentDataRow =
+    | { label: string; fallbackLabel?: string; value: string }
+    | { label: undefined; fallbackLabel: string; value: string };
 
-export const EMPTY_TOOLTIP_CONTENT: Readonly<TooltipContent> = { html: '', class: undefined, ariaLabel: '' };
-
-function toAccessibleText(inputHtml: string): string {
-    const lineConverter = (_match: unknown, offset: number, str: string) => {
-        if (offset === 0 || str[offset - 1] !== '.') {
-            return '. ';
-        }
-        return ' ';
-    };
-    return inputHtml
-        .replace(/<br\s*\/?>/g, lineConverter)
-        .replace(/<\/p\s+>/g, lineConverter)
-        .replace(/<\/li\s*>/g, lineConverter)
-        .replace(/<[^<>]+>/g, '')
-        .replace(/\n+/g, ' ')
-        .replace(/\s+/g, ' ');
+export interface TooltipContent {
+    heading?: string;
+    title?: string;
+    symbol?: LegendSymbolOptions;
+    data?: TooltipContentDataRow[];
+    class?: string;
 }
 
-export function toTooltipHtml(
-    input: string | AgTooltipRendererResult,
-    defaults?: AgTooltipRendererResult
-): TooltipContent {
-    if (typeof input === 'string') {
-        return { html: input, class: undefined, ariaLabel: input };
+export function tooltipContentAriaLabel(content: TooltipContent | string) {
+    if (typeof content === 'string') return '';
+
+    const ariaLabel: string[] = [];
+
+    if (content.heading != null) ariaLabel.push(content.heading);
+    if (content.title != null) ariaLabel.push(content.title);
+    content.data?.forEach((datum) => {
+        ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
+    });
+
+    return ariaLabel.join(' ');
+}
+
+function dataHtml(label: string, value: string, inline: boolean) {
+    let rowHtml = '';
+
+    rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(label)}</span>`;
+    rowHtml += ' ';
+    rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(value)}</span>`;
+
+    const rowClassNames = [`${DEFAULT_TOOLTIP_CLASS}__row`];
+    if (inline) rowClassNames.push(`${DEFAULT_TOOLTIP_CLASS}__row--inline`);
+    rowHtml = `<div class="${rowClassNames.join(' ')}">${rowHtml}</div>`;
+
+    return rowHtml;
+}
+
+function tooltipContentHtml(content: TooltipContent | string) {
+    if (typeof content === 'string') return content;
+
+    let html = '';
+
+    if (
+        (content.heading == null) !== (content.title == null) &&
+        content.data?.length === 1 &&
+        content.data[0].label == null &&
+        content.data[0].value != null
+    ) {
+        // Compact rendering
+        const datum = content.data[0];
+
+        html += dataHtml((content.heading ?? content.title)!, datum.value, false);
+    } else {
+        // Full rendering
+        const dataInline = content.title == null && content.data?.length === 1;
+
+        if (content.heading != null) {
+            html += `<span class="${DEFAULT_TOOLTIP_CLASS}__group-title">${sanitizeHtml(content.heading)}</span>`;
+            html += ' ';
+        }
+
+        const symbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
+        if (symbol != null && (content.title != null || content.data?.length)) {
+            html += `<span class="${DEFAULT_TOOLTIP_CLASS}__symbol">${symbol}</span>`;
+        }
+
+        if (content.title != null) {
+            html += `<span class="${DEFAULT_TOOLTIP_CLASS}__title">${sanitizeHtml(content.title)}</span>`;
+            html += ' ';
+        }
+
+        content.data?.forEach((datum) => {
+            html += dataHtml(datum.label ?? datum.fallbackLabel, datum.value, dataInline);
+            html += ' ';
+        });
     }
 
-    const {
-        content = defaults?.content ?? '',
-        title = defaults?.title,
-        color = defaults?.color ?? 'white',
-        backgroundColor = defaults?.backgroundColor ?? '#888',
-        class: className = defaults?.class,
-    } = input;
+    html = `<div class="${DEFAULT_TOOLTIP_CLASS}__content">${html.trimEnd()}</div>`;
 
-    const titleHtml = title
-        ? `<div class="${DEFAULT_TOOLTIP_CLASS}-title"
-        style="color: ${color}; background-color: ${backgroundColor}">${title}</div>`
-        : '';
-    const titleAria = title ? `${title}: ` : '';
-
-    const contentHtml = content ? `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${content}</div>` : '';
-
-    return {
-        html: `${titleHtml}${contentHtml}`,
-        class: className,
-        ariaLabel: toAccessibleText(`${titleAria}${content}`),
-    };
+    return html;
 }
+
 export class TooltipPosition extends BaseProperties {
     @Validate(
         UNION(
@@ -282,18 +315,18 @@ export class Tooltip extends BaseProperties {
         boundingRect: DOMRect,
         canvasRect: DOMRect,
         meta: TooltipMeta,
-        content?: TooltipContent | null,
+        content?: TooltipContent | string | null,
         instantly = false
     ) {
         const { element } = this;
 
         if (element != null && content != null) {
             this.resetClass();
-            if (content.class != null) {
+            if (typeof content !== 'string' && content.class != null) {
                 element.classList.add(content.class);
             }
 
-            element.innerHTML = content.html;
+            element.innerHTML = tooltipContentHtml(content);
         } else if (element == null || element.innerHTML === '') {
             this.toggle(false);
             return;

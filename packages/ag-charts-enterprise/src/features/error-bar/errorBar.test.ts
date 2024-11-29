@@ -625,7 +625,7 @@ describe('ErrorBars', () => {
         let actualParams: any = undefined;
         function renderer(params: AgScatterSeriesTooltipRendererParams) {
             actualParams = params;
-            return { content: '' };
+            return '';
         }
 
         chart = await createEnterpriseChart({
@@ -656,7 +656,7 @@ describe('ErrorBars', () => {
         let actualParams: any = undefined;
         function renderer(params: AgScatterSeriesTooltipRendererParams) {
             actualParams = params;
-            return { content: '' };
+            return '';
         }
 
         chart = await createEnterpriseChart({

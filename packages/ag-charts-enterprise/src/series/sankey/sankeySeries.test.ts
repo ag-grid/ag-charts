@@ -98,7 +98,7 @@ describe('SankeySeries', () => {
         getTooltipRenderedValues: (tooltipRendererParams: any) => any[];
         getHighlightNode: (chart: any, series: any) => any;
     }) => {
-        const format = (...values: any[]) => values.join(': ');
+        const format = (...values: any[]) => values.join(' ');
 
         const createChart = async (params: {
             hasTooltip: boolean;
@@ -274,15 +274,14 @@ describe('SankeySeries', () => {
             },
             getNodeData: (series) => series.contextNodeData?.nodeData ?? [],
             getNodePoint: (item) => [item.midPoint.x, item.midPoint.y],
-            getDatumValues: (item, series) => {
-                const { datum } = item;
-                return datum != null
-                    ? [datum[series.properties.fromKey], datum[series.properties.toKey]]
-                    : [item.label];
+            getDatumValues: (item) => {
+                return item.type === FlowProportionDatumType.Link
+                    ? [item.fromNode.id, item.toNode.id, item.size]
+                    : ['(node)'];
             },
             getTooltipRenderedValues: (params) => {
                 const { datum } = params;
-                return datum != null ? [datum[params.fromKey], datum[params.toKey]] : [params.title];
+                return datum != null ? [datum[params.fromKey], datum[params.toKey], 1] : ['(node)'];
             },
             getHighlightNode: (chartInstance, series) => {
                 const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();

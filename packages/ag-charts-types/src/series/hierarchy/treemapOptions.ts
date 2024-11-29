@@ -1,10 +1,10 @@
-import type { AgChartCallbackParams, DatumCallbackParams, Styler } from '../../chart/callbackOptions';
+import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type {
     AgChartAutoSizedLabelOptions,
     AgChartAutoSizedSecondaryLabelOptions,
     AgChartLabelOptions,
 } from '../../chart/labelOptions';
-import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
+import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { CssColor, PixelSize, TextAlign, VerticalAlign } from '../../chart/types';
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
@@ -16,15 +16,15 @@ export type AgTreemapSeriesLabelHighlightOptions<TDatum> = Pick<
 >;
 
 export interface AgTreemapSeriesTooltipRendererParams<TDatum>
-    extends AgChartCallbackParams<TDatum>,
+    extends AgSeriesTooltipRendererParams<TDatum>,
         AgTreemapSeriesOptionsKeys,
         AgTreemapSeriesOptionsNames {
     /** The depth of the datum in the hierarchy. */
     depth: number;
     /** The title of the Treemap tile. */
-    title?: string;
+    // @todo(AG-10574) title?: string;
     /** The computed fill colour of the Treemap tile. */
-    color?: CssColor;
+    // @todo(AG-10574) color?: CssColor;
 }
 
 export interface AgTreemapSeriesGroupStyle extends FillOptions, StrokeOptions {}

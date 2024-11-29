@@ -21,7 +21,7 @@ export enum FlowProportionDatumType {
 }
 
 export interface FlowProportionLinkDatum<TNodeDatum extends FlowProportionNodeDatum>
-    extends _ModuleSupport.SeriesNodeDatum {
+    extends _ModuleSupport.DataModelSeriesNodeDatum {
     type: FlowProportionDatumType.Link;
     index: number;
     fromNode: TNodeDatum;
@@ -29,10 +29,11 @@ export interface FlowProportionLinkDatum<TNodeDatum extends FlowProportionNodeDa
     size: number;
 }
 
-export interface FlowProportionNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+export interface FlowProportionNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     type: FlowProportionDatumType.Node;
     index: number;
     id: string;
+    size: number;
     label: string | undefined;
     fill: string;
     stroke: string;
@@ -184,18 +185,20 @@ export abstract class FlowProportionSeries<
             );
 
             const createImplicitNode = (id: string): FlowProportionNodeDatum => {
-                const index = processedNodes.size;
+                const datumIndex = processedNodes.size;
                 const label = id;
-                const fill = fills[index % fills.length];
-                const stroke = strokes[index % strokes.length];
+                const fill = fills[datumIndex % fills.length];
+                const stroke = strokes[datumIndex % strokes.length];
 
                 return {
                     series: this,
                     itemId: undefined,
                     datum: {}, // Must be a referential object for tooltips
+                    datumIndex,
                     type: FlowProportionDatumType.Node,
-                    index,
+                    index: datumIndex,
                     id,
+                    size: 0,
                     label,
                     fill,
                     stroke,
@@ -241,9 +244,11 @@ export abstract class FlowProportionSeries<
                     series: this,
                     itemId: undefined,
                     datum,
+                    datumIndex,
                     type: FlowProportionDatumType.Node,
                     index: datumIndex,
                     id,
+                    size: 0,
                     label,
                     fill,
                     stroke,
@@ -301,6 +306,7 @@ export abstract class FlowProportionSeries<
                 series: this,
                 itemId: undefined,
                 datum,
+                datumIndex,
                 type: FlowProportionDatumType.Link,
                 index: datumIndex,
                 fromNode,
@@ -471,11 +477,65 @@ export abstract class FlowProportionSeries<
         return [];
     }
 
+    override getTooltipContent(
+        seriesDatum: TDatum<TNodeDatum, TLinkDatum>
+    ): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, processedData, nodesProcessedData, properties } = this;
+        const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
+
+        const nodeIndex =
+            seriesDatum.type === FlowProportionDatumType.Link ? seriesDatum.fromNode.index : seriesDatum.index;
+        const title =
+            seriesDatum.type === FlowProportionDatumType.Link
+                ? `${seriesDatum.fromNode.label} - ${seriesDatum.toNode.label}`
+                : seriesDatum.label;
+        const datum =
+            seriesDatum.type === FlowProportionDatumType.Link
+                ? processedData?.rawData[seriesDatum.datumIndex]
+                : nodesProcessedData?.rawData[seriesDatum.datumIndex];
+        const size = seriesDatum.size;
+
+        return tooltip.formatTooltip(
+            {
+                title,
+                symbol: this.legendItemSymbol(seriesDatum.type, nodeIndex),
+                data: sizeKey != null ? [{ label: sizeName, fallbackLabel: sizeKey, value: String(size) }] : [],
+            },
+            {
+                seriesId,
+                datum,
+                title,
+                fromKey,
+                toKey,
+                sizeKey,
+                sizeName,
+                size,
+            }
+        );
+    }
+
     override getSeriesRange(
         _direction: _ModuleSupport.ChartAxisDirection,
         _visibleRange: [any, any]
     ): [number, number] {
         return [NaN, NaN];
+    }
+
+    private legendItemSymbol(_type: FlowProportionDatumType, nodeIndex: number): _ModuleSupport.LegendSymbolOptions {
+        const { fills, strokes } = this.properties;
+
+        const fill = fills[nodeIndex % fills.length];
+        const stroke = strokes[nodeIndex % strokes.length];
+
+        return {
+            marker: {
+                fill,
+                fillOpacity: 1,
+                stroke,
+                strokeWidth: 0,
+                strokeOpacity: 1,
+            },
+        };
     }
 
     override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
@@ -484,22 +544,14 @@ export abstract class FlowProportionSeries<
         const { showInLegend } = this.properties;
         return Array.from(
             this.processedNodes.values(),
-            ({ id, label, fill, stroke }): _ModuleSupport.CategoryLegendDatum => ({
+            ({ id, label }, nodeIndex): _ModuleSupport.CategoryLegendDatum => ({
                 legendType: 'category',
                 id: this.id,
                 itemId: id,
                 seriesId: this.id,
                 enabled: true,
                 label: { text: label ?? id },
-                symbol: {
-                    marker: {
-                        fill,
-                        fillOpacity: 1,
-                        stroke,
-                        strokeWidth: 0,
-                        strokeOpacity: 1,
-                    },
-                },
+                symbol: this.legendItemSymbol(FlowProportionDatumType.Node, nodeIndex),
                 hideInLegend: !showInLegend,
             })
         );

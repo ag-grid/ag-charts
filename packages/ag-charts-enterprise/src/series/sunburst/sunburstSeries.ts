@@ -1,19 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { AgSunburstSeriesStyle, AgTooltipRendererResult } from 'ag-charts-types';
+import type { AgSunburstSeriesStyle } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
 
-const {
-    fromToMotion,
-    sanitizeHtml,
-    normalizeAngle360,
-    createDatumId,
-    Sector,
-    ScalableGroup,
-    Selection,
-    TransformableText,
-} = _ModuleSupport;
+const { fromToMotion, normalizeAngle360, createDatumId, Sector, ScalableGroup, Selection, TransformableText } =
+    _ModuleSupport;
 
 interface LabelData {
     label: string | undefined;
@@ -490,73 +482,59 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         );
     }
 
-    override getTooltipHtml(node: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent {
-        const { id: seriesId } = this;
-        const {
-            tooltip,
-            colorKey,
-            colorName = colorKey,
-            labelKey,
-            secondaryLabelKey,
-            sizeKey,
-            sizeName = sizeKey,
-            childrenKey,
-        } = this.properties;
-        const { datum, depth } = node;
-        if (datum == null || depth == null) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-        }
+    override getTooltipContent(
+        nodeDatum: _ModuleSupport.HierarchyNode
+    ): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, properties } = this;
+        const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
+            properties;
+        const { datum, depth } = nodeDatum;
+        if (datum == null || depth == null) return;
 
-        const title = labelKey != null ? datum[labelKey] : undefined;
+        const format = this.getSectorFormat(nodeDatum, false);
+        const color = format?.fill ?? nodeDatum.fill;
 
-        const format = this.getSectorFormat(node, false);
-        const color = format?.fill ?? node.fill;
-
-        if (!tooltip.renderer && !title) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const contentArray: string[] = [];
-
-        const datumSecondaryLabel = secondaryLabelKey != null ? datum[secondaryLabelKey] : undefined;
-        if (datumSecondaryLabel != null && secondaryLabelKey !== colorKey && secondaryLabelKey !== sizeKey) {
-            contentArray.push(sanitizeHtml(datumSecondaryLabel));
-        }
+        const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
         const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
         if (datumSize != null) {
-            contentArray.push(`${sizeName!}: ${sanitizeHtml(datumSize)}`);
+            data.push({ label: sizeName ?? sizeKey ?? '', value: datumSize });
         }
 
         const datumColor = colorKey != null ? datum[colorKey] : undefined;
         if (datumColor != null) {
-            contentArray.push(`${colorName!}: ${sanitizeHtml(datumColor)}`);
+            data.push({ label: colorName ?? colorKey ?? '', value: datumColor });
         }
 
-        const content = contentArray.join('<br>');
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            color: this.properties.label.color,
-            backgroundColor: color,
-            content,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            depth,
-            datum,
-            colorKey,
-            labelKey,
-            secondaryLabelKey,
-            sizeKey,
-            title,
-            color,
-            seriesId,
-            childrenKey,
-            colorName,
-            itemId: undefined,
-            sizeName,
-        });
+        return tooltip.formatTooltip(
+            {
+                title: labelKey != null ? datum[labelKey] : undefined,
+                symbol: {
+                    marker: {
+                        shape: 'square',
+                        fill: color,
+                        fillOpacity: 1,
+                        stroke: undefined,
+                        strokeWidth: 0,
+                        strokeOpacity: 1,
+                    },
+                },
+                data,
+            },
+            {
+                seriesId,
+                datum,
+                title: undefined,
+                depth,
+                labelKey,
+                secondaryLabelKey,
+                childrenKey,
+                sizeKey,
+                sizeName,
+                colorKey,
+                colorName,
+            }
+        );
     }
 
     override createNodeData() {

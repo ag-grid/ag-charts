@@ -24,7 +24,7 @@ import { TooltipManager } from '../interaction/tooltipManager';
 import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
-import { DEFAULT_TOOLTIP_CLASS, Tooltip, type TooltipContent } from '../tooltip/tooltip';
+import { DEFAULT_TOOLTIP_CLASS, Tooltip, type TooltipContent, tooltipContentAriaLabel } from '../tooltip/tooltip';
 import type { UpdateOpts } from '../updateService';
 import { type PickFocusOutputs, type Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
@@ -415,18 +415,18 @@ export class SeriesAreaManager extends BaseManager {
             this.highlight.pendingHoverEvent = undefined;
             this.highlight.stashedHoverEvent = undefined;
 
-            const html = focus.series.getTooltipHtml(datum);
+            const tooltipContent = focus.series.getTooltipContent(datum);
             const meta = TooltipManager.makeTooltipMeta(keyboardEvent, datum);
             this.chart.ctx.highlightManager.updateHighlight(this.id, datum);
-            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, html);
+            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, tooltipContent);
             if (!refresh) {
-                this.swapChain.update(this.getDatumAriaText(datum, html));
+                this.swapChain.update(this.getDatumAriaText(datum, tooltipContent));
             }
         }
     }
 
-    private getDatumAriaText(datum: SeriesNodeDatum, html: TooltipContent): string {
-        const description = html.ariaLabel;
+    private getDatumAriaText(datum: SeriesNodeDatum, tooltipContent: TooltipContent | string | undefined): string {
+        const description = tooltipContent == null ? '' : tooltipContentAriaLabel(tooltipContent);
         return this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
             datum: datum.series.getDatumAriaText?.(datum, description) ?? description,
         });
@@ -542,12 +542,12 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         this.hoverDevice = 'mouse';
-        const html = pick.series.getTooltipHtml(pick.datum);
+        const content = pick.series.getTooltipContent(pick.datum);
         const tooltipEnabled = this.chart.tooltip.enabled && pick.series.tooltipEnabled;
-        const shouldUpdateTooltip = tooltipEnabled && html != null;
+        const shouldUpdateTooltip = tooltipEnabled && content != null;
         if (shouldUpdateTooltip) {
             const meta = TooltipManager.makeTooltipMeta(event, pick.datum);
-            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, html);
+            this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, content);
         }
     }
 

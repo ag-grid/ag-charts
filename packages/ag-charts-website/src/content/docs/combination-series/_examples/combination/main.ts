@@ -10,19 +10,12 @@ import {
 
 import { getData } from './data';
 
-function tooltipRenderer({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) {
-    return { content: `${datum[xKey]}: ${datum[yKey]}%` };
-}
-
 const WOMEN: AgBarSeriesOptions = {
     type: 'bar',
     xKey: 'year',
     yKey: 'women',
     yName: 'Women',
     grouped: true,
-    tooltip: {
-        renderer: tooltipRenderer,
-    },
 };
 
 const MEN: AgBarSeriesOptions = {
@@ -31,9 +24,6 @@ const MEN: AgBarSeriesOptions = {
     yKey: 'men',
     yName: 'Men',
     grouped: true,
-    tooltip: {
-        renderer: tooltipRenderer,
-    },
 };
 
 const PORTIONS: AgLineSeriesOptions = {
@@ -41,9 +31,6 @@ const PORTIONS: AgLineSeriesOptions = {
     xKey: 'year',
     yKey: 'portions',
     yName: 'Portions',
-    tooltip: {
-        renderer: tooltipRenderer,
-    },
 };
 
 const BAR_AND_LINE: AgCartesianSeriesOptions[] = [

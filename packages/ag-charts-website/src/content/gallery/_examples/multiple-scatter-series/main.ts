@@ -24,7 +24,7 @@ const options: AgChartOptions = {
             enabled: true,
         },
         shape: 'star',
-        size: 5,
+        size: 10,
     })),
     axes: [
         {
@@ -57,7 +57,7 @@ const options: AgChartOptions = {
         position: 'right',
         item: {
             marker: {
-                size: 5,
+                size: 10,
             },
         },
     },

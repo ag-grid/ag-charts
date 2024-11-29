@@ -1,4 +1,5 @@
 import type { DatumItemCallbackParams } from '../../chart/callbackOptions';
+import type { AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { LineDashOptions, StrokeOptions } from './commonOptions';
 
 export type AgOhlcSeriesItemType = 'up' | 'down';
@@ -39,6 +40,10 @@ export type AgOhlcSeriesBaseItemStylerParams<TDatum> = OhlcItemCallbackParams<TD
     AgOhlcSeriesOptionsKeys &
     Required<StrokeOptions & LineDashOptions>;
 
-export type AgOhlcSeriesBaseTooltipRendererParams<TDatum> = OhlcItemCallbackParams<TDatum> &
-    AgOhlcSeriesOptionsKeys &
-    AgOhlcSeriesOptionsNames;
+export interface AgOhlcSeriesBaseTooltipRendererParams<TDatum>
+    extends AgSeriesTooltipRendererParams<TDatum>,
+        AgOhlcSeriesOptionsKeys,
+        AgOhlcSeriesOptionsNames {
+    /** Direction of the datum */
+    itemId: 'up' | 'down';
+}

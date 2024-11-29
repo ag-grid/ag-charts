@@ -38,34 +38,6 @@ const options: AgChartOptions = {
             cap: {
                 lengthRatio: 0.8,
             },
-            tooltip: {
-                renderer: (params) => {
-                    const {
-                        datum,
-                        xKey,
-                        xName,
-                        minKey,
-                        minName,
-                        q1Key,
-                        q1Name,
-                        medianKey,
-                        medianName,
-                        q3Key,
-                        q3Name,
-                        maxKey,
-                        maxName,
-                    } = params;
-                    const values = [
-                        `${xName}: ${datum[xKey]}`,
-                        `${minName}: ${datum[minKey]}`,
-                        `${q1Name}: ${datum[q1Key]}`,
-                        `${medianName}: ${datum[medianKey]}`,
-                        `${q3Name}: ${datum[q3Key]}`,
-                        `${maxName}: ${datum[maxKey]}`,
-                    ];
-                    return `<div class="ag-chart-tooltip-title">Monthly Arrivals</div><div class="ag-chart-tooltip-content">${values.join('<br>')}</div>`;
-                },
-            },
         },
     ],
     axes: [

@@ -6,7 +6,6 @@ import type { RadialColumnSeriesBaseProperties } from './radialColumnSeriesBaseP
 
 const {
     isDefined,
-    isFiniteNumber,
     ChartAxisDirection,
     PolarAxis,
     diff,
@@ -23,7 +22,6 @@ const {
     createDatumId,
     SeriesNodePickMode,
     normalizeAngle360,
-    sanitizeHtml,
     BandScale,
     motion,
 } = _ModuleSupport;
@@ -48,7 +46,7 @@ interface RadialColumnLabelNodeDatum {
     textBaseline: CanvasTextBaseline;
 }
 
-export interface RadialColumnNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly label?: RadialColumnLabelNodeDatum;
     readonly angleValue: any;
     readonly radiusValue: any;
@@ -332,6 +330,7 @@ export abstract class RadialColumnSeriesBase<
             nodeData.push({
                 series: this,
                 datum,
+                datumIndex,
                 point: { x, y, size: 0 },
                 midPoint: { x, y },
                 label: labelNodeDatum,
@@ -500,71 +499,37 @@ export abstract class RadialColumnSeriesBase<
         seriesLabelFadeOutAnimation(this, 'labels', animationManager, this.labelSelection);
     }
 
-    getTooltipHtml(nodeDatum: RadialColumnNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId, axes, dataModel } = this;
-        const {
-            angleKey,
-            radiusKey,
-            angleName,
-            radiusName,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            cornerRadius,
-            itemStyler,
-            tooltip,
-        } = this.properties;
-        const { angleValue, radiusValue, datum, itemId } = nodeDatum;
+    override getTooltipContent(nodeDatum: RadialColumnNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { angleKey, angleName, radiusKey, radiusName, tooltip } = properties;
+        const angleAxis = axes[ChartAxisDirection.X];
+        const radiusAxis = axes[ChartAxisDirection.Y];
 
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
-
-        if (!this.properties.isValid() || !(xAxis && yAxis && isFiniteNumber(radiusValue)) || !dataModel) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !angleAxis || !radiusAxis) {
+            return;
         }
 
-        const angleString = xAxis.formatDatum(angleValue);
-        const radiusString = yAxis.formatDatum(radiusValue);
-        const title = sanitizeHtml(radiusName);
-        const content = sanitizeHtml(`${angleString}: ${radiusString}`);
+        const { datumIndex } = nodeDatum;
+        const datum = processedData.rawData[datumIndex];
+        const angleValue = dataModel.resolveKeysById(this, `angleValue`, processedData)[datumIndex];
+        const radiusValue = dataModel.resolveColumnById(this, `radiusValue-raw`, processedData)[datumIndex];
 
-        const { fill: color } = (itemStyler &&
-            this.cachedDatumCallback(createDatumId(this.getDatumId(datum), 'tooltip'), () =>
-                itemStyler({
-                    highlighted: false,
-                    seriesId,
-                    datum,
-                    angleKey,
-                    radiusKey,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                    cornerRadius,
-                })
-            )) ?? { fill };
+        if (angleValue == null) return;
 
-        return tooltip.toTooltipHtml(
-            { title, backgroundColor: fill, content },
+        return tooltip.formatTooltip(
+            {
+                heading: angleAxis.formatDatum(angleValue),
+                symbol: this.legendItemSymbol(),
+                data: [{ label: radiusName, fallbackLabel: radiusKey, value: radiusAxis.formatDatum(radiusValue) }],
+            },
             {
                 seriesId,
                 datum,
-                color,
-                title,
+                title: angleName,
                 angleKey,
-                radiusKey,
                 angleName,
+                radiusKey,
                 radiusName,
-                angleValue,
-                itemId,
-                radiusValue,
             }
         );
     }
@@ -575,6 +540,20 @@ export abstract class RadialColumnSeriesBase<
         return this.pickNodeNearestDistantObject(point, this.itemSelection.nodes());
     }
 
+    private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = this.properties;
+
+        return {
+            marker: {
+                fill: fill ?? 'rgba(0, 0, 0, 0)',
+                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity: fillOpacity ?? 1,
+                strokeOpacity: strokeOpacity ?? 1,
+                strokeWidth,
+            },
+        };
+    }
+
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         if (!this.properties.isValid() || legendType !== 'category') {
             return [];
@@ -582,8 +561,7 @@ export abstract class RadialColumnSeriesBase<
 
         const { id: seriesId, visible } = this;
 
-        const { radiusKey, radiusName, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, showInLegend } =
-            this.properties;
+        const { radiusKey, radiusName, showInLegend } = this.properties;
 
         return [
             {
@@ -595,15 +573,7 @@ export abstract class RadialColumnSeriesBase<
                 label: {
                     text: radiusName ?? radiusKey,
                 },
-                symbol: {
-                    marker: {
-                        fill: fill ?? 'rgba(0, 0, 0, 0)',
-                        stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                        fillOpacity: fillOpacity ?? 1,
-                        strokeOpacity: strokeOpacity ?? 1,
-                        strokeWidth,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 hideInLegend: !showInLegend,
             },
         ];

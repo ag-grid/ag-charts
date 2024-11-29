@@ -1,15 +1,6 @@
-import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
-
-const tooltip = {
-    renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
-        const year = datum[xKey].toFixed(0);
-        return {
-            content: `${year}: ${Math.round(datum[yKey])}`,
-        };
-    },
-};
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -37,7 +28,6 @@ const options: AgChartOptions = {
                     return year === 2023 || year === 1768 ? `${year}` : '';
                 },
             },
-            tooltip,
         },
         {
             type: 'scatter',
@@ -46,7 +36,6 @@ const options: AgChartOptions = {
             yKey: 'numberOfDeaths',
             yName: 'Number of Deaths',
             size: 4,
-            tooltip,
         },
     ],
     axes: [

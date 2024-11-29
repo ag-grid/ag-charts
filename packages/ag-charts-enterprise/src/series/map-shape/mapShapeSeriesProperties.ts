@@ -35,7 +35,7 @@ export interface MapShapeNodeLabelDatum {
     readonly lineHeight: number;
 }
 
-export interface MapShapeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly idValue: string;
     readonly colorValue: number | undefined;
     readonly labelValue: string | undefined;

@@ -1,4 +1,4 @@
-import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -8,15 +8,6 @@ const formatDate = (value: number | Date | undefined) => {
 
 const formatNumber = (value: number) => {
     return `$${Math.floor(value)}B`;
-};
-
-const tooltip = {
-    renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
-        const date = formatDate(datum[xKey]);
-        return {
-            content: `${date}: ${formatNumber(datum[yKey])}`,
-        };
-    },
 };
 
 const options: AgChartOptions = {
@@ -34,7 +25,6 @@ const options: AgChartOptions = {
             xKey: 'date',
             yKey: 'sales',
             yName: 'Sales',
-            tooltip,
             label: {
                 enabled: true,
                 formatter: ({ xKey, yKey, datum }) => {

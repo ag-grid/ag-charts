@@ -12,18 +12,8 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
-const {
-    SeriesNodePickMode,
-    CachedTextMeasurerPool,
-    TextWrapper,
-    TextUtils,
-    createDatumId,
-    EMPTY_TOOLTIP_CONTENT,
-    sanitizeHtml,
-    Logger,
-    Rect,
-    BBox,
-} = _ModuleSupport;
+const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, TextUtils, createDatumId, Logger, Rect, BBox } =
+    _ModuleSupport;
 
 export interface SankeyNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<SankeyDatum, SankeyNodeLabelDatum> {}
@@ -81,7 +71,6 @@ export class SankeySeries extends FlowProportionSeries<
         } = this.getNodeGraph(
             (node) => ({
                 ...node,
-                size: 0,
                 x: NaN,
                 y: NaN,
                 width: nodeWidth,
@@ -509,110 +498,6 @@ export class SankeySeries extends FlowProportionSeries<
             link.lineDashOffset = highlightStyle?.lineDashOffset ?? format?.lineDashOffset ?? lineDashOffset;
             link.inset = link.strokeWidth / 2;
         });
-    }
-
-    override getTooltipHtml(nodeDatum: SankeyDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId, processedData, properties } = this;
-
-        if (!processedData || !properties.isValid()) {
-            return EMPTY_TOOLTIP_CONTENT;
-        }
-
-        const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
-        const { index, datum, itemId, size } = nodeDatum;
-
-        let title: string;
-        const contentLines: string[] = [];
-        let fill: string;
-        if (nodeDatum.type === FlowProportionDatumType.Link) {
-            const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, itemStyler } = properties.link;
-            const { fromNode, toNode } = nodeDatum;
-            title = `${fromNode.label ?? fromNode.id} - ${toNode.label ?? toNode.id}`;
-            if (sizeKey != null) {
-                contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
-            }
-
-            fill = properties.link.fill ?? fromNode.fill;
-            const stroke = properties.link.stroke ?? fromNode.stroke;
-
-            let format: AgSankeySeriesLinkStyle | undefined;
-            if (itemStyler != null) {
-                format = this.cachedDatumCallback(createDatumId(index, 'link-tooltip'), () =>
-                    itemStyler({
-                        seriesId,
-                        datum: datum.datum,
-                        fromKey,
-                        toKey,
-                        sizeKey,
-                        fill,
-                        fillOpacity,
-                        strokeOpacity,
-                        stroke,
-                        strokeWidth,
-                        lineDash,
-                        lineDashOffset,
-                        highlighted: true,
-                    })
-                );
-            }
-
-            fill = format?.fill ?? fill;
-        } else {
-            const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset, itemStyler } = properties.node;
-            const { id, label } = nodeDatum;
-            title = label ?? id;
-            if (sizeKey != null) {
-                contentLines.push(sanitizeHtml(`${sizeName ?? sizeKey}: ` + size));
-            }
-
-            fill = properties.link.fill ?? datum.fill;
-            const stroke = properties.link.stroke ?? datum.stroke;
-
-            let format: AgSankeySeriesNodeStyle | undefined;
-            if (itemStyler != null) {
-                format = this.cachedDatumCallback(createDatumId(index, 'node-tooltip'), () =>
-                    itemStyler({
-                        seriesId,
-                        datum: datum.datum,
-                        label,
-                        size,
-                        fromKey,
-                        toKey,
-                        sizeKey,
-                        fill,
-                        fillOpacity,
-                        strokeOpacity,
-                        stroke,
-                        strokeWidth,
-                        lineDash,
-                        lineDashOffset,
-                        highlighted: true,
-                    })
-                );
-            }
-
-            fill = format?.fill ?? fill;
-        }
-        const content = contentLines.join('<br>');
-
-        const color = fill;
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
-            {
-                seriesId,
-                datum,
-                size,
-                title,
-                color,
-                itemId,
-                fromKey,
-                toKey,
-                sizeKey,
-                sizeName,
-                ...this.getModuleTooltipParams(),
-            }
-        );
     }
 
     protected override computeFocusBounds({

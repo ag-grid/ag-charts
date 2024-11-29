@@ -207,8 +207,8 @@ export class MapShapeBackgroundSeries
         return [];
     }
 
-    override getTooltipHtml(): _ModuleSupport.TooltipContent {
-        return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
+    override getTooltipContent(_seriesDatum: any): _ModuleSupport.TooltipContent | string | undefined {
+        return;
     }
 
     public override pickFocus() {

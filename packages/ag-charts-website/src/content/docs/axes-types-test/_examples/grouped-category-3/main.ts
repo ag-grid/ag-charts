@@ -24,11 +24,6 @@ const options: AgCartesianChartOptions = {
             label: {
                 formatter: ({ value }) => formatNumber(value),
             },
-            tooltip: {
-                renderer: ({ datum, xKey, yKey }) => {
-                    return { title: datum[xKey], content: formatNumber(datum[yKey]) };
-                },
-            },
         },
     ],
     axes: [

@@ -1,19 +1,9 @@
 import type {
-    AgCartesianSeriesTooltipRendererParams,
     AgChartOptions,
-    AgTooltipRendererResult,
 } from 'ag-charts-community';
 import { AgCharts, time } from 'ag-charts-community';
 
 import { getData } from './data';
-
-const dateFormatter = new Intl.DateTimeFormat('en-US');
-const tooltip = {
-    renderer: ({ title, datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams): AgTooltipRendererResult => ({
-        title,
-        content: `${dateFormatter.format(datum[xKey])}: ${datum[yKey]}`,
-    }),
-};
 
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
@@ -50,7 +40,6 @@ const options: AgChartOptions = {
                 stroke: '#01c185',
                 fill: '#01c185',
             },
-            tooltip,
         },
         {
             type: 'line',
@@ -61,7 +50,6 @@ const options: AgChartOptions = {
                 stroke: '#000000',
                 fill: '#000000',
             },
-            tooltip,
         },
     ],
     axes: [

@@ -99,23 +99,6 @@ const options: AgChartOptions = {
             ],
         },
     ],
-    theme: {
-        overrides: {
-            line: {
-                series: {
-                    tooltip: {
-                        renderer: ({ datum, xKey, yKey }) => ({
-                            content: `${datum[xKey].toLocaleString('en-GB', {
-                                day: 'numeric',
-                                month: 'long',
-                                year: 'numeric',
-                            })}: ${datum[yKey]}`,
-                        }),
-                    },
-                },
-            },
-        },
-    },
 };
 
 const chart = AgCharts.create(options);

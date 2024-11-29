@@ -52,7 +52,7 @@ import { InteractionState } from '../interaction/interactionManager';
 import { LayoutElement } from '../layout/layoutManager';
 import { getMarker } from '../marker/util';
 import { Pagination } from '../pagination/pagination';
-import { type TooltipMeta, type TooltipPointerEvent, toTooltipHtml } from '../tooltip/tooltip';
+import { type TooltipMeta, type TooltipPointerEvent } from '../tooltip/tooltip';
 import { ZIndexMap } from '../zIndexMap';
 import { LegendDOMProxy } from './legendDOMProxy';
 import type { CategoryLegendDatum } from './legendDatum';
@@ -1083,7 +1083,7 @@ export class Legend extends BaseProperties {
         const series = datum ? this.ctx.chartService.series.find((s) => s.id === datum?.id) : undefined;
         if (datum && this.truncatedItems.has(datum.itemId ?? datum.id)) {
             const meta = this.toTooltipMeta(event, node);
-            this.ctx.tooltipManager.updateTooltip(this.id, meta, toTooltipHtml({ content: this.getItemLabel(datum) }));
+            this.ctx.tooltipManager.updateTooltip(this.id, meta, { title: this.getItemLabel(datum) });
         } else {
             this.ctx.tooltipManager.removeTooltip(this.id);
         }

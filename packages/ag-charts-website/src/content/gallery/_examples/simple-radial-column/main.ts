@@ -16,15 +16,13 @@ const options: AgChartOptions = {
             type: 'radial-column',
             angleKey: 'quarter',
             radiusKey: 'product',
-            radiusName: 'Product',
             fillOpacity: 0.8,
             tooltip: {
                 renderer: (params) => {
                     const [day, month] = params.datum.quarter.split(' ');
                     const key = day === '1' ? `${month}` : `Mid-${month}`;
                     return {
-                        title: params.radiusName,
-                        content: `${key}: ${params.datum.product}`,
+                        heading: day === '1' ? `${month}` : `Mid-${month}`,
                     };
                 },
             },

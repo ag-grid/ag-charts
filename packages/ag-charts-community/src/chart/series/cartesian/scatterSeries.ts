@@ -10,7 +10,6 @@ import { Text } from '../../../scene/shape/text';
 import type { PlacedLabel } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
-import { sanitizeHtml } from '../../../util/sanitize';
 import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
 import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -18,9 +17,10 @@ import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
 import { valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
+import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { CartesianAnimationData } from './cartesianSeries';
@@ -177,6 +177,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 yKey,
                 xKey,
                 datum,
+                datumIndex,
                 xValue: xDatum,
                 yValue: yDatum,
                 capDefaults: { lengthRatioMultiplier: marker.getDiameter(), lengthMax: Infinity },
@@ -281,56 +282,60 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         });
     }
 
-    getTooltipHtml(nodeDatum: ScatterNodeDatum): TooltipContent {
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const yAxis = this.axes[ChartAxisDirection.Y];
+    override getTooltipContent(nodeDatum: ScatterNodeDatum): TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { xKey, xName, yKey, yName, legendItemName, labelKey, labelName, title, tooltip } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return EMPTY_TOOLTIP_CONTENT;
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
         }
 
-        const { xKey, yKey, labelKey, xName, yName, labelName, title = yName, marker, tooltip } = this.properties;
-        const { datum, xValue, yValue, label, itemId } = nodeDatum;
+        const { datumIndex } = nodeDatum;
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
-        const baseStyle = mergeDefaults(
-            { fill: nodeDatum.fill, strokeWidth: this.getStrokeWidth(marker.strokeWidth) },
-            marker.getStyle()
-        );
+        if (xValue == null) return;
 
-        const { fill: color = 'gray' } = this.getMarkerStyle(
-            marker,
-            { datum: nodeDatum, highlighted: false, xKey, yKey, labelKey },
-            baseStyle
-        );
-
-        const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yString = sanitizeHtml(yAxis.formatDatum(yValue));
-
-        let content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` +
-            `<b>${sanitizeHtml(yName ?? yKey)}</b>: ${yString}`;
-
-        if (labelKey) {
-            content = `<b>${sanitizeHtml(labelName ?? labelKey)}</b>: ${sanitizeHtml(label.text)}<br>` + content;
-        }
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
+        return tooltip.formatTooltip(
             {
+                symbol: this.legendItemSymbol(),
+                title,
+                data: [
+                    { label: xName ?? xKey, value: xAxis.formatDatum(xValue) },
+                    { label: legendItemName ?? yName ?? yKey, value: yAxis.formatDatum(yValue) },
+                ],
+            },
+            {
+                seriesId,
                 datum,
-                itemId,
+                title: yName,
                 xKey,
                 xName,
                 yKey,
                 yName,
                 labelKey,
                 labelName,
-                title,
-                color,
-                seriesId: this.id,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
+    }
+
+    private legendItemSymbol(): LegendSymbolOptions {
+        const { shape, fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = this.properties.marker;
+
+        return {
+            marker: {
+                shape,
+                fill: fill ?? 'rgba(0, 0, 0, 0)',
+                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity: fillOpacity ?? 1,
+                strokeOpacity: strokeOpacity ?? 1,
+                strokeWidth: strokeWidth ?? 0,
+            },
+        };
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
@@ -338,8 +343,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             return [];
         }
 
-        const { yKey: itemId, yName, title, marker, showInLegend } = this.properties;
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
+        const { yKey: itemId, yName, title, showInLegend } = this.properties;
 
         const {
             id: seriesId,
@@ -357,16 +361,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 label: {
                     text: title ?? yName ?? itemId,
                 },
-                symbol: {
-                    marker: {
-                        shape: marker.shape,
-                        fill: marker.fill ?? fill ?? 'rgba(0, 0, 0, 0)',
-                        stroke: marker.stroke ?? stroke ?? 'rgba(0, 0, 0, 0)',
-                        fillOpacity: fillOpacity ?? 1,
-                        strokeOpacity: strokeOpacity ?? 1,
-                        strokeWidth: strokeWidth ?? 0,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 hideInLegend: !showInLegend,
             },
         ];

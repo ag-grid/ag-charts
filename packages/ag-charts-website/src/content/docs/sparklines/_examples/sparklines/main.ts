@@ -71,7 +71,7 @@ const priceOptions: AgSparklineOptions = {
     xKey: 'date',
     yKey: 'price',
     tooltip: {
-        renderer: ({ datum, yKey }) => ({ content: priceFormatter.format(datum[yKey]) }),
+        renderer: ({ datum, yKey }) => ({ heading: priceFormatter.format(datum[yKey]), data: [] }),
     },
 };
 
@@ -93,7 +93,7 @@ const priceChangeOptions: AgSparklineOptions = {
     min: -10,
     max: 10,
     tooltip: {
-        renderer: ({ datum, yKey }) => ({ content: priceChangeFormatter.format(datum[yKey]) }),
+        renderer: ({ datum, yKey }) => ({ heading: priceChangeFormatter.format(datum[yKey]), data: [] }),
     },
 };
 

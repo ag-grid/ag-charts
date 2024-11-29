@@ -115,9 +115,7 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
         }
 
         override render(renderCtx: RenderContext): void {
-            if (this._dirtyTransform) {
-                this.computeTransformMatrix();
-            }
+            this.computeTransformMatrix();
 
             const { ctx } = renderCtx;
 
@@ -138,6 +136,8 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
         }
 
         override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
+            this.computeTransformMatrix();
+
             const svg = super.toSVG();
 
             const matrix = this[TRANSFORM_MATRIX];

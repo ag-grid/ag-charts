@@ -16,10 +16,10 @@ const {
     diff,
     animationValidation,
     computeBarFocusBounds,
-    sanitizeHtml,
     createDatumId,
     Color,
     ContinuousScale,
+    ChartAxisDirection,
     motion,
 } = _ModuleSupport;
 
@@ -234,6 +234,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 series: this,
                 itemId: xValue,
                 datum,
+                datumIndex,
                 xKey,
                 bandwidth,
                 scaledValues,
@@ -254,14 +255,27 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return context;
     }
 
+    private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = this.properties;
+
+        return {
+            marker: {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeOpacity,
+                strokeWidth,
+            },
+        };
+    }
+
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
         const {
             id: seriesId,
             ctx: { legendManager },
             visible,
         } = this;
-        const { xKey, yName, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, showInLegend, legendItemName } =
-            this.properties;
+        const { xKey, yName, showInLegend, legendItemName } = this.properties;
 
         if (!xKey || legendType !== 'category') {
             return [];
@@ -277,75 +291,80 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 label: {
                     text: legendItemName ?? yName ?? seriesId,
                 },
-                symbol: { marker: { fill, fillOpacity, stroke, strokeOpacity, strokeWidth } },
+                symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: !showInLegend,
             },
         ];
     }
 
-    getTooltipHtml(nodeDatum: BoxPlotNodeDatum): _ModuleSupport.TooltipContent {
+    override getTooltipContent(nodeDatum: BoxPlotNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const {
             xKey,
-            minKey,
-            q1Key,
-            medianKey,
-            q3Key,
-            maxKey,
             xName,
             yName,
-            minName,
-            q1Name,
+            medianKey,
             medianName,
+            q1Key,
+            q1Name,
+            q3Key,
             q3Name,
+            minKey,
+            minName,
+            maxKey,
             maxName,
+            legendItemName,
             tooltip,
-            fill,
-        } = this.properties;
-        const { datum, itemId } = nodeDatum;
+        } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
 
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
+        }
 
-        if (!xAxis || !yAxis || !this.properties.isValid()) return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
+        const { datumIndex } = nodeDatum;
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
+        const minValue = dataModel.resolveColumnById(this, `minValue`, processedData)[datumIndex];
+        const q1Value = dataModel.resolveColumnById(this, `q1Value`, processedData)[datumIndex];
+        const medianValue = dataModel.resolveColumnById(this, `medianValue`, processedData)[datumIndex];
+        const q3Value = dataModel.resolveColumnById(this, `q3Value`, processedData)[datumIndex];
+        const maxValue = dataModel.resolveColumnById(this, `maxValue`, processedData)[datumIndex];
 
-        const title = sanitizeHtml(yName);
-        const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [
-            [xKey, xName, xAxis],
-            [minKey, minName, yAxis],
-            [q1Key, q1Name, yAxis],
-            [medianKey, medianName, yAxis],
-            [q3Key, q3Name, yAxis],
-            [maxKey, maxName, yAxis],
-        ];
-        const content = contentData
-            .map(([key, name, axis]) => sanitizeHtml(`${name ?? key}: ${axis.formatDatum(datum[key])}`))
-            .join(title ? '<br/>' : ', ');
+        if (xValue == null) return;
 
-        const { fill: formatFill } = this.getFormattedStyles(nodeDatum, 'tooltip');
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: fill },
+        return tooltip.formatTooltip(
             {
-                seriesId: this.id,
-                itemId,
+                heading: xAxis.formatDatum(xValue),
+                title: legendItemName ?? yName,
+                symbol: this.legendItemSymbol(),
+                data: [
+                    { label: minName ?? minKey, value: yAxis.formatDatum(minValue) },
+                    { label: q1Name ?? q1Key, value: yAxis.formatDatum(q1Value) },
+                    { label: medianName ?? medianKey, value: yAxis.formatDatum(medianValue) },
+                    { label: q3Name ?? q3Key, value: yAxis.formatDatum(q3Value) },
+                    { label: maxName ?? maxKey, value: yAxis.formatDatum(maxValue) },
+                ],
+            },
+            {
+                seriesId,
                 datum,
-                fill,
+                title: yName,
                 xKey,
-                minKey,
-                q1Key,
-                medianKey,
-                q3Key,
-                maxKey,
                 xName,
-                minName,
-                q1Name,
-                medianName,
-                q3Name,
-                maxName,
                 yName,
-                title,
-                color: fill ?? formatFill,
+                medianKey,
+                medianName,
+                q1Key,
+                q1Name,
+                q3Key,
+                q3Name,
+                minKey,
+                minName,
+                maxKey,
+                maxName,
             }
         );
     }

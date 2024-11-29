@@ -1,4 +1,3 @@
-import type { AgTooltipRendererResult } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
 import { SPAN, X_MAX, X_MIN, Y_MAX, Y_MIN } from '../../utils/aggregation';
@@ -24,9 +23,7 @@ const {
     seriesLabelFadeInAnimation,
     resetLabelFn,
     animationValidation,
-    createDatumId,
     computeBarFocusBounds,
-    sanitizeHtml,
     visibleRangeIndices,
     ContinuousScale,
     OrdinalTimeScale,
@@ -331,7 +328,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 valueIndex: datumIndex,
                 series: this,
                 itemId,
-                datum: datum,
+                datum,
+                datumIndex,
                 xValue: xDatum,
                 yLowValue: rawLowValue,
                 yHighValue: rawHighValue,
@@ -564,97 +562,49 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    getTooltipHtml(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId } = this;
+    override getTooltipContent(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { xKey, xName, yName, yLowKey, yHighKey, yLowName, yHighName, tooltip } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
 
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
-
-        if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
         }
 
-        const {
-            xKey,
-            yLowKey,
-            yHighKey,
-            xName,
-            yLowName,
-            yHighName,
-            yName,
-            fill,
-            strokeWidth,
-            itemStyler,
-            tooltip,
-            fillOpacity,
-            stroke,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            cornerRadius,
-        } = this.properties;
-        const { datum, xValue, yLowValue, yHighValue } = nodeDatum;
+        const { datumIndex } = nodeDatum;
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
+        const yHighValue = dataModel.resolveColumnById(this, `yHighValue`, processedData)[datumIndex];
+        const yLowValue = dataModel.resolveColumnById(this, `yLowValue`, processedData)[datumIndex];
 
-        let format;
-        if (itemStyler) {
-            format = this.cachedDatumCallback(createDatumId(this.getDatumId(nodeDatum), 'tooltip'), () =>
-                itemStyler({
-                    highlighted: false,
-                    seriesId,
-                    datum,
-                    xKey,
-                    yLowKey,
-                    yHighKey,
-                    fill,
-                    fillOpacity,
-                    stroke,
-                    strokeWidth,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                    cornerRadius,
-                })
-            );
-        }
+        if (xValue == null) return;
 
-        const color = format?.fill ?? fill ?? 'gray';
+        const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
+        return tooltip.formatTooltip(
+            {
+                heading: xAxis.formatDatum(xValue),
+                symbol: this.legendItemSymbol(),
+                data: [{ label: yName ?? '', value }],
+            },
+            {
+                seriesId,
+                datum,
+                title: yName,
+                xKey,
+                xName,
+                yName,
+                yLowKey,
+                yHighKey,
+                yLowName,
+                yHighName,
+            }
+        );
+    }
 
-        const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yLowString = sanitizeHtml(yAxis.formatDatum(yLowValue));
-        const yHighString = sanitizeHtml(yAxis.formatDatum(yHighValue));
-
-        const xSubheading = xName ?? xKey;
-        const yLowSubheading = yLowName ?? yLowKey;
-        const yHighSubheading = yHighName ?? yHighKey;
-
-        const title = sanitizeHtml(yName);
-
-        const content = yName
-            ? `<b>${sanitizeHtml(xSubheading)}</b>: ${xString}<br>` +
-              `<b>${sanitizeHtml(yLowSubheading)}</b>: ${yLowString}<br>` +
-              `<b>${sanitizeHtml(yHighSubheading)}</b>: ${yHighString}<br>`
-            : `${xString}: ${yLowString} - ${yHighString}`;
-
-        const defaults: AgTooltipRendererResult = {
-            title,
-            content,
-            backgroundColor: color,
-        };
-
-        return tooltip.toTooltipHtml(defaults, {
-            itemId: undefined,
-            datum,
-            xKey,
-            xName,
-            yLowKey,
-            yLowName,
-            yHighKey,
-            yHighName,
-            yName,
-            color,
-            seriesId,
-            title,
-        });
+    private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
+        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity } = this.properties;
+        return { marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } };
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
@@ -664,19 +614,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const { id: seriesId, visible } = this;
 
-        const {
-            fill,
-            stroke,
-            strokeWidth,
-            fillOpacity,
-            strokeOpacity,
-            yName,
-            yLowName,
-            yHighName,
-            yLowKey,
-            yHighKey,
-            showInLegend,
-        } = this.properties;
+        const { yName, yLowName, yHighName, yLowKey, yHighKey, showInLegend } = this.properties;
         const legendItemText = yName ?? `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`;
         const itemId = `${yLowKey}-${yHighKey}`;
 
@@ -688,7 +626,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 seriesId,
                 enabled: visible,
                 label: { text: `${legendItemText}` },
-                symbol: { marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } },
+                symbol: this.legendItemSymbol(),
                 hideInLegend: !showInLegend,
             },
         ];

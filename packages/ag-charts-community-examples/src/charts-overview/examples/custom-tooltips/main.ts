@@ -10,7 +10,7 @@ function tooltipRenderer(params: AgCartesianSeriesTooltipRendererParams) {
   const tooltipHtml = [
     '<div class="my-tooltip">',
     '<span class="my-tooltip__title" style="color: ' +
-      params.color +
+      'black' + // @todo(AG-10574) params.color
       '">' +
       params.yName,
     "(" +

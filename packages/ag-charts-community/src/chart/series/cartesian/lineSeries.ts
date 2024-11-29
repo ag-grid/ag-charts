@@ -13,7 +13,6 @@ import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
-import { sanitizeHtml } from '../../../util/sanitize';
 import { isDefined } from '../../../util/type-guards';
 import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -30,9 +29,10 @@ import {
     valueProperty,
 } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
+import { type LegendSymbolOptions } from '../../legend/legendSymbol';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
@@ -304,15 +304,15 @@ export class LineSeries extends CartesianSeries<
 
         const nodeData: LineNodeDatum[] = [];
         let spanPoints: SpanPoints | undefined;
-        const handleDatum = (index: number) => {
-            const datum = rawData[index];
-            const xDatum = xValues[index];
-            const yDatum = yValues[index];
-            const yEndDatum = yEndValues?.[index];
-            const selected = selectionValues?.[index];
+        const handleDatum = (datumIndex: number) => {
+            const datum = rawData[datumIndex];
+            const xDatum = xValues[datumIndex];
+            const yDatum = yValues[datumIndex];
+            const yEndDatum = yEndValues?.[datumIndex];
+            const selected = selectionValues?.[datumIndex];
 
-            const x = xPosition(index);
-            const y = yPosition(index);
+            const x = xPosition(datumIndex);
+            const y = yPosition(datumIndex);
 
             if (!Number.isFinite(x)) return;
 
@@ -332,6 +332,7 @@ export class LineSeries extends CartesianSeries<
                 nodeData.push({
                     series: this,
                     datum,
+                    datumIndex,
                     yKey,
                     xKey,
                     point: { x, y, size },
@@ -529,48 +530,63 @@ export class LineSeries extends CartesianSeries<
         });
     }
 
-    getTooltipHtml(nodeDatum: LineNodeDatum): TooltipContent {
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const yAxis = this.axes[ChartAxisDirection.Y];
+    override getTooltipContent(nodeDatum: LineNodeDatum): TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { xKey, xName, yKey, yName, legendItemName, tooltip } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return EMPTY_TOOLTIP_CONTENT;
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
         }
 
-        const { xKey, yKey, xName, yName, strokeWidth, marker, tooltip } = this.properties;
-        const { datum, xValue, yValue, itemId } = nodeDatum;
-        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-        const xString = xAxis.formatDatum(xValue);
-        const yString = yAxis.formatDatum(yValue);
-        const title = sanitizeHtml(this.properties.title ?? yName);
-        const content = sanitizeHtml(xString + ': ' + yString);
+        const { datumIndex } = nodeDatum;
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValueRaw`, processedData)[datumIndex];
 
-        const baseStyle = mergeDefaults({ fill: marker.stroke }, marker.getStyle(), { strokeWidth });
-        const { fill: color } = this.getMarkerStyle(
-            marker,
+        if (xValue == null) return;
+
+        return tooltip.formatTooltip(
             {
-                ...datumStylerProperties(nodeDatum, xKey, yKey, xDomain, yDomain),
-                highlighted: false,
+                heading: xAxis.formatDatum(xValue),
+                symbol: this.legendItemSymbol(),
+                data: [{ label: legendItemName ?? yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) }],
             },
-            baseStyle
-        );
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
             {
+                seriesId,
                 datum,
-                itemId,
+                title: yName,
                 xKey,
                 xName,
                 yKey,
                 yName,
-                title,
-                color,
-                seriesId: this.id,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
+    }
+
+    private legendItemSymbol(): LegendSymbolOptions {
+        const color0 = 'rgba(0, 0, 0, 0)';
+        const { stroke, strokeOpacity, strokeWidth, lineDash, marker } = this.properties;
+
+        return {
+            marker: {
+                shape: marker.shape,
+                fill: marker.fill ?? color0,
+                stroke: marker.stroke ?? stroke ?? color0,
+                fillOpacity: marker.fillOpacity ?? 1,
+                strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
+                strokeWidth: marker.strokeWidth ?? 0,
+                enabled: marker.enabled,
+            },
+            line: {
+                stroke: stroke ?? color0,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+            },
+        };
     }
 
     getLegendData(legendType: ChartLegendType): CategoryLegendDatum[] {
@@ -584,20 +600,8 @@ export class LineSeries extends CartesianSeries<
             visible,
         } = this;
 
-        const {
-            yKey: itemId,
-            yName,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
-            lineDash,
-            title,
-            marker,
-            legendItemName,
-            showInLegend,
-        } = this.properties;
+        const { yKey: itemId, yName, title, legendItemName, showInLegend } = this.properties;
 
-        const color0 = 'rgba(0, 0, 0, 0)';
         return [
             {
                 legendType: 'category',
@@ -609,23 +613,7 @@ export class LineSeries extends CartesianSeries<
                 label: {
                     text: legendItemName ?? title ?? yName ?? itemId,
                 },
-                symbol: {
-                    marker: {
-                        shape: marker.shape,
-                        fill: marker.fill ?? color0,
-                        stroke: marker.stroke ?? stroke ?? color0,
-                        fillOpacity: marker.fillOpacity ?? 1,
-                        strokeOpacity: marker.strokeOpacity ?? strokeOpacity ?? 1,
-                        strokeWidth: marker.strokeWidth ?? 0,
-                        enabled: marker.enabled,
-                    },
-                    line: {
-                        stroke: stroke ?? color0,
-                        strokeOpacity,
-                        strokeWidth,
-                        lineDash,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 hideInLegend: !showInLegend,
             },
         ];

@@ -117,7 +117,7 @@ describe('SunburstSeries', () => {
         getTooltipRenderedValues: (tooltipRendererParams: any) => any[];
         getHighlightNode: (chart: any, series: any) => any;
     }) => {
-        const format = (...values: any[]) => values.join(': ');
+        const format = (...values: any[]) => values.join(' ');
 
         const createChart = async (params: {
             hasTooltip: boolean;

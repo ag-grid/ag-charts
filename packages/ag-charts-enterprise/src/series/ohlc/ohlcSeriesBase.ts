@@ -239,7 +239,7 @@ export abstract class OhlcSeriesBase<
         if (!visible) return context;
 
         const handleDatum = (
-            datum: any,
+            datumIndex: number,
             xValue: any,
             openValue: any,
             closeValue: any,
@@ -248,6 +248,8 @@ export abstract class OhlcSeriesBase<
             width: number,
             crisp: boolean
         ) => {
+            const datum = rawData[datumIndex];
+
             const centerX = xAxis.scale.convert(xValue) + groupOffset + width / 2;
             const yOpen = yAxis.scale.convert(openValue);
             const yClose = yAxis.scale.convert(closeValue);
@@ -269,6 +271,7 @@ export abstract class OhlcSeriesBase<
                 series: this,
                 itemId,
                 datum,
+                datumIndex,
                 xKey,
                 xValue,
                 openValue,
@@ -302,15 +305,14 @@ export abstract class OhlcSeriesBase<
                 return [x, x + effectiveBarWidth];
             });
 
-            for (let i = start; i < end; i += 1) {
-                const xValue = xValues[i];
+            for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
+                const xValue = xValues[datumIndex];
                 if (xValue == null) continue;
 
-                const datum = rawData[i];
-                const openValue = openValues[i];
-                const closeValue = closeValues[i];
-                const highValue = highValues[i];
-                const lowValue = lowValues[i];
+                const openValue = openValues[datumIndex];
+                const closeValue = closeValues[datumIndex];
+                const highValue = highValues[datumIndex];
+                const lowValue = lowValues[datumIndex];
 
                 // compare unscaled values
                 const validLowValue = lowValue != null && lowValue <= openValue && lowValue <= closeValue;
@@ -330,7 +332,7 @@ export abstract class OhlcSeriesBase<
                     continue;
                 }
 
-                handleDatum(datum, xValue, openValue, closeValue, highValue, lowValue, effectiveBarWidth, true);
+                handleDatum(datumIndex, xValue, openValue, closeValue, highValue, lowValue, effectiveBarWidth, true);
             }
         } else {
             const { maxRange, indexData } = dataAggregationFilter;
@@ -356,7 +358,6 @@ export abstract class OhlcSeriesBase<
                 const xValue = xValues[midDatumIndex];
                 if (xValue == null) continue;
 
-                const datum = rawData[midDatumIndex];
                 const openValue = openValues[openIndex];
                 const closeValue = closeValues[closeIndex];
                 const highValue = highValues[highIndex];
@@ -364,7 +365,7 @@ export abstract class OhlcSeriesBase<
 
                 const width = Math.abs(xPosition(closeIndex) - xPosition(openIndex)) + effectiveBarWidth;
 
-                handleDatum(datum, xValue, openValue, closeValue, highValue, lowValue, width, false);
+                handleDatum(midDatumIndex, xValue, openValue, closeValue, highValue, lowValue, width, false);
             }
         }
 
@@ -402,6 +403,83 @@ export abstract class OhlcSeriesBase<
     }) {
         const { labelData, labelSelection } = opts;
         return labelSelection.update(labelData);
+    }
+
+    override getTooltipContent(nodeDatum: OhlcNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const {
+            xKey,
+            xName,
+            yName,
+            openKey,
+            openName,
+            highKey,
+            highName,
+            lowKey,
+            lowName,
+            closeKey,
+            closeName,
+            legendItemName,
+            tooltip,
+        } = properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
+
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
+        }
+
+        const { datumIndex } = nodeDatum;
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveKeysById(this, `xValue`, processedData)[datumIndex];
+        const openValue = dataModel.resolveColumnById(this, `openValue`, processedData)[datumIndex];
+        const highValue = dataModel.resolveColumnById(this, `highValue`, processedData)[datumIndex];
+        const lowValue = dataModel.resolveColumnById(this, `lowValue`, processedData)[datumIndex];
+        const closeValue = dataModel.resolveColumnById(this, `closeValue`, processedData)[datumIndex];
+
+        if (xValue == null) return;
+
+        const itemId = closeValue >= openValue ? 'up' : 'down';
+        const item = this.properties.item[itemId];
+
+        return tooltip.formatTooltip(
+            {
+                heading: xAxis.formatDatum(xValue),
+                title: legendItemName,
+                symbol: {
+                    marker: {
+                        fill: item.fill,
+                        fillOpacity: item.fillOpacity ?? 1,
+                        stroke: item.stroke,
+                        strokeWidth: item.strokeWidth ?? 1,
+                        strokeOpacity: item.strokeOpacity ?? 1,
+                    },
+                },
+                data: [
+                    { label: openName ?? openKey, value: yAxis.formatDatum(openValue) },
+                    { label: highName ?? highKey, value: yAxis.formatDatum(highValue) },
+                    { label: lowName ?? lowKey, value: yAxis.formatDatum(lowValue) },
+                    { label: closeName ?? closeKey, value: yAxis.formatDatum(closeValue) },
+                ],
+            },
+            {
+                seriesId,
+                datum,
+                title: yName,
+                itemId,
+                xKey,
+                xName,
+                yName,
+                openKey,
+                openName,
+                highKey,
+                highName,
+                lowKey,
+                lowName,
+                closeKey,
+                closeName,
+            }
+        );
     }
 
     protected getDatumId(datum: OhlcNodeDatum) {

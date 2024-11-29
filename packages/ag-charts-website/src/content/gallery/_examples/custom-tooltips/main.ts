@@ -9,7 +9,10 @@ function tooltipRenderer(params: AgCartesianSeriesTooltipRendererParams) {
 
     var tooltipHtml = [
         '<div class="my-tooltip">',
-        '<span class="my-tooltip__title" style="color: ' + params.color + '">' + params.yName,
+        '<span class="my-tooltip__title" style="color: ' +
+            'black' + /// @todo(AG-10574) params.color
+            '">' +
+            params.yName,
         '(' + params.datum[params.xKey] + '):</span> ' + formatThousands(params.datum[params.yKey]) + ' tonnes',
         '</div>',
     ];

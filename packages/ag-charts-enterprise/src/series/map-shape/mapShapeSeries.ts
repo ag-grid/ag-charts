@@ -24,7 +24,6 @@ const {
     Validate,
     CachedTextMeasurerPool,
     TextUtils,
-    sanitizeHtml,
     Logger,
     ColorScale,
     Group,
@@ -366,6 +365,7 @@ export class MapShapeSeries
                 series: this,
                 itemId: idKey,
                 datum,
+                datumIndex,
                 idValue,
                 colorValue,
                 labelValue,
@@ -556,6 +556,28 @@ export class MapShapeSeries
         return point;
     }
 
+    private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
+        const { dataModel, processedData, properties } = this;
+        const { fillOpacity, stroke, strokeWidth, strokeOpacity } = properties;
+
+        let { fill } = properties;
+        if (datumIndex != null && this.isColorScaleValid()) {
+            const colorValues = dataModel!.resolveColumnById(this, 'colorValue', processedData!);
+            const colorValue = colorValues[datumIndex];
+            fill = this.colorScale.convert(colorValue);
+        }
+
+        return {
+            marker: {
+                fill,
+                fillOpacity,
+                stroke,
+                strokeWidth,
+                strokeOpacity,
+            },
+        };
+    }
+
     override getLegendData(
         legendType: _ModuleSupport.ChartLegendType
     ): _ModuleSupport.CategoryLegendDatum[] | _ModuleSupport.GradientLegendDatum[] {
@@ -564,21 +586,7 @@ export class MapShapeSeries
 
         const { id: seriesId, visible } = this;
 
-        const {
-            title,
-            legendItemName,
-            idKey,
-            idName,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            colorKey,
-            colorName,
-            colorRange,
-            showInLegend,
-        } = this.properties;
+        const { title, legendItemName, idKey, idName, colorKey, colorName, colorRange, showInLegend } = this.properties;
 
         if (legendType === 'gradient' && colorKey != null && colorRange != null) {
             const colorDomain =
@@ -600,15 +608,7 @@ export class MapShapeSeries
                 seriesId,
                 enabled: visible,
                 label: { text: legendItemName ?? title ?? idName ?? idKey },
-                symbol: {
-                    marker: {
-                        fill,
-                        fillOpacity,
-                        stroke,
-                        strokeWidth,
-                        strokeOpacity,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: !showInLegend,
             };
@@ -618,83 +618,34 @@ export class MapShapeSeries
         }
     }
 
-    override getTooltipHtml(nodeDatum: MapShapeNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId, processedData, properties } = this;
+    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, properties } = this;
+        const { idKey, idName, colorKey, colorName, labelKey, labelName, legendItemName, title, tooltip } = properties;
+        if (!dataModel || !processedData?.rawData.length) return;
 
-        if (!processedData || !properties.isValid()) {
-            return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
+        const { datumIndex } = seriesDatum;
+        const datum = processedData.rawData[datumIndex];
+        const idValue = dataModel.resolveColumnById<string>(this, `idValue`, processedData)[datumIndex];
+
+        const data: _ModuleSupport.TooltipContentDataRow[] = [];
+
+        if (colorKey != null) {
+            const colorValue = dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
+            data.push({ label: colorName ?? colorKey, value: String(colorValue) });
+        }
+        if (labelKey != null && labelKey !== idKey) {
+            const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
+            data.push({ label: labelName ?? labelKey, value: labelValue });
         }
 
-        const {
-            legendItemName,
-            idKey,
-            idName,
-            colorKey,
-            colorName,
-            labelKey,
-            labelName,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            fillOpacity,
-            lineDash,
-            lineDashOffset,
-            itemStyler,
-            tooltip,
-        } = properties;
-        const { datum, fill, idValue, colorValue, labelValue, itemId } = nodeDatum;
-
-        const title = sanitizeHtml(properties.title ?? legendItemName) ?? '';
-        const contentLines: string[] = [];
-        contentLines.push(sanitizeHtml((idName != null ? `${idName}: ` : '') + idValue));
-        if (colorValue != null) {
-            contentLines.push(sanitizeHtml((colorName ?? colorKey) + ': ' + colorValue));
-        }
-        if (labelValue != null && labelKey !== idKey) {
-            contentLines.push(sanitizeHtml((labelName ?? labelKey) + ': ' + labelValue));
-        }
-        const content = contentLines.join('<br>');
-
-        let format: AgMapShapeSeriesStyle | undefined;
-
-        if (itemStyler) {
-            format = this.cachedDatumCallback(createDatumId(datum.idValue, 'tooltip'), () =>
-                itemStyler({
-                    seriesId,
-                    datum,
-                    idKey,
-                    colorKey,
-                    labelKey,
-                    fill,
-                    stroke,
-                    strokeWidth: this.getStrokeWidth(strokeWidth),
-                    highlighted: false,
-                    fillOpacity,
-                    strokeOpacity,
-                    lineDash,
-                    lineDashOffset,
-                })
-            );
-        }
-
-        const color = format?.fill ?? fill;
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
+        return tooltip.formatTooltip(
             {
-                seriesId,
-                datum,
-                idKey,
-                title,
-                color,
-                colorKey,
-                colorName,
-                idName,
-                itemId,
-                labelKey,
-                labelName,
-                ...this.getModuleTooltipParams(),
-            }
+                heading: idValue,
+                title: title ?? legendItemName,
+                symbol: this.legendItemSymbol(datumIndex),
+                data,
+            },
+            { seriesId, datum, title, idKey, idName, colorKey, colorName, labelKey, labelName }
         );
     }
 

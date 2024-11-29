@@ -1,4 +1,4 @@
-import type { AgSeriesMarkerStyle } from 'ag-charts-types';
+import type { AgErrorBoundSeriesTooltipRendererParams, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
@@ -11,16 +11,17 @@ import { Text } from '../../../scene/shape/text';
 import type { PlacedLabel } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
-import { sanitizeHtml } from '../../../util/sanitize';
 import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
+import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum } from '../../legend/legendDatum';
+import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import type { Marker } from '../../marker/marker';
 import { getMarker } from '../../marker/util';
-import { EMPTY_TOOLTIP_CONTENT, type TooltipContent } from '../../tooltip/tooltip';
+import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
 import type { PickFocusInputs, SeriesNodeEventTypes } from '../series';
 import { SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
@@ -243,6 +244,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 yKey,
                 xKey,
                 datum,
+                datumIndex,
                 xValue: xDatum,
                 yValue: yDatum,
                 sizeValue,
@@ -356,56 +358,44 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         });
     }
 
-    getTooltipHtml(nodeDatum: BubbleNodeDatum): TooltipContent {
-        const xAxis = this.axes[ChartAxisDirection.X];
-        const yAxis = this.axes[ChartAxisDirection.Y];
+    override getTooltipContent(nodeDatum: BubbleNodeDatum): TooltipContent | string | undefined {
+        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { xKey, xName, yKey, yName, legendItemName, sizeKey, sizeName, labelKey, labelName, title, tooltip } =
+            properties;
+        const xAxis = axes[ChartAxisDirection.X];
+        const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!this.properties.isValid() || !xAxis || !yAxis) {
-            return EMPTY_TOOLTIP_CONTENT;
+        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+            return;
         }
 
-        const { xKey, yKey, sizeKey, labelKey, xName, yName, sizeName, labelName, marker, tooltip } = this.properties;
-        const title = this.properties.title ?? yName;
+        const { datumIndex } = nodeDatum;
+        const datum = processedData.rawData[datumIndex];
+        const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
+        const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
 
-        const baseStyle = mergeDefaults(
-            { fill: nodeDatum.fill, strokeWidth: this.getStrokeWidth(marker.strokeWidth) },
-            marker.getStyle()
-        );
+        if (xValue == null) return;
 
-        const { fill: color = 'gray' } = this.getMarkerStyle(
-            marker,
-            { datum: nodeDatum, highlighted: false, xKey, yKey, sizeKey, labelKey },
-            baseStyle
-        );
+        const data: TooltipContentDataRow[] = [
+            { label: xName ?? xKey, value: xAxis.formatDatum(xValue) },
+            { label: legendItemName ?? yName ?? yKey, value: yAxis.formatDatum(yValue) },
+        ];
 
-        const {
-            datum,
-            xValue,
-            yValue,
-            sizeValue,
-            label: { text: labelText },
-            itemId,
-        } = nodeDatum;
-        const xString = sanitizeHtml(xAxis.formatDatum(xValue));
-        const yString = sanitizeHtml(yAxis.formatDatum(yValue));
-
-        let content =
-            `<b>${sanitizeHtml(xName ?? xKey)}</b>: ${xString}<br>` +
-            `<b>${sanitizeHtml(yName ?? yKey)}</b>: ${yString}`;
-
-        if (sizeKey) {
-            content += `<br><b>${sanitizeHtml(sizeName ?? sizeKey)}</b>: ${sanitizeHtml(String(sizeValue))}`;
+        if (sizeKey != null) {
+            const sizeValue = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
+            data.push({ label: sizeName ?? sizeKey, value: String(sizeValue) });
         }
 
-        if (labelKey) {
-            content = `<b>${sanitizeHtml(labelName ?? labelKey)}</b>: ${sanitizeHtml(labelText)}<br>` + content;
-        }
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: color },
+        return tooltip.formatTooltip(
             {
+                title,
+                symbol: this.legendItemSymbol(),
+                data,
+            },
+            {
+                seriesId,
                 datum,
-                itemId,
+                title: yKey,
                 xKey,
                 xName,
                 yKey,
@@ -414,11 +404,25 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 sizeName,
                 labelKey,
                 labelName,
-                title,
-                color,
-                seriesId: this.id,
+                ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
+    }
+
+    private legendItemSymbol(): LegendSymbolOptions {
+        const { marker } = this.properties;
+        const { shape, fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
+
+        return {
+            marker: {
+                shape,
+                fill: fill ?? 'rgba(0, 0, 0, 0)',
+                stroke: stroke ?? 'rgba(0, 0, 0, 0)',
+                fillOpacity: fillOpacity ?? 1,
+                strokeOpacity: strokeOpacity ?? 1,
+                strokeWidth: strokeWidth ?? 0,
+            },
+        };
     }
 
     getLegendData(): CategoryLegendDatum[] {
@@ -432,8 +436,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             visible,
         } = this;
 
-        const { yKey: itemId, yName, title, marker } = this.properties;
-        const { shape, fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
+        const { yKey: itemId, yName, title } = this.properties;
 
         return [
             {
@@ -445,16 +448,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 label: {
                     text: title ?? yName ?? itemId,
                 },
-                symbol: {
-                    marker: {
-                        shape,
-                        fill: fill ?? 'rgba(0, 0, 0, 0)',
-                        stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                        fillOpacity: fillOpacity ?? 1,
-                        strokeOpacity: strokeOpacity ?? 1,
-                        strokeWidth: strokeWidth ?? 0,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
             },
         ];
     }

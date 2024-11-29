@@ -1,6 +1,5 @@
 import type { Styler } from '../../chart/callbackOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
-import type { CssColor } from '../../chart/types';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
 import type { AgBarSeriesStyle } from './barOptions';
 import type { AxisOptions, FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
@@ -19,7 +18,7 @@ export interface AgCandlestickSeriesItemStylerParams<TDatum>
 export interface AgCandlestickSeriesTooltipRendererParams<TDatum>
     extends AgOhlcSeriesBaseTooltipRendererParams<TDatum>,
         AgOhlcSeriesBaseOptions {
-    fill?: CssColor;
+    // @todo(AG-10574) fill?: CssColor;
 }
 
 export interface AgCandlestickSeriesItemOptions extends AgBarSeriesStyle {

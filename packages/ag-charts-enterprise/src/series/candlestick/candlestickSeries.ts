@@ -4,7 +4,7 @@ import { type OhlcNodeDatum, OhlcSeriesBase } from '../ohlc/ohlcSeriesBase';
 import { CandlestickNode } from './candlestickNode';
 import { CandlestickSeriesProperties } from './candlestickSeriesProperties';
 
-const { sanitizeHtml, createDatumId } = _ModuleSupport;
+const { createDatumId } = _ModuleSupport;
 
 export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, CandlestickSeriesProperties<any>> {
     static readonly className = 'CandleStickSeries';
@@ -139,116 +139,8 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
         });
     }
 
-    getTooltipHtml(nodeDatum: OhlcNodeDatum): _ModuleSupport.TooltipContent {
-        const { id: seriesId, properties } = this;
-        const {
-            xKey,
-            openKey,
-            closeKey,
-            highKey,
-            lowKey,
-            xName,
-            yName,
-            openName,
-            closeName,
-            highName,
-            lowName,
-            tooltip,
-            item: { up, down },
-            itemStyler,
-        } = properties;
-        const { datum, itemId, isRising } = nodeDatum;
-
-        const xAxis = this.getCategoryAxis();
-        const yAxis = this.getValueAxis();
-
-        if (!xAxis || !yAxis || !this.properties.isValid()) return _ModuleSupport.EMPTY_TOOLTIP_CONTENT;
-
-        const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.substring(1);
-
-        const title = sanitizeHtml(yName);
-        const contentData: [string, string | undefined, _ModuleSupport.ChartAxis][] = [
-            [xKey, xName, xAxis],
-            [openKey, openName, yAxis],
-            [highKey, highName, yAxis],
-            [lowKey, lowName, yAxis],
-            [closeKey, closeName, yAxis],
-        ];
-
-        const content = contentData
-            .map(([key, name, axis]) => sanitizeHtml(`${name ?? capitalise(key)}: ${axis.formatDatum(datum[key])}`))
-            .join('<br/>');
-
-        const item = isRising ? up : down;
-        let format: AgCandlestickSeriesItemOptions | undefined;
-        if (itemStyler != null) {
-            const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = item;
-            format = this.cachedDatumCallback(createDatumId(this.getDatumId(datum), 'tooltip'), () =>
-                itemStyler({
-                    seriesId,
-                    itemId: datum.itemId,
-                    xKey,
-                    highKey,
-                    lowKey,
-                    openKey,
-                    closeKey,
-                    datum: datum.datum,
-                    fill,
-                    fillOpacity,
-                    strokeOpacity,
-                    stroke,
-                    strokeWidth,
-                    lineDash,
-                    lineDashOffset,
-                    highlighted: false,
-                })
-            );
-        }
-
-        const fill = format?.fill ?? item.fill;
-        const stroke = format?.stroke ?? item.stroke;
-
-        return tooltip.toTooltipHtml(
-            { title, content, backgroundColor: stroke },
-            {
-                seriesId: this.id,
-                itemId,
-                highlighted: false,
-                datum,
-                xKey,
-                openKey,
-                closeKey,
-                highKey,
-                lowKey,
-                xName,
-                yName,
-                openName,
-                closeName,
-                highName,
-                lowName,
-                fill,
-            }
-        );
-    }
-
-    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
-        const {
-            id,
-            data,
-            ctx: { legendManager },
-            visible,
-        } = this;
-        const {
-            xKey,
-            yName,
-            item: { up, down },
-            showInLegend,
-            legendItemName,
-        } = this.properties;
-
-        if (!data?.length || !xKey || legendType !== 'category') {
-            return [];
-        }
+    private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
+        const { up, down } = this.properties.item;
 
         const fill = new _ModuleSupport.LinearGradient(
             'rgb',
@@ -270,6 +162,30 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             90
         );
 
+        return {
+            marker: {
+                fill,
+                fillOpacity: up.fillOpacity,
+                stroke: stroke,
+                strokeWidth: up.strokeWidth ?? 1,
+                strokeOpacity: up.strokeOpacity ?? 1,
+            },
+        };
+    }
+
+    getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {
+        const {
+            id,
+            data,
+            visible,
+            ctx: { legendManager },
+        } = this;
+        const { xKey, yName, showInLegend, legendItemName } = this.properties;
+
+        if (!data?.length || !xKey || legendType !== 'category') {
+            return [];
+        }
+
         return [
             {
                 legendType: 'category',
@@ -280,15 +196,7 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
                 label: {
                     text: legendItemName ?? yName ?? id,
                 },
-                symbol: {
-                    marker: {
-                        fill,
-                        fillOpacity: up.fillOpacity,
-                        stroke: stroke,
-                        strokeWidth: up.strokeWidth ?? 1,
-                        strokeOpacity: up.strokeOpacity ?? 1,
-                    },
-                },
+                symbol: this.legendItemSymbol(),
                 legendItemName,
                 hideInLegend: !showInLegend,
             },

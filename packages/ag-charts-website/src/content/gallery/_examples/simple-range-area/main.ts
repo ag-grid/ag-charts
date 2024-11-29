@@ -3,10 +3,9 @@ import { AgChartOptions, AgCharts, AgRangeAreaSeriesTooltipRendererParams } from
 import { getData } from './data';
 
 const tooltip = {
-    renderer: ({ datum, xKey, yHighKey, yLowKey }: AgRangeAreaSeriesTooltipRendererParams) => {
-        const date = Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short' }).format(datum[xKey]);
-        return { content: `${date}: ${datum[yLowKey]} - ${datum[yHighKey]}` };
-    },
+    renderer: ({ datum, xKey }: AgRangeAreaSeriesTooltipRendererParams) => ({
+        heading: Intl.DateTimeFormat('en-GB', { year: 'numeric', month: 'short' }).format(datum[xKey]),
+    }),
 };
 
 const options: AgChartOptions = {
