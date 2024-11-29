@@ -1,7 +1,8 @@
-import base from '../../eslint.config.mjs';
+import base, { sonarjsConfig } from '../../eslint.config.mjs';
 
 export default [
     ...base,
+    ...sonarjsConfig,
     {
         rules: {
             'sonarjs/pseudo-random': 1,

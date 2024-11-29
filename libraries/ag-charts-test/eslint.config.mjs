@@ -1,6 +1,7 @@
-import base, { testDefaults } from '../../eslint.config.mjs';
+import base, { sonarjsConfig, testDefaults } from '../../eslint.config.mjs';
 
 export default [
+    ...sonarjsConfig,
     ...base,
     {
         ...testDefaults,
