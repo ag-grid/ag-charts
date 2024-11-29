@@ -1668,8 +1668,9 @@ describe('ChartOptions', () => {
 
             const preparedOptions = prepareOptions(options);
 
-            expect(preparedOptions.axes?.[0].crossLines?.[0].enabled).toBe(true);
-            expect(preparedOptions.axes?.[0].crossLines?.[0].label?.enabled).toBe(true);
+            const numberAxis = preparedOptions.axes?.[0] as AgNumberAxisOptions;
+            expect(numberAxis.crossLines?.[0].enabled).toBe(true);
+            expect(numberAxis.crossLines?.[0].label?.enabled).toBe(true);
         });
     });
 });
