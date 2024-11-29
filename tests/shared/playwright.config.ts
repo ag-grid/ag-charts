@@ -1,5 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const fw = process.env.FW_TYPE ?? 'unknown';
+let baseURL = 'about:blank';
+let command = 'exit 1';
+if (fw === 'angular') {
+    baseURL = 'http://localhost:4200';
+    command = 'npx ng serve --host 0.0.0.0';
+} else if (fw === 'react') {
+} else if (fw == 'vue3') {
+}
+
 /**
  * See https://playwright.dev/docs/test-configuration.
  */
@@ -19,7 +29,7 @@ export default defineConfig({
     /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
     use: {
         /* Base URL to use in actions like `await page.goto('/')`. */
-        baseURL: 'http://localhost:4200',
+        baseURL,
 
         /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
         trace: 'on-first-retry',
@@ -41,8 +51,8 @@ export default defineConfig({
 
     /* Run your local dev server before starting the tests */
     webServer: {
-        command: 'npx ng serve --host 0.0.0.0',
-        url: 'http://localhost:4200/',
+        command,
+        url: baseURL,
         reuseExistingServer: !process.env.CI,
     },
 });
