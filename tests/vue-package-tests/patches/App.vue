@@ -5,9 +5,7 @@ import { AgCharts } from "ag-charts-vue3";
 </script>
 
 <template>
-  <main>
     <AgCharts :options="options" />
-  </main>
 </template>
 
 <style scoped>
