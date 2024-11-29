@@ -164,6 +164,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
     private updateAxisLine() {
         if (!this.computedLayout) return;
 
+        this.lineNode.visible = this.line.enabled;
         this.lineNode.stroke = this.line.stroke;
         this.lineNode.strokeWidth = this.line.width;
     }
@@ -391,7 +392,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
     override update() {
         if (!this.computedLayout) return;
 
-        const { tickScale } = this;
+        const { tick, tickScale, gridLine, gridLength } = this;
         const { separatorLayout } = this.computedLayout;
         const ticksData: TickDatum[] = tickScale.ticks().map((tick, index) => ({
             ...separatorLayout[index],
@@ -401,8 +402,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
             translationY: Math.round(tickScale.convert(tick)),
         }));
 
-        this.gridLineGroupSelection.update(this.gridLength ? ticksData : []);
-        this.tickLineGroupSelection.update(this.tick.enabled ? ticksData : []);
+        this.gridLineGroupSelection.update(gridLine.enabled && gridLength ? ticksData : []);
+        this.tickLineGroupSelection.update(tick.enabled ? ticksData : []);
 
         this.updatePosition();
         this.updateCategoryLabels();
@@ -455,18 +456,16 @@ export class GroupedCategoryAxis extends CategoryAxis {
     protected override updateGridLines() {
         if (!this.gridLength) return;
 
-        const { gridLength, label, range } = this;
-        const { enabled, width, style } = this.gridLine;
-        const lineSize = gridLength * -label.getSideFlag();
+        const { width, style } = this.gridLine;
+        const lineSize = this.gridLength * -this.label.getSideFlag();
 
         this.gridLineGroupSelection.each((line, datum, index) => {
-            const y = datum.translationY;
             const { stroke, lineDash } = style[index % style.length];
-            line.visible = enabled && y >= range[0] && y <= range[1];
+            const y = datum.translationY;
+            line.visible = this.inRange(y);
             line.x1 = 0;
             line.x2 = lineSize;
-            line.y1 = y;
-            line.y2 = y;
+            line.y = y;
             line.stroke = stroke;
             line.strokeWidth = width;
             line.lineDash = lineDash;

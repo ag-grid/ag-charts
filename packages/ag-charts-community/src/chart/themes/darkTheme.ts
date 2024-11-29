@@ -22,6 +22,7 @@ import {
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_POLAR_SERIES_STROKE,
+    DEFAULT_SEPARATION_LINES_COLOUR,
     DEFAULT_TEXTBOX_COLOR,
     DEFAULT_TEXTBOX_FILL,
     DEFAULT_TEXTBOX_STROKE,
@@ -78,10 +79,12 @@ export class DarkTheme extends ChartTheme {
         params.set(IS_DARK_THEME, true);
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_DARK_BACKGROUND_FILL);
 
-        params.set(DEFAULT_LABEL_COLOUR, 'white');
-        params.set(DEFAULT_MUTED_LABEL_COLOUR, '#7D91A0');
-        params.set(DEFAULT_AXIS_GRID_COLOUR, '#545A6E');
-        params.set(DEFAULT_CROSS_LINES_COLOUR, 'white');
+        params.set(DEFAULT_LABEL_COLOUR, '#fff');
+        params.set(DEFAULT_MUTED_LABEL_COLOUR, '#7d91a0');
+        params.set(DEFAULT_AXIS_GRID_COLOUR, '#545a6e');
+        params.set(DEFAULT_CROSS_LINES_COLOUR, '#fff');
+        params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#7f8389');
+
         params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
             DEFAULT_DARK_FILLS.ORANGE,
             DEFAULT_DARK_FILLS.YELLOW,
@@ -108,17 +111,17 @@ export class DarkTheme extends ChartTheme {
         params.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
 
         params.set(DEFAULT_ANNOTATION_COLOR, DEFAULT_DARK_FILLS.BLUE);
-        params.set(DEFAULT_TEXT_ANNOTATION_COLOR, 'white');
+        params.set(DEFAULT_TEXT_ANNOTATION_COLOR, '#fff');
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_DARK_BACKGROUND_FILL);
         params.set(DEFAULT_ANNOTATION_STATISTICS_FILL, '#28313e');
         params.set(DEFAULT_ANNOTATION_STATISTICS_STROKE, '#4b525d');
-        params.set(DEFAULT_ANNOTATION_STATISTICS_COLOR, '#ffffff');
-        params.set(DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE, '#ffffff');
+        params.set(DEFAULT_ANNOTATION_STATISTICS_COLOR, '#fff');
+        params.set(DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE, '#fff');
 
         params.set(DEFAULT_TEXTBOX_FILL, '#28313e');
         params.set(DEFAULT_TEXTBOX_STROKE, '#4b525d');
-        params.set(DEFAULT_TEXTBOX_COLOR, '#ffffff');
+        params.set(DEFAULT_TEXTBOX_COLOR, '#fff');
 
         return params;
     }

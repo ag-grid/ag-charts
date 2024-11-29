@@ -50,6 +50,7 @@ import {
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_PADDING,
     DEFAULT_POLAR_SERIES_STROKE,
+    DEFAULT_SEPARATION_LINES_COLOUR,
     DEFAULT_SHADOW_COLOUR,
     DEFAULT_SPARKLINE_CROSSHAIR_STROKE,
     DEFAULT_TEXTBOX_COLOR,
@@ -275,7 +276,7 @@ export class ChartTheme {
             crosshair: { enabled: false },
         }),
         [CARTESIAN_AXIS_TYPE.GROUPED_CATEGORY]: ChartTheme.getAxisDefaults({
-            tick: { enabled: true },
+            tick: { enabled: true, stroke: DEFAULT_SEPARATION_LINES_COLOUR },
             label: { spacing: 10, rotation: 270 },
             paddingInner: 0.4,
             groupPaddingInner: 0.2,
@@ -452,21 +453,22 @@ export class ChartTheme {
         params.set(IS_ENTERPRISE, isEnterprise);
         params.set(IS_COMMUNITY, !isEnterprise);
         params.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');
-        params.set(DEFAULT_LABEL_COLOUR, 'rgb(70, 70, 70)');
-        params.set(DEFAULT_INVERTED_LABEL_COLOUR, 'white');
-        params.set(DEFAULT_MUTED_LABEL_COLOUR, 'rgb(140, 140, 140)');
-        params.set(DEFAULT_AXIS_GRID_COLOUR, 'rgb(224,234,241)');
-        params.set(DEFAULT_AXIS_LINE_COLOUR, 'rgb(195, 195, 195)');
-        params.set(DEFAULT_CROSS_LINES_COLOUR, 'rgb(70, 70, 70)');
+        params.set(DEFAULT_LABEL_COLOUR, '#464646');
+        params.set(DEFAULT_INVERTED_LABEL_COLOUR, '#fff');
+        params.set(DEFAULT_MUTED_LABEL_COLOUR, '#8c8c8c');
+        params.set(DEFAULT_AXIS_GRID_COLOUR, '#e0eaf1');
+        params.set(DEFAULT_AXIS_LINE_COLOUR, '#c3c3c3');
+        params.set(DEFAULT_CROSS_LINES_COLOUR, '#464646');
+        params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#d9d9d9');
         params.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_BACKGROUND_FILL);
         params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL);
-        params.set(DEFAULT_SHADOW_COLOUR, 'rgba(0, 0, 0, 0.5)');
+        params.set(DEFAULT_SHADOW_COLOUR, '#00000080');
         params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [
             DEFAULT_FILLS.ORANGE,
             DEFAULT_FILLS.YELLOW,
             DEFAULT_FILLS.GREEN,
         ]);
-        params.set(DEFAULT_SPARKLINE_CROSSHAIR_STROKE, '#AAA');
+        params.set(DEFAULT_SPARKLINE_CROSSHAIR_STROKE, '#aaa');
         params.set(DEFAULT_GAUGE_SERIES_COLOR_RANGE, [DEFAULT_FILLS.GREEN, DEFAULT_FILLS.YELLOW, DEFAULT_FILLS.RED]);
         params.set(DEFAULT_FUNNEL_SERIES_COLOR_RANGE, [
             '#5090dc',
@@ -481,8 +483,8 @@ export class ChartTheme {
         params.set(DEFAULT_PADDING, 20);
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'block');
         params.set(DEFAULT_CAPTION_ALIGNMENT, 'center');
-        params.set(DEFAULT_HIERARCHY_FILLS, ['#ffffff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
-        params.set(DEFAULT_HIERARCHY_STROKES, ['#ffffff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
+        params.set(DEFAULT_HIERARCHY_FILLS, ['#fff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
+        params.set(DEFAULT_HIERARCHY_STROKES, ['#fff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
         params.set(DEFAULT_FIBONACCI_STROKES, [...Object.values(DEFAULT_STROKES), '#648096']);
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);
 
@@ -491,15 +493,15 @@ export class ChartTheme {
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, DEFAULT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_HANDLE_FILL, DEFAULT_BACKGROUND_FILL);
         params.set(DEFAULT_ANNOTATION_STATISTICS_FILL, '#fafafa');
-        params.set(DEFAULT_ANNOTATION_STATISTICS_STROKE, '#dddddd');
-        params.set(DEFAULT_ANNOTATION_STATISTICS_COLOR, '#000000');
+        params.set(DEFAULT_ANNOTATION_STATISTICS_STROKE, '#ddd');
+        params.set(DEFAULT_ANNOTATION_STATISTICS_COLOR, '#000');
         params.set(DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE, '#181d1f');
         params.set(DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL, '#e35c5c');
         params.set(DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE, '#e35c5c');
 
         params.set(DEFAULT_TEXTBOX_FILL, '#fafafa');
-        params.set(DEFAULT_TEXTBOX_STROKE, '#dddddd');
-        params.set(DEFAULT_TEXTBOX_COLOR, '#000000');
+        params.set(DEFAULT_TEXTBOX_STROKE, '#ddd');
+        params.set(DEFAULT_TEXTBOX_COLOR, '#000');
 
         params.set(DEFAULT_TOOLBAR_POSITION, 'top');
         params.set(DEFAULT_GRIDLINE_ENABLED, false);

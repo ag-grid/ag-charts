@@ -85,7 +85,10 @@ export interface AgCategoryAxisOptions extends AgBaseCartesianAxisOptions {
     groupPaddingInner?: Ratio;
 }
 
-export interface AgGroupedCategoryAxisOptions extends AgBaseCartesianAxisOptions<AgGroupedCategoryAxisLabelOptions> {
+type AgGroupedCategoryAxisTickOptions = Omit<AgAxisBaseTickOptions, 'size'>;
+
+export interface AgGroupedCategoryAxisOptions
+    extends Omit<AgBaseCartesianAxisOptions<AgGroupedCategoryAxisLabelOptions>, 'crossLines' | 'tick'> {
     type: 'grouped-category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
@@ -93,6 +96,8 @@ export interface AgGroupedCategoryAxisOptions extends AgBaseCartesianAxisOptions
     groupPaddingInner?: Ratio;
     /** An array of depth options, starting from the leafs. */
     depthOptions?: AgGroupedCategoryDepthOptions[];
+    /** Configuration for the axis ticks. */
+    tick?: AgGroupedCategoryAxisTickOptions;
 }
 
 export interface AgOrdinalTimeAxisOptions extends Omit<AgCategoryAxisOptions, 'type'> {
