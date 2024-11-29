@@ -1,6 +1,6 @@
 {
   "name": "ag-charts",
-  "version": "10.3.3-beta.20241128.1149",
+  "version": "10.3.3-beta.20241128.1547",
   "license": "MIT",
   "scripts": {
     "init": "yarn install",
@@ -136,7 +136,10 @@
       "plugins/ag-charts-generate-code-reference-files",
       "plugins/ag-charts-generate-example-files",
       "plugins/ag-charts-task-autogen",
-      "libraries/ag-charts-test"
+      "libraries/ag-charts-test",
+      "tests/angular-package-tests",
+      "tests/react-package-tests",
+      "tests/vue-package-tests"
     ],
     "nohoist": [
       "**/tinypool",
