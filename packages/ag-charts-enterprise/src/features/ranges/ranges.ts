@@ -11,12 +11,13 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
     @Validate(OBJECT)
     public buttons = new PropertiesArray(RangesButtonProperties);
 
-    private readonly toolbar = new Toolbar(this.ctx.localeManager);
+    private readonly toolbar: _ModuleSupport.BaseToolbar;
     private readonly verticalSpacing = 10;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
+        this.toolbar = new Toolbar(this.ctx.localeManager);
         this.toolbar.addClass('ag-charts-range-buttons');
         ctx.domManager.addChild('canvas-overlay', 'range-buttons', this.toolbar.getElement());
 
@@ -24,11 +25,18 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
             ctx.zoomManager.addListener('zoom-change', this.onZoomChanged.bind(this)),
-            () => this.toolbar.destroy()
+            this.teardown.bind(this)
         );
     }
 
+    private teardown() {
+        this.ctx.domManager.removeChild('canvas-overlay', 'range-buttons');
+        this.toolbar.destroy();
+    }
+
     private onLayoutStart(event: _ModuleSupport.LayoutContext) {
+        if (!this.enabled) return;
+
         const { buttons, toolbar, verticalSpacing } = this;
         const { layoutBox } = event;
 
