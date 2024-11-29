@@ -6,17 +6,22 @@ editor=false
 mode=docker
 interactive=false
 update=false
+production=false
 it_opts=$([[ ${TTY:-} -ne "" ]] && echo "-it" || echo "")
 
 passthrough_opts=-n
 
-while getopts ":eniu" opt; do
+while getopts ":eniup" opt; do
   case $opt in
     e)
       editor=true
       ;;
     n)
       mode=native
+      ;;
+    p)
+      production=true
+      passthrough_opts="${passthrough_opts} -p"
       ;;
     u)
       update=true
@@ -39,6 +44,9 @@ done
 shift $((OPTIND - 1))
 
 version=$1
+if $(latest) ; then
+  version=latest
+fi
 
 if [[ ${mode} == "docker" ]] ; then
     repo_dir=$(git rev-parse --show-toplevel)
@@ -53,11 +61,15 @@ if [[ ${mode} == "docker" ]] ; then
     if ${editor} ; then
         code . &
     fi
+    port_spec=
+    if ${interactive} ; then
+        port_spec=-p 4200:4200
+    fi
     echo ">>> docker run ..."
     mkdir -p ./npm-cache
     docker run ${it_opts} --rm --ipc=host \
         -v $(pwd):/project \
-        -p 4200:4200 \
+        $port_spec \
         mcr.microsoft.com/playwright:v1.45.0-jammy \
         /bin/bash -il /project/run.sh ${passthrough_opts} ${version}
     exitCode=$?
@@ -76,16 +88,26 @@ git config --global init.defaultBranch latest
 git config --global user.email "me@ag-grid.com"
 git config --global user.name "myself"
 
-echo ">>> npm i -g @angular/cli@^${version}.0.0"
 npm config set cache $(pwd)/.npm-cache
-npm i -g @angular/cli@^${version}.0.0
+if [[ ${version} == "latest" ]] ; then
+    echo ">>> npm i -g @angular/cli@latest"
+    npm i -g @angular/cli
+else
+    echo ">>> npm i -g @angular/cli@^${version}.0.0"
+    npm i -g @angular/cli@^${version}.0.0
+fi
 echo ">>> ng new angular-${version}-test"
 echo "" | ng new angular-${version}-test --defaults=true --strict --prefix=app --style=scss --package-manager=npm --routing=false --interactive=false
 
 cd angular-${version}-test
 
-echo ">>> npm i ../ag-charts*.tgz"
-npm i ../ag-charts-types.tgz ../ag-charts-locale.tgz ../ag-charts-community.tgz ../ag-charts-enterprise.tgz ../ag-charts-angular.tgz @playwright/test@1.45.0
+if ${production} ; then
+    echo ">>> npm i ag-charts-angular (production)"
+    npm i ag-charts-angular @playwright/test@1.45.0
+else
+    echo ">>> npm i ../ag-charts*.tgz"
+    npm i ../ag-charts-types.tgz ../ag-charts-locale.tgz ../ag-charts-community.tgz ../ag-charts-enterprise.tgz ../ag-charts-angular.tgz @playwright/test@1.45.0
+fi
 git add .
 git commit -m "Initial commit"
 
@@ -105,6 +127,9 @@ done
 
 mv ../e2e ../playwright.config.ts ./
 export ANGULAR_VERSION=${version}
+if ${production} ; then
+    export ANGULAR_VERSION=production-$ANGULAR_VERSION
+fi
 
 if ${interactive} ; then
     echo ">>> ng serve"

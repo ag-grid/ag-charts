@@ -5,12 +5,63 @@
   "projectType": "",
   "targets": {
     "test:package": {
-      "executor": "nx:run-commands",
-      "cache": false,
+      "executor": "nx:noop",
+      "inputs": [],
+      "outputs": [],
+      "dependsOn": [
+        "test:package:17",
+        "test:package:18",
+        "test:package:19",
+        "test:package:latest",
+        "test:package:production-19"
+      ],
+      "configurations": {
+        "update": {}
+      }
+    },
+    "test:package:17": {
       "dependsOn": ["^pack"],
-      "options": {
-        "parallel": false,
-        "commands": ["{projectRoot}/run.sh 17", "{projectRoot}/run.sh 18", "{projectRoot}/run.sh 19"]
+      "command": "{projectRoot}/run.sh 17",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run.sh -u 17"
+        }
+      }
+    },
+    "test:package:18": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run.sh 18",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run.sh -u 18"
+        }
+      }
+    },
+    "test:package:19": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run.sh 19",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run.sh -u 19"
+        }
+      }
+    },
+    "test:package:production-19": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run.sh -p 19",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run.sh -p -u 19"
+        }
+      }
+    },
+    "test:package:latest": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run.sh -u latest",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run.sh -u latest"
+        }
       }
     }
   },
@@ -19,8 +70,6 @@
     "ag-charts-enterprise",
     "ag-charts-locale",
     "ag-charts-types",
-    "ag-charts-angular",
-    "ag-charts-react",
-    "ag-charts-vue3"
+    "ag-charts-angular"
   ]
 }
