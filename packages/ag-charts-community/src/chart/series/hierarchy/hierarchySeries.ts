@@ -51,11 +51,10 @@ export class HierarchyNode<TDatum = Record<string, any>>
     constructor(
         public readonly series: ISeries<any, any>,
         public readonly index: number,
+        public readonly rootIndex: number,
         public readonly datum: TDatum | undefined,
-        public readonly size: number,
+        public readonly sizeValue: number,
         public readonly colorValue: number | undefined,
-        public readonly fill: string | undefined,
-        public readonly stroke: string | undefined,
         public readonly sumSize: number,
         public readonly depth: number | undefined,
         public readonly parent: HierarchyNode<TDatum> | undefined,
@@ -109,21 +108,11 @@ export abstract class HierarchySeries<
     TProps extends HierarchySeriesProperties<any> = HierarchySeriesProperties<any>,
     TDatum extends SeriesNodeDatum = SeriesNodeDatum,
 > extends Series<TDatum, TProps> {
-    rootNode = new HierarchyNode<TDatum>(
-        this,
-        0,
-        undefined,
-        0,
-        undefined,
-        undefined,
-        undefined,
-        0,
-        undefined,
-        undefined,
-        []
-    );
+    rootNode = new HierarchyNode<TDatum>(this, 0, 0, undefined, 0, undefined, 0, undefined, undefined, []);
     colorDomain: number[] = [0, 0];
     maxDepth = 0;
+
+    protected colorScale = new ColorScale();
 
     protected animationState: StateMachine<HierarchyAnimationState, HierarchyAnimationEvent<TNode, TDatum>>;
 
@@ -188,7 +177,7 @@ export abstract class HierarchySeries<
     }
 
     override processData() {
-        const { childrenKey, sizeKey, colorKey, fills, strokes, colorRange } = this.properties;
+        const { childrenKey, sizeKey, colorKey, colorRange } = this.properties;
 
         let index = 0;
         const getIndex = () => {
@@ -201,53 +190,54 @@ export abstract class HierarchySeries<
         let maxColor = -Infinity;
         const colors: (number | undefined)[] = new Array((this.data?.length ?? 0) + 1).fill(undefined);
 
-        const createNode = (datum: any, parent: HierarchyNode<TDatum>): HierarchyNode<TDatum> => {
+        const createNode = (datum: any, rootIndex: number, parent: HierarchyNode<TDatum>): HierarchyNode<TDatum> => {
             const nodeIndex = getIndex();
             const depth = parent.depth != null ? parent.depth + 1 : 0;
             const children = childrenKey != null ? datum[childrenKey] : undefined;
             const isLeaf = children == null || children.length === 0;
 
-            let size = sizeKey != null ? datum[sizeKey] : undefined;
-            if (Number.isFinite(size)) {
-                size = Math.max(size, 0);
+            let sizeValue = sizeKey != null ? datum[sizeKey] : undefined;
+            if (Number.isFinite(sizeValue)) {
+                sizeValue = Math.max(sizeValue, 0);
             } else {
-                size = isLeaf ? 1 : 0;
+                sizeValue = isLeaf ? 1 : 0;
             }
 
-            const sumSize = size;
+            const sumSize = sizeValue;
             maxDepth = Math.max(maxDepth, depth);
 
-            const color = colorKey != null ? datum[colorKey] : undefined;
-            if (typeof color === 'number') {
-                colors[nodeIndex] = color;
-                minColor = Math.min(minColor, color);
-                maxColor = Math.max(maxColor, color);
+            const colorValue = colorKey != null ? datum[colorKey] : undefined;
+            if (typeof colorValue === 'number') {
+                colors[nodeIndex] = colorValue;
+                minColor = Math.min(minColor, colorValue);
+                maxColor = Math.max(maxColor, colorValue);
             }
 
             return appendChildren(
                 new HierarchyNode<TDatum>(
                     this,
                     nodeIndex,
+                    rootIndex ?? 0,
                     datum,
-                    size,
-                    color,
-                    undefined,
-                    undefined,
+                    sizeValue,
+                    colorValue,
                     sumSize,
                     depth,
                     parent,
                     []
                 ),
+                rootIndex,
                 children
             );
         };
 
         const appendChildren = (
             node: Mutable<HierarchyNode<TDatum>>,
+            rootIndex: number | undefined,
             data: TDatum[] | undefined
         ): HierarchyNode<TDatum> => {
-            data?.forEach((datum: TDatum) => {
-                const child = createNode(datum, node);
+            data?.forEach((datum: TDatum, childIndex: number) => {
+                const child = createNode(datum, rootIndex ?? childIndex, node);
                 node.children.push(child);
                 node.sumSize += child.sumSize;
             });
@@ -255,48 +245,16 @@ export abstract class HierarchySeries<
         };
 
         const rootNode = appendChildren(
-            new HierarchyNode<TDatum>(
-                this,
-                0,
-                undefined,
-                0,
-                undefined,
-                undefined,
-                undefined,
-                0,
-                undefined,
-                undefined,
-                []
-            ),
+            new HierarchyNode<TDatum>(this, 0, 0, undefined, 0, undefined, 0, undefined, undefined, []),
+            undefined,
             this.data
         );
 
         const colorDomain = [minColor, maxColor];
 
-        let colorScale: ColorScale | undefined;
-        if (colorRange != null && Number.isFinite(minColor) && Number.isFinite(maxColor)) {
-            colorScale = new ColorScale();
-            colorScale.domain = colorDomain;
-            colorScale.range = colorRange;
-            colorScale.update();
-        }
-
-        rootNode.children.forEach((child, childIndex) => {
-            child.walk((node: Mutable<HierarchyNode<TDatum>>) => {
-                let fill: string | undefined;
-
-                const color = colors[node.index];
-                if (color != null) {
-                    fill = colorScale?.convert(color);
-                }
-
-                fill ??= fills?.[childIndex % fills.length];
-
-                node.fill = fill;
-                // FIXME: If there's a color scale, the strokes won't make sense. For now, just hard-code this default
-                node.stroke = colorScale == null ? strokes?.[childIndex % strokes.length] : 'rgba(0, 0, 0, 0.2)';
-            });
-        });
+        this.colorScale.domain = minColor < maxColor ? [minColor, maxColor] : [0, 1];
+        this.colorScale.range = colorRange ?? ['black'];
+        this.colorScale.update();
 
         this.rootNode = rootNode;
         this.maxDepth = maxDepth;

@@ -17,7 +17,8 @@ export interface AgRangeBarSeriesStyle extends FillOptions, StrokeOptions, LineD
 
 export type AgRangeBarSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
     AgRangeBarSeriesOptionsKeys &
-    AgRangeBarSeriesOptionsNames;
+    AgRangeBarSeriesOptionsNames &
+    AgRangeBarSeriesStyle;
 
 export interface AgRangeBarSeriesLabelOptions<TDatum>
     extends AgChartLabelOptions<TDatum, AgRangeBarSeriesLabelFormatterParams> {

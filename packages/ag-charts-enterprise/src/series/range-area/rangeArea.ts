@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type FillOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateData } from './rangeAreaAggregation';
 import { type RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties';
@@ -33,6 +33,7 @@ const {
     extent,
     getMarker,
     visibleRangeIndices,
+    createDatumId,
     PointerEvents,
     Group,
     BBox,
@@ -59,6 +60,8 @@ interface RangeAreaSpanPointDatum {
     high: _ModuleSupport.LineSpanPointDatum;
     low: _ModuleSupport.LineSpanPointDatum;
 }
+
+type ItemStyle = Required<FillOptions & StrokeOptions & { size: number }>;
 
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     _ModuleSupport.Group,
@@ -501,6 +504,42 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
+    private getMarkerItemBaseStyle(highlighted = false): ItemStyle {
+        const { properties } = this;
+        const { marker } = properties;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(marker.strokeWidth);
+
+        return {
+            size: marker.size,
+            fill: highlightStyle?.fill ?? marker.fill!,
+            fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
+            stroke: highlightStyle?.stroke ?? marker.stroke!,
+            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
+        };
+    }
+
+    protected getMarkerItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted = false) {
+        const { id: seriesId, properties } = this;
+        const { xKey, yHighKey, yLowKey, marker } = properties;
+        const { itemStyler } = marker;
+
+        if (itemStyler == null) return;
+
+        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+            return itemStyler({
+                seriesId,
+                datum,
+                xKey,
+                yHighKey,
+                yLowKey,
+                highlighted,
+                ...format,
+            });
+        });
+    }
+
     protected override updateMarkerNodes(opts: {
         markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RangeAreaMarkerDatum>;
         isHighlight: boolean;
@@ -579,6 +618,9 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         if (xValue == null) return;
 
+        const format = this.getMarkerItemBaseStyle();
+        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format));
+
         const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
         return tooltip.formatTooltip(
             {
@@ -598,6 +640,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 xKey,
                 yHighKey,
                 yHighName,
+                ...format,
             }
         );
     }
