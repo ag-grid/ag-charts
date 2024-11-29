@@ -8,6 +8,8 @@ if (fw === 'angular') {
     command = 'npx ng serve --host 0.0.0.0';
 } else if (fw === 'react') {
 } else if (fw == 'vue3') {
+    baseURL = 'http://localhost:5173';
+    command = 'npm run dev --host';
 }
 
 /**

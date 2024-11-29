@@ -3,6 +3,7 @@
 set -eu
 
 fw=angular
+dev_port=4200
 
 function install_fw {
     if [[ ${version} == "latest" ]] ; then
