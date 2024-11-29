@@ -77,13 +77,8 @@ const mixinFlippedRangeCases = (
             ...example,
             options: {
                 ...example.options,
-                axes: example.options.axes?.map((axis) =>
-                    axis.crossLines
-                        ? {
-                              ...axis,
-                              crossLines: axis.crossLines.map((c) => flipCrossLinesRange(c)),
-                          }
-                        : axis
+                axes: example.options.axes?.map((axis: any) =>
+                    axis.crossLines ? { ...axis, crossLines: axis.crossLines.map(flipCrossLinesRange) } : axis
                 ),
             },
         };
@@ -100,11 +95,13 @@ const mixinLabelPositionCases = (example: CartesianTestCase): Record<string, Car
             ...example,
             options: {
                 ...example.options,
-                axes: example.options.axes?.map((axis) =>
+                axes: example.options.axes?.map((axis: any) =>
                     axis.crossLines
                         ? {
                               ...axis,
-                              crossLines: axis.crossLines.map((c) => applyCrossLinesLabelPosition(c, position)),
+                              crossLines: axis.crossLines.map((c: AgCartesianCrossLineOptions) =>
+                                  applyCrossLinesLabelPosition(c, position)
+                              ),
                           }
                         : axis
                 ),

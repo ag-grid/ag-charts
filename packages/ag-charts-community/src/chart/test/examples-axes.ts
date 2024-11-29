@@ -1,5 +1,6 @@
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
+import { mergeDefaults } from '../../util/object';
 import { day } from '../../util/time/day';
 import { DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY_EXTENDED } from './data';
 import * as data from './data-axes';
@@ -467,7 +468,7 @@ export const GROUPED_CATEGORY_AXIS_GRIDLINE_TICKLINE_CLIPPING: AgCartesianChartO
         {
             type: 'grouped-category',
             position: 'bottom',
-            ...extremeAxisConfig,
+            ...mergeDefaults({ label: { avoidCollisions: false } }, extremeAxisConfig),
         },
         {
             type: 'number',
