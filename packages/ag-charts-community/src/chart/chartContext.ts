@@ -119,8 +119,8 @@ export class ChartContext implements ModuleContext {
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.cursorManager = new CursorManager(this.domManager);
         this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
-        this.keyNavManager = new KeyNavManager(this.interactionManager);
         this.regionManager = new RegionManager(this.interactionManager);
+        this.keyNavManager = new KeyNavManager(this.interactionManager, this.regionManager);
         this.contextMenuRegistry = new ContextMenuRegistry(this.regionManager);
         this.gestureDetector = new GestureDetector(this.domManager);
         this.updateService = new UpdateService(updateCallback);
@@ -151,10 +151,10 @@ export class ChartContext implements ModuleContext {
         this.contextMenuRegistry.destroy();
         this.domManager.destroy();
         this.highlightManager.destroy();
-        this.interactionManager.destroy();
         this.keyNavManager.destroy();
-        this.proxyInteractionService.destroy();
         this.regionManager.destroy();
+        this.interactionManager.destroy();
+        this.proxyInteractionService.destroy();
         this.syncManager.destroy();
         this.tooltipManager.destroy();
         this.zoomManager.destroy();
