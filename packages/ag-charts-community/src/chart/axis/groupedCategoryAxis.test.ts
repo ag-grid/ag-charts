@@ -26,7 +26,7 @@ import {
 function applyRotation<T extends AgCartesianChartOptions | AgPolarChartOptions>(opts: T, rotation: number): T {
     return {
         ...opts,
-        axes: opts.axes?.map((axis) => ({ ...axis, label: { ...axis.label, rotation } })),
+        axes: opts.axes?.map((axis) => ({ ...axis, label: { ...axis.label, rotation, avoidCollisions: false } })),
     };
 }
 

@@ -441,6 +441,7 @@ const extremeAxisConfig = {
         width: 400,
     },
     label: {
+        avoidCollisions: false,
         spacing: 5,
     },
 };

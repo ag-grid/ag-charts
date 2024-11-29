@@ -455,7 +455,7 @@ describe('ChartOptions', () => {
     },
     "shadow": {
       "blur": 5,
-      "color": "rgba(0, 0, 0, 0.5)",
+      "color": "#00000080",
       "enabled": false,
       "xOffset": 3,
       "yOffset": 3,
@@ -497,7 +497,7 @@ describe('ChartOptions', () => {
     },
     "shadow": {
       "blur": 5,
-      "color": "rgba(0, 0, 0, 0.5)",
+      "color": "#00000080",
       "enabled": false,
       "xOffset": 3,
       "yOffset": 3,
@@ -539,7 +539,7 @@ describe('ChartOptions', () => {
     },
     "shadow": {
       "blur": 5,
-      "color": "rgba(0, 0, 0, 0.5)",
+      "color": "#00000080",
       "enabled": false,
       "xOffset": 3,
       "yOffset": 3,
@@ -581,7 +581,7 @@ describe('ChartOptions', () => {
     },
     "shadow": {
       "blur": 5,
-      "color": "rgba(0, 0, 0, 0.5)",
+      "color": "#00000080",
       "enabled": false,
       "xOffset": 3,
       "yOffset": 3,
@@ -605,7 +605,7 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
-      "color": "rgb(70, 70, 70)",
+      "color": "#464646",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
@@ -643,7 +643,7 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
-      "color": "rgb(70, 70, 70)",
+      "color": "#464646",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
@@ -710,7 +710,7 @@ describe('ChartOptions', () => {
     },
     "shadow": {
       "blur": 5,
-      "color": "rgba(0, 0, 0, 0.5)",
+      "color": "#00000080",
       "enabled": false,
       "xOffset": 3,
       "yOffset": 3,
@@ -752,7 +752,7 @@ describe('ChartOptions', () => {
     },
     "shadow": {
       "blur": 5,
-      "color": "rgba(0, 0, 0, 0.5)",
+      "color": "#00000080",
       "enabled": false,
       "xOffset": 3,
       "yOffset": 3,
@@ -794,7 +794,7 @@ describe('ChartOptions', () => {
     },
     "shadow": {
       "blur": 5,
-      "color": "rgba(0, 0, 0, 0.5)",
+      "color": "#00000080",
       "enabled": false,
       "xOffset": 3,
       "yOffset": 3,
@@ -836,7 +836,7 @@ describe('ChartOptions', () => {
     },
     "shadow": {
       "blur": 5,
-      "color": "rgba(0, 0, 0, 0.5)",
+      "color": "#00000080",
       "enabled": false,
       "xOffset": 3,
       "yOffset": 3,
@@ -860,7 +860,7 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
-      "color": "rgb(70, 70, 70)",
+      "color": "#464646",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
@@ -898,7 +898,7 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
-      "color": "rgb(70, 70, 70)",
+      "color": "#464646",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
@@ -965,7 +965,7 @@ describe('ChartOptions', () => {
     },
     "shadow": {
       "blur": 5,
-      "color": "rgba(0, 0, 0, 0.5)",
+      "color": "#00000080",
       "enabled": false,
       "xOffset": 3,
       "yOffset": 3,
@@ -1007,7 +1007,7 @@ describe('ChartOptions', () => {
     },
     "shadow": {
       "blur": 5,
-      "color": "rgba(0, 0, 0, 0.5)",
+      "color": "#00000080",
       "enabled": false,
       "xOffset": 3,
       "yOffset": 3,
@@ -1049,7 +1049,7 @@ describe('ChartOptions', () => {
     },
     "shadow": {
       "blur": 5,
-      "color": "rgba(0, 0, 0, 0.5)",
+      "color": "#00000080",
       "enabled": false,
       "xOffset": 3,
       "yOffset": 3,
@@ -1091,7 +1091,7 @@ describe('ChartOptions', () => {
     },
     "shadow": {
       "blur": 5,
-      "color": "rgba(0, 0, 0, 0.5)",
+      "color": "#00000080",
       "enabled": false,
       "xOffset": 3,
       "yOffset": 3,
@@ -1115,7 +1115,7 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
-      "color": "rgb(70, 70, 70)",
+      "color": "#464646",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
@@ -1153,7 +1153,7 @@ describe('ChartOptions', () => {
       "type": "linear",
     },
     "label": {
-      "color": "rgb(70, 70, 70)",
+      "color": "#464646",
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
