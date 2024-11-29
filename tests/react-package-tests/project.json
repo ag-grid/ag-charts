@@ -1,0 +1,23 @@
+{
+  "name": "react-package-tests",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tests/react-package-tests",
+  "projectType": "",
+  "targets": {
+    "test:package": {
+      "executor": "nx:noop",
+      "inputs": [],
+      "outputs": [],
+      "configurations": {
+        "update": {}
+      }
+    }
+  },
+  "implicitDependencies": [
+    "ag-charts-community",
+    "ag-charts-enterprise",
+    "ag-charts-locale",
+    "ag-charts-types",
+    "ag-charts-react"
+  ]
+}

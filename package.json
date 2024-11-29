@@ -136,7 +136,10 @@
       "plugins/ag-charts-generate-code-reference-files",
       "plugins/ag-charts-generate-example-files",
       "plugins/ag-charts-task-autogen",
-      "libraries/ag-charts-test"
+      "libraries/ag-charts-test",
+      "tests/angular-package-tests",
+      "tests/react-package-tests",
+      "tests/vue-package-tests"
     ],
     "nohoist": [
       "**/tinypool",

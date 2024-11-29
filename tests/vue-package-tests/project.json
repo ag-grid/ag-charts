@@ -1,0 +1,23 @@
+{
+  "name": "vue-package-tests",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "tests/vue-package-tests",
+  "projectType": "",
+  "targets": {
+    "test:package": {
+      "executor": "nx:noop",
+      "inputs": [],
+      "outputs": [],
+      "configurations": {
+        "update": {}
+      }
+    }
+  },
+  "implicitDependencies": [
+    "ag-charts-community",
+    "ag-charts-enterprise",
+    "ag-charts-locale",
+    "ag-charts-types",
+    "ag-charts-vue3"
+  ]
+}
