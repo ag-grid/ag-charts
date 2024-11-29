@@ -8,8 +8,27 @@
       "executor": "nx:noop",
       "inputs": [],
       "outputs": [],
+      "dependsOn": ["test:package:local-latest", "test:package:production-latest"],
       "configurations": {
         "update": {}
+      }
+    },
+    "test:package:local-latest": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run.sh latest",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run.sh -u latest"
+        }
+      }
+    },
+    "test:package:production-latest": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run.sh -p 19",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run.sh -p -u latest"
+        }
       }
     }
   },
