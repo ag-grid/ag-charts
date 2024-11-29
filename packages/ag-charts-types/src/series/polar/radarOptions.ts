@@ -2,7 +2,7 @@ import type { DatumCallbackParams } from '../../chart/callbackOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart/tooltipOptions';
 import type { LineDashOptions, StrokeOptions } from '../cartesian/commonOptions';
-import type { AgSeriesMarkerOptions } from '../markerOptions';
+import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions } from '../seriesOptions';
 import type { AgRadialSeriesOptionsKeys, AgRadialSeriesOptionsNames } from './radialOptions';
 
@@ -30,7 +30,8 @@ export interface AgBaseRadarSeriesOptions<TDatum = any>
 
 export type AgRadarSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
     AgRadialSeriesOptionsKeys &
-    AgRadialSeriesOptionsNames;
+    AgRadialSeriesOptionsNames &
+    Omit<AgSeriesMarkerStyle, 'shape'>;
 
 export type AgRadarSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgRadialSeriesOptionsKeys &

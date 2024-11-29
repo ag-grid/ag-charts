@@ -35,7 +35,8 @@ export type AgRadialSeriesLabelFormatterParams = AgRadialSeriesOptionsKeys & AgR
 export interface AgRadialSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgRadialSeriesOptionsKeys,
-        AgRadialSeriesOptionsNames {}
+        AgRadialSeriesOptionsNames,
+        AgRadialSeriesStyle {}
 
 export type AgRadialSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum> &
     AgRadialSeriesOptionsKeys &
