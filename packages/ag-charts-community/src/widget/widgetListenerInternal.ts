@@ -152,9 +152,9 @@ export class WidgetListenerInternal {
         );
     }
 
-    private startDrag<T extends Targetable>(current: T, downEvent: MouseEvent) {
+    private startDrag<T extends Targetable>(current: T, initialDownEvent: MouseEvent) {
         const origin: DragOrigin = { pageX: NaN, pageY: NaN, offsetX: NaN, offsetY: NaN };
-        partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, downEvent);
+        partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, initialDownEvent);
 
         const dragCallbacks: DragCallbacks = {
             down: (downEvent: MouseEvent) => {
@@ -173,7 +173,7 @@ export class WidgetListenerInternal {
             },
         };
 
-        startDrag(WidgetListenerInternal, dragCallbacks, downEvent);
+        startDrag(WidgetListenerInternal, dragCallbacks, initialDownEvent);
     }
 
     private endDrag(target: Targetable, { sourceEvent, clientX, clientY }: DragWidgetEvent<'drag-end'>) {
