@@ -373,7 +373,7 @@ jobs:
                   path: |
                       reports/
 
-    framework_package_test:
+    fw_pkg_test:
         runs-on: ubuntu-24.04
         name: Framework Package Tests (${{ matrix.framework }})
         needs: build_lint
@@ -400,11 +400,11 @@ jobs:
 
             - name: nx package:test
               id: package-test
-              run: yarn nx ${{ github.event.inputs.nx_command || 'affected' }} -t test:package -p ${{ matrix.framework }}-package-tests --configuration=ci
+              run: yarn nx run-many -t test:package -p ${{ matrix.framework }}-package-tests --configuration=ci
 
     report:
         runs-on: ubuntu-24.04
-        needs: [build_lint, test, e2e, sonarqube, framework_package_test]
+        needs: [build_lint, test, e2e, sonarqube, fw_pkg_test]
         if: cancelled() != true
         steps:
             - name: Checkout
@@ -448,6 +448,8 @@ jobs:
                   elif [ "${{ needs.test.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.e2e.result }}" == "failure" ] ; then
+                    WORKFLOW_STATUS="failure"
+                  elif [ "${{ needs.fw_pkg_test.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="failure"
                   elif [ "${{ needs.sonarqube.result }}" == "failure" ] ; then
                     WORKFLOW_STATUS="partial"
@@ -501,7 +503,8 @@ jobs:
                       Format: ${{ needs.build_lint.outputs.format == 'success' && '✅' || needs.build_lint.outputs.format == 'failure' && '❌' || 'NA' }}
                       Test: ${{ needs.test.result == 'success' && '✅' || needs.test.result == 'failure' && '❌' || 'NA' }}
                       E2E: ${{ needs.e2e.result == 'success' && '✅' || needs.e2e.result == 'failure' && '❌' || 'NA' }}
-                      SonarQube: ${{ needs.sonarqube.result == 'success' && '✅' || needs.sonarqube.result == 'failure' && '❌' || 'NA' }}
+                      FW Pkg: ${{ needs.fw_pkg_test.result == 'success' && '✅' || needs.fw_pkg_test.result == 'failure' && '❌' || 'NA' }}
+                      Sonar: ${{ needs.sonarqube.result == 'success' && '✅' || needs.sonarqube.result == 'failure' && '❌' || 'NA' }}
 
                       *Changes:*
 
