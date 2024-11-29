@@ -296,14 +296,14 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                             newColorOpacity: string,
                             newColor: string,
                             newOpacity: number,
-                            isMultiColor: boolean
+                            newIsMultiColor: boolean
                         ) => {
                             colorEl.style.setProperty('--color', newColorOpacity);
                             colorEl.classList.toggle(
                                 '.ag-charts-dialog__color-picker-button--multi-color',
-                                isMultiColor
+                                newIsMultiColor
                             );
-                            onChange(newColorOpacity, newColor, newOpacity, isMultiColor);
+                            onChange(newColorOpacity, newColor, newOpacity, newIsMultiColor);
                         },
                         onChangeHide,
                     });
