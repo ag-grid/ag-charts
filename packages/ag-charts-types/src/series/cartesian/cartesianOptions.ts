@@ -63,12 +63,16 @@ export interface AgBaseCartesianChartOptions {
     annotations?: AgAnnotationsOptions;
 }
 
+export type AgGroupedCategoryDepthLabelOptions = Pick<
+    AgBaseAxisLabelOptions,
+    'enabled' | 'avoidCollisions' | 'color' | 'fontFamily' | 'fontSize' | 'fontStyle' | 'fontWeight'
+>;
+
+export type AgGroupedCategoryDepthTickOptions = Pick<AgAxisBaseTickOptions, 'enabled' | 'stroke' | 'width'>;
+
 export interface AgGroupedCategoryDepthOptions {
-    label?: Pick<
-        AgBaseAxisLabelOptions,
-        'enabled' | 'avoidCollisions' | 'color' | 'fontFamily' | 'fontSize' | 'fontStyle' | 'fontWeight'
-    >;
-    tick?: Pick<AgAxisBaseTickOptions, 'enabled' | 'stroke' | 'width'>;
+    label?: AgGroupedCategoryDepthLabelOptions;
+    tick?: AgGroupedCategoryDepthTickOptions;
 }
 
 export interface AgCategoryAxisOptions extends AgBaseCartesianAxisOptions {
