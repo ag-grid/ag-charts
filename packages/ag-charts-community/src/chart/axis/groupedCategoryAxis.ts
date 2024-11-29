@@ -392,7 +392,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
     override update() {
         if (!this.computedLayout) return;
 
-        const { tick, tickScale, gridLine, gridLength } = this;
+        const { tickScale, gridLine, gridLength } = this;
         const { separatorLayout } = this.computedLayout;
         const ticksData: TickDatum[] = tickScale.ticks().map((tick, index) => ({
             ...separatorLayout[index],
@@ -403,7 +403,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         }));
 
         this.gridLineGroupSelection.update(gridLine.enabled && gridLength ? ticksData : []);
-        this.tickLineGroupSelection.update(tick.enabled ? ticksData : []);
+        this.tickLineGroupSelection.update(this.tick.enabled ? ticksData : []);
 
         this.updatePosition();
         this.updateCategoryLabels();
