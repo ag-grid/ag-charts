@@ -8,6 +8,9 @@ import {
     dragAction,
     extractImageData,
     hoverAction,
+    mouseDownAction,
+    mouseMoveAction,
+    mouseUpAction,
     scrollAction,
     setupMockCanvas,
     setupMockConsole,
@@ -196,6 +199,48 @@ describe('Zoom', () => {
             await scrollAction(cx, cy, -1)(chart);
             await dragAction({ x: cx / 2, y: cy / 2 }, { x: cx + cx / 2, y: cy + cy / 2 })(chart);
             await compare();
+        });
+    });
+
+    describe('select', () => {
+        describe('x axis', () => {
+            const a = { x: 200, y: 300 };
+            const b = { x: 600, y: 300 };
+            beforeEach(async () => {
+                await prepareChart({ axes: 'x', enableSelecting: true });
+                await mouseDownAction(a.x, a.y)(chart);
+                await mouseMoveAction(a.x, a.y)(chart);
+                await mouseMoveAction(b.x, b.y)(chart);
+            });
+
+            it('should render the selection', async () => {
+                await compare();
+            });
+
+            it('should zoom on mouseup', async () => {
+                await mouseUpAction(b.x, b.y)(chart);
+                await compare();
+            });
+        });
+
+        describe('y axis', () => {
+            const a = { x: 400, y: 100 };
+            const b = { x: 400, y: 400 };
+            beforeEach(async () => {
+                await prepareChart({ axes: 'y', enableSelecting: true });
+                await mouseDownAction(a.x, a.y)(chart);
+                await mouseMoveAction(a.x, a.y)(chart);
+                await mouseMoveAction(b.x, b.y)(chart);
+            });
+
+            it('should render the selection', async () => {
+                await compare();
+            });
+
+            it('should zoom on mouseup', async () => {
+                await mouseUpAction(b.x, b.y)(chart);
+                await compare();
+            });
         });
     });
 

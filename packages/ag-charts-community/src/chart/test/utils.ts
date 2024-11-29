@@ -318,6 +318,30 @@ export function hoverAction(canvasX: number, canvasY: number): (chart: ChartOrPr
     };
 }
 
+export const mouseMoveAction = hoverAction;
+
+export function mouseDownAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
+    return async (chartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        const testTarget = findChartTarget(chart, canvasX, canvasY);
+        checkTargetValid(testTarget);
+
+        testTarget.target.dispatchEvent(mouseDownEvent(testTarget, canvasX, canvasY));
+        return delay(50);
+    };
+}
+
+export function mouseUpAction(canvasX: number, canvasY: number): (chart: ChartOrProxy) => Promise<void> {
+    return async (chartOrProxy) => {
+        const chart = deproxy(chartOrProxy);
+        const testTarget = findChartTarget(chart, canvasX, canvasY);
+        checkTargetValid(testTarget);
+
+        testTarget.target.dispatchEvent(mouseUpEvent(testTarget, canvasX, canvasY));
+        return delay(50);
+    };
+}
+
 export function clickAction(
     canvasX: number,
     canvasY: number,

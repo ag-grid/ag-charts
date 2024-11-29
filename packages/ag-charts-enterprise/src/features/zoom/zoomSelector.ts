@@ -15,14 +15,14 @@ export class ZoomSelector {
     }
 
     update(
-        event: { regionX: number; regionY: number },
+        event: { canvasX: number; canvasY: number },
         props: ZoomProperties,
         bbox?: _ModuleSupport.BBox,
         currentZoom?: _ModuleSupport.AxisZoomState
     ): void {
         this.rect.visible = true;
 
-        this.updateCoords(event.regionX, event.regionY, props, bbox, currentZoom);
+        this.updateCoords(event.canvasX, event.canvasY, props, bbox, currentZoom);
         this.updateRect(bbox);
     }
 
