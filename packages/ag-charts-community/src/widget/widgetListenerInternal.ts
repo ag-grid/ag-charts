@@ -33,6 +33,12 @@ export class WidgetListenerInternal {
     private dragStartListeners?: EventHandler<Targetable>[];
     private dragMoveListeners?: EventHandler<Targetable>[];
     private dragEndListeners?: EventHandler<Targetable>[];
+    // The 'mousedown' event get fired on the target DOM element and all its ancestors that have 'mousedown' event
+    // listeners. However, we only want 1 DOM element to handle the dragging operation because doing so involves adding
+    // temporary capture event listeners to the global `window` object. As a consequence, the widget `'drag-*'` events
+    // do not support propagation; but that's sufficient for us because we do not yet have a use-case when propagation
+    // is needed for drag events.
+    private static isDragging = false;
 
     destroy(): void {
         this.dragTriggerRemovers?.forEach((fn) => fn());
@@ -92,7 +98,8 @@ export class WidgetListenerInternal {
     }
 
     private startDrag<T extends Targetable>(current: T, downEvent: MouseEvent) {
-        if (current.getElement() !== downEvent.currentTarget) return;
+        if (WidgetListenerInternal.isDragging) return;
+        WidgetListenerInternal.isDragging = true;
 
         const window = getWindow();
         const origin: DragOrigin = { pageX: NaN, pageY: NaN, offsetX: NaN, offsetY: NaN };
@@ -145,6 +152,7 @@ export class WidgetListenerInternal {
             elem.dispatchEvent(new MouseEvent('mouseleave', sourceEvent));
             sourceEvent.target?.dispatchEvent(new MouseEvent('mouseenter', sourceEvent));
         }
+        WidgetListenerInternal.isDragging = false;
     }
     private dispatch<T extends Targetable, K extends EventType>(type: K, current: T, event: EventMap[K]): void {
         switch (type) {
