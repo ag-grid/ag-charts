@@ -205,7 +205,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event)),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event)),
             ctx.zoomManager.addListener('zoom-pan-start', (event) => this.onZoomPanStart(event)),
-            this.panner.addListener('update', (event) => this.onPanUpdate(event))
+            this.panner.addListener('update', (event) => this.onPanUpdate(event)),
+            () => this.buttons.destroy()
         );
     }
 
@@ -215,14 +216,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onEnabledChange(enabled: boolean) {
-        if (!this.contextMenu || !this.buttons) return;
-
         this.ctx.zoomManager.setZoomModuleEnabled(enabled);
+
         const zoom = this.getZoom();
-        const props = this.getModuleProperties({ enabled });
-        this.destroyContextMenuActions?.();
-        this.destroyContextMenuActions = this.contextMenu.registerActions(enabled, zoom);
-        this.buttons.toggle(enabled, zoom, props);
+
+        if (this.contextMenu) {
+            this.destroyContextMenuActions?.();
+            this.destroyContextMenuActions = this.contextMenu.registerActions(enabled, zoom);
+        }
     }
 
     private onDoubleClick(event?: _ModuleSupport.RegionEvent<'dblclick'> & { preventZoomDblClick?: boolean }) {

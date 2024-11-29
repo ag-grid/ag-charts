@@ -22,6 +22,7 @@ const {
     BOOLEAN,
     STRING,
     UNION,
+    ActionOnSet,
     BaseProperties,
     ChartAxisDirection,
     InteractionState,
@@ -47,6 +48,11 @@ interface ZoomToolbarButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
 
 export class ZoomToolbar extends BaseProperties {
     @Validate(BOOLEAN)
+    @ActionOnSet<ZoomToolbar>({
+        changeValue(enabled) {
+            this.toolbar?.setHidden(!enabled);
+        },
+    })
     public enabled?: boolean = false;
 
     @Validate(ARRAY)
@@ -56,7 +62,7 @@ export class ZoomToolbar extends BaseProperties {
     private readonly detectionRange = 38;
 
     private readonly container: _ModuleSupport.NativeWidget<HTMLDivElement>;
-    private readonly toolbar = new Toolbar<ZoomToolbarButtonOptions>(this.ctx.localeManager);
+    private readonly toolbar: _ModuleSupport.Toolbar<ZoomToolbarButtonOptions>;
 
     private readonly destroyFns: Array<() => void> = [];
 
@@ -77,6 +83,7 @@ export class ZoomToolbar extends BaseProperties {
         this.container.addClass('ag-charts-zoom-buttons');
         ctx.domManager.addChild('canvas-overlay', 'zoom-buttons', this.container.getElement());
 
+        this.toolbar = new Toolbar<ZoomToolbarButtonOptions>(ctx.localeManager);
         this.container.addChild(this.toolbar);
 
         this.toggleVisibility(false);
@@ -86,7 +93,7 @@ export class ZoomToolbar extends BaseProperties {
             ctx.interactionManager.addListener('hover', this.onHover.bind(this), InteractionState.All),
             ctx.interactionManager.addListener('leave', this.onLeave.bind(this), InteractionState.All),
             ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
-            () => this.container.destroy()
+            this.teardown.bind(this)
         );
     }
 
@@ -96,9 +103,9 @@ export class ZoomToolbar extends BaseProperties {
         }
     }
 
-    public toggle(enabled: boolean | undefined, zoom: DefinedZoomState, props: ZoomProperties) {
-        if (!enabled) return;
-        this.toggleButtons(zoom, props);
+    private teardown() {
+        this.ctx.domManager.removeChild('canvas-overlay', 'zoom-buttons');
+        this.container.destroy();
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {
@@ -106,13 +113,15 @@ export class ZoomToolbar extends BaseProperties {
         const { rect } = event.series;
 
         this.toolbar.updateButtons(buttons);
-        this.toggleButtons(definedZoomState(this.ctx.zoomManager.getZoom()), this.getModuleProperties());
+        this.toggleButtons();
 
         const height = container.getBounds().height;
         container.setBounds({ y: rect.y + rect.height - height });
     }
 
     private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
+        if (!this.enabled || this.toolbar.isHidden()) return;
+
         const {
             container,
             detectionRange,
@@ -145,7 +154,10 @@ export class ZoomToolbar extends BaseProperties {
             : `translateY(${container.getBounds().height + verticalSpacing}px)`;
     }
 
-    private toggleButtons(zoom: DefinedZoomState, props: ZoomProperties) {
+    private toggleButtons() {
+        const zoom = definedZoomState(this.ctx.zoomManager.getZoom());
+        const { minRatioX, minRatioY } = this.getModuleProperties();
+
         for (const [index, button] of this.buttons.entries()) {
             let enabled = true;
 
@@ -166,7 +178,7 @@ export class ZoomToolbar extends BaseProperties {
                     enabled = !isZoomEqual(zoom, unitZoomState());
                     break;
                 case 'zoom-in':
-                    enabled = !isZoomLess(zoom, props.minRatioX, props.minRatioY);
+                    enabled = !isZoomLess(zoom, minRatioX, minRatioY);
                     break;
                 case 'reset':
                     enabled = !isZoomEqual(zoom, this.getResetZoom());
@@ -178,6 +190,8 @@ export class ZoomToolbar extends BaseProperties {
     }
 
     private onButtonPress({ button }: _ModuleSupport.ToolbarEventMap<ZoomToolbarButtonOptions>['button-pressed']) {
+        if (!this.enabled || this.toolbar.isHidden()) return;
+
         const props = this.getModuleProperties();
 
         if (props.independentAxes && button.value !== 'reset') {
