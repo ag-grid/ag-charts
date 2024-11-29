@@ -65,7 +65,8 @@
     background: linear-gradient(to top, var(--color-util-brand-500), transparent 20%);
     pointer-events: none;
 
-    #{$selector-darkmode} & {
+    #{$selector-darkmode}:not(:has([data-is-homepage])) &,
+    #{$selector-darkmode}:has([data-is-homepage]) &:global(.header-scrolled) {
         background: linear-gradient(to top, var(--color-bg-primary), transparent 30%);
     }
 }
