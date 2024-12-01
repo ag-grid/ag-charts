@@ -32,12 +32,14 @@ For a full list of configuration options see [Category Axis Options](#reference-
 
 ## Grouped Category
 
-A grouped category axis displays nested categories or hierarchical groups of data in a chart.
-It is similar to the regular category axis but allows for hierarchical representation, where each category is an array
-of strings, with each string representing a level in the hierarchy.
+A grouped category axis is similar to the regular category axis, with the additional ability to display nested categories or hierarchical groups of data.
 
-For example, in a chart comparing Olympic medal counts by location, the grouped category axis can show regions,
-countries, and cities in a nested structure, with labels and ticks displayed hierarchically.
+{% chartExampleRunner title="Grouped Category" name="grouped-category" type="generated" /%}
+
+To use a grouped category axis, the `xKey` needs to reference an array of strings, with each string representing a level in the hierarchy.
+
+For example, to create the above example comparing Olympic medal counts by hierarchical location, the data must include an array with the regions,
+countries, and cities.
 
 ```js
 data: [
@@ -51,31 +53,18 @@ data: [
 ],
 ```
 
-To use a grouped category axis, you must explicitly define it. For example:
-
-```js
-axes: [
-    {
-        type: 'grouped-category',
-        position: 'bottom',
-    },
-],
-```
-
-The grouped category axis will render Axis Labels, Grid Lines, and Ticks for each level in the hierarchy, aligning them
-to visually represent the nested relationships between categories.
-
-{% chartExampleRunner title="Grouped Category" name="grouped-category" type="generated" /%}
+The grouped category axis will render [Axis Labels](./axes-labels/), [Grid Lines](./axes-grid-lines/), and Ticks for each level in the hierarchy,
+aligning them to visually represent the nested relationships between categories.
 
 Ticks and labels for all levels inherit styles from the axis options by default.
-To style each level differently, use the depthOptions array, where each entry corresponds to a hierarchy level. (leaf to root)
+To style each level differently, use the `depthOptions` array, where each entry corresponds to a hierarchy level, starting at the leaf level.
 
 ```js
 type: 'grouped-category',
 depthOptions: [
-    {}, // Skip depth 0, no unique styles.
-    { label: { fontWeight: 'bold' } },
-    { label: { fontSize: 10 } },
+    {}, // Skip depth 0 - the nearest to the axis, no unique styles.
+    { label: { fontWeight: 'bold' } }, // depth 1
+    { label: { fontSize: 10 } }, //depth 2
 ],
 ```
 
