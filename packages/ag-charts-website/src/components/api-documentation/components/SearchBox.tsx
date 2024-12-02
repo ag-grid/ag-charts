@@ -118,7 +118,7 @@ function useSearch(
         const dataResults =
             searchableEntries?.result.map((id) => {
                 return searchData[id];
-            }) || [];
+            }) ?? [];
 
         setFilteredData(dataResults);
 

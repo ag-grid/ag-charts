@@ -55,7 +55,7 @@ export const Changelog = () => {
     const [versions, setVersions] = useState<string[]>([]);
     const [allReleaseNotes, setAllReleaseNotes] = useState<any>(null);
     const [markdownContent, setMarkdownContent] = useState<any>(undefined);
-    const [fixVersion, setFixVersion] = useState(extractFixVersionParameter(location) || ALL_FIX_VERSIONS);
+    const [fixVersion, setFixVersion] = useState(extractFixVersionParameter(location) ?? ALL_FIX_VERSIONS);
     const URLFilterItemKey = useState(extractFilterTerm(location))[0];
     const searchBarEl = useRef<any>(null);
     const autoSizeStrategy = useMemo(() => ({ type: 'fitGridWidth' }), []);

@@ -79,7 +79,6 @@ export default [
         rules: {
             // TODO: Remove these
             '@typescript-eslint/no-shadow': 'warn',
-            '@typescript-eslint/prefer-nullish-coalescing': 'warn',
             '@typescript-eslint/restrict-template-expressions': 'warn',
             '@typescript-eslint/no-explicit-any': 'warn',
             '@typescript-eslint/no-floating-promises': 'warn',
