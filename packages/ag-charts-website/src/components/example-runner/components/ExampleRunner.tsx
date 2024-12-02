@@ -66,7 +66,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                     <ExampleIFrame
                         title={title}
                         isHidden={showCode}
-                        url={exampleRunnerExampleUrl!}
+                        url={exampleRunnerExampleUrl}
                         loadingIFrameId={loadingIFrameId}
                     />
                     {exampleFiles && !hideCode && (

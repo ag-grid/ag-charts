@@ -39,7 +39,7 @@ function isBinary(path: string) {
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
-    const response = (await next()) as Response;
+    const response = (await next());
 
     const isExample = context.url.pathname.includes('/examples/');
     if (!isExample || isBinary(context.url.pathname)) {

@@ -147,7 +147,7 @@ export function processMembers(
             let omit: string[] | undefined;
             let memberType = normalizeType(member.type);
             if (memberType === 'Omit') {
-                const { typeArguments } = member.type as any;
+                const { typeArguments } = member.type;
                 memberType = typeArguments[0];
                 omit = typeArguments[1];
             }
@@ -201,7 +201,7 @@ export function formatTypeToCode(
                                 !hiddenInterfaces.includes(type) &&
                                 !('deprecated' in reference.get(type)!)
                             ) {
-                                return formatTypeToCode(reference.get(type)!, member, reference);
+                                return formatTypeToCode(reference.get(type), member, reference);
                             }
                         })
                         .filter(<T>(x: T | undefined): x is T => Boolean(x))
@@ -358,7 +358,7 @@ export function extractSearchData(
                 results.push(
                     ...extractSearchData(
                         reference,
-                        reference.get(genericsMap?.[member.type] ?? member.type)!,
+                        reference.get(genericsMap?.[member.type] ?? member.type),
                         navPath,
                         `${labelPrefix}${cleanupName(member.name)}.`
                     )
@@ -372,7 +372,7 @@ export function extractSearchData(
                 results.push(
                     ...extractSearchData(
                         reference,
-                        reference.get(member.type.type)!,
+                        reference.get(member.type.type),
                         navPath,
                         `${labelPrefix}${cleanupName(member.name)}.`
                     )
