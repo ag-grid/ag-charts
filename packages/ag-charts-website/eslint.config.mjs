@@ -79,8 +79,6 @@ export default [
         rules: {
             // TODO: Remove these
             '@typescript-eslint/no-shadow': 'warn',
-            '@typescript-eslint/restrict-template-expressions': 'warn',
-            '@typescript-eslint/no-explicit-any': 'warn',
             '@typescript-eslint/no-floating-promises': 'warn',
             '@typescript-eslint/ban-ts-comment': 'warn',
             '@typescript-eslint/no-unsafe-enum-comparison': 'warn',

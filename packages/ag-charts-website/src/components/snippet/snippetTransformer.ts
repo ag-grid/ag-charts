@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { parseScript } from 'esprima';
 
 export const transform = (snippet, framework, options) => {

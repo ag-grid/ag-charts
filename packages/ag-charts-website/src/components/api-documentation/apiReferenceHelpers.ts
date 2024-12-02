@@ -394,7 +394,7 @@ export function extractSearchData(
                     if (subtypeRef?.kind === 'interface') {
                         const typeMember = subtypeRef.members.find((member) => member.name === 'type');
                         if (typeMember) {
-                            const label = `${labelPrefix.replace(/\.$/, '')}[type=${typeMember.type}]`;
+                            const label = `${labelPrefix.replace(/\.$/, '')}[type=${typeMember.type as string}]`;
                             const navPath = basePath.concat({
                                 name: cleanupName(getMemberType(typeMember)),
                                 type: typeName,
