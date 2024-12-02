@@ -132,7 +132,15 @@ export function processMembers(
         );
     }
     if (prioritise) {
-        members = members.sort((a, b) => (prioritise.includes(a.name) ? -1 : prioritise.includes(b.name) ? 1 : 0));
+        members = members.sort((a, b) => {
+            if (prioritise.includes(a.name)) {
+                return -1;
+            } else if (prioritise.includes(b.name)) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
     }
     return members.map((member) => {
         if (isInterface) {

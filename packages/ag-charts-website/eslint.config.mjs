@@ -78,7 +78,6 @@ export default [
     {
         rules: {
             // TODO: Remove these
-            'no-nested-ternary': 'warn',
             '@typescript-eslint/no-unsafe-assignment': 'warn',
             '@typescript-eslint/no-shadow': 'warn',
             '@typescript-eslint/require-await': 'warn',
