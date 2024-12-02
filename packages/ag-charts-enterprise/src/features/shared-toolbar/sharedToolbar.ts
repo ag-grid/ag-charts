@@ -1,20 +1,168 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { SharedToolbarWidget } from './sharedToolbarWidget';
+import type { SharedToolbarSection } from './sharedToolbarTypes';
+
+export interface SharedToolbarWithSection<
+    ButtonOptions extends _ModuleSupport.ToolbarButtonOptions = _ModuleSupport.ToolbarButtonOptions,
+> extends Pick<
+        _ModuleSupport.Toolbar<ButtonOptions>,
+        | 'destroy'
+        | 'addListener'
+        | 'removeListener'
+        | 'setHidden'
+        | 'addToolbarListener'
+        | 'updateButtons'
+        | 'updateButtonByIndex'
+        | 'toggleActiveButtonByIndex'
+        | 'toggleButtonEnabledByIndex'
+        | 'clearActiveButton'
+    > {
+    layout: (layoutBox: _ModuleSupport.BBox) => void;
+}
 
 export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
-    private sharedToolbar?: SharedToolbarWidget<_ModuleSupport.ToolbarButtonOptions>;
+    static readonly SECTION_ORDER: Array<SharedToolbarSection> = ['chartToolbar', 'annotations'];
+
+    private sharedToolbar?: _ModuleSupport.Toolbar<_ModuleSupport.ToolbarButtonOptions>;
+    private readonly activeSections: Set<SharedToolbarSection> = new Set();
+    private readonly sectionButtons: Record<SharedToolbarSection, Array<_ModuleSupport.ToolbarButtonOptions>> = {
+        annotations: [],
+        chartToolbar: [],
+    };
+    private firstLayoutSection?: SharedToolbarSection;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
     }
 
-    public getSharedToolbar<ButtonOptions extends _ModuleSupport.ToolbarButtonOptions>() {
+    public getSharedToolbar<ButtonOptions extends _ModuleSupport.ToolbarButtonOptions>(section: SharedToolbarSection) {
         if (!this.sharedToolbar) {
-            this.sharedToolbar = new SharedToolbarWidget(this.ctx.localeManager);
-            this.ctx.domManager.addChild('canvas-overlay', 'shared-toolbar', this.sharedToolbar.getElement());
+            this.createSharedToolbar();
         }
 
-        return this.sharedToolbar as SharedToolbarWidget<ButtonOptions>;
+        return this.toolbarWithSection<ButtonOptions>(section);
+    }
+
+    private createSharedToolbar() {
+        this.sharedToolbar = new _ModuleSupport.Toolbar(this.ctx.localeManager, 'vertical');
+        this.sharedToolbar.addClass('ag-charts-shared-toolbar');
+
+        this.ctx.domManager.addChild('canvas-overlay', 'shared-toolbar', this.sharedToolbar.getElement());
+        this.destroyFns.push(() => {
+            this.sharedToolbar?.destroy();
+            this.sharedToolbar = undefined;
+            this.ctx.domManager.removeChild('canvas-overlay', 'shared-toolbar');
+        });
+    }
+
+    private toolbarWithSection<ButtonOptions extends _ModuleSupport.ToolbarButtonOptions>(
+        section: SharedToolbarSection
+    ): SharedToolbarWithSection<ButtonOptions> {
+        const sharedToolbar = this.sharedToolbar!;
+
+        const withSection = {
+            layout: (layoutBox: _ModuleSupport.BBox) => {
+                // Only perform the layout for the first section to call to prevent multiple shrinkings per update
+                if (
+                    this.firstLayoutSection != null &&
+                    this.firstLayoutSection !== section &&
+                    this.activeSections.has(this.firstLayoutSection)
+                ) {
+                    return;
+                }
+                this.firstLayoutSection = section;
+
+                const width = sharedToolbar.getBounds().width;
+                sharedToolbar.setBounds({
+                    x: layoutBox.x,
+                    y: layoutBox.y,
+                    width: width,
+                });
+
+                layoutBox.shrink({ left: width + sharedToolbar.horizontalSpacing });
+            },
+            addToolbarListener: <K extends keyof _ModuleSupport.ToolbarEventMap & string>(
+                eventType: K,
+                handler: (event: _ModuleSupport.ToolbarEventMap<ButtonOptions>[K]) => void
+            ) => {
+                return sharedToolbar.addToolbarListener(eventType, (sharedEvent) => {
+                    const sectionIndex = this.getSectionIndex(section, sharedEvent.button.index);
+                    if (sectionIndex < 0) return;
+                    const event = {
+                        ...sharedEvent,
+                        button: this.sectionButtons[section][sectionIndex],
+                    };
+                    handler(event as any);
+                });
+            },
+            updateButtons: (buttons: Array<ButtonOptions>) => {
+                this.sectionButtons[section] = buttons;
+                const sharedButtons = SharedToolbar.SECTION_ORDER.flatMap((order) => this.sectionButtons[order]);
+                sharedToolbar.updateButtons(sharedButtons);
+            },
+            updateButtonByIndex: (index: number, button: ButtonOptions) => {
+                sharedToolbar.updateButtonByIndex(this.getIndex(section, index), button);
+            },
+            toggleActiveButtonByIndex: (index: number) => {
+                sharedToolbar.toggleActiveButtonByIndex(this.getIndex(section, index));
+            },
+            toggleButtonEnabledByIndex: (index: number, enabled: boolean) => {
+                sharedToolbar.toggleButtonEnabledByIndex(this.getIndex(section, index), enabled);
+            },
+            setHidden: (hidden: boolean) => {
+                if (hidden) {
+                    this.activeSections.delete(section);
+                } else {
+                    this.activeSections.add(section);
+                }
+
+                let sum = 0;
+
+                for (const order of SharedToolbar.SECTION_ORDER) {
+                    if (order !== section) {
+                        sum += this.sectionButtons[order].length;
+                        continue;
+                    }
+
+                    for (const index of this.sectionButtons[section].keys()) {
+                        sharedToolbar.setButtonHiddenByIndex(sum + index, hidden);
+                    }
+                }
+            },
+            destroy: () => {
+                withSection.setHidden(true);
+                if (this.activeSections.size === 0) {
+                    this.destroy();
+                }
+            },
+            clearActiveButton: sharedToolbar.clearActiveButton.bind(sharedToolbar),
+            addListener: sharedToolbar.addListener.bind(sharedToolbar),
+            removeListener: sharedToolbar.removeListener.bind(sharedToolbar),
+        };
+
+        withSection.setHidden(false);
+
+        return withSection;
+    }
+
+    private getIndex(section: SharedToolbarSection, index: number) {
+        let sum = 0;
+        for (const order of SharedToolbar.SECTION_ORDER) {
+            if (order === section) return sum + index;
+            sum += this.sectionButtons[order].length;
+        }
+        return -1;
+    }
+
+    private getSectionIndex(section: SharedToolbarSection, index: number) {
+        let sum = 0;
+        for (const order of SharedToolbar.SECTION_ORDER) {
+            if (order === section) {
+                if (index >= sum + this.sectionButtons[section].length) return -1;
+                return index - sum;
+            }
+            sum += this.sectionButtons[order].length;
+        }
+        return -1;
     }
 }

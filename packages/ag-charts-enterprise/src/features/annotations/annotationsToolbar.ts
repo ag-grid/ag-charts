@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import type { SharedToolbarWidget } from '../shared-toolbar/sharedToolbarWidget';
+import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 import { type AnnotationType } from './annotationTypes';
 import {
     FIBONACCI_ANNOTATION_ITEMS,
@@ -42,7 +42,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
     @Validate(BOOLEAN)
     @ActionOnSet<AnnotationsToolbar>({
         changeValue(enabled) {
-            this.toolbar?.setSectionHidden('annotations', !enabled);
+            this.toolbar?.setHidden(!enabled);
         },
     })
     public enabled?: boolean = true;
@@ -52,7 +52,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
 
     private readonly events = new _ModuleSupport.Listeners<keyof EventMap, any>();
 
-    private readonly toolbar: SharedToolbarWidget<AnnotationsToolbarButtonOptions>;
+    private readonly toolbar: SharedToolbarWithSection<AnnotationsToolbarButtonOptions>;
     private readonly annotationMenu = new Menu(this.ctx, 'annotations');
 
     private readonly destroyFns: (() => void)[] = [];
@@ -60,19 +60,18 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.toolbar = (ctx as any).sharedToolbar.getSharedToolbar();
+        this.toolbar = ((ctx as any).sharedToolbar as SharedToolbar).getSharedToolbar('annotations');
 
         const onKeyDown = this.onKeyDown.bind(this);
         this.toolbar.addListener('keydown', onKeyDown);
 
         this.destroyFns.push(
-            this.toolbar.addToolbarSectionListener(
-                'annotations',
-                'button-pressed',
-                this.onToolbarButtonPress.bind(this)
-            ),
+            this.toolbar.addToolbarListener('button-pressed', this.onToolbarButtonPress.bind(this)),
             ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
-            () => this.toolbar.removeListener('keydown', onKeyDown)
+            () => {
+                this.toolbar.removeListener('keydown', onKeyDown);
+                this.toolbar.destroy();
+            }
         );
     }
 
@@ -87,12 +86,12 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
     }
 
     public toggleVisibility(visible: boolean) {
-        this.toolbar.setSectionHidden('annotations', !visible);
+        this.toolbar.setHidden(!visible);
     }
 
     public toggleClearButtonEnabled(enabled: boolean) {
         const index = this.buttons.findIndex((button) => button.value === 'clear');
-        this.toolbar.toggleButtonEnabledBySectionIndex('annotations', index, enabled);
+        this.toolbar.toggleButtonEnabledByIndex(index, enabled);
     }
 
     public resetButtonIcons() {
@@ -131,8 +130,8 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
 
     private onLayoutStart(event: _ModuleSupport.LayoutContext) {
         if (!this.enabled) return;
-        this.toolbar.updateSectionButtons('annotations', this.buttons);
-        this.toolbar.layout('annotations', event.layoutBox);
+        this.toolbar.updateButtons(this.buttons);
+        this.toolbar.layout(event.layoutBox);
     }
 
     private onToolbarButtonPress({
@@ -207,7 +206,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         this.dispatch('pressed-show-menu');
 
         const index = this.buttons.findIndex((button) => button.value === menu);
-        this.toolbar.toggleActiveButtonBySectionIndex('annotations', index);
+        this.toolbar.toggleActiveButtonByIndex(index);
         this.annotationMenu.setAnchor({ x: buttonBounds.x + buttonBounds.width + 6, y: buttonBounds.y });
         this.annotationMenu.show<AnnotationType>({
             items,
@@ -238,6 +237,6 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
         const button = this.buttons.at(index);
         if (!button) return;
         button.set({ ...button.toJson(), ...change, value: change.value ?? button.value });
-        this.toolbar.updateButtonBySectionIndex('annotations', index, { ...button.toJson() } as any);
+        this.toolbar.updateButtonByIndex(index, { ...button.toJson() } as any);
     }
 }
