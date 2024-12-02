@@ -6,8 +6,8 @@ export class StateManager {
     private readonly caretaker = new MementoCaretaker(VERSION);
     private readonly state = new Map<string, any>();
 
-    setState(originator: MementoOriginator, value: any) {
-        if (jsonDiff(this.state.get(originator.mementoOriginatorKey), value) == null) {
+    setState(originator: MementoOriginator, value: any, forceUpdate?: boolean) {
+        if (!forceUpdate && jsonDiff(this.state.get(originator.mementoOriginatorKey), value) == null) {
             return;
         }
 

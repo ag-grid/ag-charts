@@ -930,7 +930,7 @@ export abstract class Chart extends Observable {
         });
 
         if (initialState) {
-            stateManager.setState(legendManager, initialState);
+            stateManager.setState(legendManager, initialState, true);
             return;
         }
 
