@@ -2,8 +2,8 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { FibonacciProperties } from '../properties/fibonacciProperties';
-import { FibonacciNodeTag, createFibonacciRangesData } from '../utils/fibonacci';
 import type { FibonacciRangeDatum } from '../utils/fibonacci';
+import { FibonacciNodeTag, createFibonacciRangesData } from '../utils/fibonacci';
 import { updateLineText } from '../utils/lineWithText';
 import { convertLine } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
@@ -95,7 +95,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
     private updateTrendLine(datum: Datum, coords: _ModuleSupport.Vec4) {
         const { trendLine } = this;
-        const { lineDashOffset, strokeWidth, strokeOpacity } = datum;
+        const { lineDashOffset, strokeWidth, strokeOpacity, stroke } = datum;
 
         trendLine.setProperties({
             ...coords,
@@ -105,17 +105,16 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
             strokeWidth,
             strokeOpacity,
             fillOpacity: 0,
-            stroke: '#2b5c95', // shouldn't change with the floating toolbar, not sure if any way to configure?
+            stroke,
         });
     }
 
     private updateRangeStrokes(datum: Datum) {
-        const { lineDashOffset, strokeWidth, strokeOpacity, strokes } = datum;
+        const { lineDashOffset, strokeWidth, strokeOpacity, strokes, rangeStroke, isMultiColor } = datum;
 
-        const firstStroke = strokes[0];
         this.rangeStrokesGroupSelection.each((line, { x1, x2, y2, tag }, index) => {
             const y = y2;
-            const color = strokes[index] ?? firstStroke;
+            const color = isMultiColor ? strokes[index] : rangeStroke;
             line.setProperties({
                 x1,
                 x2,
@@ -146,11 +145,18 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
     }
 
     private updateRangeFills(datum: Datum) {
-        const { lineDashOffset, strokeWidth, strokeOpacity, strokes: colors, showFill } = datum;
+        const {
+            lineDashOffset,
+            strokeWidth,
+            strokeOpacity,
+            strokes: colors,
+            rangeStroke,
+            showFill,
+            isMultiColor,
+        } = datum;
 
-        const firstColor = colors[0];
         this.rangeFillsGroupSelection.each((range, { x1, x2, y1, y2 }, index) => {
-            const color = colors[index] ?? firstColor;
+            const color = isMultiColor ? colors[index] : rangeStroke;
             if (!showFill) {
                 range.visible = false;
                 return;
@@ -178,11 +184,10 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
     private updateRangeLabels(trendLineProperties: Datum, { xAxis }: AnnotationContext) {
         const { rangeStrokesGroupSelection } = this;
-        const { strokes: colors, strokeWidth } = trendLineProperties;
+        const { strokes: colors, strokeWidth, rangeStroke, isMultiColor } = trendLineProperties;
 
-        const firstColor = colors[0];
         this.labelsGroupSelection.each((textNode, datum, index) => {
-            const color = colors[index] ?? firstColor;
+            const color = isMultiColor ? colors[index] : rangeStroke;
 
             const line = rangeStrokesGroupSelection.at(index);
 

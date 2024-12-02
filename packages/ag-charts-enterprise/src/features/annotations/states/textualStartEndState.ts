@@ -99,11 +99,13 @@ export abstract class TextualStartEndStateMachine<
             colorOpacity,
             color,
             opacity,
+            isMultiColor,
         }: {
             colorPickerType: AnnotationOptionsColorPickerType;
             colorOpacity: string;
             color: string;
             opacity: number;
+            isMultiColor: boolean;
         }) => {
             const { datum } = this;
             if (!datum) return;
@@ -111,7 +113,7 @@ export abstract class TextualStartEndStateMachine<
             if (colorPickerType === 'text-color') {
                 ctx.updateTextInputColor(color);
             }
-            setColor(datum as any, colorPickerType, colorOpacity, color, opacity);
+            setColor(datum as any, colorPickerType, colorOpacity, color, opacity, isMultiColor);
             ctx.update();
         };
 

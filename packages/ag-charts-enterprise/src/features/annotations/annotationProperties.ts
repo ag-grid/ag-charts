@@ -103,7 +103,10 @@ export function Annotation<U extends Constructor<_ModuleSupport.BaseProperties>>
             return super.isValid(warningPrefix);
         }
 
-        abstract getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType): string | undefined;
+        abstract getDefaultColor(
+            colorPickerType: AnnotationOptionsColorPickerType,
+            isMultiColor?: boolean
+        ): string | undefined;
     }
     return AnnotationInternal;
 }

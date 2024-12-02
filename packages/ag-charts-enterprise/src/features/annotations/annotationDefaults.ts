@@ -25,7 +25,10 @@ interface DefaultsMemento {
     lineTextPositions: DefaultLineTextPositions;
 }
 
-type DefaultColors = Map<AnnotationType, Map<AnnotationOptionsColorPickerType, [string, string, number] | undefined>>;
+type DefaultColors = Map<
+    AnnotationType,
+    Map<AnnotationOptionsColorPickerType, [string, string, number, boolean] | undefined>
+>;
 type DefaultFontSizes = Map<HasFontSizeAnnotationType, number | undefined>;
 type DefaultLineStyles = Map<HasLineStyleAnnotationType, AnnotationLineStyle | undefined>;
 type DefaultLineTextAlignments = Map<HasLineTextAnnotationType, LineTextAlignment | undefined>;
@@ -121,9 +124,10 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         colorType: AnnotationOptionsColorPickerType,
         colorOpacity: string,
         color: string,
-        opacity: number
+        opacity: number,
+        isMultiColor: boolean
     ) {
-        this.colors.get(type)?.set(colorType, [colorOpacity, color, opacity]);
+        this.colors.get(type)?.set(colorType, [colorOpacity, color, opacity, isMultiColor]);
     }
 
     setDefaultFontSize(type: HasFontSizeAnnotationType, fontSize: number) {
@@ -160,9 +164,9 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         for (const [annotationType, colors] of this.colors) {
             if (datum.type !== annotationType) continue;
 
-            for (const [colorPickerType, [colorOpacity, color, opacity] = []] of colors) {
-                if (colorOpacity && color && opacity != null) {
-                    setColor(datum, colorPickerType, colorOpacity, color, opacity);
+            for (const [colorPickerType, [colorOpacity, color, opacity, isMultiColor] = []] of colors) {
+                if (colorOpacity && color && opacity != null && isMultiColor != null) {
+                    setColor(datum, colorPickerType, colorOpacity, color, opacity, isMultiColor);
                 }
             }
         }

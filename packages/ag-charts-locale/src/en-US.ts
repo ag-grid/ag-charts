@@ -102,7 +102,7 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Text for the annotation toolbar's trend line button
     toolbarAnnotationsTrendLine: 'Trend Line',
     // Text for the annotation toolbar's Fibonacci Retracement button
-    toolbarAnnotationsFibonacciRetracement: 'Fibonacci Retracement',
+    toolbarAnnotationsFibonacciRetracement: 'Fib Retracement',
     // Text for the annotation toolbar's horizontal line button
     toolbarAnnotationsHorizontalLine: 'Horizontal Line',
     // Text for the annotation toolbar's vertical line button
@@ -219,8 +219,8 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     dialogHeaderChannel: 'Channel',
     // Text for the annotation dialog's header line tab label
     dialogHeaderLine: 'Line',
-    // Text for the annotation dialog's header fibonacci range line tab label
-    dialogHeaderFibonacciRange: 'Fibonacci Range',
+    // Text for the annotation dialog's header fibonacci retracement line tab label
+    dialogHeaderFibonacciRange: 'Fib Retracement',
     // Text for the annotation dialog's header date range tab label
     dialogHeaderDateRange: 'Date Range',
     // Text for the annotation dialog's header price range tab label
