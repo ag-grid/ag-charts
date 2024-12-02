@@ -92,11 +92,12 @@ export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFram
             ? `${NPM_CDN}/systemjs@0.21.6/dist/system.js`
             : `${NPM_CDN}/systemjs@0.19.47/dist/system.js`;
 
-    let configuration = isUsingPublishedPackages()
-        ? publishedConfiguration
-        : isBuildServerBuild() || isPreProductionBuild()
-          ? buildAndArchivesConfiguration
-          : localConfiguration;
+    let configuration = localConfiguration;
+    if (isUsingPublishedPackages()) {
+        configuration = publishedConfiguration;
+    } else if (isBuildServerBuild() || isPreProductionBuild()) {
+        configuration = buildAndArchivesConfiguration;
+    }
 
     if (isDev) {
         configuration.chartMap = {

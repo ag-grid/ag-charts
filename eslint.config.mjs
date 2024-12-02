@@ -107,7 +107,7 @@ export default [
         },
     },
     {
-        files: ['**/*.{js,ts}'],
+        files: ['**/*.{js,ts,tsx}'],
         rules: {
             'no-lonely-if': 2,
             'no-negated-condition': 1,
