@@ -280,10 +280,6 @@ export class MapLineSeries extends TopologySeries<
             const sizeValue = sizeValues?.[datumIndex];
             const labelValue = labelValues?.[datumIndex];
 
-            // const color: string | undefined =
-            //     colorScaleValid && colorValue != null ? colorScale.convert(colorValue) : undefined;
-            // const size = sizeValue != null ? sizeScale.convert(sizeValue, true) : undefined;
-
             const projectedGeometry = projectedGeometries.get(idValue);
             if (projectedGeometry == null) {
                 missingGeometries.push(idValue);
