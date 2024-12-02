@@ -175,6 +175,11 @@ export class DataController {
     }
 
     private static groupMatch({ data, opts }: RequestedProcessing<any, any, any>) {
+        function isMergeable(group: RequestedProcessing<any, any, any>) {
+            // AG-13503
+            return group.opts.props.every((p) => p.type !== 'processor' && p.type !== 'reducer');
+        }
+
         function keys(props: PropertyDefinition<any>[]) {
             return props
                 .filter((p): p is DatumPropertyDefinition<any> => p.type === 'key')
@@ -186,6 +191,7 @@ export class DataController {
         const propsKeys = keys(props);
 
         return ([group]: RequestedProcessing<any, any, any>[]) =>
+            isMergeable(group) &&
             (groupByData === false || group.data === data) &&
             (group.opts.groupByKeys ?? false) === groupByKeys &&
             group.opts.groupByFn === groupByFn &&
