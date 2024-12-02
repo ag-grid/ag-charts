@@ -82,10 +82,6 @@ class FloatingToolbarPopover extends DraggablePopover<PopoverOptions> {
         this.updatePosition({ x: left, y: top });
     }
 
-    public startDragging(event: MouseEvent, dragHandle?: HTMLElement) {
-        this.onDragStart(event, dragHandle);
-    }
-
     public ignorePointerEvents() {
         const element = this.getPopoverElement();
         if (element) element.style.pointerEvents = 'none';
@@ -164,15 +160,22 @@ export abstract class FloatingToolbar<
     private createDragHandle() {
         const { localeManager, popover } = this;
 
-        const dragHandle = new NativeWidget<HTMLElement>(
-            createElement('div', 'ag-charts-floating-toolbar__drag-handle')
-        );
-        dragHandle.getElement().innerHTML = `<span class="${getIconClassNames('drag-handle')} ag-charts-toolbar__icon"></span>`;
-        dragHandle.getElement().addEventListener('mousedown', (event) => {
-            popover.startDragging(event, dragHandle.getElement());
-        });
-        dragHandle.getElement().title = localeManager.t('toolbarAnnotationsDragHandle');
-
+        const dragHandle = new DragHandleWidget(localeManager.t('toolbarAnnotationsDragHandle'));
+        popover.setDragHandle(dragHandle);
         this.addChild(dragHandle);
+    }
+}
+
+class DragHandleWidget extends NativeWidget {
+    constructor(title: string) {
+        super(createElement('button', 'ag-charts-floating-toolbar__drag-handle'));
+
+        const icon = new NativeWidget<HTMLElement>(
+            createElement('span', `${getIconClassNames('drag-handle')} ag-charts-toolbar__icon`)
+        );
+        icon.setAriaHidden(true);
+        this.addChild(icon);
+
+        this.elem.title = title;
     }
 }

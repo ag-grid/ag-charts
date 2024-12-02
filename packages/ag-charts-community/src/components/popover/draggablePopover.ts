@@ -1,4 +1,6 @@
 import { Vec2 } from '../../util/vector';
+import type { NativeWidget } from '../../widget/nativeWidget';
+import type { DragWidgetEvent } from '../../widget/widgetEvents';
 import { Popover, type PopoverOptions } from './popover';
 
 export abstract class DraggablePopover<Options extends PopoverOptions = PopoverOptions> extends Popover<Options> {
@@ -8,16 +10,24 @@ export abstract class DraggablePopover<Options extends PopoverOptions = PopoverO
 
     private dragStartState?: { client: Vec2; position: Vec2 };
 
-    protected onDragStart(event: MouseEvent, dragHandle?: HTMLElement) {
+    public setDragHandle(dragHandle: NativeWidget) {
+        dragHandle.addListener('drag-start', (event) => {
+            dragHandle.addClass(this.dragHandleDraggingClass);
+            this.onDragStart(event);
+        });
+        dragHandle.addListener('drag-move', this.onDragMove.bind(this));
+        dragHandle.addListener('drag-end', () => {
+            dragHandle.removeClass(this.dragHandleDraggingClass);
+            this.onDragEnd.bind(this);
+        });
+    }
+
+    protected onDragStart(event: DragWidgetEvent<'drag-start'>) {
         const popover = this.getPopoverElement();
         if (!popover) return;
 
-        const {
-            ctx: { domManager },
-        } = this;
-
         // Prevent text selection while dragging
-        event.preventDefault();
+        event.sourceEvent.preventDefault();
 
         this.dragged = true;
 
@@ -28,22 +38,9 @@ export abstract class DraggablePopover<Options extends PopoverOptions = PopoverO
                 Number(popover.style.getPropertyValue('top').replace('px', ''))
             ),
         };
-        dragHandle?.classList.add(this.dragHandleDraggingClass);
-
-        const onDrag = this.onDrag.bind(this);
-        const onDragEnd = () => {
-            domManager.removeEventListener('mousemove', onDrag);
-            dragHandle?.classList.remove(this.dragHandleDraggingClass);
-        };
-
-        domManager.addEventListener('mousemove', onDrag);
-        domManager.addEventListener('mouseup', onDragEnd, { once: true });
-
-        // Catch `mouseup` events that do not propagate beyond the overlay
-        popover.addEventListener('mouseup', () => onDragEnd, { once: true });
     }
 
-    private onDrag(event: MouseEvent) {
+    protected onDragMove(event: DragWidgetEvent<'drag-move'>) {
         const { dragStartState } = this;
         const popover = this.getPopoverElement();
 
@@ -65,5 +62,9 @@ export abstract class DraggablePopover<Options extends PopoverOptions = PopoverO
         }
 
         this.updatePosition(partialPosition);
+    }
+
+    protected onDragEnd() {
+        this.dragStartState = undefined;
     }
 }
