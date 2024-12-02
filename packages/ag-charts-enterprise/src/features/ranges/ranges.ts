@@ -35,11 +35,15 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
     }
 
     private onLayoutStart(event: _ModuleSupport.LayoutContext) {
-        if (!this.enabled) return;
-
-        const { buttons, toolbar, verticalSpacing } = this;
+        const { buttons, ctx, enabled, toolbar, verticalSpacing } = this;
         const { layoutBox } = event;
 
+        if (!enabled || !ctx.zoomManager.isZoomEnabled()) {
+            toolbar.setHidden(true);
+            return;
+        }
+
+        toolbar.setHidden(false);
         toolbar.updateButtons(buttons);
 
         const height = toolbar.getBounds().height;
