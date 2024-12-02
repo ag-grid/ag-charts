@@ -143,8 +143,6 @@ export class LegendManager
         if (data.length > 0) {
             return data.some((d) => d.enabled);
         }
-
-        return true;
     }
 
     public getItemEnabled({ seriesId, itemId }: { seriesId?: string; itemId?: any } = {}) {

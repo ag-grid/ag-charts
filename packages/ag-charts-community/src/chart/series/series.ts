@@ -262,7 +262,7 @@ export abstract class Series<
 
     get visible() {
         // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
-        return this.properties.visible && this.ctx.legendManager.getSeriesEnabled(this.id);
+        return this.ctx.legendManager.getSeriesEnabled(this.id) ?? this.properties.visible;
     }
 
     get hasData() {
