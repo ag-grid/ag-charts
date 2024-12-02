@@ -475,20 +475,31 @@ export abstract class FlowProportionSeries<
     protected legendItemSymbol(
         _type: FlowProportionDatumType,
         nodeIndex: number,
-        { fill, stroke }: { fill?: string; stroke?: string } = {}
+        format: {
+            fill?: string;
+            fillOpacity?: number;
+            stroke?: string;
+            strokeWidth?: number;
+            strokeOpacity?: number;
+        } = {}
     ): _ModuleSupport.LegendSymbolOptions {
         const { fills, strokes } = this.properties;
 
-        fill ??= fills[nodeIndex % fills.length];
-        stroke ??= strokes[nodeIndex % strokes.length];
+        const {
+            fill = fills[nodeIndex % fills.length],
+            fillOpacity = 1,
+            stroke = strokes[nodeIndex % strokes.length],
+            strokeWidth = 0,
+            strokeOpacity = 1,
+        } = format;
 
         return {
             marker: {
                 fill,
-                fillOpacity: 1,
+                fillOpacity,
                 stroke,
-                strokeWidth: 0,
-                strokeOpacity: 1,
+                strokeWidth,
+                strokeOpacity,
             },
         };
     }

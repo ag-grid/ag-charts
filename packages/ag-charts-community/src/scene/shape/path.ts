@@ -150,13 +150,8 @@ export class Path extends Shape implements DistantObject {
         const element = document.createElementNS('http://www.w3.org/2000/svg', 'path');
 
         element.setAttribute('d', this.svgPathData());
-        element.setAttribute('fill', typeof this.fill === 'string' ? this.fill : 'none');
-        element.setAttribute('fill-opacity', String(this.fillOpacity));
-        if (this.stroke != null) {
-            element.setAttribute('stroke', typeof this.stroke === 'string' ? this.stroke : 'none');
-            element.setAttribute('stroke-opacity', String(this.strokeOpacity));
-            element.setAttribute('stroke-width', String(this.strokeWidth));
-        }
+        this.applySvgFillAttributes(element);
+        this.applySvgStrokeAttributes(element);
 
         return {
             elements: [element],
