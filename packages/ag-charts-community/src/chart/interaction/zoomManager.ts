@@ -38,6 +38,7 @@ export type ZoomMemento = {
     rangeY?: AgZoomRange;
     ratioX?: AgZoomRatio;
     ratioY?: AgZoomRatio;
+    autoScaleYAxis?: boolean;
 };
 
 export interface ZoomChangeEvent extends AxisZoomState {
@@ -116,12 +117,16 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
     public createMemento() {
         const zoom = this.getDefinedZoom();
-        return {
+        const memento: ZoomMemento = {
             rangeX: this.getRangeDirection(zoom.x, ChartAxisDirection.X),
             rangeY: this.getRangeDirection(zoom.y, ChartAxisDirection.Y),
             ratioX: { start: zoom.x.min, end: zoom.x.max },
             ratioY: { start: zoom.y.min, end: zoom.y.max },
         };
+        if (this.autoScaleYAxis.enabled) {
+            memento.autoScaleYAxis = !this.autoScaleYAxis.manuallyAdjusted;
+        }
+        return memento;
     }
 
     public guardMemento(blob: unknown): blob is ZoomMemento | undefined {
@@ -173,6 +178,10 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
             } else {
                 zoom.y = { min: 0, max: 1 };
             }
+        }
+
+        if (memento?.autoScaleYAxis != null) {
+            this.autoScaleYAxis.manuallyAdjusted = !memento.autoScaleYAxis;
         }
 
         this.lastRestoredState = zoom;
@@ -487,11 +496,13 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         padding: number
     ) {
         const xScale = xAxis.scale;
-        let [x0, x1] = xScale.range;
-        const dx = x1 - x0;
-        x1 = x0 + dx * max;
-        x0 = x0 + dx * min;
-        const xRange = [x0, x1] as [any, any];
+
+        // Because xScale is only updated after a chart update, working out a visible range
+        // will be calculated with unpredictable - but always accurate - numbers
+        // However, floating point rounding causes issues when doing that
+        // Instead, set the xScale to a consistent range, then just unset it after
+        const xScaleRange = xScale.range;
+        xScale.range = [0, 1];
 
         const yScale = yAxis.scale;
         const [r0, r1] = findMinMax(yScale.range);
@@ -503,7 +514,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         let bounds0 = 1;
         let bounds1 = 0;
         for (const series of yAxis.boundSeries) {
-            const yRange = series.getRange(ChartAxisDirection.Y, xRange);
+            const yRange = series.getRange(ChartAxisDirection.Y, [min, max]);
 
             let y0 = yScale.convert(yRange[0])?.valueOf();
             let y1 = yScale.convert(yRange[1])?.valueOf();
@@ -520,6 +531,8 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
             bounds0 = Math.min(bounds0, y0);
             bounds1 = Math.max(bounds1, y1);
         }
+
+        xScale.range = xScaleRange;
 
         return [bounds0, bounds1];
     }
