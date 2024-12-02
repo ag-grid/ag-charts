@@ -81,6 +81,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     private readonly state = new StateTracker<AxisZoomState>(undefined, 'initial');
 
     private axes: ChartAxisLike[] = [];
+    private didLayoutAxes = false;
 
     private readonly autoScaleYAxis = new ZoomManagerAutoScaleAxis();
     private lastRestoredState: AxisZoomState | undefined = undefined;
@@ -102,8 +103,13 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         this.destroyFns.push(
             layoutManager.addListener('layout:complete', () => {
                 const { pendingMemento } = this;
-                if (!pendingMemento) return;
-                this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
+                this.didLayoutAxes = true;
+                if (pendingMemento) {
+                    this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
+                } else {
+                    // Calculate y autoscaling, if enabled
+                    this.applyChanges('zoom-manager');
+                }
             })
         );
     }
@@ -134,11 +140,11 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     public restoreMemento(_version: string, _mementoVersion: string, memento: ZoomMemento | undefined) {
         const { independentAxes } = this;
 
-        if (!this.axes) {
+        if (!this.axes || !this.didLayoutAxes) {
             this.pendingMemento = { version: _version, mementoVersion: _mementoVersion, memento };
             return;
         }
-        delete this.pendingMemento;
+        this.pendingMemento = undefined;
 
         // Migration from older versions can be implemented here.
 
