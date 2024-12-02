@@ -24,7 +24,7 @@
     },
     "test:package:production-latest": {
       "dependsOn": ["^pack"],
-      "command": "{projectRoot}/run.sh -p 19",
+      "command": "{projectRoot}/run.sh -p latest",
       "configurations": {
         "update": {
           "command": "{projectRoot}/run.sh -p -u latest"
