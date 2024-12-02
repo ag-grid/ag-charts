@@ -26,7 +26,14 @@ export class LegendManager
     private readonly legendDataMap: LegendDataMap = new Map();
 
     public createMemento() {
-        return this.getData().map(({ enabled, ...datum }) => ({ ...datum, visible: enabled }));
+        return this.getData()
+            .filter(({ hideInLegend }) => !hideInLegend)
+            .map(({ enabled, seriesId, itemId, legendItemName }) => ({
+                visible: enabled,
+                seriesId,
+                itemId,
+                legendItemName,
+            }));
     }
 
     public guardMemento(blob: unknown): blob is LegendDataMemento | undefined {
