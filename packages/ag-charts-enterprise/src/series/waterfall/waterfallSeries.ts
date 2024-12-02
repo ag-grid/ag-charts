@@ -509,6 +509,47 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         return datumSelection.update(data);
     }
 
+    private getItemStyle(datumId: string, datum: any, itemId: AgWaterfallSeriesItemType, highlighted = false) {
+        const { id: seriesId, properties } = this;
+        const item = properties.item[itemId === 'subtotal' ? 'total' : itemId];
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+
+        const { itemStyler } = item;
+        const { xKey, yKey } = properties;
+
+        const format = {
+            fill: highlightStyle?.fill ?? item.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? item.fillOpacity,
+            stroke: highlightStyle?.stroke ?? item.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? item.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? item.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? item.lineDash ?? [],
+            lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
+            cornerRadius: item.cornerRadius,
+        };
+
+        if (itemStyler != null) {
+            const itemStyle = this.cachedDatumCallback(
+                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                () => {
+                    return itemStyler({
+                        seriesId,
+                        itemId,
+                        datum,
+                        xKey,
+                        yKey,
+                        highlighted,
+                        ...format,
+                    });
+                }
+            );
+
+            Object.assign(format, itemStyle);
+        }
+
+        return format;
+    }
+
     protected override updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, WaterfallNodeDatum>;
         isHighlight: boolean;
@@ -641,13 +682,15 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             total = yValue;
         }
 
+        const format = this.getItemStyle(String(datumIndex), datum, seriesItemType);
+
         return tooltip.formatTooltip(
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(seriesItemType),
                 data: [{ label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(total) }],
             },
-            { seriesId, datum, title: yName, itemId: seriesItemType, xKey, xName, yKey, yName }
+            { seriesId, datum, title: yName, itemId: seriesItemType, xKey, xName, yKey, yName, ...format }
         );
     }
 

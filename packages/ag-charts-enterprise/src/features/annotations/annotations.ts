@@ -369,9 +369,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
                 const onChangeColor =
                     (colorType: AnnotationOptionsColorPickerType) =>
-                    (colorOpacity: string, color: string, opacity: number) => {
-                        this.setColorAndDefault(datum.type, colorType, colorOpacity, color, opacity);
-                        this.optionsToolbar.updateColorPickerColor(colorType, color, opacity);
+                    (colorOpacity: string, color: string, opacity: number, isMultiColor: boolean) => {
+                        this.setColorAndDefault(datum.type, colorType, colorOpacity, color, opacity, isMultiColor);
+                        this.optionsToolbar.updateColorPickerColor(colorType, color, opacity, isMultiColor);
                     };
                 const onChangeHideColor = (colorType: AnnotationOptionsColorPickerType) => () => {
                     this.recordActionAfterNextUpdate(
@@ -500,9 +500,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     'defaults',
                 ]);
             }),
-            optionsToolbar.addListener('updated-color', ({ type, colorPickerType, colorOpacity, color, opacity }) => {
-                this.setColorAndDefault(type, colorPickerType, colorOpacity, color, opacity);
-            }),
+            optionsToolbar.addListener(
+                'updated-color',
+                ({ type, colorPickerType, colorOpacity, color, opacity, isMultiColor }) => {
+                    this.setColorAndDefault(type, colorPickerType, colorOpacity, color, opacity, isMultiColor);
+                }
+            ),
             optionsToolbar.addListener('updated-font-size', ({ type, fontSize }) => {
                 this.setFontSizeAndDefault(type, fontSize);
             }),
@@ -732,10 +735,11 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         colorPickerType: AnnotationOptionsColorPickerType,
         colorOpacity: string,
         color: string,
-        opacity: number
+        opacity: number,
+        isMultiColor: boolean
     ) {
-        this.state.transition('color', { colorPickerType, colorOpacity, color, opacity });
-        this.defaults.setDefaultColor(datumType, colorPickerType, colorOpacity, color, opacity);
+        this.state.transition('color', { colorPickerType, colorOpacity, color, opacity, isMultiColor });
+        this.defaults.setDefaultColor(datumType, colorPickerType, colorOpacity, color, opacity, isMultiColor);
     }
 
     private setFontSizeAndDefault(datumType: HasFontSizeAnnotationType, fontSize: number) {

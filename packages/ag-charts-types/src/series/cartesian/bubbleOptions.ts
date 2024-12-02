@@ -4,10 +4,14 @@ import type { AgSeriesTooltip, AgSeriesTooltipRendererParams } from '../../chart
 import type { LabelPlacement, PixelSize } from '../../chart/types';
 import type { AgSeriesMarkerStyle } from '../markerOptions';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions } from '../seriesOptions';
+import type { FillOptions, StrokeOptions } from './commonOptions';
 
-export type AgBubbleSeriesTooltipRendererParams<TDatum = any> = AgSeriesTooltipRendererParams<TDatum> &
-    AgBubbleSeriesOptionsKeys &
-    AgBubbleSeriesOptionsNames;
+export interface AgBubbleSeriesTooltipRendererParams<TDatum = any>
+    extends AgSeriesTooltipRendererParams<TDatum>,
+        AgBubbleSeriesOptionsKeys,
+        AgBubbleSeriesOptionsNames,
+        FillOptions,
+        StrokeOptions {}
 
 export type AgBubbleSeriesLabelFormatterParams = AgBubbleSeriesOptionsKeys & AgBubbleSeriesOptionsNames;
 

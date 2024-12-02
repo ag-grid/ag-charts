@@ -2,10 +2,16 @@ import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from
 
 import { getData } from './data';
 
-function renderer({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) {
+function renderer({ datum, xKey, yKey, yName }: AgCartesianSeriesTooltipRendererParams) {
     return {
-        title: datum[xKey],
-        content: datum[yKey].toFixed(0),
+        heading: 'Clothing Production',
+        title: yName,
+        data: [
+            {
+                label: datum[xKey],
+                value: datum[yKey].toFixed(0),
+            },
+        ],
     };
 }
 

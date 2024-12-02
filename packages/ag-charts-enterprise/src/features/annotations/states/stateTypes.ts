@@ -82,6 +82,7 @@ type ActionEvents = {
         colorOpacity: string;
         color: string;
         opacity: number;
+        isMultiColor: boolean;
     };
     fontSize: number;
     lineProps: LinearSettingsDialogLineChangeProps;

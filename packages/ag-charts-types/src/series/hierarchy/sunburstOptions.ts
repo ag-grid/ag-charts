@@ -18,13 +18,10 @@ export type AgSunburstSeriesLabelHighlightOptions<TDatum> = Pick<
 export interface AgSunburstSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgSunburstSeriesOptionsKeys,
-        AgSunburstSeriesOptionsNames {
+        AgSunburstSeriesOptionsNames,
+        AgSunburstSeriesStyle {
     /** The depth of the datum in the hierarchy. */
     depth: number;
-    /** The title of the Sunburst segment. */
-    // @todo(AG-10574) title?: string;
-    /** The computed fill colour of the Sunburst segment. */
-    // @todo(AG-10574) color?: CssColor;
 }
 
 export interface AgSunburstSeriesHighlightStyle<TDatum> extends AgSeriesHighlightStyle, AgSunburstSeriesStyle {

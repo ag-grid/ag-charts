@@ -49,9 +49,8 @@ export type AgBoxPlotSeriesItemStylerParams<TDatum> = DatumCallbackParams<TDatum
 export interface AgBoxPlotSeriesTooltipRendererParams<TDatum>
     extends BoxPlotOptionsKeys,
         BoxPlotOptionsNames,
-        AgSeriesTooltipRendererParams<TDatum> {
-    // @todo(AG-10574) fill?: CssColor;
-}
+        AgSeriesTooltipRendererParams<TDatum>,
+        AgBoxPlotSeriesStyle {}
 
 export interface AgBoxPlotSeriesStyle extends FillOptions, StrokeOptions, LineDashOptions {
     /** Apply rounded corners to each bar. */

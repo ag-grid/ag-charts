@@ -1,18 +1,15 @@
-import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-function tooltipRenderer(params: AgCartesianSeriesTooltipRendererParams) {
+function tooltipRenderer(params: AgBarSeriesTooltipRendererParams) {
     var formatThousands = function (value: number) {
         return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
     };
 
     var tooltipHtml = [
         '<div class="my-tooltip">',
-        '<span class="my-tooltip__title" style="color: ' +
-            'black' + /// @todo(AG-10574) params.color
-            '">' +
-            params.yName,
+        '<span class="my-tooltip__title" style="color: ' + params.fill + '">' + params.yName,
         '(' + params.datum[params.xKey] + '):</span> ' + formatThousands(params.datum[params.yKey]) + ' tonnes',
         '</div>',
     ];

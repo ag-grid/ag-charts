@@ -118,11 +118,16 @@ And then in the CSS:
 
 Note that your styles don't override the default tooltip styles but complement them.
 
-### Modifying Content and Title
+### Modifying Content
 
-To modify the text used for the title and content of a tooltip, use a `renderer` function.
+Tooltips can contain any number following contents, in order:-
 
-This receives values associated with the highlighted data point, and should return an object with `title` and `content` fields.
+-   A `heading`, which is titled in relation to the chart
+-   A series symbol, which graphically depicts a series
+-   A `title`, which is titled in relation to a series
+-   Some `data` rows, which contain multiple label and value pairs corresponding to information for a series
+
+Each of these can be customised by using a `renderer` function. This receives values associated with the highlighted data point, and should return an object with optional `heading`, `title`, and `data` fields.
 
 {% chartExampleRunner title="Modifying Tooltip Content" name="tooltip-content-title" type="generated" /%}
 
@@ -130,14 +135,23 @@ This receives values associated with the highlighted data point, and should retu
 tooltip: {
     renderer: function ({ datum, xKey, yKey }) {
         return {
-            content: datum[yKey].toFixed(0),
-            title: datum[xKey]
+            heading: 'Clothing Production',
+            title: yName,
+            data: [
+                {
+                    label: datum[xKey],
+                    value: datum[yKey].toFixed(0),
+                },
+            ],
         };
     },
 },
 ```
 
-The `title` and `content` fields returned can contain plain text or HTML.
+In this configuration:
+
+-   The `title` and `content` fields are plain text.
+-   The `data` field consists of an array of `label` and `value` fields, which are both are plain text.
 
 The actual type of the `params` object passed into the tooltip renderer will depend on the series type being used.
 
@@ -153,13 +167,15 @@ series: [
         type: 'bar',
         tooltip: {
             renderer: function ({ datum, xKey, yKey }) {
-                return `
-            <div class="ag-chart-tooltip-title" style="background-color: ${params.color}">
-                ${datum[xKey]}
-            </div>
-            <div class="ag-chart-tooltip-content">
-                ${datum[yKey]}
-            </div>`;
+                return (
+                    '<div class="my-tooltip" style="--color:' +
+                    params.fill +
+                    '">' +
+                    params.datum[params.xKey] +
+                    '&nbsp;&#10172;&nbsp;' +
+                    params.datum[params.yKey].toFixed(0) +
+                    '</div>'
+                );
             },
         },
     },

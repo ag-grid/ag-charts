@@ -1,4 +1,4 @@
-import type { AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
+import type { AgErrorBoundSeriesTooltipRendererParams, FillOptions, StrokeOptions } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
@@ -15,7 +15,7 @@ import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';
-import { valueProperty } from '../../data/processors';
+import { createDatumId, valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import type { Marker } from '../../marker/marker';
@@ -229,6 +229,46 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
+    private getMarkerItemBaseStyle(highlighted = false): RequireOptional<FillOptions & StrokeOptions> {
+        const { properties } = this;
+
+        const { marker } = properties;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        return {
+            fill: highlightStyle?.fill ?? marker.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
+            stroke: highlightStyle?.stroke ?? marker.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? marker.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
+        };
+    }
+
+    private getMarkerItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        format: RequireOptional<FillOptions & StrokeOptions>,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties } = this;
+
+        const { xKey, yKey, labelKey, marker } = properties;
+        const { itemStyler } = marker;
+
+        if (itemStyler == null) return;
+
+        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+            return itemStyler({
+                seriesId,
+                datum,
+                xKey,
+                yKey,
+                labelKey,
+                highlighted,
+                ...format,
+            });
+        });
+    }
+
     protected override updateMarkerNodes(opts: {
         markerSelection: Selection<Marker, ScatterNodeDatum>;
         isHighlight: boolean;
@@ -284,7 +324,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
     override getTooltipContent(nodeDatum: ScatterNodeDatum): TooltipContent | string | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { xKey, xName, yKey, yName, legendItemName, labelKey, labelName, title, tooltip } = properties;
+        const { xKey, xName, yKey, yName, labelKey, labelName, title, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -299,13 +339,16 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
         if (xValue == null) return;
 
+        const format = this.getMarkerItemBaseStyle();
+        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datum, format));
+
         return tooltip.formatTooltip(
             {
                 symbol: this.legendItemSymbol(),
                 title,
                 data: [
-                    { label: xName ?? xKey, value: xAxis.formatDatum(xValue) },
-                    { label: legendItemName ?? yName ?? yKey, value: yAxis.formatDatum(yValue) },
+                    { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue) },
+                    { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) },
                 ],
             },
             {
@@ -318,6 +361,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 yName,
                 labelKey,
                 labelName,
+                ...format,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );

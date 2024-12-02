@@ -33,6 +33,39 @@ export const testDefaults = {
     },
 };
 
+export const sonarjsConfig = [
+    sonarjs.configs.recommended,
+    {
+        files: ['**/*.{js,ts}'],
+        rules: {
+            // Show this warning in IDE and PRs, but not when running at command line (to reduce clutter).
+            'sonarjs/cognitive-complexity': env !== 'nx-task' ? 1 : 0,
+            'sonarjs/no-duplicate-string': env !== 'nx-task' ? 1 : 0,
+            'sonarjs/sonar-max-params': env !== 'nx-task' ? 1 : 0,
+            'sonarjs/todo-tag': env !== 'nx-task' ? 1 : 0,
+            'sonarjs/fixme-tag': env !== 'nx-task' ? 1 : 0,
+
+            // We don't really care about these.
+            'sonarjs/no-selector-parameter': 0,
+            'sonarjs/redundant-type-aliases': 0,
+            'sonarjs/new-cap': 0,
+
+            // For review - new for eslint 9.
+            'sonarjs/no-redeclare': 1,
+            'sonarjs/public-static-readonly': 1,
+            'sonarjs/updated-loop-counter': 1,
+            'sonarjs/function-return-type': 1,
+
+            // Duplicates @typescript-eslint
+            'sonarjs/sonar-no-unused-vars': 0,
+            'sonarjs/no-redundant-type-constituents': 0,
+            'sonarjs/sonar-prefer-optional-chain': 0,
+            'sonarjs/no-base-to-string': 0,
+            'sonarjs/no-misused-promises': 0,
+        },
+    },
+];
+
 /** @type {import('eslint').Linter.Config[]} */
 export default [
     { files: ['**/*.{js,mjs,cjs,ts}'], linterOptions: { reportUnusedDisableDirectives: 'error' } },
@@ -57,9 +90,10 @@ export default [
             },
         },
     },
-    sonarjs.configs.recommended,
+
     {
         files: ['**/src/**/*'],
+        ignores: ['**/src/pages/**'], // Ignore astro pages
         plugins: {
             'check-file': checkFile,
         },
@@ -73,7 +107,7 @@ export default [
         },
     },
     {
-        files: ['**/*.{js,ts}'],
+        files: ['**/*.{js,ts,tsx}'],
         rules: {
             'no-lonely-if': 2,
             'no-negated-condition': 1,
@@ -106,12 +140,6 @@ export default [
                 },
             ],
             '@typescript-eslint/no-empty-object-type': ['error', { allowInterfaces: 'always' }],
-            // Show this warning in IDE and PRs, but not when running at command line (to reduce clutter).
-            'sonarjs/cognitive-complexity': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/no-duplicate-string': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/sonar-max-params': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/todo-tag': env !== 'nx-task' ? 1 : 0,
-            'sonarjs/fixme-tag': env !== 'nx-task' ? 1 : 0,
 
             // We don't really care about these.
             '@typescript-eslint/no-unsafe-return': 0,
@@ -122,22 +150,6 @@ export default [
             '@typescript-eslint/no-unsafe-member-access': 0,
             '@typescript-eslint/no-base-to-string': 0,
             '@typescript-eslint/no-this-alias': 0,
-            'sonarjs/no-selector-parameter': 0,
-            'sonarjs/redundant-type-aliases': 0,
-            'sonarjs/new-cap': 0,
-
-            // For review - new for eslint 9.
-            'sonarjs/no-redeclare': 1,
-            'sonarjs/public-static-readonly': 1,
-            'sonarjs/updated-loop-counter': 1,
-            'sonarjs/function-return-type': 1,
-
-            // Duplicates @typescript-eslint
-            'sonarjs/sonar-no-unused-vars': 0,
-            'sonarjs/no-redundant-type-constituents': 0,
-            'sonarjs/sonar-prefer-optional-chain': 0,
-            'sonarjs/no-base-to-string': 0,
-            'sonarjs/no-misused-promises': 0,
         },
     },
     testDefaults,

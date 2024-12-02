@@ -89,8 +89,9 @@ describe('HierarchySeries', () => {
         expect(series.rootNode).toEqual({
             index: 0,
             datum: undefined,
-            size: 0,
-            color: undefined,
+            rootIndex: 0,
+            sizeValue: 0,
+            colorValue: undefined,
             sumSize: 0,
             depth: undefined,
             parent: undefined,

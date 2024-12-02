@@ -57,8 +57,8 @@ export class HeatmapSeriesProperties extends CartesianSeriesProperties<AgHeatmap
     @Validate(COLOR_STRING, { optional: true })
     stroke: string = 'black';
 
-    @Validate(RATIO, { optional: true })
-    strokeOpacity?: number;
+    @Validate(RATIO)
+    strokeOpacity: number = 1;
 
     @Validate(POSITIVE_NUMBER, { optional: true })
     strokeWidth: number = 0;

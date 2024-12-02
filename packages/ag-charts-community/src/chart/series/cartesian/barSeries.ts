@@ -1,4 +1,4 @@
-import type { AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
+import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -647,6 +647,52 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
     }
 
+    private getItemBaseStyle(highlighted = false): Required<AgBarSeriesStyle> {
+        const { properties } = this;
+        const { cornerRadius } = properties;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        return {
+            fill: highlightStyle?.fill ?? properties.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+            stroke: highlightStyle?.stroke ?? properties.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? properties.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
+            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            cornerRadius,
+        };
+    }
+
+    private getItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        xValue: any,
+        yValue: any,
+        format: Required<AgBarSeriesStyle>,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties } = this;
+
+        const { xKey, yKey, itemStyler } = properties;
+
+        if (itemStyler == null) return;
+
+        const { xDomain, yDomain } = this.cachedDatumCallback('domain', () => ({
+            xDomain: this.getSeriesDomain(ChartAxisDirection.X),
+            yDomain: this.getSeriesDomain(ChartAxisDirection.Y),
+        }));
+        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+            return itemStyler({
+                seriesId,
+                ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
+                xValue,
+                yValue,
+                highlighted,
+                ...format,
+            });
+        });
+    }
+
     protected override updateDatumNodes(opts: { datumSelection: Selection<Rect, BarNodeDatum>; isHighlight: boolean }) {
         if (!this.properties.isValid()) {
             return;
@@ -748,11 +794,14 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         if (xValue == null) return;
 
+        const format = this.getItemBaseStyle();
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, xValue, yValue, format));
+
         return tooltip.formatTooltip(
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: legendItemName ?? yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) }],
+                data: [{ label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) }],
             },
             {
                 seriesId,
@@ -764,6 +813,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
                 yName,
                 legendItemName,
                 stackGroup,
+                ...format,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );

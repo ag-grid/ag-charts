@@ -2,7 +2,7 @@ import { SITE_BASE_URL, SITE_URL, agChartsVersion, agGridVersion } from '@consta
 import { getIsArchive, getIsDev, getIsProduction, getIsStaging } from '@utils/env';
 import { execSync } from 'child_process';
 
-export async function GET() {
+export function GET() {
     const removeNewlineRegex = /\n/gm;
     const buildDate = new Date();
     const hash = execSync('git rev-parse HEAD').toString().replace(removeNewlineRegex, '');

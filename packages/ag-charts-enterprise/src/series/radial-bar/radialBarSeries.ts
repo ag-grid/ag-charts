@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
@@ -12,7 +12,6 @@ const {
     isDefined,
     groupAccumulativeValueProperty,
     keyProperty,
-    mergeDefaults,
     normaliseGroupTo,
     valueProperty,
     fixNumericExtent,
@@ -60,6 +59,8 @@ export interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDa
     readonly reversed: boolean;
     readonly index: number;
 }
+
+type ItemStyle = Required<AgRadialSeriesStyle>;
 
 export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     RadialBarNodeDatum,
@@ -357,6 +358,41 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         this.animationState.transition('update');
     }
 
+    private getItemBaseStyle(highlighted = false): ItemStyle {
+        const { properties } = this;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
+
+        return {
+            fill: highlightStyle?.fill ?? properties.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+            stroke: highlightStyle?.stroke ?? properties.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            cornerRadius: properties.cornerRadius,
+        };
+    }
+
+    protected getItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted = false) {
+        const { id: seriesId, properties } = this;
+        const { angleKey, radiusKey, itemStyler } = properties;
+
+        if (itemStyler == null) return;
+
+        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+            return itemStyler({
+                seriesId,
+                datum,
+                highlighted,
+                angleKey,
+                radiusKey,
+                ...format,
+            });
+        });
+    }
+
     protected updateSectorSelection(
         selection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialBarNodeDatum>,
         highlighted: boolean
@@ -365,70 +401,45 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         if (highlighted) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             if (activeHighlight?.datum && activeHighlight.series === this) {
-                selectionData = [activeHighlight as RadialBarNodeDatum];
+                selectionData.push(activeHighlight as RadialBarNodeDatum);
             }
         } else {
             selectionData = this.nodeData;
         }
 
-        const {
-            fill,
-            fillOpacity,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
-            lineDash,
-            lineDashOffset,
-            cornerRadius,
-            angleKey,
-            radiusKey,
-        } = mergeDefaults(highlighted ? this.properties.highlightStyle.item : null, this.properties);
-        const { itemStyler } = this.properties;
+        const format = this.getItemBaseStyle(highlighted);
 
-        const formatType = highlighted ? 'highlight' : 'node';
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
-            .each((node, datum) => {
-                const format = itemStyler
-                    ? this.cachedDatumCallback(createDatumId(this.getDatumId(datum), formatType), () =>
-                          itemStyler({
-                              seriesId: this.id,
-                              datum: datum.datum,
-                              highlighted,
-                              angleKey,
-                              radiusKey,
-                              fill,
-                              fillOpacity,
-                              stroke,
-                              strokeWidth,
-                              strokeOpacity,
-                              lineDash,
-                              lineDashOffset,
-                              cornerRadius,
-                          })
-                      )
-                    : undefined;
+            .each((node, nodeDatum) => {
+                const { datum, datumIndex } = nodeDatum;
+                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, format);
 
-                node.fill = format?.fill ?? fill;
-                node.fillOpacity = format?.fillOpacity ?? fillOpacity;
-                node.stroke = format?.stroke ?? stroke;
-                node.strokeWidth = format?.strokeWidth ?? strokeWidth;
-                node.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
-                node.lineDash = format?.lineDash ?? lineDash;
-                node.lineDashOffset = format?.lineDashOffset ?? lineDashOffset;
+                const stroke = overrides?.stroke ?? format.stroke;
+                const strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
+                const cornerRadius = overrides?.cornerRadius ?? format.cornerRadius;
+
+                node.fill = overrides?.fill ?? format.fill;
+                node.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
+                node.stroke = stroke;
+                node.strokeWidth = strokeWidth;
+                node.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
+                node.lineDash = overrides?.lineDash ?? format.lineDash;
+                node.lineDashOffset = overrides?.lineDashOffset ?? format.lineDashOffset;
                 node.lineJoin = 'round';
-                node.inset = stroke != null ? (format?.strokeWidth ?? strokeWidth) / 2 : 0;
-                node.startInnerCornerRadius = datum.reversed ? format?.cornerRadius ?? cornerRadius : 0;
-                node.startOuterCornerRadius = datum.reversed ? format?.cornerRadius ?? cornerRadius : 0;
-                node.endInnerCornerRadius = datum.reversed ? 0 : format?.cornerRadius ?? cornerRadius;
-                node.endOuterCornerRadius = datum.reversed ? 0 : format?.cornerRadius ?? cornerRadius;
+                node.inset = stroke != null ? strokeWidth / 2 : 0;
+
+                node.startInnerCornerRadius = datum.reversed ? cornerRadius : 0;
+                node.startOuterCornerRadius = datum.reversed ? cornerRadius : 0;
+                node.endInnerCornerRadius = datum.reversed ? 0 : cornerRadius;
+                node.endOuterCornerRadius = datum.reversed ? 0 : cornerRadius;
 
                 if (highlighted) {
-                    node.startAngle = datum.startAngle;
-                    node.endAngle = datum.endAngle;
-                    node.clipSector = datum.clipSector;
-                    node.innerRadius = datum.innerRadius;
-                    node.outerRadius = datum.outerRadius;
+                    node.startAngle = nodeDatum.startAngle;
+                    node.endAngle = nodeDatum.endAngle;
+                    node.clipSector = nodeDatum.clipSector;
+                    node.innerRadius = nodeDatum.innerRadius;
+                    node.outerRadius = nodeDatum.outerRadius;
                 }
             });
     }
@@ -508,6 +519,9 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         if (radiusValue == null) return;
 
+        const format = this.getItemBaseStyle();
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format));
+
         return tooltip.formatTooltip(
             {
                 heading: radiusAxis.formatDatum(radiusValue),
@@ -522,6 +536,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
                 angleName,
                 radiusKey,
                 radiusName,
+                ...format,
             }
         );
     }

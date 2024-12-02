@@ -22,7 +22,8 @@ export interface AgWaterfallSeriesStyle extends FillOptions, StrokeOptions, Line
 }
 
 export interface AgWaterfallSeriesTooltipRendererParams<TDatum = any>
-    extends AgCartesianSeriesTooltipRendererParams<TDatum> {
+    extends AgCartesianSeriesTooltipRendererParams<TDatum>,
+        AgWaterfallSeriesStyle {
     /** The Id to distinguish the type of datum. This can be `positive`, `negative`, `total` or `subtotal`. */
     itemId: AgWaterfallSeriesItemType;
 }

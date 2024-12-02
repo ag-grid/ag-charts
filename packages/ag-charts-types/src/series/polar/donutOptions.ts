@@ -160,6 +160,9 @@ export interface AgDonutSeriesOptionsNames {
 export interface AgDonutSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgDonutSeriesOptionsKeys,
-        AgDonutSeriesOptionsNames {}
+        AgDonutSeriesOptionsNames,
+        FillOptions,
+        StrokeOptions,
+        LineDashOptions {}
 
 export type AgDonutSeriesLabelFormatterParams = AgDonutSeriesOptionsKeys & AgDonutSeriesOptionsNames;

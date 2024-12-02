@@ -30,10 +30,9 @@ export interface LegendSymbolOptions {
 export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineSize = size * (5 / 3)) {
     const group = new Group();
 
-    const markerSize = Math.ceil(size + symbol.marker.strokeWidth);
-    const width = Math.max(symbol.marker.enabled === false ? 0 : markerSize, symbol.line == null ? 0 : lineSize);
+    const width = Math.max(symbol.marker.enabled === false ? 0 : size, symbol.line == null ? 0 : lineSize);
     const height = Math.max(
-        symbol.marker.enabled === false ? 0 : markerSize,
+        symbol.marker.enabled === false ? 0 : size,
         symbol.line == null ? 0 : symbol.line.strokeWidth
     );
 
@@ -69,12 +68,15 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
         const y = height / 2 + (center.y - 0.5) * size;
 
         if (typeof shape === 'string') {
+            const scale = size / (size + strokeWidth);
             marker.translationX = x;
             marker.translationY = y;
+            marker.scalingX = scale;
+            marker.scalingY = scale;
         } else {
             // Custom marker - force it to fit in the box
             const bbox = marker.getBBox();
-            const scale = Math.min(width / bbox.width, height / bbox.height, 1);
+            const scale = Math.min(width / (bbox.width + strokeWidth), height / (bbox.height + strokeWidth), 1);
             marker.translationX = x * scale - bbox.x * scale + (width - bbox.width * scale) / 2;
             marker.translationY = y * scale - bbox.y * scale + (height - bbox.height * scale) / 2;
             marker.scalingX = scale;

@@ -1,4 +1,10 @@
-import { type AgOhlcSeriesItemType, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgOhlcSeriesItemType,
+    type FillOptions,
+    type LineDashOptions,
+    type StrokeOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 
 import {
     CLOSE,
@@ -405,6 +411,54 @@ export abstract class OhlcSeriesBase<
         return labelSelection.update(labelData);
     }
 
+    protected getItemBaseStyle(
+        itemId: 'up' | 'down',
+        highlighted = false
+    ): _ModuleSupport.RequireOptional<FillOptions & StrokeOptions & LineDashOptions> {
+        const { properties } = this;
+        const item = properties.item[itemId];
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        return {
+            fill: highlightStyle?.fill ?? item.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? item.fillOpacity,
+            stroke: highlightStyle?.stroke ?? item.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? item.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? item.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? item.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? item.lineDashOffset,
+        };
+    }
+
+    protected getItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        itemId: 'up' | 'down',
+        format: _ModuleSupport.RequireOptional<FillOptions & StrokeOptions & LineDashOptions>,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties } = this;
+
+        const { itemStyler } = properties;
+
+        if (itemStyler == null) return;
+
+        const { xKey, openKey, closeKey, highKey, lowKey } = properties;
+        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+            return itemStyler({
+                seriesId,
+                datum,
+                itemId,
+                xKey,
+                openKey,
+                closeKey,
+                highKey,
+                lowKey,
+                highlighted,
+                ...format,
+            });
+        });
+    }
+
     override getTooltipContent(nodeDatum: OhlcNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const {
@@ -442,24 +496,27 @@ export abstract class OhlcSeriesBase<
         const itemId = closeValue >= openValue ? 'up' : 'down';
         const item = this.properties.item[itemId];
 
+        const format = this.getItemBaseStyle(itemId);
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, itemId, format));
+
         return tooltip.formatTooltip(
             {
                 heading: xAxis.formatDatum(xValue),
                 title: legendItemName,
                 symbol: {
                     marker: {
-                        fill: item.fill,
-                        fillOpacity: item.fillOpacity ?? 1,
+                        fill: item.fill ?? item.stroke,
+                        fillOpacity: item.fillOpacity ?? item.strokeOpacity ?? 1,
                         stroke: item.stroke,
                         strokeWidth: item.strokeWidth ?? 1,
                         strokeOpacity: item.strokeOpacity ?? 1,
                     },
                 },
                 data: [
-                    { label: openName ?? openKey, value: yAxis.formatDatum(openValue) },
-                    { label: highName ?? highKey, value: yAxis.formatDatum(highValue) },
-                    { label: lowName ?? lowKey, value: yAxis.formatDatum(lowValue) },
-                    { label: closeName ?? closeKey, value: yAxis.formatDatum(closeValue) },
+                    { label: openName, fallbackLabel: openKey, value: yAxis.formatDatum(openValue) },
+                    { label: highName, fallbackLabel: highKey, value: yAxis.formatDatum(highValue) },
+                    { label: lowName, fallbackLabel: lowKey, value: yAxis.formatDatum(lowValue) },
+                    { label: closeName, fallbackLabel: closeKey, value: yAxis.formatDatum(closeValue) },
                 ],
             },
             {
@@ -478,6 +535,7 @@ export abstract class OhlcSeriesBase<
                 lowName,
                 closeKey,
                 closeName,
+                ...format,
             }
         );
     }

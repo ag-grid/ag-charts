@@ -335,17 +335,20 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (xValue == null) return;
 
+        const format = this.getItemBaseStyle();
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format));
+
         return tooltip.formatTooltip(
             {
                 heading: xAxis.formatDatum(xValue),
                 title: legendItemName ?? yName,
                 symbol: this.legendItemSymbol(),
                 data: [
-                    { label: minName ?? minKey, value: yAxis.formatDatum(minValue) },
-                    { label: q1Name ?? q1Key, value: yAxis.formatDatum(q1Value) },
-                    { label: medianName ?? medianKey, value: yAxis.formatDatum(medianValue) },
-                    { label: q3Name ?? q3Key, value: yAxis.formatDatum(q3Value) },
-                    { label: maxName ?? maxKey, value: yAxis.formatDatum(maxValue) },
+                    { label: minName, fallbackLabel: minKey, value: yAxis.formatDatum(minValue) },
+                    { label: q1Name, fallbackLabel: q1Key, value: yAxis.formatDatum(q1Value) },
+                    { label: medianName, fallbackLabel: medianKey, value: yAxis.formatDatum(medianValue) },
+                    { label: q3Name, fallbackLabel: q3Key, value: yAxis.formatDatum(q3Value) },
+                    { label: maxName, fallbackLabel: maxKey, value: yAxis.formatDatum(maxValue) },
                 ],
             },
             {
@@ -365,6 +368,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 minName,
                 maxKey,
                 maxName,
+                ...format,
             }
         );
     }
@@ -391,6 +395,52 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }) {
         const data = opts.nodeData ?? [];
         return opts.datumSelection.update(data);
+    }
+
+    private getItemBaseStyle(highlighted = false): Required<AgBoxPlotSeriesStyle> {
+        const { properties } = this;
+        const { cornerRadius, cap, whisker } = properties;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        return {
+            fill: highlightStyle?.fill ?? properties.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+            stroke: highlightStyle?.stroke ?? properties.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? properties.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
+            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            cornerRadius,
+            cap,
+            whisker,
+        };
+    }
+
+    private getItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        format: Required<AgBoxPlotSeriesStyle>,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties } = this;
+
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler } = properties;
+
+        if (itemStyler == null) return;
+
+        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+            return itemStyler({
+                seriesId,
+                datum,
+                xKey,
+                minKey,
+                q1Key,
+                medianKey,
+                q3Key,
+                maxKey,
+                highlighted,
+                ...format,
+            });
+        });
     }
 
     protected override updateDatumNodes({

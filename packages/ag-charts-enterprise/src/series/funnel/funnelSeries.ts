@@ -49,9 +49,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
     protected override barStyle(): FunnelSeriesShapeStyle {
         const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
         return {
-            fill: undefined,
             fillOpacity,
-            stroke: undefined,
             strokeOpacity,
             strokeWidth,
             lineDash,
@@ -108,6 +106,8 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
             stageKey,
             valueKey,
             highlightStyle: { item: itemHighlightStyle },
+            fills,
+            strokes,
             fillOpacity,
             strokeOpacity,
             strokeWidth,
@@ -128,9 +128,12 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
         datumSelection.each((rect, datum) => {
+            const { datumIndex } = datum;
+            const fill = fills[datumIndex % fills.length] ?? 'black';
+            const stroke = strokes[datumIndex % strokes.length] ?? 'black';
             const style: _ModuleSupport.RectConfig = {
-                fill: datum.fill,
-                stroke: datum.stroke,
+                fill,
+                stroke,
                 fillOpacity,
                 strokeOpacity,
                 lineDash,
@@ -140,7 +143,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
             };
             const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
-            const config = getRectConfig(this, datum.itemId, {
+            const config = getRectConfig(this, String(datum.datumIndex), {
                 datum,
                 isHighlighted: isHighlight,
                 style,

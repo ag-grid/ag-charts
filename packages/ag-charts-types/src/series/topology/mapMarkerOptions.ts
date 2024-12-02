@@ -5,9 +5,11 @@ import type { AgMarkerShape, CssColor, GeoJSON, LabelPlacement, PixelSize } from
 import type { FillOptions, StrokeOptions } from '../cartesian/commonOptions';
 import type { AgBaseSeriesOptions, AgBaseSeriesThemeableOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 
-export type AgMapMarkerSeriesTooltipRendererParams<TDatum> = AgSeriesTooltipRendererParams<TDatum> &
-    AgMapMarkerSeriesOptionsKeys &
-    AgMapMarkerSeriesOptionsNames;
+export interface AgMapMarkerSeriesTooltipRendererParams<TDatum>
+    extends AgSeriesTooltipRendererParams<TDatum>,
+        AgMapMarkerSeriesOptionsKeys,
+        AgMapMarkerSeriesOptionsNames,
+        AgMapMarkerSeriesStyle {}
 
 export type AgMapMarkerSeriesHighlightStyle<_TDatum> = AgSeriesHighlightStyle & FillOptions & StrokeOptions;
 
@@ -48,8 +50,6 @@ export interface AgMapMarkerSeriesOptionsNames {
 }
 
 export interface AgMapMarkerSeriesStyle extends FillOptions, StrokeOptions {
-    /** The shape to use for the markers. You can also supply a custom marker by providing a `Marker` subclass. */
-    shape?: AgMarkerShape;
     /** The size in pixels of the markers. */
     size?: PixelSize;
 }
@@ -67,6 +67,8 @@ export interface AgMapMarkerSeriesLabel<TDatum>
 export interface AgMapMarkerSeriesThemeableOptions<TDatum = any>
     extends AgMapMarkerSeriesStyle,
         Omit<AgBaseSeriesThemeableOptions<TDatum>, 'highlightStyle'> {
+    /** The shape to use for the markers. You can also supply a custom marker by providing a `Marker` subclass. */
+    shape?: AgMarkerShape;
     /** Determines the largest size a marker can be in pixels. */
     maxSize?: PixelSize;
     /** Explicitly specifies the extent of the domain for series `sizeKey`. */

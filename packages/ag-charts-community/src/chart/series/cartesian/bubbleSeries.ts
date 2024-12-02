@@ -1,4 +1,9 @@
-import type { AgErrorBoundSeriesTooltipRendererParams, AgSeriesMarkerStyle } from 'ag-charts-types';
+import type {
+    AgErrorBoundSeriesTooltipRendererParams,
+    AgSeriesMarkerStyle,
+    FillOptions,
+    StrokeOptions,
+} from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
@@ -299,6 +304,47 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         );
     }
 
+    private getMarkerItemBaseStyle(highlighted = false): RequireOptional<FillOptions & StrokeOptions> {
+        const { properties } = this;
+
+        const { marker } = properties;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        return {
+            fill: highlightStyle?.fill ?? marker.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
+            stroke: highlightStyle?.stroke ?? marker.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? marker.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
+        };
+    }
+
+    private getMarkerItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        format: RequireOptional<FillOptions & StrokeOptions>,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties } = this;
+
+        const { xKey, yKey, sizeKey, labelKey, marker } = properties;
+        const { itemStyler } = marker;
+
+        if (itemStyler == null) return;
+
+        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+            return itemStyler({
+                seriesId,
+                datum,
+                xKey,
+                yKey,
+                sizeKey,
+                labelKey,
+                highlighted,
+                ...format,
+            });
+        });
+    }
+
     protected override updateMarkerNodes(opts: {
         markerSelection: Selection<Marker, BubbleNodeDatum>;
         isHighlight: boolean;
@@ -360,8 +406,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
     override getTooltipContent(nodeDatum: BubbleNodeDatum): TooltipContent | string | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { xKey, xName, yKey, yName, legendItemName, sizeKey, sizeName, labelKey, labelName, title, tooltip } =
-            properties;
+        const { xKey, xName, yKey, yName, sizeKey, sizeName, labelKey, labelName, title, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -377,14 +422,17 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         if (xValue == null) return;
 
         const data: TooltipContentDataRow[] = [
-            { label: xName ?? xKey, value: xAxis.formatDatum(xValue) },
-            { label: legendItemName ?? yName ?? yKey, value: yAxis.formatDatum(yValue) },
+            { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue) },
+            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) },
         ];
 
         if (sizeKey != null) {
             const sizeValue = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
-            data.push({ label: sizeName ?? sizeKey, value: String(sizeValue) });
+            data.push({ label: sizeName, fallbackLabel: sizeKey, value: String(sizeValue) });
         }
+
+        const format = this.getMarkerItemBaseStyle();
+        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datum, format));
 
         return tooltip.formatTooltip(
             {
@@ -404,6 +452,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 sizeName,
                 labelKey,
                 labelName,
+                ...format,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );

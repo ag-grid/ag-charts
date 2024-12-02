@@ -26,7 +26,8 @@ export type AgFunnelSeriesLabelFormatterParams = AgFunnelSeriesOptionsKeys;
 export interface AgFunnelSeriesTooltipRendererParams<TDatum = any>
     extends AgFunnelSeriesOptionsKeys,
         AgFunnelSeriesOptionsNames,
-        AgSeriesTooltipRendererParams<TDatum> {}
+        AgSeriesTooltipRendererParams<TDatum>,
+        AgFunnelSeriesStyle {}
 
 export interface AgFunnelSeriesDropOff extends FillOptions, StrokeOptions, LineDashOptions {
     /** Whether to draw drop-offs between adjacent bars. */

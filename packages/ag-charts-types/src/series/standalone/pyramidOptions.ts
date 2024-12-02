@@ -27,7 +27,8 @@ export type AgPyramidSeriesLabelFormatterParams = AgPyramidSeriesOptionsKeys;
 export interface AgPyramidSeriesTooltipRendererParams<TDatum = any>
     extends AgPyramidSeriesOptionsKeys,
         AgPyramidSeriesOptionsNames,
-        AgSeriesTooltipRendererParams<TDatum> {}
+        AgSeriesTooltipRendererParams<TDatum>,
+        AgPyramidSeriesStyle {}
 
 export interface AgPyramidSeriesThemeableOptions<TDatum = any> extends LineDashOptions {
     /** The colours to cycle through for the fills of the stages. */

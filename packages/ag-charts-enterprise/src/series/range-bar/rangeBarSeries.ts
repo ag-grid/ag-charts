@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgRangeBarSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 
 import { SPAN, X_MAX, X_MIN, Y_MAX, Y_MIN } from '../../utils/aggregation';
 import { type RangeBarSeriesDataAggregationFilter, aggregateRangeBarData } from './rangeBarAggregation';
@@ -25,6 +25,7 @@ const {
     animationValidation,
     computeBarFocusBounds,
     visibleRangeIndices,
+    createDatumId,
     ContinuousScale,
     OrdinalTimeScale,
     Rect,
@@ -487,6 +488,47 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return datumSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
+    private getItemBaseStyle(highlighted = false): Required<AgRangeBarSeriesStyle> {
+        const { properties } = this;
+        const { cornerRadius } = properties;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        return {
+            fill: highlightStyle?.fill ?? properties.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+            stroke: highlightStyle?.stroke ?? properties.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? properties.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
+            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            cornerRadius,
+        };
+    }
+
+    private getItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        format: Required<AgRangeBarSeriesStyle>,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties } = this;
+
+        const { xKey, yHighKey, yLowKey, itemStyler } = properties;
+
+        if (itemStyler == null) return;
+
+        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+            return itemStyler({
+                seriesId,
+                datum,
+                xKey,
+                yHighKey,
+                yLowKey,
+                highlighted,
+                ...format,
+            });
+        });
+    }
+
     protected override updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, RangeBarNodeDatum>;
         isHighlight: boolean;
@@ -580,12 +622,15 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (xValue == null) return;
 
+        const format = this.getItemBaseStyle();
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format));
+
         const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
         return tooltip.formatTooltip(
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: yName ?? '', value }],
+                data: [{ label: yName, fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`, value }],
             },
             {
                 seriesId,
@@ -598,6 +643,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 yHighKey,
                 yLowName,
                 yHighName,
+                ...format,
             }
         );
     }

@@ -118,10 +118,13 @@ export class AnnotationSettingsDialog extends Dialog {
         const groupOne = this.createInputGroupLine();
         const groupTwo = this.createInputGroupLine();
 
+        const hasMultiColorOption = 'isMultiColor' in datum;
         const lineColorPicker = this.createColorPickerInput(
             'line-color',
             datum.getDefaultColor('line-color'),
             datum.getDefaultOpacity('line-color'),
+            hasMultiColorOption ? datum.isMultiColor : false,
+            hasMultiColorOption,
             options.onChangeLineColor,
             options.onChangeHideLineColor
         );
@@ -136,6 +139,8 @@ export class AnnotationSettingsDialog extends Dialog {
                 'fill-color',
                 datum.getDefaultColor('fill-color'),
                 datum.getDefaultOpacity('fill-color'),
+                false,
+                false,
                 options.onChangeFillColor,
                 options.onChangeHideFillColor
             );
@@ -238,6 +243,8 @@ export class AnnotationSettingsDialog extends Dialog {
             'text-color',
             datum.text.color,
             1,
+            false,
+            false,
             options.onChangeTextColor,
             options.onChangeHideTextColor
         );
@@ -262,6 +269,8 @@ export class AnnotationSettingsDialog extends Dialog {
         colorType: AnnotationOptionsColorPickerType,
         color: string | undefined,
         opacity: number | undefined,
+        isMultiColor: boolean | undefined,
+        hasMultiColorOption: boolean,
         onChange: Required<ColorPickerOptions>['onChange'],
         onChangeHide: Required<ColorPickerOptions>['onChangeHide']
     ) {
@@ -273,6 +282,8 @@ export class AnnotationSettingsDialog extends Dialog {
             altText,
             color: color,
             opacity,
+            isMultiColor,
+            hasMultiColorOption,
             onChange,
             onChangeHide,
         });
