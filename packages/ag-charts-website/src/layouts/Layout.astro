@@ -10,7 +10,7 @@ import { ApiTopBar } from '@components/top-bar/ApiTopBar';
 import { getIsProduction, getIsArchive, getIsStaging } from '@utils/env';
 import { isDynamicFrameworkPath, isDynamicFrameworkPathMatch, replaceDynamicFrameworkPath } from '@utils/framework';
 import Plausible from '../components/Plausible.astro';
-import { FRAMEWORKS } from '@constants';
+import { FRAMEWORKS, SITE_BASE_URL } from '@constants';
 
 export interface Props {
     title?: string;
@@ -79,6 +79,8 @@ const isApiLayout = apiMenuItems.some((item) => {
 
 const lightModeCSSUrl = `url("${urlWithBaseUrl('/images/sun.svg')}")`;
 const darkModeCSSUrl = `url("${urlWithBaseUrl('/images/moon.svg')}")`;
+
+const isHomepage = Astro.url.pathname.replaceAll('/', '') === SITE_BASE_URL.replaceAll('/', '');
 ---
 
 <!doctype html>
@@ -144,7 +146,7 @@ const darkModeCSSUrl = `url("${urlWithBaseUrl('/images/moon.svg')}")`;
             }
         </style>
     </head>
-    <body>
+    <body data-is-homepage={isHomepage}>
         <script is:inline>
             const htmlEl = document.querySelector('html');
             const localDarkmode = localStorage['documentation:darkmode'];

@@ -9,10 +9,11 @@
     @media screen and (min-width: $breakpoint-docs-nav-medium) {
         position: sticky;
         top: 0;
-        z-index: 6; // needed in order to prevent grid z-indexes overlapping on small height
+        z-index: 10001; // needed in order to prevent grid z-indexes overlapping on small height
     }
 
-    #{$selector-darkmode} & {
+    #{$selector-darkmode}:not(:has([data-is-homepage])) &,
+    #{$selector-darkmode}:has([data-is-homepage]) &:global(.header-scrolled) {
         background: var(--color-bg-primary);
         border-bottom: 1px solid var(--color-border-primary);
     }
@@ -329,8 +330,8 @@ button.navLink {
         }
     }
 
-    #{$selector-darkmode} & {
-        font-weight: 500;
+    #{$selector-darkmode}:not(:has([data-is-homepage])) &,
+    #{$selector-darkmode}:has([data-is-homepage] :global(.header-scrolled)) & {
         opacity: 0.8;
     }
 }

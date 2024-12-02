@@ -1,4 +1,3 @@
-import { useDarkmode } from '@utils/hooks/useDarkmode';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import { useEffect, useRef, useState } from 'react';
 
@@ -8,15 +7,6 @@ const ImageCarousel = () => {
     const leftColumnRef = useRef(null);
     const rightColumnRef = useRef(null);
     const [scrollHeight, setScrollHeight] = useState(0);
-
-    const [darkMode] = useDarkmode();
-
-    const shuffleArray = (array) => {
-        return array
-            .map((value) => ({ value, sort: Math.random() }))
-            .sort((a, b) => a.sort - b.sort)
-            .map(({ value }) => value);
-    };
 
     useEffect(() => {
         const leftColumn = leftColumnRef.current;
@@ -61,35 +51,20 @@ const ImageCarousel = () => {
         };
     }, [scrollHeight]);
 
-    const images = darkMode
-        ? [
-              'images/dark/scroller-1.webp',
-              'images/dark/scroller-2.webp',
-              'images/dark/scroller-3.webp',
-              'images/dark/scroller-4.webp',
-              'images/dark/scroller-5.webp',
-              'images/dark/scroller-6.webp',
-              'images/dark/scroller-7.webp',
-              'images/dark/scroller-8.webp',
-              'images/dark/scroller-9.webp',
-              'images/dark/scroller-10.webp',
-              'images/dark/scroller-11.webp',
-              'images/dark/scroller-12.webp',
-          ]
-        : [
-              'images/scroller-1.webp',
-              'images/scroller-2.webp',
-              'images/scroller-3.webp',
-              'images/scroller-4.webp',
-              'images/scroller-5.webp',
-              'images/scroller-6.webp',
-              'images/scroller-7.webp',
-              'images/scroller-8.webp',
-              'images/scroller-9.webp',
-              'images/scroller-10.webp',
-              'images/scroller-11.webp',
-              'images/scroller-12.webp',
-          ];
+    const images = [
+        'images/scroller-1.webp',
+        'images/scroller-2.webp',
+        'images/scroller-3.webp',
+        'images/scroller-4.webp',
+        'images/scroller-5.webp',
+        'images/scroller-6.webp',
+        'images/scroller-7.webp',
+        'images/scroller-8.webp',
+        'images/scroller-9.webp',
+        'images/scroller-10.webp',
+        'images/scroller-11.webp',
+        'images/scroller-12.webp',
+    ];
 
     // Create arrays with twice the length of the original images array
     const leftImages = [...images, ...images];

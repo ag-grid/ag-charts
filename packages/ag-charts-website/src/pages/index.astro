@@ -262,3 +262,13 @@ const mapExampleHeights = 360;
         </LandingPageSection>
     </div>
 </Layout>
+
+<script>
+    import { initScrollClassListener } from '@ag-website-shared/utils/initScrollClassListener';
+
+    initScrollClassListener({
+        targetSelector: '.site-header',
+        scrolledClass: 'header-scrolled',
+        scrollPosition: 480,
+    });
+</script>
