@@ -712,10 +712,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         zoomManager.updateAxisZoom('zoom', axisId, axisZoom);
-
-        if (direction === ChartAxisDirection.X) {
-            this.updatePrimaryAxisZoom(zoom, ChartAxisDirection.Y);
-        }
     }
 
     private getZoom() {

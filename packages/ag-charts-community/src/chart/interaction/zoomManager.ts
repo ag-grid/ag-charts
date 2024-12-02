@@ -107,9 +107,6 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
                 this.didLayoutAxes = true;
                 if (pendingMemento) {
                     this.restoreMemento(pendingMemento.version, pendingMemento.mementoVersion, pendingMemento.memento);
-                } else {
-                    // Calculate y autoscaling, if enabled
-                    this.applyChanges('zoom-manager');
                 }
             })
         );
@@ -213,6 +210,9 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         if (this.state.size > 0 && axes.length > 0) {
             this.updateZoom(this.state.stateId()!, this.state.stateValue());
+        } else if (this.axes.length === 0) {
+            // Set initial zoom
+            this.autoScaleYZoom('zoom-manager');
         }
     }
 
@@ -378,7 +378,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         return this.lastRestoredState;
     }
 
-    private applyChanges(callerId: string) {
+    private autoScaleYZoom(callerId: string, applyChanges = true) {
         const { independentAxes, autoScaleYAxis } = this;
 
         const zoom = this.getZoom();
@@ -398,6 +398,21 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
                     }
                 }
             }
+        }
+
+        if (applyChanges) {
+            this.applyChanges(callerId);
+        }
+    }
+
+    private applyChanges(callerId: string) {
+        const hasXChanges = Array.from(
+            this.axisZoomManagers.values(),
+            (axis) => axis.getDirection() === ChartAxisDirection.X && axis.hasChanges()
+        ).includes(true);
+
+        if (hasXChanges) {
+            this.autoScaleYZoom(callerId, false);
         }
 
         const changed = Array.from(this.axisZoomManagers.values(), (axis) => axis.applyChanges()).includes(true);
@@ -492,15 +507,14 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     private zoomBounds(
         xAxis: ChartAxisLike,
         yAxis: ChartAxisLike,
-        { min, max }: { min: number; max: number },
+        zoom: { min: number; max: number },
         padding: number
     ) {
-        const xScale = xAxis.scale;
-
         // Because xScale is only updated after a chart update, working out a visible range
         // will be calculated with unpredictable - but always accurate - numbers
         // However, floating point rounding causes issues when doing that
         // Instead, set the xScale to a consistent range, then just unset it after
+        const xScale = xAxis.scale;
         const xScaleRange = xScale.range;
         xScale.range = [0, 1];
 
@@ -508,13 +522,12 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         const yScaleRange = yScale.range;
         yScale.range = [0, 1];
 
-        const height = Math.max(...yAxis.range);
-        const zoomPadding = height * padding;
-
-        let bounds0 = 1;
-        let bounds1 = 0;
+        let min = 1;
+        let minPadding = false;
+        let max = 0;
+        let maxPadding = false;
         for (const series of yAxis.boundSeries) {
-            const yRange = series.getRange(ChartAxisDirection.Y, [min, max]);
+            const yRange = series.getRange(ChartAxisDirection.Y, [zoom.min, zoom.max]);
 
             let y0 = yScale.convert(yRange[0])?.valueOf();
             let y1 = yScale.convert(yRange[1])?.valueOf();
@@ -523,25 +536,44 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
             [y0, y1] = findMinMax([y0, y1]);
 
             const { connectsToYAxis } = series;
-            if (!connectsToYAxis || yRange[1] > 0) y0 = Math.max(y0 - zoomPadding, 0);
-            if (!connectsToYAxis || yRange[0] < 0) y1 = Math.min(y1 + zoomPadding, 1);
 
-            bounds0 = Math.min(bounds0, y0);
-            bounds1 = Math.max(bounds1, y1);
+            if (y0 < min) {
+                min = y0;
+                minPadding = !connectsToYAxis || yRange[0] < 0;
+            }
+
+            if (y1 > max) {
+                max = y1;
+                maxPadding = !connectsToYAxis || yRange[1] > 0;
+            }
         }
 
         xScale.range = xScaleRange;
         yScale.range = yScaleRange;
 
-        return [bounds0, bounds1];
-    }
+        const totalPadding = (minPadding ? padding : 0) + (maxPadding ? padding : 0);
+        const paddedDelta = (max - min) * (1 + totalPadding);
+        if (paddedDelta >= 1) return { min: 0, max: 1 };
 
-    private boundsZoom(bounds0: number, bounds1: number) {
-        if (bounds0 > bounds1) {
-            return { min: 0, max: 1 };
+        if (minPadding && maxPadding) {
+            const mid = (max + min) / 2;
+            min = mid - paddedDelta / 2;
+            max = mid + paddedDelta / 2;
+        } else if (!minPadding && maxPadding) {
+            max = min + paddedDelta;
+        } else if (minPadding && !maxPadding) {
+            min = max - paddedDelta;
         }
 
-        return { min: 1 - bounds1, max: 1 - bounds0 };
+        if (min < 0) {
+            max += -min;
+            min = 0;
+        } else if (max > 1) {
+            min -= max - 1;
+            max = 1;
+        }
+
+        return { min, max };
     }
 
     private primaryAxisZoom(direction: ChartAxisDirection, zoom: ZoomState, { padding = 0 } = {}) {
@@ -552,8 +584,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         if (xAxis == null || yAxis == null) return { min: 0, max: 1 };
 
-        const [y0, y1] = this.zoomBounds(xAxis, yAxis, zoom, padding);
-        return this.boundsZoom(y0, y1);
+        return this.zoomBounds(xAxis, yAxis, zoom, padding);
     }
 
     private combinedAxisZoom(direction: ChartAxisDirection, zoom: ZoomState, { padding = 0 } = {}) {
@@ -568,8 +599,8 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
             }
         }
 
-        let bounds0 = 1;
-        let bounds1 = 0;
+        let min = 1;
+        let max = 0;
         for (const yAxis of this.axes) {
             if (yAxis.direction !== direction) continue;
 
@@ -577,13 +608,13 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
                 const xAxis = seriesXAxes.get(series);
                 if (xAxis == null) continue;
 
-                const [y0, y1] = this.zoomBounds(xAxis, yAxis, zoom, padding);
-                bounds0 = Math.min(bounds0, y0);
-                bounds1 = Math.max(bounds1, y1);
+                const bounds = this.zoomBounds(xAxis, yAxis, zoom, padding);
+                min = Math.min(min, bounds.min);
+                max = Math.max(max, bounds.max);
             }
         }
 
-        return this.boundsZoom(bounds0, bounds1);
+        return { min, max };
     }
 }
 
@@ -613,9 +644,9 @@ class AxisZoomManager {
     }
 
     public hasChanges(): boolean {
-        const prevZoom = this.currentZoom;
-        const nextZoom = this.state.stateValue()!;
-        return prevZoom.min !== nextZoom.min || prevZoom.max !== nextZoom.max;
+        const currentZoom = this.currentZoom;
+        const pendingZoom = this.state.stateValue()!;
+        return currentZoom.min !== pendingZoom.min || currentZoom.max !== pendingZoom.max;
     }
 
     public applyChanges(): boolean {
