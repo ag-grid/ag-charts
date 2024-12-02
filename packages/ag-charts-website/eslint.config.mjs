@@ -75,4 +75,39 @@ export default [
             '@typescript-eslint/no-var-requires': 'off',
         },
     },
+    {
+        rules: {
+            // TODO: Remove these
+            'no-nested-ternary': 'warn',
+            '@typescript-eslint/no-unsafe-assignment': 'warn',
+            '@typescript-eslint/no-shadow': 'warn',
+            '@typescript-eslint/require-await': 'warn',
+            '@typescript-eslint/no-unused-expressions': 'warn',
+            '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
+            '@typescript-eslint/prefer-optional-chain': 'warn',
+            '@typescript-eslint/no-unused-vars': 'warn',
+            '@typescript-eslint/prefer-nullish-coalescing': 'warn',
+            '@typescript-eslint/restrict-template-expressions': 'warn',
+            '@typescript-eslint/no-unsafe-member-access': 'warn',
+            '@typescript-eslint/no-unsafe-return': 'warn',
+            '@typescript-eslint/no-explicit-any': 'warn',
+            '@typescript-eslint/no-unsafe-call': 'warn',
+            '@typescript-eslint/no-unsafe-argument': 'warn',
+            '@typescript-eslint/no-floating-promises': 'warn',
+            '@typescript-eslint/ban-ts-comment': 'warn',
+            '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
+            '@typescript-eslint/unbound-method': 'warn',
+            '@typescript-eslint/await-thenable': 'warn',
+        },
+    },
+    {
+        // TODO: Remove these
+        ignores: [
+            '*.mjs',
+            'public/example-runner/**/*.{js,ts}',
+            'e2e/fixture.ts',
+            'tools/compare-gallery-thumbnails.js',
+            'update-algolia.js',
+        ],
+    },
 ];
