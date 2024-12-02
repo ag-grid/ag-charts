@@ -11,7 +11,7 @@ export default function createPlugin(options: Options): AstroIntegration {
     return {
         name: 'ag-redirects-checker',
         hooks: {
-            'astro:build:done': async ({ dir, logger }) => {
+            'astro:build:done': ({ dir, logger }) => {
                 if (options.skip) {
                     logger.info('Redirects checker skipped');
                     return;

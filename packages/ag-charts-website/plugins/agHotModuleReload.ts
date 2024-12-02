@@ -8,7 +8,7 @@ const BUILD_QUEUE_EMPTY_FILE = '../../node_modules/.cache/ag-build-queue.empty';
 export default function createAgHotModuleReload(): Plugin {
     return {
         name: 'ag-hmr',
-        async configureServer(server: ViteDevServer) {
+        configureServer(server: ViteDevServer) {
             if (!getIsDev()) return;
 
             const filesToWatch = [BUILD_QUEUE_EMPTY_FILE];
