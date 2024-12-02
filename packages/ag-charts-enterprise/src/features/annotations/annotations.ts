@@ -115,6 +115,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         super();
         this.state = this.setupStateMachine();
         this.setupListeners();
+        this.setupDOM();
 
         // Add originators to the history only when this module is enabled to prevent memory increases
         this.ctx.historyManager.addMementoOriginator(ctx.annotationManager);
@@ -519,11 +520,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             // Settings Dialog
             settingsDialog.addListener('hidden', () => {
                 this.optionsToolbar.clearActiveButton();
-            }),
+            })
+        );
+    }
 
+    private setupDOM() {
+        const { ctx, toolbar } = this;
+
+        this.destroyFns.push(
             // DOM
             ctx.annotationManager.attachNode(this.container),
-            () => ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS)
+            () => ctx.domManager.removeStyles(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS),
+            () => toolbar.destroy()
         );
     }
 

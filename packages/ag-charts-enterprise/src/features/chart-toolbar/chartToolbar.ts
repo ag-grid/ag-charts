@@ -1,6 +1,6 @@
 import { type AgFinancialChartOptions, type AgPriceVolumeChartType, _ModuleSupport } from 'ag-charts-community';
 
-import type { SharedToolbarWidget } from '../shared-toolbar/sharedToolbarWidget';
+import type { SharedToolbar, SharedToolbarWithSection } from '../shared-toolbar/sharedToolbar';
 
 const { BOOLEAN, ActionOnSet, LayoutElement, Logger, Menu, Validate } = _ModuleSupport;
 
@@ -18,29 +18,30 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
     @Validate(BOOLEAN)
     @ActionOnSet<ChartToolbar>({
         changeValue(enabled) {
-            this.toolbar?.setSectionHidden('chartToolbar', !enabled);
+            this.toolbar?.setHidden(!enabled);
         },
     })
     enabled: boolean = false;
 
-    private readonly toolbar: SharedToolbarWidget;
+    private readonly toolbar: SharedToolbarWithSection;
     private readonly menu = new Menu(this.ctx, 'chart-toolbar');
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
-        this.toolbar = (ctx as any).sharedToolbar.getSharedToolbar();
+        this.toolbar = ((ctx as any).sharedToolbar as SharedToolbar).getSharedToolbar('chartToolbar');
 
         this.destroyFns.push(
-            this.toolbar.addToolbarSectionListener('chartToolbar', 'button-pressed', this.onButtonPressed.bind(this)),
-            ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this))
+            this.toolbar.addToolbarListener('button-pressed', this.onButtonPressed.bind(this)),
+            ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
+            () => this.toolbar.destroy()
         );
     }
 
     private onLayoutStart(event: _ModuleSupport.LayoutContext) {
         if (!this.enabled) return;
         this.updateButton();
-        this.toolbar.layout('chartToolbar', event.layoutBox);
+        this.toolbar.layout(event.layoutBox);
     }
 
     private onButtonPressed({ event, buttonBounds }: _ModuleSupport.ToolbarEventMap['button-pressed']) {
@@ -61,7 +62,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
             },
         });
 
-        this.toolbar.toggleActiveButtonBySectionIndex('chartToolbar', 0);
+        this.toolbar.toggleActiveButtonByIndex(0);
     }
 
     private updateButton() {
@@ -69,7 +70,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
         const icon = menuItems.find((item) => item.value === chartType)?.icon;
 
         if (icon != null) {
-            this.toolbar.updateSectionButtons('chartToolbar', [{ icon, tooltip: 'toolbarSeriesTypeDropdown' }]);
+            this.toolbar.updateButtons([{ icon, tooltip: 'toolbarSeriesTypeDropdown' }]);
         }
     }
 
