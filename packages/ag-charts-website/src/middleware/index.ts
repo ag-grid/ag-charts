@@ -11,8 +11,9 @@ const rewriteAstroGeneratedContent = (body: string) => {
     if (env.DEV) {
         html.querySelectorAll('script').forEach((script: HTMLElement) => {
             const src = script.getAttribute('src');
-            if (src != null && src.startsWith('/')) {
-                script.setAttribute('src', new URL(src, env.PUBLIC_SITE_URL).toString());
+            const shouldAddScript = src == null ? false : src.startsWith('/');
+            if (shouldAddScript) {
+                script.setAttribute('src', new URL(src!, env.PUBLIC_SITE_URL).toString());
             }
         });
     }
@@ -39,7 +40,7 @@ function isBinary(path: string) {
 }
 
 export const onRequest = defineMiddleware(async (context, next) => {
-    const response = (await next());
+    const response = await next();
 
     const isExample = context.url.pathname.includes('/examples/');
     if (!isExample || isBinary(context.url.pathname)) {

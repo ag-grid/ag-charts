@@ -29,7 +29,7 @@ const createRemoveLoadingLogo =
             });
             document.querySelectorAll('#' + loadingIFrameId).forEach((el) => {
                 const iframe = el as HTMLIFrameElement;
-                if (!iframe || !iframe.contentDocument) {
+                if (!iframe?.contentDocument) {
                     return;
                 }
 
