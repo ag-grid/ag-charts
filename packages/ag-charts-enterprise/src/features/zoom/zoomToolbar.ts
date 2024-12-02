@@ -75,7 +75,8 @@ export class ZoomToolbar extends BaseProperties {
             axisId: string,
             direction: _ModuleSupport.ChartAxisDirection,
             partialZoom: _ModuleSupport.ZoomState | undefined
-        ) => void
+        ) => void,
+        private readonly resetZoom: () => void
     ) {
         super();
 
@@ -267,8 +268,8 @@ export class ZoomToolbar extends BaseProperties {
 
         switch (event.value) {
             case 'reset':
-                zoom = this.getResetZoom();
-                break;
+                this.resetZoom();
+                return;
 
             case 'pan-start':
                 zoom.x.max = dx(zoom);

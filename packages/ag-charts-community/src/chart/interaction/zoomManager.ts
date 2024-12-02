@@ -83,18 +83,20 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     private axes: ChartAxisLike[] = [];
 
     private readonly autoScaleYAxis = new ZoomManagerAutoScaleAxis();
-    private lastRestoredState?: AxisZoomState;
+    private lastRestoredState: AxisZoomState | undefined = undefined;
     private independentAxes = false;
     private navigatorModule = false;
     private zoomModule = false;
 
     // The initial state memento can not be restored until the chart has performed its first layout. Instead save it as
     // pending and restore then delete it on the first layout.
-    private pendingMemento?: {
-        version: string;
-        mementoVersion: string;
-        memento: ZoomMemento | undefined;
-    };
+    private pendingMemento:
+        | {
+              version: string;
+              mementoVersion: string;
+              memento: ZoomMemento | undefined;
+          }
+        | undefined = undefined;
 
     public addLayoutListeners(layoutManager: LayoutManager) {
         this.destroyFns.push(
@@ -239,15 +241,25 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         this.applyChanges(callerId);
     }
 
-    public resetAxesManuallyAdjusted() {
+    public resetZoom(callerId: string) {
         this.autoScaleYAxis.manuallyAdjusted = false;
+        this.updateZoom(callerId, this.getRestoredZoom());
     }
 
-    public setAxisManuallyAdjusted(callerId: string, axisId: string, manuallyAdjusted: boolean) {
+    public resetAxisZoom(callerId: string, axisId: string) {
+        const axisZoomManager = this.axisZoomManagers.get(axisId);
+        const direction = axisZoomManager?.getDirection();
+        if (direction == null) return;
+        if (direction === ChartAxisDirection.Y) {
+            this.autoScaleYAxis.manuallyAdjusted = false;
+        }
+        this.updateAxisZoom(callerId, axisId, this.getRestoredZoom()?.[direction] ?? { min: 0, max: 1 });
+    }
+
+    public setAxisManuallyAdjusted(_callerId: string, axisId: string) {
         const direction = this.axisZoomManagers.get(axisId)?.getDirection();
         if (direction !== ChartAxisDirection.Y) return;
-        this.autoScaleYAxis.manuallyAdjusted = manuallyAdjusted;
-        this.applyChanges(callerId);
+        this.autoScaleYAxis.manuallyAdjusted = true;
     }
 
     public updatePrimaryAxisZoom(callerId: string, direction: ChartAxisDirection, newZoom?: ZoomState) {
@@ -354,22 +366,15 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     private applyChanges(callerId: string) {
         const { independentAxes, autoScaleYAxis } = this;
 
-        const hasXAxisChange = Array.from(
-            this.axisZoomManagers.values(),
-            (axis) => axis.hasChanges() && axis.getDirection() === ChartAxisDirection.X
-        ).includes(true);
-
         const zoom = this.getZoom();
-        if (hasXAxisChange && autoScaleYAxis.enabled && !autoScaleYAxis.manuallyAdjusted && zoom?.x != null) {
+        if (zoom?.x != null && autoScaleYAxis.enabled && !autoScaleYAxis.manuallyAdjusted) {
             const { padding } = autoScaleYAxis;
 
             if (independentAxes) {
                 const zoomY = this.primaryAxisZoom(ChartAxisDirection.Y, zoom.x, { padding });
                 const primaryAxis = this.getPrimaryAxis(ChartAxisDirection.Y);
                 const primaryAxisManager = primaryAxis == null ? undefined : this.axisZoomManagers.get(primaryAxis.id);
-                if (primaryAxisManager != null) {
-                    primaryAxisManager.updateZoom('zoom-manager', zoomY);
-                }
+                primaryAxisManager?.updateZoom('zoom-manager', zoomY);
             } else {
                 const zoomY = this.combinedAxisZoom(ChartAxisDirection.Y, zoom.x, { padding });
                 for (const axisZoomManager of this.axisZoomManagers.values()) {
@@ -524,8 +529,8 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     private primaryAxisZoom(direction: ChartAxisDirection, zoom: ZoomState, { padding = 0 } = {}) {
         const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
 
-        const xAxis = this.axes.find((axis) => axis.direction === crossDirection);
-        const yAxis = this.axes.find((axis) => axis.direction === direction);
+        const xAxis = this.getPrimaryAxis(crossDirection);
+        const yAxis = this.getPrimaryAxis(direction);
 
         if (xAxis == null || yAxis == null) return { min: 0, max: 1 };
 

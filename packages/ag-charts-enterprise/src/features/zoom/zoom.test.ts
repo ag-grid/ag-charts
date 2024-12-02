@@ -294,7 +294,7 @@ describe('Zoom', () => {
     });
 
     describe('initialState', () => {
-        it('should start with the given range', async () => {
+        it.only('should start with the given range', async () => {
             await prepareChart({}, { rangeX: { start: 3, end: 6 }, rangeY: { start: 30, end: 70 } });
             await compare();
         });

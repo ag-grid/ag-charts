@@ -101,7 +101,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.getModuleProperties.bind(this),
         this.getResetZoom.bind(this),
         this.updateZoom.bind(this),
-        this.updateAxisZoom.bind(this)
+        this.updateAxisZoom.bind(this),
+        this.resetZoom.bind(this)
     );
 
     @Validate(BOOLEAN)
@@ -256,15 +257,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (!enabled || !enableDoubleClickToReset) return;
 
-        const zoom = this.getResetZoom();
-
         if (hoveredAxis) {
-            const { id, direction } = hoveredAxis;
-            zoomManager.setAxisManuallyAdjusted('zoom', id, false);
-            this.updateAxisZoom(id, direction, zoom[direction]);
+            zoomManager.resetAxisZoom('zoom', hoveredAxis.id);
         } else if (!event?.preventZoomDblClick) {
-            zoomManager.resetAxesManuallyAdjusted();
-            this.updateZoom(zoom);
+            this.resetZoom();
         }
     }
 
@@ -337,7 +333,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 const anchor = direction === _ModuleSupport.ChartAxisDirection.X ? anchorPointX : anchorPointY;
                 const axisZoom = zoomManager.getAxisZoom(axisId);
                 const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
-                zoomManager.setAxisManuallyAdjusted('zoom', axisId, true);
+                zoomManager.setAxisManuallyAdjusted('zoom', axisId);
                 this.updateAxisZoom(axisId, direction, newZoom);
                 break;
             }
@@ -644,6 +640,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         } else {
             this.updateUnifiedZoom(zoom);
         }
+    }
+
+    private resetZoom() {
+        this.ctx.zoomManager.resetZoom('zoom');
     }
 
     private updatePrimaryAxisZoom(zoom: DefinedZoomState, direction: _ModuleSupport.ChartAxisDirection) {
