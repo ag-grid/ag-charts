@@ -12,7 +12,6 @@ const {
     fixNumericExtent,
     groupAccumulativeValueProperty,
     keyProperty,
-    mergeDefaults,
     normaliseGroupTo,
     resetLabelFn,
     seriesLabelFadeInAnimation,
@@ -62,6 +61,8 @@ export interface RadialColumnNodeDatum extends _ModuleSupport.DataModelSeriesNod
     readonly columnWidth: number;
     readonly index: number;
 }
+
+type ItemStyle = Required<AgRadialSeriesStyle>;
 
 export abstract class RadialColumnSeriesBase<
     ItemPathType extends _ModuleSupport.Sector | _ModuleSupport.RadialColumnShape,
@@ -387,6 +388,41 @@ export abstract class RadialColumnSeriesBase<
         format: AgRadialSeriesStyle | undefined
     ): void;
 
+    private getItemBaseStyle(highlighted = false): ItemStyle {
+        const { properties } = this;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
+
+        return {
+            fill: highlightStyle?.fill ?? properties.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+            stroke: highlightStyle?.stroke ?? properties.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            cornerRadius: properties.cornerRadius,
+        };
+    }
+
+    protected getItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted = false) {
+        const { id: seriesId, properties } = this;
+        const { angleKey, radiusKey, itemStyler } = properties;
+
+        if (itemStyler == null) return;
+
+        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+            return itemStyler({
+                seriesId,
+                datum,
+                highlighted,
+                angleKey,
+                radiusKey,
+                ...format,
+            });
+        });
+    }
+
     protected updateSectorSelection(
         selection: _ModuleSupport.Selection<ItemPathType, RadialColumnNodeDatum>,
         highlighted: boolean
@@ -395,59 +431,29 @@ export abstract class RadialColumnSeriesBase<
         if (highlighted) {
             const activeHighlight = this.ctx.highlightManager?.getActiveHighlight();
             if (activeHighlight?.datum && activeHighlight.series === this) {
-                selectionData = [activeHighlight as RadialColumnNodeDatum];
+                selectionData.push(activeHighlight as RadialColumnNodeDatum);
             }
         } else {
             selectionData = this.nodeData;
         }
 
-        const {
-            fill,
-            fillOpacity,
-            stroke,
-            strokeOpacity,
-            strokeWidth,
-            lineDash,
-            lineDashOffset,
-            cornerRadius,
-            angleKey,
-            radiusKey,
-        } = mergeDefaults(highlighted ? this.properties.highlightStyle.item : null, this.properties);
-        const { itemStyler } = this.properties;
-        const formatType = highlighted ? 'highlight' : 'node';
+        const format = this.getItemBaseStyle(highlighted);
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
-            .each((node, datum) => {
-                const format = itemStyler
-                    ? this.cachedDatumCallback(createDatumId(this.getDatumId(datum), formatType), () =>
-                          itemStyler({
-                              datum: datum.datum,
-                              fill,
-                              fillOpacity,
-                              stroke,
-                              strokeWidth,
-                              strokeOpacity,
-                              lineDash,
-                              lineDashOffset,
-                              cornerRadius,
-                              highlighted,
-                              angleKey,
-                              radiusKey,
-                              seriesId: this.id,
-                          })
-                      )
-                    : undefined;
+            .each((node, nodeDatum) => {
+                const { datum, datumIndex } = nodeDatum;
+                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, format);
 
-                this.updateItemPath(node, datum, highlighted, format);
-                node.fill = format?.fill ?? fill;
-                node.fillOpacity = format?.fillOpacity ?? fillOpacity;
-                node.stroke = format?.stroke ?? stroke;
-                node.strokeWidth = format?.strokeWidth ?? strokeWidth;
-                node.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
-                node.lineDash = format?.lineDash ?? lineDash;
-                node.lineDashOffset = format?.lineDashOffset ?? lineDashOffset;
-                node.cornerRadius = format?.cornerRadius ?? cornerRadius;
+                this.updateItemPath(node, nodeDatum, highlighted, { ...overrides, ...format });
+                node.fill = overrides?.fill ?? format.fill;
+                node.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
+                node.stroke = overrides?.stroke ?? format.stroke;
+                node.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
+                node.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
+                node.lineDash = overrides?.lineDash ?? format.lineDash;
+                node.lineDashOffset = overrides?.lineDashOffset ?? format.lineDashOffset;
+                node.cornerRadius = overrides?.cornerRadius ?? format.cornerRadius;
                 node.lineJoin = 'round';
             });
     }
@@ -516,6 +522,9 @@ export abstract class RadialColumnSeriesBase<
 
         if (angleValue == null) return;
 
+        const format = this.getItemBaseStyle();
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format));
+
         return tooltip.formatTooltip(
             {
                 heading: angleAxis.formatDatum(angleValue),
@@ -530,6 +539,7 @@ export abstract class RadialColumnSeriesBase<
                 angleName,
                 radiusKey,
                 radiusName,
+                ...format,
             }
         );
     }

@@ -51,6 +51,9 @@ enum TextNodeTag {
     Secondary,
 }
 
+type ItemStyle = Pick<AgSunburstSeriesStyle, 'fill' | 'stroke'> &
+    Omit<Required<AgSunburstSeriesStyle>, 'fill' | 'stroke'>;
+
 export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     _ModuleSupport.ScalableGroup,
     SunburstSeriesProperties,
@@ -143,6 +146,61 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.highlightSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
     }
 
+    private getItemBaseStyle(highlighted = false): ItemStyle {
+        const { properties } = this;
+        const highlightStyle = highlighted ? properties.highlightStyle : undefined;
+        return {
+            fill: highlightStyle?.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+            stroke: highlightStyle?.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? properties.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+        };
+    }
+
+    private getItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        rootIndex: number,
+        depth: number,
+        colorValue: number | undefined,
+        format: ItemStyle,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties, colorScale } = this;
+        const { fills, strokes, itemStyler } = properties;
+
+        const fill = fills[rootIndex % fills.length];
+        const stroke = strokes[rootIndex % strokes.length];
+
+        const overrides: Partial<ItemStyle> = { fill: format.fill ?? fill, stroke: format.stroke ?? stroke };
+
+        if (colorValue != null) {
+            overrides.fill = colorScale.convert(colorValue);
+        }
+
+        if (itemStyler != null) {
+            const itemStyle = this.cachedDatumCallback(
+                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                () => {
+                    return itemStyler({
+                        seriesId,
+                        datum,
+                        depth,
+                        highlighted,
+                        fill,
+                        stroke,
+                        ...format,
+                    });
+                }
+            );
+
+            Object.assign(overrides, itemStyle);
+        }
+
+        return overrides;
+    }
+
     updateNodes() {
         const { chart, data, maxDepth, labelData } = this;
 
@@ -151,7 +209,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         }
 
         const { width, height } = chart.seriesRect!;
-        const { sectorSpacing = 0, padding = 0, cornerRadius, highlightStyle } = this.properties;
+        const { sectorSpacing = 0, padding = 0, cornerRadius } = this.properties;
 
         this.contentGroup.translationX = width / 2;
         this.contentGroup.translationY = height / 2;
@@ -180,12 +238,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         });
 
         const updateSector = (
-            node: _ModuleSupport.HierarchyNode,
+            nodeDatum: _ModuleSupport.HierarchyNode,
             sector: _ModuleSupport.Sector,
-            highlighted: boolean
+            format: ItemStyle
         ) => {
-            const { depth } = node;
-            const angleDatum = this.angleData[node.index];
+            const { datum, index, rootIndex, depth, colorValue } = nodeDatum;
+            const angleDatum = this.angleData[index];
             if (depth == null || angleDatum == null) {
                 sector.visible = false;
                 return;
@@ -193,32 +251,15 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             sector.visible = true;
 
-            let highlightedFill: string | undefined;
-            let highlightedFillOpacity: number | undefined;
-            let highlightedStroke: string | undefined;
-            let highlightedStrokeWidth: number | undefined;
-            let highlightedStrokeOpacity: number | undefined;
-            if (highlighted) {
-                highlightedFill = highlightStyle.fill;
-                highlightedFillOpacity = highlightStyle.fillOpacity;
-                highlightedStroke = highlightStyle.stroke;
-                highlightedStrokeWidth = highlightStyle.strokeWidth;
-                highlightedStrokeOpacity = highlightStyle.strokeOpacity;
-            }
+            const overrides = this.getItemStyleOverrides(String(index), datum, rootIndex, depth, colorValue, format);
 
-            const format = this.getSectorFormat(node, highlighted);
+            const strokeWidth = overrides.strokeWidth ?? format.strokeWidth;
 
-            const fill = format?.fill ?? highlightedFill ?? node.fill;
-            const fillOpacity = format?.fillOpacity ?? highlightedFillOpacity ?? this.properties.fillOpacity;
-            const stroke = format?.stroke ?? highlightedStroke ?? node.stroke;
-            const strokeWidth = format?.strokeWidth ?? highlightedStrokeWidth ?? this.properties.strokeWidth;
-            const strokeOpacity = format?.strokeOpacity ?? highlightedStrokeOpacity ?? this.properties.strokeOpacity;
-
-            sector.fill = fill;
-            sector.fillOpacity = fillOpacity;
-            sector.stroke = stroke;
+            sector.fill = overrides.fill ?? format.fill;
+            sector.fillOpacity = overrides.fillOpacity ?? format.fillOpacity;
+            sector.stroke = overrides.stroke ?? format.stroke;
             sector.strokeWidth = strokeWidth;
-            sector.strokeOpacity = strokeOpacity;
+            sector.strokeOpacity = overrides.strokeOpacity ?? format.strokeOpacity;
 
             sector.centerX = 0;
             sector.centerY = 0;
@@ -230,15 +271,17 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             sector.cornerRadius = cornerRadius;
         };
 
+        const baseFormat = this.getItemBaseStyle(false);
         this.groupSelection.selectByClass(Sector).forEach((sector) => {
-            updateSector(sector.datum, sector, false);
+            updateSector(sector.datum, sector, baseFormat);
         });
+        const highlightFormat = this.getItemBaseStyle(true);
         this.highlightSelection.selectByClass(Sector).forEach((sector) => {
             const node: _ModuleSupport.HierarchyNode = sector.datum;
             const isHighlighted = highlightedNode === node;
             sector.visible = isHighlighted;
             if (sector.visible) {
-                updateSector(sector.datum, sector, isHighlighted);
+                updateSector(sector.datum, sector, highlightFormat);
             }
         });
 
@@ -444,55 +487,14 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         });
     }
 
-    private getSectorFormat(
-        node: _ModuleSupport.HierarchyNode,
-        isHighlighted: boolean
-    ): AgSunburstSeriesStyle | undefined {
-        const { datum, fill, stroke, depth } = node;
-        const {
-            properties: { itemStyler },
-        } = this;
-
-        if (!itemStyler || datum == null || depth == null) {
-            return {};
-        }
-
-        const { colorKey, childrenKey, labelKey, secondaryLabelKey, sizeKey, strokeWidth, fillOpacity, strokeOpacity } =
-            this.properties;
-
-        return this.cachedDatumCallback(
-            createDatumId(this.getDatumId(node), isHighlighted ? 'highlight' : 'node'),
-            () =>
-                itemStyler({
-                    seriesId: this.id,
-                    highlighted: isHighlighted,
-                    datum,
-                    depth,
-                    colorKey,
-                    childrenKey,
-                    labelKey,
-                    secondaryLabelKey,
-                    sizeKey,
-                    fill: fill!,
-                    fillOpacity,
-                    stroke: stroke!,
-                    strokeWidth,
-                    strokeOpacity,
-                })
-        );
-    }
-
     override getTooltipContent(
         nodeDatum: _ModuleSupport.HierarchyNode
     ): _ModuleSupport.TooltipContent | string | undefined {
         const { id: seriesId, properties } = this;
         const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
             properties;
-        const { datum, depth } = nodeDatum;
+        const { datum, index, rootIndex, depth } = nodeDatum;
         if (datum == null || depth == null) return;
-
-        const format = this.getSectorFormat(nodeDatum, false);
-        const color = format?.fill ?? nodeDatum.fill;
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
@@ -505,6 +507,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         if (datumColor != null) {
             data.push({ label: colorName ?? colorKey ?? '', value: datumColor });
         }
+
+        const format = this.getItemBaseStyle() as Required<ItemStyle>;
+        Object.assign(format, this.getItemStyleOverrides(String(index), datum, rootIndex, depth, datumColor, format));
+
+        const color = format.fill;
 
         return tooltip.formatTooltip(
             {
@@ -533,6 +540,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 sizeName,
                 colorKey,
                 colorName,
+                ...format,
             }
         );
     }

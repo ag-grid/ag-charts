@@ -9,20 +9,8 @@ import {
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
-const {
-    TextUtils,
-    TextWrapper,
-    Color,
-    Logger,
-    clamp,
-    isNumberEqual,
-    createDatumId,
-    Rect,
-    Group,
-    BBox,
-    Selection,
-    Text,
-} = _ModuleSupport;
+const { TextUtils, TextWrapper, clamp, isNumberEqual, createDatumId, Rect, Group, BBox, Selection, Text } =
+    _ModuleSupport;
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
 
@@ -43,6 +31,9 @@ enum TextNodeTag {
     Secondary,
 }
 
+type ItemStyle = Pick<AgTreemapSeriesStyle, 'fill' | 'stroke'> &
+    Omit<Required<AgTreemapSeriesStyle>, 'fill' | 'stroke'>;
+
 const tempText = new Text();
 
 function getTextSize(text: string, style: FontOptions): { width: number; height: number } {
@@ -61,19 +52,8 @@ function getTextSize(text: string, style: FontOptions): { width: number; height:
     return { width, height };
 }
 
-function validateColor(color?: string): string | undefined {
-    if (typeof color === 'string' && !Color.validColorString(color)) {
-        const fallbackColor = 'black';
-        Logger.warnOnce(
-            `invalid Treemap tile colour string "${color}". Affected treemap tiles will be coloured ${fallbackColor}.`
-        );
-        return fallbackColor;
-    }
-    return color;
-}
-
 function nodeSize(node: _ModuleSupport.HierarchyNode) {
-    return node.children.length > 0 ? node.sumSize - node.size : node.size;
+    return node.children.length > 0 ? node.sumSize - node.sizeValue : node.sizeValue;
 }
 
 const textAlignFactors: Record<TextAlign, number | undefined> = {
@@ -367,6 +347,107 @@ export class TreemapSeries<
         return undefined;
     }
 
+    private getGroupBaseStyle(highlighted = false): ItemStyle {
+        const { properties } = this;
+        const { group } = properties;
+        const highlightStyle = highlighted ? properties.highlightStyle.group : undefined;
+        return {
+            fill: highlightStyle?.fill ?? group.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? group.fillOpacity,
+            stroke: highlightStyle?.stroke ?? group.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? group.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? group.strokeOpacity,
+        };
+    }
+
+    private getGroupStyleOverrides(datumId: string, datum: any, depth: number, format: ItemStyle, highlighted = false) {
+        const { id: seriesId, properties } = this;
+
+        const { undocumentedGroupFills, undocumentedGroupStrokes, itemStyler } = properties;
+
+        const fill = undocumentedGroupFills[Math.min(depth ?? 0, undocumentedGroupFills.length)];
+        const stroke = undocumentedGroupStrokes[Math.min(depth ?? 0, undocumentedGroupStrokes.length)];
+
+        const overrides: Partial<ItemStyle> = { fill: format.fill ?? fill, stroke: format.stroke ?? stroke };
+
+        if (itemStyler != null) {
+            const itemStyle = this.cachedDatumCallback(
+                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                () => {
+                    return itemStyler({
+                        seriesId,
+                        datum,
+                        depth,
+                        highlighted,
+                        fill,
+                        stroke,
+                        ...format,
+                    });
+                }
+            );
+
+            Object.assign(overrides, itemStyle);
+        }
+
+        return overrides;
+    }
+
+    private getTileBaseStyle(highlighted = false): ItemStyle {
+        const { properties } = this;
+        const { tile } = properties;
+        const highlightStyle = highlighted ? properties.highlightStyle.tile : undefined;
+        return {
+            fill: highlightStyle?.fill ?? tile.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? tile.fillOpacity,
+            stroke: highlightStyle?.stroke ?? tile.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? tile.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? tile.strokeOpacity,
+        };
+    }
+
+    private getTileStyleOverrides(
+        datumId: string,
+        datum: any,
+        depth: number,
+        rootIndex: number,
+        colorValue: number | undefined,
+        format: ItemStyle,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties, colorScale } = this;
+        const { fills, strokes, itemStyler } = properties;
+
+        const fill = fills[rootIndex % fills.length];
+        const stroke = strokes[rootIndex % strokes.length];
+
+        const overrides: Partial<ItemStyle> = { fill: format.fill ?? fill, stroke: format.stroke ?? stroke };
+
+        if (colorValue != null) {
+            overrides.fill = colorScale.convert(colorValue);
+        }
+
+        if (itemStyler != null) {
+            const itemStyle = this.cachedDatumCallback(
+                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                () => {
+                    return itemStyler({
+                        seriesId,
+                        datum,
+                        depth,
+                        highlighted,
+                        fill,
+                        stroke,
+                        ...format,
+                    });
+                }
+            );
+
+            Object.assign(overrides, itemStyle);
+        }
+
+        return overrides;
+    }
+
     override updateSelections() {
         if (!this.nodeDataRefresh) {
             return;
@@ -390,60 +471,6 @@ export class TreemapSeries<
         this.highlightSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
     }
 
-    private getTileFormat(node: _ModuleSupport.HierarchyNode, highlighted: boolean): AgTreemapSeriesStyle | undefined {
-        const { datum, depth, children } = node;
-        const { colorKey, childrenKey, labelKey, secondaryLabelKey, sizeKey, tile, group, itemStyler } =
-            this.properties;
-
-        if (!itemStyler || datum == null || depth == null) {
-            return {};
-        }
-
-        const isLeaf = children.length === 0;
-        const fill = this.getNodeFill(node);
-        const stroke = this.getNodeStroke(node);
-        const strokeWidth = isLeaf ? tile.strokeWidth : group.strokeWidth;
-
-        return this.cachedDatumCallback(createDatumId(this.getDatumId(node), highlighted ? 'highlight' : 'node'), () =>
-            itemStyler({
-                seriesId: this.id,
-                highlighted,
-                datum,
-                depth,
-                colorKey,
-                childrenKey,
-                labelKey,
-                secondaryLabelKey,
-                sizeKey,
-                fill,
-                fillOpacity: 1,
-                stroke,
-                strokeWidth,
-                strokeOpacity: 1,
-            })
-        );
-    }
-
-    private getNodeFill(node: _ModuleSupport.HierarchyNode) {
-        const isLeaf = node.children.length === 0;
-        if (isLeaf) {
-            return this.properties.tile.fill ?? node.fill;
-        }
-        const { undocumentedGroupFills } = this.properties;
-        const defaultFill = undocumentedGroupFills[Math.min(node.depth ?? 0, undocumentedGroupFills.length)];
-        return this.properties.group.fill ?? defaultFill;
-    }
-
-    private getNodeStroke(node: _ModuleSupport.HierarchyNode) {
-        const isLeaf = node.children.length === 0;
-        if (isLeaf) {
-            return this.properties.tile.stroke ?? node.stroke;
-        }
-        const { undocumentedGroupStrokes } = this.properties;
-        const defaultStroke = undocumentedGroupStrokes[Math.min(node.depth ?? 0, undocumentedGroupStrokes.length)];
-        return this.properties.group.stroke ?? defaultStroke;
-    }
-
     updateNodes() {
         const { rootNode, data } = this;
         const { highlightStyle, tile, group } = this.properties;
@@ -464,48 +491,32 @@ export class TreemapSeries<
 
         this.updateNodeMidPoint(bboxes);
 
-        const updateRectFn = (node: _ModuleSupport.HierarchyNode, rect: _ModuleSupport.Rect, highlighted: boolean) => {
+        const updateRectFn = (
+            node: _ModuleSupport.HierarchyNode,
+            rect: _ModuleSupport.Rect,
+            groupFormat: ItemStyle,
+            tileFormat: ItemStyle
+        ) => {
             const bbox = bboxes[node.index];
             if (bbox == null) {
                 rect.visible = false;
                 return;
             }
 
+            const { datum, depth = -1, index, rootIndex, colorValue } = node;
             const isLeaf = node.children.length === 0;
 
-            let highlightedFill: string | undefined;
-            let highlightedFillOpacity: number | undefined;
-            let highlightedStroke: string | undefined;
-            let highlightedStrokeWidth: number | undefined;
-            let highlightedStrokeOpacity: number | undefined;
-            if (highlighted) {
-                const { tile: hTitle, group: hGroup } = highlightStyle;
-                highlightedFill = isLeaf ? hTitle.fill : hGroup.fill;
-                highlightedFillOpacity = isLeaf ? hTitle.fillOpacity : hGroup.fillOpacity;
-                highlightedStroke = isLeaf ? hTitle.stroke : hGroup.stroke;
-                highlightedStrokeWidth = isLeaf ? hTitle.strokeWidth : hGroup.strokeWidth;
-                highlightedStrokeOpacity = isLeaf ? hTitle.strokeOpacity : hGroup.strokeOpacity;
-            }
-
-            const format = this.getTileFormat(node, highlighted);
-
-            const fill = format?.fill ?? highlightedFill ?? this.getNodeFill(node);
-            const fillOpacity =
-                format?.fillOpacity ?? highlightedFillOpacity ?? (isLeaf ? tile.fillOpacity : group.fillOpacity);
-            const stroke = format?.stroke ?? highlightedStroke ?? this.getNodeStroke(node);
-            const strokeWidth =
-                format?.strokeWidth ?? highlightedStrokeWidth ?? (isLeaf ? tile.strokeWidth : group.strokeWidth);
-            const strokeOpacity =
-                format?.strokeOpacity ??
-                highlightedStrokeOpacity ??
-                (isLeaf ? tile.strokeOpacity : group.strokeOpacity);
+            const format = isLeaf ? tileFormat : groupFormat;
+            const overrides = isLeaf
+                ? this.getTileStyleOverrides(String(index), datum, depth, rootIndex, colorValue, format)
+                : this.getGroupStyleOverrides(String(index), datum, depth, format);
 
             rect.crisp = true;
-            rect.fill = validateColor(fill);
-            rect.fillOpacity = fillOpacity;
-            rect.stroke = validateColor(stroke);
-            rect.strokeWidth = strokeWidth;
-            rect.strokeOpacity = strokeOpacity;
+            rect.fill = overrides?.fill ?? format.fill;
+            rect.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
+            rect.stroke = overrides?.stroke ?? format.stroke;
+            rect.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
+            rect.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
 
             const onlyLeaves = node.parent?.children.every((n) => n.children.length === 0);
@@ -527,13 +538,25 @@ export class TreemapSeries<
 
             rect.visible = true;
         };
-        this.groupSelection.selectByClass(Rect).forEach((rect) => updateRectFn(rect.datum, rect, false));
+
+        const baseGroupFormat = this.getGroupBaseStyle(false);
+        const baseTileFormat = this.getTileBaseStyle(false);
+        this.groupSelection
+            .selectByClass(Rect)
+            .forEach((rect) => updateRectFn(rect.datum, rect, baseGroupFormat, baseTileFormat));
+        const highlightGroupFormat = this.getGroupBaseStyle(true);
+        const highlightTileFormat = this.getTileBaseStyle(true);
         this.highlightSelection.selectByClass(Rect).forEach((rect) => {
             const isDatumHighlighted = rect.datum === highlightedNode;
 
             rect.visible = isDatumHighlighted || (highlightedNode?.contains(rect.datum) ?? false);
             if (rect.visible) {
-                updateRectFn(rect.datum, rect, isDatumHighlighted);
+                updateRectFn(
+                    rect.datum,
+                    rect,
+                    isDatumHighlighted ? highlightGroupFormat : baseGroupFormat,
+                    isDatumHighlighted ? highlightTileFormat : baseTileFormat
+                );
             }
         });
 
@@ -721,11 +744,10 @@ export class TreemapSeries<
         const { id: seriesId, properties } = this;
         const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
             properties;
-        const { datum, depth } = nodeDatum;
+        const { datum, index, rootIndex, depth, children } = nodeDatum;
         if (datum == null || depth == null) return;
 
-        const format = this.getTileFormat(nodeDatum, false);
-        const color = format?.fill ?? nodeDatum.fill;
+        const isLeaf = children.length === 0;
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
@@ -739,19 +761,37 @@ export class TreemapSeries<
             data.push({ label: colorName ?? colorKey ?? '', value: datumColor });
         }
 
+        let format: Required<ItemStyle>;
+        if (isLeaf) {
+            format = this.getTileBaseStyle() as Required<ItemStyle>;
+            Object.assign(
+                format,
+                this.getTileStyleOverrides(String(index), datum, depth, rootIndex, datumColor, format)
+            );
+        } else {
+            format = this.getGroupBaseStyle() as Required<ItemStyle>;
+            Object.assign(format, this.getGroupStyleOverrides(String(index), datum, depth, format));
+        }
+
+        const color = format.fill;
+
+        const symbol: _ModuleSupport.LegendSymbolOptions | undefined = isLeaf
+            ? {
+                  marker: {
+                      shape: 'square',
+                      fill: color,
+                      fillOpacity: 1,
+                      stroke: undefined,
+                      strokeWidth: 0,
+                      strokeOpacity: 1,
+                  },
+              }
+            : undefined;
+
         return tooltip.formatTooltip(
             {
                 title: labelKey != null ? datum[labelKey] : undefined,
-                symbol: {
-                    marker: {
-                        shape: 'square',
-                        fill: color,
-                        fillOpacity: 1,
-                        stroke: undefined,
-                        strokeWidth: 0,
-                        strokeOpacity: 1,
-                    },
-                },
+                symbol,
                 data,
             },
             {
@@ -766,6 +806,7 @@ export class TreemapSeries<
                 sizeName,
                 colorKey,
                 colorName,
+                ...format,
             }
         );
     }

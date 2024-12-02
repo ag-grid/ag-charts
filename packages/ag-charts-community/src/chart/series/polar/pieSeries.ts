@@ -561,7 +561,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         let format: AgPieSeriesStyle | undefined;
         if (itemStyler) {
             format = this.cachedDatumCallback(
-                createDatumId(this.getDatumId(datum), highlighted ? 'highlight' : 'hide'),
+                createDatumId(this.getDatumIdFromData(datum), highlighted ? 'highlight' : 'hide'),
                 () =>
                     itemStyler({
                         datum,
@@ -1313,6 +1313,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 angleName,
                 radiusKey,
                 radiusName,
+                ...this.getSectorFormat(datum, datumIndex, false),
             }
         );
     }

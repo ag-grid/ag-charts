@@ -13,13 +13,12 @@ export type AgCandlestickWickOptions = StrokeOptions & LineDashOptions;
 
 export interface AgCandlestickSeriesItemStylerParams<TDatum>
     extends AgOhlcSeriesBaseItemStylerParams<TDatum>,
-        Required<FillOptions> {}
+        FillOptions {}
 
 export interface AgCandlestickSeriesTooltipRendererParams<TDatum>
     extends AgOhlcSeriesBaseTooltipRendererParams<TDatum>,
-        AgOhlcSeriesBaseOptions {
-    // @todo(AG-10574) fill?: CssColor;
-}
+        AgOhlcSeriesBaseOptions,
+        FillOptions {}
 
 export interface AgCandlestickSeriesItemOptions extends AgBarSeriesStyle {
     /** Options to style chart's wicks */

@@ -24,7 +24,6 @@ interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
     midPoint: Readonly<_ModuleSupport.Point>;
     readonly width: number;
     readonly height: number;
-    readonly fill: string;
     readonly colorValue: any;
 }
 
@@ -42,6 +41,8 @@ interface HeatmapLabelDatum extends _ModuleSupport.Point {
     textAlign: TextAlign;
     verticalAlign: VerticalAlign;
 }
+
+type ItemStyle = Pick<AgHeatmapSeriesStyle, 'fill'> & Required<Omit<AgHeatmapSeriesStyle, 'fill'>>;
 
 class HeatmapSeriesNodeEvent<
     TEvent extends string = _ModuleSupport.SeriesNodeEventTypes,
@@ -178,19 +179,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             return;
         }
 
-        const {
-            xKey,
-            xName,
-            yKey,
-            yName,
-            colorKey,
-            colorName,
-            textAlign,
-            verticalAlign,
-            itemPadding,
-            colorRange,
-            label,
-        } = this.properties;
+        const { xKey, xName, yKey, yName, colorKey, colorName, textAlign, verticalAlign, itemPadding, label } =
+            this.properties;
 
         const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
         const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
@@ -202,7 +192,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const yScale = yAxis.scale;
         const xOffset = (xScale.bandwidth ?? 0) / 2;
         const yOffset = (yScale.bandwidth ?? 0) / 2;
-        const colorScaleValid = this.isColorScaleValid();
         const nodeData: HeatmapNodeDatum[] = [];
         const labelData: HeatmapLabelDatum[] = [];
 
@@ -221,7 +210,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             const y = yScale.convert(yDatum) + yOffset;
 
             const colorValue = colorValues?.[datumIndex];
-            const fill = colorScaleValid && colorValue != null ? this.colorScale.convert(colorValue) : colorRange[0];
 
             const labelText =
                 colorValue == null
@@ -261,7 +249,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 point,
                 width,
                 height,
-                fill,
                 midPoint: { x, y },
                 missing: colorValue == null,
             });
@@ -321,61 +308,91 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return datumSelection.update(data);
     }
 
+    private getItemBaseStyle(highlighted = false): ItemStyle {
+        const { properties } = this;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
+
+        return {
+            fill: highlightStyle?.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? 1,
+            stroke: highlightStyle?.stroke ?? properties.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+        };
+    }
+
+    protected getItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        colorValue: number | undefined,
+        format: ItemStyle,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties } = this;
+        const { xKey, yKey, colorRange, itemStyler } = properties;
+
+        const fill =
+            this.isColorScaleValid() && colorValue != null ? this.colorScale.convert(colorValue) : colorRange[0];
+        let overrides: Partial<ItemStyle> | undefined = format.fill == null ? { fill } : undefined;
+
+        if (itemStyler != null) {
+            overrides ??= {};
+
+            const itemStyle = this.cachedDatumCallback(
+                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                () => {
+                    return itemStyler({
+                        seriesId,
+                        datum,
+                        xKey,
+                        yKey,
+                        highlighted,
+                        fill,
+                        ...format,
+                    });
+                }
+            );
+
+            Object.assign(overrides, itemStyle);
+        }
+
+        return overrides;
+    }
+
     protected override updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, HeatmapNodeDatum>;
         isHighlight: boolean;
     }) {
         const { isHighlight: isDatumHighlighted } = opts;
-        const { id: seriesId, properties } = this;
-        const { xKey, yKey, colorKey, itemStyler } = properties;
-
-        const highlightStyle = isDatumHighlighted ? properties.highlightStyle.item : undefined;
-        const fillOpacity = highlightStyle?.fillOpacity ?? 1;
-        const stroke = highlightStyle?.stroke ?? properties.stroke;
-        const strokeWidth = highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth);
-        const strokeOpacity = highlightStyle?.strokeOpacity ?? properties.strokeOpacity ?? 1;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         const [visibleMin, visibleMax] = xAxis?.visibleRange ?? [];
         const isZoomed = visibleMin !== 0 || visibleMax !== 1;
         const crisp = !isZoomed;
 
+        const format = this.getItemBaseStyle(isDatumHighlighted);
+
         opts.datumSelection.each((rect, nodeDatum) => {
-            const { datum, point, width, height } = nodeDatum;
-
-            const fill = highlightStyle?.fill ?? nodeDatum.fill;
-
-            let format: AgHeatmapSeriesStyle | undefined;
-            if (itemStyler) {
-                format = this.cachedDatumCallback(
-                    createDatumId(datum.index, isDatumHighlighted ? 'highlight' : 'node'),
-                    () =>
-                        itemStyler({
-                            datum,
-                            fill,
-                            fillOpacity,
-                            stroke,
-                            strokeOpacity,
-                            strokeWidth,
-                            highlighted: isDatumHighlighted,
-                            xKey,
-                            yKey,
-                            colorKey,
-                            seriesId,
-                        })
-                );
-            }
+            const { datumIndex, colorValue, datum, point, width, height } = nodeDatum;
+            const overrides = this.getItemStyleOverrides(
+                String(datumIndex),
+                datum,
+                colorValue,
+                format,
+                isDatumHighlighted
+            );
 
             rect.crisp = crisp;
             rect.x = Math.floor(point.x - width / 2);
             rect.y = Math.floor(point.y - height / 2);
             rect.width = Math.ceil(width);
             rect.height = Math.ceil(height);
-            rect.fill = format?.fill ?? fill;
-            rect.fillOpacity = format?.fillOpacity ?? fillOpacity;
-            rect.stroke = format?.stroke ?? stroke;
-            rect.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            rect.strokeOpacity = format?.strokeOpacity ?? strokeOpacity;
+            rect.fill = overrides?.fill ?? format.fill;
+            rect.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
+            rect.stroke = overrides?.stroke ?? format.stroke;
+            rect.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
+            rect.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
         });
     }
 
@@ -428,52 +445,47 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const datum = processedData.rawData[datumIndex];
         const xValue = dataModel.resolveColumnById(this, `xValue`, processedData)[datumIndex];
         const yValue = dataModel.resolveColumnById(this, `yValue`, processedData)[datumIndex];
+        const colorValue =
+            colorKey != null && this.isColorScaleValid()
+                ? dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex]
+                : undefined;
 
         if (xValue == null) return;
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
         let fill: string;
-        if (colorKey != null && this.isColorScaleValid()) {
-            const colorValue = dataModel.resolveColumnById<number>(this, `colorValue`, processedData)[datumIndex];
-            fill = colorScale.convert(colorValue);
-            data.push({
-                label: colorName ?? colorKey,
-                value: String(colorValue),
-            });
-        } else {
+        if (colorValue == null) {
             fill = colorRange[0];
+        } else {
+            fill = colorScale.convert(colorValue);
+            data.push({ label: colorName ?? colorKey!, value: String(colorValue) });
         }
 
         data.push(
-            {
-                label: xName ?? xKey,
-                value: xAxis.formatDatum(xValue),
-            },
-            {
-                label: yName ?? yKey,
-                value: yAxis.formatDatum(yValue),
-            }
+            { label: xName ?? xKey, value: xAxis.formatDatum(xValue) },
+            { label: yName ?? yKey, value: yAxis.formatDatum(yValue) }
         );
 
+        const symbol: _ModuleSupport.LegendSymbolOptions | undefined =
+            fill != null
+                ? {
+                      marker: {
+                          shape: 'square',
+                          fill: fill,
+                          fillOpacity: 1,
+                          stroke: undefined,
+                          strokeWidth: 0,
+                          strokeOpacity: 1,
+                      },
+                  }
+                : undefined;
+
+        const format = this.getItemBaseStyle();
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, colorValue, format));
+
         return tooltip.formatTooltip(
-            {
-                title: title ?? legendItemName,
-                symbol:
-                    fill != null
-                        ? {
-                              marker: {
-                                  shape: 'square',
-                                  fill: fill,
-                                  fillOpacity: 1,
-                                  stroke: undefined,
-                                  strokeWidth: 0,
-                                  strokeOpacity: 1,
-                              },
-                          }
-                        : undefined,
-                data,
-            },
+            { title: title ?? legendItemName, symbol, data },
             {
                 seriesId,
                 datum,
@@ -484,6 +496,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 yName,
                 colorKey,
                 colorName,
+                ...(format as any as Required<ItemStyle>),
             }
         );
     }

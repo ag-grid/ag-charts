@@ -18,13 +18,11 @@ export type AgTreemapSeriesLabelHighlightOptions<TDatum> = Pick<
 export interface AgTreemapSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgTreemapSeriesOptionsKeys,
-        AgTreemapSeriesOptionsNames {
+        AgTreemapSeriesOptionsNames,
+        FillOptions,
+        StrokeOptions {
     /** The depth of the datum in the hierarchy. */
     depth: number;
-    /** The title of the Treemap tile. */
-    // @todo(AG-10574) title?: string;
-    /** The computed fill colour of the Treemap tile. */
-    // @todo(AG-10574) color?: CssColor;
 }
 
 export interface AgTreemapSeriesGroupStyle extends FillOptions, StrokeOptions {}

@@ -1,7 +1,7 @@
 import type {
     AgAreaSeriesLabelFormatterParams,
     AgAreaSeriesMarkerItemStylerParams,
-    AgCartesianSeriesTooltipRendererParams,
+    AgAreaSeriesTooltipRendererParams,
     AgSeriesAreaOptions,
 } from 'ag-charts-types';
 
@@ -75,7 +75,7 @@ export class AreaSeriesProperties extends CartesianSeriesProperties<AgSeriesArea
     readonly label = new Label<AgAreaSeriesLabelFormatterParams>();
 
     @Validate(OBJECT)
-    readonly tooltip = new SeriesTooltip<AgCartesianSeriesTooltipRendererParams>();
+    readonly tooltip = new SeriesTooltip<AgAreaSeriesTooltipRendererParams<any>>();
 
     @Validate(BOOLEAN)
     connectMissingData: boolean = false;

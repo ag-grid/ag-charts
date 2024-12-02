@@ -39,7 +39,6 @@ export interface MapShapeNodeDatum extends _ModuleSupport.DataModelSeriesNodeDat
     readonly idValue: string;
     readonly colorValue: number | undefined;
     readonly labelValue: string | undefined;
-    readonly fill: string;
     readonly projectedGeometry: _ModuleSupport.Geometry | undefined;
 }
 

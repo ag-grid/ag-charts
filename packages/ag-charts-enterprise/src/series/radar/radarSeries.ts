@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type FillOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 
@@ -47,6 +47,8 @@ class RadarSeriesNodeEvent<
         this.radiusKey = series.properties.radiusKey;
     }
 }
+
+type ItemStyle = Required<FillOptions & StrokeOptions & { size: number }>;
 
 export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     RadarNodeDatum,
@@ -303,13 +305,47 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         return highlightedStyle?.fill ?? this.properties.marker.fill;
     }
 
+    private getMarkerItemBaseStyle(highlighted = false): ItemStyle {
+        const { properties } = this;
+        const { marker } = properties;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(marker.strokeWidth);
+
+        return {
+            size: marker.size,
+            fill: highlightStyle?.fill ?? marker.fill!,
+            fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
+            stroke: highlightStyle?.stroke ?? marker.stroke!,
+            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
+        };
+    }
+
+    protected getMarkerItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted = false) {
+        const { id: seriesId, properties } = this;
+        const { angleKey, radiusKey, marker } = properties;
+        const { itemStyler } = marker;
+
+        if (itemStyler == null) return;
+
+        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+            return itemStyler({
+                seriesId,
+                datum,
+                angleKey,
+                radiusKey,
+                highlighted,
+                ...format,
+            });
+        });
+    }
+
     protected updateMarkers(
         selection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadarNodeDatum>,
         highlight: boolean
     ) {
         const { visible } = this;
-        const { angleKey, radiusKey, marker } = this.properties;
-        const { itemStyler } = marker;
+        const { marker } = this.properties;
 
         let selectionData: RadarNodeDatum[] = [];
 
@@ -323,40 +359,21 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 selectionData = this.nodeData;
             }
         }
-        const highlightedStyle = highlight ? this.properties.highlightStyle.item : undefined;
-        const formatType = highlight ? 'highlight' : 'node';
-        selection.update(selectionData).each((node, datum, index) => {
-            const fill = this.getMarkerFill(highlightedStyle);
-            const fillOpacity = highlightedStyle?.fillOpacity ?? this.properties.marker.fillOpacity;
-            const stroke = highlightedStyle?.stroke ?? marker.stroke ?? this.properties.stroke;
-            const strokeWidth = highlightedStyle?.strokeWidth ?? marker.strokeWidth ?? this.properties.strokeWidth ?? 1;
-            const strokeOpacity = highlightedStyle?.strokeOpacity ?? this.properties.marker.strokeOpacity;
-            const format = itemStyler
-                ? this.cachedDatumCallback(createDatumId(index, formatType), () =>
-                      itemStyler({
-                          datum: datum.datum,
-                          angleKey,
-                          radiusKey,
-                          fill,
-                          fillOpacity,
-                          stroke,
-                          strokeWidth,
-                          strokeOpacity,
-                          shape: marker.shape,
-                          size: marker.size,
-                          highlighted: highlight,
-                          seriesId: this.id,
-                      })
-                  )
-                : undefined;
-            node.fill = format?.fill ?? fill;
-            node.stroke = format?.stroke ?? stroke;
-            node.strokeWidth = format?.strokeWidth ?? strokeWidth;
-            node.fillOpacity = highlightedStyle?.fillOpacity ?? marker.fillOpacity ?? 1;
-            node.strokeOpacity = marker.strokeOpacity ?? this.properties.strokeOpacity ?? 1;
-            node.size = format?.size ?? marker.size;
 
-            const { x, y } = datum.point;
+        const format = this.getMarkerItemBaseStyle(highlight);
+
+        selection.update(selectionData).each((node, nodeDatum) => {
+            const { datum, datumIndex, point } = nodeDatum;
+            const overrides = this.getMarkerItemStyleOverrides(String(datumIndex), datum, format);
+
+            node.fill = overrides?.fill ?? format.fill;
+            node.stroke = overrides?.stroke ?? format.stroke;
+            node.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
+            node.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
+            node.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
+            node.size = overrides?.size ?? format.size;
+
+            const { x, y } = point;
             node.x = x;
             node.y = y;
             node.visible = visible && node.size > 0 && !isNaN(x) && !isNaN(y);
@@ -404,6 +421,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         if (angleValue == null) return;
 
+        const format = this.getMarkerItemBaseStyle();
+        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format));
+
         return tooltip.formatTooltip(
             {
                 heading: angleAxis.formatDatum(angleValue),
@@ -418,6 +438,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
                 radiusKey,
                 angleName,
                 radiusName,
+                ...format,
             }
         );
     }

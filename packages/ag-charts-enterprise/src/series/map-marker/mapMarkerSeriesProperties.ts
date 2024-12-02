@@ -34,7 +34,6 @@ export interface MapMarkerNodeLabelDatum extends _ModuleSupport.PointLabelDatum 
 
 export interface MapMarkerNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly index: number;
-    readonly fill: string | undefined;
     readonly idValue: string | undefined;
     readonly lonValue: number | undefined;
     readonly latValue: number | undefined;
@@ -130,14 +129,14 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
     @Validate(NUMBER_ARRAY, { optional: true })
     sizeDomain?: [number, number];
 
-    @Validate(COLOR_STRING, { optional: true })
-    fill?: string;
+    @Validate(COLOR_STRING)
+    fill: string = 'black';
 
     @Validate(RATIO)
     fillOpacity: number = 1;
 
-    @Validate(COLOR_STRING, { optional: true })
-    stroke?: string;
+    @Validate(COLOR_STRING)
+    stroke: string = 'black';
 
     @Validate(POSITIVE_NUMBER)
     strokeWidth: number = 1;

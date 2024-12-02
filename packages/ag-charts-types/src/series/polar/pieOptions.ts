@@ -130,6 +130,9 @@ export interface AgPieSeriesOptionsNames {
 export interface AgPieSeriesTooltipRendererParams<TDatum>
     extends AgSeriesTooltipRendererParams<TDatum>,
         AgPieSeriesOptionsKeys,
-        AgPieSeriesOptionsNames {}
+        AgPieSeriesOptionsNames,
+        FillOptions,
+        StrokeOptions,
+        LineDashOptions {}
 
 export type AgPieSeriesLabelFormatterParams = AgPieSeriesOptionsKeys & AgPieSeriesOptionsNames;

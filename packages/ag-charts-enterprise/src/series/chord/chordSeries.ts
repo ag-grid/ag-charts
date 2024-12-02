@@ -1,4 +1,4 @@
-import { type AgChordSeriesLinkStyle, type AgChordSeriesNodeStyle, _ModuleSupport } from 'ag-charts-community';
+import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
 
 import {
     FlowProportionDatumType,
@@ -51,6 +51,11 @@ interface ChordNodeLabelDatum {
     angle: number;
     radius: number;
 }
+
+type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
+    Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
+
+type LinkStyle = NodeStyle & { tension: number };
 
 export interface ChordNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<ChordDatum, ChordNodeLabelDatum> {}
 
@@ -357,52 +362,95 @@ export class ChordSeries extends FlowProportionSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId([datum.type, datum.id]));
     }
 
+    protected getBaseNodeStyle(highlighted = false): NodeStyle {
+        const { properties } = this;
+        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.node;
+        const strokeWidth = this.getStrokeWidth(properties.node.strokeWidth);
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+
+        return {
+            fill: highlightStyle?.fill ?? fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
+            stroke: highlightStyle?.stroke ?? stroke,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
+            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            lineDash: highlightStyle?.lineDash ?? lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
+        };
+    }
+
+    protected getNodeStyleOverrides(
+        datumId: string,
+        datum: any,
+        datumIndex: number,
+        size: number,
+        label: string | undefined,
+        format: NodeStyle,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties } = this;
+        const { fills, strokes } = properties;
+        const { itemStyler } = properties.node;
+
+        const fill = format.fill ?? fills[datumIndex % fills.length];
+        const stroke = format.stroke ?? strokes[datumIndex % strokes.length];
+
+        const overrides: Partial<NodeStyle> = { fill, stroke };
+
+        if (itemStyler != null) {
+            const itemStyle = this.cachedDatumCallback(
+                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                () => {
+                    const {
+                        fillOpacity = 1,
+                        strokeOpacity = 1,
+                        strokeWidth = 0,
+                        lineDash = [],
+                        lineDashOffset = 0,
+                    } = format;
+
+                    return itemStyler({
+                        seriesId,
+                        datum,
+                        highlighted,
+                        label,
+                        size,
+                        fill,
+                        fillOpacity,
+                        stroke,
+                        strokeOpacity,
+                        strokeWidth,
+                        lineDash,
+                        lineDashOffset,
+                    });
+                }
+            );
+
+            Object.assign(overrides, itemStyle);
+        }
+
+        return overrides;
+    }
+
     protected updateNodeNodes(opts: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, ChordNodeDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { id: seriesId, properties } = this;
-        const { fromKey, toKey, sizeKey } = this.properties;
-        const {
-            fill: baseFill,
-            fillOpacity,
-            stroke: baseStroke,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            itemStyler,
-        } = properties.node;
-        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(properties.node.strokeWidth);
 
-        datumSelection.each((sector, datum, index) => {
-            const fill = baseFill ?? datum.fill;
-            const stroke = baseStroke ?? datum.stroke;
+        const format = this.getBaseNodeStyle(isHighlight);
 
-            let format: AgChordSeriesNodeStyle | undefined;
-            if (itemStyler != null) {
-                const { label, size } = datum;
-                format = this.cachedDatumCallback(createDatumId(index, isHighlight ? 'node-highlight' : 'node'), () =>
-                    itemStyler({
-                        seriesId,
-                        datum: datum.datum,
-                        label,
-                        size,
-                        fromKey,
-                        toKey,
-                        sizeKey,
-                        fill,
-                        fillOpacity,
-                        strokeOpacity,
-                        stroke,
-                        strokeWidth,
-                        lineDash,
-                        lineDashOffset,
-                        highlighted: isHighlight,
-                    })
-                );
-            }
+        datumSelection.each((sector, datum) => {
+            const { datumIndex, size, label } = datum;
+            const overrides = this.getNodeStyleOverrides(
+                String(datumIndex),
+                datum,
+                datumIndex,
+                size,
+                label,
+                format,
+                isHighlight
+            );
 
             sector.centerX = datum.centerX;
             sector.centerY = datum.centerY;
@@ -410,13 +458,13 @@ export class ChordSeries extends FlowProportionSeries<
             sector.outerRadius = datum.outerRadius;
             sector.startAngle = datum.startAngle;
             sector.endAngle = datum.endAngle;
-            sector.fill = highlightStyle?.fill ?? format?.fill ?? fill;
-            sector.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
-            sector.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke;
-            sector.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
-            sector.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
-            sector.lineDash = highlightStyle?.lineDash ?? format?.lineDash ?? lineDash;
-            sector.lineDashOffset = highlightStyle?.lineDashOffset ?? format?.lineDashOffset ?? lineDashOffset;
+            sector.fill = overrides.fill ?? format?.fill;
+            sector.fillOpacity = overrides.fillOpacity ?? format?.fillOpacity;
+            sector.stroke = overrides.stroke ?? format?.stroke;
+            sector.strokeOpacity = overrides.strokeOpacity ?? format?.strokeOpacity;
+            sector.strokeWidth = overrides.strokeWidth ?? format?.strokeWidth;
+            sector.lineDash = overrides.lineDash ?? format?.lineDash;
+            sector.lineDashOffset = overrides.lineDashOffset ?? format?.lineDashOffset;
             sector.inset = sector.strokeWidth / 2;
         });
     }
@@ -430,51 +478,93 @@ export class ChordSeries extends FlowProportionSeries<
         );
     }
 
+    protected getBaseLinkStyle(highlighted = false): LinkStyle {
+        const { properties } = this;
+        const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, tension } = properties.link;
+        const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+
+        return {
+            fill: highlightStyle?.fill ?? fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
+            stroke: highlightStyle?.stroke ?? stroke,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
+            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            lineDash: highlightStyle?.lineDash ?? lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
+            tension,
+        };
+    }
+
+    protected getLinkStyleOverrides(
+        datumId: string,
+        datum: any,
+        fromNodeDatumIndex: number,
+        format: LinkStyle,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties } = this;
+        const { fills, strokes } = properties;
+        const { itemStyler } = properties.link;
+
+        const fill = format.fill ?? fills[fromNodeDatumIndex % fills.length];
+        const stroke = format.stroke ?? strokes[fromNodeDatumIndex % strokes.length];
+
+        const overrides: Partial<LinkStyle> = { fill, stroke };
+
+        if (itemStyler != null) {
+            const itemStyle = this.cachedDatumCallback(
+                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                () => {
+                    const {
+                        fillOpacity = 1,
+                        strokeOpacity = 1,
+                        strokeWidth = 0,
+                        lineDash = [],
+                        lineDashOffset = 0,
+                        tension,
+                    } = format;
+
+                    return itemStyler({
+                        seriesId,
+                        datum,
+                        highlighted,
+                        tension,
+                        fill,
+                        fillOpacity,
+                        stroke,
+                        strokeOpacity,
+                        strokeWidth,
+                        lineDash,
+                        lineDashOffset,
+                    });
+                }
+            );
+
+            Object.assign(overrides, itemStyle);
+        }
+
+        return overrides;
+    }
+
     protected updateLinkNodes(opts: {
         datumSelection: _ModuleSupport.Selection<ChordLink, ChordLinkDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { id: seriesId, properties } = this;
-        const { fromKey, toKey, sizeKey } = properties;
-        const {
-            fill: baseFill,
-            fillOpacity,
-            stroke: baseStroke,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            tension,
-            itemStyler,
-        } = properties.link;
-        const highlightStyle = isHighlight ? properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
 
-        datumSelection.each((link, datum, index) => {
-            const fill = baseFill ?? datum.fromNode.fill;
-            const stroke = baseStroke ?? datum.fromNode.stroke;
+        const format = this.getBaseLinkStyle(isHighlight);
 
-            let format: AgChordSeriesLinkStyle | undefined;
-            if (itemStyler != null) {
-                format = this.cachedDatumCallback(createDatumId(index, isHighlight ? 'link-highlight' : 'link'), () =>
-                    itemStyler({
-                        seriesId,
-                        datum: datum.datum,
-                        fromKey,
-                        toKey,
-                        sizeKey,
-                        fill,
-                        fillOpacity,
-                        strokeOpacity,
-                        stroke,
-                        strokeWidth,
-                        lineDash,
-                        lineDashOffset,
-                        tension,
-                        highlighted: isHighlight,
-                    })
-                );
-            }
+        datumSelection.each((link, datum) => {
+            const { datumIndex } = datum;
+            const fromNodeDatumIndex = datum.fromNode.datumIndex;
+            const overrides = this.getLinkStyleOverrides(
+                String(datumIndex),
+                datum,
+                fromNodeDatumIndex,
+                format,
+                isHighlight
+            );
 
             link.centerX = datum.centerX;
             link.centerY = datum.centerY;
@@ -483,15 +573,71 @@ export class ChordSeries extends FlowProportionSeries<
             link.endAngle1 = datum.endAngle1;
             link.startAngle2 = datum.startAngle2;
             link.endAngle2 = datum.endAngle2;
-            link.fill = highlightStyle?.fill ?? format?.fill ?? fill;
-            link.fillOpacity = highlightStyle?.fillOpacity ?? format?.fillOpacity ?? fillOpacity;
-            link.stroke = highlightStyle?.stroke ?? format?.stroke ?? stroke;
-            link.strokeOpacity = highlightStyle?.strokeOpacity ?? format?.strokeOpacity ?? strokeOpacity;
-            link.strokeWidth = highlightStyle?.strokeWidth ?? format?.strokeWidth ?? strokeWidth;
-            link.lineDash = highlightStyle?.lineDash ?? format?.lineDash ?? lineDash;
-            link.lineDashOffset = highlightStyle?.lineDashOffset ?? format?.lineDashOffset ?? lineDashOffset;
-            link.tension = format?.tension ?? tension;
+            link.fill = overrides?.fill ?? format.fill;
+            link.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
+            link.stroke = overrides?.stroke ?? format.stroke;
+            link.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
+            link.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
+            link.lineDash = overrides?.lineDash ?? format.lineDash;
+            link.lineDashOffset = overrides?.lineDashOffset ?? format.lineDashOffset;
+            link.tension = overrides?.tension ?? format.tension;
         });
+    }
+
+    override getTooltipContent(seriesDatum: ChordDatum): _ModuleSupport.TooltipContent | string | undefined {
+        const { id: seriesId, processedData, nodesProcessedData, properties } = this;
+        const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
+
+        const { datumIndex } = seriesDatum;
+        const nodeIndex =
+            seriesDatum.type === FlowProportionDatumType.Link ? seriesDatum.fromNode.index : seriesDatum.index;
+        const title =
+            seriesDatum.type === FlowProportionDatumType.Link
+                ? `${seriesDatum.fromNode.label} - ${seriesDatum.toNode.label}`
+                : seriesDatum.label;
+        const datum =
+            seriesDatum.type === FlowProportionDatumType.Link
+                ? processedData?.rawData[seriesDatum.datumIndex]
+                : nodesProcessedData?.rawData[seriesDatum.datumIndex];
+        const size = seriesDatum.size;
+
+        let format: Required<NodeStyle>;
+        if (seriesDatum.type === FlowProportionDatumType.Link) {
+            const fromNodeDatumIndex = seriesDatum.fromNode.datumIndex;
+            const linkFormat = this.getBaseLinkStyle();
+            Object.assign(
+                linkFormat,
+                this.getLinkStyleOverrides(String(datumIndex), datum, fromNodeDatumIndex, linkFormat)
+            );
+            format = linkFormat as any;
+        } else {
+            const label = seriesDatum.label;
+            const nodeFormat = this.getBaseNodeStyle();
+            Object.assign(
+                nodeFormat,
+                this.getNodeStyleOverrides(String(datumIndex), datum, datumIndex, size, label, nodeFormat)
+            );
+            format = nodeFormat as any;
+        }
+
+        return tooltip.formatTooltip(
+            {
+                title,
+                symbol: this.legendItemSymbol(seriesDatum.type, nodeIndex),
+                data: sizeKey != null ? [{ label: sizeName, fallbackLabel: sizeKey, value: String(size) }] : [],
+            },
+            {
+                seriesId,
+                datum,
+                title,
+                fromKey,
+                toKey,
+                sizeKey,
+                sizeName,
+                size,
+                ...format,
+            }
+        );
     }
 
     protected override computeFocusBounds({

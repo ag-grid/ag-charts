@@ -335,6 +335,9 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (xValue == null) return;
 
+        const format = this.getItemBaseStyle();
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format));
+
         return tooltip.formatTooltip(
             {
                 heading: xAxis.formatDatum(xValue),
@@ -365,6 +368,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 minName,
                 maxKey,
                 maxName,
+                ...format,
             }
         );
     }
@@ -391,6 +395,52 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }) {
         const data = opts.nodeData ?? [];
         return opts.datumSelection.update(data);
+    }
+
+    private getItemBaseStyle(highlighted = false): Required<AgBoxPlotSeriesStyle> {
+        const { properties } = this;
+        const { cornerRadius, cap, whisker } = properties;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        return {
+            fill: highlightStyle?.fill ?? properties.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+            stroke: highlightStyle?.stroke ?? properties.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? properties.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
+            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            cornerRadius,
+            cap,
+            whisker,
+        };
+    }
+
+    private getItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        format: Required<AgBoxPlotSeriesStyle>,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties } = this;
+
+        const { xKey, minKey, q1Key, medianKey, q3Key, maxKey, itemStyler } = properties;
+
+        if (itemStyler == null) return;
+
+        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+            return itemStyler({
+                seriesId,
+                datum,
+                xKey,
+                minKey,
+                q1Key,
+                medianKey,
+                q3Key,
+                maxKey,
+                highlighted,
+                ...format,
+            });
+        });
     }
 
     protected override updateDatumNodes({

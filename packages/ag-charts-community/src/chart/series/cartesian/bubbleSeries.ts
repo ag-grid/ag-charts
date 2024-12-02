@@ -1,4 +1,9 @@
-import type { AgErrorBoundSeriesTooltipRendererParams, AgSeriesMarkerStyle } from 'ag-charts-types';
+import type {
+    AgErrorBoundSeriesTooltipRendererParams,
+    AgSeriesMarkerStyle,
+    FillOptions,
+    StrokeOptions,
+} from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
@@ -299,6 +304,47 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         );
     }
 
+    private getMarkerItemBaseStyle(highlighted = false): RequireOptional<FillOptions & StrokeOptions> {
+        const { properties } = this;
+
+        const { marker } = properties;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        return {
+            fill: highlightStyle?.fill ?? marker.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
+            stroke: highlightStyle?.stroke ?? marker.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? marker.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
+        };
+    }
+
+    private getMarkerItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        format: RequireOptional<FillOptions & StrokeOptions>,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties } = this;
+
+        const { xKey, yKey, sizeKey, labelKey, marker } = properties;
+        const { itemStyler } = marker;
+
+        if (itemStyler == null) return;
+
+        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+            return itemStyler({
+                seriesId,
+                datum,
+                xKey,
+                yKey,
+                sizeKey,
+                labelKey,
+                highlighted,
+                ...format,
+            });
+        });
+    }
+
     protected override updateMarkerNodes(opts: {
         markerSelection: Selection<Marker, BubbleNodeDatum>;
         isHighlight: boolean;
@@ -386,6 +432,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             data.push({ label: sizeName ?? sizeKey, value: String(sizeValue) });
         }
 
+        const format = this.getMarkerItemBaseStyle();
+        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datum, format));
+
         return tooltip.formatTooltip(
             {
                 title,
@@ -404,6 +453,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 sizeName,
                 labelKey,
                 labelName,
+                ...format,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );

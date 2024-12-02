@@ -37,8 +37,6 @@ export interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatu
     readonly right: number;
     readonly bottom: number;
     readonly left: number;
-    readonly fill: string;
-    readonly stroke: string;
     readonly label: PyramidNodeLabelDatum | undefined;
 }
 
@@ -46,6 +44,9 @@ export interface PyramidNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<PyramidNodeDatum, PyramidNodeLabelDatum> {
     stageLabelData: PyramidNodeLabelDatum[] | undefined;
 }
+
+type ItemStyle = Pick<AgPyramidSeriesStyle, 'fill' | 'stroke'> &
+    Required<Omit<AgPyramidSeriesStyle, 'fill' | 'stroke'>>;
 
 export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     PyramidNodeDatum,
@@ -139,8 +140,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const {
             stageKey,
             valueKey,
-            fills,
-            strokes,
             direction,
             reverse = direction === 'horizontal',
             spacing,
@@ -326,9 +325,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
             labelData.push(labelDatum);
 
-            const fill = fills[datumIndex % fills.length] ?? 'black';
-            const stroke = strokes[datumIndex % strokes.length] ?? 'black';
-
             nodeData.push({
                 series: this,
                 itemId: valueKey,
@@ -339,8 +335,6 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 yValue,
                 x,
                 y,
-                fill,
-                stroke,
                 top,
                 right,
                 bottom,
@@ -416,17 +410,76 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return opts.datumSelection.update(opts.nodeData);
     }
 
+    private getItemBaseStyle(highlighted = false): ItemStyle {
+        const { properties } = this;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
+
+        return {
+            fill: highlightStyle?.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+            stroke: highlightStyle?.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+        };
+    }
+
+    protected getItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        datumIndex: number,
+        format: ItemStyle,
+        highlighted = false
+    ) {
+        const { id: seriesId, properties } = this;
+        const { fills, strokes, stageKey, valueKey, itemStyler } = properties;
+
+        const fill = fills[datumIndex % fills.length];
+        const stroke = strokes[datumIndex % strokes.length];
+        const overrides: Partial<ItemStyle> = {
+            fill: format.fill ?? fill,
+            stroke: format.stroke ?? stroke,
+        };
+
+        if (itemStyler != null) {
+            const itemStyle = this.cachedDatumCallback(
+                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                () => {
+                    return itemStyler({
+                        seriesId,
+                        datum,
+                        stageKey,
+                        valueKey,
+                        highlighted,
+                        fill,
+                        stroke,
+                        ...format,
+                    });
+                }
+            );
+
+            Object.assign(overrides, itemStyle);
+        }
+
+        return overrides;
+    }
+
     private updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<FunnelConnector, PyramidNodeDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
         const { properties } = this;
-        const { stageKey, valueKey, shadow, itemStyler } = this.properties;
-        const highlightStyle = isHighlight ? this.properties.highlightStyle.item : undefined;
+        const { shadow } = properties;
+
+        const format = this.getItemBaseStyle(isHighlight);
 
         datumSelection.each((connector, nodeDatum) => {
-            const { x, y, top, right, bottom, left } = nodeDatum;
+            const { datumIndex, datum, x, y, top, right, bottom, left } = nodeDatum;
+            const overrides = this.getItemStyleOverrides(String(datumIndex), datum, datumIndex, format);
+
             connector.x0 = x - top / 2;
             connector.x1 = x + top / 2;
             connector.x2 = x + bottom / 2;
@@ -437,43 +490,14 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             connector.y2 = y + right / 2;
             connector.y3 = y + left / 2;
 
-            const fill = highlightStyle?.fill ?? nodeDatum.fill;
-            const fillOpacity = highlightStyle?.fillOpacity ?? properties.fillOpacity;
-            const stroke = highlightStyle?.stroke ?? nodeDatum.stroke;
-            const strokeOpacity = highlightStyle?.strokeOpacity ?? properties.strokeOpacity;
-            const strokeWidth = highlightStyle?.strokeWidth ?? properties.strokeWidth;
-            const lineDash = highlightStyle?.lineDash ?? properties.lineDash;
-            const lineDashOffset = highlightStyle?.lineDashOffset ?? properties.lineDashOffset;
+            connector.fill = overrides?.fill ?? format.fill;
+            connector.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
+            connector.stroke = overrides?.stroke ?? format.stroke;
+            connector.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
+            connector.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
+            connector.lineDash = overrides?.lineDash ?? format.lineDash;
+            connector.lineDashOffset = overrides?.lineDashOffset ?? format.lineDashOffset;
 
-            let itemStyle: AgPyramidSeriesStyle | undefined;
-            if (itemStyler != null) {
-                itemStyle = this.cachedDatumCallback(
-                    createDatumId(nodeDatum.index, isHighlight ? 'highlight' : 'node'),
-                    () =>
-                        itemStyler({
-                            datum: nodeDatum.datum,
-                            seriesId: this.id,
-                            highlighted: isHighlight,
-                            stageKey,
-                            valueKey,
-                            fill,
-                            fillOpacity,
-                            stroke,
-                            strokeOpacity,
-                            strokeWidth,
-                            lineDash,
-                            lineDashOffset,
-                        })
-                );
-            }
-
-            connector.fill = itemStyle?.fill ?? fill;
-            connector.fillOpacity = itemStyle?.fillOpacity ?? fillOpacity;
-            connector.stroke = itemStyle?.stroke ?? stroke;
-            connector.strokeOpacity = itemStyle?.strokeOpacity ?? strokeOpacity;
-            connector.strokeWidth = itemStyle?.strokeWidth ?? strokeWidth;
-            connector.lineDash = itemStyle?.lineDash ?? lineDash;
-            connector.lineDashOffset = itemStyle?.lineDashOffset ?? lineDashOffset;
             connector.fillShadow = shadow;
         });
     }
@@ -553,6 +577,9 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             valueKey,
         });
 
+        const format = this.getItemBaseStyle() as any as Required<ItemStyle>;
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, datumIndex, format));
+
         return tooltip.formatTooltip(
             {
                 symbol: this.legendItemSymbol(datumIndex),
@@ -569,6 +596,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
                 title: undefined,
                 stageKey,
                 valueKey,
+                ...format,
             }
         );
     }

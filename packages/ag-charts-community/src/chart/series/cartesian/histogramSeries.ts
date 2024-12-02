@@ -360,6 +360,19 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         );
     }
 
+    private getItemBaseStyle(highlighted = false) {
+        const { properties } = this;
+
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        return {
+            fill: highlightStyle?.fill ?? properties.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+            stroke: highlightStyle?.stroke ?? properties.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? properties.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+        };
+    }
+
     protected override updateDatumNodes(opts: {
         datumSelection: Selection<Rect, HistogramNodeDatum>;
         isHighlight: boolean;
@@ -495,7 +508,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                 symbol: this.legendItemSymbol(),
                 data,
             },
-            { seriesId, datum, title: yName, xKey, xName, yKey, yName }
+            { seriesId, datum, title: yName, xKey, xName, yKey, yName, ...this.getItemBaseStyle() }
         );
     }
 

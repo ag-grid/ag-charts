@@ -1,4 +1,7 @@
 import type {
+    AgCandlestickSeriesItemOptions,
+    AgCandlestickSeriesItemStylerParams,
+    AgCandlestickSeriesTooltipRendererParams,
     AgOhlcSeriesBaseOptions,
     AgOhlcSeriesItemOptions,
     AgOhlcSeriesItemStylerParams,
@@ -88,7 +91,12 @@ export abstract class OhlcSeriesBaseProperties<
     @Validate(STRING, { optional: true })
     lowName?: string;
 
-    abstract override readonly tooltip: _ModuleSupport.SeriesTooltip<AgOhlcSeriesTooltipRendererParams<any>>;
+    abstract override readonly tooltip: _ModuleSupport.SeriesTooltip<
+        AgOhlcSeriesTooltipRendererParams<any> & AgCandlestickSeriesTooltipRendererParams<any>
+    >;
+
+    abstract itemStyler?: Styler<AgOhlcSeriesItemStylerParams<unknown>, AgOhlcSeriesItemOptions> &
+        Styler<AgCandlestickSeriesItemStylerParams<unknown>, AgCandlestickSeriesItemOptions>;
 }
 
 export class OhlcSeriesProperties extends OhlcSeriesBaseProperties<AgOhlcSeriesOptions> {

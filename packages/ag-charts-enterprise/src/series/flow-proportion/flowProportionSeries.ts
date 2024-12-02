@@ -35,8 +35,6 @@ export interface FlowProportionNodeDatum extends _ModuleSupport.DataModelSeriesN
     id: string;
     size: number;
     label: string | undefined;
-    fill: string;
-    stroke: string;
 }
 
 export type TDatum<
@@ -170,7 +168,6 @@ export abstract class FlowProportionSeries<
         this.nodesDataModel = nodesDataModel?.dataModel;
         this.nodesProcessedData = nodesDataModel?.processedData;
 
-        const { fills, strokes } = this.properties;
         const processedNodes = new Map<string, FlowProportionNodeDatum>();
         if (nodesDataModel == null) {
             const fromIdValues = linksDataModel.dataModel.resolveColumnById<string | undefined>(
@@ -187,8 +184,6 @@ export abstract class FlowProportionSeries<
             const createImplicitNode = (id: string): FlowProportionNodeDatum => {
                 const datumIndex = processedNodes.size;
                 const label = id;
-                const fill = fills[datumIndex % fills.length];
-                const stroke = strokes[datumIndex % strokes.length];
 
                 return {
                     series: this,
@@ -200,8 +195,6 @@ export abstract class FlowProportionSeries<
                     id,
                     size: 0,
                     label,
-                    fill,
-                    stroke,
                 };
             };
 
@@ -237,9 +230,6 @@ export abstract class FlowProportionSeries<
                 const id: string = nodeIdValues[datumIndex];
                 const label: string | undefined = labelValues?.[datumIndex];
 
-                const fill = fills[datumIndex % fills.length];
-                const stroke = strokes[datumIndex % strokes.length];
-
                 processedNodes.set(id, {
                     series: this,
                     itemId: undefined,
@@ -250,8 +240,6 @@ export abstract class FlowProportionSeries<
                     id,
                     size: 0,
                     label,
-                    fill,
-                    stroke,
                 });
             });
         }
@@ -477,43 +465,6 @@ export abstract class FlowProportionSeries<
         return [];
     }
 
-    override getTooltipContent(
-        seriesDatum: TDatum<TNodeDatum, TLinkDatum>
-    ): _ModuleSupport.TooltipContent | string | undefined {
-        const { id: seriesId, processedData, nodesProcessedData, properties } = this;
-        const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
-
-        const nodeIndex =
-            seriesDatum.type === FlowProportionDatumType.Link ? seriesDatum.fromNode.index : seriesDatum.index;
-        const title =
-            seriesDatum.type === FlowProportionDatumType.Link
-                ? `${seriesDatum.fromNode.label} - ${seriesDatum.toNode.label}`
-                : seriesDatum.label;
-        const datum =
-            seriesDatum.type === FlowProportionDatumType.Link
-                ? processedData?.rawData[seriesDatum.datumIndex]
-                : nodesProcessedData?.rawData[seriesDatum.datumIndex];
-        const size = seriesDatum.size;
-
-        return tooltip.formatTooltip(
-            {
-                title,
-                symbol: this.legendItemSymbol(seriesDatum.type, nodeIndex),
-                data: sizeKey != null ? [{ label: sizeName, fallbackLabel: sizeKey, value: String(size) }] : [],
-            },
-            {
-                seriesId,
-                datum,
-                title,
-                fromKey,
-                toKey,
-                sizeKey,
-                sizeName,
-                size,
-            }
-        );
-    }
-
     override getSeriesRange(
         _direction: _ModuleSupport.ChartAxisDirection,
         _visibleRange: [any, any]
@@ -521,7 +472,7 @@ export abstract class FlowProportionSeries<
         return [NaN, NaN];
     }
 
-    private legendItemSymbol(_type: FlowProportionDatumType, nodeIndex: number): _ModuleSupport.LegendSymbolOptions {
+    protected legendItemSymbol(_type: FlowProportionDatumType, nodeIndex: number): _ModuleSupport.LegendSymbolOptions {
         const { fills, strokes } = this.properties;
 
         const fill = fills[nodeIndex % fills.length];

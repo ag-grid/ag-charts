@@ -3,7 +3,7 @@ import type { AgChartLabelOptions } from '../../chart/labelOptions';
 import type { AgSeriesTooltip } from '../../chart/tooltipOptions';
 import type { PixelSize } from '../../chart/types';
 import type { AgInterpolationType } from '../interpolationOptions';
-import type { AgSeriesMarkerOptions } from '../markerOptions';
+import type { AgSeriesMarkerOptions, AgSeriesMarkerStyle } from '../markerOptions';
 import type { AgBaseCartesianThemeableOptions, AgBaseSeriesOptions, AgSeriesHighlightStyle } from '../seriesOptions';
 import type { AgCartesianSeriesTooltipRendererParams } from './cartesianSeriesTooltipOptions';
 import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOptions';
@@ -11,7 +11,8 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 export interface AgRangeAreaSeriesTooltipRendererParams
     extends Omit<AgCartesianSeriesTooltipRendererParams, 'xKey' | 'xName' | 'yKey' | 'yName'>,
         AgRangeAreaSeriesOptionsKeys,
-        AgRangeAreaSeriesOptionsNames {
+        AgRangeAreaSeriesOptionsNames,
+        Omit<AgSeriesMarkerStyle, 'shape'> {
     /** Hovered marker */
     itemId: 'up' | 'down';
 }

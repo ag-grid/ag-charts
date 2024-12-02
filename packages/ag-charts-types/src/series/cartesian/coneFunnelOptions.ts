@@ -30,7 +30,8 @@ export type AgConeFunnelSeriesLabelFormatterParams = AgConeFunnelSeriesOptionsKe
 export interface AgConeFunnelSeriesTooltipRendererParams<TDatum = any>
     extends AgConeFunnelSeriesOptionsKeys,
         AgConeFunnelSeriesOptionsNames,
-        AgSeriesTooltipRendererParams<TDatum> {}
+        AgSeriesTooltipRendererParams<TDatum>,
+        AgConeFunnelSeriesStyle {}
 
 export interface AgConeFunnelSeriesThemeableOptions<TDatum = any>
     extends Omit<AgBaseCartesianThemeableOptions<TDatum>, 'showInLegend'>,
