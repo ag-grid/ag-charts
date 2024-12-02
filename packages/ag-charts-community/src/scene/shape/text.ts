@@ -170,6 +170,7 @@ export class Text extends Shape {
 
         const element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
 
+        this.applySvgFillAttributes(element);
         element.setAttribute('font-family', this.fontFamily?.split(',')[0] ?? '');
         element.setAttribute('font-size', String(this.fontSize));
         element.setAttribute('font-style', this.fontStyle ?? '');

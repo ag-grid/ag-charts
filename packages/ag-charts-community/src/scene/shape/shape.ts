@@ -263,4 +263,20 @@ export abstract class Shape extends Node {
     }
 
     abstract isPointInPath(x: number, y: number): boolean;
+
+    protected applySvgFillAttributes(element: SVGElement) {
+        element.setAttribute('fill', typeof this.fill === 'string' ? this.fill : 'none');
+        element.setAttribute('fill-opacity', String(this.fillOpacity));
+    }
+
+    protected applySvgStrokeAttributes(element: SVGElement) {
+        if (this.stroke != null) {
+            element.setAttribute('stroke', typeof this.stroke === 'string' ? this.stroke : 'none');
+            element.setAttribute('stroke-opacity', String(this.strokeOpacity));
+            element.setAttribute('stroke-width', String(this.strokeWidth));
+        }
+        if (this.lineDash != null) {
+            element.setAttribute('stroke-dasharray', this.lineDash.join(' '));
+        }
+    }
 }

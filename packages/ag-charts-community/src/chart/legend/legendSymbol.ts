@@ -30,14 +30,13 @@ export interface LegendSymbolOptions {
 export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineSize = size * (5 / 3)) {
     const group = new Group();
 
+    const lineStrokeWidth = Math.min(symbol.line?.strokeWidth ?? 0, 2);
+
     const width = Math.max(symbol.marker.enabled === false ? 0 : size, symbol.line == null ? 0 : lineSize);
-    const height = Math.max(
-        symbol.marker.enabled === false ? 0 : size,
-        symbol.line == null ? 0 : symbol.line.strokeWidth
-    );
+    const height = Math.max(symbol.marker.enabled === false ? 0 : size, lineStrokeWidth);
 
     if (symbol.line != null) {
-        const { stroke, strokeOpacity, strokeWidth, lineDash } = symbol.line;
+        const { stroke, strokeOpacity, lineDash } = symbol.line;
         const line = new Line();
         line.x1 = 0;
         line.y1 = height / 2;
@@ -45,7 +44,7 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
         line.y2 = height / 2;
         line.stroke = stroke;
         line.strokeOpacity = strokeOpacity;
-        line.strokeWidth = strokeWidth;
+        line.strokeWidth = lineStrokeWidth;
         line.lineDash = lineDash;
         group.append(line);
     }
