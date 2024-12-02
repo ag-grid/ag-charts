@@ -16,7 +16,6 @@ import { AnnotationManager } from './annotation/annotationManager';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
 import { DataService } from './data/dataService';
-import { SeriesBoundsManager } from './data/seriesBoundsManager';
 import type { ChartType } from './factory/chartTypes';
 import { AnimationManager } from './interaction/animationManager';
 import { ChartEventManager } from './interaction/chartEventManager';
@@ -44,7 +43,6 @@ export class ChartContext implements ModuleContext {
     readonly highlightManager = new HighlightManager();
     readonly layoutManager = new LayoutManager();
     readonly localeManager = new LocaleManager();
-    readonly seriesBoundsManager = new SeriesBoundsManager();
     readonly seriesStateManager = new SeriesStateManager();
     readonly stateManager = new StateManager();
     readonly zoomManager = new ZoomManager();

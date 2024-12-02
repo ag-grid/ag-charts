@@ -56,11 +56,30 @@ enum DragState {
     Select,
 }
 
-class ZoomAutoScaling extends _ModuleSupport.BaseProperties {
+interface ZoomAutoScale {
+    enabled: boolean;
+    padding: number;
+}
+
+class ZoomAutoScaling extends _ModuleSupport.BaseProperties implements ZoomAutoScale {
+    constructor(protected onChange: (opts: ZoomAutoScale) => void) {
+        super();
+    }
+
     @Validate(BOOLEAN)
+    @ActionOnSet<ZoomAutoScaling>({
+        changeValue(enabled) {
+            this.onChange({ enabled, padding: this.padding });
+        },
+    })
     enabled = false;
 
     @Validate(RATIO)
+    @ActionOnSet<ZoomAutoScaling>({
+        changeValue(padding) {
+            this.onChange({ enabled: this.enabled, padding });
+        },
+    })
     padding = 0;
 }
 
@@ -127,7 +146,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public anchorPointY: AgZoomAnchorPoint = DEFAULT_ANCHOR_POINT_Y;
 
     @Validate(OBJECT)
-    public readonly autoScaling = new ZoomAutoScaling();
+    public readonly autoScaling = new ZoomAutoScaling((newValue) => {
+        this.ctx.zoomManager.setAutoScaleYAxis(newValue.enabled, newValue.padding);
+    });
 
     // Scenes
     private seriesRect?: _ModuleSupport.BBox;
@@ -152,7 +173,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private shouldFlipXY?: boolean;
     private minRatioX = 0;
     private minRatioY = 0;
-    private yAxisManuallyAdjusted = false;
 
     private destroyContextMenuActions: (() => void) | undefined = undefined;
 
@@ -227,7 +247,12 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private onDoubleClick(event?: _ModuleSupport.RegionEvent<'dblclick'> & { preventZoomDblClick?: boolean }) {
-        const { enabled, enableDoubleClickToReset, hoveredAxis } = this;
+        const {
+            enabled,
+            enableDoubleClickToReset,
+            hoveredAxis,
+            ctx: { zoomManager },
+        } = this;
 
         if (!enabled || !enableDoubleClickToReset) return;
 
@@ -235,13 +260,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (hoveredAxis) {
             const { id, direction } = hoveredAxis;
-            if (hoveredAxis.direction === ChartAxisDirection.Y) {
-                this.yAxisManuallyAdjusted = false;
-            }
-
+            zoomManager.setAxisManuallyAdjusted('zoom', id, false);
             this.updateAxisZoom(id, direction, zoom[direction]);
         } else if (!event?.preventZoomDblClick) {
-            this.yAxisManuallyAdjusted = false;
+            zoomManager.resetAxesManuallyAdjusted();
             this.updateZoom(zoom);
         }
     }
@@ -312,12 +334,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
                 if (!hoveredAxis) break;
 
                 const { id: axisId, direction } = hoveredAxis;
-                if (hoveredAxis.direction === ChartAxisDirection.Y) {
-                    this.yAxisManuallyAdjusted = true;
-                }
                 const anchor = direction === _ModuleSupport.ChartAxisDirection.X ? anchorPointX : anchorPointY;
                 const axisZoom = zoomManager.getAxisZoom(axisId);
                 const newZoom = axisDragger.update(event, direction, anchor, seriesRect, zoom, axisZoom);
+                zoomManager.setAxisManuallyAdjusted('zoom', axisId, true);
                 this.updateAxisZoom(axisId, direction, newZoom);
                 break;
             }
@@ -512,12 +532,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.paddedRect = paddedRect;
         this.shouldFlipXY = shouldFlipXY;
 
-        if (!this._didAutoZoomOnMount) {
-            const zoom = this.getZoom();
-            zoom.y = this.autoScaleZoomY(zoom);
-            this.updateZoom(zoom);
-        }
-
         this._didAutoZoomOnMount = true;
     }
 
@@ -633,13 +647,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     }
 
     private updatePrimaryAxisZoom(zoom: DefinedZoomState, direction: _ModuleSupport.ChartAxisDirection) {
-        let zoomInDirection = zoom[direction];
-
-        if (direction === ChartAxisDirection.Y) {
-            zoomInDirection = this.autoScaleZoomY(zoom);
-        }
-
-        this.ctx.zoomManager.updatePrimaryAxisZoom('zoom', direction, zoomInDirection);
+        this.ctx.zoomManager.updatePrimaryAxisZoom('zoom', direction, zoom[direction]);
     }
 
     private updatePrimaryAxisZooms(zoom: DefinedZoomState) {
@@ -662,8 +670,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         if (zoomedInTooFarX) {
             zoom.x = constrainAxisWithOld(zoom.x, oldZoom.x, minRatioX);
         }
-
-        zoom.y = this.autoScaleZoomY(zoom);
 
         const dy_ = dy(zoom);
         const zoomedInTooFarY = dy_ <= dy(oldZoom) && dy_ < minRatioY;
@@ -718,24 +724,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private getResetZoom() {
         return definedZoomState(this.ctx.zoomManager.getRestoredZoom());
-    }
-
-    private autoScaleZoomY(zoom: DefinedZoomState) {
-        const {
-            ctx: { seriesBoundsManager },
-            enableIndependentAxes,
-            autoScaling,
-            yAxisManuallyAdjusted,
-        } = this;
-
-        if (!autoScaling.enabled || yAxisManuallyAdjusted) return zoom.y;
-
-        const { padding } = autoScaling;
-        if (enableIndependentAxes) {
-            return seriesBoundsManager.primaryAxisZoom(ChartAxisDirection.Y, zoom.x, { padding });
-        } else {
-            return seriesBoundsManager.combinedAxisZoom(ChartAxisDirection.Y, zoom.x, { padding });
-        }
     }
 
     private getModuleProperties(overrides?: Partial<ZoomProperties>): ZoomProperties {
