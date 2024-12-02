@@ -63,7 +63,7 @@ export type ChartAxisLike = {
 
 type ZoomEvents = ZoomChangeEvent | ZoomPanStartEvent;
 
-const expectedMementoKeys: Array<keyof ZoomMemento> = ['rangeX', 'rangeY', 'ratioX', 'ratioY'];
+const expectedMementoKeys: Array<keyof ZoomMemento> = ['rangeX', 'rangeY', 'ratioX', 'ratioY', 'autoScaleYAxis'];
 
 class ZoomManagerAutoScaleAxis {
     enabled = false;
@@ -505,11 +505,11 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         xScale.range = [0, 1];
 
         const yScale = yAxis.scale;
-        const [r0, r1] = findMinMax(yScale.range);
-        const r = r1 - r0;
+        const yScaleRange = yScale.range;
+        yScale.range = [0, 1];
 
         const height = Math.max(...yAxis.range);
-        const zoomPadding = (height * padding) / r;
+        const zoomPadding = height * padding;
 
         let bounds0 = 1;
         let bounds1 = 0;
@@ -521,8 +521,6 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
             if (!Number.isFinite(y0) || !Number.isFinite(y1)) continue;
 
             [y0, y1] = findMinMax([y0, y1]);
-            y0 = (y0 - r0) / r;
-            y1 = (y1 - r0) / r;
 
             const { connectsToYAxis } = series;
             if (!connectsToYAxis || yRange[1] > 0) y0 = Math.max(y0 - zoomPadding, 0);
@@ -533,6 +531,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         }
 
         xScale.range = xScaleRange;
+        yScale.range = yScaleRange;
 
         return [bounds0, bounds1];
     }
