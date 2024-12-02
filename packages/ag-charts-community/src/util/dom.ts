@@ -1,6 +1,6 @@
 import type { AgIconName } from 'ag-charts-types';
 
-import type { BBoxValues } from './bboxinterface';
+import { BBoxValues } from './bboxinterface';
 
 const verifiedGlobals = {} as { document: Document; window: Window };
 
@@ -87,6 +87,7 @@ export function setWindow(window: Window) {
 
 export function setElementBBox(element: HTMLElement | undefined, bbox: Partial<BBoxValues>) {
     if (!element) return;
+    bbox = BBoxValues.normalize(bbox);
 
     if (bbox.width == null) {
         element.style.removeProperty('width');
