@@ -23,7 +23,7 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
 
         this.destroyFns.push(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
-            ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
+            ctx.layoutManager.registerElement(LayoutElement.ToolbarBottom, this.onLayoutStart.bind(this)),
             ctx.zoomManager.addListener('zoom-change', this.onZoomChanged.bind(this)),
             this.teardown.bind(this)
         );

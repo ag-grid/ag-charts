@@ -33,7 +33,7 @@ export class ChartToolbar extends _ModuleSupport.BaseModuleInstance implements _
 
         this.destroyFns.push(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPressed.bind(this)),
-            ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
+            ctx.layoutManager.registerElement(LayoutElement.ToolbarLeft, this.onLayoutStart.bind(this)),
             () => this.toolbar.destroy()
         );
     }
