@@ -1,6 +1,7 @@
+import type { FormattableLabel } from './axisOptions';
 import type { CssColor, Opacity, PixelSize } from './types';
 
-export interface AgCrosshairOptions {
+export interface AgCrosshairOptions<LabelType = AgCrosshairLabel> {
     /** Whether to show the crosshair. */
     enabled?: boolean;
     /** When true, the crosshair snaps to the highlighted data point. By default this property is true. */
@@ -16,10 +17,12 @@ export interface AgCrosshairOptions {
     /** The initial offset of the dashed line in pixels. */
     lineDashOffset?: PixelSize;
     /** The crosshair label configuration */
-    label?: AgCrosshairLabel;
+    label?: LabelType;
 }
 
-export interface AgCrosshairLabel {
+export interface AgCrosshairLabel extends AgBaseCrosshairLabel, FormattableLabel {}
+
+export interface AgBaseCrosshairLabel {
     /** Whether to show label when the crosshair is visible. */
     enabled?: boolean;
     /** A class name to be added to the crosshair label element. */
@@ -28,8 +31,6 @@ export interface AgCrosshairLabel {
     xOffset?: PixelSize;
     /** The vertical offset in pixels for the label. */
     yOffset?: PixelSize;
-    /** Format string used when rendering the crosshair label. */
-    format?: string;
     /** Function used to create the content for the label. */
     renderer?: (params: AgCrosshairLabelRendererParams) => string | AgCrosshairLabelRendererResult;
 }
