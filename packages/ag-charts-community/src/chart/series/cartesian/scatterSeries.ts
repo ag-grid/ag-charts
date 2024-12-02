@@ -324,7 +324,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
     override getTooltipContent(nodeDatum: ScatterNodeDatum): TooltipContent | string | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { xKey, xName, yKey, yName, legendItemName, labelKey, labelName, title, tooltip } = properties;
+        const { xKey, xName, yKey, yName, labelKey, labelName, title, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -347,8 +347,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 symbol: this.legendItemSymbol(),
                 title,
                 data: [
-                    { label: xName ?? xKey, value: xAxis.formatDatum(xValue) },
-                    { label: legendItemName ?? yName ?? yKey, value: yAxis.formatDatum(yValue) },
+                    { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue) },
+                    { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) },
                 ],
             },
             {

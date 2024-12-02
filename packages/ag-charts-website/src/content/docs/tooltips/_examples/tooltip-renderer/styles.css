@@ -1,3 +1,10 @@
-.my-tooltip .ag-chart-tooltip-content {
-    background-color: gold;
+.my-tooltip {
+    padding: 12px;
+    font: 900 24px/28px sans-serif;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    color: var(--color);
+    text-shadow:
+        0 1px color-mix(in srgb, var(--color) 50%, #0008 50%),
+        0 2px color-mix(in srgb, var(--color) 50%, #0008 50%);
 }

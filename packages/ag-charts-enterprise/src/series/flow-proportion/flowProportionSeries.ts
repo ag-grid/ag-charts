@@ -472,11 +472,15 @@ export abstract class FlowProportionSeries<
         return [NaN, NaN];
     }
 
-    protected legendItemSymbol(_type: FlowProportionDatumType, nodeIndex: number): _ModuleSupport.LegendSymbolOptions {
+    protected legendItemSymbol(
+        _type: FlowProportionDatumType,
+        nodeIndex: number,
+        { fill, stroke }: { fill?: string; stroke?: string } = {}
+    ): _ModuleSupport.LegendSymbolOptions {
         const { fills, strokes } = this.properties;
 
-        const fill = fills[nodeIndex % fills.length];
-        const stroke = strokes[nodeIndex % strokes.length];
+        fill ??= fills[nodeIndex % fills.length];
+        stroke ??= strokes[nodeIndex % strokes.length];
 
         return {
             marker: {

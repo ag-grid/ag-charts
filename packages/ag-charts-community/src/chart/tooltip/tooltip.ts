@@ -83,12 +83,16 @@ export function tooltipContentAriaLabel(content: TooltipContent | string) {
     return ariaLabel.join(' ');
 }
 
-function dataHtml(label: string, value: string, inline: boolean) {
+function dataHtml(label: string | undefined, value: string, inline: boolean) {
     let rowHtml = '';
 
-    rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(label)}</span>`;
-    rowHtml += ' ';
-    rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(value)}</span>`;
+    if (label == null) {
+        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(value)}</span>`;
+    } else {
+        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(label)}</span>`;
+        rowHtml += ' ';
+        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(value)}</span>`;
+    }
 
     const rowClassNames = [`${DEFAULT_TOOLTIP_CLASS}__row`];
     if (inline) rowClassNames.push(`${DEFAULT_TOOLTIP_CLASS}__row--inline`);
@@ -103,7 +107,7 @@ function tooltipContentHtml(content: TooltipContent | string) {
     let html = '';
 
     if (
-        (content.heading == null) !== (content.title == null) &&
+        (content.heading == null || content.title == null) &&
         content.data?.length === 1 &&
         content.data[0].label == null &&
         content.data[0].value != null
@@ -111,7 +115,7 @@ function tooltipContentHtml(content: TooltipContent | string) {
         // Compact rendering
         const datum = content.data[0];
 
-        html += dataHtml((content.heading ?? content.title)!, datum.value, false);
+        html += dataHtml(content.heading ?? content.title, datum.value, false);
     } else {
         // Full rendering
         const dataInline = content.title == null && content.data?.length === 1;

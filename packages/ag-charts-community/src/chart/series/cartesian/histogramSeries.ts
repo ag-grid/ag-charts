@@ -471,8 +471,15 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     }
 
     override getTooltipContent(nodeDatum: HistogramNodeDatum): TooltipContent | string | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { xKey, xName, yKey, yName, legendItemName, tooltip } = properties;
+        const {
+            id: seriesId,
+            dataModel,
+            processedData,
+            axes,
+            properties,
+            ctx: { localeManager },
+        } = this;
+        const { xKey, xName, yKey, yName, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -495,20 +502,48 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         };
 
         const data: TooltipContentDataRow[] = [
-            { label: xName, fallbackLabel: xKey, value: yAxis.formatDatum(frequency) },
+            {
+                label: xName,
+                fallbackLabel: xKey,
+                value: `${xAxis.formatDatum(rangeMin)} - ${xAxis.formatDatum(rangeMax)}`,
+            },
+            { label: localeManager.t('seriesHistogramTooltipFrequency'), value: yAxis.formatDatum(frequency) },
         ];
 
         if (yKey != null) {
-            data.push({ label: legendItemName ?? yName ?? yKey, value: yAxis.formatDatum(aggregatedValue) });
+            let label: string;
+            switch (properties.aggregation) {
+                case 'sum':
+                    label = localeManager.t('seriesHistogramTooltipSum', { yName });
+                    break;
+                case 'mean':
+                    label = localeManager.t('seriesHistogramTooltipMean', { yName });
+                    break;
+                case 'count':
+                    label = localeManager.t('seriesHistogramTooltipCount', { yName });
+                    break;
+            }
+
+            data.push({ label, value: yAxis.formatDatum(aggregatedValue) });
         }
 
         return tooltip.formatTooltip(
             {
-                heading: `${xAxis.formatDatum(rangeMin)} - ${xAxis.formatDatum(rangeMax)}`,
                 symbol: this.legendItemSymbol(),
                 data,
             },
-            { seriesId, datum, title: yName, xKey, xName, yKey, yName, ...this.getItemBaseStyle() }
+            {
+                seriesId,
+                datum,
+                title: yName,
+                xKey,
+                xName,
+                yKey,
+                yName,
+                xRange: [rangeMin, rangeMax],
+                frequency,
+                ...this.getItemBaseStyle(),
+            }
         );
     }
 

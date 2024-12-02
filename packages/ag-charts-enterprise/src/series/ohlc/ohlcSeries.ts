@@ -116,7 +116,7 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
             return [];
         }
 
-        const stroke = new _ModuleSupport.LinearGradient(
+        const fill = new _ModuleSupport.LinearGradient(
             'rgb',
             [
                 { color: up.stroke, offset: 0 },
@@ -138,11 +138,11 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
                 },
                 symbol: {
                     marker: {
-                        fill: undefined,
-                        fillOpacity: 1,
-                        stroke,
-                        strokeWidth: up.strokeWidth ?? 1,
-                        strokeOpacity: up.strokeOpacity ?? 1,
+                        fill: fill,
+                        fillOpacity: up.strokeOpacity,
+                        stroke: undefined,
+                        strokeWidth: 0,
+                        strokeOpacity: 1,
                     },
                 },
                 legendItemName,

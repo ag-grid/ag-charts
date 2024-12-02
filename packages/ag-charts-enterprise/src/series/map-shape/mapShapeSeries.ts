@@ -662,11 +662,11 @@ export class MapShapeSeries
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
 
         if (colorValue != null) {
-            data.push({ label: colorName ?? colorKey!, value: String(colorValue) });
+            data.push({ label: colorName, fallbackLabel: colorKey!, value: String(colorValue) });
         }
         if (labelKey != null && labelKey !== idKey) {
             const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
-            data.push({ label: labelName ?? labelKey, value: labelValue });
+            data.push({ label: labelName, fallbackLabel: labelKey, value: labelValue });
         }
 
         const format = this.getItemBaseStyle();

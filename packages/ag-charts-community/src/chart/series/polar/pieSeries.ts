@@ -1272,6 +1272,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
             radiusName,
             tooltip,
         } = properties;
+        const title = this.properties.title.text;
 
         if (!dataModel || !processedData || processedData.rawData.length === 0) return;
 
@@ -1287,15 +1288,17 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         const label =
             legendItemValues?.[datumIndex] ??
             (calloutLabelKey === angleKey ? undefined : calloutLabelValues?.[datumIndex]) ??
-            (sectorLabelKey === angleKey ? undefined : sectorLabelValues?.[datumIndex]);
-        if (label == null) return;
+            (sectorLabelKey === angleKey ? undefined : sectorLabelValues?.[datumIndex]) ??
+            angleName;
 
         return tooltip.formatTooltip(
             {
+                title,
                 symbol: this.legendItemSymbol(datumIndex),
                 data: [
                     {
                         label,
+                        fallbackLabel: angleKey,
                         value: String(angleRawValue),
                     },
                 ],

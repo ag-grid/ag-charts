@@ -500,12 +500,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const datumSize = sizeKey != null ? datum[sizeKey] : undefined;
         if (datumSize != null) {
-            data.push({ label: sizeName ?? sizeKey ?? '', value: datumSize });
+            data.push({ label: sizeName, fallbackLabel: sizeKey!, value: datumSize });
         }
 
         const datumColor = colorKey != null ? datum[colorKey] : undefined;
         if (datumColor != null) {
-            data.push({ label: colorName ?? colorKey ?? '', value: datumColor });
+            data.push({ label: colorName, fallbackLabel: colorKey!, value: datumColor });
         }
 
         const format = this.getItemBaseStyle() as Required<ItemStyle>;

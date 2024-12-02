@@ -344,11 +344,11 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 title: legendItemName ?? yName,
                 symbol: this.legendItemSymbol(),
                 data: [
-                    { label: minName ?? minKey, value: yAxis.formatDatum(minValue) },
-                    { label: q1Name ?? q1Key, value: yAxis.formatDatum(q1Value) },
-                    { label: medianName ?? medianKey, value: yAxis.formatDatum(medianValue) },
-                    { label: q3Name ?? q3Key, value: yAxis.formatDatum(q3Value) },
-                    { label: maxName ?? maxKey, value: yAxis.formatDatum(maxValue) },
+                    { label: minName, fallbackLabel: minKey, value: yAxis.formatDatum(minValue) },
+                    { label: q1Name, fallbackLabel: q1Key, value: yAxis.formatDatum(q1Value) },
+                    { label: medianName, fallbackLabel: medianKey, value: yAxis.formatDatum(medianValue) },
+                    { label: q3Name, fallbackLabel: q3Key, value: yAxis.formatDatum(q3Value) },
+                    { label: maxName, fallbackLabel: maxKey, value: yAxis.formatDatum(maxValue) },
                 ],
             },
             {
