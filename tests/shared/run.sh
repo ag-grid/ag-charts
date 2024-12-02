@@ -1,0 +1,159 @@
+#!/bin/bash
+
+set -eu
+
+editor=false
+mode=docker
+interactive=false
+update=false
+production=false
+it_opts=
+passthrough_opts=
+
+function sed_inplace {
+    if [[ $(uname) == "Darwin" ]] ; then
+        sed -i '' "$@"
+    else
+        sed -i'' "$@"
+    fi
+}
+
+while getopts ":eniupc" opt; do
+  case $opt in
+    e)
+      editor=true
+      ;;
+    c)
+      mode=container
+      ;;
+    n)
+      mode=native
+      ;;
+    p)
+      production=true
+      passthrough_opts="${passthrough_opts} -p"
+      ;;
+    u)
+      update=true
+      passthrough_opts="${passthrough_opts} -u"
+      ;;
+    i)
+      interactive=true
+      passthrough_opts="${passthrough_opts} -i"
+      it_opts=-it
+      ;;
+    \?)
+      echo "Invalid option: -$OPTARG" >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$opt requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+shift $((OPTIND - 1))
+
+version=$1
+project=${2:-/project}
+
+if [[ ${mode} == "container" ]] ; then
+    echo ">>> using prepared temporary project folder..."
+    cd ${project}
+else
+    echo ">>> preparing temporary project folder..."
+    repo_dir=$(git rev-parse --show-toplevel)
+    project_dir=$(readlink -f $(dirname $0))
+    project_script=$(basename $0)
+    project=$(mktemp -d)
+
+    cp -R ${project_dir}/../shared/* $project/
+    cp -R ${project_dir}/* $project/
+    cp dist/packages/*.tgz $project/
+
+    cd ${project_dir}
+    sed -e '/source .*\/run.sh$/r ../shared/run.sh' ${project_dir}/${project_script} >${project}/run.sh
+    sed_inplace -e '/source .*\/run.sh$/d' ${project}/run.sh
+    cd ${project}
+
+    echo ">>> temporary project folder: ${project}"
+fi
+
+if ${editor} ; then
+    code . &
+fi
+
+if [[ ${mode} == "docker" ]] ; then
+    echo ">>> docker run ..."
+    port_spec=
+    if ${interactive} ; then
+        port_spec="-p ${dev_port}:${dev_port}"
+    fi
+    mkdir -p ./npm-cache
+    docker run ${it_opts} --rm --ipc=host \
+        -v $(pwd):/project \
+        $port_spec \
+        mcr.microsoft.com/playwright:v1.45.0-jammy \
+        /bin/bash -il /project/run.sh -c ${passthrough_opts} ${version} /project
+    exitCode=$?
+
+    if ${update} ; then
+        cp -R */e2e/*-snapshots ${project_dir}/e2e/
+    fi
+
+    exit ${exitCode}
+fi
+
+echo ">>> git config"
+git config --global init.defaultBranch latest
+git config --global user.email "me@ag-grid.com"
+git config --global user.name "myself"
+
+npm config set cache ${project}/.npm-cache
+install_fw
+
+if ${production} ; then
+    echo ">>> npm i ag-charts-${fw} (production)"
+    npm i ag-charts-${fw} @playwright/test@1.45.0
+else
+    echo ">>> npm i ../ag-charts*.tgz"
+    npm i ../ag-charts-types.tgz ../ag-charts-locale.tgz ../ag-charts-community.tgz ../ag-charts-enterprise.tgz ../ag-charts-${fw}.tgz @playwright/test@1.45.0
+fi
+git add .
+git commit -m "Initial commit"
+
+for filename in ../patches/* ; do
+    if [ ! -f "$filename" ] ; then
+        continue
+    fi
+
+    ext=${filename##*.}
+
+    if [[ ${ext} == 'sed' ]] ; then
+        target=$(find src -name "$(basename ${filename%.*})")
+        echo ">>> Modifying ${target}"
+        sed_inplace -f $filename $(pwd)/$target
+    else
+        target=$(find src -name "$(basename $filename)")
+        echo ">>> Updating ${target}"
+        cp $filename $target
+    fi
+done
+
+mv ../e2e ../playwright.config.ts ./
+
+export FW_VERSION=${version}
+export FW_TYPE=${fw}
+if ${production} ; then
+    export FW_VERSION=production-$FW_VERSION
+fi
+
+build_fw
+if ${interactive} ; then
+    serve_fw
+    npx playwright test $(${update} && echo "-u" || echo "") || echo "Tests failed"
+    /bin/bash -il
+else
+    echo ">>> playwright test"
+    npx playwright test $(${update} && echo "-u" || echo "")
+fi
