@@ -1,13 +1,7 @@
 import { afterEach, describe, expect, it } from '@jest/globals';
 
 import { AgCharts } from 'ag-charts-community';
-import {
-    cartesianChartAssertions,
-    createChart,
-    repeat,
-    reverseAxes,
-    waitForChartStability,
-} from 'ag-charts-community-test';
+import { cartesianChartAssertions, repeat, reverseAxes, waitForChartStability } from 'ag-charts-community-test';
 import {
     type ChartOrProxy,
     IMAGE_SNAPSHOT_DEFAULTS,
