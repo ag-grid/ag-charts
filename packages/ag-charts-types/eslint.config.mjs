@@ -1,3 +1,3 @@
-import base from '../../eslint.config.mjs';
+import base, { sonarjsConfig } from '../../eslint.config.mjs';
 
-export default [...base];
+export default [...sonarjsConfig, ...base];

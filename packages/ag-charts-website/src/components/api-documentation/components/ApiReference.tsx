@@ -368,11 +368,11 @@ function getDetailsId(id: string) {
 }
 
 function useMemberAdditionalDetails(member: MemberNode) {
+    const reference = useContext(ApiReferenceContext);
     const memberType = getMemberType(member);
     if (memberType === 'function') {
         return member;
     }
-    const reference = useContext(ApiReferenceContext);
     if (reference?.has(memberType) && !isInterfaceHidden(memberType)) {
         const ref = reference.get(memberType);
 

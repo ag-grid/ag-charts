@@ -441,10 +441,21 @@ function OpeningBrackets({
 }) {
     let bracketString = ' ';
     if (isOpen) {
-        bracketString += isObjectArray ? '[{' : isArray ? '[' : '{';
+        if (isObjectArray) {
+            bracketString += '[{';
+        } else if (isArray) {
+            bracketString += '[';
+        } else {
+            bracketString += '{';
+        }
+    } else if (isObjectArray) {
+        bracketString += '[{ ... }]';
+    } else if (isArray) {
+        bracketString += '[ ... ]';
     } else {
-        bracketString += isObjectArray ? '[{ ... }]' : isArray ? '[ ... ]' : '{ ... }';
+        bracketString += '{ ... }';
     }
+
     return (
         <span className={styles.punctuation} onClick={!isOpen ? onClick : undefined}>
             {bracketString}
@@ -461,9 +472,16 @@ function ClosingBrackets({
     isArray?: boolean;
     isObjectArray?: boolean;
 }) {
+    let bracket = '}';
+    if (isObjectArray) {
+        bracket = '}]';
+    } else if (isArray) {
+        bracket = ']';
+    }
+
     return (
         <div className={classnames(styles.punctuation, styles.navItem, depth > 1 && styles.propertyWhisker)}>
-            {isObjectArray ? '}]' : isArray ? ']' : '}'}
+            {bracket}
         </div>
     );
 }

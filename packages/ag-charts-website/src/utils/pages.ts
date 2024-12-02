@@ -133,7 +133,7 @@ export const getDebugPageUrls = async ({
           });
 
     const pagePathPromises = filteredPages
-        .map(async (pageName) => {
+        .map((pageName) => {
             const pageNameWithoutExt = pageName.replace(/\.[^.]+$/, '');
             return urlWithBaseUrl(pathJoin('/debug', pageNameWithoutExt));
         })
