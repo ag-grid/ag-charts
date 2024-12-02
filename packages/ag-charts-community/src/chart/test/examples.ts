@@ -251,6 +251,17 @@ export const INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOp
     ],
 };
 
+export const INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_WITH_MINI_CHART_EXAMPLE: AgCartesianChartOptions & {
+    mode: string;
+} = {
+    ...INTEGRATED_CHARTS_GROUPED_CATEGORY_AXIS_EXAMPLE,
+    navigator: {
+        enabled: true,
+        height: 10,
+        miniChart: { enabled: true },
+    },
+};
+
 export const INTEGRATED_CHARTS_OVERLAPPING_GROUPED_CATEGORY_AXIS_EXAMPLE: AgCartesianChartOptions & { mode: string } = {
     mode: 'integrated',
     data: [
