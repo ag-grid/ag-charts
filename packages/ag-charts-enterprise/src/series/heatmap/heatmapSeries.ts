@@ -459,12 +459,12 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             fill = colorRange[0];
         } else {
             fill = colorScale.convert(colorValue);
-            data.push({ label: colorName ?? colorKey!, value: String(colorValue) });
+            data.push({ label: colorName, fallbackLabel: colorKey!, value: String(colorValue) });
         }
 
         data.push(
-            { label: xName ?? xKey, value: xAxis.formatDatum(xValue) },
-            { label: yName ?? yKey, value: yAxis.formatDatum(yValue) }
+            { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue) },
+            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) }
         );
 
         const symbol: _ModuleSupport.LegendSymbolOptions | undefined =

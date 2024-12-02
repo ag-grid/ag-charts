@@ -625,7 +625,7 @@ export class SankeySeries extends FlowProportionSeries<
         return tooltip.formatTooltip(
             {
                 title,
-                symbol: this.legendItemSymbol(seriesDatum.type, nodeIndex),
+                symbol: this.legendItemSymbol(seriesDatum.type, nodeIndex, format),
                 data: sizeKey != null ? [{ label: sizeName, fallbackLabel: sizeKey, value: String(size) }] : [],
             },
             {

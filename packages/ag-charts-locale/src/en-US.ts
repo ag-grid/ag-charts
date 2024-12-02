@@ -81,6 +81,14 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     overlayNoVisibleSeries: 'No visible series',
     // Default text for the 'unsupported browser' overlay
     overlayUnsupportedBrowser: 'Incompatible browser version. Please upgrade your browser.',
+    // Text for frequency label in Histogram Series tooltip
+    seriesHistogramTooltipFrequency: 'Frequency',
+    // Text for sum label in Histogram Series tooltip
+    seriesHistogramTooltipSum: '${yName} (sum)',
+    // Text for sum label in Histogram Series tooltip
+    seriesHistogramTooltipCount: '${yName} (count)',
+    // Text for sum label in Histogram Series tooltip
+    seriesHistogramTooltipMean: '${yName} (mean)',
     // Text for the series type toolbar's chart type button
     toolbarSeriesTypeDropdown: 'Chart Type',
     // Text for the series type toolbar's OHLC chart type button

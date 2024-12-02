@@ -505,18 +505,18 @@ export abstract class OhlcSeriesBase<
                 title: legendItemName,
                 symbol: {
                     marker: {
-                        fill: item.fill,
-                        fillOpacity: item.fillOpacity ?? 1,
+                        fill: item.fill ?? item.stroke,
+                        fillOpacity: item.fillOpacity ?? item.strokeOpacity ?? 1,
                         stroke: item.stroke,
                         strokeWidth: item.strokeWidth ?? 1,
                         strokeOpacity: item.strokeOpacity ?? 1,
                     },
                 },
                 data: [
-                    { label: openName ?? openKey, value: yAxis.formatDatum(openValue) },
-                    { label: highName ?? highKey, value: yAxis.formatDatum(highValue) },
-                    { label: lowName ?? lowKey, value: yAxis.formatDatum(lowValue) },
-                    { label: closeName ?? closeKey, value: yAxis.formatDatum(closeValue) },
+                    { label: openName, fallbackLabel: openKey, value: yAxis.formatDatum(openValue) },
+                    { label: highName, fallbackLabel: highKey, value: yAxis.formatDatum(highValue) },
+                    { label: lowName, fallbackLabel: lowKey, value: yAxis.formatDatum(lowValue) },
+                    { label: closeName, fallbackLabel: closeKey, value: yAxis.formatDatum(closeValue) },
                 ],
             },
             {

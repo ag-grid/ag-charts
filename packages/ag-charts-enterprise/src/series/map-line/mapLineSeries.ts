@@ -622,14 +622,14 @@ export class MapLineSeries extends TopologySeries<
                 : undefined;
 
         if (sizeKey != null) {
-            data.push({ label: sizeName ?? sizeKey, value: String(sizeValue) });
+            data.push({ label: sizeName, fallbackLabel: sizeKey, value: String(sizeValue) });
         }
         if (colorKey != null) {
-            data.push({ label: colorName ?? colorKey, value: String(colorValue) });
+            data.push({ label: colorName, fallbackLabel: colorKey, value: String(colorValue) });
         }
         if (labelKey != null && labelKey !== idKey) {
             const labelValue = dataModel.resolveColumnById<string>(this, `labelValue`, processedData)[datumIndex];
-            data.push({ label: labelName ?? labelKey, value: labelValue });
+            data.push({ label: labelName, fallbackLabel: labelKey, value: labelValue });
         }
 
         const format = this.getItemBaseStyle();

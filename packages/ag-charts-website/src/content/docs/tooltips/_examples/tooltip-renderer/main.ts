@@ -1,15 +1,14 @@
-import { AgCartesianSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-community';
+import { AgBarSeriesTooltipRendererParams, AgChartOptions, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
-function renderer(params: AgCartesianSeriesTooltipRendererParams) {
+function renderer(params: AgBarSeriesTooltipRendererParams) {
     return (
-        '<div class="ag-chart-tooltip-title" style="background-color:' +
-        'white' + // @todo(AG-10574) params.color +
+        '<div class="my-tooltip" style="--color:' +
+        params.fill +
         '">' +
         params.datum[params.xKey] +
-        '</div>' +
-        '<div class="ag-chart-tooltip-content">' +
+        '&nbsp;&#10172;&nbsp;' +
         params.datum[params.yKey].toFixed(0) +
         '</div>'
     );

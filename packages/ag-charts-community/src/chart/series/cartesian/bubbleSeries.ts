@@ -406,8 +406,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
     override getTooltipContent(nodeDatum: BubbleNodeDatum): TooltipContent | string | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { xKey, xName, yKey, yName, legendItemName, sizeKey, sizeName, labelKey, labelName, title, tooltip } =
-            properties;
+        const { xKey, xName, yKey, yName, sizeKey, sizeName, labelKey, labelName, title, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -423,13 +422,13 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         if (xValue == null) return;
 
         const data: TooltipContentDataRow[] = [
-            { label: xName ?? xKey, value: xAxis.formatDatum(xValue) },
-            { label: legendItemName ?? yName ?? yKey, value: yAxis.formatDatum(yValue) },
+            { label: xName, fallbackLabel: xKey, value: xAxis.formatDatum(xValue) },
+            { label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) },
         ];
 
         if (sizeKey != null) {
             const sizeValue = dataModel.resolveColumnById<number>(this, `sizeValue`, processedData)[datumIndex];
-            data.push({ label: sizeName ?? sizeKey, value: String(sizeValue) });
+            data.push({ label: sizeName, fallbackLabel: sizeKey, value: String(sizeValue) });
         }
 
         const format = this.getMarkerItemBaseStyle();

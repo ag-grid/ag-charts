@@ -12,6 +12,10 @@ export interface AgHistogramSeriesTooltipRendererParams<TDatum>
         StrokeOptions {
     /** yKey as specified on series options. */
     readonly yKey?: string;
+    /** Range for x values. */
+    readonly xRange: [number, number];
+    /** Number of values within xRange. */
+    readonly frequency: number;
 }
 
 export type AgHistogramSeriesLabelFormatterParams = AgHistogramSeriesOptionsKeys & AgHistogramSeriesOptionsNames;

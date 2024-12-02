@@ -762,7 +762,7 @@ export class AreaSeries extends CartesianSeries<
 
     override getTooltipContent(nodeDatum: MarkerSelectionDatum): TooltipContent | string | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
-        const { xKey, xName, yKey, yName, legendItemName, tooltip } = properties;
+        const { xKey, xName, yKey, yName, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
@@ -784,7 +784,7 @@ export class AreaSeries extends CartesianSeries<
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: legendItemName ?? yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) }],
+                data: [{ label: yName, fallbackLabel: yKey, value: yAxis.formatDatum(yValue) }],
             },
             {
                 seriesId,

@@ -630,7 +630,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             {
                 heading: xAxis.formatDatum(xValue),
                 symbol: this.legendItemSymbol(),
-                data: [{ label: yName ?? '', value }],
+                data: [{ label: yName, fallbackLabel: `${yLowName ?? yLowKey} - ${yHighName ?? yHighKey}`, value }],
             },
             {
                 seriesId,

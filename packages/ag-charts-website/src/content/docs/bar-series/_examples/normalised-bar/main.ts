@@ -53,19 +53,6 @@ const options: AgChartOptions = {
             stacked: true,
         },
     ],
-    axes: [
-        {
-            type: 'number',
-            position: 'left',
-            label: {
-                formatter: (params) => Math.round(params.value) + '%',
-            },
-        },
-        {
-            type: 'category',
-            position: 'bottom',
-        },
-    ],
 };
 
 AgCharts.create(options);
