@@ -93,6 +93,7 @@ export default [
 
     {
         files: ['**/src/**/*'],
+        ignores: ['**/src/pages/**'], // Ignore astro pages
         plugins: {
             'check-file': checkFile,
         },
