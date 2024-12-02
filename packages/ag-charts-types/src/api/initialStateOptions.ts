@@ -7,6 +7,7 @@ import type { AgStateSerializableDate } from './stateTypes';
 // Theme
 export interface AgInitialStateThemeableOptions {
     zoom?: AgInitialStateZoomOptions;
+    legend?: AgInitialStateLegendOptions[];
 }
 
 // Options
