@@ -300,7 +300,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
                         ) => {
                             colorEl.style.setProperty('--color', newColorOpacity);
                             colorEl.classList.toggle(
-                                '.ag-charts-dialog__color-picker-button--multi-color',
+                                'ag-charts-dialog__color-picker-button--multi-color',
                                 newIsMultiColor
                             );
                             onChange(newColorOpacity, newColor, newOpacity, newIsMultiColor);
@@ -318,7 +318,7 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         );
 
         if (isMultiColor) {
-            colorEl.classList.toggle('.ag-charts-dialog__color-picker-button--multi-color');
+            colorEl.classList.toggle('ag-charts-dialog__color-picker-button--multi-color');
         } else if (color) {
             const hex = Color.fromHexString(color);
             const hexWithOpacity = new Color(hex.r, hex.g, hex.b, opacity);
