@@ -103,12 +103,13 @@ const SPARKLINE_THEME: AgChartTheme = {
         },
         bar: {
             series: {
-                // @ts-expect-error undocumented option
-                sparklineMode: true,
+                crisp: false,
                 label: {
                     placement: 'inside-end',
                     padding: 4,
                 },
+                // @ts-expect-error undocumented option
+                sparklineMode: true,
             },
             tooltip: {
                 range: 'nearest',
