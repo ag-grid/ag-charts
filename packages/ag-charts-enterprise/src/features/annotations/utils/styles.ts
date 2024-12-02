@@ -63,7 +63,9 @@ export function setColor(
                 if ('isMultiColor' in datum && 'rangeStroke' in datum) {
                     datum.isMultiColor = isMultiColor;
                     datum.rangeStroke = color;
-                } else if ('stroke' in datum) datum.stroke = color;
+                } else if ('stroke' in datum) {
+                    datum.stroke = color;
+                }
             }
 
             break;
