@@ -40,9 +40,6 @@
     "build": "npx tsc -p tsconfig-lib.json && NODE_OPTIONS=--openssl-legacy-provider vue-cli-service build --target lib src/index.ts",
     "lint": "# vue-cli-service lint"
   },
-  "dependencies": {
-    "ag-charts-community": "10.3.3-beta.20241201"
-  },
   "devDependencies": {
     "ag-charts-community": "10.3.3-beta.20241201",
     "@types/node": "18.18.11",
@@ -52,6 +49,7 @@
     "rimraf": "3.0.2"
   },
   "peerDependencies": {
+    "ag-charts-community": "10.3.3-beta.20241201",
     "vue": "^3.0.0"
   },
   "publishConfig": {
