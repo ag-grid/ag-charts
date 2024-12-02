@@ -12,11 +12,6 @@
     opacity: 0.5;
 }
 
-.ag-charts-annotations__color-picker-button[aria-disabled='true']::after {
-    filter: grayscale(1);
-    opacity: 0.5;
-}
-
 .ag-charts-annotations__color-picker-button {
     --emblem: var(--color);
 }
@@ -45,4 +40,9 @@
     border-radius: 99px;
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ag-charts-foreground-color) 10%, transparent);
     background: var(--emblem);
+}
+
+.ag-charts-annotations__color-picker-button[aria-disabled='true']::after {
+    filter: grayscale(1);
+    opacity: 0.5;
 }
