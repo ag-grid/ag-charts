@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import { FrameworkSelector } from '../framework-selector/FrameworkSelector';
 import styles from './TopBar.module.scss';
 
-export const TopBar = ({ frameworks, currentFramework, path, isDev, suppressFrameworkSelector }) => {
+export const TopBar = ({ frameworks, currentFramework, path, suppressFrameworkSelector }) => {
     const frameworksData = frameworks.map((framework) => ({
         name: framework,
         url: getNewFrameworkPath({

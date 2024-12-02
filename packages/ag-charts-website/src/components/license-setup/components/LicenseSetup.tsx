@@ -31,19 +31,13 @@ const EmailSales = () => {
     );
 };
 
-export const LicenseSetup: FunctionComponent<Props> = ({ library, framework, path }) => {
+export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) => {
     const {
         userLicense,
         setUserLicense,
         importType,
-        updateImportTypeWithUrlUpdate,
-        licensedProducts,
         isIntegratedCharts,
-        updateIsIntegratedChartsWithUrlUpdate,
         userLicenseExpiry,
-        userLicenseIsTrial,
-        userLicenseIsExpired,
-        userLicenseTrialIsExpired,
         licenseState,
         licenseInvalidErrors,
         licenseValidMessage,

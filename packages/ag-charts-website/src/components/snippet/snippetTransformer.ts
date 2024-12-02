@@ -168,7 +168,7 @@ class ReactTransformer extends SnippetTransformer {
     inlineProperties = [];
     inlinePropertiesWithValues = [];
 
-    parseProperty(property, depth) {
+    parseProperty(property) {
         const propertyName = getName(property);
         // keep track of visited properties for framework context
         this.propertiesVisited.push(getName(property));

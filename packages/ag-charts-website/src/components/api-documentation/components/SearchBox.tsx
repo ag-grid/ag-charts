@@ -39,9 +39,6 @@ export function SearchBox({
         }
     );
 
-    const cleanQuery = searchQuery.replace(/[^-a-z0-9]/g, '');
-    const searchRegexp = new RegExp(`(${cleanQuery})+`, 'ig');
-
     return (
         <div className={classnames(styles.searchOuter, className)} {...props}>
             <input

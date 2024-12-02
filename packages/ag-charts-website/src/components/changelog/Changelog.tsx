@@ -24,7 +24,7 @@ const ALL_FIX_VERSIONS = 'All Versions';
 const browserHistory = import.meta.env.SSR ? null : createBrowserHistory();
 
 export function useLocation() {
-    const [location, setLocation] = useState<any>(browserHistory?.location ?? null);
+    const [location] = useState<any>(browserHistory?.location ?? null);
     return location;
 }
 
@@ -54,7 +54,6 @@ export const Changelog = () => {
     const [gridApi, setGridApi] = useState<any>(null);
     const [versions, setVersions] = useState<string[]>([]);
     const [allReleaseNotes, setAllReleaseNotes] = useState<any>(null);
-    const [currentReleaseNotes, setCurrentReleaseNotes] = useState<any>(null);
     const [markdownContent, setMarkdownContent] = useState<any>(undefined);
     const [fixVersion, setFixVersion] = useState(extractFixVersionParameter(location) || ALL_FIX_VERSIONS);
     const URLFilterItemKey = useState(extractFilterTerm(location))[0];
@@ -132,8 +131,6 @@ export const Changelog = () => {
                 element['release version'].includes(releaseNotesVersion)
             );
 
-            let currentReleaseNotesHtml = null;
-
             if (releaseNotes) {
                 if (releaseNotes['markdown']) {
                     fetch(urlWithBaseUrl(`/changelog` + releaseNotes['markdown']))
@@ -146,15 +143,11 @@ export const Changelog = () => {
                             console.error('Error fetching Markdown content:', error);
                         });
                 } else {
-                    currentReleaseNotesHtml = Object.keys(releaseNotes)
-                        .map((element) => releaseNotes[element])
-                        .join(' ');
                     setMarkdownContent(undefined);
                 }
             } else {
                 setMarkdownContent(undefined);
             }
-            setCurrentReleaseNotes(currentReleaseNotesHtml);
         }
     }, [fixVersion, allReleaseNotes]);
 
@@ -365,7 +358,7 @@ export const Changelog = () => {
                         </Alert>
 
                         <ReleaseVersionNotes
-                            releaseNotes={fixVersion === ALL_FIX_VERSIONS ? undefined : releaseNotesMarkdownContent}
+                            releaseNotes={releaseNotesMarkdownContent}
                             markdownContent={markdownContent}
                             versions={versions}
                             fixVersion={fixVersion}
