@@ -102,7 +102,6 @@ export abstract class AgCharts {
         const chart = AgChartsInternal.createOrUpdate({
             userOptions,
             licenseManager: this.licenseManager,
-            styles: enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : [],
             optionsMetadata,
         });
 
@@ -168,7 +167,6 @@ class AgChartsInternal {
         processedOverrides?: Partial<AgChartOptions>;
         proxy?: AgChartInstanceProxy;
         licenseManager?: LicenseManager;
-        styles?: Array<[string, string]>;
         specialOverrides?: Partial<ChartSpecialOverrides>;
         optionsMetadata?: ChartInternalOptionMetadata;
     }) {
@@ -176,12 +174,13 @@ class AgChartsInternal {
         const {
             userOptions,
             licenseManager,
-            styles,
             processedOverrides = proxy?.chart.chartOptions.processedOverrides ?? {},
             specialOverrides = proxy?.chart.chartOptions.specialOverrides ?? {},
             optionsMetadata = proxy?.chart.chartOptions.optionMetadata ?? {},
             deltaOptions,
         } = opts;
+        const styles = enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : [];
+
         const { presetType } = optionsMetadata;
 
         AgChartsInternal.initialiseModules();
