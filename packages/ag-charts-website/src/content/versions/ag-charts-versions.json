@@ -8,12 +8,12 @@
                 "path": "./financial-charts-toolbar#measuring-tools"
             },
             {
-                "text": "Save and Restore Chart State",
-                "path": "./api-state/"
+                "text": "Grouped Category Axis",
+                "path": "./axes-types/#grouped-category"
             },
             {
-                "text": "Performance Improvements",
-                "path": "./high-performance-charts"
+                "text": "Save and Restore Chart State",
+                "path": "./api-state/"
             }
         ],
         "notesPath": "./upgrade-to-ag-charts-11"

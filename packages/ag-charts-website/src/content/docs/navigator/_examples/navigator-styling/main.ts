@@ -86,9 +86,6 @@ const options: AgChartOptions = {
             stroke: 'black',
         },
     },
-    zoom: {
-        enabled: true,
-    },
     initialState: {
         zoom: {
             ratioX: { start: 0.2, end: 0.7 },
