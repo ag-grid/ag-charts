@@ -192,7 +192,7 @@ export class SeriesAreaManager extends BaseManager {
     private layoutComplete(event: LayoutCompleteEvent): void {
         this.seriesRect = event.series.rect;
         this.hoverRect = event.series.paddedRect;
-        this.seriesWidget.setBounds(event.series.rect);
+        this.seriesWidget.setBounds(event.series.paddedRect);
         this.chartWidget.setBounds(event.chart);
     }
 
@@ -384,8 +384,8 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private updatePickedFocus(pick: PickFocusOutputs | undefined, refresh: boolean) {
-        const { focus, seriesRect } = this;
-        if (pick === undefined || focus.series === undefined || seriesRect === undefined) return;
+        const { focus, hoverRect } = this;
+        if (pick === undefined || focus.series === undefined || hoverRect === undefined) return;
 
         const { datum, datumIndex } = pick;
         focus.datumIndex = datumIndex;
@@ -398,13 +398,13 @@ export class SeriesAreaManager extends BaseManager {
         if (this.focusIndicator.isFocusVisible()) {
             const focusBBox = getPickedFocusBBox(pick);
             const { x, y } = focusBBox.computeCenter();
-            if (!seriesRect.containsPoint(x, y)) {
-                this.chart.ctx.zoomManager.panToBBox(this.id, seriesRect, focusBBox);
+            if (!hoverRect.containsPoint(x, y)) {
+                this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
             }
         }
 
         // Update the bounds of the focus indicator:
-        const keyboardEvent = makeKeyboardPointerEvent(seriesRect, this.focusIndicator, pick);
+        const keyboardEvent = makeKeyboardPointerEvent(hoverRect, this.focusIndicator, pick);
 
         // Update highlight/tooltip for keyboard users:
         if (keyboardEvent !== undefined && this.hoverDevice === 'keyboard') {
