@@ -466,7 +466,7 @@ function valueIndices(id: string, previousData: ProcessedData<any>, processedDat
     const previousValues = previousData.defs.values;
     for (let i = 0; i < previousValues.length; i += 1) {
         const value = previousValues[i];
-        if (value.scopes?.includes(id) !== true) continue;
+        if (value.scopes?.includes(id) === false) continue;
 
         prevIndices.push(i);
     }
@@ -475,10 +475,10 @@ function valueIndices(id: string, previousData: ProcessedData<any>, processedDat
     let previousIndicesIndex = 0;
     const nextValues = processedData.defs.values;
     for (let i = 0; i < nextValues.length; i += 1) {
-        if (previousIndicesIndex >= prevIndices.length) return;
-
         const value = nextValues[i];
-        if (value.scopes?.includes(id) !== true) continue;
+        if (value.scopes?.includes(id) === false) continue;
+
+        if (previousIndicesIndex >= prevIndices.length) return;
 
         const previousIndex = prevIndices[previousIndicesIndex];
         const previousValue = previousValues[previousIndex];
