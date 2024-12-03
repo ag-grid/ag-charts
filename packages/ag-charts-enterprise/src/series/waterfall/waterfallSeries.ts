@@ -721,6 +721,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 label: { text: name ?? capitalise(item) },
                 symbol: this.legendItemSymbol(item),
                 hideInLegend: !showInLegend,
+                isFixed: true,
             });
         });
 

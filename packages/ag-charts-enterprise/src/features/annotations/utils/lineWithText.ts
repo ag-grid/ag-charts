@@ -19,7 +19,7 @@ interface Numbers {
 export function updateLineText(
     id: string,
     line: CollidableLine,
-    textProperties: LineTextProperties,
+    textProperties: Partial<LineTextProperties>,
     coords: _ModuleSupport.Vec4,
 
     textNode?: CollidableText,
@@ -141,7 +141,7 @@ export function positionAndAlignment(
 export function setProperties(
     scene: _ModuleSupport.TransformableText,
     text: string,
-    textProperties: LineTextProperties | ChannelTextProperties,
+    textProperties: Partial<LineTextProperties> | Partial<ChannelTextProperties>,
     point: _ModuleSupport.Vec2,
     angle: number,
     textBaseline: CanvasTextBaseline

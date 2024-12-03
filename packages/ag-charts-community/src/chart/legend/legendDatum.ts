@@ -40,6 +40,7 @@ export interface CategoryLegendDatum extends BaseChartLegendDatum {
         text: string; // display name for the sub-component
     };
     skipAnimations?: boolean;
+    isFixed?: boolean;
 }
 
 export interface GradientLegendDatum extends BaseChartLegendDatum {

@@ -18,8 +18,7 @@
 }
 
 .ag-chart-tooltip--compact {
-    --ag-charts-tooltip-title-padding: var(--ag-charts-tooltip-compact-title-padding);
-    --ag-charts-tooltip-content-padding: var(--ag-charts-tooltip-compact-content-padding);
+    --ag-charts-content-padding: var(--ag-charts-content-compact-padding);
 }
 
 .ag-chart-tooltip-wrap-always {
@@ -52,7 +51,7 @@
 .ag-chart-tooltip__content {
     display: grid;
     grid: auto-flow minmax(1em, auto) / 1fr;
-    padding: 8px 12px;
+    padding: var(--ag-charts-content-padding);
     gap: 8px;
 }
 

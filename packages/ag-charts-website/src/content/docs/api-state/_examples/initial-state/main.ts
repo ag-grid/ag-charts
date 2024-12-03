@@ -1,9 +1,4 @@
-import {
-    AgCartesianChartOptions,
-    AgCartesianSeriesTooltipRendererParams,
-    AgChartState,
-    AgCharts,
-} from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCartesianSeriesTooltipRendererParams, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -42,6 +37,7 @@ const options: AgCartesianChartOptions = {
                 },
             },
         },
+        legend: [],
     },
     series: [
         {
@@ -49,6 +45,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'date',
             yKey: 'Tate Modern',
             yName: 'Tate Modern',
+            id: 'tate-modern',
             tooltip,
         },
         {
@@ -56,6 +53,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'date',
             yKey: 'Tate Britain',
             yName: 'Tate Britain',
+            id: 'tate-britain',
             tooltip,
         },
         {
@@ -63,6 +61,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'date',
             yKey: 'Tate Liverpool',
             yName: 'Tate Liverpool',
+            id: 'tate-liverpool',
             tooltip,
         },
         {
@@ -70,6 +69,7 @@ const options: AgCartesianChartOptions = {
             xKey: 'date',
             yKey: 'Tate St Ives',
             yName: 'Tate St Ives',
+            id: 'tate-st-ives',
             tooltip,
         },
     ],
@@ -125,5 +125,24 @@ function show2019() {
 
 function showAll() {
     options.initialState!.zoom = {};
+    chart.update(options);
+}
+
+function setInitialLegendState() {
+    options.initialState!.legend = [
+        {
+            seriesId: 'tate-modern',
+            visible: false,
+        },
+        {
+            seriesId: 'tate-liverpool',
+            visible: false,
+        },
+    ];
+    chart.update(options);
+}
+
+function resetInitialLegendState() {
+    options.initialState!.legend = [];
     chart.update(options);
 }

@@ -83,11 +83,11 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         const { x, width } = context.xAxis.bounds;
 
         if (datum.extendEnd) {
-            linePoints.x2 = x + width;
+            linePoints[x1 > x2 ? 'x1' : 'x2'] = x + width;
         }
 
         if (datum.extendStart) {
-            linePoints.x1 = x;
+            linePoints[x1 > x2 ? 'x2' : 'x1'] = x;
         }
 
         return linePoints;
@@ -114,7 +114,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
         this.rangeStrokesGroupSelection.each((line, { x1, x2, y2, tag }, index) => {
             const y = y2;
-            const color = isMultiColor ? strokes[index] : rangeStroke;
+            const color = isMultiColor ? strokes[index % strokes.length] : rangeStroke;
             line.setProperties({
                 x1,
                 x2,
@@ -156,7 +156,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         } = datum;
 
         this.rangeFillsGroupSelection.each((range, { x1, x2, y1, y2 }, index) => {
-            const color = isMultiColor ? colors[index] : rangeStroke;
+            const color = isMultiColor ? colors[index % colors.length] : rangeStroke;
             if (!showFill) {
                 range.visible = false;
                 return;
@@ -172,7 +172,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
                 stroke: color,
                 strokeOpacity,
                 fill: color,
-                fillOpacity: 0.15,
+                fillOpacity: (strokeOpacity ?? 1) * 0.15,
                 strokeWidth,
                 lineCap: datum.getLineCap(),
                 lineDash: datum.getLineDash(),
@@ -184,10 +184,16 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
     private updateRangeLabels(trendLineProperties: Datum, { xAxis }: AnnotationContext) {
         const { rangeStrokesGroupSelection } = this;
-        const { strokes: colors, strokeWidth, rangeStroke, isMultiColor } = trendLineProperties;
+        const {
+            strokes: colors,
+            strokeWidth,
+            rangeStroke,
+            isMultiColor,
+            label: { color, fontFamily, fontSize, fontStyle, fontWeight },
+        } = trendLineProperties;
 
         this.labelsGroupSelection.each((textNode, datum, index) => {
-            const color = isMultiColor ? colors[index] : rangeStroke;
+            const fill = color ?? (isMultiColor ? colors[index % colors.length] : rangeStroke);
 
             const line = rangeStrokesGroupSelection.at(index);
 
@@ -196,7 +202,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
             }
 
             const { text, ...coords } = datum.label;
-            const labelProperties = trendLineProperties.label;
+            const labelProperties = { ...trendLineProperties.label, label: text };
 
             updateLineText(textNode.id, line, labelProperties, coords, textNode);
 
@@ -206,6 +212,11 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
                 y: coords.y1,
                 textBaseline: 'middle',
                 textAlign: 'end',
+                fill,
+                fontFamily,
+                fontSize,
+                fontStyle,
+                fontWeight,
             });
 
             const { x } = textNode.getBBox();
@@ -213,10 +224,6 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
             const xWithinBounds = x >= xAxis.bounds.x && x <= xAxis.bounds.x + xAxis.bounds.width;
 
             if (!xWithinBounds) updateLineText(textNode.id, line, labelProperties, coords, textNode, text, strokeWidth);
-
-            textNode.setProperties({
-                fill: color,
-            });
         });
     }
 

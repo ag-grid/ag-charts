@@ -47,8 +47,6 @@ export class CartesianChart extends Chart {
 
     constructor(options: ChartOptions, resources?: TransferableResources) {
         super(options, resources);
-
-        this.ctx.seriesBoundsManager.updateAxes(this.axes);
     }
 
     private firstSeriesTranslation = true;
@@ -58,7 +56,6 @@ export class CartesianChart extends Chart {
 
         if (this.ctx != null) {
             this.ctx.zoomManager.updateAxes(newValue);
-            this.ctx.seriesBoundsManager.updateAxes(newValue);
         }
     }
 

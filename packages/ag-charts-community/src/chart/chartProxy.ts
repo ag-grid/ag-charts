@@ -6,7 +6,7 @@ import type {
     ImageDataUrlOptions,
 } from 'ag-charts-types';
 
-import type { MementoCaretaker } from '../api/state/memento';
+import type { MementoCaretaker, MementoOriginator } from '../api/state/memento';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { moduleRegistry } from '../module/module';
 import type { ChartInternalOptionMetadata, ChartSpecialOverrides } from '../module/optionsModule';
@@ -140,7 +140,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     async setState(state: AgChartState) {
-        this.factoryApi.caretaker.restore(state, ...this.getEnabledOriginators());
+        this.factoryApi.caretaker.restore(state, true, ...this.getEnabledOriginators());
         this.chart.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
         await this.chart.waitForUpdate();
     }
@@ -243,7 +243,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
             ctx: { annotationManager, chartTypeOriginator, zoomManager, legendManager },
         } = this.chart;
 
-        const originators = [];
+        const originators: MementoOriginator[] = [legendManager];
 
         if ('annotations' in processedOptions && processedOptions.annotations?.enabled) {
             originators.push(annotationManager);
@@ -256,10 +256,6 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         if (processedOptions.navigator?.enabled || processedOptions.zoom?.enabled) {
             originators.push(zoomManager);
-        }
-
-        if (processedOptions.legend?.enabled) {
-            originators.push(legendManager);
         }
 
         return originators;

@@ -76,6 +76,8 @@ export class LineTextProperties extends Font(BaseProperties) {
     alignment?: LineTextAlignment = 'left';
 }
 
+export class LabelTextProperties extends Font(BaseProperties) {}
+
 export class ChannelTextProperties extends Font(BaseProperties) {
     @Validate(STRING)
     label: string = '';

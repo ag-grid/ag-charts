@@ -2,6 +2,7 @@ import type { AgInitialStateLegendOptions } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
 import { BaseManager } from '../../util/baseManager';
+import { Logger } from '../../util/logger';
 import { isArray } from '../../util/type-guards';
 import type { ChartService } from '../chartService';
 import type { CategoryLegendDatum } from './legendDatum';
@@ -26,16 +27,28 @@ export class LegendManager
     private readonly legendDataMap: LegendDataMap = new Map();
 
     public createMemento() {
-        return this.getData().map(({ enabled, ...datum }) => ({ ...datum, visible: enabled }));
+        return this.getData()
+            .filter(({ hideInLegend, isFixed }) => !hideInLegend && !isFixed)
+            .map(({ enabled, seriesId, itemId, legendItemName }) => ({
+                visible: enabled,
+                seriesId,
+                itemId,
+                legendItemName,
+            }));
     }
 
     public guardMemento(blob: unknown): blob is LegendDataMemento | undefined {
         return blob == null || isArray(blob);
     }
 
-    public restoreMemento(_version: string, _mementoVersion: string, memento: LegendDataMemento | undefined) {
+    public restoreMemento(
+        _version: string,
+        _mementoVersion: string,
+        memento: LegendDataMemento | undefined,
+        warn: boolean | undefined
+    ) {
         memento?.forEach((datum) => {
-            const { seriesId, data } = this.getRestoredDatum(datum) ?? {};
+            const { seriesId, data } = this.getRestoredData(datum, warn) ?? {};
 
             if (!seriesId || !data) {
                 return;
@@ -47,28 +60,55 @@ export class LegendManager
         this.update();
     }
 
-    private getRestoredDatum(datum: AgInitialStateLegendOptions) {
-        const { seriesId, itemId, visible } = datum;
+    private getRestoredData(datum: AgInitialStateLegendOptions, warn?: boolean) {
+        const { seriesId, itemId, legendItemName, visible } = datum;
 
         if (seriesId) {
             const legendData = this.legendDataMap.get(seriesId) ?? [];
 
-            const data = legendData.map((d) =>
-                d.seriesId === seriesId && (!datum.itemId || d.itemId === datum.itemId) ? { ...d, enabled: visible } : d
-            );
+            const data = legendData.map((d) => {
+                const match = d.seriesId === seriesId && (!itemId || d.itemId === itemId);
+                if (match && d.isFixed && warn) {
+                    this.warnFixed(d.seriesId, d.itemId);
+                }
+                return !d.isFixed && match ? { ...d, enabled: visible } : d;
+            });
 
             return { seriesId, data };
         }
 
-        if (itemId) {
-            const legendData = this.getData();
-
-            for (const legendDatum of legendData) {
-                if (legendDatum.itemId === datum.itemId) {
-                    return { seriesId: legendDatum.seriesId, data: [{ ...legendDatum, enabled: visible }] };
-                }
-            }
+        if (itemId == null && legendItemName == null) {
+            return;
         }
+
+        for (const legendDatum of this.getData()) {
+            if (
+                (itemId != null && legendDatum.itemId !== itemId) ||
+                (legendItemName != null && legendDatum.legendItemName !== legendItemName)
+            ) {
+                continue;
+            }
+
+            if (legendDatum.isFixed) {
+                if (warn) this.warnFixed(legendDatum.seriesId, itemId);
+                return;
+            }
+
+            const seriesLegendData = (this.legendDataMap.get(legendDatum.seriesId) ?? []).map((d) =>
+                d.itemId === itemId || d.legendItemName === legendItemName ? { ...d, enabled: visible } : d
+            );
+
+            return {
+                seriesId: legendDatum.seriesId,
+                data: seriesLegendData,
+            };
+        }
+    }
+
+    private warnFixed(seriesId: string, itemId: any) {
+        Logger.warnOnce(
+            `The legend item with seriesId [${seriesId}] and itemId [${itemId}] is not configurable, this series item cannot be toggled through the legend.`
+        );
     }
 
     public update(data?: CategoryLegendDatum[]) {
@@ -136,8 +176,6 @@ export class LegendManager
         if (data.length > 0) {
             return data.some((d) => d.enabled);
         }
-
-        return true;
     }
 
     public getItemEnabled({ seriesId, itemId }: { seriesId?: string; itemId?: any } = {}) {
