@@ -6,20 +6,20 @@ export class StateManager {
     private readonly caretaker = new MementoCaretaker(VERSION);
     private readonly state = new Map<string, any>();
 
-    setState(originator: MementoOriginator, value: any, forceUpdate?: boolean, warn?: boolean) {
+    setState(originator: MementoOriginator, value: any, forceUpdate?: boolean) {
         if (!forceUpdate && jsonDiff(this.state.get(originator.mementoOriginatorKey), value) == null) {
             return;
         }
 
         this.state.set(originator.mementoOriginatorKey, value);
-        this.restoreState(originator, warn);
+        this.restoreState(originator);
     }
 
-    restoreState(originator: MementoOriginator, warn?: boolean) {
+    restoreState(originator: MementoOriginator) {
         const { caretaker, state } = this;
         if (!state.has(originator.mementoOriginatorKey)) return;
 
         const value = state.get(originator.mementoOriginatorKey);
-        caretaker.restore({ version: caretaker.version, [originator.mementoOriginatorKey]: value }, warn, originator);
+        caretaker.restore({ version: caretaker.version, [originator.mementoOriginatorKey]: value }, originator);
     }
 }
