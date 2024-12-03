@@ -32,8 +32,8 @@ const OPTIONS: AgCartesianChartOptions = {
 
 function strictKeyMatcher<T>(matcherObject: { [K in keyof T]: null }) {
     return jest.fn((event: object) => {
-        const actualKeys = Object.getOwnPropertyNames(event).sort();
-        const expectKeys = Object.keys(matcherObject).sort();
+        const actualKeys = Object.getOwnPropertyNames(event).sort((a, b) => a.localeCompare(b, 'en-US'));
+        const expectKeys = Object.keys(matcherObject).sort((a, b) => a.localeCompare(b, 'en-US'));
         expect(actualKeys).toEqual(expectKeys);
     });
 }
