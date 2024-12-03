@@ -1,8 +1,8 @@
-import { AgCartesianChartOptions, AgCharts, time } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgNumberAxisOptions, AgTimeAxisOptions, time } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgCartesianChartOptions = {
+const options = {
     container: document.getElementById('myChart'),
     data: getData(),
     theme: {
@@ -54,7 +54,7 @@ const options: AgCartesianChartOptions = {
             crosshair: {
                 enabled: true,
             },
-        },
+        } as AgTimeAxisOptions,
         {
             position: 'right',
             type: 'number',
@@ -70,17 +70,17 @@ const options: AgCartesianChartOptions = {
             crosshair: {
                 enabled: false,
             },
-        },
+        } as AgNumberAxisOptions,
     ],
     tooltip: {
         enabled: false,
     },
-};
+} satisfies AgCartesianChartOptions;
 
 const chart = AgCharts.create(options);
 
 function crosshairLabelFormat() {
-    const crosshair = options.axes![0].crosshair!;
+    const crosshair = options.axes[0].crosshair!;
     crosshair.label = {
         format: `%d %b '%y`,
     };
@@ -88,20 +88,20 @@ function crosshairLabelFormat() {
 }
 
 function axisLabelFormat() {
-    const axes0 = options.axes![0]!;
+    const axes0 = options.axes[0];
     const crosshair = axes0.crosshair!;
     if (crosshair.label && crosshair.label.format) {
-        delete axes0.crosshair!.label!.format;
+        delete crosshair.label.format;
     }
     axes0.label = { format: `%b %Y` };
     chart.update(options);
 }
 
 function defaultFormat() {
-    const axes0 = options.axes![0]!;
+    const axes0 = options.axes[0];
     const crosshair = axes0.crosshair!;
     if (crosshair.label && crosshair.label.format) {
-        delete axes0.crosshair!.label!.format;
+        delete crosshair.label.format;
     }
     if (axes0.label && axes0.label.format) {
         delete axes0.label!.format;
