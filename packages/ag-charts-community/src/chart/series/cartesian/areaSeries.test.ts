@@ -173,7 +173,7 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
             ],
             skipWarningsReversed: false,
         }),
-        NORMALISED_AREA_STACKED: {
+        NORMALISED_STACKED_AREA: {
             options: examples.NORMALISED_STACKED_AREA,
             assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('area', 4) }),
         },
