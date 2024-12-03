@@ -82,6 +82,8 @@ export interface AgFibonacciAnnotationStyles extends AgLineAnnotationStyles {
     isMultiColor?: boolean;
     /** The colours to cycle through for the strokes of the Fibonacci lines. */
     strokes?: CssColor[];
+    /** The colours for the strokes of the Fibonacci lines if isMultiColor is `false`. */
+    rangeStroke?: CssColor;
 }
 
 // Texts
