@@ -375,6 +375,8 @@ export function doubleClickAction(canvasX: number, canvasY: number): (chart: Cha
         testTarget.target?.dispatchEvent(mouseDownEvent(testTarget, canvasX, canvasY));
         testTarget.target?.dispatchEvent(mouseUpEvent(testTarget, canvasX, canvasY));
         testTarget.target?.dispatchEvent(clickEvent(testTarget, canvasX, canvasY));
+        await delay(50);
+        await waitForChartStability(chart);
         testTarget.target?.dispatchEvent(doubleClickEvent(testTarget, canvasX, canvasY));
         return delay(50);
     };
