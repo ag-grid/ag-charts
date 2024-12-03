@@ -22,9 +22,6 @@ const options: AgCartesianChartOptions = {
         {
             type: 'number',
             position: 'left',
-            label: {
-                format: '.0f',
-            },
         },
     ],
 };
