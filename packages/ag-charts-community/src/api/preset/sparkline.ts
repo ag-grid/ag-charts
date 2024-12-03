@@ -186,7 +186,7 @@ function createInitialBaseTheme(
 export function sparklineDataPreset(data: any[] | undefined): {
     data: any[] | undefined;
     series?: { xKey: string; yKey: string }[];
-    datumKey?: string | undefined;
+    datumKey?: string;
 } {
     if (Array.isArray(data) && data.length !== 0) {
         const firstItem = data[0];
