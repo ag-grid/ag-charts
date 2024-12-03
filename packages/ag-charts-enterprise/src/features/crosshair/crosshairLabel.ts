@@ -85,7 +85,7 @@ export class CrosshairLabel extends BaseProperties {
     }
 
     toggle(visible?: boolean) {
-        this.element.classList.toggle(`ag-charts-crosshair-label-hidden`, !visible);
+        this.element.classList.toggle(`ag-charts-crosshair-label--hidden`, !visible);
     }
 
     destroy() {

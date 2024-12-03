@@ -21,6 +21,6 @@
     color: var(--ag-charts-axis-label-color);
 }
 
-.ag-charts-crosshair-label-hidden {
+.ag-charts-crosshair-label--hidden {
     visibility: hidden !important;
 }
