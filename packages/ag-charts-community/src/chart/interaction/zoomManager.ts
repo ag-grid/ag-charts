@@ -522,38 +522,37 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         const xScaleRange = xScale.range;
         xScale.range = [0, 1];
 
-        const yScale = yAxis.scale;
-        const yScaleRange = yScale.range;
-        yScale.range = [0, 1];
+        // We can't use the yAxis, because it might be 'nice',
+        // which will mean an inconsistent domain
+        const [d0, d1] = findMinMax(yAxis.scale.domain);
 
         let min = 1;
         let minPadding = false;
         let max = 0;
         let maxPadding = false;
         for (const series of yAxis.boundSeries) {
-            const yRange = series.getRange(ChartAxisDirection.Y, [zoom.min, zoom.max]);
+            const [yValue0, yValue1] = series.getRange(ChartAxisDirection.Y, [zoom.min, zoom.max]);
 
-            let y0 = yScale.convert(yRange[0])?.valueOf();
-            let y1 = yScale.convert(yRange[1])?.valueOf();
-            if (!Number.isFinite(y0) || !Number.isFinite(y1)) continue;
-
+            let y0 = (yValue0 - d0) / (d1 - d0);
+            let y1 = (yValue1 - d0) / (d1 - d0);
             [y0, y1] = findMinMax([y0, y1]);
+
+            if (!Number.isFinite(y0) || !Number.isFinite(y1)) continue;
 
             const { connectsToYAxis } = series;
 
             if (y0 < min) {
                 min = y0;
-                minPadding = !connectsToYAxis || yRange[0] < 0;
+                minPadding = !connectsToYAxis || yValue0 < 0;
             }
 
             if (y1 > max) {
                 max = y1;
-                maxPadding = !connectsToYAxis || yRange[1] > 0;
+                maxPadding = !connectsToYAxis || yValue1 > 0;
             }
         }
 
         xScale.range = xScaleRange;
-        yScale.range = yScaleRange;
 
         const totalPadding = (minPadding ? padding : 0) + (maxPadding ? padding : 0);
         const paddedDelta = (max - min) * (1 + totalPadding);
