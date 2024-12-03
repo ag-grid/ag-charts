@@ -14,10 +14,8 @@ import {
     type AgLineSeriesOptions,
     type AgLineSeriesTooltipRendererParams,
     type AgNumberAxisOptions,
-    type AgSeriesTooltip,
     type AgSparklineAxisOptions,
     type AgSparklineOptions,
-    type AgSparklineTooltip,
     type AgTimeAxisOptions,
     type AgTooltipPositionType,
 } from 'ag-charts-types';
