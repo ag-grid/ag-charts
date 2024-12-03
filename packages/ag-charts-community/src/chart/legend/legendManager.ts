@@ -41,14 +41,9 @@ export class LegendManager
         return blob == null || isArray(blob);
     }
 
-    public restoreMemento(
-        _version: string,
-        _mementoVersion: string,
-        memento: LegendDataMemento | undefined,
-        warn: boolean | undefined
-    ) {
+    public restoreMemento(_version: string, _mementoVersion: string, memento: LegendDataMemento | undefined) {
         memento?.forEach((datum) => {
-            const { seriesId, data } = this.getRestoredData(datum, warn) ?? {};
+            const { seriesId, data } = this.getRestoredData(datum) ?? {};
 
             if (!seriesId || !data) {
                 return;
@@ -60,7 +55,7 @@ export class LegendManager
         this.update();
     }
 
-    private getRestoredData(datum: AgInitialStateLegendOptions, warn?: boolean) {
+    private getRestoredData(datum: AgInitialStateLegendOptions) {
         const { seriesId, itemId, legendItemName, visible } = datum;
 
         if (seriesId) {
@@ -68,7 +63,7 @@ export class LegendManager
 
             const data = legendData.map((d) => {
                 const match = d.seriesId === seriesId && (!itemId || d.itemId === itemId);
-                if (match && d.isFixed && warn) {
+                if (match && d.isFixed) {
                     this.warnFixed(d.seriesId, d.itemId);
                 }
                 return !d.isFixed && match ? { ...d, enabled: visible } : d;
@@ -90,7 +85,7 @@ export class LegendManager
             }
 
             if (legendDatum.isFixed) {
-                if (warn) this.warnFixed(legendDatum.seriesId, itemId);
+                this.warnFixed(legendDatum.seriesId, itemId);
                 return;
             }
 
