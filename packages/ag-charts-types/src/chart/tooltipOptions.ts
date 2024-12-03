@@ -6,8 +6,6 @@ export interface AgChartTooltipOptions {
     enabled?: boolean;
     /** The tooltip arrow is displayed by default, unless the container restricts it or a position offset is provided. To always display the arrow, set `showArrow` to `true`. To remove the arrow, set `showArrow` to `false`.  */
     showArrow?: boolean;
-    /** A class name to be added to the tooltip element of the chart. */
-    class?: string;
     /** Range from a point that triggers the tooltip to show. This will be used unless overridden by the series `tooltip.range` option. */
     range?: InteractionRange;
     /** The position of the tooltip. This will be used unless overridden by the series `tooltip.range` option.*/

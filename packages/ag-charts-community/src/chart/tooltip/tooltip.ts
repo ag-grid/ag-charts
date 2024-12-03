@@ -5,17 +5,13 @@ import { getWindow } from '../../util/dom';
 import { clamp } from '../../util/number';
 import { type Bounds, calculatePlacement } from '../../util/placement';
 import { BaseProperties } from '../../util/properties';
-import { ObserveChanges } from '../../util/proxy';
 import { sanitizeHtml } from '../../util/sanitize';
 import {
     BOOLEAN,
     INTERACTION_RANGE,
     NUMBER,
     OBJECT,
-    OR,
     POSITIVE_NUMBER,
-    STRING,
-    STRING_ARRAY,
     TEXT_WRAP,
     UNION,
     Validate,
@@ -66,7 +62,6 @@ export interface TooltipContent {
     title?: string;
     symbol?: LegendSymbolOptions;
     data?: TooltipContentDataRow[];
-    class?: string;
 }
 
 export function tooltipContentAriaLabel(content: TooltipContent | string) {
@@ -185,10 +180,6 @@ export class Tooltip extends BaseProperties {
     @Validate(BOOLEAN, { optional: true })
     showArrow?: boolean;
 
-    @ObserveChanges<Tooltip>((target) => target.resetClass())
-    @Validate(OR(STRING, STRING_ARRAY), { optional: true })
-    class?: string | string[];
-
     @Validate(POSITIVE_NUMBER)
     delay: number = 0;
 
@@ -242,8 +233,7 @@ export class Tooltip extends BaseProperties {
         if ('togglePopover' in getWindow<any>().HTMLElement.prototype) {
             this.element = domManager.addChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
             this.element.setAttribute('popover', 'manual');
-
-            this.resetClass();
+            this.element.className = DEFAULT_TOOLTIP_CLASS;
         }
     }
 
@@ -298,19 +288,6 @@ export class Tooltip extends BaseProperties {
         element.style.transform = `translate(${left}px, ${top}px)`;
     }
 
-    private resetClass() {
-        const { element, class: className } = this;
-        if (element == null) return;
-
-        element.className = DEFAULT_TOOLTIP_CLASS;
-
-        if (Array.isArray(className)) {
-            element.classList.add(...className);
-        } else if (className != null) {
-            element.classList.add(className);
-        }
-    }
-
     /**
      * Shows tooltip at the given event's coordinates.
      * If the `html` parameter is missing, moves the existing tooltip to the new position.
@@ -325,11 +302,6 @@ export class Tooltip extends BaseProperties {
         const { element } = this;
 
         if (element != null && content != null) {
-            this.resetClass();
-            if (typeof content !== 'string' && content.class != null) {
-                element.classList.add(content.class);
-            }
-
             element.innerHTML = tooltipContentHtml(content);
         } else if (element == null || element.innerHTML === '') {
             this.toggle(false);
