@@ -1,6 +1,11 @@
 import { afterEach, describe, expect } from '@jest/globals';
 
-import type { AgCartesianChartOptions, AgChartLegendClickEvent, AgChartLegendDoubleClickEvent } from 'ag-charts-types';
+import type {
+    AgCartesianChartOptions,
+    AgChartLegendClickEvent,
+    AgChartLegendDoubleClickEvent,
+    AgSeriesVisibilityChange,
+} from 'ag-charts-types';
 
 import type { Chart } from '../chart';
 import { clickAction, createChart, doubleClickAction, setupMockConsole } from '../test/utils';
@@ -86,6 +91,47 @@ describe('LegendEvent', () => {
             chart = await createChart({ ...OPTIONS, legend: { listeners: { legendItemDoubleClick: handler } } });
             doubleClickAction(355, 570)(chart);
             expect(handler).toBeCalledTimes(1);
+        });
+    });
+
+    describe('click and visibility change events', () => {
+        test('call order', async () => {
+            let legendItemClick: jest.Mock;
+            let seriesVisibilityChange: jest.Mock;
+
+            legendItemClick = jest.fn((_event: AgChartLegendClickEvent) => {
+                expect(seriesVisibilityChange).not.toBeCalled();
+            });
+            seriesVisibilityChange = jest.fn((_event: AgSeriesVisibilityChange) => {
+                expect(legendItemClick).toBeCalled();
+            });
+
+            chart = await createChart({
+                ...OPTIONS,
+                listeners: { seriesVisibilityChange },
+                legend: { listeners: { legendItemClick } },
+            });
+            clickAction(355, 570)(chart);
+            expect(legendItemClick).toBeCalledTimes(1);
+            expect(seriesVisibilityChange).toBeCalledTimes(1);
+        });
+
+        test('legendItemClick preventDefault', async () => {
+            const legendItemClick = jest.fn((event: AgChartLegendClickEvent) => {
+                expect(event.defaultPrevented).toEqual(false);
+                event.preventDefault();
+                expect(event.defaultPrevented).toEqual(true);
+            });
+            const seriesVisibilityChange = jest.fn((_event: AgSeriesVisibilityChange) => {});
+
+            chart = await createChart({
+                ...OPTIONS,
+                listeners: { seriesVisibilityChange },
+                legend: { listeners: { legendItemClick } },
+            });
+            clickAction(355, 570)(chart);
+            expect(legendItemClick).toBeCalledTimes(1);
+            expect(seriesVisibilityChange).not.toBeCalled();
         });
     });
 });
