@@ -233,6 +233,10 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         this.zoomModule = enabled;
     }
 
+    public isZoomEnabled() {
+        return this.zoomModule;
+    }
+
     public updateZoom(callerId: string, newZoom?: AxisZoomState) {
         if (this.axisZoomManagers.size === 0) {
             const stateId = this.state.stateId()!;

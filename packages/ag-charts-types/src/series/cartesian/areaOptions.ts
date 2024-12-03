@@ -9,7 +9,7 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 
 export type AgAreaSeriesLabelFormatterParams = AgAreaSeriesOptionsKeys & AgAreaSeriesOptionsNames;
 
-export interface AgAreaSeriesTooltipRendererParams<TDatum>
+export interface AgAreaSeriesTooltipRendererParams<TDatum = any>
     extends AgCartesianSeriesTooltipRendererParams<TDatum>,
         FillOptions,
         StrokeOptions {}

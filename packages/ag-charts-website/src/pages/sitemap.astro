@@ -2,10 +2,14 @@
 import { Sitemap } from '@ag-website-shared/components/sitemap/Sitemap';
 import parseSitemap from '@ag-website-shared/components/sitemap/utils/sitemaputils';
 import Layout from '../layouts/Layout.astro';
+import { LIVE_SITEMAP_URL } from '../constants';
 
-const response = await fetch('https://ag-grid.com/charts/sitemap-0.xml');
-const xmlSitemap = await response.text();
-const parsedSitemap = parseSitemap(xmlSitemap);
+let parsedSitemap = [];
+if (LIVE_SITEMAP_URL != null) {
+    const response = await fetch(LIVE_SITEMAP_URL);
+    const xmlSitemap = await response.text();
+    parsedSitemap = parseSitemap(xmlSitemap);
+}
 ---
 
 <Layout

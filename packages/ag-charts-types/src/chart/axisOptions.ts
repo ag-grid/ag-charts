@@ -149,13 +149,18 @@ export interface AgBaseAxisLabelOptions extends AgBaseAxisLabelStyleOptions {
     avoidCollisions?: boolean;
     /** Minimum gap in pixels between the axis labels before being removed to avoid collisions. */
     minSpacing?: PixelSize;
-    /** Format string used when rendering labels. */
-    format?: string;
     /** Function used to render axis labels. If `value` is a number, `fractionDigits` will also be provided, which indicates the number of fractional digits used in the step between ticks; for example, a tick step of `0.0005` would have `fractionDigits` set to `4` */
     formatter?: Formatter<AgAxisLabelFormatterParams>;
     /** Function used to style axis labels. */
     itemStyler?: Styler<AgAxisLabelStylerParams, AgBaseAxisLabelStyleOptions>;
 }
+
+export interface FormattableLabel {
+    /** Format string used when rendering labels. */
+    format?: string;
+}
+
+export interface AgBaseAxisFormattableLabelOptions extends AgBaseAxisLabelOptions, FormattableLabel {}
 
 export interface AgAxisGridStyle {
     /** The colour of the grid line. */

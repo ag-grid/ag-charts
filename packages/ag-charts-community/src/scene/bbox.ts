@@ -162,8 +162,8 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         const y2 = Math.min(absY + this.height, clipRect.y + clipRect.height);
         this.x = x1 - clipRect.x;
         this.y = y1 - clipRect.y;
-        this.width = Math.max(0, x2 - x1);
-        this.height = Math.max(0, y2 - y1);
+        this.width = x2 - x1;
+        this.height = y2 - y1;
         return this;
     }
 

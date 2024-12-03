@@ -8,6 +8,7 @@ import type {
     AgBaseAxisLabelStyleOptions,
     AgBaseAxisOptions,
     AgContinuousAxisOptions,
+    FormattableLabel,
     TimeInterval,
 } from '../../chart/axisOptions';
 import type { Styler } from '../../chart/callbackOptions';
@@ -18,13 +19,15 @@ import type {
     AgCrossLineLabelPosition,
     AgCrossLineThemeOptions,
 } from '../../chart/crossLineOptions';
-import type { AgCrosshairOptions } from '../../chart/crosshairOptions';
+import type { AgBaseCrosshairLabel, AgCrosshairLabel, AgCrosshairOptions } from '../../chart/crosshairOptions';
 import type { Degree, PixelSize, Ratio } from '../../chart/types';
 import type { AgCartesianSeriesOptions } from './cartesianSeriesTypes';
 
 /** Configuration for axes in cartesian charts. */
-export interface AgBaseCartesianAxisOptions<LabelType = AgCartesianAxisLabelOptions>
-    extends AgBaseAxisOptions<LabelType> {
+export interface AgBaseCartesianAxisOptions<
+    LabelType = AgCartesianAxisLabelOptions,
+    CrosshairLabelType = AgCrosshairLabel,
+> extends AgBaseAxisOptions<LabelType> {
     /** The position on the chart where the axis should be rendered. */
     position?: AgCartesianAxisPosition;
     /** Add cross lines or regions corresponding to data values. */
@@ -34,10 +37,12 @@ export interface AgBaseCartesianAxisOptions<LabelType = AgCartesianAxisLabelOpti
     /** Configuration for the title shown next to the axis. */
     title?: AgAxisCaptionOptions;
     /** Configuration for the axis crosshair. */
-    crosshair?: AgCrosshairOptions;
+    crosshair?: AgCrosshairOptions<CrosshairLabelType>;
 }
 
-export interface AgCartesianAxisLabelOptions extends AgBaseAxisLabelOptions {
+export interface AgCartesianAxisLabelOptions extends AgBaseCartesianAxisLabelOptions, FormattableLabel {}
+
+export interface AgBaseCartesianAxisLabelOptions extends AgBaseAxisLabelOptions {
     /** If specified and axis labels may collide, they are rotated so that they are positioned at the supplied angle. This is enabled by default for category. If the `rotation` property is specified, it takes precedence. */
     autoRotate?: boolean;
     /** If autoRotate is enabled, specifies the rotation angle to use when autoRotate is activated. Defaults to an angle of 335 degrees if unspecified. */
@@ -75,7 +80,8 @@ export interface AgGroupedCategoryDepthOptions {
     tick?: AgGroupedCategoryDepthTickOptions;
 }
 
-export interface AgCategoryAxisOptions extends AgBaseCartesianAxisOptions {
+export interface AgCategoryAxisOptions
+    extends AgBaseCartesianAxisOptions<AgBaseCartesianAxisLabelOptions, AgBaseCrosshairLabel> {
     type: 'category';
     /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
     paddingInner?: Ratio;
@@ -100,10 +106,16 @@ export interface AgGroupedCategoryAxisOptions
     tick?: AgGroupedCategoryAxisTickOptions;
 }
 
-export interface AgOrdinalTimeAxisOptions extends Omit<AgCategoryAxisOptions, 'type'> {
+export interface AgOrdinalTimeAxisOptions extends AgBaseCartesianAxisOptions {
     type: 'ordinal-time';
     /** Configuration for the axis ticks interval. */
     interval?: AgAxisContinuousIntervalOptions<TimeInterval | number>;
+    /** The size of the gap between the categories as a proportion, between 0 and 1. This value is a fraction of the “step”, which is the interval between the start of a band and the start of the next band. */
+    paddingInner?: Ratio;
+    /** The padding on the outside i.e. left and right of the first and last category. In association with `paddingInner`, this value can be between 0 and 1. */
+    paddingOuter?: Ratio;
+    /** This property is for grouped column/bar series plotted on a category axis. It is a proportion between 0 and 1 which determines the size of the gap between the bars or columns within a single group along the axis. */
+    groupPaddingInner?: Ratio;
 }
 
 export interface AgNumberAxisOptions extends Omit<AgBaseCartesianAxisOptions, 'interval'>, AgContinuousAxisOptions {

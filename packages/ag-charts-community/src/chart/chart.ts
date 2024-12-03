@@ -1294,7 +1294,7 @@ export abstract class Chart extends Observable {
 
             if (horizontalAxis.type === 'grouped-category') {
                 horizontalAxis.label.enabled = false;
-                horizontalAxis.label.rotation = 90;
+                horizontalAxis.label.rotation = 0;
                 const { depthOptions } = horizontalAxis as GroupedCategoryAxis;
                 if (depthOptions.length === 0) {
                     depthOptions.set([{ label: { enabled: true } }]);

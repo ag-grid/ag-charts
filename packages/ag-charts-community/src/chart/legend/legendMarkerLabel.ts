@@ -128,21 +128,25 @@ export class LegendMarkerLabel extends Translatable(Group) {
         let lineX2 = Infinity;
         let markerTop = Infinity;
         let markerLeft = Infinity;
+        let centerTranslateX = 0;
+        let centerTranslateY = 0;
         if (marker) {
             const { size } = marker;
             const center = (marker.constructor as MarkerConstructor).center;
             const radius = (size + marker.strokeWidth) / 2;
+            centerTranslateX = (center.x - 0.5) * size;
+            centerTranslateY = (center.y - 0.5) * size;
 
             if (isCustomMarker) {
                 marker.x = 0;
                 marker.y = 0;
-                marker.translationX = (center.x - 0.5) * size + length / 2;
-                marker.translationY = (center.y - 0.5) * size;
+                marker.translationX = centerTranslateX * size + length / 2;
+                marker.translationY = centerTranslateY * size;
                 markerTop = marker.translationY - radius;
                 markerLeft = marker.translationX - radius;
             } else {
-                marker.x = (center.x - 0.5) * size + length / 2;
-                marker.y = (center.y - 0.5) * size;
+                marker.x = centerTranslateX + length / 2;
+                marker.y = centerTranslateY;
                 markerTop = marker.y - radius;
                 markerLeft = marker.x - radius;
             }
@@ -169,8 +173,8 @@ export class LegendMarkerLabel extends Translatable(Group) {
         if (this.bitmapDirty) {
             this.setBitmapVisibility(false);
 
-            const translateX = (spriteAAPadding + spriteX) * scale;
-            const translateY = (spriteAAPadding - spriteY) * scale;
+            const translateX = centerTranslateX + (spriteAAPadding + spriteX) * scale;
+            const translateY = centerTranslateY + (spriteAAPadding - spriteY) * scale;
             const sprite = spriteRenderer.renderSprite(this.symbolsGroup, {
                 scale,
                 translateX: Math.floor(translateX),
