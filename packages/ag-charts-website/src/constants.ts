@@ -92,6 +92,8 @@ export const ASTRO_ALGOLIA_SEARCH_KEY = import.meta.env?.PUBLIC_ASTRO_ALGOLIA_SE
 
 export const PRODUCTION_GRID_SITE_URL = 'https://www.ag-grid.com';
 
+export const LIVE_SITEMAP_URL = import.meta.env?.LIVE_SITEMAP_URL;
+
 function calculateGridUrl() {
     if (SITE_URL == null) return;
 
