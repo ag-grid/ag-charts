@@ -70,6 +70,20 @@ describe('LegendEvent', () => {
             doubleClickAction(355, 570)(chart);
             expect(legendItemDoubleClick).toBeCalledTimes(1);
         });
+
+        test('visibilityChange', async () => {
+            const seriesVisibilityChange = strictKeyMatcher<AgSeriesVisibilityChange>({
+                type: null,
+                seriesId: null,
+                visible: null,
+                defaultPrevented: null,
+                preventDefault: null,
+            });
+
+            chart = await createChart({ ...OPTIONS, listeners: { seriesVisibilityChange } });
+            doubleClickAction(355, 570)(chart);
+            expect(seriesVisibilityChange).toBeCalledTimes(1);
+        });
     });
 
     describe('defaultPrevented must be readonly', () => {
