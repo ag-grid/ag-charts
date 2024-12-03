@@ -16,13 +16,13 @@ test.describe('legend', () => {
                 await gotoExample(page, url);
                 const canvasCenter = page.locator(SELECTORS.canvasCenter);
 
-                page.locator(SELECTORS.legendItem0).hover();
+                await page.locator(SELECTORS.legendItem0).hover();
                 await expect(canvasCenter).toHaveScreenshot('renewables-onshore-wind-highlighted.png');
 
-                page.locator(SELECTORS.legendItem1).hover();
+                await page.locator(SELECTORS.legendItem1).hover();
                 await expect(canvasCenter).toHaveScreenshot('renewables-offshore-wind-highlighted.png');
 
-                page.locator(SELECTORS.legendItem2).hover();
+                await page.locator(SELECTORS.legendItem2).hover();
                 await expect(canvasCenter).toHaveScreenshot('renewables-landfill-gas-highlighted.png');
             });
 
@@ -47,7 +47,7 @@ test.describe('legend', () => {
                     const nextDx = expectedChanged[i + 1]?.dx ?? Infinity;
                     if (dx >= nextDx) i++;
 
-                    page.mouse.move(startX + dx, startY);
+                    await page.mouse.move(startX + dx, startY);
                     await expect(canvasCenter).toHaveScreenshot(expectedChanged[i].file);
                 }
             });

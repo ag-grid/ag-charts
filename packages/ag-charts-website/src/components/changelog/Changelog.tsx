@@ -84,7 +84,7 @@ export const Changelog = () => {
     const [darkMode] = useDarkmode();
 
     useEffect(() => {
-        fetch(urlWithBaseUrl(`/changelog/changelog.json`))
+        void fetch(urlWithBaseUrl(`/changelog/changelog.json`))
             .then((response) => response.json())
             .then((data) => {
                 const chartVersions = [
@@ -106,7 +106,7 @@ export const Changelog = () => {
                 setVersions(allVersions);
                 setRowData(data);
             });
-        fetch(urlWithBaseUrl(`/changelog/releaseVersionNotes.json`))
+        void fetch(urlWithBaseUrl(`/changelog/releaseVersionNotes.json`))
             .then((response) => response.json())
             .then((data) => {
                 setAllReleaseNotes(data);

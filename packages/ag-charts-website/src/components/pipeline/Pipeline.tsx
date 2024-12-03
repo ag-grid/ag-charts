@@ -155,7 +155,7 @@ export const Pipeline = ({ location }: { location: string }) => {
     const [darkMode] = useDarkmode();
 
     useEffect(() => {
-        fetch(urlWithBaseUrl('/pipeline/pipeline.json'))
+        void fetch(urlWithBaseUrl('/pipeline/pipeline.json'))
             .then((response) => response.json())
             .then((data) => {
                 setRowData(data);
