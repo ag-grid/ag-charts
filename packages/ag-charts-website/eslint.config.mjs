@@ -78,7 +78,6 @@ export default [
     {
         rules: {
             // TODO: Remove these
-            '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
             '@typescript-eslint/unbound-method': 'warn',
             '@typescript-eslint/await-thenable': 'warn',
         },
