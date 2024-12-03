@@ -1,7 +1,9 @@
-.ag-chart-tooltip .ag-chart-tooltip-content {
-    background-color: gold;
+.ag-charts-tooltip {
+    background-color: papayawhip;
+    border: 2px solid peachpuff;
+    color: maroon;
 }
 
-.ag-chart-tooltip::after {
-    border-top-color: gold;
+.ag-charts-tooltip-heading {
+    font-weight: bold;
 }

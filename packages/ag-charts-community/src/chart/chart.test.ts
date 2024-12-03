@@ -187,7 +187,7 @@ describe('Chart', () => {
             chart = await createChartPreset({ hasTooltip: true });
             await hoverChartNodes(chart, ({ series, item }) => {
                 // Check the tooltip is shown
-                const tooltip = document.querySelector('.ag-chart-tooltip');
+                const tooltip = document.querySelector('.ag-charts-tooltip');
                 expect(tooltip).toBeInstanceOf(HTMLElement);
                 expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(false);
 
@@ -199,7 +199,7 @@ describe('Chart', () => {
             // Check the tooltip is hidden
             await hoverAction(0, 0)(chart);
             await waitForChartStability(chart);
-            const tooltip = document.querySelector('.ag-chart-tooltip');
+            const tooltip = document.querySelector('.ag-charts-tooltip');
             expect(!tooltip?.hasAttribute('data-presented-as-popover')).toBe(true);
         });
 

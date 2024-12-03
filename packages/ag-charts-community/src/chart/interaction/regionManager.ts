@@ -70,7 +70,7 @@ function getTooltipContainer(target: EventTarget | null): HTMLElement | undefine
     if (target == null || !(target instanceof HTMLElement)) return undefined;
     let current: HTMLElement | null = target;
     while (current != null && !current?.classList.contains('ag-charts-wrapper')) {
-        if (current.classList.contains('ag-chart-tooltip')) {
+        if (current.classList.contains('ag-charts-tooltip')) {
             return current;
         }
         current = current.parentElement;
