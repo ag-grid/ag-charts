@@ -265,7 +265,7 @@ export abstract class Series<
         return this._data ?? this._chartData;
     }
 
-    set visible(newVisibility: boolean) {
+    private setVisible(newVisibility: boolean, onSuccess: () => void) {
         const oldVisibilty = this.visible;
         if (oldVisibilty === newVisibility) return;
 
@@ -273,11 +273,15 @@ export abstract class Series<
         this.fireEvent(event);
         if (event.defaultPrevented) return;
 
-        // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
-        this.properties.visible = newVisibility;
-        this.ctx.legendManager.toggleItem({ enabled: newVisibility, seriesId: this.id });
-        this.ctx.legendManager.update();
-        this.visibleMaybeChanged();
+        onSuccess();
+    }
+
+    set visible(newVisibility: boolean) {
+        this.setVisible(newVisibility, () => {
+            // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
+            this.properties.visible = newVisibility;
+            this.visibleMaybeChanged();
+        });
     }
 
     get visible() {
@@ -697,14 +701,17 @@ export abstract class Series<
         itemId: unknown,
         legendItemName: string | undefined
     ): void {
-        if (enabled || legendType !== 'category') {
-            this.visible = enabled;
-        }
-        this.nodeDataRefresh = true;
-        this._pickNodeCache.clear();
-        this.dispatch('visibility-changed', { id, enabled });
+        this.setVisible(enabled, () => {
+            this.nodeDataRefresh = true;
+            this._pickNodeCache.clear();
 
-        this.ctx.legendManager.toggleItem({ enabled, seriesId: this.id, itemId, legendItemName });
+            if (legendType === 'category') {
+                this.ctx.legendManager.toggleItem({ enabled, seriesId: this.id, itemId, legendItemName });
+                this.ctx.legendManager.update();
+            }
+
+            this.dispatch('visibility-changed', { id, enabled });
+        });
     }
 
     isEnabled() {
