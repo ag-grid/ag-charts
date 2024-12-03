@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
-import type { AgAreaSeriesOptions, AgCartesianChartOptions, AgChartInstance, AgChartOptions } from 'ag-charts-types';
+import type {
+    AgAreaSeriesOptions,
+    AgCartesianChartOptions,
+    AgChartInstance,
+    AgChartOptions,
+    AgTimeAxisOptions,
+} from 'ag-charts-types';
 
 import { AgCharts } from '../../../api/agCharts';
 import { Transformable } from '../../../scene/transformable';
@@ -274,7 +280,7 @@ describe('AreaSeries', () => {
         const animate = spyOnAnimationManager();
 
         const EXAMPLE = deepClone(examples.STACKED_AREA_GRAPH_EXAMPLE);
-        EXAMPLE.axes![0].label!.format = '%b %Y';
+        (EXAMPLE.axes![0] as AgTimeAxisOptions).label!.format = '%b %Y';
 
         const mutateData = (count: number) => {
             return ({ date, ...d }: any) => {

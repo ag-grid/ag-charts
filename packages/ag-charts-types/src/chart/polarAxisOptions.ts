@@ -1,6 +1,6 @@
 import type {
     AgAxisBaseTickOptions,
-    AgBaseAxisLabelOptions,
+    AgBaseAxisFormattableLabelOptions,
     AgBaseAxisOptions,
     AgContinuousAxisOptions,
 } from './axisOptions';
@@ -49,7 +49,7 @@ export interface AgAngleNumberAxisOptions
 
 export type AgAngleAxisLabelOrientation = 'fixed' | 'parallel' | 'perpendicular';
 
-export interface AgAngleAxisLabelOptions extends AgBaseAxisLabelOptions {
+export interface AgAngleAxisLabelOptions extends AgBaseAxisFormattableLabelOptions {
     /**
      * Labels orientation on the angle category axis.
      * `fixed` - all labels remain in a fixed orientation of horizontal text.

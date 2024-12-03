@@ -1,4 +1,4 @@
-import type { AgBaseAxisLabelOptions } from '../../chart/axisOptions';
+import type { AgBaseAxisFormattableLabelOptions } from '../../chart/axisOptions';
 import type { DatumCallbackParams, Styler } from '../../chart/callbackOptions';
 import type { AgDropShadowOptions } from '../../chart/dropShadowOptions';
 import type { AgChartLabelOptions } from '../../chart/labelOptions';
@@ -9,7 +9,7 @@ import type { FillOptions, LineDashOptions, StrokeOptions } from './commonOption
 
 export interface AgFunnelSeriesLabelOptions<TDatum, TParams> extends AgChartLabelOptions<TDatum, TParams> {}
 
-export interface AgFunnelSeriesStageLabelOptions extends AgBaseAxisLabelOptions {
+export interface AgFunnelSeriesStageLabelOptions extends AgBaseAxisFormattableLabelOptions {
     /** Placement of the label in relation to the chart. */
     placement?: 'before' | 'after';
 }
