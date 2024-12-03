@@ -1011,7 +1011,7 @@ export abstract class Chart extends Observable {
     };
 
     private readonly onSeriesVisibilityChange = (event: TypedEvent) => {
-        this.fireEvent({ ...event, type: 'seriesVisibilityChange' });
+        this.fireEvent(event);
     };
 
     private readonly seriesGroupingChanged = (event: TypedEvent) => {

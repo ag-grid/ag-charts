@@ -97,7 +97,7 @@ describe('LegendEvent', () => {
             });
 
             chart = await createChart({ ...OPTIONS, listeners: { seriesVisibilityChange } });
-            doubleClickAction(355, 570)(chart);
+            clickAction(355, 570)(chart);
             expect(seriesVisibilityChange).toBeCalledTimes(1);
         });
     });
@@ -126,7 +126,7 @@ describe('LegendEvent', () => {
 
         test('visiblityChange', async () => {
             chart = await createChart({ ...OPTIONS, listeners: { seriesVisibilityChange: handler } });
-            doubleClickAction(355, 570)(chart);
+            clickAction(355, 570)(chart);
             expect(handler).toBeCalledTimes(1);
         });
     });
