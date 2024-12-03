@@ -1,14 +1,9 @@
 import { Alert } from '@ag-website-shared/components/alert/Alert';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-// @ts-expect-error
 import ChevronButtonCellRenderer from '@components/grid/ChevronButtonRenderer';
-// @ts-expect-error
 import DetailCellRenderer from '@components/grid/DetailCellRendererComponent';
-// @ts-expect-error
 import { Grid } from '@components/grid/Grid';
-// @ts-expect-error
 import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
-// @ts-expect-error
 import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
 import ReleaseVersionNotes from '@components/release-notes/ReleaseVersionNotes';
 import styles from '@pages-styles/pipelineChangelog.module.scss';
@@ -37,7 +32,6 @@ const gridToChartVersion = (gridVersion: string) => {
     return `${chartMajorVersion}.${versionParts[1]}.${versionParts[2]}`;
 };
 
-// @ts-expect-error
 export const Changelog = () => {
     const extractFixVersionParameter = (location: any) => {
         const fixVersionParam = new URLSearchParams(location.search).get('fixVersion');
