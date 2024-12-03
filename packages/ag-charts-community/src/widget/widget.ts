@@ -1,6 +1,7 @@
 import {
     type BaseAttributeTypeMap,
     type BaseStyleTypeMap,
+    getAttribute,
     setAttribute,
     setElementStyle,
     setElementStyles,
@@ -106,6 +107,10 @@ export abstract class Widget<
 
     setAriaHidden(ariaHidden: BaseAttributeTypeMap['aria-hidden'] | undefined) {
         setAttribute(this.elem, 'aria-hidden', ariaHidden);
+    }
+
+    isDisabled() {
+        return getAttribute(this.elem, 'aria-disabled', false);
     }
 
     private parseFloat(s: string) {
