@@ -7,6 +7,7 @@
     overflow: visible;
 
     width: max-content;
+    max-width: 100%;
     font:
         12px Verdana,
         sans-serif;
@@ -67,7 +68,16 @@
 }
 
 .ag-charts-tooltip--wrap-never {
-    white-space: pre;
+    white-space: nowrap;
+}
+
+.ag-charts-tooltip-heading,
+.ag-charts-tooltip-title,
+.ag-charts-tooltip-label,
+.ag-charts-tooltip-value {
+    overflow: hidden;
+    /* This will only be activated with --wrap-never */
+    /* It's not an inherited property, so cannot be set on that class */
     text-overflow: ellipsis;
 }
 
@@ -91,6 +101,11 @@
     align-self: center;
 }
 
+.ag-charts-tooltip-symbol svg {
+    /* Fixes vertical alignment */
+    display: block;
+}
+
 .ag-charts-tooltip-title {
     grid-column: -2 / -1;
 }
@@ -101,13 +116,21 @@
     gap: 16px;
     align-items: baseline;
     justify-content: space-between;
+    /* Ensure row doesn't grow beyond grid cell */
+    overflow: hidden;
 }
 
 .ag-charts-tooltip-row--inline {
     grid-column: -2 / -1;
 }
 
-.ag-charts-tooltip-symbol svg {
-    /* Fixes vertical alignment */
-    display: block;
+.ag-charts-tooltip-label {
+    /* Prefer wrapping the label over the value */
+    flex: 1;
+    /* In a flex layout, so min-width defaults to max-content */
+    min-width: 0;
+}
+
+.ag-charts-tooltip-value {
+    min-width: 0;
 }
