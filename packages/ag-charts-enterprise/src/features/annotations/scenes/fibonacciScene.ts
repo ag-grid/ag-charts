@@ -172,7 +172,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
                 stroke: color,
                 strokeOpacity,
                 fill: color,
-                fillOpacity: 0.15,
+                fillOpacity: (strokeOpacity ?? 1) * 0.15,
                 strokeWidth,
                 lineCap: datum.getLineCap(),
                 lineDash: datum.getLineDash(),
