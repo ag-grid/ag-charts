@@ -73,8 +73,8 @@ test.describe('zoom', () => {
     });
 
     test('crosshairs', async ({ page }) => {
-        const xAxisLabel = '.ag-crosshair-label[data-key="pointer"][data-axis-id="NumberAxis-2"]';
-        const yAxisLabel = '.ag-crosshair-label[data-key="yKey"]';
+        const xAxisLabel = '.ag-charts-crosshair-label[data-key="pointer"][data-axis-id="NumberAxis-2"]';
+        const yAxisLabel = '.ag-charts-crosshair-label[data-key="yKey"]';
         const { url } = toExamplePageUrl('zoom-test', 'e2e-zoom-crosshairs', 'vanilla');
 
         await gotoExample(page, url);

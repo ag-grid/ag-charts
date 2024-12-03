@@ -3,7 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 const { BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate, createId, setAttribute } = _ModuleSupport;
 
-const DEFAULT_LABEL_CLASS = 'ag-crosshair-label';
+const DEFAULT_LABEL_CLASS = 'ag-charts-crosshair-label';
 
 export class CrosshairLabelProperties extends _ModuleSupport.ChangeDetectableProperties {
     @Validate(BOOLEAN)
@@ -85,7 +85,7 @@ export class CrosshairLabel extends BaseProperties {
     }
 
     toggle(visible?: boolean) {
-        this.element.classList.toggle(`ag-crosshair-label-hidden`, !visible);
+        this.element.classList.toggle(`ag-charts-crosshair-label-hidden`, !visible);
     }
 
     destroy() {
@@ -107,7 +107,7 @@ export class CrosshairLabel extends BaseProperties {
         } = input;
 
         const style = `opacity: ${opacity}; background-color: ${backgroundColor?.toLowerCase()}; color: ${color}`;
-        return `<div class="ag-crosshair-label-content" style="${style}">
+        return `<div class="ag-charts-crosshair-label-content" style="${style}">
                     <span>${text}</span>
                 </div>`;
     }
