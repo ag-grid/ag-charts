@@ -67,7 +67,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
 
         this.destroyFns.push(
             this.toolbar.addToolbarListener('button-pressed', this.onToolbarButtonPress.bind(this)),
-            ctx.layoutManager.registerElement(LayoutElement.Toolbar, this.onLayoutStart.bind(this)),
+            ctx.layoutManager.registerElement(LayoutElement.ToolbarLeft, this.onLayoutStart.bind(this)),
             () => {
                 this.toolbar.removeListener('keydown', onKeyDown);
                 this.toolbar.destroy();

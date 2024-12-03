@@ -206,12 +206,13 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event)),
             ctx.zoomManager.addListener('zoom-pan-start', (event) => this.onZoomPanStart(event)),
             this.panner.addListener('update', (event) => this.onPanUpdate(event)),
-            () => this.buttons.destroy()
+            () => this.teardown()
         );
     }
 
-    override destroy(): void {
-        super.destroy();
+    private teardown() {
+        this.ctx.zoomManager.setZoomModuleEnabled(false);
+        this.buttons.destroy();
         this.destroyContextMenuActions?.();
     }
 

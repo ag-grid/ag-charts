@@ -43,7 +43,8 @@ interface EventMap {
 export enum LayoutElement {
     Caption,
     Legend,
-    Toolbar,
+    ToolbarLeft,
+    ToolbarBottom,
     Navigator,
     Overlay,
 }
