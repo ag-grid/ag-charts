@@ -790,6 +790,10 @@ export abstract class Chart extends Observable {
             series.addEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
         }
 
+        if (this.hasEventListener('seriesVisibilityChange')) {
+            series.addEventListener('seriesVisibilityChange', this.onSeriesVisibilityChange);
+        }
+
         series.addEventListener('groupingChanged', this.seriesGroupingChanged);
     }
 
@@ -1004,6 +1008,10 @@ export abstract class Chart extends Observable {
 
     private readonly onSeriesNodeDoubleClick = (event: TypedEvent) => {
         this.fireEvent({ ...event, type: 'seriesNodeDoubleClick' });
+    };
+
+    private readonly onSeriesVisibilityChange = (event: TypedEvent) => {
+        this.fireEvent({ ...event, type: 'seriesVisibilityChange' });
     };
 
     private readonly seriesGroupingChanged = (event: TypedEvent) => {

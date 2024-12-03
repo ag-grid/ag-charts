@@ -3,6 +3,7 @@ import type {
     AgChartLabelOptions,
     AgSeriesMarkerStyle,
     AgSeriesMarkerStylerParams,
+    AgSeriesVisibilityChange,
     ISeriesMarker,
 } from 'ag-charts-types';
 
@@ -21,7 +22,7 @@ import { jsonDiff } from '../../util/json';
 import { Listeners } from '../../util/listeners';
 import { LRUCache } from '../../util/lruCache';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
-import { mergeDefaults } from '../../util/object';
+import { defineSetterGetter, mergeDefaults } from '../../util/object';
 import type { TypedEvent } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
@@ -248,14 +249,33 @@ export abstract class Series<
 
     connectsToYAxis = false;
 
+    private makePreventableSeriesVisibilityChange(newVisibility: boolean): AgSeriesVisibilityChange {
+        let _defaultPrevented = false;
+        const preventDefault = () => (_defaultPrevented = true);
+        const event: Omit<AgSeriesVisibilityChange, 'defaultPrevented'> = {
+            type: 'seriesVisibilityChange',
+            seriesId: this.id,
+            visible: newVisibility,
+            preventDefault,
+        };
+        return defineSetterGetter(event, 'defaultPrevented', { get: () => _defaultPrevented });
+    }
+
     get data() {
         return this._data ?? this._chartData;
     }
 
-    set visible(value: boolean) {
+    set visible(newVisibility: boolean) {
+        const oldVisibilty = this.visible;
+        if (oldVisibilty === newVisibility) return;
+
+        const event = this.makePreventableSeriesVisibilityChange(newVisibility);
+        this.fireEvent(event);
+        if (event.defaultPrevented) return;
+
         // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
-        this.properties.visible = value;
-        this.ctx.legendManager.toggleItem({ enabled: value, seriesId: this.id });
+        this.properties.visible = newVisibility;
+        this.ctx.legendManager.toggleItem({ enabled: newVisibility, seriesId: this.id });
         this.ctx.legendManager.update();
         this.visibleMaybeChanged();
     }
