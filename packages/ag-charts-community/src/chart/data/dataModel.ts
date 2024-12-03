@@ -47,7 +47,7 @@ export interface UngroupedData<D> {
         aggValues?: [number, number][];
     };
     reduced?: {
-        diff?: ProcessedOutputDiff;
+        diff?: Record<string, ProcessedOutputDiff>;
         smallestKeyInterval?: number;
         largestKeyInterval?: number;
         sortedGroupDomain?: any[][];
@@ -235,7 +235,7 @@ export type ReducerOutputPropertyDefinition<P extends ReducerOutputKeys = Reduce
 export type ProcessorOutputPropertyDefinition<P extends ReducerOutputKeys = ReducerOutputKeys> = PropertyIdentifiers & {
     type: 'processor';
     property: P;
-    calculate: (data: ProcessedData<any>) => ReducerOutputTypes[P];
+    calculate: (data: ProcessedData<any>, previousValue: ReducerOutputTypes[P] | undefined) => ReducerOutputTypes[P];
 };
 
 const INVALID_VALUE = Symbol('invalid');
@@ -966,7 +966,10 @@ export class DataModel<
     private postProcessData(processedData: ProcessedData<D>) {
         processedData.reduced ??= {};
         for (const def of this.processors) {
-            processedData.reduced[def.property] = def.calculate(processedData) as any;
+            processedData.reduced[def.property] = def.calculate(
+                processedData,
+                processedData.reduced[def.property]
+            ) as any;
         }
     }
 

@@ -461,57 +461,57 @@ export function accumulateStack(matchGroupId: string): GroupValueProcessorDefini
     };
 }
 
+function valueIdentifier(value: DatumPropertyDefinition<string | number | symbol>) {
+    return value.id ?? value.property;
+}
+
 function valueIndices(id: string, previousData: ProcessedData<any>, processedData: ProcessedData<any>) {
-    const prevIndices = [];
+    const properties = new Map<string | number | symbol, number>();
     const previousValues = previousData.defs.values;
-    for (let i = 0; i < previousValues.length; i += 1) {
-        const value = previousValues[i];
-        if (value.scopes?.includes(id) === false) continue;
-
-        prevIndices.push(i);
-    }
-
-    const nextIndices = [];
-    let previousIndicesIndex = 0;
-    const nextValues = processedData.defs.values;
-    for (let i = 0; i < nextValues.length; i += 1) {
-        const value = nextValues[i];
-        if (value.scopes?.includes(id) === false) continue;
-
-        if (previousIndicesIndex >= prevIndices.length) return;
-
-        const previousIndex = prevIndices[previousIndicesIndex];
+    for (let previousIndex = 0; previousIndex < previousValues.length; previousIndex += 1) {
         const previousValue = previousValues[previousIndex];
+        if (previousValue.scopes?.includes(id) === false) continue;
+
+        const valueId = valueIdentifier(previousValue);
 
         // Incompatible
-        if (value.property !== previousValue.property) return;
+        if (properties.has(valueId)) return;
 
-        nextIndices.push(i);
-        previousIndicesIndex += 1;
+        properties.set(valueId, previousIndex);
+    }
+
+    const indices: Array<{ previousIndex: number; nextIndex: number }> = [];
+    const nextValues = processedData.defs.values;
+    for (let nextIndex = 0; nextIndex < nextValues.length; nextIndex += 1) {
+        const nextValue = nextValues[nextIndex];
+        if (nextValue.scopes?.includes(id) === false) continue;
+
+        const valueId = valueIdentifier(nextValue);
+
+        const previousIndex = properties.get(valueId);
+
+        // Incompatible
+        if (previousIndex == null) return;
+
+        properties.delete(valueId);
+
+        indices.push({ previousIndex, nextIndex });
     }
 
     // Incompatible
-    if (prevIndices.length !== nextIndices.length) return;
+    if (properties.size !== 0) return;
 
-    return { prevIndices, nextIndices };
+    return indices;
 }
 
 function columnsEqual(
     previousColumns: any[][],
     nextColumns: any[][],
-    previousIndices: number[] | undefined,
-    nextIndices: number[] | undefined,
+    indices: Array<{ previousIndex: number; nextIndex: number }>,
     previousDatumIndex: number,
     nextDatumIndex: number
 ) {
-    if (previousIndices == null || nextIndices == null) {
-        return false;
-    }
-
-    for (let indicesIndex = 0; indicesIndex < previousIndices.length; indicesIndex += 1) {
-        const previousIndex = previousIndices[indicesIndex];
-        const nextIndex = nextIndices[indicesIndex];
-
+    for (const { previousIndex, nextIndex } of indices) {
         const previousColumn = previousColumns[previousIndex];
         const nextColumn = nextColumns[nextIndex];
 
@@ -534,7 +534,7 @@ export function diff(
     return {
         type: 'processor',
         property: 'diff',
-        calculate(processedData): ProcessedOutputDiff | undefined {
+        calculate(processedData, previousValue): Record<string, ProcessedOutputDiff> | undefined {
             const moved = new Map<string, number>();
             const added = new Map<string, number>();
             const updated = new Map<string, number>();
@@ -547,9 +547,7 @@ export function diff(
             const columns = processedData.columns;
 
             const indices = valueIndices(id, previousData, processedData);
-            if (indices == null) return;
-
-            const { prevIndices, nextIndices } = indices;
+            if (indices == null) return previousValue;
 
             const length = Math.max(previousData.rawData.length, processedData.rawData.length);
 
@@ -563,7 +561,7 @@ export function diff(
                 const datumId = dKeys != null ? createDatumId(dKeys) : '';
 
                 if (hasDatum && hasPreviousDatum && prevId === datumId) {
-                    if (!columnsEqual(previousColumns, columns, prevIndices, nextIndices, i, i)) {
+                    if (!columnsEqual(previousColumns, columns, indices, i, i)) {
                         updated.set(datumId, i);
                     }
                     continue;
@@ -571,10 +569,7 @@ export function diff(
 
                 const removedIndex = removed.get(datumId);
                 if (removedIndex != null) {
-                    if (
-                        updateMovedData ||
-                        !columnsEqual(previousColumns, columns, prevIndices, nextIndices, removedIndex, i)
-                    ) {
+                    if (updateMovedData || !columnsEqual(previousColumns, columns, indices, removedIndex, i)) {
                         updated.set(datumId, i);
                         moved.set(datumId, i);
                     }
@@ -585,10 +580,7 @@ export function diff(
 
                 const addedIndex = added.get(prevId);
                 if (addedIndex != null) {
-                    if (
-                        updateMovedData ||
-                        !columnsEqual(previousColumns, columns, prevIndices, nextIndices, addedIndex, i)
-                    ) {
+                    if (updateMovedData || !columnsEqual(previousColumns, columns, indices, addedIndex, i)) {
                         updated.set(prevId, i);
                         moved.set(prevId, i);
                     }
@@ -600,12 +592,16 @@ export function diff(
             }
 
             const changed = added.size > 0 || updated.size > 0 || removed.size > 0;
-            return {
+            const value = {
                 changed,
                 added: new Set(added.keys()),
                 updated: new Set(updated.keys()),
                 removed: new Set(removed.keys()),
                 moved: new Set(moved.keys()),
+            };
+            return {
+                ...previousValue,
+                [id]: value,
             };
         },
     };
