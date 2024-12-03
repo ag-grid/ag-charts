@@ -40,9 +40,6 @@ const options: AgChartOptions = {
     footnote: {
         text: 'Source: Environmental Agency',
     },
-    tooltip: {
-        class: 'my-tooltip',
-    },
     series: [
         {
             type: 'bar',

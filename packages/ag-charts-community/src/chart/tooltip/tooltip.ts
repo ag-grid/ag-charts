@@ -136,7 +136,7 @@ function tooltipContentHtml(content: TooltipContent | string) {
         });
     }
 
-    html = `<div class="${DEFAULT_TOOLTIP_CLASS}__content">${html.trimEnd()}</div>`;
+    html = `<div class="${DEFAULT_TOOLTIP_CLASS}-content ${DEFAULT_TOOLTIP_CLASS}__content">${html.trimEnd()}</div>`;
 
     return html;
 }
