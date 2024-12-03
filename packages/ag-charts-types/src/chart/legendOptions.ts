@@ -170,7 +170,7 @@ export interface AgPaginationLabelOptions {
 
 export interface AgInitialStateLegendOptions {
     /** Series or item id */
-    seriesId: string;
+    seriesId?: string;
     /** Legend item id - usually yKey value for cartesian series. */
     itemId?: string;
     /** Whether the legend item is currently enabled or not. */
