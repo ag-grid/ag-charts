@@ -665,8 +665,7 @@ export abstract class Series<
 
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
         if (series.id === this.id || matchedLegendItemName) {
-            this.toggleSeriesItem(itemId, enabled, legendType);
-            this.updateLegendData({ legendType, enabled, itemId, legendItemName });
+            this.toggleSeriesItem(itemId, enabled, legendType, itemId, legendItemName);
         }
     }
 
@@ -678,45 +677,32 @@ export abstract class Series<
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
         if (series.id === this.id || matchedLegendItemName) {
             // Double-clicked item should always become visible.
-            this.toggleSeriesItem(itemId, true, legendType);
-            this.updateLegendData({ legendType, enabled: true, itemId, legendItemName });
+            this.toggleSeriesItem(itemId, true, legendType, itemId, legendItemName);
         } else if (enabled && numVisibleItems === 1) {
             // Other items should become visible if there is only one existing visible item.
-            this.toggleSeriesItem(itemId, true, legendType);
-            this.updateLegendData({ legendType, enabled: true, legendItemName });
+            this.toggleSeriesItem(itemId, true, legendType, undefined, legendItemName);
         } else {
             // Disable other items if not exactly one enabled.
-            this.toggleSeriesItem(itemId, false, legendType);
-            this.updateLegendData({ legendType, enabled: false, legendItemName });
+            this.toggleSeriesItem(itemId, false, legendType, undefined, legendItemName);
         }
     }
 
     abstract getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     abstract getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
 
-    protected toggleSeriesItem(id: any, enabled: boolean, legendType: ChartLegendType): void {
+    protected toggleSeriesItem(
+        id: any,
+        enabled: boolean,
+        legendType: ChartLegendType,
+        itemId: unknown,
+        legendItemName: string | undefined
+    ): void {
         if (enabled || legendType !== 'category') {
             this.visible = enabled;
         }
         this.nodeDataRefresh = true;
         this._pickNodeCache.clear();
         this.dispatch('visibility-changed', { id, enabled });
-    }
-
-    protected updateLegendData({
-        legendType,
-        enabled,
-        itemId,
-        legendItemName,
-    }: {
-        legendType: ChartLegendType;
-        enabled: boolean;
-        itemId?: any;
-        legendItemName?: string;
-    }) {
-        if (legendType !== 'category') {
-            return;
-        }
 
         this.ctx.legendManager.toggleItem({ enabled, seriesId: this.id, itemId, legendItemName });
     }

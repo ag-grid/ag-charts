@@ -246,8 +246,7 @@ describe('PolarSeries', () => {
             const reference = await snapshot();
 
             options.data?.forEach((_, idx) => {
-                (deproxied.series[0] as any).toggleSeriesItem(idx, false);
-                (deproxied.series[0] as any).updateLegendData({ legendType: 'category', itemId: idx, enabled: false });
+                (deproxied.series[0] as any).toggleSeriesItem(idx, false, 'category', idx, undefined);
             });
             deproxied.update(ChartUpdateType.FULL);
 
@@ -255,8 +254,7 @@ describe('PolarSeries', () => {
             (expect(afterUpdate) as any).not.toMatchImage(reference);
 
             options.data?.forEach((_, idx) => {
-                (deproxied.series[0] as any).toggleSeriesItem(idx, true);
-                (deproxied.series[0] as any).updateLegendData({ legendType: 'category', itemId: idx, enabled: true });
+                (deproxied.series[0] as any).toggleSeriesItem(idx, true, 'category', idx, undefined);
             });
             deproxied.update(ChartUpdateType.FULL);
 
