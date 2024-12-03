@@ -1,0 +1,5 @@
+.tooltip {
+    display: grid;
+    padding: 6px;
+    gap: 3px;
+}

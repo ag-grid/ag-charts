@@ -109,7 +109,7 @@ describe('Tooltip', () => {
             await hoverAction(400, 300)(chart);
             await waitForChartStability(chart);
 
-            const element = Array.from(getDocument('body').getElementsByClassName('ag-chart-tooltip'));
+            const element = Array.from(getDocument('body').getElementsByClassName('ag-charts-tooltip'));
             expect(element.map((e) => e.textContent).join('')).toEqual('4 1.48');
 
             await nextValue(10, 1.3249187570726666);

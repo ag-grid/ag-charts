@@ -19,8 +19,8 @@ import {
 import { type LegendSymbolOptions, legendSymbolSvg } from '../legend/legendSymbol';
 import { SpringAnimation } from './springAnimation';
 
-export const DEFAULT_TOOLTIP_CLASS = 'ag-chart-tooltip';
-export const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-chart-dark-tooltip';
+export const DEFAULT_TOOLTIP_CLASS = 'ag-charts-tooltip';
+export const DEFAULT_TOOLTIP_DARK_CLASS = 'ag-charts-tooltip--dark';
 
 type TooltipPositionType =
     | 'pointer'
@@ -82,15 +82,15 @@ function dataHtml(label: string | undefined, value: string, inline: boolean) {
     let rowHtml = '';
 
     if (label == null) {
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(value)}</span>`;
+        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${sanitizeHtml(value)}</span>`;
     } else {
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__label">${sanitizeHtml(label)}</span>`;
+        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-label">${sanitizeHtml(label)}</span>`;
         rowHtml += ' ';
-        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}__value">${sanitizeHtml(value)}</span>`;
+        rowHtml += `<span class="${DEFAULT_TOOLTIP_CLASS}-value">${sanitizeHtml(value)}</span>`;
     }
 
-    const rowClassNames = [`${DEFAULT_TOOLTIP_CLASS}__row`];
-    if (inline) rowClassNames.push(`${DEFAULT_TOOLTIP_CLASS}__row--inline`);
+    const rowClassNames = [`${DEFAULT_TOOLTIP_CLASS}-row`];
+    if (inline) rowClassNames.push(`${DEFAULT_TOOLTIP_CLASS}-row--inline`);
     rowHtml = `<div class="${rowClassNames.join(' ')}">${rowHtml}</div>`;
 
     return rowHtml;
@@ -116,17 +116,17 @@ function tooltipContentHtml(content: TooltipContent | string) {
         const dataInline = content.title == null && content.data?.length === 1;
 
         if (content.heading != null) {
-            html += `<span class="${DEFAULT_TOOLTIP_CLASS}__group-title">${sanitizeHtml(content.heading)}</span>`;
+            html += `<span class="${DEFAULT_TOOLTIP_CLASS}-heading">${sanitizeHtml(content.heading)}</span>`;
             html += ' ';
         }
 
         const symbol = content.symbol == null ? undefined : legendSymbolSvg(content.symbol, 12);
         if (symbol != null && (content.title != null || content.data?.length)) {
-            html += `<span class="${DEFAULT_TOOLTIP_CLASS}__symbol">${symbol}</span>`;
+            html += `<span class="${DEFAULT_TOOLTIP_CLASS}-symbol">${symbol}</span>`;
         }
 
         if (content.title != null) {
-            html += `<span class="${DEFAULT_TOOLTIP_CLASS}__title">${sanitizeHtml(content.title)}</span>`;
+            html += `<span class="${DEFAULT_TOOLTIP_CLASS}-title">${sanitizeHtml(content.title)}</span>`;
             html += ' ';
         }
 
@@ -136,7 +136,7 @@ function tooltipContentHtml(content: TooltipContent | string) {
         });
     }
 
-    html = `<div class="${DEFAULT_TOOLTIP_CLASS}-content ${DEFAULT_TOOLTIP_CLASS}__content">${html.trimEnd()}</div>`;
+    html = `<div class="${DEFAULT_TOOLTIP_CLASS}-content">${html.trimEnd()}</div>`;
 
     return html;
 }
@@ -357,7 +357,7 @@ export class Tooltip extends BaseProperties {
 
         const { classList } = this.element;
         const toggleClass = (name: string, include: boolean) =>
-            classList.toggle(`${DEFAULT_TOOLTIP_CLASS}-${name}`, include);
+            classList.toggle(`${DEFAULT_TOOLTIP_CLASS}--${name}`, include);
 
         if (!visible) {
             clearTimeout(this.showTimeout);
@@ -377,7 +377,7 @@ export class Tooltip extends BaseProperties {
         }
 
         for (const wrapType of this.wrapTypes) {
-            classList.toggle(`${DEFAULT_TOOLTIP_CLASS}-wrap-${wrapType}`, wrapType === this.wrapping);
+            classList.toggle(`${DEFAULT_TOOLTIP_CLASS}--wrap-${wrapType}`, wrapType === this.wrapping);
         }
     }
 

@@ -24,10 +24,12 @@ const options: AgCartesianChartOptions = {
 const chart = AgCharts.create(options);
 
 function renderer(params: AgBarSeriesTooltipRendererParams) {
-    return `<div class="ag-chart-tooltip-title" style="background-color: ${params.fill}">
-      ${params.datum[params.xKey]}
-    </div>
-    <div class="ag-chart-tooltip-content">
-      <a href="#" onclick="window.alert('Clicked within a tooltip')">Click here</a> | ${params.datum[params.yKey]}
+    return `<div class="tooltip">
+        <div class="tooltip-title">
+            ${params.datum[params.xKey]}: ${params.datum[params.yKey]}
+        </div>
+        <div class="tooltip-body">
+            <a href="#" onclick="window.alert('Clicked within a tooltip')">Click here</a>
+        </div>
     </div>`;
 }
