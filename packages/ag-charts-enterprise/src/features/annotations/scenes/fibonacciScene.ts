@@ -83,11 +83,11 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         const { x, width } = context.xAxis.bounds;
 
         if (datum.extendEnd) {
-            linePoints.x2 = x + width;
+            linePoints[x1 > x2 ? 'x1' : 'x2'] = x + width;
         }
 
         if (datum.extendStart) {
-            linePoints.x1 = x;
+            linePoints[x1 > x2 ? 'x2' : 'x1'] = x;
         }
 
         return linePoints;
