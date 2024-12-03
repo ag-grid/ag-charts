@@ -21,9 +21,11 @@ test.describe('financial-charts-showcase', () => {
 
                 // Expect that the price datum has been highlighted / snapped to, even though not
                 // visible.
-                await expect(page.locator('.ag-crosshair-label-content', { hasText: 'July 2022' })).toBeVisible();
                 await expect(
-                    page.locator('.ag-crosshair-label-content', { hasText: /[0-9]{2,3}\.[0-9]{2}/ })
+                    page.locator('.ag-charts-crosshair-label-content', { hasText: 'July 2022' })
+                ).toBeVisible();
+                await expect(
+                    page.locator('.ag-charts-crosshair-label-content', { hasText: /[0-9]{2,3}\.[0-9]{2}/ })
                 ).toBeVisible();
                 await expect(canvas).toHaveScreenshot('zoom-and-hover-on-out-of-y-range-prices.png');
             });
