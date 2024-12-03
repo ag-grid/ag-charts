@@ -63,7 +63,7 @@ export const ZoomModule: _ModuleSupport.Module = {
             scrollingStep: 0.1,
             autoScaling: {
                 enabled: false,
-                padding: 0.05,
+                padding: 0.25,
             },
         },
     },
