@@ -78,6 +78,8 @@ export interface AgFibonacciAnnotationStyles extends AgLineAnnotationStyles {
     label?: AgLineAnnotationTextOptions;
     /** Whether to show the fills between the Fibonacci range lines. */
     showFill?: boolean;
+    /** Whether the Fibonacci range lines are multicoloured. */
+    isMultiColor?: boolean;
     /** The colours to cycle through for the strokes of the Fibonacci lines. */
     strokes?: CssColor[];
 }
