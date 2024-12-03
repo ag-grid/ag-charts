@@ -1807,7 +1807,6 @@ exports[`ChartOptions #prepareOptions for ADV_CUSTOM_TOOLTIPS_EXAMPLE it should 
     "wrapping": "hyphenate",
   },
   "tooltip": {
-    "class": "my-tooltip",
     "darkTheme": false,
     "delay": 0,
     "enabled": true,

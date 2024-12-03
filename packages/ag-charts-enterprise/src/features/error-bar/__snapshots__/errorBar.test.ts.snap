@@ -10,7 +10,7 @@ NodeList [
     style="transform: translate(314px, 200px); top: 0px; left: 0px; pointer-events: none;"
   >
     <div
-      class="ag-chart-tooltip__content"
+      class="ag-chart-tooltip-content ag-chart-tooltip__content"
     >
       <div
         class="ag-chart-tooltip__row"
@@ -42,7 +42,7 @@ NodeList [
     style="transform: translate(413px, 380px); top: 0px; left: 0px; pointer-events: none;"
   >
     <div
-      class="ag-chart-tooltip__content"
+      class="ag-chart-tooltip-content ag-chart-tooltip__content"
     >
       <span
         class="ag-chart-tooltip__symbol"

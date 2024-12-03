@@ -350,9 +350,6 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         },
     };
 
-    chartOpts.tooltip = {
-        class: 'ag-chart-tooltip--compact',
-    };
     chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME);
     chartOpts.data = data;
     chartOpts.series = [seriesOptions];

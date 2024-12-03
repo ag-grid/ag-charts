@@ -84,7 +84,6 @@ const options: AgChartOptions = {
         },
     ],
     tooltip: {
-        class: 'tooltip',
         position: {
             type: 'top-left',
             xOffset: 10,

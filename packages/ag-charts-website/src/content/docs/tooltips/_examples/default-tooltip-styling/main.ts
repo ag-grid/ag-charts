@@ -13,9 +13,6 @@ const options: AgChartOptions = {
             yName: 'Sweaters Made',
         },
     ],
-    tooltip: {
-        class: 'my-tooltip',
-    },
 };
 
 const chart = AgCharts.create(options);
