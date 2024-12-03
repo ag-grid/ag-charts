@@ -74,11 +74,16 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
 
 // Fibonaccis
 export interface AgFibonacciAnnotationStyles extends AgLineAnnotationStyles {
+    /** Configuration for the fibonacci ratio labels. */
     label?: AgLineAnnotationTextOptions;
     /** Whether to show the fills between the Fibonacci range lines. */
     showFill?: boolean;
+    /** Whether the Fibonacci range lines are multicoloured. */
+    isMultiColor?: boolean;
     /** The colours to cycle through for the strokes of the Fibonacci lines. */
     strokes?: CssColor[];
+    /** The colours for the strokes of the Fibonacci lines if isMultiColor is `false`. */
+    rangeStroke?: CssColor;
 }
 
 // Texts
@@ -135,6 +140,8 @@ export type AgAnnotation =
     // Channels
     | AgDisjointChannelAnnotation
     | AgParallelChannelAnnotation
+    // Fibonaccis
+    | AgFibonacciRetracementAnnotation
     // Texts
     | AgCalloutAnnotation
     | AgCommentAnnotation
@@ -189,6 +196,26 @@ export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions,
     axisLabel?: AgAnnotationAxisLabel;
     /** Configuration for the drag handle. */
     handle?: AgAnnotationHandle;
+}
+
+// ***********************
+// * Fibonacci Annotations *
+// ***********************/
+
+export interface AgFibonacciRetracementAnnotation
+    extends AnnotationLinePoints,
+        Extendable,
+        Lockable,
+        Visible,
+        StrokeOptions,
+        LineOptions,
+        AgFibonacciAnnotationStyles {
+    /** Configuration for the fibonacci retracement annotation.*/
+    type: 'fibonacci-retracement';
+    /** Configuration for the drag handles. */
+    handle?: AgAnnotationHandle;
+    /** Configuration for the one line text. */
+    text?: AgLineAnnotationText;
 }
 
 // ***********************

@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { LineTextProperties } from '../annotationProperties';
+import { LabelTextProperties } from '../annotationProperties';
 import type { AnnotationOptionsColorPickerType, FibonacciBands } from '../annotationTypes';
 import { LineTypeProperties } from '../line/lineProperties';
 
@@ -15,7 +15,7 @@ const FIBONACCI_BANDS = predicateWithMessage(
 
 export class FibonacciProperties extends LineTypeProperties {
     @Validate(OBJECT, { optional: true })
-    label = new LineTextProperties();
+    label = new LabelTextProperties();
 
     @Validate(BOOLEAN, { optional: true })
     reverse: boolean = false;
