@@ -519,6 +519,7 @@ export abstract class FlowProportionSeries<
                 label: { text: label ?? id },
                 symbol: this.legendItemSymbol(FlowProportionDatumType.Node, nodeIndex),
                 hideInLegend: !showInLegend,
+                isFixed: true,
             })
         );
     }

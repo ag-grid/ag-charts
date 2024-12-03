@@ -76,6 +76,14 @@ The `start` and `end` properties of `rangeX` and `rangeY` should match the [type
 
 The `start` and `end` properties of `ratioX` and `ratioY` should be a value between `0` and `1` as a proportion of the width or height of the chart.
 
+### Legend
+
+The initial legend state can be configured with an array of objects defining legend items for the series in the chart. Each object includes a `seriesId` to match the series and a `visible` property to control its visibility.
+
+For series with multiple legend items, such as `pie` or `donut`, an `itemId` specifies data elements by their index in the data array.
+
+A `legendItemName` can be added to the legend initial state and series options, taking priority over both `seriesId` and `itemId`.
+
 ## API Reference
 
 {% tabs %}

@@ -5,7 +5,7 @@ export interface MementoOriginator<Memento = any> {
     mementoOriginatorKey: string;
     createMemento(): Memento;
     guardMemento(blob: unknown): blob is Memento | undefined;
-    restoreMemento(version: string, mementoVersion: string, blob: Memento | undefined): void;
+    restoreMemento(version: string, mementoVersion: string, blob: Memento | undefined, warn?: boolean): void;
 }
 
 type MementoCaretakerPacket = Record<'version', string> & Record<string, any>;
@@ -31,7 +31,7 @@ export class MementoCaretaker {
         return packet;
     }
 
-    restore(blob: unknown, ...originators: Array<MementoOriginator>) {
+    restore(blob: unknown, warn?: boolean, ...originators: Array<MementoOriginator>) {
         if (typeof blob !== 'object') {
             Logger.warnOnce(`Could not restore data of type [${typeof blob}], expecting an object, ignoring.`);
             return;
@@ -58,7 +58,7 @@ export class MementoCaretaker {
                 return;
             }
 
-            originator.restoreMemento(this.version, blob.version, memento);
+            originator.restoreMemento(this.version, blob.version, memento, warn);
         }
     }
 

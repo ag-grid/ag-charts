@@ -49,7 +49,7 @@ describe('Memento Caretaker', () => {
         originator.data = { hello: 'world' };
 
         const blob = caretaker.save(originator);
-        caretaker.restore(blob, originator);
+        caretaker.restore(blob, false, originator);
 
         expect(blob).toStrictEqual({ version: '10.0.0', test: { data: { hello: 'world' }, type: 'test' } });
         expect(originator.restored).toStrictEqual({ hello: 'world' });
@@ -59,7 +59,7 @@ describe('Memento Caretaker', () => {
         originator.data = { hello: '🌍' };
 
         const blob = caretaker.save(originator);
-        caretaker.restore(blob, originator);
+        caretaker.restore(blob, false, originator);
 
         expect(blob).toStrictEqual({ version: '10.0.0', test: { data: { hello: '🌍' }, type: 'test' } });
         expect(originator.restored).toStrictEqual({ hello: '🌍' });
@@ -69,7 +69,7 @@ describe('Memento Caretaker', () => {
         originator.data = { hello: 'world', time: new Date(2024, 0, 1) };
 
         const blob = caretaker.save(originator);
-        caretaker.restore(blob, originator);
+        caretaker.restore(blob, false, originator);
 
         expect(blob).toStrictEqual({
             version: '10.0.0',
@@ -98,7 +98,7 @@ describe('Memento Caretaker', () => {
             },
         };
 
-        caretaker.restore(blobDateTypes, originator);
+        caretaker.restore(blobDateTypes, false, originator);
         expect(originator.restored).toStrictEqual({
             longString: new Date(2024, 0, 1),
             isoString: new Date(2024, 0, 1),
@@ -116,6 +116,7 @@ describe('Memento Caretaker', () => {
                     type: 'test',
                 },
             },
+            false,
             originator
         );
         expect(originator.restored).toStrictEqual({ hello: 'world' });
@@ -142,7 +143,7 @@ describe('Memento Caretaker', () => {
         otherOriginator.data = { hello: 'world' };
 
         const blob = caretaker.save(otherOriginator);
-        caretaker.restore(blob, originator);
+        caretaker.restore(blob, false, originator);
 
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
@@ -161,9 +162,9 @@ describe('Memento Caretaker', () => {
     });
 
     it('should handle invalid blobs', () => {
-        caretaker.restore(null, originator);
-        caretaker.restore('invalid', originator);
-        caretaker.restore({ some: 'nonsense' }, originator);
+        caretaker.restore(null, false, originator);
+        caretaker.restore('invalid', false, originator);
+        caretaker.restore({ some: 'nonsense' }, false, originator);
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
@@ -180,7 +181,7 @@ describe('Memento Caretaker', () => {
     });
 
     it('should handle an invalid memento', () => {
-        caretaker.restore({ version: '10.0.0', test: { type: 'invalid' } }, originator);
+        caretaker.restore({ version: '10.0.0', test: { type: 'invalid' } }, false, originator);
         expectWarningsCalls().toMatchInlineSnapshot(`
 [
   [
@@ -194,7 +195,7 @@ describe('Memento Caretaker', () => {
     });
 
     it('should ignore an unknown memento', () => {
-        caretaker.restore({ version: '10.0.0', invalid: 'invalid' }, originator);
+        caretaker.restore({ version: '10.0.0', invalid: 'invalid' }, false, originator);
         expect(originator.restored).toBeUndefined();
     });
 });
