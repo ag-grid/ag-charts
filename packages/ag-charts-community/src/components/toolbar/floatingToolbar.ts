@@ -112,15 +112,17 @@ export abstract class FloatingToolbar<
 
     private readonly popover: FloatingToolbarPopover;
     private popoverBounds?: BBox;
+    private readonly dragHandle: DragHandleWidget;
 
     constructor(ctx: ModuleContext, id: string) {
         super(ctx.localeManager);
         this.popover = new FloatingToolbarPopover(ctx, id, this.onPopoverMoved.bind(this));
-        this.createDragHandle();
+        this.dragHandle = new DragHandleWidget(ctx.localeManager.t('toolbarAnnotationsDragHandle'));
+        this.popover.setDragHandle(this.dragHandle);
     }
 
     public show(options: PopoverOptions) {
-        this.popover.show([this.getElement()], options);
+        this.popover.show([this.dragHandle.getElement(), this.getElement()], options);
     }
 
     public hide() {
@@ -150,25 +152,27 @@ export abstract class FloatingToolbar<
         if (this.popoverBounds?.equals(popoverBounds)) return;
 
         this.popoverBounds = popoverBounds.clone();
-        const buttonBounds = this.getButtonBounds().map(
-            (bounds) => new BBox(bounds.x + popoverBounds.x, bounds.y + popoverBounds.y, bounds.width, bounds.height)
-        );
+        const buttonBounds = this.getButtonBounds();
 
         this.events.dispatch('toolbar-moved', { popoverBounds, buttonBounds });
     }
 
-    private createDragHandle() {
-        const { localeManager, popover } = this;
-
-        const dragHandle = new DragHandleWidget(localeManager.t('toolbarAnnotationsDragHandle'));
-        popover.setDragHandle(dragHandle);
-        this.addChild(dragHandle);
+    protected override getButtonWidgetBounds(buttonWidget: ButtonWidget) {
+        const popoverBounds = this.popover.getBounds();
+        const bounds = super.getButtonWidgetBounds(buttonWidget);
+        const dragHandleBounds = this.dragHandle.getBounds();
+        return new BBox(
+            bounds.x + popoverBounds.x - dragHandleBounds.width,
+            bounds.y + popoverBounds.y,
+            bounds.width,
+            bounds.height
+        );
     }
 }
 
 class DragHandleWidget extends NativeWidget {
     constructor(title: string) {
-        super(createElement('button', 'ag-charts-floating-toolbar__drag-handle'));
+        super(createElement('div', 'ag-charts-floating-toolbar__drag-handle'));
 
         const icon = new NativeWidget<HTMLElement>(
             createElement('span', `${getIconClassNames('drag-handle')} ag-charts-toolbar__icon`)

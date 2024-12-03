@@ -111,7 +111,7 @@ export abstract class BaseToolbar<
         this.buttonWidgets.at(index)?.setHidden(hidden);
     }
 
-    private getButtonWidgetBounds(buttonWidget: ButtonWidget) {
+    protected getButtonWidgetBounds(buttonWidget: ButtonWidget) {
         const parent = this.getBounds();
         const bounds = buttonWidget.getBounds();
         return new BBox(bounds.x + parent.x, bounds.y + parent.y, bounds.width, bounds.height);
