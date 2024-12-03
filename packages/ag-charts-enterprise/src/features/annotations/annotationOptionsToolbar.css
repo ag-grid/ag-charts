@@ -1,3 +1,11 @@
+.ag-charts-annotations__line-stroke-width-menu,
+.ag-charts-annotations__line-style-type-menu,
+.ag-charts-annotations__text-size-menu {
+    .ag-charts-menu__row:first-child {
+        border-radius: 0;
+    }
+}
+
 .ag-charts-annotations__stroke-width-button::before {
     --stroke-width-color: var(--ag-charts-toolbar-foreground-color);
     background: var(--stroke-width-color);
