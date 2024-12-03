@@ -8,7 +8,16 @@ import type {
 } from 'ag-charts-types';
 
 import type { Chart } from '../chart';
-import { clickAction, createChart, doubleClickAction, setupMockConsole } from '../test/utils';
+import {
+    IMAGE_SNAPSHOT_DEFAULTS,
+    clickAction,
+    createChart,
+    doubleClickAction,
+    extractImageData,
+    setupMockCanvas,
+    setupMockConsole,
+    waitForChartStability,
+} from '../test/utils';
 
 const OPTIONS: AgCartesianChartOptions = {
     data: [
@@ -32,6 +41,13 @@ function strictKeyMatcher<T>(matcherObject: { [K in keyof T]: null }) {
 describe('LegendEvent', () => {
     setupMockConsole();
     let chart: Chart;
+    const ctx = setupMockCanvas();
+
+    const compare = async () => {
+        await waitForChartStability(chart);
+        const imageData = extractImageData(ctx);
+        expect(imageData).toMatchImageSnapshot({ ...IMAGE_SNAPSHOT_DEFAULTS, failureThreshold: 0 });
+    };
 
     afterEach(() => {
         if (chart) {
@@ -153,6 +169,7 @@ describe('LegendEvent', () => {
             clickAction(355, 570)(chart);
             expect(legendItemClick).toBeCalledTimes(1);
             expect(seriesVisibilityChange).not.toBeCalled();
+            await compare();
         });
     });
 });
