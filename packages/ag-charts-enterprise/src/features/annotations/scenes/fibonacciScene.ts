@@ -114,7 +114,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
         this.rangeStrokesGroupSelection.each((line, { x1, x2, y2, tag }, index) => {
             const y = y2;
-            const color = isMultiColor ? strokes[index] : rangeStroke;
+            const color = isMultiColor ? strokes[index % strokes.length] : rangeStroke;
             line.setProperties({
                 x1,
                 x2,
@@ -156,7 +156,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         } = datum;
 
         this.rangeFillsGroupSelection.each((range, { x1, x2, y1, y2 }, index) => {
-            const color = isMultiColor ? colors[index] : rangeStroke;
+            const color = isMultiColor ? colors[index % colors.length] : rangeStroke;
             if (!showFill) {
                 range.visible = false;
                 return;
@@ -193,7 +193,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         } = trendLineProperties;
 
         this.labelsGroupSelection.each((textNode, datum, index) => {
-            const fill = color ?? (isMultiColor ? colors[index] : rangeStroke);
+            const fill = color ?? (isMultiColor ? colors[index % colors.length] : rangeStroke);
 
             const line = rangeStrokesGroupSelection.at(index);
 
