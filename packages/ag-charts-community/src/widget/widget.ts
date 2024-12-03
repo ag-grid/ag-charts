@@ -1,6 +1,7 @@
 import {
     type BaseAttributeTypeMap,
     type BaseStyleTypeMap,
+    getAttribute,
     setAttribute,
     setElementStyle,
     setElementStyles,
@@ -104,6 +105,14 @@ export abstract class Widget<
         setAttribute(this.elem, 'aria-describedby', ariaDescribedBy);
     }
 
+    setAriaHidden(ariaHidden: BaseAttributeTypeMap['aria-hidden'] | undefined) {
+        setAttribute(this.elem, 'aria-hidden', ariaHidden);
+    }
+
+    isDisabled() {
+        return getAttribute(this.elem, 'aria-disabled', false);
+    }
+
     private parseFloat(s: string) {
         return s === '' ? 0 : parseFloat(s);
     }
@@ -135,6 +144,10 @@ export abstract class Widget<
 
     addClass(...tokens: string[]) {
         this.elem.classList.add(...tokens);
+    }
+
+    removeClass(...tokens: string[]) {
+        this.elem.classList.remove(...tokens);
     }
 
     toggleClass(token: string, force?: boolean) {

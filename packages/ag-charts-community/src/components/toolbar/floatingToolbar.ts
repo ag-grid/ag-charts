@@ -82,10 +82,6 @@ class FloatingToolbarPopover extends DraggablePopover<PopoverOptions> {
         this.updatePosition({ x: left, y: top });
     }
 
-    public startDragging(event: MouseEvent, dragHandle?: HTMLElement) {
-        this.onDragStart(event, dragHandle);
-    }
-
     public ignorePointerEvents() {
         const element = this.getPopoverElement();
         if (element) element.style.pointerEvents = 'none';
@@ -116,15 +112,17 @@ export abstract class FloatingToolbar<
 
     private readonly popover: FloatingToolbarPopover;
     private popoverBounds?: BBox;
+    private readonly dragHandle: DragHandleWidget;
 
     constructor(ctx: ModuleContext, id: string) {
         super(ctx.localeManager);
         this.popover = new FloatingToolbarPopover(ctx, id, this.onPopoverMoved.bind(this));
-        this.createDragHandle();
+        this.dragHandle = new DragHandleWidget(ctx.localeManager.t('toolbarAnnotationsDragHandle'));
+        this.popover.setDragHandle(this.dragHandle);
     }
 
     public show(options: PopoverOptions) {
-        this.popover.show([this.getElement()], options);
+        this.popover.show([this.dragHandle.getElement(), this.getElement()], options);
     }
 
     public hide() {
@@ -154,25 +152,34 @@ export abstract class FloatingToolbar<
         if (this.popoverBounds?.equals(popoverBounds)) return;
 
         this.popoverBounds = popoverBounds.clone();
-        const buttonBounds = this.getButtonBounds().map(
-            (bounds) => new BBox(bounds.x + popoverBounds.x, bounds.y + popoverBounds.y, bounds.width, bounds.height)
-        );
+        const buttonBounds = this.getButtonBounds();
 
         this.events.dispatch('toolbar-moved', { popoverBounds, buttonBounds });
     }
 
-    private createDragHandle() {
-        const { localeManager, popover } = this;
-
-        const dragHandle = new NativeWidget<HTMLElement>(
-            createElement('div', 'ag-charts-floating-toolbar__drag-handle')
+    protected override getButtonWidgetBounds(buttonWidget: ButtonWidget) {
+        const popoverBounds = this.popover.getBounds();
+        const bounds = super.getButtonWidgetBounds(buttonWidget);
+        const dragHandleBounds = this.dragHandle.getBounds();
+        return new BBox(
+            bounds.x + popoverBounds.x - dragHandleBounds.width,
+            bounds.y + popoverBounds.y,
+            bounds.width,
+            bounds.height
         );
-        dragHandle.getElement().innerHTML = `<span class="${getIconClassNames('drag-handle')} ag-charts-toolbar__icon"></span>`;
-        dragHandle.getElement().addEventListener('mousedown', (event) => {
-            popover.startDragging(event, dragHandle.getElement());
-        });
-        dragHandle.getElement().title = localeManager.t('toolbarAnnotationsDragHandle');
+    }
+}
 
-        this.addChild(dragHandle);
+class DragHandleWidget extends NativeWidget {
+    constructor(title: string) {
+        super(createElement('div', 'ag-charts-floating-toolbar__drag-handle'));
+
+        const icon = new NativeWidget<HTMLElement>(
+            createElement('span', `${getIconClassNames('drag-handle')} ag-charts-toolbar__icon`)
+        );
+        icon.setAriaHidden(true);
+        this.addChild(icon);
+
+        this.elem.title = title;
     }
 }

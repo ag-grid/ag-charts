@@ -6,15 +6,16 @@ import { ColorPicker } from '../color-picker/colorPicker';
 const {
     Color,
     DraggablePopover,
+    NativeWidget,
     Vec2,
     createButton,
     createCheckbox,
     createElement,
     createElementId,
-    createIcon,
     createSelect,
     createTextArea,
     initRovingTabIndex,
+    getIconClassNames,
     getWindow,
     mapValues,
     setAttribute,
@@ -133,15 +134,22 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
             }
         };
 
-        const header = createElement('div', 'ag-charts-dialog__header');
-        header.addEventListener('mousedown', (event) => {
+        const header = new NativeWidget(createElement('div', 'ag-charts-dialog__header'));
+        header.addListener('drag-start', (event) => {
+            const { sourceEvent } = event;
             // Only start dragging when an empty part of the header is dragged
-            if (event.target instanceof Element && event.target.classList.contains('ag-charts-dialog__header')) {
+            if (
+                sourceEvent.target instanceof Element &&
+                sourceEvent.target.classList.contains('ag-charts-dialog__header')
+            ) {
                 this.onDragStart(event);
             }
         });
+        header.addListener('drag-move', (event) => this.onDragMove(event));
+        header.addListener('drag-end', () => this.onDragEnd());
 
-        const dragHandle = this.createHeaderDragHandle();
+        const dragHandle = new DragHandleWidget();
+        this.setDragHandle(dragHandle);
         const tabButtons = mapValues(tabs, (tab, key) =>
             createButton(
                 {
@@ -163,8 +171,8 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
 
         const closeButton = this.createHeaderCloseButton();
 
-        header.append(dragHandle, tabList, closeButton);
-        element.append(header, ...Object.values(tabs).map((t) => t.panel));
+        header.getElement().append(dragHandle.getElement(), tabList, closeButton);
+        element.append(header.getElement(), ...Object.values(tabs).map((t) => t.panel));
 
         onPressTab(initial);
         initRovingTabIndex({ orientation: 'horizontal', buttons: Object.values(tabButtons) });
@@ -337,14 +345,6 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
     /***********
      * Private *
      ***********/
-    private createHeaderDragHandle() {
-        const dragHandle = createElement('div', 'ag-charts-dialog__drag-handle');
-        const dragHandleIcon = createIcon('drag-handle');
-        dragHandle.append(dragHandleIcon);
-        dragHandle.addEventListener('mousedown', (event) => this.onDragStart(event, dragHandle));
-
-        return dragHandle;
-    }
 
     private createHeaderCloseButton() {
         return createButton(
@@ -416,5 +416,14 @@ export abstract class Dialog<Options extends DialogOptions = DialogOptions> exte
         const fallbackAnchor = Vec2.sub(topLeft, Vec2.from(0, 5));
 
         return { anchor, fallbackAnchor };
+    }
+}
+
+class DragHandleWidget extends NativeWidget {
+    constructor() {
+        super(createElement('div', 'ag-charts-dialog__drag-handle'));
+        const icon = new NativeWidget<HTMLElement>(createElement('span', getIconClassNames('drag-handle')));
+        icon.setAriaHidden(true);
+        this.addChild(icon);
     }
 }
