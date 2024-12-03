@@ -91,7 +91,7 @@ export class LegendDOMProxy {
         itemSelection.each((markerLabel, datum, index) => {
             // Create the hidden CSS button.
             markerLabel.proxyButton?.destroy();
-            markerLabel.proxyButton ??= ctx.proxyInteractionService.createProxyElement({
+            markerLabel.proxyButton = ctx.proxyInteractionService.createProxyElement({
                 type: 'listswitch',
                 id: `ag-charts-legend-item-${index}`,
                 textContent: this.getItemAriaText(lm, datumReader.getItemLabel(datum), index, count),
