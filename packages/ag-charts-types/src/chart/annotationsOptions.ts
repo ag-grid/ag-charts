@@ -135,6 +135,8 @@ export type AgAnnotation =
     // Channels
     | AgDisjointChannelAnnotation
     | AgParallelChannelAnnotation
+    // Fibonaccis
+    | AgFibonacciRetracementAnnotation
     // Texts
     | AgCalloutAnnotation
     | AgCommentAnnotation
@@ -189,6 +191,26 @@ export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions,
     axisLabel?: AgAnnotationAxisLabel;
     /** Configuration for the drag handle. */
     handle?: AgAnnotationHandle;
+}
+
+// ***********************
+// * Fibonacci Annotations *
+// ***********************/
+
+export interface AgFibonacciRetracementAnnotation
+    extends AnnotationLinePoints,
+        Extendable,
+        Lockable,
+        Visible,
+        StrokeOptions,
+        LineOptions,
+        AgFibonacciAnnotationStyles {
+    /** Configuration for the fibonacci retracement annotation.*/
+    type: 'fibonacci-retracement';
+    /** Configuration for the drag handles. */
+    handle?: AgAnnotationHandle;
+    /** Configuration for the one line text. */
+    text?: AgLineAnnotationText;
 }
 
 // ***********************
