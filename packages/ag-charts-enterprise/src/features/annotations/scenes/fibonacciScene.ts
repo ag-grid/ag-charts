@@ -184,10 +184,16 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
     private updateRangeLabels(trendLineProperties: Datum, { xAxis }: AnnotationContext) {
         const { rangeStrokesGroupSelection } = this;
-        const { strokes: colors, strokeWidth, rangeStroke, isMultiColor } = trendLineProperties;
+        const {
+            strokes: colors,
+            strokeWidth,
+            rangeStroke,
+            isMultiColor,
+            label: { color, fontFamily, fontSize, fontStyle, fontWeight },
+        } = trendLineProperties;
 
         this.labelsGroupSelection.each((textNode, datum, index) => {
-            const color = isMultiColor ? colors[index] : rangeStroke;
+            const fill = color ?? (isMultiColor ? colors[index] : rangeStroke);
 
             const line = rangeStrokesGroupSelection.at(index);
 
@@ -196,7 +202,7 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
             }
 
             const { text, ...coords } = datum.label;
-            const labelProperties = trendLineProperties.label;
+            const labelProperties = { ...trendLineProperties.label, label: text };
 
             updateLineText(textNode.id, line, labelProperties, coords, textNode);
 
@@ -206,6 +212,11 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
                 y: coords.y1,
                 textBaseline: 'middle',
                 textAlign: 'end',
+                fill,
+                fontFamily,
+                fontSize,
+                fontStyle,
+                fontWeight,
             });
 
             const { x } = textNode.getBBox();
@@ -213,10 +224,6 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
             const xWithinBounds = x >= xAxis.bounds.x && x <= xAxis.bounds.x + xAxis.bounds.width;
 
             if (!xWithinBounds) updateLineText(textNode.id, line, labelProperties, coords, textNode, text, strokeWidth);
-
-            textNode.setProperties({
-                fill: color,
-            });
         });
     }
 

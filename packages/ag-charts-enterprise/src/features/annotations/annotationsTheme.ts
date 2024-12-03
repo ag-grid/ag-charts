@@ -211,7 +211,7 @@ export const annotationsTheme: AgAnnotationsThemeableOptions = {
         strokes: ThemeSymbols.DEFAULT_FIBONACCI_STROKES as unknown as string[],
         handle: { ...handle },
         text: { ...lineText, position: 'center' },
-        label: { ...lineText, position: 'center', alignment: 'left', fontSize: 10 },
+        label: { ...lineText, color: undefined, position: 'center', alignment: 'left', fontSize: 10 },
     },
 
     // Texts
