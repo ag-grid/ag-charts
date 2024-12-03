@@ -152,6 +152,8 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     usesPlacedLabels?: boolean;
 };
 
+class SeriesVisibilityChangePreventedError extends Error {}
+
 export abstract class Series<
         TDatum extends SeriesNodeDatum,
         TProps extends SeriesProperties<any>,
@@ -265,19 +267,27 @@ export abstract class Series<
         return this._data ?? this._chartData;
     }
 
-    set visible(newVisibility: boolean) {
+    private setVisiblePreventable(newVisibility: boolean) {
         const oldVisibilty = this.visible;
         if (oldVisibilty === newVisibility) return;
 
         const event = this.makePreventableSeriesVisibilityChange(newVisibility);
         this.fireEvent(event);
-        if (event.defaultPrevented) return;
+        if (event.defaultPrevented) throw new SeriesVisibilityChangePreventedError();
+    }
 
-        // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
-        this.properties.visible = newVisibility;
-        this.ctx.legendManager.toggleItem({ enabled: newVisibility, seriesId: this.id });
-        this.ctx.legendManager.update();
-        this.visibleMaybeChanged();
+    set visible(newVisibility: boolean) {
+        try {
+            this.setVisiblePreventable(newVisibility);
+
+            // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
+            this.properties.visible = newVisibility;
+            this.ctx.legendManager.toggleItem({ enabled: newVisibility, seriesId: this.id });
+            this.ctx.legendManager.update();
+            this.visibleMaybeChanged();
+        } catch (e: unknown) {
+            if (!(e instanceof SeriesVisibilityChangePreventedError)) throw e;
+        }
     }
 
     get visible() {
@@ -697,14 +707,20 @@ export abstract class Series<
         itemId: unknown,
         legendItemName: string | undefined
     ): void {
-        if (enabled || legendType !== 'category') {
-            this.visible = enabled;
-        }
-        this.nodeDataRefresh = true;
-        this._pickNodeCache.clear();
-        this.dispatch('visibility-changed', { id, enabled });
+        try {
+            if (enabled || legendType !== 'category') {
+                this.visible = enabled;
+            } else {
+                this.setVisiblePreventable(enabled);
+            }
+            this.nodeDataRefresh = true;
+            this._pickNodeCache.clear();
+            this.dispatch('visibility-changed', { id, enabled });
 
-        this.ctx.legendManager.toggleItem({ enabled, seriesId: this.id, itemId, legendItemName });
+            this.ctx.legendManager.toggleItem({ enabled, seriesId: this.id, itemId, legendItemName });
+        } catch (e: unknown) {
+            if (!(e instanceof SeriesVisibilityChangePreventedError)) throw e;
+        }
     }
 
     isEnabled() {
