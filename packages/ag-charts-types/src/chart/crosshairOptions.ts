@@ -25,8 +25,6 @@ export interface AgCrosshairLabel extends AgBaseCrosshairLabel, FormattableLabel
 export interface AgBaseCrosshairLabel {
     /** Whether to show label when the crosshair is visible. */
     enabled?: boolean;
-    /** A class name to be added to the crosshair label element. */
-    className?: string;
     /** The horizontal offset in pixels for the label. */
     xOffset?: PixelSize;
     /** The vertical offset in pixels for the label. */

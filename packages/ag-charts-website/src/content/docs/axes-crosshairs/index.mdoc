@@ -131,29 +131,20 @@ const labelRenderer = ({ value, fractionDigits }) => {
 
 {% chartExampleRunner title="Crosshair Default Label With Custom Renderer" name="crosshair-default-label-custom-renderer" type="generated" /%}
 
-The default label HTML element uses CSS class name `ag-crosshair-label`. Custom CSS styling can be applied by providing a class name via the `crosshair.label.className` config. This class name will be added to the class list of the label's element.
+The default label HTML element uses these CSS class names, which can be used to customise styling:
 
-For example, to set the label element's `border-radius` to `15px`, add a custom class name to the crosshair label options:
+-   `ag-crosshair-label` for the label itself
+-   `ag-crosshair-label-content` - for the label content
 
-```js
-crosshair: {
-    label: {
-        className: 'custom-crosshair-label',
-    },
-},
-```
-
-Then modify the style definitions in a stylesheet file:
+For example, to set the label element's `border-radius` to `15px`, you would use a style configuration like so:
 
 ```css
-.custom-crosshair-label {
+.ag-crosshair-label {
     border-radius: 15px;
 }
 ```
 
-This is shown in the example below. Note that:
-
--   The default label template is used and the style definitions are overridden in the styles.css file.
+This is demonstrated in the example below:
 
 {% chartExampleRunner title="Crosshair Default Label With Custom CSS" name="crosshair-default-label-custom-css" type="generated" /%}
 

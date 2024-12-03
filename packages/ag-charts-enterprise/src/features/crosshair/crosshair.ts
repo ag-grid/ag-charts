@@ -159,9 +159,8 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private updateLabel(label: CrosshairLabel) {
-        const { enabled, className, xOffset, yOffset, format, renderer } = this.label;
+        const { enabled, xOffset, yOffset, format, renderer } = this.label;
         label.enabled = enabled;
-        label.className = className;
         label.xOffset = xOffset;
         label.yOffset = yOffset;
         label.format = format;

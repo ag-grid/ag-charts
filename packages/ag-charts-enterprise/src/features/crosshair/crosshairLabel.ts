@@ -1,17 +1,13 @@
 import type { AgCrosshairLabelRendererParams, AgCrosshairLabelRendererResult } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { ActionOnSet, BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate, createId, setAttribute } =
-    _ModuleSupport;
+const { BaseProperties, BOOLEAN, FUNCTION, NUMBER, STRING, Validate, createId, setAttribute } = _ModuleSupport;
 
 const DEFAULT_LABEL_CLASS = 'ag-crosshair-label';
 
 export class CrosshairLabelProperties extends _ModuleSupport.ChangeDetectableProperties {
     @Validate(BOOLEAN)
     enabled: boolean = true;
-
-    @Validate(STRING, { optional: true })
-    className?: string;
 
     @Validate(NUMBER)
     xOffset: number = 0;
@@ -31,21 +27,6 @@ export class CrosshairLabel extends BaseProperties {
 
     @Validate(BOOLEAN)
     enabled: boolean = true;
-
-    @Validate(STRING, { optional: true })
-    @ActionOnSet<CrosshairLabel>({
-        changeValue(newValue, oldValue) {
-            if (newValue !== oldValue) {
-                if (oldValue) {
-                    this.element.classList.remove(oldValue);
-                }
-                if (newValue) {
-                    this.element.classList.add(newValue);
-                }
-            }
-        },
-    })
-    className?: string;
 
     @Validate(NUMBER)
     xOffset: number = 0;
