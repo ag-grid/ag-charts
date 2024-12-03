@@ -27,7 +27,7 @@ const getErrors = (results: Result[]) => results.filter(({ type }) => type === '
 
 const getErrorOutput = (results: Result[]) => {
     const errorResults = getErrors(results);
-    const errorOutput = errorResults.map(({ path }) => `File not found: ${path}`).join('\n');
+    const errorOutput = errorResults.map(({ path: errorPath }) => `File not found: ${errorPath}`).join('\n');
     return errorResults.length ? errorOutput : '';
 };
 
@@ -38,7 +38,7 @@ function getResultOutput(results: Result[]) {
     const total = results.length;
 
     const summary = `✅ Success ${successResults.length} / ⚠️  Ignored ${ignoredResults.length} / ❌ Errors ${errorResults.length} (Total: ${total})`;
-    const ignoredOutput = ignoredResults.map(({ path }) => `Ignored: ${path}`).join('\n');
+    const ignoredOutput = ignoredResults.map(({ path: errorPath }) => `Ignored: ${errorPath}`).join('\n');
 
     return `${ignoredResults.length ? `${ignoredOutput}\n\n` : ''}${summary}`;
 }

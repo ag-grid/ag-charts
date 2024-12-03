@@ -152,10 +152,10 @@ function convertPageUrls(path: string) {
     return pages
         .filter((r) => frameworks?.includes(r.framework) !== false)
         .map(
-            ({ url, example, framework }): ExampleOptions => ({
+            ({ url, example: pageExample, framework }): ExampleOptions => ({
                 pagePath,
                 url,
-                example,
+                example: pageExample,
                 framework,
                 status,
                 clickOrder,

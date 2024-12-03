@@ -135,8 +135,8 @@ export const Changelog = () => {
                 if (releaseNotes['markdown']) {
                     fetch(urlWithBaseUrl(`/changelog` + releaseNotes['markdown']))
                         .then((response) => response.text())
-                        .then((markdownContent) => {
-                            setMarkdownContent(markdownContent);
+                        .then((mdContent) => {
+                            setMarkdownContent(mdContent);
                         })
                         .catch((error) => {
                             // eslint-disable-next-line no-console
@@ -172,10 +172,10 @@ export const Changelog = () => {
     }, []);
 
     const switchDisplayedFixVersion = useCallback(
-        (fixVersion: any) => {
-            setFixVersion(fixVersion);
+        (version: any) => {
+            setFixVersion(version);
             const url = new URL(window.location as any);
-            url.searchParams.set('fixVersion', fixVersion);
+            url.searchParams.set('fixVersion', version);
             window.history.pushState({}, '', url);
         },
         [setFixVersion]

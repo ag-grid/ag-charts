@@ -105,8 +105,8 @@ const detailCellRendererParams = (params: any) => {
         .join('\n\n');
     let message = newLinesToBreaks(combinedMessages);
 
-    function makeLinksFunctional(message: any) {
-        let msgArr = message.split(' ');
+    function makeLinksFunctional(msg: any) {
+        let msgArr = msg.split(' ');
         const linkStrIdx = msgArr.findIndex((word: any) => word.includes('https://'));
         if (linkStrIdx > 0) {
             msgArr = msgArr.map((element: any) => {
@@ -131,9 +131,9 @@ const detailCellRendererParams = (params: any) => {
                 }
                 return element;
             });
-            message = msgArr.join(' ');
+            msg = msgArr.join(' ');
         }
-        return message;
+        return msg;
     }
 
     message = makeLinksFunctional(message);

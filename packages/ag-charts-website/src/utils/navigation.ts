@@ -10,7 +10,7 @@ export function useHistory(callback: (data: Update) => void) {
 
 export function useLocation() {
     const [location, setLocation] = useState<Location | null>(browserHistory?.location ?? null);
-    useHistory(({ location }) => setLocation(location));
+    useHistory(({ location: historyLocation }) => setLocation(historyLocation));
     return location;
 }
 

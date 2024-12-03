@@ -24,8 +24,8 @@ const createRemoveLoadingLogo =
         if (data?.type === 'init') {
             // FIXME - some pages have the same example on the page twice
             // this code works, but we should move off IDs so we can handle this case
-            document.querySelectorAll('#' + loadingLogoId).forEach((loadingLogoId) => {
-                loadingLogoId.remove();
+            document.querySelectorAll('#' + loadingLogoId).forEach((logoId) => {
+                logoId.remove();
             });
             document.querySelectorAll('#' + loadingIFrameId).forEach((el) => {
                 const iframe = el as HTMLIFrameElement;

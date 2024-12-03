@@ -339,7 +339,7 @@ export function TypeCodeBlock({ apiNode, member }: { apiNode: ApiNode | ApiNode[
     }
 
     const codeSample = Array.isArray(apiNode)
-        ? apiNode.map((apiNode) => formatTypeToCode(apiNode, member, reference))
+        ? apiNode.map((arrayApiNode) => formatTypeToCode(arrayApiNode, member, reference))
         : formatTypeToCode(apiNode, member, reference);
 
     if (!codeSample?.length) {

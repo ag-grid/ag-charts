@@ -31,8 +31,8 @@ export const HomepageGalleryExamples = ({ examples, pageName }: Props) => {
         return cleanUp;
     }, [pageName, exampleName]);
 
-    const handleExampleSelect = (exampleName: string) => {
-        setCurrentExampleName(exampleName);
+    const handleExampleSelect = (name: string) => {
+        setCurrentExampleName(name);
     };
 
     const footerChildren = (

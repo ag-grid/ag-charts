@@ -49,9 +49,9 @@ export function ApiReferencePage({
         navigate({ pathname: location?.pathname, hash: location?.hash }, { state: selection, replace: true });
     }, []);
 
-    useHistory(({ location, action }) => {
-        if (action === 'POP' && location.state) {
-            setSelection(location.state as NavigationData);
+    useHistory(({ location: historyLocation, action }) => {
+        if (action === 'POP' && historyLocation.state) {
+            setSelection(historyLocation.state as NavigationData);
         }
     });
 
