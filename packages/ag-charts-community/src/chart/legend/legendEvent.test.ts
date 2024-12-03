@@ -171,5 +171,24 @@ describe('LegendEvent', () => {
             expect(seriesVisibilityChange).not.toBeCalled();
             await compare();
         });
+
+        test('seriesVisibilityChange preventDefault', async () => {
+            const legendItemClick = jest.fn((_event: AgChartLegendClickEvent) => {});
+            const seriesVisibilityChange = jest.fn((event: AgSeriesVisibilityChange) => {
+                expect(event.defaultPrevented).toEqual(false);
+                event.preventDefault();
+                expect(event.defaultPrevented).toEqual(true);
+            });
+
+            chart = await createChart({
+                ...OPTIONS,
+                listeners: { seriesVisibilityChange },
+                legend: { listeners: { legendItemClick } },
+            });
+            clickAction(355, 570)(chart);
+            expect(legendItemClick).toBeCalledTimes(1);
+            expect(seriesVisibilityChange).toBeCalledTimes(1);
+            await compare();
+        });
     });
 });
