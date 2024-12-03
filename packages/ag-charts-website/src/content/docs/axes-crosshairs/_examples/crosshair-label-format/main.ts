@@ -2,7 +2,7 @@ import { AgCartesianChartOptions, AgCharts, AgNumberAxisOptions, AgTimeAxisOptio
 
 import { getData } from './data';
 
-const options = {
+const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
     theme: {
@@ -54,7 +54,7 @@ const options = {
             crosshair: {
                 enabled: true,
             },
-        } as AgTimeAxisOptions,
+        },
         {
             position: 'right',
             type: 'number',
@@ -70,17 +70,17 @@ const options = {
             crosshair: {
                 enabled: false,
             },
-        } as AgNumberAxisOptions,
+        },
     ],
     tooltip: {
         enabled: false,
     },
-} satisfies AgCartesianChartOptions;
+};
 
 const chart = AgCharts.create(options);
 
 function crosshairLabelFormat() {
-    const crosshair = options.axes[0].crosshair!;
+    const crosshair = options.axes![0].crosshair! as AgTimeAxisOptions;
     crosshair.label = {
         format: `%d %b '%y`,
     };
@@ -88,7 +88,7 @@ function crosshairLabelFormat() {
 }
 
 function axisLabelFormat() {
-    const axes0 = options.axes[0];
+    const axes0 = options.axes![0] as AgTimeAxisOptions;
     const crosshair = axes0.crosshair!;
     if (crosshair.label && crosshair.label.format) {
         delete crosshair.label.format;
@@ -98,7 +98,7 @@ function axisLabelFormat() {
 }
 
 function defaultFormat() {
-    const axes0 = options.axes[0];
+    const axes0 = options.axes![0] as AgTimeAxisOptions;
     const crosshair = axes0.crosshair!;
     if (crosshair.label && crosshair.label.format) {
         delete crosshair.label.format;
