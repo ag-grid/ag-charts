@@ -152,8 +152,6 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
     usesPlacedLabels?: boolean;
 };
 
-class SeriesVisibilityChangePreventedError extends Error {}
-
 export abstract class Series<
         TDatum extends SeriesNodeDatum,
         TProps extends SeriesProperties<any>,
@@ -267,27 +265,26 @@ export abstract class Series<
         return this._data ?? this._chartData;
     }
 
-    private setVisiblePreventable(newVisibility: boolean) {
+    private shouldPreventVisibilityChange(newVisibility: boolean): boolean {
         const oldVisibilty = this.visible;
-        if (oldVisibilty === newVisibility) return;
+        if (oldVisibilty === newVisibility) return false;
 
         const event = this.makePreventableSeriesVisibilityChange(newVisibility);
         this.fireEvent(event);
-        if (event.defaultPrevented) throw new SeriesVisibilityChangePreventedError();
+        return event.defaultPrevented;
     }
 
     set visible(newVisibility: boolean) {
-        try {
-            this.setVisiblePreventable(newVisibility);
+        if (this.shouldPreventVisibilityChange(newVisibility)) return;
+        this.setVisible(newVisibility);
+    }
 
-            // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
-            this.properties.visible = newVisibility;
-            this.ctx.legendManager.toggleItem({ enabled: newVisibility, seriesId: this.id });
-            this.ctx.legendManager.update();
-            this.visibleMaybeChanged();
-        } catch (e: unknown) {
-            if (!(e instanceof SeriesVisibilityChangePreventedError)) throw e;
-        }
+    private setVisible(newVisibility: boolean) {
+        // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
+        this.properties.visible = newVisibility;
+        this.ctx.legendManager.toggleItem({ enabled: newVisibility, seriesId: this.id });
+        this.ctx.legendManager.update();
+        this.visibleMaybeChanged();
     }
 
     get visible() {
@@ -707,20 +704,18 @@ export abstract class Series<
         itemId: unknown,
         legendItemName: string | undefined
     ): void {
-        try {
-            if (enabled || legendType !== 'category') {
-                this.visible = enabled;
-            } else {
-                this.setVisiblePreventable(enabled);
-            }
-            this.nodeDataRefresh = true;
-            this._pickNodeCache.clear();
-            this.dispatch('visibility-changed', { id, enabled });
-
-            this.ctx.legendManager.toggleItem({ enabled, seriesId: this.id, itemId, legendItemName });
-        } catch (e: unknown) {
-            if (!(e instanceof SeriesVisibilityChangePreventedError)) throw e;
+        if (this.shouldPreventVisibilityChange(enabled)) {
+            return;
         }
+
+        if (enabled || legendType !== 'category') {
+            this.setVisible(enabled);
+        }
+        this.nodeDataRefresh = true;
+        this._pickNodeCache.clear();
+        this.dispatch('visibility-changed', { id, enabled });
+
+        this.ctx.legendManager.toggleItem({ enabled, seriesId: this.id, itemId, legendItemName });
     }
 
     isEnabled() {
