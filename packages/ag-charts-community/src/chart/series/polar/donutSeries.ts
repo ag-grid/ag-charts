@@ -1549,7 +1549,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         const { itemSelection, highlightSelection, phantomSelection, processedData, radiusScale, previousRadiusScale } =
             this;
         const { animationManager } = this.ctx;
-        const dataDiff = processedData?.reduced?.diff;
+        const dataDiff = processedData?.reduced?.diff?.[this.id];
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
