@@ -90,7 +90,8 @@ describe('LegendEvent', () => {
         let handler: jest.Mock;
 
         beforeEach(() => {
-            handler = jest.fn((event: AgChartLegendClickEvent | AgChartLegendDoubleClickEvent) => {
+            type Events = AgSeriesVisibilityChange | AgChartLegendClickEvent | AgChartLegendDoubleClickEvent;
+            handler = jest.fn((event: Events) => {
                 expect(() => ((event as any).defaultPrevented = false)).toThrow(TypeError);
             });
         });
@@ -103,6 +104,12 @@ describe('LegendEvent', () => {
 
         test('dblclick', async () => {
             chart = await createChart({ ...OPTIONS, legend: { listeners: { legendItemDoubleClick: handler } } });
+            doubleClickAction(355, 570)(chart);
+            expect(handler).toBeCalledTimes(1);
+        });
+
+        test('visiblityChange', async () => {
+            chart = await createChart({ ...OPTIONS, listeners: { seriesVisibilityChange: handler } });
             doubleClickAction(355, 570)(chart);
             expect(handler).toBeCalledTimes(1);
         });
