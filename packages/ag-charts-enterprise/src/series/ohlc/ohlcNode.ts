@@ -59,7 +59,8 @@ export class OhlcBaseNode extends Path implements _ModuleSupport.DistantObject {
             yOpen = this.align(yOpen);
             yClose = this.align(yClose);
 
-            const halfWidth = this.align(centerX, width / 2);
+            // AG-13372 (1.25dpr comment)
+            const halfWidth = this.align(width / 2);
             x0 = centerX - halfWidth;
             x1 = centerX + halfWidth;
             y0 = this.align(y);
