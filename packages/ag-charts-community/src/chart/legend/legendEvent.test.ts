@@ -68,7 +68,7 @@ describe('LegendEvent', () => {
             });
 
             chart = await createChart({ ...OPTIONS, legend: { listeners: { legendItemClick } } });
-            clickAction(355, 570)(chart);
+            clickAction(355, 575)(chart);
             expect(legendItemClick).toBeCalledTimes(1);
         });
 
@@ -83,7 +83,7 @@ describe('LegendEvent', () => {
             });
 
             chart = await createChart({ ...OPTIONS, legend: { listeners: { legendItemDoubleClick } } });
-            doubleClickAction(355, 570)(chart);
+            doubleClickAction(355, 575)(chart);
             expect(legendItemDoubleClick).toBeCalledTimes(1);
         });
 
@@ -97,7 +97,7 @@ describe('LegendEvent', () => {
             });
 
             chart = await createChart({ ...OPTIONS, listeners: { seriesVisibilityChange } });
-            clickAction(355, 570)(chart);
+            clickAction(355, 575)(chart);
             expect(seriesVisibilityChange).toBeCalledTimes(1);
         });
     });
@@ -114,19 +114,19 @@ describe('LegendEvent', () => {
 
         test('click', async () => {
             chart = await createChart({ ...OPTIONS, legend: { listeners: { legendItemClick: handler } } });
-            clickAction(355, 570)(chart);
+            clickAction(355, 575)(chart);
             expect(handler).toBeCalledTimes(1);
         });
 
         test('dblclick', async () => {
             chart = await createChart({ ...OPTIONS, legend: { listeners: { legendItemDoubleClick: handler } } });
-            doubleClickAction(355, 570)(chart);
+            doubleClickAction(355, 575)(chart);
             expect(handler).toBeCalledTimes(1);
         });
 
         test('visiblityChange', async () => {
             chart = await createChart({ ...OPTIONS, listeners: { seriesVisibilityChange: handler } });
-            clickAction(355, 570)(chart);
+            clickAction(355, 575)(chart);
             expect(handler).toBeCalledTimes(1);
         });
     });
@@ -148,7 +148,7 @@ describe('LegendEvent', () => {
                 listeners: { seriesVisibilityChange },
                 legend: { listeners: { legendItemClick } },
             });
-            clickAction(355, 570)(chart);
+            clickAction(355, 575)(chart);
             expect(legendItemClick).toBeCalledTimes(1);
             expect(seriesVisibilityChange).toBeCalledTimes(1);
         });
@@ -166,7 +166,7 @@ describe('LegendEvent', () => {
                 listeners: { seriesVisibilityChange },
                 legend: { listeners: { legendItemClick } },
             });
-            clickAction(355, 570)(chart);
+            clickAction(355, 575)(chart);
             expect(legendItemClick).toBeCalledTimes(1);
             expect(seriesVisibilityChange).not.toBeCalled();
             await compare();
@@ -185,7 +185,7 @@ describe('LegendEvent', () => {
                 listeners: { seriesVisibilityChange },
                 legend: { listeners: { legendItemClick } },
             });
-            clickAction(355, 570)(chart);
+            clickAction(355, 575)(chart);
             expect(legendItemClick).toBeCalledTimes(1);
             expect(seriesVisibilityChange).toBeCalledTimes(1);
             await compare();
