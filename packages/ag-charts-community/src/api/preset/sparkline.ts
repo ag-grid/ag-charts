@@ -1,13 +1,18 @@
 import {
+    type AgAreaSeriesOptions,
+    type AgAreaSeriesTooltipRendererParams,
     type AgAxisGridLineOptions,
+    type AgBarSeriesOptions,
+    type AgBarSeriesTooltipRendererParams,
     type AgBaseSparklinePresetOptions,
     type AgCartesianAxisOptions,
     type AgCartesianChartOptions,
-    type AgCartesianSeriesOptions,
     type AgCategoryAxisOptions,
     type AgChartTheme,
     type AgChartThemeName,
     type AgCommonThemeableAxisOptions,
+    type AgLineSeriesOptions,
+    type AgLineSeriesTooltipRendererParams,
     type AgNumberAxisOptions,
     type AgSparklineAxisOptions,
     type AgSparklineOptions,
@@ -181,15 +186,16 @@ function createInitialBaseTheme(
 export function sparklineDataPreset(data: any[] | undefined): {
     data: any[] | undefined;
     series?: { xKey: string; yKey: string }[];
+    datumKey?: string;
 } {
     if (Array.isArray(data) && data.length !== 0) {
         const firstItem = data[0];
         if (typeof firstItem === 'number') {
             const mappedData = data.map((y, x) => ({ x, y }));
-            return { data: mappedData, series: [{ xKey: 'x', yKey: 'y' }] };
+            return { data: mappedData, series: [{ xKey: 'x', yKey: 'y' }], datumKey: 'y' };
         } else if (Array.isArray(firstItem)) {
-            const mappedData = data.map(([x, y]) => ({ x, y }));
-            return { data: mappedData, series: [{ xKey: 'x', yKey: 'y' }] };
+            const mappedData = data.map((datum) => ({ x: datum[0], y: datum[1], datum }));
+            return { data: mappedData, series: [{ xKey: 'x', yKey: 'y' }], datumKey: 'datum' };
         }
     }
     return { data };
@@ -282,6 +288,8 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         axis,
         min,
         max,
+        tooltip,
+        context,
         ...optsRest
     } = opts as any as AgBaseSparklinePresetOptions;
 
@@ -295,6 +303,8 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         minWidth,
         padding,
         width,
+        tooltip: IGNORED_PROP,
+        context: IGNORED_PROP,
         data: IGNORED_PROP,
         crosshair: IGNORED_PROP,
         axis: IGNORED_PROP,
@@ -303,15 +313,44 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         theme: IGNORED_PROP,
     });
 
-    const { data, series: [seriesOverrides] = [] } = sparklineDataPreset(baseData);
+    const { data, series: [seriesOverrides] = [], datumKey } = sparklineDataPreset(baseData);
 
-    const seriesOptions = optsRest as any as AgCartesianSeriesOptions;
+    const seriesOptions = optsRest as any as AgBarSeriesOptions | AgLineSeriesOptions | AgAreaSeriesOptions;
 
     // Assign is safe as it comes from a rest object
     if (seriesOverrides != null) Object.assign(seriesOptions, seriesOverrides);
+    seriesOptions.tooltip = {
+        ...tooltip,
+        renderer(
+            params:
+                | AgBarSeriesTooltipRendererParams
+                | AgLineSeriesTooltipRendererParams
+                | AgAreaSeriesTooltipRendererParams
+        ) {
+            const xValue = params.datum[params.xKey];
+            const yValue = params.datum[params.yKey];
+            const datum = datumKey != null ? params.datum[datumKey] : params.datum;
+
+            const userContent = tooltip?.renderer?.({ context, datum, xValue, yValue });
+            if (typeof userContent === 'string') return userContent;
+
+            const title = userContent?.title;
+            const content = userContent?.content;
+            return title != null && content != null
+                ? {
+                      heading: undefined,
+                      title: undefined,
+                      data: [{ label: title, value: content }],
+                  }
+                : {
+                      heading: title ?? content ?? yValue.toFixed(2),
+                      title: undefined,
+                      data: [],
+                  };
+        },
+    };
 
     chartOpts.tooltip = {
-        ...chartOpts.tooltip,
         class: 'ag-chart-tooltip--compact',
     };
     chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME);
