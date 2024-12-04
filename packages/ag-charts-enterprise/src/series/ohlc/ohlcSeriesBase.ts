@@ -342,13 +342,18 @@ export abstract class OhlcSeriesBase<
             }
         } else {
             const { maxRange, indexData } = dataAggregationFilter;
-            const [start, end] = visibleRangeIndices(maxRange, xAxis.range, (index) => {
+            let [start, end] = visibleRangeIndices(maxRange, xAxis.range, (index) => {
                 const aggIndex = index * SPAN;
                 const openIndex = indexData[aggIndex + OPEN];
                 const closeIndex = indexData[aggIndex + CLOSE];
                 if (openIndex === -1) return;
                 return [xPosition(openIndex), xPosition(closeIndex) + effectiveBarWidth];
             });
+            // @todo(AG-13575) Remove this if block
+            if (processedData.rawData.length < 1e3) {
+                start = 0;
+                end = processedData.rawData.length;
+            }
 
             for (let i = start; i < end; i += 1) {
                 const aggIndex = i * SPAN;

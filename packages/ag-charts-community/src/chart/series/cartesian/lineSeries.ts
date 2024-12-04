@@ -382,6 +382,11 @@ export class LineSeries extends CartesianSeries<
         let [start, end] = this.visibleRangeIndices(xAxis.range, indices);
         start = Math.max(start - 1, 0);
         end = Math.min(end + 1, indices?.length ?? xValues.length);
+        // @todo(AG-13575) Remove this if block
+        if (processedData.rawData.length < 1e3) {
+            start = 0;
+            end = processedData.rawData.length;
+        }
         if (indices == null) {
             spanPoints = [];
         }
