@@ -2,7 +2,13 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { Navigator } from './navigator';
 
-const { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } = _ModuleSupport.ThemeSymbols;
+const {
+    DEFAULT_FONT_FAMILY,
+    DEFAULT_LABEL_COLOUR,
+    DEFAULT_INVERTED_BACKGROUND_COLOUR,
+    DEFAULT_BACKGROUND_COLOUR,
+    DEFAULT_NAVIGATOR_STROKE,
+} = _ModuleSupport.ThemeSymbols;
 
 export const NavigatorModule: _ModuleSupport.RootModule = {
     type: 'root',
@@ -14,30 +20,29 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
     themeTemplate: {
         navigator: {
             enabled: false,
-            height: 30,
+            height: 18,
+            cornerRadius: 4,
             mask: {
-                fill: '#999999',
-                stroke: '#999999',
+                fill: DEFAULT_INVERTED_BACKGROUND_COLOUR,
+                fillOpacity: 0.1,
+                stroke: DEFAULT_NAVIGATOR_STROKE,
                 strokeWidth: 1,
-                fillOpacity: 0.2,
             },
             minHandle: {
-                fill: '#f2f2f2',
-                stroke: '#999999',
+                fill: DEFAULT_BACKGROUND_COLOUR,
+                stroke: DEFAULT_NAVIGATOR_STROKE,
                 strokeWidth: 1,
-                width: 9,
-                height: 16,
-                gripLineGap: 1,
-                gripLineLength: 8,
+                width: 12,
+                height: 24,
+                cornerRadius: 4,
             },
             maxHandle: {
-                fill: '#f2f2f2',
-                stroke: '#999999',
+                fill: DEFAULT_BACKGROUND_COLOUR,
+                stroke: DEFAULT_NAVIGATOR_STROKE,
                 strokeWidth: 1,
-                width: 9,
-                height: 16,
-                gripLineGap: 1,
-                gripLineLength: 8,
+                width: 12,
+                height: 24,
+                cornerRadius: 4,
             },
             miniChart: {
                 enabled: false,

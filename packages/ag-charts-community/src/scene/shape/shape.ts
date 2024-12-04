@@ -12,6 +12,7 @@ export type CanvasContext = CanvasFillStrokeStyles &
     CanvasShadowStyles &
     CanvasPathDrawingStyles &
     CanvasDrawPath &
+    CanvasPath &
     CanvasTransform &
     CanvasState;
 

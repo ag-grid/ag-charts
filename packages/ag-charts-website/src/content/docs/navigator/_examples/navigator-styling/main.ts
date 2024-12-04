@@ -77,8 +77,6 @@ const options: AgChartOptions = {
             stroke: 'blue',
             width: 16,
             height: 30,
-            gripLineGap: 4,
-            gripLineLength: 12,
             strokeWidth: 2,
         },
         maxHandle: {

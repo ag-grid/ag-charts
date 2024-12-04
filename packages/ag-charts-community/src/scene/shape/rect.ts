@@ -47,7 +47,7 @@ const cornerEdges = (
     return { leading0, leading1, trailing0, trailing1, leadingClipped, trailingClipped };
 };
 
-const insetCornerRadiusRect = (
+export const clippedRoundRect = (
     path: ExtendedPath2D,
     x: number,
     y: number,
@@ -383,8 +383,8 @@ export class Rect extends Path implements DistantObject {
                     h > 0 &&
                     (adjustedClipBBox == null || (adjustedClipBBox?.width > 0 && adjustedClipBBox?.height > 0))
                 ) {
-                    insetCornerRadiusRect(path, x, y, w, h, cornerRadii, adjustedClipBBox);
-                    insetCornerRadiusRect(borderPath, x, y, w, h, cornerRadii, adjustedClipBBox);
+                    clippedRoundRect(path, x, y, w, h, cornerRadii, adjustedClipBBox);
+                    clippedRoundRect(borderPath, x, y, w, h, cornerRadii, adjustedClipBBox);
                 }
             } else {
                 // Skip the fill and just render the stroke.
@@ -398,7 +398,7 @@ export class Rect extends Path implements DistantObject {
             // No borderPath needed, and thus no clipPath needed either. Fill to full extent of
             // Rect.
             this.borderClipPath = undefined;
-            insetCornerRadiusRect(path, x, y, w, h, cornerRadii, clipBBox);
+            clippedRoundRect(path, x, y, w, h, cornerRadii, clipBBox);
         }
 
         // Path's isPointInPath and distanceSquared are expensive computations,
