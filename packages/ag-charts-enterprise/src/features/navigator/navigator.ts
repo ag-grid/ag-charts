@@ -116,7 +116,8 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
 
         this.domProxy.updateVisibility(this.enabled);
         if (this.enabled) {
-            this.layoutNodes(x, y, width, height);
+            const { _min: min, _max: max } = this.domProxy;
+            this.layoutNodes(x, y, width, height, min, max);
             this.domProxy.updateBounds({ x, y, width, height });
         }
 
@@ -170,15 +171,18 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
     }
 
     private onZoomChange(event: _ModuleSupport.ZoomChangeEvent) {
-        const { x } = event;
-        if (!x) return;
+        const { x: xZoom } = event;
+        if (!xZoom) return;
 
-        this.domProxy.updateMinMax(x.min, x.max);
+        const { x, y, width, height } = this;
+        const { min, max } = xZoom;
+
+        this.domProxy.updateMinMax(min, max);
+        this.layoutNodes(x, y, width, height, min, max);
     }
 
-    private layoutNodes(x: number, y: number, width: number, height: number) {
+    private layoutNodes(x: number, y: number, width: number, height: number, min: number, max: number) {
         const { rangeSelector, mask, minHandle, maxHandle } = this;
-        const { _min: min, _max: max } = this.domProxy;
 
         mask.layout(x, y, width, height, min, max);
         rangeSelector.layout(x, y, width, height, minHandle.width / 2, maxHandle.width / 2);
