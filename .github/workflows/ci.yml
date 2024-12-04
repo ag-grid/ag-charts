@@ -123,6 +123,7 @@ jobs:
 
                   pkg_matrix=$(node ./tools/test/calculate-pkg-shards.js)
                   echo "pkg_matrix=${pkg_matrix}" >> $GITHUB_OUTPUT
+                  echo "Package test matrix determined to be: ${pkg_matrix}"
 
     test:
         runs-on: ubuntu-24.04
