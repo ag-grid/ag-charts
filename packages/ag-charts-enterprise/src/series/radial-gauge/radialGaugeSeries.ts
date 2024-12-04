@@ -11,6 +11,7 @@ import {
 
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { LineMarker } from '../gauge-util/lineMarker';
+import { type UnknownGaugeNodeDatum, parseUnknownGaugeNodeDatum } from '../gauge-util/properties';
 import { type GaugeStopProperties, getColorStops } from '../gauge-util/stops';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
@@ -1133,18 +1134,13 @@ export class RadialGaugeSeries
         return [];
     }
 
-    override getTooltipContent(
-        nodeDatum: _ModuleSupport.SeriesNodeDatum
-    ): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: UnknownGaugeNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
         const { id: seriesId, properties } = this;
         const { tooltip } = properties;
 
         if (!properties.isValid()) return;
 
-        const highlightDatum = this.highlightDatum(nodeDatum);
-
-        const value = highlightDatum?.value ?? properties.value;
-        const text = highlightDatum?.text;
+        const { value = properties.value, text = properties.label.text } = parseUnknownGaugeNodeDatum(nodeDatum);
 
         return tooltip.formatTooltip(
             {
