@@ -4,8 +4,6 @@ interface AgChartEvent<T extends string> {
 }
 
 export interface AgPreventableEvent {
-    /** True if preventDefault() was called on this event. */
-    readonly defaultPrevented: boolean;
     /** Prevent the AG Charts built-in default event handlers from running. */
     preventDefault(): void;
 }
