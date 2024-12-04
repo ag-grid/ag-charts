@@ -79,7 +79,7 @@ const toolbar: AgAnnotationsToolbar = {
             value: 'line-menu',
         },
         {
-            icon: 'fibonacci-drawing',
+            icon: 'fibonacci-retracement-drawing',
             tooltip: 'toolbarAnnotationsFibonacciAnnotations',
             value: 'fibonacci-menu',
         },
