@@ -338,9 +338,10 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
             const content = userContent?.content;
             return title != null && content != null
                 ? {
-                      heading: undefined,
+                      heading: title,
                       title: undefined,
-                      data: [{ label: title, value: content }],
+                      // Undocumented 'compact' tooltip mode
+                      data: [{ label: undefined!, value: content }],
                   }
                 : {
                       heading: title ?? content ?? yValue.toFixed(2),
