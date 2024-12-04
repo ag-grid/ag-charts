@@ -10,6 +10,7 @@ import {
     DATA_BROWSER_MARKET_SHARE,
     DATA_BROWSER_MARKET_SHARE_MISSING_FIRST_Y,
     DATA_BROWSER_MARKET_SHARE_MISSING_X,
+    DATA_BROWSER_MARKET_SHARE_ZEROES_X,
     DATA_INTERNET_EXPLORER_MARKET_SHARE_BAD_Y_VALUE,
     DATA_MEAN_SEA_LEVEL,
     DATA_MISSING_X,
@@ -2250,6 +2251,122 @@ export const NORMALISED_STACKED_AREA: AgCartesianChartOptions = {
             },
             normalizedTo: 100,
             stacked: true,
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+};
+
+export const NORMALISED_STACKED_AREA_WITH_ZEROES: AgCartesianChartOptions = {
+    data: DATA_BROWSER_MARKET_SHARE_ZEROES_X,
+    series: [
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'ie',
+            marker: {
+                size: 5,
+            },
+            normalizedTo: 100,
+            stacked: true,
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'firefox',
+            marker: {
+                size: 5,
+            },
+            normalizedTo: 100,
+            stacked: true,
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'safari',
+            marker: {
+                size: 5,
+            },
+            normalizedTo: 100,
+            stacked: true,
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'chrome',
+            marker: {
+                size: 5,
+            },
+            normalizedTo: 100,
+            stacked: true,
+        },
+    ],
+    axes: [
+        {
+            type: 'category',
+            position: 'bottom',
+        },
+        {
+            type: 'number',
+            position: 'left',
+        },
+    ],
+};
+
+export const NORMALISED_STACKED_AREA_CONNECTED: AgCartesianChartOptions = {
+    data: DATA_BROWSER_MARKET_SHARE_MISSING_X,
+    series: [
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'ie',
+            marker: {
+                size: 5,
+            },
+            normalizedTo: 100,
+            stacked: true,
+            connectMissingData: true,
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'firefox',
+            marker: {
+                size: 5,
+            },
+            normalizedTo: 100,
+            stacked: true,
+            connectMissingData: true,
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'safari',
+            marker: {
+                size: 5,
+            },
+            normalizedTo: 100,
+            stacked: true,
+            connectMissingData: true,
+        },
+        {
+            type: 'area',
+            xKey: 'year',
+            yKey: 'chrome',
+            marker: {
+                size: 5,
+            },
+            normalizedTo: 100,
+            stacked: true,
+            connectMissingData: true,
         },
     ],
     axes: [

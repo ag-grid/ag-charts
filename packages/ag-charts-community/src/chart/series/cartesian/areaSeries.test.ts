@@ -177,6 +177,14 @@ const EXAMPLES: Record<string, CartesianOrPolarTestCase & { skip?: boolean }> = 
             options: examples.NORMALISED_STACKED_AREA,
             assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('area', 4) }),
         },
+        NORMALISED_STACKED_AREA_WITH_ZEROES: {
+            options: examples.NORMALISED_STACKED_AREA_WITH_ZEROES,
+            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('area', 4) }),
+        },
+        NORMALISED_STACKED_AREA_CONNECTED: {
+            options: examples.NORMALISED_STACKED_AREA_CONNECTED,
+            assertions: cartesianChartAssertions({ axisTypes: ['category', 'number'], seriesTypes: repeat('area', 4) }),
+        },
     }),
 };
 
