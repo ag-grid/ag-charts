@@ -31,13 +31,14 @@ export function matchSeriesOptions<S extends ISeries<any, any>>(
         seriesMap.get(key)?.push([s, idx++]);
     }
 
-    const optsMap = new Map<string, NonNullable<AgChartOptions['series']>[number][]>();
+    const optsMap = new Map<string, [NonNullable<AgChartOptions['series']>[number], number][]>();
+    idx = 0;
     for (const o of optSeries) {
         const key = generateKey(o.type, o, o);
         if (!optsMap.has(key)) {
             optsMap.set(key, []);
         }
-        optsMap.get(key)?.push(o);
+        optsMap.get(key)?.push([o, idx++]);
     }
 
     const overlap = [...seriesMap.keys()].some((k) => optsMap.has(k));
@@ -49,30 +50,41 @@ export function matchSeriesOptions<S extends ISeries<any, any>>(
 
     const changes = [];
     // optSeries is our desired target state, so base our working on it's ordering.
-    let targetIdx = -1;
-    for (const [key, optArray] of optsMap.entries()) {
-        for (const opts of optArray) {
-            targetIdx++;
-
+    for (const [key, optsTuples] of optsMap.entries()) {
+        for (const [opts, targetIdx] of optsTuples) {
             const seriesArray = seriesMap.get(key);
             if (seriesArray == null || seriesArray.length < 1) {
-                changes.push({ opts, idx: targetIdx, status: 'add' as const });
+                changes.push({ opts, targetIdx, idx: targetIdx, status: 'add' as const });
                 seriesMap.delete(key);
                 continue;
             }
 
-            const [outputSeries, outputIdx] = seriesArray.shift()!;
+            const [outputSeries, currentIdx] = seriesArray.shift()!;
 
-            const previousOpts = oldOptsSeries?.[outputIdx] ?? {};
+            const previousOpts = oldOptsSeries?.[currentIdx] ?? {};
             const diff = jsonDiff(previousOpts, opts ?? {}) as any;
 
             const { groupIndex, stackIndex } = diff?.seriesGrouping ?? {};
             if (groupIndex != null || stackIndex != null) {
-                changes.push({ opts, series: outputSeries, diff, idx: outputIdx, status: 'series-grouping' as const });
+                changes.push({
+                    opts,
+                    series: outputSeries,
+                    diff,
+                    targetIdx,
+                    idx: currentIdx,
+                    status: 'series-grouping' as const,
+                });
             } else if (diff) {
-                changes.push({ opts, series: outputSeries, diff, idx: outputIdx, status: 'update' as const });
+                changes.push({
+                    opts,
+                    series: outputSeries,
+                    diff,
+                    targetIdx,
+                    idx: currentIdx,
+                    status: 'update' as const,
+                });
             } else {
-                changes.push({ opts, series: outputSeries, idx: outputIdx, status: 'no-op' as const });
+                changes.push({ opts, series: outputSeries, targetIdx, idx: currentIdx, status: 'no-op' as const });
             }
 
             if (seriesArray.length === 0) {
@@ -81,8 +93,8 @@ export function matchSeriesOptions<S extends ISeries<any, any>>(
         }
     }
     for (const seriesArray of seriesMap.values()) {
-        for (const [outputSeries, outputIdx] of seriesArray) {
-            changes.push({ series: outputSeries, idx: outputIdx, status: 'remove' as const });
+        for (const [outputSeries, currentIdx] of seriesArray) {
+            changes.push({ series: outputSeries, idx: currentIdx, targetIdx: -1, status: 'remove' as const });
         }
     }
 
