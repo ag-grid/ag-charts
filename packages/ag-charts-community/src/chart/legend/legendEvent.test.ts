@@ -120,7 +120,7 @@ describe('LegendEvent', () => {
 
         test('dblclick', async () => {
             chart = await createChart({ ...OPTIONS, legend: { listeners: { legendItemDoubleClick: handler } } });
-            doubleClickAction(355, 575)(chart);
+            await doubleClickAction(355, 575)(chart);
             expect(handler).toBeCalledTimes(1);
         });
 
@@ -133,16 +133,13 @@ describe('LegendEvent', () => {
 
     describe('click and visibility change events', () => {
         test('call order', async () => {
-            let legendItemClick: jest.Mock;
-            let seriesVisibilityChange: jest.Mock;
-
-            legendItemClick = jest.fn((_event: AgChartLegendClickEvent) => {
+            const legendItemClick = jest.fn((_event: AgChartLegendClickEvent) => {
                 expect(seriesVisibilityChange).not.toBeCalled();
-            });
-            seriesVisibilityChange = jest.fn((_event: AgSeriesVisibilityChange) => {
+            })
+            const seriesVisibilityChange = jest.fn((_event: AgSeriesVisibilityChange) => {
                 expect(legendItemClick).toBeCalled();
             });
-
+;
             chart = await createChart({
                 ...OPTIONS,
                 listeners: { seriesVisibilityChange },
