@@ -1,4 +1,5 @@
 import type { Formatter } from './callbackOptions';
+import type { AgPreventableEvent } from './eventOptions';
 import type { AgMarkerShape, CssColor, FontFamily, FontSize, FontStyle, FontWeight, Opacity, PixelSize } from './types';
 
 export type AgChartLegendPosition = 'top' | 'right' | 'bottom' | 'left';
@@ -70,19 +71,13 @@ export interface AgChartLegendEvent<T extends string> {
     seriesId: string;
     /** Legend item id - usually yKey value for cartesian series. */
     itemId: string;
-    /** Whether the legend item is currently enabled or not. */
-    enabled: boolean;
     /** The browser event that triggered the legend event. */
     event: Event;
 }
 
-export interface AgChartLegendClickEvent extends AgChartLegendEvent<'click'> {
-    preventDefault(): void;
-}
+export interface AgChartLegendClickEvent extends AgChartLegendEvent<'click'>, AgPreventableEvent {}
 
-export interface AgChartLegendDoubleClickEvent extends AgChartLegendEvent<'dblclick'> {
-    preventDefault(): void;
-}
+export interface AgChartLegendDoubleClickEvent extends AgChartLegendEvent<'dblclick'>, AgPreventableEvent {}
 
 export interface AgChartLegendContextMenuEvent extends AgChartLegendEvent<'contextmenu'> {}
 

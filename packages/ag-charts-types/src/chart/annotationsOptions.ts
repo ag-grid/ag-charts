@@ -75,7 +75,7 @@ export interface AgChannelAnnotationStyles extends Extendable, Lockable, Visible
 // Fibonaccis
 export interface AgFibonacciAnnotationStyles extends AgLineAnnotationStyles {
     /** Configuration for the fibonacci ratio labels. */
-    label?: AgLineAnnotationTextOptions;
+    label?: FontOptions;
     /** Whether to show the fills between the Fibonacci range lines. */
     showFill?: boolean;
     /** Whether the Fibonacci range lines are multicoloured. */

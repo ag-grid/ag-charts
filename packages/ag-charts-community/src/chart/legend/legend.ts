@@ -56,6 +56,7 @@ import { type TooltipMeta, type TooltipPointerEvent } from '../tooltip/tooltip';
 import { ZIndexMap } from '../zIndexMap';
 import { LegendDOMProxy } from './legendDOMProxy';
 import type { CategoryLegendDatum } from './legendDatum';
+import { makeLegendItemEvent } from './legendEvent';
 import type { LegendChangeEvent } from './legendManager';
 import { LegendMarkerLabel } from './legendMarkerLabel';
 import type { LegendSymbolOptions } from './legendSymbol';
@@ -159,22 +160,6 @@ class LegendListeners extends BaseProperties implements AgChartLegendListeners {
 
 const ID_LEGEND_VISIBILITY = 'legend-visibility';
 const ID_LEGEND_OTHER_SERIES = 'legend-other-series';
-
-class LegendItemEvent<Type extends 'click' | 'dblclick'> {
-    defaultPrevented = false;
-
-    constructor(
-        readonly type: Type,
-        readonly enabled: boolean,
-        readonly itemId: string,
-        readonly seriesId: string,
-        readonly event: Event
-    ) {}
-
-    preventDefault() {
-        this.defaultPrevented = true;
-    }
-}
 
 export class Legend extends BaseProperties {
     static readonly className = 'Legend';
@@ -967,7 +952,7 @@ export class Legend extends BaseProperties {
         }
 
         let newEnabled = enabled;
-        const clickEvent = new LegendItemEvent('click', newEnabled, itemId, series.id, event);
+        const clickEvent = makeLegendItemEvent('click', itemId, series.id, event);
         legendItemClick?.(clickEvent);
 
         if (clickEvent.defaultPrevented) return true;
@@ -1033,7 +1018,7 @@ export class Legend extends BaseProperties {
             return false;
         }
 
-        const doubleClickEvent = new LegendItemEvent('dblclick', true, itemId, series.id, event);
+        const doubleClickEvent = makeLegendItemEvent('dblclick', itemId, series.id, event);
         legendItemDoubleClick?.(doubleClickEvent);
 
         if (doubleClickEvent.defaultPrevented) return true;

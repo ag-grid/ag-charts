@@ -102,7 +102,7 @@ export class AnnotationsToolbar extends _ModuleSupport.BaseProperties {
                     break;
 
                 case 'fibonacci-menu':
-                    this.updateButtonByIndex(index, { icon: 'fibonacci-drawing', value: 'fibonacci-menu' });
+                    this.updateButtonByIndex(index, { icon: 'fibonacci-retracement-drawing', value: 'fibonacci-menu' });
                     break;
 
                 case 'text-menu':

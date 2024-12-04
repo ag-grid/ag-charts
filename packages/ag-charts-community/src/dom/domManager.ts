@@ -367,12 +367,30 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         };
 
         const addStyleElement = (el: HTMLElement) => {
-            for (const child of el.children as any as Iterable<Element>) {
+            const metaElements = new Set(['TITLE', 'META']);
+            let skippingMetaElements = true;
+            let insertAfterEl: HTMLElement | undefined;
+            for (const child of el.children as any as Iterable<HTMLElement>) {
+                if (skippingMetaElements && metaElements.has(child.tagName)) {
+                    insertAfterEl = child;
+                    continue;
+                }
+
+                skippingMetaElements = false;
+
                 if (checkId(child)) return;
+
+                if (child.hasAttribute(dataAttribute)) {
+                    insertAfterEl = child;
+                }
             }
 
             const styleEl = createElement('style');
-            el.appendChild(styleEl);
+            if (insertAfterEl != null) {
+                el.insertBefore(styleEl, insertAfterEl.nextSibling);
+            } else {
+                el.prepend(styleEl);
+            }
             return styleEl;
         };
 
