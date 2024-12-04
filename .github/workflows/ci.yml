@@ -385,7 +385,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.build_lint.outputs.test_pkg_matrix )}}
-        if: github.ref == 'refs/heads/latest'
+        if: github.ref == 'refs/heads/latest' && fromJson(needs.build_lint.outputs.test_pkg_matrix ).framework.length > 0
         env:
             NX_PARALLEL: 1
             NX_BASE: ${{ needs.build_lint.outputs.nx_base }}
