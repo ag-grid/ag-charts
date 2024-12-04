@@ -99,7 +99,7 @@ class TreeNode {
  * Converts an array of ticks, where each tick has an array of labels, to a label tree.
  * Ensures that every branch matches the depth of the tree by creating empty labels.
  */
-export function ticksToTree(ticks: string[][]): TreeNode {
+function ticksToTree(ticks: string[][]): TreeNode {
     const maxDepth = ticks.reduce((depth, tick) => (depth < tick.length ? tick.length : depth), 0);
     const root = new TreeNode();
     for (let i = 0; i < ticks.length; i++) {

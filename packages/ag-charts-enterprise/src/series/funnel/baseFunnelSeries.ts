@@ -57,7 +57,7 @@ export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum
     readonly visible: boolean;
 }
 
-export interface FunnelConnectorDatum {
+interface FunnelConnectorDatum {
     readonly datum: FunnelNodeDatum;
     readonly datumIndex: number;
     readonly x0: number;
@@ -71,8 +71,7 @@ export interface FunnelConnectorDatum {
     readonly opacity: number;
 }
 
-export interface FunnelContext
-    extends _ModuleSupport.CartesianSeriesNodeDataContext<FunnelNodeDatum, FunnelNodeLabelDatum> {
+interface FunnelContext extends _ModuleSupport.CartesianSeriesNodeDataContext<FunnelNodeDatum, FunnelNodeLabelDatum> {
     connectorData: FunnelConnectorDatum[];
 }
 

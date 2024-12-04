@@ -21,7 +21,7 @@ interface TextProperties {
     lineHeight?: number;
 }
 
-export interface AnimatableRectDatum {
+interface AnimatableRectDatum {
     x0: number;
     y0: number;
     x1: number;

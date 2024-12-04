@@ -23,6 +23,11 @@ type ModuleInstanceFactory<M> = (moduleContext: ModuleContext) => M;
 export type SeriesFactory = ModuleInstanceFactory<Series<any, any>>;
 export type LegendFactory = ModuleInstanceFactory<ChartLegend>;
 
+export interface RemovableModule {
+    /** Force whether this is a removable module or not, depending on user options. */
+    removable?: boolean | 'standalone-only';
+}
+
 export interface ContextModule<M extends ModuleInstance = ModuleInstance> extends BaseModule {
     type: 'context';
 
@@ -31,18 +36,15 @@ export interface ContextModule<M extends ModuleInstance = ModuleInstance> extend
     contextKey: string;
 }
 
-export interface RootModule<M extends ModuleInstance = ModuleInstance> extends BaseOptionsModule {
+export interface RootModule<M extends ModuleInstance = ModuleInstance> extends BaseOptionsModule, RemovableModule {
     type: 'root';
 
     moduleFactory: ModuleInstanceFactory<M>;
 
     themeTemplate?: object;
-
-    /** Force whether this is a removable module or not, depending on user options. */
-    removable?: boolean;
 }
 
-export interface LegendModule extends BaseOptionsModule {
+export interface LegendModule extends BaseOptionsModule, RemovableModule {
     type: 'legend';
 
     identifier: ChartLegendType;

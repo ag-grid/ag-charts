@@ -47,7 +47,7 @@ interface RadialBarLabelNodeDatum {
     textBaseline: CanvasTextBaseline;
 }
 
-export interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
+interface RadialBarNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
     readonly label?: RadialBarLabelNodeDatum;
     readonly angleValue: any;
     readonly radiusValue: any;

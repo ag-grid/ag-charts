@@ -84,10 +84,14 @@ export function removeUsedEnterpriseOptions<T extends Partial<AgChartOptions>>(o
 }
 
 export function removeUnusedEnterpriseOptions<T extends Partial<AgChartOptions>>(options: T) {
+    const integratedMode = 'mode' in options && options.mode === 'integrated';
     for (const module of moduleRegistry.byType<RootModule | LegendModule>('root', 'legend')) {
         const moduleOptions = options[module.optionsKey as keyof AgChartOptions] as { enabled?: boolean };
         const isPresentAndDisabled = moduleOptions != null && moduleOptions.enabled === false;
-        const removable = !('removable' in module) || module.removable !== false;
+        const removable =
+            !('removable' in module) ||
+            module.removable === true ||
+            (module.removable === 'standalone-only' && !integratedMode);
 
         if (isPresentAndDisabled && removable) {
             delete options[module.optionsKey as keyof AgChartOptions];

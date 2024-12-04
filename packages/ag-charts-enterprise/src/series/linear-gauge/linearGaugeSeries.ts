@@ -75,8 +75,8 @@ interface Target {
     label: TargetLabel;
 }
 
-export type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
-export type GaugeAnimationEvent = {
+type GaugeAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
+type GaugeAnimationEvent = {
     update: undefined;
     updateData: undefined;
     highlight: undefined;

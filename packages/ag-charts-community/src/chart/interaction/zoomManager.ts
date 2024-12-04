@@ -410,14 +410,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     }
 
     private applyChanges(callerId: string) {
-        const hasXChanges = Array.from(
-            this.axisZoomManagers.values(),
-            (axis) => axis.getDirection() === ChartAxisDirection.X && axis.hasChanges()
-        ).includes(true);
-
-        if (hasXChanges) {
-            this.autoScaleYZoom(callerId, false);
-        }
+        this.autoScaleYZoom(callerId, false);
 
         const changed = Array.from(this.axisZoomManagers.values(), (axis) => axis.applyChanges()).includes(true);
 

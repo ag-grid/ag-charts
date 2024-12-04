@@ -8,6 +8,7 @@ import type {
     AgPolarChartOptions,
 } from 'ag-charts-types';
 
+import { AgCharts } from '../../api/agCharts';
 import * as examples from '../test/examples';
 import * as axesExamples from '../test/examples-axes';
 import type { ChartOrProxy } from '../test/utils';
@@ -16,6 +17,7 @@ import {
     cartesianChartAssertions,
     createChart,
     extractImageData,
+    prepareTestOptions,
     repeat,
     reverseAxes,
     setupMockCanvas,
@@ -186,5 +188,16 @@ describe('Grouped Category Axis Examples', () => {
                 }
             });
         }
+    });
+
+    describe('when toggling all series off', () => {
+        it('should render correctly', async () => {
+            const options = prepareTestOptions({ ...axesExamples.GROUPED_CATEGORY_AXIS_EXAMPLE });
+            chart = AgCharts.create(options);
+            await waitForChartStability(chart);
+
+            await chart.updateDelta({ series: options.series?.map((s) => ({ ...s, visible: false })) });
+            await compare();
+        });
     });
 });

@@ -8,4 +8,5 @@ export const CommunityLegendModule: LegendModule = {
     chartTypes: ['cartesian', 'polar', 'hierarchy', 'topology', 'flow-proportion', 'standalone', 'gauge'],
     moduleFactory: (ctx) => new Legend(ctx),
     packageType: 'community',
+    removable: 'standalone-only',
 };

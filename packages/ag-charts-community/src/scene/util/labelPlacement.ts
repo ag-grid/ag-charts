@@ -33,7 +33,7 @@ export interface PlacedLabel<PLD = PointLabelDatum> extends MeasuredLabel, Reado
     readonly datum: PLD;
 }
 
-export interface LabelBounds extends Readonly<Point> {
+interface LabelBounds extends Readonly<Point> {
     readonly width: number;
     readonly height: number;
 }

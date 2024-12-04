@@ -4,7 +4,7 @@ import { clamp } from '../../util/number';
 import type { SeriesGrouping } from './seriesStateManager';
 import { SeriesZIndexMap } from './seriesZIndexMap';
 
-export interface SeriesConfig {
+interface SeriesConfig {
     internalId: string;
     seriesGrouping?: SeriesGrouping;
     contentGroup: Group;

@@ -15,9 +15,6 @@ import {
 const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, TextUtils, createDatumId, Logger, Rect, BBox } =
     _ModuleSupport;
 
-export interface SankeyNodeDataContext
-    extends _ModuleSupport.SeriesNodeDataContext<SankeyDatum, SankeyNodeLabelDatum> {}
-
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
     Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;
 

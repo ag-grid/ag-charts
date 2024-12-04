@@ -6,7 +6,7 @@ import { Logger } from '../../util/logger';
 import { isString } from '../../util/type-guards';
 import type { MementoOriginator } from '../state/memento';
 
-export type ChartTypeMemento = AgInitialStateChartType;
+type ChartTypeMemento = AgInitialStateChartType;
 
 const chartTypes: Array<AgInitialStateChartType> = [
     'candlestick',
