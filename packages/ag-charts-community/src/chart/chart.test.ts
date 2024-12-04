@@ -605,4 +605,88 @@ describe('Chart', () => {
             expect(elements[0].querySelectorAll('.ag-charts-toolbar')).toHaveLength(0);
         });
     });
+
+    describe('Combo chart series visibility updates (AG-13393)', () => {
+        let agChartInstance: AgChartProxy;
+        let options: AgCartesianChartOptions;
+
+        beforeEach(async () => {
+            options = prepareTestOptions({
+                series: [
+                    {
+                        type: 'bubble',
+                        visible: true,
+                        data: [
+                            {
+                                yValue: 1.9137,
+                                xValue: 2.25051335,
+                                sizeValue: 2250000,
+                            },
+                        ],
+                        xKey: 'xValue',
+                        yKey: 'yValue',
+                        sizeKey: 'sizeValue',
+                        yName: 'Bubble 1',
+                    },
+                    {
+                        type: 'line',
+                        data: [
+                            {
+                                x: 2.1505133499999998,
+                                y: 3.500666667451469,
+                            },
+                            {
+                                x: 2.25051335,
+                                y: 3.5414529542644857,
+                            },
+                        ],
+                        xKey: 'x',
+                        yKey: 'y',
+                        visible: true,
+                    },
+                    {
+                        type: 'bubble',
+                        data: [
+                            {
+                                yValue: 59.9805,
+                                xValue: 2.84736482,
+                                sizeValue: 491000,
+                            },
+                        ],
+                        xKey: 'xValue',
+                        yKey: 'yValue',
+                        sizeKey: 'sizeValue',
+                        visible: true,
+                        yName: 'Bubble 2',
+                    },
+                ],
+            });
+            agChartInstance = AgCharts.create(options) as AgChartProxy;
+            chart = deproxy(agChartInstance);
+            await waitForChartStability(chart);
+        });
+
+        it('should allow visibility toggling of the first series', async () => {
+            options.series![0].visible = false;
+            await agChartInstance.update(options);
+            await waitForChartStability(chart);
+
+            expect(chart.series.map((s) => s.id)).toEqual(['BubbleSeries-1', 'LineSeries-1', 'BubbleSeries-2']);
+            expect(chart.series.map((s) => s.type)).toEqual(['bubble', 'line', 'bubble']);
+            expect(chart.series.map((s) => s.visible)).toEqual([false, true, true]);
+        });
+
+        it('should allow visibility double toggling of the first series', async () => {
+            options.series![0].visible = false;
+            await agChartInstance.update(options);
+            await waitForChartStability(chart);
+            options.series![0].visible = true;
+            await agChartInstance.update(options);
+            await waitForChartStability(chart);
+
+            expect(chart.series.map((s) => s.id)).toEqual(['BubbleSeries-1', 'LineSeries-1', 'BubbleSeries-2']);
+            expect(chart.series.map((s) => s.type)).toEqual(['bubble', 'line', 'bubble']);
+            expect(chart.series.map((s) => s.visible)).toEqual([true, true, true]);
+        });
+    });
 });
