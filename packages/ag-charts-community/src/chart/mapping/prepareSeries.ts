@@ -56,23 +56,37 @@ export function matchSeriesOptions<S extends ISeries<any, any>>(
 
             const seriesArray = seriesMap.get(key);
             if (seriesArray == null || seriesArray.length < 1) {
-                changes.push({ opts, idx: targetIdx, status: 'add' as const });
+                changes.push({ opts, targetIdx, idx: targetIdx, status: 'add' as const });
                 seriesMap.delete(key);
                 continue;
             }
 
-            const [outputSeries, outputIdx] = seriesArray.shift()!;
+            const [outputSeries, currentIdx] = seriesArray.shift()!;
 
-            const previousOpts = oldOptsSeries?.[outputIdx] ?? {};
+            const previousOpts = oldOptsSeries?.[currentIdx] ?? {};
             const diff = jsonDiff(previousOpts, opts ?? {}) as any;
 
             const { groupIndex, stackIndex } = diff?.seriesGrouping ?? {};
             if (groupIndex != null || stackIndex != null) {
-                changes.push({ opts, series: outputSeries, diff, idx: outputIdx, status: 'series-grouping' as const });
+                changes.push({
+                    opts,
+                    series: outputSeries,
+                    diff,
+                    targetIdx,
+                    idx: currentIdx,
+                    status: 'series-grouping' as const,
+                });
             } else if (diff) {
-                changes.push({ opts, series: outputSeries, diff, idx: outputIdx, status: 'update' as const });
+                changes.push({
+                    opts,
+                    series: outputSeries,
+                    diff,
+                    targetIdx,
+                    idx: currentIdx,
+                    status: 'update' as const,
+                });
             } else {
-                changes.push({ opts, series: outputSeries, idx: outputIdx, status: 'no-op' as const });
+                changes.push({ opts, series: outputSeries, targetIdx, idx: currentIdx, status: 'no-op' as const });
             }
 
             if (seriesArray.length === 0) {
@@ -81,8 +95,8 @@ export function matchSeriesOptions<S extends ISeries<any, any>>(
         }
     }
     for (const seriesArray of seriesMap.values()) {
-        for (const [outputSeries, outputIdx] of seriesArray) {
-            changes.push({ series: outputSeries, idx: outputIdx, status: 'remove' as const });
+        for (const [outputSeries, currentIdx] of seriesArray) {
+            changes.push({ series: outputSeries, idx: currentIdx, targetIdx: -1, status: 'remove' as const });
         }
     }
 
