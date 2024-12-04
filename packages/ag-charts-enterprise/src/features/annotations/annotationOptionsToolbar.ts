@@ -387,8 +387,6 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     }) {
         const { buttonBounds, popoverBounds } = event;
 
-        this.hideOverlays();
-
         const colorPickerAnchor = { x: popoverBounds.x, y: popoverBounds.y + popoverBounds.height + 4 };
         const colorPickerFallbackAnchor = { y: popoverBounds.y - 4 };
         this.colorPicker.setAnchor(colorPickerAnchor, colorPickerFallbackAnchor);
