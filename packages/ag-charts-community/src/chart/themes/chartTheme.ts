@@ -280,6 +280,7 @@ export class ChartTheme {
             label: { spacing: 10, rotation: 270 },
             paddingInner: 0.4,
             groupPaddingInner: 0.2,
+            crosshair: { enabled: false },
         }),
         [CARTESIAN_AXIS_TYPE.TIME]: ChartTheme.getAxisDefaults({ gridLine: { enabled: DEFAULT_GRIDLINE_ENABLED } }),
         [CARTESIAN_AXIS_TYPE.ORDINAL_TIME]: ChartTheme.getAxisDefaults({
