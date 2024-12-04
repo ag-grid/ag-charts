@@ -96,6 +96,7 @@ interface RadialGaugeNeedleDatum {
     centerY: number;
     radius: number;
     angle: number;
+    series: RadialGaugeSeries;
 }
 interface RadialGaugeNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<RadialGaugeNodeDatum, RadialGaugeLabelDatum> {
@@ -624,6 +625,7 @@ export class RadialGaugeSeries
                 centerY,
                 radius: needleRadius,
                 angle: needleAngle,
+                series: this
             });
         }
 
