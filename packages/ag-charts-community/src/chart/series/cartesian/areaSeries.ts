@@ -200,7 +200,7 @@ export class AreaSeries extends CartesianSeries<
 
         const extraProps = [];
         if (isDefined(normalizedTo)) {
-            extraProps.push(normaliseGroupTo(Object.values(idMap), normalizedTo, 'range'));
+            extraProps.push(normaliseGroupTo(Object.values(idMap), normalizedTo, 'range', connectMissingData));
         }
         if (animationEnabled) {
             extraProps.push(animationValidation());

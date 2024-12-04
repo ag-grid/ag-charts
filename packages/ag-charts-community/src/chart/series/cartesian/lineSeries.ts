@@ -187,7 +187,7 @@ export class LineSeries extends CartesianSeries<
             );
 
             if (isDefined(normalizedTo)) {
-                props.push(normaliseGroupTo([ids[0], ids[1], ids[2]], normalizedTo, 'range'));
+                props.push(normaliseGroupTo([ids[0], ids[1], ids[2]], normalizedTo, 'range', connectMissingData));
             }
         }
 

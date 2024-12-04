@@ -184,7 +184,15 @@ export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupD
         }),
 };
 
-function normaliseFnBuilder({ normaliseTo, mode }: { normaliseTo: number; mode: 'sum' | 'range' }) {
+function normaliseFnBuilder({
+    normaliseTo,
+    mode,
+    connectMissingData,
+}: {
+    normaliseTo: number;
+    mode: 'sum' | 'range';
+    connectMissingData: boolean;
+}) {
     const normalise = (val: null | number, extent: number) => {
         if (extent === 0) return null;
         const result = ((val ?? 0) * normaliseTo) / extent;
@@ -195,7 +203,7 @@ function normaliseFnBuilder({ normaliseTo, mode }: { normaliseTo: number; mode: 
     };
 
     return () => () => (columns: any[][], valueIndexes: number[], datumIndex: number) => {
-        const extent = normaliseFindExtent(mode, columns, valueIndexes, datumIndex);
+        const extent = normaliseFindExtent(mode, connectMissingData, columns, valueIndexes, datumIndex);
         for (const valueIdx of valueIndexes) {
             const column = columns[valueIdx];
             const value: null | number | number[] | (null | number)[] = column[datumIndex];
@@ -210,11 +218,19 @@ function normaliseFnBuilder({ normaliseTo, mode }: { normaliseTo: number; mode: 
     };
 }
 
-function normaliseFindExtent(mode: 'sum' | 'range', columns: any[][], valueIndexes: number[], datumIndex: number) {
+function normaliseFindExtent(
+    mode: 'sum' | 'range',
+    connectMissingData: boolean,
+    columns: any[][],
+    valueIndexes: number[],
+    datumIndex: number
+) {
+    let hasAnyNulls = false;
     const valuesExtent = [0, 0];
     for (const valueIdx of valueIndexes) {
         const column = columns[valueIdx];
         const value: null | number | (null | number)[] = column[datumIndex];
+        hasAnyNulls ||= value == null;
         if (value == null || typeof value !== 'number') continue;
         const valIdx = value < 0 ? 0 : 1;
         if (mode === 'sum') {
@@ -227,19 +243,20 @@ function normaliseFindExtent(mode: 'sum' | 'range', columns: any[][], valueIndex
     }
 
     const extent = Math.max(Math.abs(valuesExtent[0]), valuesExtent[1]);
-    if (extent === 0) return NaN;
+    if (extent === 0 && (hasAnyNulls || connectMissingData)) return NaN;
     return extent;
 }
 
 export function normaliseGroupTo(
     matchGroupIds: string[],
     normaliseTo: number,
-    mode: 'sum' | 'range' = 'sum'
+    mode: 'sum' | 'range' = 'sum',
+    connectMissingData: boolean = false
 ): GroupValueProcessorDefinition<any, any> {
     return {
         type: 'group-value-processor',
         matchGroupIds,
-        adjust: memo({ normaliseTo, mode }, normaliseFnBuilder),
+        adjust: memo({ normaliseTo, mode, connectMissingData }, normaliseFnBuilder),
     };
 }
 
