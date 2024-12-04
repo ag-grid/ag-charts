@@ -212,7 +212,7 @@ export const annotationsTheme: AgAnnotationsThemeableOptions = {
         rangeStroke: ThemeSymbols.DEFAULT_ANNOTATION_COLOR,
         handle: { ...handle },
         text: { ...lineText, position: 'center' },
-        label: { ...font, color: undefined, position: 'center', alignment: 'left', fontSize: 10 },
+        label: { ...font, color: undefined, fontSize: 10 },
     },
 
     // Texts

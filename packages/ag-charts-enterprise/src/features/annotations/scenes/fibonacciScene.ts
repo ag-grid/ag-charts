@@ -202,7 +202,16 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
             }
 
             const { text, ...coords } = datum.label;
-            const labelProperties = { ...trendLineProperties.label, label: text };
+            const labelProperties = {
+                label: text,
+                position: 'center' as const,
+                alignment: 'left' as const,
+                color: fill,
+                fontFamily,
+                fontSize,
+                fontStyle,
+                fontWeight,
+            };
 
             updateLineText(textNode.id, line, labelProperties, coords, textNode);
 
