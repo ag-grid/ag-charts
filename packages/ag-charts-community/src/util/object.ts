@@ -140,7 +140,7 @@ export function defineSetterGetter<T, P extends string, V>(
 export function defineSetterGetter<T, P extends string, V>(
     o: T,
     p: P,
-    attributes: { set?: never, get: () => V }
+    attributes: { set?: never; get: () => V }
 ): T & { readonly [K in P]: V };
 export function defineSetterGetter<T, P extends string, V>(
     o: T,
