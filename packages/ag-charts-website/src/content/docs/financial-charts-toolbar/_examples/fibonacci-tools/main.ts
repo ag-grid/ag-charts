@@ -13,8 +13,6 @@ const options: AgFinancialChartOptions = {
         annotations: [
             {
                 type: 'fibonacci-retracement',
-                isMultiColor: true,
-                bands: 10,
                 start: {
                     x: {
                         __type: 'date',
