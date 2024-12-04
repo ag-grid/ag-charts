@@ -215,20 +215,20 @@ function normaliseFindExtent(mode: 'sum' | 'range', columns: any[][], valueIndex
     for (const valueIdx of valueIndexes) {
         const column = columns[valueIdx];
         const value: null | number | (null | number)[] = column[datumIndex];
-        if (value == null) continue;
-        // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators
-        const valueExtent = typeof value === 'number' ? value : Math.max(...value.map((v) => v ?? 0));
-        const valIdx = valueExtent < 0 ? 0 : 1;
+        if (value == null || typeof value !== 'number') continue;
+        const valIdx = value < 0 ? 0 : 1;
         if (mode === 'sum') {
-            valuesExtent[valIdx] += valueExtent;
+            valuesExtent[valIdx] += value;
         } else if (valIdx === 0) {
-            valuesExtent[valIdx] = Math.min(valuesExtent[valIdx], valueExtent);
+            valuesExtent[valIdx] = Math.min(valuesExtent[valIdx], value);
         } else {
-            valuesExtent[valIdx] = Math.max(valuesExtent[valIdx], valueExtent);
+            valuesExtent[valIdx] = Math.max(valuesExtent[valIdx], value);
         }
     }
 
-    return Math.max(Math.abs(valuesExtent[0]), valuesExtent[1]);
+    const extent = Math.max(Math.abs(valuesExtent[0]), valuesExtent[1]);
+    if (extent === 0) return NaN;
+    return extent;
 }
 
 export function normaliseGroupTo(

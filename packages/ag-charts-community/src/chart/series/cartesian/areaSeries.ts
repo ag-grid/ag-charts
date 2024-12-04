@@ -207,7 +207,7 @@ export class AreaSeries extends CartesianSeries<
         }
 
         const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
-        if ((isDefined(normalizedTo) || connectMissingData) && stackCount > 1) {
+        if (connectMissingData && stackCount > 1) {
             common.invalidValue = 0;
         }
         if (!visible) {
