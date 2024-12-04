@@ -1,6 +1,6 @@
 import type { AgChartLegendClickEvent, AgChartLegendDoubleClickEvent } from 'ag-charts-types';
 
-import { defineSetterGetter } from '../../module-support';
+import { defineSetterGetter } from '../../util/object';
 
 export function makeLegendItemEvent<T extends 'click'>(
     type: T,
