@@ -6,7 +6,7 @@ import type {
     ImageDataUrlOptions,
 } from 'ag-charts-types';
 
-import type { MementoCaretaker, MementoOriginator } from '../api/state/memento';
+import type { MementoCaretaker } from '../api/state/memento';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { moduleRegistry } from '../module/module';
 import type { ChartInternalOptionMetadata, ChartSpecialOverrides } from '../module/optionsModule';
