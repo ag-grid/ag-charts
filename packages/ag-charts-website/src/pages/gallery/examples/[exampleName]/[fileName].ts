@@ -2,6 +2,7 @@ import { getGalleryExampleFiles } from '@components/gallery/utils/pageData';
 import { getIsDev } from '@utils/env';
 import { getContentRootFileUrl } from '@utils/pages';
 import { getEntry } from 'astro:content';
+import mime from 'mime';
 
 import { getGeneratedContents } from '../../../../components/example-generator';
 
@@ -44,5 +45,10 @@ export async function GET({ params }: { params: Params }) {
     const file = files && files[fileName];
     const body = file ? file : createErrorBody({ availableFiles: files });
 
-    return new Response(body);
+    const response = new Response(body, {
+        headers: {
+            'Content-Type': mime.getType(fileName),
+        },
+    });
+    return response;
 }

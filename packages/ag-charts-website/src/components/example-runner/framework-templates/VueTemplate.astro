@@ -6,6 +6,7 @@ import { Scripts } from './lib/Scripts';
 import { Styles } from './lib/Styles';
 import { SystemJs } from './lib/SystemJs';
 import { pathJoin } from '@utils/pathJoin';
+import { getCacheBustingUrl } from '@utils/chartLibraryPaths';
 
 interface Props {
     isDev: boolean;
@@ -49,7 +50,10 @@ const startFile = pathJoin(appLocation, entryFileName);
     <head>
         <MetaData isDev={isDev} title={`Vue 3 Example - ${title}`} modifiedTimeMs={modifiedTimeMs} />
         <ExampleStyle rootSelector="#app" layout={layout} extraStyles={extraStyles} />
-        <Styles baseUrl={appLocation} files={styleFiles} />
+        <Styles
+            baseUrl={appLocation}
+            files={isDev ? styleFiles.map((file: string) => getCacheBustingUrl(file, modifiedTimeMs)) : styleFiles}
+        />
         <Fragment set:html={headFragment} />
     </head>
     <body>

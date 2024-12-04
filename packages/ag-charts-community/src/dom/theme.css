@@ -36,9 +36,10 @@
 
     /* Tooltip */
     --ag-charts-tooltip-background-color: #fafafb;
-    --ag-charts-tooltip-foreground-color: var(--ag-charts-foreground-color);
+    --ag-charts-tooltip-text-color: var(--ag-charts-foreground-color);
     --ag-charts-tooltip-border: 1px solid var(--ag-charts-border-color);
     --ag-charts-content-padding: 8px 12px;
+    --ag-charts-content-gap: 8px;
     --ag-charts-content-compact-padding: 3px 6px;
     --ag-charts-tooltip-border-radius: 4px;
 
