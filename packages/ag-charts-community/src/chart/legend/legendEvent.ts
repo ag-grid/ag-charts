@@ -1,7 +1,5 @@
 import type { AgChartLegendClickEvent, AgChartLegendDoubleClickEvent } from 'ag-charts-types';
 
-import { defineSetterGetter } from '../../util/object';
-
 export function makeLegendItemEvent<T extends 'click'>(
     type: T,
     itemId: string,
@@ -24,19 +22,16 @@ export function makeLegendItemEvent(
 ): AgChartLegendClickEvent | AgChartLegendDoubleClickEvent {
     let _defaultPrevented = false;
 
-    const that = {
+    return {
         type,
         itemId,
         seriesId,
         event,
-        preventDefault: (): void => {
+        preventDefault: () => {
             _defaultPrevented = true;
         },
-    };
-
-    return defineSetterGetter(that, 'defaultPrevented', {
-        get: function () {
+        get defaultPrevented(): boolean {
             return _defaultPrevented;
         },
-    });
+    };
 }
