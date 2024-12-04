@@ -80,7 +80,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 color: DEFAULT_MUTED_LABEL_COLOUR,
             },
             tooltip: {
-                enabled: false,
+                enabled: true,
             },
         },
         axes: {

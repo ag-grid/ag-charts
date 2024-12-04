@@ -58,7 +58,6 @@ interface TargetLabel {
     fontSize: number;
     fontFamily: string;
     spacing: number;
-    // formatter: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 }
 
 interface Target {
@@ -209,8 +208,6 @@ export class RadialGaugeSeries
             ready: {
                 updateData: 'waiting',
                 clear: 'clearing',
-                // highlight: (data) => this.animateReadyHighlight(data),
-                // highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
                 resize: () => this.animateReadyResize(),
                 reset: 'empty',
                 skip: 'ready',
@@ -226,16 +223,13 @@ export class RadialGaugeSeries
             clearing: {
                 update: {
                     target: 'empty',
-                    // action: (data) => this.animateClearingUpdateEmpty(data),
                 },
                 reset: 'empty',
                 skip: 'ready',
             },
         });
 
-        this.itemGroup.pointerEvents = PointerEvents.None;
-        this.itemTargetLabelGroup.pointerEvents = PointerEvents.None;
-        this.itemLabelGroup.pointerEvents = PointerEvents.None;
+        this.scaleGroup.pointerEvents = PointerEvents.None;
     }
 
     override get hasData(): boolean {
@@ -1137,42 +1131,6 @@ export class RadialGaugeSeries
 
     override getLegendData(): _ModuleSupport.ChartLegendDatum<any>[] {
         return [];
-    }
-
-    private readonly nodeDatum: any = { series: this, datum: {} };
-    override pickNode(
-        point: _ModuleSupport.Point,
-        intent: _ModuleSupport.SeriesNodePickIntent
-    ): _ModuleSupport.PickResult | undefined {
-        switch (intent) {
-            case 'event':
-            case 'context-menu': {
-                const sectorTarget = this.scaleGroup.pickNode(point.x, point.y);
-                return sectorTarget != null
-                    ? {
-                          pickMode: _ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH,
-                          match: sectorTarget.datum,
-                          distance: 0,
-                      }
-                    : undefined;
-            }
-            case 'tooltip':
-            case 'highlight':
-            case 'highlight-tooltip': {
-                const highlightedTarget = this.itemTargetGroup.pickNode(point.x, point.y);
-                return highlightedTarget != null
-                    ? {
-                          pickMode: _ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH,
-                          match: highlightedTarget.datum,
-                          distance: 0,
-                      }
-                    : {
-                          pickMode: _ModuleSupport.SeriesNodePickMode.NEAREST_NODE,
-                          match: this.nodeDatum,
-                          distance: 0,
-                      };
-            }
-        }
     }
 
     override getTooltipContent(
