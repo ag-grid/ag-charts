@@ -55,7 +55,6 @@ interface TargetLabel {
     fontSize: number;
     fontFamily: string;
     spacing: number;
-    // formatter: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 }
 
 interface Target {
@@ -214,8 +213,6 @@ export class LinearGaugeSeries
             ready: {
                 updateData: 'waiting',
                 clear: 'clearing',
-                // highlight: (data) => this.animateReadyHighlight(data),
-                // highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
                 resize: () => this.animateReadyResize(),
                 reset: 'empty',
                 skip: 'ready',
@@ -231,7 +228,6 @@ export class LinearGaugeSeries
             clearing: {
                 update: {
                     target: 'empty',
-                    // action: (data) => this.animateClearingUpdateEmpty(data),
                 },
                 reset: 'empty',
                 skip: 'ready',
