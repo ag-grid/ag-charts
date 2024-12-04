@@ -59,6 +59,7 @@ jobs:
             format: ${{ steps.format.outcome || '' }}
             test_count: ${{ steps.matrix.outputs.test_count }}
             test_matrix: ${{ steps.matrix.outputs.test_matrix }}
+            test_pkg_matrix: ${{ steps.matrix.outputs.pkg_matrix }}
         steps:
             - name: Checkout
               id: checkout
@@ -119,6 +120,9 @@ jobs:
                   echo "test_matrix=${matrix}" >> $GITHUB_OUTPUT
                   echo "test_count=${count}" >> $GITHUB_OUTPUT
                   echo "Test matrix determined to be: ${matrix}"
+
+                  pkg_matrix=$(node ./tools/test/calculate-pkg-shards.js)
+                  echo "pkg_matrix=${pkg_matrix}" >> $GITHUB_OUTPUT
 
     test:
         runs-on: ubuntu-24.04
@@ -379,8 +383,7 @@ jobs:
         needs: build_lint
         strategy:
             fail-fast: false
-            matrix:
-                framework: ['angular', 'react', 'vue']
+            matrix: ${{ fromJson(needs.build_lint.outputs.test_pkg_matrix )}}
         if: github.ref == 'refs/heads/latest'
         env:
             NX_PARALLEL: 1
