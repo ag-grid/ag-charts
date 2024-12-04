@@ -135,11 +135,10 @@ describe('LegendEvent', () => {
         test('call order', async () => {
             const legendItemClick = jest.fn((_event: AgChartLegendClickEvent) => {
                 expect(seriesVisibilityChange).not.toBeCalled();
-            })
+            });
             const seriesVisibilityChange = jest.fn((_event: AgSeriesVisibilityChange) => {
                 expect(legendItemClick).toBeCalled();
             });
-;
             chart = await createChart({
                 ...OPTIONS,
                 listeners: { seriesVisibilityChange },
