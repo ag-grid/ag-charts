@@ -1,4 +1,4 @@
-import type { AgErrorBarThemeableOptions } from 'ag-charts-community';
+import type { AgErrorBarThemeableOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport } from 'ag-charts-community';
 
 import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
@@ -45,7 +45,6 @@ type PickNodeDatumResult = _ModuleSupport.PickNodeDatumResult;
 type Point = _ModuleSupport.Point;
 type SeriesDataProcessedEvent = _ModuleSupport.SeriesDataProcessedEvent;
 type SeriesDataUpdateEvent = _ModuleSupport.SeriesDataUpdateEvent;
-type SeriesVisibilityEvent = _ModuleSupport.SeriesVisibilityEvent;
 type PropertyDefinitionOpts = Parameters<_ModuleSupport.SeriesOptionInstance['getPropertyDefinitions']>[0];
 
 export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.SeriesOptionInstance {
@@ -73,10 +72,10 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.selection = _ModuleSupport.Selection.select(this.groupNode, () => this.errorBarFactory());
         annotationSelections.add(this.selection);
 
+        series.addEventListener('seriesVisibilityChange', (e: AgSeriesVisibilityChange) => this.onToggleSeriesItem(e));
         this.destroyFns.push(
             series.addListener('data-processed', (e: SeriesDataProcessedEvent) => this.onDataProcessed(e)),
             series.addListener('data-update', (e: SeriesDataUpdateEvent) => this.onDataUpdate(e)),
-            series.addListener('visibility-changed', (e: SeriesVisibilityEvent) => this.onToggleSeriesItem(e)),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             () => annotationGroup.removeChild(this.groupNode),
             () => annotationSelections.delete(this.selection)
@@ -342,8 +341,8 @@ export class ErrorBars extends _ModuleSupport.BaseModuleInstance implements _Mod
         return { xLowerKey, xLowerName, xUpperKey, xUpperName, yLowerKey, yLowerName, yUpperKey, yUpperName };
     }
 
-    private onToggleSeriesItem(event: SeriesVisibilityEvent): void {
-        this.groupNode.visible = event.enabled;
+    private onToggleSeriesItem(event: AgSeriesVisibilityChange): void {
+        this.groupNode.visible = event.visible;
     }
 
     private makeStyle(baseStyle: ErrorBarStylingOptions): AgErrorBarThemeableOptions {

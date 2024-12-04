@@ -23,7 +23,7 @@ import { Listeners } from '../../util/listeners';
 import { LRUCache } from '../../util/lruCache';
 import { type DistantObject, nearestSquared } from '../../util/nearest';
 import { mergeDefaults } from '../../util/object';
-import type { TypedEvent } from '../../util/observable';
+import type { TypedEvent, TypedEventListener } from '../../util/observable';
 import { Observable } from '../../util/observable';
 import { ActionOnSet } from '../../util/proxy';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
@@ -253,27 +253,7 @@ export abstract class Series<
         return this._data ?? this._chartData;
     }
 
-    private shouldPreventVisibilityChange(newVisibility: boolean): boolean {
-        const oldVisibilty = this.visible;
-        if (oldVisibilty === newVisibility) return false;
-
-        let defaultPrevented = false;
-        const event: AgSeriesVisibilityChange = {
-            type: 'seriesVisibilityChange',
-            seriesId: this.id,
-            visible: newVisibility,
-            preventDefault: () => (defaultPrevented = true),
-        };
-        this.fireEvent(event);
-        return defaultPrevented;
-    }
-
     set visible(newVisibility: boolean) {
-        if (this.shouldPreventVisibilityChange(newVisibility)) return;
-        this.setVisible(newVisibility);
-    }
-
-    private setVisible(newVisibility: boolean) {
         // @ts-expect-error(2341) Ensure properties.visible is only accessed from here
         this.properties.visible = newVisibility;
         this.ctx.legendManager.toggleItem({ enabled: newVisibility, seriesId: this.id });
@@ -390,6 +370,12 @@ export abstract class Series<
     }
 
     private readonly seriesListeners = new Listeners<SeriesEventType, (event: any) => void>();
+
+    override addEventListener(type: 'seriesVisibilityChange', listener: (e: AgSeriesVisibilityChange) => void): void;
+    override addEventListener(type: string, listener: TypedEventListener): void;
+    override addEventListener(type: string, listener: TypedEventListener | ((e: unknown) => void)): void {
+        return super.addEventListener(type, listener);
+    }
 
     public addListener<T extends SeriesEventType, E>(type: T, listener: (event: E) => void) {
         return this.seriesListeners.addListener(type, listener);
@@ -666,7 +652,7 @@ export abstract class Series<
 
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
         if (series.id === this.id || matchedLegendItemName) {
-            this.toggleSeriesItem(itemId, enabled, legendType, itemId, legendItemName);
+            this.toggleSeriesItem(enabled, legendType, itemId, legendItemName);
         }
     }
 
@@ -678,13 +664,13 @@ export abstract class Series<
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
         if (series.id === this.id || matchedLegendItemName) {
             // Double-clicked item should always become visible.
-            this.toggleSeriesItem(itemId, true, legendType, itemId, legendItemName);
+            this.toggleSeriesItem(true, legendType, itemId, legendItemName);
         } else if (enabled && numVisibleItems === 1) {
             // Other items should become visible if there is only one existing visible item.
-            this.toggleSeriesItem(itemId, true, legendType, undefined, legendItemName);
+            this.toggleSeriesItem(true, legendType, undefined, legendItemName);
         } else {
             // Disable other items if not exactly one enabled.
-            this.toggleSeriesItem(itemId, false, legendType, undefined, legendItemName);
+            this.toggleSeriesItem(false, legendType, undefined, legendItemName);
         }
     }
 
@@ -692,22 +678,19 @@ export abstract class Series<
     abstract getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
 
     protected toggleSeriesItem(
-        id: any,
         enabled: boolean,
         legendType: ChartLegendType,
         itemId: unknown,
         legendItemName: string | undefined
     ): void {
-        if (this.shouldPreventVisibilityChange(enabled)) {
-            return;
-        }
-
         if (enabled || legendType !== 'category') {
-            this.setVisible(enabled);
+            this.visible = enabled;
         }
         this.nodeDataRefresh = true;
         this._pickNodeCache.clear();
-        this.dispatch('visibility-changed', { id, enabled });
+
+        const event: AgSeriesVisibilityChange = { type: 'seriesVisibilityChange', seriesId: this.id, visible: enabled };
+        this.fireEvent(event);
 
         this.ctx.legendManager.toggleItem({ enabled, seriesId: this.id, itemId, legendItemName });
     }

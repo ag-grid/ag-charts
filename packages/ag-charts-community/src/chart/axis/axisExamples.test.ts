@@ -367,7 +367,7 @@ describe('Axis Examples', () => {
 
                 chart.series.forEach((s) => {
                     const itemId = s.getKeys(ChartAxisDirection.Y)[0];
-                    (s as any).toggleSeriesItem(s.id, true, 'category', itemId, undefined);
+                    (s as any).toggleSeriesItem(true, 'category', itemId, undefined);
                 });
                 chart.update(ChartUpdateType.FULL);
 
@@ -376,7 +376,7 @@ describe('Axis Examples', () => {
 
                 chart.series.forEach((s) => {
                     const itemId = s.getKeys(ChartAxisDirection.Y)[0];
-                    (s as any).toggleSeriesItem(s.id, false, 'category', itemId, undefined);
+                    (s as any).toggleSeriesItem(false, 'category', itemId, undefined);
                 });
                 chart.update(ChartUpdateType.FULL);
 
@@ -396,14 +396,14 @@ describe('Axis Examples', () => {
             expect(secondarySeries.getKeys(ChartAxisDirection.Y)).toEqual(['exportedTonnes']);
 
             // Hide series bound to secondary axis.
-            secondarySeries.toggleSeriesItem(secondarySeries.id, false, 'category', undefined);
+            secondarySeries.toggleSeriesItem(false, 'category', undefined);
             chart.update(ChartUpdateType.FULL);
 
             const afterUpdate = await snapshot();
             (expect(afterUpdate) as any).not.toMatchImage(reference);
 
             // Show series bound to secondary axis.
-            secondarySeries.toggleSeriesItem(secondarySeries.id, true, 'category', undefined);
+            secondarySeries.toggleSeriesItem(true, 'category', undefined);
             chart.update(ChartUpdateType.FULL);
 
             const afterFinalUpdate = await snapshot();
@@ -422,14 +422,14 @@ describe('Axis Examples', () => {
             expect(secondarySeries.getKeys(ChartAxisDirection.Y)).toEqual(['exportedTonnes']);
 
             // Hide series bound to secondary axis.
-            secondarySeries.toggleSeriesItem(secondarySeries.id, false, 'category', undefined);
+            secondarySeries.toggleSeriesItem(false, 'category', undefined);
             chart.update(ChartUpdateType.FULL);
 
             const afterUpdate = await snapshot();
             (expect(afterUpdate) as any).not.toMatchImage(reference);
 
             // Show series bound to secondary axis.
-            secondarySeries.toggleSeriesItem(secondarySeries.id, true, 'category', undefined);
+            secondarySeries.toggleSeriesItem(true, 'category', undefined);
             chart.update(ChartUpdateType.FULL);
 
             const afterFinalUpdate = await snapshot();

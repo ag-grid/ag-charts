@@ -35,7 +35,7 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum> extends AgChart
     radiusKey?: string;
 }
 
-export interface AgSeriesVisibilityChange extends AgPreventableEvent {
+export interface AgSeriesVisibilityChange {
     /** Event type. */
     type: 'seriesVisibilityChange';
     /** Series id */
