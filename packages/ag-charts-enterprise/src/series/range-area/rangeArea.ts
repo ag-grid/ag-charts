@@ -327,6 +327,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         let [start, end] = this.visibleRangeIndices(xAxis.range, topIndices);
         start = Math.max(start - 1, 0);
         end = Math.min(end + 1, topIndices?.length ?? xValues.length);
+        // @todo(AG-13575) Remove this if block
+        if (processedData.rawData.length < 1e3) {
+            start = 0;
+            end = processedData.rawData.length;
+        }
         for (let i = start; i < end; i += 1) {
             const topDatumIndex = topIndices?.[i] ?? i;
             const bottomDatumIndex = bottomIndices?.[i] ?? i;

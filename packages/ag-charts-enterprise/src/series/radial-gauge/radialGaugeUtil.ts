@@ -7,7 +7,7 @@ import { LabelType, type RadialGaugeLabelDatum } from './radialGaugeSeriesProper
 
 const { SectorBox } = _ModuleSupport;
 
-export interface AnimatableSectorDatum {
+interface AnimatableSectorDatum {
     innerRadius: number;
     outerRadius: number;
     startAngle: number;

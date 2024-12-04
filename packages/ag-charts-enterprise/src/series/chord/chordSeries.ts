@@ -57,7 +57,7 @@ type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 's
 
 type LinkStyle = NodeStyle & { tension: number };
 
-export interface ChordNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<ChordDatum, ChordNodeLabelDatum> {}
+interface ChordNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<ChordDatum, ChordNodeLabelDatum> {}
 
 const nodeMidAngle = (node: ChordNodeDatum) => node.startAngle + angleBetween(node.startAngle, node.endAngle) / 2;
 export class ChordSeries extends FlowProportionSeries<

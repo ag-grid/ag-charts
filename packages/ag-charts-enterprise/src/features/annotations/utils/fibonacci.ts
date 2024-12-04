@@ -2,9 +2,9 @@ import type { _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationContext, FibonacciBands } from '../annotationTypes';
 
-export const FIBONACCI_RETRACEMENT_RATIOS = [0, 23.6, 38.2, 50, 61.8, 78.6, 100];
-export const FIBONACCI_EXTENSION_RATIOS = [161.8, 261.8, 361.8, 423.6];
-export const FIBONACCI_RATIOS = [...FIBONACCI_RETRACEMENT_RATIOS, ...FIBONACCI_EXTENSION_RATIOS];
+const FIBONACCI_RETRACEMENT_RATIOS = [0, 23.6, 38.2, 50, 61.8, 78.6, 100];
+const FIBONACCI_EXTENSION_RATIOS = [161.8, 261.8, 361.8, 423.6];
+const FIBONACCI_RATIOS = [...FIBONACCI_RETRACEMENT_RATIOS, ...FIBONACCI_EXTENSION_RATIOS];
 
 const FIBONACCI_RATIOS_MAP: Record<FibonacciBands, number[]> = {
     10: FIBONACCI_RATIOS,
@@ -12,7 +12,7 @@ const FIBONACCI_RATIOS_MAP: Record<FibonacciBands, number[]> = {
     4: FIBONACCI_RETRACEMENT_RATIOS.filter((r) => r !== 78.6 && r !== 23.6),
 };
 
-export const FIBONACCI_RANGE_LABEL_PADDING = 10;
+const FIBONACCI_RANGE_LABEL_PADDING = 10;
 
 export enum FibonacciNodeTag {
     OneLine,

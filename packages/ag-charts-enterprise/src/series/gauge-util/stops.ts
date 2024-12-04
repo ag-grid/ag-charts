@@ -10,7 +10,7 @@ export class GaugeStopProperties extends BaseProperties {
     color?: string = 'black';
 }
 
-export interface GaugeColorStopDatum {
+interface GaugeColorStopDatum {
     offset: number;
     color: string;
 }

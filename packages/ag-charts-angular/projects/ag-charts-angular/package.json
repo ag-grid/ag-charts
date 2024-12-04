@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-angular",
-  "version": "10.3.3-beta.20241203",
+  "version": "10.3.3-beta.20241204",
   "repository": {
     "type": "git",
     "url": "https://github.com/ag-grid/ag-charts.git"
@@ -18,7 +18,7 @@
   },
   "homepage": "https://ag-grid.com/charts/",
   "peerDependencies": {
-    "ag-charts-community": "10.3.3-beta.20241203",
+    "ag-charts-community": "10.3.3-beta.20241204",
     "@angular/common": "^17.0.0 || ^18.0.0 || ^19.0.0",
     "@angular/core": "^17.0.0 || ^18.0.0 || ^19.0.0"
   },

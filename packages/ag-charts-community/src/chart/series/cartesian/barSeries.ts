@@ -571,7 +571,12 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             });
         } else if (dataAggregationFilter == null) {
             const width = barWidth;
-            const [start, end] = this.visibleRange(rawData.length, x0, x1, xPosition);
+            let [start, end] = this.visibleRange(rawData.length, x0, x1, xPosition);
+            // @todo(AG-13575) Remove this if block
+            if (processedData.rawData.length < 1e3) {
+                start = 0;
+                end = processedData.rawData.length;
+            }
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
                 const x = xPosition(datumIndex);

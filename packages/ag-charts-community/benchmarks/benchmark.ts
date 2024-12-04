@@ -18,7 +18,7 @@ if (isHistoricBenchmarkTest()) {
     console.warn('Attempting to run against version: ', getVersion().join('.'));
 }
 
-export interface BenchmarkExpectations {
+interface BenchmarkExpectations {
     expectedMaxMemoryMB: number;
     autoSnapshot?: boolean;
 }

@@ -1,6 +1,6 @@
 import { Listeners } from '../../util/listeners';
 
-export interface SpringAnimationUpdateEvent {
+interface SpringAnimationUpdateEvent {
     type: 'update';
     x: number;
     y: number;

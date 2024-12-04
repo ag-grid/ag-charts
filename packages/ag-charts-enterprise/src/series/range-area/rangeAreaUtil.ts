@@ -20,13 +20,13 @@ export interface RangeAreaLabelDatum extends Readonly<_ModuleSupport.Point> {
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
 }
 
-export interface RangeAreaFillPathDatum {
+interface RangeAreaFillPathDatum {
     readonly spans: _ModuleSupport.LinePathSpan[];
     readonly phantomSpans: _ModuleSupport.LinePathSpan[];
     readonly itemId: string;
 }
 
-export interface RangeAreaStrokePathDatum {
+interface RangeAreaStrokePathDatum {
     readonly spans: _ModuleSupport.LinePathSpan[];
     readonly itemId: string;
 }

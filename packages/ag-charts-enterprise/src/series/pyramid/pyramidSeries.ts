@@ -22,14 +22,14 @@ const {
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
 
-export type PyramidNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
+type PyramidNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
     readonly text: string;
     readonly textAlign: CanvasTextAlign;
     readonly textBaseline: CanvasTextBaseline;
     readonly visible: boolean;
 };
 
-export interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Readonly<_ModuleSupport.Point> {
+interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Readonly<_ModuleSupport.Point> {
     readonly index: number;
     readonly xValue: string;
     readonly yValue: number;
@@ -40,8 +40,7 @@ export interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatu
     readonly label: PyramidNodeLabelDatum | undefined;
 }
 
-export interface PyramidNodeDataContext
-    extends _ModuleSupport.SeriesNodeDataContext<PyramidNodeDatum, PyramidNodeLabelDatum> {
+interface PyramidNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<PyramidNodeDatum, PyramidNodeLabelDatum> {
     stageLabelData: PyramidNodeLabelDatum[] | undefined;
 }
 

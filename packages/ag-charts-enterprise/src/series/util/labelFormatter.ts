@@ -93,7 +93,7 @@ export type LabelFormatting = {
     height: number;
 };
 
-export type StackedLabelFormatting<Meta> = {
+type StackedLabelFormatting<Meta> = {
     width: number;
     height: number;
     meta: Meta;

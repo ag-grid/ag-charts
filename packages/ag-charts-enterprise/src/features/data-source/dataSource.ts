@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 const { BOOLEAN, FUNCTION, ActionOnSet, Validate } = _ModuleSupport;
 
-export interface DataSourceGetDataCallbackParams {
+interface DataSourceGetDataCallbackParams {
     windowStart?: Date;
     windowEnd?: Date;
 }

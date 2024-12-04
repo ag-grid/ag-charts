@@ -403,7 +403,17 @@
                     {
                         "title": "Hollow Candlesticks",
                         "name": "candlestick-hollow"
-                    },
+                    }
+                ]
+            }
+        ],
+        [
+            {
+                "title": "OHLC",
+                "seriesName": "ohlc",
+                "icon": "chartsOHLC",
+                "enterprise": true,
+                "examples": [
                     {
                         "title": "OHLC",
                         "name": "ohlc"

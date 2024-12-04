@@ -13,7 +13,7 @@ export interface LegendChangeEvent {
 }
 
 type LegendDataMap = Map<string, CategoryLegendDatum[]>;
-export type LegendDataMemento = AgInitialStateLegendOptions[];
+type LegendDataMemento = AgInitialStateLegendOptions[];
 
 export class LegendManager
     extends BaseManager<LegendChangeEvent['type'], LegendChangeEvent>

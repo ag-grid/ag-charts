@@ -37,4 +37,6 @@ export const GradientLegendModule: _ModuleSupport.LegendModule = {
         },
         reverseOrder: false,
     },
+
+    removable: 'standalone-only',
 };

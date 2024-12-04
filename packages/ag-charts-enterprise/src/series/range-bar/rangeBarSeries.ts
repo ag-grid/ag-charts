@@ -393,10 +393,15 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 handleDatum(midDatumIndex, 0, x, width, yLow, yHigh, false);
             }
         } else if (processedData.type === 'ungrouped') {
-            const [start, end] = visibleRangeIndices(rawData.length, xAxis.range, (index) => {
+            let [start, end] = visibleRangeIndices(rawData.length, xAxis.range, (index) => {
                 const x = xPosition(index);
                 return [x, effectiveBarWidth];
             });
+            // @todo(AG-13575) Remove this if block
+            if (processedData.rawData.length < 1e3) {
+                start = 0;
+                end = processedData.rawData.length;
+            }
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
                 const x = xPosition(datumIndex);

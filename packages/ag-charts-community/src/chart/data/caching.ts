@@ -2,7 +2,7 @@ import { arraysEqual } from '../../util/array';
 import { objectsEqual } from '../../util/object';
 import type { DataModel, DataModelOptions, PropertyDefinition, UngroupedData } from './dataModel';
 
-export interface CachedDataItem<D extends object, K extends keyof D & string = keyof D & string> {
+interface CachedDataItem<D extends object, K extends keyof D & string = keyof D & string> {
     ids: string[];
     opts: DataModelOptions<K, any>;
     data: D[];
