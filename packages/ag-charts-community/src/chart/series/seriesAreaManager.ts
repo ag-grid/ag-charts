@@ -221,8 +221,15 @@ export class SeriesAreaManager extends BaseManager {
             }
         }
 
+        const pickedSeries = pickedNode?.series;
+
         this.clearAll();
-        this.chart.ctx.contextMenuRegistry.dispatchContext('series', event, { pickedNode }, position);
+        this.chart.ctx.contextMenuRegistry.dispatchContext(
+            'series-area',
+            event,
+            { pickedSeries, pickedNode },
+            position
+        );
     }
 
     private onLeave(): void {

@@ -2,7 +2,7 @@ import type { AgContextMenuOptions } from 'ag-charts-types';
 
 import { Listeners } from '../../util/listeners';
 import type { CategoryLegendDatum } from '../legend/legendDatum';
-import type { SeriesNodeDatum } from '../series/seriesTypes';
+import type { ISeries, SeriesNodeDatum } from '../series/seriesTypes';
 import { InteractionState } from './interactionManager';
 import { type PreventableEvent, buildPreventable } from './preventableEvent';
 import type { RegionEvent, RegionManager } from './regionManager';
@@ -10,8 +10,8 @@ import type { RegionEvent, RegionManager } from './regionManager';
 type ContextTypeMap = {
     all: object;
     legend: { legendItem: CategoryLegendDatum | undefined };
-    series: { pickedNode: SeriesNodeDatum | undefined };
-    node: { pickedNode: SeriesNodeDatum | undefined };
+    'series-area': { pickedSeries: ISeries<any, any> | undefined; pickedNode: SeriesNodeDatum | undefined };
+    node: { pickedSeries: ISeries<any, any> | undefined; pickedNode: SeriesNodeDatum | undefined };
 };
 
 type ContextEventProperties<K extends ContextType = ContextType> = {
@@ -26,7 +26,7 @@ type ContextEventProperties<K extends ContextType = ContextType> = {
 type ContextMenuActionEventMap = {
     all: Parameters<NonNullable<AgContextMenuOptions['extraActions']>[number]['action']>[0];
     legend: Parameters<NonNullable<AgContextMenuOptions['extraLegendItemActions']>[number]['action']>[0];
-    series: Parameters<NonNullable<AgContextMenuOptions['extraSeriesActions']>[number]['action']>[0];
+    'series-area': Parameters<NonNullable<AgContextMenuOptions['extraSeriesAreaActions']>[number]['action']>[0];
     node: Parameters<NonNullable<AgContextMenuOptions['extraNodeActions']>[number]['action']>[0];
 };
 
@@ -36,7 +36,7 @@ export type ContextMenuEvent<K extends ContextType = ContextType> = ContextEvent
 export type ContextMenuCallback<K extends ContextType> = {
     all: (params: ContextMenuActionEventMap['all']) => void;
     legend: (params: ContextMenuActionEventMap['legend']) => void;
-    series: (params: ContextMenuActionEventMap['series']) => void;
+    'series-area': (params: ContextMenuActionEventMap['series-area']) => void;
     node: (params: ContextMenuActionEventMap['node']) => void;
 }[K];
 
@@ -71,7 +71,7 @@ export class ContextMenuRegistry {
     }
 
     private static toContextType(region: string): ContextType {
-        if (region === 'legend' || region === 'series') {
+        if (region === 'legend' || region === 'series-area') {
             return region;
         }
         return 'all';

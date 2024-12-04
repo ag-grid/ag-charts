@@ -1,4 +1,4 @@
-import type { AgChartContextMenuEvent, _ModuleSupport } from 'ag-charts-community';
+import type { AgSeriesAreaContextMenuActionEvent, _ModuleSupport } from 'ag-charts-community';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -34,13 +34,13 @@ export class ZoomContextMenu {
 
         const destroyZoomToCursor = contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_ZOOM_ACTION_ID,
-            type: 'series',
+            type: 'series-area',
             label: 'contextMenuZoomToCursor',
             action: this.onZoomToHere.bind(this),
         });
         const destroyPanToCursor = contextMenuRegistry.registerDefaultAction({
             id: CONTEXT_PAN_ACTION_ID,
-            type: 'series',
+            type: 'series-area',
             label: 'contextMenuPanToCursor',
             action: this.onPanToHere.bind(this),
         });
@@ -80,7 +80,7 @@ export class ZoomContextMenu {
         return pointToRatio(relativeRect, event.offsetX, event.offsetY);
     }
 
-    private onZoomToHere({ event }: AgChartContextMenuEvent) {
+    private onZoomToHere({ event }: AgSeriesAreaContextMenuActionEvent) {
         const origin = this.computeOrigin(event);
         if (!origin) return;
 
@@ -105,7 +105,7 @@ export class ZoomContextMenu {
         this.updateZoom(constrainZoom(newZoom));
     }
 
-    private onPanToHere({ event }: AgChartContextMenuEvent) {
+    private onPanToHere({ event }: AgSeriesAreaContextMenuActionEvent) {
         const origin = this.computeOrigin(event);
         if (!origin) return;
 
