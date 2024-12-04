@@ -65,7 +65,7 @@ For example, to show an alert message with the `legendItemClick` event contents 
 legend: {
     listeners: {
         legendItemClick: ({ seriesId, itemId, enabled }: AgChartLegendClickEvent) => {
-            window.alert(`seriesId: ${seriesId}, itemId: ${itemId}, enabled: ${enabled}`);
+            window.alert(`seriesId: ${seriesId}, itemId: ${itemId}`);
         },
     },
 }
