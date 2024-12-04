@@ -23,7 +23,7 @@ const {
     Text,
 } = _ModuleSupport;
 
-export interface MapLineNodeDataContext
+interface MapLineNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapLineNodeDatum, MapLineNodeLabelDatum> {}
 
 type ItemStyle = Required<AgMapLineSeriesStyle>;

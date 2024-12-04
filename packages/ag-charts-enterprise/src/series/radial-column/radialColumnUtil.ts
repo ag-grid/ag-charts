@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 const { motion } = _ModuleSupport;
 
-export type AnimatableRadialColumnDatum = {
+type AnimatableRadialColumnDatum = {
     innerRadius: number;
     outerRadius: number;
     columnWidth: number;

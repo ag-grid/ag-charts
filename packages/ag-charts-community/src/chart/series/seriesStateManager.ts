@@ -5,7 +5,7 @@ export type SeriesGrouping = {
     stackCount: number;
 };
 
-export type SeriesGroupingResult = {
+type SeriesGroupingResult = {
     visibleGroupCount: number;
     visibleSameStackCount: number;
     index: number;

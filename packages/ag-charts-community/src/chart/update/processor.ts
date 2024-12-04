@@ -17,7 +17,7 @@ export interface AxisLike {
     scale: Scale<any, any>;
 }
 
-export interface SeriesLike {
+interface SeriesLike {
     hasData: boolean;
     visible: boolean;
 }

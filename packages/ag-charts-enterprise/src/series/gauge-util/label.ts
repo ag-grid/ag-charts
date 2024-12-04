@@ -1,6 +1,6 @@
 import type { AgChartLabelFormatterParams, Formatter, _ModuleSupport } from 'ag-charts-community';
 
-export interface GaugeLabelDatum {
+interface GaugeLabelDatum {
     value: number;
     text?: string;
     formatter?: Formatter<AgChartLabelFormatterParams<any>>;

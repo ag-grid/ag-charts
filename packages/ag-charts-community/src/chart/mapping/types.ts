@@ -28,7 +28,7 @@ import {
     isEnterpriseTopology,
 } from '../factory/expectedEnterpriseModules';
 
-export type AxesOptionsTypes = NonNullable<AgCartesianChartOptions['axes']>[number];
+type AxesOptionsTypes = NonNullable<AgCartesianChartOptions['axes']>[number];
 
 export type SeriesOptionsTypes =
     | AgCartesianSeriesOptions

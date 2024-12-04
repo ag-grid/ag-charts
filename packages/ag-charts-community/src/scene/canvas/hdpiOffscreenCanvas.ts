@@ -4,7 +4,7 @@ import { clearContext, debugContext } from './canvasUtil';
 // Work-around for typing issues with Angular 13+ (see AG-6969),
 type OffscreenCanvasRenderingContext2D = any;
 
-export interface CanvasOptions {
+interface CanvasOptions {
     width?: number;
     height?: number;
     pixelRatio?: number;
