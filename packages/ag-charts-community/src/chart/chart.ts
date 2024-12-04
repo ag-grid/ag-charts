@@ -1373,7 +1373,8 @@ export abstract class Chart extends Observable {
         let groupingChanged = false;
         let isUpdated = false;
 
-        for (const change of matchResult.changes) {
+        const changes = matchResult.changes.toSorted((a, b) => a.targetIdx - b.targetIdx);
+        for (const change of changes) {
             groupingChanged ||= change.status === 'series-grouping';
             dataChanged ||= change.diff?.data != null;
             isUpdated ||= change.status !== 'no-op';
