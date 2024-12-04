@@ -19,7 +19,6 @@ import {
     type LinearGaugeTargetDatum,
     type LinearGaugeTargetDatumLabel,
     NodeDataType,
-    upcastToLinearGaugeDatum,
 } from './linearGaugeSeriesProperties';
 import {
     formatLinearGaugeLabels,
@@ -723,11 +722,9 @@ export class LinearGaugeSeries
         }
     }
 
-    private highlightDatum<T extends NodeDataType>(node: _ModuleSupport.HighlightNodeDatum | undefined, ...types: T[]) {
-        if (node != null && node.series === this) {
-            if (upcastToLinearGaugeDatum(node, ...types)) {
-                return node;
-            }
+    private highlightDatum(node: _ModuleSupport.HighlightNodeDatum | undefined): LinearGaugeTargetDatum | undefined {
+        if (node != null && node.series === this && (node as LinearGaugeTargetDatum).type === NodeDataType.Target) {
+            return node as LinearGaugeTargetDatum;
         }
     }
 
@@ -752,10 +749,7 @@ export class LinearGaugeSeries
         const targetData = this.contextNodeData?.targetData ?? [];
         const scaleData = this.contextNodeData?.scaleData ?? [];
 
-        const highlightTargetDatum = this.highlightDatum(
-            this.ctx.highlightManager.getActiveHighlight(),
-            NodeDataType.Target
-        );
+        const highlightTargetDatum = this.highlightDatum(this.ctx.highlightManager.getActiveHighlight());
 
         this.scaleSelection = this.updateScaleSelection({ scaleData, scaleSelection });
         this.updateScaleNodes({ scaleSelection });
@@ -1098,8 +1092,7 @@ export class LinearGaugeSeries
 
         if (!properties.isValid()) return;
 
-        const { Target } = NodeDataType;
-        const highlightDatum = this.highlightDatum(nodeDatum, Target);
+        const highlightDatum = this.highlightDatum(nodeDatum);
 
         const value = highlightDatum?.value ?? properties.value;
         const text = highlightDatum?.text;
