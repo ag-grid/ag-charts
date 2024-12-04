@@ -1,4 +1,4 @@
-.ag-chart-tooltip {
+.ag-charts-tooltip {
     /* Popover attribute resets */
     position: fixed;
     inset: unset;
@@ -7,6 +7,7 @@
     overflow: visible;
 
     width: max-content;
+    max-width: 100%;
     font:
         12px Verdana,
         sans-serif;
@@ -17,115 +18,119 @@
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
 }
 
-.ag-chart-tooltip--compact {
+.ag-charts-tooltip--compact {
     --ag-charts-content-padding: var(--ag-charts-content-compact-padding);
 }
 
-.ag-chart-tooltip-wrap-always {
+.ag-charts-tooltip--arrow::before {
+    --tooltip-arrow-size: 8px;
+
+    content: '';
+
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin: 0 auto;
+    transform: translateX(-50%) translateY(calc(var(--tooltip-arrow-size) * -0.5)) rotate(45deg);
+
+    display: block;
+    width: var(--tooltip-arrow-size);
+    height: var(--tooltip-arrow-size);
+
+    border: inherit;
+    background: inherit;
+    border-top: none;
+    border-left: none;
+
+    clip-path: polygon(0 100%, 100% 0, 100% 100%);
+}
+
+.ag-charts-tooltip--no-interaction {
+    pointer-events: none;
+    user-select: none;
+}
+
+.ag-charts-tooltip--wrap-always {
     overflow-wrap: break-word;
     word-break: break-word;
     hyphens: none;
 }
 
-.ag-chart-tooltip-wrap-hyphenate {
+.ag-charts-tooltip--wrap-hyphenate {
     overflow-wrap: break-word;
     word-break: break-word;
     hyphens: auto;
 }
 
-.ag-chart-tooltip-wrap-on-space {
+.ag-charts-tooltip--wrap-on-space {
     overflow-wrap: normal;
     word-break: normal;
 }
 
-.ag-chart-tooltip-wrap-never {
-    white-space: pre;
+.ag-charts-tooltip--wrap-never {
+    white-space: nowrap;
+}
+
+.ag-charts-tooltip-heading,
+.ag-charts-tooltip-title,
+.ag-charts-tooltip-label,
+.ag-charts-tooltip-value {
+    overflow: hidden;
+    /* This will only be activated with --wrap-never */
+    /* It's not an inherited property, so cannot be set on that class */
     text-overflow: ellipsis;
 }
 
-.ag-chart-tooltip-no-interaction {
-    pointer-events: none;
-    user-select: none;
-}
-
-.ag-chart-tooltip__content {
+.ag-charts-tooltip-content {
     display: grid;
     grid: auto-flow minmax(1em, auto) / 1fr;
     padding: var(--ag-charts-content-padding);
     gap: 8px;
 }
 
-.ag-chart-tooltip__content:has(.ag-chart-tooltip__symbol) {
+.ag-charts-tooltip-content:has(.ag-charts-tooltip-symbol) {
     grid: auto-flow minmax(1em, auto) / auto 1fr;
 }
 
-.ag-chart-tooltip__group-title {
+.ag-charts-tooltip-heading {
     grid-column: 1 / -1;
 }
 
-.ag-chart-tooltip__symbol {
+.ag-charts-tooltip-symbol {
     grid-column: 1 / 2;
     align-self: center;
 }
 
-.ag-chart-tooltip__title {
+.ag-charts-tooltip-symbol svg {
+    /* Fixes vertical alignment */
+    display: block;
+}
+
+.ag-charts-tooltip-title {
     grid-column: -2 / -1;
 }
 
-.ag-chart-tooltip__row {
+.ag-charts-tooltip-row {
     grid-column: 1 / -1;
     display: flex;
     gap: 16px;
     align-items: baseline;
     justify-content: space-between;
+    /* Ensure row doesn't grow beyond grid cell */
+    overflow: hidden;
 }
 
-.ag-chart-tooltip__row--inline {
+.ag-charts-tooltip-row--inline {
     grid-column: -2 / -1;
 }
 
-.ag-chart-tooltip__symbol svg {
-    /* Fixes vertical alignment */
-    display: block;
+.ag-charts-tooltip-label {
+    /* Prefer wrapping the label over the value */
+    flex: 1;
+    /* In a flex layout, so min-width defaults to max-content */
+    min-width: 0;
 }
 
-.ag-chart-tooltip-arrow::before {
-    content: '';
-
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-
-    border: var(--ag-charts-tooltip-border);
-    border-width: 5px;
-
-    border-left-color: transparent;
-    border-right-color: transparent;
-    border-bottom-color: transparent;
-
-    width: 0;
-    height: 0;
-
-    margin: 0 auto;
-}
-
-.ag-chart-tooltip-arrow::after {
-    content: '';
-
-    position: absolute;
-    top: calc(100% - 1px);
-    left: 50%;
-    transform: translateX(-50%);
-
-    border: 5px solid var(--ag-charts-tooltip-background-color);
-
-    border-left-color: transparent;
-    border-right-color: transparent;
-    border-bottom-color: transparent;
-
-    width: 0;
-    height: 0;
-
-    margin: 0 auto;
+.ag-charts-tooltip-value {
+    min-width: 0;
 }

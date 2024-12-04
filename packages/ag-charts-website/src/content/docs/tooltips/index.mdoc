@@ -83,31 +83,45 @@ tooltip: {
 
 ## Customisation
 
+Tooltips can contain any number following contents, in order:-
+
+-   A heading, which is titled in relation to the chart
+-   A series symbol, which graphically depicts a series
+-   A title, which is titled in relation to a series
+-   Some data rows, which contain multiple label and value pairs corresponding to information for a series
+
 ### Using CSS Styles
+
+The default tooltip uses the following CSS classes for the tooltip elements:
+
+-   `ag-charts-tooltip` to style the tooltip container
+-   `ag-charts-tooltip-heading` and `ag-charts-tooltip-title` for the tooltip headings and titles
+-   `ag-charts-tooltip-label` and `ag-charts-tooltip-value` the elements in the data rows
+-   `ag-charts-tooltip-symbol` to style series symbol
 
 {% chartExampleRunner title="Default Tooltip with Custom Styling" name="default-tooltip-styling" type="generated" /%}
 
-The default tooltip uses `ag-chart-tooltip`, `ag-chart-tooltip-title` and `ag-chart-tooltip-content` CSS classes.
-
-```html
-<div class="ag-chart-tooltip">
-    <div class="ag-chart-tooltip-title"></div>
-    <div class="ag-chart-tooltip-content"></div>
-</div>
-```
+The HTML structure varies depending on what is rendered, but a mix of grid and flex layouts are used.
 
 Adding custom CSS to these will change the styling of all the tooltips in your app.
 
+```css
+.ag-charts-tooltip {
+    background-color: papayawhip;
+    border: 2px solid peachpuff;
+    color: maroon;
+}
+
+.ag-charts-tooltip-heading {
+    font-weight: bold;
+}
+```
+
+Note that your styles don't override the default tooltip styles but complement them.
+
 ### Modifying Content
 
-Tooltips can contain any number following contents, in order:-
-
--   A `heading`, which is titled in relation to the chart
--   A series symbol, which graphically depicts a series
--   A `title`, which is titled in relation to a series
--   Some `data` rows, which contain multiple label and value pairs corresponding to information for a series
-
-Each of these can be customised by using a `renderer` function. This receives values associated with the highlighted data point, and should return an object with optional `heading`, `title`, and `data` fields.
+The tooltip's content can be customised by using a `renderer` function. This receives values associated with the highlighted data point, and should return an object with optional `heading`, `title`, and `data` fields.
 
 {% chartExampleRunner title="Modifying Tooltip Content" name="tooltip-content-title" type="generated" /%}
 

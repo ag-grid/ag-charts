@@ -687,7 +687,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     override animateWaitingUpdateReady(data: RangeBarAnimationData) {
         const { datumSelection: datumSelections, labelSelection: labelSelections } = data;
         const { processedData } = this;
-        const dataDiff = processedData?.reduced?.diff;
+        const dataDiff = processedData?.reduced?.diff?.[this.id];
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 

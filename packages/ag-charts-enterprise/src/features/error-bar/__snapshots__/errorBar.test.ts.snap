@@ -4,25 +4,25 @@ exports[`ErrorBars AG-10525 should render tooltips with no errorbars 1`] = `
 NodeList [
   <div
     aria-hidden="true"
-    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+    class="ag-charts-tooltip ag-charts-tooltip--no-interaction ag-charts-tooltip--arrow ag-charts-tooltip--wrap-hyphenate"
     data-presented-as-popover=""
     popover="manual"
     style="transform: translate(314px, 200px); top: 0px; left: 0px; pointer-events: none;"
   >
     <div
-      class="ag-chart-tooltip-content ag-chart-tooltip__content"
+      class="ag-charts-tooltip-content"
     >
       <div
-        class="ag-chart-tooltip__row"
+        class="ag-charts-tooltip-row"
       >
         <span
-          class="ag-chart-tooltip__label"
+          class="ag-charts-tooltip-label"
         >
           May
         </span>
          
         <span
-          class="ag-chart-tooltip__value"
+          class="ag-charts-tooltip-value"
         >
           14.5
         </span>
@@ -36,16 +36,16 @@ exports[`ErrorBars should render default tooltips 1`] = `
 NodeList [
   <div
     aria-hidden="true"
-    class="ag-chart-tooltip ag-chart-tooltip-no-interaction ag-chart-tooltip-arrow ag-chart-tooltip-wrap-hyphenate"
+    class="ag-charts-tooltip ag-charts-tooltip--no-interaction ag-charts-tooltip--arrow ag-charts-tooltip--wrap-hyphenate"
     data-presented-as-popover=""
     popover="manual"
     style="transform: translate(413px, 380px); top: 0px; left: 0px; pointer-events: none;"
   >
     <div
-      class="ag-chart-tooltip-content ag-chart-tooltip__content"
+      class="ag-charts-tooltip-content"
     >
       <span
-        class="ag-chart-tooltip__symbol"
+        class="ag-charts-tooltip-symbol"
       >
         <svg
           height="12"
@@ -67,32 +67,32 @@ NodeList [
         </svg>
       </span>
       <div
-        class="ag-chart-tooltip__row"
+        class="ag-charts-tooltip-row"
       >
         <span
-          class="ag-chart-tooltip__label"
+          class="ag-charts-tooltip-label"
         >
           volume
         </span>
          
         <span
-          class="ag-chart-tooltip__value"
+          class="ag-charts-tooltip-value"
         >
           2.5
         </span>
       </div>
        
       <div
-        class="ag-chart-tooltip__row"
+        class="ag-charts-tooltip-row"
       >
         <span
-          class="ag-chart-tooltip__label"
+          class="ag-charts-tooltip-label"
         >
           pressure
         </span>
          
         <span
-          class="ag-chart-tooltip__value"
+          class="ag-charts-tooltip-value"
         >
           4.2
         </span>

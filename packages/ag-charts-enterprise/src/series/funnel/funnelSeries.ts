@@ -174,7 +174,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
         super.animateWaitingUpdateReady(data);
         const { datumSelection: datumSelections } = data;
         const { processedData } = this;
-        const dataDiff = processedData?.reduced?.diff;
+        const dataDiff = processedData?.reduced?.diff?.[this.id];
 
         const fns = prepareBarAnimationFunctions(midpointStartingBarPosition(this.isVertical(), 'fade'));
         motion.fromToMotion(

@@ -140,7 +140,7 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     async setState(state: AgChartState) {
-        this.factoryApi.caretaker.restore(state, true, ...this.getEnabledOriginators());
+        this.factoryApi.caretaker.restore(state, ...this.getEnabledOriginators());
         this.chart.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
         await this.chart.waitForUpdate();
     }

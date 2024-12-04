@@ -708,7 +708,11 @@ export class LineSeries extends CartesianSeries<
             return;
         }
 
-        const fns = prepareLinePathAnimation(contextData, previousContextData, this.processedData?.reduced?.diff);
+        const fns = prepareLinePathAnimation(
+            contextData,
+            previousContextData,
+            this.processedData?.reduced?.diff?.[this.id]
+        );
 
         if (fns === undefined) {
             skip();

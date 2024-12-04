@@ -598,7 +598,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     }
 
     override animateWaitingUpdateReady(data: HistogramAnimationData) {
-        const dataDiff = this.processedData?.reduced?.diff;
+        const dataDiff = this.processedData?.reduced?.diff?.[this.id];
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(true, this.axes, 'normal'));
 
         fromToMotion(

@@ -1,4 +1,4 @@
-.ag-crosshair-label {
+.ag-charts-crosshair-label {
     position: absolute;
     left: 0px;
     top: 0px;
@@ -13,7 +13,7 @@
     box-sizing: border-box;
 }
 
-.ag-crosshair-label-content {
+.ag-charts-crosshair-label-content {
     padding: 0 8px;
     border-radius: 2px;
     line-height: 20px;
@@ -21,6 +21,6 @@
     color: var(--ag-charts-axis-label-color);
 }
 
-.ag-crosshair-label-hidden {
+.ag-charts-crosshair-label--hidden {
     visibility: hidden !important;
 }

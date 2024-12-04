@@ -875,7 +875,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        const dataDiff = this.processedData?.reduced?.diff;
+        const dataDiff = this.processedData?.reduced?.diff?.[this.id];
         const mode = previousContextData == null ? 'fade' : 'normal';
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, mode));
 
