@@ -31,13 +31,14 @@ export function matchSeriesOptions<S extends ISeries<any, any>>(
         seriesMap.get(key)?.push([s, idx++]);
     }
 
-    const optsMap = new Map<string, NonNullable<AgChartOptions['series']>[number][]>();
+    const optsMap = new Map<string, [NonNullable<AgChartOptions['series']>[number], number][]>();
+    idx = 0;
     for (const o of optSeries) {
         const key = generateKey(o.type, o, o);
         if (!optsMap.has(key)) {
             optsMap.set(key, []);
         }
-        optsMap.get(key)?.push(o);
+        optsMap.get(key)?.push([o, idx++]);
     }
 
     const overlap = [...seriesMap.keys()].some((k) => optsMap.has(k));
@@ -49,11 +50,8 @@ export function matchSeriesOptions<S extends ISeries<any, any>>(
 
     const changes = [];
     // optSeries is our desired target state, so base our working on it's ordering.
-    let targetIdx = -1;
-    for (const [key, optArray] of optsMap.entries()) {
-        for (const opts of optArray) {
-            targetIdx++;
-
+    for (const [key, optsTuples] of optsMap.entries()) {
+        for (const [opts, targetIdx] of optsTuples) {
             const seriesArray = seriesMap.get(key);
             if (seriesArray == null || seriesArray.length < 1) {
                 changes.push({ opts, targetIdx, idx: targetIdx, status: 'add' as const });
