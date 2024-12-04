@@ -1,5 +1,9 @@
 import { Pool } from './pool';
 
+// Due to the use of WeakRef, the tests here can be sometimes flaky - let's be sure any failure is consistent.
+// eslint-disable-next-line sonarjs/stable-tests
+jest.retryTimes(3);
+
 describe('Pool', () => {
     const testPoolSize = 5;
 
