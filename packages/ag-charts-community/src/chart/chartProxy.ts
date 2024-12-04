@@ -239,11 +239,11 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
     private getEnabledOriginators() {
         const {
-            chartOptions: { processedOptions, optionMetadata },
+            chartOptions: { userOptions, processedOptions, optionMetadata },
             ctx: { annotationManager, chartTypeOriginator, zoomManager, legendManager },
         } = this.chart;
 
-        const originators: MementoOriginator[] = [legendManager];
+        const originators = [];
 
         if ('annotations' in processedOptions && processedOptions.annotations?.enabled) {
             originators.push(annotationManager);
@@ -256,6 +256,10 @@ export class AgChartInstanceProxy implements AgChartProxy {
 
         if (processedOptions.navigator?.enabled || processedOptions.zoom?.enabled) {
             originators.push(zoomManager);
+        }
+
+        if (userOptions.legend?.enabled !== false && processedOptions.legend != undefined) {
+            originators.push(legendManager);
         }
 
         return originators;
