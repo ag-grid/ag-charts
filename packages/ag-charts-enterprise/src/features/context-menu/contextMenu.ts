@@ -290,8 +290,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                 }
             };
         } else if (ContextMenuRegistry.checkCallback('series-area', type, callback)) {
-            return (event: Event) => {
-                callback({ type: 'seriesContextMenuAction', event });
+            return () => {
+                callback({ type: 'seriesContextMenuAction', event: this.showEvent! });
                 this.hide();
             };
         } else if (ContextMenuRegistry.checkCallback('node', type, callback)) {
