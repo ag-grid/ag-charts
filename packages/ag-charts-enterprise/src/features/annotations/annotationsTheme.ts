@@ -79,7 +79,7 @@ const toolbar: AgAnnotationsToolbar = {
             value: 'line-menu',
         },
         {
-            icon: 'fibonacci-drawing',
+            icon: 'fibonacci-retracement-drawing',
             tooltip: 'toolbarAnnotationsFibonacciAnnotations',
             value: 'fibonacci-menu',
         },
@@ -212,7 +212,7 @@ export const annotationsTheme: AgAnnotationsThemeableOptions = {
         rangeStroke: ThemeSymbols.DEFAULT_ANNOTATION_COLOR,
         handle: { ...handle },
         text: { ...lineText, position: 'center' },
-        label: { ...font, color: undefined, position: 'center', alignment: 'left', fontSize: 10 },
+        label: { ...font, color: undefined, fontSize: 10 },
     },
 
     // Texts
