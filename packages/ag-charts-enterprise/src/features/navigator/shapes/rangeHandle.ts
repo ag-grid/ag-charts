@@ -26,7 +26,7 @@ export class RangeHandle extends _ModuleSupport.Path {
     @ScenePathChangeDetection()
     grip: boolean = true;
 
-    private gripPath = new ExtendedPath2D();
+    private readonly gripPath = new ExtendedPath2D();
 
     setCenter(x: number, y: number) {
         this.dirtyPath = true;

@@ -19,7 +19,7 @@ export class RangeMask extends Path {
     private min = 0;
     private max = 1;
 
-    private visiblePath = new ExtendedPath2D();
+    private readonly visiblePath = new ExtendedPath2D();
 
     layout(x: number, y: number, width: number, height: number, min: number, max: number) {
         min = isNaN(min) ? this.min : min;
@@ -82,7 +82,7 @@ export class RangeMask extends Path {
         clippedRoundRect(visiblePath, ax, ay, aw, ah, cornerRadiusParams, new BBox(minX, ay, maxX - minX, ah));
     }
 
-    protected override renderStroke(ctx: _ModuleSupport.CanvasContext, path?: Path2D | undefined): void {
+    protected override renderStroke(ctx: _ModuleSupport.CanvasContext, path?: Path2D): void {
         super.renderStroke(ctx, path);
         super.renderStroke(ctx, this.visiblePath.getPath2D());
     }
