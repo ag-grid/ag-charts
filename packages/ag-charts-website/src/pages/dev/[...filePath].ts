@@ -1,5 +1,5 @@
+import { fileNameToMimeType } from '@utils/mimeType';
 import { type DevFileRoute, getDevFiles } from '@utils/pages';
-import mime from 'mime';
 import fs from 'node:fs/promises';
 
 export function getStaticPaths() {
@@ -12,7 +12,7 @@ export function getStaticPaths() {
 export async function GET({ props }: DevFileRoute) {
     const { fullFilePath } = props;
 
-    const mimeType = mime.getType(fullFilePath);
+    const mimeType = fileNameToMimeType(fullFilePath);
 
     let body;
     try {

@@ -1,3 +1,5 @@
+import * as path from 'node:path';
+
 const MIME_MAPPING = {
     txt: 'text/plain',
     css: 'text/css',
@@ -16,8 +18,7 @@ const DEFAULT_MAPPING = MIME_MAPPING.txt;
 type FileExt = keyof typeof MIME_MAPPING;
 
 export function fileNameToMimeType(fileName: string): string {
-    const fileNameParts = fileName.split('.');
-    const extension = fileNameParts.slice(-1)[0];
+    const extension = path.extname(fileName).slice('.'.length);
     return extensionMimeType(extension);
 }
 

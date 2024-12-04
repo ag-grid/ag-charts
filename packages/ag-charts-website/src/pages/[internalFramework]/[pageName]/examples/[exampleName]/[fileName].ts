@@ -1,9 +1,9 @@
 import type { InternalFramework } from '@ag-grid-types';
 import { getDocExampleFiles } from '@components/docs/utils/pageData';
 import { getIsDev } from '@utils/env';
+import { fileNameToMimeType } from '@utils/mimeType';
 import { getContentRootFileUrl } from '@utils/pages';
 import { getCollection } from 'astro:content';
-import mime from 'mime';
 
 import { getGeneratedContents } from '../../../../../components/example-generator';
 
@@ -52,7 +52,7 @@ export async function GET({ params }: { params: Params }) {
 
     const response = new Response(body, {
         headers: {
-            'Content-Type': mime.getType(fileName),
+            'Content-Type': fileNameToMimeType(fileName),
         },
     });
     return response;

@@ -1,8 +1,8 @@
 import { getGalleryExampleFiles } from '@components/gallery/utils/pageData';
 import { getIsDev } from '@utils/env';
+import { fileNameToMimeType } from '@utils/mimeType';
 import { getContentRootFileUrl } from '@utils/pages';
 import { getEntry } from 'astro:content';
-import mime from 'mime';
 
 import { getGeneratedContents } from '../../../../components/example-generator';
 
@@ -47,7 +47,7 @@ export async function GET({ params }: { params: Params }) {
 
     const response = new Response(body, {
         headers: {
-            'Content-Type': mime.getType(fileName),
+            'Content-Type': fileNameToMimeType(fileName),
         },
     });
     return response;
