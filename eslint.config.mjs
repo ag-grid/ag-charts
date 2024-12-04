@@ -45,6 +45,24 @@ export const sonarjsConfig = [
             'sonarjs/todo-tag': env !== 'nx-task' ? 1 : 0,
             'sonarjs/fixme-tag': env !== 'nx-task' ? 1 : 0,
 
+            // This error is incorrect: the warning claims that when defining a parameter like `a?: undefined`
+            // that the `undefined` type and `?` specifier are redundant.
+            //
+            // This is not true, because `a?: undefined` is not the same thing as `a: undefined`; the former permits
+            // the caller to optionally omit the `a` parameter or property, whereas the latter explicitly requires
+            // the caller to set `a` to undefined.
+            //
+            // Example:
+            //   function f (a?: undefined);
+            //   function g (a: undefined);
+            //
+            //   f(undefined); // OK: compiles.
+            //   f();          // OK: compiles. (equivalent to `f(undefined)`)
+            //   g(undefined); // OK: compiles.
+            //   g();          // FAIL: will not compile because parameter #0 is missing.
+            //
+            'sonarjs/no-redundant-optional': 0,
+
             // We don't really care about these.
             'sonarjs/no-selector-parameter': 0,
             'sonarjs/redundant-type-aliases': 0,
