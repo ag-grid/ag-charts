@@ -625,7 +625,7 @@ export class RadialGaugeSeries
                 centerY,
                 radius: needleRadius,
                 angle: needleAngle,
-                series: this
+                series: this,
             });
         }
 
