@@ -14,13 +14,13 @@ export type OptionsDefs<T> = { [K in keyof T]-?: Validator | ObjectLikeDef<T[K]>
 };
 
 // Validator interface with optional description and required flag for better error messages.
-export interface Validator extends Function {
+interface Validator extends Function {
     (value: unknown): boolean;
     [descriptionSymbol]?: string;
     [requiredSymbol]?: boolean;
 }
 
-export interface ValidationError {
+interface ValidationError {
     key?: string;
     path: string;
     message: string;

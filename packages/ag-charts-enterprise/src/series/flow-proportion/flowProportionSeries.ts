@@ -37,10 +37,9 @@ export interface FlowProportionNodeDatum extends _ModuleSupport.DataModelSeriesN
     label: string | undefined;
 }
 
-export type TDatum<
-    TNodeDatum extends FlowProportionNodeDatum,
-    TLinkDatum extends FlowProportionLinkDatum<TNodeDatum>,
-> = TLinkDatum | TNodeDatum;
+type TDatum<TNodeDatum extends FlowProportionNodeDatum, TLinkDatum extends FlowProportionLinkDatum<TNodeDatum>> =
+    | TLinkDatum
+    | TNodeDatum;
 
 export abstract class FlowProportionSeries<
         TNodeDatum extends FlowProportionNodeDatum,

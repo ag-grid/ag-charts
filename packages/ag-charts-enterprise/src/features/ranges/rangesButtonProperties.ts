@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 const { AND, ARRAY, FUNCTION, NUMBER, OR, ToolbarButtonProperties, Validate } = _ModuleSupport;
 
-export type RangesButtonValue =
+type RangesButtonValue =
     | number
     | [Date | number, Date | number]
     | ((start: Date | number, end: Date | number) => [Date | number, Date | number]);

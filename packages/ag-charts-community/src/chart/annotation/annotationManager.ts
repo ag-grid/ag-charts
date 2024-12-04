@@ -12,7 +12,7 @@ interface AnnotationsRestoreEvent {
     annotations: AnnotationsMemento;
 }
 
-export type AnnotationsMemento = AgAnnotation[];
+type AnnotationsMemento = AgAnnotation[];
 
 export class AnnotationManager
     extends BaseManager<AnnotationsRestoreEvent['type'], AnnotationsRestoreEvent>

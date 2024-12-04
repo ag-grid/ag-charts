@@ -73,37 +73,6 @@ export type HasFontSizeAnnotationType = Exclude<
 >;
 
 const ANNOTATION_TYPES = Object.values(AnnotationType);
-export const ANNOTATION_BUTTONS = [
-    // Lines
-    AnnotationType.Line,
-    AnnotationType.HorizontalLine,
-    AnnotationType.VerticalLine,
-
-    // Channels
-    AnnotationType.DisjointChannel,
-    AnnotationType.ParallelChannel,
-
-    // Fibonaccis
-    AnnotationType.FibonacciRetracement,
-
-    // Texts
-    AnnotationType.Callout,
-    AnnotationType.Comment,
-    AnnotationType.Note,
-    AnnotationType.Text,
-
-    // Shapes
-    AnnotationType.Arrow,
-    AnnotationType.ArrowUp,
-    AnnotationType.ArrowDown,
-] as const;
-export const ANNOTATION_BUTTON_GROUPS = [
-    'line-menu',
-    'fibonacci-menu',
-    'text-menu',
-    'shape-menu',
-    'measurer-menu',
-] as const;
 
 export function stringToAnnotationType(value: unknown) {
     for (const t of ANNOTATION_TYPES) {
