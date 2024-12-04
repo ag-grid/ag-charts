@@ -176,7 +176,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.resizeTickTree();
 
         if (!this.tickTreeLayout?.depth) {
-            return { bbox: BBox.NaN, separatorLayout: [], tickLabelLayout: [] };
+            return { bbox: BBox.zero, separatorLayout: [], tickLabelLayout: [] };
         }
 
         const { step } = this.scale;
