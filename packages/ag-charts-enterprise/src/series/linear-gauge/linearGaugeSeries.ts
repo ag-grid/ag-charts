@@ -234,9 +234,7 @@ export class LinearGaugeSeries
             },
         });
 
-        this.itemGroup.pointerEvents = PointerEvents.None;
-        this.itemTargetLabelGroup.pointerEvents = PointerEvents.None;
-        this.itemLabelGroup.pointerEvents = PointerEvents.None;
+        this.scaleGroup.pointerEvents = PointerEvents.None;
     }
 
     override get hasData(): boolean {
@@ -1090,42 +1088,6 @@ export class LinearGaugeSeries
 
     override getLegendData(): _ModuleSupport.ChartLegendDatum<_ModuleSupport.ChartLegendType>[] {
         return [];
-    }
-
-    private readonly nodeDatum = { series: this, datum: {} } as const;
-    override pickNode(
-        point: _ModuleSupport.Point,
-        intent: _ModuleSupport.SeriesNodePickIntent
-    ): _ModuleSupport.PickResult | undefined {
-        switch (intent) {
-            case 'event':
-            case 'context-menu': {
-                const sectorTarget = this.scaleGroup.pickNode(point.x, point.y);
-                return sectorTarget != null
-                    ? {
-                          pickMode: _ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH,
-                          match: sectorTarget.datum,
-                          distance: 0,
-                      }
-                    : undefined;
-            }
-            case 'tooltip':
-            case 'highlight':
-            case 'highlight-tooltip': {
-                const highlightedTarget = this.itemTargetGroup.pickNode(point.x, point.y);
-                return highlightedTarget != null
-                    ? {
-                          pickMode: _ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH,
-                          match: highlightedTarget.datum,
-                          distance: 0,
-                      }
-                    : {
-                          pickMode: _ModuleSupport.SeriesNodePickMode.NEAREST_NODE,
-                          match: this.nodeDatum,
-                          distance: 0,
-                      };
-            }
-        }
     }
 
     override getTooltipContent(
