@@ -76,6 +76,14 @@ export abstract class Widget<
         return this.elem;
     }
 
+    get clientWidth(): number {
+        return this.elem.clientWidth;
+    }
+
+    get clientHeight(): number {
+        return this.elem.clientHeight;
+    }
+
     destroy(): void {
         this.children.forEach((child) => child.destroy());
         this.destructor();
@@ -107,6 +115,14 @@ export abstract class Widget<
 
     setAriaHidden(ariaHidden: BaseAttributeTypeMap['aria-hidden'] | undefined) {
         setAttribute(this.elem, 'aria-hidden', ariaHidden);
+    }
+
+    setAriaLabel(ariaLabel: BaseAttributeTypeMap['aria-label'] | undefined) {
+        setAttribute(this.elem, 'aria-label', ariaLabel);
+    }
+
+    setInnerHTML(html: string) {
+        this.elem.innerHTML = html;
     }
 
     isDisabled() {

@@ -1,18 +1,9 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Widget } from 'ag-charts-community';
 
 import { convert, invert } from './utils/values';
 
-const {
-    BaseModuleInstance,
-    InteractionState,
-    Validate,
-    BOOLEAN,
-    createElement,
-    ChartAxisDirection,
-    getIconClassNames,
-    makeAccessibleClickListener,
-    setAttributes,
-} = _ModuleSupport;
+const { BaseModuleInstance, InteractionState, Validate, BOOLEAN, ChartAxisDirection, getIconClassNames } =
+    _ModuleSupport;
 
 export const DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS = `ag-charts-annotations__axis-button`;
 
@@ -20,7 +11,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     @Validate(BOOLEAN)
     public enabled = true;
 
-    private readonly button: HTMLButtonElement;
+    private readonly button: _Widget.ButtonWidget;
     private readonly wrapper: HTMLElement;
     private readonly snap: boolean = false;
     private padding: number = 0;
@@ -49,7 +40,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         ctx.domManager.addEventListener('focusin', ({ target }) => {
             const htmlTarget = target instanceof HTMLElement ? target : undefined;
             const isSeriesAreaChild = htmlTarget && ctx.domManager.contains(htmlTarget, 'series-area');
-            if (!isSeriesAreaChild && htmlTarget !== this.button) this.hide();
+            if (!isSeriesAreaChild && htmlTarget !== this.button.getElement()) this.hide();
         });
 
         this.destroyFns.push(
@@ -67,7 +58,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
             ctx.zoomManager.addListener('zoom-change', () => this.hide()),
             () => this.destroyElements(),
             () => this.wrapper.remove(),
-            () => this.button.remove()
+            () => this.button.destroy()
         );
     }
 
@@ -83,11 +74,12 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         );
         wrapper.classList.add(`${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-wrapper`);
 
-        const button = createElement('button');
-        button.classList.add(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
-        setAttributes(button, { tabindex: -1, 'aria-label': this.ctx.localeManager.t('ariaLabelAddHorizontalLine') });
+        const button = new _Widget.ButtonWidget();
+        button.addClass(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
+        button.setTabIndex(-1);
+        button.setAriaLabel(this.ctx.localeManager.t('ariaLabelAddHorizontalLine'));
 
-        wrapper.appendChild(button);
+        wrapper.appendChild(button.getElement());
 
         return {
             wrapper,
@@ -194,7 +186,10 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
 
     private updateButtonElement() {
         const { button } = this;
-        button.onclick = makeAccessibleClickListener(button, () => this.onButtonClick(this.coords));
-        button.innerHTML = `<span class="${getIconClassNames('zoom-in')} ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`;
+        button.addListener('click', () => this.onButtonClick(this.coords));
+        button.addListener('drag-start', () => {}); // ignore drag events on this button.
+        button.setInnerHTML(
+            `<span class="${getIconClassNames('zoom-in')} ${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-icon"></span>`
+        );
     }
 }
