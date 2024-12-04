@@ -3,6 +3,13 @@ interface AgChartEvent<T extends string> {
     event: Event;
 }
 
+export interface AgPreventableEvent {
+    /** True if preventDefault() was called on this event. */
+    readonly defaultPrevented: boolean;
+    /** Prevent the AG Charts built-in default event handlers from running. */
+    preventDefault(): void;
+}
+
 export interface AgNodeClickEvent<TEvent extends string, TDatum> extends AgChartEvent<TEvent> {
     /** Event type. */
     type: TEvent;
@@ -30,6 +37,15 @@ export interface AgNodeClickEvent<TEvent extends string, TDatum> extends AgChart
     radiusKey?: string;
 }
 
+export interface AgSeriesVisibilityChange extends AgPreventableEvent {
+    /** Event type. */
+    type: 'seriesVisibilityChange';
+    /** Series id */
+    seriesId: string;
+    /** The new visibility status that the series is changing to. */
+    visible: boolean;
+}
+
 export type AgChartClickEvent = AgChartEvent<'click'>;
 export type AgChartDoubleClickEvent = AgChartEvent<'doubleClick'>;
 export type AgChartContextMenuEvent = AgChartEvent<'contextMenuEvent'>;
@@ -43,6 +59,8 @@ export interface AgBaseChartListeners<TDatum> {
     /** The listener to call when a node (marker, column, bar, tile or a pie sector) in any series is double clicked.
      * Useful for a chart containing multiple series.*/
     seriesNodeDoubleClick?: (event: AgNodeClickEvent<'seriesNodeDoubleClick', TDatum>) => any;
+    /** The listener to call when a series visibility is changed. */
+    seriesVisibilityChange?: (event: AgSeriesVisibilityChange) => any;
     /** The listener to call when the chart is clicked. */
     click?: (event: AgChartClickEvent) => any;
     /** The listener to call when the chart is double clicked. */

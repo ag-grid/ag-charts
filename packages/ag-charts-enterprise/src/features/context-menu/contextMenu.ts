@@ -269,8 +269,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         if (ContextMenuRegistry.checkCallback('legend', type, callback)) {
             return (event: Event) => {
                 if (this.pickedLegendItem) {
-                    const { seriesId, itemId, enabled } = this.pickedLegendItem;
-                    callback({ type: 'contextmenu', seriesId, itemId, enabled, event });
+                    const { seriesId, itemId } = this.pickedLegendItem;
+                    callback({ type: 'contextmenu', seriesId, itemId, event });
                     this.hide();
                 }
             };
