@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 const { Vec2 } = _ModuleSupport;
 
-export type ShapeClipMask = { x: number; y: number; radius: number };
+type ShapeClipMask = { x: number; y: number; radius: number };
 
 export class CollidableLine extends _ModuleSupport.Line {
     public collisionBBox?: _ModuleSupport.BBox;

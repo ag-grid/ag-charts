@@ -5,7 +5,7 @@ const { TextWrapper, CachedTextMeasurerPool, BBox } = _ModuleSupport;
 export type AnnotationTextPosition = 'top' | 'center' | 'bottom';
 export type AnnotationTextAlignment = 'left' | 'center' | 'right';
 
-export type TextOptions = _ModuleSupport.FontOptions & { textAlign: TextAlign; position: AnnotationTextPosition };
+type TextOptions = _ModuleSupport.FontOptions & { textAlign: TextAlign; position: AnnotationTextPosition };
 
 export const ANNOTATION_TEXT_LINE_HEIGHT = 1.38;
 

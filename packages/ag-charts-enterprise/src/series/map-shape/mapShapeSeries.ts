@@ -32,7 +32,7 @@ const {
     PointerEvents,
 } = _ModuleSupport;
 
-export interface MapShapeNodeDataContext
+interface MapShapeNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapShapeNodeDatum, MapShapeNodeLabelDatum> {}
 
 type ItemStyle = Required<AgMapShapeSeriesStyle>;

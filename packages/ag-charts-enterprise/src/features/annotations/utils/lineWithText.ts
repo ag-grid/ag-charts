@@ -94,7 +94,7 @@ export function updateChannelText(
     setProperties(textNode, text, textProperties, point, numbers.angle, textBaseline);
 }
 
-export function getNumbers(coords: _ModuleSupport.Vec4, fontSize?: number, strokeWidth?: number): Numbers {
+function getNumbers(coords: _ModuleSupport.Vec4, fontSize?: number, strokeWidth?: number): Numbers {
     let [left, right] = Vec2.from(coords);
     if (left.x > right.x) [left, right] = [right, left];
 
@@ -110,7 +110,7 @@ export function getNumbers(coords: _ModuleSupport.Vec4, fontSize?: number, strok
     return { left, right, normal, angle, inset, offset };
 }
 
-export function positionAndAlignment(
+function positionAndAlignment(
     { left, right, normal, angle, inset, offset }: Numbers,
     position?: 'top' | 'center' | 'bottom',
     alignment?: 'left' | 'center' | 'right',
@@ -138,7 +138,7 @@ export function positionAndAlignment(
     return { point, textBaseline };
 }
 
-export function setProperties(
+function setProperties(
     scene: _ModuleSupport.TransformableText,
     text: string,
     textProperties: Partial<LineTextProperties> | Partial<ChannelTextProperties>,

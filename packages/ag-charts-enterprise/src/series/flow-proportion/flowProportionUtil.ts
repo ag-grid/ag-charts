@@ -2,11 +2,11 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 const { Logger } = _ModuleSupport;
 
-export interface Node {
+interface Node {
     id: string;
 }
 
-export interface Link<N extends Node> {
+interface Link<N extends Node> {
     fromNode: N;
     toNode: N;
 }

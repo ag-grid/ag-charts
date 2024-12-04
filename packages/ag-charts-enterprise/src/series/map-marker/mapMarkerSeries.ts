@@ -32,7 +32,7 @@ const {
     getMarker,
 } = _ModuleSupport;
 
-export interface MapMarkerNodeDataContext
+interface MapMarkerNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<MapMarkerNodeDatum, MapMarkerNodeLabelDatum> {}
 
 type MapMarkerAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
