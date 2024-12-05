@@ -59,7 +59,6 @@
     "glob": "8.0.3",
     "dotenv": "10.0.0",
     "commander": "2.20.3",
-    "mime": "^4.0.4",
     "prettier": "^3.2.5",
     "puppeteer-core": "7.1.0",
     "sass": "^1.77.8"

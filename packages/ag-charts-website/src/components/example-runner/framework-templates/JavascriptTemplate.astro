@@ -27,8 +27,8 @@ const {
     isEnterprise,
     hasLocale,
     layout,
-    styleFiles,
-    scriptFiles,
+    styleFiles = [],
+    scriptFiles = [],
     indexFragment,
     appLocation,
     extraStyles,
@@ -61,11 +61,7 @@ const chartScriptLocalePath = getCacheBustingUrl(getChartLocaleScriptPath(siteUr
         <ExampleStyle layout={layout} extraStyles={extraStyles} />
         <Styles
             baseUrl={appLocation}
-            files={isDev && styleFiles
-                ? styleFiles
-                      .filter((file: string) => !file.includes('style.css') && !file.includes('styles.css'))
-                      .map((file: string) => getCacheBustingUrl(file, modifiedTimeMs))
-                : []}
+            files={isDev ? styleFiles.map((file: string) => getCacheBustingUrl(file, modifiedTimeMs)) : styleFiles}
         />
         <Fragment set:html={headFragment} />
     </head>
@@ -74,12 +70,6 @@ const chartScriptLocalePath = getCacheBustingUrl(getChartLocaleScriptPath(siteUr
         <script src={isEnterprise ? chartScriptEnterprisePath : chartScriptPath}></script>
         {hasLocale && <script src={chartScriptLocalePath} />}
         <Scripts baseUrl={appLocation} files={scriptFiles} />
-        <Styles
-            baseUrl={appLocation}
-            files={styleFiles
-                ? styleFiles.filter((file: string) => file.includes('style.css') || file.includes('styles.css'))
-                : []}
-        />
         <slot />
     </body>
 </html>

@@ -2,6 +2,16 @@ import { AgChartOptions, AgCharts, time } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
+const numberFormatter = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 4,
+    maximumFractionDigits: 4,
+});
+
+const volumeNumberFormatter = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+});
+
 const options: AgChartOptions = {
     container: document.getElementById('myChart'),
     data: getData(),
@@ -28,6 +38,22 @@ const options: AgChartOptions = {
             openName: 'Open',
             closeKey: 'close',
             closeName: 'Close',
+            tooltip: {
+                renderer({ openKey, lowKey, highKey, closeKey, datum }) {
+                    return [
+                        `<div class="status-bar">`,
+                        `<div class="status-bar-row">`,
+                        ...[openKey, lowKey, highKey, closeKey].map((key) => {
+                            return [
+                                `<span class="label">${key.slice(0, 1).toUpperCase()}</span>`,
+                                `<span class="value">${numberFormatter.format(datum[key])}</span>`,
+                            ].join('');
+                        }),
+                        `</div>`,
+                        `</div>`,
+                    ].join('');
+                },
+            },
         },
     ],
     zoom: {

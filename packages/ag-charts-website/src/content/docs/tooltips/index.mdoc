@@ -85,19 +85,19 @@ tooltip: {
 
 Tooltips can contain any number following contents, in order:-
 
--   A heading, which is titled in relation to the chart
--   A series symbol, which graphically depicts a series
--   A title, which is titled in relation to a series
--   Some data rows, which contain multiple label and value pairs corresponding to information for a series
+-   A heading, which is titled in relation to the chart. Typically the x-value for a cartesian series.
+-   A series symbol, which graphically depicts a series.
+-   A title, which is titled in relation to a series. Typically the identifying value for non-cartesian series.
+-   Some data rows, which contain multiple label and value pairs corresponding to information for a series.
 
 ### Using CSS Styles
 
 The default tooltip uses the following CSS classes for the tooltip elements:
 
--   `ag-charts-tooltip` to style the tooltip container
--   `ag-charts-tooltip-heading` and `ag-charts-tooltip-title` for the tooltip headings and titles
--   `ag-charts-tooltip-label` and `ag-charts-tooltip-value` the elements in the data rows
--   `ag-charts-tooltip-symbol` to style series symbol
+-   `ag-charts-tooltip` to style the tooltip container.
+-   `ag-charts-tooltip-heading` and `ag-charts-tooltip-title` for the tooltip headings and titles.
+-   `ag-charts-tooltip-label` and `ag-charts-tooltip-value` the elements in the data rows.
+-   `ag-charts-tooltip-symbol` to style series symbol.
 
 {% chartExampleRunner title="Default Tooltip with Custom Styling" name="default-tooltip-styling" type="generated" /%}
 
@@ -179,10 +179,10 @@ series: [
 Notice that in the above example:
 
 -   The `renderer` returns two `div` elements, one for the tooltip's title and another for its content.
--   The value of the title comes from `params.datum[params.xKey]` which is the name of the month.
--   The title element gets its background colour from the `params` object. The provided colour matches the colour of the series.
--   The `'Sweaters Made'` value comes from the `params.datum[params.yKey]`, which we then stringify as an integer via `toFixed(0)`.
--   We used the default class names on the returned `div` elements, so that our tooltip gets the default styling. You could however add your own classes to the class list, or replace the default CSS classes with your own. The structure of the returned DOM is also up to you, we are just following the convention for this example.
+-   The text gets it colour from the `params` object. The provided colour matches the colour of the series.
+-   The label comes from `params.datum[params.xKey]` which is the name of the month.
+-   The value comes from the `params.datum[params.yKey]`, which we then stringify as an integer via `toFixed(0)`.
+-   We used a custom class names on the returned `div` elements, so that we can apply custom styling.
 
 ## Tooltip Range
 

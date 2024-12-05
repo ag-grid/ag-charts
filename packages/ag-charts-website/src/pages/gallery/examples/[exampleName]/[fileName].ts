@@ -1,5 +1,6 @@
 import { getGalleryExampleFiles } from '@components/gallery/utils/pageData';
 import { getIsDev } from '@utils/env';
+import { fileNameToMimeType } from '@utils/mimeType';
 import { getContentRootFileUrl } from '@utils/pages';
 import { getEntry } from 'astro:content';
 
@@ -44,5 +45,10 @@ export async function GET({ params }: { params: Params }) {
     const file = files && files[fileName];
     const body = file ? file : createErrorBody({ availableFiles: files });
 
-    return new Response(body);
+    const response = new Response(body, {
+        headers: {
+            'Content-Type': fileNameToMimeType(fileName),
+        },
+    });
+    return response;
 }

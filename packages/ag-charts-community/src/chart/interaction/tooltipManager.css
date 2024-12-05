@@ -11,7 +11,7 @@
     font:
         12px Verdana,
         sans-serif;
-    color: var(--ag-charts-tooltip-foreground-color);
+    color: var(--ag-charts-tooltip-text-color);
     background: var(--ag-charts-tooltip-background-color);
     border: var(--ag-charts-tooltip-border);
     border-radius: var(--ag-charts-tooltip-border-radius);
@@ -85,7 +85,7 @@
     display: grid;
     grid: auto-flow minmax(1em, auto) / 1fr;
     padding: var(--ag-charts-content-padding);
-    gap: 8px;
+    gap: var(--ag-charts-content-gap);
 }
 
 .ag-charts-tooltip-content:has(.ag-charts-tooltip-symbol) {

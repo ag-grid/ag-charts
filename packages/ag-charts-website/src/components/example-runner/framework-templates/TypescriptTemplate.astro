@@ -31,7 +31,7 @@ const {
     appLocation,
     entryFileName,
     layout,
-    styleFiles,
+    styleFiles = [],
     indexFragment,
     boilerplatePath,
     extraStyles,
@@ -47,11 +47,7 @@ const startFile = pathJoin(appLocation, entryFileName);
         <ExampleStyle layout={layout} extraStyles={extraStyles} />
         <Styles
             baseUrl={appLocation}
-            files={isDev && styleFiles
-                ? styleFiles
-                      .filter((file: string) => !file.includes('style.css') && !file.includes('styles.css'))
-                      .map((file: string) => getCacheBustingUrl(file, modifiedTimeMs))
-                : []}
+            files={isDev ? styleFiles.map((file: string) => getCacheBustingUrl(file, modifiedTimeMs)) : styleFiles}
         />
         <Fragment set:html={headFragment} />
     </head>
@@ -63,12 +59,6 @@ const startFile = pathJoin(appLocation, entryFileName);
             appLocation={appLocation}
             startFile={startFile}
             internalFramework={'typescript'}
-        />
-        <Styles
-            baseUrl={appLocation}
-            files={styleFiles
-                ? styleFiles.filter((file: string) => file.includes('style.css') || file.includes('styles.css'))
-                : []}
         />
         <slot />
     </body>
