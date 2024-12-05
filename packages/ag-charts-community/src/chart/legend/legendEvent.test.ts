@@ -90,9 +90,33 @@ describe('LegendEvent', () => {
                 type: null,
                 seriesId: null,
                 visible: null,
+                itemId: null,
+                legendItemName: null,
             });
 
             chart = await createChart({ ...OPTIONS, listeners: { seriesVisibilityChange } });
+            await clickAction(355, 575)(chart);
+            expect(seriesVisibilityChange).toBeCalledTimes(1);
+        });
+
+        test('visibilityChange-pie', async () => {
+            const seriesVisibilityChange = (event: AgSeriesVisibilityChange) => {
+                expect(event).toStrictEqual({
+                    type: 'seriesVisibilityChange',
+                    seriesId: 'PieSeries-1',
+                    visible: false,
+                    itemId: 0,
+                    legendItemName: 'tomato',
+                });
+            };
+            chart = await createChart({
+                data: [
+                    { name: 'tomato', value: 5 },
+                    { name: 'potato', value: 3 },
+                ],
+                series: [{ type: 'pie', legendItemKey: 'name', angleKey: 'value' }],
+                listeners: { seriesVisibilityChange },
+            });
             await clickAction(355, 575)(chart);
             expect(seriesVisibilityChange).toBeCalledTimes(1);
         });
