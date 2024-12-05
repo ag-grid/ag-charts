@@ -169,7 +169,7 @@ describe('LegendEvent', () => {
             const apiChart = AgCharts.create(opts);
             chart = deproxy(apiChart);
             await waitForChartStability(chart);
-            apiChart.update({
+            await apiChart.update({
                 ...opts,
                 initialState: {
                     legend: [
