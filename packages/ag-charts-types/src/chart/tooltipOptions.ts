@@ -58,8 +58,6 @@ export interface AgTooltipRendererResult {
     title?: string;
     /** Content text for the tooltip body. */
     data?: AgTooltipRendererDataRow[];
-    /** Tooltip CSS class. */
-    class?: string;
 }
 
 export interface AgSeriesTooltipRendererParams<TDatum> extends Omit<AgChartCallbackParams<TDatum>, 'itemId'> {
