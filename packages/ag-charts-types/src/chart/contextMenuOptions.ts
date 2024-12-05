@@ -10,7 +10,7 @@ export interface AgContextMenuOptions {
     enabled?: boolean;
     /**  Custom actions displayed in the context menu when right-clicking anywhere on the chart. */
     extraActions?: AgContextMenuAction<AgChartContextMenuEvent>[];
-    /**  Custom actions displayed in the context menu when right-clicking on a series node. */
+    /**  Custom actions displayed in the context menu when right-clicking anywhere on the series area. */
     extraSeriesAreaActions?: AgContextMenuAction<AgSeriesAreaContextMenuActionEvent>[];
     /**  Custom actions displayed in the context menu when right-clicking on a series node. */
     extraNodeActions?: AgContextMenuAction<AgNodeContextMenuActionEvent>[];
