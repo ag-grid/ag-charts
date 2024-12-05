@@ -40,6 +40,10 @@ export interface AgSeriesVisibilityChange {
     type: 'seriesVisibilityChange';
     /** Series id */
     seriesId: string;
+    /** Legend item id - usually yKey value for cartesian series. */
+    itemId?: string | number;
+    /** Human-readable description of the y-values. If supplied, matching items with the same value will be toggled together. */
+    legendItemName?: string;
     /** The new visibility status that the series is changing to. */
     visible: boolean;
 }

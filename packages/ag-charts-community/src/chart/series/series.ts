@@ -652,7 +652,7 @@ export abstract class Series<
 
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
         if (series.id === this.id || matchedLegendItemName) {
-            this.toggleSeriesItem(enabled, legendType, itemId, legendItemName);
+            this.toggleSeriesItem(enabled, legendType, itemId, legendItemName, event);
         }
     }
 
@@ -664,7 +664,7 @@ export abstract class Series<
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
         if (series.id === this.id || matchedLegendItemName) {
             // Double-clicked item should always become visible.
-            this.toggleSeriesItem(true, legendType, itemId, legendItemName);
+            this.toggleSeriesItem(true, legendType, itemId, legendItemName, event);
         } else if (enabled && numVisibleItems === 1) {
             // Other items should become visible if there is only one existing visible item.
             this.toggleSeriesItem(true, legendType, undefined, legendItemName);
@@ -680,19 +680,27 @@ export abstract class Series<
     protected toggleSeriesItem(
         enabled: boolean,
         legendType: ChartLegendType,
-        itemId: unknown,
-        legendItemName: string | undefined
+        itemId: string | number | undefined,
+        legendItemName: string | undefined,
+        legendEvent?: { legendItemName?: string }
     ): void {
+        const seriesId = this.id;
         if (enabled || legendType !== 'category') {
             this.visible = enabled;
         }
         this.nodeDataRefresh = true;
         this._pickNodeCache.clear();
 
-        const event: AgSeriesVisibilityChange = { type: 'seriesVisibilityChange', seriesId: this.id, visible: enabled };
+        const event: AgSeriesVisibilityChange = {
+            type: 'seriesVisibilityChange',
+            seriesId,
+            itemId,
+            legendItemName: legendEvent?.legendItemName ?? legendItemName,
+            visible: enabled,
+        };
         this.fireEvent(event);
 
-        this.ctx.legendManager.toggleItem({ enabled, seriesId: this.id, itemId, legendItemName });
+        this.ctx.legendManager.toggleItem({ enabled, seriesId, itemId, legendItemName });
     }
 
     isEnabled() {

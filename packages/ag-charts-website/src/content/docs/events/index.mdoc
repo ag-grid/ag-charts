@@ -57,7 +57,6 @@ The event object passed to the listener includes:
 
 -   The `seriesId` of the series associated with the legend item.
 -   The `itemId`, usually the `yKey` value for cartesian series.
--   `enabled`, whether the legend item is currently enabled or not.
 
 For example, to show an alert message with the `legendItemClick` event contents when a legend item is clicked, the following listener can be configured:
 
@@ -79,6 +78,34 @@ This example demonstrates:
 -   When a legend item is double clicked, a message is logged to the console with the `legendItemDoubleClick` event contents.
 
 {% chartExampleRunner title="Legend Item Click Event" name="legend-item-click-event" type="generated" /%}
+
+## Series Visibility Events - seriesVisibilityChange
+
+The `seriesVisibilityChange` event can be used to listen series visibility changes.
+
+The event object passed to the listener includes:
+
+-   The `seriesId` of the series associated with the legend item.
+-   `visible`, the new visibility state of the series.
+
+For example, to show an alert message with the `seriesVisibilityChange` event contents clicked, the following listener can be configured:
+
+```js
+listeners: {
+    seriesVisibilityChange: ({ seriesId, visible }: AgSeriesVisibilityChange) => {
+        window.alert(`seriesId: ${seriesId}, visible: ${visible}`);
+    },
+}
+```
+
+### Example: seriesVisibilityChange Event
+
+This example demonstrates:
+
+-   When a legend item is clicked, the visibility change is prevent and a counter decreases.
+-   When the counter hits zero, the series visibility change is fired.
+
+{% chartExampleRunner title="Legend Item Click Event" name="series-visibility-change" type="generated" /%}
 
 ## Chart Event - click and doubleClick
 
