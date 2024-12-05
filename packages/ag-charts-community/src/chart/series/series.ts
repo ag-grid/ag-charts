@@ -680,19 +680,26 @@ export abstract class Series<
     protected toggleSeriesItem(
         enabled: boolean,
         legendType: ChartLegendType,
-        itemId: unknown,
+        itemId: string | number | undefined,
         legendItemName: string | undefined
     ): void {
+        const seriesId = this.id;
         if (enabled || legendType !== 'category') {
             this.visible = enabled;
         }
         this.nodeDataRefresh = true;
         this._pickNodeCache.clear();
 
-        const event: AgSeriesVisibilityChange = { type: 'seriesVisibilityChange', seriesId: this.id, visible: enabled };
+        const event: AgSeriesVisibilityChange = {
+            type: 'seriesVisibilityChange',
+            seriesId,
+            itemId,
+            legendItemName,
+            visible: enabled,
+        };
         this.fireEvent(event);
 
-        this.ctx.legendManager.toggleItem({ enabled, seriesId: this.id, itemId, legendItemName });
+        this.ctx.legendManager.toggleItem({ enabled, seriesId, itemId, legendItemName });
     }
 
     isEnabled() {
