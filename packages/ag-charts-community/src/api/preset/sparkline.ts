@@ -52,7 +52,7 @@ const numericAxisProperties = {
     nice: false,
 };
 
-const crossHairTooltip = {
+const tooltipDefaults = {
     position: {
         type: 'sparkline' as any as AgTooltipPositionType,
     },
@@ -117,6 +117,7 @@ const SPARKLINE_THEME: AgChartTheme = {
                 sparklineMode: true,
             },
             tooltip: {
+                ...tooltipDefaults,
                 range: 'nearest',
             },
             axes: barAxisDefaults,
@@ -138,7 +139,7 @@ const SPARKLINE_THEME: AgChartTheme = {
                     enabled: false,
                     size: 3,
                 },
-                tooltip: crossHairTooltip,
+                tooltip: tooltipDefaults,
             },
         },
         area: {
@@ -153,7 +154,7 @@ const SPARKLINE_THEME: AgChartTheme = {
             series: {
                 strokeWidth: 1,
                 fillOpacity: 0.4,
-                tooltip: crossHairTooltip,
+                tooltip: tooltipDefaults,
             },
         },
     },
