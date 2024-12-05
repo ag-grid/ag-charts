@@ -6,7 +6,7 @@ import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './c
 type ContextMenuGroups = {
     default: Array<ContextMenuAction>;
     extra: Array<ContextMenuAction<'all'>>;
-    extraSeries: Array<ContextMenuAction<'series'>>;
+    extraSeriesArea: Array<ContextMenuAction<'series-area'>>;
     extraNode: Array<ContextMenuAction<'node'>>;
     extraLegendItem: Array<ContextMenuAction<'legend'>>;
 };
@@ -51,6 +51,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
     public extraNodeActions: NonNullable<AgContextMenuOptions['extraNodeActions']> = [];
 
     /**
+     * Extra menu actions that only appear when clicking on a series.
+     */
+    public extraSeriesAreaActions: NonNullable<AgContextMenuOptions['extraSeriesAreaActions']> = [];
+
+    /**
      * Extra menu actions that only appear when clicking on a legend item
      */
     public extraLegendItemActions: NonNullable<AgContextMenuOptions['extraLegendItemActions']> = [];
@@ -61,9 +66,9 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     // State
     private readonly groups: ContextMenuGroups;
-    private pickedNode?: _ModuleSupport.SeriesNodeDatum;
+    private pickedNode: _ModuleSupport.SeriesNodeDatum | undefined = undefined;
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
-    private showEvent?: MouseEvent;
+    private showEvent: MouseEvent | undefined = undefined;
     private x: number = 0;
     private y: number = 0;
 
@@ -81,7 +86,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
         this.registry = ctx.contextMenuRegistry;
 
         // State
-        this.groups = { default: [], extra: [], extraSeries: [], extraNode: [], extraLegendItem: [] };
+        this.groups = { default: [], extra: [], extraSeriesArea: [], extraNode: [], extraLegendItem: [] };
 
         this.element = ctx.domManager.addChild('canvas-overlay', moduleId);
         this.element.classList.add(DEFAULT_CONTEXT_MENU_CLASS);
@@ -141,8 +146,15 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             return { type: 'all', label, action };
         });
 
-        if (ContextMenuRegistry.check('series', event)) {
+        this.groups.extraSeriesArea = [];
+        this.groups.extraNode = [];
+        if (ContextMenuRegistry.check('series-area', event)) {
             this.pickedNode = event.context.pickedNode;
+
+            this.groups.extraSeriesArea = this.extraSeriesAreaActions.map(({ label, action }) => {
+                return { type: 'series-area', label, action };
+            });
+
             if (this.pickedNode) {
                 this.groups.extraNode = this.extraNodeActions.map(({ label, action }) => {
                     return { type: 'node', label, action };
@@ -150,6 +162,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             }
         }
 
+        this.groups.extraLegendItem = [];
         if (ContextMenuRegistry.check('legend', event)) {
             this.pickedLegendItem = event.context.legendItem;
             if (this.pickedLegendItem) {
@@ -159,8 +172,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
             }
         }
 
-        const { default: def, extra, extraNode, extraLegendItem } = this.groups;
-        const groupCount = [def, extra, extraNode, extraLegendItem].reduce((count, e) => {
+        const { default: def, extra, extraSeriesArea, extraNode, extraLegendItem } = this.groups;
+        const groupCount = [def, extra, extraSeriesArea, extraNode, extraLegendItem].reduce((count, e) => {
             return e.length + count;
         }, 0);
 
@@ -223,6 +236,8 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
         this.appendMenuGroup(menuElement, this.groups.extra);
 
+        this.appendMenuGroup(menuElement, this.groups.extraSeriesArea);
+
         if (this.pickedNode) {
             this.appendMenuGroup(menuElement, this.groups.extraNode);
         }
@@ -273,6 +288,11 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
                     callback({ type: 'contextmenu', seriesId, itemId, event });
                     this.hide();
                 }
+            };
+        } else if (ContextMenuRegistry.checkCallback('series-area', type, callback)) {
+            return () => {
+                callback({ type: 'seriesContextMenuAction', event: this.showEvent! });
+                this.hide();
             };
         } else if (ContextMenuRegistry.checkCallback('node', type, callback)) {
             return () => {

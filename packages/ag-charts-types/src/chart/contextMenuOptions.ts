@@ -1,4 +1,8 @@
-import type { AgChartContextMenuEvent, AgNodeContextMenuActionEvent } from './eventOptions';
+import type {
+    AgChartContextMenuEvent,
+    AgNodeContextMenuActionEvent,
+    AgSeriesAreaContextMenuActionEvent,
+} from './eventOptions';
 import type { AgChartLegendContextMenuEvent } from './legendOptions';
 
 export interface AgContextMenuOptions {
@@ -7,7 +11,7 @@ export interface AgContextMenuOptions {
     /**  Custom actions displayed in the context menu when right-clicking anywhere on the chart. */
     extraActions?: AgContextMenuAction<AgChartContextMenuEvent>[];
     /**  Custom actions displayed in the context menu when right-clicking on a series node. */
-    extraSeriesActions?: AgContextMenuAction<AgChartContextMenuEvent>[];
+    extraSeriesAreaActions?: AgContextMenuAction<AgSeriesAreaContextMenuActionEvent>[];
     /**  Custom actions displayed in the context menu when right-clicking on a series node. */
     extraNodeActions?: AgContextMenuAction<AgNodeContextMenuActionEvent>[];
     /**  Custom actions displayed in the context menu when right-clicking on a legend item. */

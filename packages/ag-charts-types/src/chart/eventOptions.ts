@@ -47,6 +47,7 @@ export interface AgSeriesVisibilityChange extends AgPreventableEvent {
 export type AgChartClickEvent = AgChartEvent<'click'>;
 export type AgChartDoubleClickEvent = AgChartEvent<'doubleClick'>;
 export type AgChartContextMenuEvent = AgChartEvent<'contextMenuEvent'>;
+export type AgSeriesAreaContextMenuActionEvent = AgChartEvent<'seriesContextMenuAction'>;
 export type AgNodeContextMenuActionEvent<TDatum = any> = AgNodeClickEvent<'nodeContextMenuAction', TDatum>;
 
 export interface AgBaseChartListeners<TDatum> {
