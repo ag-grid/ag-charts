@@ -118,7 +118,7 @@ export function groupAccumulativeValueProperty<K>(
 ) {
     return [
         valueProperty(propName, scaleType, opts),
-        accumulateGroup(opts.groupId, mode, sum, opts.separateNegative),
+        accumulateGroup(opts.groupId, mode, sum, opts),
         ...(opts.rangeId != null ? [range(opts.rangeId, opts.groupId)] : []),
     ];
 }
@@ -193,8 +193,9 @@ function normaliseFnBuilder({
     mode: 'sum' | 'range';
     invalidValue: any;
 }) {
-    const normalise = (val: null | number, extent: number) => {
-        if (extent === 0) return invalidValue;
+    const normalise = (val: null | number, extent: number | undefined) => {
+        if (extent == null) return invalidValue;
+        if (extent === 0) return 0;
         const result = ((val ?? 0) * normaliseTo) / extent;
         if (result >= 0) {
             return Math.min(normaliseTo, result);
@@ -206,11 +207,9 @@ function normaliseFnBuilder({
         const extent = normaliseFindExtent(mode, columns, valueIndexes, datumIndex);
         for (const valueIdx of valueIndexes) {
             const column = columns[valueIdx];
-            const value: null | number | number[] | (null | number)[] = column[datumIndex];
-            if (value == null) {
-                column[datumIndex] = undefined;
-                continue;
-            }
+            const value: null | number | number[] = column[datumIndex];
+            if (value == null) continue;
+
             column[datumIndex] =
                 // eslint-disable-next-line sonarjs/no-nested-functions
                 typeof value === 'number' ? normalise(value, extent) : value.map((v) => normalise(v, extent));
@@ -219,13 +218,16 @@ function normaliseFnBuilder({
 }
 
 function normaliseFindExtent(mode: 'sum' | 'range', columns: any[][], valueIndexes: number[], datumIndex: number) {
-    const valuesExtent = [0, 0];
+    let valuesExtent: [number, number] | undefined;
     for (const valueIdx of valueIndexes) {
         const column = columns[valueIdx];
-        const value: null | number | (null | number)[] = column[datumIndex];
+        const value: null | any[] = column[datumIndex];
         if (value == null) continue;
         // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators
-        const valueExtent = typeof value === 'number' ? value : Math.max(...value.map((v) => v ?? 0));
+        const valueExtent = typeof value === 'number' ? value : value[value.length - 1];
+        if (!Number.isFinite(valueExtent)) continue;
+
+        valuesExtent ??= [0, 0];
         const valIdx = valueExtent < 0 ? 0 : 1;
         if (mode === 'sum') {
             valuesExtent[valIdx] += valueExtent;
@@ -235,6 +237,8 @@ function normaliseFindExtent(mode: 'sum' | 'range', columns: any[][], valueIndex
             valuesExtent[valIdx] = Math.max(valuesExtent[valIdx], valueExtent);
         }
     }
+
+    if (valuesExtent == null) return;
 
     return Math.max(Math.abs(valuesExtent[0]), valuesExtent[1]);
 }
@@ -372,24 +376,46 @@ export function animationValidation(valueKeyIds?: string[]): ProcessorOutputProp
     };
 }
 
-function buildGroupAccFn({ mode, separateNegative }: { mode: 'normal' | 'trailing'; separateNegative?: boolean }) {
+function buildGroupAccFn({
+    mode,
+    separateNegative,
+    invalidValue,
+}: {
+    mode: 'normal' | 'trailing';
+    separateNegative?: boolean;
+    invalidValue: number;
+}) {
     return () => () => (columns: any[][], valueIndexes: number[], datumIndex: number) => {
         // Datum scope.
         const acc = [0, 0];
+
         for (const valueIdx of valueIndexes) {
             const column = columns[valueIdx];
-            const currentVal = column[datumIndex];
-            const accIndex = isNegative(currentVal) && separateNegative ? 0 : 1;
-            if (!isFiniteNumber(currentVal)) continue;
+            let currentVal = column[datumIndex];
+            if (!Number.isFinite(currentVal)) currentVal = invalidValue;
 
-            if (mode === 'normal') acc[accIndex] += currentVal;
-            column[datumIndex] = acc[accIndex];
-            if (mode === 'trailing') acc[accIndex] += currentVal;
+            const accIndex = !Number.isFinite(currentVal) || (isNegative(currentVal) && separateNegative) ? 0 : 1;
+            const nextAcc = acc[accIndex] + currentVal;
+
+            if (Number.isFinite(nextAcc)) {
+                column[datumIndex] = mode === 'normal' ? nextAcc : acc[accIndex];
+                acc[accIndex] = nextAcc;
+            } else {
+                column[datumIndex] = invalidValue;
+            }
         }
     };
 }
 
-function buildGroupWindowAccFn({ mode, sum }: { mode: 'normal' | 'trailing'; sum: 'current' | 'last' }) {
+function buildGroupWindowAccFn({
+    mode,
+    sum,
+    invalidValue,
+}: {
+    mode: 'normal' | 'trailing';
+    sum: 'current' | 'last';
+    invalidValue: number;
+}) {
     return () => {
         // Entire data-set scope.
         const lastValues: any[] = [];
@@ -401,22 +427,28 @@ function buildGroupWindowAccFn({ mode, sum }: { mode: 'normal' | 'trailing'; sum
                 let acc = 0;
                 for (const valueIdx of valueIndexes) {
                     const column = columns[valueIdx];
-                    const currentVal = column[datumIndex];
-                    const lastValue = firstRow && sum === 'current' ? 0 : lastValues[valueIdx];
+
+                    let currentVal = column[datumIndex];
+                    if (!Number.isFinite(currentVal)) currentVal = invalidValue;
+
+                    let sumValue: number;
+                    if (sum === 'current') {
+                        sumValue = currentVal;
+                    } else if (!firstRow) {
+                        sumValue = lastValues[valueIdx];
+                    } else if (Number.isFinite(currentVal)) {
+                        sumValue = 0;
+                    } else {
+                        sumValue = invalidValue;
+                    }
                     lastValues[valueIdx] = currentVal;
 
-                    const sumValue = sum === 'current' ? currentVal : lastValue;
-                    if (!isFiniteNumber(currentVal) || !isFiniteNumber(lastValue)) {
-                        column[datumIndex] = acc;
-                        continue;
-                    }
-
-                    if (mode === 'normal') {
-                        acc += sumValue;
-                    }
-                    column[datumIndex] = acc;
-                    if (mode === 'trailing') {
-                        acc += sumValue;
+                    const nextAcc = acc + sumValue;
+                    if (Number.isFinite(nextAcc)) {
+                        column[datumIndex] = mode === 'normal' ? nextAcc : acc;
+                        acc = nextAcc;
+                    } else {
+                        column[datumIndex] = invalidValue;
                     }
                 }
 
@@ -430,14 +462,14 @@ export function accumulateGroup(
     matchGroupId: string,
     mode: 'normal' | 'trailing' | 'window' | 'window-trailing',
     sum: 'current' | 'last',
-    separateNegative = false
+    { separateNegative = false, invalidValue = 0 } = {}
 ): GroupValueProcessorDefinition<any, any> {
     let adjust;
     if (mode.startsWith('window')) {
         const modeParam = mode.endsWith('-trailing') ? 'trailing' : 'normal';
-        adjust = memo({ mode: modeParam, sum }, buildGroupWindowAccFn);
+        adjust = memo({ mode: modeParam, sum, invalidValue }, buildGroupWindowAccFn);
     } else {
-        adjust = memo({ mode: mode as 'normal' | 'trailing', separateNegative }, buildGroupAccFn);
+        adjust = memo({ mode: mode as 'normal' | 'trailing', separateNegative, invalidValue }, buildGroupAccFn);
     }
 
     return {

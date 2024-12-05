@@ -197,14 +197,18 @@ export class AreaSeries extends CartesianSeries<
             marker: `area-stack-${groupIndex}-yValues-marker`,
         };
 
-        const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
+        const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: NaN };
         const extraProps = [];
 
-        if (isDefined(normalizedTo)) {
-            common.invalidValue = 0;
-            extraProps.push(normaliseGroupTo(Object.values(idMap), normalizedTo, 'range', { invalidValue: 0 }));
-        } else if (connectMissingData && stackCount > 1) {
-            common.invalidValue = 0;
+        if (connectMissingData) {
+            if (isDefined(normalizedTo)) {
+                common.invalidValue = 0;
+                extraProps.push(normaliseGroupTo(Object.values(idMap), normalizedTo, 'range', { invalidValue: 0 }));
+            } else if (stackCount > 1) {
+                common.invalidValue = 0;
+            }
+        } else if (isDefined(normalizedTo)) {
+            extraProps.push(normaliseGroupTo(Object.values(idMap), normalizedTo, 'range', { invalidValue: NaN }));
         }
 
         if (animationEnabled) {

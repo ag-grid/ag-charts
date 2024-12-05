@@ -899,6 +899,8 @@ export class DataModel<
 
         const { rawData, columns, invalidData } = processedData;
         for (const processor of groupProcessors) {
+            console.group();
+            console.log(processor);
             const valueIndexes = this.valueGroupIdxLookup(processor);
             const adjustFn = processor.adjust()();
 
@@ -920,6 +922,7 @@ export class DataModel<
 
                 processedData.domain.values[valueIndex] = domain.getDomain();
             }
+            console.groupEnd();
         }
     }
 
