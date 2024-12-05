@@ -1,3 +1,5 @@
+import type { AgInitialStateLegendOptions } from 'packages/ag-charts-types/dist/types/src/main';
+
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -643,6 +645,11 @@ export abstract class Series<
 
     createNodeContextMenuActionEvent(event: Event, datum: TDatum): INodeEvent<'nodeContextMenuAction'> {
         return new this.NodeEvent('nodeContextMenuAction', event, datum, this);
+    }
+
+    onLegendInitialState(legendType: ChartLegendType, initialState: AgInitialStateLegendOptions | undefined) {
+        const { visible = true, itemId, legendItemName } = initialState ?? {};
+        this.toggleSeriesItem(visible, legendType, itemId, legendItemName);
     }
 
     onLegendItemClick(event: LegendItemClickChartEvent) {
