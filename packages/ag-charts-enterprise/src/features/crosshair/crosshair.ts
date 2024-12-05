@@ -273,6 +273,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             const lineData = data[key];
             if (!lineData) {
                 line.visible = false;
+                this.hideLabel(key);
                 return;
             }
             line.visible = true;
