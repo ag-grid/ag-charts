@@ -1,6 +1,7 @@
 import type {
     AgAxisBaseTickOptions,
     AgBaseAxisFormattableLabelOptions,
+    AgBaseAxisLabelOptions,
     AgBaseAxisOptions,
     AgContinuousAxisOptions,
 } from './axisOptions';
@@ -34,7 +35,7 @@ export interface AgAngleCategoryAxisOptions extends Omit<AgBaseAxisOptions<AgAng
 }
 
 export interface AgAngleNumberAxisOptions
-    extends Omit<AgBaseAxisOptions<AgAngleAxisLabelOptions>, 'keys' | 'interval'>,
+    extends Omit<AgBaseAxisOptions<AgAngleAxisFormattableLabelOptions>, 'keys' | 'interval'>,
         AgContinuousAxisOptions {
     type: 'angle-number';
     /** Configuration for the axis ticks. */
@@ -49,9 +50,9 @@ export interface AgAngleNumberAxisOptions
 
 export type AgAngleAxisLabelOrientation = 'fixed' | 'parallel' | 'perpendicular';
 
-export interface AgAngleAxisLabelOptions extends AgBaseAxisFormattableLabelOptions {
+interface OrientableLabel {
     /**
-     * Labels orientation on the angle category axis.
+     * Label orientation.
      * `fixed` - all labels remain in a fixed orientation of horizontal text.
      * `parallel` - labels are in a circle around the axis.
      * `perpendicular` - labels are in the radial direction perpendicular to the axis.
@@ -60,5 +61,8 @@ export interface AgAngleAxisLabelOptions extends AgBaseAxisFormattableLabelOptio
      */
     orientation?: AgAngleAxisLabelOrientation;
 }
+
+export interface AgAngleAxisFormattableLabelOptions extends AgBaseAxisFormattableLabelOptions, OrientableLabel {}
+export interface AgAngleAxisLabelOptions extends AgBaseAxisLabelOptions, OrientableLabel {}
 
 export interface AgAngleCrossLineOptions extends AgBaseCrossLineOptions {}

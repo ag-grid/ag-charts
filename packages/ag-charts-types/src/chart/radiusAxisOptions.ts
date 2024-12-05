@@ -1,6 +1,7 @@
 import type {
     AgAxisCaptionOptions,
     AgBaseAxisFormattableLabelOptions,
+    AgBaseAxisLabelOptions,
     AgBaseAxisOptions,
     AgContinuousAxisOptions,
 } from './axisOptions';
@@ -8,10 +9,11 @@ import type { AgBaseCrossLineLabelOptions, AgBaseCrossLineOptions } from './cros
 import type { AgPolarAxisShape } from './polarAxisOptions';
 import type { Degree, Ratio } from './types';
 
-interface AgRadiusAxisLabelOptions extends AgBaseAxisFormattableLabelOptions {}
+interface AgRadiusAxisFormattableLabelOptions extends AgBaseAxisFormattableLabelOptions {}
+interface AgRadiusAxisLabelOptions extends AgBaseAxisLabelOptions {}
 
 export interface AgRadiusNumberAxisOptions
-    extends Omit<AgBaseAxisOptions<AgRadiusAxisLabelOptions>, 'keys' | 'interval'>,
+    extends Omit<AgBaseAxisOptions<AgRadiusAxisFormattableLabelOptions>, 'keys' | 'interval'>,
         AgContinuousAxisOptions {
     type: 'radius-number';
     /** The rotation angle of axis line and labels in degrees. */
