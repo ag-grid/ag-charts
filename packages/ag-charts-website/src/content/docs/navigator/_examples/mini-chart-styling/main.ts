@@ -82,6 +82,7 @@ const options: AgCartesianChartOptions = {
     },
     navigator: {
         enabled: true,
+        height: 40,
         miniChart: {
             enabled: true,
             label: {
