@@ -1,4 +1,4 @@
-import { jsonDiff } from '../../util/json';
+import { objectsEqual } from '../../util/object';
 import { VERSION } from '../../version';
 import { MementoCaretaker, type MementoOriginator } from './memento';
 
@@ -6,11 +6,15 @@ export class StateManager {
     private readonly caretaker = new MementoCaretaker(VERSION);
     private readonly state = new Map<string, any>();
 
-    setState(originator: MementoOriginator, value: any, forceUpdate?: boolean) {
-        if (!forceUpdate && jsonDiff(this.state.get(originator.mementoOriginatorKey), value) == null) {
+    setState(originator: MementoOriginator, value: any) {
+        if (objectsEqual(this.state.get(originator.mementoOriginatorKey), value)) {
             return;
         }
 
+        this.setStateAndRestore(originator, value);
+    }
+
+    setStateAndRestore(originator: MementoOriginator, value: any) {
         this.state.set(originator.mementoOriginatorKey, value);
         this.restoreState(originator);
     }
