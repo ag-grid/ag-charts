@@ -113,6 +113,12 @@ export interface AgZoomOptions {
      */
     enableSelecting?: boolean;
     /**
+     * Set to `true` to keep the selection area matching the chart's aspect ratio.
+     *
+     * Default: `false`
+     */
+    keepAspectRatio?: boolean;
+    /**
      * The minimum number of x-axis items to be shown, beyond which zooming is stopped.
      *
      * Default: `2`
