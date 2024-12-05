@@ -491,17 +491,17 @@ export class ChartTheme {
         params.set(DEFAULT_HIERARCHY_FILLS, ['#fff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
         params.set(DEFAULT_HIERARCHY_STROKES, ['#fff', '#c5cbd1', '#a4b1bd', '#8498a9', '#648096']);
         params.set(DEFAULT_FIBONACCI_STROKES, [
-            '#d93e64',
-            '#913aac',
-            '#e24c4a',
-            '#3068f9',
-            '#5090dc',
-            '#4db9d2',
-            '#409682',
-            '#65ab58',
-            '#f49d2d',
-            '#e24c4a',
             '#797b86',
+            '#e24c4a',
+            '#f49d2d',
+            '#65ab58',
+            '#409682',
+            '#4db9d2',
+            '#5090dc',
+            '#3068f9',
+            '#e24c4a',
+            '#913aac',
+            '#d93e64',
         ]);
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_BACKGROUND_FILL);
 

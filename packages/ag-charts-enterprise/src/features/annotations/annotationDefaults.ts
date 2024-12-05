@@ -5,6 +5,8 @@ import {
     type AnnotationOptionsColorPickerType,
     AnnotationType,
     type ChannelTextPosition,
+    type FibonacciAnnotationType,
+    type FibonacciBands,
     type HasColorAnnotationType,
     type HasFontSizeAnnotationType,
     type HasLineStyleAnnotationType,
@@ -23,6 +25,7 @@ interface DefaultsMemento {
     lineStyles: DefaultLineStyles;
     lineTextAlignments: DefaultLineTextAlignments;
     lineTextPositions: DefaultLineTextPositions;
+    fibonacciBands: DefaultFibonacciBands;
 }
 
 type DefaultColors = Map<
@@ -33,6 +36,7 @@ type DefaultFontSizes = Map<HasFontSizeAnnotationType, number | undefined>;
 type DefaultLineStyles = Map<HasLineStyleAnnotationType, AnnotationLineStyle | undefined>;
 type DefaultLineTextAlignments = Map<HasLineTextAnnotationType, LineTextAlignment | undefined>;
 type DefaultLineTextPositions = Map<HasLineTextAnnotationType, LineTextPosition | ChannelTextPosition | undefined>;
+type DefaultFibonacciBands = Map<FibonacciAnnotationType, FibonacciBands | undefined>;
 
 export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<DefaultsMemento> {
     mementoOriginatorKey = 'annotation-defaults' as const;
@@ -97,6 +101,8 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         [AnnotationType.DatePriceRange, undefined],
     ]);
 
+    private fibonacciBands: DefaultFibonacciBands = new Map([[AnnotationType.FibonacciRetracement, undefined]]);
+
     createMemento() {
         return {
             colors: deepClone(this.colors),
@@ -104,6 +110,7 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
             lineStyles: deepClone(this.lineStyles),
             lineTextAlignments: deepClone(this.lineTextAlignments),
             lineTextPositions: deepClone(this.lineTextPositions),
+            fibonacciBands: deepClone(this.fibonacciBands),
         };
     }
 
@@ -117,6 +124,7 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         this.lineStyles = deepClone(blob.lineStyles);
         this.lineTextAlignments = deepClone(blob.lineTextAlignments);
         this.lineTextPositions = deepClone(blob.lineTextPositions);
+        this.fibonacciBands = deepClone(blob.fibonacciBands);
     }
 
     setDefaultColor(
@@ -160,6 +168,10 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         this.lineTextPositions.set(type, position);
     }
 
+    setDefaultFibonacciBands(type: FibonacciAnnotationType | HasLineStyleAnnotationType, bands: FibonacciBands) {
+        if (type == AnnotationType.FibonacciRetracement) this.fibonacciBands.set(type, bands);
+    }
+
     applyDefaults(datum: AnnotationProperties) {
         for (const [annotationType, colors] of this.colors) {
             if (datum.type !== annotationType) continue;
@@ -189,6 +201,11 @@ export class AnnotationDefaults implements _ModuleSupport.MementoOriginator<Defa
         for (const [annotationType, alignment] of this.lineTextAlignments) {
             if (datum.type !== annotationType || alignment == null) continue;
             datum.text.alignment = alignment;
+        }
+
+        for (const [annotationType, bands] of this.fibonacciBands) {
+            if (datum.type !== annotationType || bands == null) continue;
+            datum.bands = bands;
         }
     }
 }

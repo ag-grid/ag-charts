@@ -55,6 +55,8 @@ type MeasurerAnnotationType =
 
 type EphemeralAnnotationType = AnnotationType.QuickDatePriceRange;
 
+export type FibonacciAnnotationType = AnnotationType.FibonacciRetracement;
+
 export type HasColorAnnotationType = AnnotationType;
 export type HasLineStyleAnnotationType = Exclude<
     LineAnnotationType | ChannelAnnotationType | MeasurerAnnotationType,
