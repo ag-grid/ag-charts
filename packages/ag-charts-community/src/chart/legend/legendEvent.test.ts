@@ -62,7 +62,6 @@ describe('LegendEvent', () => {
                 type: null,
                 seriesId: null,
                 itemId: null,
-                defaultPrevented: null,
                 event: null,
                 preventDefault: null,
             });
@@ -77,7 +76,6 @@ describe('LegendEvent', () => {
                 type: null,
                 seriesId: null,
                 itemId: null,
-                defaultPrevented: null,
                 event: null,
                 preventDefault: null,
             });
@@ -92,42 +90,12 @@ describe('LegendEvent', () => {
                 type: null,
                 seriesId: null,
                 visible: null,
-                defaultPrevented: null,
                 preventDefault: null,
             });
 
             chart = await createChart({ ...OPTIONS, listeners: { seriesVisibilityChange } });
             await clickAction(355, 575)(chart);
             expect(seriesVisibilityChange).toBeCalledTimes(1);
-        });
-    });
-
-    describe('defaultPrevented must be readonly', () => {
-        let handler: jest.Mock;
-
-        beforeEach(() => {
-            type Events = AgSeriesVisibilityChange | AgChartLegendClickEvent | AgChartLegendDoubleClickEvent;
-            handler = jest.fn((event: Events) => {
-                expect(() => ((event as any).defaultPrevented = false)).toThrow(TypeError);
-            });
-        });
-
-        test('click', async () => {
-            chart = await createChart({ ...OPTIONS, legend: { listeners: { legendItemClick: handler } } });
-            await clickAction(355, 575)(chart);
-            expect(handler).toBeCalledTimes(1);
-        });
-
-        test('dblclick', async () => {
-            chart = await createChart({ ...OPTIONS, legend: { listeners: { legendItemDoubleClick: handler } } });
-            await doubleClickAction(355, 575)(chart);
-            expect(handler).toBeCalledTimes(1);
-        });
-
-        test('visiblityChange', async () => {
-            chart = await createChart({ ...OPTIONS, listeners: { seriesVisibilityChange: handler } });
-            await clickAction(355, 575)(chart);
-            expect(handler).toBeCalledTimes(1);
         });
     });
 
@@ -151,9 +119,7 @@ describe('LegendEvent', () => {
 
         test('legendItemClick preventDefault', async () => {
             const legendItemClick = jest.fn((event: AgChartLegendClickEvent) => {
-                expect(event.defaultPrevented).toEqual(false);
                 event.preventDefault();
-                expect(event.defaultPrevented).toEqual(true);
             });
             const seriesVisibilityChange = jest.fn((_event: AgSeriesVisibilityChange) => {});
 
@@ -171,9 +137,7 @@ describe('LegendEvent', () => {
         test('seriesVisibilityChange preventDefault', async () => {
             const legendItemClick = jest.fn((_event: AgChartLegendClickEvent) => {});
             const seriesVisibilityChange = jest.fn((event: AgSeriesVisibilityChange) => {
-                expect(event.defaultPrevented).toEqual(false);
                 event.preventDefault();
-                expect(event.defaultPrevented).toEqual(true);
             });
 
             chart = await createChart({

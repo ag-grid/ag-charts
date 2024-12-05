@@ -953,7 +953,7 @@ export class Legend extends BaseProperties {
 
         let newEnabled = enabled;
         const clickEvent = makeLegendItemEvent('click', itemId, series.id, event);
-        legendItemClick?.(clickEvent);
+        legendItemClick?.(clickEvent.apiEvent);
 
         if (clickEvent.defaultPrevented) return true;
 
@@ -1019,7 +1019,7 @@ export class Legend extends BaseProperties {
         }
 
         const doubleClickEvent = makeLegendItemEvent('dblclick', itemId, series.id, event);
-        legendItemDoubleClick?.(doubleClickEvent);
+        legendItemDoubleClick?.(doubleClickEvent.apiEvent);
 
         if (doubleClickEvent.defaultPrevented) return true;
 

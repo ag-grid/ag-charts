@@ -249,21 +249,6 @@ export abstract class Series<
 
     connectsToYAxis = false;
 
-    private makePreventableSeriesVisibilityChange(newVisibility: boolean): AgSeriesVisibilityChange {
-        let _defaultPrevented = false;
-        return {
-            type: 'seriesVisibilityChange',
-            seriesId: this.id,
-            visible: newVisibility,
-            preventDefault: () => {
-                _defaultPrevented = true;
-            },
-            get defaultPrevented(): boolean {
-                return _defaultPrevented;
-            },
-        };
-    }
-
     get data() {
         return this._data ?? this._chartData;
     }
@@ -272,9 +257,15 @@ export abstract class Series<
         const oldVisibilty = this.visible;
         if (oldVisibilty === newVisibility) return false;
 
-        const event = this.makePreventableSeriesVisibilityChange(newVisibility);
+        let defaultPrevented = false;
+        const event: AgSeriesVisibilityChange = {
+            type: 'seriesVisibilityChange',
+            seriesId: this.id,
+            visible: newVisibility,
+            preventDefault: () => (defaultPrevented = true),
+        };
         this.fireEvent(event);
-        return event.defaultPrevented;
+        return defaultPrevented;
     }
 
     set visible(newVisibility: boolean) {
