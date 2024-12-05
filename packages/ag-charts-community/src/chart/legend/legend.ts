@@ -26,6 +26,7 @@ import { getWindow } from '../../util/dom';
 import { createId } from '../../util/id';
 import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
+import { objectsEqual } from '../../util/object';
 import { BaseProperties } from '../../util/properties';
 import { ObserveChanges } from '../../util/proxy';
 import { CachedTextMeasurerPool, TextUtils } from '../../util/textMeasurer';
@@ -302,15 +303,9 @@ export class Legend extends BaseProperties {
         const visibleItems = legendData.filter((datum) => !datum.hideInLegend);
         const { data } = this;
 
-        const propertiesToCheck: (keyof CategoryLegendDatum)[] = ['seriesId', 'itemId', 'enabled', 'legendItemName'];
-        const shouldUpdate =
-            data.length !== legendData.length ||
-            data.some((_v, index, _a) => {
-                const [newValue, oldValue] = [legendData[index], data[index]];
-                return propertiesToCheck.some((p) => newValue[p] !== oldValue[p]);
-            });
-
-        if (shouldUpdate) this.data = visibleItems;
+        if (!objectsEqual(legendData, data)) {
+            this.data = visibleItems;
+        }
     }
 
     public destroy() {
