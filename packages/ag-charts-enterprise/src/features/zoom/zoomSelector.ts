@@ -2,7 +2,16 @@ import type { _ModuleSupport } from 'ag-charts-community';
 
 import type { ZoomRect } from './scenes/zoomRect';
 import type { DefinedZoomState, ZoomCoords, ZoomProperties } from './zoomTypes';
-import { constrainZoom, definedZoomState, multiplyZoom, pointToRatio, scaleZoom, translateZoom } from './zoomUtils';
+import {
+    constrainZoom,
+    definedZoomState,
+    dx,
+    dy,
+    multiplyZoom,
+    pointToRatio,
+    scaleZoom,
+    translateZoom,
+} from './zoomUtils';
 
 // "Re-rewind, when the crowd say..."
 export class ZoomSelector {
@@ -72,19 +81,19 @@ export class ZoomSelector {
             return;
         }
 
-        this.coords.x2 = x;
-        this.coords.y2 = y;
+        const { coords } = this;
+
+        coords.x2 = x;
+        coords.y2 = y;
 
         if (!bbox) return;
 
-        const { isScalingX, isScalingY, minRatioX, minRatioY } = props;
+        const { isScalingX, isScalingY, keepAspectRatio, minRatioX, minRatioY } = props;
 
         // Ensure the selection is always at the same aspect ratio, using the width as the source of truth for the size
         // of the selection and limit it to the minimum dimensions.
         const zoom = definedZoomState(currentZoom);
         const normal = this.getNormalisedDimensions();
-
-        const aspectRatio = bbox.width / bbox.height;
 
         const scaleX = zoom.x.max - zoom.x.min;
         const scaleY = zoom.y.max - zoom.y.min;
@@ -92,45 +101,39 @@ export class ZoomSelector {
         const xRatio = minRatioX / scaleX;
         const yRatio = minRatioY / scaleY;
 
-        if (normal.width / bbox.width < xRatio) {
-            if (this.coords.x2 < this.coords.x1) {
-                this.coords.x2 = this.coords.x1 - bbox.width * xRatio;
+        if (isScalingX && normal.width / bbox.width < xRatio) {
+            if (coords.x2 < coords.x1) {
+                coords.x2 = coords.x1 - bbox.width * xRatio;
             } else {
-                this.coords.x2 = this.coords.x1 + bbox.width * xRatio;
+                coords.x2 = coords.x1 + bbox.width * xRatio;
             }
         }
 
-        // If only scaling on the y-axis, we switch to scaling using height as the source of truth, otherwise we scale
-        // the height in relation to the aspect ratio
-        if (isScalingY && !isScalingX) {
-            if (normal.height / bbox.height < yRatio) {
-                if (this.coords.y2 < this.coords.y1) {
-                    this.coords.y2 = this.coords.y1 - bbox.width * xRatio;
-                } else {
-                    this.coords.y2 = this.coords.y1 + bbox.height * yRatio;
-                }
+        // We only keep the aspect ratio if we are scaling on both axes, since we will maximise unscaled axes.
+        if (keepAspectRatio && isScalingX && isScalingY) {
+            const aspectRatio = bbox.width / bbox.height;
+            if (coords.y2 < coords.y1) {
+                coords.y2 = Math.min(coords.y1 - normal.width / aspectRatio, coords.y1 - bbox.height * yRatio);
+            } else {
+                coords.y2 = Math.max(coords.y1 + normal.width / aspectRatio, coords.y1 + bbox.height * yRatio);
             }
-        } else if (this.coords.y2 < this.coords.y1) {
-            this.coords.y2 = Math.min(
-                this.coords.y1 - normal.width / aspectRatio,
-                this.coords.y1 - bbox.height * yRatio
-            );
-        } else {
-            this.coords.y2 = Math.max(
-                this.coords.y1 + normal.width / aspectRatio,
-                this.coords.y1 + bbox.height * yRatio
-            );
+        } else if (isScalingY && normal.height / bbox.height < yRatio) {
+            if (coords.y2 < coords.y1) {
+                coords.y2 = coords.y1 - bbox.height * yRatio;
+            } else {
+                coords.y2 = coords.y1 + bbox.height * yRatio;
+            }
         }
 
         // Finally we reset the coords to maximise if not scaling on either axis
         if (!isScalingX) {
-            this.coords.x1 = bbox.x;
-            this.coords.x2 = bbox.x + bbox.width;
+            coords.x1 = bbox.x;
+            coords.x2 = bbox.x + bbox.width;
         }
 
         if (!isScalingY) {
-            this.coords.y1 = bbox.y;
-            this.coords.y2 = bbox.y + bbox.height;
+            coords.y1 = bbox.y;
+            coords.y2 = bbox.y + bbox.height;
         }
     }
 
@@ -167,8 +170,8 @@ export class ZoomSelector {
         let newZoom = scaleZoom(oldZoom, xFactor, yFactor);
 
         // Translate the zoom bounding box by an amount scaled to the old zoom
-        const translateX = origin.x * (oldZoom.x.max - oldZoom.x.min);
-        const translateY = origin.y * (oldZoom.y.max - oldZoom.y.min);
+        const translateX = origin.x * dx(oldZoom);
+        const translateY = origin.y * dy(oldZoom);
         newZoom = translateZoom(newZoom, translateX, translateY);
 
         // Constrain the zoom bounding box to remain within the ultimate bounds of 0,0 and 1,1

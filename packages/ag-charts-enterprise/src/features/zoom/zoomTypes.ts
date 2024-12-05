@@ -24,6 +24,7 @@ export interface ZoomProperties {
     independentAxes: boolean;
     isScalingX: boolean;
     isScalingY: boolean;
+    keepAspectRatio: boolean;
     minRatioX: number;
     minRatioY: number;
     scrollingStep: number;

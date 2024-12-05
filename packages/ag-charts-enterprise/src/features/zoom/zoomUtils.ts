@@ -181,9 +181,9 @@ export function constrainAxisWithOld(
     } else if (min === old.min) {
         max = min + minRatio;
     } else {
-        const cx = old.min + (old.max - old.min) / 2;
-        min = cx - minRatio / 2;
-        max = cx + minRatio / 2;
+        const c = min + (max - min) / 2;
+        min = c - minRatio / 2;
+        max = c + minRatio / 2;
     }
 
     return { min, max };

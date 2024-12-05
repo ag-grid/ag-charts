@@ -134,6 +134,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(RATIO)
     public scrollingStep = (UNIT.max - UNIT.min) / 10;
 
+    @Validate(BOOLEAN)
+    public keepAspectRatio = false;
+
     @Validate(NUMBER.restrict({ min: 1 }))
     public minVisibleItemsX = 2;
 
@@ -731,6 +734,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             independentAxes: overrides?.independentAxes ?? this.enableIndependentAxes === true,
             isScalingX: overrides?.isScalingX ?? this.isScalingX(),
             isScalingY: overrides?.isScalingY ?? this.isScalingY(),
+            keepAspectRatio: overrides?.keepAspectRatio ?? this.keepAspectRatio,
             minRatioX: overrides?.minRatioX ?? this.minRatioX,
             minRatioY: overrides?.minRatioY ?? this.minRatioY,
             scrollingStep: overrides?.scrollingStep ?? this.scrollingStep,
