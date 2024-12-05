@@ -52,11 +52,11 @@ export interface AgTooltipRendererDataRow {
 }
 
 export interface AgTooltipRendererResult {
-    /** Content text for the tooltip body. */
+    /** Text for the tooltip header. */
     heading?: string;
-    /** Title text for the tooltip header. */
+    /** Text for the tooltip title. */
     title?: string;
-    /** Content text for the tooltip body. */
+    /** An array of text for the tooltip body. */
     data?: AgTooltipRendererDataRow[];
 }
 

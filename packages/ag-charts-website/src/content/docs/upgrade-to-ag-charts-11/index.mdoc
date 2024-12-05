@@ -46,6 +46,28 @@ The minimum version of Angular you can use with AG Charts is now Angular 17.
 
 -   All `AgCrossLineLabelPosition` options are changed to kebab-case. For example, `topLeft` becomes `top-left`.
 -   If `axes[].tick.enabled: false`, any provided `axis[].label.padding` is the distance between the label and the axis.
+-   On all axis labels, `padding` is renamed to `spacing`.
+-   `axes[].crosshair.label.className` has been removed. Use the provided classes for adding custom styles or provide a custom HTML renderer instead.
+-   `ag-crosshair-label*` CSS classes are renamed to `ag-charts-crosshair-label*`.
+-   Removed redundant `format` of category axis labels:
+    -   `axes[type = 'category'].label.format`
+    -   `axes[type = 'category'].crosshair.label.format`
+    -   `axes[type = 'angle-category'].label.format`
+    -   `axes[type = 'radius-category'].label.format`
+
+### Tooltip Changes
+
+-   The tooltips have an improved visual layout and now include more information about the hovered item.
+-   The `tooltip.renderer` has changed:
+    -   It now takes `heading`, `title` and `data` properties instead of `title` and `content`.
+    -   The `heading` and `title` properties must be a `String` and the `data` property must be an array of `String`s. These no longer accept HTML.
+    -   The `params` provided no longer return `color`. Use `fill` and `stroke` instead.
+    -   With the exception of `ohlc`, `candlestick`, and `waterfall` series types, `itemId` is no longer provided in the `params`.
+-   The CSS classes have changed:
+    -   `ag-chart-tooltip` is replaced by `ag-charts-tooltip`.
+    -   `ag-chart-tooltip-title` is replaced by `ag-charts-tooltip-heading` and `ag-charts-tooltip-title`.
+    -   `ag-chart-tooltip-content` is replaced by `ag-charts-tooltip-label` and `ag-charts-tooltip-value`.
+-   `tooltip.class` has been removed. Use the provided classes for adding custom styles or provide a custom HTML renderer instead.
 
 ### Financial Charts Changes
 
@@ -56,14 +78,20 @@ The minimum version of Angular you can use with AG Charts is now Angular 17.
 
 ### Miscellaneous
 
--   Locale string `toolbarAnnotationsColor` is renamed to `toolbarAnnotationsLineColor`.
--   All icons with `-legacy` suffix have been removed.
+-   `legendItemClick` and `legendItemDoubleClick` events no longer return the state of the clicked item in the `params`. To get this information, subscribe to the `chart.seriesVisibilityChange` event.
 -   The `any` type is removed from the `MarkerShape` union.
 -   Custom marker shapes are now defined with a callback function instead of extending a `Marker` class.
 -   `AgChartSerializableState` is removed. Use `AgChartState` instead.
 -   `navigator.min` and `navigator.max` are removed. Use `initialState.zoom.ratioX.start` and `initialState.zoom.ratioX.end` instead.
 -   `zoom.ratioX`, `zoom.ratioY` are removed. Use `initialState.zoom.ratioX` and `initialState.zoom.ratioY` instead.
 -   `zoom.rangeX`, `zoom.rangeY` are removed. Use `initialState.zoom.rangeX` and `initialState.zoom.rangeY` instead.
+-   Locale string `toolbarAnnotationsColor` is renamed to `toolbarAnnotationsLineColor`.
+-   All icons with `-legacy` suffix have been removed.
+-   `toolbar.zoom` is replaced with `zoom.buttons`. Unused options of `position`, `align`, `size`, `draggable`, `buttons[].id`, and `buttons[].role` are removed.
+-   `toolbar.annotations` is replaced with `annotations.toolbar`. Unused options of `position`, `align`, `size`, `draggable`, `buttons[].id`, and `buttons[].role` are removed.
+-   `toolbar.ranges` is replaced with `chart.ranges`. Unused options of `position`, `align`, `size`, `draggable`, `buttons[].id`, and `buttons[].role` are removed.
+-   `toolbar.annotationsOptions` is replaced with `annotations.optionsToolbar`. Unused options of `position`, `align`, `size`, `draggable`, `buttons[].id`, and `buttons[].role` are removed.
+-   `toolbar.seriesType` is replaced with `chart.chartToolbar`. Unused options of `position`, `align`, `size`, `draggable`, and `buttons` are
 
 ## Behaviour Changes
 
@@ -71,14 +99,15 @@ This release includes the following behaviour changes:
 
 ### Theme Defaults
 
--   If `axes[].tick.enabled: true`, the labels default to padding of 5px away from the tick.
+-   If `axes[].tick.enabled: true`, the labels default to a padding of 5px away from the tick.
+-   The Navigator - including its mask and handles - have updated height, fill and corner radius defaults.
 
 ### Other Changes
 
 -   All series and axis labels default to removing trailing zeros. Use the `format` and `formatter` options to modify.
     -   Additionally some incorrect rounding scenarios have been fixed, e.g. 5.555 now correctly rounds to 5.56 instead of 5.55.
--   Pie and Donut Series labels default to displaying two decimal places without trailing zeros. Use the `formatter` functions to modify.
--   A stacked normalized area series datum where all the values are 0 will connect to a point at 0 rather than leaving a gap.
+-   Pie and Donut Series labels default to displaying two decimal places without trailing zeros. Use the `formatter` or `format` options to modify.
+-   A stacked normalized area series datum where all the values are 0, will connect to a point at 0 rather than leaving a gap.
 -   Scrolling events on a chart with zoom enabled, will now be passed to the parent if zoom is at minimum or maximum levels.
 
 ## Changes List
