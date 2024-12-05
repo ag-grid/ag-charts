@@ -18,7 +18,7 @@ let options: AgPolarChartOptions = {
         listeners: {
             legendItemClick: (event: AgChartLegendClickEvent) => {
                 counter = (counter + 4) % 5;
-                document.getElementById('myCounter').textContent = `${counter}`;
+                document.getElementById('myCounter')!.textContent = `${counter}`;
                 if (counter !== 4) {
                     event.preventDefault();
                 }
