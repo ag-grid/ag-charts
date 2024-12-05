@@ -281,7 +281,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
         const { dataModel, processedData } = this;
-        if (!dataModel || !processedData) return [NaN, NaN];
+        if (!dataModel || !processedData || this.getBarDirection() === ChartAxisDirection.X) return [NaN, NaN];
 
         const xScale = this.axes[ChartAxisDirection.X]!.scale;
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
