@@ -1,6 +1,6 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { Validate, ScenePathChangeDetection, POSITIVE_NUMBER, BBox } = _ModuleSupport;
+const { Validate, ScenePathChangeDetection, POSITIVE_NUMBER, BOOLEAN, BBox, ExtendedPath2D } = _ModuleSupport;
 
 export class RangeHandle extends _ModuleSupport.Path {
     static override readonly className = 'RangeHandle';
@@ -20,11 +20,13 @@ export class RangeHandle extends _ModuleSupport.Path {
 
     @Validate(POSITIVE_NUMBER)
     @ScenePathChangeDetection()
-    gripLineGap: number = 2;
+    cornerRadius: number = 4;
 
-    @Validate(POSITIVE_NUMBER)
+    @Validate(BOOLEAN)
     @ScenePathChangeDetection()
-    gripLineLength: number = 8;
+    grip: boolean = true;
+
+    private readonly gripPath = new ExtendedPath2D();
 
     setCenter(x: number, y: number) {
         this.dirtyPath = true;
@@ -43,12 +45,12 @@ export class RangeHandle extends _ModuleSupport.Path {
         width: number,
         height: number,
         min: number,
-        max: number
+        max: number,
+        pixelAlign: number
     ) {
-        const handlePixelAlign = minHandle.strokeWidth / 2;
-        const minHandleX = minHandle.align(x + width * min) + handlePixelAlign;
-        const maxHandleX = minHandleX + minHandle.align(x + width * min, width * (max - min)) - 2 * handlePixelAlign;
-        const handleY = minHandle.align(y + height / 2) + handlePixelAlign;
+        const minHandleX = minHandle.align(x + width * min) + pixelAlign;
+        const maxHandleX = minHandleX + minHandle.align(x + width * min, width * (max - min)) - 2 * pixelAlign;
+        const handleY = minHandle.align(y + height / 2);
         minHandle.setCenter(minHandleX, handleY);
         maxHandle.setCenter(maxHandleX, handleY);
     }
@@ -68,27 +70,43 @@ export class RangeHandle extends _ModuleSupport.Path {
     }
 
     override updatePath() {
-        const { centerX, centerY, path, strokeWidth, gripLineGap, gripLineLength } = this;
+        const { centerX, centerY, path, gripPath, strokeWidth, cornerRadius, grip } = this;
+
+        const pixelAlign = strokeWidth / 2;
         const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
 
         path.clear();
+        gripPath.clear();
 
         const halfWidth = Math.floor((this.width / 2) * pixelRatio) / pixelRatio;
         const halfHeight = Math.floor((this.height / 2) * pixelRatio) / pixelRatio;
 
         // Handle.
-        path.moveTo(centerX - halfWidth, centerY - halfHeight);
-        path.lineTo(centerX + halfWidth, centerY - halfHeight);
-        path.lineTo(centerX + halfWidth, centerY + halfHeight);
-        path.lineTo(centerX - halfWidth, centerY + halfHeight);
-        path.closePath();
+        path.roundRect(
+            centerX - halfWidth + pixelAlign,
+            centerY - halfHeight + pixelAlign,
+            2 * (halfWidth - pixelAlign),
+            2 * (halfHeight - pixelAlign),
+            cornerRadius
+        );
 
-        // Grip lines.
-        const dx = Math.floor(((gripLineGap + strokeWidth) / 2) * pixelRatio) / pixelRatio;
-        const dy = Math.floor((gripLineLength / 2) * pixelRatio) / pixelRatio;
-        path.moveTo(centerX - dx, centerY - dy);
-        path.lineTo(centerX - dx, centerY + dy);
-        path.moveTo(centerX + dx, centerY - dy);
-        path.lineTo(centerX + dx, centerY + dy);
+        // Grip
+        const gripSpacing = 3;
+        if (grip) {
+            for (let x = -0.5; x <= 0.5; x += 1) {
+                for (let y = -1; y <= 1; y += 1) {
+                    gripPath.arc(centerX + x * gripSpacing, centerY + y * gripSpacing, 1, 0, 2 * Math.PI);
+                    gripPath.closePath();
+                }
+            }
+        }
+    }
+
+    protected override renderFill(ctx: _ModuleSupport.CanvasContext, path?: Path2D): void {
+        const { stroke } = this;
+        super.renderFill(ctx, path);
+
+        ctx.fillStyle = typeof stroke === 'string' ? stroke : 'black';
+        ctx.fill(this.gripPath.getPath2D());
     }
 }

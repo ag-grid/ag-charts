@@ -183,10 +183,10 @@ export interface AgNavigatorHandleOptions {
     width?: PixelSize;
     /** The height of the handle. */
     height?: PixelSize;
-    /** The distance between the handle's grip lines. */
-    gripLineGap?: PixelSize;
-    /** The length of the handle's grip lines. */
-    gripLineLength?: PixelSize;
+    /** The corner radius of the handle. */
+    cornerRadius?: PixelSize;
+    /** Whether to enable the grip dots. */
+    grip?: boolean;
 }
 
 export interface AgNavigatorOptions {
@@ -194,6 +194,8 @@ export interface AgNavigatorOptions {
     enabled?: boolean;
     /** The height of the Navigator. */
     height?: PixelSize;
+    /** The corner radius used by the Navigator. */
+    cornerRadius?: number;
     /** The distance between the Navigator and the bottom axis of the chart. */
     spacing?: PixelSize;
     /** Configuration for the Navigator's visible range mask. */

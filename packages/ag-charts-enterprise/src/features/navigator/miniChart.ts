@@ -1,5 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
+import { MiniChartGroup } from './shapes/miniChartGroup';
+
 const {
     Validate,
     BOOLEAN,
@@ -11,8 +13,8 @@ const {
     Padding,
     Logger,
     Group,
-    TranslatableGroup,
     BBox,
+    ProxyProperty,
 } = _ModuleSupport;
 
 class MiniChartPadding {
@@ -27,11 +29,17 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
     @Validate(BOOLEAN)
     enabled: boolean = false;
 
+    @ProxyProperty(['seriesRoot', 'inset'])
+    inset!: number;
+
+    @ProxyProperty(['seriesRoot', 'cornerRadius'])
+    cornerRadius!: number;
+
     readonly padding = new MiniChartPadding();
 
     readonly root = new Group({ name: 'root' });
     readonly seriesRoot = this.root.appendChild(
-        new TranslatableGroup({ name: 'Series-root', zIndex: ZIndexMap.SERIES_LAYER, renderToOffscreenCanvas: true })
+        new MiniChartGroup({ name: 'Series-root', zIndex: ZIndexMap.SERIES_LAYER, renderToOffscreenCanvas: true })
     );
     readonly axisGridGroup = this.root.appendChild(new Group({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID }));
     readonly axisGroup = this.root.appendChild(new Group({ name: 'Axes-Grids', zIndex: ZIndexMap.AXIS_GRID }));

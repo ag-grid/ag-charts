@@ -5,6 +5,7 @@ import type { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { LayersManager } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, SceneChangeDetection } from './node';
+import type { CanvasContext } from './shape/shape';
 import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
 import { type ZIndex, compareZIndex } from './zIndex';
 
@@ -133,6 +134,14 @@ export class Group extends Node {
         }
     }
 
+    protected applyClip(ctx: CanvasContext, clipRect: BBox) {
+        const { x, y, width, height } = clipRect;
+
+        ctx.beginPath();
+        ctx.rect(x, y, width, height);
+        ctx.clip();
+    }
+
     private renderInContext(childRenderCtx: RenderContext) {
         const { ctx, stats } = childRenderCtx;
 
@@ -146,11 +155,7 @@ export class Group extends Node {
 
         if (this.clipRect != null) {
             // clipRect is in the group's coordinate space
-            const { x, y, width, height } = this.clipRect;
-
-            ctx.beginPath();
-            ctx.rect(x, y, width, height);
-            ctx.clip();
+            this.applyClip(ctx, this.clipRect);
 
             // clipBBox is in the canvas coordinate space,
             // when we hit a layer we apply the new clipping

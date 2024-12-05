@@ -36,6 +36,12 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
     public height: number = 30;
 
     @Validate(POSITIVE_NUMBER)
+    @ObserveChanges<Navigator>((target, value) => {
+        target.mask.cornerRadius = value;
+    })
+    public cornerRadius: number = 0;
+
+    @Validate(POSITIVE_NUMBER)
     public spacing: number = 10;
 
     protected x = 0;
@@ -98,6 +104,9 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
             const { top, bottom } = this.miniChart.computeAxisPadding();
             ctx.layoutBox.shrink(top + bottom, 'bottom');
             this.y -= bottom;
+
+            this.miniChart.inset = this.mask.strokeWidth / 2;
+            this.miniChart.cornerRadius = this.mask.cornerRadius;
         }
     }
 
@@ -107,14 +116,15 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
 
         this.domProxy.updateVisibility(this.enabled);
         if (this.enabled) {
-            this.layoutNodes(x, y, width, height);
+            const { _min: min, _max: max } = this.domProxy;
+            this.layoutNodes(x, y, width, height, min, max);
             this.domProxy.updateBounds({ x, y, width, height });
         }
 
         this.x = x;
         this.width = width;
 
-        await this.miniChart?.layout(this.width, this.height);
+        await this.miniChart?.layout(width, height);
     }
 
     private canDrag() {
@@ -161,21 +171,23 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
     }
 
     private onZoomChange(event: _ModuleSupport.ZoomChangeEvent) {
-        const { x } = event;
-        if (!x) return;
+        const { x: xZoom } = event;
+        if (!xZoom) return;
 
-        this.domProxy.updateMinMax(x.min, x.max);
-        this.updateNodes(x.min, x.max);
+        const { x, y, width, height } = this;
+        const { min, max } = xZoom;
+
+        this.domProxy.updateMinMax(min, max);
+        this.layoutNodes(x, y, width, height, min, max);
     }
 
-    private layoutNodes(x: number, y: number, width: number, height: number) {
+    private layoutNodes(x: number, y: number, width: number, height: number, min: number, max: number) {
         const { rangeSelector, mask, minHandle, maxHandle } = this;
-        const { _min: min, _max: max } = this.domProxy;
 
+        mask.layout(x, y, width, height, min, max);
         rangeSelector.layout(x, y, width, height, minHandle.width / 2, maxHandle.width / 2);
-        mask.layout(x, y, width, height);
 
-        RangeHandle.align(minHandle, maxHandle, x, y, width, height, min, max);
+        RangeHandle.align(minHandle, maxHandle, x, y, width, height, min, max, mask.strokeWidth / 2);
 
         if (min + (max - min) / 2 < 0.5) {
             minHandle.zIndex = 3;
@@ -192,14 +204,11 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
         });
     }
 
-    private updateNodes(min: number, max: number) {
-        this.mask.update(min, max);
-    }
-
     private updateZoom() {
         if (!this.enabled) return;
         this.domProxy.updateZoom();
     }
+
     updateData(data: any) {
         return this.miniChart?.updateData(data);
     }
