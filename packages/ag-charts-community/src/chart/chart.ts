@@ -643,20 +643,20 @@ export abstract class Chart extends Observable {
     }
 
     private updateThemeClassName() {
-        const { theme } = this.chartOptions.processedOptions;
-
         const themeClassNamePrefix = 'ag-charts-theme-';
         const validThemeClassNames = [`${themeClassNamePrefix}default`, `${themeClassNamePrefix}default-dark`];
 
         let themeClassName = validThemeClassNames[0];
         let isDark = false;
 
+        let { theme } = this.chartOptions.processedOptions;
+        while (typeof theme !== 'string' && theme != null) {
+            theme = theme.baseTheme;
+        }
+
         if (typeof theme === 'string') {
             themeClassName = theme.replace('ag-', themeClassNamePrefix);
             isDark = theme.includes('-dark');
-        } else if (typeof theme?.baseTheme === 'string') {
-            themeClassName = theme.baseTheme.replace('ag-', themeClassNamePrefix);
-            isDark = theme.baseTheme.includes('-dark');
         }
 
         if (!validThemeClassNames.includes(themeClassName)) {
