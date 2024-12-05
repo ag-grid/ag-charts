@@ -14,6 +14,14 @@ const options: AgCartesianChartOptions = {
                 },
             },
         ],
+        extraSeriesAreaActions: [
+            {
+                label: 'Say hello in the series area',
+                action: () => {
+                    window.alert('Hello in the series area!');
+                },
+            },
+        ],
         extraNodeActions: [
             {
                 label: 'Say hello to a node',
