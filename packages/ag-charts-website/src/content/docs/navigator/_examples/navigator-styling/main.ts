@@ -67,6 +67,7 @@ const options: AgChartOptions = {
     },
     navigator: {
         height: 50,
+        cornerRadius: 10,
         mask: {
             fill: 'red',
             strokeWidth: 2,

@@ -82,6 +82,13 @@ export function priceVolume(
                       },
                   ],
               },
+              height: 40,
+              minHandle: {
+                  height: 46,
+              },
+              maxHandle: {
+                  height: 46,
+              },
           }
         : null;
     const navigatorOpts = {
