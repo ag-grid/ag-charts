@@ -11,6 +11,10 @@ export class StateManager {
             return;
         }
 
+        this.setStateAndRestore(originator, value);
+    }
+
+    setStateAndRestore(originator: MementoOriginator, value: any) {
         this.state.set(originator.mementoOriginatorKey, value);
         this.restoreState(originator);
     }
