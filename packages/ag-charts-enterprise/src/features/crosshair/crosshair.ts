@@ -252,9 +252,8 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         this.activeHighlight = hasCrosshair ? event.currentHighlight : undefined;
 
-        if (!this.activeHighlight) {
-            this.hideCrosshairs();
-        } else if (this.snap) {
+        this.hideCrosshairs();
+        if (this.activeHighlight && this.snap) {
             const activeHighlightData = this.getActiveHighlightData(this.activeHighlight);
 
             this.updatePositions(activeHighlightData);
@@ -273,6 +272,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
             const lineData = data[key];
             if (!lineData) {
                 line.visible = false;
+                this.hideLabel(key);
                 return;
             }
             line.visible = true;
