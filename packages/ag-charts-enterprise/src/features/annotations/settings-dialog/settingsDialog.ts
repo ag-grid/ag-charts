@@ -6,6 +6,7 @@ import {
     type AnnotationOptionsColorPickerType,
     AnnotationType,
     type ChannelTextPosition,
+    type FibonacciBands,
     type LineTextAlignment,
     type LineTextPosition,
 } from '../annotationTypes';
@@ -45,7 +46,7 @@ export interface LinearSettingsDialogLineChangeProps {
     extendRight?: boolean;
     reverse?: boolean;
     showFill?: boolean;
-    bands?: number;
+    bands?: FibonacciBands;
 }
 
 export interface LinearSettingsDialogTextChangeProps {
@@ -299,13 +300,13 @@ export class AnnotationSettingsDialog extends Dialog {
         });
     }
 
-    private createFibonacciRatioSelect(bands: number, onChange: (value: number) => void) {
+    private createFibonacciRatioSelect(bands: number, onChange: (value: FibonacciBands) => void) {
         return this.createSelect({
             label: 'dialogInputFibonacciBands',
             altText: 'dialogInputFibonacciBandsAltText',
             options: FIBONACCI_RATIO_ITEMS.map(({ label, value }) => ({ label: label!, value: `${value}` })),
             value: String(bands),
-            onChange: (value) => onChange(Number(value)),
+            onChange: (value) => onChange(Number(value) as FibonacciBands),
         });
     }
 
