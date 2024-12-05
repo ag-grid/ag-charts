@@ -21,7 +21,6 @@ import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { isDefined } from '../../../util/type-guards';
 import type { RequireOptional } from '../../../util/types';
-import { isContinuous } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -198,21 +197,24 @@ export class AreaSeries extends CartesianSeries<
             marker: `area-stack-${groupIndex}-yValues-marker`,
         };
 
+        const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
         const extraProps = [];
+
         if (isDefined(normalizedTo)) {
-            extraProps.push(normaliseGroupTo(Object.values(idMap), normalizedTo, 'range', connectMissingData));
+            common.invalidValue = 0;
+            extraProps.push(normaliseGroupTo(Object.values(idMap), normalizedTo, 'range', { invalidValue: 0 }));
+        } else if (connectMissingData && stackCount > 1) {
+            common.invalidValue = 0;
         }
+
         if (animationEnabled) {
             extraProps.push(animationValidation());
         }
 
-        const common: Partial<DatumPropertyDefinition<unknown>> = { invalidValue: null };
-        if (connectMissingData && stackCount > 1) {
-            common.invalidValue = 0;
-        }
         if (!visible) {
             common.forceValue = 0;
         }
+
         await this.requestDataModel<any, any, true>(dataController, data, {
             props: [
                 keyProperty(xKey, xScaleType, { id: 'xValue' }),
@@ -312,9 +314,6 @@ export class AreaSeries extends CartesianSeries<
         } = this.properties;
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
-
-        const { isContinuousY } = this.getScaleInformation({ xScale, yScale });
-
         const xOffset = (xScale.bandwidth ?? 0) / 2;
 
         const xValues = dataModel.resolveKeysById(this, 'xValue', processedData);
@@ -324,25 +323,6 @@ export class AreaSeries extends CartesianSeries<
         const yFilterValues =
             yFilterKey != null ? dataModel.resolveColumnById(this, 'yFilterRaw', processedData) : undefined;
         const yStackValues = dataModel.resolveColumnById<number[]>(this, 'yValueStack', processedData);
-
-        const createMarkerCoordinate = (xDatum: any, yEnd: number, rawYDatum: any): SizedPoint => {
-            let currY;
-
-            // if not normalized, the invalid data points will be processed as `undefined` in processData()
-            // if normalized, the invalid data points will be processed as 0 rather than `undefined`
-            // check if unprocessed datum is valid as we only want to show markers for valid points
-            if (
-                isDefined(this.properties.normalizedTo) ? isContinuousY && isContinuous(rawYDatum) : !isNaN(rawYDatum)
-            ) {
-                currY = yEnd;
-            }
-
-            return {
-                x: xScale.convert(xDatum) + xOffset,
-                y: yScale.convert(currY),
-                size: marker.size,
-            };
-        };
 
         const labelData: LabelSelectionDatum[] = [];
         const markerData: MarkerSelectionDatum[] = [];
@@ -362,8 +342,11 @@ export class AreaSeries extends CartesianSeries<
 
                 const validPoint = Number.isFinite(yDatum);
 
-                // marker data
-                const point = createMarkerCoordinate(xDatum, +yValueCumulative, yDatum);
+                const point: SizedPoint = {
+                    x: xScale.convert(xDatum) + xOffset,
+                    y: yScale.convert(+yValueCumulative),
+                    size: marker.size,
+                };
 
                 const selected = yFilterValues != null ? yFilterValues[datumIndex] === yDatum : undefined;
                 if (selected === false) {

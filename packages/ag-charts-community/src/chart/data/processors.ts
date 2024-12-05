@@ -187,14 +187,14 @@ export const SORT_DOMAIN_GROUPS: ProcessorOutputPropertyDefinition<'sortedGroupD
 function normaliseFnBuilder({
     normaliseTo,
     mode,
-    connectMissingData,
+    invalidValue,
 }: {
     normaliseTo: number;
     mode: 'sum' | 'range';
-    connectMissingData: boolean;
+    invalidValue: any;
 }) {
     const normalise = (val: null | number, extent: number) => {
-        if (extent === 0) return null;
+        if (extent === 0) return invalidValue;
         const result = ((val ?? 0) * normaliseTo) / extent;
         if (result >= 0) {
             return Math.min(normaliseTo, result);
@@ -203,7 +203,7 @@ function normaliseFnBuilder({
     };
 
     return () => () => (columns: any[][], valueIndexes: number[], datumIndex: number) => {
-        const extent = normaliseFindExtent(mode, connectMissingData, columns, valueIndexes, datumIndex);
+        const extent = normaliseFindExtent(mode, columns, valueIndexes, datumIndex);
         for (const valueIdx of valueIndexes) {
             const column = columns[valueIdx];
             const value: null | number | number[] | (null | number)[] = column[datumIndex];
@@ -218,45 +218,37 @@ function normaliseFnBuilder({
     };
 }
 
-function normaliseFindExtent(
-    mode: 'sum' | 'range',
-    connectMissingData: boolean,
-    columns: any[][],
-    valueIndexes: number[],
-    datumIndex: number
-) {
-    let hasAnyNulls = false;
+function normaliseFindExtent(mode: 'sum' | 'range', columns: any[][], valueIndexes: number[], datumIndex: number) {
     const valuesExtent = [0, 0];
     for (const valueIdx of valueIndexes) {
         const column = columns[valueIdx];
         const value: null | number | (null | number)[] = column[datumIndex];
-        hasAnyNulls ||= value == null;
-        if (value == null || typeof value !== 'number') continue;
-        const valIdx = value < 0 ? 0 : 1;
+        if (value == null) continue;
+        // Note - Array.isArray(new Float64Array) is false, and this type is used for stack accumulators
+        const valueExtent = typeof value === 'number' ? value : Math.max(...value.map((v) => v ?? 0));
+        const valIdx = valueExtent < 0 ? 0 : 1;
         if (mode === 'sum') {
-            valuesExtent[valIdx] += value;
+            valuesExtent[valIdx] += valueExtent;
         } else if (valIdx === 0) {
-            valuesExtent[valIdx] = Math.min(valuesExtent[valIdx], value);
+            valuesExtent[valIdx] = Math.min(valuesExtent[valIdx], valueExtent);
         } else {
-            valuesExtent[valIdx] = Math.max(valuesExtent[valIdx], value);
+            valuesExtent[valIdx] = Math.max(valuesExtent[valIdx], valueExtent);
         }
     }
 
-    const extent = Math.max(Math.abs(valuesExtent[0]), valuesExtent[1]);
-    if (extent === 0 && (hasAnyNulls || connectMissingData)) return NaN;
-    return extent;
+    return Math.max(Math.abs(valuesExtent[0]), valuesExtent[1]);
 }
 
 export function normaliseGroupTo(
     matchGroupIds: string[],
     normaliseTo: number,
     mode: 'sum' | 'range' = 'sum',
-    connectMissingData: boolean = false
+    { invalidValue = null }: { invalidValue?: any } = {}
 ): GroupValueProcessorDefinition<any, any> {
     return {
         type: 'group-value-processor',
         matchGroupIds,
-        adjust: memo({ normaliseTo, mode, connectMissingData }, normaliseFnBuilder),
+        adjust: memo({ normaliseTo, mode, invalidValue }, normaliseFnBuilder),
     };
 }
 
