@@ -209,6 +209,7 @@ export class Tooltip extends BaseProperties {
 
     private showTimeout: NodeJS.Timeout | number = 0;
     private _showArrow = true;
+    private _compact = false;
     private _visible = false;
 
     private positionParams:
@@ -284,6 +285,8 @@ export class Tooltip extends BaseProperties {
             (positionType === 'node' || positionType === 'pointer') && !constrained && !xOffset && !yOffset;
         const showArrow = meta.showArrow ?? this.showArrow ?? defaultShowArrow;
         this.updateShowArrow(showArrow);
+
+        this.updateCompact(positionType === 'sparkline' || positionType === 'sparkline-constrained');
 
         element.style.transform = `translate(${left}px, ${top}px)`;
     }
@@ -365,6 +368,7 @@ export class Tooltip extends BaseProperties {
 
         toggleClass('no-interaction', !this.enableInteraction); // Prevent interaction.
         toggleClass('arrow', this._showArrow); // Add arrow if tooltip is constrained.
+        toggleClass('compact', this._compact);
 
         classList.toggle(DEFAULT_TOOLTIP_DARK_CLASS, this.darkTheme);
 
@@ -383,6 +387,10 @@ export class Tooltip extends BaseProperties {
 
     private updateShowArrow(show: boolean) {
         this._showArrow = show;
+    }
+
+    private updateCompact(compact: boolean) {
+        this._compact = compact;
     }
 
     private getTooltipBounds(opts: {
