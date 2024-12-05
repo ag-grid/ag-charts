@@ -100,7 +100,7 @@ describe('LegendEvent', () => {
         });
 
         test('visibilityChange-pie', async () => {
-            const seriesVisibilityChange = (event: AgSeriesVisibilityChange) => {
+            const seriesVisibilityChange = jest.fn((event: AgSeriesVisibilityChange) => {
                 expect(event).toStrictEqual({
                     type: 'seriesVisibilityChange',
                     seriesId: 'PieSeries-1',
@@ -108,7 +108,7 @@ describe('LegendEvent', () => {
                     itemId: 0,
                     legendItemName: 'tomato',
                 });
-            };
+            });
             chart = await createChart({
                 data: [
                     { name: 'tomato', value: 5 },
