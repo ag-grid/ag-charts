@@ -7,13 +7,16 @@ import type {
     AgSeriesVisibilityChange,
 } from 'ag-charts-types';
 
+import { AgCharts } from '../../api/agCharts';
 import type { Chart } from '../chart';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     clickAction,
     createChart,
+    deproxy,
     doubleClickAction,
     extractImageData,
+    prepareTestOptions,
     setupMockCanvas,
     setupMockConsole,
     waitForChartStability,
@@ -25,8 +28,8 @@ const OPTIONS: AgCartesianChartOptions = {
         { x: 1, tomato: 5, potato: 3 },
     ],
     series: [
-        { type: 'line', xKey: 'x', yKey: 'tomato' },
-        { type: 'line', xKey: 'x', yKey: 'potato' },
+        { id: 'id-1', type: 'line', xKey: 'x', yKey: 'tomato' },
+        { id: 'id-2', type: 'line', xKey: 'x', yKey: 'potato' },
     ],
 };
 
@@ -155,6 +158,42 @@ describe('LegendEvent', () => {
             expect(legendItemClick).toBeCalledTimes(1);
             expect(seriesVisibilityChange).not.toBeCalled();
             await compare();
+        });
+    });
+
+    describe('update', () => {
+        test('initialState legend change triggers visibility change', async () => {
+            const seriesVisibilityChange = jest.fn((_event: AgSeriesVisibilityChange) => {});
+
+            const opts = prepareTestOptions({ ...OPTIONS, listeners: { seriesVisibilityChange } });
+            const apiChart = AgCharts.create(opts);
+            chart = deproxy(apiChart);
+            await waitForChartStability(chart);
+            apiChart.update({
+                ...opts,
+                initialState: {
+                    legend: [
+                        { seriesId: 'id-1', visible: true },
+                        { seriesId: 'id-2', visible: false },
+                    ],
+                },
+            });
+            await waitForChartStability(chart);
+
+            expect(seriesVisibilityChange).nthCalledWith(1, {
+                type: 'seriesVisibilityChange',
+                seriesId: 'id-1',
+                visible: true,
+                itemId: undefined,
+                legendItemName: undefined,
+            });
+            expect(seriesVisibilityChange).nthCalledWith(2, {
+                type: 'seriesVisibilityChange',
+                seriesId: 'id-2',
+                visible: false,
+                itemId: undefined,
+                legendItemName: undefined,
+            });
         });
     });
 });
