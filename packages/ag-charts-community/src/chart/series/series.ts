@@ -682,7 +682,7 @@ export abstract class Series<
         legendType: ChartLegendType,
         itemId: string | number | undefined,
         legendItemName: string | undefined,
-        legendEvent?: { legendItemName?: string },
+        legendEvent?: { legendItemName?: string }
     ): void {
         const seriesId = this.id;
         if (enabled || legendType !== 'category') {
