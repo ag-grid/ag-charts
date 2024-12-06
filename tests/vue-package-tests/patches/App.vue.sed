@@ -1,5 +1,7 @@
 /\/\/ Insert options.partial here./{
   a\
-  const 
+  const options: any = {
   r ../options.partial
+  a\
+  };
 }

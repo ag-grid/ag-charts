@@ -122,7 +122,11 @@ fi
 git add .
 git commit -m "Initial commit"
 
-for filename in ../patches/* ; do
+patch_dir=../patches
+if [[ "${patch_subdir:-}" != "" ]] ; then
+    patch_dir=${patch_dir}/${patch_subdir}
+fi
+for filename in ${patch_dir}/* ; do
     if [ ! -f "$filename" ] ; then
         continue
     fi
