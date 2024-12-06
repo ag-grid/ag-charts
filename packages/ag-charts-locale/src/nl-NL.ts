@@ -155,5 +155,5 @@ export const AG_CHARTS_LOCALE_NL_NL: Record<string, string> = {
     toolbarZoomPanStart: 'Scroll naar het begin',
     toolbarZoomReset: 'Zoom resetten',
     toolbarZoomZoomIn: 'Inzoomen',
-    toolbarZoomZoomOut: 'Uitzoomen'
+    toolbarZoomZoomOut: 'Uitzoomen',
 };

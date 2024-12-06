@@ -155,5 +155,5 @@ export const AG_CHARTS_LOCALE_TR_TR: Record<string, string> = {
     toolbarZoomPanStart: 'Başlangıca kaydır',
     toolbarZoomReset: 'Yakınlaştırmayı sıfırla',
     toolbarZoomZoomIn: 'Yakınlaştır',
-    toolbarZoomZoomOut: 'Uzaklaştır'
+    toolbarZoomZoomOut: 'Uzaklaştır',
 };

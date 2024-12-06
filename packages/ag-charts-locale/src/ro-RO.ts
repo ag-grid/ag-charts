@@ -155,5 +155,5 @@ export const AG_CHARTS_LOCALE_RO_RO: Record<string, string> = {
     toolbarZoomPanStart: 'Panoramare la început',
     toolbarZoomReset: 'Resetează zoom-ul',
     toolbarZoomZoomIn: 'Mărire',
-    toolbarZoomZoomOut: 'Micșorează'
+    toolbarZoomZoomOut: 'Micșorează',
 };

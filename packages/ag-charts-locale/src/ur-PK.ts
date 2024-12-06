@@ -155,5 +155,5 @@ export const AG_CHARTS_LOCALE_UR_PK: Record<string, string> = {
     toolbarZoomPanStart: 'آغاز کی طرف پین کریں',
     toolbarZoomReset: 'زوم ری سیٹ کریں',
     toolbarZoomZoomIn: 'زوم ان',
-    toolbarZoomZoomOut: 'زوم آؤٹ'
+    toolbarZoomZoomOut: 'زوم آؤٹ',
 };

@@ -155,5 +155,5 @@ export const AG_CHARTS_LOCALE_UK_UA: Record<string, string> = {
     toolbarZoomPanStart: 'Панорамувати на початок',
     toolbarZoomReset: 'Скинути масштабування',
     toolbarZoomZoomIn: 'Збільшити',
-    toolbarZoomZoomOut: 'Зменшити масштаб'
+    toolbarZoomZoomOut: 'Зменшити масштаб',
 };

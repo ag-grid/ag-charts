@@ -155,5 +155,5 @@ export const AG_CHARTS_LOCALE_NB_NO: Record<string, string> = {
     toolbarZoomPanStart: 'Panorer til start',
     toolbarZoomReset: 'Tilbakestill zoom',
     toolbarZoomZoomIn: 'Zoom inn',
-    toolbarZoomZoomOut: 'Zoom ut'
+    toolbarZoomZoomOut: 'Zoom ut',
 };

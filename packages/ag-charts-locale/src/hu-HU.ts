@@ -10,7 +10,8 @@
 
 export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     ariaAnnounceChart: 'diagram, ${seriesCount}[number] sorozat',
-    ariaAnnounceFlowProportionLink: 'hivatkozás ${index} a(z) ${count} közül, ${from}-tól ${to}-ig, ${sizeName} ${size}',
+    ariaAnnounceFlowProportionLink:
+        'hivatkozás ${index} a(z) ${count} közül, ${from}-tól ${to}-ig, ${sizeName} ${size}',
     ariaAnnounceFlowProportionNode: '${count} közül ${index} csomópont, ${description}',
     ariaAnnounceGaugeChart: 'mérőműszer diagram, ${caption}',
     ariaAnnounceHierarchyChart: 'hierarchia diagram, ${caption}',
@@ -155,5 +156,5 @@ export const AG_CHARTS_LOCALE_HU_HU: Record<string, string> = {
     toolbarZoomPanStart: 'Lapozás az elejére',
     toolbarZoomReset: 'Nagyítás visszaállítása',
     toolbarZoomZoomIn: 'Nagyítás',
-    toolbarZoomZoomOut: 'Kicsinyítés'
+    toolbarZoomZoomOut: 'Kicsinyítés',
 };

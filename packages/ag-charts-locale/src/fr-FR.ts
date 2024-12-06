@@ -155,5 +155,5 @@ export const AG_CHARTS_LOCALE_FR_FR: Record<string, string> = {
     toolbarZoomPanStart: 'Déplacer au début',
     toolbarZoomReset: 'Réinitialiser le zoom',
     toolbarZoomZoomIn: 'Agrandir',
-    toolbarZoomZoomOut: 'Dézoomer'
+    toolbarZoomZoomOut: 'Dézoomer',
 };

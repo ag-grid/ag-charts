@@ -155,5 +155,5 @@ export const AG_CHARTS_LOCALE_DA_DK: Record<string, string> = {
     toolbarZoomPanStart: 'Pan til starten',
     toolbarZoomReset: 'Nulstil zoom',
     toolbarZoomZoomIn: 'Zoom ind',
-    toolbarZoomZoomOut: 'Zoom ud'
+    toolbarZoomZoomOut: 'Zoom ud',
 };

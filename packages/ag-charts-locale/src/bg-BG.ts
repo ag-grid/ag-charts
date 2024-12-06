@@ -155,5 +155,5 @@ export const AG_CHARTS_LOCALE_BG_BG: Record<string, string> = {
     toolbarZoomPanStart: 'Придвижване до началото',
     toolbarZoomReset: 'Нулиране на увеличението',
     toolbarZoomZoomIn: 'Приближаване',
-    toolbarZoomZoomOut: 'Намаляване на мащаба'
+    toolbarZoomZoomOut: 'Намаляване на мащаба',
 };

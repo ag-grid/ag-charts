@@ -155,5 +155,5 @@ export const AG_CHARTS_LOCALE_JA_JP: Record<string, string> = {
     toolbarZoomPanStart: '最初にパンする',
     toolbarZoomReset: 'ズームをリセット',
     toolbarZoomZoomIn: 'ズームイン',
-    toolbarZoomZoomOut: 'ズームアウト'
+    toolbarZoomZoomOut: 'ズームアウト',
 };

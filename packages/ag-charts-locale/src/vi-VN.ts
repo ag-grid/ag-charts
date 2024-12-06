@@ -155,5 +155,5 @@ export const AG_CHARTS_LOCALE_VI_VN: Record<string, string> = {
     toolbarZoomPanStart: 'Di chuyển ngang trở lại đầu trang',
     toolbarZoomReset: 'Đặt lại thu phóng',
     toolbarZoomZoomIn: 'Thu nhỏ',
-    toolbarZoomZoomOut: 'Thu nhỏ'
+    toolbarZoomZoomOut: 'Thu nhỏ',
 };
