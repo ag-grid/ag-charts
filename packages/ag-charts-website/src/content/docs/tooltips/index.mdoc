@@ -151,12 +151,12 @@ series: [
             renderer: function (params) {
                 return (
                     '<div class="my-tooltip" style="--color:' +
-                     params.fill +
+                    params.fill +
                     '">' +
                     params.datum[params.xKey] +
-                    "&nbsp;&#10172;&nbsp;" +
+                    '&nbsp;&#10172;&nbsp;' +
                     params.datum[params.yKey].toFixed(0) +
-                    "</div>"
+                    '</div>'
                 );
             },
         },
