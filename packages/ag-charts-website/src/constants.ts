@@ -126,3 +126,4 @@ function getChartsUrl() {
     return PRODUCTION_CHARTS_SITE_URL;
 }
 export const CHARTS_SITE_URL = getChartsUrl();
+export const DEFAULT_INTERNAL_FRAMEWORK: InternalFramework = 'reactFunctional';
