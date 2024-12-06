@@ -8,7 +8,7 @@ export function getHtaccessContent() {
 ErrorDocument 404 /404.html
 
 # add MIME types for serving example files
-AddType text/javascript ts jsx
+AddType text/javascript mjs ts jsx
 
 ${getRedirectRules()}
 

@@ -4,6 +4,7 @@ const MIME_MAPPING = {
     txt: 'text/plain',
     css: 'text/css',
     js: 'text/javascript',
+    mjs: 'text/javascript',
     json: 'application/json',
     htm: 'text/html',
     html: 'text/html',
