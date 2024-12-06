@@ -737,6 +737,14 @@
                     {
                         "title": "Radar Line, Radar Area And Nightingale Combination",
                         "name": "radar-line-radar-area-nightingale-combination"
+                    },
+                    {
+                        "title": "Bar And Line Combination",
+                        "name": "grouped-bar-line-combination"
+                    },
+                    {
+                        "title": "Bar, Line And Area Combination",
+                        "name": "grouped-category-combination"
                     }
                 ]
             }
