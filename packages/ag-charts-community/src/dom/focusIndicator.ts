@@ -29,10 +29,10 @@ export class FocusIndicator {
         }
 
         const boundsBBox = bounds instanceof Path ? bounds.getBBox() : bounds;
-        const boundsVisible = hoverRect != null && boundsBBox != null ? hoverRect.intersects(boundsBBox) : true;
+        const boundsVisible = hoverRect?.intersects(boundsBBox) ?? true;
 
         if (!boundsVisible) {
-            const { x, y } = boundsBBox;
+            const { x, y } = hoverRect ?? boundsBBox;
             setElementBBox(this.div, new BBox(x, y, 0, 0));
             this.show(this.div);
         } else if (bounds instanceof Path) {

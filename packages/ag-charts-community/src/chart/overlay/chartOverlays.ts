@@ -1,5 +1,5 @@
-import type { BBox } from '../../integrated-charts-scene';
 import type { LocaleManager } from '../../locale/localeManager';
+import type { BBox } from '../../scene/bbox';
 import { BaseProperties } from '../../util/properties';
 import { BOOLEAN, OBJECT, Validate } from '../../util/validation';
 import { Overlay } from './overlay';
