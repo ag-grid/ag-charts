@@ -16,6 +16,7 @@ import {
     type AgNumberAxisOptions,
     type AgSparklineAxisOptions,
     type AgSparklineOptions,
+    type AgSparklineTooltip,
     type AgTimeAxisOptions,
     type AgTooltipPositionType,
 } from 'ag-charts-types';
@@ -272,6 +273,34 @@ function gridLinePreset(
     return gridLineOpts;
 }
 
+const tooltipRendererFn = simpleMemorize((context: any, tooltip?: AgSparklineTooltip<any>, datumKey?: string) => {
+    return (
+        params: AgBarSeriesTooltipRendererParams | AgLineSeriesTooltipRendererParams | AgAreaSeriesTooltipRendererParams
+    ) => {
+        const xValue = params.datum[params.xKey];
+        const yValue = params.datum[params.yKey];
+        const datum = datumKey != null ? params.datum[datumKey] : params.datum;
+
+        const userContent = tooltip?.renderer?.({ context, datum, xValue, yValue });
+        if (typeof userContent === 'string') return userContent;
+
+        const title = userContent?.title;
+        const content = userContent?.content;
+        return title != null && content != null
+            ? {
+                  heading: title,
+                  title: undefined,
+                  // Undocumented 'compact' tooltip mode
+                  data: [{ label: undefined!, value: content }],
+              }
+            : {
+                  heading: title ?? content ?? yValue.toFixed(2),
+                  title: undefined,
+                  data: [],
+              };
+    };
+});
+
 export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     const {
         background,
@@ -322,34 +351,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
     if (seriesOverrides != null) Object.assign(seriesOptions, seriesOverrides);
     seriesOptions.tooltip = {
         ...tooltip,
-        renderer(
-            params:
-                | AgBarSeriesTooltipRendererParams
-                | AgLineSeriesTooltipRendererParams
-                | AgAreaSeriesTooltipRendererParams
-        ) {
-            const xValue = params.datum[params.xKey];
-            const yValue = params.datum[params.yKey];
-            const datum = datumKey != null ? params.datum[datumKey] : params.datum;
-
-            const userContent = tooltip?.renderer?.({ context, datum, xValue, yValue });
-            if (typeof userContent === 'string') return userContent;
-
-            const title = userContent?.title;
-            const content = userContent?.content;
-            return title != null && content != null
-                ? {
-                      heading: title,
-                      title: undefined,
-                      // Undocumented 'compact' tooltip mode
-                      data: [{ label: undefined!, value: content }],
-                  }
-                : {
-                      heading: title ?? content ?? yValue.toFixed(2),
-                      title: undefined,
-                      data: [],
-                  };
-        },
+        renderer: tooltipRendererFn(context, tooltip, datumKey),
     };
 
     chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME);
