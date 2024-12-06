@@ -1,9 +1,4 @@
-import {
-    AgCartesianChartOptions,
-    AgCharts,
-    AgGroupedCategoryAxisOptions,
-    AgGroupedCategoryAxisThemeOptions,
-} from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -34,7 +29,7 @@ const options: AgCartesianChartOptions = {
                         gridLine: {
                             enabled: false,
                         },
-                    } as AgGroupedCategoryAxisThemeOptions,
+                    },
                     number: {
                         gridLine: {
                             enabled: true,
@@ -144,7 +139,7 @@ const options: AgCartesianChartOptions = {
             position: 'bottom',
             type: 'grouped-category',
             depthOptions: [{ label: { fontSize: 11 } }, { label: { fontSize: 10 } }, { label: { fontSize: 10 } }],
-        } as AgGroupedCategoryAxisOptions,
+        },
     ],
 };
 

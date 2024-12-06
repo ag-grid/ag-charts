@@ -1,5 +1,5 @@
 import { AgMarkerShapeFnParams } from 'ag-charts-community';
-import { AgCartesianChartOptions, AgCharts, AgGroupedCategoryAxisThemeOptions } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -34,7 +34,7 @@ const options: AgCartesianChartOptions = {
                     'grouped-category': {
                         groupPaddingInner: 0,
                         paddingInner: 0.4,
-                    } as AgGroupedCategoryAxisThemeOptions,
+                    },
                     number: {
                         gridLine: {
                             enabled: false,
