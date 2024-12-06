@@ -91,6 +91,7 @@ export class ZoomToolbar extends BaseProperties {
 
         this.destroyFns.push(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
+            this.toolbar.addToolbarListener('button-focused', this.onButtonFocus.bind(this)),
             ctx.interactionManager.addListener('hover', this.onHover.bind(this), InteractionState.All),
             ctx.interactionManager.addListener('leave', this.onLeave.bind(this), InteractionState.All),
             ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
@@ -144,12 +145,13 @@ export class ZoomToolbar extends BaseProperties {
         this.toggleVisibility(false);
     }
 
-    private toggleVisibility(visible: boolean) {
+    private toggleVisibility(visible: boolean, immediate: boolean = false) {
         const { container, toolbar, verticalSpacing } = this;
 
         toolbar.toggleClass('ag-charts-zoom-buttons__toolbar--hidden', !visible);
 
         const element = toolbar.getElement();
+        element.style.transitionDuration = immediate ? '0s' : '';
         element.style.transform = visible
             ? 'translateY(0)'
             : `translateY(${container.getBounds().height + verticalSpacing}px)`;
@@ -204,6 +206,10 @@ export class ZoomToolbar extends BaseProperties {
         } else {
             this.onButtonPressUnified(button, props);
         }
+    }
+
+    private onButtonFocus(_event: _ModuleSupport.ToolbarEventMap<ZoomToolbarButtonOptions>['button-focused']) {
+        this.toggleVisibility(true, true);
     }
 
     private onButtonPressAxis(
