@@ -1,16 +1,17 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const fw = process.env.FW_TYPE ?? 'unknown';
+const dev_port = process.env.FW_DEV_PORT ?? '';
 let baseURL = 'about:blank';
 let command = 'exit 1';
 if (fw === 'angular') {
-    baseURL = 'http://localhost:4200';
+    baseURL = `http://localhost:${dev_port}`;
     command = 'npx ng serve --host 0.0.0.0';
 } else if (fw === 'react') {
-    baseURL = 'http://localhost:5173';
+    baseURL = `http://localhost:${dev_port}`;
     command = 'npm run dev';
 } else if (fw == 'vue3') {
-    baseURL = 'http://localhost:5173';
+    baseURL = `http://localhost:${dev_port}`;
     command = 'npm run dev --host';
 }
 
