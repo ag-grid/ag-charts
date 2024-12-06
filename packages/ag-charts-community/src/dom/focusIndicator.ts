@@ -1,4 +1,4 @@
-import { BBox } from '../integrated-charts-scene';
+import { BBox } from '../scene/bbox';
 import { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
 import { getDocument, getWindow, setElementBBox } from '../util/dom';
@@ -28,23 +28,14 @@ export class FocusIndicator {
             return;
         }
 
-        let boundsVisible: boolean;
-        if (hoverRect == null || bounds == null) {
-            boundsVisible = true;
-        } else if (bounds instanceof Path) {
-            boundsVisible = hoverRect.intersection(bounds.getBBox()) != null;
-        } else {
-            boundsVisible = hoverRect.intersection(bounds) != null;
-        }
+        const boundsBBox = bounds instanceof Path ? bounds.getBBox() : bounds;
+        const boundsVisible = hoverRect != null && boundsBBox != null ? hoverRect.intersects(boundsBBox) : true;
 
         if (!boundsVisible) {
-            this.element.style.display = 'none';
-            return;
-        }
-
-        this.element.style.display = '';
-
-        if (bounds instanceof Path) {
+            const { x, y } = boundsBBox;
+            setElementBBox(this.div, new BBox(x, y, 0, 0));
+            this.show(this.div);
+        } else if (bounds instanceof Path) {
             const transform = (localX: number, localY: number) => {
                 let { x, y } = Transformable.toCanvasPoint(bounds, localX, localY);
                 x -= hoverRect?.x ?? 0;
