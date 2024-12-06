@@ -59,6 +59,9 @@ export function createScriptRunner({
 
             if (state === 'stopping' || state === 'inactive' || state === 'errored') {
                 mouse.hide();
+
+                // Cancel drag events that are in progress
+                document.dispatchEvent(new MouseEvent('mouseup'));
                 removeDragAndDropHandles();
             }
 
