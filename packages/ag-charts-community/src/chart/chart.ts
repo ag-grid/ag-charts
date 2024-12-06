@@ -927,6 +927,13 @@ export abstract class Chart extends Observable {
             ctx: { legendManager, stateManager },
         } = this;
 
+        if (initialState) {
+            this.series.forEach((s) => {
+                const seriesState = initialState.find((init) => init.seriesId === s.id);
+                s.onLegendInitialState('category', seriesState);
+            });
+        }
+
         const legendData = this.series.flatMap((s) => {
             const seriesLegendData = s.getLegendData('category');
             legendManager.updateData(s.id, seriesLegendData);
