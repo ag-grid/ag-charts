@@ -13,7 +13,7 @@ Users of integrated charting on AG Grid, should refer to this migration guide wh
 
 This release includes the following breaking changes:
 
--   `AgCharts.setLicenseKey()` has moved to `LicenseManager.setLicenseKey()`.
+-   `AgCharts.setLicenseKey()` - removed, use `LicenseManager.setLicenseKey()` instead.
 
 {% if isFramework("react") %}
 
@@ -33,22 +33,22 @@ The minimum version of Angular you can use with AG Charts is now Angular 17.
 
 ### Series Changes
 
--   Series type `bullet` is removed. Use the [Linear Gauge](./linear-gauge#bullet-series) instead.
+-   Series type `bullet` - removed, use the [Linear Gauge](./linear-gauge#bullet-series) instead.
 -   Bar Series `label.placement`:
-    -   `inside` is renamed to `inside-center`.
-    -   `outside` is renamed to `outside-end`.
+    -   `inside` - removed, use `inside-center` instead.
+    -   `outside` - removed, use `outside-end` instead.
 -   Waterfall Series `label.placement`:
-    -   `inside` is renamed to `inside-center`.
-    -   `start` is renamed to `outside-start`.
-    -   `end` is renamed to `outside-end`.
+    -   `inside` - removed, use `inside-center` instead.
+    -   `start` - removed, use `outside-start` instead.
+    -   `end` - removed, use `outside-end` instead.
 
 ### Axes Changes
 
 -   All `AgCrossLineLabelPosition` options are changed to kebab-case. For example, `topLeft` becomes `top-left`.
 -   If `axes[].tick.enabled: false`, any provided `axis[].label.padding` is the distance between the label and the axis.
--   On all axis labels, `padding` is renamed to `spacing`.
--   `axes[].crosshair.label.className` has been removed. Use the provided classes for adding custom styles or provide a custom HTML renderer instead.
--   `ag-crosshair-label*` CSS classes are renamed to `ag-charts-crosshair-label*`.
+-   On all axis labels, `padding` - removed, use `spacing` instead.
+-   `axes[].crosshair.label.className` - removed, use the provided classes for adding custom styles or provide a custom HTML renderer instead.
+-   `ag-crosshair-label*` CSS classes - removed, use `ag-charts-crosshair-label*` instead.
 -   Removed redundant `format` of category axis labels:
     -   `axes[type = 'category'].label.format`
     -   `axes[type = 'category'].crosshair.label.format`
@@ -60,38 +60,38 @@ The minimum version of Angular you can use with AG Charts is now Angular 17.
 -   The tooltips have an improved visual layout and now include more information about the hovered item.
 -   The `tooltip.renderer` has changed:
     -   It now takes `heading`, `title` and `data` properties instead of `title` and `content`.
-    -   The `heading` and `title` properties must be a `String` and the `data` property must be an array of `String`s. These no longer accept HTML.
+    -   The `heading` and `title` properties are typed as `String` and the `data` property is typed as `String[]`. These no longer accept HTML.
     -   The `params` provided no longer return `color`. Use `fill` and `stroke` instead.
     -   With the exception of `ohlc`, `candlestick`, and `waterfall` series types, `itemId` is no longer provided in the `params`.
 -   The CSS classes have changed:
-    -   `ag-chart-tooltip` is replaced by `ag-charts-tooltip`.
-    -   `ag-chart-tooltip-title` is replaced by `ag-charts-tooltip-heading` and `ag-charts-tooltip-title`.
-    -   `ag-chart-tooltip-content` is replaced by `ag-charts-tooltip-label` and `ag-charts-tooltip-value`.
--   `tooltip.class` has been removed. Use the provided classes for adding custom styles or provide a custom HTML renderer instead.
+    -   `ag-chart-tooltip` - removed, use `ag-charts-tooltip` instead.
+    -   `ag-chart-tooltip-title` - removed, use `ag-charts-tooltip-heading` and `ag-charts-tooltip-title` instead.
+    -   `ag-chart-tooltip-content` - removed, use `ag-charts-tooltip-label` and `ag-charts-tooltip-value` instead.
+-   `tooltip.class` - removed, use the provided classes for adding custom styles or provide a custom HTML renderer instead.
 
 ### Financial Charts Changes
 
--   `chartType` of `range-area` is renamed to `hlc`.
--   `AgPriceVolumePreset.rangeToolbar` is renamed to `rangeButtons`.
--   `AgPriceVolumePreset.xKey` is renamed to `dateKey`.
--   `AgPriceVolumePreset.annotations` is renamed to `toolbar`.
+-   `chartType` of `range-area` - removed, use `hlc` instead.
+-   `AgPriceVolumePreset.rangeToolbar` - removed, use `rangeButtons` instead.
+-   `AgPriceVolumePreset.xKey` - removed, use `dateKey` instead.
+-   `AgPriceVolumePreset.annotations` - removed, use `toolbar` instead.
 
 ### Miscellaneous
 
 -   `legendItemClick` and `legendItemDoubleClick` events no longer return the state of the clicked item in the `params`. To get this information, subscribe to the `chart.seriesVisibilityChange` event.
--   The `any` type is removed from the `MarkerShape` union.
+-   `MarkerShape` union is no longer typed `any`.
 -   Custom marker shapes are now defined with a callback function instead of extending a `Marker` class.
--   `AgChartSerializableState` is removed. Use `AgChartState` instead.
--   `navigator.min` and `navigator.max` are removed. Use `initialState.zoom.ratioX.start` and `initialState.zoom.ratioX.end` instead.
--   `zoom.ratioX`, `zoom.ratioY` are removed. Use `initialState.zoom.ratioX` and `initialState.zoom.ratioY` instead.
--   `zoom.rangeX`, `zoom.rangeY` are removed. Use `initialState.zoom.rangeX` and `initialState.zoom.rangeY` instead.
--   Locale string `toolbarAnnotationsColor` is renamed to `toolbarAnnotationsLineColor`.
+-   `AgChartSerializableState` - removed, use `AgChartState` instead.
+-   `navigator.min` and `navigator.max` - removed, use `initialState.zoom.ratioX.start` and `initialState.zoom.ratioX.end` instead.
+-   `zoom.ratioX`, `zoom.ratioY` - removed, use `initialState.zoom.ratioX` and `initialState.zoom.ratioY` instead.
+-   `zoom.rangeX`, `zoom.rangeY` - removed, use `initialState.zoom.rangeX` and `initialState.zoom.rangeY` instead.
+-   Locale string `toolbarAnnotationsColor` - removed, use `toolbarAnnotationsLineColor` instead.
 -   All icons with `-legacy` suffix have been removed.
--   `toolbar.zoom` is replaced with `zoom.buttons`. Unused options of `position`, `align`, `size`, `draggable`, `buttons[].id`, and `buttons[].role` are removed.
--   `toolbar.annotations` is replaced with `annotations.toolbar`. Unused options of `position`, `align`, `size`, `draggable`, `buttons[].id`, and `buttons[].role` are removed.
--   `toolbar.ranges` is replaced with `chart.ranges`. Unused options of `position`, `align`, `size`, `draggable`, `buttons[].id`, and `buttons[].role` are removed.
--   `toolbar.annotationsOptions` is replaced with `annotations.optionsToolbar`. Unused options of `position`, `align`, `size`, `draggable`, `buttons[].id`, and `buttons[].role` are removed.
--   `toolbar.seriesType` is replaced with `chart.chartToolbar`. Unused options of `position`, `align`, `size`, `draggable`, and `buttons` are
+-   `toolbar.zoom` - removed, use `zoom.buttons` instead. Unused options of `position`, `align`, `size`, `draggable`, `buttons[].id`, and `buttons[].role` are removed.
+-   `toolbar.annotations` - removed, use `annotations.toolbar` instead. Unused options of `position`, `align`, `size`, `draggable`, `buttons[].id`, and `buttons[].role` are removed.
+-   `toolbar.ranges` - removed, use `chart.ranges` instead. Unused options of `position`, `align`, `size`, `draggable`, `buttons[].id`, and `buttons[].role` are removed.
+-   `toolbar.annotationsOptions` - removed, use `annotations.optionsToolbar` instead. Unused options of `position`, `align`, `size`, `draggable`, `buttons[].id`, and `buttons[].role` are removed.
+-   `toolbar.seriesType` - removed, use `chart.chartToolbar` instead. Unused options of `position`, `align`, `size`, `draggable`, and `buttons` are
 
 ## Behaviour Changes
 
@@ -108,6 +108,7 @@ This release includes the following behaviour changes:
     -   Additionally some incorrect rounding scenarios have been fixed, e.g. 5.555 now correctly rounds to 5.56 instead of 5.55.
 -   Pie and Donut Series labels default to displaying two decimal places without trailing zeros. Use the `formatter` or `format` options to modify.
 -   A stacked normalized area series datum where all the values are 0, will connect to a point at 0 rather than leaving a gap.
+-   The default Zoom selection area when `axes: 'xy'` now ignores aspect ratio. Use `zoom.keepAspectRatio` to change this.
 -   Scrolling events on a chart with zoom enabled, will now be passed to the parent if zoom is at minimum or maximum levels.
 
 ## Changes List
