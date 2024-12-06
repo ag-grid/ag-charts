@@ -41,7 +41,7 @@ export interface AgNavigatorMiniChartLabelOptions {
     /** The font family to use for the labels. */
     fontFamily?: FontFamily;
     /** Padding in pixels between the axis labels and the Mini Chart. */
-    padding?: PixelSize;
+    spacing?: PixelSize;
     /** The colour to use for the labels. */
     color?: CssColor;
     /** Avoid axis label collision by automatically reducing the number of labels displayed. If set to `false`, axis labels may collide. */
