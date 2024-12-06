@@ -9,16 +9,16 @@ export class ChartOverlays extends BaseProperties {
     darkTheme = false;
 
     @Validate(OBJECT)
-    readonly loading = new Overlay('ag-chart-loading-overlay', 'overlayLoadingData');
+    readonly loading = new Overlay('ag-charts-loading-overlay', 'overlayLoadingData');
 
     @Validate(OBJECT)
-    readonly noData = new Overlay('ag-chart-no-data-overlay', 'overlayNoData');
+    readonly noData = new Overlay('ag-charts-no-data-overlay', 'overlayNoData');
 
     @Validate(OBJECT)
-    readonly noVisibleSeries = new Overlay('ag-chart-no-visible-series', 'overlayNoVisibleSeries');
+    readonly noVisibleSeries = new Overlay('ag-charts-no-visible-series', 'overlayNoVisibleSeries');
 
     @Validate(OBJECT)
-    readonly unsupportedBrowser = new Overlay('ag-chart-unsupported-browser', 'overlayUnsupportedBrowser');
+    readonly unsupportedBrowser = new Overlay('ag-charts-unsupported-browser', 'overlayUnsupportedBrowser');
 
     getFocusInfo(localeManager: LocaleManager): { text: string; rect: BBox } | undefined {
         for (const overlay of [this.loading, this.noData, this.noVisibleSeries, this.unsupportedBrowser]) {

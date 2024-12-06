@@ -36,7 +36,7 @@ const chart = AgCharts.create(options);
 
 function reset() {
     const categoryAxis = options.axes![0] as AgCategoryAxisOptions;
-    const element = document.getElementsByClassName('ag-chart-wrapper')![0]! as HTMLElement;
+    const element = document.getElementsByClassName('ag-charts-wrapper')![0]! as HTMLElement;
     element.style.width = '100%';
     element.style.height = '100%';
 

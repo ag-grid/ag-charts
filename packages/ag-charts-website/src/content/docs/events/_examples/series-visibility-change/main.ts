@@ -1,6 +1,6 @@
 import { AgChartLegendClickEvent, AgCharts, AgPolarChartOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
 
-let counter = 4;
+let counter = 1;
 
 let options: AgPolarChartOptions = {
     container: document.getElementById('myChart'),
@@ -17,9 +17,9 @@ let options: AgPolarChartOptions = {
     legend: {
         listeners: {
             legendItemClick: (event: AgChartLegendClickEvent) => {
-                counter = (counter + 4) % 5;
+                counter = (counter + 1) % 2;
                 document.getElementById('myCounter')!.textContent = `${counter}`;
-                if (counter !== 4) {
+                if (counter !== 1) {
                     event.preventDefault();
                 }
             },

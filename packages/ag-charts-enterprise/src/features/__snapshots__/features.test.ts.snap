@@ -3,27 +3,27 @@
 exports[`Feature Combinations Context Menu and Zoom when fully zoomed in it should only enable the pan option 1`] = `
 HTMLCollection [
   <div
-    class="ag-chart-context-menu"
+    class="ag-charts-context-menu"
     style="display: block; left: 0px; top: calc(0px - 0.5em);"
   >
     <div
-      class="ag-chart-context-menu__menu"
+      class="ag-charts-context-menu__menu"
       tabindex="-1"
     >
       <button
-        class="ag-chart-context-menu__item"
+        class="ag-charts-context-menu__item"
         tabindex="0"
       >
         Download
       </button>
       <button
-        class="ag-chart-context-menu__item"
+        class="ag-charts-context-menu__item"
         tabindex="-1"
       >
         Zoom to here
       </button>
       <button
-        class="ag-chart-context-menu__item"
+        class="ag-charts-context-menu__item"
         tabindex="-1"
       >
         Pan to here
@@ -36,27 +36,27 @@ HTMLCollection [
 exports[`Feature Combinations Context Menu and Zoom when fully zoomed out it should only enable the zoom option 1`] = `
 HTMLCollection [
   <div
-    class="ag-chart-context-menu"
+    class="ag-charts-context-menu"
     style="display: block; left: 0px; top: calc(0px - 0.5em);"
   >
     <div
-      class="ag-chart-context-menu__menu"
+      class="ag-charts-context-menu__menu"
       tabindex="-1"
     >
       <button
-        class="ag-chart-context-menu__item"
+        class="ag-charts-context-menu__item"
         tabindex="0"
       >
         Download
       </button>
       <button
-        class="ag-chart-context-menu__item"
+        class="ag-charts-context-menu__item"
         tabindex="-1"
       >
         Zoom to here
       </button>
       <button
-        class="ag-chart-context-menu__item"
+        class="ag-charts-context-menu__item"
         tabindex="-1"
       >
         Pan to here
@@ -69,27 +69,27 @@ HTMLCollection [
 exports[`Feature Combinations Context Menu and Zoom when zoomed in it should enable both the zoom and pan options 1`] = `
 HTMLCollection [
   <div
-    class="ag-chart-context-menu"
+    class="ag-charts-context-menu"
     style="display: block; left: 0px; top: calc(0px - 0.5em);"
   >
     <div
-      class="ag-chart-context-menu__menu"
+      class="ag-charts-context-menu__menu"
       tabindex="-1"
     >
       <button
-        class="ag-chart-context-menu__item"
+        class="ag-charts-context-menu__item"
         tabindex="0"
       >
         Download
       </button>
       <button
-        class="ag-chart-context-menu__item"
+        class="ag-charts-context-menu__item"
         tabindex="-1"
       >
         Zoom to here
       </button>
       <button
-        class="ag-chart-context-menu__item"
+        class="ag-charts-context-menu__item"
         tabindex="-1"
       >
         Pan to here

@@ -5,8 +5,8 @@ import { BaseProperties } from '../../util/properties';
 import { BOOLEAN, FUNCTION, STRING, Validate } from '../../util/validation';
 import type { AnimationManager } from '../interaction/animationManager';
 
-export const DEFAULT_OVERLAY_CLASS = 'ag-chart-overlay';
-export const DEFAULT_OVERLAY_DARK_CLASS = 'ag-chart-dark-overlay';
+export const DEFAULT_OVERLAY_CLASS = 'ag-charts-overlay';
+export const DEFAULT_OVERLAY_DARK_CLASS = 'ag-charts-dark-overlay';
 
 export class Overlay extends BaseProperties {
     @Validate(BOOLEAN)

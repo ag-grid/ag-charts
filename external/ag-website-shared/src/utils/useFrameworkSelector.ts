@@ -1,11 +1,9 @@
-import { useStore } from '@nanostores/react';
-import { $internalFramework, updateInternalFrameworkBasedOnFramework } from '@stores/frameworkStore';
-import { getFrameworkFromInternalFramework } from '@utils/framework';
+import { updateInternalFrameworkBasedOnFramework } from '@stores/frameworkStore';
+import { useFramework } from '@utils/hooks/useFramework';
 import { useCallback } from 'react';
 
 export function useFrameworkSelector() {
-    const internalFramework = useStore($internalFramework);
-    const framework = getFrameworkFromInternalFramework(internalFramework);
+    const { framework, internalFramework } = useFramework();
 
     const handleFrameworkChange = useCallback((newFramework: string) => {
         updateInternalFrameworkBasedOnFramework(newFramework);
