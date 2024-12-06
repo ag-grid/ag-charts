@@ -131,9 +131,10 @@ export function priceVolume(
     const zoomOpts = {
         zoom: {
             enabled: zoom,
-            autoScaling: {
-                enabled: true,
-            },
+            // @todo(AG-13612) autoScaling?: AgZoomAutoScaling;
+            // autoScaling: {
+            //     enabled: true,
+            // },
             // @ts-expect-error undocumented option
             enableIndependentAxes: true,
         } satisfies AgZoomOptions,

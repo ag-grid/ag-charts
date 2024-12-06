@@ -145,5 +145,5 @@ export interface AgZoomOptions {
     /**
      * Zoom auto scaling options.
      */
-    autoScaling?: AgZoomAutoScaling;
+    // @todo(AG-13612) autoScaling?: AgZoomAutoScaling;
 }
