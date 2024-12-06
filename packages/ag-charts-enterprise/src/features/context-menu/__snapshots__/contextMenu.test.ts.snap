@@ -3,7 +3,7 @@
 exports[`Context Menu should initially be hidden 1`] = `
 HTMLCollection [
   <div
-    class="ag-chart-context-menu"
+    class="ag-charts-context-menu"
     style="display: none;"
   />,
 ]
@@ -12,15 +12,15 @@ HTMLCollection [
 exports[`Context Menu should show the default actions 1`] = `
 HTMLCollection [
   <div
-    class="ag-chart-context-menu"
+    class="ag-charts-context-menu"
     style="display: block; left: 0px; top: calc(0px - 0.5em);"
   >
     <div
-      class="ag-chart-context-menu__menu"
+      class="ag-charts-context-menu__menu"
       tabindex="-1"
     >
       <button
-        class="ag-chart-context-menu__item"
+        class="ag-charts-context-menu__item"
         tabindex="0"
       >
         Download
