@@ -8,8 +8,60 @@
       "executor": "nx:noop",
       "inputs": [],
       "outputs": [],
+      "dependsOn": [
+        "test:package:basic:local-18",
+        "test:package:basic:local-19",
+        "test:package:basic:local-latest",
+        "test:package:basic:production-18",
+        "test:package:basic:production-19"
+      ],
       "configurations": {
         "update": {}
+      }
+    },
+    "test:package:basic:local-18": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-basic.sh 18",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-basic.sh -u 18"
+        }
+      }
+    },
+    "test:package:basic:local-19": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-basic.sh 19",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-basic.sh -u 19"
+        }
+      }
+    },
+    "test:package:basic:local-latest": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-basic.sh latest",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-basic.sh -u latest"
+        }
+      }
+    },
+    "test:package:basic:production-18": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-basic.sh -p 18",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-basic.sh -p -u 18"
+        }
+      }
+    },
+    "test:package:basic:production-19": {
+      "dependsOn": ["^pack"],
+      "command": "{projectRoot}/run-basic.sh -p 19",
+      "configurations": {
+        "update": {
+          "command": "{projectRoot}/run-basic.sh -p -u 19"
+        }
       }
     }
   },
