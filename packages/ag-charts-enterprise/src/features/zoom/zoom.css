@@ -32,6 +32,15 @@
             border-bottom-right-radius: var(--ag-charts-button-radius);
             border-top-right-radius: var(--ag-charts-button-radius);
         }
+
+        .ag-charts-toolbar__label {
+            padding-left: calc(var(--ag-charts-toolbar-gap) / 2);
+            padding-right: calc(var(--ag-charts-toolbar-gap) / 2);
+        }
+
+        .ag-charts-toolbar__icon + .ag-charts-toolbar__label {
+            padding-left: 0;
+        }
     }
 
     .ag-charts-toolbar__button--gap {
