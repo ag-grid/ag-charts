@@ -151,6 +151,9 @@ export FW_TYPE=${fw}
 if ${production} ; then
     export FW_VERSION=production-$FW_VERSION
 fi
+if [[ "${patch_subdir:-}" != "" ]] ; then
+    export FW_PATCH_TYPE=${patch_subdir}
+fi
 
 build_fw
 if ${interactive} ; then
