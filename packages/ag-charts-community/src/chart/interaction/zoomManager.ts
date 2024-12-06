@@ -238,19 +238,31 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     }
 
     public updateZoom(callerId: string, newZoom?: AxisZoomState) {
-        if (this.axisZoomManagers.size === 0) {
-            const stateId = this.state.stateId()!;
+        const { axisZoomManagers, state } = this;
+
+        if (axisZoomManagers.size === 0) {
+            const stateId = state.stateId()!;
             if (stateId === 'initial' || stateId === callerId) {
-                this.state.set(callerId, newZoom);
+                state.set(callerId, newZoom);
             }
             return;
         }
 
-        this.state.set(callerId, newZoom);
+        state.set(callerId, newZoom);
 
-        this.axisZoomManagers.forEach((axis) => {
-            axis.updateZoom(callerId, newZoom?.[axis.getDirection()]);
-        });
+        if (this.independentAxes) {
+            const primaryX = this.getPrimaryAxis(ChartAxisDirection.X);
+            const primaryXAxisManager = primaryX == null ? undefined : this.axisZoomManagers.get(primaryX.id);
+            primaryXAxisManager?.updateZoom(callerId, newZoom?.x);
+
+            const primaryY = this.getPrimaryAxis(ChartAxisDirection.Y);
+            const primaryYAxisManager = primaryY == null ? undefined : this.axisZoomManagers.get(primaryY.id);
+            primaryYAxisManager?.updateZoom(callerId, newZoom?.y);
+        } else {
+            axisZoomManagers.forEach((axis) => {
+                axis.updateZoom(callerId, newZoom?.[axis.getDirection()]);
+            });
+        }
 
         this.applyChanges(callerId);
     }
