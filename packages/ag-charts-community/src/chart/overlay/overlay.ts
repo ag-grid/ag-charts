@@ -19,7 +19,7 @@ export class Overlay extends BaseProperties {
     renderer?: () => string | HTMLElement;
 
     private content?: HTMLElement;
-    public focusBox?: { x: number; y: number; width: number; height: number };
+    public focusBox?: BBox;
 
     constructor(
         protected className: string,

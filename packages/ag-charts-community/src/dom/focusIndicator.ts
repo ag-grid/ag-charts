@@ -1,6 +1,6 @@
+import { BBox } from '../integrated-charts-scene';
 import { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
-import type { BBoxValues } from '../util/bboxinterface';
 import { getDocument, getWindow, setElementBBox } from '../util/dom';
 import type { FocusSwapChain } from './focusSwapChain';
 
@@ -23,10 +23,28 @@ export class FocusIndicator {
         this.swapChain.addListener('swap', (parent) => this.onSwap(parent));
     }
 
-    updateBounds(bounds: Path | BBoxValues | undefined, hoverRect?: { x: number; y: number }) {
+    updateBounds(bounds: Path | BBox | undefined, hoverRect?: BBox) {
         if (bounds === undefined) {
-            // skip
+            return;
+        }
+
+        let boundsVisible: boolean;
+        if (hoverRect == null || bounds == null) {
+            boundsVisible = true;
         } else if (bounds instanceof Path) {
+            boundsVisible = hoverRect.intersection(bounds.getBBox()) != null;
+        } else {
+            boundsVisible = hoverRect.intersection(bounds) != null;
+        }
+
+        if (!boundsVisible) {
+            this.element.style.display = 'none';
+            return;
+        }
+
+        this.element.style.display = '';
+
+        if (bounds instanceof Path) {
             const transform = (localX: number, localY: number) => {
                 let { x, y } = Transformable.toCanvasPoint(bounds, localX, localY);
                 x -= hoverRect?.x ?? 0;
@@ -36,7 +54,7 @@ export class FocusIndicator {
             this.path.setAttribute('d', bounds.svgPathData(transform));
             this.show(this.svg);
         } else {
-            setElementBBox(this.div, bounds);
+            setElementBBox(this.div, bounds.relativeClip(hoverRect));
             this.show(this.div);
         }
     }
