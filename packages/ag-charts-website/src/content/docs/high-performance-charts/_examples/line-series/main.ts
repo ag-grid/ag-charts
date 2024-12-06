@@ -10,6 +10,7 @@ const options: AgCartesianChartOptions = {
         enabled: true,
         anchorPointX: 'pointer',
         anchorPointY: 'pointer',
+        // @ts-expect-error AG-13612
         autoScaling: {
             enabled: true,
         },
