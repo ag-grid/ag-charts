@@ -57,14 +57,9 @@ export class ZoomScroller {
         bbox: _ModuleSupport.BBox,
         oldZoom: DefinedZoomState
     ): DefinedZoomState {
-        const sourceEvent = event.sourceEvent as WheelEvent;
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
-        const origin = pointToRatio(
-            bbox,
-            sourceEvent.offsetX ?? sourceEvent.clientX,
-            sourceEvent.offsetY ?? sourceEvent.clientY
-        );
+        const origin = pointToRatio(bbox, event.canvasX, event.canvasY);
 
         // Scale the zoom bounding box
         const dir = event.deltaY;
