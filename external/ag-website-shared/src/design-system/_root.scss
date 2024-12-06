@@ -251,6 +251,8 @@
     --color-util-gray-500: var(--color-gray-500);
     --color-util-gray-600: var(--color-gray-600);
     --color-util-gray-700: var(--color-gray-700);
+    --color-util-gray-800: var(--color-gray-800);
+    --color-util-gray-900: var(--color-gray-900);
 
     // Shadows
     --shadow-xs: 0 1px 2px 0 color-mix(in srgb, var(--color-gray-950) 05%, transparent);
@@ -370,6 +372,8 @@ html[data-dark-mode='true'] {
     --color-util-gray-500: var(--color-gray-500);
     --color-util-gray-600: var(--color-gray-400);
     --color-util-gray-700: var(--color-gray-300);
+    --color-util-gray-800: var(--color-gray-200);
+    --color-util-gray-900: var(--color-gray-100);
 
     --color-success: #64ea82;
 
