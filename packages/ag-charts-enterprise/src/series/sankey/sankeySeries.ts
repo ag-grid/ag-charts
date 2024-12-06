@@ -641,14 +641,13 @@ export class SankeySeries extends FlowProportionSeries<
 
     protected override computeFocusBounds({
         datumIndex,
-        seriesRect,
     }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {
         const datum = this.contextNodeData?.nodeData[datumIndex];
 
         if (datum?.type === FlowProportionDatumType.Node) {
             const { x, y, width, height } = datum;
             const bbox = new BBox(x, y, width, height);
-            return bbox.relativeClip(seriesRect);
+            return bbox;
         } else if (datum?.type === FlowProportionDatumType.Link) {
             for (const link of this.linkSelection) {
                 if (link.datum === datum) {
