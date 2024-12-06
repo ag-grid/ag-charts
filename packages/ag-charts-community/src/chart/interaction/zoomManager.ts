@@ -238,31 +238,19 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     }
 
     public updateZoom(callerId: string, newZoom?: AxisZoomState) {
-        const { axisZoomManagers, state } = this;
-
-        if (axisZoomManagers.size === 0) {
-            const stateId = state.stateId()!;
+        if (this.axisZoomManagers.size === 0) {
+            const stateId = this.state.stateId()!;
             if (stateId === 'initial' || stateId === callerId) {
-                state.set(callerId, newZoom);
+                this.state.set(callerId, newZoom);
             }
             return;
         }
 
-        state.set(callerId, newZoom);
+        this.state.set(callerId, newZoom);
 
-        if (this.independentAxes) {
-            const primaryX = this.getPrimaryAxis(ChartAxisDirection.X);
-            const primaryXAxisManager = primaryX == null ? undefined : this.axisZoomManagers.get(primaryX.id);
-            primaryXAxisManager?.updateZoom(callerId, newZoom?.x);
-
-            const primaryY = this.getPrimaryAxis(ChartAxisDirection.Y);
-            const primaryYAxisManager = primaryY == null ? undefined : this.axisZoomManagers.get(primaryY.id);
-            primaryYAxisManager?.updateZoom(callerId, newZoom?.y);
-        } else {
-            axisZoomManagers.forEach((axis) => {
-                axis.updateZoom(callerId, newZoom?.[axis.getDirection()]);
-            });
-        }
+        this.axisZoomManagers.forEach((axis) => {
+            axis.updateZoom(callerId, newZoom?.[axis.getDirection()]);
+        });
 
         this.applyChanges(callerId);
     }
@@ -309,7 +297,13 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         }
 
         const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
-        this.updateZoom(callerId, newZoom);
+
+        if (this.independentAxes) {
+            this.updatePrimaryAxisZoom(callerId, ChartAxisDirection.X, newZoom.x);
+            this.updatePrimaryAxisZoom(callerId, ChartAxisDirection.Y, newZoom.y);
+        } else {
+            this.updateZoom(callerId, newZoom);
+        }
     }
 
     // Fire this event to signal to listeners that the view is changing through a zoom and/or pan change.
