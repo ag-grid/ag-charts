@@ -20,6 +20,9 @@ export interface ToolbarEventMap<ButtonOptions extends ToolbarButtonOptions = To
         button: ButtonOptions & { index: number };
         buttonBounds: BBoxValues;
     };
+    'button-focused': {
+        button: { index: number };
+    };
 }
 
 export abstract class BaseToolbar<
@@ -144,6 +147,9 @@ export abstract class BaseToolbar<
             const buttonOptions = { index, ...(button instanceof BaseProperties ? button.toJson() : button) };
             const buttonBounds = this.getButtonWidgetBounds(buttonWidget);
             this.events.dispatch('button-pressed', { event, button: buttonOptions, buttonBounds });
+        });
+        buttonWidget.addListener('focus', () => {
+            this.events.dispatch('button-focused', { button: { index } });
         });
 
         if (button.section) {

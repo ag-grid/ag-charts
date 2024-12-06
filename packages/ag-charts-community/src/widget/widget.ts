@@ -18,6 +18,7 @@ type EventType = keyof WidgetEventMap;
 interface IWidget<TElement extends HTMLElement> {
     index: number;
     domIndex?: number;
+    parent?: Widget<HTMLElement, IWidget<HTMLElement>>;
     destroy(): void;
     getElement(): TElement;
 }
@@ -57,10 +58,10 @@ export abstract class Widget<
     implements IWidget<TElement>
 {
     public index: number = NaN;
-
     // WARNING (not implemented): setting domIndex will not move it in the DOM. This property is currently only used
     // when adding child widgets.
     public domIndex?: number;
+    public parent?: Widget<HTMLElement, IWidget<HTMLElement>>;
 
     protected readonly children: TChildWidget[] = [];
     protected htmlListener?: WidgetListenerHTML;
@@ -85,7 +86,12 @@ export abstract class Widget<
     }
 
     destroy(): void {
-        this.children.forEach((child) => child.destroy());
+        this.parent?.removeChild(this);
+        this.children.forEach((child) => {
+            child.parent = undefined;
+            child.destroy();
+        });
+        this.children.length = 0;
         this.destructor();
         this.elem.remove();
         this.elemContainer?.remove();
@@ -155,7 +161,15 @@ export abstract class Widget<
         this.addChildToDOM(child, this.getBefore(child));
         this.children.push(child);
         child.index = this.children.length - 1;
+        child.parent = this;
         this.onChildAdded(child);
+    }
+
+    removeChild(child: TChildWidget) {
+        const i = this.children.findIndex((value) => value === child);
+        this.children.splice(i, 1);
+        this.removeChildFromDOM(child);
+        this.onChildRemoved(child);
     }
 
     addClass(...tokens: string[]) {
