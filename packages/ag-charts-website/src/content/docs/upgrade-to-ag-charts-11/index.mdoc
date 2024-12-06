@@ -85,6 +85,7 @@ The minimum version of Angular you can use with AG Charts is now Angular 17.
 -   `navigator.min` and `navigator.max` - removed, use `initialState.zoom.ratioX.start` and `initialState.zoom.ratioX.end` instead.
 -   `zoom.ratioX`, `zoom.ratioY` - removed, use `initialState.zoom.ratioX` and `initialState.zoom.ratioY` instead.
 -   `zoom.rangeX`, `zoom.rangeY` - removed, use `initialState.zoom.rangeX` and `initialState.zoom.rangeY` instead.
+-   `navigator.miniChart.label.padding` - removed, use `navigator.miniChart.label.spacing` instead.
 -   Locale string `toolbarAnnotationsColor` - removed, use `toolbarAnnotationsLineColor` instead.
 -   All icons with `-legacy` suffix have been removed.
 -   `toolbar.zoom` - removed, use `zoom.buttons` instead. Unused options of `position`, `align`, `size`, `draggable`, `buttons[].id`, and `buttons[].role` are removed.
@@ -92,6 +93,11 @@ The minimum version of Angular you can use with AG Charts is now Angular 17.
 -   `toolbar.ranges` - removed, use `chart.ranges` instead. Unused options of `position`, `align`, `size`, `draggable`, `buttons[].id`, and `buttons[].role` are removed.
 -   `toolbar.annotationsOptions` - removed, use `annotations.optionsToolbar` instead. Unused options of `position`, `align`, `size`, `draggable`, `buttons[].id`, and `buttons[].role` are removed.
 -   `toolbar.seriesType` - removed, use `chart.chartToolbar` instead. Unused options of `position`, `align`, `size`, `draggable`, and `buttons` are
+-   `ag-chart-context-menu*` CSS classes - removed, use `ag-charts-context-menu*` instead.
+-   Overlay CSS classes have changed:
+    -   `ag-chart-loading-overlay` - removed, use `ag-charts-loading-overlay` instead.
+    -   `ag-chart-no-data-overlay` - removed, use `ag-charts-no-data-overlay` instead.
+    -   `ag-chart-no-visible-series` - removed, use `ag-charts-o-visible-series` instead.
 
 ## Behaviour Changes
 
