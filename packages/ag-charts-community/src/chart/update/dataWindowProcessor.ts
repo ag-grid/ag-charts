@@ -1,5 +1,6 @@
 import { ChartUpdateType } from '../chartUpdateType';
 import type { DataService } from '../data/dataService';
+import type { AnimationManager } from '../interaction/animationManager';
 import type { ZoomManager, ZoomState } from '../interaction/zoomManager';
 import type { UpdateService } from '../updateService';
 import type { AxisLike, ChartLike, UpdateProcessor } from './processor';
@@ -15,7 +16,8 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
         private readonly chart: ChartLike,
         private readonly dataService: DataService<D>,
         private readonly updateService: UpdateService,
-        private readonly zoomManager: ZoomManager
+        private readonly zoomManager: ZoomManager,
+        private readonly animationManager: AnimationManager
     ) {
         this.destroyFns.push(
             this.dataService.addListener('data-source-change', () => this.onDataSourceChange()),
@@ -31,6 +33,7 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     }
 
     private onDataLoad() {
+        this.animationManager.skip();
         this.updateService.update(ChartUpdateType.UPDATE_DATA);
     }
 

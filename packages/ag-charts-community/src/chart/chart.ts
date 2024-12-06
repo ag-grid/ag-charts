@@ -292,7 +292,7 @@ export abstract class Chart extends Observable {
             getLoadingSpinner(this.overlays.loading.getText(ctx.localeManager), ctx.animationManager.defaultDuration);
 
         this.processors = [
-            new DataWindowProcessor(this, ctx.dataService, ctx.updateService, ctx.zoomManager),
+            new DataWindowProcessor(this, ctx.dataService, ctx.updateService, ctx.zoomManager, ctx.animationManager),
             new OverlaysProcessor(
                 this,
                 this.overlays,
