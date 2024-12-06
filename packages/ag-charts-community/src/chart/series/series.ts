@@ -1,8 +1,7 @@
-import type { AgInitialStateLegendOptions } from 'packages/ag-charts-types/dist/types/src/main';
-
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
+    AgInitialStateLegendOptions,
     AgSeriesMarkerStyle,
     AgSeriesMarkerStylerParams,
     AgSeriesVisibilityChange,
