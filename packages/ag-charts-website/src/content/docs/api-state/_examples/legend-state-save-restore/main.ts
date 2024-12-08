@@ -7,8 +7,6 @@ import {
 
 import { getData } from './data';
 
-const data = getData();
-
 const dateFormatter = new Intl.DateTimeFormat('en-GB');
 const tooltip = {
     renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
@@ -31,7 +29,7 @@ const options: AgCartesianChartOptions = {
     footnote: {
         text: 'Source: Department for Digital, Culture, Media & Sport',
     },
-    data,
+    data: getData(),
     navigator: {
         enabled: true,
     },
