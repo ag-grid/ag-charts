@@ -1,14 +1,22 @@
-import { AgCartesianChartOptions, AgCartesianSeriesTooltipRendererParams, AgCharts } from 'ag-charts-enterprise';
+import {
+    AgCartesianChartOptions,
+    AgCartesianSeriesTooltipRendererParams,
+    AgChartState,
+    AgCharts,
+} from 'ag-charts-enterprise';
 
 import { getData } from './data';
-
-const data = getData();
 
 const dateFormatter = new Intl.DateTimeFormat('en-GB');
 const tooltip = {
     renderer: ({ datum, xKey, yKey }: AgCartesianSeriesTooltipRendererParams) => {
         return {
-            data: [{ label: dateFormatter.format(datum[xKey]), value: `${Math.round(datum[yKey] / 100) / 10 + 'k'}` }],
+            data: [
+                {
+                    label: dateFormatter.format(datum[xKey]),
+                    value: `${Math.round(datum[yKey] / 100) / 10 + 'k'}`,
+                },
+            ],
         };
     },
 };
@@ -21,28 +29,12 @@ const options: AgCartesianChartOptions = {
     footnote: {
         text: 'Source: Department for Digital, Culture, Media & Sport',
     },
-    data,
+    data: getData(),
     navigator: {
         enabled: true,
     },
     zoom: {
         enabled: true,
-    },
-    initialState: {
-        zoom: {
-            rangeX: {
-                start: {
-                    __type: 'date',
-                    value: new Date('2021-01-01').getTime(),
-                },
-            },
-        },
-        legend: [
-            {
-                seriesId: 'tate-modern',
-                visible: false,
-            },
-        ],
     },
     series: [
         {
@@ -100,41 +92,17 @@ const options: AgCartesianChartOptions = {
 
 const chart = AgCharts.create(options);
 
-function showSixMonths() {
-    options.initialState!.zoom = {
+let state: AgChartState = {
+    version: '11.0.0',
+    zoom: {
         rangeX: {
             start: {
                 __type: 'date',
-                value: data[data.length - 1].date.getTime() - 1000 * 60 * 60 * 24 * 30 * 6,
+                value: new Date('2021-01-01').getTime(),
             },
         },
-    };
-    chart.update(options);
-}
-
-function show2019() {
-    options.initialState!.zoom = {
-        rangeX: {
-            start: {
-                __type: 'date',
-                value: new Date('2019-01-01').getTime(),
-            },
-            end: {
-                __type: 'date',
-                value: new Date('2020-01-01').getTime(),
-            },
-        },
-    };
-    chart.update(options);
-}
-
-function showAll() {
-    options.initialState!.zoom = {};
-    chart.update(options);
-}
-
-function setInitialLegendState() {
-    options.initialState!.legend = [
+    },
+    legend: [
         {
             seriesId: 'tate-modern',
             visible: false,
@@ -143,28 +111,17 @@ function setInitialLegendState() {
             seriesId: 'tate-liverpool',
             visible: false,
         },
-    ];
-    chart.update(options);
+    ],
+};
+
+function saveState() {
+    const newState = chart.getState();
+    state = newState;
+    console.log('Saved', state);
 }
 
-function resetInitialLegendState() {
-    options.initialState!.legend = [
-        {
-            seriesId: 'tate-modern',
-            visible: true,
-        },
-        {
-            seriesId: 'tate-liverpool',
-            visible: true,
-        },
-        {
-            seriesId: 'tate-britain',
-            visible: true,
-        },
-        {
-            seriesId: 'tate-st-ives',
-            visible: true,
-        },
-    ];
-    chart.update(options);
+function restoreState() {
+    chart.setState(state).then(() => {
+        console.log(`Restored`, state);
+    });
 }

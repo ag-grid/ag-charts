@@ -147,9 +147,16 @@ legend: {
 
 {% chartExampleRunner title="Series Visibility Toggling" name="legend-click-series-toggle" type="generated" /%}
 
-By default, when a Legend item is clicked, the visibility of the series associated with that item will be toggled. This allows the users to control which series are displayed in the chart by clicking on Legend items.
+By default, when a Legend item is clicked, the visibility of the series associated with that item will be toggled.
+This allows the users to control which series are displayed in the chart by clicking on Legend items.
 
-Additionally, when a Legend item is double clicked, the chart will show that series only. Double clicking again will show all of the series.
+Additionally, when a Legend item is double clicked, the chart will show that series only.
+Double clicking again will show all of the series.
+
+In the above example:
+
+-   Clicking or double clicking a Legend item will toggle the series visibility.
+-   It will also log a message to the browser console via a `legendItemClick` event.
 
 {% note %}
 Pie series sectors do not toggle when a Legend item is double clicked.
@@ -171,11 +178,14 @@ legend: {
 }
 ```
 
-The `legendItemClick` and `legendItemDoubleClick` events can be used to listen to Legend item clicks and double clicks, respectively.
-For more information see [Legend Events](./events/#legend-events---legenditemclick-and-legenditemdoubleclick).
+## Legend Events
 
-In this scenario, both the listener and the item toggle behaviour will occur. In the above example, clicking or double clicking a Legend item
-will toggle the series visibility as well as logging a message to the browser console via a `legendItemClick` event.
+The `legendItemClick` and `legendItemDoubleClick` events can be used to listen to Legend item clicks and double clicks, respectively.
+They can also be used to call a `preventDefault` function for complete control of when to stop the series toggling.  
+For more information see [Legend Events](./events/#legend-events).
+
+The `seriesVisibilityChange` events can be used to listen for Series Visibility toggling.  
+For more information see [Chart Events](./events/#seriesvisibilitychange).
 
 ## API Reference
 
