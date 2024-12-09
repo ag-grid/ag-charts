@@ -55,7 +55,10 @@ const options: AgCartesianChartOptions = {
             },
             area: {
                 series: {
-                    fillOpacity: 0.1,
+                    fillOpacity: 0.4,
+                    marker: {
+                        shape: 'triangle',
+                    },
                 },
             },
         },
@@ -71,7 +74,6 @@ const options: AgCartesianChartOptions = {
             xName: 'Food',
             yKey: 'calories',
             yName: 'Calories',
-            showInLegend: false,
         },
         {
             type: 'line',
@@ -79,7 +81,9 @@ const options: AgCartesianChartOptions = {
             xName: 'Food',
             yKey: 'bloodSugarSpike',
             yName: 'Blood Sugar Spike',
-            showInLegend: false,
+            interpolation: {
+                type: 'smooth',
+            },
         },
         {
             type: 'bar',
@@ -115,7 +119,14 @@ const options: AgCartesianChartOptions = {
             position: 'left',
             type: 'number',
             keys: ['bloodSugarSpike'],
-            thickness: 30,
+            thickness: 40,
+            title: {
+                text: 'Sugar Spike',
+                spacing: 0,
+            },
+            interval: {
+                values: [0, 20, 60, 80],
+            },
         },
         {
             position: 'left',
@@ -138,7 +149,11 @@ const options: AgCartesianChartOptions = {
         {
             position: 'bottom',
             type: 'grouped-category',
-            depthOptions: [{ label: { fontSize: 11 } }, { label: { fontSize: 10 } }, { label: { fontSize: 10 } }],
+            depthOptions: [
+                { label: { fontSize: 10 }, tick: { enabled: false } },
+                { label: { fontSize: 10 }, tick: { enabled: false } },
+                { label: { fontSize: 10 } },
+            ],
         },
     ],
 };
