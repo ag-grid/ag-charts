@@ -134,8 +134,11 @@ export class LegendManager
     }) {
         if (legendItemName) {
             this.getData().forEach((datum) => {
-                const newDatum = datum.legendItemName === legendItemName ? { ...datum, enabled } : datum;
-                this.updateData(datum.seriesId, [newDatum]);
+                const newData = (this.legendDataMap.get(datum.seriesId) ?? []).map((d) =>
+                    d.legendItemName === legendItemName ? { ...d, enabled } : d
+                );
+
+                this.updateData(datum.seriesId, newData);
             });
             return;
         }
@@ -143,7 +146,7 @@ export class LegendManager
         const seriesLegendData = this.getData(seriesId);
         const singleLegendItem = seriesLegendData.length === 1;
 
-        const data = this.getData(seriesId).map((datum) =>
+        const data = seriesLegendData.map((datum) =>
             (itemId == null && singleLegendItem) || datum.itemId === itemId ? { ...datum, enabled } : datum
         );
 
