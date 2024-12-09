@@ -234,35 +234,38 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
         }
 
         // Continue from current rendering location.
-        let source: AnimatableBarDatum;
         if (status === 'added' && rect.previousDatum == null && initPos.mode === 'fade') {
             // Handle series add case, after initial load. This is distinct from legend toggle on.
-            source = { ...resetBarSelectionsFn(rect, datum), opacity: 0 };
+            return {
+                ...resetBarSelectionsFn(rect, datum),
+                opacity: 0,
+                phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING.added,
+            };
         } else if (status === 'unknown' || status === 'added') {
-            source = initPos.calculate(datum, rect.previousDatum);
+            return {
+                ...initPos.calculate(datum, rect.previousDatum),
+                phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING.added,
+            };
         } else {
-            source = {
+            return {
                 x: rect.x,
                 y: rect.y,
                 width: rect.width,
                 height: rect.height,
                 clipBBox: rect.clipBBox,
                 opacity: rect.opacity,
+                phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[status],
             };
         }
-
-        const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
-        return { ...source, phase };
     };
     const toFn: FromToMotionPropFn<Rect, AnimatableBarDatum, T> = (rect: Rect, datum: T, status: NodeUpdateState) => {
-        let source: AnimatableBarDatum;
         if (status === 'removed' && rect.datum == null && initPos.mode === 'fade') {
             // Handle series remove case, after initial load. This is distinct from legend toggle off.
-            source = { ...resetBarSelectionsFn(rect, datum), opacity: 0 };
+            return { ...resetBarSelectionsFn(rect, datum), opacity: 0 };
         } else if (status === 'removed' || isRemoved(datum)) {
-            source = initPos.calculate(datum, rect.previousDatum);
+            return initPos.calculate(datum, rect.previousDatum);
         } else {
-            source = {
+            return {
                 x: datum.x,
                 y: datum.y,
                 width: datum.width,
@@ -271,8 +274,6 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
                 opacity: datum.opacity,
             };
         }
-
-        return source;
     };
 
     return { toFn, fromFn };

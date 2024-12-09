@@ -3,6 +3,7 @@ import { resetMotion } from '../../../motion/resetMotion';
 import { BandScale } from '../../../scale/bandScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import { LogScale } from '../../../scale/logScale';
+import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
 import { Group, TranslatableGroup } from '../../../scene/group';
 import type { Node, NodeWithOpacity } from '../../../scene/node';
@@ -1040,6 +1041,37 @@ export abstract class CartesianSeries<
 
     protected abstract isLabelEnabled(): boolean;
 
+    protected getScaling(scale: Scale<any, any>): Scaling | undefined {
+        if (scale instanceof LogScale) {
+            const { range, domain } = scale;
+
+            return {
+                type: 'log',
+                convert: (d) => scale.convert(d),
+                domain: [domain[0], domain[1]],
+                range: [range[0], range[1]],
+            };
+        } else if (scale instanceof ContinuousScale) {
+            const { range } = scale;
+            const domain = scale.getDomain();
+
+            return {
+                type: 'continuous',
+                domain: [domain[0], domain[1]],
+                range: [range[0], range[1]],
+            };
+        } else if (scale instanceof BandScale) {
+            const { domain } = scale;
+
+            return {
+                type: 'category',
+                domain,
+                inset: scale.inset,
+                step: scale.step,
+            };
+        }
+    }
+
     protected calculateScaling() {
         const result: { [key in ChartAxisDirection]?: Scaling } = {};
 
@@ -1047,33 +1079,9 @@ export abstract class CartesianSeries<
             const axis = this.axes[direction];
             if (!axis) continue;
 
-            if (axis.scale instanceof LogScale) {
-                const { range, domain } = axis.scale;
-
-                result[direction] = {
-                    type: 'log',
-                    convert: (d) => axis.scale.convert(d),
-                    domain: [domain[0], domain[1]],
-                    range: [range[0], range[1]],
-                };
-            } else if (axis.scale instanceof ContinuousScale) {
-                const { range } = axis.scale;
-                const domain = axis.scale.getDomain();
-
-                result[direction] = {
-                    type: 'continuous',
-                    domain: [domain[0], domain[1]],
-                    range: [range[0], range[1]],
-                };
-            } else if (axis.scale instanceof BandScale) {
-                const { domain } = axis.scale;
-
-                result[direction] = {
-                    type: 'category',
-                    domain,
-                    inset: axis.scale.inset,
-                    step: axis.scale.step,
-                };
+            const scalingResult = this.getScaling(axis.scale);
+            if (scalingResult != null) {
+                result[direction] = scalingResult;
             }
         }
 
