@@ -11,7 +11,7 @@ type ExampleOptions = {
     framework: string;
     status: Status;
     clickOrder: ClickOrder;
-    skipCanvasUpdateCheck: boolean;
+    skipCanvasUpdateCheck: boolean | string[];
     ignoreConsoleWarnings: boolean;
 };
 
@@ -20,7 +20,7 @@ type ExampleOverrides = {
     status?: Status;
     skipFrameworks?: boolean;
     clickOrder?: ClickOrder;
-    skipCanvasUpdateCheck?: boolean;
+    skipCanvasUpdateCheck?: boolean | string[];
     ignoreConsoleWarnings?: boolean;
 };
 
@@ -69,13 +69,13 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         // No framework examples, stop button does not cause visible change
         'wait-for-update': {
             frameworks: ['vanilla', 'typescript'],
-            skipCanvasUpdateCheck: true,
+            skipCanvasUpdateCheck: ['Stop'],
         },
     },
     'api-state': {
         // Buttons have no visible rendering change
-        'state-save-restore': { skipCanvasUpdateCheck: true },
-        'legend-state-save-restore': { skipCanvasUpdateCheck: true },
+        'state-save-restore': { skipCanvasUpdateCheck: ['Save'] },
+        'legend-state-save-restore': { skipCanvasUpdateCheck: ['Save'] },
     },
     'api-download': {
         // No canvas updates for downloading
@@ -84,9 +84,6 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
     events: {
         // Buttons have no visible rendering change
         'interaction-ranges': { skipCanvasUpdateCheck: true },
-    },
-    'financial-charts-toolbar': {
-        'annotation-save-restore': { skipCanvasUpdateCheck: true },
     },
     'financial-chart-types': {
         'toggle-financial-features': { clickOrder: 'reverse' },
@@ -215,15 +212,19 @@ test.describe('examples', () => {
 
                                 await button.click();
 
-                                if (!skipCanvasUpdateCheck) {
+                                const skip =
+                                    skipCanvasUpdateCheck === true ||
+                                    (Array.isArray(skipCanvasUpdateCheck) &&
+                                        skipCanvasUpdateCheck.includes((await button.textContent()) ?? 'unknown'));
+                                if (skip) {
+                                    await page.waitForLoadState('networkidle');
+                                } else {
                                     await expect
                                         .configure({
                                             message: `Pressing button ${await button.textContent()}`,
                                         })
                                         .poll(async () => Number(await canvas.getAttribute('data-scene-renders')))
                                         .toBeGreaterThan(sceneRenderCount);
-                                } else {
-                                    await page.waitForLoadState('networkidle');
                                 }
                             }
                         });
