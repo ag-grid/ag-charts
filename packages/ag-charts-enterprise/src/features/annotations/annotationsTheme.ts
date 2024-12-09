@@ -280,7 +280,7 @@ export const annotationsTheme: AgAnnotationsThemeableOptions = {
             ...stroke,
             fill: ThemeSymbols.DEFAULT_ANNOTATION_BACKGROUND_FILL,
             fillOpacity: 0.2,
-            // handle: { ...handle },
+            handle: { ...handle },
             statistics: {
                 ...measurerStatistics,
                 color: '#fff',
@@ -298,10 +298,10 @@ export const annotationsTheme: AgAnnotationsThemeableOptions = {
             stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
             fill: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL,
             fillOpacity: 0.2,
-            // handle: {
-            //     ...handle,
-            //     stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
-            // },
+            handle: {
+                ...handle,
+                stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
+            },
             statistics: {
                 ...measurerStatistics,
                 color: '#fff',
