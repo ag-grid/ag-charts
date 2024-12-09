@@ -257,6 +257,7 @@ class AgChartsInternal {
             // so we need to remove all queue items up to the last successfully applied item.
             const queueIdx = chartRef.queuedUserOptions.indexOf(chartOptions.userOptions) + 1;
             chartRef.queuedUserOptions.splice(0, queueIdx);
+            chartRef.queuedChartOptions.splice(0, queueIdx);
         });
 
         return proxy;
