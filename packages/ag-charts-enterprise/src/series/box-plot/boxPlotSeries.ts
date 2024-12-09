@@ -556,10 +556,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return activeStyles;
     }
 
-    protected computeFocusBounds({
-        datumIndex,
-        seriesRect,
-    }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
-        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex].focusRect, seriesRect);
+    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex].focusRect);
     }
 }

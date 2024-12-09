@@ -915,10 +915,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
     protected override onDataChange() {}
 
-    protected computeFocusBounds({
-        datumIndex,
-        seriesRect,
-    }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
-        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex], seriesRect);
+    protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
+        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex]);
     }
 }

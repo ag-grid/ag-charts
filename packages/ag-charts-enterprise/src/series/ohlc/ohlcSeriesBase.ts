@@ -306,10 +306,15 @@ export abstract class OhlcSeriesBase<
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         if (dataAggregationFilter == null) {
-            const [start, end] = visibleRangeIndices(rawData.length, xAxis.range, (index) => {
+            let [start, end] = visibleRangeIndices(rawData.length, xAxis.range, (index) => {
                 const x = xPosition(index);
                 return [x, x + effectiveBarWidth];
             });
+            // @todo(AG-13575) Remove this if block
+            if (processedData.rawData.length < 1e3) {
+                start = 0;
+                end = processedData.rawData.length;
+            }
 
             for (let datumIndex = start; datumIndex < end; datumIndex += 1) {
                 const xValue = xValues[datumIndex];
@@ -342,18 +347,13 @@ export abstract class OhlcSeriesBase<
             }
         } else {
             const { maxRange, indexData } = dataAggregationFilter;
-            let [start, end] = visibleRangeIndices(maxRange, xAxis.range, (index) => {
+            const [start, end] = visibleRangeIndices(maxRange, xAxis.range, (index) => {
                 const aggIndex = index * SPAN;
                 const openIndex = indexData[aggIndex + OPEN];
                 const closeIndex = indexData[aggIndex + CLOSE];
                 if (openIndex === -1) return;
                 return [xPosition(openIndex), xPosition(closeIndex) + effectiveBarWidth];
             });
-            // @todo(AG-13575) Remove this if block
-            if (processedData.rawData.length < 1e3) {
-                start = 0;
-                end = processedData.rawData.length;
-            }
 
             for (let i = start; i < end; i += 1) {
                 const aggIndex = i * SPAN;
@@ -559,6 +559,6 @@ export abstract class OhlcSeriesBase<
             width: width,
             height: height,
         };
-        return computeBarFocusBounds(datum, opts.seriesRect);
+        return computeBarFocusBounds(datum);
     }
 }

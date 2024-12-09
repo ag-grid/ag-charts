@@ -297,7 +297,13 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         }
 
         const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
-        this.updateZoom(callerId, newZoom);
+
+        if (this.independentAxes) {
+            this.updatePrimaryAxisZoom(callerId, ChartAxisDirection.X, newZoom.x);
+            this.updatePrimaryAxisZoom(callerId, ChartAxisDirection.Y, newZoom.y);
+        } else {
+            this.updateZoom(callerId, newZoom);
+        }
     }
 
     // Fire this event to signal to listeners that the view is changing through a zoom and/or pan change.

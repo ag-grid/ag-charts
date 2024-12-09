@@ -1,4 +1,5 @@
 import type { LocaleManager } from '../../locale/localeManager';
+import type { BBox } from '../../scene/bbox';
 import { BaseProperties } from '../../util/properties';
 import { BOOLEAN, OBJECT, Validate } from '../../util/validation';
 import { Overlay } from './overlay';
@@ -19,9 +20,7 @@ export class ChartOverlays extends BaseProperties {
     @Validate(OBJECT)
     readonly unsupportedBrowser = new Overlay('ag-charts-unsupported-browser', 'overlayUnsupportedBrowser');
 
-    getFocusInfo(
-        localeManager: LocaleManager
-    ): { text: string; rect: { x: number; y: number; width: number; height: number } } | undefined {
+    getFocusInfo(localeManager: LocaleManager): { text: string; rect: BBox } | undefined {
         for (const overlay of [this.loading, this.noData, this.noVisibleSeries, this.unsupportedBrowser]) {
             if (overlay.focusBox !== undefined) {
                 return { text: overlay.getText(localeManager), rect: overlay.focusBox };
