@@ -1,5 +1,16 @@
 [
     {
+        "title": "Charting It Up with AG Grid",
+        "website": "https://www.spreaker.com/episode/s8-e5-charting-it-up-with-ag-grid-mana-jalali-james-swinton-bland--62412378",
+        "link": "https://api.spreaker.com/v2/episodes/62412378/play.mp3",
+        "description": "Mana and James joined the Angular Plus Show again, this time to talk more about AG Charts. The team provide an update on AG Grid and AG Charts, and discuss the future of the products, and how they might benefit developers.",
+        "host": "Brian Love",
+        "publication": "The Angular Plus Show",
+        "guests": ["Mana Peirov", "James Swinton-Bland"],
+        "published": "October, 2024",
+        "publicationLogo": "angular-plus-show.webp"
+    },
+    {
         "title": "AG Grid & Figma - What's Awesome and What's Coming",
         "website": "https://www.spreaker.com/episode/a-show-s7-e8-ag-grid-figma-what-s-awesome-what-s-coming-diarmuid-mac-cormack-stephen-cooper--59494851",
         "link": "https://api.spreaker.com/v2/episodes/59494851/play.mp3",

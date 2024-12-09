@@ -1,7 +1,7 @@
 [
     {
-        "title": "Introducing AG Charts Enterprise",
-        "description": "Learn about the background of AG Charts, how we arrived where we are today, and what you can expect from our brand-new enterprise product.",
+        "title": "Efficient JavaScript Charting with Tree-Based Scene Graphs",
+        "description": "Learn how AG Charts leverages a tree-based scene graph abstraction to efficiently render complex JavaScript charts.",
         "image": "/community/events/news/charts.png",
         "link": "https://blog.ag-grid.com/introducing-ag-charts-enterprise/",
         "linkText": "Read article"
@@ -21,10 +21,10 @@
         "linkText": "Read article"
     },
     {
-        "title": "Building New Themes for AG Grid with our Figma Design System",
-        "description": "See how easy our Figma Design System makes it to create and customise themes for AG Grid.",
+        "title": "Introducing Our New Theming API",
+        "description": "Learn more about the Theming API: The new, easy way to create and customise themes for AG Grid, directly from your JavaScript code.",
         "image": "/community/events/news/grid-2.png",
-        "link": "https://blog.ag-grid.com/building-a-new-theme-for-ag-grid-with-the-figma-design-system/",
+        "link": "https://blog.ag-grid.com/introducing-our-new-theming-api/",
         "linkText": "Read article"
     }
 ]

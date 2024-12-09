@@ -1,22 +1,26 @@
 [
     {
         "title": "React Summit",
-        "description": "Our last (but by no means least) event of 2024. It's still early stages yet, but we can confirm that we'll be sponsoring React Summit US again this year, following its successful inaugural event in 2023.",
+        "description": "Our last event of 2024 was React Summit US, which took place in New Jersey. We were proud to sponsor this event for the second year running, and we had a great time meeting developers from all over the world, and introducing them to AG Charts. Stephen Cooper also had the chance to present his talk: 'What refs can do for you', based on our research throughout 2024 whilst optimising AG Grid for React",
         "location": "New Jersey, USA",
         "logo": "/community/events/organiser-logos/react-summit-logo.svg",
         "logoLight": "/community/events/organiser-logos/react-summit-logo-light.svg",
         "countryIcon": "us.png",
         "startDate": "2024-11-13",
-        "eventPage": "https://reactsummit.us/"
+        "eventPage": "https://reactsummit.us/",
+        "collage": "react-summit-us-2024.webp",
+        "recording": "https://gitnation.com/contents/what-refs-can-do-for-you"
     },
     {
         "title": "React Advanced",
-        "description": "AG Grid is once again the top sponsor of React Advanced London, as we were in 2023. This event holds a special place in our hearts, given that London is where AG Grid was born. We look forward to seeing you there again later this year - keep an eye on this page more updates as we get closer to October",
+        "description": "AG Grid was once again the top sponsor of React Advanced London, as we were in 2023. This event holds a special place in our hearts, given that London is where AG Grid was born. We had a fantastic time meeting developers from all over, and showing them the combined power of AG Grid and AG Charts.",
         "location": "London, UK",
         "logo": "/community/events/organiser-logos/react-advanced-logo.svg",
         "logoLight": "/community/events/organiser-logos/react-advanced-logo-light.svg",
         "countryIcon": "united-kingdom.png",
         "startDate": "2024-10-28",
+        "collage": "react-advanced-london-2024.webp",
+        "recording": "https://gitnation.com/contents/perfecting-your-profiling",
         "eventPage": "https://reactadvanced.com/"
     },
     {
@@ -40,7 +44,8 @@
         "startDate": "2024-03-20",
         "countryIcon": "us.png",
         "eventPage": "https://ng-conf.org/",
-        "collage": "ng-conf-2024.webp"
+        "collage": "ng-conf-2024.webp",
+        "recording": "https://www.youtube.com/watch?v=HR1PESNUUwk"
     },
     {
         "title": "React Summit",
