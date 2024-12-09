@@ -262,7 +262,13 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
     public resetZoom(callerId: string) {
         this.autoScaleYAxis.manuallyAdjusted = false;
-        this.updateZoom(callerId, this.getRestoredZoom());
+
+        // TODO: Move `zoomUtils.ts` to community and use `definedZoomState()` here.
+        const zoom = this.getRestoredZoom();
+        this.updateZoom(callerId, {
+            x: { min: zoom?.x?.min ?? 0, max: zoom?.x?.max ?? 1 },
+            y: { min: zoom?.y?.min ?? 0, max: zoom?.y?.max ?? 1 },
+        });
     }
 
     public resetAxisZoom(callerId: string, axisId: string) {
