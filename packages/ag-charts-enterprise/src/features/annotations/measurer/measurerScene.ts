@@ -405,7 +405,7 @@ export class MeasurerScene extends StartEndScene<MeasurerTypeProperties> {
     }
 
     private getVolume(datum: MeasurerTypeProperties) {
-        return datum.getVolume?.(datum.start.x, datum.end.x);
+        return datum.getVolume(datum.start.x, datum.end.x);
     }
 }
 
