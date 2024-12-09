@@ -88,7 +88,7 @@ export class ParallelChannelScene extends ChannelScene<ParallelChannelProperties
             .filter(isPoint);
 
         // Do not move any handles if some of them are trying to move to invalid points
-        if (invertedMoves.some((invertedMove) => !validateDatumPoint(context, invertedMove))) {
+        if (invertedMoves.some((invertedMove) => !validateDatumPoint(context, invertedMove, { y: false }))) {
             return;
         }
 

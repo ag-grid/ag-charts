@@ -48,6 +48,8 @@ export abstract class PointScene<Datum extends PointProperties> extends Annotati
         const coords = Vec2.add(dragState.handle, Vec2.sub(target, dragState.offset));
         const point = invertCoords(coords, context);
 
+        if (!validateDatumPoint(context, point)) return;
+
         datum.x = point.x;
         datum.y = point.y;
     }

@@ -56,8 +56,8 @@ export class DisjointChannelProperties extends Annotation(
     override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
         return (
             super.isValid(warningPrefix) &&
-            validateDatumLine(context, this, warningPrefix) &&
-            validateDatumLine(context, this.bottom, warningPrefix)
+            validateDatumLine(context, this, { y: false }, warningPrefix) &&
+            validateDatumLine(context, this.bottom, { y: false }, warningPrefix)
         );
     }
 

@@ -15,7 +15,7 @@ export abstract class LineTypeProperties extends Localisable(
     text = new LineTextProperties();
 
     override isValidWithContext(context: AnnotationContext, warningPrefix?: string) {
-        return super.isValid(warningPrefix) && validateDatumLine(context, this, warningPrefix);
+        return super.isValid(warningPrefix) && validateDatumLine(context, this, undefined, warningPrefix);
     }
 
     override getDefaultColor(colorPickerType: AnnotationOptionsColorPickerType) {
