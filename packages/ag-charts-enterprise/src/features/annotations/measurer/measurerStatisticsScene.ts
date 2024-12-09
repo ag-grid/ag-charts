@@ -136,8 +136,11 @@ export class MeasurerStatisticsScene extends _ModuleSupport.Group {
                 ...textStyles,
                 x: anchor.x,
                 text: this.formatVolume(stats.volume, localeManager),
+                visible: true,
             });
             scenes.push(volumeText);
+        } else {
+            volumeText.visible = false;
         }
 
         layoutScenesColumn(scenes, anchor.y, verticalGap);
