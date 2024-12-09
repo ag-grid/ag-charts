@@ -1,5 +1,23 @@
 [
     {
+        "title": "What Refs Can Do for You",
+        "link": "https://gitnation.com/contents/what-refs-can-do-for-you",
+        "description": "While Refs are considered an escape hatch there are times when you might just need to use them.In this talk, with the help of real world examples, we will look at what Refs can do for us in terms of code clarity and also performance gains. Think along the lines of minimising renders and avoiding flickering UIs. We will cover the restrictions for safe usage and for those of you already using these patterns make sure you are prepared for the changes coming in React 19.",
+        "author": "Stephen Cooper",
+        "type": "Video",
+        "published": "11/2024",
+        "thumbnail": "/community/video-thumbnails/what-refs-can-do-for-you-react-summit-us-2024.webp"
+    },
+    {
+        "title": "Perfecting Your Profiling",
+        "link": "https://gitnation.com/contents/perfecting-your-profiling",
+        "description": "See how you can use React Dev Tools alongside the standard Dev Tools to identify and resolve performance and memory issues. Goes beyond just measuring how much time is spent executing a function, and covers new features released this year.",
+        "author": "Stephen Cooper",
+        "type": "Video",
+        "published": "10/2024",
+        "thumbnail": "/community/video-thumbnails/perfecting-your-profiling-react-advanced-2024.webp"
+    },
+    {
         "title": "The Path to High-Performance Canvas Rendering in React",
         "link": "https://gitnation.com/contents/the-path-to-high-performance-canvas-rendering-in-react",
         "description": "An overview of the top 3 approaches you can apply to boost the rendering performance of HTML Canvas in your React application, based on the lessons we learned during the development of AG Charts.",
