@@ -652,7 +652,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private getItemBaseStyle(highlighted = false): Required<AgBarSeriesStyle> {
+    private getItemBaseStyle(highlighted: boolean): Required<AgBarSeriesStyle> {
         const { properties } = this;
         const { cornerRadius } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
@@ -674,7 +674,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
         xValue: any,
         yValue: any,
         format: Required<AgBarSeriesStyle>,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
 
@@ -799,8 +799,8 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         if (xValue == null) return;
 
-        const format = this.getItemBaseStyle();
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, xValue, yValue, format));
+        const format = this.getItemBaseStyle(false);
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, xValue, yValue, format, false));
 
         return tooltip.formatTooltip(
             {

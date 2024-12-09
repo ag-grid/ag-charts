@@ -388,7 +388,7 @@ export abstract class RadialColumnSeriesBase<
         format: AgRadialSeriesStyle | undefined
     ): void;
 
-    private getItemBaseStyle(highlighted = false): ItemStyle {
+    private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
@@ -405,7 +405,7 @@ export abstract class RadialColumnSeriesBase<
         };
     }
 
-    protected getItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted = false) {
+    protected getItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted: boolean) {
         const { id: seriesId, properties } = this;
         const { angleKey, radiusKey, itemStyler } = properties;
 
@@ -443,7 +443,7 @@ export abstract class RadialColumnSeriesBase<
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
                 const { datum, datumIndex } = nodeDatum;
-                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, format);
+                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, format, highlighted);
 
                 this.updateItemPath(node, nodeDatum, highlighted, { ...overrides, ...format });
                 node.fill = overrides?.fill ?? format.fill;
@@ -522,8 +522,8 @@ export abstract class RadialColumnSeriesBase<
 
         if (angleValue == null) return;
 
-        const format = this.getItemBaseStyle();
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format));
+        const format = this.getItemBaseStyle(false);
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
         return tooltip.formatTooltip(
             {

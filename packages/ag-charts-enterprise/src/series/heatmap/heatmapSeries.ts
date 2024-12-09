@@ -308,7 +308,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return datumSelection.update(data);
     }
 
-    private getItemBaseStyle(highlighted = false): ItemStyle {
+    private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
@@ -327,7 +327,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         datum: any,
         colorValue: number | undefined,
         format: ItemStyle,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
         const { xKey, yKey, colorRange, itemStyler } = properties;
@@ -481,8 +481,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                   }
                 : undefined;
 
-        const format = this.getItemBaseStyle();
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, colorValue, format));
+        const format = this.getItemBaseStyle(false);
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, colorValue, format, false));
 
         return tooltip.formatTooltip(
             { title: title ?? legendItemName, symbol, data },

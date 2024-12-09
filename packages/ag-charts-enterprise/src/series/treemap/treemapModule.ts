@@ -75,7 +75,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                     label: {
                         color: DEFAULT_LABEL_COLOUR,
                     },
-                    fill: undefined,
+                    fill: 'rgba(255,255,255, 0.33)',
                     stroke: `rgba(0, 0, 0, 0.4)`,
                     strokeWidth: 2,
                 },
@@ -86,7 +86,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                     secondaryLabel: {
                         color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
                     },
-                    fill: undefined,
+                    fill: 'rgba(255,255,255, 0.33)',
                     stroke: `rgba(0, 0, 0, 0.4)`,
                     strokeWidth: 2,
                 },

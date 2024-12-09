@@ -418,7 +418,7 @@ export abstract class OhlcSeriesBase<
 
     protected getItemBaseStyle(
         itemId: 'up' | 'down',
-        highlighted = false
+        highlighted: boolean
     ): _ModuleSupport.RequireOptional<FillOptions & StrokeOptions & LineDashOptions> {
         const { properties } = this;
         const item = properties.item[itemId];
@@ -439,7 +439,7 @@ export abstract class OhlcSeriesBase<
         datum: any,
         itemId: 'up' | 'down',
         format: _ModuleSupport.RequireOptional<FillOptions & StrokeOptions & LineDashOptions>,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
 
@@ -501,8 +501,8 @@ export abstract class OhlcSeriesBase<
         const itemId = closeValue >= openValue ? 'up' : 'down';
         const item = this.properties.item[itemId];
 
-        const format = this.getItemBaseStyle(itemId);
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, itemId, format));
+        const format = this.getItemBaseStyle(itemId, false);
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, itemId, format, false));
 
         return tooltip.formatTooltip(
             {

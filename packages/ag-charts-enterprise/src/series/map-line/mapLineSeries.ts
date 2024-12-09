@@ -359,7 +359,7 @@ export class MapLineSeries extends TopologySeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId(datum.idValue));
     }
 
-    private getItemBaseStyle(highlighted = false): ItemStyle {
+    private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
@@ -379,14 +379,14 @@ export class MapLineSeries extends TopologySeries<
         colorValue: number | undefined,
         sizeValue: number | undefined,
         format: ItemStyle,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties, colorScale, sizeScale } = this;
         const { colorRange, itemStyler } = properties;
 
         let overrides: Partial<ItemStyle> | undefined;
 
-        if (colorValue != null) {
+        if (!highlighted && colorValue != null) {
             overrides ??= {};
             overrides.stroke = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
@@ -435,7 +435,14 @@ export class MapLineSeries extends TopologySeries<
                 return;
             }
 
-            const overrides = this.getItemStyleOverrides(String(datumIndex), datum, colorValue, sizeValue, format);
+            const overrides = this.getItemStyleOverrides(
+                String(datumIndex),
+                datum,
+                colorValue,
+                sizeValue,
+                format,
+                isHighlight
+            );
 
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
@@ -632,10 +639,10 @@ export class MapLineSeries extends TopologySeries<
             data.push({ label: labelName, fallbackLabel: labelKey, value: labelValue });
         }
 
-        const format = this.getItemBaseStyle();
+        const format = this.getItemBaseStyle(false);
         Object.assign(
             format,
-            this.getItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format)
+            this.getItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format, false)
         );
 
         return tooltip.formatTooltip(

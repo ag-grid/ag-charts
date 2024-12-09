@@ -306,7 +306,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         );
     }
 
-    private getMarkerItemBaseStyle(highlighted = false): RequireOptional<FillOptions & StrokeOptions> {
+    private getMarkerItemBaseStyle(highlighted: boolean): RequireOptional<FillOptions & StrokeOptions> {
         const { properties } = this;
 
         const { marker } = properties;
@@ -324,7 +324,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         datumId: string,
         datum: any,
         format: RequireOptional<FillOptions & StrokeOptions>,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
 
@@ -433,8 +433,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             data.push({ label: sizeName, fallbackLabel: sizeKey, value: String(sizeValue) });
         }
 
-        const format = this.getMarkerItemBaseStyle();
-        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datum, format));
+        const format = this.getMarkerItemBaseStyle(false);
+        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datum, format, false));
 
         return tooltip.formatTooltip(
             {
