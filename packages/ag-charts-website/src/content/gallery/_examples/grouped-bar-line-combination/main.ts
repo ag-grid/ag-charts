@@ -7,7 +7,7 @@ const data = getData();
 
 const bar = ({ x, y, path, size }: AgMarkerShapeFnParams) => {
     const halfSize = size / 2;
-    path.rect(x, y - halfSize, halfSize, size);
+    path.rect(x - halfSize / 2, y - halfSize, halfSize, size);
 };
 
 const options: AgCartesianChartOptions = {
@@ -27,6 +27,10 @@ const options: AgCartesianChartOptions = {
                     item: {
                         marker: {
                             shape: bar,
+                            strokeWidth: 0,
+                        },
+                        line: {
+                            strokeWidth: 0,
                         },
                     },
                 },
@@ -39,6 +43,9 @@ const options: AgCartesianChartOptions = {
                         gridLine: {
                             enabled: false,
                         },
+                        line: {
+                            enabled: false,
+                        },
                         label: {
                             enabled: false,
                         },
@@ -47,8 +54,15 @@ const options: AgCartesianChartOptions = {
             },
             bar: {
                 series: {
-                    strokeWidth: 1,
-                    fillOpacity: 0.3,
+                    fillOpacity: 0.4,
+                },
+            },
+            line: {
+                series: {
+                    marker: {
+                        shape: bar,
+                        size: 10,
+                    },
                 },
             },
         },
@@ -60,7 +74,6 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'startups',
             yName: 'Startups',
-            showInLegend: false,
         },
         {
             type: 'line',
@@ -68,7 +81,6 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'techCompanies',
             yName: 'Tech Companies',
-            showInLegend: false,
         },
         {
             type: 'bar',
@@ -76,6 +88,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'funding',
             yName: 'Funding',
+            fillOpacity: 1,
         },
         {
             type: 'bar',
@@ -83,6 +96,7 @@ const options: AgCartesianChartOptions = {
             xName: 'Location',
             yKey: 'employees',
             yName: 'Employees',
+            fillOpacity: 1,
         },
         {
             type: 'bar',
@@ -142,6 +156,9 @@ const options: AgCartesianChartOptions = {
             position: 'left',
             type: 'number',
             keys: ['funding'],
+            title: {
+                text: 'Number of Employees & Funding',
+            },
         },
         {
             position: 'right',
@@ -154,6 +171,9 @@ const options: AgCartesianChartOptions = {
                 'coWorkingSpaces',
                 'innovationHubs',
             ],
+            title: {
+                text: 'Number of Institutions',
+            },
         },
         {
             position: 'top',
