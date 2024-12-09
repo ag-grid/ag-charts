@@ -32,18 +32,6 @@ export class FocusIndicator {
     ) {
         if (bounds === undefined) {
             return;
-        }
-
-        const boundsBBox =
-            bounds instanceof Path
-                ? Transformable.toCanvas(bounds).clone().translate(-fixmeTranslatePathX, -fixmeTranslatePathY)
-                : bounds;
-        const boundsVisible = clipRect?.intersects(boundsBBox) ?? true;
-
-        if (!boundsVisible) {
-            const { x, y } = clipRect ?? boundsBBox;
-            setElementBBox(this.div, new BBox(x, y, 0, 0));
-            this.show(this.div);
         } else if (bounds instanceof Path) {
             const transform = (localX: number, localY: number) => {
                 let { x, y } = Transformable.toCanvasPoint(bounds, localX, localY);
@@ -55,12 +43,12 @@ export class FocusIndicator {
             this.show(this.svg);
         } else {
             if (clipRect == null) {
-                setElementBBox(this.div, boundsBBox);
+                setElementBBox(this.div, bounds);
             } else {
-                const x0 = Math.max(boundsBBox.x, clipRect.x);
-                const y0 = Math.max(boundsBBox.y, clipRect.y);
-                const x1 = Math.min(boundsBBox.x + boundsBBox.width, clipRect.x + clipRect.width);
-                const y1 = Math.min(boundsBBox.y + boundsBBox.height, clipRect.y + clipRect.height);
+                const x0 = Math.max(bounds.x, clipRect.x);
+                const y0 = Math.max(bounds.y, clipRect.y);
+                const x1 = Math.min(bounds.x + bounds.width, clipRect.x + clipRect.width);
+                const y1 = Math.min(bounds.y + bounds.height, clipRect.y + clipRect.height);
                 setElementBBox(this.div, new BBox(x0, y0, x1 - x0, y1 - y0));
             }
 
