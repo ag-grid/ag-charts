@@ -29,7 +29,11 @@ export class FocusIndicator {
         }
 
         const boundsBBox = bounds instanceof Path ? bounds.getBBox() : bounds;
-        const boundsVisible = hoverRect?.intersects(boundsBBox) ?? true;
+        let boundsVisible = true;
+        if (hoverRect != null) {
+            const { x, y } = hoverRect;
+            boundsVisible = hoverRect.intersects(boundsBBox.clone().translate(x, y));
+        }
 
         if (!boundsVisible) {
             const { x, y } = boundsBBox;
