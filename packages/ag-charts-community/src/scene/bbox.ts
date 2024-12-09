@@ -105,13 +105,6 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         );
     }
 
-    intersects(other: BBox) {
-        return (
-            Math.max(this.x, other.x) < Math.min(this.x + this.width, other.x + other.width) &&
-            Math.max(this.y, other.y) < Math.min(this.y + this.height, other.y + other.height)
-        );
-    }
-
     intersection(other: BBox) {
         if (!this.collidesBBox(other)) return;
 
