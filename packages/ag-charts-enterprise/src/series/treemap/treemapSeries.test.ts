@@ -314,7 +314,7 @@ describe('TreemapSeries', () => {
                 data: datasets.data,
             },
             getNodeData: (series) => {
-                const nodes = Array.from(series.contentGroup.children(), (group: any) => group.children().next().value);
+                const nodes = Array.from(series.rectSelection.nodes());
                 const maxDepth = Math.max(...nodes.map((n: any) => n.datum.depth ?? -1));
                 return nodes.filter((node: any) => node.datum.depth === maxDepth);
             },
@@ -330,13 +330,8 @@ describe('TreemapSeries', () => {
                 const { datum } = params;
                 return [datum[params.labelKey], datum[params.sizeKey]];
             },
-            getHighlightNode: (chartInstance, series) => {
-                const highlightedDatum = chartInstance.ctx.highlightManager.getActiveHighlight();
-                for (const child of series.highlightGroup.children()) {
-                    if (child.datum === highlightedDatum) {
-                        return child.children().next().value;
-                    }
-                }
+            getHighlightNode: (_chartInstance, series) => {
+                return Array.from(series.highlightSelection.nodes())[0];
             },
         });
     });

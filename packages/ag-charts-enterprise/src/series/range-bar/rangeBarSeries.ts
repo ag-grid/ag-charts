@@ -493,7 +493,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return datumSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private getItemBaseStyle(highlighted = false): Required<AgRangeBarSeriesStyle> {
+    private getItemBaseStyle(highlighted: boolean): Required<AgRangeBarSeriesStyle> {
         const { properties } = this;
         const { cornerRadius } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
@@ -513,7 +513,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         datumId: string,
         datum: any,
         format: Required<AgRangeBarSeriesStyle>,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
 
@@ -627,8 +627,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (xValue == null) return;
 
-        const format = this.getItemBaseStyle();
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format));
+        const format = this.getItemBaseStyle(false);
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format, false));
 
         const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
         return tooltip.formatTooltip(

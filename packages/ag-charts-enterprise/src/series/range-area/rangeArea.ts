@@ -509,7 +509,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
-    private getMarkerItemBaseStyle(highlighted = false): ItemStyle {
+    private getMarkerItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const { marker } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
@@ -525,7 +525,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         };
     }
 
-    protected getMarkerItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted = false) {
+    protected getMarkerItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted: boolean) {
         const { id: seriesId, properties } = this;
         const { xKey, yHighKey, yLowKey, marker } = properties;
         const { itemStyler } = marker;
@@ -623,8 +623,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         if (xValue == null) return;
 
-        const format = this.getMarkerItemBaseStyle();
-        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format));
+        const format = this.getMarkerItemBaseStyle(false);
+        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
         const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
         return tooltip.formatTooltip(

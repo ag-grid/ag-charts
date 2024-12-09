@@ -509,7 +509,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         return datumSelection.update(data);
     }
 
-    private getItemStyle(datumId: string, datum: any, itemId: AgWaterfallSeriesItemType, highlighted = false) {
+    private getItemStyle(datumId: string, datum: any, itemId: AgWaterfallSeriesItemType, highlighted: boolean) {
         const { id: seriesId, properties } = this;
         const item = properties.item[itemId === 'subtotal' ? 'total' : itemId];
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
@@ -682,7 +682,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             total = yValue;
         }
 
-        const format = this.getItemStyle(String(datumIndex), datum, seriesItemType);
+        const format = this.getItemStyle(String(datumIndex), datum, seriesItemType, false);
 
         return tooltip.formatTooltip(
             {

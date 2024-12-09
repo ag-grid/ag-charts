@@ -40,6 +40,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
                 secondaryLabel: {
                     color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
                 },
+                fill: 'rgba(255,255,255, 0.33)',
                 stroke: `rgba(0, 0, 0, 0.4)`,
                 strokeWidth: 2,
             },

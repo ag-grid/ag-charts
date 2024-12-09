@@ -362,7 +362,7 @@ export class ChordSeries extends FlowProportionSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => createDatumId([datum.type, datum.id]));
     }
 
-    protected getBaseNodeStyle(highlighted = false): NodeStyle {
+    protected getBaseNodeStyle(highlighted: boolean): NodeStyle {
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.node;
         const strokeWidth = this.getStrokeWidth(properties.node.strokeWidth);
@@ -386,7 +386,7 @@ export class ChordSeries extends FlowProportionSeries<
         size: number,
         label: string | undefined,
         format: NodeStyle,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
         const { fills, strokes } = properties;
@@ -395,7 +395,12 @@ export class ChordSeries extends FlowProportionSeries<
         const fill = format.fill ?? fills[datumIndex % fills.length];
         const stroke = format.stroke ?? strokes[datumIndex % strokes.length];
 
-        const overrides: Partial<NodeStyle> = { fill, stroke };
+        const overrides: Partial<NodeStyle> = {};
+
+        if (!highlighted) {
+            overrides.fill = fill;
+            overrides.stroke = stroke;
+        }
 
         if (itemStyler != null) {
             const itemStyle = this.cachedDatumCallback(
@@ -478,7 +483,7 @@ export class ChordSeries extends FlowProportionSeries<
         );
     }
 
-    protected getBaseLinkStyle(highlighted = false): LinkStyle {
+    protected getBaseLinkStyle(highlighted: boolean): LinkStyle {
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset, tension } = properties.link;
         const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
@@ -501,7 +506,7 @@ export class ChordSeries extends FlowProportionSeries<
         datum: any,
         fromNodeDatumIndex: number,
         format: LinkStyle,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
         const { fills, strokes } = properties;
@@ -510,7 +515,12 @@ export class ChordSeries extends FlowProportionSeries<
         const fill = format.fill ?? fills[fromNodeDatumIndex % fills.length];
         const stroke = format.stroke ?? strokes[fromNodeDatumIndex % strokes.length];
 
-        const overrides: Partial<LinkStyle> = { fill, stroke };
+        const overrides: Partial<LinkStyle> = {};
+
+        if (!highlighted) {
+            overrides.fill = fill;
+            overrides.stroke = stroke;
+        }
 
         if (itemStyler != null) {
             const itemStyle = this.cachedDatumCallback(
@@ -604,18 +614,18 @@ export class ChordSeries extends FlowProportionSeries<
         let format: Required<NodeStyle>;
         if (seriesDatum.type === FlowProportionDatumType.Link) {
             const fromNodeDatumIndex = seriesDatum.fromNode.datumIndex;
-            const linkFormat = this.getBaseLinkStyle();
+            const linkFormat = this.getBaseLinkStyle(false);
             Object.assign(
                 linkFormat,
-                this.getLinkStyleOverrides(String(datumIndex), datum, fromNodeDatumIndex, linkFormat)
+                this.getLinkStyleOverrides(String(datumIndex), datum, fromNodeDatumIndex, linkFormat, false)
             );
             format = linkFormat as any;
         } else {
             const label = seriesDatum.label;
-            const nodeFormat = this.getBaseNodeStyle();
+            const nodeFormat = this.getBaseNodeStyle(false);
             Object.assign(
                 nodeFormat,
-                this.getNodeStyleOverrides(String(datumIndex), datum, datumIndex, size, label, nodeFormat)
+                this.getNodeStyleOverrides(String(datumIndex), datum, datumIndex, size, label, nodeFormat, false)
             );
             format = nodeFormat as any;
         }
