@@ -783,10 +783,10 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
     }
 
     override getTooltipContent(nodeDatum: BarNodeDatum): TooltipContent | string | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { id: seriesId, dataModel, processedData, properties } = this;
         const { xKey, xName, yKey, yName, legendItemName, stackGroup, tooltip } = properties;
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
+        const xAxis = this.getCategoryAxis();
+        const yAxis = this.getValueAxis();
 
         if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
             return;
