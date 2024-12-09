@@ -609,6 +609,10 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
     margin-top: $spacing-size-8;
     margin-bottom: $spacing-size-8;
     overflow-x: hidden;
+
+    @media screen and (max-width: $breakpoint-hero-small) {
+        flex-direction: column;
+    }
 }
 
 .automatedExampleDebugPanel {
