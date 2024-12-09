@@ -1158,7 +1158,7 @@ export class LinearGaugeSeries
         for (const node of this.targetSelection) {
             if (node.datum === datum) {
                 const bounds = node.node;
-                return { bounds, showFocusBox: true, datum, datumIndex };
+                return { bounds, showFocusBox: true, clipFocusBox: true, datum, datumIndex };
             }
         }
     }

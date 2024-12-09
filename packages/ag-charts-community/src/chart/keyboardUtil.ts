@@ -16,12 +16,23 @@ function computeCenter(hoverRect: BBox, bboxOrPath: Path | BBox | undefined) {
     return Transformable.toCanvas(bboxOrPath).computeCenter();
 }
 
-type PickProperties = { bounds: Path | BBox | undefined; showFocusBox: boolean };
+type PickProperties = { bounds: Path | BBox | undefined; showFocusBox: boolean; clipFocusBox: boolean };
 
-function drawPickedFocus(hoverRect: BBox, focusIndicator: FocusIndicator | undefined, pick: PickProperties) {
-    const { bounds, showFocusBox } = pick;
+export function drawPickedFocus(
+    seriesRect: BBox | undefined,
+    focusIndicator: FocusIndicator | undefined,
+    pick: PickProperties,
+    fixmeTranslatePathX?: number,
+    fixmeTranslatePathY?: number
+) {
+    const { bounds, showFocusBox, clipFocusBox = true } = pick;
     if (showFocusBox) {
-        focusIndicator?.updateBounds(bounds, hoverRect);
+        focusIndicator?.updateBounds(
+            bounds,
+            clipFocusBox ? seriesRect : undefined,
+            fixmeTranslatePathX,
+            fixmeTranslatePathY
+        );
     }
 }
 
@@ -33,11 +44,8 @@ export function getPickedFocusBBox({ bounds }: PickProperties): BBox {
 
 export function makeKeyboardPointerEvent(
     hoverRect: BBox,
-    focusIndicator: FocusIndicator | undefined,
     pick: PickProperties
 ): TooltipPointerEvent<'keyboard'> | undefined {
-    drawPickedFocus(hoverRect, focusIndicator, pick);
-
     const { x: canvasX, y: canvasY } = computeCenter(hoverRect, pick.bounds) ?? {};
     if (canvasX !== undefined && canvasY !== undefined) {
         return { type: 'keyboard', canvasX, canvasY };
