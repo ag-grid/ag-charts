@@ -200,7 +200,7 @@ class AgChartsInternal {
             styleContainer,
             ...options
         } = mutableOptions ?? {};
-        const baseOptions = (deltaOptions ? proxy?.chart.chartOptions : options) ?? options;
+        const baseOptions = (deltaOptions ? proxy?.chart.getChartOptions() : options) ?? options;
         const chartOptions = new ChartOptions(
             baseOptions,
             processedOverrides,
@@ -250,6 +250,7 @@ class AgChartsInternal {
         }
 
         chart.queuedUserOptions.push(chartOptions.userOptions);
+        chart.queuedChartOptions.push(chartOptions);
         chart.requestFactoryUpdate((chartRef) => {
             chartRef.applyOptions(chartOptions);
             // If there are a lot of update calls, `requestFactoryUpdate()` may skip callbacks,
