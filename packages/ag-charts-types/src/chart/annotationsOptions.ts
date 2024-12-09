@@ -118,6 +118,7 @@ export interface AgQuickMeasurerAnnotationStyles extends Visible {
 }
 
 export interface AgQuickMeasurerAnnotationDirectionStyles extends FillOptions, StrokeOptions, LineOptions {
+    handle?: AgAnnotationHandleStyles;
     statistics?: AgMeasurerAnnotationStatistics;
 }
 
