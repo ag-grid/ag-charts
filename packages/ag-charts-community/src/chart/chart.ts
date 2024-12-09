@@ -234,6 +234,7 @@ export abstract class Chart extends Observable {
     private readonly processors: UpdateProcessor[] = [];
 
     queuedUserOptions: AgChartOptions[] = [];
+    queuedChartOptions: ChartOptions[] = [];
     chartOptions: ChartOptions;
     private firstApply = true;
 
@@ -245,6 +246,10 @@ export abstract class Chart extends Observable {
 
     getOptions() {
         return this.queuedUserOptions.at(-1) ?? this.chartOptions.userOptions;
+    }
+
+    getChartOptions() {
+        return this.queuedChartOptions.at(-1) ?? this.chartOptions;
     }
 
     protected constructor(options: ChartOptions, resources?: TransferableResources) {

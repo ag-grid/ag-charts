@@ -472,4 +472,33 @@ describe('AgChart', () => {
             },
         ]);
     });
+
+    // CRT-564 - Synchronous updateDelta()s wiped out previous updateDelta() updates, if unapplied.
+    test('rapid updateDelta() calls', async () => {
+        chartProxy = AgCharts.create({
+            data: revenueProfitData,
+            series: [
+                {
+                    xKey: 'month',
+                    yKey: 'revenue',
+                },
+            ],
+        });
+        await waitForChartStability(chartProxy);
+
+        await Promise.all([
+            chartProxy.updateDelta({ theme: { overrides: { bar: { padding: { top: 20 } } } } }),
+            chartProxy.updateDelta({ theme: { overrides: { bar: { title: { enabled: true } } } } }),
+            chartProxy.updateDelta({ theme: { overrides: { bar: { title: { text: 'Chart Title' } } } } }),
+        ]);
+
+        expect(chartProxy.getOptions().theme).toEqual({
+            overrides: {
+                bar: {
+                    padding: { top: 20 },
+                    title: { enabled: true, text: 'Chart Title' },
+                },
+            },
+        });
+    });
 });
