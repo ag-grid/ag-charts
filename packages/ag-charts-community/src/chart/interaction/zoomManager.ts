@@ -297,8 +297,13 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         const zoom = this.getZoom();
         if (zoom === undefined || (!zoom.x && !zoom.y)) return;
 
-        if (target.width > seriesRect.width || target.height > seriesRect.height) {
-            Logger.errorOnce(`cannot pan to target BBox`);
+        const panIsPossible =
+            seriesRect.width > 0 &&
+            seriesRect.height > 0 &&
+            Math.abs(target.width) <= Math.abs(seriesRect.width) &&
+            Math.abs(target.height) <= Math.abs(seriesRect.height);
+        if (!panIsPossible) {
+            Logger.warnOnce(`cannot pan to target BBox - chart too small?`);
             return;
         }
 
