@@ -439,6 +439,7 @@ export abstract class HierarchySeries<
                 otherIndex: nodeDatum.depth,
                 bounds,
                 showFocusBox: true,
+                clipFocusBox: true,
             };
         }
         return undefined;

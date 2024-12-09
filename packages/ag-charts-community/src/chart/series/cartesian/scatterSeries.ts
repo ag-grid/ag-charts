@@ -38,6 +38,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     static readonly className = 'ScatterSeries';
     static readonly type = 'scatter' as const;
 
+    protected override clipFocusBox = false;
+
     override properties = new ScatterSeriesProperties();
 
     readonly colorScale = new ColorScale();

@@ -24,6 +24,7 @@ export abstract class DataModelSeries<
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
     protected showFocusBox: boolean = true;
+    protected clipFocusBox: boolean = true;
 
     protected getScaleInformation({
         xScale,
@@ -93,12 +94,12 @@ export abstract class DataModelSeries<
             return;
         }
 
-        const { showFocusBox } = this;
+        const { showFocusBox, clipFocusBox } = this;
         const datum = nodeData[datumIndex];
         const derivedOpts = { ...opts, datumIndex };
         const bounds = this.computeFocusBounds(derivedOpts);
         if (bounds !== undefined) {
-            return { bounds, showFocusBox, datum, datumIndex };
+            return { bounds, showFocusBox, clipFocusBox, datum, datumIndex };
         }
     }
 

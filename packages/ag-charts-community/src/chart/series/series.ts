@@ -75,6 +75,7 @@ export type PickFocusOutputs = {
     otherIndex?: number;
     bounds: BBox | Path;
     showFocusBox: boolean;
+    clipFocusBox: boolean;
 };
 
 export type PickResult = { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number };

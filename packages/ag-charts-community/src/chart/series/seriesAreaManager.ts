@@ -2,7 +2,7 @@ import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types
 
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
-import type { BBox } from '../../scene/bbox';
+import { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
 import { Transformable } from '../../scene/transformable';
 import { BaseManager } from '../../util/baseManager';
@@ -21,7 +21,7 @@ import { InteractionState } from '../interaction/interactionManager';
 import type { KeyNavEvent } from '../interaction/keyNavManager';
 import type { RegionEvent } from '../interaction/regionManager';
 import { TooltipManager } from '../interaction/tooltipManager';
-import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
+import { drawPickedFocus, getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { DEFAULT_TOOLTIP_CLASS, Tooltip, type TooltipContent, tooltipContentAriaLabel } from '../tooltip/tooltip';
@@ -353,7 +353,8 @@ export class SeriesAreaManager extends BaseManager {
         if (overlayFocus == null) {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
-            this.focusIndicator.updateBounds(overlayFocus.rect);
+            // @todo(AG-13619) - Pass in overlayFocus.rect
+            this.focusIndicator.updateBounds(new BBox(0, 0, overlayFocus.rect.width, overlayFocus.rect.height));
         }
     }
 
@@ -391,7 +392,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private updatePickedFocus(pick: PickFocusOutputs | undefined, refresh: boolean) {
-        const { focus, hoverRect } = this;
+        const { focus, hoverRect, seriesRect } = this;
         if (pick === undefined || focus.series === undefined || hoverRect === undefined) return;
 
         const { datum, datumIndex } = pick;
@@ -411,7 +412,15 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         // Update the bounds of the focus indicator:
-        const keyboardEvent = makeKeyboardPointerEvent(hoverRect, this.focusIndicator, pick);
+        drawPickedFocus(
+            seriesRect != null ? new BBox(0, 0, seriesRect.width, seriesRect?.height) : undefined,
+            this.focusIndicator,
+            pick,
+            seriesRect?.x,
+            seriesRect?.y
+        );
+
+        const keyboardEvent = makeKeyboardPointerEvent(hoverRect, pick);
 
         // Update highlight/tooltip for keyboard users:
         if (keyboardEvent !== undefined && this.hoverDevice === 'keyboard') {
