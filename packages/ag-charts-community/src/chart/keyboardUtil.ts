@@ -1,8 +1,8 @@
 import type { FocusIndicator } from '../dom/focusIndicator';
-import { getDatumRefPoint } from '../module-support';
 import { BBox } from '../scene/bbox';
 import type { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
+import { getDatumRefPoint } from './series/seriesTypes';
 import type { TooltipPointerEvent } from './tooltip/tooltip';
 
 type PickProperties = {

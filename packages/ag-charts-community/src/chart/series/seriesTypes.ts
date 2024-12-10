@@ -1,9 +1,9 @@
 import type { AgContextMenuOptions } from 'ag-charts-types';
 
-import { Transformable } from '../../module-support';
 import type { BBox } from '../../scene/bbox';
 import type { Group } from '../../scene/group';
 import type { Point, SizedPoint } from '../../scene/point';
+import { Transformable } from '../../scene/transformable';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
