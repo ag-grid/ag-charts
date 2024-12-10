@@ -405,10 +405,10 @@ export function dragAction(
         checkTargetValid(toTarget);
 
         fromTarget.target?.dispatchEvent(mouseDownEvent(fromTarget, from.x, from.y));
+        await delay(500);
         fromTarget.target?.dispatchEvent(mouseMoveEvent(fromTarget, from.x, from.y));
         toTarget.target?.dispatchEvent(mouseMoveEvent(toTarget, to.x, to.y));
         toTarget.target?.dispatchEvent(mouseUpEvent(toTarget, to.x, to.y));
-
         return delay(50);
     };
 }
