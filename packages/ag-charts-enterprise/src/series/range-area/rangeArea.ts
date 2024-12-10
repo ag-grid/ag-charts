@@ -827,4 +827,18 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         }
         return undefined;
     }
+
+    protected override computeFocusDatumIndex(
+        opts: _ModuleSupport.PickFocusInputs,
+        nodeData: RangeAreaMarkerDatum[]
+    ): number | undefined {
+        // CRT-586 Double the datumIndexDeltas to skip odd values
+        // (1 range-area datum is actually a pair of datums)
+        const newOpts = {
+            ...opts,
+            datumIndex: opts.datumIndex + opts.datumIndexDelta,
+            datumIndexDelta: opts.datumIndexDelta * 2,
+        };
+        return super.computeFocusDatumIndex(newOpts, nodeData);
+    }
 }
