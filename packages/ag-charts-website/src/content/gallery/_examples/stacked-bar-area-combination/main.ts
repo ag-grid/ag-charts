@@ -84,7 +84,6 @@ const options: AgCartesianChartOptions = {
             xKey: 'year',
             yKey: 'concertTicketSales',
             yName: 'Concert Ticket Sales',
-            stacked: true,
             interpolation: {
                 type: 'step',
             },
