@@ -50,8 +50,8 @@ export interface RegionProperties {
     widget?: Widget;
 }
 
-const DRAG_THRESHOLD_MS = 500;
-const DRAG_THRESHOLD_PX = 5;
+const DRAG_THRESHOLD_MS = 300;
+const DRAG_THRESHOLD_PX = 3;
 
 function addHandler<T extends RegionEvent['type']>(
     listeners: RegionListeners | undefined,
