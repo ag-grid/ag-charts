@@ -58,12 +58,12 @@ export class TopologyChart extends Chart {
     protected performLayout(ctx: LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
         const { layoutBox } = ctx;
-        const seriesRect = layoutBox.clone();
 
         layoutBox.shrink(this.seriesArea.padding.toJson());
+        const seriesRect = layoutBox.clone();
 
-        this.seriesRect = layoutBox;
-        this.animationRect = layoutBox;
+        this.seriesRect = seriesRect;
+        this.animationRect = seriesRect;
 
         const mapSeries = this.series.filter<ITopology>(isTopologySeries);
         const combinedBbox = mapSeries.reduce<LonLatBBox | undefined>((combined, series) => {
@@ -83,7 +83,7 @@ export class TopologyChart extends Chart {
                 [lon1, lat1],
             ];
             const bounds = MercatorScale.bounds(domain);
-            const { width, height } = layoutBox;
+            const { width, height } = seriesRect;
 
             const viewBoxScale = Math.min(width / bounds.width, height / bounds.height);
 
@@ -117,13 +117,13 @@ export class TopologyChart extends Chart {
         const seriesVisible = this.series.some((s) => s.visible);
         seriesRoot.visible = seriesVisible;
         for (const group of [seriesRoot, annotationRoot]) {
-            group.translationX = Math.floor(layoutBox.x);
-            group.translationY = Math.floor(layoutBox.y);
-            group.setClipRect(layoutBox.clone());
+            group.translationX = Math.floor(seriesRect.x);
+            group.translationY = Math.floor(seriesRect.y);
+            group.setClipRect(seriesRect.clone());
         }
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
-            series: { visible: seriesVisible, rect: seriesRect, paddedRect: layoutBox },
+            series: { visible: seriesVisible, rect: seriesRect, paddedRect: seriesRect },
         });
     }
 }
