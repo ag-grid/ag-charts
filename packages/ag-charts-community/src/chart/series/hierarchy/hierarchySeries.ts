@@ -186,7 +186,6 @@ export abstract class HierarchySeries<
         let maxDepth = 0;
         let minColor = Infinity;
         let maxColor = -Infinity;
-        const colors: (number | undefined)[] = new Array((this.data?.length ?? 0) + 1).fill(undefined);
 
         const createNode = (datum: any, rootIndex: number, parent: HierarchyNode<TDatum>): HierarchyNode<TDatum> => {
             const nodeIndex = getIndex();
@@ -206,7 +205,6 @@ export abstract class HierarchySeries<
 
             const colorValue = colorKey != null ? datum[colorKey] : undefined;
             if (typeof colorValue === 'number') {
-                colors[nodeIndex] = colorValue;
                 minColor = Math.min(minColor, colorValue);
                 maxColor = Math.max(maxColor, colorValue);
             }
@@ -310,10 +308,6 @@ export abstract class HierarchySeries<
     protected animateClearingUpdateEmpty(data: HierarchyAnimationData<TNode, TDatum>) {
         this.ctx.animationManager.skipCurrentBatch();
         this.resetAllAnimation(data);
-    }
-
-    protected animationTransitionClear() {
-        this.animationState.transition('clear', this.getAnimationData());
     }
 
     protected abstract getAnimationData(): HierarchyAnimationData<TNode, TDatum>;
