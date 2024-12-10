@@ -31,22 +31,21 @@ export class FlowProportionChart extends Chart {
     protected performLayout(ctx: LayoutContext) {
         const { seriesRoot, annotationRoot } = this;
         const { layoutBox } = ctx;
-        const seriesRect = layoutBox.clone();
 
         layoutBox.shrink(this.seriesArea.padding.toJson());
+        const seriesRect = layoutBox.clone();
 
-        this.seriesRect = layoutBox;
-        this.animationRect = layoutBox;
+        this.seriesRect = seriesRect;
+        this.animationRect = seriesRect;
         seriesRoot.visible = this.series.some((s) => s.visible);
 
         for (const group of [seriesRoot, annotationRoot]) {
-            group.translationX = Math.floor(layoutBox.x);
-            group.translationY = Math.floor(layoutBox.y);
-            group.setClipRect(seriesRect.clone());
+            group.translationX = Math.floor(seriesRect.x);
+            group.translationY = Math.floor(seriesRect.y);
         }
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
-            series: { visible: seriesRoot.visible, rect: seriesRect, paddedRect: layoutBox },
+            series: { visible: seriesRoot.visible, rect: seriesRect, paddedRect: seriesRect },
         });
     }
 }
