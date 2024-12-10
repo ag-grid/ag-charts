@@ -745,6 +745,10 @@
                     {
                         "title": "Bar, Line And Area Combination",
                         "name": "grouped-category-combination"
+                    },
+                    {
+                        "title": "Stacked Bar And Area Combination",
+                        "name": "stacked-bar-area-combination"
                     }
                 ]
             }
