@@ -59,6 +59,10 @@
     height: 100%;
     width: 70px;
     background: linear-gradient(90deg, transparent 0%, var(--color-util-brand-100));
+    #{$selector-darkmode} & {
+        background: linear-gradient(90deg, transparent 0%, var(--color-bg-primary));
+    }
+
     pointer-events: none;
 }
 
