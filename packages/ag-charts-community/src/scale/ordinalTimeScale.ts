@@ -75,6 +75,10 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     }
 
     override ticks(): Date[] {
+        if (!this._domain.length) {
+            return [];
+        }
+
         this.refresh();
 
         const { domain, isReversed, interval } = this;

@@ -23,33 +23,35 @@ export class FocusIndicator {
         this.swapChain.addListener('swap', (parent) => this.onSwap(parent));
     }
 
-    updateBounds(bounds: Path | BBox | undefined, hoverRect?: BBox) {
+    updateBounds(
+        bounds: Path | BBox | undefined,
+        clipRect?: BBox,
+        // @todo(AG-13619) - The path should be relative to the canvas, not the clipRect
+        fixmeTranslatePathX: number = 0,
+        fixmeTranslatePathY: number = 0
+    ) {
         if (bounds === undefined) {
             return;
-        }
-
-        const boundsBBox = bounds instanceof Path ? bounds.getBBox() : bounds;
-        let boundsVisible = true;
-        if (hoverRect != null) {
-            const { x, y } = hoverRect;
-            boundsVisible = hoverRect.intersects(boundsBBox.clone().translate(x, y));
-        }
-
-        if (!boundsVisible) {
-            const { x, y } = boundsBBox;
-            setElementBBox(this.div, new BBox(x, y, 0, 0));
-            this.show(this.div);
         } else if (bounds instanceof Path) {
             const transform = (localX: number, localY: number) => {
                 let { x, y } = Transformable.toCanvasPoint(bounds, localX, localY);
-                x -= hoverRect?.x ?? 0;
-                y -= hoverRect?.y ?? 0;
+                x -= fixmeTranslatePathX;
+                y -= fixmeTranslatePathY;
                 return { x, y };
             };
             this.path.setAttribute('d', bounds.svgPathData(transform));
             this.show(this.svg);
         } else {
-            setElementBBox(this.div, bounds.relativeClip(hoverRect));
+            if (clipRect == null) {
+                setElementBBox(this.div, bounds);
+            } else {
+                const x0 = Math.max(bounds.x, clipRect.x);
+                const y0 = Math.max(bounds.y, clipRect.y);
+                const x1 = Math.min(bounds.x + bounds.width, clipRect.x + clipRect.width);
+                const y1 = Math.min(bounds.y + bounds.height, clipRect.y + clipRect.height);
+                setElementBBox(this.div, new BBox(x0, y0, x1 - x0, y1 - y0));
+            }
+
             this.show(this.div);
         }
     }

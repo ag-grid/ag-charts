@@ -562,7 +562,7 @@ export class MapMarkerSeries
         );
     }
 
-    private getMarkerItemBaseStyle(highlighted = false): ItemStyle {
+    private getMarkerItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
@@ -583,14 +583,14 @@ export class MapMarkerSeries
         colorValue: number | undefined,
         sizeValue: number | undefined,
         format: ItemStyle,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties, colorScale, sizeScale } = this;
         const { colorRange, itemStyler } = properties;
 
         let overrides: Partial<ItemStyle> | undefined;
 
-        if (colorValue != null) {
+        if (!highlighted && colorValue != null) {
             overrides ??= {};
             overrides.fill = this.isColorScaleValid()
                 ? colorScale.convert(colorValue)
@@ -639,7 +639,8 @@ export class MapMarkerSeries
                 datum,
                 colorValue,
                 sizeValue,
-                format
+                format,
+                isHighlight
             );
 
             marker.size = overrides?.size ?? format.size;
@@ -825,10 +826,10 @@ export class MapMarkerSeries
             heading = `${Math.abs(latValue).toFixed(4)}\u00B0 ${latValue >= 0 ? 'N' : 'S'}, ${Math.abs(lonValue).toFixed(4)}\u00B0 ${lonValue >= 0 ? 'W' : 'E'}`;
         }
 
-        const format = this.getMarkerItemBaseStyle();
+        const format = this.getMarkerItemBaseStyle(false);
         Object.assign(
             format,
-            this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format)
+            this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format, false)
         );
 
         return tooltip.formatTooltip(
@@ -861,10 +862,10 @@ export class MapMarkerSeries
 
     public getFormattedMarkerStyle(markerDatum: MapMarkerNodeDatum) {
         const { datumIndex, colorValue, sizeValue } = markerDatum;
-        const format = this.getMarkerItemBaseStyle();
+        const format = this.getMarkerItemBaseStyle(false);
         Object.assign(
             format,
-            this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format)
+            this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, colorValue, sizeValue, format, false)
         );
         return { size: format.size };
     }

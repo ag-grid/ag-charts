@@ -20,6 +20,7 @@ export type RegionEvent<T extends RegionInteractionTypes = RegionInteractionType
     deltaX: T extends 'wheel' ? number : never;
     deltaY: T extends 'wheel' ? number : never;
     sourceEvent: Event;
+    timestamp: number;
 };
 
 export type MockEvent = {
@@ -48,6 +49,9 @@ export interface RegionProperties {
     readonly name: RegionName;
     widget?: Widget;
 }
+
+const DRAG_THRESHOLD_MS = 300;
+const DRAG_THRESHOLD_PX = 3;
 
 function addHandler<T extends RegionEvent['type']>(
     listeners: RegionListeners | undefined,
@@ -219,6 +223,7 @@ export class RegionManager {
             sourceEvent: widgetEvent.sourceEvent,
             type: this.widgetEventTypeToRegionEventType(widgetEvent, regionEventType),
             region: current.properties.name,
+            timestamp: Date.now(),
         });
 
         switch (event.type) {
@@ -228,7 +233,11 @@ export class RegionManager {
             }
             case 'drag': {
                 if (this.deferredDragStart) {
-                    this.dispatchEvent(current, this.deferredDragStart);
+                    if (this.canStartDrag(event as RegionEvent<'drag'>)) {
+                        this.dispatchEvent(current, this.deferredDragStart);
+                    } else {
+                        return;
+                    }
                 }
                 this.dispatchEvent(current, event);
                 this.deferredDragStart = undefined;
@@ -316,5 +325,19 @@ export class RegionManager {
             return this.regions.root;
         }
         return this.regions.series;
+    }
+
+    private canStartDrag(event: RegionEvent<'drag'>) {
+        if (!this.deferredDragStart) return false;
+
+        const time = event.timestamp - this.deferredDragStart.timestamp;
+        if (time > DRAG_THRESHOLD_MS) {
+            return true;
+        }
+
+        const distanceApproximation =
+            Math.abs(event.canvasX - this.deferredDragStart.canvasX) +
+            Math.abs(event.canvasY - this.deferredDragStart.canvasY);
+        return distanceApproximation > DRAG_THRESHOLD_PX;
     }
 }

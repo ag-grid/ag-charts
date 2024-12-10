@@ -105,13 +105,6 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         );
     }
 
-    intersects(other: BBox) {
-        return (
-            Math.max(this.x, other.x) < Math.min(this.x + this.width, other.x + other.width) &&
-            Math.max(this.y, other.y) < Math.min(this.y + this.height, other.y + other.height)
-        );
-    }
-
     intersection(other: BBox) {
         if (!this.collidesBBox(other)) return;
 
@@ -154,24 +147,6 @@ export class BBox implements BBoxValues, BBoxContainsTester, DistantObject, Inte
         const dy = y - clamp(this.y, y, this.y + this.height);
 
         return dx * dx + dy * dy;
-    }
-
-    /* Clip this BBox with the assumption that [this.x, this.y] are relative to [clipRect.x, clipRect.y] */
-    relativeClip(clipRect: BBox | undefined): this {
-        if (clipRect === undefined) return this;
-
-        const absX = this.x + clipRect.x;
-        const absY = this.y + clipRect.y;
-
-        const x1 = Math.max(absX, clipRect.x);
-        const y1 = Math.max(absY, clipRect.y);
-        const x2 = Math.min(absX + this.width, clipRect.x + clipRect.width);
-        const y2 = Math.min(absY + this.height, clipRect.y + clipRect.height);
-        this.x = x1 - clipRect.x;
-        this.y = y1 - clipRect.y;
-        this.width = x2 - x1;
-        this.height = y2 - y1;
-        return this;
     }
 
     shrink(amounts: Partial<Padding>): this;

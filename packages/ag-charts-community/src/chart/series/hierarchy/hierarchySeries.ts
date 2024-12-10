@@ -116,8 +116,6 @@ export abstract class HierarchySeries<
 
     protected animationState: StateMachine<HierarchyAnimationState, HierarchyAnimationEvent<TNode, TDatum>>;
 
-    protected abstract groupSelection: Selection<TNode, HierarchyNode<TDatum>>;
-
     protected animationResetFns?: {
         datum?: (node: TNode, datum: HierarchyNode<TDatum>) => AnimationValue & Partial<TNode>;
     };
@@ -188,7 +186,6 @@ export abstract class HierarchySeries<
         let maxDepth = 0;
         let minColor = Infinity;
         let maxColor = -Infinity;
-        const colors: (number | undefined)[] = new Array((this.data?.length ?? 0) + 1).fill(undefined);
 
         const createNode = (datum: any, rootIndex: number, parent: HierarchyNode<TDatum>): HierarchyNode<TDatum> => {
             const nodeIndex = getIndex();
@@ -208,7 +205,6 @@ export abstract class HierarchySeries<
 
             const colorValue = colorKey != null ? datum[colorKey] : undefined;
             if (typeof colorValue === 'number') {
-                colors[nodeIndex] = colorValue;
                 minColor = Math.min(minColor, colorValue);
                 maxColor = Math.max(maxColor, colorValue);
             }
@@ -314,17 +310,7 @@ export abstract class HierarchySeries<
         this.resetAllAnimation(data);
     }
 
-    protected animationTransitionClear() {
-        this.animationState.transition('clear', this.getAnimationData());
-    }
-
-    private getAnimationData() {
-        const animationData: HierarchyAnimationData<TNode, TDatum> = {
-            datumSelections: [this.groupSelection],
-        };
-
-        return animationData;
-    }
+    protected abstract getAnimationData(): HierarchyAnimationData<TNode, TDatum>;
 
     protected isProcessedDataAnimatable() {
         return true;
@@ -439,6 +425,7 @@ export abstract class HierarchySeries<
                 otherIndex: nodeDatum.depth,
                 bounds,
                 showFocusBox: true,
+                clipFocusBox: true,
             };
         }
         return undefined;

@@ -74,7 +74,7 @@ const COLUMN_DEFS = [
 const defaultColDef = {
     resizable: true,
     sortable: true,
-    suppressMenu: true,
+    suppressHeaderMenuButton: true,
     autoHeight: true,
     cellClass: styles.fontClass,
     headerClass: styles.fontClass,

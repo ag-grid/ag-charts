@@ -38,6 +38,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
     static readonly className = 'ScatterSeries';
     static readonly type = 'scatter' as const;
 
+    protected override clipFocusBox = false;
+
     override properties = new ScatterSeriesProperties();
 
     readonly colorScale = new ColorScale();
@@ -229,7 +231,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
-    private getMarkerItemBaseStyle(highlighted = false): RequireOptional<FillOptions & StrokeOptions> {
+    private getMarkerItemBaseStyle(highlighted: boolean): RequireOptional<FillOptions & StrokeOptions> {
         const { properties } = this;
 
         const { marker } = properties;
@@ -247,7 +249,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         datumId: string,
         datum: any,
         format: RequireOptional<FillOptions & StrokeOptions>,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
 
@@ -339,8 +341,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
         if (xValue == null) return;
 
-        const format = this.getMarkerItemBaseStyle();
-        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datum, format));
+        const format = this.getMarkerItemBaseStyle(false);
+        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datum, format, false));
 
         return tooltip.formatTooltip(
             {

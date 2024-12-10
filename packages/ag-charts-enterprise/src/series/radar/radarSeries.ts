@@ -57,6 +57,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 > {
     static readonly className: string = 'RadarSeries';
 
+    protected override clipFocusBox: boolean = false;
+
     override properties = new RadarSeriesProperties();
 
     protected override readonly NodeEvent = RadarSeriesNodeEvent;
@@ -305,7 +307,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         return highlightedStyle?.fill ?? this.properties.marker.fill;
     }
 
-    private getMarkerItemBaseStyle(highlighted = false): ItemStyle {
+    private getMarkerItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const { marker } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
@@ -321,7 +323,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         };
     }
 
-    protected getMarkerItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted = false) {
+    protected getMarkerItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted: boolean) {
         const { id: seriesId, properties } = this;
         const { angleKey, radiusKey, marker } = properties;
         const { itemStyler } = marker;
@@ -364,7 +366,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         selection.update(selectionData).each((node, nodeDatum) => {
             const { datum, datumIndex, point } = nodeDatum;
-            const overrides = this.getMarkerItemStyleOverrides(String(datumIndex), datum, format);
+            const overrides = this.getMarkerItemStyleOverrides(String(datumIndex), datum, format, false);
 
             node.fill = overrides?.fill ?? format.fill;
             node.stroke = overrides?.stroke ?? format.stroke;
@@ -421,8 +423,8 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
         if (angleValue == null) return;
 
-        const format = this.getMarkerItemBaseStyle();
-        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format));
+        const format = this.getMarkerItemBaseStyle(false);
+        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
         return tooltip.formatTooltip(
             {
@@ -728,6 +730,9 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
-        return computeMarkerFocusBounds(this, opts);
+        const bbox = computeMarkerFocusBounds(this, opts);
+        const { translationX, translationY } = this.contentGroup;
+        bbox?.translate(translationX, translationY);
+        return bbox;
     }
 }

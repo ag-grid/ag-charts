@@ -67,20 +67,19 @@ export class NoteProperties extends Fill(Stroke(TextualPointProperties)) {
 
     public override getTextInputCoords(context: AnnotationContext, height: number) {
         const { width, text } = this;
-        const { seriesRect } = context;
         const textInputCoords = super.getTextInputCoords(context, height);
         const padding = this.getPadding().top;
 
         const bbox = getBBox(this, text, textInputCoords);
 
-        bbox.x = clamp(width / 2, bbox.x, seriesRect.width - width / 2);
+        bbox.x = clamp(width / 2, bbox.x, context.seriesRect.width - width / 2);
 
         const topY = bbox.y - LABEL_OFFSET - padding * 2;
         const bottomY = bbox.y + HANDLE_SIZE + padding * 2;
 
         const textHeight = Math.max(bbox.height, height);
 
-        if (topY - textHeight - TOOLBAR_OFFSET < seriesRect.y) {
+        if (topY - textHeight - TOOLBAR_OFFSET < 0) {
             bbox.y = bottomY;
             this.position = 'top';
         } else {

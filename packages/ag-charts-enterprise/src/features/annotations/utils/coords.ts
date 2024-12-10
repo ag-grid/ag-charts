@@ -72,16 +72,8 @@ export function translate<VectorName extends string>(
     // slide along the perpendicular axis.
     const within = (min: number, value: number, max: number) => value >= min && value <= max;
 
-    let translateX,
-        translateY = false;
-
-    if (vecs.every((vec) => within(xAxis.bounds.x, vec.x, xAxis.bounds.x + xAxis.bounds.width))) {
-        translateX = true;
-    }
-
-    if (vecs.every((vec) => within(yAxis.bounds.y, vec.y, yAxis.bounds.y + yAxis.bounds.height))) {
-        translateY = true;
-    }
+    const translateX = vecs.every((vec) => within(xAxis.bounds.x, vec.x, xAxis.bounds.x + xAxis.bounds.width));
+    const translateY = vecs.every((vec) => within(yAxis.bounds.y, vec.y, yAxis.bounds.y + yAxis.bounds.height));
 
     return { vectors: result, translateX, translateY };
 }

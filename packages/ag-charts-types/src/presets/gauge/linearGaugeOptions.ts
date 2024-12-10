@@ -68,7 +68,7 @@ export interface AgLinearGaugeTarget extends FillOptions, StrokeOptions, LineDas
     value: number;
     /** Text to use for the target label. */
     text?: string;
-    /** The shape to use for the target. You can also supply a custom marker by providing a `Marker` subclass. */
+    /** The shape to use for the markers. You can also supply a custom marker by providing a `AgMarkerShapeFn` function. */
     shape?: AgLinearGaugeMarkerShape;
     /** Placement of target. */
     placement?: AgLinearGaugeTargetPlacement;
@@ -86,7 +86,7 @@ export interface AgLinearGaugeTargetLabelOptions extends AgChartLabelOptions<und
 }
 
 export interface AgLinearGaugeTargetOptions extends FillOptions, StrokeOptions, LineDashOptions {
-    /** The shape to use for the target. You can also supply a custom marker by providing a `Marker` subclass. */
+    /** The shape to use for the markers. You can also supply a custom marker by providing a `AgMarkerShapeFn` function. */
     shape?: AgLinearGaugeMarkerShape;
     /** Placement of target. */
     placement?: AgLinearGaugeTargetPlacement;

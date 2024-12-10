@@ -8,6 +8,7 @@ type TChildWidget = Parameters<RovingTabContainerWidget['addChildToDOM']>[0];
 export class ListWidget extends RovingTabContainerWidget {
     constructor() {
         super('both', 'list');
+        this.setHidden(true);
     }
 
     protected override destructor(): void {
@@ -26,5 +27,12 @@ export class ListWidget extends RovingTabContainerWidget {
     protected override removeChildFromDOM(child: TChildWidget) {
         child.getElement().parentElement!.remove();
         this.setHidden(this.children.length === 0);
+    }
+
+    override setHidden(hidden: boolean) {
+        if (this.children.length === 0) {
+            hidden = true;
+        }
+        super.setHidden(hidden);
     }
 }

@@ -360,7 +360,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         );
     }
 
-    private getItemBaseStyle(highlighted = false) {
+    private getItemBaseStyle(highlighted: boolean) {
         const { properties } = this;
 
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
@@ -542,7 +542,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                 yName,
                 xRange: [rangeMin, rangeMax],
                 frequency,
-                ...this.getItemBaseStyle(),
+                ...this.getItemBaseStyle(false),
             }
         );
     }

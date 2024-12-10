@@ -75,6 +75,7 @@ export type PickFocusOutputs = {
     otherIndex?: number;
     bounds: BBox | Path;
     showFocusBox: boolean;
+    clipFocusBox: boolean;
 };
 
 export type PickResult = { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number };
@@ -655,9 +656,10 @@ export abstract class Series<
         const { enabled, itemId, series, legendType } = event;
         const legendItemName =
             'legendItemName' in this.properties ? (this.properties.legendItemName as string) : undefined;
+        const legendItemKey = 'legendItemKey' in this.properties ? this.properties.legendItemKey : undefined;
 
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
+        if (series.id === this.id || matchedLegendItemName || legendItemKey != undefined) {
             this.toggleSeriesItem(enabled, legendType, itemId, legendItemName, event);
         }
     }
@@ -666,9 +668,10 @@ export abstract class Series<
         const { enabled, itemId, series, numVisibleItems, legendType } = event;
         const legendItemName =
             'legendItemName' in this.properties ? (this.properties.legendItemName as string) : undefined;
+        const legendItemKey = 'legendItemKey' in this.properties ? this.properties.legendItemKey : undefined;
 
         const matchedLegendItemName = legendItemName != undefined && legendItemName === event.legendItemName;
-        if (series.id === this.id || matchedLegendItemName) {
+        if (series.id === this.id || matchedLegendItemName || legendItemKey != undefined) {
             // Double-clicked item should always become visible.
             this.toggleSeriesItem(true, legendType, itemId, legendItemName, event);
         } else if (enabled && numVisibleItems === 1) {

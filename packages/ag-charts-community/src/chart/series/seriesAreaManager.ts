@@ -2,7 +2,7 @@ import type { AgChartClickEvent, AgChartDoubleClickEvent } from 'ag-charts-types
 
 import { FocusIndicator } from '../../dom/focusIndicator';
 import { FocusSwapChain } from '../../dom/focusSwapChain';
-import type { BBox } from '../../scene/bbox';
+import { BBox } from '../../scene/bbox';
 import type { TranslatableGroup } from '../../scene/group';
 import { Transformable } from '../../scene/transformable';
 import { BaseManager } from '../../util/baseManager';
@@ -21,7 +21,7 @@ import { InteractionState } from '../interaction/interactionManager';
 import type { KeyNavEvent } from '../interaction/keyNavManager';
 import type { RegionEvent } from '../interaction/regionManager';
 import { TooltipManager } from '../interaction/tooltipManager';
-import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
+import { drawPickedFocus, getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { DEFAULT_TOOLTIP_CLASS, Tooltip, type TooltipContent, tooltipContentAriaLabel } from '../tooltip/tooltip';
@@ -101,6 +101,7 @@ export class SeriesAreaManager extends BaseManager {
         const mouseMoveStates =
             InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
         const keyState = InteractionState.Default | InteractionState.Animation;
+        const contextState = InteractionState.All;
 
         const { domManager } = chart.ctx;
         const domElementClass = 'series-area';
@@ -123,7 +124,6 @@ export class SeriesAreaManager extends BaseManager {
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild(domElementClass, 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild(domElementClass, 'series-area-aria-label2'),
-            seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All),
             seriesRegion.addListener('drag', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
             seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
             seriesRegion.addListener('leave', () => this.onLeave(), mouseMoveStates),
@@ -134,6 +134,7 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event), keyState),
             chart.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event), keyState),
             chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
+            chart.ctx.regionManager.listenAll('contextmenu', (event) => this.onContextMenu(event), contextState),
             chart.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             chart.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
@@ -201,6 +202,13 @@ export class SeriesAreaManager extends BaseManager {
         // We check InteractionState.Default too just in case we were in ContextMenu and the
         // mouse hasn't moved since (see AG-10233).
         const { Default, ContextMenu } = InteractionState;
+
+        if (event.region === 'root') {
+            if (this.chart.ctx.interactionManager.getState() & (Default | ContextMenu)) {
+                this.chart.ctx.contextMenuRegistry.dispatchContext('all', event, {});
+            }
+            return;
+        }
 
         let pickedNode: SeriesNodeDatum | undefined;
         let position: { x: number; y: number } | undefined;
@@ -353,7 +361,8 @@ export class SeriesAreaManager extends BaseManager {
         if (overlayFocus == null) {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
-            this.focusIndicator.updateBounds(overlayFocus.rect);
+            // @todo(AG-13619) - Pass in overlayFocus.rect
+            this.focusIndicator.updateBounds(new BBox(0, 0, overlayFocus.rect.width, overlayFocus.rect.height));
         }
     }
 
@@ -391,7 +400,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private updatePickedFocus(pick: PickFocusOutputs | undefined, refresh: boolean) {
-        const { focus, hoverRect } = this;
+        const { focus, hoverRect, seriesRect } = this;
         if (pick === undefined || focus.series === undefined || hoverRect === undefined) return;
 
         const { datum, datumIndex } = pick;
@@ -403,7 +412,15 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (this.focusIndicator.isFocusVisible()) {
-            const focusBBox = getPickedFocusBBox(pick);
+            let focusBBox: Readonly<BBox> = getPickedFocusBBox(pick);
+            if (seriesRect != null) {
+                // The focus indicator bounds is relative to the seriesRect
+                const newBBox = focusBBox.clone();
+                newBBox.x += seriesRect.x;
+                newBBox.y += seriesRect.y;
+                focusBBox = newBBox;
+            }
+
             const { x, y } = focusBBox.computeCenter();
             if (!hoverRect.containsPoint(x, y)) {
                 this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
@@ -411,7 +428,15 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         // Update the bounds of the focus indicator:
-        const keyboardEvent = makeKeyboardPointerEvent(hoverRect, this.focusIndicator, pick);
+        drawPickedFocus(
+            seriesRect != null ? new BBox(0, 0, seriesRect.width, seriesRect?.height) : undefined,
+            this.focusIndicator,
+            pick,
+            seriesRect?.x,
+            seriesRect?.y
+        );
+
+        const keyboardEvent = makeKeyboardPointerEvent(hoverRect, pick);
 
         // Update highlight/tooltip for keyboard users:
         if (keyboardEvent !== undefined && this.hoverDevice === 'keyboard') {

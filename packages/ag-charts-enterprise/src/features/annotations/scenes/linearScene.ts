@@ -7,7 +7,7 @@ import { boundsIntersections } from '../utils/line';
 import { convertLine, convertPoint } from '../utils/values';
 import { AnnotationScene } from './annotationScene';
 
-const { Vec2 } = _ModuleSupport;
+const { Vec2, Vec4 } = _ModuleSupport;
 
 export abstract class LinearScene<
     Datum extends {
@@ -90,36 +90,17 @@ export abstract class LinearScene<
 
         if (!dragState) return;
 
-        this.translatePoints({
-            datum,
-            start: dragState.start,
-            end: dragState.end,
-            translation: Vec2.sub(target, dragState.offset),
-            context,
-        });
+        this.translatePoints(datum, dragState.start, dragState.end, Vec2.sub(target, dragState.offset), context);
     }
 
-    public translatePoints({
-        datum,
-        start,
-        end,
-        translation,
-        context,
-    }: {
-        datum: Datum;
-        start: _ModuleSupport.Vec2;
-        end: _ModuleSupport.Vec2;
-        translation: _ModuleSupport.Vec2;
-        context: AnnotationContext;
-    }) {
-        const { vectors, translateX, translateY } = translate(
-            {
-                start,
-                end,
-            },
-            translation,
-            context
-        );
+    public translatePoints(
+        datum: Datum,
+        start: _ModuleSupport.Vec2,
+        end: _ModuleSupport.Vec2,
+        translation: _ModuleSupport.Vec2,
+        context: AnnotationContext
+    ) {
+        const { vectors, translateX, translateY } = translate({ start, end }, translation, context);
 
         if (translateX) {
             datum.start.x = vectors.start?.x;
@@ -133,13 +114,13 @@ export abstract class LinearScene<
     }
 
     public translate(datum: Datum, translation: _ModuleSupport.Vec2, context: AnnotationContext) {
-        this.translatePoints({
+        this.translatePoints(
             datum,
-            start: convertPoint(datum.start, context),
-            end: convertPoint(datum.end, context),
+            convertPoint(datum.start, context),
+            convertPoint(datum.end, context),
             translation,
-            context,
-        });
+            context
+        );
     }
 
     public copy(datum: Datum, copiedDatum: Datum, context: AnnotationContext) {
@@ -150,14 +131,8 @@ export abstract class LinearScene<
         }
 
         const bbox = this.computeBBoxWithoutHandles();
-
-        this.translatePoints({
-            datum: copiedDatum,
-            start: { x: coords.x1, y: coords.y1 },
-            end: { x: coords.x2, y: coords.y2 },
-            translation: { x: -bbox.width / 2, y: -bbox.height / 2 },
-            context,
-        });
+        const translation = { x: -bbox.width / 2, y: -bbox.height / 2 };
+        this.translatePoints(copiedDatum, Vec4.start(coords), Vec4.end(coords), translation, context);
 
         return copiedDatum;
     }

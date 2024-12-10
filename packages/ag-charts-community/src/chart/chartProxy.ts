@@ -6,7 +6,7 @@ import type {
     ImageDataUrlOptions,
 } from 'ag-charts-types';
 
-import type { MementoCaretaker } from '../api/state/memento';
+import type { MementoCaretaker, MementoOriginator } from '../api/state/memento';
 import type { LicenseManager } from '../module/enterpriseModule';
 import { moduleRegistry } from '../module/module';
 import type { ChartInternalOptionMetadata, ChartSpecialOverrides } from '../module/optionsModule';
@@ -140,9 +140,20 @@ export class AgChartInstanceProxy implements AgChartProxy {
     }
 
     async setState(state: AgChartState) {
-        this.factoryApi.caretaker.restore(state, ...this.getEnabledOriginators());
-        this.chart.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
-        await this.chart.waitForUpdate();
+        const originators = this.getEnabledOriginators();
+
+        if (!originators.includes(this.chart.ctx.legendManager)) {
+            await this.setStateOriginators(state, originators);
+            return;
+        }
+
+        // TODO: CRT-633 - The zoom state depends on the legend state and so must be restored after the legend state
+        // has updated the axis scale domains.
+        await this.setStateOriginators(
+            state,
+            originators.filter((originator) => originator !== this.chart.ctx.zoomManager)
+        );
+        await this.setStateOriginators(state, [this.chart.ctx.zoomManager]);
     }
 
     resetAnimations(): void {
@@ -263,5 +274,11 @@ export class AgChartInstanceProxy implements AgChartProxy {
         }
 
         return originators;
+    }
+
+    private async setStateOriginators(state: AgChartState, originators: MementoOriginator[]) {
+        this.factoryApi.caretaker.restore(state, ...originators);
+        this.chart.ctx.updateService.update(ChartUpdateType.PROCESS_DATA, { forceNodeDataRefresh: true });
+        await this.chart.waitForUpdate();
     }
 }

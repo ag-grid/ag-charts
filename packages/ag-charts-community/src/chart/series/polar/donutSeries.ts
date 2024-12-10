@@ -118,6 +118,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         zIndex: PolarZIndexMap.BACKGROUND,
     });
 
+    private noVisibleData: boolean = false;
+
     private readonly previousRadiusScale: LinearScale = new LinearScale();
     private readonly radiusScale: LinearScale = new LinearScale();
     protected phantomGroup = this.backgroundGroup.appendChild(new Group({ name: 'phantom' }));
@@ -1560,6 +1562,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             this.ctx.animationManager.skipCurrentBatch();
         }
 
+        const noVisibleData = !this.nodeData.some((n) => n.enabled);
         const fns = preparePieSeriesAnimationFunctions(
             false,
             this.properties.rotation,
@@ -1580,7 +1583,11 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         seriesLabelFadeInAnimation(this, 'callout', this.ctx.animationManager, this.calloutLabelSelection);
         seriesLabelFadeInAnimation(this, 'sector', this.ctx.animationManager, this.labelSelection);
         seriesLabelFadeInAnimation(this, 'highlight', this.ctx.animationManager, this.highlightLabelSelection);
-        seriesLabelFadeInAnimation(this, 'inner', this.ctx.animationManager, this.innerLabelsSelection);
+
+        if (this.noVisibleData !== noVisibleData) {
+            this.noVisibleData = noVisibleData;
+            seriesLabelFadeInAnimation(this, 'inner', this.ctx.animationManager, this.innerLabelsSelection);
+        }
 
         this.previousRadiusScale.range = this.radiusScale.range;
     }
@@ -1631,8 +1638,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
 
     getDatumId(datum: DonutNodeDatum) {
         const { datumIndex } = datum;
-
         const datumId = this.getDatumIdFromData(datum.datum);
-        return datumId != null ? String(datumId) : `${datumIndex}`;
+        return String(datumId ?? datumIndex);
     }
 }

@@ -257,14 +257,6 @@ export abstract class PolarSeries<
         this.resetAllAnimation();
     }
 
-    protected animationTransitionClear() {
-        this.animationState.transition('clear', this.getAnimationData());
-    }
-
-    private getAnimationData(seriesRect?: BBox) {
-        return { seriesRect };
-    }
-
     protected override computeFocusBounds(opts: PickFocusInputs): BBox | Path | undefined {
         const datum = this.getNodeData()?.[opts.datumIndex];
         if (datum !== undefined) {

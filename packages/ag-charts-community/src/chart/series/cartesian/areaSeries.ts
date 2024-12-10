@@ -652,7 +652,7 @@ export class AreaSeries extends CartesianSeries<
         return markerSelection.update(markersEnabled ? nodeData : []);
     }
 
-    private getMarkerItemBaseStyle(highlighted = false): RequireOptional<FillOptions & StrokeOptions> {
+    private getMarkerItemBaseStyle(highlighted: boolean): RequireOptional<FillOptions & StrokeOptions> {
         const { marker } = this.properties;
         const highlightStyle = highlighted ? this.properties.highlightStyle.item : undefined;
         return {
@@ -670,7 +670,7 @@ export class AreaSeries extends CartesianSeries<
         xValue: any,
         yValue: any,
         format: RequireOptional<FillOptions & StrokeOptions>,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { marker } = this.properties;
         const { itemStyler } = marker;
@@ -777,8 +777,11 @@ export class AreaSeries extends CartesianSeries<
 
         if (xValue == null) return;
 
-        const format = this.getMarkerItemBaseStyle();
-        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datum, xValue, yValue, format));
+        const format = this.getMarkerItemBaseStyle(false);
+        Object.assign(
+            format,
+            this.getMarkerItemStyleOverrides(String(datumIndex), datum, xValue, yValue, format, false)
+        );
 
         return tooltip.formatTooltip(
             {

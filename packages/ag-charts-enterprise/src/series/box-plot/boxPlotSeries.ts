@@ -19,7 +19,6 @@ const {
     createDatumId,
     Color,
     ContinuousScale,
-    ChartAxisDirection,
     motion,
 } = _ModuleSupport;
 
@@ -299,7 +298,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override getTooltipContent(nodeDatum: BoxPlotNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { id: seriesId, dataModel, processedData, properties } = this;
         const {
             xKey,
             xName,
@@ -317,8 +316,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
             legendItemName,
             tooltip,
         } = properties;
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
+        const xAxis = this.getCategoryAxis();
+        const yAxis = this.getValueAxis();
 
         if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
             return;
@@ -335,8 +334,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (xValue == null) return;
 
-        const format = this.getItemBaseStyle();
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format));
+        const format = this.getItemBaseStyle(false);
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format, false));
 
         return tooltip.formatTooltip(
             {
@@ -397,7 +396,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return opts.datumSelection.update(data);
     }
 
-    private getItemBaseStyle(highlighted = false): Required<AgBoxPlotSeriesStyle> {
+    private getItemBaseStyle(highlighted: boolean): Required<AgBoxPlotSeriesStyle> {
         const { properties } = this;
         const { cornerRadius, cap, whisker } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
@@ -419,7 +418,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         datumId: string,
         datum: any,
         format: Required<AgBoxPlotSeriesStyle>,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
 

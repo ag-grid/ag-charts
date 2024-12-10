@@ -82,6 +82,8 @@ export class LineSeries extends CartesianSeries<
     static readonly className = 'LineSeries';
     static readonly type = 'line' as const;
 
+    protected override clipFocusBox = false;
+
     override properties = new LineSeriesProperties();
 
     private dataAggregationFilters: LineSeriesDataAggregationFilter[] | undefined = undefined;

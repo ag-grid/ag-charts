@@ -82,9 +82,12 @@ export class TreemapSeries<
 
     override properties = new TreemapSeriesProperties();
 
-    groupSelection = Selection.select(this.contentGroup, DistantGroup);
-    private readonly highlightSelection: _ModuleSupport.Selection<_ModuleSupport.Group, _ModuleSupport.HierarchyNode> =
-        Selection.select(this.highlightGroup, Group);
+    private readonly rectGroup = this.contentGroup.appendChild(new Group());
+
+    private readonly rectSelection = Selection.select(this.rectGroup, Rect);
+    private readonly labelSelection = Selection.select(this.labelGroup, Group);
+    private readonly highlightSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, _ModuleSupport.HierarchyNode> =
+        Selection.select(this.rectGroup, Rect);
 
     private labelData?: (LabelData | undefined)[];
 
@@ -347,7 +350,7 @@ export class TreemapSeries<
         return undefined;
     }
 
-    private getGroupBaseStyle(highlighted = false): ItemStyle {
+    private getGroupBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const { group } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.group : undefined;
@@ -360,15 +363,26 @@ export class TreemapSeries<
         };
     }
 
-    private getGroupStyleOverrides(datumId: string, datum: any, depth: number, format: ItemStyle, highlighted = false) {
+    private getGroupStyleOverrides(
+        datumId: string,
+        datum: any,
+        depth: number,
+        format: ItemStyle,
+        highlighted: boolean
+    ) {
         const { id: seriesId, properties } = this;
 
         const { undocumentedGroupFills, undocumentedGroupStrokes, itemStyler } = properties;
 
-        const fill = undocumentedGroupFills[Math.min(depth ?? 0, undocumentedGroupFills.length)];
-        const stroke = undocumentedGroupStrokes[Math.min(depth ?? 0, undocumentedGroupStrokes.length)];
+        const fill = format.fill ?? undocumentedGroupFills[Math.min(depth ?? 0, undocumentedGroupFills.length)];
+        const stroke = format.stroke ?? undocumentedGroupStrokes[Math.min(depth ?? 0, undocumentedGroupStrokes.length)];
 
-        const overrides: Partial<ItemStyle> = { fill: format.fill ?? fill, stroke: format.stroke ?? stroke };
+        const overrides: Partial<ItemStyle> = {};
+
+        if (!highlighted) {
+            overrides.fill = fill;
+            overrides.stroke = stroke;
+        }
 
         if (itemStyler != null) {
             const itemStyle = this.cachedDatumCallback(
@@ -392,7 +406,7 @@ export class TreemapSeries<
         return overrides;
     }
 
-    private getTileBaseStyle(highlighted = false): ItemStyle {
+    private getTileBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const { tile } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.tile : undefined;
@@ -412,18 +426,19 @@ export class TreemapSeries<
         rootIndex: number,
         colorValue: number | undefined,
         format: ItemStyle,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties, colorScale } = this;
         const { fills, strokes, itemStyler } = properties;
 
-        const fill = fills[rootIndex % fills.length];
-        const stroke = strokes[rootIndex % strokes.length];
+        const fill = format.fill ?? fills[rootIndex % fills.length];
+        const stroke = format.stroke ?? strokes[rootIndex % strokes.length];
 
-        const overrides: Partial<ItemStyle> = { fill: format.fill ?? fill, stroke: format.stroke ?? stroke };
+        const overrides: Partial<ItemStyle> = {};
 
-        if (colorValue != null) {
-            overrides.fill = colorScale.convert(colorValue);
+        if (!highlighted) {
+            overrides.fill = colorValue != null ? colorScale.convert(colorValue) : fill;
+            overrides.stroke = stroke;
         }
 
         if (itemStyler != null) {
@@ -449,6 +464,16 @@ export class TreemapSeries<
     }
 
     override updateSelections() {
+        let highlightedNode: _ModuleSupport.HierarchyNode | undefined =
+            this.ctx.highlightManager?.getActiveHighlight() as any;
+        if (highlightedNode != null && !this.properties.group.interactive && highlightedNode.children.length !== 0) {
+            highlightedNode = undefined;
+        }
+
+        this.highlightSelection.update(highlightedNode != null ? [highlightedNode] : [], undefined, (node) =>
+            this.getDatumId(node)
+        );
+
         if (!this.nodeDataRefresh) {
             return;
         }
@@ -459,16 +484,12 @@ export class TreemapSeries<
 
         const descendants = Array.from(this.rootNode);
 
-        const updateGroup = (group: _ModuleSupport.Group) => {
-            group.append([
-                new Rect(),
-                new Text({ tag: TextNodeTag.Primary }),
-                new Text({ tag: TextNodeTag.Secondary }),
-            ]);
+        const updateLabelGroup = (group: _ModuleSupport.Group) => {
+            group.append([new Text({ tag: TextNodeTag.Primary }), new Text({ tag: TextNodeTag.Secondary })]);
         };
 
-        this.groupSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
-        this.highlightSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
+        this.rectSelection.update(descendants, undefined, (node) => this.getDatumId(node));
+        this.labelSelection.update(descendants, updateLabelGroup, (node) => this.getDatumId(node));
     }
 
     updateNodes() {
@@ -483,19 +504,14 @@ export class TreemapSeries<
         const paddings: (Padding | undefined)[] = Array.from(this.rootNode, () => undefined);
         this.squarify(rootNode, new BBox(0, 0, width, height), bboxes, paddings);
 
-        let highlightedNode: _ModuleSupport.HierarchyNode | undefined =
-            this.ctx.highlightManager?.getActiveHighlight() as any;
-        if (highlightedNode != null && !this.properties.group.interactive && highlightedNode.children.length !== 0) {
-            highlightedNode = undefined;
-        }
-
         this.updateNodeMidPoint(bboxes);
 
         const updateRectFn = (
             node: _ModuleSupport.HierarchyNode,
             rect: _ModuleSupport.Rect,
             groupFormat: ItemStyle,
-            tileFormat: ItemStyle
+            tileFormat: ItemStyle,
+            highlighted: boolean
         ) => {
             const bbox = bboxes[node.index];
             if (bbox == null) {
@@ -508,8 +524,8 @@ export class TreemapSeries<
 
             const format = isLeaf ? tileFormat : groupFormat;
             const overrides = isLeaf
-                ? this.getTileStyleOverrides(String(index), datum, depth, rootIndex, colorValue, format)
-                : this.getGroupStyleOverrides(String(index), datum, depth, format);
+                ? this.getTileStyleOverrides(String(index), datum, depth, rootIndex, colorValue, format, highlighted)
+                : this.getGroupStyleOverrides(String(index), datum, depth, format, highlighted);
 
             rect.crisp = true;
             rect.fill = overrides?.fill ?? format.fill;
@@ -518,6 +534,7 @@ export class TreemapSeries<
             rect.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
             rect.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
+            rect.zIndex = [0, depth, highlighted ? 1 : 0];
 
             const onlyLeaves = node.parent?.children.every((n) => n.children.length === 0);
             const parentBbox = node.parent != null ? bboxes[node.parent.index] : undefined;
@@ -541,23 +558,12 @@ export class TreemapSeries<
 
         const baseGroupFormat = this.getGroupBaseStyle(false);
         const baseTileFormat = this.getTileBaseStyle(false);
-        this.groupSelection
-            .selectByClass(Rect)
-            .forEach((rect) => updateRectFn(rect.datum, rect, baseGroupFormat, baseTileFormat));
+        this.rectSelection.each((rect, datum) => updateRectFn(datum, rect, baseGroupFormat, baseTileFormat, false));
+
         const highlightGroupFormat = this.getGroupBaseStyle(true);
         const highlightTileFormat = this.getTileBaseStyle(true);
-        this.highlightSelection.selectByClass(Rect).forEach((rect) => {
-            const isDatumHighlighted = rect.datum === highlightedNode;
-
-            rect.visible = isDatumHighlighted || (highlightedNode?.contains(rect.datum) ?? false);
-            if (rect.visible) {
-                updateRectFn(
-                    rect.datum,
-                    rect,
-                    isDatumHighlighted ? highlightGroupFormat : baseGroupFormat,
-                    isDatumHighlighted ? highlightTileFormat : baseTileFormat
-                );
-            }
+        this.highlightSelection.each((rect, datum) => {
+            updateRectFn(datum, rect, highlightGroupFormat, highlightTileFormat, true);
         });
 
         const labelMeta = Array.from(this.rootNode, (node) => {
@@ -700,17 +706,11 @@ export class TreemapSeries<
             text.x = label.x;
             text.y = label.y;
             text.visible = true;
-        };
-        this.groupSelection.selectByClass(Text).forEach((text) => {
-            updateLabelFn(text.datum, text, text.tag, false);
-        });
-        this.highlightSelection.selectByClass(Text).forEach((text) => {
-            const isDatumHighlighted = text.datum === highlightedNode;
 
-            text.visible = isDatumHighlighted || (highlightedNode?.contains(text.datum) ?? false);
-            if (text.visible) {
-                updateLabelFn(text.datum, text, text.tag, isDatumHighlighted);
-            }
+            text.zIndex = 1;
+        };
+        this.labelSelection.selectByClass(Text).forEach((text) => {
+            updateLabelFn(text.datum, text, text.tag, false);
         });
     }
 
@@ -735,7 +735,7 @@ export class TreemapSeries<
         // We don't need to recurse on the tree because the root's nodes bounding-box contain all bounding boxes
         // of the descendants. Therefore the nearest node is always a child of the root. If there is an exact
         // match, then the pickNodeExactShape function will return a result, and this function wouldn't be called.
-        return this.pickNodeNearestDistantObject(point, this.groupSelection.nodes());
+        return this.pickNodeNearestDistantObject(point, this.rectSelection.nodes());
     }
 
     override getTooltipContent(
@@ -763,14 +763,14 @@ export class TreemapSeries<
 
         let format: Required<ItemStyle>;
         if (isLeaf) {
-            format = this.getTileBaseStyle() as Required<ItemStyle>;
+            format = this.getTileBaseStyle(false) as Required<ItemStyle>;
             Object.assign(
                 format,
-                this.getTileStyleOverrides(String(index), datum, depth, rootIndex, datumColor, format)
+                this.getTileStyleOverrides(String(index), datum, depth, rootIndex, datumColor, format, false)
             );
         } else {
-            format = this.getGroupBaseStyle() as Required<ItemStyle>;
-            Object.assign(format, this.getGroupStyleOverrides(String(index), datum, depth, format));
+            format = this.getGroupBaseStyle(false) as Required<ItemStyle>;
+            Object.assign(format, this.getGroupStyleOverrides(String(index), datum, depth, format, false));
         }
 
         const color = format.fill;
@@ -848,10 +848,15 @@ export class TreemapSeries<
         return result;
     }
 
+    protected getAnimationData() {
+        return {
+            datumSelections: [],
+        };
+    }
+
     protected computeFocusBounds(
         node: _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
     ): _ModuleSupport.BBox | undefined {
-        const rects = this.groupSelection.selectByClass(Rect);
-        return rects[node.index].getBBox();
+        return this.rectSelection.at(node.index)?.getBBox();
     }
 }

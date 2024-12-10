@@ -262,7 +262,13 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
     public resetZoom(callerId: string) {
         this.autoScaleYAxis.manuallyAdjusted = false;
-        this.updateZoom(callerId, this.getRestoredZoom());
+
+        // TODO: Move `zoomUtils.ts` to community and use `definedZoomState()` here.
+        const zoom = this.getRestoredZoom();
+        this.updateZoom(callerId, {
+            x: { min: zoom?.x?.min ?? 0, max: zoom?.x?.max ?? 1 },
+            y: { min: zoom?.y?.min ?? 0, max: zoom?.y?.max ?? 1 },
+        });
     }
 
     public resetAxisZoom(callerId: string, axisId: string) {
@@ -291,8 +297,13 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         const zoom = this.getZoom();
         if (zoom === undefined || (!zoom.x && !zoom.y)) return;
 
-        if (target.width > seriesRect.width || target.height > seriesRect.height) {
-            Logger.errorOnce(`cannot pan to target BBox`);
+        const panIsPossible =
+            seriesRect.width > 0 &&
+            seriesRect.height > 0 &&
+            Math.abs(target.width) <= Math.abs(seriesRect.width) &&
+            Math.abs(target.height) <= Math.abs(seriesRect.height);
+        if (!panIsPossible) {
+            Logger.warnOnce(`cannot pan to target BBox - chart too small?`);
             return;
         }
 

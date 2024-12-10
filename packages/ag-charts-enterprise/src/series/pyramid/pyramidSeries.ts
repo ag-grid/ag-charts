@@ -409,7 +409,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         return opts.datumSelection.update(opts.nodeData);
     }
 
-    private getItemBaseStyle(highlighted = false): ItemStyle {
+    private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
@@ -430,17 +430,19 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         datum: any,
         datumIndex: number,
         format: ItemStyle,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
         const { fills, strokes, stageKey, valueKey, itemStyler } = properties;
 
-        const fill = fills[datumIndex % fills.length];
-        const stroke = strokes[datumIndex % strokes.length];
-        const overrides: Partial<ItemStyle> = {
-            fill: format.fill ?? fill,
-            stroke: format.stroke ?? stroke,
-        };
+        const fill = format.fill ?? fills[datumIndex % fills.length];
+        const stroke = format.stroke ?? strokes[datumIndex % strokes.length];
+        const overrides: Partial<ItemStyle> = {};
+
+        if (!highlighted) {
+            overrides.fill = fill;
+            overrides.stroke = stroke;
+        }
 
         if (itemStyler != null) {
             const itemStyle = this.cachedDatumCallback(
@@ -477,7 +479,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
         datumSelection.each((connector, nodeDatum) => {
             const { datumIndex, datum, x, y, top, right, bottom, left } = nodeDatum;
-            const overrides = this.getItemStyleOverrides(String(datumIndex), datum, datumIndex, format);
+            const overrides = this.getItemStyleOverrides(String(datumIndex), datum, datumIndex, format, isHighlight);
 
             connector.x0 = x - top / 2;
             connector.x1 = x + top / 2;
@@ -576,8 +578,8 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             valueKey,
         });
 
-        const format = this.getItemBaseStyle() as any as Required<ItemStyle>;
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, datumIndex, format));
+        const format = this.getItemBaseStyle(false) as any as Required<ItemStyle>;
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, datumIndex, format, false));
 
         return tooltip.formatTooltip(
             {

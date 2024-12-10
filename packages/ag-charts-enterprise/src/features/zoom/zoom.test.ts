@@ -4,6 +4,7 @@ import { type AgChartOptions, AgCharts } from 'ag-charts-community';
 import {
     WheelDeltaMode,
     clickAction,
+    delay,
     doubleClickAction,
     dragAction,
     extractImageData,
@@ -209,6 +210,7 @@ describe('Zoom', () => {
             beforeEach(async () => {
                 await prepareChart({ axes: 'x', enableSelecting: true });
                 await mouseDownAction(a.x, a.y)(chart);
+                await delay(500);
                 await mouseMoveAction(a.x, a.y)(chart);
                 await mouseMoveAction(b.x, b.y)(chart);
             });
@@ -229,6 +231,7 @@ describe('Zoom', () => {
             beforeEach(async () => {
                 await prepareChart({ axes: 'y', enableSelecting: true });
                 await mouseDownAction(a.x, a.y)(chart);
+                await delay(500);
                 await mouseMoveAction(a.x, a.y)(chart);
                 await mouseMoveAction(b.x, b.y)(chart);
             });

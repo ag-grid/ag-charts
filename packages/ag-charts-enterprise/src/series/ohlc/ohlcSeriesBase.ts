@@ -418,7 +418,7 @@ export abstract class OhlcSeriesBase<
 
     protected getItemBaseStyle(
         itemId: 'up' | 'down',
-        highlighted = false
+        highlighted: boolean
     ): _ModuleSupport.RequireOptional<FillOptions & StrokeOptions & LineDashOptions> {
         const { properties } = this;
         const item = properties.item[itemId];
@@ -439,7 +439,7 @@ export abstract class OhlcSeriesBase<
         datum: any,
         itemId: 'up' | 'down',
         format: _ModuleSupport.RequireOptional<FillOptions & StrokeOptions & LineDashOptions>,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
 
@@ -465,7 +465,7 @@ export abstract class OhlcSeriesBase<
     }
 
     override getTooltipContent(nodeDatum: OhlcNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { id: seriesId, dataModel, processedData, properties } = this;
         const {
             xKey,
             xName,
@@ -481,8 +481,8 @@ export abstract class OhlcSeriesBase<
             legendItemName,
             tooltip,
         } = properties;
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
+        const xAxis = this.getCategoryAxis();
+        const yAxis = this.getValueAxis();
 
         if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
             return;
@@ -501,8 +501,8 @@ export abstract class OhlcSeriesBase<
         const itemId = closeValue >= openValue ? 'up' : 'down';
         const item = this.properties.item[itemId];
 
-        const format = this.getItemBaseStyle(itemId);
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, itemId, format));
+        const format = this.getItemBaseStyle(itemId, false);
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, itemId, format, false));
 
         return tooltip.formatTooltip(
             {

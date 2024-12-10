@@ -28,20 +28,20 @@ export class PolarChart extends Chart {
 
     protected async performLayout(ctx: LayoutContext) {
         const { layoutBox } = ctx;
-        const seriesRect = layoutBox.clone();
 
         layoutBox.shrink(this.seriesArea.padding.toJson());
+        const seriesRect = layoutBox.clone();
 
-        this.seriesRect = layoutBox;
-        this.animationRect = layoutBox;
+        this.seriesRect = seriesRect;
+        this.animationRect = seriesRect;
 
-        this.seriesRoot.translationX = layoutBox.x;
-        this.seriesRoot.translationY = layoutBox.y;
-        await this.computeCircle(layoutBox);
+        this.seriesRoot.translationX = seriesRect.x;
+        this.seriesRoot.translationY = seriesRect.y;
+        await this.computeCircle(seriesRect);
         this.axes.forEach((axis) => axis.update());
 
         this.ctx.layoutManager.emitLayoutComplete(ctx, {
-            series: { visible: true, rect: seriesRect, paddedRect: layoutBox },
+            series: { visible: true, rect: seriesRect, paddedRect: seriesRect },
         });
     }
 

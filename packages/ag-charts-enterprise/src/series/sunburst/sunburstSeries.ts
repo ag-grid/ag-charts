@@ -64,7 +64,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     override properties = new SunburstSeriesProperties();
 
-    groupSelection = Selection.select(this.contentGroup, ScalableGroup);
+    readonly groupSelection = Selection.select(this.contentGroup, ScalableGroup);
     private readonly highlightSelection = Selection.select(this.highlightGroup, ScalableGroup);
 
     private angleData: Array<{ start: number; end: number } | undefined> = [];
@@ -146,7 +146,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.highlightSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
     }
 
-    private getItemBaseStyle(highlighted = false): ItemStyle {
+    private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle : undefined;
         return {
@@ -165,18 +165,19 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         depth: number,
         colorValue: number | undefined,
         format: ItemStyle,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties, colorScale } = this;
         const { fills, strokes, itemStyler } = properties;
 
-        const fill = fills[rootIndex % fills.length];
-        const stroke = strokes[rootIndex % strokes.length];
+        const fill = format.fill ?? fills[rootIndex % fills.length];
+        const stroke = format.stroke ?? strokes[rootIndex % strokes.length];
 
-        const overrides: Partial<ItemStyle> = { fill: format.fill ?? fill, stroke: format.stroke ?? stroke };
+        const overrides: Partial<ItemStyle> = {};
 
-        if (colorValue != null) {
-            overrides.fill = colorScale.convert(colorValue);
+        if (!highlighted) {
+            overrides.fill = colorValue != null ? colorScale.convert(colorValue) : fill;
+            overrides.stroke = stroke;
         }
 
         if (itemStyler != null) {
@@ -240,7 +241,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const updateSector = (
             nodeDatum: _ModuleSupport.HierarchyNode,
             sector: _ModuleSupport.Sector,
-            format: ItemStyle
+            format: ItemStyle,
+            highlighted: boolean
         ) => {
             const { datum, index, rootIndex, depth, colorValue } = nodeDatum;
             const angleDatum = this.angleData[index];
@@ -251,7 +253,15 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             sector.visible = true;
 
-            const overrides = this.getItemStyleOverrides(String(index), datum, rootIndex, depth, colorValue, format);
+            const overrides = this.getItemStyleOverrides(
+                String(index),
+                datum,
+                rootIndex,
+                depth,
+                colorValue,
+                format,
+                highlighted
+            );
 
             const strokeWidth = overrides.strokeWidth ?? format.strokeWidth;
 
@@ -273,7 +283,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         const baseFormat = this.getItemBaseStyle(false);
         this.groupSelection.selectByClass(Sector).forEach((sector) => {
-            updateSector(sector.datum, sector, baseFormat);
+            updateSector(sector.datum, sector, baseFormat, false);
         });
         const highlightFormat = this.getItemBaseStyle(true);
         this.highlightSelection.selectByClass(Sector).forEach((sector) => {
@@ -281,7 +291,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             const isHighlighted = highlightedNode === node;
             sector.visible = isHighlighted;
             if (sector.visible) {
-                updateSector(sector.datum, sector, highlightFormat);
+                updateSector(sector.datum, sector, highlightFormat, true);
             }
         });
 
@@ -508,8 +518,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             data.push({ label: colorName, fallbackLabel: colorKey!, value: datumColor });
         }
 
-        const format = this.getItemBaseStyle() as Required<ItemStyle>;
-        Object.assign(format, this.getItemStyleOverrides(String(index), datum, rootIndex, depth, datumColor, format));
+        const format = this.getItemBaseStyle(false) as Required<ItemStyle>;
+        Object.assign(
+            format,
+            this.getItemStyleOverrides(String(index), datum, rootIndex, depth, datumColor, format, false)
+        );
 
         const color = format.fill;
 
@@ -574,6 +587,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 }
             },
         });
+    }
+
+    protected getAnimationData() {
+        return {
+            datumSelections: [this.groupSelection],
+        };
     }
 
     protected override computeFocusBounds(

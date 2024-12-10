@@ -1,8 +1,7 @@
 import type { DOMManager } from '../../dom/domManager';
-import { Transformable } from '../../scene/transformable';
 import { StateTracker } from '../../util/stateTracker';
 import type { SeriesTooltip } from '../series/seriesTooltip';
-import type { ErrorBoundSeriesNodeDatum, SeriesNodeDatum } from '../series/seriesTypes';
+import { type ErrorBoundSeriesNodeDatum, type SeriesNodeDatum, getDatumRefPoint } from '../series/seriesTypes';
 import type { Tooltip, TooltipContent, TooltipMeta, TooltipPointerEvent } from '../tooltip/tooltip';
 
 interface TooltipState {
@@ -99,18 +98,9 @@ export class TooltipManager {
             },
         };
 
-        // On `line` and `scatter` series, the tooltip covers the top of error-bars when using datum.midPoint.
-        // Using datum.yBar.upperPoint renders the tooltip higher up.
-        const refPoint = datum.yBar?.upperPoint ?? datum.midPoint ?? datum.series.datumMidPoint?.(datum);
-
+        const refPoint = getDatumRefPoint(datum);
         if ((tooltip.position.type === 'node' || tooltip.position.type === 'sparkline') && refPoint) {
-            const { x, y } = refPoint;
-            const point = Transformable.toCanvasPoint(datum.series.contentGroup, x, y);
-            return {
-                ...meta,
-                canvasX: Math.round(point.x),
-                canvasY: Math.round(point.y),
-            };
+            return { ...meta, canvasX: refPoint.canvasX, canvasY: refPoint.canvasY };
         }
 
         return meta;

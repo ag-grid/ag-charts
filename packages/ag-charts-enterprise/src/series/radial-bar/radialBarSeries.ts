@@ -358,7 +358,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         this.animationState.transition('update');
     }
 
-    private getItemBaseStyle(highlighted = false): ItemStyle {
+    private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
         const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
@@ -375,7 +375,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         };
     }
 
-    protected getItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted = false) {
+    protected getItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted: boolean) {
         const { id: seriesId, properties } = this;
         const { angleKey, radiusKey, itemStyler } = properties;
 
@@ -413,7 +413,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
                 const { datum, datumIndex } = nodeDatum;
-                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, format);
+                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, format, highlighted);
 
                 const stroke = overrides?.stroke ?? format.stroke;
                 const strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
@@ -519,8 +519,8 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
         if (radiusValue == null) return;
 
-        const format = this.getItemBaseStyle();
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format));
+        const format = this.getItemBaseStyle(false);
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
         return tooltip.formatTooltip(
             {

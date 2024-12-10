@@ -102,7 +102,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override async processData(dataController: _ModuleSupport.DataController) {
-        if (!this.properties.isValid() || !this.visible) return;
+        if (!this.properties.isValid()) return;
 
         const { xKey, yLowKey, yHighKey } = this.properties;
         const xScale = this.axes[ChartAxisDirection.X]?.scale;
@@ -202,22 +202,12 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     override createNodeData() {
-        const { data, dataModel, processedData, axes, visible } = this;
+        const { data, dataModel, processedData, axes } = this;
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (
-            !(
-                data &&
-                visible &&
-                xAxis &&
-                yAxis &&
-                dataModel &&
-                processedData != null &&
-                processedData.rawData.length !== 0
-            )
-        ) {
+        if (!(data && xAxis && yAxis && dataModel && processedData != null && processedData.rawData.length !== 0)) {
             return;
         }
 
@@ -425,8 +415,13 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return new MarkerShape();
     }
 
-    protected override updatePathNodes(opts: { paths: _ModuleSupport.Path[]; opacity: number; visible: boolean }) {
-        const { opacity, visible } = opts;
+    protected override updatePathNodes(opts: {
+        paths: _ModuleSupport.Path[];
+        opacity: number;
+        visible: boolean;
+        animationEnabled: boolean;
+    }) {
+        const { opacity, visible, animationEnabled } = opts;
         const [fill, stroke] = opts.paths;
 
         const strokeWidth = this.getStrokeWidth(this.properties.strokeWidth);
@@ -441,7 +436,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             lineDash: this.properties.lineDash,
             lineDashOffset: this.properties.lineDashOffset,
             opacity,
-            visible,
+            visible: visible || animationEnabled,
         });
         fill.setProperties({
             stroke: undefined,
@@ -455,7 +450,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             fillShadow: this.properties.shadow,
             strokeWidth,
             opacity,
-            visible,
+            visible: visible || animationEnabled,
         });
 
         updateClipPath(this, stroke);
@@ -509,7 +504,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
-    private getMarkerItemBaseStyle(highlighted = false): ItemStyle {
+    private getMarkerItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const { marker } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
@@ -525,7 +520,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         };
     }
 
-    protected getMarkerItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted = false) {
+    protected getMarkerItemStyleOverrides(datumId: string, datum: any, format: ItemStyle, highlighted: boolean) {
         const { id: seriesId, properties } = this;
         const { xKey, yHighKey, yLowKey, marker } = properties;
         const { itemStyler } = marker;
@@ -623,8 +618,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
 
         if (xValue == null) return;
 
-        const format = this.getMarkerItemBaseStyle();
-        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format));
+        const format = this.getMarkerItemBaseStyle(false);
+        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datumIndex, format, false));
 
         const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
         return tooltip.formatTooltip(
@@ -775,7 +770,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             return;
         }
 
-        const fns = prepareRangeAreaPathAnimation(contextData, previousContextData);
+        const fns = prepareRangeAreaPathAnimation(
+            contextData,
+            previousContextData,
+            this.processedData?.reduced?.diff?.[this.id]
+        );
         if (fns === undefined) {
             // Un-animatable - skip all animations.
             skip();
@@ -784,15 +783,22 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             return;
         }
 
-        markerFadeInAnimation(this, animationManager, undefined, markerSelection);
-
         fromToMotion(this.id, 'fill_path_properties', animationManager, [fill], fns.fill.pathProperties);
-        pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
-
         fromToMotion(this.id, 'stroke_path_properties', animationManager, [stroke], fns.stroke.pathProperties);
-        pathMotion(this.id, 'stroke_path_update', animationManager, [stroke], fns.stroke.path);
 
-        seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
+        if (fns.status === 'added') {
+            this.updateAreaPaths(paths, contextData);
+        } else if (fns.status === 'removed') {
+            this.updateAreaPaths(paths, previousContextData);
+        } else {
+            pathMotion(this.id, 'fill_path_update', animationManager, [fill], fns.fill.path);
+            pathMotion(this.id, 'stroke_path_update', animationManager, [stroke], fns.stroke.path);
+        }
+
+        if (fns.hasMotion) {
+            markerFadeInAnimation(this, animationManager, undefined, markerSelection);
+            seriesLabelFadeInAnimation(this, 'labels', animationManager, labelSelection);
+        }
 
         // The animation may clip spans
         // When using smooth interpolation, the bezier spans are clipped using an approximation

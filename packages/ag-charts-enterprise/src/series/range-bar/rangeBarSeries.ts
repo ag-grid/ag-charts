@@ -493,7 +493,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         return datumSelection.update(data, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private getItemBaseStyle(highlighted = false): Required<AgRangeBarSeriesStyle> {
+    private getItemBaseStyle(highlighted: boolean): Required<AgRangeBarSeriesStyle> {
         const { properties } = this;
         const { cornerRadius } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
@@ -513,7 +513,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         datumId: string,
         datum: any,
         format: Required<AgRangeBarSeriesStyle>,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
 
@@ -610,10 +610,10 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override getTooltipContent(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { id: seriesId, dataModel, processedData, properties } = this;
         const { xKey, xName, yName, yLowKey, yHighKey, yLowName, yHighName, tooltip } = properties;
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
+        const xAxis = this.getCategoryAxis();
+        const yAxis = this.getValueAxis();
 
         if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
             return;
@@ -627,8 +627,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (xValue == null) return;
 
-        const format = this.getItemBaseStyle();
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format));
+        const format = this.getItemBaseStyle(false);
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, format, false));
 
         const value = `${yAxis.formatDatum(yLowValue)} - ${yAxis.formatDatum(yHighValue)}`;
         return tooltip.formatTooltip(

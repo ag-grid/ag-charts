@@ -665,7 +665,7 @@ export class BarSeries extends AbstractBarSeries<
         return opts.datumSelection.update(opts.nodeData, undefined, (datum) => this.getDatumId(datum));
     }
 
-    private getItemBaseStyle(highlighted = false): Required<AgBarSeriesStyle> {
+    private getItemBaseStyle(highlighted: boolean): Required<AgBarSeriesStyle> {
         const { properties } = this;
         const { cornerRadius } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
@@ -687,7 +687,7 @@ export class BarSeries extends AbstractBarSeries<
         xValue: any,
         yValue: any,
         format: Required<AgBarSeriesStyle>,
-        highlighted = false
+        highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;
 
@@ -796,10 +796,10 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     override getTooltipContent(nodeDatum: BarNodeDatum): TooltipContent | string | undefined {
-        const { id: seriesId, dataModel, processedData, axes, properties } = this;
+        const { id: seriesId, dataModel, processedData, properties } = this;
         const { xKey, xName, yKey, yName, legendItemName, stackGroup, tooltip } = properties;
-        const xAxis = axes[ChartAxisDirection.X];
-        const yAxis = axes[ChartAxisDirection.Y];
+        const xAxis = this.getCategoryAxis();
+        const yAxis = this.getValueAxis();
 
         if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
             return;
@@ -812,8 +812,8 @@ export class BarSeries extends AbstractBarSeries<
 
         if (xValue == null) return;
 
-        const format = this.getItemBaseStyle();
-        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, xValue, yValue, format));
+        const format = this.getItemBaseStyle(false);
+        Object.assign(format, this.getItemStyleOverrides(String(datumIndex), datum, xValue, yValue, format, false));
 
         return tooltip.formatTooltip(
             {
@@ -917,15 +917,16 @@ export class BarSeries extends AbstractBarSeries<
             dataDiff
         );
 
-        const hasMotion =
+        const scalingChanged =
             previousContextData != null &&
-            ((dataDiff?.changed ?? false) ||
-                !areScalingEqual(data.contextData.scales.x, previousContextData.scales.x) ||
+            (!areScalingEqual(data.contextData.scales.x, previousContextData.scales.x) ||
                 !areScalingEqual(data.contextData.scales.y, previousContextData.scales.y) ||
                 !areScalingEqual(
                     (data.contextData as BarSeriesNodeDataContext).groupScale,
                     (data.previousContextData as BarSeriesNodeDataContext).groupScale
                 ));
+
+        const hasMotion = (dataDiff?.changed ?? false) || scalingChanged;
         if (hasMotion) {
             seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
             seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);

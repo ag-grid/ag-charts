@@ -75,7 +75,7 @@ export function tooltipContentAriaLabel(content: TooltipContent | string) {
         ariaLabel.push(datum.label ?? datum.fallbackLabel, datum.value);
     });
 
-    return ariaLabel.join(' ');
+    return ariaLabel.join('; ');
 }
 
 function dataHtml(label: string | undefined, value: string, inline: boolean) {

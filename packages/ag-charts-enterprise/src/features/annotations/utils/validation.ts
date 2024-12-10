@@ -2,17 +2,18 @@ import { type Direction, _ModuleSupport } from 'ag-charts-community';
 
 import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
 
-const { Logger, OrdinalTimeScale } = _ModuleSupport;
+const { Logger } = _ModuleSupport;
 
 export function validateDatumLine(
     context: AnnotationContext,
     datum: { start: Point; end: Point },
+    directions?: Partial<Record<_ModuleSupport.ChartAxisDirection, boolean>>,
     warningPrefix?: string
 ) {
     let valid = true;
 
-    valid &&= validateDatumPoint(context, datum.start, warningPrefix && `${warningPrefix}[start] `);
-    valid &&= validateDatumPoint(context, datum.end, warningPrefix && `${warningPrefix}[end] `);
+    valid &&= validateDatumPoint(context, datum.start, directions, warningPrefix && `${warningPrefix}[start] `);
+    valid &&= validateDatumPoint(context, datum.end, directions, warningPrefix && `${warningPrefix}[end] `);
 
     return valid;
 }
@@ -32,7 +33,12 @@ export function validateDatumValue(
     return valid;
 }
 
-export function validateDatumPoint(context: AnnotationContext, point: Point, warningPrefix?: string) {
+export function validateDatumPoint(
+    context: AnnotationContext,
+    point: Point,
+    directions?: Partial<Record<_ModuleSupport.ChartAxisDirection, boolean>>,
+    warningPrefix?: string
+) {
     if (point.x == null || point.y == null) {
         if (warningPrefix) {
             Logger.warnOnce(`${warningPrefix}requires both an [x] and [y] property, ignoring.`);
@@ -40,8 +46,8 @@ export function validateDatumPoint(context: AnnotationContext, point: Point, war
         return false;
     }
 
-    const validX = validateDatumPointDirection(point.x, context.xAxis);
-    const validY = validateDatumPointDirection(point.y, context.yAxis);
+    const validX = directions?.x === false ? true : validateDatumPointDirection(point.x, context.xAxis);
+    const validY = directions?.y === false ? true : validateDatumPointDirection(point.y, context.yAxis);
 
     if (!validX || !validY) {
         let text = 'x & y domains';
@@ -58,7 +64,7 @@ export function validateDatumPoint(context: AnnotationContext, point: Point, war
 
 function validateDatumPointDirection(value: any, context: AnnotationAxisContext) {
     const domain = context.scale.getDomain?.();
-    if (domain && OrdinalTimeScale.is(context.scale)) {
+    if (domain && context.continuous) {
         return value >= domain[0] && value <= domain.at(-1);
     }
     return true; // domain.includes(value); // TODO: does not work with dates
