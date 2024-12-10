@@ -119,6 +119,7 @@ export function OptionsNavigation({
                                         key={member.name}
                                         member={member}
                                         depth={breadcrumbs?.length ?? 0}
+                                        genericsMap={interfaceRef.genericsMap}
                                         path={[
                                             { name: basePath, type: rootInterface },
                                             { name: member.name, type: getMemberType(member) },
@@ -148,11 +149,13 @@ function NavGroup({ depth = 0, className, ...props }: { depth?: number } & AllHT
 function NavProperty({
     member,
     depth = 0,
+    genericsMap,
     path,
     onClick,
 }: {
     member: MemberNode;
     depth?: number;
+    genericsMap?: Record<string, string>;
     path: { name: string; type: string }[];
     onClick?: (navData: NavigationData) => void;
 }) {
@@ -227,6 +230,14 @@ function NavProperty({
         }
     }
 
+    let typeArguments: string[] | undefined;
+    const hasMembers = interfaceRef && 'members' in interfaceRef;
+    if (hasMembers && typeof member.type === 'object' && member.type.kind === 'typeRef') {
+        typeArguments = member.type.typeArguments?.map((genericType) =>
+            normalizeType(genericsMap?.[genericType as any] ?? genericType)
+        );
+    }
+
     return (
         <>
             <div className={classnames(styles.navItem, isSelected && 'highlight')} onDoubleClick={toggleExpanded}>
@@ -262,12 +273,13 @@ function NavProperty({
                 <>
                     <NavGroup depth={depth + 1}>
                         {isInterface
-                            ? processMembers(interfaceRef, config)
+                            ? processMembers(interfaceRef, config, typeArguments)
                                   .filter((childMember) => !skip?.includes(childMember.name))
                                   .map((childMember) => (
                                       <NavProperty
                                           key={childMember.name}
                                           depth={depth + 1}
+                                          genericsMap={interfaceRef.genericsMap}
                                           member={childMember}
                                           path={path.concat({
                                               name: cleanupName(childMember.name),
@@ -362,6 +374,7 @@ function NavTypedUnionProperty({
                                 key={member.name}
                                 member={member}
                                 depth={depth + 1}
+                                genericsMap={interfaceRef.genericsMap}
                                 path={path.concat({ name: member.name, type: getMemberType(member) })}
                                 onClick={onClick}
                             />
