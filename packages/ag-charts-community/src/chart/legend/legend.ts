@@ -547,15 +547,21 @@ export class Legend extends BaseProperties {
         const { symbol } = datum;
         let paddedSymbolWidth = paddingX;
 
+        const { markerEnabled, lineEnabled, isCustomMarker } = this.calcSymbolsEnabled(symbol);
+
         if (this._symbolsDirty) {
             const { shape: markerShape = symbol.marker.shape } = itemMarker;
             const MarkerCtr = getMarker(markerShape);
 
+            // @todo(CRT-635)
+            // markerLabel.updateSymbols(
+            //     markerEnabled ? new MarkerCtr({ zIndex: 1 }) : undefined,
+            //     lineEnabled ? new Line({ zIndex: 0 }) : undefined
+            // );
             markerLabel.updateSymbols(new MarkerCtr({ zIndex: 1 }), new Line({ zIndex: 0 }));
         }
 
         const spacing = itemMarker.padding;
-        const { markerEnabled, lineEnabled, isCustomMarker } = this.calcSymbolsEnabled(symbol);
 
         const { marker, line } = markerLabel;
         if (marker != null) {
@@ -577,7 +583,10 @@ export class Legend extends BaseProperties {
             marker.strokeOpacity = strokeOpacity;
         }
 
-        if (line) {
+        // @todo(CRT-635) - the line is always generated, and is apparently currently integral to the layout
+        if (!lineEnabled && line != null) {
+            line.strokeWidth = 0;
+        } else if (line) {
             const lineStyles = this.getLineStyles(symbol);
 
             line.stroke = lineStyles.stroke;
