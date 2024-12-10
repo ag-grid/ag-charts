@@ -45,16 +45,14 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
     override getTextBBox(datum: NoteProperties, coords: _ModuleSupport.Vec2, context: AnnotationContext) {
         const bbox = super.getTextBBox(datum, coords, context);
 
-        const { seriesRect } = context;
-
         bbox.x -= datum.width / 2;
-        bbox.x = clamp(0, bbox.x, seriesRect.width - datum.width);
+        bbox.x = clamp(0, bbox.x, context.seriesRect.width - datum.width);
 
         const padding = datum.getPadding().top;
         const topY = bbox.y - LABEL_OFFSET - padding * 2;
         const bottomY = bbox.y + DivariantHandle.HANDLE_SIZE + padding * 2;
 
-        if (topY - bbox.height - TOOLBAR_OFFSET < seriesRect.y) {
+        if (topY - bbox.height - TOOLBAR_OFFSET < 0) {
             bbox.y = bottomY;
             datum.position = 'top';
         } else {
@@ -139,6 +137,13 @@ export class NoteScene extends TextualPointScene<NoteProperties> {
             y: bbox.y + context.seriesRect.y + direction * (bbox.height + padding),
             position: isPositionTop ? ('below' as const) : ('above' as const),
         };
+    }
+
+    protected override getLabelCoords(datum: NoteProperties, bbox: _ModuleSupport.BBox): _ModuleSupport.Vec2 {
+        const isPositionTop = datum.position === 'top';
+        const padding = datum.getPadding().top;
+
+        return { x: bbox.x, y: bbox.y + (isPositionTop ? padding / 2 : 0) };
     }
 
     protected override getHandleCoords(
