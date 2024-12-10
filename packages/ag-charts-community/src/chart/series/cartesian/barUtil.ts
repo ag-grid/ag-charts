@@ -234,29 +234,28 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
         }
 
         // Continue from current rendering location.
+        let source: AnimatableBarDatum;
         if (status === 'added' && rect.previousDatum == null && initPos.mode === 'fade') {
             // Handle series add case, after initial load. This is distinct from legend toggle on.
-            return {
+            source = {
                 ...resetBarSelectionsFn(rect, datum),
                 opacity: 0,
-                phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING.added,
             };
         } else if (status === 'unknown' || status === 'added') {
-            return {
-                ...initPos.calculate(datum, rect.previousDatum),
-                phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING.added,
-            };
+            source = initPos.calculate(datum, rect.previousDatum);
         } else {
-            return {
+            source = {
                 x: rect.x,
                 y: rect.y,
                 width: rect.width,
                 height: rect.height,
                 clipBBox: rect.clipBBox,
                 opacity: rect.opacity,
-                phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[status],
             };
         }
+
+        const phase = NODE_UPDATE_STATE_TO_PHASE_MAPPING[status];
+        return { ...source, phase };
     };
     const toFn: FromToMotionPropFn<Rect, AnimatableBarDatum, T> = (rect: Rect, datum: T, status: NodeUpdateState) => {
         if (status === 'removed' && rect.datum == null && initPos.mode === 'fade') {

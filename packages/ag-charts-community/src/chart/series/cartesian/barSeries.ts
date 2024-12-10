@@ -893,7 +893,17 @@ export class BarSeries extends AbstractBarSeries<
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        const dataDiff = this.processedData?.reduced?.diff?.[this.id];
+        let dataDiff = this.processedData?.reduced?.diff?.[this.id];
+        // @todo(CRT-598) - this is required to get the correct status, but it was not safe enough to do this for all series
+        if (dataDiff == null && this.processedData?.reduced?.diff != null) {
+            dataDiff = {
+                changed: true,
+                added: new Set(Array.from(datumSelection, ({ datum }) => this.getDatumId(datum))),
+                updated: new Set(),
+                removed: new Set(),
+                moved: new Set(),
+            };
+        }
         const mode = previousContextData == null ? 'fade' : 'normal';
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, mode));
 
