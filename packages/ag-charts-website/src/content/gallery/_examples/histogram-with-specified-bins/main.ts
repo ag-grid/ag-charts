@@ -33,6 +33,9 @@ const options: AgChartOptions = {
     footnote: {
         text: 'Academic Performance of Students at Clifton School (2023)',
     },
+    padding: {
+        left: 0,
+    },
     series: Object.entries(getData()).map(([grade, gradeData]) => ({
         data: gradeData,
         type: 'histogram',
@@ -42,12 +45,12 @@ const options: AgChartOptions = {
         bins: [gradeBoundaries[grade as keyof typeof gradeBoundaries]],
         areaPlot: true,
         tooltip: {
-            renderer: ({ datum: { domain }, xName }) => {
+            renderer: ({ datum, xName }) => {
                 return {
-                    heading: undefined,
+                    title: 'Grade ' + xName,
                     data: [
-                        { label: 'Grade', value: xName! },
-                        { label: 'Score', value: domain.join(' - ') },
+                        { label: 'Score', value: datum.domain.join(' - ') },
+                        { label: 'Frequency', value: String(datum.frequency) },
                     ],
                 };
             },
@@ -64,10 +67,16 @@ const options: AgChartOptions = {
             gridLine: {
                 enabled: false,
             },
+            crosshair: {
+                enabled: false,
+            },
         },
         {
             position: 'left',
             type: 'number',
+            title: {
+                text: 'Frequency Density',
+            },
             label: {
                 enabled: false,
             },
