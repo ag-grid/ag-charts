@@ -9,6 +9,7 @@ const {
     prepareAreaFillAnimationFns,
     plotInterpolatedLinePathStroke,
     prepareLinePathPropertyAnimation,
+    areScalingEqual,
 } = _ModuleSupport;
 
 export interface RangeAreaLabelDatum extends Readonly<_ModuleSupport.Point> {
@@ -61,7 +62,11 @@ function prepareRangeAreaPathStrokeAnimationFns(
     return { status, path: { addPhaseFn, updatePhaseFn, removePhaseFn }, pathProperties };
 }
 
-export function prepareRangeAreaPathAnimation(newData: RangeAreaContext, oldData: RangeAreaContext) {
+export function prepareRangeAreaPathAnimation(
+    newData: RangeAreaContext,
+    oldData: RangeAreaContext,
+    diff: _ModuleSupport.ProcessedOutputDiff | undefined
+) {
     const isCategoryBased = newData.scales.x?.type === 'category';
     const wasCategoryBased = oldData.scales.x?.type === 'category';
     if (isCategoryBased !== wasCategoryBased || !isScaleValid(newData.scales.x) || !isScaleValid(oldData.scales.x)) {
@@ -100,8 +105,15 @@ export function prepareRangeAreaPathAnimation(newData: RangeAreaContext, oldData
     );
     if (lowStrokeSpans == null) return;
 
-    const fadeMode = 'none';
+    const fadeMode = 'fade';
     const fill = prepareAreaFillAnimationFns(status, fillSpans, fillPhantomSpans, fadeMode);
     const stroke = prepareRangeAreaPathStrokeAnimationFns(status, highStrokeSpans, lowStrokeSpans, fadeMode);
-    return { status, fill, stroke };
+
+    const hasMotion =
+        (diff?.changed ?? true) ||
+        !areScalingEqual(newData.scales.x, oldData.scales.x) ||
+        !areScalingEqual(newData.scales.y, oldData.scales.y) ||
+        status !== 'updated';
+
+    return { status, fill, stroke, hasMotion };
 }
