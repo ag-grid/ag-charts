@@ -48,11 +48,13 @@ import {
 } from './barUtil';
 import {
     type CartesianAnimationData,
+    type CartesianSeriesNodeDataContext,
     type CartesianSeriesNodeDatum,
     DEFAULT_CARTESIAN_DIRECTION_KEYS,
     DEFAULT_CARTESIAN_DIRECTION_NAMES,
 } from './cartesianSeries';
 import { adjustLabelPlacement, updateLabelNode } from './labelUtil';
+import { type Scaling, areScalingEqual } from './scaling';
 
 interface BarNodeLabelDatum extends Readonly<Point> {
     readonly text: string;
@@ -83,6 +85,10 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
 
 type BarAnimationData = CartesianAnimationData<Rect, BarNodeDatum>;
 
+interface BarSeriesNodeDataContext extends CartesianSeriesNodeDataContext<BarNodeDatum, BarNodeDatum> {
+    groupScale: Scaling | undefined;
+}
+
 // Get TS to check these values - but it's faster for the engine to use explicit constants
 export interface BarSeriesAggregationIndexes {
     xMin: 0;
@@ -104,7 +110,13 @@ export interface BarSeriesDataAggregationFilter {
     indexes: BarSeriesAggregationIndexes;
 }
 
-export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarNodeDatum> {
+export class BarSeries extends AbstractBarSeries<
+    Rect,
+    BarSeriesProperties,
+    BarNodeDatum,
+    BarNodeDatum,
+    BarSeriesNodeDataContext
+> {
     static readonly className = 'BarSeries';
     static readonly type = 'bar' as const;
 
@@ -628,6 +640,7 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             labelData: labels,
             scales: this.calculateScaling(),
             visible: this.visible || animationEnabled,
+            groupScale: this.getScaling(this.groupScale),
         };
     }
 
@@ -880,7 +893,17 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
 
         this.ctx.animationManager.stopByAnimationGroupId(this.id);
 
-        const dataDiff = this.processedData?.reduced?.diff?.[this.id];
+        let dataDiff = this.processedData?.reduced?.diff?.[this.id];
+        // @todo(CRT-598) - this is required to get the correct status, but it was not safe enough to do this for all series
+        if (dataDiff == null && this.processedData?.reduced?.diff != null) {
+            dataDiff = {
+                changed: true,
+                added: new Set(Array.from(datumSelection, ({ datum }) => this.getDatumId(datum))),
+                updated: new Set(),
+                removed: new Set(),
+                moved: new Set(),
+            };
+        }
         const mode = previousContextData == null ? 'fade' : 'normal';
         const fns = prepareBarAnimationFunctions(collapsedStartingBarPosition(this.isVertical(), this.axes, mode));
 
@@ -894,7 +917,15 @@ export class BarSeries extends AbstractBarSeries<Rect, BarSeriesProperties, BarN
             dataDiff
         );
 
-        const hasMotion = dataDiff?.changed ?? true;
+        const hasMotion =
+            previousContextData != null &&
+            ((dataDiff?.changed ?? false) ||
+                !areScalingEqual(data.contextData.scales.x, previousContextData.scales.x) ||
+                !areScalingEqual(data.contextData.scales.y, previousContextData.scales.y) ||
+                !areScalingEqual(
+                    (data.contextData as BarSeriesNodeDataContext).groupScale,
+                    (data.previousContextData as BarSeriesNodeDataContext).groupScale
+                ));
         if (hasMotion) {
             seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
             seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
