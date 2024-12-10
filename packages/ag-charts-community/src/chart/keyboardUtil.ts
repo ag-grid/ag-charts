@@ -1,10 +1,22 @@
 import type { FocusIndicator } from '../dom/focusIndicator';
+import { getDatumRefPoint } from '../module-support';
 import { BBox } from '../scene/bbox';
 import type { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
 import type { TooltipPointerEvent } from './tooltip/tooltip';
 
-function computeCenter(hoverRect: BBox, bboxOrPath: Path | BBox | undefined) {
+type PickProperties = {
+    bounds: Path | BBox | undefined;
+    datum: Parameters<typeof getDatumRefPoint>[0];
+    showFocusBox: boolean;
+    clipFocusBox: boolean;
+};
+
+function computeCenter(hoverRect: BBox, pick: PickProperties) {
+    const refPoint = getDatumRefPoint(pick.datum);
+    if (refPoint != null) return { x: refPoint.canvasX, y: refPoint.canvasY };
+
+    const bboxOrPath = pick.bounds;
     if (bboxOrPath == null) return;
     if (bboxOrPath instanceof BBox) {
         const { x: centerX, y: centerY } = bboxOrPath.computeCenter();
@@ -15,8 +27,6 @@ function computeCenter(hoverRect: BBox, bboxOrPath: Path | BBox | undefined) {
     }
     return Transformable.toCanvas(bboxOrPath).computeCenter();
 }
-
-type PickProperties = { bounds: Path | BBox | undefined; showFocusBox: boolean; clipFocusBox: boolean };
 
 export function drawPickedFocus(
     seriesRect: BBox | undefined,
@@ -46,7 +56,7 @@ export function makeKeyboardPointerEvent(
     hoverRect: BBox,
     pick: PickProperties
 ): TooltipPointerEvent<'keyboard'> | undefined {
-    const { x: canvasX, y: canvasY } = computeCenter(hoverRect, pick.bounds) ?? {};
+    const { x: canvasX, y: canvasY } = computeCenter(hoverRect, pick) ?? {};
     if (canvasX !== undefined && canvasY !== undefined) {
         return { type: 'keyboard', canvasX, canvasY };
     }
