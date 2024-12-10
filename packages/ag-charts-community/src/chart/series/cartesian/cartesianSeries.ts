@@ -1005,13 +1005,6 @@ export abstract class CartesianSeries<
         this.resetAllAnimation(data);
     }
 
-    protected animationTransitionClear() {
-        const animationData = this.getAnimationData();
-        if (!animationData) return;
-
-        this.animationState.transition('clear', animationData);
-    }
-
     private getAnimationData(seriesRect?: BBox, previousContextData?: TContext) {
         const { _contextNodeData: contextData } = this;
         if (!contextData) return;
