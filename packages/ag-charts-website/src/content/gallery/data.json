@@ -739,12 +739,20 @@
                         "name": "radar-line-radar-area-nightingale-combination"
                     },
                     {
-                        "title": "Bar And Line Combination",
+                        "title": "Grouped Category Axis Combination",
                         "name": "grouped-bar-line-combination"
+                    },
+                    {
+                        "title": "Step Interpolation Combination",
+                        "name": "step-interpolation-combination"
                     },
                     {
                         "title": "Bar, Line And Area Combination",
                         "name": "grouped-category-combination"
+                    },
+                    {
+                        "title": "Stacked Bar And Area Combination",
+                        "name": "stacked-bar-area-combination"
                     }
                 ]
             }

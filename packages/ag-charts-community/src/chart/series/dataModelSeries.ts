@@ -103,20 +103,20 @@ export abstract class DataModelSeries<
         }
     }
 
-    private computeFocusDatumIndex(opts: PickFocusInputs, nodeData: TDatum[]): number | undefined {
+    protected computeFocusDatumIndex(opts: PickFocusInputs, nodeData: TDatum[]): number | undefined {
         const isDatumEnabled = (datumIndex: number): boolean => {
             const { missing = false, enabled = true, focusable = true } = nodeData[datumIndex];
             return !missing && enabled && focusable;
         };
         const searchBackward = (datumIndex: number): number | undefined => {
             while (datumIndex >= 0 && !isDatumEnabled(datumIndex)) {
-                datumIndex--;
+                datumIndex += opts.datumIndexDelta;
             }
             return datumIndex === -1 ? undefined : datumIndex;
         };
         const searchForward = (datumIndex: number): number | undefined => {
             while (datumIndex < nodeData.length && !isDatumEnabled(datumIndex)) {
-                datumIndex++;
+                datumIndex += opts.datumIndexDelta;
             }
             return datumIndex === nodeData.length ? undefined : datumIndex;
         };
