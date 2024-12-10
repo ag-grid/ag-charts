@@ -3,9 +3,8 @@ import type { AgContextMenuOptions } from 'ag-charts-types';
 import { Listeners } from '../../util/listeners';
 import type { CategoryLegendDatum } from '../legend/legendDatum';
 import type { ISeries, SeriesNodeDatum } from '../series/seriesTypes';
-import { InteractionState } from './interactionManager';
 import { type PreventableEvent, buildPreventable } from './preventableEvent';
-import type { RegionEvent, RegionManager } from './regionManager';
+import type { RegionEvent } from './regionManager';
 
 type ContextTypeMap = {
     all: object;
@@ -52,30 +51,6 @@ export class ContextMenuRegistry {
     private readonly disabledActions: Set<string> = new Set();
     private readonly hiddenActions: Set<string> = new Set();
     private readonly listeners: Listeners<'', (e: ContextMenuEvent) => void> = new Listeners();
-    private readonly destroyFns: (() => void)[];
-
-    public constructor(regionManager: RegionManager) {
-        const { Default, ContextMenu } = InteractionState;
-        this.destroyFns = [regionManager.listenAll('contextmenu', (e) => this.onContextMenu(e), Default | ContextMenu)];
-    }
-
-    public destroy() {
-        this.destroyFns.forEach((d) => d());
-    }
-
-    private onContextMenu(event: RegionEvent<'contextmenu'>) {
-        const type = ContextMenuRegistry.toContextType(event.region);
-        if (type === 'all') {
-            this.dispatchContext('all', event, {});
-        }
-    }
-
-    private static toContextType(region: string): ContextType {
-        if (region === 'legend' || region === 'series-area') {
-            return region;
-        }
-        return 'all';
-    }
 
     public static check<T extends ContextType>(type: T, event: ContextMenuEvent): event is ContextMenuEvent<T> {
         return event.type === type;

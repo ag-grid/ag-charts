@@ -101,6 +101,7 @@ export class SeriesAreaManager extends BaseManager {
         const mouseMoveStates =
             InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
         const keyState = InteractionState.Default | InteractionState.Animation;
+        const contextState = InteractionState.All;
 
         const { domManager } = chart.ctx;
         const domElementClass = 'series-area';
@@ -123,7 +124,6 @@ export class SeriesAreaManager extends BaseManager {
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild(domElementClass, 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild(domElementClass, 'series-area-aria-label2'),
-            seriesRegion.addListener('contextmenu', (event) => this.onContextMenu(event), InteractionState.All),
             seriesRegion.addListener('drag', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
             seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
             seriesRegion.addListener('leave', () => this.onLeave(), mouseMoveStates),
@@ -134,6 +134,7 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event), keyState),
             chart.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event), keyState),
             chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
+            chart.ctx.regionManager.listenAll('contextmenu', (event) => this.onContextMenu(event), contextState),
             chart.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             chart.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
@@ -201,6 +202,13 @@ export class SeriesAreaManager extends BaseManager {
         // We check InteractionState.Default too just in case we were in ContextMenu and the
         // mouse hasn't moved since (see AG-10233).
         const { Default, ContextMenu } = InteractionState;
+
+        if (event.region === 'root') {
+            if (this.chart.ctx.interactionManager.getState() & (Default | ContextMenu)) {
+                this.chart.ctx.contextMenuRegistry.dispatchContext('all', event, {});
+            }
+            return;
+        }
 
         let pickedNode: SeriesNodeDatum | undefined;
         let position: { x: number; y: number } | undefined;
