@@ -1,5 +1,4 @@
 import type { DOMManager } from '../../dom/domManager';
-import { Transformable } from '../../scene/transformable';
 import { StateTracker } from '../../util/stateTracker';
 import type { SeriesTooltip } from '../series/seriesTooltip';
 import { type ErrorBoundSeriesNodeDatum, type SeriesNodeDatum, getDatumRefPoint } from '../series/seriesTypes';
