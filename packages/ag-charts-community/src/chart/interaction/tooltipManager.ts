@@ -103,7 +103,12 @@ export class TooltipManager {
         // Using datum.yBar.upperPoint renders the tooltip higher up.
         const refPoint = datum.yBar?.upperPoint ?? datum.midPoint ?? datum.series.datumMidPoint?.(datum);
 
-        if ((tooltip.position.type === 'node' || tooltip.position.type === 'sparkline') && refPoint) {
+        if (
+            (tooltip.position.type === 'node' ||
+                tooltip.position.type === 'pointer' ||
+                tooltip.position.type === 'sparkline') &&
+            refPoint
+        ) {
             const { x, y } = refPoint;
             const point = Transformable.toCanvasPoint(datum.series.contentGroup, x, y);
             return {
