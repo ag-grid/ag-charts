@@ -412,7 +412,15 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (this.focusIndicator.isFocusVisible()) {
-            const focusBBox = getPickedFocusBBox(pick);
+            let focusBBox: Readonly<BBox> = getPickedFocusBBox(pick);
+            if (seriesRect != null) {
+                // The focus indicator bounds is relative to the seriesRect
+                const newBBox = focusBBox.clone();
+                newBBox.x += seriesRect.x;
+                newBBox.y += seriesRect.y;
+                focusBBox = newBBox;
+            }
+
             const { x, y } = focusBBox.computeCenter();
             if (!hoverRect.containsPoint(x, y)) {
                 this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
