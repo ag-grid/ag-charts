@@ -513,8 +513,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
     }
 
     private getAxisLineCoordinates(): AxisLineDatum {
+        const { pixelRatio } = this.moduleCtx.scene.canvas;
         const [min, max] = findMinMax(this.range);
-        return { x: 0, y1: min, y2: max };
+        return { x: pixelRatio - 2, y1: min, y2: max };
     }
 
     private getTickLineCoordinates(datum: TickDatum) {
@@ -1070,10 +1071,9 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank
             ticks.push({ tick, tickId: idGenerator(tickLabel), tickLabel, translationY: Math.floor(translationY) });
 
-            if (tickLabel === '' || tickLabel == null) {
-                continue;
+            if (tickLabel !== '' && tickLabel != null) {
+                labelCount++;
             }
-            labelCount++;
         }
 
         return { rawTicks, fractionDigits, ticks, labelCount };
