@@ -7,7 +7,7 @@ export type AgSeriesMarkerStylerParams<TDatum> = DatumCallbackParams<TDatum> & A
 export interface AgSeriesMarkerStyle extends FillOptions, StrokeOptions {
     /** The size in pixels of the markers. */
     size?: PixelSize;
-    /** The shape to use for the markers. You can also supply a custom marker by providing a `Marker` subclass. */
+    /** The shape to use for the markers. You can also supply a custom marker by providing a `AgMarkerShapeFn` function. */
     shape?: AgMarkerShape;
 }
 
