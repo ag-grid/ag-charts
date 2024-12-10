@@ -743,6 +743,10 @@
                         "name": "grouped-bar-line-combination"
                     },
                     {
+                        "title": "Step Interpolation Combination",
+                        "name": "step-interpolation-combination"
+                    },
+                    {
                         "title": "Bar, Line And Area Combination",
                         "name": "grouped-category-combination"
                     },
