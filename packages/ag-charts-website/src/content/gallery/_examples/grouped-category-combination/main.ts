@@ -31,9 +31,6 @@ const options: AgCartesianChartOptions = {
                         },
                     },
                     number: {
-                        gridLine: {
-                            enabled: true,
-                        },
                         label: {
                             formatter: ({ value }) => value.toLocaleString(),
                         },
@@ -57,6 +54,8 @@ const options: AgCartesianChartOptions = {
                 series: {
                     fillOpacity: 0.4,
                     marker: {
+                        fillOpacity: 0.4,
+                        size: 0,
                         shape: 'triangle',
                     },
                 },
@@ -149,11 +148,8 @@ const options: AgCartesianChartOptions = {
         {
             position: 'bottom',
             type: 'grouped-category',
-            depthOptions: [
-                { label: { fontSize: 10 }, tick: { enabled: false } },
-                { label: { fontSize: 10 }, tick: { enabled: false } },
-                { label: { fontSize: 10 } },
-            ],
+            label: { fontSize: 10 },
+            depthOptions: [{ tick: { enabled: false } }, { tick: { enabled: false } }],
         },
     ],
 };

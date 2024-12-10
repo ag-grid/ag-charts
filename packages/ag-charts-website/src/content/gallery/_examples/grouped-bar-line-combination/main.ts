@@ -43,9 +43,6 @@ const options: AgCartesianChartOptions = {
                         gridLine: {
                             enabled: false,
                         },
-                        line: {
-                            enabled: false,
-                        },
                         label: {
                             enabled: false,
                         },
