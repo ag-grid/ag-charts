@@ -119,7 +119,7 @@ export class ChartContext implements ModuleContext {
         this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
         this.regionManager = new RegionManager(this.interactionManager);
         this.keyNavManager = new KeyNavManager(this.interactionManager, this.regionManager);
-        this.contextMenuRegistry = new ContextMenuRegistry(this.regionManager);
+        this.contextMenuRegistry = new ContextMenuRegistry();
         this.gestureDetector = new GestureDetector(this.domManager);
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(this.localeManager, this.domManager);
@@ -146,7 +146,6 @@ export class ChartContext implements ModuleContext {
         this.axisManager.destroy();
         this.callbackCache.invalidateCache();
         this.chartEventManager.destroy();
-        this.contextMenuRegistry.destroy();
         this.domManager.destroy();
         this.highlightManager.destroy();
         this.keyNavManager.destroy();
