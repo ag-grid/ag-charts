@@ -15,10 +15,11 @@ const options: AgChartOptions = {
     series: days.map((day) => ({
         data: data.filter((d) => d.day === day),
         type: 'bubble',
+        title: day,
         xKey: 'hour',
         xName: 'Time',
         yKey: 'day',
-        yName: day,
+        yName: 'Day',
         sizeKey: 'size',
         sizeName: 'Commits',
         strokeWidth: 0,
