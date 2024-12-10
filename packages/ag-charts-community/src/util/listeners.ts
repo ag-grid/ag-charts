@@ -35,14 +35,17 @@ export class Listeners<EventType extends string, EventHandler extends Handler> {
         }
     }
 
-    public dispatch(eventType: EventType, ...params: Parameters<EventHandler>): void {
+    public dispatch(eventType: EventType, ...params: Parameters<EventHandler>): number {
+        let dispatchCount = 0;
         for (const listener of this.getListenersByType(eventType)) {
             try {
                 listener.handler(...params);
+                dispatchCount++;
             } catch (e) {
                 Logger.errorOnce(e);
             }
         }
+        return dispatchCount;
     }
 
     public dispatchWrapHandlers(

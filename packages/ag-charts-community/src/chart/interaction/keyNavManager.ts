@@ -2,7 +2,6 @@ import type { FocusIndicator } from '../../dom/focusIndicator';
 import type { InteractionEvent, InteractionManager, KeyInteractionEvent } from './interactionManager';
 import { InteractionState, InteractionStateListener } from './interactionStateListener';
 import { type PreventableEvent, dispatchTypedEvent } from './preventableEvent';
-import type { RegionManager } from './regionManager';
 
 export type KeyNavEventType = 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'undo' | 'redo';
 
@@ -27,20 +26,15 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
     // FIXME: focusIndicator state should be managed by SeriesAreaManager.
     public focusIndicator?: FocusIndicator;
 
-    constructor(
-        readonly interactionManager: InteractionManager,
-        regionManager: RegionManager
-    ) {
+    constructor(readonly interactionManager: InteractionManager) {
         super();
-        const series = regionManager.getRegion('series');
         const mouseStates =
             InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
         this.destroyFns.push(
             interactionManager.addListener('click', () => this.onClick(), mouseStates),
             interactionManager.addListener('hover', () => this.onMouse(), mouseStates),
             interactionManager.addListener('wheel', () => this.onClick(), mouseStates),
-            interactionManager.addListener('keydown', (e) => this.onKeyDown(e), InteractionState.All),
-            series.addListener('drag-start', () => this.onClick(), mouseStates)
+            interactionManager.addListener('keydown', (e) => this.onKeyDown(e), InteractionState.All)
         );
     }
 

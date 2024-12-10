@@ -5,6 +5,7 @@ import type { DragWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../../
 import { InteractionManager } from './interactionManager';
 import type { PointerInteractionTypes } from './interactionManager';
 import { InteractionState } from './interactionManager';
+import type { KeyNavManager } from './keyNavManager';
 import { type PreventableEvent, buildPreventable } from './preventableEvent';
 
 type RegionName = 'root' | 'series';
@@ -117,10 +118,14 @@ export class RegionManager {
     private readonly destroyFns: (() => void)[] = [];
     private readonly allRegionsListeners = new RegionListeners();
     private deferredDragStart?: RegionEvent<'drag-start'>;
+    private dragDispatchCount = 0;
     private isDragMoving = false;
     private blockNextClickEvent = false;
 
-    constructor(private readonly interactionManager: InteractionManager) {}
+    constructor(
+        private readonly interactionManager: InteractionManager,
+        private readonly keyNavManager: KeyNavManager
+    ) {}
 
     public destroy() {
         this.destroyFns.forEach((fn) => fn());
@@ -229,6 +234,7 @@ export class RegionManager {
         switch (event.type) {
             case 'drag-start': {
                 this.deferredDragStart = event as RegionEvent<'drag-start'>;
+                this.dragDispatchCount = 0;
                 break;
             }
             case 'drag': {
@@ -254,10 +260,11 @@ export class RegionManager {
                 break;
             }
             case 'click': {
-                if (!this.blockNextClickEvent) {
+                if (!this.blockNextClickEvent || this.dragDispatchCount === 0) {
                     this.dispatchEvent(current, event);
                 }
                 this.blockNextClickEvent = false;
+                this.dragDispatchCount = 0;
                 break;
             }
             case 'leave':
@@ -280,8 +287,14 @@ export class RegionManager {
 
     private dispatchEvent(current: Region, event: RegionEvent) {
         this.debug('Dispatching region event: ', event);
-        this.allRegionsListeners.dispatch(event.type, event);
-        current.listeners.dispatch(event.type, event);
+        const a = this.allRegionsListeners.dispatch(event.type, event);
+        const b = current.listeners.dispatch(event.type, event);
+        if (['drag-start', 'drag', 'drag-end'].includes(event.type)) {
+            this.dragDispatchCount += a + b;
+            if (this.dragDispatchCount > 0) {
+                this.keyNavManager.focusIndicator?.overrideFocusVisible(false);
+            }
+        }
     }
 
     private readonly processPointerEvent = (event: TWidgetEvent) => {
