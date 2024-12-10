@@ -917,15 +917,16 @@ export class BarSeries extends AbstractBarSeries<
             dataDiff
         );
 
-        const hasMotion =
+        const scalingChanged =
             previousContextData != null &&
-            ((dataDiff?.changed ?? false) ||
-                !areScalingEqual(data.contextData.scales.x, previousContextData.scales.x) ||
+            (!areScalingEqual(data.contextData.scales.x, previousContextData.scales.x) ||
                 !areScalingEqual(data.contextData.scales.y, previousContextData.scales.y) ||
                 !areScalingEqual(
                     (data.contextData as BarSeriesNodeDataContext).groupScale,
                     (data.previousContextData as BarSeriesNodeDataContext).groupScale
                 ));
+
+        const hasMotion = (dataDiff?.changed ?? false) || scalingChanged;
         if (hasMotion) {
             seriesLabelFadeInAnimation(this, 'labels', this.ctx.animationManager, labelSelection);
             seriesLabelFadeInAnimation(this, 'annotations', this.ctx.animationManager, ...annotationSelections);
