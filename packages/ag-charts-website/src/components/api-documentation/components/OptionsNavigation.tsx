@@ -35,6 +35,7 @@ export const SelectionContext = createContext<{
     selection: NavigationData;
     setSelection: Dispatch<SetStateAction<NavigationData>>;
     rootInterface: string;
+    basePath: string;
 } | null>(null);
 
 export function OptionsNavigation({
@@ -210,7 +211,7 @@ function NavProperty({
                 .slice(baseHash.length + 1)
                 .split('-')
                 .filter(Boolean);
-            if (selection?.selection.pathname.includes(prePath.join('/'))) {
+            if (selection?.selection.pathname.startsWith(selection?.basePath + prePath.join('/'))) {
                 return true;
             }
         }
