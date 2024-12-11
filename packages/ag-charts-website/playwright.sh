@@ -29,17 +29,20 @@ if [ "$1" == "--host" ] ; then
   npx astro dev --port=4601 --host &
 
   cd $(git rev-parse --show-toplevel)
-  docker run -t --rm --ipc=host --network=host \
+  docker run -t --rm --ipc=host \
     -v $(pwd):/data:ro \
     -v $(pwd)/reports:/data/reports \
-    -v $(pwd)/packages/ag-charts-website/e2e/:/data/packages/ag-charts-website/e2e/ \
+    -v $(pwd)/packages/ag-charts-website:/data/packages/ag-charts-website \
+    -w /data/packages/ag-charts-website \
+    -e HOSTNAME=docker-desktop \
     -e CI \
     -e NX_PARALLEL \
     -e NX_BASE \
     -e AG_FORCE_ALL_TESTS \
     -e AG_SKIP_NATIVE_DEP_VERSION_CHECK \
+    -p 8080:8080 \
     mcr.microsoft.com/playwright:v1.45.0-jammy \
-    /bin/bash -l /data/packages/ag-charts-website/playwright.sh $@
+    /bin/bash -l playwright.sh $@
 
   exit $?
 fi
