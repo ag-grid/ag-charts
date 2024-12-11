@@ -20,7 +20,7 @@ export class FocusIndicator {
     focus: Focus | undefined = undefined;
 
     @ObserveChanges<FocusIndicator>((target) => target.update())
-    clip: boolean = true;
+    clip: boolean = false;
 
     constructor(private readonly swapChain: FocusSwapChain) {
         this.div = getDocument().createElement('div');
@@ -38,7 +38,7 @@ export class FocusIndicator {
     private update() {
         const { focus, rect, clip } = this;
 
-        if (focus === undefined) {
+        if (focus === undefined || rect == null) {
             return;
         } else if (focus instanceof Path) {
             const transform = (localX: number, localY: number) => {
@@ -51,13 +51,11 @@ export class FocusIndicator {
             this.show(this.svg);
         } else {
             let bbox: BBox;
-            if (rect == null) {
-                bbox = focus;
-            } else if (clip) {
+            if (clip) {
                 const x0 = Math.max(focus.x - rect.x, 0);
                 const y0 = Math.max(focus.y - rect.y, 0);
-                const x1 = Math.min(focus.x - rect.x + focus.width, rect.width);
-                const y1 = Math.min(focus.y - rect.y + focus.height, rect.height);
+                const x1 = Math.min(focus.x + focus.width - rect.x, rect.width);
+                const y1 = Math.min(focus.y + focus.height - rect.y, rect.height);
                 bbox = new BBox(x0, y0, x1 - x0, y1 - y0);
             } else {
                 bbox = new BBox(focus.x - rect.x, focus.y - rect.y, focus.width, focus.height);

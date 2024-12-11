@@ -401,7 +401,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private updatePickedFocus(pick: PickFocusOutputs | undefined, refresh: boolean) {
-        const { focus, hoverRect, seriesRect } = this;
+        const { focus, hoverRect } = this;
         if (pick === undefined || focus.series === undefined || hoverRect === undefined) return;
 
         const { datum, datumIndex } = pick;
@@ -413,15 +413,7 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         if (this.focusIndicator.isFocusVisible()) {
-            let focusBBox: Readonly<BBox> = getPickedFocusBBox(pick);
-            if (seriesRect != null) {
-                // The focus indicator bounds is relative to the seriesRect
-                const newBBox = focusBBox.clone();
-                newBBox.x += seriesRect.x;
-                newBBox.y += seriesRect.y;
-                focusBBox = newBBox;
-            }
-
+            const focusBBox: Readonly<BBox> = getPickedFocusBBox(pick);
             const { x, y } = focusBBox.computeCenter();
             if (!hoverRect.containsPoint(x, y)) {
                 this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
@@ -429,8 +421,8 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         // Update the bounds of the focus indicator:
-        this.focusIndicator.focus = pick.showFocusBox ? pick.bounds : undefined;
         this.focusIndicator.clip = pick.clipFocusBox;
+        this.focusIndicator.focus = pick.showFocusBox ? pick.bounds : undefined;
 
         const keyboardEvent = makeKeyboardPointerEvent(hoverRect, pick);
 
