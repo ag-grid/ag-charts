@@ -51,10 +51,42 @@ export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType>
     sourceEvent: MouseEvent | TouchEvent;
 };
 
+export type SequenceEvent<T extends 'mouseup' | 'mousedown'> = {
+    type: T;
+    offsetX: number;
+    offsetY: number;
+    clientX: number;
+    clientY: number;
+};
+
+export type SequencedClickEvent = {
+    type: 'sequenced-click';
+    offsetX: number;
+    offsetY: number;
+    clientX: number;
+    clientY: number;
+    sourceEvent: MouseEvent;
+    sequence: [] | [SequenceEvent<'mousedown'>, SequenceEvent<'mouseup'>];
+};
+
+export type SequencedDblClickEvent = {
+    type: 'sequenced-dblclick';
+    offsetX: number;
+    offsetY: number;
+    clientX: number;
+    clientY: number;
+    sourceEvent: MouseEvent;
+    sequence:
+        | []
+        | [SequenceEvent<'mousedown'>, SequenceEvent<'mouseup'>, SequenceEvent<'mousedown'>, SequenceEvent<'mouseup'>];
+};
+
 export type WidgetEventMap = {
     'drag-start': DragWidgetEvent<'drag-start'>;
     'drag-move': DragWidgetEvent<'drag-move'>;
     'drag-end': DragWidgetEvent<'drag-end'>;
+    'sequenced-click': SequencedClickEvent;
+    'sequenced-dblclick': SequencedDblClickEvent;
     blur: FocusWidgetEvent<'blur'>;
     change: WidgetEvent;
     contextmenu: MouseWidgetEvent<'contextmenu'>;

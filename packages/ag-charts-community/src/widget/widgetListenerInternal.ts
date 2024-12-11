@@ -1,7 +1,7 @@
 import { BBoxValues } from '../util/bboxinterface';
 import { getWindow } from '../util/dom';
 import { partialAssign } from '../util/object';
-import type { DragWidgetEvent, WidgetEventMap_Internal } from './widgetEvents';
+import type { DragWidgetEvent, SequencedClickEvent, WidgetEventMap_Internal } from './widgetEvents';
 
 type EventMap = WidgetEventMap_Internal;
 type EventType = keyof WidgetEventMap_Internal;
@@ -78,6 +78,42 @@ function startDrag(that: { globalDragCallbacks?: DragCallbacks }, myCallbacks: D
     that.globalDragCallbacks.down(downEvent);
 }
 
+type ClickSequenceHandler = {
+    destroy(): void;
+};
+
+function initClickSequencing(
+    target: Targetable,
+    clickCb: (target: Targetable, sequence: SequencedClickEvent['sequence'], sourceEvent: MouseEvent) => void
+): ClickSequenceHandler {
+    const elem = target.getElement();
+    const sequence: MouseEvent[] = [];
+    const onMouseEvent = (ev: MouseEvent): void => {
+        sequence.push(ev);
+    };
+    const onClick = (ev: MouseEvent): void => {
+        if (sequence.length === 2) {
+            const seq0 = sequence[0] as MouseEvent & { type: 'mousedown' };
+            const seq1 = sequence[1] as MouseEvent & { type: 'mouseup' };
+            clickCb(target, [seq0, seq1], ev);
+        } else {
+            clickCb(target, [], ev);
+        }
+        sequence.length = 0;
+    };
+
+    elem.addEventListener('mousedown', onMouseEvent);
+    elem.addEventListener('mouseup', onMouseEvent);
+    elem.addEventListener('click', onClick);
+    return {
+        destroy() {
+            elem.removeEventListener('mousedown', onMouseEvent);
+            elem.removeEventListener('mouseup', onMouseEvent);
+            elem.removeEventListener('click', onClick);
+        },
+    };
+}
+
 export class WidgetListenerInternal {
     private dragTriggerRemovers?: Map<EventHandler<Targetable>, () => void>;
     private dragStartListeners?: EventHandler<Targetable>[];
@@ -92,6 +128,11 @@ export class WidgetListenerInternal {
     static globalDragCallbacks?: DragCallbacks;
     private localDragCallbacks?: DragCallbacks;
 
+    private clickSequencing?: {
+        listeners: EventHandler<Targetable>[];
+        handler: ClickSequenceHandler;
+    };
+
     destroy(): void {
         this.dragTriggerRemovers?.forEach((fn) => fn());
         this.dragTriggerRemovers = undefined;
@@ -101,6 +142,7 @@ export class WidgetListenerInternal {
         if (WidgetListenerInternal.globalDragCallbacks === this.localDragCallbacks) {
             WidgetListenerInternal.globalDragCallbacks = undefined;
         }
+        this.clickSequencing?.handler.destroy();
     }
 
     add<T extends Targetable, K extends EventType>(type: K, target: T, handler: EventHandler<T, K>): void;
@@ -121,6 +163,13 @@ export class WidgetListenerInternal {
                 this.dragEndListeners ??= [];
                 this.dragEndListeners.push(handler);
                 break;
+            }
+            case 'sequenced-click': {
+                this.clickSequencing ??= {
+                    listeners: [],
+                    handler: initClickSequencing(target, this.endSequencedClick.bind(this)),
+                };
+                this.clickSequencing.listeners.push(handler);
             }
         }
     }
@@ -185,6 +234,24 @@ export class WidgetListenerInternal {
         }
     }
 
+    private endSequencedClick<T extends Targetable>(
+        current: T,
+        sequence: SequencedClickEvent['sequence'],
+        sourceEvent: MouseEvent
+    ) {
+        const { offsetX, offsetY, clientX, clientY } = sourceEvent;
+        const event: SequencedClickEvent = {
+            type: 'sequenced-click',
+            offsetX,
+            offsetY,
+            clientX,
+            clientY,
+            sourceEvent,
+            sequence,
+        };
+        this.dispatch('sequenced-click', current, event);
+    }
+
     private dispatch<T extends Targetable, K extends EventType>(type: K, current: T, event: EventMap[K]): void {
         switch (type) {
             case 'drag-start':
@@ -193,6 +260,8 @@ export class WidgetListenerInternal {
                 return this.dragMoveListeners?.forEach((handler) => handler(event, current));
             case 'drag-end':
                 return this.dragEndListeners?.forEach((handler) => handler(event, current));
+            case 'sequenced-click':
+                return this.clickSequencing?.listeners.forEach((handler) => handler(event, current));
         }
     }
 }
