@@ -43,7 +43,6 @@ export const ExampleIFrame: FunctionComponent<Props> = ({ title, isHidden, url, 
         >
             {/*`exampleRunner` class is used by the dark mode toggle to post a message to this iFrame*/}
             <iframe
-                sandbox="allow-scripts"
                 id={loadingIFrameId}
                 title={title}
                 ref={iFrameRef}
