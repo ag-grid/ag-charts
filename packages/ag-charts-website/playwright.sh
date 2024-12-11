@@ -43,7 +43,7 @@ if [ "$1" == "--host" ] ; then
   trap cleanup SIGINT SIGTERM ERR EXIT
 
   cd $(git rev-parse --show-toplevel)
-  docker run -t --rm --ipc=host \
+  docker run -d --rm --ipc=host \
     -v $(pwd):/data:ro \
     -v $(pwd)/reports:/data/reports \
     -v $(pwd)/packages/ag-charts-website:/data/packages/ag-charts-website \
@@ -59,6 +59,8 @@ if [ "$1" == "--host" ] ; then
     mcr.microsoft.com/playwright:v1.45.0-jammy \
     /bin/bash -l playwright.sh $@
 
+  docker logs -f ${container_name} &
+  docker wait ${container_name}
   exit $?
 fi
 
