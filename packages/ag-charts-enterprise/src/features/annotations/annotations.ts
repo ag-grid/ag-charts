@@ -442,7 +442,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.destroyFns.push(
             // Interactions
             seriesRegion.addListener('hover', this.onHover.bind(this), All),
-            seriesRegion.addListener('click', this.onClick.bind(this), All),
+            seriesRegion.addListener('sequenced-click', this.onClick.bind(this), All),
             seriesRegion.addListener('dblclick', this.onDoubleClick.bind(this), All),
             seriesRegion.addListener('drag-start', this.onDragStart.bind(this), annotationsState),
             seriesRegion.addListener('drag', this.onDrag.bind(this), annotationsState),
@@ -847,7 +847,14 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('hover', { offset, point, shiftKey, context });
     }
 
-    private onClick(event: _ModuleSupport.RegionEvent<'click'>) {
+    private onClick(event: _ModuleSupport.RegionEvent<'sequenced-click'>) {
+        const { offsetX, offsetY, clientX, clientY } = event.sequence[0] ?? {};
+        const noMovement = event.sequence.every(
+            (seq) =>
+                seq.offsetX === offsetX && seq.offsetY === offsetY && seq.clientX === clientX && seq.clientY === clientY
+        );
+        if (!noMovement) return;
+
         const { state } = this;
 
         const context = this.getAnnotationContext();

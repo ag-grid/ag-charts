@@ -1,14 +1,19 @@
 import { Debug } from '../../util/debug';
 import { Listeners } from '../../util/listeners';
 import type { Widget } from '../../widget/widget';
-import type { DragWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../../widget/widgetEvents';
+import type {
+    DragWidgetEvent,
+    MouseWidgetEvent,
+    SequencedClickEvent,
+    WheelWidgetEvent,
+} from '../../widget/widgetEvents';
 import { InteractionManager } from './interactionManager';
 import type { PointerInteractionTypes } from './interactionManager';
 import { InteractionState } from './interactionManager';
 import { type PreventableEvent, buildPreventable } from './preventableEvent';
 
 type RegionName = 'root' | 'series';
-type RegionInteractionTypes = PointerInteractionTypes | 'drag-start' | 'drag' | 'drag-end';
+type RegionInteractionTypes = PointerInteractionTypes | 'drag-start' | 'drag' | 'drag-end' | 'sequenced-click';
 
 export type RegionEvent<T extends RegionInteractionTypes = RegionInteractionTypes> = PreventableEvent & {
     type: T;
@@ -20,7 +25,7 @@ export type RegionEvent<T extends RegionInteractionTypes = RegionInteractionType
     deltaX: T extends 'wheel' ? number : never;
     deltaY: T extends 'wheel' ? number : never;
     sourceEvent: Event;
-    timestamp: number;
+    sequence: SequencedClickEvent['sequence'];
 };
 
 export type MockEvent = {
@@ -30,7 +35,7 @@ export type MockEvent = {
     mockRegion?: Pick<RegionEvent, 'region' | 'canvasX' | 'canvasY' | 'regionX' | 'regionY'>;
 };
 
-type TWidgetEvent = DragWidgetEvent | MouseWidgetEvent | WheelWidgetEvent;
+type TWidgetEvent = DragWidgetEvent | MouseWidgetEvent | WheelWidgetEvent | SequencedClickEvent;
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
 // specifies through the `addListener` method (see the `makeObserver` method).
@@ -49,9 +54,6 @@ export interface RegionProperties {
     readonly name: RegionName;
     widget?: Widget;
 }
-
-const DRAG_THRESHOLD_MS = 300;
-const DRAG_THRESHOLD_PX = 3;
 
 function addHandler<T extends RegionEvent['type']>(
     listeners: RegionListeners | undefined,
@@ -116,9 +118,7 @@ export class RegionManager {
     };
     private readonly destroyFns: (() => void)[] = [];
     private readonly allRegionsListeners = new RegionListeners();
-    private deferredDragStart?: RegionEvent<'drag-start'>;
     private isDragMoving = false;
-    private blockNextClickEvent = false;
 
     constructor(private readonly interactionManager: InteractionManager) {}
 
@@ -143,6 +143,7 @@ export class RegionManager {
         root.addListener('drag-start', this.processPointerEvent);
         root.addListener('drag-move', this.processPointerEvent);
         root.addListener('drag-end', this.processPointerEvent);
+        root.addListener('sequenced-click', this.processPointerEvent);
     }
 
     getRegion(name: RegionName) {
@@ -186,6 +187,7 @@ export class RegionManager {
             'drag-start': 'drag-start',
             'drag-move': 'drag',
             'drag-end': 'drag-end',
+            'sequenced-click': 'sequenced-click',
         } as const;
         return map[widgetEvent.type];
     }
@@ -223,62 +225,13 @@ export class RegionManager {
             sourceEvent: widgetEvent.sourceEvent,
             type: this.widgetEventTypeToRegionEventType(widgetEvent, regionEventType),
             region: current.properties.name,
-            timestamp: Date.now(),
+            sequence: [],
         });
 
-        switch (event.type) {
-            case 'drag-start': {
-                this.deferredDragStart = event as RegionEvent<'drag-start'>;
-                break;
-            }
-            case 'drag': {
-                if (this.deferredDragStart) {
-                    if (this.canStartDrag(event as RegionEvent<'drag'>)) {
-                        this.dispatchEvent(current, this.deferredDragStart);
-                    } else {
-                        return;
-                    }
-                }
-                this.dispatchEvent(current, event);
-                this.deferredDragStart = undefined;
-                this.isDragMoving = true;
-                this.blockNextClickEvent = true;
-                break;
-            }
-            case 'drag-end': {
-                if (this.isDragMoving) {
-                    this.dispatchEvent(current, event);
-                }
-                this.deferredDragStart = undefined;
-                this.isDragMoving = false;
-                break;
-            }
-            case 'click': {
-                if (!this.blockNextClickEvent) {
-                    this.dispatchEvent(current, event);
-                }
-                this.blockNextClickEvent = false;
-                break;
-            }
-            case 'leave':
-            case 'enter':
-                if (!this.isDragMoving || this.deferredDragStart != null) {
-                    this.dispatchEvent(current, event);
-                }
-                break;
-            case 'hover': {
-                this.blockNextClickEvent = false;
-                this.dispatchEvent(current, event);
-                break;
-            }
-            default: {
-                this.dispatchEvent(current, event);
-                break;
-            }
+        if (widgetEvent.type === 'sequenced-click') {
+            event.sequence = widgetEvent.sequence;
         }
-    }
 
-    private dispatchEvent(current: Region, event: RegionEvent) {
         this.debug('Dispatching region event: ', event);
         this.allRegionsListeners.dispatch(event.type, event);
         current.listeners.dispatch(event.type, event);
@@ -289,7 +242,7 @@ export class RegionManager {
         const { current } = this;
 
         let newCurrent: Region | undefined = current;
-        if (!this.isDragMoving && this.deferredDragStart == null) {
+        if (!this.isDragMoving) {
             switch (ignore) {
                 case 'wait':
                     return;
@@ -325,19 +278,5 @@ export class RegionManager {
             return this.regions.root;
         }
         return this.regions.series;
-    }
-
-    private canStartDrag(event: RegionEvent<'drag'>) {
-        if (!this.deferredDragStart) return false;
-
-        const time = event.timestamp - this.deferredDragStart.timestamp;
-        if (time > DRAG_THRESHOLD_MS) {
-            return true;
-        }
-
-        const distanceApproximation =
-            Math.abs(event.canvasX - this.deferredDragStart.canvasX) +
-            Math.abs(event.canvasY - this.deferredDragStart.canvasY);
-        return distanceApproximation > DRAG_THRESHOLD_PX;
     }
 }
