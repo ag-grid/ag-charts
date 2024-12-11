@@ -207,6 +207,7 @@ export class WidgetListenerInternal {
                     handler: initClickSequencing(target, this.endSequencedClick.bind(this)),
                 };
                 this.clickSequencing.listeners.push(handler);
+                break;
             }
             case 'sequenced-dblclick': {
                 this.dblClickSequencing ??= {
@@ -214,6 +215,7 @@ export class WidgetListenerInternal {
                     handler: initDblClickSequencing(target, this.endSequencedDblClick.bind(this)),
                 };
                 this.dblClickSequencing.listeners.push(handler);
+                break;
             }
         }
     }

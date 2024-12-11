@@ -232,6 +232,12 @@ export class RegionManager {
             event.sequence = widgetEvent.sequence;
         }
 
+        if (event.type === 'drag-start') {
+            this.isDragMoving = true;
+        } else if (event.type === 'drag-end') {
+            this.isDragMoving = false;
+        }
+
         this.debug('Dispatching region event: ', event);
         this.allRegionsListeners.dispatch(event.type, event);
         current.listeners.dispatch(event.type, event);
