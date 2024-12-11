@@ -92,4 +92,21 @@ test.describe('keyboard-nav', () => {
         await page.mouse.click(100, 100, { button: 'left' });
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('nofocus-nohighlight.png');
     });
+
+    test('AG-13643 legend toggling', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('line-series', 'simple-line', 'vanilla').url);
+
+        await page.mouse.click(400, 300, { button: 'left' });
+
+        await page.keyboard.press('Tab');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13643-legend-item-1-focused.png');
+
+        await page.keyboard.press('Space');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13643-legend-item-1-pressed.png');
+
+        await page.keyboard.down('Shift');
+        await page.keyboard.press('Tab');
+        await page.keyboard.up('Shift');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13643-series-2-datum-1-focused.png');
+    });
 });
