@@ -53,8 +53,6 @@ export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType>
 
 export type SequenceEvent<T extends 'mouseup' | 'mousedown'> = {
     type: T;
-    offsetX: number;
-    offsetY: number;
     clientX: number;
     clientY: number;
 };

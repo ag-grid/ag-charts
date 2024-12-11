@@ -848,11 +848,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     }
 
     private onClick(event: _ModuleSupport.RegionEvent<'sequenced-click'>) {
-        const { offsetX, offsetY, clientX, clientY } = event.sequence[0] ?? {};
-        const noMovement = event.sequence.every(
-            (seq) =>
-                seq.offsetX === offsetX && seq.offsetY === offsetY && seq.clientX === clientX && seq.clientY === clientY
-        );
+        const { clientX, clientY } = event.sequence[0] ?? {};
+        const noMovement = event.sequence.every((seq) => seq.clientX === clientX && seq.clientY === clientY);
         if (!noMovement) return;
 
         const { state } = this;
