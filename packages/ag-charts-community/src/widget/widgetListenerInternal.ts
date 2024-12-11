@@ -93,7 +93,7 @@ function initClickSequencing(
     const sequence: MouseEvent[] = [];
     const onMouseEvent = (ev: MouseEvent): void => {
         sequence.push(ev);
-        if (sequence.length > 2) sequence.splice(1);
+        if (sequence.length > 2) sequence.shift();
     };
     const onClick = (ev: MouseEvent): void => {
         if (sequence.length === 2) {
@@ -126,7 +126,7 @@ function initDblClickSequencing(
     const sequence: MouseEvent[] = [];
     const onMouseEvent = (ev: MouseEvent): void => {
         sequence.push(ev);
-        if (sequence.length > 4) sequence.splice(1);
+        if (sequence.length > 4) sequence.shift();
     };
     const onDblClick = (ev: MouseEvent): void => {
         if (sequence.length === 4) {
