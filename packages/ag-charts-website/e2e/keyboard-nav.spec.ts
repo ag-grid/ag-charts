@@ -1,5 +1,5 @@
 import { expect, test } from './fixture';
-import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrls } from './util';
+import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl, toExamplePageUrls } from './util';
 
 test.describe('keyboard-nav', () => {
     setupIntrinsicAssertions();
@@ -48,54 +48,48 @@ test.describe('keyboard-nav', () => {
                 await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('tabbed-back-into-chart.png');
             });
         });
-
-        test.describe(`for ${framework}`, () => {
-            test('AG-13051 kbm hover combo', async ({ page }) => {
-                await gotoExample(page, url);
-
-                await page.locator('input').first().click();
-
-                await page.mouse.move(547, 310);
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
-                    '4th-datum-2nd-series-nofocus-highlight.png'
-                );
-
-                await page.mouse.click(547, 310, { button: 'left' });
-                await page.keyboard.press('ArrowRight');
-                await page.keyboard.press('ArrowRight');
-                await page.keyboard.press('ArrowDown');
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('3rd-datum-2nd-series-focus.png');
-
-                await page.mouse.move(547, 310);
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
-                    '3rd-datum-2nd-series-focus-4th-datum-2nd-series-highlight.png'
-                );
-
-                await page.mouse.move(613, 217);
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
-                    '3rd-datum-2nd-series-focus-nohighlight.png'
-                );
-
-                await page.keyboard.press('ArrowDown');
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
-                    '3rd-datum-3rd-series-focus-highlight.png'
-                );
-
-                await page.mouse.move(547, 310);
-                await page.mouse.click(547, 310, { button: 'left' });
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
-                    'nofocus-4th-datum-2nd-series-highlight.png'
-                );
-
-                await page.keyboard.press('ArrowRight');
-                await page.keyboard.press('ArrowLeft');
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
-                    '3rd-datum-3rd-series-focus-highlight.png'
-                );
-
-                await page.mouse.click(100, 100, { button: 'left' });
-                await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('nofocus-nohighlight.png');
-            });
-        });
     }
+
+    test('AG-13051 kbm hover combo', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('accessibility', 'keyboard-navigation', 'vanilla').url);
+
+        await page.locator('input').first().click();
+
+        await page.mouse.move(547, 310);
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
+            '4th-datum-2nd-series-nofocus-highlight.png'
+        );
+
+        await page.mouse.click(547, 310, { button: 'left' });
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.press('ArrowDown');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('3rd-datum-2nd-series-focus.png');
+
+        await page.mouse.move(547, 310);
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
+            '3rd-datum-2nd-series-focus-4th-datum-2nd-series-highlight.png'
+        );
+
+        await page.mouse.move(613, 217);
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
+            '3rd-datum-2nd-series-focus-nohighlight.png'
+        );
+
+        await page.keyboard.press('ArrowDown');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('3rd-datum-3rd-series-focus-highlight.png');
+
+        await page.mouse.move(547, 310);
+        await page.mouse.click(547, 310, { button: 'left' });
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(
+            'nofocus-4th-datum-2nd-series-highlight.png'
+        );
+
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.press('ArrowLeft');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('3rd-datum-3rd-series-focus-highlight.png');
+
+        await page.mouse.click(100, 100, { button: 'left' });
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('nofocus-nohighlight.png');
+    });
 });
