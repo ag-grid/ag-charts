@@ -11,6 +11,7 @@ import {
 
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { LineMarker } from '../gauge-util/lineMarker';
+import { type UnknownGaugeNodeDatum, parseUnknownGaugeNodeDatum } from '../gauge-util/properties';
 import { type GaugeStopProperties, getColorStops } from '../gauge-util/stops';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
 import {
@@ -58,7 +59,6 @@ interface TargetLabel {
     fontSize: number;
     fontFamily: string;
     spacing: number;
-    // formatter: Formatter<AgChartLabelFormatterParams<TDatum> & RequireOptional<TParams>>;
 }
 
 interface Target {
@@ -96,6 +96,7 @@ interface RadialGaugeNeedleDatum {
     centerY: number;
     radius: number;
     angle: number;
+    series: RadialGaugeSeries;
 }
 interface RadialGaugeNodeDataContext
     extends _ModuleSupport.SeriesNodeDataContext<RadialGaugeNodeDatum, RadialGaugeLabelDatum> {
@@ -209,8 +210,6 @@ export class RadialGaugeSeries
             ready: {
                 updateData: 'waiting',
                 clear: 'clearing',
-                // highlight: (data) => this.animateReadyHighlight(data),
-                // highlightMarkers: (data) => this.animateReadyHighlightMarkers(data),
                 resize: () => this.animateReadyResize(),
                 reset: 'empty',
                 skip: 'ready',
@@ -226,16 +225,13 @@ export class RadialGaugeSeries
             clearing: {
                 update: {
                     target: 'empty',
-                    // action: (data) => this.animateClearingUpdateEmpty(data),
                 },
                 reset: 'empty',
                 skip: 'ready',
             },
         });
 
-        this.itemGroup.pointerEvents = PointerEvents.None;
-        this.itemTargetLabelGroup.pointerEvents = PointerEvents.None;
-        this.itemLabelGroup.pointerEvents = PointerEvents.None;
+        this.scaleGroup.pointerEvents = PointerEvents.None;
     }
 
     override get hasData(): boolean {
@@ -629,6 +625,7 @@ export class RadialGaugeSeries
                 centerY,
                 radius: needleRadius,
                 angle: needleAngle,
+                series: this,
             });
         }
 
@@ -1139,54 +1136,13 @@ export class RadialGaugeSeries
         return [];
     }
 
-    private readonly nodeDatum: any = { series: this, datum: {} };
-    override pickNode(
-        point: _ModuleSupport.Point,
-        intent: _ModuleSupport.SeriesNodePickIntent
-    ): _ModuleSupport.PickResult | undefined {
-        switch (intent) {
-            case 'event':
-            case 'context-menu': {
-                const sectorTarget = this.scaleGroup.pickNode(point.x, point.y);
-                return sectorTarget != null
-                    ? {
-                          pickMode: _ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH,
-                          match: sectorTarget.datum,
-                          distance: 0,
-                      }
-                    : undefined;
-            }
-            case 'tooltip':
-            case 'highlight':
-            case 'highlight-tooltip': {
-                const highlightedTarget = this.itemTargetGroup.pickNode(point.x, point.y);
-                return highlightedTarget != null
-                    ? {
-                          pickMode: _ModuleSupport.SeriesNodePickMode.EXACT_SHAPE_MATCH,
-                          match: highlightedTarget.datum,
-                          distance: 0,
-                      }
-                    : {
-                          pickMode: _ModuleSupport.SeriesNodePickMode.NEAREST_NODE,
-                          match: this.nodeDatum,
-                          distance: 0,
-                      };
-            }
-        }
-    }
-
-    override getTooltipContent(
-        nodeDatum: _ModuleSupport.SeriesNodeDatum
-    ): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: UnknownGaugeNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
         const { id: seriesId, properties } = this;
         const { tooltip } = properties;
 
         if (!properties.isValid()) return;
 
-        const highlightDatum = this.highlightDatum(nodeDatum);
-
-        const value = highlightDatum?.value ?? properties.value;
-        const text = highlightDatum?.text;
+        const { value = properties.value, text = properties.label.text } = parseUnknownGaugeNodeDatum(nodeDatum);
 
         return tooltip.formatTooltip(
             {
