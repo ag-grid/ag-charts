@@ -317,7 +317,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             fill: highlightStyle?.fill ?? marker.fill!,
             fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
             stroke: highlightStyle?.stroke ?? marker.stroke!,
-            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
+            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(marker.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
         };
     }
