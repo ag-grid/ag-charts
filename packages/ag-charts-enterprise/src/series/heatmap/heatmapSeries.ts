@@ -532,6 +532,6 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         if (datum === undefined) return undefined;
         const { width, height, midPoint } = datum;
         const focusRect = { x: midPoint.x - width / 2, y: midPoint.y - height / 2, width, height };
-        return computeBarFocusBounds(focusRect);
+        return computeBarFocusBounds(this, focusRect);
     }
 }

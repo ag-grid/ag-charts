@@ -597,7 +597,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
-        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex]);
+        return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex]);
     }
 
     private legendItemSymbol(datumIndex: number): _ModuleSupport.LegendSymbolOptions {

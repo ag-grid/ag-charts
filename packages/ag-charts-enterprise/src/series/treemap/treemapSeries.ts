@@ -9,8 +9,19 @@ import {
 import { formatLabels } from '../util/labelFormatter';
 import { TreemapSeriesProperties } from './treemapSeriesProperties';
 
-const { TextUtils, TextWrapper, clamp, isNumberEqual, createDatumId, Rect, Group, BBox, Selection, Text } =
-    _ModuleSupport;
+const {
+    TextUtils,
+    TextWrapper,
+    clamp,
+    isNumberEqual,
+    createDatumId,
+    Rect,
+    Group,
+    BBox,
+    Selection,
+    Text,
+    Transformable,
+} = _ModuleSupport;
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
 
@@ -857,6 +868,6 @@ export class TreemapSeries<
     protected computeFocusBounds(
         node: _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
     ): _ModuleSupport.BBox | undefined {
-        return this.rectSelection.at(node.index)?.getBBox();
+        return Transformable.toCanvas(this.contentGroup, this.rectSelection.at(node.index)?.getBBox());
     }
 }

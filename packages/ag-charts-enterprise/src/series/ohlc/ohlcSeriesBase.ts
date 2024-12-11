@@ -559,6 +559,6 @@ export abstract class OhlcSeriesBase<
             width: width,
             height: height,
         };
-        return computeBarFocusBounds(datum);
+        return computeBarFocusBounds(this, datum);
     }
 }

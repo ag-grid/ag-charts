@@ -21,7 +21,7 @@ import { InteractionState } from '../interaction/interactionManager';
 import type { KeyNavEvent } from '../interaction/keyNavManager';
 import type { RegionEvent } from '../interaction/regionManager';
 import { TooltipManager } from '../interaction/tooltipManager';
-import { drawPickedFocus, getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
+import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
 import type { LayoutCompleteEvent } from '../layout/layoutManager';
 import type { ChartOverlays } from '../overlay/chartOverlays';
 import { DEFAULT_TOOLTIP_CLASS, Tooltip, type TooltipContent, tooltipContentAriaLabel } from '../tooltip/tooltip';
@@ -146,7 +146,7 @@ export class SeriesAreaManager extends BaseManager {
     public dataChanged() {
         this.highlight.stashedHoverEvent ??= this.highlight.appliedHoverEvent;
         this.chart.ctx.tooltipManager.removeTooltip(this.id);
-        this.focusIndicator.updateBounds(undefined);
+        this.focusIndicator.focus = undefined;
         this.clearHighlight();
     }
 
@@ -195,6 +195,7 @@ export class SeriesAreaManager extends BaseManager {
         this.hoverRect = event.series.paddedRect;
         this.seriesWidget.setBounds(event.series.paddedRect);
         this.chartWidget.setBounds(event.chart);
+        this.focusIndicator.rect = this.seriesRect;
     }
 
     private onContextMenu(event: RegionEvent<'contextmenu'>): void {
@@ -361,8 +362,8 @@ export class SeriesAreaManager extends BaseManager {
         if (overlayFocus == null) {
             this.handleSeriesFocus(seriesIndexDelta, datumIndexDelta);
         } else {
-            // @todo(AG-13619) - Pass in overlayFocus.rect
-            this.focusIndicator.updateBounds(new BBox(0, 0, overlayFocus.rect.width, overlayFocus.rect.height));
+            this.focusIndicator.focus = overlayFocus.rect;
+            this.focusIndicator.clip = false;
         }
     }
 
@@ -428,13 +429,8 @@ export class SeriesAreaManager extends BaseManager {
         }
 
         // Update the bounds of the focus indicator:
-        drawPickedFocus(
-            seriesRect != null ? new BBox(0, 0, seriesRect.width, seriesRect?.height) : undefined,
-            this.focusIndicator,
-            pick,
-            seriesRect?.x,
-            seriesRect?.y
-        );
+        this.focusIndicator.focus = pick.showFocusBox ? pick.bounds : undefined;
+        this.focusIndicator.clip = pick.clipFocusBox;
 
         const keyboardEvent = makeKeyboardPointerEvent(hoverRect, pick);
 
@@ -478,7 +474,7 @@ export class SeriesAreaManager extends BaseManager {
     private clearAll() {
         this.clearHighlight();
         this.clearTooltip();
-        this.focusIndicator.updateBounds(undefined);
+        this.focusIndicator.focus = undefined;
     }
 
     private readonly hoverScheduler = debouncedAnimationFrame(() => {

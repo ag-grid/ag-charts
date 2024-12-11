@@ -7,6 +7,7 @@ import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
 import type { DropShadow } from '../../../scene/dropShadow';
 import type { Rect } from '../../../scene/shape/rect';
+import { Transformable } from '../../../scene/transformable';
 import { isNegative } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import type { ChartAxis } from '../../chartAxis';
@@ -14,6 +15,7 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import { createDatumId } from '../../data/processors';
 import type { Series } from '../series';
 import type { SeriesItemHighlightStyle } from '../seriesProperties';
+import type { ISeries } from '../seriesTypes';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 
 export type RectConfig = {
@@ -302,10 +304,11 @@ export function resetBarSelectionsFn(_node: Rect, { x, y, width, height, clipBBo
 }
 
 export function computeBarFocusBounds(
+    series: ISeries<any, any>,
     datum: { x: number; y: number; width: number; height: number } | undefined
 ): BBox | undefined {
     if (datum === undefined) return undefined;
 
     const { x, y, width, height } = datum;
-    return new BBox(x, y, width, height);
+    return Transformable.toCanvas(series.contentGroup, new BBox(x, y, width, height));
 }

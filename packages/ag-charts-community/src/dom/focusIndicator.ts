@@ -2,13 +2,25 @@ import { BBox } from '../scene/bbox';
 import { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
 import { getDocument, getWindow, setElementBBox } from '../util/dom';
+import { ObserveChanges } from '../util/proxy';
 import type { FocusSwapChain } from './focusSwapChain';
+
+type Focus = Path | BBox;
 
 export class FocusIndicator {
     private readonly element: HTMLElement;
     private readonly svg: SVGSVGElement;
     private readonly path: SVGPathElement;
     private readonly div: HTMLDivElement;
+
+    @ObserveChanges<FocusIndicator>((target) => target.update())
+    rect: BBox | undefined = undefined;
+
+    @ObserveChanges<FocusIndicator>((target) => target.update())
+    focus: Focus | undefined = undefined;
+
+    @ObserveChanges<FocusIndicator>((target) => target.update())
+    clip: boolean = true;
 
     constructor(private readonly swapChain: FocusSwapChain) {
         this.div = getDocument().createElement('div');
@@ -23,35 +35,35 @@ export class FocusIndicator {
         this.swapChain.addListener('swap', (parent) => this.onSwap(parent));
     }
 
-    updateBounds(
-        bounds: Path | BBox | undefined,
-        clipRect?: BBox,
-        // @todo(AG-13619) - The path should be relative to the canvas, not the clipRect
-        fixmeTranslatePathX: number = 0,
-        fixmeTranslatePathY: number = 0
-    ) {
-        if (bounds === undefined) {
+    private update() {
+        const { focus, rect, clip } = this;
+
+        if (focus === undefined) {
             return;
-        } else if (bounds instanceof Path) {
+        } else if (focus instanceof Path) {
             const transform = (localX: number, localY: number) => {
-                let { x, y } = Transformable.toCanvasPoint(bounds, localX, localY);
-                x -= fixmeTranslatePathX;
-                y -= fixmeTranslatePathY;
+                let { x, y } = Transformable.toCanvasPoint(focus, localX, localY);
+                x -= rect?.x ?? 0;
+                y -= rect?.y ?? 0;
                 return { x, y };
             };
-            this.path.setAttribute('d', bounds.svgPathData(transform));
+            this.path.setAttribute('d', focus.svgPathData(transform));
             this.show(this.svg);
         } else {
-            if (clipRect == null) {
-                setElementBBox(this.div, bounds);
+            let bbox: BBox;
+            if (rect == null) {
+                bbox = focus;
+            } else if (clip) {
+                const x0 = Math.max(focus.x - rect.x, 0);
+                const y0 = Math.max(focus.y - rect.y, 0);
+                const x1 = Math.min(focus.x - rect.x + focus.width, rect.width);
+                const y1 = Math.min(focus.y - rect.y + focus.height, rect.height);
+                bbox = new BBox(x0, y0, x1 - x0, y1 - y0);
             } else {
-                const x0 = Math.max(bounds.x, clipRect.x);
-                const y0 = Math.max(bounds.y, clipRect.y);
-                const x1 = Math.min(bounds.x + bounds.width, clipRect.x + clipRect.width);
-                const y1 = Math.min(bounds.y + bounds.height, clipRect.y + clipRect.height);
-                setElementBBox(this.div, new BBox(x0, y0, x1 - x0, y1 - y0));
+                bbox = new BBox(focus.x - rect.x, focus.y - rect.y, focus.width, focus.height);
             }
 
+            setElementBBox(this.div, bbox);
             this.show(this.div);
         }
     }

@@ -12,6 +12,8 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
+const { Transformable } = _ModuleSupport;
+
 const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, TextUtils, createDatumId, Logger, Rect, BBox } =
     _ModuleSupport;
 
@@ -657,7 +659,7 @@ export class SankeySeries extends FlowProportionSeries<
         if (datum?.type === FlowProportionDatumType.Node) {
             const { x, y, width, height } = datum;
             const bbox = new BBox(x, y, width, height);
-            return bbox;
+            return Transformable.toCanvas(this.contentGroup, bbox);
         } else if (datum?.type === FlowProportionDatumType.Link) {
             for (const link of this.linkSelection) {
                 if (link.datum === datum) {
