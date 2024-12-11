@@ -1,7 +1,12 @@
 import { BBoxValues } from '../util/bboxinterface';
 import { getWindow } from '../util/dom';
 import { partialAssign } from '../util/object';
-import type { DragWidgetEvent, SequencedClickEvent, WidgetEventMap_Internal } from './widgetEvents';
+import type {
+    DragWidgetEvent,
+    SequencedClickEvent,
+    SequencedDblClickEvent,
+    WidgetEventMap_Internal,
+} from './widgetEvents';
 
 type EventMap = WidgetEventMap_Internal;
 type EventType = keyof WidgetEventMap_Internal;
@@ -78,18 +83,19 @@ function startDrag(that: { globalDragCallbacks?: DragCallbacks }, myCallbacks: D
     that.globalDragCallbacks.down(downEvent);
 }
 
-type ClickSequenceHandler = {
+type SequenceHandler = {
     destroy(): void;
 };
 
 function initClickSequencing(
     target: Targetable,
     clickCb: (target: Targetable, sequence: SequencedClickEvent['sequence'], sourceEvent: MouseEvent) => void
-): ClickSequenceHandler {
+): SequenceHandler {
     const elem = target.getElement();
     const sequence: MouseEvent[] = [];
     const onMouseEvent = (ev: MouseEvent): void => {
         sequence.push(ev);
+        if (sequence.length > 2) sequence.splice(1);
     };
     const onClick = (ev: MouseEvent): void => {
         if (sequence.length === 2) {
@@ -114,6 +120,41 @@ function initClickSequencing(
     };
 }
 
+function initDblClickSequencing(
+    target: Targetable,
+    dblClickCb: (target: Targetable, sequence: SequencedDblClickEvent['sequence'], sourceEvent: MouseEvent) => void
+): SequenceHandler {
+    const elem = target.getElement();
+    const sequence: MouseEvent[] = [];
+    const onMouseEvent = (ev: MouseEvent): void => {
+        sequence.push(ev);
+        if (sequence.length > 4) sequence.splice(1);
+    };
+    const onDblClick = (ev: MouseEvent): void => {
+        if (sequence.length === 4) {
+            const seq0 = sequence[0] as MouseEvent & { type: 'mousedown' };
+            const seq1 = sequence[1] as MouseEvent & { type: 'mouseup' };
+            const seq2 = sequence[2] as MouseEvent & { type: 'mousedown' };
+            const seq3 = sequence[3] as MouseEvent & { type: 'mouseup' };
+            dblClickCb(target, [seq0, seq1, seq2, seq3], ev);
+        } else {
+            dblClickCb(target, [], ev);
+        }
+        sequence.length = 0;
+    };
+
+    elem.addEventListener('mousedown', onMouseEvent);
+    elem.addEventListener('mouseup', onMouseEvent);
+    elem.addEventListener('dblclick', onDblClick);
+    return {
+        destroy() {
+            elem.removeEventListener('mousedown', onMouseEvent);
+            elem.removeEventListener('mouseup', onMouseEvent);
+            elem.removeEventListener('dblclick', onDblClick);
+        },
+    };
+}
+
 export class WidgetListenerInternal {
     private dragTriggerRemovers?: Map<EventHandler<Targetable>, () => void>;
     private dragStartListeners?: EventHandler<Targetable>[];
@@ -128,10 +169,8 @@ export class WidgetListenerInternal {
     static globalDragCallbacks?: DragCallbacks;
     private localDragCallbacks?: DragCallbacks;
 
-    private clickSequencing?: {
-        listeners: EventHandler<Targetable>[];
-        handler: ClickSequenceHandler;
-    };
+    private clickSequencing?: { listeners: EventHandler<Targetable>[]; handler: SequenceHandler };
+    private dblClickSequencing?: { listeners: EventHandler<Targetable>[]; handler: SequenceHandler };
 
     destroy(): void {
         this.dragTriggerRemovers?.forEach((fn) => fn());
@@ -170,6 +209,13 @@ export class WidgetListenerInternal {
                     handler: initClickSequencing(target, this.endSequencedClick.bind(this)),
                 };
                 this.clickSequencing.listeners.push(handler);
+            }
+            case 'sequenced-dblclick': {
+                this.dblClickSequencing ??= {
+                    listeners: [],
+                    handler: initDblClickSequencing(target, this.endSequencedDblClick.bind(this)),
+                };
+                this.dblClickSequencing.listeners.push(handler);
             }
         }
     }
@@ -252,6 +298,24 @@ export class WidgetListenerInternal {
         this.dispatch('sequenced-click', current, event);
     }
 
+    private endSequencedDblClick<T extends Targetable>(
+        current: T,
+        sequence: SequencedDblClickEvent['sequence'],
+        sourceEvent: MouseEvent
+    ) {
+        const { offsetX, offsetY, clientX, clientY } = sourceEvent;
+        const event: SequencedDblClickEvent = {
+            type: 'sequenced-dblclick',
+            offsetX,
+            offsetY,
+            clientX,
+            clientY,
+            sourceEvent,
+            sequence,
+        };
+        this.dispatch('sequenced-dblclick', current, event);
+    }
+
     private dispatch<T extends Targetable, K extends EventType>(type: K, current: T, event: EventMap[K]): void {
         switch (type) {
             case 'drag-start':
@@ -262,6 +326,8 @@ export class WidgetListenerInternal {
                 return this.dragEndListeners?.forEach((handler) => handler(event, current));
             case 'sequenced-click':
                 return this.clickSequencing?.listeners.forEach((handler) => handler(event, current));
+            case 'sequenced-dblclick':
+                return this.dblClickSequencing?.listeners.forEach((handler) => handler(event, current));
         }
     }
 }
