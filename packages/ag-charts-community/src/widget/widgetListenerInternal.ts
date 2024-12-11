@@ -58,8 +58,6 @@ function startDrag(that: { globalDragCallbacks?: DragCallbacks }, myCallbacks: D
 
     const mouseup = (upEvent: MouseEvent) => {
         if (upEvent.button === 0) {
-            upEvent.stopPropagation();
-            upEvent.stopImmediatePropagation();
             window.removeEventListener('mousedown', mousegeneral, { capture: true });
             window.removeEventListener('mouseenter', mousegeneral, { capture: true });
             window.removeEventListener('mouseleave', mousegeneral, { capture: true });
