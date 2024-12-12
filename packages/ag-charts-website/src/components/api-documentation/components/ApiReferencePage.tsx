@@ -59,14 +59,16 @@ export function ApiReferencePage({
         return null;
     }
 
+    basePath = `${urlWithBaseUrl(`/${basePath}`)}/`;
+
     return (
         <ApiReferenceContext.Provider value={reference}>
             <ApiReferenceConfigContext.Provider value={{ hideHeader: true, specialTypes, keepExpanded }}>
-                <SelectionContext.Provider value={{ selection, setSelection, rootInterface }}>
+                <SelectionContext.Provider value={{ selection, setSelection, rootInterface, basePath }}>
                     <div className={classNames(styles.container, 'layout-grid')}>
                         <div className={styles.objectViewOuter}>
                             <OptionsNavigation
-                                basePath={`${urlWithBaseUrl(`/${basePath}`)}/`}
+                                basePath={basePath}
                                 breadcrumbs={breadcrumbs}
                                 rootInterface={rootInterface}
                             />
