@@ -76,12 +76,6 @@ export default [
         },
     },
     {
-        rules: {
-            // TODO: Remove these
-            '@typescript-eslint/await-thenable': 'warn',
-        },
-    },
-    {
         // TODO: Remove these
         ignores: [
             '*.mjs',
