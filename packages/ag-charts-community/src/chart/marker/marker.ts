@@ -41,10 +41,15 @@ class InternalMarker extends Path {
             return this.path.computeBBox();
         }
 
-        const { x, y, size } = this;
+        const { x, y, size, strokeWidth } = this;
         const { center } = this.constructor as any;
 
-        return new BBox(x - size * center.x, y - size * center.y, size, size);
+        return new BBox(
+            x - size * center.x - strokeWidth / 2,
+            y - size * center.y - strokeWidth / 2,
+            size + strokeWidth / 2,
+            size + strokeWidth / 2
+        );
     }
 
     protected applyPath(s: number, moves: MarkerPathMove[]) {

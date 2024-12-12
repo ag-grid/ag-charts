@@ -113,6 +113,7 @@ export class Group extends Node {
 
         let { image } = this;
         if (this.isDirty(renderCtx)) {
+            image?.bitmap.close();
             image = undefined;
 
             const bbox = layer ? BBox.NaN : this.computeBBox();
@@ -134,14 +135,16 @@ export class Group extends Node {
                 layer.clear();
                 renderOffscreen(layer.context, ctx.getTransform());
             } else if (bbox.isFinite()) {
-                const x = Math.floor(bbox.x);
-                const y = Math.floor(bbox.y);
-                const width = Math.ceil(bbox.x + bbox.width) - x;
-                const height = Math.ceil(bbox.y + bbox.height) - y;
+                // Align bbox to pixels, and pad by 1 pixel for anti-aliasing artefacts.
+                const x = Math.floor(bbox.x) - 1;
+                const y = Math.floor(bbox.y) - 1;
+                const width = Math.ceil(bbox.x + bbox.width) - x + 1;
+                const height = Math.ceil(bbox.y + bbox.height) - y + 1;
 
                 if (sharedOffscreenCanvas == null || sharedOffscreenCanvas.pixelRatio !== pixelRatio) {
                     sharedOffscreenCanvas = new HdpiOffscreenCanvas({ width, height, pixelRatio });
                 } else {
+                    sharedOffscreenCanvas.clear();
                     sharedOffscreenCanvas.resize(width, height);
                 }
 
