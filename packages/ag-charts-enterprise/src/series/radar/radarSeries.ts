@@ -729,9 +729,6 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
-        const bbox = computeMarkerFocusBounds(this, opts);
-        const { translationX, translationY } = this.contentGroup;
-        bbox?.translate(translationX, translationY);
-        return bbox;
+        return computeMarkerFocusBounds(this, opts);
     }
 }

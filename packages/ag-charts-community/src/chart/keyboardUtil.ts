@@ -1,4 +1,3 @@
-import type { FocusIndicator } from '../dom/focusIndicator';
 import { BBox } from '../scene/bbox';
 import type { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
@@ -26,24 +25,6 @@ function computeCenter(hoverRect: BBox, pick: PickProperties) {
         };
     }
     return Transformable.toCanvas(bboxOrPath).computeCenter();
-}
-
-export function drawPickedFocus(
-    seriesRect: BBox | undefined,
-    focusIndicator: FocusIndicator | undefined,
-    pick: PickProperties,
-    fixmeTranslatePathX?: number,
-    fixmeTranslatePathY?: number
-) {
-    const { bounds, showFocusBox, clipFocusBox = true } = pick;
-    if (showFocusBox) {
-        focusIndicator?.updateBounds(
-            bounds,
-            clipFocusBox ? seriesRect : undefined,
-            fixmeTranslatePathX,
-            fixmeTranslatePathY
-        );
-    }
 }
 
 export function getPickedFocusBBox({ bounds }: PickProperties): BBox {

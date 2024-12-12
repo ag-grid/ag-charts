@@ -21,6 +21,7 @@ const {
     LinearScale,
     Selection,
     Text,
+    Transformable,
 } = _ModuleSupport;
 
 interface MapLineNodeDataContext
@@ -670,6 +671,6 @@ export class MapLineSeries extends TopologySeries<
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         const geometry = findFocusedGeoGeometry(this, opts);
-        return geometry ? geometry.getBBox() : undefined;
+        return geometry ? Transformable.toCanvas(this.contentGroup, geometry.getBBox()) : undefined;
     }
 }
