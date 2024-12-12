@@ -66,7 +66,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                     <ExampleIFrame
                         title={title}
                         isHidden={showCode}
-                        url={exampleRunnerExampleUrl!}
+                        url={exampleRunnerExampleUrl}
                         loadingIFrameId={loadingIFrameId}
                     />
                     {exampleFiles && !hideCode && (
@@ -86,7 +86,7 @@ export const ExampleRunner: FunctionComponent<Props> = ({
                         {!hideCode && (
                             <button
                                 className={classnames(styles.previewCodeToggle, 'button-secondary')}
-                                onClick={(e) => {
+                                onClick={() => {
                                     setShowCode(!showCode);
                                 }}
                             >

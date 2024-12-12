@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
 import { parseScript } from 'esprima';
 
 export const transform = (snippet, framework, options) => {
@@ -168,7 +169,7 @@ class ReactTransformer extends SnippetTransformer {
     inlineProperties = [];
     inlinePropertiesWithValues = [];
 
-    parseProperty(property, depth) {
+    parseProperty(property) {
         const propertyName = getName(property);
         // keep track of visited properties for framework context
         this.propertiesVisited.push(getName(property));

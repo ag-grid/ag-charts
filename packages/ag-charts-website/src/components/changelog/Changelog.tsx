@@ -1,14 +1,9 @@
 import { Alert } from '@ag-website-shared/components/alert/Alert';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-// @ts-expect-error
 import ChevronButtonCellRenderer from '@components/grid/ChevronButtonRenderer';
-// @ts-expect-error
 import DetailCellRenderer from '@components/grid/DetailCellRendererComponent';
-// @ts-expect-error
 import { Grid } from '@components/grid/Grid';
-// @ts-expect-error
 import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
-// @ts-expect-error
 import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
 import ReleaseVersionNotes from '@components/release-notes/ReleaseVersionNotes';
 import styles from '@pages-styles/pipelineChangelog.module.scss';
@@ -24,7 +19,7 @@ const ALL_FIX_VERSIONS = 'All Versions';
 const browserHistory = import.meta.env.SSR ? null : createBrowserHistory();
 
 export function useLocation() {
-    const [location, setLocation] = useState<any>(browserHistory?.location ?? null);
+    const [location] = useState<any>(browserHistory?.location ?? null);
     return location;
 }
 
@@ -37,7 +32,6 @@ const gridToChartVersion = (gridVersion: string) => {
     return `${chartMajorVersion}.${versionParts[1]}.${versionParts[2]}`;
 };
 
-// @ts-expect-error
 export const Changelog = () => {
     const extractFixVersionParameter = (location: any) => {
         const fixVersionParam = new URLSearchParams(location.search).get('fixVersion');
@@ -54,9 +48,8 @@ export const Changelog = () => {
     const [gridApi, setGridApi] = useState<any>(null);
     const [versions, setVersions] = useState<string[]>([]);
     const [allReleaseNotes, setAllReleaseNotes] = useState<any>(null);
-    const [currentReleaseNotes, setCurrentReleaseNotes] = useState<any>(null);
     const [markdownContent, setMarkdownContent] = useState<any>(undefined);
-    const [fixVersion, setFixVersion] = useState(extractFixVersionParameter(location) || ALL_FIX_VERSIONS);
+    const [fixVersion, setFixVersion] = useState(extractFixVersionParameter(location) ?? ALL_FIX_VERSIONS);
     const URLFilterItemKey = useState(extractFilterTerm(location))[0];
     const searchBarEl = useRef<any>(null);
     const autoSizeStrategy = useMemo(() => ({ type: 'fitGridWidth' }), []);
@@ -85,7 +78,7 @@ export const Changelog = () => {
     const [darkMode] = useDarkmode();
 
     useEffect(() => {
-        fetch(urlWithBaseUrl(`/changelog/changelog.json`))
+        void fetch(urlWithBaseUrl(`/changelog/changelog.json`))
             .then((response) => response.json())
             .then((data) => {
                 const chartVersions = [
@@ -107,7 +100,7 @@ export const Changelog = () => {
                 setVersions(allVersions);
                 setRowData(data);
             });
-        fetch(urlWithBaseUrl(`/changelog/releaseVersionNotes.json`))
+        void fetch(urlWithBaseUrl(`/changelog/releaseVersionNotes.json`))
             .then((response) => response.json())
             .then((data) => {
                 setAllReleaseNotes(data);
@@ -132,29 +125,23 @@ export const Changelog = () => {
                 element['release version'].includes(releaseNotesVersion)
             );
 
-            let currentReleaseNotesHtml = null;
-
             if (releaseNotes) {
                 if (releaseNotes['markdown']) {
                     fetch(urlWithBaseUrl(`/changelog` + releaseNotes['markdown']))
                         .then((response) => response.text())
-                        .then((markdownContent) => {
-                            setMarkdownContent(markdownContent);
+                        .then((mdContent) => {
+                            setMarkdownContent(mdContent);
                         })
                         .catch((error) => {
                             // eslint-disable-next-line no-console
                             console.error('Error fetching Markdown content:', error);
                         });
                 } else {
-                    currentReleaseNotesHtml = Object.keys(releaseNotes)
-                        .map((element) => releaseNotes[element])
-                        .join(' ');
                     setMarkdownContent(undefined);
                 }
             } else {
                 setMarkdownContent(undefined);
             }
-            setCurrentReleaseNotes(currentReleaseNotesHtml);
         }
     }, [fixVersion, allReleaseNotes]);
 
@@ -179,10 +166,10 @@ export const Changelog = () => {
     }, []);
 
     const switchDisplayedFixVersion = useCallback(
-        (fixVersion: any) => {
-            setFixVersion(fixVersion);
+        (version: any) => {
+            setFixVersion(version);
             const url = new URL(window.location as any);
-            url.searchParams.set('fixVersion', fixVersion);
+            url.searchParams.set('fixVersion', version);
             window.history.pushState({}, '', url);
         },
         [setFixVersion]
@@ -365,7 +352,7 @@ export const Changelog = () => {
                         </Alert>
 
                         <ReleaseVersionNotes
-                            releaseNotes={fixVersion === ALL_FIX_VERSIONS ? undefined : releaseNotesMarkdownContent}
+                            releaseNotes={releaseNotesMarkdownContent}
                             markdownContent={markdownContent}
                             versions={versions}
                             fixVersion={fixVersion}

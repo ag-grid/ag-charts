@@ -10,7 +10,7 @@ test.describe('icons', () => {
         test('icons', async ({ page }) => {
             await gotoExample(page, url);
 
-            const icons = await page.locator('.icons');
+            const icons = page.locator('.icons');
             await expect(icons).toHaveScreenshot('icons.png');
         });
 

@@ -117,7 +117,7 @@ export const SystemJs = ({ boilerplatePath, appLocation, startFile, internalFram
                     __html: `
             var appLocation = '${appLocation}';
             var boilerplatePath = '${boilerplatePath}';
-            var systemJsMap = ${format(configuration.chartMap!)};
+            var systemJsMap = ${format(configuration.chartMap)};
             ${
                 Object.keys(configuration.chartPaths).length > 0
                     ? `var systemJsPaths = ${format(configuration.chartPaths)};`

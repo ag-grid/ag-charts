@@ -65,12 +65,13 @@ const Collapsible: FunctionComponent<Props> = ({
                         onChange={(event) => onChange(event.target.value)}
                         onClick={(event) => event.stopPropagation()} // Prevent event propagation
                     >
-                        {versions &&
-                            versions.map((version) => (
-                                <option key={version} value={version}>
-                                    {version}
-                                </option>
-                            ))}
+                        {versions
+                            ? versions.map((version) => (
+                                  <option key={version} value={version}>
+                                      {version}
+                                  </option>
+                              ))
+                            : null}
                     </select>
                 </div>
             </button>

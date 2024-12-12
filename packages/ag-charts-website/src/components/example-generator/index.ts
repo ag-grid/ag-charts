@@ -1,10 +1,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
-import type { AgChartThemeName } from 'ag-charts-community';
-
 import { getIsDev } from '../../utils/env';
-import { getExampleRootFileUrl, getThumbnailRootFileUrl } from '../../utils/pages';
+import { getExampleRootFileUrl } from '../../utils/pages';
 import type { InternalFramework } from './types';
 
 type GeneratedExampleParams = ExampleParams & (GalleryExampleParams | DocsExampleParams);

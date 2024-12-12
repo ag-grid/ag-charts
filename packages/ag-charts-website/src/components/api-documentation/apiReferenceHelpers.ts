@@ -147,9 +147,9 @@ export function processMembers(
             let omit: string[] | undefined;
             let memberType = normalizeType(member.type);
             if (memberType === 'Omit') {
-                const { typeArguments } = member.type as any;
-                memberType = typeArguments[0];
-                omit = typeArguments[1];
+                const { typeArguments: memberTypeArguments } = member.type;
+                memberType = memberTypeArguments[0];
+                omit = memberTypeArguments[1];
             }
             return genericsMap.has(memberType) ? { ...member, type: genericsMap.get(memberType), omit } : member;
         }
@@ -164,10 +164,10 @@ export function formatTypeToCode(
 ): string {
     if (apiNode.kind === 'interface') {
         return `interface ${apiNode.name} {\n    ${apiNode.members
-            .map((member) => {
-                const memberString = `${member.name}${member.optional ? '?' : ''}: ${normalizeType(member.type)};`;
-                if (member.docs) {
-                    return member.docs
+            .map((nodeMember) => {
+                const memberString = `${nodeMember.name}${nodeMember.optional ? '?' : ''}: ${normalizeType(nodeMember.type)};`;
+                if (nodeMember.docs) {
+                    return nodeMember.docs
                         .map((docsLine: string) => `// ${docsLine}`)
                         .concat(memberString)
                         .join('\n    ');
@@ -201,7 +201,7 @@ export function formatTypeToCode(
                                 !hiddenInterfaces.includes(type) &&
                                 !('deprecated' in reference.get(type)!)
                             ) {
-                                return formatTypeToCode(reference.get(type)!, member, reference);
+                                return formatTypeToCode(reference.get(type), member, reference);
                             }
                         })
                         .filter(<T>(x: T | undefined): x is T => Boolean(x))
@@ -245,7 +245,8 @@ function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberN
 
             if (typeof apiNode.returnType === 'object' && apiNode.returnType.kind === 'union') {
                 apiNode.returnType.type = apiNode.returnType.type.map(
-                    (type) => typeArguments[typeParams.findIndex((param) => param.name === type)] ?? type
+                    (returnType) =>
+                        typeArguments[typeParams.findIndex((param) => param.name === returnType)] ?? returnType
                 );
             } else {
                 apiNode.returnType =
@@ -358,7 +359,7 @@ export function extractSearchData(
                 results.push(
                     ...extractSearchData(
                         reference,
-                        reference.get(genericsMap?.[member.type] ?? member.type)!,
+                        reference.get(genericsMap?.[member.type] ?? member.type),
                         navPath,
                         `${labelPrefix}${cleanupName(member.name)}.`
                     )
@@ -372,7 +373,7 @@ export function extractSearchData(
                 results.push(
                     ...extractSearchData(
                         reference,
-                        reference.get(member.type.type)!,
+                        reference.get(member.type.type),
                         navPath,
                         `${labelPrefix}${cleanupName(member.name)}.`
                     )
@@ -394,7 +395,7 @@ export function extractSearchData(
                     if (subtypeRef?.kind === 'interface') {
                         const typeMember = subtypeRef.members.find((member) => member.name === 'type');
                         if (typeMember) {
-                            const label = `${labelPrefix.replace(/\.$/, '')}[type=${typeMember.type}]`;
+                            const label = `${labelPrefix.replace(/\.$/, '')}[type=${typeMember.type as string}]`;
                             const navPath = basePath.concat({
                                 name: cleanupName(getMemberType(typeMember)),
                                 type: typeName,
