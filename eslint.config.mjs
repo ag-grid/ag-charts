@@ -76,7 +76,7 @@ export default [
             '**/typings',
             '**/eslint.config.mjs',
             '**/jest.*.{cjs,js}',
-            '.dependency-cruiser.js',
+            '**/.dependency-cruiser.js',
         ],
     },
     pluginJs.configs.recommended,

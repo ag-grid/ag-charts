@@ -31,12 +31,12 @@ export function transformMarkdoc({ framework, markdocContent, transformAst }: Pa
             headingSlugger,
         },
     };
-    const renderTree = Markdoc.transform(ast as Node, config as ConfigType);
+    const renderTree = Markdoc.transform(ast, config as ConfigType);
 
     // Strip outer document and p tag, so react will just render the
     // inline content
     const partialAst = ast.children[0]?.children[0] ?? ast;
-    const partialRenderTree = Markdoc.transform(partialAst as Node, config as ConfigType);
+    const partialRenderTree = Markdoc.transform(partialAst, config as ConfigType);
     const MarkdocContent = () => Markdoc.renderers.react(partialRenderTree, React);
 
     return {

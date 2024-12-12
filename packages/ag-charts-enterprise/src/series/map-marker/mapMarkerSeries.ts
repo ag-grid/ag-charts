@@ -565,14 +565,13 @@ export class MapMarkerSeries
     private getMarkerItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
         return {
             size: properties.size,
             fill: highlightStyle?.fill ?? properties.fill,
             fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
             stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
         };
     }

@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 
 import type { BaseFunnelProperties } from './baseFunnelSeriesProperties';
 import { FunnelConnector } from './funnelConnector';
@@ -20,7 +20,6 @@ const {
     resetLabelFn,
     animationValidation,
     computeBarFocusBounds,
-    createDatumId,
     ContinuousScale,
     Group,
     Selection,
@@ -516,9 +515,11 @@ export abstract class BaseFunnelSeries<
         });
     }
 
+    protected abstract tooltipStyle(datum: any, datumIndex: number): Required<AgFunnelSeriesStyle>;
+
     override getTooltipContent(nodeDatum: FunnelNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
-        const { fills, strokes, stageKey, valueKey, tooltip, itemStyler } = properties;
+        const { stageKey, valueKey, tooltip } = properties;
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
@@ -533,31 +534,12 @@ export abstract class BaseFunnelSeries<
 
         if (xValue == null) return;
 
-        const format = {
-            fill: fills[datumIndex % fills.length],
-            stroke: strokes[datumIndex % strokes.length],
-            ...this.barStyle(),
-        };
-        if (itemStyler != null) {
-            const itemStyle = this.cachedDatumCallback(createDatumId(String(datumIndex), 'node'), () => {
-                return itemStyler({
-                    seriesId,
-                    datum,
-                    stageKey,
-                    valueKey,
-                    highlighted: false,
-                    ...format,
-                });
-            });
-            Object.assign(format, itemStyle);
-        }
-
         return tooltip.formatTooltip(
             {
                 symbol: this.legendItemSymbol(datumIndex),
                 data: [{ label: xAxis.formatDatum(xValue), value: yAxis.formatDatum(yValue) }],
             },
-            { seriesId, datum, title: stageKey, stageKey, valueKey, ...format }
+            { seriesId, datum, title: stageKey, stageKey, valueKey, ...this.tooltipStyle(datum, datumIndex) }
         );
     }
 
@@ -597,7 +579,7 @@ export abstract class BaseFunnelSeries<
     }
 
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
-        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex]);
+        return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex]);
     }
 
     private legendItemSymbol(datumIndex: number): _ModuleSupport.LegendSymbolOptions {

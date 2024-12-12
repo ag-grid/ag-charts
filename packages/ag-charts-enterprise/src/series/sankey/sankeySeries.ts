@@ -12,6 +12,8 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
+const { Transformable } = _ModuleSupport;
+
 const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, TextUtils, createDatumId, Logger, Rect, BBox } =
     _ModuleSupport;
 
@@ -372,7 +374,6 @@ export class SankeySeries extends FlowProportionSeries<
     protected getBaseNodeStyle(highlighted: boolean): NodeStyle {
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.node;
-        const strokeWidth = this.getStrokeWidth(properties.node.strokeWidth);
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return {
@@ -380,7 +381,7 @@ export class SankeySeries extends FlowProportionSeries<
             fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
             stroke: highlightStyle?.stroke ?? stroke,
             strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
-            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.node.strokeWidth),
             lineDash: highlightStyle?.lineDash ?? lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
         };
@@ -490,7 +491,6 @@ export class SankeySeries extends FlowProportionSeries<
     protected getBaseLinkStyle(highlighted: boolean): LinkStyle {
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.link;
-        const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return {
@@ -498,7 +498,7 @@ export class SankeySeries extends FlowProportionSeries<
             fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
             stroke: highlightStyle?.stroke ?? stroke,
             strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
-            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.link.strokeWidth),
             lineDash: highlightStyle?.lineDash ?? lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
         };
@@ -657,7 +657,7 @@ export class SankeySeries extends FlowProportionSeries<
         if (datum?.type === FlowProportionDatumType.Node) {
             const { x, y, width, height } = datum;
             const bbox = new BBox(x, y, width, height);
-            return bbox;
+            return Transformable.toCanvas(this.contentGroup, bbox);
         } else if (datum?.type === FlowProportionDatumType.Link) {
             for (const link of this.linkSelection) {
                 if (link.datum === datum) {

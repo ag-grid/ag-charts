@@ -400,11 +400,13 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const { properties } = this;
         const { cornerRadius, cap, whisker } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
+
         return {
             fill: highlightStyle?.fill ?? properties.fill,
             fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
             stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? properties.strokeWidth,
+            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
@@ -556,6 +558,6 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
-        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex].focusRect);
+        return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex].focusRect);
     }
 }

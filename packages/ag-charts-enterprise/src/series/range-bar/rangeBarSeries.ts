@@ -9,8 +9,6 @@ const {
     valueProperty,
     keyProperty,
     ChartAxisDirection,
-    getRectConfig,
-    updateRect,
     checkCrisp,
     updateLabelNode,
     SMALLEST_KEY_INTERVAL,
@@ -497,11 +495,12 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const { properties } = this;
         const { cornerRadius } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+
         return {
             fill: highlightStyle?.fill ?? properties.fill,
             fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
             stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? properties.strokeWidth,
+            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
@@ -539,49 +538,25 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { id: seriesId } = this;
-        const {
-            yLowKey,
-            yHighKey,
-            highlightStyle: { item: itemHighlightStyle },
-            fillOpacity,
-            strokeOpacity,
-            strokeWidth,
-            lineDash,
-            lineDashOffset,
-            itemStyler,
-            shadow: fillShadow,
-        } = this.properties;
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
-        datumSelection.each((rect, datum) => {
-            const style: _ModuleSupport.RectConfig = {
-                fill: datum.fill,
-                stroke: datum.stroke,
-                fillOpacity,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                fillShadow,
-                strokeWidth: this.getStrokeWidth(strokeWidth),
-                cornerRadius: this.properties.cornerRadius,
-            };
-            const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
+        const style = this.getItemBaseStyle(isHighlight);
 
-            const config = getRectConfig(this, this.getDatumId(datum), {
-                datum,
-                isHighlighted: isHighlight,
-                style,
-                highlightStyle: itemHighlightStyle,
-                itemStyler,
-                seriesId,
-                yLowKey,
-                yHighKey,
-            });
-            config.crisp = datum.crisp;
-            config.visible = visible;
-            updateRect(rect, config);
+        datumSelection.each((rect, datum) => {
+            const overrides = this.getItemStyleOverrides(String(datum.datumIndex), datum.datum, style, isHighlight);
+
+            rect.fill = overrides?.fill ?? style.fill;
+            rect.fillOpacity = overrides?.fillOpacity ?? style.fillOpacity;
+            rect.stroke = overrides?.stroke ?? style.stroke;
+            rect.strokeOpacity = overrides?.strokeOpacity ?? style.strokeOpacity;
+            rect.strokeWidth = overrides?.strokeWidth ?? style.strokeWidth;
+            rect.lineDash = overrides?.lineDash ?? style.lineDash;
+            rect.lineDashOffset = overrides?.lineDashOffset ?? style.lineDashOffset;
+
+            rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
+
+            rect.crisp = datum.crisp;
         });
     }
 
@@ -721,6 +696,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     protected override onDataChange() {}
 
     protected computeFocusBounds({ datumIndex }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
-        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex]);
+        return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex]);
     }
 }

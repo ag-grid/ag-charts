@@ -114,7 +114,7 @@ export function getHeadings({
             headingSlugger,
         },
     };
-    const renderTree = Markdoc.transform(ast as Node, config as ConfigType);
+    const renderTree = Markdoc.transform(ast, config as ConfigType);
     if (!renderTree) {
         return [];
     }

@@ -152,10 +152,10 @@ function convertPageUrls(path: string) {
     return pages
         .filter((r) => frameworks?.includes(r.framework) !== false)
         .map(
-            ({ url, example, framework }): ExampleOptions => ({
+            ({ url, example: pageExample, framework }): ExampleOptions => ({
                 pagePath,
                 url,
-                example,
+                example: pageExample,
                 framework,
                 status,
                 clickOrder,
@@ -183,6 +183,7 @@ test.describe('examples', () => {
                 ignoreConsoleWarnings,
             } = opts;
 
+            // eslint-disable-next-line @typescript-eslint/unbound-method
             const testFn = affected ? test : test.skip;
 
             test.describe(`Framework: ${framework}`, () => {

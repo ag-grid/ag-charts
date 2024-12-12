@@ -37,14 +37,11 @@ import { datumStylerProperties, visibleRangeIndices } from '../util';
 import { AbstractBarSeries } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
 import {
-    type RectConfig,
     checkCrisp,
     collapsedStartingBarPosition,
     computeBarFocusBounds,
-    getRectConfig,
     prepareBarAnimationFunctions,
     resetBarSelectionsFn,
-    updateRect,
 } from './barUtil';
 import {
     type CartesianAnimationData,
@@ -669,11 +666,12 @@ export class BarSeries extends AbstractBarSeries<
         const { properties } = this;
         const { cornerRadius } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+
         return {
             fill: highlightStyle?.fill ?? properties.fill,
             fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
             stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? properties.strokeWidth,
+            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash ?? [],
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
@@ -716,21 +714,7 @@ export class BarSeries extends AbstractBarSeries<
             return;
         }
 
-        const {
-            xKey,
-            yKey,
-            stackGroup,
-            fill,
-            fillOpacity,
-            stroke,
-            strokeWidth,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            itemStyler,
-            shadow,
-            highlightStyle: { item: itemHighlightStyle },
-        } = this.properties;
+        const { shadow } = this.properties;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         const crisp =
@@ -738,44 +722,37 @@ export class BarSeries extends AbstractBarSeries<
             checkCrisp(xAxis?.scale, xAxis?.visibleRange, this.smallestDataInterval, this.largestDataInterval);
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
-        const style: RectConfig = {
-            fill,
-            stroke,
-            lineDash,
-            lineDashOffset,
-            fillShadow: shadow,
-            strokeWidth: this.getStrokeWidth(strokeWidth),
-            fillOpacity: 0,
-            strokeOpacity: 0,
-        };
-        const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
-        const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
-        opts.datumSelection.each((rect, datum) => {
-            const rectParams = {
-                seriesId: this.id,
-                isHighlighted: opts.isHighlight,
-                highlightStyle: itemHighlightStyle,
-                style,
-                itemStyler,
-                stackGroup,
-                ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
-            };
+        const style = this.getItemBaseStyle(opts.isHighlight);
 
-            style.fillOpacity = fillOpacity * (datum.phantom ? 0.2 : 1);
-            style.strokeOpacity = strokeOpacity * (datum.phantom ? 0.2 : 1);
-            style.cornerRadius = datum.cornerRadius;
-            style.topLeftCornerRadius = datum.topLeftCornerRadius;
-            style.topRightCornerRadius = datum.topRightCornerRadius;
-            style.bottomRightCornerRadius = datum.bottomRightCornerRadius;
-            style.bottomLeftCornerRadius = datum.bottomLeftCornerRadius;
-            const visible = categoryAlongX
+        opts.datumSelection.each((rect, datum) => {
+            const overrides = this.getItemStyleOverrides(
+                String(datum.datumIndex),
+                datum.datum,
+                datum.xValue,
+                datum.yValue,
+                style,
+                opts.isHighlight
+            );
+
+            rect.fill = overrides?.fill ?? style.fill;
+            rect.fillOpacity = (overrides?.fillOpacity ?? style.fillOpacity) * (datum.phantom ? 0.2 : 1);
+            rect.stroke = overrides?.stroke ?? style.stroke;
+            rect.strokeOpacity = (overrides?.strokeOpacity ?? style.strokeOpacity) * (datum.phantom ? 0.2 : 1);
+            rect.strokeWidth = overrides?.strokeWidth ?? style.strokeWidth;
+            rect.lineDash = overrides?.lineDash ?? style.lineDash;
+            rect.lineDashOffset = overrides?.lineDashOffset ?? style.lineDashOffset;
+
+            rect.topLeftCornerRadius = datum.topLeftCornerRadius ? datum.cornerRadius : 0;
+            rect.topRightCornerRadius = datum.topRightCornerRadius ? datum.cornerRadius : 0;
+            rect.bottomRightCornerRadius = datum.bottomRightCornerRadius ? datum.cornerRadius : 0;
+            rect.bottomLeftCornerRadius = datum.bottomLeftCornerRadius ? datum.cornerRadius : 0;
+
+            rect.visible = categoryAlongX
                 ? (datum.clipBBox?.width ?? datum.width) > 0
                 : (datum.clipBBox?.height ?? datum.height) > 0;
 
-            const config = getRectConfig(this, this.getDatumId(datum), rectParams);
-            config.crisp = crisp;
-            config.visible = visible;
-            updateRect(rect, config);
+            rect.crisp = crisp;
+            rect.fillShadow = shadow;
         });
     }
 
@@ -943,6 +920,6 @@ export class BarSeries extends AbstractBarSeries<
 
     protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
         const datumBox = this.contextNodeData?.nodeData[datumIndex].clipBBox;
-        return computeBarFocusBounds(datumBox);
+        return computeBarFocusBounds(this, datumBox);
     }
 }

@@ -41,8 +41,8 @@ export async function GET({ params }: { params: Params }) {
         (await getGeneratedContents({
             type: 'gallery',
             exampleName,
-        })) || {};
-    const file = files && files[fileName];
+        })) ?? {};
+    const file = files ? files[fileName] : undefined;
     const body = file ? file : createErrorBody({ availableFiles: files });
 
     const response = new Response(body, {

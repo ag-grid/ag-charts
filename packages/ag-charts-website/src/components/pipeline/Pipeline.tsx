@@ -1,14 +1,9 @@
 import { Alert } from '@ag-website-shared/components/alert/Alert';
 import { Icon } from '@ag-website-shared/components/icon/Icon';
-// @ts-expect-error
 import ChevronButtonCellRenderer from '@components/grid/ChevronButtonRenderer';
-// @ts-expect-error
 import DetailCellRenderer from '@components/grid/DetailCellRendererComponent';
-// @ts-expect-error
 import { Grid } from '@components/grid/Grid';
-// @ts-expect-error
 import IssueTypeCellRenderer from '@components/grid/IssueTypeRenderer';
-// @ts-expect-error
 import PaddingCellRenderer from '@components/grid/PaddingCellRenderer';
 import styles from '@pages-styles/pipelineChangelog.module.scss';
 import { useDarkmode } from '@utils/hooks/useDarkmode';
@@ -105,8 +100,8 @@ const detailCellRendererParams = (params: any) => {
         .join('\n\n');
     let message = newLinesToBreaks(combinedMessages);
 
-    function makeLinksFunctional(message: any) {
-        let msgArr = message.split(' ');
+    function makeLinksFunctional(msg: any) {
+        let msgArr = msg.split(' ');
         const linkStrIdx = msgArr.findIndex((word: any) => word.includes('https://'));
         if (linkStrIdx > 0) {
             msgArr = msgArr.map((element: any) => {
@@ -131,9 +126,9 @@ const detailCellRendererParams = (params: any) => {
                 }
                 return element;
             });
-            message = msgArr.join(' ');
+            msg = msgArr.join(' ');
         }
-        return message;
+        return msg;
     }
 
     message = makeLinksFunctional(message);
@@ -155,7 +150,7 @@ export const Pipeline = ({ location }: { location: string }) => {
     const [darkMode] = useDarkmode();
 
     useEffect(() => {
-        fetch(urlWithBaseUrl('/pipeline/pipeline.json'))
+        void fetch(urlWithBaseUrl('/pipeline/pipeline.json'))
             .then((response) => response.json())
             .then((data) => {
                 setRowData(data);

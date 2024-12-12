@@ -5,11 +5,12 @@ import { BBox } from '../../../scene/bbox';
 import type { Node } from '../../../scene/node';
 import type { Point, SizedPoint } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
+import { Transformable } from '../../../scene/transformable';
 import { clamp } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { Marker } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';
-import type { NodeDataDependant } from '../seriesTypes';
+import type { ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
 import * as easing from './../../../motion/easing';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
 import type { PathNodeDatumLike, PathPoint, PathPointMap } from './pathUtil';
@@ -152,12 +153,16 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
     return { fromFn, toFn };
 }
 
-type MarkerSeries<TDatum> = {
+interface MarkerNodeDatum extends SeriesNodeDatum {
+    readonly point: Point & SizedPoint;
+}
+
+interface MarkerSeries<TDatum extends MarkerNodeDatum> extends ISeries<TDatum, unknown, unknown> {
     getNodeData(): TDatum[] | undefined;
     getFormattedMarkerStyle(datum: TDatum): { size: number };
-};
+}
 
-export function computeMarkerFocusBounds<TDatum extends { point: Point & SizedPoint }>(
+export function computeMarkerFocusBounds<TDatum extends MarkerNodeDatum>(
     series: MarkerSeries<TDatum>,
     { datumIndex }: PickFocusInputs
 ): BBox | undefined {
@@ -172,5 +177,5 @@ export function computeMarkerFocusBounds<TDatum extends { point: Point & SizedPo
     const radius = size / 2;
     const x = datum.point.x - radius;
     const y = datum.point.y - radius;
-    return new BBox(x, y, size, size);
+    return Transformable.toCanvas(series.contentGroup, new BBox(x, y, size, size));
 }

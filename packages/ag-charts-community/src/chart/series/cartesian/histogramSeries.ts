@@ -364,11 +364,12 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         const { properties } = this;
 
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+
         return {
             fill: highlightStyle?.fill ?? properties.fill,
             fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
             stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? properties.strokeWidth,
+            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
         };
     }
@@ -619,6 +620,6 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     }
 
     protected computeFocusBounds({ datumIndex }: PickFocusInputs): BBox | undefined {
-        return computeBarFocusBounds(this.contextNodeData?.nodeData[datumIndex]);
+        return computeBarFocusBounds(this, this.contextNodeData?.nodeData[datumIndex]);
     }
 }

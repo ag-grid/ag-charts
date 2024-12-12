@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgFunnelSeriesStyle, _ModuleSupport } from 'ag-charts-community';
 
 import {
     BaseFunnelSeries,
@@ -12,16 +12,17 @@ import { FunnelProperties } from './funnelProperties';
 
 const {
     ChartAxisDirection,
-    getRectConfig,
-    updateRect,
     checkCrisp,
     resetBarSelectionsFn,
     prepareBarAnimationFunctions,
     midpointStartingBarPosition,
+    createDatumId,
     formatValue,
     Rect,
     motion,
 } = _ModuleSupport;
+
+type ItemStyle = Pick<AgFunnelSeriesStyle, 'fill' | 'stroke'> & Required<Omit<AgFunnelSeriesStyle, 'fill' | 'stroke'>>;
 
 export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
     static readonly className = 'FunnelSeries';
@@ -96,26 +97,74 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
         };
     }
 
+    private getItemBaseStyle(highlighted: boolean): ItemStyle {
+        const { properties } = this;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+
+        return {
+            fill: highlightStyle?.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
+            stroke: highlightStyle?.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
+            strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+        };
+    }
+
+    private getItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        datumIndex: number,
+        format: ItemStyle,
+        highlighted: boolean
+    ) {
+        const { id: seriesId, properties } = this;
+        const { stageKey, valueKey, fills, strokes, itemStyler } = properties;
+
+        const fill = format.fill ?? fills[datumIndex % fills.length] ?? 'black';
+        const stroke = format.stroke ?? strokes[datumIndex % strokes.length] ?? 'black';
+
+        const overrides: Partial<ItemStyle> = {};
+
+        if (!highlighted) {
+            overrides.fill = fill;
+            overrides.stroke = stroke;
+        }
+
+        if (itemStyler != null) {
+            const itemStyle = this.cachedDatumCallback(
+                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                () => {
+                    const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = format;
+                    return itemStyler({
+                        seriesId,
+                        datum,
+                        highlighted,
+                        stageKey,
+                        valueKey,
+                        fill,
+                        fillOpacity,
+                        stroke,
+                        strokeOpacity,
+                        strokeWidth,
+                        lineDash,
+                        lineDashOffset,
+                    });
+                }
+            );
+
+            Object.assign(overrides, itemStyle);
+        }
+
+        return overrides;
+    }
+
     protected override updateDatumNodes(opts: {
         datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, FunnelNodeDatum>;
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { id: seriesId } = this;
-        const {
-            stageKey,
-            valueKey,
-            highlightStyle: { item: itemHighlightStyle },
-            fills,
-            strokes,
-            fillOpacity,
-            strokeOpacity,
-            strokeWidth,
-            lineDash,
-            lineDashOffset,
-            itemStyler,
-            shadow: fillShadow,
-        } = this.properties;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         const crisp = checkCrisp(
@@ -127,36 +176,39 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
 
         const categoryAlongX = this.getCategoryDirection() === ChartAxisDirection.X;
 
+        const style = this.getItemBaseStyle(isHighlight);
+
         datumSelection.each((rect, datum) => {
             const { datumIndex } = datum;
-            const fill = fills[datumIndex % fills.length] ?? 'black';
-            const stroke = strokes[datumIndex % strokes.length] ?? 'black';
-            const style: _ModuleSupport.RectConfig = {
-                fill,
-                stroke,
-                fillOpacity,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                fillShadow,
-                strokeWidth: this.getStrokeWidth(strokeWidth),
-            };
-            const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
-
-            const config = getRectConfig(this, String(datum.datumIndex), {
-                datum,
-                isHighlighted: isHighlight,
+            const overrides = this.getItemStyleOverrides(
+                String(datum.datumIndex),
+                datum.datum,
+                datumIndex,
                 style,
-                highlightStyle: itemHighlightStyle,
-                itemStyler,
-                seriesId,
-                stageKey,
-                valueKey,
-            });
-            config.crisp = crisp;
-            config.visible = visible;
-            updateRect(rect, config);
+                isHighlight
+            );
+
+            rect.fill = overrides?.fill ?? style.fill;
+            rect.fillOpacity = overrides?.fillOpacity ?? style.fillOpacity;
+            rect.stroke = overrides?.stroke ?? style.stroke;
+            rect.strokeOpacity = overrides?.strokeOpacity ?? style.strokeOpacity;
+            rect.strokeWidth = overrides?.strokeWidth ?? style.strokeWidth;
+            rect.lineDash = overrides?.lineDash ?? style.lineDash;
+            rect.lineDashOffset = overrides?.lineDashOffset ?? style.lineDashOffset;
+
+            rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
+
+            rect.crisp = crisp;
         });
+    }
+
+    protected tooltipStyle(datum: any, datumIndex: number) {
+        const style = this.getItemBaseStyle(false) as any as Required<ItemStyle>;
+        Object.assign(
+            style,
+            this.getItemStyleOverrides(String(datum.datumIndex), datum.datum, datumIndex, style, false)
+        );
+        return style;
     }
 
     override animateEmptyUpdateReady(params: FunnelAnimationData<_ModuleSupport.Rect>) {

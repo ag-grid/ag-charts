@@ -21,6 +21,7 @@ const {
     LinearScale,
     Selection,
     Text,
+    Transformable,
 } = _ModuleSupport;
 
 interface MapLineNodeDataContext
@@ -362,11 +363,10 @@ export class MapLineSeries extends TopologySeries<
     private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(properties.strokeWidth);
 
         return {
             stroke: highlightStyle?.stroke ?? properties.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
             lineDash: highlightStyle?.lineDash ?? properties.lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
@@ -671,6 +671,6 @@ export class MapLineSeries extends TopologySeries<
 
     protected override computeFocusBounds(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | undefined {
         const geometry = findFocusedGeoGeometry(this, opts);
-        return geometry ? geometry.getBBox() : undefined;
+        return geometry ? Transformable.toCanvas(this.contentGroup, geometry.getBBox()) : undefined;
     }
 }

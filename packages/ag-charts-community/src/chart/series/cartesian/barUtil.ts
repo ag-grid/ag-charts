@@ -1,129 +1,14 @@
-import type { AgBarSeriesItemStylerParams, AgBarSeriesStyle, Styler } from 'ag-charts-types';
-
 import type { FromToMotionPropFn, NodeUpdateState } from '../../../motion/fromToMotion';
 import { NODE_UPDATE_STATE_TO_PHASE_MAPPING } from '../../../motion/fromToMotion';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Scale } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
-import type { DropShadow } from '../../../scene/dropShadow';
 import type { Rect } from '../../../scene/shape/rect';
+import { Transformable } from '../../../scene/transformable';
 import { isNegative } from '../../../util/number';
-import { mergeDefaults } from '../../../util/object';
 import type { ChartAxis } from '../../chartAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import { createDatumId } from '../../data/processors';
-import type { Series } from '../series';
-import type { SeriesItemHighlightStyle } from '../seriesProperties';
-import type { CartesianSeriesNodeDatum } from './cartesianSeries';
-
-export type RectConfig = {
-    fill: string;
-    stroke: string;
-    strokeWidth: number;
-    fillOpacity: number;
-    strokeOpacity: number;
-    lineDashOffset: number;
-    lineDash?: number[];
-    fillShadow?: DropShadow;
-    cornerRadius?: number;
-    topLeftCornerRadius?: boolean;
-    topRightCornerRadius?: boolean;
-    bottomRightCornerRadius?: boolean;
-    bottomLeftCornerRadius?: boolean;
-    crisp?: boolean;
-    visible?: boolean;
-};
-
-export function updateRect(rect: Rect, config: RectConfig) {
-    rect.crisp = config.crisp ?? true;
-    rect.fill = config.fill;
-    rect.stroke = config.stroke;
-    rect.strokeWidth = config.strokeWidth;
-    rect.fillOpacity = config.fillOpacity;
-    rect.strokeOpacity = config.strokeOpacity;
-    rect.lineDash = config.lineDash;
-    rect.lineDashOffset = config.lineDashOffset;
-    rect.fillShadow = config.fillShadow;
-    rect.topLeftCornerRadius = config.topLeftCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
-    rect.topRightCornerRadius = config.topRightCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
-    rect.bottomRightCornerRadius = config.bottomRightCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
-    rect.bottomLeftCornerRadius = config.bottomLeftCornerRadius !== false ? config.cornerRadius ?? 0 : 0;
-    rect.visible = config.visible ?? true;
-}
-
-interface NodeDatum extends Omit<CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {}
-
-export function getRectConfig<
-    Params extends Omit<AgBarSeriesItemStylerParams<any>, 'yKey'>,
-    ExtraParams extends object,
->(
-    series: Series<any, any, any>,
-    id: string,
-    {
-        datum,
-        isHighlighted,
-        style,
-        highlightStyle,
-        itemStyler,
-        seriesId,
-        ...opts
-    }: {
-        datum: NodeDatum;
-        isHighlighted: boolean;
-        style: RectConfig;
-        highlightStyle: SeriesItemHighlightStyle;
-        itemStyler?: Styler<Params & ExtraParams, AgBarSeriesStyle>;
-        seriesId: string;
-    } & ExtraParams
-): RectConfig {
-    const {
-        fill,
-        fillOpacity,
-        stroke,
-        strokeWidth,
-        strokeOpacity,
-        lineDash,
-        lineDashOffset,
-        cornerRadius = 0,
-    } = mergeDefaults(isHighlighted && highlightStyle, style);
-
-    let format: AgBarSeriesStyle | undefined;
-    if (itemStyler) {
-        format = series.cachedDatumCallback(createDatumId(id, isHighlighted ? 'highlight' : 'node'), () =>
-            (itemStyler as any)({
-                datum: datum.datum,
-                xKey: datum.xKey,
-                fill,
-                fillOpacity,
-                stroke,
-                strokeWidth,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                cornerRadius,
-                highlighted: isHighlighted,
-                seriesId,
-                ...opts,
-            })
-        );
-    }
-
-    return {
-        fill: format?.fill ?? fill,
-        fillOpacity: format?.fillOpacity ?? fillOpacity,
-        stroke: format?.stroke ?? stroke,
-        strokeWidth: format?.strokeWidth ?? strokeWidth,
-        strokeOpacity: format?.strokeOpacity ?? strokeOpacity,
-        lineDash: format?.lineDash ?? lineDash,
-        lineDashOffset: format?.lineDashOffset ?? lineDashOffset,
-        cornerRadius: format?.cornerRadius ?? cornerRadius,
-        topLeftCornerRadius: style.topLeftCornerRadius,
-        topRightCornerRadius: style.topRightCornerRadius,
-        bottomRightCornerRadius: style.bottomRightCornerRadius,
-        bottomLeftCornerRadius: style.bottomLeftCornerRadius,
-        fillShadow: style.fillShadow,
-    };
-}
+import type { ISeries } from '../seriesTypes';
 
 export function checkCrisp(
     scale: Scale<any, any> | undefined,
@@ -302,10 +187,11 @@ export function resetBarSelectionsFn(_node: Rect, { x, y, width, height, clipBBo
 }
 
 export function computeBarFocusBounds(
+    series: ISeries<unknown, unknown>,
     datum: { x: number; y: number; width: number; height: number } | undefined
 ): BBox | undefined {
     if (datum === undefined) return undefined;
 
     const { x, y, width, height } = datum;
-    return new BBox(x, y, width, height);
+    return Transformable.toCanvas(series.contentGroup, new BBox(x, y, width, height));
 }

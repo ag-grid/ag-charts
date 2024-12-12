@@ -31,19 +31,13 @@ const EmailSales = () => {
     );
 };
 
-export const LicenseSetup: FunctionComponent<Props> = ({ library, framework, path }) => {
+export const LicenseSetup: FunctionComponent<Props> = ({ library, framework }) => {
     const {
         userLicense,
         setUserLicense,
         importType,
-        updateImportTypeWithUrlUpdate,
-        licensedProducts,
         isIntegratedCharts,
-        updateIsIntegratedChartsWithUrlUpdate,
         userLicenseExpiry,
-        userLicenseIsTrial,
-        userLicenseIsExpired,
-        userLicenseTrialIsExpired,
         licenseState,
         licenseInvalidErrors,
         licenseValidMessage,
@@ -123,7 +117,7 @@ export const LicenseSetup: FunctionComponent<Props> = ({ library, framework, pat
                             <label>Licence key expires: </label>
                             <b
                                 className={
-                                    (licenseState.expiredError || licenseState.expiredTrialError) && styles.expired
+                                    (licenseState.expiredError ?? licenseState.expiredTrialError) && styles.expired
                                 }
                             >
                                 {userLicenseExpiry ? userLicenseExpiry : '--'}
