@@ -107,23 +107,25 @@ export class LegendMarkerLabel extends Translatable(Group) {
         if (marker) {
             const { size } = marker;
             const center = (marker.constructor as MarkerConstructor).center;
-            centerTranslateX = (center.x - 0.5) * size;
+            centerTranslateX = (center.x - 0.5) * size + length / 2;
             centerTranslateY = (center.y - 0.5) * size;
 
             if (isCustomMarker) {
                 marker.x = 0;
                 marker.y = 0;
-                marker.translationX = centerTranslateX * size;
-                marker.translationY = centerTranslateY * size;
+                marker.translationX = centerTranslateX;
+                marker.translationY = centerTranslateY;
             } else {
                 marker.x = centerTranslateX;
                 marker.y = centerTranslateY;
+                marker.translationX = 0;
+                marker.translationY = 0;
             }
         }
 
         if (line) {
-            line.x1 = -length / 2;
-            line.x2 = length / 2;
+            line.x1 = 0;
+            line.x2 = length;
             line.y1 = 0;
             line.y2 = 0;
             line.markDirty();
