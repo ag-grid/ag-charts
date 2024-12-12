@@ -125,14 +125,16 @@ test.describe('keyboard-nav', () => {
 
         await page.locator(SELECTORS.canvasCenter).first().click();
 
-        for (let datum = 0; datum < 5; datum += 1) {
-            if (datum === 0) {
-                await page.keyboard.press('ArrowLeft');
-            } else {
-                await page.keyboard.press('ArrowRight');
-            }
-            await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`map-shape-${datum + 1}-highlight.png`);
-        }
+        await page.keyboard.press('ArrowLeft');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-1-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-2-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-3-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-4-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-5-highlight.png');
     });
 
     test('hierarchy chart', async ({ page }) => {
