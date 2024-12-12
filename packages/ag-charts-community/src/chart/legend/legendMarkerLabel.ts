@@ -131,9 +131,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
             line.markDirty();
         }
 
-        const lineEnd = line?.x2 ?? -Infinity;
-        const markerEnd = (marker?.x ?? 0) + (marker?.translationX ?? 0) + (marker?.size ?? 0) / 2;
-        this.label.x = Math.max(lineEnd, markerEnd) + spacing;
+        this.label.x = marker || line ? length + spacing : 0;
     }
 
     protected override computeBBox(): BBox {
