@@ -1,15 +1,18 @@
-import { getWindow } from '../../util/dom';
 import { clearContext, debugContext } from './canvasUtil';
 
 // Work-around for typing issues with Angular 13+ (see AG-6969),
 type OffscreenCanvasRenderingContext2D = any;
 
 interface CanvasOptions {
-    width?: number;
-    height?: number;
-    pixelRatio?: number;
+    width: number;
+    height: number;
+    pixelRatio: number;
     willReadFrequently?: boolean;
     canvasElement?: HTMLCanvasElement;
+}
+
+function canvasDimensions(width: number, height: number, pixelRatio: number) {
+    return [Math.round(width * pixelRatio), Math.round(height * pixelRatio)] as const;
 }
 
 /**
@@ -22,14 +25,17 @@ export class HdpiOffscreenCanvas {
 
     width: number = 600;
     height: number = 300;
-    pixelRatio: number;
+    readonly pixelRatio: number;
 
     constructor(options: CanvasOptions) {
         const { width, height, pixelRatio, willReadFrequently = false } = options;
 
-        this.pixelRatio = pixelRatio ?? getWindow('devicePixelRatio');
+        this.width = width;
+        this.height = height;
+        this.pixelRatio = pixelRatio;
 
-        this.canvas = new OffscreenCanvas(width ?? this.width, height ?? this.height);
+        const [canvasWidth, canvasHeight] = canvasDimensions(width, height, pixelRatio);
+        this.canvas = new OffscreenCanvas(canvasWidth, canvasHeight);
 
         this.context = this.canvas.getContext('2d', { willReadFrequently })!;
 
@@ -39,15 +45,22 @@ export class HdpiOffscreenCanvas {
     }
 
     drawImage(context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, dx = 0, dy = 0) {
-        return context.drawImage(this.context.canvas, dx, dy);
+        return context.drawImage(this.canvas, dx, dy);
+    }
+
+    imageBitmap(): ImageBitmap {
+        return this.canvas.transferToImageBitmap();
     }
 
     resize(width: number, height: number) {
         if (!(width > 0 && height > 0)) return;
 
         const { canvas, context, pixelRatio } = this;
-        canvas.width = Math.round(width * pixelRatio);
-        canvas.height = Math.round(height * pixelRatio);
+        if (width !== this.width || height !== this.height) {
+            const [canvasWidth, canvasHeight] = canvasDimensions(width, height, pixelRatio);
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+        }
         context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
 
         this.width = width;
