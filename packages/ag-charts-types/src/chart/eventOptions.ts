@@ -1,3 +1,5 @@
+import type { Ratio } from './types';
+
 interface AgChartEvent<T extends string> {
     type: T;
     event: Event;
@@ -48,6 +50,24 @@ export interface AgSeriesVisibilityChange {
     visible: boolean;
 }
 
+export interface AgZoomEvent {
+    type: 'zoom';
+    rangeX?: AgZoomEventRange;
+    rangeY?: AgZoomEventRange;
+    ratioX: AgZoomEventRatio;
+    ratioY: AgZoomEventRatio;
+}
+
+export interface AgZoomEventRange {
+    start?: Date | number;
+    end?: Date | number;
+}
+
+export interface AgZoomEventRatio {
+    start: Ratio;
+    end: Ratio;
+}
+
 export type AgChartClickEvent = AgChartEvent<'click'>;
 export type AgChartDoubleClickEvent = AgChartEvent<'doubleClick'>;
 export type AgChartContextMenuEvent = AgChartEvent<'contextMenuEvent'>;
@@ -68,6 +88,8 @@ export interface AgBaseChartListeners<TDatum> {
     click?: (event: AgChartClickEvent) => any;
     /** The listener to call when the chart is double clicked. */
     doubleClick?: (event: AgChartDoubleClickEvent) => any;
+    /** The listener to call when the zoom is changed. */
+    zoom?: (event: AgZoomEvent) => void;
 }
 
 export interface AgSeriesListeners<TDatum> {
