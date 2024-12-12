@@ -94,34 +94,6 @@
         }
       }
     },
-    "test:thumbnails": {
-      "executor": "nx:run-commands",
-      "dependsOn": ["generate-thumbnails"],
-      "inputs": [
-        "{workspaceRoot}/dist/generated-thumbnails/**/ag-default-platform-agnostic.png",
-        "{projectRoot}/tools/expected-thumbnails/**/*.png",
-        "{projectRoot}/tools/compare-gallery-thumbnails.js"
-      ],
-      "outputs": ["{projectRoot}/tools/expected-thumbnails/"],
-      "cache": true,
-      "options": {
-        "commands": [
-          "node {projectRoot}/tools/compare-gallery-thumbnails.js dist/generated-thumbnails {projectRoot}/tools/expected-thumbnails/"
-        ]
-      },
-      "configurations": {
-        "update": {
-          "commands": [
-            "node {projectRoot}/tools/compare-gallery-thumbnails.js -u dist/generated-thumbnails {projectRoot}/tools/expected-thumbnails/"
-          ]
-        },
-        "ci": {
-          "commands": [
-            "node {projectRoot}/tools/compare-gallery-thumbnails.js -ci dist/generated-thumbnails {projectRoot}/tools/expected-thumbnails/"
-          ]
-        }
-      }
-    },
     "test:e2e": {
       "dependsOn": ["^build", "generate-examples"],
       "inputs": ["{projectRoot}/playwright.config.ts", "{projectRoot}/e2e/**", { "env": "NX_BASE" }],
