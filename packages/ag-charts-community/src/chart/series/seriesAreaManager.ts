@@ -7,6 +7,7 @@ import type { TranslatableGroup } from '../../scene/group';
 import { Transformable } from '../../scene/transformable';
 import { BaseManager } from '../../util/baseManager';
 import { createId } from '../../util/id';
+import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
@@ -416,7 +417,15 @@ export class SeriesAreaManager extends BaseManager {
             const focusBBox: Readonly<BBox> = getPickedFocusBBox(pick);
             const { x, y } = focusBBox.computeCenter();
             if (!hoverRect.containsPoint(x, y)) {
-                this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
+                // AG-13669 Sanity checks. Scene updates like `panToBBox` should not run during a
+                // `preSceneRender`. Under normal conditions, one of the previous conditions like `isFocusVisible` or
+                // `!containsPoint` should have expanded to `false` to prevent a call to `panToBBox`. If these checks
+                // fail due a regression or unforeseen circumstances, then log an error.
+                if (refresh) {
+                    Logger.errorOnce('Cannot call panToBBox during a preSceneRender call. Ignoring pan request');
+                } else {
+                    this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
+                }
             }
         }
 
