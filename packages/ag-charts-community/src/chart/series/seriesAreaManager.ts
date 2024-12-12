@@ -7,7 +7,6 @@ import type { TranslatableGroup } from '../../scene/group';
 import { Transformable } from '../../scene/transformable';
 import { BaseManager } from '../../util/baseManager';
 import { createId } from '../../util/id';
-import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
@@ -139,6 +138,7 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             chart.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
+            chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
             chart.ctx.zoomManager.addListener('zoom-change', () => this.clearAll()),
             chart.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearAll())
         );
@@ -152,12 +152,6 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private preSceneRender() {
-        if (this.focusIndicator.isFocusVisible()) {
-            // This function is called when something in the scene is redrawn such as a resize, or zoompan change.
-            // Therefore we need to update the bounds of the focus indicator, but not aria-label. Hence refresh=true.
-            this.handleSeriesFocus(0, 0, true);
-        }
-
         if (this.highlight.stashedHoverEvent != null) {
             this.highlight.pendingHoverEvent = this.highlight.stashedHoverEvent;
             this.highlight.stashedHoverEvent = undefined;
@@ -166,6 +160,14 @@ export class SeriesAreaManager extends BaseManager {
 
         if (this.tooltip.lastHover != null) {
             this.handleHoverTooltip(this.tooltip.lastHover, true);
+        }
+    }
+
+    private updateComplete() {
+        if (this.focusIndicator.isFocusVisible()) {
+            // This function is called when something in the scene is redrawn such as a resize, or zoompan change.
+            // Therefore we need to update the bounds of the focus indicator, but not aria-label. Hence refresh=true.
+            this.handleSeriesFocus(0, 0, true);
         }
     }
 
@@ -417,15 +419,7 @@ export class SeriesAreaManager extends BaseManager {
             const focusBBox: Readonly<BBox> = getPickedFocusBBox(pick);
             const { x, y } = focusBBox.computeCenter();
             if (!hoverRect.containsPoint(x, y)) {
-                // AG-13669 Sanity checks. Scene updates like `panToBBox` should not run during a
-                // `preSceneRender`. Under normal conditions, one of the previous conditions like `isFocusVisible` or
-                // `!containsPoint` should have expanded to `false` to prevent a call to `panToBBox`. If these checks
-                // fail due a regression or unforeseen circumstances, then log an error.
-                if (refresh) {
-                    Logger.errorOnce('Cannot call panToBBox during a preSceneRender call. Ignoring pan request');
-                } else {
-                    this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
-                }
+                this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
             }
         }
 
