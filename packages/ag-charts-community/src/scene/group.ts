@@ -5,8 +5,7 @@ import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { LayersManager } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, SceneChangeDetection } from './node';
-import { Path } from './shape/path';
-import type { CanvasContext } from './shape/shape';
+import { type CanvasContext, Shape } from './shape/shape';
 import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
 import { type ZIndex, compareZIndex } from './zIndex';
 
@@ -139,7 +138,7 @@ export class Group extends Node {
                 let strokeWidth = 0;
                 const strokeMiterAmount = 4;
                 for (const child of this.descendants()) {
-                    if (child instanceof Path) {
+                    if (child instanceof Shape) {
                         strokeWidth = Math.max(strokeWidth, child.strokeWidth);
                     }
                 }
