@@ -236,7 +236,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
 
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
-        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, cornerRadius } = this.properties;
+        const { xKey, yKey, xName, yName } = this.properties;
         const labelFormatter = this.properties.label.formatter ?? ((params) => String(params.value));
 
         const nodeData: HistogramNodeDatum[] = [];
@@ -322,15 +322,10 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                 width: w,
                 height: h,
                 midPoint: nodeMidPoint,
-                fill: fill,
-                stroke: stroke,
-                cornerRadius,
                 topLeftCornerRadius: !yAxisReversed,
                 topRightCornerRadius: !yAxisReversed,
                 bottomRightCornerRadius: yAxisReversed,
                 bottomLeftCornerRadius: yAxisReversed,
-                opacity: 1,
-                strokeWidth: strokeWidth,
                 label: selectionDatumLabel,
             });
         });
@@ -371,6 +366,9 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             stroke: highlightStyle?.stroke ?? properties.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            cornerRadius: properties.cornerRadius,
         };
     }
 
@@ -379,43 +377,24 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         isHighlight: boolean;
     }) {
         const { isHighlight: isDatumHighlighted } = opts;
-        const {
-            fillOpacity: seriesFillOpacity,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            shadow,
-            highlightStyle: {
-                item: {
-                    fill: highlightedFill,
-                    fillOpacity: highlightFillOpacity = seriesFillOpacity,
-                    stroke: highlightedStroke,
-                    strokeWidth: highlightedDatumStrokeWidth,
-                },
-            },
-        } = this.properties;
+        const { shadow, highlightStyle } = this.properties;
+
+        const style = this.getItemBaseStyle(isDatumHighlighted);
 
         opts.datumSelection.each((rect, datum, index) => {
-            const {
-                cornerRadius,
-                topLeftCornerRadius,
-                topRightCornerRadius,
-                bottomRightCornerRadius,
-                bottomLeftCornerRadius,
-            } = datum;
-            const strokeWidth =
-                isDatumHighlighted && highlightedDatumStrokeWidth !== undefined
-                    ? highlightedDatumStrokeWidth
-                    : datum.strokeWidth;
-            const fillOpacity = isDatumHighlighted ? highlightFillOpacity : seriesFillOpacity;
+            const overrides = isDatumHighlighted ? highlightStyle.item : undefined;
+            const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
+                datum;
 
-            rect.fill = (isDatumHighlighted ? highlightedFill : undefined) ?? datum.fill;
-            rect.stroke = (isDatumHighlighted ? highlightedStroke : undefined) ?? datum.stroke;
-            rect.fillOpacity = fillOpacity;
-            rect.strokeOpacity = strokeOpacity;
-            rect.strokeWidth = strokeWidth;
-            rect.lineDash = lineDash;
-            rect.lineDashOffset = lineDashOffset;
+            const cornerRadius = style.cornerRadius;
+
+            rect.fill = overrides?.fill ?? style.fill;
+            rect.fillOpacity = overrides?.fillOpacity ?? style.fillOpacity;
+            rect.stroke = overrides?.stroke ?? style.stroke;
+            rect.strokeOpacity = overrides?.strokeOpacity ?? style.strokeOpacity;
+            rect.strokeWidth = overrides?.strokeWidth ?? style.strokeWidth;
+            rect.lineDash = overrides?.lineDash ?? style.lineDash;
+            rect.lineDashOffset = overrides?.lineDashOffset ?? style.lineDashOffset;
             rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
             rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;

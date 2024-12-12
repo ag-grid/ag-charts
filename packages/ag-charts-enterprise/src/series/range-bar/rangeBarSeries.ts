@@ -60,13 +60,11 @@ interface RangeBarNodeDatum
     readonly width: number;
     readonly height: number;
     readonly labels: RangeBarNodeLabelDatum[];
-    readonly fill: string;
-    readonly stroke: string;
-    readonly strokeWidth: number;
-    readonly opacity: number;
-    readonly clipBBox?: _ModuleSupport.BBox;
-
     readonly crisp: boolean;
+
+    // Required for types
+    readonly clipBBox?: _ModuleSupport.BBox;
+    readonly opacity?: number;
 }
 
 type RangeBarContext = _ModuleSupport.CartesianSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
@@ -243,7 +241,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const yScale = yAxis.scale;
 
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
-        const { xKey, yLowKey, yHighKey, fill, stroke, strokeWidth } = this.properties;
+        const { xKey, yLowKey, yHighKey, strokeWidth } = this.properties;
 
         const itemId = `${yLowKey}-${yHighKey}`;
 
@@ -340,10 +338,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 width: rect.width,
                 height: rect.height,
                 midPoint: nodeMidPoint,
-                fill,
-                stroke,
-                strokeWidth,
-                opacity: 1,
                 crisp,
                 labels: labelData,
             };

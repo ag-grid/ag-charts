@@ -27,16 +27,11 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
     readonly y: number;
     readonly width: number;
     readonly height: number;
-    readonly fill?: string;
-    readonly stroke?: string;
-    readonly opacity?: number;
-    readonly cornerRadius: number;
     readonly topLeftCornerRadius: boolean;
     readonly topRightCornerRadius: boolean;
     readonly bottomRightCornerRadius: boolean;
     readonly bottomLeftCornerRadius: boolean;
     readonly clipBBox?: BBox;
-    readonly strokeWidth: number;
     readonly aggregatedValue: number;
     readonly frequency: number;
     readonly domain: [number, number];
@@ -45,6 +40,8 @@ export interface HistogramNodeDatum extends CartesianSeriesNodeDatum {
         readonly x: number;
         readonly y: number;
     };
+    // Required for types
+    readonly opacity?: number;
 }
 
 export class HistogramSeriesProperties extends CartesianSeriesProperties<AgHistogramSeriesOptions> {

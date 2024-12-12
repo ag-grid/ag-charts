@@ -48,11 +48,9 @@ interface WaterfallNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum, Re
     readonly width: number;
     readonly height: number;
     readonly label: WaterfallNodeLabelDatum;
-    readonly fill: string;
-    readonly stroke: string;
-    readonly strokeWidth: number;
-    readonly opacity: number;
+    // Required for types
     readonly clipBBox?: _ModuleSupport.BBox;
+    readonly opacity?: number;
 }
 
 interface WaterfallContext extends _ModuleSupport.CartesianSeriesNodeDataContext<WaterfallNodeDatum> {
@@ -326,7 +324,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
             const isPositive = (value ?? 0) >= 0;
 
             const seriesItemType = this.getSeriesItemType(isPositive, datumType);
-            const { fill, stroke, strokeWidth, label } = this.getItemConfig(seriesItemType);
+            const { strokeWidth, label } = this.getItemConfig(seriesItemType);
 
             const y = isPositive ? currY : trailY;
             const bottomY = isPositive ? trailY : currY;
@@ -403,10 +401,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
                 width: rect.width,
                 height: rect.height,
                 midPoint: nodeMidPoint,
-                fill,
-                stroke,
-                strokeWidth,
-                opacity: 1,
                 label: {
                     text: labelText,
                     ...adjustLabelPlacement({
