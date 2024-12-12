@@ -106,14 +106,16 @@ test.describe('keyboard-nav', () => {
 
         await page.locator(SELECTORS.canvasCenter).first().click();
 
-        for (let datum = 0; datum < 5; datum += 1) {
-            if (datum === 0) {
-                await page.keyboard.press('ArrowLeft');
-            } else {
-                await page.keyboard.press('ArrowRight');
-            }
-            await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`pie-${datum + 1}-highlight.png`);
-        }
+        await page.keyboard.press('ArrowLeft');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pie-1-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pie-2-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pie-3-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pie-4-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pie-5-highlight.png');
     });
 
     test('topology chart', async ({ page }) => {
