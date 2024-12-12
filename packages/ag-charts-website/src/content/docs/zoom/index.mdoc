@@ -152,8 +152,7 @@ When both the zoom and [Context Menu](./context-menu/) are enabled, additional z
 
 ## Buttons
 
-Zoom buttons are enabled by default. These will appear when the mouse is hovered near the bottom of a chart which has zoom enabled.
-To disable, use `zoom.buttons.enabled: false`.
+Zoom buttons are enabled by default. To disable, use `zoom.buttons.enabled: false`.
 
 {% chartExampleRunner title="Zoom Buttons" name="zoom-buttons" type="generated" /%}
 
@@ -164,6 +163,12 @@ Hover near the bottom of the above example to see the default zoom buttons.
 -   **Pan left**: Pans the chart to the left by one [step](#scrolling-step).
 -   **Pan right**: Pans the chart to the right by one [step](#scrolling-step).
 -   **Reset**: Resets the zoom to the original level and position. Equivalent to [Double-Click to Reset](#double-click-to-reset).
+
+To change when the buttons will appear, use `zoom.buttons.visible`:
+
+-   `always` – The buttons will always be visible.
+-   `zoomed` – The buttons will appear when the chart has been zoomed.
+-   `hover` – The buttons will appear when the mouse is hovered near the bottom of a chart which has zoom enabled.
 
 ### Customisation
 

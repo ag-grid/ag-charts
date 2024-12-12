@@ -4,6 +4,7 @@ import { Zoom } from './zoom';
 
 const buttons: AgZoomOptions['buttons'] = {
     enabled: true,
+    visible: 'hover',
     buttons: [
         {
             icon: 'zoom-out',

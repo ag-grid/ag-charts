@@ -46,6 +46,8 @@ interface ZoomToolbarButtonOptions extends _ModuleSupport.ToolbarButtonOptions {
     value: AgZoomButtonValue;
 }
 
+type ZoomButtonsVisible = 'always' | 'zoomed' | 'hover';
+
 export class ZoomToolbar extends BaseProperties {
     @Validate(BOOLEAN)
     @ActionOnSet<ZoomToolbar>({
@@ -57,6 +59,15 @@ export class ZoomToolbar extends BaseProperties {
 
     @Validate(ARRAY)
     public buttons = new PropertiesArray(ZoomButtonProperties);
+
+    @Validate(UNION(['always', 'zoomed', 'hover']))
+    @ActionOnSet<ZoomToolbar>({
+        changeValue(visible: ZoomButtonsVisible, oldValue: any) {
+            if (oldValue == null) return;
+            this.toggleVisibility(visible === 'always');
+        },
+    })
+    public visible: ZoomButtonsVisible = 'hover';
 
     private readonly verticalSpacing = 10;
     private readonly detectionRange = 38;
@@ -87,7 +98,7 @@ export class ZoomToolbar extends BaseProperties {
         this.toolbar = new Toolbar<ZoomToolbarButtonOptions>(ctx.localeManager);
         this.container.addChild(this.toolbar);
 
-        this.toggleVisibility(false);
+        this.toggleVisibility(this.visible === 'always');
 
         this.destroyFns.push(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
@@ -103,6 +114,11 @@ export class ZoomToolbar extends BaseProperties {
         for (const fn of this.destroyFns) {
             fn();
         }
+    }
+
+    public toggleVisibleZoomed(isMaxZoom: boolean) {
+        if (this.visible !== 'zoomed') return;
+        this.toggleVisibility(!isMaxZoom);
     }
 
     private teardown() {
@@ -122,7 +138,7 @@ export class ZoomToolbar extends BaseProperties {
     }
 
     private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
-        if (!this.enabled || this.toolbar.isHidden()) return;
+        if (!this.enabled || this.visible !== 'hover' || this.toolbar.isHidden()) return;
 
         const {
             container,
@@ -142,6 +158,7 @@ export class ZoomToolbar extends BaseProperties {
     }
 
     private onLeave() {
+        if (this.visible !== 'hover') return;
         this.toggleVisibility(false);
     }
 
