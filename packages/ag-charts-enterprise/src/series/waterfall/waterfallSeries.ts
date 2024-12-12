@@ -28,6 +28,7 @@ const {
     isContinuous,
     Rect,
     motion,
+    applyShapeStyle,
 } = _ModuleSupport;
 
 type WaterfallNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
@@ -563,13 +564,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
             const style = this.getItemStyle(String(datum.datumIndex), datum.datum, seriesItemType, isHighlight);
 
-            rect.fill = style.fill;
-            rect.fillOpacity = style.fillOpacity;
-            rect.stroke = style.stroke;
-            rect.strokeOpacity = style.strokeOpacity;
-            rect.strokeWidth = style.strokeWidth;
-            rect.lineDash = style.lineDash;
-            rect.lineDashOffset = style.lineDashOffset;
+            applyShapeStyle(rect, style);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 

@@ -24,6 +24,7 @@ const {
     Selection,
     Text,
     getMarker,
+    applyShapeStyle,
 } = _ModuleSupport;
 
 export interface RadarPathPoint {
@@ -361,18 +362,15 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
             }
         }
 
-        const format = this.getMarkerItemBaseStyle(highlight);
+        const style = this.getMarkerItemBaseStyle(highlight);
 
         selection.update(selectionData).each((node, nodeDatum) => {
             const { datum, datumIndex, point } = nodeDatum;
-            const overrides = this.getMarkerItemStyleOverrides(String(datumIndex), datum, format, false);
+            const overrides = this.getMarkerItemStyleOverrides(String(datumIndex), datum, style, highlight);
 
-            node.fill = overrides?.fill ?? format.fill;
-            node.stroke = overrides?.stroke ?? format.stroke;
-            node.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
-            node.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
-            node.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
-            node.size = overrides?.size ?? format.size;
+            applyShapeStyle(node, style, overrides);
+
+            node.size = overrides?.size ?? style.size;
 
             const { x, y } = point;
             node.x = x;

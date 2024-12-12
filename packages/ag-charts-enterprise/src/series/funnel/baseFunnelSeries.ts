@@ -482,6 +482,7 @@ export abstract class BaseFunnelSeries<
         opts.connectorSelection.each((connector, datum) => {
             const { datumIndex } = datum;
             connector.setProperties(resetConnectorSelectionsFn(connector, datum));
+
             connector.fill = fill ?? fills[datumIndex % fills.length];
             connector.fillOpacity = fillOpacity;
             connector.stroke = stroke ?? strokes[datumIndex % strokes.length];

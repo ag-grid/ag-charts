@@ -63,12 +63,12 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
         datumSelection.each((node, datum) => {
             const { isRising, centerX, width, y, height, yOpen, yClose, crisp } = datum;
 
-            let format: AgCandlestickSeriesItemOptions | undefined;
+            let style: AgCandlestickSeriesItemOptions | undefined;
             if (itemStyler != null) {
                 const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = isRising
                     ? up
                     : down;
-                format = this.cachedDatumCallback(
+                style = this.cachedDatumCallback(
                     createDatumId(this.getDatumId(datum), isHighlight ? 'highlight' : 'node'),
                     () =>
                         itemStyler({
@@ -100,42 +100,41 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
             node.yClose = yClose;
             node.crisp = crisp;
 
-            node.fill = highlightStyle?.fill ?? format?.fill ?? (isRising ? upFill : downFill);
+            node.fill = highlightStyle?.fill ?? style?.fill ?? (isRising ? upFill : downFill);
             node.fillOpacity =
-                highlightStyle?.fillOpacity ?? format?.fillOpacity ?? (isRising ? upFillOpacity : downFillOpacity);
-            node.stroke = highlightStyle?.stroke ?? format?.stroke ?? (isRising ? upStroke : downStroke);
+                highlightStyle?.fillOpacity ?? style?.fillOpacity ?? (isRising ? upFillOpacity : downFillOpacity);
+            node.stroke = highlightStyle?.stroke ?? style?.stroke ?? (isRising ? upStroke : downStroke);
             node.strokeWidth =
-                highlightStyle?.strokeWidth ?? format?.strokeWidth ?? (isRising ? upStrokeWidth : downStrokeWidth);
+                highlightStyle?.strokeWidth ?? style?.strokeWidth ?? (isRising ? upStrokeWidth : downStrokeWidth);
             node.strokeOpacity =
                 highlightStyle?.strokeOpacity ??
-                format?.strokeOpacity ??
+                style?.strokeOpacity ??
                 (isRising ? upStrokeOpacity : downStrokeOpacity);
-            node.lineDash = highlightStyle?.lineDash ?? format?.lineDash ?? (isRising ? upLineDash : downLineDash);
+            node.lineDash = highlightStyle?.lineDash ?? style?.lineDash ?? (isRising ? upLineDash : downLineDash);
             node.lineDashOffset =
                 highlightStyle?.lineDashOffset ??
-                format?.lineDashOffset ??
+                style?.lineDashOffset ??
                 (isRising ? upLineDashOffset : downLineDashOffset);
 
-            const formatWick = format?.wick;
-            node.wickStroke =
-                highlightStyle?.stroke ?? formatWick?.stroke ?? (isRising ? upWickStroke : downWickStroke);
+            const styleWick = style?.wick;
+            node.wickStroke = highlightStyle?.stroke ?? styleWick?.stroke ?? (isRising ? upWickStroke : downWickStroke);
             node.wickStrokeWidth =
                 highlightStyle?.strokeWidth ??
-                formatWick?.strokeWidth ??
+                styleWick?.strokeWidth ??
                 (isRising ? upWickStrokeWidth : downWickStrokeWidth);
             node.wickStrokeOpacity =
                 highlightStyle?.strokeOpacity ??
-                formatWick?.strokeOpacity ??
+                styleWick?.strokeOpacity ??
                 (isRising ? upWickStrokeOpacity : downWickStrokeOpacity);
             node.wickLineDash =
-                highlightStyle?.lineDash ?? formatWick?.lineDash ?? (isRising ? upWickLineDash : downWickLineDash);
+                highlightStyle?.lineDash ?? styleWick?.lineDash ?? (isRising ? upWickLineDash : downWickLineDash);
             node.wickLineDashOffset =
                 highlightStyle?.lineDashOffset ??
-                formatWick?.lineDashOffset ??
+                styleWick?.lineDashOffset ??
                 (isRising ? upWickLineDashOffset : downWickLineDashOffset);
 
             // Ignore highlight style
-            node.strokeAlignment = (format?.strokeWidth ?? (isRising ? upStrokeWidth : downStrokeWidth)) / 2;
+            node.strokeAlignment = (style?.strokeWidth ?? (isRising ? upStrokeWidth : downStrokeWidth)) / 2;
         });
     }
 

@@ -33,6 +33,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
+import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
 import { AbstractBarSeries } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
@@ -727,13 +728,7 @@ export class BarSeries extends AbstractBarSeries<
 
             rect.opacity = datum.opacity ?? 0;
 
-            rect.fill = overrides?.fill ?? style.fill;
-            rect.fillOpacity = (overrides?.fillOpacity ?? style.fillOpacity) * (datum.phantom ? 0.2 : 1);
-            rect.stroke = overrides?.stroke ?? style.stroke;
-            rect.strokeOpacity = (overrides?.strokeOpacity ?? style.strokeOpacity) * (datum.phantom ? 0.2 : 1);
-            rect.strokeWidth = overrides?.strokeWidth ?? style.strokeWidth;
-            rect.lineDash = overrides?.lineDash ?? style.lineDash;
-            rect.lineDashOffset = overrides?.lineDashOffset ?? style.lineDashOffset;
+            applyShapeStyle(rect, style, overrides);
 
             const cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
             rect.topLeftCornerRadius = datum.topLeftCornerRadius ? cornerRadius : 0;

@@ -25,6 +25,7 @@ const {
     Sector,
     SectorBox,
     motion,
+    applyShapeStyle,
 } = _ModuleSupport;
 
 class RadialBarSeriesNodeEvent<
@@ -406,27 +407,20 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
             selectionData = this.nodeData;
         }
 
-        const format = this.getItemBaseStyle(highlighted);
+        const style = this.getItemBaseStyle(highlighted);
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
                 const { datum, datumIndex } = nodeDatum;
-                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, format, highlighted);
+                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, style, highlighted);
 
-                const stroke = overrides?.stroke ?? format.stroke;
-                const strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
-                const cornerRadius = overrides?.cornerRadius ?? format.cornerRadius;
+                const cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
 
-                node.fill = overrides?.fill ?? format.fill;
-                node.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
-                node.stroke = stroke;
-                node.strokeWidth = strokeWidth;
-                node.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
-                node.lineDash = overrides?.lineDash ?? format.lineDash;
-                node.lineDashOffset = overrides?.lineDashOffset ?? format.lineDashOffset;
+                applyShapeStyle(node, style, overrides);
+
                 node.lineJoin = 'round';
-                node.inset = stroke != null ? strokeWidth / 2 : 0;
+                node.inset = node.stroke != null ? node.strokeWidth / 2 : 0;
 
                 node.startInnerCornerRadius = datum.reversed ? cornerRadius : 0;
                 node.startOuterCornerRadius = datum.reversed ? cornerRadius : 0;

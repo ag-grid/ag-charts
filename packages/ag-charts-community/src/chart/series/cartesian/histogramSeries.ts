@@ -20,8 +20,9 @@ import { SORT_DOMAIN_GROUPS, createDatumId, diff, keyProperty, valueProperty } f
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
-import { type PickFocusInputs, Series, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
+import { type PickFocusInputs, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { applyShapeStyle } from '../shapeUtil';
 import {
     collapsedStartingBarPosition,
     computeBarFocusBounds,
@@ -377,30 +378,21 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         isHighlight: boolean;
     }) {
         const { isHighlight: isDatumHighlighted } = opts;
-        const { shadow, highlightStyle } = this.properties;
+        const { shadow } = this.properties;
 
         const style = this.getItemBaseStyle(isDatumHighlighted);
 
-        opts.datumSelection.each((rect, datum, index) => {
-            const overrides = isDatumHighlighted ? highlightStyle.item : undefined;
+        opts.datumSelection.each((rect, datum) => {
+            const { cornerRadius } = style;
             const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
                 datum;
 
-            const cornerRadius = style.cornerRadius;
-
-            rect.fill = overrides?.fill ?? style.fill;
-            rect.fillOpacity = overrides?.fillOpacity ?? style.fillOpacity;
-            rect.stroke = overrides?.stroke ?? style.stroke;
-            rect.strokeOpacity = overrides?.strokeOpacity ?? style.strokeOpacity;
-            rect.strokeWidth = overrides?.strokeWidth ?? style.strokeWidth;
-            rect.lineDash = overrides?.lineDash ?? style.lineDash;
-            rect.lineDashOffset = overrides?.lineDashOffset ?? style.lineDashOffset;
+            applyShapeStyle(rect, style);
             rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
             rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;
             rect.bottomLeftCornerRadius = bottomLeftCornerRadius ? cornerRadius : 0;
             rect.fillShadow = shadow;
-            rect.zIndex = isDatumHighlighted ? Series.highlightedZIndex : index;
             rect.visible = datum.height > 0; // prevent stroke from rendering for zero height columns
         });
     }

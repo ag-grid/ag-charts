@@ -30,6 +30,7 @@ const {
     Selection,
     Text,
     getMarker,
+    applyShapeStyle,
 } = _ModuleSupport;
 
 interface MapMarkerNodeDataContext
@@ -629,7 +630,7 @@ export class MapMarkerSeries
     }) {
         const { markerSelection, isHighlight, highlightedDatum } = opts;
 
-        const format = this.getMarkerItemBaseStyle(isHighlight);
+        const style = this.getMarkerItemBaseStyle(isHighlight);
 
         markerSelection.each((marker, markerDatum) => {
             const { datumIndex, datum, point, colorValue, sizeValue } = markerDatum;
@@ -638,16 +639,14 @@ export class MapMarkerSeries
                 datum,
                 colorValue,
                 sizeValue,
-                format,
+                style,
                 isHighlight
             );
 
-            marker.size = overrides?.size ?? format.size;
-            marker.fill = overrides?.fill ?? format.fill;
-            marker.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
-            marker.stroke = overrides?.stroke ?? format.stroke;
-            marker.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
-            marker.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
+            marker.size = overrides?.size ?? style.size;
+
+            applyShapeStyle(marker, style, overrides);
+
             marker.translationX = point.x;
             marker.translationY = point.y;
             marker.zIndex = !isHighlight && highlightedDatum != null && datum === highlightedDatum.datum ? 1 : 0;
