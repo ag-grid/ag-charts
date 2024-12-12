@@ -374,7 +374,6 @@ export class SankeySeries extends FlowProportionSeries<
     protected getBaseNodeStyle(highlighted: boolean): NodeStyle {
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.node;
-        const strokeWidth = this.getStrokeWidth(properties.node.strokeWidth);
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return {
@@ -382,7 +381,7 @@ export class SankeySeries extends FlowProportionSeries<
             fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
             stroke: highlightStyle?.stroke ?? stroke,
             strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
-            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.node.strokeWidth),
             lineDash: highlightStyle?.lineDash ?? lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
         };
@@ -492,7 +491,6 @@ export class SankeySeries extends FlowProportionSeries<
     protected getBaseLinkStyle(highlighted: boolean): LinkStyle {
         const { properties } = this;
         const { fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = properties.link;
-        const strokeWidth = this.getStrokeWidth(properties.link.strokeWidth);
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return {
@@ -500,7 +498,7 @@ export class SankeySeries extends FlowProportionSeries<
             fillOpacity: highlightStyle?.fillOpacity ?? fillOpacity,
             stroke: highlightStyle?.stroke ?? stroke,
             strokeOpacity: highlightStyle?.strokeOpacity ?? strokeOpacity,
-            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.link.strokeWidth),
             lineDash: highlightStyle?.lineDash ?? lineDash,
             lineDashOffset: highlightStyle?.lineDashOffset ?? lineDashOffset,
         };

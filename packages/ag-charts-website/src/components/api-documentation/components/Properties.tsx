@@ -127,7 +127,7 @@ export function PropertyType({
                 <CodeCollapsibleButton
                     name={name}
                     isExpanded={isExpanded}
-                    onClick={onCollapseClick!}
+                    onClick={onCollapseClick}
                     collapsibleType={collapsibleType}
                 />
                 {typeUrl && isCollapsibleCode ? (

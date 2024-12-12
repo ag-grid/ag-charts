@@ -213,8 +213,8 @@ export const useLicenseData = ({ library }: { library: Library }) => {
         }
 
         return {
-            userLicenseVersion: details.version || undefined,
-            userLicenseExpiry: details.expiry || undefined,
+            userLicenseVersion: details.version ?? undefined,
+            userLicenseExpiry: details.expiry ?? undefined,
             userLicenseIsValid: Boolean(details.valid),
             userLicenseIsTrial: Boolean(details.isTrial),
             userLicenseIsExpired: Boolean(details.expired),

@@ -13,9 +13,7 @@ const {
     accumulativeValueProperty,
     trailingAccumulatedValueProperty,
     ChartAxisDirection,
-    getRectConfig,
     createDatumId,
-    updateRect,
     checkCrisp,
     updateLabelNode,
     prepareBarAnimationFunctions,
@@ -555,11 +553,6 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         isHighlight: boolean;
     }) {
         const { datumSelection, isHighlight } = opts;
-        const { id: seriesId } = this;
-        const {
-            yKey,
-            highlightStyle: { item: itemHighlightStyle },
-        } = this.properties;
 
         const categoryAxis = this.getCategoryAxis();
         const crisp = checkCrisp(
@@ -573,43 +566,20 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
 
         datumSelection.each((rect, datum) => {
             const seriesItemType = datum.itemId;
-            const {
-                fillOpacity,
-                strokeOpacity,
-                strokeWidth,
-                lineDash,
-                lineDashOffset,
-                cornerRadius,
-                itemStyler,
-                shadow: fillShadow,
-            } = this.getItemConfig(seriesItemType);
-            const style: _ModuleSupport.RectConfig = {
-                fill: datum.fill,
-                stroke: datum.stroke,
-                fillOpacity,
-                strokeOpacity,
-                lineDash,
-                lineDashOffset,
-                fillShadow,
-                strokeWidth: this.getStrokeWidth(strokeWidth),
-                cornerRadius,
-            };
-            const visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 
-            const config = getRectConfig(this, createDatumId(datum.index, 'node'), {
-                datum,
-                isHighlighted: isHighlight,
-                style,
-                highlightStyle: itemHighlightStyle,
-                itemStyler,
-                seriesId,
-                itemId: datum.itemId,
-                value: datum.yValue,
-                yKey,
-            });
-            config.crisp = crisp;
-            config.visible = visible;
-            updateRect(rect, config);
+            const style = this.getItemStyle(String(datum.datumIndex), datum.datum, seriesItemType, isHighlight);
+
+            rect.fill = style.fill;
+            rect.fillOpacity = style.fillOpacity;
+            rect.stroke = style.stroke;
+            rect.strokeOpacity = style.strokeOpacity;
+            rect.strokeWidth = style.strokeWidth;
+            rect.lineDash = style.lineDash;
+            rect.lineDashOffset = style.lineDashOffset;
+
+            rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
+
+            rect.crisp = crisp;
         });
     }
 

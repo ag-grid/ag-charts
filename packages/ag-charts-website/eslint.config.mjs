@@ -76,23 +76,6 @@ export default [
         },
     },
     {
-        rules: {
-            // TODO: Remove these
-            '@typescript-eslint/no-shadow': 'warn',
-            '@typescript-eslint/no-unnecessary-type-assertion': 'warn',
-            '@typescript-eslint/prefer-optional-chain': 'warn',
-            '@typescript-eslint/no-unused-vars': 'warn',
-            '@typescript-eslint/prefer-nullish-coalescing': 'warn',
-            '@typescript-eslint/restrict-template-expressions': 'warn',
-            '@typescript-eslint/no-explicit-any': 'warn',
-            '@typescript-eslint/no-floating-promises': 'warn',
-            '@typescript-eslint/ban-ts-comment': 'warn',
-            '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
-            '@typescript-eslint/unbound-method': 'warn',
-            '@typescript-eslint/await-thenable': 'warn',
-        },
-    },
-    {
         // TODO: Remove these
         ignores: [
             '*.mjs',

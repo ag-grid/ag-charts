@@ -21,12 +21,12 @@ export function isPathMatch({ path, pathMatcher, pathItem }: Params): boolean {
 
     for (let i = 0; i < matcherPath.length; i++) {
         const matcherItem = matcherPath[i];
-        const pathItem = checkPath[i];
+        const checkPathItem = checkPath[i];
         const isWildcard = matcherItem === '*';
 
         // Wildcard matches any value, but if not wildcard, check item
         if (!isWildcard) {
-            matches = matcherItem === pathItem;
+            matches = matcherItem === checkPathItem;
             if (!matches) {
                 break;
             }

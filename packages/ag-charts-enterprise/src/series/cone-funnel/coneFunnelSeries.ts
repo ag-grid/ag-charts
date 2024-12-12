@@ -158,4 +158,22 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
             line.lineDashOffset = highlightStyle?.lineDashOffset ?? 0;
         });
     }
+
+    protected tooltipStyle(_datum: any, datumIndex: number) {
+        const { fills, strokes } = this.properties;
+
+        const fill = fills[datumIndex % fills.length] ?? 'black';
+        const stroke = strokes[datumIndex % strokes.length] ?? 'black';
+        const { fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.barStyle();
+
+        return {
+            fill,
+            fillOpacity,
+            stroke,
+            strokeOpacity,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+        };
+    }
 }
