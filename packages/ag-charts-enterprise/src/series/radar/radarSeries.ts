@@ -311,14 +311,13 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const { properties } = this;
         const { marker } = properties;
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
-        const strokeWidth = this.getStrokeWidth(marker.strokeWidth);
 
         return {
             size: marker.size,
             fill: highlightStyle?.fill ?? marker.fill!,
             fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
             stroke: highlightStyle?.stroke ?? marker.stroke!,
-            strokeWidth: highlightStyle?.strokeWidth ?? strokeWidth,
+            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(marker.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
         };
     }

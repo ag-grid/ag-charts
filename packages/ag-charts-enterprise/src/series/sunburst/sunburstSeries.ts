@@ -149,11 +149,12 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
         const highlightStyle = highlighted ? properties.highlightStyle : undefined;
+
         return {
             fill: highlightStyle?.fill,
             fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
             stroke: highlightStyle?.stroke,
-            strokeWidth: highlightStyle?.strokeWidth ?? properties.strokeWidth,
+            strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
         };
     }
