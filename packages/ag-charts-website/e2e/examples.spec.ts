@@ -183,6 +183,7 @@ test.describe('examples', () => {
                 ignoreConsoleWarnings,
             } = opts;
 
+            // eslint-disable-next-line @typescript-eslint/unbound-method
             const testFn = affected ? test : test.skip;
 
             test.describe(`Framework: ${framework}`, () => {
