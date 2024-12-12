@@ -1,6 +1,5 @@
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
-import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import type { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
@@ -132,13 +131,5 @@ export class LegendMarkerLabel extends Translatable(Group) {
         }
 
         this.label.x = marker || line ? length + spacing : 0;
-    }
-
-    protected override computeBBox(): BBox {
-        // The Image node (bitmap) includes some padding to render antialiasing pixel correctly, but we do
-        // not want to include this padding in the layout bounds. So just compute the bounds for the Line
-        // and Marker nodes directly rather than Group's default behaviour of computing this.bitmap's BBox.
-        const { label, line, marker } = this;
-        return this.toParent(Group.computeChildrenBBox([label, line, marker].filter(isDefined), false));
     }
 }

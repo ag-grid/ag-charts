@@ -534,13 +534,9 @@ export class Legend extends BaseProperties {
 
             const { marker, line } = markerLabel;
             if (marker != null) {
-                marker.size = markerEnabled || !lineEnabled ? itemMarker.size : 0;
-            }
-            const dimensionProps = { length: markerWidth, spacing, isCustomMarker };
-
-            if (marker) {
                 const { strokeWidth, fill, stroke, fillOpacity, strokeOpacity } = this.getMarkerStyles(symbol);
 
+                marker.size = itemMarker.size;
                 marker.fill = fill;
                 marker.stroke = stroke;
                 marker.strokeWidth = strokeWidth;
@@ -557,7 +553,7 @@ export class Legend extends BaseProperties {
                 line.lineDash = lineStyles.lineDash;
             }
 
-            markerLabel.update(dimensionProps);
+            markerLabel.update({ length: markerWidth, spacing, isCustomMarker });
         }
 
         return paddedSymbolWidth;
