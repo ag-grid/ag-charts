@@ -5,6 +5,7 @@ import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { LayersManager } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, SceneChangeDetection } from './node';
+import { Path } from './shape/path';
 import type { CanvasContext } from './shape/shape';
 import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
 import { type ZIndex, compareZIndex } from './zIndex';
@@ -135,11 +136,25 @@ export class Group extends Node {
                 layer.clear();
                 renderOffscreen(layer.context, ctx.getTransform());
             } else if (bbox.isFinite()) {
-                // Align bbox to pixels, and pad by 1 pixel for anti-aliasing artefacts.
-                const x = Math.floor(bbox.x) - 1;
-                const y = Math.floor(bbox.y) - 1;
-                const width = Math.ceil(bbox.x + bbox.width) - x + 1;
-                const height = Math.ceil(bbox.y + bbox.height) - y + 1;
+                let strokeWidth = 0;
+                const strokeMiterAmount = 4;
+                for (const child of this.descendants()) {
+                    if (child instanceof Path) {
+                        strokeWidth = Math.max(strokeWidth, child.strokeWidth);
+                    }
+                }
+
+                // Align bbox to pixels, and pad.
+                const padding = Math.max(
+                    // Account for anti-aliasing artefacts
+                    1,
+                    // Account for strokes (incl. miters) - this may not be the best place to include this
+                    (strokeWidth / 2) * strokeMiterAmount
+                );
+                const x = Math.floor(bbox.x) - padding;
+                const y = Math.floor(bbox.y) - padding;
+                const width = Math.ceil(bbox.x + bbox.width) - x + padding;
+                const height = Math.ceil(bbox.y + bbox.height) - y + padding;
 
                 if (sharedOffscreenCanvas == null || sharedOffscreenCanvas.pixelRatio !== pixelRatio) {
                     sharedOffscreenCanvas = new HdpiOffscreenCanvas({ width, height, pixelRatio });
