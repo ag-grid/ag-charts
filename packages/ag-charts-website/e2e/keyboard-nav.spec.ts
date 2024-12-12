@@ -109,4 +109,72 @@ test.describe('keyboard-nav', () => {
         await page.keyboard.up('Shift');
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13643-series-2-datum-1-focused.png');
     });
+
+    test('polar chart', async ({ page }) => {
+        const { url } = toExamplePageUrl('pie-series', 'simple-pie', 'vanilla');
+
+        await gotoExample(page, url);
+
+        await page.locator(SELECTORS.canvasCenter).first().click();
+
+        await page.keyboard.press('ArrowLeft');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pie-1-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pie-2-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pie-3-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pie-4-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('pie-5-highlight.png');
+    });
+
+    test('topology chart', async ({ page }) => {
+        const { url } = toExamplePageUrl('map-shapes', 'multiple-series', 'vanilla');
+
+        await gotoExample(page, url);
+
+        await page.locator(SELECTORS.canvasCenter).first().click();
+
+        await page.keyboard.press('ArrowLeft');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-1-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-2-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-3-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-4-highlight.png');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('map-shape-5-highlight.png');
+    });
+
+    test('hierarchy chart', async ({ page }) => {
+        const { url } = toExamplePageUrl('treemap-series', 'simple-treemap', 'vanilla');
+
+        await gotoExample(page, url);
+
+        await page.locator(SELECTORS.canvasCenter).first().click();
+
+        await page.keyboard.press('ArrowUp');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`treemap-group-highlight.png`);
+
+        await page.keyboard.press('ArrowDown');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`treemap-tile-highlight.png`);
+    });
+
+    test('flow proportion chart', async ({ page }) => {
+        const { url } = toExamplePageUrl('sankey-series', 'simple-sankey', 'vanilla');
+
+        await gotoExample(page, url);
+
+        await page.locator(SELECTORS.canvasCenter).first().click();
+
+        await page.keyboard.press('ArrowLeft');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`sankey-node-highlight.png`);
+
+        for (let datum = 0; datum < 11; datum += 1) {
+            await page.keyboard.press('ArrowRight');
+        }
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`sankey-link-highlight.png`);
+    });
 });
