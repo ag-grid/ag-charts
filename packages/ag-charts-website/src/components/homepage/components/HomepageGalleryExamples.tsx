@@ -20,7 +20,7 @@ interface Props {
 
 export const HomepageGalleryExamples = ({ examples, pageName }: Props) => {
     const [currentExampleName, setCurrentExampleName] = useState(examples[0].exampleName);
-    const currentExample = examples.find((example) => example.exampleName === currentExampleName) || examples[0];
+    const currentExample = examples.find((example) => example.exampleName === currentExampleName) ?? examples[0];
     const { title, exampleName } = currentExample;
     const loadingLogoId = getLoadingLogoId({ pageName, exampleName });
     const loadingIFrameId = getLoadingIFrameId({ pageName, exampleName });
@@ -31,8 +31,8 @@ export const HomepageGalleryExamples = ({ examples, pageName }: Props) => {
         return cleanUp;
     }, [pageName, exampleName]);
 
-    const handleExampleSelect = (exampleName: string) => {
-        setCurrentExampleName(exampleName);
+    const handleExampleSelect = (name: string) => {
+        setCurrentExampleName(name);
     };
 
     const footerChildren = (

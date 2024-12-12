@@ -35,6 +35,7 @@ export const SelectionContext = createContext<{
     selection: NavigationData;
     setSelection: Dispatch<SetStateAction<NavigationData>>;
     rootInterface: string;
+    basePath: string;
 } | null>(null);
 
 export function OptionsNavigation({
@@ -194,7 +195,9 @@ function NavProperty({
         if (hasNestedPages) {
             return (
                 interfaceRef?.kind === 'interface' &&
-                interfaceRef.members.some((member) => member.type === selection?.selection.pageInterface)
+                interfaceRef.members.some(
+                    (interfaceMember) => interfaceMember.type === selection?.selection.pageInterface
+                )
             );
         }
         if (
@@ -210,7 +213,7 @@ function NavProperty({
                 .slice(baseHash.length + 1)
                 .split('-')
                 .filter(Boolean);
-            if (selection?.selection.pathname.includes(prePath.join('/'))) {
+            if (selection?.selection.pathname.startsWith(selection?.basePath + prePath.join('/'))) {
                 return true;
             }
         }
@@ -531,9 +534,9 @@ function getInterfaceArrayTypes(reference?: ApiReferenceType, interfaceRef?: Api
     ) {
         return interfaceRef.type.type
             .map((type) => {
-                const interfaceRef = reference?.get(type);
-                if (interfaceRef?.kind === 'interface') {
-                    const typeMember = interfaceRef.members.find((member) => member.name === 'type');
+                const innerInterfaceRef = reference?.get(type);
+                if (innerInterfaceRef?.kind === 'interface') {
+                    const typeMember = innerInterfaceRef.members.find((member) => member.name === 'type');
                     if (typeof typeMember?.type === 'string') {
                         return { name: cleanupName(typeMember.type), type };
                     }

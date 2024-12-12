@@ -11,11 +11,11 @@ const data = [
 ];
 
 function toIntegratedKey({ quarter, week, ...datum }: any, idx: number) {
-    let quarterResult = quarter;
+    let quarterResult;
     if (typeof quarter === 'string') {
-        quarterResult = { id: `${idx}`, value: quarter, toString: () => `${quarter}` };
+        quarterResult = { id: idx, value: quarter, toString: () => `${quarter}` };
     } else {
-        quarterResult.id = `${idx}`;
+        quarterResult = { ...quarter, id: idx };
     }
     return {
         ...datum,
@@ -70,6 +70,16 @@ function actionReset() {
     chart.update(options);
 }
 
+function insertAfter(data: { week: number }[], afterWeek: number, toInsert: any) {
+    const insertIndex = data.findIndex(({ week }) => week > afterWeek);
+    if (insertIndex === -1) {
+        return data.concat([toInsert]);
+    }
+    const newData = data.slice();
+    newData.splice(insertIndex, 0, toInsert);
+    return newData;
+}
+
 function actionAddEndWeek() {
     const data = options.data ?? [];
     const nextWeek = data.slice(-1)[0].week + 1;
@@ -101,22 +111,21 @@ function actionAddStartWeek() {
 }
 
 function actionAddWeek12and13() {
-    options.data = [
-        ...(options.data ?? []),
-        { quarter: 'week 12', week: 12, iphone: 78, android: 67 },
-        { quarter: 'week 13', week: 13, iphone: 138, android: 120 },
-    ].map(toIntegratedKey);
-    options.data.sort((a: any, b: any) => a.week - b.week);
+    options.data = insertAfter(options.data!, 11, { quarter: 'week 12', week: 12, iphone: 78, android: 67 });
+    options.data = insertAfter(options.data, 12, { quarter: 'week 13', week: 13, iphone: 138, android: 120 });
+    options.data = options.data.map(toIntegratedKey);
     chart.update(options);
 }
 
 function actionAddWeek7and8() {
-    options.data = [
-        ...(options.data ?? []),
-        { quarter: 'week 7', week: 7, iphone: 142, android: 67 },
-        { quarter: 'week 8', week: 8, iphone: 87, android: 120 },
-    ].map(toIntegratedKey);
-    options.data.sort((a: any, b: any) => a.week - b.week);
+    options.data = insertAfter(options.data!, 6, { quarter: 'week 7', week: 7, iphone: 142, android: 67 });
+    options.data = insertAfter(options.data, 7, { quarter: 'week 8', week: 8, iphone: 87, android: 120 });
+    options.data = options.data.map(toIntegratedKey);
+    chart.update(options);
+}
+
+function reverse() {
+    options.data = options.data!.slice().reverse().map(toIntegratedKey);
     chart.update(options);
 }
 

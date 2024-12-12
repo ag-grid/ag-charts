@@ -2,6 +2,7 @@ import { navigate, useHistory, useLocation } from '@ag-website-shared/utils/navi
 import type { ApiReferenceType, InterfaceNode } from '@generate-code-reference-plugin/doc-interfaces/types';
 import { urlWithBaseUrl } from '@utils/urlWithBaseUrl';
 import classNames from 'classnames';
+import { Action } from 'history';
 import type { CSSProperties } from 'react';
 import { useContext, useEffect, useState } from 'react';
 import Markdown from 'react-markdown';
@@ -49,9 +50,9 @@ export function ApiReferencePage({
         navigate({ pathname: location?.pathname, hash: location?.hash }, { state: selection, replace: true });
     }, []);
 
-    useHistory(({ location, action }) => {
-        if (action === 'POP' && location.state) {
-            setSelection(location.state as NavigationData);
+    useHistory(({ location: historyLocation, action }) => {
+        if (action === Action.Pop && historyLocation.state) {
+            setSelection(historyLocation.state as NavigationData);
         }
     });
 
@@ -59,14 +60,16 @@ export function ApiReferencePage({
         return null;
     }
 
+    basePath = `${urlWithBaseUrl(`/${basePath}`)}/`;
+
     return (
         <ApiReferenceContext.Provider value={reference}>
             <ApiReferenceConfigContext.Provider value={{ hideHeader: true, specialTypes, keepExpanded }}>
-                <SelectionContext.Provider value={{ selection, setSelection, rootInterface }}>
+                <SelectionContext.Provider value={{ selection, setSelection, rootInterface, basePath }}>
                     <div className={classNames(styles.container, 'layout-grid')}>
                         <div className={styles.objectViewOuter}>
                             <OptionsNavigation
-                                basePath={`${urlWithBaseUrl(`/${basePath}`)}/`}
+                                basePath={basePath}
                                 breadcrumbs={breadcrumbs}
                                 rootInterface={rootInterface}
                             />

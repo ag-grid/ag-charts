@@ -1,16 +1,11 @@
-import { Icon } from '@ag-website-shared/components/icon/Icon';
 import fwLogos from '@ag-website-shared/images/fw-logos';
-import React, { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 
 import styles from './DropdownButton.module.scss';
 
 const DropdownButton = () => {
-    const [isOpen, setIsOpen] = useState(false);
+    const [isOpen] = useState(false);
     const dropdownRef = useRef(null);
-
-    const toggleDropdown = () => {
-        setIsOpen(!isOpen);
-    };
 
     return (
         <div className={styles.ctaContainer} ref={dropdownRef}>

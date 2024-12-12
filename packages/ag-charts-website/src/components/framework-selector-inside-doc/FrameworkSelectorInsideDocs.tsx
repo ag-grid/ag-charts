@@ -27,7 +27,7 @@ export const FrameworkSelectorInsideDocs = ({ path, currentFramework, menuItems 
     }, [FRAMEWORKS]);
 
     const frameworkOption = useMemo(
-        () => frameworkOptions.find((o: { value: string }) => o.value === currentFramework) || frameworkOptions[0],
+        () => frameworkOptions.find((o: { value: string }) => o.value === currentFramework) ?? frameworkOptions[0],
         [frameworkOptions, currentFramework]
     );
 
@@ -66,7 +66,7 @@ export const FrameworkSelectorInsideDocs = ({ path, currentFramework, menuItems 
                     isPopper
                     options={frameworkOptions}
                     value={frameworkOption}
-                    onChange={(newValue) => handleFrameworkChange(newValue.value as Framework)}
+                    onChange={(newValue) => handleFrameworkChange(newValue.value)}
                     renderItem={(o) => {
                         return (
                             <span className={styles.frameworkItem}>

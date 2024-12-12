@@ -137,6 +137,9 @@
         },
         "without-snapshots": {
           "command": "./playwright.sh --host test $(grep -LR 'toHaveScreenshot' e2e)"
+        },
+        "ui": {
+          "command": "./playwright.sh --host test --ui-port=8080 --ui-host=0.0.0.0"
         }
       }
     },

@@ -69,11 +69,13 @@ export const getBootstrapSnippet = ({
     const license = rawLicense?.trim();
     const gridFrameworkTemplate = GRID_LICENSE_TEMPLATES[framework];
     const gridTemplate = gridFrameworkTemplate[importType];
+    const gridSnippet = gridTemplate ? gridTemplate({ license, isIntegratedCharts }).trim() : '';
 
     const chartsTemplate = CHARTS_LICENSE_TEMPLATES[framework];
+    const chartsSnippet = chartsTemplate ? chartsTemplate({ license }).trim() : '';
 
     return {
-        grid: (gridTemplate && gridTemplate({ license, isIntegratedCharts })).trim() || '',
-        charts: (chartsTemplate && chartsTemplate({ license }).trim()) || '',
+        grid: gridSnippet || '',
+        charts: chartsSnippet || '',
     };
 };

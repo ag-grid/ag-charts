@@ -31,16 +31,13 @@ export function SearchBox({
     const { data, searchQuery, selectedIndex, handleInput, handleClick, handleKeyDown, setSelectedIndex } = useSearch(
         searchData,
         searchDataIndex,
-        (data) => {
-            onItemClick(data);
+        (d) => {
+            onItemClick(d);
             if (inputRef.current) {
                 inputRef.current.value = '';
             }
         }
     );
-
-    const cleanQuery = searchQuery.replace(/[^-a-z0-9]/g, '');
-    const searchRegexp = new RegExp(`(${cleanQuery})+`, 'ig');
 
     return (
         <div className={classnames(styles.searchOuter, className)} {...props}>
@@ -66,9 +63,9 @@ export function SearchBox({
                 <div className={styles.searchDropdown} onMouseDown={(e) => e.preventDefault()}>
                     <div className={styles.searchOptions}>
                         {data.length ? (
-                            data.map((data, index) => (
+                            data.map((innerData, index) => (
                                 <div
-                                    key={data.label}
+                                    key={innerData.label}
                                     ref={
                                         index === selectedIndex
                                             ? (ref) => ref?.scrollIntoView({ block: 'nearest', inline: 'start' })
@@ -77,13 +74,13 @@ export function SearchBox({
                                     className={classnames(styles.searchOption, {
                                         [styles.selected]: index === selectedIndex,
                                     })}
-                                    onClick={() => handleClick(data)}
+                                    onClick={() => handleClick(innerData)}
                                     onMouseEnter={() => setSelectedIndex(index)}
                                 >
                                     {markResults && searchQuery ? (
-                                        <HighlightText text={data.label} searchTerm={searchQuery} />
+                                        <HighlightText text={innerData.label} searchTerm={searchQuery} />
                                     ) : (
-                                        data.label
+                                        innerData.label
                                     )}
                                 </div>
                             ))
@@ -112,26 +109,26 @@ function useSearch(
     const [searchQuery, setSearchQuery] = useState(initialValue);
 
     const handleInput: FormEventHandler<HTMLInputElement> = (event) => {
-        const searchQuery = event.currentTarget.value.trim().toLowerCase();
+        const inputSearchQuery = event.currentTarget.value.trim().toLowerCase();
 
         const searchableEntries = searchDataIndex
-            .search(searchQuery)
+            .search(inputSearchQuery)
             .find(({ field }) => field === INDEXED_SEARCH_FIELD);
 
         const dataResults =
             searchableEntries?.result.map((id) => {
                 return searchData[id];
-            }) || [];
+            }) ?? [];
 
         setFilteredData(dataResults);
 
-        setSearchQuery(searchQuery);
+        setSearchQuery(inputSearchQuery);
         setSelectedIndex(0);
     };
 
-    const handleClick = (data: SearchDatum) => {
+    const handleClick = (d: SearchDatum) => {
         setSearchQuery('');
-        onItemClick(data);
+        onItemClick(d);
     };
 
     const handleKeyDown: KeyboardEventHandler = (event) => {
