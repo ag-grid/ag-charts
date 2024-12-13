@@ -177,7 +177,7 @@ export class Group extends Node {
                 const { x, y, width, height } = bbox;
 
                 const canvas = this.prepareSharedCanvas(width, height, pixelRatio);
-                renderOffscreen(canvas.context, pixelRatio, 0, 0, pixelRatio, -x * pixelRatio, -y * pixelRatio);
+                renderOffscreen(canvas, pixelRatio, 0, 0, pixelRatio, -x * pixelRatio, -y * pixelRatio);
 
                 image = { bitmap: canvas.transferToImageBitmap(), x, y, width, height };
             }
