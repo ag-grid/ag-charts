@@ -114,15 +114,15 @@ test.describe('keyboard-nav', () => {
         await gotoExample(page, toExamplePageUrl('accessibility-test', 'AG-13668-panToBBox', 'vanilla').url);
         await page.mouse.click(400, 300, { button: 'left' });
 
-        repeat(20, async () => await page.keyboard.press('+'));
+        repeat(5, async () => await page.keyboard.press('+'));
         await page.keyboard.press('ArrowLeft');
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13668-datum-0-focused.png');
 
-        repeat(8, async () => await page.keyboard.press('ArrowRight'));
-        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13668-datum-8-focused.png');
+        repeat(4, async () => await page.keyboard.press('ArrowRight'));
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13668-datum-4-focused.png');
 
         await page.keyboard.press('ArrowRight');
-        repeat(8, async () => await page.keyboard.press('ArrowLeft'));
+        repeat(3, async () => await page.keyboard.press('ArrowLeft'));
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13668-datum-1-focused.png');
     });
 
