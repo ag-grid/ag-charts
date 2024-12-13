@@ -372,13 +372,12 @@ export abstract class CartesianSeries<
 
     update({ seriesRect }: { seriesRect?: BBox }) {
         const { visible, _contextNodeData: previousContextData } = this;
+        const resize = this.checkResize(seriesRect);
+        this.updateSelections(visible);
+
         const series = this.ctx.highlightManager?.getActiveHighlight()?.series;
         const seriesHighlighted = series === this;
-
-        const resize = this.checkResize(seriesRect);
         const highlightItems = this.updateHighlightSelection(seriesHighlighted);
-
-        this.updateSelections(visible);
         this.updateNodes(highlightItems, seriesHighlighted, visible);
 
         const animationData = this.getAnimationData(seriesRect, previousContextData);
@@ -526,13 +525,21 @@ export abstract class CartesianSeries<
         return highlightedItem ? [highlightedItem] : undefined;
     }
 
+    private getRefreshedActiveHighlight(seriesHighlighted: boolean): TDatum | undefined {
+        if (!seriesHighlighted) {
+            return undefined;
+        }
+
+        this.ctx.highlightManager.refreshPannedHighlight(this.contextNodeData?.nodeData);
+        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
+        return highlightedDatum?.datum ? (highlightedDatum as TDatum) : undefined;
+    }
+
     protected updateHighlightSelection(seriesHighlighted: boolean) {
         const { highlightSelection, highlightLabelSelection, _contextNodeData: contextNodeData } = this;
         if (!contextNodeData) return;
 
-        const highlightedDatum = this.ctx.highlightManager?.getActiveHighlight();
-        const item = seriesHighlighted && highlightedDatum?.datum ? (highlightedDatum as TDatum) : undefined;
-
+        const item = this.getRefreshedActiveHighlight(seriesHighlighted);
         let labelItems: TLabel[] | undefined;
         let highlightItems: TDatum[] | undefined;
         if (item != null) {

@@ -420,6 +420,7 @@ export class SeriesAreaManager extends BaseManager {
             const focusBBox: Readonly<BBox> = getPickedFocusBBox(pick);
             const { x, y } = focusBBox.computeCenter();
             if (!hoverRect.containsPoint(x, y)) {
+                this.chart.ctx.highlightManager.requestPanRefresh(pick);
                 this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
             }
         }
