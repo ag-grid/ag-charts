@@ -48,7 +48,7 @@ export class HdpiOffscreenCanvas {
         return context.drawImage(this.canvas, dx, dy);
     }
 
-    imageBitmap(): ImageBitmap {
+    transferToImageBitmap(): ImageBitmap {
         return this.canvas.transferToImageBitmap();
     }
 

@@ -65,6 +65,43 @@ export class Group extends Node {
         return Group.computeChildrenBBox(this.children());
     }
 
+    private computeSafeClippingBBox(): BBox | undefined {
+        const bbox = this.computeBBox();
+        if (!bbox.isFinite()) return;
+
+        let strokeWidth = 0;
+        const strokeMiterAmount = 4;
+        for (const child of this.descendants()) {
+            if (child instanceof Shape) {
+                strokeWidth = Math.max(strokeWidth, child.strokeWidth);
+            }
+        }
+
+        // Align bbox to pixels, and pad.
+        const padding = Math.max(
+            // Account for anti-aliasing artefacts
+            1,
+            // Account for strokes (incl. miters) - this may not be the best place to include this
+            (strokeWidth / 2) * strokeMiterAmount
+        );
+        const x = Math.floor(bbox.x) - padding;
+        const y = Math.floor(bbox.y) - padding;
+        const width = Math.ceil(bbox.x + bbox.width) - x + padding;
+        const height = Math.ceil(bbox.y + bbox.height) - y + padding;
+
+        return new BBox(x, y, width, height);
+    }
+
+    private prepareSharedCanvas(width: number, height: number, pixelRatio: number) {
+        if (sharedOffscreenCanvas == null || sharedOffscreenCanvas.pixelRatio !== pixelRatio) {
+            sharedOffscreenCanvas = new HdpiOffscreenCanvas({ width, height, pixelRatio });
+        } else {
+            sharedOffscreenCanvas.resize(width, height);
+        }
+
+        return sharedOffscreenCanvas;
+    }
+
     private isDirty(renderCtx: RenderContext) {
         const { resized } = renderCtx;
         const { dirty, dirtyZIndex } = this;
@@ -116,63 +153,33 @@ export class Group extends Node {
             image?.bitmap.close();
             image = undefined;
 
-            const bbox = layer ? BBox.NaN : this.computeBBox();
+            const bbox = layer ? undefined : this.computeSafeClippingBBox();
 
             const renderOffscreen = (
-                offscreenCtx: OffscreenCanvasRenderingContext2D,
+                offscreenCanvas: HdpiOffscreenCanvas,
                 ...transform: [DOMMatrix] | [number, number, number, number, number, number]
             ) => {
+                const offscreenCtx = offscreenCanvas.context;
                 childRenderCtx.ctx = offscreenCtx;
+
+                offscreenCanvas.clear();
                 offscreenCtx.save();
                 offscreenCtx.setTransform(...(transform as any[]));
                 offscreenCtx.globalAlpha = 1;
                 this.renderInContext(childRenderCtx);
                 offscreenCtx.restore();
-                (offscreenCtx as any).verifyDepthZero?.(); // Check for save/restore depth of zero!
+                offscreenCtx.verifyDepthZero?.(); // Check for save/restore depth of zero!
             };
 
             if (layer) {
-                layer.clear();
                 renderOffscreen(layer.context, ctx.getTransform());
-            } else if (bbox.isFinite()) {
-                let strokeWidth = 0;
-                const strokeMiterAmount = 4;
-                for (const child of this.descendants()) {
-                    if (child instanceof Shape) {
-                        strokeWidth = Math.max(strokeWidth, child.strokeWidth);
-                    }
-                }
+            } else if (bbox) {
+                const { x, y, width, height } = bbox;
 
-                // Align bbox to pixels, and pad.
-                const padding = Math.max(
-                    // Account for anti-aliasing artefacts
-                    1,
-                    // Account for strokes (incl. miters) - this may not be the best place to include this
-                    (strokeWidth / 2) * strokeMiterAmount
-                );
-                const x = Math.floor(bbox.x) - padding;
-                const y = Math.floor(bbox.y) - padding;
-                const width = Math.ceil(bbox.x + bbox.width) - x + padding;
-                const height = Math.ceil(bbox.y + bbox.height) - y + padding;
+                const canvas = this.prepareSharedCanvas(width, height, pixelRatio);
+                renderOffscreen(canvas.context, pixelRatio, 0, 0, pixelRatio, -x * pixelRatio, -y * pixelRatio);
 
-                if (sharedOffscreenCanvas == null || sharedOffscreenCanvas.pixelRatio !== pixelRatio) {
-                    sharedOffscreenCanvas = new HdpiOffscreenCanvas({ width, height, pixelRatio });
-                } else {
-                    sharedOffscreenCanvas.clear();
-                    sharedOffscreenCanvas.resize(width, height);
-                }
-
-                renderOffscreen(
-                    sharedOffscreenCanvas.context,
-                    pixelRatio,
-                    0,
-                    0,
-                    pixelRatio,
-                    -x * pixelRatio,
-                    -y * pixelRatio
-                );
-
-                image = { bitmap: sharedOffscreenCanvas.imageBitmap(), x, y, width, height };
+                image = { bitmap: canvas.transferToImageBitmap(), x, y, width, height };
             }
 
             this.image = image;
