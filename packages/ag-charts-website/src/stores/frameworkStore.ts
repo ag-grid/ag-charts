@@ -7,7 +7,7 @@ export type FrameworkContext = {
 };
 
 const LOCALSTORAGE_PREFIX = 'documentation';
-const DEFAULT_INTERNAL_FRAMEWORK: InternalFramework = 'reactFunctional';
+const DEFAULT_INTERNAL_FRAMEWORK: InternalFramework = import.meta.env.PUBLIC_DEFAULT_FRAMEWORK ?? 'reactFunctional';
 
 export const $internalFramework = persistentAtom<InternalFramework>(
     `${LOCALSTORAGE_PREFIX}:internalFramework`,
