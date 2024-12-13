@@ -20,7 +20,8 @@ import { SORT_DOMAIN_GROUPS, createDatumId, diff, keyProperty, valueProperty } f
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
-import { type PickFocusInputs, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
+import { type PickFocusInputs } from '../pickFocus';
+import { type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { applyShapeStyle } from '../shapeUtil';
 import {

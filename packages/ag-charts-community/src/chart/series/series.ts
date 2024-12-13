@@ -15,7 +15,6 @@ import type { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import type { Point } from '../../scene/point';
-import type { Path } from '../../scene/shape/path';
 import type { PlacedLabel, PointLabelDatum } from '../../scene/util/labelPlacement';
 import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
@@ -36,6 +35,7 @@ import type { LegendItemClickChartEvent, LegendItemDoubleClickChartEvent } from 
 import type { ChartLegendDatum, ChartLegendType } from '../legend/legendDatum';
 import type { Marker } from '../marker/marker';
 import type { TooltipContent } from '../tooltip/tooltip';
+import type { PickFocusInputs, PickFocusOutputs } from './pickFocus';
 import type { SeriesEventType } from './seriesEvents';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesGrouping } from './seriesStateManager';
@@ -57,25 +57,6 @@ export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip'
 export type SeriesNodePickMatch = {
     datum: SeriesNodeDatum;
     distance: number;
-};
-
-export type PickFocusInputs = {
-    // datum delta is strictly +ve/-ve when changing datum focus, or 0 when changing series focus.
-    readonly datumIndex: number;
-    readonly datumIndexDelta: number;
-    // 'other' means 'depth' for hierarchical charts, or 'series' for all other charts
-    readonly otherIndex: number;
-    readonly otherIndexDelta: number;
-    readonly seriesRect?: BBox;
-};
-
-export type PickFocusOutputs = {
-    datumIndex: number;
-    datum: SeriesNodeDatum;
-    otherIndex?: number;
-    bounds: BBox | Path;
-    showFocusBox: boolean;
-    clipFocusBox: boolean;
 };
 
 export type PickResult = { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number };
