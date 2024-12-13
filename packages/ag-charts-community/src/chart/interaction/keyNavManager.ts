@@ -94,6 +94,10 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
         if (altKey || shiftKey || metaKey || ctrlKey) return;
 
         this.focusIndicator?.overrideFocusVisible(true);
+        if (key === 'Enter') {
+            // AG-13086: Ensure numpad enter + normal enter are treated consistently.
+            return this.dispatch('submit', 0, event);
+        }
         switch (code) {
             case 'ArrowDown':
                 return this.dispatch('nav-vert', 1, event);
@@ -110,7 +114,6 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
             case 'Substract':
                 return this.dispatch('nav-zoom', -1, event);
             case 'Space':
-            case 'Enter':
                 return this.dispatch('submit', 0, event);
         }
     }
