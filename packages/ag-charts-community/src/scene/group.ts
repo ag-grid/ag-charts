@@ -172,7 +172,7 @@ export class Group extends Node {
             };
 
             if (layer) {
-                renderOffscreen(layer.context, ctx.getTransform());
+                renderOffscreen(layer, ctx.getTransform());
             } else if (bbox) {
                 const { x, y, width, height } = bbox;
 
