@@ -1,13 +1,14 @@
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
+import type { BBox, ChildNodeCounts } from '../../module-support';
+import { SceneChangeDetection } from '../../scene/changeDetectable';
 import { Group } from '../../scene/group';
-import type { Line } from '../../scene/shape/line';
+import { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
 import { Translatable } from '../../scene/transformable';
-import { ProxyPropertyOnWrite } from '../../util/proxy';
-import { isDefined } from '../../util/type-guards';
+import { ObserveChanges, ProxyPropertyOnWrite } from '../../util/proxy';
 import type { SwitchWidget } from '../../widget/switchWidget';
-import type { Marker } from '../marker/marker';
+import { Marker } from '../marker/marker';
 import type { MarkerConstructor } from '../marker/util';
 
 export class LegendMarkerLabel extends Translatable(Group) {
@@ -25,7 +26,9 @@ export class LegendMarkerLabel extends Translatable(Group) {
     constructor() {
         super({ name: 'markerLabelGroup' });
 
-        const { marker, label, line, symbolsGroup } = this;
+        const { label, line, symbolsGroup } = this;
+
+        line.visible = false;
 
         symbolsGroup.renderToOffscreenCanvas = true;
         symbolsGroup.optimizeForInfrequentRedraws = true;
@@ -36,8 +39,6 @@ export class LegendMarkerLabel extends Translatable(Group) {
         label.fill = 'black';
         // For better looking vertical alignment of labels to markers.
         label.y = 1;
-
-        this.updateSymbols(marker, line);
     }
 
     override destroy() {
@@ -67,24 +68,29 @@ export class LegendMarkerLabel extends Translatable(Group) {
     @ProxyPropertyOnWrite('label', 'fill')
     color?: string;
 
-    private _marker: Marker | undefined = undefined;
-    get marker(): Marker | undefined {
+    @ObserveChanges<LegendMarkerLabel>((target) => target.layoutLabel())
+    spacing: number = 0;
+
+    @ObserveChanges<LegendMarkerLabel>((target) => target.layoutLabel())
+    length: number = 0;
+
+    @SceneChangeDetection()
+    isCustomMarker: boolean = false;
+
+    private _marker: Marker | undefined;
+    public get marker(): Marker | undefined {
         return this._marker;
     }
-
-    private _line: Line | undefined = undefined;
-    get line(): Line | undefined {
-        return this._line;
-    }
-
-    updateSymbols(marker: Marker | undefined, line: Line | undefined) {
-        if (this._marker === marker && this._line === line) return;
-
+    set marker(marker: Marker | undefined) {
+        this._marker?.remove();
         this._marker = marker;
-        this._line = line;
-        this.symbolsGroup.clear();
-        this.symbolsGroup.append([line, marker].filter(isDefined));
+        if (marker != null) {
+            marker.zIndex = 1;
+            this.symbolsGroup.appendChild(marker);
+        }
     }
+
+    public readonly line = this.symbolsGroup.appendChild(new Line());
 
     setEnabled(enabled: boolean) {
         this.enabled = enabled;
@@ -97,13 +103,12 @@ export class LegendMarkerLabel extends Translatable(Group) {
         this.opacity = opacity;
     }
 
-    update(dimensionProps: { length: number; spacing: number; isCustomMarker: boolean }) {
-        const { marker, line } = this;
-        const { length, spacing, isCustomMarker } = dimensionProps;
+    private layout() {
+        const { marker, line, length, isCustomMarker } = this;
 
         let centerTranslateX = 0;
         let centerTranslateY = 0;
-        if (marker) {
+        if (marker?.visible) {
             const { size } = marker;
             const center = (marker.constructor as MarkerConstructor).center;
             centerTranslateX = (center.x - 0.5) * size + length / 2;
@@ -122,14 +127,28 @@ export class LegendMarkerLabel extends Translatable(Group) {
             }
         }
 
-        if (line) {
+        if (line.visible) {
             line.x1 = 0;
             line.x2 = length;
             line.y1 = 0;
             line.y2 = 0;
-            line.markDirty();
         }
+    }
 
-        this.label.x = marker || line ? length + spacing : 0;
+    override preRender(): ChildNodeCounts {
+        const out = super.preRender();
+        this.layout();
+        return out;
+    }
+
+    private layoutLabel() {
+        const { length, spacing } = this;
+
+        this.label.x = length + spacing;
+    }
+
+    protected override computeBBox(): BBox {
+        this.layout();
+        return super.computeBBox();
     }
 }

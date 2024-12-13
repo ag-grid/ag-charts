@@ -1,8 +1,8 @@
-import type { FillOptions, LineDashOptions, StrokeOptions } from 'ag-charts-types';
-
 import type { Shape } from '../../scene/shape/shape';
 
-export interface ShapeStyle extends FillOptions, StrokeOptions, LineDashOptions {}
+export type ShapeStyle = Partial<
+    Pick<Shape, 'fill' | 'fillOpacity' | 'stroke' | 'strokeOpacity' | 'strokeWidth' | 'lineDash' | 'lineDashOffset'>
+>;
 
 export function applyShapeStyle(shape: Shape, style: ShapeStyle, overrides?: ShapeStyle) {
     shape.fill = overrides?.fill ?? style.fill;

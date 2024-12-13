@@ -104,8 +104,9 @@ export class Group extends Node {
 
     private isDirty(renderCtx: RenderContext) {
         const { resized } = renderCtx;
-        const { dirty, dirtyZIndex } = this;
-        if (dirty || dirtyZIndex || resized) return true;
+        const { dirty, dirtyZIndex, layer } = this;
+        const layerResized = layer != null && resized;
+        if (dirty || dirtyZIndex || layerResized) return true;
 
         for (const child of this.children()) {
             if (child.dirty) return true;
@@ -180,6 +181,9 @@ export class Group extends Node {
                 renderOffscreen(canvas, pixelRatio, 0, 0, pixelRatio, -x * pixelRatio, -y * pixelRatio);
 
                 image = { bitmap: canvas.transferToImageBitmap(), x, y, width, height };
+            } else if (this.dirtyZIndex) {
+                // Required to make this.isDirty return false on the next render
+                this.sortChildren(Group.compareChildren);
             }
 
             this.image = image;
