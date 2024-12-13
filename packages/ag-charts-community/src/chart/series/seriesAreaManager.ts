@@ -421,7 +421,10 @@ export class SeriesAreaManager extends BaseManager {
             const { x, y } = focusBBox.computeCenter();
             if (!hoverRect.containsPoint(x, y)) {
                 this.chart.ctx.highlightManager.requestPanRefresh(pick);
-                this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
+                const panSuccess = this.chart.ctx.zoomManager.panToBBox(this.id, hoverRect, focusBBox);
+                if (panSuccess) {
+                    return; // Wait for update to ensure that we show the tooltip/highlight correctly.
+                }
             }
         }
 
