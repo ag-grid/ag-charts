@@ -1,6 +1,5 @@
 import { BaseManager } from '../../util/baseManager';
 import { StateTracker } from '../../util/stateTracker';
-import type { PickFocusOutputs } from '../series/pickFocus';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
 
 export interface HighlightNodeDatum extends SeriesNodeDatum {
@@ -26,7 +25,6 @@ export interface HighlightChangeEvent {
 export class HighlightManager extends BaseManager<'highlight-change', HighlightChangeEvent> {
     private readonly highlightStates = new StateTracker<HighlightNodeDatum>();
     private activeHighlight?: HighlightNodeDatum;
-    private pannedFocus?: PickFocusOutputs;
 
     public updateHighlight(callerId: string, highlightedDatum?: HighlightNodeDatum) {
         const { activeHighlight: previousHighlight } = this;
@@ -42,32 +40,14 @@ export class HighlightManager extends BaseManager<'highlight-change', HighlightC
         }
     }
 
-    public requestPanRefresh(pickedFocus: PickFocusOutputs) {
-        this.pannedFocus = pickedFocus;
-    }
-
-    public refreshPannedHighlight(nodeData: HighlightNodeDatum[] | undefined) {
-        const callerId = this.highlightStates.stateId();
-        if (nodeData != null && callerId != null && this.pannedFocus != null) {
-            const newHighlight: HighlightNodeDatum | undefined = nodeData[this.pannedFocus.datumIndex];
-            this.updateHighlight(callerId, newHighlight);
-            this.pannedFocus = undefined;
-        }
-    }
-
     public getActiveHighlight(): HighlightNodeDatum | undefined {
         return this.activeHighlight;
     }
 
     private isEqual(a?: SeriesNodeDatum, b?: SeriesNodeDatum) {
-        const notEqual =
-            a !== b ||
-            a == null ||
-            b == null ||
-            a.series !== b.series ||
-            a.itemId !== b.itemId ||
-            a.datum !== b.datum ||
-            a.midPoint !== b.midPoint;
-        return !notEqual;
+        return (
+            a === b ||
+            (a != null && b != null && a?.series === b?.series && a?.itemId === b?.itemId && a?.datum === b?.datum)
+        );
     }
 }
