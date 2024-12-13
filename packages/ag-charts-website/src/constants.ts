@@ -2,6 +2,8 @@ import type { Framework, InternalFramework } from './types/ag-grid';
 
 export const FRAMEWORKS: readonly Framework[] = ['react', 'angular', 'vue', 'javascript'] as const;
 export const DEFAULT_FRAMEWORK: Framework = FRAMEWORKS[0];
+export const DEFAULT_INTERNAL_FRAMEWORK: InternalFramework =
+    import.meta.env?.PUBLIC_DEFAULT_FRAMEWORK ?? 'reactFunctional';
 
 export const INTERNAL_FRAMEWORKS: readonly InternalFramework[] = [
     'vanilla',
@@ -126,4 +128,3 @@ function getChartsUrl() {
     return PRODUCTION_CHARTS_SITE_URL;
 }
 export const CHARTS_SITE_URL = getChartsUrl();
-export const DEFAULT_INTERNAL_FRAMEWORK: InternalFramework = 'reactFunctional';
