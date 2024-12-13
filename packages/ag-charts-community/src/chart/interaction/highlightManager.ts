@@ -60,9 +60,14 @@ export class HighlightManager extends BaseManager<'highlight-change', HighlightC
     }
 
     private isEqual(a?: SeriesNodeDatum, b?: SeriesNodeDatum) {
-        return (
-            a === b ||
-            (a != null && b != null && a?.series === b?.series && a?.itemId === b?.itemId && a?.datum === b?.datum)
-        );
+        const notEqual =
+            a !== b ||
+            a == null ||
+            b == null ||
+            a.series !== b.series ||
+            a.itemId !== b.itemId ||
+            a.datum !== b.datum ||
+            a.midPoint !== b.midPoint;
+        return !notEqual;
     }
 }
