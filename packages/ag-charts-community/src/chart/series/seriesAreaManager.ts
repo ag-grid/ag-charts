@@ -138,6 +138,7 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             chart.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
+            chart.ctx.updateService.addListener('update-complete', () => this.updateComplete()),
             chart.ctx.zoomManager.addListener('zoom-change', () => this.clearAll()),
             chart.ctx.zoomManager.addListener('zoom-pan-start', () => this.clearAll())
         );
@@ -151,12 +152,6 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private preSceneRender() {
-        if (this.focusIndicator.isFocusVisible()) {
-            // This function is called when something in the scene is redrawn such as a resize, or zoompan change.
-            // Therefore we need to update the bounds of the focus indicator, but not aria-label. Hence refresh=true.
-            this.handleSeriesFocus(0, 0, true);
-        }
-
         if (this.highlight.stashedHoverEvent != null) {
             this.highlight.pendingHoverEvent = this.highlight.stashedHoverEvent;
             this.highlight.stashedHoverEvent = undefined;
@@ -165,6 +160,14 @@ export class SeriesAreaManager extends BaseManager {
 
         if (this.tooltip.lastHover != null) {
             this.handleHoverTooltip(this.tooltip.lastHover, true);
+        }
+    }
+
+    private updateComplete() {
+        if (this.focusIndicator.isFocusVisible()) {
+            // This function is called when something in the scene is redrawn such as a resize, or zoompan change.
+            // Therefore we need to update the bounds of the focus indicator, but not aria-label. Hence refresh=true.
+            this.handleSeriesFocus(0, 0, true);
         }
     }
 

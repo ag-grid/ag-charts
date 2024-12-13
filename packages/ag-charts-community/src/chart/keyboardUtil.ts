@@ -27,9 +27,9 @@ function computeCenter(hoverRect: BBox, pick: PickProperties) {
     return Transformable.toCanvas(bboxOrPath).computeCenter();
 }
 
-export function getPickedFocusBBox({ bounds }: PickProperties): BBox {
+export function getPickedFocusBBox({ bounds }: PickProperties): Readonly<BBox> {
     if (bounds instanceof BBox) return bounds;
-    if (bounds != null) return bounds.getBBox();
+    if (bounds != null) return Transformable.toCanvas(bounds);
     return BBox.NaN;
 }
 
