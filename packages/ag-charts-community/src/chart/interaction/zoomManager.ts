@@ -1,4 +1,4 @@
-import type { AgZoomRange, AgZoomRatio } from 'ag-charts-types';
+import type { AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
 import { ContinuousScale } from '../../scale/continuousScale';
@@ -11,6 +11,7 @@ import type { BBoxValues } from '../../util/bboxinterface';
 import { deepClone } from '../../util/json';
 import { Logger } from '../../util/logger';
 import { findMinMax } from '../../util/number';
+import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
 import { isFiniteNumber, isObject } from '../../util/type-guards';
@@ -100,7 +101,12 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
           }
         | undefined = undefined;
 
-    public addLayoutListeners(layoutManager: LayoutManager) {
+    constructor(
+        private readonly fireChartEvent: <TEvent extends TypedEvent>(event: TEvent) => void,
+        layoutManager: LayoutManager
+    ) {
+        super();
+
         this.destroyFns.push(
             layoutManager.addListener('layout:complete', () => {
                 const { pendingMemento } = this;
@@ -116,13 +122,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     }
 
     public createMemento() {
-        const zoom = this.getDefinedZoom();
-        const memento: ZoomMemento = {
-            rangeX: this.getRangeDirection(zoom.x, ChartAxisDirection.X),
-            rangeY: this.getRangeDirection(zoom.y, ChartAxisDirection.Y),
-            ratioX: { start: zoom.x.min, end: zoom.x.max },
-            ratioY: { start: zoom.y.min, end: zoom.y.max },
-        };
+        const memento: ZoomMemento = this.getMementoRanges();
         if (this.autoScaleYAxis.enabled) {
             memento.autoScaleYAxis = !this.autoScaleYAxis.manuallyAdjusted;
         }
@@ -399,6 +399,16 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         return this.lastRestoredState;
     }
 
+    private getMementoRanges() {
+        const zoom = this.getDefinedZoom();
+        return {
+            rangeX: this.getRangeDirection(zoom.x, ChartAxisDirection.X),
+            rangeY: this.getRangeDirection(zoom.y, ChartAxisDirection.Y),
+            ratioX: { start: zoom.x.min, end: zoom.x.max },
+            ratioY: { start: zoom.y.min, end: zoom.y.max },
+        };
+    }
+
     private autoScaleYZoom(callerId: string, applyChanges = true) {
         const { independentAxes, autoScaleYAxis } = this;
 
@@ -443,6 +453,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         }
 
         this.listeners.dispatch('zoom-change', { type: 'zoom-change', ...this.getZoom(), axes, callerId });
+        this.fireChartEvent<AgZoomEvent>({ type: 'zoom', ...this.getMementoRanges() });
     }
 
     private getRangeDirection(ratio: ZoomState, direction: ChartAxisDirection): AgZoomRange | undefined {
