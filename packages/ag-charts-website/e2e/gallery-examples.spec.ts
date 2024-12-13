@@ -1,8 +1,7 @@
-import { ExampleOptions, ExampleOverrides, convertPageUrls, createTestCase } from './examples-util';
+import { ExampleOverrides, convertPageUrls, createTestCase } from './examples-util';
 import { expect, test } from './fixture';
-import { getExamples, setupIntrinsicAssertions, toExamplePageUrls, toGalleryPageUrls } from './util';
+import { getExamples, setupIntrinsicAssertions } from './util';
 
-const ignorePages = ['benchmarks', /.*-test/];
 const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
     gallery: {
         '*': { frameworks: ['vanilla', 'typescript'] },
