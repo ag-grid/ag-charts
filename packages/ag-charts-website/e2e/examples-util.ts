@@ -1,30 +1,30 @@
 import { Page } from '@playwright/test';
 
 import { expect, test } from './fixture';
-import { gotoExample, toExamplePageUrls, toGalleryPageUrls } from './util';
+import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls, toGalleryPageUrls } from './util';
 
 export type Status = 'ok' | '404';
 export type ClickOrder = 'normal' | 'reverse';
+
+type ExampleCommonOptions = {
+    status: Status;
+    clickOrder: ClickOrder;
+    skipCanvasUpdateCheck: boolean | string[];
+    ignoreConsoleWarnings: boolean;
+    randomData: boolean;
+};
 
 export type ExampleOptions = {
     pagePath: string;
     url: string;
     example: string;
     framework: string;
-    status: Status;
-    clickOrder: ClickOrder;
-    skipCanvasUpdateCheck: boolean | string[];
-    ignoreConsoleWarnings: boolean;
-};
+} & ExampleCommonOptions;
 
 export type ExampleOverrides = {
     frameworks?: string[];
-    status?: Status;
     skipFrameworks?: boolean;
-    clickOrder?: ClickOrder;
-    skipCanvasUpdateCheck?: boolean | string[];
-    ignoreConsoleWarnings?: boolean;
-};
+} & Partial<ExampleCommonOptions>;
 
 const ignorePages = ['benchmarks', /.*-test/];
 export function convertPageUrls(path: string, exampleOptions: Record<string, Record<string, ExampleOverrides>>) {
@@ -45,6 +45,7 @@ export function convertPageUrls(path: string, exampleOptions: Record<string, Rec
         clickOrder = 'normal',
         skipCanvasUpdateCheck = false,
         ignoreConsoleWarnings = false,
+        randomData = false,
     } = {
         ...exampleOptions[page]?.['*'],
         ...exampleOptions[page]?.[example],
@@ -62,6 +63,7 @@ export function convertPageUrls(path: string, exampleOptions: Record<string, Rec
                 clickOrder,
                 skipCanvasUpdateCheck,
                 ignoreConsoleWarnings,
+                randomData,
             })
         );
 }
@@ -69,7 +71,8 @@ export function convertPageUrls(path: string, exampleOptions: Record<string, Rec
 export function createTestCase(
     testFn: typeof test,
     opts: ExampleOptions,
-    config: { initialCallback?: (page: Page) => Promise<void>; ignore404s: boolean; ignoreConsoleWarnings: boolean }
+    config: ReturnType<typeof setupIntrinsicAssertions>,
+    initialCallback?: (page: Page) => Promise<void>
 ) {
     const { url, status, framework, clickOrder, skipCanvasUpdateCheck, ignoreConsoleWarnings } = opts;
 
@@ -82,7 +85,7 @@ export function createTestCase(
             // Load example and wait for things to settle.
             await gotoExample(page, url);
 
-            await config.initialCallback?.(page);
+            await initialCallback?.(page);
 
             // Check we're dealing with a single canvas, otherwise things get tricky!
             const canvases = await page.locator('.ag-charts-wrapper').all();

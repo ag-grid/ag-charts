@@ -28,6 +28,10 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
         'bar-series-error-bars': { status: '404' },
         '100--stacked-column': { status: '404' },
         '100--stacked-bar': { status: '404' },
+
+        // Examples with random data.
+        'radar-with-markers': { randomData: true },
+        'reversed-radar-with-markers': { randomData: true },
     },
 };
 
@@ -48,11 +52,10 @@ test.describe('gallery examples', () => {
                 test.skip(!affected, 'unaffected example');
 
                 test.describe(`Example ${pagePath}: ${example}${affected ? '' : ' (!!!SKIPPED!!!)'}`, () => {
-                    createTestCase(testFn as any, opts, {
-                        initialCallback: async (page) => {
-                            await expect(page).toHaveScreenshot(`gallery-${opts.example}.png`);
-                        },
-                        ...config,
+                    createTestCase(testFn as any, opts, config, async (page) => {
+                        if (opts.randomData) return;
+
+                        await expect(page).toHaveScreenshot(`gallery-${opts.example}.png`);
                     });
                 });
             });
