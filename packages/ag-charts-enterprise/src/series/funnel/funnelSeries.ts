@@ -20,6 +20,7 @@ const {
     formatValue,
     Rect,
     motion,
+    applyShapeStyle,
 } = _ModuleSupport;
 
 type ItemStyle = Pick<AgFunnelSeriesStyle, 'fill' | 'stroke'> & Required<Omit<AgFunnelSeriesStyle, 'fill' | 'stroke'>>;
@@ -188,13 +189,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
                 isHighlight
             );
 
-            rect.fill = overrides?.fill ?? style.fill;
-            rect.fillOpacity = overrides?.fillOpacity ?? style.fillOpacity;
-            rect.stroke = overrides?.stroke ?? style.stroke;
-            rect.strokeOpacity = overrides?.strokeOpacity ?? style.strokeOpacity;
-            rect.strokeWidth = overrides?.strokeWidth ?? style.strokeWidth;
-            rect.lineDash = overrides?.lineDash ?? style.lineDash;
-            rect.lineDashOffset = overrides?.lineDashOffset ?? style.lineDashOffset;
+            applyShapeStyle(rect, style, overrides);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 

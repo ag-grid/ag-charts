@@ -51,7 +51,7 @@ export function collapsedStartingBarPosition(
         let y = isVertical ? startingY : datum.y;
         let width = isVertical ? datum.width : 0;
         let height = isVertical ? 0 : datum.height;
-        const { opacity } = datum;
+        const { opacity = 1 } = datum;
 
         if (prevDatum && (isNaN(x) || isNaN(y))) {
             // Fallback
@@ -93,7 +93,7 @@ export function midpointStartingBarPosition(
                 width: isVertical ? datum.width : 0,
                 height: isVertical ? 0 : datum.height,
                 clipBBox: datum.clipBBox,
-                opacity: datum.opacity,
+                opacity: datum.opacity ?? 1,
             };
         },
         mode,
@@ -135,7 +135,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
                 width: rect.width,
                 height: rect.height,
                 clipBBox: rect.clipBBox,
-                opacity: rect.opacity,
+                opacity: rect.opacity ?? 1,
             };
         }
 
@@ -155,7 +155,7 @@ export function prepareBarAnimationFunctions<T extends AnimatableBarDatum>(initP
                 width: datum.width,
                 height: datum.height,
                 clipBBox: datum.clipBBox,
-                opacity: datum.opacity,
+                opacity: datum.opacity ?? 1,
             };
         }
     };
@@ -182,7 +182,7 @@ function getStartingValues(isVertical: boolean, axes: Record<ChartAxisDirection,
     return { startingX, startingY };
 }
 
-export function resetBarSelectionsFn(_node: Rect, { x, y, width, height, clipBBox, opacity }: AnimatableBarDatum) {
+export function resetBarSelectionsFn(_node: Rect, { x, y, width, height, clipBBox, opacity = 1 }: AnimatableBarDatum) {
     return { x, y, width, height, clipBBox, opacity };
 }
 

@@ -30,6 +30,7 @@ const {
     Selection,
     Text,
     PointerEvents,
+    applyShapeStyle,
 } = _ModuleSupport;
 
 interface MapShapeNodeDataContext
@@ -491,7 +492,7 @@ export class MapShapeSeries
     }) {
         const { datumSelection, isHighlight } = opts;
 
-        const format = this.getItemBaseStyle(isHighlight);
+        const style = this.getItemBaseStyle(isHighlight);
 
         datumSelection.each((geoGeometry, nodeDatum) => {
             const { datum, datumIndex, colorValue, projectedGeometry } = nodeDatum;
@@ -501,17 +502,12 @@ export class MapShapeSeries
                 return;
             }
 
-            const overrides = this.getItemStyleOverrides(String(datumIndex), datum, colorValue, format, isHighlight);
+            const overrides = this.getItemStyleOverrides(String(datumIndex), datum, colorValue, style, isHighlight);
 
             geoGeometry.visible = true;
             geoGeometry.projectedGeometry = projectedGeometry;
-            geoGeometry.fill = overrides?.fill ?? format.fill;
-            geoGeometry.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
-            geoGeometry.stroke = overrides?.stroke ?? format.stroke;
-            geoGeometry.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
-            geoGeometry.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
-            geoGeometry.lineDash = overrides?.lineDash ?? format.lineDash;
-            geoGeometry.lineDashOffset = overrides?.lineDashOffset ?? format.lineDashOffset;
+
+            applyShapeStyle(geoGeometry, style, overrides);
         });
     }
 

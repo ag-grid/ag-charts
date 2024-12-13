@@ -23,6 +23,7 @@ const {
     normalizeAngle360,
     BandScale,
     motion,
+    applyShapeStyle,
 } = _ModuleSupport;
 
 class RadialColumnSeriesNodeEvent<
@@ -381,12 +382,7 @@ export abstract class RadialColumnSeriesBase<
         this.animationState.transition('update');
     }
 
-    protected abstract updateItemPath(
-        node: ItemPathType,
-        datum: RadialColumnNodeDatum,
-        highlight: boolean,
-        format: AgRadialSeriesStyle | undefined
-    ): void;
+    protected abstract updateItemPath(node: ItemPathType, datum: RadialColumnNodeDatum, highlight: boolean): void;
 
     private getItemBaseStyle(highlighted: boolean): ItemStyle {
         const { properties } = this;
@@ -436,23 +432,19 @@ export abstract class RadialColumnSeriesBase<
             selectionData = this.nodeData;
         }
 
-        const format = this.getItemBaseStyle(highlighted);
+        const style = this.getItemBaseStyle(highlighted);
 
         selection
             .update(selectionData, undefined, (datum) => this.getDatumId(datum))
             .each((node, nodeDatum) => {
                 const { datum, datumIndex } = nodeDatum;
-                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, format, highlighted);
+                const overrides = this.getItemStyleOverrides(String(datumIndex), datum, style, highlighted);
 
-                this.updateItemPath(node, nodeDatum, highlighted, { ...overrides, ...format });
-                node.fill = overrides?.fill ?? format.fill;
-                node.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
-                node.stroke = overrides?.stroke ?? format.stroke;
-                node.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
-                node.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
-                node.lineDash = overrides?.lineDash ?? format.lineDash;
-                node.lineDashOffset = overrides?.lineDashOffset ?? format.lineDashOffset;
-                node.cornerRadius = overrides?.cornerRadius ?? format.cornerRadius;
+                this.updateItemPath(node, nodeDatum, highlighted);
+
+                applyShapeStyle(node, style, overrides);
+
+                node.cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
                 node.lineJoin = 'round';
             });
     }

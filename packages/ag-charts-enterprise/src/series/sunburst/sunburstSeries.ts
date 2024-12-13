@@ -4,8 +4,16 @@ import type { AgSunburstSeriesStyle } from 'ag-charts-types';
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
 
-const { fromToMotion, normalizeAngle360, createDatumId, Sector, ScalableGroup, Selection, TransformableText } =
-    _ModuleSupport;
+const {
+    fromToMotion,
+    normalizeAngle360,
+    createDatumId,
+    Sector,
+    ScalableGroup,
+    Selection,
+    TransformableText,
+    applyShapeStyle,
+} = _ModuleSupport;
 
 interface LabelData {
     label: string | undefined;
@@ -242,7 +250,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const updateSector = (
             nodeDatum: _ModuleSupport.HierarchyNode,
             sector: _ModuleSupport.Sector,
-            format: ItemStyle,
+            style: ItemStyle,
             highlighted: boolean
         ) => {
             const { datum, index, rootIndex, depth, colorValue } = nodeDatum;
@@ -260,17 +268,13 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 rootIndex,
                 depth,
                 colorValue,
-                format,
+                style,
                 highlighted
             );
 
-            const strokeWidth = overrides.strokeWidth ?? format.strokeWidth;
+            const strokeWidth = overrides.strokeWidth ?? style.strokeWidth;
 
-            sector.fill = overrides.fill ?? format.fill;
-            sector.fillOpacity = overrides.fillOpacity ?? format.fillOpacity;
-            sector.stroke = overrides.stroke ?? format.stroke;
-            sector.strokeWidth = strokeWidth;
-            sector.strokeOpacity = overrides.strokeOpacity ?? format.strokeOpacity;
+            applyShapeStyle(sector, style, overrides);
 
             sector.centerX = 0;
             sector.centerY = 0;

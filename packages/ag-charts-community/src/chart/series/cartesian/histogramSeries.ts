@@ -20,8 +20,9 @@ import { SORT_DOMAIN_GROUPS, createDatumId, diff, keyProperty, valueProperty } f
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
-import { type PickFocusInputs, Series, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
+import { type PickFocusInputs, type SeriesNodePickMatch, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
+import { applyShapeStyle } from '../shapeUtil';
 import {
     collapsedStartingBarPosition,
     computeBarFocusBounds,
@@ -236,7 +237,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
 
         const { scale: xScale } = xAxis;
         const { scale: yScale } = yAxis;
-        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, cornerRadius } = this.properties;
+        const { xKey, yKey, xName, yName } = this.properties;
         const labelFormatter = this.properties.label.formatter ?? ((params) => String(params.value));
 
         const nodeData: HistogramNodeDatum[] = [];
@@ -322,15 +323,10 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                 width: w,
                 height: h,
                 midPoint: nodeMidPoint,
-                fill: fill,
-                stroke: stroke,
-                cornerRadius,
                 topLeftCornerRadius: !yAxisReversed,
                 topRightCornerRadius: !yAxisReversed,
                 bottomRightCornerRadius: yAxisReversed,
                 bottomLeftCornerRadius: yAxisReversed,
-                opacity: 1,
-                strokeWidth: strokeWidth,
                 label: selectionDatumLabel,
             });
         });
@@ -371,6 +367,9 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             stroke: highlightStyle?.stroke ?? properties.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
+            cornerRadius: properties.cornerRadius,
         };
     }
 
@@ -379,49 +378,21 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         isHighlight: boolean;
     }) {
         const { isHighlight: isDatumHighlighted } = opts;
-        const {
-            fillOpacity: seriesFillOpacity,
-            strokeOpacity,
-            lineDash,
-            lineDashOffset,
-            shadow,
-            highlightStyle: {
-                item: {
-                    fill: highlightedFill,
-                    fillOpacity: highlightFillOpacity = seriesFillOpacity,
-                    stroke: highlightedStroke,
-                    strokeWidth: highlightedDatumStrokeWidth,
-                },
-            },
-        } = this.properties;
+        const { shadow } = this.properties;
 
-        opts.datumSelection.each((rect, datum, index) => {
-            const {
-                cornerRadius,
-                topLeftCornerRadius,
-                topRightCornerRadius,
-                bottomRightCornerRadius,
-                bottomLeftCornerRadius,
-            } = datum;
-            const strokeWidth =
-                isDatumHighlighted && highlightedDatumStrokeWidth !== undefined
-                    ? highlightedDatumStrokeWidth
-                    : datum.strokeWidth;
-            const fillOpacity = isDatumHighlighted ? highlightFillOpacity : seriesFillOpacity;
+        const style = this.getItemBaseStyle(isDatumHighlighted);
 
-            rect.fill = (isDatumHighlighted ? highlightedFill : undefined) ?? datum.fill;
-            rect.stroke = (isDatumHighlighted ? highlightedStroke : undefined) ?? datum.stroke;
-            rect.fillOpacity = fillOpacity;
-            rect.strokeOpacity = strokeOpacity;
-            rect.strokeWidth = strokeWidth;
-            rect.lineDash = lineDash;
-            rect.lineDashOffset = lineDashOffset;
+        opts.datumSelection.each((rect, datum) => {
+            const { cornerRadius } = style;
+            const { topLeftCornerRadius, topRightCornerRadius, bottomRightCornerRadius, bottomLeftCornerRadius } =
+                datum;
+
+            applyShapeStyle(rect, style);
             rect.topLeftCornerRadius = topLeftCornerRadius ? cornerRadius : 0;
             rect.topRightCornerRadius = topRightCornerRadius ? cornerRadius : 0;
             rect.bottomRightCornerRadius = bottomRightCornerRadius ? cornerRadius : 0;
             rect.bottomLeftCornerRadius = bottomLeftCornerRadius ? cornerRadius : 0;
             rect.fillShadow = shadow;
-            rect.zIndex = isDatumHighlighted ? Series.highlightedZIndex : index;
             rect.visible = datum.height > 0; // prevent stroke from rendering for zero height columns
         });
     }

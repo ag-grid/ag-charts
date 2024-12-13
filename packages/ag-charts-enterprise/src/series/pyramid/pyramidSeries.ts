@@ -18,6 +18,7 @@ const {
     Selection,
     Text,
     PointerEvents,
+    applyShapeStyle,
 } = _ModuleSupport;
 
 type Writeable<T> = { -readonly [P in keyof T]: T[P] };
@@ -474,11 +475,11 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const { properties } = this;
         const { shadow } = properties;
 
-        const format = this.getItemBaseStyle(isHighlight);
+        const style = this.getItemBaseStyle(isHighlight);
 
         datumSelection.each((connector, nodeDatum) => {
             const { datumIndex, datum, x, y, top, right, bottom, left } = nodeDatum;
-            const overrides = this.getItemStyleOverrides(String(datumIndex), datum, datumIndex, format, isHighlight);
+            const overrides = this.getItemStyleOverrides(String(datumIndex), datum, datumIndex, style, isHighlight);
 
             connector.x0 = x - top / 2;
             connector.x1 = x + top / 2;
@@ -490,13 +491,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             connector.y2 = y + right / 2;
             connector.y3 = y + left / 2;
 
-            connector.fill = overrides?.fill ?? format.fill;
-            connector.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
-            connector.stroke = overrides?.stroke ?? format.stroke;
-            connector.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
-            connector.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
-            connector.lineDash = overrides?.lineDash ?? format.lineDash;
-            connector.lineDashOffset = overrides?.lineDashOffset ?? format.lineDashOffset;
+            applyShapeStyle(connector, style, overrides);
 
             connector.fillShadow = shadow;
         });

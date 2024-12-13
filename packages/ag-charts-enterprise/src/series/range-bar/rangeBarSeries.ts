@@ -29,6 +29,7 @@ const {
     Rect,
     PointerEvents,
     motion,
+    applyShapeStyle,
 } = _ModuleSupport;
 
 type Bounds = {
@@ -60,13 +61,11 @@ interface RangeBarNodeDatum
     readonly width: number;
     readonly height: number;
     readonly labels: RangeBarNodeLabelDatum[];
-    readonly fill: string;
-    readonly stroke: string;
-    readonly strokeWidth: number;
-    readonly opacity: number;
-    readonly clipBBox?: _ModuleSupport.BBox;
-
     readonly crisp: boolean;
+
+    // Required for types
+    readonly clipBBox?: _ModuleSupport.BBox;
+    readonly opacity?: number;
 }
 
 type RangeBarContext = _ModuleSupport.CartesianSeriesNodeDataContext<RangeBarNodeDatum, RangeBarNodeLabelDatum>;
@@ -243,7 +242,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const yScale = yAxis.scale;
 
         const barAlongX = this.getBarDirection() === ChartAxisDirection.X;
-        const { xKey, yLowKey, yHighKey, fill, stroke, strokeWidth } = this.properties;
+        const { xKey, yLowKey, yHighKey, strokeWidth } = this.properties;
 
         const itemId = `${yLowKey}-${yHighKey}`;
 
@@ -340,10 +339,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 width: rect.width,
                 height: rect.height,
                 midPoint: nodeMidPoint,
-                fill,
-                stroke,
-                strokeWidth,
-                opacity: 1,
                 crisp,
                 labels: labelData,
             };
@@ -546,13 +541,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         datumSelection.each((rect, datum) => {
             const overrides = this.getItemStyleOverrides(String(datum.datumIndex), datum.datum, style, isHighlight);
 
-            rect.fill = overrides?.fill ?? style.fill;
-            rect.fillOpacity = overrides?.fillOpacity ?? style.fillOpacity;
-            rect.stroke = overrides?.stroke ?? style.stroke;
-            rect.strokeOpacity = overrides?.strokeOpacity ?? style.strokeOpacity;
-            rect.strokeWidth = overrides?.strokeWidth ?? style.strokeWidth;
-            rect.lineDash = overrides?.lineDash ?? style.lineDash;
-            rect.lineDashOffset = overrides?.lineDashOffset ?? style.lineDashOffset;
+            applyShapeStyle(rect, style, overrides);
 
             rect.visible = categoryAlongX ? datum.width > 0 : datum.height > 0;
 

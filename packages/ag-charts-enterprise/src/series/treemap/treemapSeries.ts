@@ -21,6 +21,7 @@ const {
     Selection,
     Text,
     Transformable,
+    applyShapeStyle,
 } = _ModuleSupport;
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
@@ -520,8 +521,8 @@ export class TreemapSeries<
         const updateRectFn = (
             node: _ModuleSupport.HierarchyNode,
             rect: _ModuleSupport.Rect,
-            groupFormat: ItemStyle,
-            tileFormat: ItemStyle,
+            groupStyle: ItemStyle,
+            tileStyle: ItemStyle,
             highlighted: boolean
         ) => {
             const bbox = bboxes[node.index];
@@ -533,17 +534,15 @@ export class TreemapSeries<
             const { datum, depth = -1, index, rootIndex, colorValue } = node;
             const isLeaf = node.children.length === 0;
 
-            const format = isLeaf ? tileFormat : groupFormat;
+            const style = isLeaf ? tileStyle : groupStyle;
             const overrides = isLeaf
-                ? this.getTileStyleOverrides(String(index), datum, depth, rootIndex, colorValue, format, highlighted)
-                : this.getGroupStyleOverrides(String(index), datum, depth, format, highlighted);
+                ? this.getTileStyleOverrides(String(index), datum, depth, rootIndex, colorValue, style, highlighted)
+                : this.getGroupStyleOverrides(String(index), datum, depth, style, highlighted);
 
             rect.crisp = true;
-            rect.fill = overrides?.fill ?? format.fill;
-            rect.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
-            rect.stroke = overrides?.stroke ?? format.stroke;
-            rect.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
-            rect.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
+
+            applyShapeStyle(rect, style, overrides);
+
             rect.cornerRadius = isLeaf ? tile.cornerRadius : group.cornerRadius;
             rect.zIndex = [0, depth, highlighted ? 1 : 0];
 
