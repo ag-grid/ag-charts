@@ -209,8 +209,7 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         }
 
         const step = round ? Math.floor(rawStep) : rawStep;
-        // Math.max to account for FP issues
-        let inset = Math.max(r0 + (rangeDistance - step * (count - paddingInner)) / 2, 0);
+        let inset = r0 + (rangeDistance - step * (count - paddingInner)) / 2;
         let bandwidth = step * (1 - paddingInner);
 
         if (round) {
@@ -226,10 +225,10 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
 
     protected ordinalRange(i: number) {
         const { _inset: inset, _step: step, range } = this;
-        const [r0, r1] = range;
-        const rangeDistance = r1 - r0;
-        // Math.min to account for FP issues
-        return Math.min(inset + step * i, rangeDistance);
+        const min = Math.min(range[0], range[1]);
+        const max = Math.max(range[0], range[1]);
+        // Clamp to account for FP issues
+        return clamp(min, inset + step * i, max);
     }
 
     private getIndex(value: D) {
