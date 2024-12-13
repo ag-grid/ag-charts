@@ -9,7 +9,7 @@ import { Transformable } from '../../../scene/transformable';
 import { clamp } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
 import type { Marker } from '../../marker/marker';
-import type { PickFocusInputs } from '../pickFocus';
+import type { PickFocusInputs } from '../series';
 import type { ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
 import * as easing from './../../../motion/easing';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';

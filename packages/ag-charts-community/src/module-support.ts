@@ -64,7 +64,6 @@ export * from './chart/interaction/regionManager';
 export * from './chart/interaction/tooltipManager';
 export * from './chart/interaction/zoomManager';
 export * from './chart/zIndexMap';
-export * from './chart/series/pickFocus';
 export * from './chart/series/series';
 export * from './chart/series/seriesEvents';
 export * from './chart/series/seriesLabelUtil';

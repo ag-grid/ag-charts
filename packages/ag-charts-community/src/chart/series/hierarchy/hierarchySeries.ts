@@ -15,8 +15,7 @@ import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { ChartAxisDirection } from '../../chartAxisDirection';
 import type { HighlightNodeDatum } from '../../interaction/highlightManager';
 import type { ChartLegendType, GradientLegendDatum } from '../../legend/legendDatum';
-import type { PickFocusInputs, PickFocusOutputs } from '../pickFocus';
-import { Series, SeriesNodePickMode } from '../series';
+import { type PickFocusInputs, type PickFocusOutputs, Series, SeriesNodePickMode } from '../series';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
 import type { HierarchySeriesProperties } from './hierarchySeriesProperties';
 
