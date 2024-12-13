@@ -1,3 +1,5 @@
+import { Page } from '@playwright/test';
+
 import { expect, test } from './fixture';
 import { gotoExample, toExamplePageUrls, toGalleryPageUrls } from './util';
 
@@ -67,7 +69,7 @@ export function convertPageUrls(path: string, exampleOptions: Record<string, Rec
 export function createTestCase(
     testFn: typeof test,
     opts: ExampleOptions,
-    config: { initialScreenshot: boolean; ignore404s: boolean; ignoreConsoleWarnings: boolean }
+    config: { initialCallback?: (page: Page) => Promise<void>; ignore404s: boolean; ignoreConsoleWarnings: boolean }
 ) {
     const { url, status, framework, clickOrder, skipCanvasUpdateCheck, ignoreConsoleWarnings } = opts;
 
@@ -80,9 +82,7 @@ export function createTestCase(
             // Load example and wait for things to settle.
             await gotoExample(page, url);
 
-            if (config.initialScreenshot) {
-                await expect(page).toHaveScreenshot(`gallery-${opts.example}.png`);
-            }
+            await config.initialCallback?.(page);
 
             // Check we're dealing with a single canvas, otherwise things get tricky!
             const canvases = await page.locator('.ag-charts-wrapper').all();

@@ -3,32 +3,6 @@ import { test } from './fixture';
 import { getExamples, setupIntrinsicAssertions } from './util';
 
 const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
-    gallery: {
-        '*': { frameworks: ['vanilla', 'typescript'] },
-
-        // Hidden gallery examples
-        'time-axis-with-irregular-intervals': { status: '404' },
-        'simple-bubble': { status: '404' },
-        'scatter-series-error-bars': { status: '404' },
-        'reversed-horizontal-bar': { status: '404' },
-        'reversed-bar': { status: '404' },
-        'per-marker-customisation': { status: '404' },
-        'log-axis': { status: '404' },
-        'line-series-error-bars': { status: '404' },
-        'grouped-column': { status: '404' },
-        'custom-tooltips': { status: '404' },
-        'custom-marker-shapes': { status: '404' },
-        'cross-lines': { status: '404' },
-        'chart-customisation': { status: '404' },
-        'bubble-with-labels': { status: '404' },
-        'bubble-with-custom-markers': { status: '404' },
-        'box-plot-scatter-combination': { status: '404' },
-        'bar-with-labels': { status: '404' },
-        'bar-series-error-bars': { status: '404' },
-        '100--stacked-column': { status: '404' },
-        '100--stacked-bar': { status: '404' },
-    },
-
     animation: {
         // FIXME: Some examples could tested in reverse click-order. Skip for now.
         'initial-load': { skipCanvasUpdateCheck: true /* clickOrder: 'reverse' */ },
@@ -120,7 +94,7 @@ test.describe('examples', () => {
                 test.skip(!affected, 'unaffected example');
 
                 test.describe(`Example ${pagePath}: ${example}${affected ? '' : ' (!!!SKIPPED!!!)'}`, () => {
-                    createTestCase(testFn as any, opts, { initialScreenshot: false, ...config });
+                    createTestCase(testFn as any, opts, config);
                 });
             });
         }

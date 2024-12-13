@@ -1,5 +1,5 @@
-import { ExampleOptions, ExampleOverrides, createTestCase } from './examples-util';
-import { test } from './fixture';
+import { ExampleOptions, ExampleOverrides, convertPageUrls, createTestCase } from './examples-util';
+import { expect, test } from './fixture';
 import { getExamples, setupIntrinsicAssertions, toExamplePageUrls, toGalleryPageUrls } from './util';
 
 const ignorePages = ['benchmarks', /.*-test/];
@@ -31,52 +31,13 @@ const exampleOptions: Record<string, Record<string, ExampleOverrides>> = {
     },
 };
 
-function convertPageUrls(path: string) {
-    const astroPath = path.split('content/').at(1)!;
-    const [pagePath, examplePath] = astroPath.split('/_examples/');
-    const example = examplePath.replace(/\/[a-zA-Z-]+\.ts$/, '');
-
-    const page = pagePath.replace(/^docs\//, '');
-    const pages = pagePath === 'gallery' ? toGalleryPageUrls(example) : toExamplePageUrls(page, example);
-
-    if (ignorePages.some((m) => (typeof m === 'string' ? m === page : m.test(page)))) {
-        return [];
-    }
-
-    const {
-        frameworks,
-        status = 'ok',
-        clickOrder = 'normal',
-        skipCanvasUpdateCheck = false,
-        ignoreConsoleWarnings = false,
-    } = {
-        ...exampleOptions[page]?.['*'],
-        ...exampleOptions[page]?.[example],
-    };
-
-    return pages
-        .filter((r) => frameworks?.includes(r.framework) !== false)
-        .map(
-            ({ url, example: pageExample, framework }): ExampleOptions => ({
-                pagePath,
-                url,
-                example: pageExample,
-                framework,
-                status,
-                clickOrder,
-                skipCanvasUpdateCheck,
-                ignoreConsoleWarnings,
-            })
-        );
-}
-
 test.describe('gallery examples', () => {
     const config = setupIntrinsicAssertions();
 
     const examples = getExamples();
 
     for (const { path, affected } of examples) {
-        for (const opts of convertPageUrls(path)) {
+        for (const opts of convertPageUrls(path, exampleOptions)) {
             const { framework, pagePath, example } = opts;
             if (pagePath !== 'gallery') continue;
 
@@ -87,7 +48,12 @@ test.describe('gallery examples', () => {
                 test.skip(!affected, 'unaffected example');
 
                 test.describe(`Example ${pagePath}: ${example}${affected ? '' : ' (!!!SKIPPED!!!)'}`, () => {
-                    createTestCase(testFn as any, opts, { initialScreenshot: false, ...config });
+                    createTestCase(testFn as any, opts, {
+                        initialCallback: async (page) => {
+                            await expect(page).toHaveScreenshot(`gallery-${opts.example}.png`);
+                        },
+                        ...config,
+                    });
                 });
             });
         }
