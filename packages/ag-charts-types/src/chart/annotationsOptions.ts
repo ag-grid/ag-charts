@@ -27,6 +27,7 @@ export interface AgAnnotationsThemeableOptions extends AgAnnotationsOptions {
 
     // Fibonaccis
     'fibonacci-retracement'?: AgFibonacciAnnotationStyles;
+    'fibonacci-retracement-trend-based'?: AgFibonacciAnnotationStyles;
 
     // Texts
     callout?: AgCalloutAnnotationStyles;
@@ -516,6 +517,7 @@ export type AgAnnotationsToolbarButtonValue =
     | 'parallel-channel'
     | 'disjoint-channel'
     | 'fibonacci-retracement'
+    | 'fibonacci-retracement-trend-based'
     | 'text'
     | 'comment'
     | 'callout'

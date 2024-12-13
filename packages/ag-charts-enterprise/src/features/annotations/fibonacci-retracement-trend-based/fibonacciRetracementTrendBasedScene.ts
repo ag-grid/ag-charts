@@ -3,27 +3,33 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { PointProperties } from '../annotationProperties';
 import type { AnnotationContext } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
+import { CollidableLine } from '../scenes/collidableLineScene';
 import { FibonacciScene } from '../scenes/fibonacciScene';
 import { DivariantHandle } from '../scenes/handle';
 import type { StartEndHandle } from '../scenes/startEndScene';
 import { getDragStartState, snapToAngle, translate } from '../utils/coords';
+import { createFibonacciRangesData, getFibonacciCoords } from '../utils/fibonacci';
 import { validateDatumPoint } from '../utils/validation';
 import { convertLine, convertPoint, invertCoords } from '../utils/values';
-import type { FibonacciRetracementProperties } from './fibonacciRetracementProperties';
+import type { FibonacciRetracementTrendBasedProperties } from './fibonacciRetracementTrendBasedProperties';
 
 const { Vec2, Vec4 } = _ModuleSupport;
 
-export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetracementProperties> {
-    static override is(value: unknown): value is FibonacciRetracementScene {
-        return AnnotationScene.isCheck(value, 'fibonacci-retracement');
+type ActiveHandle = StartEndHandle | 'endRetracement';
+
+export class FibonacciRetracementTrendBasedScene extends FibonacciScene<FibonacciRetracementTrendBasedProperties> {
+    static override is(value: unknown): value is FibonacciRetracementTrendBasedScene {
+        return AnnotationScene.isCheck(value, 'fibonacci-retracement-trend-based');
     }
 
-    type = 'fibonacci-retracement';
+    type = 'fibonacci-retracement-trend-based';
 
-    override activeHandle?: StartEndHandle;
+    override activeHandle?: ActiveHandle;
 
+    private readonly endRetracementLine = new CollidableLine();
     protected readonly start = new DivariantHandle();
     protected readonly end = new DivariantHandle();
+    protected readonly endRetracement = new DivariantHandle();
 
     protected readonly ignoreYBounds?: boolean;
 
@@ -31,15 +37,52 @@ export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetraceme
         offset: _ModuleSupport.Vec2;
         start: _ModuleSupport.Vec2;
         end: _ModuleSupport.Vec2;
+        endRetracement: _ModuleSupport.Vec2;
     };
 
     constructor() {
         super();
-        this.append([this.start, this.end]);
+        this.append([this.endRetracementLine, this.start, this.end, this.endRetracement]);
+    }
+
+    public override update(datum: FibonacciRetracementTrendBasedProperties, context: AnnotationContext) {
+        let { coords1, coords2 } = this.getCoords(datum, context);
+
+        if (coords1 == null || coords2 == null) {
+            this.visible = false;
+            return;
+        }
+
+        coords1 = Vec4.round(coords1);
+        coords2 = Vec4.round(coords2);
+
+        this.visible = datum.visible ?? true;
+        if (!this.visible) return;
+
+        if (datum.endRetracement.x == undefined || datum.endRetracement.y == undefined) {
+            coords2 = undefined;
+        }
+
+        this.updateLine(datum, coords1, this.trendLine);
+        this.updateLine(datum, coords2, this.endRetracementLine);
+
+        this.updateHandles(datum, coords1, coords2);
+        this.updateAnchor(datum, coords2 ?? coords1, context);
+
+        const { reverse, bands } = datum;
+
+        const coords = getFibonacciCoords(coords1, coords2);
+        const extendedCoords = this.extendLine(coords, datum, context);
+        const data = createFibonacciRangesData(extendedCoords, context, reverse, bands);
+        this.updateRanges(datum, data, context);
+
+        const y = reverse ? coords.y2 : coords.y1;
+        const oneLinePoints = { ...extendedCoords, y1: y, y2: y };
+        this.updateText(datum, oneLinePoints);
     }
 
     override containsPoint(x: number, y: number) {
-        const { start, end } = this;
+        const { start, end, endRetracement } = this;
 
         this.activeHandle = undefined;
 
@@ -53,27 +96,42 @@ export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetraceme
             return true;
         }
 
+        if (endRetracement.containsPoint(x, y)) {
+            this.activeHandle = 'endRetracement';
+            return true;
+        }
+
         return super.containsPoint(x, y);
     }
 
     public override getNodeAtCoords(x: number, y: number): string | undefined {
-        if (this.start.containsPoint(x, y) || this.end.containsPoint(x, y)) return 'handle';
+        if (this.start.containsPoint(x, y) || this.end.containsPoint(x, y) || this.endRetracement.containsPoint(x, y))
+            return 'handle';
         return super.getNodeAtCoords(x, y);
     }
 
-    public dragStart(datum: FibonacciRetracementProperties, target: _ModuleSupport.Vec2, context: AnnotationContext) {
+    public dragStart(
+        datum: FibonacciRetracementTrendBasedProperties,
+        target: _ModuleSupport.Vec2,
+        context: AnnotationContext
+    ) {
         this.dragState = {
             offset: target,
-            ...getDragStartState({ start: datum.start, end: datum.end }, context),
+            ...getDragStartState({ start: datum.start, end: datum.end, endRetracement: datum.endRetracement }, context),
         };
     }
 
     override stopDragging() {
         this.start.toggleDragging(false);
         this.end.toggleDragging(false);
+        this.endRetracement.toggleDragging(false);
     }
 
-    protected dragAll(datum: FibonacciRetracementProperties, target: _ModuleSupport.Vec2, context: AnnotationContext) {
+    protected dragAll(
+        datum: FibonacciRetracementTrendBasedProperties,
+        target: _ModuleSupport.Vec2,
+        context: AnnotationContext
+    ) {
         const { dragState } = this;
 
         if (!dragState) return;
@@ -82,13 +140,14 @@ export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetraceme
             datum,
             start: dragState.start,
             end: dragState.end,
+            endRetracement: dragState.endRetracement,
             translation: Vec2.sub(target, dragState.offset),
             context,
         });
     }
 
     dragHandle(
-        datum: FibonacciRetracementProperties,
+        datum: FibonacciRetracementTrendBasedProperties,
         target: _ModuleSupport.Vec2,
         context: AnnotationContext,
         snapping: boolean
@@ -109,16 +168,17 @@ export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetraceme
     }
 
     snapToAngle(
-        datum: FibonacciRetracementProperties,
+        datum: FibonacciRetracementTrendBasedProperties,
         coords: _ModuleSupport.Vec2,
         context: AnnotationContext
     ): Pick<PointProperties, 'x' | 'y'> | undefined {
         const { activeHandle } = this;
 
-        const handles: StartEndHandle[] = ['start', 'end'];
-        const fixedHandle = handles.find((handle) => handle !== activeHandle);
+        const handles: ActiveHandle[] = ['start', 'end', 'endRetracement'];
+        if (!activeHandle) return;
 
-        if (!activeHandle || !fixedHandle) return;
+        const index = (handles.indexOf(activeHandle) + 1) % handles.length;
+        const fixedHandle = handles[index];
 
         this[activeHandle].toggleDragging(true);
 
@@ -131,12 +191,14 @@ export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetraceme
         datum,
         start,
         end,
+        endRetracement,
         translation,
         context,
     }: {
-        datum: FibonacciRetracementProperties;
+        datum: FibonacciRetracementTrendBasedProperties;
         start: _ModuleSupport.Vec2;
         end: _ModuleSupport.Vec2;
+        endRetracement: _ModuleSupport.Vec2;
         translation: _ModuleSupport.Vec2;
         context: AnnotationContext;
     }) {
@@ -144,6 +206,7 @@ export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetraceme
             {
                 start,
                 end,
+                endRetracement,
             },
             translation,
             context
@@ -152,16 +215,18 @@ export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetraceme
         if (translateX) {
             datum.start.x = vectors.start?.x;
             datum.end.x = vectors.end?.x;
+            datum.endRetracement.x = vectors.endRetracement?.x;
         }
 
         if (this.ignoreYBounds || translateY) {
             datum.start.y = vectors.start?.y;
             datum.end.y = vectors.end?.y;
+            datum.endRetracement.y = vectors.endRetracement?.y;
         }
     }
 
     public translate(
-        datum: FibonacciRetracementProperties,
+        datum: FibonacciRetracementTrendBasedProperties,
         translation: _ModuleSupport.Vec2,
         context: AnnotationContext
     ) {
@@ -169,19 +234,19 @@ export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetraceme
             datum,
             start: convertPoint(datum.start, context),
             end: convertPoint(datum.end, context),
+            endRetracement: convertPoint(datum.endRetracement, context),
             translation,
             context,
         });
     }
 
     public copy(
-        datum: FibonacciRetracementProperties,
-        copiedDatum: FibonacciRetracementProperties,
+        datum: FibonacciRetracementTrendBasedProperties,
+        copiedDatum: FibonacciRetracementTrendBasedProperties,
         context: AnnotationContext
     ) {
-        const coords = convertLine(datum, context);
-
-        if (!coords) {
+        const { coords1, coords2 } = this.getCoords(datum, context);
+        if (!coords1 || !coords2) {
             return;
         }
 
@@ -189,8 +254,9 @@ export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetraceme
 
         this.translatePoints({
             datum: copiedDatum,
-            start: { x: coords.x1, y: coords.y1 },
-            end: { x: coords.x2, y: coords.y2 },
+            start: Vec4.start(coords1),
+            end: Vec4.end(coords1),
+            endRetracement: Vec4.end(coords2),
             translation: { x: -bbox.width / 2, y: -bbox.height / 2 },
             context,
         });
@@ -198,10 +264,18 @@ export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetraceme
         return copiedDatum;
     }
 
-    override toggleHandles(show: boolean | Partial<Record<StartEndHandle, boolean>>) {
+    private getCoords(datum: FibonacciRetracementTrendBasedProperties, context: AnnotationContext) {
+        return {
+            coords1: convertLine(datum, context),
+            coords2: convertLine({ start: datum.end, end: datum.endRetracement }, context),
+        };
+    }
+
+    override toggleHandles(show: boolean | Partial<Record<ActiveHandle, boolean>>) {
         if (typeof show === 'boolean') {
             this.start.visible = show;
             this.end.visible = show;
+            this.endRetracement.visible = show;
         } else {
             for (const [handle, visible] of Object.entries(show) as [StartEndHandle, boolean][]) {
                 this[handle].visible = visible;
@@ -210,37 +284,46 @@ export class FibonacciRetracementScene extends FibonacciScene<FibonacciRetraceme
 
         this.start.toggleHovered(this.activeHandle === 'start');
         this.end.toggleHovered(this.activeHandle === 'end');
+        this.endRetracement.toggleHovered(this.activeHandle === 'endRetracement');
     }
 
     override toggleActive(active: boolean) {
         this.toggleHandles(active);
         this.start.toggleActive(active);
         this.end.toggleActive(active);
+        this.endRetracement.toggleActive(active);
     }
 
     protected updateHandles(
-        datum: FibonacciRetracementProperties,
-        coords: _ModuleSupport.Vec4,
-        _coords2: _ModuleSupport.Vec4,
+        datum: FibonacciRetracementTrendBasedProperties,
+        coords1: _ModuleSupport.Vec4,
+        coords2?: _ModuleSupport.Vec4,
         bbox?: _ModuleSupport.BBox
     ) {
         this.start.update({
             ...this.getHandleStyles(datum),
-            ...this.getHandleCoords(datum, coords, 'start'),
+            ...this.getHandleCoords(datum, coords1, 'start'),
         });
         this.end.update({
             ...this.getHandleStyles(datum),
-            ...this.getHandleCoords(datum, coords, 'end', bbox),
+            ...this.getHandleCoords(datum, coords1, 'end', bbox),
         });
+
+        if (coords2) {
+            this.endRetracement.update({
+                ...this.getHandleStyles(datum),
+                ...this.getHandleCoords(datum, coords2, 'endRetracement', bbox),
+            });
+        }
 
         this.start.toggleLocked(datum.locked ?? false);
         this.end.toggleLocked(datum.locked ?? false);
     }
 
     protected getHandleCoords(
-        _datum: FibonacciRetracementProperties,
+        _datum: FibonacciRetracementTrendBasedProperties,
         coords: _ModuleSupport.Vec4,
-        handle: StartEndHandle,
+        handle: ActiveHandle,
         _bbox?: _ModuleSupport.BBox
     ): _ModuleSupport.Vec2 {
         return handle === 'start' ? Vec4.start(coords) : Vec4.end(coords);

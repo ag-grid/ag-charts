@@ -215,6 +215,15 @@ export const annotationsTheme: AgAnnotationsThemeableOptions = {
         label: { ...font, color: undefined, fontSize: 10 },
     },
 
+    'fibonacci-retracement-trend-based': {
+        ...stroke,
+        strokes: ThemeSymbols.DEFAULT_FIBONACCI_STROKES as unknown as string[],
+        rangeStroke: ThemeSymbols.DEFAULT_ANNOTATION_COLOR,
+        handle: { ...handle },
+        text: { ...lineText, position: 'center' },
+        label: { ...font, color: undefined, fontSize: 10 },
+    },
+
     // Texts
     callout: {
         ...stroke,
