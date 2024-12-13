@@ -31,6 +31,7 @@ export type AgMarkerShapeFnParams = {
     x: number;
     y: number;
     size: number;
+    pixelRatio: number;
 };
 
 export type AgMarkerShapeFn = (params: AgMarkerShapeFnParams) => void;

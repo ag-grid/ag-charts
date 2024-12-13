@@ -10,7 +10,6 @@ export type Scene = any;
 export type Shape = any;
 export type Rect = any;
 export type Arc = any;
-export type Circle = any;
 export type Line = any;
 export type Sector = any;
 export type RadialColumnShape = any;

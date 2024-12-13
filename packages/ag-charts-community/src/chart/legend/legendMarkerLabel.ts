@@ -7,8 +7,7 @@ import { Translatable } from '../../scene/transformable';
 import { ProxyPropertyOnWrite } from '../../util/proxy';
 import { isDefined } from '../../util/type-guards';
 import type { SwitchWidget } from '../../widget/switchWidget';
-import type { Marker } from '../marker/marker';
-import type { MarkerConstructor } from '../marker/util';
+import { Marker } from '../marker/marker';
 
 export class LegendMarkerLabel extends Translatable(Group) {
     static readonly className = 'MarkerLabel';
@@ -105,9 +104,10 @@ export class LegendMarkerLabel extends Translatable(Group) {
         let centerTranslateY = 0;
         if (marker) {
             const { size } = marker;
-            const center = (marker.constructor as MarkerConstructor).center;
-            centerTranslateX = (center.x - 0.5) * size + length / 2;
-            centerTranslateY = (center.y - 0.5) * size;
+
+            const anchor = Marker.anchor(marker.shape);
+            centerTranslateX = (anchor.x - 0.5) * size + length / 2;
+            centerTranslateY = (anchor.y - 0.5) * size;
 
             if (isCustomMarker) {
                 marker.x = 0;

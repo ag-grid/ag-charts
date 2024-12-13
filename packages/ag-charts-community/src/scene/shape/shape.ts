@@ -3,6 +3,7 @@ import type { DropShadow } from '../dropShadow';
 import { Gradient } from '../gradient/gradient';
 import { LinearGradient } from '../gradient/linearGradient';
 import { Node, SceneChangeDetection } from '../node';
+import { align } from '../util/pixel';
 
 export type ShapeLineCap = 'butt' | 'round' | 'square';
 export type ShapeLineJoin = 'round' | 'bevel' | 'miter';
@@ -129,20 +130,7 @@ export abstract class Shape extends Node {
      * of a device pixel.
      */
     align(start: number, length?: number) {
-        const pixelRatio = this.layerManager?.canvas?.pixelRatio ?? 1;
-        const alignedStart = Math.round(start * pixelRatio) / pixelRatio;
-
-        if (length == null) {
-            return alignedStart;
-        } else if (length === 0) {
-            return 0;
-        } else if (length < 1) {
-            // Avoid hiding crisp shapes
-            return Math.ceil(length * pixelRatio) / pixelRatio;
-        }
-
-        // Account for the rounding of alignedStart by increasing length to compensate before alignment.
-        return Math.round((length + start) * pixelRatio) / pixelRatio - alignedStart;
+        return align(this.layerManager?.canvas?.pixelRatio ?? 1, start, length);
     }
 
     @SceneChangeDetection()

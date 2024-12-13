@@ -1,10 +1,17 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgMarkerShapeFnParams, _ModuleSupport } from 'ag-charts-community';
 
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
+import { arrowUpMoves } from '../arrow-up/arrowUpScene';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
 import { ShapePointScene } from '../scenes/shapePointScene';
 import type { ArrowDownProperties } from './arrowDownProperties';
+
+const arrowDownMoves = arrowUpMoves.map((m) => ({ t: m.t, x: m.x * -1, y: m.y * -1 }));
+
+function arrowDown(params: AgMarkerShapeFnParams) {
+    _ModuleSupport.applyMarkerPath(params, arrowDownMoves);
+}
 
 export class ArrowDownScene extends ShapePointScene<ArrowDownProperties> {
     static override is(value: unknown): value is ArrowDownScene {
@@ -13,7 +20,7 @@ export class ArrowDownScene extends ShapePointScene<ArrowDownProperties> {
 
     type = AnnotationType.ArrowDown;
 
-    protected readonly shape = new _ModuleSupport.ArrowDown();
+    protected readonly shape = new _ModuleSupport.Marker({ shape: arrowDown });
 
     constructor() {
         super();

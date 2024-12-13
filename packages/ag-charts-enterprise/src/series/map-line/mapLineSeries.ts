@@ -234,7 +234,7 @@ export class MapLineSeries extends TopologySeries<
         return {
             point: { x, y, size: 0 },
             label: { width, height, text: labelText },
-            marker: undefined,
+            anchor: undefined,
             placement: undefined,
         };
     }

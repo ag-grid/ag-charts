@@ -24,8 +24,7 @@ import { fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
-import type { Marker } from '../../marker/marker';
-import { getMarker } from '../../marker/util';
+import { Marker } from '../../marker/marker';
 import { type TooltipContent, type TooltipContentDataRow } from '../../tooltip/tooltip';
 import type { PickFocusInputs, SeriesNodeEventTypes } from '../series';
 import { SeriesNodePickMode } from '../series';
@@ -175,8 +174,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             colorKey,
             marker,
         } = this.properties;
-        const markerShape = getMarker(marker.shape);
         const { placement } = label;
+        const anchor = Marker.anchor(marker.shape);
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -259,7 +258,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
                 midPoint: { x, y },
                 fill,
                 label: { text: labelText, ...size },
-                marker: markerShape,
+                anchor,
                 placement,
                 selected,
             });
@@ -281,12 +280,6 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     override getLabelData() {
         if (!this.isLabelEnabled()) return [];
         return this.contextNodeData?.labelData ?? [];
-    }
-
-    protected override markerFactory() {
-        const { shape } = this.properties.marker;
-        const MarkerShape = getMarker(shape);
-        return new MarkerShape();
     }
 
     protected override updateMarkerSelection(opts: {

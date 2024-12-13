@@ -1,10 +1,24 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { type AgMarkerShapeFnParams, _ModuleSupport } from 'ag-charts-community';
 
 import { AnnotationType } from '../annotationTypes';
 import { AnnotationScene } from '../scenes/annotationScene';
 import { DivariantHandle } from '../scenes/handle';
 import { ShapePointScene } from '../scenes/shapePointScene';
 import type { ArrowUpProperties } from './arrowUpProperties';
+
+export const arrowUpMoves: _ModuleSupport.MarkerPathMove[] = [
+    { x: 0, y: 0, t: 'move' },
+    { x: 1, y: 1.2 },
+    { x: -0.5, y: 0 },
+    { x: 0, y: 0.8 },
+    { x: -1, y: 0 },
+    { x: 0, y: -0.8 },
+    { x: -0.5, y: 0 },
+];
+
+function arrowUp(params: AgMarkerShapeFnParams) {
+    _ModuleSupport.applyMarkerPath(params, arrowUpMoves);
+}
 
 export class ArrowUpScene extends ShapePointScene<ArrowUpProperties> {
     static override is(value: unknown): value is ArrowUpScene {
@@ -13,7 +27,7 @@ export class ArrowUpScene extends ShapePointScene<ArrowUpProperties> {
 
     type = AnnotationType.ArrowUp;
 
-    protected readonly shape = new _ModuleSupport.ArrowUp();
+    protected readonly shape = new _ModuleSupport.Marker({ shape: arrowUp });
 
     constructor() {
         super();

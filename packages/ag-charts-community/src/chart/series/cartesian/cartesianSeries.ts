@@ -18,8 +18,7 @@ import { BOOLEAN, STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import type { Marker } from '../../marker/marker';
-import { getMarker } from '../../marker/util';
+import { Marker } from '../../marker/marker';
 import { DataModelSeries, type DataModelSeriesNodeDatum } from '../dataModelSeries';
 import type {
     SeriesConstructorOpts,
@@ -178,7 +177,7 @@ export abstract class CartesianSeries<
     protected labelSelection: Selection<Text, TLabel> = Selection.select(this.labelGroup, Text);
 
     private highlightSelection = Selection.select(this.highlightNode, () =>
-        this.opts.hasMarkers ? this.markerFactory() : this.nodeFactory()
+        this.opts.hasMarkers ? new Marker() : this.nodeFactory()
     ) as Selection<TNode, TDatum>;
     private highlightLabelSelection = Selection.select<Text, TLabel>(this.highlightLabel, Text);
 
@@ -249,11 +248,7 @@ export abstract class CartesianSeries<
             () => this.nodeFactory(),
             datumSelectionGarbageCollection
         );
-        this.markerSelection = Selection.select(
-            this.markerGroup,
-            () => this.markerFactory(),
-            markerSelectionGarbageCollection
-        );
+        this.markerSelection = Selection.select(this.markerGroup, Marker, markerSelectionGarbageCollection);
 
         this.animationState = new StateMachine<
             CartesianAnimationState,
@@ -436,11 +431,6 @@ export abstract class CartesianSeries<
     }
 
     protected abstract nodeFactory(): TNode;
-
-    protected markerFactory(): Marker {
-        const MarkerShape = getMarker();
-        return new MarkerShape();
-    }
 
     protected updateNodes(
         highlightedItems: TDatum[] | undefined,

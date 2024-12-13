@@ -3,7 +3,7 @@ import type { AgMarkerShape } from 'ag-charts-types';
 import type { Gradient } from '../../scene/gradient/gradient';
 import { Group } from '../../scene/group';
 import { Line } from '../../scene/shape/line';
-import { getMarker } from '../marker/util';
+import { Marker } from '../marker/marker';
 
 export interface LegendMarker {
     shape?: AgMarkerShape;
@@ -52,20 +52,19 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
 
     if (symbol.marker.enabled !== false) {
         const { shape, fill, fillOpacity, stroke, strokeOpacity } = symbol.marker;
-        const Marker = getMarker(shape);
         const marker = new Marker();
-        const { center } = Marker;
+        marker.shape = shape;
         marker.size = size;
-        marker.translationX = width / 2 + (center.x - 0.5) * size;
-        marker.translationY = height / 2 + (center.y - 0.5) * size;
         marker.fill = fill;
         marker.fillOpacity = fillOpacity;
         marker.stroke = stroke;
         marker.strokeOpacity = strokeOpacity;
         marker.strokeWidth = markerStrokeWidth;
 
-        const x = width / 2 + (center.x - 0.5) * size;
-        const y = height / 2 + (center.y - 0.5) * size;
+        const anchor = Marker.anchor(shape);
+
+        const x = width / 2 + (anchor.x - 0.5) * size;
+        const y = height / 2 + (anchor.y - 0.5) * size;
 
         if (typeof shape === 'string') {
             const scale = size / (size + markerStrokeWidth);

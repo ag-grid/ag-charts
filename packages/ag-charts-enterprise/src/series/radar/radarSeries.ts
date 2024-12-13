@@ -1,4 +1,4 @@
-import { type FillOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
+import { type AgMarkerShape, type FillOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 
@@ -23,7 +23,7 @@ const {
     PointerEvents,
     Selection,
     Text,
-    getMarker,
+    Marker,
     applyShapeStyle,
 } = _ModuleSupport;
 
@@ -49,7 +49,7 @@ class RadarSeriesNodeEvent<
     }
 }
 
-type ItemStyle = Required<FillOptions & StrokeOptions & { size: number }>;
+type ItemStyle = Required<FillOptions & StrokeOptions & { shape: AgMarkerShape; size: number }>;
 
 export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     RadarNodeDatum,
@@ -90,9 +90,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     }
 
     protected override nodeFactory(): _ModuleSupport.Marker {
-        const { shape } = this.properties.marker;
-        const MarkerShape = getMarker(shape);
-        return new MarkerShape();
+        return new Marker();
     }
 
     override setSeriesIndex(index: number): boolean {
@@ -314,6 +312,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return {
+            shape: marker.shape,
             size: marker.size,
             fill: highlightStyle?.fill ?? marker.fill!,
             fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
@@ -370,6 +369,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
 
             applyShapeStyle(node, style, overrides);
 
+            node.shape = overrides?.shape ?? style.shape;
             node.size = overrides?.size ?? style.size;
 
             const { x, y } = point;

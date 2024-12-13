@@ -8,7 +8,7 @@ import {
 } from 'ag-charts-community';
 
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
-import { LineMarker } from '../gauge-util/lineMarker';
+import { lineMarker } from '../gauge-util/lineMarker';
 import { type UnknownGaugeNodeDatum, parseUnknownGaugeNodeDatum } from '../gauge-util/properties';
 import { type GaugeStopProperties, getColorStops } from '../gauge-util/stops';
 import { getLineHeight } from '../util/labelFormatter';
@@ -43,7 +43,7 @@ const {
     Rect,
     Text,
     LinearGradient,
-    getMarker,
+    Marker,
     easing,
 } = _ModuleSupport;
 
@@ -179,7 +179,7 @@ export class LinearGaugeSeries
     );
     private targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum> = Selection.select(
         this.itemTargetGroup,
-        (datum) => this.markerFactory(datum)
+        () => this.markerFactory()
     );
     private targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeTargetDatum> =
         Selection.select(this.itemTargetLabelGroup, Text);
@@ -188,7 +188,7 @@ export class LinearGaugeSeries
         Text
     );
     private highlightTargetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum> =
-        Selection.select(this.highlightTargetGroup, (datum) => this.markerFactory(datum));
+        Selection.select(this.highlightTargetGroup, () => this.markerFactory());
 
     private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
 
@@ -247,11 +247,8 @@ export class LinearGaugeSeries
         return rect;
     }
 
-    private markerFactory({ shape }: LinearGaugeTargetDatum): _ModuleSupport.Marker {
-        const MarkerShape = shape !== 'line' ? getMarker(shape) : LineMarker;
-        const marker = new MarkerShape();
-        marker.size = 1;
-        return marker;
+    private markerFactory(): _ModuleSupport.Marker {
+        return new Marker();
     }
 
     override processData() {
@@ -874,6 +871,7 @@ export class LinearGaugeSeries
             const {
                 x,
                 y,
+                shape,
                 size,
                 rotation,
                 fill,
@@ -886,6 +884,7 @@ export class LinearGaugeSeries
             } = datum;
 
             target.size = size;
+            target.shape = shape === 'line' ? lineMarker : shape;
             target.fill = highlightStyle?.fill ?? fill;
             target.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;
             target.stroke = highlightStyle?.stroke ?? stroke;

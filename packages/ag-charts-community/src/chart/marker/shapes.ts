@@ -1,18 +1,73 @@
-import { Marker } from './marker';
+import type { AgMarkerShape, AgMarkerShapeFn, AgMarkerShapeFnParams } from 'ag-charts-types';
 
-export class Pin extends Marker {
-    static readonly className = 'MapPin';
+import { align } from '../../scene/util/pixel';
+import { toRadians } from '../../util/angle';
 
-    static override readonly center = { x: 0.5, y: 1 };
+export type MarkerPathMove = { x: number; y: number; t?: 'move' };
 
-    override updatePath() {
-        const { path, x, y } = this;
-        const s = this.size;
+export function applyMarkerPath(params: AgMarkerShapeFnParams, moves: MarkerPathMove[]) {
+    const { path, size } = params;
+    let { x, y } = params;
 
-        const cx = 0.5;
-        const cy = 1;
+    path.clear();
+    for (const { x: mx, y: my, t } of moves) {
+        x += mx * size;
+        y += my * size;
+        if (t === 'move') {
+            path.moveTo(x, y);
+        } else {
+            path.lineTo(x, y);
+        }
+    }
+    path.closePath();
+}
+
+export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMarkerShapeFn> = {
+    circle({ path, x, y, size }) {
+        const r = size / 2;
 
         path.clear();
+        path.arc(x, y, r, 0, Math.PI * 2);
+        path.closePath();
+    },
+    cross(params) {
+        applyMarkerPath(params, [
+            { x: -1, y: 0, t: 'move' },
+            { x: -1, y: -1 },
+            { x: +1, y: -1 },
+            { x: +1, y: +1 },
+            { x: +1, y: -1 },
+            { x: +1, y: +1 },
+            { x: -1, y: +1 },
+            { x: +1, y: +1 },
+            { x: -1, y: +1 },
+            { x: -1, y: -1 },
+            { x: -1, y: +1 },
+            { x: -1, y: -1 },
+        ]);
+    },
+    diamond(params) {
+        applyMarkerPath(params, [
+            { x: 0, y: -1, t: 'move' },
+            { x: +1, y: +1 },
+            { x: -1, y: +1 },
+            { x: -1, y: -1 },
+            { x: +1, y: -1 },
+        ]);
+    },
+    heart({ path, x, y, size }) {
+        const r = size / 4;
+        y = y + r / 2;
+
+        path.clear();
+        path.arc(x - r, y - r, r, toRadians(130), toRadians(330));
+        path.arc(x + r, y - r, r, toRadians(220), toRadians(50));
+        path.lineTo(x, y + r);
+        path.closePath();
+    },
+    pin({ path, x, y, size: s }) {
+        const cx = 0.5;
+        const cy = 1;
 
         /**
          * M 0.15625 0.34375
@@ -119,5 +174,54 @@ export class Pin extends Marker {
             y + (0.34375 - cy) * s
         );
         path.closePath();
-    }
-}
+    },
+    plus(params) {
+        applyMarkerPath(params, [
+            { x: -0.5, y: -0.5, t: 'move' },
+            { x: 0, y: -1 },
+            { x: +1, y: 0 },
+            { x: 0, y: +1 },
+            { x: +1, y: 0 },
+            { x: 0, y: +1 },
+            { x: -1, y: 0 },
+            { x: 0, y: +1 },
+            { x: -1, y: 0 },
+            { x: 0, y: -1 },
+            { x: -1, y: 0 },
+            { x: 0, y: -1 },
+        ]);
+    },
+    square({ path, x, y, size, pixelRatio }) {
+        const hs = size / 2;
+
+        path.clear();
+
+        path.moveTo(align(pixelRatio, x - hs), align(pixelRatio, y - hs));
+        path.lineTo(align(pixelRatio, x + hs), align(pixelRatio, y - hs));
+        path.lineTo(align(pixelRatio, x + hs), align(pixelRatio, y + hs));
+        path.lineTo(align(pixelRatio, x - hs), align(pixelRatio, y + hs));
+        path.closePath();
+    },
+    star({ path, x, y, size }) {
+        const spikes = 5;
+        const outerRadius = size / 2;
+        const innerRadius = outerRadius / 2;
+        const rotation = Math.PI / 2;
+
+        for (let i = 0; i < spikes * 2; i++) {
+            const radius = i % 2 === 0 ? outerRadius : innerRadius;
+            const angle = (i * Math.PI) / spikes - rotation;
+            const xCoordinate = x + Math.cos(angle) * radius;
+            const yCoordinate = y + Math.sin(angle) * radius;
+            path.lineTo(xCoordinate, yCoordinate);
+        }
+        path.closePath();
+    },
+    triangle(params) {
+        applyMarkerPath(params, [
+            { x: 0, y: -0.48, t: 'move' },
+            { x: 0.5, y: 0.87 },
+            { x: -1, y: 0 },
+        ]);
+    },
+};

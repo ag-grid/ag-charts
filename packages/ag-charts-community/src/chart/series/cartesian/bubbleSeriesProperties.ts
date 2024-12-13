@@ -11,7 +11,7 @@ import type {
 } from 'ag-charts-types';
 
 import { SceneChangeDetection } from '../../../scene/changeDetectable';
-import type { SizedPoint } from '../../../scene/point';
+import type { Point, SizedPoint } from '../../../scene/point';
 import type { MeasuredLabel } from '../../../scene/util/labelPlacement';
 import { ProxyProperty } from '../../../util/proxy';
 import {
@@ -24,7 +24,6 @@ import {
     Validate,
 } from '../../../util/validation';
 import { Label } from '../../label';
-import type { MarkerConstructor } from '../../marker/util';
 import { SeriesMarker } from '../seriesMarker';
 import { SeriesTooltip } from '../seriesTooltip';
 import { type CartesianSeriesNodeDatum, CartesianSeriesProperties } from './cartesianSeries';
@@ -34,7 +33,7 @@ export interface BubbleNodeDatum extends CartesianSeriesNodeDatum {
     readonly sizeValue: any;
     readonly label: MeasuredLabel;
     readonly placement: LabelPlacement;
-    readonly marker: MarkerConstructor;
+    readonly anchor: Point;
     readonly fill: string | undefined;
     readonly selected: boolean | undefined;
 }

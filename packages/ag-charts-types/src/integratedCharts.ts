@@ -10,7 +10,6 @@ import type {
     BBox,
     BandScale,
     Caption,
-    Circle,
     Group,
     Line,
     LinearScale,
@@ -51,7 +50,6 @@ export interface _IScene {
     Rect: { new (): Rect } & Rect;
     BBox: { new (x: number, y: number, w: number, h: number): BBox } & BBox;
     Arc: { new (): Arc } & Arc;
-    Circle: { new (): Circle } & Circle;
     Line: { new (): Line } & Line;
     Sector: { new (): Sector } & Sector;
     Shape: { new (): Shape } & Shape;

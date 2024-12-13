@@ -29,7 +29,7 @@ const {
     Group,
     Selection,
     Text,
-    getMarker,
+    Marker,
     applyShapeStyle,
 } = _ModuleSupport;
 
@@ -94,11 +94,11 @@ export class MapMarkerSeries
     > = Selection.select(this.labelGroup, Text, false);
     private markerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> = Selection.select(
         this.markerGroup,
-        () => this.markerFactory(),
+        Marker,
         false
     );
     private highlightMarkerSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, MapMarkerNodeDatum> =
-        Selection.select(this.highlightNode, () => this.markerFactory());
+        Selection.select(this.highlightNode, Marker);
 
     private contextNodeData?: MapMarkerNodeDataContext;
 
@@ -178,12 +178,6 @@ export class MapMarkerSeries
 
     private isLabelEnabled() {
         return this.properties.labelKey != null && this.properties.label.enabled;
-    }
-
-    private markerFactory(): _ModuleSupport.Marker {
-        const { shape } = this.properties;
-        const MarkerShape = getMarker(shape);
-        return new MarkerShape();
     }
 
     override async processData(dataController: _ModuleSupport.DataController): Promise<void> {
@@ -315,6 +309,7 @@ export class MapMarkerSeries
             labelKey,
             labelName,
             label,
+            shape,
         } = this.properties;
         const { placement } = label;
         const labelText = this.getLabelText(label, {
@@ -336,11 +331,12 @@ export class MapMarkerSeries
         if (labelText == null) return;
 
         const { width, height } = CachedTextMeasurerPool.measureText(String(labelText), { font });
+        const anchor = Marker.anchor(shape);
 
         return {
             point: { x, y, size },
             label: { width, height, text: labelText },
-            marker: getMarker(this.properties.shape),
+            anchor,
             placement,
         };
     }

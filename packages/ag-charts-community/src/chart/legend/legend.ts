@@ -49,7 +49,7 @@ import { gridLayout } from '../gridLayout';
 import type { HighlightNodeDatum } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
 import { LayoutElement } from '../layout/layoutManager';
-import { getMarker } from '../marker/util';
+import { Marker } from '../marker/marker';
 import { Pagination } from '../pagination/pagination';
 import { type TooltipMeta, type TooltipPointerEvent } from '../tooltip/tooltip';
 import { ZIndexMap } from '../zIndexMap';
@@ -487,8 +487,8 @@ export class Legend extends BaseProperties {
         const { shape } = symbol.marker;
         // Calculate the marker size of a custom marker shape:
         if (this.isCustomMarker(markerEnabled, shape)) {
-            const Marker = getMarker(shape);
             const tmpShape = new Marker();
+            marker.shape = shape;
             tmpShape.updatePath();
             const bbox = tmpShape.getBBox();
             customMarkerSize = Math.max(bbox.width, bbox.height);
@@ -525,10 +525,9 @@ export class Legend extends BaseProperties {
 
         if (this._symbolsDirty) {
             const { shape: markerShape = symbol.marker.shape } = itemMarker;
-            const MarkerCtr = getMarker(markerShape);
 
             markerLabel.updateSymbols(
-                markerEnabled ? new MarkerCtr({ zIndex: 1 }) : undefined,
+                markerEnabled ? new Marker({ zIndex: 1 }) : undefined,
                 lineEnabled ? new Line({ zIndex: 0 }) : undefined
             );
 
@@ -536,6 +535,7 @@ export class Legend extends BaseProperties {
             if (marker != null) {
                 const { strokeWidth, fill, stroke, fillOpacity, strokeOpacity } = this.getMarkerStyles(symbol);
 
+                marker.shape = markerShape;
                 marker.size = itemMarker.size;
                 marker.fill = fill;
                 marker.stroke = stroke;
