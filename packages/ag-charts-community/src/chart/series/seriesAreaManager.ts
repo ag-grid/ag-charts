@@ -433,8 +433,8 @@ export class SeriesAreaManager extends BaseManager {
 
         // Update highlight/tooltip for keyboard users:
         if (keyboardEvent !== undefined && this.hoverDevice === 'keyboard') {
-            // Stop pending async mouse events from updating the highlight/tooltip. At this point, the most recent event came
-            // from the keyboard so that's what we should honour.
+            // Stop pending async mouse events from updating the highlight/tooltip. At this point, the most recent event
+            // came from the keyboard so that's what we should honour.
             this.tooltip.lastHover = undefined;
             this.highlight.appliedHoverEvent = undefined;
             this.highlight.pendingHoverEvent = undefined;
