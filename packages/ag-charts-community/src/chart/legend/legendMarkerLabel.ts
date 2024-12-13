@@ -1,8 +1,9 @@
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
-import type { BBox, ChildNodeCounts } from '../../module-support';
+import type { BBox } from '../../scene/bbox';
 import { SceneChangeDetection } from '../../scene/changeDetectable';
 import { Group } from '../../scene/group';
+import type { ChildNodeCounts } from '../../scene/node';
 import { Line } from '../../scene/shape/line';
 import { Text } from '../../scene/shape/text';
 import { Translatable } from '../../scene/transformable';
