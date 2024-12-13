@@ -6,19 +6,21 @@ import { DivariantHandle } from '../scenes/handle';
 import { ShapePointScene } from '../scenes/shapePointScene';
 import type { ArrowUpProperties } from './arrowUpProperties';
 
-export const arrowUpMoves: _ModuleSupport.MarkerPathMove[] = [
-    { x: 0, y: 0, t: 'move' },
-    { x: 1, y: 1.2 },
-    { x: -0.5, y: 0 },
-    { x: 0, y: 0.8 },
-    { x: -1, y: 0 },
-    { x: 0, y: -0.8 },
-    { x: -0.5, y: 0 },
+export const arrowUpPoints: Array<[number, number]> = [
+    [0.5, 0],
+    [1, 0.5],
+    [0.75, 0.5],
+    [0.75, 1],
+    [0.25, 1],
+    [0.25, 0.5],
+    [0.0, 0.5],
 ];
 
 function arrowUp(params: AgMarkerShapeFnParams) {
-    _ModuleSupport.applyMarkerPath(params, arrowUpMoves);
+    _ModuleSupport.drawMarkerUnitPolygon(params, arrowUpPoints);
 }
+
+arrowUp.anchor = { x: 0.5, y: 0 };
 
 export class ArrowUpScene extends ShapePointScene<ArrowUpProperties> {
     static override is(value: unknown): value is ArrowUpScene {

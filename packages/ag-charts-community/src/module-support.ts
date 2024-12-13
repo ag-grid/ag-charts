@@ -172,7 +172,7 @@ export { ContinuousScale } from './scale/continuousScale';
 export { OrdinalTimeScale } from './scale/ordinalTimeScale';
 export { Label } from './chart/label';
 export { Marker } from './chart/marker/marker';
-export { type MarkerPathMove, applyMarkerPath } from './chart/marker/shapes';
+export { type MarkerPathMove, drawMarkerUnitPolygon } from './chart/marker/shapes';
 export { LegendMarkerLabel } from './chart/legend/legendMarkerLabel';
 export { Tooltip } from './chart/tooltip/tooltip';
 export type { TooltipMeta } from './chart/tooltip/tooltip';

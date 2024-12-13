@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts, AgMarkerShapeFnParams } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AgMarkerShapeFnParams, AgPath } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -110,7 +110,7 @@ const options: AgChartOptions = {
 
 AgCharts.create(options);
 
-function updatePath(pathData: string, path: any, scale: number) {
+function updatePath(pathData: string, path: AgPath, scale: number) {
     path.clear();
 
     let x0 = 0;

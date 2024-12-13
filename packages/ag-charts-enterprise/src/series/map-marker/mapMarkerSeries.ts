@@ -564,6 +564,7 @@ export class MapMarkerSeries
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return {
+            shape: properties.shape,
             size: properties.size,
             fill: highlightStyle?.fill ?? properties.fill,
             fillOpacity: highlightStyle?.fillOpacity ?? properties.fillOpacity,
@@ -639,6 +640,7 @@ export class MapMarkerSeries
                 isHighlight
             );
 
+            marker.shape = overrides?.shape ?? style.shape;
             marker.size = overrides?.size ?? style.size;
 
             applyShapeStyle(marker, style, overrides);

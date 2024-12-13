@@ -53,7 +53,7 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
     if (symbol.marker.enabled !== false) {
         const { shape, fill, fillOpacity, stroke, strokeOpacity } = symbol.marker;
         const marker = new Marker();
-        marker.shape = shape;
+        marker.shape = shape ?? 'square';
         marker.size = size;
         marker.fill = fill;
         marker.fillOpacity = fillOpacity;
@@ -62,29 +62,16 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
         marker.strokeWidth = markerStrokeWidth;
 
         const anchor = Marker.anchor(shape);
-
         const x = width / 2 + (anchor.x - 0.5) * size;
         const y = height / 2 + (anchor.y - 0.5) * size;
+        const scale = size / (size + markerStrokeWidth);
 
-        if (typeof shape === 'string') {
-            const scale = size / (size + markerStrokeWidth);
-            marker.translationX = x;
-            marker.translationY = y;
-            marker.scalingX = scale;
-            marker.scalingY = scale;
-        } else {
-            // Custom marker - force it to fit in the box
-            const bbox = marker.getBBox();
-            const scale = Math.min(
-                width / (bbox.width + markerStrokeWidth),
-                height / (bbox.height + markerStrokeWidth),
-                1
-            );
-            marker.translationX = x * scale - bbox.x * scale + (width - bbox.width * scale) / 2;
-            marker.translationY = y * scale - bbox.y * scale + (height - bbox.height * scale) / 2;
-            marker.scalingX = scale;
-            marker.scalingY = scale;
-        }
+        marker.x = 0;
+        marker.y = 0;
+        marker.translationX = x;
+        marker.translationY = y;
+        marker.scalingX = scale;
+        marker.scalingY = scale;
 
         group.append(marker);
     }

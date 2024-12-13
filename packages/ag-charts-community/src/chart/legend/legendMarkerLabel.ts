@@ -77,20 +77,8 @@ export class LegendMarkerLabel extends Translatable(Group) {
     @SceneChangeDetection()
     isCustomMarker: boolean = false;
 
-    private _marker: Marker | undefined;
-    public get marker(): Marker | undefined {
-        return this._marker;
-    }
-    set marker(marker: Marker | undefined) {
-        this._marker?.remove();
-        this._marker = marker;
-        if (marker != null) {
-            marker.zIndex = 1;
-            this.symbolsGroup.appendChild(marker);
-        }
-    }
-
-    public readonly line = this.symbolsGroup.appendChild(new Line());
+    public readonly marker = this.symbolsGroup.appendChild(new Marker({ zIndex: 1 }));
+    public readonly line = this.symbolsGroup.appendChild(new Line({ zIndex: 0 }));
 
     setEnabled(enabled: boolean) {
         this.enabled = enabled;
@@ -108,7 +96,7 @@ export class LegendMarkerLabel extends Translatable(Group) {
 
         let centerTranslateX = 0;
         let centerTranslateY = 0;
-        if (marker?.visible) {
+        if (marker.visible) {
             const { size } = marker;
 
             const anchor = Marker.anchor(marker.shape);

@@ -50,6 +50,7 @@ import { InteractionState } from '../interaction/interactionManager';
 import { LayoutElement } from '../layout/layoutManager';
 import { Marker } from '../marker/marker';
 import { Pagination } from '../pagination/pagination';
+import { MARKER_SHAPE } from '../series/seriesMarker';
 import { applyShapeStyle } from '../series/shapeUtil';
 import { type TooltipMeta, type TooltipPointerEvent } from '../tooltip/tooltip';
 import { ZIndexMap } from '../zIndexMap';
@@ -88,8 +89,8 @@ class LegendMarker extends BaseProperties {
      * If the marker type is set, the legend will always use that marker type for all its items,
      * regardless of the type that comes from the `data`.
      */
-    @ObserveChanges<LegendMarker>((target) => target.parent?.onMarkerShapeChange())
-    shape?: AgMarkerShape;
+    @Validate(MARKER_SHAPE, { optional: true })
+    shape?: AgMarkerShape = undefined;
 
     @Validate(POSITIVE_NUMBER)
     size = 15;
@@ -105,8 +106,6 @@ class LegendMarker extends BaseProperties {
 
     @Validate(BOOLEAN)
     enabled?: boolean;
-
-    parent?: { onMarkerShapeChange(): void };
 }
 
 class LegendLine extends BaseProperties {
@@ -259,7 +258,6 @@ export class Legend extends BaseProperties {
     constructor(private readonly ctx: ModuleContext) {
         super();
 
-        this.item.marker.parent = this;
         this.pagination = new Pagination(
             (type: ChartUpdateType) => ctx.updateService.update(type),
             (page) => this.updatePageNumber(page)
@@ -299,7 +297,7 @@ export class Legend extends BaseProperties {
         const visibleItems = legendData.filter((datum) => !datum.hideInLegend);
         const { data } = this;
 
-        if (!objectsEqual(legendData, data)) {
+        if (!objectsEqual(visibleItems, data)) {
             this.data = visibleItems;
         }
     }
@@ -312,11 +310,6 @@ export class Legend extends BaseProperties {
         this.pagination.destroy();
         this.itemSelection.clear();
         this.domProxy.destroy();
-    }
-
-    public onMarkerShapeChange() {
-        this.itemSelection.clear();
-        this.group.markDirty();
     }
 
     private getOrientation(): AgChartLegendOrientation {
@@ -488,7 +481,7 @@ export class Legend extends BaseProperties {
         // Calculate the marker size of a custom marker shape:
         if (this.isCustomMarker(markerEnabled, shape)) {
             const tmpShape = new Marker();
-            marker.shape = shape;
+            tmpShape.shape = shape;
             tmpShape.updatePath();
             const bbox = tmpShape.getBBox();
             customMarkerSize = Math.max(bbox.width, bbox.height);
@@ -526,11 +519,9 @@ export class Legend extends BaseProperties {
         if (this._symbolsDirty) {
             const { marker, line } = markerLabel;
 
-            if (marker != null) {
-                marker.visible = markerEnabled;
-            }
-            if (marker?.visible) {
-                marker.shape = itemMarker.shape ?? symbol.marker.shape;
+            marker.visible = markerEnabled;
+            if (marker.visible) {
+                marker.shape = itemMarker.shape ?? symbol.marker.shape ?? 'square';
                 marker.size = itemMarker.size;
                 applyShapeStyle(marker, this.getMarkerStyles(symbol));
             }

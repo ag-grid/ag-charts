@@ -10,7 +10,7 @@ import { Sector } from '../scene/shape/sector';
 import { Transformable } from '../scene/transformable';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
-import { Marker } from './marker';
+import { Marker } from './marker/marker';
 import {
     clickAction,
     createChart,

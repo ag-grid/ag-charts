@@ -40,9 +40,9 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
     private readonly nodeFactory: NodeFactory<TChild, TDatum>;
     private readonly garbageBin = new Set<TChild>();
 
-    protected _nodesMap = new Map<TChild, ValidId>();
-    protected _nodes: TChild[] = [];
-    protected data: TDatum[] = [];
+    private readonly _nodesMap = new Map<TChild, ValidId>();
+    private _nodes: TChild[] = [];
+    private data: TDatum[] = [];
 
     private readonly debug = Debug.create(true, 'scene', 'scene:selections');
 

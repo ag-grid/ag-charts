@@ -5,19 +5,21 @@ import { toRadians } from '../../util/angle';
 
 export type MarkerPathMove = { x: number; y: number; t?: 'move' };
 
-export function applyMarkerPath(params: AgMarkerShapeFnParams, moves: MarkerPathMove[]) {
+export function drawMarkerUnitPolygon(params: AgMarkerShapeFnParams, moves: Array<readonly [number, number]>) {
     const { path, size } = params;
-    let { x, y } = params;
+    const { x: x0, y: y0 } = params;
 
     path.clear();
-    for (const { x: mx, y: my, t } of moves) {
-        x += mx * size;
-        y += my * size;
-        if (t === 'move') {
-            path.moveTo(x, y);
-        } else {
+    let didMove = false;
+    for (const [dx, dy] of moves) {
+        const x = x0 + (dx - 0.5) * size;
+        const y = y0 + (dy - 0.5) * size;
+        if (didMove) {
             path.lineTo(x, y);
+        } else {
+            path.moveTo(x, y);
         }
+        didMove = true;
     }
     path.closePath();
 }
@@ -31,28 +33,27 @@ export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMa
         path.closePath();
     },
     cross(params) {
-        applyMarkerPath(params, [
-            { x: -1, y: 0, t: 'move' },
-            { x: -1, y: -1 },
-            { x: +1, y: -1 },
-            { x: +1, y: +1 },
-            { x: +1, y: -1 },
-            { x: +1, y: +1 },
-            { x: -1, y: +1 },
-            { x: +1, y: +1 },
-            { x: -1, y: +1 },
-            { x: -1, y: -1 },
-            { x: -1, y: +1 },
-            { x: -1, y: -1 },
+        drawMarkerUnitPolygon(params, [
+            [0.25, 0],
+            [0.5, 0.25],
+            [0.75, 0],
+            [1, 0.25],
+            [0.75, 0.5],
+            [1, 0.75],
+            [0.75, 1],
+            [0.5, 0.75],
+            [0.25, 1],
+            [0, 0.75],
+            [0.25, 0.5],
+            [0, 0.25],
         ]);
     },
     diamond(params) {
-        applyMarkerPath(params, [
-            { x: 0, y: -1, t: 'move' },
-            { x: +1, y: +1 },
-            { x: -1, y: +1 },
-            { x: -1, y: -1 },
-            { x: +1, y: -1 },
+        drawMarkerUnitPolygon(params, [
+            [0.5, 0],
+            [1, 0.5],
+            [0.5, 1],
+            [0, 0.5],
         ]);
     },
     heart({ path, x, y, size }) {
@@ -67,7 +68,7 @@ export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMa
     },
     pin({ path, x, y, size: s }) {
         const cx = 0.5;
-        const cy = 1;
+        const cy = 0.5;
 
         /**
          * M 0.15625 0.34375
@@ -176,19 +177,19 @@ export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMa
         path.closePath();
     },
     plus(params) {
-        applyMarkerPath(params, [
-            { x: -0.5, y: -0.5, t: 'move' },
-            { x: 0, y: -1 },
-            { x: +1, y: 0 },
-            { x: 0, y: +1 },
-            { x: +1, y: 0 },
-            { x: 0, y: +1 },
-            { x: -1, y: 0 },
-            { x: 0, y: +1 },
-            { x: -1, y: 0 },
-            { x: 0, y: -1 },
-            { x: -1, y: 0 },
-            { x: 0, y: -1 },
+        drawMarkerUnitPolygon(params, [
+            [1 / 3, 0],
+            [2 / 3, 0],
+            [2 / 3, 1 / 3],
+            [1, 1 / 3],
+            [1, 2 / 3],
+            [2 / 3, 2 / 3],
+            [2 / 3, 1],
+            [1 / 3, 1],
+            [1 / 3, 2 / 3],
+            [0, 2 / 3],
+            [0, 1 / 3],
+            [1 / 3, 1 / 3],
         ]);
     },
     square({ path, x, y, size, pixelRatio }) {
@@ -218,10 +219,10 @@ export const MARKER_SHAPES: Record<Exclude<AgMarkerShape, AgMarkerShapeFn>, AgMa
         path.closePath();
     },
     triangle(params) {
-        applyMarkerPath(params, [
-            { x: 0, y: -0.48, t: 'move' },
-            { x: 0.5, y: 0.87 },
-            { x: -1, y: 0 },
+        drawMarkerUnitPolygon(params, [
+            [0.5, 0],
+            [1, 0.87],
+            [0, 0.87],
         ]);
     },
 };
