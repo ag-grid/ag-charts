@@ -19,7 +19,6 @@ import { BBox } from '../../scene/bbox';
 import { Group, TranslatableGroup } from '../../scene/group';
 import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
-import { Line } from '../../scene/shape/line';
 import { Transformable } from '../../scene/transformable';
 import { createId } from '../../util/id';
 import { Logger } from '../../util/logger';
@@ -51,6 +50,7 @@ import { InteractionState } from '../interaction/interactionManager';
 import { LayoutElement } from '../layout/layoutManager';
 import { Marker } from '../marker/marker';
 import { Pagination } from '../pagination/pagination';
+import { applyShapeStyle } from '../series/shapeUtil';
 import { type TooltipMeta, type TooltipPointerEvent } from '../tooltip/tooltip';
 import { ZIndexMap } from '../zIndexMap';
 import { LegendDOMProxy } from './legendDOMProxy';
@@ -524,36 +524,25 @@ export class Legend extends BaseProperties {
         }
 
         if (this._symbolsDirty) {
-            const { shape: markerShape = symbol.marker.shape } = itemMarker;
-
-            markerLabel.updateSymbols(
-                markerEnabled ? new Marker({ zIndex: 1 }) : undefined,
-                lineEnabled ? new Line({ zIndex: 0 }) : undefined
-            );
-
             const { marker, line } = markerLabel;
+
             if (marker != null) {
-                const { strokeWidth, fill, stroke, fillOpacity, strokeOpacity } = this.getMarkerStyles(symbol);
-
-                marker.shape = markerShape;
+                marker.visible = markerEnabled;
+            }
+            if (marker?.visible) {
+                marker.shape = itemMarker.shape ?? symbol.marker.shape;
                 marker.size = itemMarker.size;
-                marker.fill = fill;
-                marker.stroke = stroke;
-                marker.strokeWidth = strokeWidth;
-                marker.fillOpacity = fillOpacity;
-                marker.strokeOpacity = strokeOpacity;
+                applyShapeStyle(marker, this.getMarkerStyles(symbol));
             }
 
-            if (line) {
-                const lineStyles = this.getLineStyles(symbol);
-
-                line.stroke = lineStyles.stroke;
-                line.strokeOpacity = lineStyles.strokeOpacity;
-                line.strokeWidth = lineStyles.strokeWidth;
-                line.lineDash = lineStyles.lineDash;
+            line.visible = lineEnabled;
+            if (line.visible) {
+                applyShapeStyle(line, this.getLineStyles(symbol));
             }
 
-            markerLabel.update({ length: markerWidth, spacing, isCustomMarker });
+            markerLabel.length = markerWidth;
+            markerLabel.spacing = spacing;
+            markerLabel.isCustomMarker = isCustomMarker;
         }
 
         return paddedSymbolWidth;
