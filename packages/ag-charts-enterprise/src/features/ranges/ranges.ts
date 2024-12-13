@@ -11,15 +11,19 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
     @Validate(OBJECT)
     public buttons = new PropertiesArray(RangesButtonProperties);
 
+    private readonly container: HTMLElement;
     private readonly toolbar: _ModuleSupport.BaseToolbar;
     private readonly verticalSpacing = 10;
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
 
+        this.container = ctx.domManager.addChild('canvas-overlay', 'range-buttons');
+        this.container.role = 'presentation';
+
         this.toolbar = new Toolbar(this.ctx.localeManager);
         this.toolbar.addClass('ag-charts-range-buttons');
-        ctx.domManager.addChild('canvas-overlay', 'range-buttons', this.toolbar.getElement());
+        this.container.append(this.toolbar.getElement());
 
         this.destroyFns.push(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
@@ -30,7 +34,7 @@ export class Ranges extends _ModuleSupport.BaseModuleInstance implements _Module
     }
 
     private teardown() {
-        this.ctx.domManager.removeChild('canvas-overlay', 'range-buttons');
+        this.container.removeChild(this.toolbar.getElement());
         this.toolbar.destroy();
     }
 
