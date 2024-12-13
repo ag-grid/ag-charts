@@ -12,6 +12,10 @@ Object.defineProperty(Canvas.prototype, 'transferToImageBitmap', {
         const { width, height } = this;
         const bitmap = new Canvas(width, height);
         bitmap.getContext('2d').drawImage(this, 0, 0, width, height);
+        Object.defineProperty(bitmap, 'close', {
+            // no-op
+            value: () => {},
+        });
         return bitmap;
     },
     enumerable: false,

@@ -8,7 +8,6 @@ import { BBox } from './bbox';
 import { Group } from './group';
 import type { LayersManager } from './layersManager';
 import { type Node, type RenderContext } from './node';
-import { SpriteRenderer } from './spriteRenderer';
 import { Transformable } from './transformable';
 
 export enum DebugSelectors {
@@ -79,7 +78,7 @@ export function debugStats(
     const stats = [
         `${time('⏱️', start, end)} (${splits})`,
         `${extras}`,
-        `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : layersManager.size}; Sprites: ${SpriteRenderer.offscreenCanvasCount}`,
+        `Layers: ${detailedStats ? pct(layersRendered, layersSkipped) : layersManager.size}`,
         detailedStats ? `Nodes: ${pct(nodesRendered, nodesSkipped)}` : null,
         detailedStats ? `Ops: ${pct(opsPerformed, opsSkipped)}` : null,
         detailedStats && memUsage ? memUsage : null,

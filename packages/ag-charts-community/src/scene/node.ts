@@ -231,6 +231,13 @@ export abstract class Node {
         }
     }
 
+    *descendants(): Generator<Node, void, undefined> {
+        for (const child of this.children()) {
+            yield child;
+            yield* child.descendants();
+        }
+    }
+
     /**
      * Checks if the node is a leaf (has no children).
      */

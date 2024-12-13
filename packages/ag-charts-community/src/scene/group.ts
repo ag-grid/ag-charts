@@ -1,13 +1,23 @@
 import { ascendingStringNumberUndefined } from '../util/compare';
 import { clamp } from '../util/number';
 import { BBox } from './bbox';
-import type { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
+import { HdpiOffscreenCanvas } from './canvas/hdpiOffscreenCanvas';
 import type { LayersManager } from './layersManager';
 import type { ChildNodeCounts, RenderContext } from './node';
 import { Node, SceneChangeDetection } from './node';
-import type { CanvasContext } from './shape/shape';
+import { type CanvasContext, Shape } from './shape/shape';
 import { Rotatable, Scalable, Transformable, Translatable } from './transformable';
 import { type ZIndex, compareZIndex } from './zIndex';
+
+interface OffscreenImageBitmap {
+    bitmap: ImageBitmap;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+}
+
+let sharedOffscreenCanvas: HdpiOffscreenCanvas | undefined;
 
 export class Group extends Node {
     static className = 'Group';
@@ -29,8 +39,12 @@ export class Group extends Node {
     @SceneChangeDetection({ convertor: (v: number) => clamp(0, v, 1) })
     opacity: number = 1;
 
-    private layer: HdpiOffscreenCanvas | undefined = undefined;
     renderToOffscreenCanvas: boolean = false;
+    optimizeForInfrequentRedraws: boolean = false;
+
+    // Used when renderToOffscreenCanvas: true
+    private layer: HdpiOffscreenCanvas | undefined = undefined; // optimizeForInfrequentRedraws: false
+    private image: OffscreenImageBitmap | undefined = undefined; // optimizeForInfrequentRedraws: true
 
     constructor(opts?: {
         readonly name?: string;
@@ -49,6 +63,43 @@ export class Group extends Node {
 
     protected override computeBBox(): BBox {
         return Group.computeChildrenBBox(this.children());
+    }
+
+    private computeSafeClippingBBox(): BBox | undefined {
+        const bbox = this.computeBBox();
+        if (!bbox.isFinite()) return;
+
+        let strokeWidth = 0;
+        const strokeMiterAmount = 4;
+        for (const child of this.descendants()) {
+            if (child instanceof Shape) {
+                strokeWidth = Math.max(strokeWidth, child.strokeWidth);
+            }
+        }
+
+        // Align bbox to pixels, and pad.
+        const padding = Math.max(
+            // Account for anti-aliasing artefacts
+            1,
+            // Account for strokes (incl. miters) - this may not be the best place to include this
+            (strokeWidth / 2) * strokeMiterAmount
+        );
+        const x = Math.floor(bbox.x) - padding;
+        const y = Math.floor(bbox.y) - padding;
+        const width = Math.ceil(bbox.x + bbox.width) - x + padding;
+        const height = Math.ceil(bbox.y + bbox.height) - y + padding;
+
+        return new BBox(x, y, width, height);
+    }
+
+    private prepareSharedCanvas(width: number, height: number, pixelRatio: number) {
+        if (sharedOffscreenCanvas == null || sharedOffscreenCanvas.pixelRatio !== pixelRatio) {
+            sharedOffscreenCanvas = new HdpiOffscreenCanvas({ width, height, pixelRatio });
+        } else {
+            sharedOffscreenCanvas.resize(width, height);
+        }
+
+        return sharedOffscreenCanvas;
     }
 
     private isDirty(renderCtx: RenderContext) {
@@ -70,7 +121,12 @@ export class Group extends Node {
         counts.groups += 1;
         counts.nonGroups -= 1;
 
-        if (this.renderToOffscreenCanvas && counts.nonGroups > 0 && this.getVisibility()) {
+        if (
+            this.renderToOffscreenCanvas &&
+            !this.optimizeForInfrequentRedraws &&
+            counts.nonGroups > 0 &&
+            this.getVisibility()
+        ) {
             this.layer ??= this._layerManager?.addLayer({ name: this.name });
         } else if (this.layer != null) {
             this._layerManager?.removeLayer(this.layer);
@@ -81,42 +137,72 @@ export class Group extends Node {
     }
 
     override render(renderCtx: RenderContext) {
-        const { layer } = this;
+        const { layer, renderToOffscreenCanvas } = this;
         const childRenderCtx: RenderContext = { ...renderCtx };
 
-        if (layer == null) {
+        if (!renderToOffscreenCanvas) {
             this.renderInContext(childRenderCtx);
             super.render(childRenderCtx); // Calls markClean().
             return;
         }
 
-        const { ctx, stats } = renderCtx;
+        const { ctx, stats, devicePixelRatio: pixelRatio } = renderCtx;
 
+        let { image } = this;
         if (this.isDirty(renderCtx)) {
-            const transform = ctx.getTransform();
-            const { globalAlpha } = ctx;
+            image?.bitmap.close();
+            image = undefined;
 
-            const layerCtx = layer.context;
-            childRenderCtx.ctx = layerCtx;
+            const bbox = layer ? undefined : this.computeSafeClippingBBox();
 
-            layer.clear();
-            layerCtx.save();
-            layerCtx.setTransform(transform);
-            layerCtx.globalAlpha = globalAlpha;
-            this.renderInContext(childRenderCtx);
-            layerCtx.restore();
-            layerCtx.verifyDepthZero?.(); // Check for save/restore depth of zero!
+            const renderOffscreen = (
+                offscreenCanvas: HdpiOffscreenCanvas,
+                ...transform: [DOMMatrix] | [number, number, number, number, number, number]
+            ) => {
+                const offscreenCtx = offscreenCanvas.context;
+                childRenderCtx.ctx = offscreenCtx;
+
+                offscreenCanvas.clear();
+                offscreenCtx.save();
+                offscreenCtx.setTransform(...(transform as any[]));
+                offscreenCtx.globalAlpha = 1;
+                this.renderInContext(childRenderCtx);
+                offscreenCtx.restore();
+                offscreenCtx.verifyDepthZero?.(); // Check for save/restore depth of zero!
+            };
+
+            if (layer) {
+                renderOffscreen(layer, ctx.getTransform());
+            } else if (bbox) {
+                const { x, y, width, height } = bbox;
+
+                const canvas = this.prepareSharedCanvas(width, height, pixelRatio);
+                renderOffscreen(canvas, pixelRatio, 0, 0, pixelRatio, -x * pixelRatio, -y * pixelRatio);
+
+                image = { bitmap: canvas.transferToImageBitmap(), x, y, width, height };
+            }
+
+            this.image = image;
 
             if (stats) stats.layersRendered++;
         } else {
             this.skipRender(childRenderCtx);
+
             if (stats) stats.layersSkipped++;
         }
 
-        ctx.save();
-        ctx.resetTransform();
-        layer.drawImage(ctx as any);
-        ctx.restore();
+        const { globalAlpha } = ctx;
+        ctx.globalAlpha = globalAlpha * this.opacity;
+        if (layer) {
+            ctx.save();
+            ctx.resetTransform();
+            layer.drawImage(ctx as any);
+            ctx.restore();
+        } else if (image) {
+            const { bitmap, x, y, width, height } = image;
+            ctx.drawImage(bitmap, 0, 0, width * pixelRatio, height * pixelRatio, x, y, width, height);
+        }
+        ctx.globalAlpha = globalAlpha;
 
         super.render(childRenderCtx); // Calls markClean().
     }
