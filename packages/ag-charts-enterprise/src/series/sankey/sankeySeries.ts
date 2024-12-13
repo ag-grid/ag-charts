@@ -12,7 +12,7 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
-const { Transformable } = _ModuleSupport;
+const { Transformable, applyShapeStyle } = _ModuleSupport;
 
 const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, TextUtils, createDatumId, Logger, Rect, BBox } =
     _ModuleSupport;
@@ -451,7 +451,7 @@ export class SankeySeries extends FlowProportionSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
 
-        const format = this.getBaseNodeStyle(isHighlight);
+        const style = this.getBaseNodeStyle(isHighlight);
 
         datumSelection.each((rect, datum) => {
             const { datumIndex, size, label } = datum;
@@ -461,7 +461,7 @@ export class SankeySeries extends FlowProportionSeries<
                 datumIndex,
                 size,
                 label,
-                format,
+                style,
                 isHighlight
             );
 
@@ -469,13 +469,8 @@ export class SankeySeries extends FlowProportionSeries<
             rect.y = datum.y;
             rect.width = Math.max(datum.width, 0);
             rect.height = Math.max(datum.height, 0);
-            rect.fill = overrides?.fill ?? format.fill;
-            rect.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
-            rect.stroke = overrides?.stroke ?? format.stroke;
-            rect.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
-            rect.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
-            rect.lineDash = overrides?.lineDash ?? format.lineDash;
-            rect.lineDashOffset = overrides?.lineDashOffset ?? format.lineDashOffset;
+
+            applyShapeStyle(rect, style, overrides);
         });
     }
 
@@ -564,7 +559,7 @@ export class SankeySeries extends FlowProportionSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
 
-        const format = this.getBaseLinkStyle(isHighlight);
+        const style = this.getBaseLinkStyle(isHighlight);
 
         datumSelection.each((link, datum) => {
             const { datumIndex } = datum;
@@ -573,7 +568,7 @@ export class SankeySeries extends FlowProportionSeries<
                 String(datumIndex),
                 datum,
                 fromNodeDatumIndex,
-                format,
+                style,
                 isHighlight
             );
 
@@ -582,13 +577,9 @@ export class SankeySeries extends FlowProportionSeries<
             link.x2 = datum.x2;
             link.y2 = datum.y2;
             link.height = datum.height;
-            link.fill = overrides?.fill ?? format?.fill;
-            link.fillOpacity = overrides?.fillOpacity ?? format?.fillOpacity;
-            link.stroke = overrides?.stroke ?? format?.stroke;
-            link.strokeOpacity = overrides?.strokeOpacity ?? format?.strokeOpacity;
-            link.strokeWidth = Math.min(overrides?.strokeWidth ?? format?.strokeWidth, datum.height / 2);
-            link.lineDash = overrides?.lineDash ?? format?.lineDash;
-            link.lineDashOffset = overrides?.lineDashOffset ?? format?.lineDashOffset;
+
+            applyShapeStyle(link, style, overrides);
+
             link.inset = link.strokeWidth / 2;
         });
     }

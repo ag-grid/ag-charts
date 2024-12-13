@@ -1,17 +1,26 @@
+const { spawnSync } = require('child_process');
 const fs = require('fs');
 const yargs = require('yargs');
 const { hideBin } = require('yargs/helpers');
+
+function currentBranchName() {
+    return spawnSync('git rev-parse --abbrev-ref HEAD', { shell: true })
+        .output?.map((b) => b?.toString('utf-8') ?? '')
+        .join('')
+        .trim();
+}
 
 const argv = yargs(hideBin(process.argv))
     .option('base', {
         alias: 'b',
         type: 'string',
+        default: 'latest',
         description: 'Base version to compare against.',
     })
     .option('compare', {
         alias: 'c',
         type: 'string',
-        default: 'latest',
+        default: currentBranchName() ?? 'latest',
         description: 'Version to compare.',
     })
     .demandOption('base')
@@ -38,6 +47,12 @@ if (compareData == null) {
     process.exit(1);
 }
 
+if (argv.base === argv.compare) {
+    console.error('Comparing same version, nothing to do!');
+    process.exit(1);
+}
+
+console.log(`Comparing ${argv.base} (baseline) vs. ${argv.compare}`);
 const result = [];
 for (const test of Object.keys(baseData.results)) {
     const base = baseData.results[test];

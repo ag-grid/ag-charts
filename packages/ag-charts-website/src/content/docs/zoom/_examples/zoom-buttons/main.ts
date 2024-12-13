@@ -1,4 +1,4 @@
-import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
+import { AgCartesianChartOptions, AgCharts, AgZoomButtonsVisible } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
@@ -6,6 +6,9 @@ const options: AgCartesianChartOptions = {
     container: document.getElementById('myChart'),
     zoom: {
         enabled: true,
+        buttons: {
+            visible: 'hover',
+        },
     },
     tooltip: {
         enabled: false,
@@ -43,4 +46,9 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-AgCharts.create(options);
+const chart = AgCharts.create(options);
+
+function changeVisible(visible: AgZoomButtonsVisible) {
+    options.zoom!.buttons!.visible = visible;
+    chart.update(options);
+}

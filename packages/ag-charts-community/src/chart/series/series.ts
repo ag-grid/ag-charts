@@ -180,8 +180,6 @@ export abstract class Series<
     })
     seriesGrouping?: SeriesGrouping = undefined;
 
-    protected static readonly highlightedZIndex = 1000000000000;
-
     protected readonly NodeEvent: INodeEventConstructor<TDatum, any> = SeriesNodeEvent;
 
     readonly internalId = createId(this);

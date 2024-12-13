@@ -21,6 +21,7 @@ const {
     Logger,
     Sector,
     evaluateBezier,
+    applyShapeStyle,
 } = _ModuleSupport;
 
 interface ChordNodeDatum extends FlowProportionNodeDatum {
@@ -561,7 +562,7 @@ export class ChordSeries extends FlowProportionSeries<
     }) {
         const { datumSelection, isHighlight } = opts;
 
-        const format = this.getBaseLinkStyle(isHighlight);
+        const style = this.getBaseLinkStyle(isHighlight);
 
         datumSelection.each((link, datum) => {
             const { datumIndex } = datum;
@@ -570,7 +571,7 @@ export class ChordSeries extends FlowProportionSeries<
                 String(datumIndex),
                 datum,
                 fromNodeDatumIndex,
-                format,
+                style,
                 isHighlight
             );
 
@@ -581,14 +582,10 @@ export class ChordSeries extends FlowProportionSeries<
             link.endAngle1 = datum.endAngle1;
             link.startAngle2 = datum.startAngle2;
             link.endAngle2 = datum.endAngle2;
-            link.fill = overrides?.fill ?? format.fill;
-            link.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
-            link.stroke = overrides?.stroke ?? format.stroke;
-            link.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
-            link.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
-            link.lineDash = overrides?.lineDash ?? format.lineDash;
-            link.lineDashOffset = overrides?.lineDashOffset ?? format.lineDashOffset;
-            link.tension = overrides?.tension ?? format.tension;
+
+            applyShapeStyle(link, style, overrides);
+
+            link.tension = overrides?.tension ?? style.tension;
         });
     }
 

@@ -26,8 +26,16 @@ export interface AgZoomRatio {
 }
 
 export interface AgZoomButtons extends Toggleable {
+    /** The buttons to show. */
     buttons?: AgZoomButton[];
+    /** When the buttons should be visible.
+     *
+     * Default: `'hover'`
+     */
+    visible?: AgZoomButtonsVisible;
 }
+
+export type AgZoomButtonsVisible = 'always' | 'zoomed' | 'hover';
 
 export interface AgZoomButton extends ToolbarButton {
     value: AgZoomButtonValue;

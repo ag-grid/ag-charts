@@ -95,16 +95,6 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     @Validate(BOOLEAN)
     public enableAxisDragging = true;
 
-    @Validate(OBJECT)
-    public buttons = new ZoomToolbar(
-        this.ctx,
-        this.getModuleProperties.bind(this),
-        this.getResetZoom.bind(this),
-        this.updateZoom.bind(this),
-        this.updateAxisZoom.bind(this),
-        this.resetZoom.bind(this)
-    );
-
     @Validate(BOOLEAN)
     public enableDoubleClickToReset = true;
 
@@ -153,6 +143,16 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     public readonly autoScaling = new ZoomAutoScaling((newValue) => {
         this.ctx.zoomManager.setAutoScaleYAxis(newValue.enabled, newValue.padding);
     });
+
+    @Validate(OBJECT)
+    public buttons = new ZoomToolbar(
+        this.ctx,
+        this.getModuleProperties.bind(this),
+        this.getResetZoom.bind(this),
+        this.updateZoom.bind(this),
+        this.updateAxisZoom.bind(this),
+        this.resetZoom.bind(this)
+    );
 
     // Scenes
     private seriesRect?: _ModuleSupport.BBox;
@@ -572,6 +572,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         const zoom = this.getZoom();
         this.contextMenu.toggleActions(zoom);
+        this.buttons.toggleVisibleZoomed(this.isMaxZoom(zoom));
     }
 
     private onZoomPanStart(event: _ModuleSupport.ZoomPanStartEvent): void {

@@ -224,8 +224,11 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
     }
 
     protected ordinalRange(i: number) {
-        const { _inset: inset, _step: step } = this;
-        return inset + step * i;
+        const { _inset: inset, _step: step, range } = this;
+        const min = Math.min(range[0], range[1]);
+        const max = Math.max(range[0], range[1]);
+        // Clamp to account for FP issues
+        return clamp(min, inset + step * i, max);
     }
 
     private getIndex(value: D) {

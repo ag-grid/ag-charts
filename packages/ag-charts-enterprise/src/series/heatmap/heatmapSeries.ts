@@ -17,6 +17,7 @@ const {
     ColorScale,
     Rect,
     PointerEvents,
+    applyShapeStyle,
 } = _ModuleSupport;
 
 interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
@@ -370,7 +371,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const isZoomed = visibleMin !== 0 || visibleMax !== 1;
         const crisp = !isZoomed;
 
-        const format = this.getItemBaseStyle(isDatumHighlighted);
+        const style = this.getItemBaseStyle(isDatumHighlighted);
 
         opts.datumSelection.each((rect, nodeDatum) => {
             const { datumIndex, colorValue, datum, point, width, height } = nodeDatum;
@@ -378,7 +379,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                 String(datumIndex),
                 datum,
                 colorValue,
-                format,
+                style,
                 isDatumHighlighted
             );
 
@@ -387,11 +388,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
             rect.y = Math.floor(point.y - height / 2);
             rect.width = Math.ceil(width);
             rect.height = Math.ceil(height);
-            rect.fill = overrides?.fill ?? format.fill;
-            rect.fillOpacity = overrides?.fillOpacity ?? format.fillOpacity;
-            rect.stroke = overrides?.stroke ?? format.stroke;
-            rect.strokeWidth = overrides?.strokeWidth ?? format.strokeWidth;
-            rect.strokeOpacity = overrides?.strokeOpacity ?? format.strokeOpacity;
+
+            applyShapeStyle(rect, style, overrides);
         });
     }
 

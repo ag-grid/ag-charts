@@ -51,9 +51,11 @@ export interface FunnelNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum
     readonly height: number;
     readonly label: FunnelNodeLabelDatum | undefined;
     readonly strokeWidth: number;
-    readonly opacity: number;
-    readonly clipBBox?: _ModuleSupport.BBox;
     readonly visible: boolean;
+
+    // Required for types
+    readonly opacity?: number;
+    readonly clipBBox?: _ModuleSupport.BBox;
 }
 
 interface FunnelConnectorDatum {
@@ -368,7 +370,6 @@ export abstract class BaseFunnelSeries<
                 height: rect.height,
                 midPoint: nodeMidPoint,
                 strokeWidth,
-                opacity: 1,
                 label: labelData,
                 visible,
             };
@@ -481,6 +482,7 @@ export abstract class BaseFunnelSeries<
         opts.connectorSelection.each((connector, datum) => {
             const { datumIndex } = datum;
             connector.setProperties(resetConnectorSelectionsFn(connector, datum));
+
             connector.fill = fill ?? fills[datumIndex % fills.length];
             connector.fillOpacity = fillOpacity;
             connector.stroke = stroke ?? strokes[datumIndex % strokes.length];

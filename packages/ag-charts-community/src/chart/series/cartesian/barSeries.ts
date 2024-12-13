@@ -33,6 +33,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
+import { applyShapeStyle } from '../shapeUtil';
 import { datumStylerProperties, visibleRangeIndices } from '../util';
 import { AbstractBarSeries } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
@@ -67,11 +68,7 @@ interface BarNodeDatum extends CartesianSeriesNodeDatum, ErrorBoundSeriesNodeDat
     readonly phantom: boolean;
     readonly width: number;
     readonly height: number;
-    readonly fill: string | undefined;
-    readonly stroke: string | undefined;
     readonly opacity: number | undefined;
-    readonly strokeWidth: number;
-    readonly cornerRadius: number;
     readonly topLeftCornerRadius: boolean;
     readonly topRightCornerRadius: boolean;
     readonly bottomRightCornerRadius: boolean;
@@ -339,8 +336,7 @@ export class BarSeries extends AbstractBarSeries<
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
-        const { xKey, yKey, xName, yName, fill, stroke, strokeWidth, cornerRadius, legendItemName, label } =
-            this.properties;
+        const { xKey, yKey, xName, yName, legendItemName, label } = this.properties;
 
         const yReversed = yAxis.isReversed();
 
@@ -440,11 +436,7 @@ export class BarSeries extends AbstractBarSeries<
                 width: barRect.width,
                 height: barRect.height,
                 midPoint: { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 },
-                fill,
-                stroke,
                 opacity,
-                strokeWidth,
-                cornerRadius,
                 topLeftCornerRadius: barAlongX !== isUpward,
                 topRightCornerRadius: isUpward,
                 bottomRightCornerRadius: barAlongX === isUpward,
@@ -734,18 +726,15 @@ export class BarSeries extends AbstractBarSeries<
                 opts.isHighlight
             );
 
-            rect.fill = overrides?.fill ?? style.fill;
-            rect.fillOpacity = (overrides?.fillOpacity ?? style.fillOpacity) * (datum.phantom ? 0.2 : 1);
-            rect.stroke = overrides?.stroke ?? style.stroke;
-            rect.strokeOpacity = (overrides?.strokeOpacity ?? style.strokeOpacity) * (datum.phantom ? 0.2 : 1);
-            rect.strokeWidth = overrides?.strokeWidth ?? style.strokeWidth;
-            rect.lineDash = overrides?.lineDash ?? style.lineDash;
-            rect.lineDashOffset = overrides?.lineDashOffset ?? style.lineDashOffset;
+            rect.opacity = datum.opacity ?? 0;
 
-            rect.topLeftCornerRadius = datum.topLeftCornerRadius ? datum.cornerRadius : 0;
-            rect.topRightCornerRadius = datum.topRightCornerRadius ? datum.cornerRadius : 0;
-            rect.bottomRightCornerRadius = datum.bottomRightCornerRadius ? datum.cornerRadius : 0;
-            rect.bottomLeftCornerRadius = datum.bottomLeftCornerRadius ? datum.cornerRadius : 0;
+            applyShapeStyle(rect, style, overrides);
+
+            const cornerRadius = overrides?.cornerRadius ?? style.cornerRadius;
+            rect.topLeftCornerRadius = datum.topLeftCornerRadius ? cornerRadius : 0;
+            rect.topRightCornerRadius = datum.topRightCornerRadius ? cornerRadius : 0;
+            rect.bottomRightCornerRadius = datum.bottomRightCornerRadius ? cornerRadius : 0;
+            rect.bottomLeftCornerRadius = datum.bottomLeftCornerRadius ? cornerRadius : 0;
 
             rect.visible = categoryAlongX
                 ? (datum.clipBBox?.width ?? datum.width) > 0

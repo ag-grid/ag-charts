@@ -284,6 +284,7 @@ export abstract class Chart extends Observable {
             styleContainer,
             syncManager: new SyncManager(this),
             pixelRatio: options.specialOverrides.overrideDevicePixelRatio,
+            fireEvent: (event) => this.fireEvent(event),
             updateCallback: (type, opts) => this.update(type, opts),
             updateMutex: this.updateMutex,
         }));

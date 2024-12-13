@@ -12,6 +12,7 @@ import type { Group } from '../scene/group';
 import { Scene } from '../scene/scene';
 import { CallbackCache } from '../util/callbackCache';
 import type { Mutex } from '../util/mutex';
+import type { TypedEvent } from '../util/observable';
 import { AnnotationManager } from './annotation/annotationManager';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
@@ -45,7 +46,6 @@ export class ChartContext implements ModuleContext {
     readonly localeManager = new LocaleManager();
     readonly seriesStateManager = new SeriesStateManager();
     readonly stateManager = new StateManager();
-    readonly zoomManager = new ZoomManager();
     readonly seriesLabelLayoutManager = new SeriesLabelLayoutManager();
 
     animationManager: AnimationManager;
@@ -68,6 +68,7 @@ export class ChartContext implements ModuleContext {
     syncManager: SyncManager;
     tooltipManager: TooltipManager;
     updateService: UpdateService;
+    zoomManager: ZoomManager;
 
     private readonly contextModules: ModuleInstance[] = [];
 
@@ -80,6 +81,7 @@ export class ChartContext implements ModuleContext {
             syncManager: SyncManager;
             container?: HTMLElement;
             styleContainer?: HTMLElement;
+            fireEvent: <TEvent extends TypedEvent>(event: TEvent) => void;
             updateCallback: UpdateCallback;
             updateMutex: Mutex;
             pixelRatio?: number;
@@ -90,6 +92,7 @@ export class ChartContext implements ModuleContext {
             root,
             syncManager,
             container,
+            fireEvent,
             updateCallback,
             updateMutex,
             pixelRatio,
@@ -127,8 +130,7 @@ export class ChartContext implements ModuleContext {
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.animationManager);
         this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip);
-
-        this.zoomManager.addLayoutListeners(this.layoutManager);
+        this.zoomManager = new ZoomManager(fireEvent, this.layoutManager);
 
         for (const module of moduleRegistry.byType<ContextModule>('context')) {
             if (!module.chartTypes.includes(chartType)) continue;
