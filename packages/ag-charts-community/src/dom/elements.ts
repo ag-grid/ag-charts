@@ -76,6 +76,7 @@ export function createTextArea(options: TextAreaOptions, attrs?: InputAttributeS
     textArea.value = options.value;
     textArea.addEventListener('input', (event) => options.onChange(textArea.value, event));
     setAttributes(textArea, attrs);
+    setAttribute(textArea, 'data-preventdefault', false); // AG-13715
     return textArea;
 }
 
