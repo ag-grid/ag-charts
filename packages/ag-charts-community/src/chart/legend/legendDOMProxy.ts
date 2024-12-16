@@ -93,7 +93,6 @@ export class LegendDOMProxy {
             markerLabel.proxyButton?.destroy();
             markerLabel.proxyButton = ctx.proxyInteractionService.createProxyElement({
                 type: 'listswitch',
-                id: `ag-charts-legend-item-${index}`,
                 textContent: this.getItemAriaText(lm, datumReader.getItemLabel(datum), index, count),
                 ariaChecked: !!markerLabel.datum.enabled,
                 ariaDescribedBy: this.itemDescription.id,

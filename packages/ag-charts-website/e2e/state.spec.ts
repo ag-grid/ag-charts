@@ -9,7 +9,7 @@ test.describe('state', () => {
 
         await gotoExample(page, url);
 
-        const bbox0 = await page.$(SELECTORS.legendItem0).then((legendItem0) => legendItem0?.boundingBox());
+        const bbox0 = await page.$(SELECTORS.legendItems)[0].then((legendItem0) => legendItem0?.boundingBox());
         if (!bbox0) throw new Error('Legend item not found');
 
         await page.mouse.click(bbox0.x, bbox0.y);
