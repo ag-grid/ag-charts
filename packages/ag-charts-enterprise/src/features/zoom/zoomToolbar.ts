@@ -1,4 +1,4 @@
-import { type AgZoomButtonValue, _ModuleSupport } from 'ag-charts-community';
+import { type AgZoomButtonValue, _ModuleSupport, _Widget } from 'ag-charts-community';
 
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -25,7 +25,6 @@ const {
     ActionOnSet,
     BaseProperties,
     ChartAxisDirection,
-    InteractionState,
     NativeWidget,
     PropertiesArray,
     Toolbar,
@@ -103,8 +102,8 @@ export class ZoomToolbar extends BaseProperties {
         this.destroyFns.push(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             this.toolbar.addToolbarListener('button-focused', this.onButtonFocus.bind(this)),
-            ctx.interactionManager.addListener('hover', this.onHover.bind(this), InteractionState.All),
-            ctx.interactionManager.addListener('leave', this.onLeave.bind(this), InteractionState.All),
+            ctx.domManager.seriesWidget.addListener('mousemove', this.onHover.bind(this)),
+            ctx.domManager.seriesWidget.addListener('mouseleave', this.onLeave.bind(this)),
             ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             this.teardown.bind(this)
         );
@@ -137,7 +136,7 @@ export class ZoomToolbar extends BaseProperties {
         container.setBounds({ y: rect.y + rect.height - height });
     }
 
-    private onHover(event: _ModuleSupport.PointerInteractionEvent<'hover'>) {
+    private onHover(event: _Widget.MouseWidgetEvent<'mousemove'>) {
         if (!this.enabled || this.visible !== 'hover' || this.toolbar.isHidden()) return;
 
         const {
