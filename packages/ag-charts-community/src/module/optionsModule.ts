@@ -36,7 +36,7 @@ import { setDocument, setWindow } from '../util/dom';
 import { deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
-import { isEnumValue, isFiniteNumber, isObject, isPlainObject, isString } from '../util/type-guards';
+import { isEnumValue, isFiniteNumber, isObject, isPlainObject, isString, isSymbol } from '../util/type-guards';
 import type { DeepPartial } from '../util/types';
 import { type PaletteType, paletteType } from './coreModulesTypes';
 import { enterpriseModule } from './enterpriseModule';
@@ -105,7 +105,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         processedOverrides: Partial<T>,
         specialOverrides: Partial<ChartSpecialOverrides>,
         metadata: ChartInternalOptionMetadata,
-        deltaOptions?: DeepPartial<T>
+        deltaOptions?: DeepPartial<T>,
+        stripSymbols = false
     ) {
         this.optionMetadata = metadata ?? {};
         this.processedOverrides = processedOverrides ?? {};
@@ -129,13 +130,22 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
 
         let activeTheme, processedOptions, defaultAxes, fastDelta;
-        if (deltaOptions != null && ChartOptions.isFastPathDelta(deltaOptions) && baseChartOptions != null) {
+        if (
+            !stripSymbols &&
+            deltaOptions != null &&
+            ChartOptions.isFastPathDelta(deltaOptions) &&
+            baseChartOptions != null
+        ) {
             ({ activeTheme, processedOptions, defaultAxes, fastDelta } = this.fastSetup(
                 deltaOptions,
                 baseChartOptions
             ));
         } else {
-            ({ activeTheme, processedOptions, defaultAxes } = this.slowSetup(processedOverrides, deltaOptions));
+            ({ activeTheme, processedOptions, defaultAxes } = this.slowSetup(
+                processedOverrides,
+                deltaOptions,
+                stripSymbols
+            ));
         }
 
         this.activeTheme = activeTheme;
@@ -173,11 +183,14 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         }
     }
 
-    private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T>) {
+    private slowSetup(processedOverrides: Partial<T>, deltaOptions?: DeepPartial<T>, stripSymbols = false) {
         let options = deepClone(this.userOptions, ChartOptions.OPTIONS_CLONE_OPTS) as T;
 
         if (deltaOptions) {
             options = mergeDefaults(deltaOptions, options) as T;
+            if (stripSymbols) {
+                this.removeLeftoverSymbols(options);
+            }
         }
 
         const { presetType } = this.optionMetadata;
@@ -660,6 +673,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private removeDisabledOptions(options: Partial<T>) {
         // Remove configurations from all option objects with a `false` value for the `enabled` property.
         jsonWalk(options, ChartOptions.removeDisabledOptionJson, new Set(['data', 'theme']));
+    }
+
+    private static removeLeftoverSymbolsJson(this: void, optionsNode: any) {
+        if (!optionsNode || !isObject(optionsNode)) return;
+        for (const [key, value] of Object.entries(optionsNode)) {
+            if (isSymbol(value)) {
+                delete optionsNode[key];
+            }
+        }
+    }
+
+    private removeLeftoverSymbols(options: Partial<T>) {
+        jsonWalk(options, ChartOptions.removeLeftoverSymbolsJson, new Set(['data']));
     }
 
     private specialOverridesDefaults(options: Partial<ChartSpecialOverrides>) {
