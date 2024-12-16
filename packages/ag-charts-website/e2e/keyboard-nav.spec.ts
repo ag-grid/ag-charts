@@ -104,6 +104,12 @@ test.describe('keyboard-nav', () => {
         await page.keyboard.press('Space');
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13643-legend-item-1-pressed.png');
 
+        await page.keyboard.press('Enter');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13643-legend-item-1-focused.png');
+
+        await page.keyboard.press('NumpadEnter');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13643-legend-item-1-pressed.png');
+
         await page.keyboard.down('Shift');
         await page.keyboard.press('Tab');
         await page.keyboard.up('Shift');
