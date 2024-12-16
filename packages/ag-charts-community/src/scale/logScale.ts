@@ -6,10 +6,10 @@ import { isString } from '../util/type-guards';
 import { ContinuousScale } from './continuousScale';
 import { Invalidating } from './invalidating';
 
-const logFunctions: Record<number, (base: number, value: number) => number> = {
-    2: (_base, value) => Math.log2(value),
-    [Math.E]: (_base, value) => Math.log(value),
-    10: (_base, value) => Math.log10(value),
+const logFunctions: Record<number, (base: number, x: number) => number> = {
+    2: (_base, x) => Math.log2(x),
+    [Math.E]: (_base, x) => Math.log(x),
+    10: (_base, x) => Math.log10(x),
 };
 
 const DEFAULT_LOG = (base: number, x: number) => Math.log(x) / Math.log(base);
@@ -20,8 +20,9 @@ function log(base: number, domain: number[], x: number) {
     return start >= 0 ? fn(base, x) : -fn(base, -x);
 }
 
-const powFunctions: Record<number, (base: number, value: number) => number> = {
-    [Math.E]: (_base, value) => Math.exp(value),
+const powFunctions: Record<number, (base: number, x: number) => number> = {
+    [Math.E]: (_base, x) => Math.exp(x),
+    10: (_base, x) => (x >= 0 ? 10 ** x : 1 / 10 ** -x),
 };
 
 const DEFAULT_POW = (base: number, x: number) => base ** x;

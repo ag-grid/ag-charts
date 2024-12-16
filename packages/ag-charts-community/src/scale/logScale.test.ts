@@ -129,7 +129,7 @@ describe('LogScale', () => {
             scale.nice = true;
             scale.update();
             expect(scale.nice).toBe(true);
-            expect(scale.niceDomain).toEqual([10, 1000]);
+            expect(scale._niceDomain).toEqual([10, 1000]);
         }
 
         {
@@ -138,7 +138,7 @@ describe('LogScale', () => {
             scale.base = Math.E;
             scale.nice = true;
             scale.update();
-            const domain = scale.niceDomain;
+            const domain = scale._niceDomain;
             expect(Math.log(domain[0])).toEqual(1);
             expect(Math.log(domain[1])).toEqual(3);
         }

@@ -61,11 +61,12 @@ export class LinearScale extends ContinuousScale<number> {
     }
 
     niceDomain(domain: number[], ticks: ScaleDomainTicks<number>) {
+        const { tickCount } = ticks;
         let [start, stop] = domain;
 
-        if (ticks.tickCount === 1) {
+        if (tickCount === 1) {
             [start, stop] = niceTicksDomain(start, stop);
-        } else if (ticks.tickCount > 1) {
+        } else if (tickCount > 1) {
             const roundStart = start > stop ? Math.ceil : Math.floor;
             const roundStop = start > stop ? Math.floor : Math.ceil;
             const maxAttempts = 4;
