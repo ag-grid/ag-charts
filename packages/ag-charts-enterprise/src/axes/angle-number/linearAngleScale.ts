@@ -19,8 +19,6 @@ export class LinearAngleScale extends LinearScale {
     @Invalidating
     arcLength: number = 0;
 
-    private niceTickStep = 0;
-
     override ticks(): number[] {
         if (!this.domain || this.domain.length < 2 || this.domain.some((d) => !isFinite(d)) || this.arcLength <= 0) {
             return [];
@@ -38,15 +36,19 @@ export class LinearAngleScale extends LinearScale {
             }
         }
 
-        const step =
-            this.nice && this.niceTickStep
-                ? this.niceTickStep
-                : LinearScale.getTickStep(d0, d1, {
-                      interval: this.interval,
-                      tickCount: this.tickCount,
-                      minTickCount: this.minTickCount,
-                      maxTickCount: this.maxTickCount,
-                  });
+        const ticks: _ModuleSupport.ScaleDomainTicks<number> = {
+            interval: this.interval,
+            tickCount: this.tickCount,
+            minTickCount: this.minTickCount,
+            maxTickCount: this.maxTickCount,
+        };
+        let step: number;
+        if (this.nice && this.hasNiceRange()) {
+            step = LinearAngleScale.getNiceStepAndTickCount(super.niceDomain(this.domain, ticks), ticks).step;
+        } else {
+            step = LinearScale.getTickStep(d0, d1, ticks);
+        }
+
         return range(d0, d1, step);
     }
 
@@ -54,24 +56,6 @@ export class LinearAngleScale extends LinearScale {
         const sortedRange = this.range.slice().sort((a, b) => a - b);
         const niceRanges = [Math.PI, 2 * Math.PI];
         return niceRanges.some((r) => isNumberEqual(r, sortedRange[1] - sortedRange[0]));
-    }
-
-    protected override updateNiceDomain() {
-        if (!this.hasNiceRange()) {
-            super.updateNiceDomain();
-            return;
-        }
-
-        const ticks: _ModuleSupport.ScaleDomainTicks<number> = {
-            interval: this.interval,
-            tickCount: this.tickCount,
-            minTickCount: this.minTickCount,
-            maxTickCount: this.maxTickCount,
-        };
-
-        const niceDomain = this.niceDomain(this.domain, ticks);
-        this._niceDomain = niceDomain;
-        this.niceTickStep = LinearAngleScale.getNiceStepAndTickCount(super.niceDomain(this.domain, ticks), ticks).step;
     }
 
     override niceDomain(domain: number[], ticks: _ModuleSupport.ScaleDomainTicks<number>): number[] {
