@@ -60,6 +60,9 @@ export class LinearAngleScale extends LinearScale {
 
     override niceDomain(domain: number[], ticks: _ModuleSupport.ScaleDomainTicks<number>): number[] {
         const niceDomain = super.niceDomain(domain, ticks);
+
+        if (!this.hasNiceRange()) return niceDomain;
+
         const reversed = niceDomain[0] > niceDomain[1];
         const start = reversed ? niceDomain[1] : niceDomain[0];
         const { step, count } = LinearAngleScale.getNiceStepAndTickCount(niceDomain, ticks);
