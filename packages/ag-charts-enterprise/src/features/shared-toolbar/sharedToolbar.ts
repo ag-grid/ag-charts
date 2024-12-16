@@ -23,6 +23,7 @@ export interface SharedToolbarWithSection<
 export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements _ModuleSupport.ModuleInstance {
     static readonly SECTION_ORDER: Array<SharedToolbarSection> = ['chartToolbar', 'annotations'];
 
+    private readonly container: HTMLElement;
     private sharedToolbar?: _ModuleSupport.Toolbar<_ModuleSupport.ToolbarButtonOptions>;
     private readonly activeSections: Set<SharedToolbarSection> = new Set();
     private readonly sectionButtons: Record<SharedToolbarSection, Array<_ModuleSupport.ToolbarButtonOptions>> = {
@@ -33,6 +34,8 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
+        this.container = this.ctx.domManager.addChild('canvas-overlay', 'shared-toolbar');
+        this.container.role = 'presentation';
     }
 
     public getSharedToolbar<ButtonOptions extends _ModuleSupport.ToolbarButtonOptions>(section: SharedToolbarSection) {
@@ -47,11 +50,13 @@ export class SharedToolbar extends _ModuleSupport.BaseModuleInstance implements 
         this.sharedToolbar = new _ModuleSupport.Toolbar(this.ctx.localeManager, 'vertical');
         this.sharedToolbar.addClass('ag-charts-shared-toolbar');
 
-        this.ctx.domManager.addChild('canvas-overlay', 'shared-toolbar', this.sharedToolbar.getElement());
+        this.container.append(this.sharedToolbar.getElement());
+
         this.destroyFns.push(() => {
-            this.sharedToolbar?.destroy();
+            if (!this.sharedToolbar) return;
+            this.container.removeChild(this.sharedToolbar.getElement());
+            this.sharedToolbar.destroy();
             this.sharedToolbar = undefined;
-            this.ctx.domManager.removeChild('canvas-overlay', 'shared-toolbar');
         });
     }
 
