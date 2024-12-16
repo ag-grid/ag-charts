@@ -48,6 +48,11 @@ export const FIBONACCI_ANNOTATION_ITEMS: _ModuleSupport.MenuItem<AnnotationType>
         icon: 'fibonacci-retracement-drawing',
         value: AnnotationType.FibonacciRetracement,
     },
+    {
+        label: 'toolbarAnnotationsFibonacciRetracementTrendBased',
+        icon: 'fibonacci-retracement-trend-based-drawing',
+        value: AnnotationType.FibonacciRetracementTrendBased,
+    },
 ];
 
 export const FIBONACCI_RATIO_ITEMS: _ModuleSupport.MenuItem<number>[] = [

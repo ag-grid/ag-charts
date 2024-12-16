@@ -27,6 +27,28 @@ export interface FibonacciRangeDatum extends _ModuleSupport.Vec4 {
     label: FibonacciRangeLabel;
 }
 
+export function getFibonacciCoords(coords1: _ModuleSupport.Vec4, coords2?: _ModuleSupport.Vec4) {
+    const { x2, y1, y2 } = coords1;
+
+    const trendLineVerticalDistance = y2 - y1;
+
+    if (coords2 == null) {
+        return {
+            x1: x2,
+            x2: x2,
+            y1: y2 - trendLineVerticalDistance,
+            y2: y2,
+        };
+    }
+
+    return {
+        x1: coords2.x1,
+        x2: coords2.x2,
+        y1: coords2.y2 - trendLineVerticalDistance,
+        y2: coords2.y2,
+    };
+}
+
 export function createFibonacciRangesData(
     { x1, y1, x2, y2 }: _ModuleSupport.Vec4,
     context: AnnotationContext,

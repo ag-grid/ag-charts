@@ -45,6 +45,7 @@ export type AgIconName =
     | 'text-annotation'
     | 'trend-line-drawing'
     | 'fibonacci-retracement-drawing'
+    | 'fibonacci-retracement-trend-based-drawing'
     | 'unlocked'
     | 'vertical-line-drawing'
     | 'zoom-in'

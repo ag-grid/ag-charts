@@ -10,6 +10,7 @@ import { CalloutProperties } from '../callout/calloutProperties';
 import { CommentProperties } from '../comment/commentProperties';
 import { HorizontalLineProperties, VerticalLineProperties } from '../cross-line/crossLineProperties';
 import { DisjointChannelProperties } from '../disjoint-channel/disjointChannelProperties';
+import { FibonacciRetracementTrendBasedProperties } from '../fibonacci-retracement-trend-based/fibonacciRetracementTrendBasedProperties';
 import { FibonacciRetracementProperties } from '../fibonacci-retracement/fibonacciRetracementProperties';
 import { ArrowProperties, LineProperties } from '../line/lineProperties';
 import {
@@ -41,7 +42,7 @@ export function isChannelType(datum: unknown): datum is ChannelPropertiesType {
 }
 
 export function isFibonacciType(datum: unknown): datum is FibonacciPropertiesType {
-    return FibonacciRetracementProperties.is(datum);
+    return FibonacciRetracementProperties.is(datum) || FibonacciRetracementTrendBasedProperties.is(datum);
 }
 
 export function isTextType(datum: unknown): datum is TextualPropertiesType {

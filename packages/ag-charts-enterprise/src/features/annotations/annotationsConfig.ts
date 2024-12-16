@@ -4,6 +4,7 @@ import { calloutConfig } from './callout/calloutConfig';
 import { commentConfig } from './comment/commentConfig';
 import { horizontalLineConfig, verticalLineConfig } from './cross-line/crossLineConfig';
 import { disjointChannelConfig } from './disjoint-channel/disjointChannelConfig';
+import { fibonacciRetracementTrendBasedConfig } from './fibonacci-retracement-trend-based/fibonacciRetracementTrendBasedConfig';
 import { fibonacciRetracementConfig } from './fibonacci-retracement/fibonacciRetracementConfig';
 import { arrowConfig, lineConfig } from './line/lineConfig';
 import {
@@ -28,6 +29,7 @@ export const annotationConfigs = {
 
     // Fibonaccis
     [fibonacciRetracementConfig.type]: fibonacciRetracementConfig,
+    [fibonacciRetracementTrendBasedConfig.type]: fibonacciRetracementTrendBasedConfig,
 
     // Texts
     [calloutConfig.type]: calloutConfig,

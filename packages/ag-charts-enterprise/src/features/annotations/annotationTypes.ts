@@ -14,6 +14,7 @@ export enum AnnotationType {
 
     // Fibonacci
     FibonacciRetracement = 'fibonacci-retracement',
+    FibonacciRetracementTrendBased = 'fibonacci-retracement-trend-based',
 
     // Texts
     Callout = 'callout',
