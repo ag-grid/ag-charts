@@ -2,7 +2,7 @@ import type { FromToMotionPropFn, FromToMotionPropFnContext, NodeUpdateState } f
 import type { Point } from '../../../scene/point';
 import type { Sector } from '../../../scene/shape/sector';
 import { isBetweenAngles, toRadians } from '../../../util/angle';
-import type { Circle } from '../../marker/circle';
+import type { Marker } from '../../marker/marker';
 import type { SeriesNodePickMatch } from '../series';
 
 type AnimatableSectorDatum = {
@@ -100,10 +100,10 @@ export function preparePieSeriesAnimationFunctions(
         return { startAngle, endAngle, outerRadius, innerRadius, stroke, fill };
     };
 
-    const innerCircleFromFn: FromToMotionPropFn<Circle, any, { radius: number }> = (node, _) => {
+    const innerCircleFromFn: FromToMotionPropFn<Marker, any, { radius: number }> = (node, _) => {
         return { size: node.previousDatum?.radius ?? node.size ?? 0, phase };
     };
-    const innerCircleToFn: FromToMotionPropFn<Circle, any, { radius: number }> = (_, datum) => {
+    const innerCircleToFn: FromToMotionPropFn<Marker, any, { radius: number }> = (_, datum) => {
         return { size: datum.radius ?? 0 };
     };
 

@@ -14,7 +14,7 @@ const {
     createId,
     Group,
     Rect,
-    Triangle,
+    Marker,
     TranslatableGroup,
     LinearGradient,
 } = _ModuleSupport;
@@ -50,7 +50,7 @@ export class GradientLegend {
 
     private readonly legendGroup = new TranslatableGroup({ name: 'legend', zIndex: ZIndexMap.LEGEND });
     private readonly gradientRect = new Rect();
-    private readonly arrow = new Triangle();
+    private readonly arrow = new Marker({ shape: 'triangle' });
 
     private readonly ticksGroup = new Group({ name: 'legend-axis-group' });
     private readonly destroyFns: Function[] = [];

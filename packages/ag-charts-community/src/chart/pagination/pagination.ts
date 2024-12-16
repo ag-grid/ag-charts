@@ -3,7 +3,7 @@ import type { AgChartLegendOrientation, AgMarkerShape, FontStyle, FontWeight } f
 import { TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { Text } from '../../scene/shape/text';
-import { Rotatable, type RotatableType, Transformable } from '../../scene/transformable';
+import { type RotatableType, Transformable } from '../../scene/transformable';
 import { createId } from '../../util/id';
 import { clamp } from '../../util/number';
 import { BaseProperties } from '../../util/properties';
@@ -19,9 +19,7 @@ import {
     Validate,
 } from '../../util/validation';
 import { ChartUpdateType } from '../chartUpdateType';
-import type { Marker } from '../marker/marker';
-import { Triangle } from '../marker/triangle';
-import { getMarker } from '../marker/util';
+import { Marker } from '../marker/marker';
 
 class PaginationLabel extends BaseProperties {
     @Validate(COLOR_STRING)
@@ -184,29 +182,8 @@ export class Pagination extends BaseProperties {
         return this._orientation;
     }
 
-    private _nextButton: RotatableType<Marker> = new Triangle();
-    set nextButton(value: RotatableType<Marker>) {
-        if (this._nextButton !== value) {
-            this.group.removeChild(this._nextButton);
-            this._nextButton = value;
-            this.group.appendChild(value);
-        }
-    }
-    get nextButton() {
-        return this._nextButton;
-    }
-
-    private _previousButton: RotatableType<Marker> = new Triangle();
-    set previousButton(value: RotatableType<Marker>) {
-        if (this._previousButton !== value) {
-            this.group.removeChild(this._previousButton);
-            this._previousButton = value;
-            this.group.appendChild(value);
-        }
-    }
-    get previousButton() {
-        return this._previousButton;
-    }
+    private readonly nextButton: RotatableType<Marker> = new Marker();
+    private readonly previousButton: RotatableType<Marker> = new Marker();
 
     update() {
         this.updateLabel();
@@ -279,7 +256,8 @@ export class Pagination extends BaseProperties {
     }
 
     private updateMarker(marker: Marker, style: PaginationMarkerStyle) {
-        const { size } = this.marker;
+        const { shape, size } = this.marker;
+        marker.shape = shape;
         marker.size = size;
         marker.fill = style.fill;
         marker.fillOpacity = style.fillOpacity ?? 1;
@@ -340,9 +318,6 @@ export class Pagination extends BaseProperties {
     }
 
     onMarkerShapeChange() {
-        const Marker = Rotatable(getMarker(this.marker.shape || Triangle));
-        this.previousButton = new Marker();
-        this.nextButton = new Marker();
         this.updatePositions();
         this.updateMarkers();
         this.chartUpdateCallback(ChartUpdateType.SCENE_RENDER);

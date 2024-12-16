@@ -1,7 +1,7 @@
 // Only these imports are used by ag-grid.
 // DO NOT ADD EXPORTS UNLESS REQUIRED BY INTEGRATED CHARTS.
 export { Caption } from './chart/caption';
-export { Circle } from './chart/marker/circle';
+export { Marker } from './chart/marker/marker';
 export { BandScale } from './scale/bandScale';
 export { LinearScale } from './scale/linearScale';
 export { BBox } from './scene/bbox';

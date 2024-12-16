@@ -10,7 +10,7 @@ import {
 } from 'ag-charts-community';
 
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
-import { LineMarker } from '../gauge-util/lineMarker';
+import { lineMarker } from '../gauge-util/lineMarker';
 import { type UnknownGaugeNodeDatum, parseUnknownGaugeNodeDatum } from '../gauge-util/properties';
 import { type GaugeStopProperties, getColorStops } from '../gauge-util/stops';
 import { RadialGaugeNeedle } from './radialGaugeNeedle';
@@ -48,7 +48,7 @@ const {
     Sector,
     Text,
     ConicGradient,
-    getMarker,
+    Marker,
 } = _ModuleSupport;
 
 interface TargetLabel {
@@ -176,7 +176,7 @@ export class RadialGaugeSeries
     );
     private targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum> = Selection.select(
         this.itemTargetGroup,
-        (datum) => this.markerFactory(datum)
+        () => this.markerFactory()
     );
     private targetLabelSelection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeTargetDatum> =
         Selection.select(this.itemTargetLabelGroup, Text);
@@ -185,7 +185,7 @@ export class RadialGaugeSeries
         Text
     );
     private highlightTargetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum> =
-        Selection.select(this.highlightTargetGroup, (datum) => this.markerFactory(datum));
+        Selection.select(this.highlightTargetGroup, () => this.markerFactory());
 
     private readonly animationState: _ModuleSupport.StateMachine<GaugeAnimationState, GaugeAnimationEvent>;
 
@@ -242,9 +242,8 @@ export class RadialGaugeSeries
         return new Sector();
     }
 
-    private markerFactory({ shape }: RadialGaugeTargetDatum): _ModuleSupport.Marker {
-        const MarkerShape = shape !== 'line' ? getMarker(shape) : LineMarker;
-        const marker = new MarkerShape();
+    private markerFactory(): _ModuleSupport.Marker {
+        const marker = new Marker();
         marker.size = 1;
         return marker;
     }
@@ -911,6 +910,7 @@ export class RadialGaugeSeries
                 centerY,
                 angle,
                 radius,
+                shape,
                 size,
                 rotation,
                 fill,
@@ -922,6 +922,7 @@ export class RadialGaugeSeries
                 lineDashOffset,
             } = datum;
 
+            target.shape = shape === 'line' ? lineMarker : shape;
             target.size = size;
             target.fill = highlightStyle?.fill ?? fill;
             target.fillOpacity = highlightStyle?.fillOpacity ?? fillOpacity;

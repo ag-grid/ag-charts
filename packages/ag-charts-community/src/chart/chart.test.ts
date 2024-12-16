@@ -10,7 +10,7 @@ import { Sector } from '../scene/shape/sector';
 import { Transformable } from '../scene/transformable';
 import type { Chart } from './chart';
 import type { AgChartProxy } from './chartProxy';
-import { Circle } from './marker/circle';
+import { Marker } from './marker/marker';
 import {
     clickAction,
     createChart,
@@ -407,7 +407,7 @@ describe('Chart', () => {
                     xKey: datasets.economy.categoryKey,
                     yKey: datasets.economy.valueKey,
                 },
-                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].contentGroup, Circle),
+                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].contentGroup, Marker),
             });
         });
 
@@ -432,7 +432,7 @@ describe('Chart', () => {
                         enabled: true,
                     },
                 },
-                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].contentGroup, Circle),
+                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].contentGroup, Marker),
             });
         });
 
@@ -443,7 +443,7 @@ describe('Chart', () => {
                     xKey: datasets.economy.valueKey,
                     yKey: datasets.economy.valueKey,
                 },
-                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].contentGroup, Circle),
+                getNodes: (chartInstance) => Selection.selectByClass(chartInstance.series[0].contentGroup, Marker),
             });
         });
 

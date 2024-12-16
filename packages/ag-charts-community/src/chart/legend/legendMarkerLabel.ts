@@ -10,7 +10,6 @@ import { Translatable } from '../../scene/transformable';
 import { ObserveChanges, ProxyPropertyOnWrite } from '../../util/proxy';
 import type { SwitchWidget } from '../../widget/switchWidget';
 import { Marker } from '../marker/marker';
-import type { MarkerConstructor } from '../marker/util';
 
 export class LegendMarkerLabel extends Translatable(Group) {
     static readonly className = 'MarkerLabel';
@@ -78,20 +77,8 @@ export class LegendMarkerLabel extends Translatable(Group) {
     @SceneChangeDetection()
     isCustomMarker: boolean = false;
 
-    private _marker: Marker | undefined;
-    public get marker(): Marker | undefined {
-        return this._marker;
-    }
-    set marker(marker: Marker | undefined) {
-        this._marker?.remove();
-        this._marker = marker;
-        if (marker != null) {
-            marker.zIndex = 1;
-            this.symbolsGroup.appendChild(marker);
-        }
-    }
-
-    public readonly line = this.symbolsGroup.appendChild(new Line());
+    public readonly marker = this.symbolsGroup.appendChild(new Marker({ zIndex: 1 }));
+    public readonly line = this.symbolsGroup.appendChild(new Line({ zIndex: 0 }));
 
     setEnabled(enabled: boolean) {
         this.enabled = enabled;
@@ -109,11 +96,12 @@ export class LegendMarkerLabel extends Translatable(Group) {
 
         let centerTranslateX = 0;
         let centerTranslateY = 0;
-        if (marker?.visible) {
+        if (marker.visible) {
             const { size } = marker;
-            const center = (marker.constructor as MarkerConstructor).center;
-            centerTranslateX = (center.x - 0.5) * size + length / 2;
-            centerTranslateY = (center.y - 0.5) * size;
+
+            const anchor = Marker.anchor(marker.shape);
+            centerTranslateX = (anchor.x - 0.5) * size + length / 2;
+            centerTranslateY = (anchor.y - 0.5) * size;
 
             if (isCustomMarker) {
                 marker.x = 0;

@@ -48,41 +48,59 @@ const OPTIONS: AgCartesianChartOptions = {
     series: SERIES,
 };
 
-const agChartsLogo = ({ path }: AgMarkerShapeFnParams) => {
+function agChartsLogo({ path, size }: AgMarkerShapeFnParams) {
     const pathData = [
-        'M58,10l-17,0l-8,8l25,0l0,-8Z',
-        'M43,30l0,-7.995l-14,0l-8.008,7.995l22.008,0Z',
-        'M13,38.01l4,-4.01l14,0l0,8l-18,0l0,-3.99Z',
-        'M41,10l-4,4l-26,0l0,-8l30,0l0,4Z',
-        'M16,26l9,0l8,-8l-17,0l0,8Z',
-        'M6,37.988l7,0.012l7.992,-8l-14.992,-0.047l-0,8.035Z',
-    ];
-    updatePath(pathData, path, 0.4, 12, 10);
-};
+        'M0.480769 0.846154V0.692308H0.211538L0.134615 0.769423V0.846154H0.480769Z',
+        'M0 0.615385V0.769L0.134615 0.769231L0.288308 0.615385L0 0.614481V0.615385Z',
+        'M1 0.384615V0.230769H0.673077L0.596154 0.307692L0.519231 0.384615H1Z',
+        'M0.596154 0.307692L0.673077 0.230769V0.153846H0.0961538V0.307692H0.596154Z',
+        'M0.711538 0.615385V0.461635H0.442308L0.383074 0.520772L0.365385 0.538462H0.365356L0.288308 0.615385H0.711538Z',
+        'M0.192308 0.384615V0.538462H0.365356L0.383074 0.520772L0.519231 0.384615H0.192308Z',
+    ].join('');
+    updatePath(pathData, path, size);
+}
 
-const npmLogo = ({ path }: AgMarkerShapeFnParams) => {
-    const pathData = ['M5.8,21.75l7.86,0l0,-11.77l3.92,0l0,11.78l3.93,0l0,-15.7l-15.7,0l0,15.69'];
-    updatePath(pathData, path, 0.75, 5, 11);
-};
+function npmLogo({ path, size }: AgMarkerShapeFnParams) {
+    const pathData = 'M0 0H1V1H0H0ZM0.6875 0.8125H0.8125V0.1875H0.1875V0.8125H0.5V0.3125H0.6875V0.8125Z';
+    updatePath(pathData, path, size);
+}
 
-function updatePath(pathData: string[], path: AgPath, scale: number, xOffset: number, yOffset: number) {
+function updatePath(pathData: string, path: AgPath, scale: number) {
     path.clear();
-    pathData.forEach((pathDatum) => {
-        const parts = pathDatum.split('l');
-        let startX = parseFloat(parts[0].substring(1).split(',')[0]) * scale - xOffset;
-        let startY = parseFloat(parts[0].substring(1).split(',')[1]) * scale - yOffset;
-        path.moveTo(startX, startY);
 
-        for (let i = 1; i < parts.length; i++) {
-            const coords = parts[i].split(',');
-            const x = parseFloat(coords[0]) * scale;
-            const y = parseFloat(coords[1]) * scale;
-            path.lineTo(startX + x, startY + y);
-            startX += x;
-            startY += y;
+    let x0 = 0;
+    let y0 = 0;
+    for (const { 1: command, 2: coordinateString } of pathData.matchAll(/([a-z])([^a-z]*)/gi)) {
+        const coordinates = Array.from(coordinateString.matchAll(/([\d.]+)/g), (m) => (parseFloat(m[0]) - 0.5) * scale);
+
+        const relative = command === command.toLowerCase();
+        const dx = relative ? x0 : 0;
+        const dy = relative ? y0 : 0;
+
+        switch (command.toLowerCase()) {
+            case 'm':
+                x0 = coordinates[0] + dx;
+                y0 = coordinates[1] + dy;
+                path.moveTo(x0, y0);
+                break;
+            case 'l':
+                x0 = coordinates[0] + dx;
+                y0 = coordinates[1] + dy;
+                path.lineTo(x0, y0);
+                break;
+            case 'v':
+                y0 = coordinates[0] + dy;
+                path.lineTo(x0, y0);
+                break;
+            case 'h':
+                x0 = coordinates[0] + dx;
+                path.lineTo(x0, y0);
+                break;
+            case 'z':
+                path.closePath();
+                break;
         }
-    });
-    path.closePath();
+    }
 }
 
 describe('Legend', () => {
@@ -398,8 +416,8 @@ describe('Legend', () => {
                     { x: 2, ag: 5, npm: 1 },
                 ],
                 series: [
-                    { type: 'scatter', xKey: 'x', yKey: 'ag', shape: agChartsLogo },
-                    { type: 'scatter', xKey: 'x', yKey: 'npm', shape: npmLogo },
+                    { type: 'scatter', xKey: 'x', yKey: 'ag', shape: agChartsLogo, size: 20 },
+                    { type: 'scatter', xKey: 'x', yKey: 'npm', shape: npmLogo, size: 12 },
                 ],
             });
             chart = deproxy(AgCharts.create(options));

@@ -3,7 +3,7 @@ import type { AgMarkerShape } from 'ag-charts-types';
 import type { Gradient } from '../../scene/gradient/gradient';
 import { Group } from '../../scene/group';
 import { Line } from '../../scene/shape/line';
-import { getMarker } from '../marker/util';
+import { Marker } from '../marker/marker';
 
 export interface LegendMarker {
     shape?: AgMarkerShape;
@@ -52,40 +52,26 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
 
     if (symbol.marker.enabled !== false) {
         const { shape, fill, fillOpacity, stroke, strokeOpacity } = symbol.marker;
-        const Marker = getMarker(shape);
         const marker = new Marker();
-        const { center } = Marker;
+        marker.shape = shape ?? 'square';
         marker.size = size;
-        marker.translationX = width / 2 + (center.x - 0.5) * size;
-        marker.translationY = height / 2 + (center.y - 0.5) * size;
         marker.fill = fill;
         marker.fillOpacity = fillOpacity;
         marker.stroke = stroke;
         marker.strokeOpacity = strokeOpacity;
         marker.strokeWidth = markerStrokeWidth;
 
-        const x = width / 2 + (center.x - 0.5) * size;
-        const y = height / 2 + (center.y - 0.5) * size;
+        const anchor = Marker.anchor(shape);
+        const x = width / 2 + (anchor.x - 0.5) * size;
+        const y = height / 2 + (anchor.y - 0.5) * size;
+        const scale = size / (size + markerStrokeWidth);
 
-        if (typeof shape === 'string') {
-            const scale = size / (size + markerStrokeWidth);
-            marker.translationX = x;
-            marker.translationY = y;
-            marker.scalingX = scale;
-            marker.scalingY = scale;
-        } else {
-            // Custom marker - force it to fit in the box
-            const bbox = marker.getBBox();
-            const scale = Math.min(
-                width / (bbox.width + markerStrokeWidth),
-                height / (bbox.height + markerStrokeWidth),
-                1
-            );
-            marker.translationX = x * scale - bbox.x * scale + (width - bbox.width * scale) / 2;
-            marker.translationY = y * scale - bbox.y * scale + (height - bbox.height * scale) / 2;
-            marker.scalingX = scale;
-            marker.scalingY = scale;
-        }
+        marker.x = 0;
+        marker.y = 0;
+        marker.translationX = x;
+        marker.translationY = y;
+        marker.scalingX = scale;
+        marker.scalingY = scale;
 
         group.append(marker);
     }

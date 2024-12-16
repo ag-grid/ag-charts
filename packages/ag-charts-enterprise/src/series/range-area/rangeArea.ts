@@ -1,4 +1,10 @@
-import { type FillOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgMarkerShape,
+    type FillOptions,
+    type LineDashOptions,
+    type StrokeOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateData } from './rangeAreaAggregation';
 import { type RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties';
@@ -31,7 +37,6 @@ const {
     fromToMotion,
     pathMotion,
     extent,
-    getMarker,
     visibleRangeIndices,
     createDatumId,
     PointerEvents,
@@ -61,7 +66,7 @@ interface RangeAreaSpanPointDatum {
     low: _ModuleSupport.LineSpanPointDatum;
 }
 
-type ItemStyle = Required<FillOptions & StrokeOptions & { size: number }>;
+type ItemStyle = Required<FillOptions & StrokeOptions & LineDashOptions & { shape: AgMarkerShape; size: number }>;
 
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     _ModuleSupport.Group,
@@ -409,12 +414,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return this.properties.marker.isDirty();
     }
 
-    protected override markerFactory() {
-        const { shape } = this.properties.marker;
-        const MarkerShape = getMarker(shape);
-        return new MarkerShape();
-    }
-
     protected override updatePathNodes(opts: {
         paths: _ModuleSupport.Path[];
         opacity: number;
@@ -510,12 +509,15 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
 
         return {
+            shape: marker.shape,
             size: marker.size,
             fill: highlightStyle?.fill ?? marker.fill!,
             fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
             stroke: highlightStyle?.stroke ?? marker.stroke!,
             strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(marker.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? marker.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
         };
     }
 

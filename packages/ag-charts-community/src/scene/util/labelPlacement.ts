@@ -24,7 +24,7 @@ export interface PlacedLabelDatum {
 export interface PointLabelDatum {
     readonly point: Readonly<SizedPoint>;
     readonly label: MeasuredLabel;
-    readonly marker: { center: Point } | undefined;
+    readonly anchor: Point | undefined;
     readonly placement: LabelPlacement | undefined;
 }
 
@@ -122,7 +122,7 @@ export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds?: Label
         if (!datums[0]?.label) continue;
         for (let index = 0, ln = datums.length; index < ln; index++) {
             const d = datums[index];
-            const { point, label, marker } = d;
+            const { point, label, anchor } = d;
             const { text, width, height } = label;
             const r = point.size * 0.5;
             let dx = 0;
@@ -132,14 +132,14 @@ export function placeLabels(data: Map<string, PointLabelDatum[]>, bounds?: Label
                 dx = (width * 0.5 + r + padding) * placement.x;
                 dy = (height * 0.5 + r + padding) * placement.y;
             }
-            const x = point.x - width * 0.5 + dx - ((marker?.center.x ?? 0.5) - 0.5) * point.size;
-            const y = point.y - height * 0.5 + dy - ((marker?.center.y ?? 0.5) - 0.5) * point.size;
+            const x = point.x - width * 0.5 + dx - ((anchor?.x ?? 0.5) - 0.5) * point.size;
+            const y = point.y - height * 0.5 + dy - ((anchor?.y ?? 0.5) - 0.5) * point.size;
 
             const withinBounds = !bounds || rectContainsRect(bounds, x, y, width, height);
             if (!withinBounds) continue;
 
             const overlapPoints = dataValues.some((dataDatum) =>
-                circleRectOverlap(dataDatum.point, dataDatum.marker?.center, x, y, width, height)
+                circleRectOverlap(dataDatum.point, dataDatum.anchor, x, y, width, height)
             );
             if (overlapPoints) continue;
 

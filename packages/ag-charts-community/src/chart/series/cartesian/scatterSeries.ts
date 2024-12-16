@@ -1,4 +1,9 @@
-import type { AgErrorBoundSeriesTooltipRendererParams, FillOptions, StrokeOptions } from 'ag-charts-types';
+import type {
+    AgErrorBoundSeriesTooltipRendererParams,
+    FillOptions,
+    LineDashOptions,
+    StrokeOptions,
+} from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
@@ -18,8 +23,7 @@ import { fixNumericExtent } from '../../data/dataModel';
 import { createDatumId, valueProperty } from '../../data/processors';
 import type { CategoryLegendDatum, ChartLegendType } from '../../legend/legendDatum';
 import type { LegendSymbolOptions } from '../../legend/legendSymbol';
-import type { Marker } from '../../marker/marker';
-import { getMarker } from '../../marker/util';
+import { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
@@ -121,7 +125,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         const { xKey, yKey, xFilterKey, yFilterKey, labelKey, colorKey, xName, yName, labelName, marker, label } =
             this.properties;
         const { placement } = label;
-        const markerShape = getMarker(marker.shape);
+        const anchor = Marker.anchor(marker.shape);
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -187,7 +191,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
                 midPoint: { x, y },
                 fill,
                 label: { text: labelText, ...size },
-                marker: markerShape,
+                anchor,
                 placement,
                 selected,
             });
@@ -211,12 +215,6 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         return this.contextNodeData?.labelData ?? [];
     }
 
-    protected override markerFactory() {
-        const { shape } = this.properties.marker;
-        const MarkerShape = getMarker(shape);
-        return new MarkerShape();
-    }
-
     protected override updateMarkerSelection(opts: {
         nodeData: ScatterNodeDatum[];
         markerSelection: Selection<Marker, ScatterNodeDatum>;
@@ -231,7 +229,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
-    private getMarkerItemBaseStyle(highlighted: boolean): RequireOptional<FillOptions & StrokeOptions> {
+    private getMarkerItemBaseStyle(
+        highlighted: boolean
+    ): RequireOptional<FillOptions & StrokeOptions & LineDashOptions> {
         const { properties } = this;
 
         const { marker } = properties;
@@ -242,6 +242,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             stroke: highlightStyle?.stroke ?? marker.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? marker.strokeWidth,
             strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? marker.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
         };
     }
 
