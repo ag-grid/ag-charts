@@ -68,16 +68,20 @@ export async function delay(ms: number): Promise<void> {
 }
 
 export function prepareFinancialTestOptions(options: AgFinancialChartOptions, container = getDocument('body')) {
-    options.width = CANVAS_WIDTH;
-    options.height = CANVAS_HEIGHT;
+    const pixelRatio = (options as any).overrideDevicePixelRatio ?? 1;
+
+    options.width = CANVAS_WIDTH / pixelRatio;
+    options.height = CANVAS_HEIGHT / pixelRatio;
     options.container = container;
 
     return options;
 }
 
 export function prepareTestOptions<T extends AgChartOptions>(options: T, container = getDocument('body')) {
-    options.width = CANVAS_WIDTH;
-    options.height = CANVAS_HEIGHT;
+    const pixelRatio = (options as any).overrideDevicePixelRatio ?? 1;
+
+    options.width = CANVAS_WIDTH / pixelRatio;
+    options.height = CANVAS_HEIGHT / pixelRatio;
     options.container = container;
 
     let baseTestTheme: AgChartTheme = {
