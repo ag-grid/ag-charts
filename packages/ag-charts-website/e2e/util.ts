@@ -94,6 +94,12 @@ export function setupIntrinsicAssertions() {
     return config;
 }
 
+export function repeat(repCount: number, fn: () => unknown) {
+    for (let i = 0; i < repCount; i++) {
+        fn();
+    }
+}
+
 export async function gotoExample(page: Page, url: string) {
     await page.goto(url);
     await page.waitForLoadState('networkidle');

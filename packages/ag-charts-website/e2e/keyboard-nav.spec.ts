@@ -1,5 +1,5 @@
 import { expect, test } from './fixture';
-import { SELECTORS, gotoExample, setupIntrinsicAssertions, toExamplePageUrl, toExamplePageUrls } from './util';
+import { SELECTORS, gotoExample, repeat, setupIntrinsicAssertions, toExamplePageUrl, toExamplePageUrls } from './util';
 
 test.describe('keyboard-nav', () => {
     setupIntrinsicAssertions();
@@ -114,6 +114,22 @@ test.describe('keyboard-nav', () => {
         await page.keyboard.press('Tab');
         await page.keyboard.up('Shift');
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13643-series-2-datum-1-focused.png');
+    });
+
+    test('AG-13668 panToBBox', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('accessibility-test', 'AG-13668-panToBBox', 'vanilla').url);
+        await page.mouse.click(400, 300, { button: 'left' });
+
+        repeat(5, async () => await page.keyboard.press('+'));
+        await page.keyboard.press('ArrowLeft');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13668-datum-0-focused.png');
+
+        repeat(4, async () => await page.keyboard.press('ArrowRight'));
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13668-datum-4-focused.png');
+
+        await page.keyboard.press('ArrowRight');
+        repeat(3, async () => await page.keyboard.press('ArrowLeft'));
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13668-datum-1-focused.png');
     });
 
     test('polar chart', async ({ page }) => {

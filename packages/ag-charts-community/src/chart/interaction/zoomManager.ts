@@ -293,9 +293,9 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         this.updateAxisZoom(callerId, primaryAxis.id, newZoom);
     }
 
-    public panToBBox(callerId: string, seriesRect: BBox, target: BBoxValues) {
+    public panToBBox(callerId: string, seriesRect: BBox, target: BBoxValues): boolean {
         const zoom = this.getZoom();
-        if (zoom === undefined || (!zoom.x && !zoom.y)) return;
+        if (zoom === undefined || (!zoom.x && !zoom.y)) return false;
 
         const panIsPossible =
             seriesRect.width > 0 &&
@@ -304,7 +304,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
             Math.abs(target.height) <= Math.abs(seriesRect.height);
         if (!panIsPossible) {
             Logger.warnOnce(`cannot pan to target BBox - chart too small?`);
-            return;
+            return false;
         }
 
         const newZoom: AxisZoomState = calcPanToBBoxRatios(seriesRect, zoom, target);
@@ -315,6 +315,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         } else {
             this.updateZoom(callerId, newZoom);
         }
+        return true;
     }
 
     // Fire this event to signal to listeners that the view is changing through a zoom and/or pan change.
