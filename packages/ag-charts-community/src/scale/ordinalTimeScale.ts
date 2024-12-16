@@ -27,13 +27,8 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
 
     protected override _domain: Date[] = [];
     protected sortedTimestamps: number[] = [];
-    protected visibleRange: [number, number] = [0, 1];
     private isReversed = false;
     private precomputedSteps: Int32Array | undefined;
-
-    setVisibleRange(visibleRange: [number, number]) {
-        this.visibleRange = visibleRange;
-    }
 
     private _values: Date[] | undefined = undefined;
     override set domain(values: Date[]) {
@@ -74,7 +69,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         return this._domain;
     }
 
-    override ticks(): Date[] {
+    override ticks(visibleRange: [number, number] = [0, 1]): Date[] {
         if (!this._domain.length) {
             return [];
         }
@@ -87,7 +82,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         const stop = Math.max(t0, t1);
 
         if (interval == null) {
-            return this.getDefaultTicks(this.maxTickCount, isReversed);
+            return this.getDefaultTicks(this.maxTickCount, isReversed, visibleRange);
         }
 
         const [r0, r1] = this.range;
@@ -104,8 +99,8 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         });
     }
 
-    private getDefaultTicks(maxTickCount: number, isReversed?: boolean) {
-        const { domain, visibleRange } = this;
+    private getDefaultTicks(maxTickCount: number, isReversed: boolean, visibleRange: [number, number]) {
+        const { domain } = this;
         const ticks: Date[] = [];
         const tickEvery = Math.ceil((domain.length * (visibleRange[1] - visibleRange[0])) / maxTickCount);
         const tickOffset = Math.floor(tickEvery / 2);
@@ -125,7 +120,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         return ticks;
     }
 
-    override convert(d: Date): number {
+    override convert(d: Date, _clamped?: boolean): number {
         this.refresh();
         const n = Number(d);
         if (n < this.sortedTimestamps[0]) {

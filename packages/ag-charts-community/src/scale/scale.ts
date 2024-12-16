@@ -16,10 +16,9 @@ export interface Scale<D, R, I = number> {
     convert(value: D, clamp?: boolean): R;
     invert?(value: R, clamp?: boolean): D;
     invertNearest?(value: R): D;
-    ticks?(): D[];
+    ticks?(visibleRange?: [number, number]): D[];
     tickFormat?(params: ScaleTickFormatParams): (x: any) => string;
     getDomain?(): D[];
-    setVisibleRange?(visibleRange: [number, number]): void;
     readonly bandwidth?: number;
     readonly step?: number;
     readonly inset?: number;
