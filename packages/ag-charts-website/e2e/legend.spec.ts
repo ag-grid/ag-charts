@@ -15,7 +15,7 @@ test.describe('legend', () => {
             test('mouse hovering updates highlight', async ({ page }) => {
                 await gotoExample(page, url);
                 const canvasCenter = page.locator(SELECTORS.canvasCenter);
-                const legendItems = page.locator(SELECTORS.legendItems);
+                const legendItems = await page.locator(SELECTORS.legendItems).all();
 
                 await legendItems[0].hover();
                 await expect(canvasCenter).toHaveScreenshot('renewables-onshore-wind-highlighted.png');
@@ -41,9 +41,11 @@ test.describe('legend', () => {
                 ];
                 let i = 0;
 
-                const bbox0 = await (await page.$(SELECTORS.legendItems)[0]).boundingBox();
-                const startX = bbox0.x - 5;
-                const startY = bbox0.y + bbox0.height / 2;
+                const legendItems = await page.locator(SELECTORS.legendItems).all();
+                const bbox0 = await legendItems[0].boundingBox();
+                expect(bbox0).not.toBeNull();
+                const startX = bbox0!.x - 5;
+                const startY = bbox0!.y + bbox0!.height / 2;
                 for (let dx = 0; dx < 300; dx += 5) {
                     const nextDx = expectedChanged[i + 1]?.dx ?? Infinity;
                     if (dx >= nextDx) i++;
