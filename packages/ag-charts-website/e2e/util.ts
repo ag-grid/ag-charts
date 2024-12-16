@@ -11,9 +11,7 @@ export const SELECTORS = {
     wrapper: '.ag-charts-wrapper',
     canvas: '.ag-charts-canvas-proxy',
     canvasCenter: '.ag-charts-canvas-center',
-    legendItem0: '#ag-charts-legend-item-0',
-    legendItem1: '#ag-charts-legend-item-1',
-    legendItem2: '#ag-charts-legend-item-2',
+    legendItems: 'button[role="switch"][class="ag-charts-proxy-elem"]',
 } as const;
 
 export function getExamples() {
