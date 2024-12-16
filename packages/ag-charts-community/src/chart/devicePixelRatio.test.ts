@@ -37,6 +37,7 @@ describe('devicePixelRatio', () => {
                 'using devicePixelRatio %s',
                 async (overrideDevicePixelRatio) => {
                     const axisOptions = {
+                        title: { enabled: false },
                         line: { enabled: true },
                         gridLine: {
                             style: [
@@ -48,6 +49,9 @@ describe('devicePixelRatio', () => {
                     const [xAxis, yAxis] = (exampleOptions as unknown as AgCartesianChartOptions).axes!;
                     const options: AgChartOptions = {
                         ...exampleOptions,
+                        title: { enabled: false },
+                        subtitle: { enabled: false },
+                        footnote: { enabled: false },
                         axes: [
                             { ...xAxis, ...axisOptions },
                             { ...yAxis, ...axisOptions },

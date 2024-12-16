@@ -513,7 +513,14 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
 
     private getAxisLineCoordinates(): AxisLineDatum {
         const [min, max] = findMinMax(this.range);
-        return { x: 0, y1: min, y2: max };
+        const dpiFix = this.getDpiOffsetFix(this.direction === ChartAxisDirection.Y ? 0 : 1);
+        return { x: dpiFix, y1: min, y2: max };
+    }
+
+    private getDpiOffsetFix(start: number = 0) {
+        const { pixelRatio } = this.moduleCtx.scene.canvas;
+        const modifier = this.direction === ChartAxisDirection.Y ? 1 : -1;
+        return (pixelRatio === 1 ? start : 1 / pixelRatio) * modifier;
     }
 
     private getTickLineCoordinates(datum: TickDatum) {
@@ -1056,6 +1063,8 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
         // When the scale domain or the ticks change, the label format may change
         this.onFormatChange(filteredTicks, fractionDigits, rawTicks, this.label.format);
 
+        const dpiFix = this.getDpiOffsetFix();
+
         for (let i = 0; i < filteredTicks.length; i++) {
             const tick = filteredTicks[i];
             const translationY = scale.convert(tick) + halfBandwidth;
@@ -1067,7 +1076,12 @@ export abstract class Axis<S extends Scale<D, number, TickInterval<S>> = Scale<a
             const tickLabel = this.formatTick(tick, start + i, fractionDigits);
 
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank
-            ticks.push({ tick, tickId: idGenerator(tickLabel), tickLabel, translationY: Math.floor(translationY) });
+            ticks.push({
+                tick,
+                tickLabel,
+                tickId: idGenerator(tickLabel),
+                translationY: Math.floor(translationY) + dpiFix,
+            });
 
             if (tickLabel === '' || tickLabel == null) {
                 continue;
