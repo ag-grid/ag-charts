@@ -13,6 +13,7 @@ import {
     BOOLEAN,
     COLOR_STRING,
     FUNCTION,
+    LINE_DASH,
     POSITIVE_NUMBER,
     RATIO,
     Validate,
@@ -62,13 +63,19 @@ export class SeriesMarker<TParams = never>
     @SceneChangeDetection()
     strokeOpacity: number = 1;
 
+    @Validate(LINE_DASH)
+    lineDash: number[] = [0];
+
+    @Validate(POSITIVE_NUMBER)
+    lineDashOffset: number = 0;
+
     @Validate(FUNCTION, { optional: true })
     @SceneChangeDetection()
     itemStyler?: Styler<AgSeriesMarkerStylerParams<unknown> & RequireOptional<TParams>, AgSeriesMarkerStyle>;
 
     getStyle(): AgSeriesMarkerStyle {
-        const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = this;
-        return { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity };
+        const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this;
+        return { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset };
     }
 
     getDiameter(): number {

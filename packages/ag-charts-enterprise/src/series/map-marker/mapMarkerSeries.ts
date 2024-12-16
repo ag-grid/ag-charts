@@ -571,6 +571,8 @@ export class MapMarkerSeries
             stroke: highlightStyle?.stroke ?? properties.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(properties.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? properties.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? properties.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? properties.lineDashOffset,
         };
     }
 

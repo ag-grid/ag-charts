@@ -135,6 +135,12 @@ export class BubbleSeriesProperties extends CartesianSeriesProperties<AgBubbleSe
     @ProxyProperty('marker.strokeOpacity')
     strokeOpacity!: number;
 
+    @ProxyProperty('marker.lineDash')
+    lineDash!: number[];
+
+    @ProxyProperty('marker.lineDashOffset')
+    lineDashOffset!: number;
+
     @ProxyProperty('marker.itemStyler', { optional: true })
     itemStyler?: Styler<BubbleSeriesItemStylerParams<unknown>, AgBubbleSeriesStyle>;
 

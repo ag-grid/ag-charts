@@ -2,6 +2,7 @@ import type {
     AgErrorBoundSeriesTooltipRendererParams,
     AgSeriesMarkerStyle,
     FillOptions,
+    LineDashOptions,
     StrokeOptions,
 } from 'ag-charts-types';
 
@@ -299,7 +300,9 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         );
     }
 
-    private getMarkerItemBaseStyle(highlighted: boolean): RequireOptional<FillOptions & StrokeOptions> {
+    private getMarkerItemBaseStyle(
+        highlighted: boolean
+    ): RequireOptional<FillOptions & StrokeOptions & LineDashOptions> {
         const { properties } = this;
 
         const { marker } = properties;
@@ -310,6 +313,8 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
             stroke: highlightStyle?.stroke ?? marker.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? marker.strokeWidth,
             strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? marker.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
         };
     }
 
@@ -346,11 +351,19 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
     }) {
         const { markerSelection, isHighlight: highlighted } = opts;
         const { xKey, yKey, sizeKey, labelKey, marker } = this.properties;
-        const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = mergeDefaults(
-            highlighted && this.properties.highlightStyle.item,
-            marker.getStyle()
-        );
-        const baseStyle = { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity };
+        const { size, shape, fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } =
+            mergeDefaults(highlighted && this.properties.highlightStyle.item, marker.getStyle());
+        const baseStyle = {
+            size,
+            shape,
+            fill,
+            fillOpacity,
+            stroke,
+            strokeWidth,
+            strokeOpacity,
+            lineDash,
+            lineDashOffset,
+        };
 
         this.sizeScale.range = [marker.size, marker.maxSize];
 

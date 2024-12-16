@@ -23,6 +23,7 @@ const {
     RATIO,
     STRING,
     MARKER_SHAPE,
+    LINE_DASH,
     Validate,
     SeriesProperties,
     SeriesTooltip,
@@ -143,6 +144,12 @@ export class MapMarkerSeriesProperties extends SeriesProperties<AgMapMarkerSerie
 
     @Validate(RATIO)
     strokeOpacity: number = 1;
+
+    @Validate(LINE_DASH)
+    lineDash: number[] = [0];
+
+    @Validate(POSITIVE_NUMBER)
+    lineDashOffset: number = 0;
 
     @Validate(FUNCTION, { optional: true })
     itemStyler?: Styler<AgMapMarkerSeriesItemStylerParams<unknown>, AgMapMarkerSeriesStyle>;

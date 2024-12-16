@@ -1,4 +1,9 @@
-import type { AgErrorBoundSeriesTooltipRendererParams, FillOptions, StrokeOptions } from 'ag-charts-types';
+import type {
+    AgErrorBoundSeriesTooltipRendererParams,
+    FillOptions,
+    LineDashOptions,
+    StrokeOptions,
+} from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { ColorScale } from '../../../scale/colorScale';
@@ -224,7 +229,9 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         return markerSelection.update(this.properties.marker.enabled ? nodeData : []);
     }
 
-    private getMarkerItemBaseStyle(highlighted: boolean): RequireOptional<FillOptions & StrokeOptions> {
+    private getMarkerItemBaseStyle(
+        highlighted: boolean
+    ): RequireOptional<FillOptions & StrokeOptions & LineDashOptions> {
         const { properties } = this;
 
         const { marker } = properties;
@@ -235,6 +242,8 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
             stroke: highlightStyle?.stroke ?? marker.stroke,
             strokeWidth: highlightStyle?.strokeWidth ?? marker.strokeWidth,
             strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? marker.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
         };
     }
 

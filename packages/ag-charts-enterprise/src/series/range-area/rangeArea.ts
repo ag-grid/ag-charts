@@ -1,4 +1,10 @@
-import { type AgMarkerShape, type FillOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgMarkerShape,
+    type FillOptions,
+    type LineDashOptions,
+    type StrokeOptions,
+    _ModuleSupport,
+} from 'ag-charts-community';
 
 import { type RangeAreaSeriesDataAggregationFilter, aggregateData } from './rangeAreaAggregation';
 import { type RangeAreaMarkerDatum, RangeAreaProperties } from './rangeAreaProperties';
@@ -60,7 +66,7 @@ interface RangeAreaSpanPointDatum {
     low: _ModuleSupport.LineSpanPointDatum;
 }
 
-type ItemStyle = Required<FillOptions & StrokeOptions & { shape: AgMarkerShape; size: number }>;
+type ItemStyle = Required<FillOptions & StrokeOptions & LineDashOptions & { shape: AgMarkerShape; size: number }>;
 
 export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     _ModuleSupport.Group,
@@ -510,6 +516,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             stroke: highlightStyle?.stroke ?? marker.stroke!,
             strokeWidth: highlightStyle?.strokeWidth ?? this.getStrokeWidth(marker.strokeWidth),
             strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? marker.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
         };
     }
 
