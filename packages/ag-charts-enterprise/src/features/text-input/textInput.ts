@@ -53,6 +53,7 @@ export class TextInput extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.element.innerHTML = textInputTemplate;
 
         const textArea = this.element.firstElementChild! as HTMLDivElement;
+        _ModuleSupport.setAttribute(textArea, 'data-preventdefault', false); // AG-13715
 
         // FireFox does not yet support `contenteditable="plaintext-only", so it defaults to false and has to be
         // added back on to the element as the normal richtext version. The plaintext version is preferred as
