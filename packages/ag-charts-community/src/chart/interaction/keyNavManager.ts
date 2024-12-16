@@ -114,6 +114,7 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
             case 'Substract':
                 return this.dispatch('nav-zoom', -1, event);
             case 'Space':
+            case 'Enter':
                 return this.dispatch('submit', 0, event);
         }
     }
