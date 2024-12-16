@@ -21,11 +21,11 @@ export class ButtonWidget extends Widget<HTMLButtonElement> {
     override addListener<K extends keyof WidgetEventMap>(
         type: K,
         listener: (ev: WidgetEventMap[K], current: this) => unknown
-    ): void;
+    ): ReturnType<Widget['addListener']>;
     override addListener<K extends keyof WidgetEventMap>(
         type: K,
         listener: (ev: unknown, current: this) => unknown
-    ): void {
+    ): ReturnType<Widget['addListener']> {
         return super.addListener(type, (ev, current: this) => {
             if ((type === 'click' || type === 'dblclick') && this.isDisabled()) return;
             listener(ev, current);
