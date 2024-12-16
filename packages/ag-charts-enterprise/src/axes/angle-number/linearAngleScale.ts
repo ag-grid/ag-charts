@@ -56,36 +56,29 @@ export class LinearAngleScale extends LinearScale {
         return niceRanges.some((r) => isNumberEqual(r, sortedRange[1] - sortedRange[0]));
     }
 
-    private getNiceStepAndTickCount() {
-        const [start, stop] = this._niceDomain;
-        let step = LinearScale.getTickStep(start, stop, {
+    protected override updateNiceDomain() {
+        if (!this.hasNiceRange()) {
+            super.updateNiceDomain();
+            return;
+        }
+
+        const ticks: _ModuleSupport.ScaleDomainTicks<number> = {
             interval: this.interval,
             tickCount: this.tickCount,
             minTickCount: this.minTickCount,
             maxTickCount: this.maxTickCount,
-        });
-        const maxTickCount = isNaN(this.maxTickCount) ? Infinity : this.maxTickCount;
-        const expectedTickCount = Math.abs(stop - start) / step;
-        let niceTickCount = Math.pow(2, Math.ceil(Math.log(expectedTickCount) / Math.log(2)));
-        if (niceTickCount > maxTickCount) {
-            niceTickCount /= 2;
-            step *= 2;
-        }
-        return { count: niceTickCount, step };
-    }
+        };
 
-    protected override updateNiceDomain() {
-        super.updateNiceDomain();
-
-        if (!this.hasNiceRange()) return;
-
-        this.niceTickStep = this.getNiceStepAndTickCount().step;
+        const niceDomain = this.niceDomain(this.domain, ticks);
+        this._niceDomain = niceDomain;
+        this.niceTickStep = LinearAngleScale.getNiceStepAndTickCount(super.niceDomain(this.domain, ticks), ticks).step;
     }
 
     override niceDomain(domain: number[], ticks: _ModuleSupport.ScaleDomainTicks<number>): number[] {
-        const reversed = domain[0] > domain[1];
-        const start = reversed ? domain[1] : domain[0];
-        const { step, count } = LinearAngleScale.getNiceStepAndTickCount(domain, ticks);
+        const niceDomain = super.niceDomain(domain, ticks);
+        const reversed = niceDomain[0] > niceDomain[1];
+        const start = reversed ? niceDomain[1] : niceDomain[0];
+        const { step, count } = LinearAngleScale.getNiceStepAndTickCount(niceDomain, ticks);
         const s = 1 / step; // Prevent floating point error
         const stop = step >= 1 ? Math.ceil(start / step + count) * step : Math.ceil((start + count * step) * s) / s;
 
