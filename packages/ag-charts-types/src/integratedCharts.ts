@@ -13,6 +13,7 @@ import type {
     Group,
     Line,
     LinearScale,
+    Marker,
     Path,
     RadialColumnShape,
     Rect,
@@ -52,6 +53,7 @@ export interface _IScene {
     Arc: { new (): Arc } & Arc;
     Line: { new (): Line } & Line;
     Sector: { new (): Sector } & Sector;
+    Marker: { new (): Marker } & Marker;
     Shape: { new (): Shape } & Shape;
     TranslatableGroup: { new (): TranslatableGroup } & TranslatableGroup;
     RadialColumnShape: { new (): RadialColumnShape } & RadialColumnShape;
