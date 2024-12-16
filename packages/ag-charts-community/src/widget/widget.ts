@@ -232,4 +232,15 @@ export abstract class Widget<
             this.internalListener?.remove(type, this, listener);
         }
     }
+
+    static addWindowEvent(_type: 'page-left', listener: () => unknown): () => void {
+        const pagehideHandler = (event: PageTransitionEvent) => {
+            if (event.persisted) {
+                return; // Don't fire the page-left event since the page maybe revisited.
+            }
+            listener();
+        };
+        getWindow().addEventListener('pagehide', pagehideHandler);
+        return () => getWindow().removeEventListener('pagehide', pagehideHandler);
+    }
 }
