@@ -7,6 +7,7 @@ export type TranslatableGroup = any;
 
 export type Scene = any;
 
+export type Marker = any;
 export type Shape = any;
 export type Rect = any;
 export type Arc = any;
