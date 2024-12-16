@@ -13,5 +13,9 @@
     { "prefix": "AG-", "url": "https://ag-grid.atlassian.net/browse/AG-<num>" },
     { "prefix": "CRT-", "url": "https://ag-grid.atlassian.net/browse/CRT-<num>" },
     { "prefix": "RTI-", "url": "https://ag-grid.atlassian.net/browse/RTI-<num>" }
-  ]
+  ],
+  "files.watcherExclude": {
+    "**/.nx/**": true,
+    "**/dist/**": true
+  }
 }
