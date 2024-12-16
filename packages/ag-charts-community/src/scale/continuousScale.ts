@@ -31,7 +31,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     maxTickCount = Infinity;
 
     // TODO(olegat) should be of type D[]
-    niceDomain: any[] = [];
+    _niceDomain: any[] = [];
 
     protected defaultClamp = false;
 
@@ -66,8 +66,8 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     getDomain() {
         if (this.nice) {
             this.refresh();
-            if (this.niceDomain.length) {
-                return this.niceDomain;
+            if (this._niceDomain.length) {
+                return this._niceDomain;
             }
         }
         return this.domain;

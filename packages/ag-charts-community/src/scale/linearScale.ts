@@ -1,10 +1,16 @@
 import { createTicks, isDenseInterval, niceTicksDomain, range, tickFormat, tickStep } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
+import type { ScaleDomainTicks } from './scale';
 
 /**
  * Maps continuous domain to a continuous range.
  */
 export class LinearScale extends ContinuousScale<number> {
+    protected static getTickStep(start: number, stop: number, ticks: ScaleDomainTicks<number>) {
+        const { interval, tickCount, minTickCount, maxTickCount } = ticks;
+        return interval ?? tickStep(start, stop, tickCount, minTickCount, maxTickCount);
+    }
+
     readonly type = 'number';
 
     public constructor() {
@@ -42,20 +48,24 @@ export class LinearScale extends ContinuousScale<number> {
         }
     }
 
-    protected getTickStep(start: number, stop: number) {
-        return this.interval ?? tickStep(start, stop, this.tickCount, this.minTickCount, this.maxTickCount);
-    }
-
     /**
      * Extends the domain so that it starts and ends on nice round values.
      */
     protected updateNiceDomain() {
-        const count = this.tickCount;
-        let [start, stop] = this.domain;
+        this._niceDomain = this.niceDomain(this.domain, {
+            interval: this.interval,
+            tickCount: this.tickCount,
+            minTickCount: this.minTickCount,
+            maxTickCount: this.maxTickCount,
+        });
+    }
 
-        if (count === 1) {
+    niceDomain(domain: number[], ticks: ScaleDomainTicks<number>) {
+        let [start, stop] = domain;
+
+        if (ticks.tickCount === 1) {
             [start, stop] = niceTicksDomain(start, stop);
-        } else if (count > 1) {
+        } else if (ticks.tickCount > 1) {
             const roundStart = start > stop ? Math.ceil : Math.floor;
             const roundStop = start > stop ? Math.floor : Math.ceil;
             const maxAttempts = 4;
@@ -63,8 +73,8 @@ export class LinearScale extends ContinuousScale<number> {
             for (let i = 0; i < maxAttempts; i++) {
                 const prev0 = start;
                 const prev1 = stop;
-                const step = this.getTickStep(start, stop);
-                const [d0, d1] = this.domain;
+                const step = LinearScale.getTickStep(start, stop, ticks);
+                const [d0, d1] = domain;
 
                 start = roundStart(d0 / step) * step;
                 stop = roundStop(d1 / step) * step;
@@ -73,7 +83,7 @@ export class LinearScale extends ContinuousScale<number> {
             }
         }
 
-        this.niceDomain = [start, stop];
+        return [start, stop];
     }
 
     tickFormat({ ticks: specifiedTicks, specifier }: { ticks?: any[]; specifier?: string }) {

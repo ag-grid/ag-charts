@@ -1,4 +1,3 @@
-import { identity } from '../util/function';
 import { Logger } from '../util/logger';
 import { findRangeExtent, isInteger } from '../util/number';
 import { numberFormat } from '../util/numberFormat';
@@ -6,6 +5,32 @@ import { createTicks, isDenseInterval, range } from '../util/ticks';
 import { isString } from '../util/type-guards';
 import { ContinuousScale } from './continuousScale';
 import { Invalidating } from './invalidating';
+
+const logFunctions: Record<number, (base: number, value: number) => number> = {
+    2: (_base, value) => Math.log2(value),
+    [Math.E]: (_base, value) => Math.log(value),
+    10: (_base, value) => Math.log10(value),
+};
+
+const DEFAULT_LOG = (base: number, x: number) => Math.log(x) / Math.log(base);
+
+function log(base: number, domain: number[], x: number) {
+    const start = Math.min(...domain);
+    const fn = logFunctions[base] ?? DEFAULT_LOG;
+    return start >= 0 ? fn(base, x) : -fn(base, -x);
+}
+
+const powFunctions: Record<number, (base: number, value: number) => number> = {
+    [Math.E]: (_base, value) => Math.exp(value),
+};
+
+const DEFAULT_POW = (base: number, x: number) => base ** x;
+
+function pow(base: number, domain: number[], x: number) {
+    const start = Math.min(...domain);
+    const fn = powFunctions[base] ?? DEFAULT_POW;
+    return start >= 0 ? fn(base, x) : -fn(base, -x);
+}
 
 export class LogScale extends ContinuousScale<number> {
     readonly type = 'log';
@@ -47,35 +72,29 @@ export class LogScale extends ContinuousScale<number> {
         if (!this.domain || this.domain.length < 2) {
             return;
         }
-        this.baseLog = LogScale.getBaseLogMethod(this.base);
-        this.basePow = LogScale.getBasePowerMethod(this.base);
         if (this.nice) {
             this.updateNiceDomain();
         }
     }
 
-    private baseLog: (x: number) => number = identity;
-    private basePow: (x: number) => number = identity;
-
-    private readonly log = (x: number) => {
-        const start = Math.min(...this.domain);
-        return start >= 0 ? this.baseLog(x) : -this.baseLog(-x);
-    };
-
-    private readonly pow = (x: number) => {
-        const start = Math.min(...this.domain);
-        return start >= 0 ? this.basePow(x) : -this.basePow(-x);
-    };
+    private readonly log = (x: number) => log(this.base, this.domain, x);
+    private readonly pow = (x: number) => pow(this.base, this.domain, x);
 
     protected updateNiceDomain() {
-        const [d0, d1] = this.domain;
+        this._niceDomain = this.niceDomain(this.domain);
+    }
+
+    niceDomain(domain: number[]): number[] {
+        const { base } = this;
+        const [d0, d1] = domain;
 
         const roundStart = d0 > d1 ? Math.ceil : Math.floor;
         const roundStop = d0 > d1 ? Math.floor : Math.ceil;
 
-        const n0 = this.pow(roundStart(this.log(d0)));
-        const n1 = this.pow(roundStop(this.log(d1)));
-        this.niceDomain = [n0, n1];
+        const n0 = pow(base, domain, roundStart(log(base, domain, d0)));
+        const n1 = pow(base, domain, roundStop(log(base, domain, d1)));
+
+        return [n0, n1];
     }
 
     ticks(): number[] {
@@ -137,29 +156,5 @@ export class LogScale extends ContinuousScale<number> {
     tickFormat({ specifier }: { specifier?: string | ((x: number) => string) }): (x: number) => string {
         specifier ??= this.base === 10 ? '.0e' : ',';
         return isString(specifier) ? numberFormat(specifier) : specifier;
-    }
-
-    static getBaseLogMethod(base: number) {
-        switch (base) {
-            case 10:
-                return Math.log10;
-            case Math.E:
-                return Math.log;
-            case 2:
-                return Math.log2;
-            default:
-                return (x: number) => Math.log(x) / Math.log(base);
-        }
-    }
-
-    static getBasePowerMethod(base: number) {
-        switch (base) {
-            case 10:
-                return (x: number) => (x >= 0 ? 10 ** x : 1 / 10 ** -x);
-            case Math.E:
-                return Math.exp;
-            default:
-                return (x: number) => base ** x;
-        }
     }
 }
