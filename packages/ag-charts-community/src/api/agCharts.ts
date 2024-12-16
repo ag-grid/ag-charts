@@ -169,6 +169,7 @@ class AgChartsInternal {
         licenseManager?: LicenseManager;
         specialOverrides?: Partial<ChartSpecialOverrides>;
         optionsMetadata?: ChartInternalOptionMetadata;
+        stripSymbols?: boolean;
     }) {
         let { proxy } = opts;
         const {
@@ -178,6 +179,7 @@ class AgChartsInternal {
             specialOverrides = proxy?.chart.chartOptions.specialOverrides ?? {},
             optionsMetadata = proxy?.chart.chartOptions.optionMetadata ?? {},
             deltaOptions,
+            stripSymbols = false,
         } = opts;
         const styles = enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : [];
 
@@ -212,7 +214,8 @@ class AgChartsInternal {
                 styleContainer,
             },
             optionsMetadata,
-            deltaOptions
+            deltaOptions,
+            stripSymbols
         );
 
         let create = false;
@@ -263,10 +266,12 @@ class AgChartsInternal {
         return proxy;
     }
 
+    private static markedRemovedProperties = false;
     private static markRemovedProperties(this: void, node: any) {
         if (typeof node !== 'object') return;
         for (const [key, value] of Object.entries(node)) {
             if (typeof value === 'undefined') {
+                AgChartsInternal.markedRemovedProperties = true;
                 Object.assign(node, { [key]: Symbol('UNSET') });
             }
         }
@@ -275,10 +280,15 @@ class AgChartsInternal {
     static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>) {
         deltaOptions = deepClone(deltaOptions, new Set(['data']));
 
+        AgChartsInternal.markedRemovedProperties = false;
         jsonWalk(deltaOptions, AgChartsInternal.markRemovedProperties, new Set(['data']));
 
         debug('>>> AgCharts.updateUserDelta() user delta', deltaOptions);
-        AgChartsInternal.createOrUpdate({ proxy, deltaOptions });
+        AgChartsInternal.createOrUpdate({
+            proxy,
+            deltaOptions,
+            stripSymbols: AgChartsInternal.markedRemovedProperties,
+        });
     }
 
     private static createChartInstance(this: void, options: ChartOptions, oldChart?: Chart): Chart {
