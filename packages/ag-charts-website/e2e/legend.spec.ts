@@ -15,7 +15,7 @@ test.describe('legend', () => {
             test('mouse hovering updates highlight', async ({ page }) => {
                 await gotoExample(page, url);
                 const canvasCenter = page.locator(SELECTORS.canvasCenter);
-                const legendItems = await page.locator(SELECTORS.legendItems);
+                const legendItems = page.locator(SELECTORS.legendItems);
 
                 await legendItems[0].hover();
                 await expect(canvasCenter).toHaveScreenshot('renewables-onshore-wind-highlighted.png');
