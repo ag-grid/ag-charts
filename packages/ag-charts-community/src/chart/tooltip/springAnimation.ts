@@ -1,9 +1,9 @@
 import { Listeners } from '../../util/listeners';
 
 interface SpringAnimationUpdateEvent {
-    type: 'update';
-    x: number;
-    y: number;
+    readonly type: 'update';
+    readonly x: number;
+    readonly y: number;
 }
 
 type UpdateEventHandler = (e: SpringAnimationUpdateEvent) => void;

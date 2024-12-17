@@ -8,9 +8,9 @@ import type { WidgetSet } from './widgetSet';
 export type KeyNavEventType = 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'undo' | 'redo';
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = {
-    type: T;
-    delta: -1 | 0 | 1;
-    sourceEvent: KeyboardWidgetEvent<'keydown'>;
+    readonly type: T;
+    readonly delta: -1 | 0 | 1;
+    readonly sourceEvent: KeyboardWidgetEvent<'keydown'>;
     preventDefault(): void;
 };
 

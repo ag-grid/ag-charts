@@ -13,16 +13,16 @@ type Finger = {
 };
 
 export type GestureEvent<T extends GestureEventTypes = GestureEventTypes> = {
-    type: T;
+    readonly type: T;
 };
 
 export type PinchEvent<T extends PinchEventTypes = PinchEventTypes> = {
-    type: T;
-    finger1: Finger;
-    finger2: Finger;
-    origin: { x: number; y: number };
-    deltaDistance: number;
-    sourceEvent: Event;
+    readonly type: T;
+    readonly finger1: Readonly<Finger>;
+    readonly finger2: Readonly<Finger>;
+    readonly origin: Readonly<{ x: number; y: number }>;
+    readonly deltaDistance: number;
+    readonly sourceEvent: Event;
 };
 
 enum PinchTrackingStatus {

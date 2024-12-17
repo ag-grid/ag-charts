@@ -6,29 +6,29 @@ type ChartEventType = 'legend-item-click' | 'legend-item-double-click' | 'axis-h
 type ChartEvents = LegendItemClickChartEvent | LegendItemDoubleClickChartEvent | AxisHoverChartEvent;
 
 interface ChartEvent<T> {
-    type: T;
+    readonly type: T;
 }
 
 export interface LegendItemClickChartEvent extends ChartEvent<'legend-item-click'> {
-    legendType: ChartLegendType;
-    series: any;
-    itemId: any;
-    enabled: boolean;
-    legendItemName?: string;
+    readonly legendType: ChartLegendType;
+    readonly series: any;
+    readonly itemId: any;
+    readonly enabled: boolean;
+    readonly legendItemName?: string;
 }
 
 export interface LegendItemDoubleClickChartEvent extends ChartEvent<'legend-item-double-click'> {
-    legendType: ChartLegendType;
-    series: any;
-    itemId: any;
-    enabled: boolean;
-    legendItemName?: string;
-    numVisibleItems: number;
+    readonly legendType: ChartLegendType;
+    readonly series: any;
+    readonly itemId: any;
+    readonly enabled: boolean;
+    readonly legendItemName?: string;
+    readonly numVisibleItems: number;
 }
 
 export interface AxisHoverChartEvent extends ChartEvent<'axis-hover'> {
-    axisId: string;
-    direction: ChartAxisDirection;
+    readonly axisId: string;
+    readonly direction: ChartAxisDirection;
 }
 
 export class ChartEventManager extends BaseManager<ChartEventType, ChartEvents> {

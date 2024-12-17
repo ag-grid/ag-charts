@@ -20,24 +20,24 @@ type RegionInteractionTypes =
     | 'drag-end';
 
 export type RegionEvent<T extends RegionInteractionTypes = RegionInteractionTypes> = {
-    type: T;
-    region: RegionName;
-    regionX: number;
-    regionY: number;
-    canvasX: number;
-    canvasY: number;
-    deltaX: T extends 'wheel' ? number : never;
-    deltaY: T extends 'wheel' ? number : never;
-    sourceEvent: Event;
-    timestamp: number;
+    readonly type: T;
+    readonly region: RegionName;
+    readonly regionX: number;
+    readonly regionY: number;
+    readonly canvasX: number;
+    readonly canvasY: number;
+    readonly deltaX: T extends 'wheel' ? number : never;
+    readonly deltaY: T extends 'wheel' ? number : never;
+    readonly sourceEvent: Event;
+    readonly timestamp: number;
     preventDefault(): void;
 };
 
 export type MockEvent = {
-    target: HTMLElement;
-    offsetX: number;
-    offsetY: number;
-    mockRegion?: Pick<RegionEvent, 'region' | 'canvasX' | 'canvasY' | 'regionX' | 'regionY'>;
+    readonly target: HTMLElement;
+    readonly offsetX: number;
+    readonly offsetY: number;
+    readonly mockRegion?: Pick<RegionEvent, 'region' | 'canvasX' | 'canvasY' | 'regionX' | 'regionY'>;
 };
 
 type TWidgetEvent = DragWidgetEvent | MouseWidgetEvent | WheelWidgetEvent;

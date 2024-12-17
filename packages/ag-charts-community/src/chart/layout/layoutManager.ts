@@ -22,18 +22,18 @@ export interface AxisLayout {
     scale: Scale<any, any, number | TimeInterval>;
 }
 
-export interface LayoutCompleteEvent {
-    type: 'layout:complete';
-    chart: { width: number; height: number };
-    series: { rect: BBox; paddedRect: BBox; visible: boolean; shouldFlipXY?: boolean };
-    clipSeries: boolean;
-    axes?: AxisLayout[];
-}
+export type LayoutCompleteEvent = {
+    readonly type: 'layout:complete';
+    readonly chart: Readonly<{ width: number; height: number }>;
+    readonly series: Readonly<{ rect: BBox; paddedRect: BBox; visible: boolean; shouldFlipXY?: boolean }>;
+    readonly clipSeries: boolean;
+    readonly axes?: Readonly<AxisLayout>[];
+};
 
 export interface LayoutState {
     axes?: AxisLayout[];
     clipSeries?: boolean;
-    series: { visible: boolean; rect: BBox; paddedRect: BBox; shouldFlipXY?: boolean };
+    series: { rect: BBox; paddedRect: BBox; visible: boolean; shouldFlipXY?: boolean };
 }
 
 interface EventMap {

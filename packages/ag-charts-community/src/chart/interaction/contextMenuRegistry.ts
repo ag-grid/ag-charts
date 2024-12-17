@@ -14,11 +14,11 @@ type ContextTypeMap = {
 
 export type ContextType = keyof ContextTypeMap;
 export type ContextMenuEvent<K extends ContextType = ContextType> = {
-    type: K;
-    x: number;
-    y: number;
-    context: ContextTypeMap[K];
-    sourceEvent: Event;
+    readonly type: K;
+    readonly x: number;
+    readonly y: number;
+    readonly context: Readonly<ContextTypeMap[K]>;
+    readonly sourceEvent: Event;
 };
 
 // Extract the TEvent types from the AgContextMenuOptions contract:
