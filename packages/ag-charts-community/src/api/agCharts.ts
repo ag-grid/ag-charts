@@ -266,28 +266,35 @@ class AgChartsInternal {
         return proxy;
     }
 
-    private static markedRemovedProperties = false;
-    private static markRemovedProperties(this: void, node: any) {
-        if (typeof node !== 'object') return;
+    private static markRemovedProperties(this: void, node: any, _: unknown, modified = false) {
+        if (typeof node !== 'object') return modified;
         for (const [key, value] of Object.entries(node)) {
             if (typeof value === 'undefined') {
-                AgChartsInternal.markedRemovedProperties = true;
                 Object.assign(node, { [key]: Symbol('UNSET') });
+                modified ||= true;
             }
         }
+
+        return modified;
     }
 
     static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>) {
         deltaOptions = deepClone(deltaOptions, new Set(['data']));
 
-        AgChartsInternal.markedRemovedProperties = false;
-        jsonWalk(deltaOptions, AgChartsInternal.markRemovedProperties, new Set(['data']));
+        const stripSymbols = jsonWalk(
+            deltaOptions,
+            AgChartsInternal.markRemovedProperties,
+            new Set(['data']),
+            undefined,
+            undefined,
+            false
+        );
 
         debug('>>> AgCharts.updateUserDelta() user delta', deltaOptions);
         AgChartsInternal.createOrUpdate({
             proxy,
             deltaOptions,
-            stripSymbols: AgChartsInternal.markedRemovedProperties,
+            stripSymbols,
         });
     }
 
