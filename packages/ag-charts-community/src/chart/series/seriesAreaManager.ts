@@ -132,6 +132,10 @@ export class SeriesAreaManager extends BaseManager {
         );
     }
 
+    private isState(allowedStates: InteractionState) {
+        return this.chart.ctx.interactionManager.isState(allowedStates);
+    }
+
     public dataChanged() {
         this.highlight.stashedHoverEvent ??= this.highlight.appliedHoverEvent;
         this.chart.ctx.tooltipManager.removeTooltip(this.id);
@@ -196,7 +200,7 @@ export class SeriesAreaManager extends BaseManager {
         const { Default, ContextMenu } = InteractionState;
 
         if (event.region === 'root') {
-            if (this.chart.ctx.interactionManager.getState() & (Default | ContextMenu)) {
+            if (this.isState(Default | ContextMenu)) {
                 this.chart.ctx.contextMenuRegistry.dispatchContext('all', event, {});
             }
             return;
@@ -213,7 +217,7 @@ export class SeriesAreaManager extends BaseManager {
                     pickedNode.midPoint.y
                 );
             }
-        } else if (this.chart.ctx.interactionManager.getState() & (Default | ContextMenu)) {
+        } else if (this.isState(Default | ContextMenu)) {
             const match = pickNode(this.series, { x: event.regionX, y: event.regionY }, 'context-menu');
             if (match) {
                 this.chart.ctx.highlightManager.updateHighlight(this.id);
@@ -249,7 +253,7 @@ export class SeriesAreaManager extends BaseManager {
         this.highlight.pendingHoverEvent = event;
         this.hoverScheduler.schedule();
 
-        if (this.chart.ctx.interactionManager.getState() === InteractionState.Default) {
+        if (this.isState(InteractionState.Default)) {
             const { regionX: x, regionY: y } = event;
             const found = pickNode(this.series, { x, y }, 'event');
             if (found?.series.hasEventListener('nodeClick') || found?.series.hasEventListener('nodeDoubleClick')) {
@@ -277,20 +281,20 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onFocus(allowedStates: InteractionState): void {
-        if (!(this.chart.ctx.interactionManager.getState() & allowedStates)) return;
+        if (!this.isState(allowedStates)) return;
         this.hoverDevice = this.focusIndicator.isFocusVisible() ? 'keyboard' : 'mouse';
         this.handleFocus(0, 0);
     }
 
     private onBlur(allowedStates: InteractionState) {
-        if (!(this.chart.ctx.interactionManager.getState() & allowedStates)) return;
+        if (!this.isState(allowedStates)) return;
         this.hoverDevice = 'mouse';
         this.clearAll();
         this.focusIndicator.overrideFocusVisible(undefined);
     }
 
     private onNavVert(event: KeyNavEvent<'nav-vert'>, allowedStates: InteractionState): void {
-        if (!(this.chart.ctx.interactionManager.getState() & allowedStates)) return;
+        if (!this.isState(allowedStates)) return;
         this.hoverDevice = 'keyboard';
         this.focus.seriesIndex += event.delta;
         this.handleFocus(event.delta, 0);
@@ -298,7 +302,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onNavHori(event: KeyNavEvent<'nav-hori'>, allowedStates: InteractionState): void {
-        if (!(this.chart.ctx.interactionManager.getState() & allowedStates)) return;
+        if (!this.isState(allowedStates)) return;
         this.hoverDevice = 'keyboard';
         this.focus.datumIndex += event.delta;
         this.handleFocus(0, event.delta);
@@ -306,7 +310,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onSubmit(event: KeyNavEvent<'submit'>, allowedStates: InteractionState): void {
-        if (!(this.chart.ctx.interactionManager.getState() & allowedStates)) return;
+        if (!this.isState(allowedStates)) return;
         const { series, datum } = this.focus;
         const sourceEvent = event.sourceEvent.sourceEvent;
         if (series !== undefined && datum !== undefined) {
@@ -491,13 +495,13 @@ export class SeriesAreaManager extends BaseManager {
         const event = this.highlight.appliedHoverEvent;
         if (!event) return;
 
-        const state = this.chart.ctx.interactionManager.getState();
         if (
-            state !== InteractionState.Default &&
-            state !== InteractionState.Annotations &&
-            state !== InteractionState.AnnotationsSelected
-        )
+            this.isState(
+                InteractionState.Default || InteractionState.Annotations || InteractionState.AnnotationsSelected
+            )
+        ) {
             return;
+        }
 
         const { canvasX, canvasY } = event;
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
@@ -523,13 +527,13 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private handleHoverTooltip(event: RegionEvent<TooltipEventTypes>, redisplay: boolean) {
-        const state = this.chart.ctx.interactionManager.getState();
         if (
-            state !== InteractionState.Default &&
-            state !== InteractionState.Annotations &&
-            state !== InteractionState.AnnotationsSelected
-        )
+            this.isState(
+                InteractionState.Default || InteractionState.Annotations || InteractionState.AnnotationsSelected
+            )
+        ) {
             return;
+        }
 
         const { canvasX, canvasY, regionX, regionY } = event;
         const targetElement = event.sourceEvent.target as HTMLElement;

@@ -116,7 +116,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     }
 
     private onKeyPress() {
-        if (this.snap && this.ctx.interactionManager.getState() & InteractionState.Default) return;
+        if (this.snap && this.ctx.interactionManager.isState(InteractionState.Default)) return;
         this.hide();
     }
 

@@ -45,8 +45,8 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         );
     }
 
-    private getState() {
-        return this.interactionManager.getState();
+    private isClickable() {
+        return this.interactionManager.isState(MOUSE_STATES);
     }
 
     public override destroy() {
@@ -54,19 +54,17 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private onClick() {
-        if (!(this.getState() & MOUSE_STATES)) return;
+        if (!this.isClickable()) return;
         this.focusIndicator?.overrideFocusVisible(false);
         this.previousInputDevice = 'mouse';
     }
 
     private onMouse() {
-        if (!(this.getState() & MOUSE_STATES)) return;
+        if (!this.isClickable()) return;
         this.previousInputDevice = 'mouse';
     }
 
     private onKeyDown(event: KeyNavEvent['sourceEvent']) {
-        const state = this.getState();
-
         // FIXME: key is localised to it could be non-ASCII text like غ
         const { key, code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
 
@@ -81,7 +79,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         }
 
         // Annotations listen for KeyInteractionEvent<'keydown'> instead of KeyNavEvent<T>:
-        if (state & (InteractionState.Annotations | InteractionState.AnnotationsSelected)) {
+        if (!this.interactionManager.isState(InteractionState.Annotations | InteractionState.AnnotationsSelected)) {
             // TODO: annotations should update the focus indicator bounds to surround the current annotation
             this.focusIndicator?.overrideFocusVisible(false);
             return;

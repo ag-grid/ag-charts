@@ -72,8 +72,7 @@ function addHandler<T extends RegionEvent['type']>(
 ): () => void {
     return (
         listeners?.addListener(type, (e: RegionEvent) => {
-            const currentState = interactionManager.getState();
-            if (currentState & triggeringStates) {
+            if (interactionManager.isState(triggeringStates)) {
                 handler(e as TypeInfo[T]);
             }
         }) ?? (() => {})
