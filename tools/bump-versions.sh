@@ -10,6 +10,7 @@ TOOLS_DIR=$(dirname $0)
 
 PACKAGES=(
     ag-charts
+    ag-charts-core
     ag-charts-community
     ag-charts-enterprise
     ag-charts-types

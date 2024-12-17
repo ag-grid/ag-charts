@@ -1,0 +1,85 @@
+{
+  "name": "ag-charts-core",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "packages/ag-charts-core/src",
+  "projectType": "library",
+  "targets": {
+    "build": {
+      "executor": "nx:noop",
+      "dependsOn": ["build:types", "build:package"],
+      "inputs": [],
+      "outputs": [],
+      "configurations": {
+        "watch": {},
+        "production": {}
+      }
+    },
+    "build:types": {
+      "options": {}
+    },
+    "build:package": {
+      "options": {}
+    },
+    "docs-debug-interfaces": {
+      "executor": "ag-charts-generate-code-reference-files:generate",
+      "dependsOn": ["ag-charts-generate-code-reference-files:build"],
+      "inputs": ["{projectRoot}/src/**/*.ts", { "dependentTasksOutputFiles": "**/*", "transitive": false }],
+      "outputs": ["{options.output}"],
+      "cache": true,
+      "options": {
+        "mode": "debug-interfaces",
+        "inputs": ["{projectRoot}/src"],
+        "output": "dist/{projectRoot}/debug-interfaces.AUTO.json"
+      }
+    },
+    "docs-resolved-interfaces": {
+      "executor": "ag-charts-generate-code-reference-files:generate",
+      "dependsOn": ["ag-charts-generate-code-reference-files:build"],
+      "inputs": ["{projectRoot}/src/**/*.ts", { "dependentTasksOutputFiles": "**/*", "transitive": false }],
+      "outputs": ["{options.output}"],
+      "cache": true,
+      "options": {
+        "mode": "docs-interfaces",
+        "inputs": ["{projectRoot}/src"],
+        "output": "dist/{projectRoot}/resolved-interfaces.AUTO.json"
+      }
+    },
+    "lint:eslint": {},
+    "lint:circular": {},
+    "lint:depcruise": {},
+    "lint": {
+      "executor": "nx:noop",
+      "dependsOn": ["lint:eslint", "lint:circular", "lint:depcruise"],
+      "configurations": {
+        "fix": {}
+      }
+    },
+    "pack": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "inputs": ["allTransitiveOutputs"],
+      "outputs": ["{workspaceRoot}/dist/{projectRoot}.tgz"],
+      "options": {
+        "cwd": "{projectRoot}",
+        "parallel": false,
+        "commands": ["mkdir -p ../../dist/packages", "yarn pack -f ../../dist/{projectRoot}.tgz"]
+      }
+    },
+    "pack:extract": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["pack"],
+      "inputs": ["allOutputs"],
+      "outputs": ["{workspaceRoot}/dist/packages/contents/ag-charts-core/"],
+      "options": { "command": "tools/package/extract-contents.sh {projectRoot}" }
+    },
+    "pack:verify": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["pack:extract"],
+      "inputs": ["allOutputs"],
+      "options": {
+        "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-core/package"]
+      }
+    }
+  },
+  "tags": ["no-batching"]
+}

@@ -81,6 +81,7 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "ag-charts-core": "11.0.3-beta.20250105",
     "ag-charts-community": "11.0.3-beta.20250105"
   },
   "publishConfig": {
