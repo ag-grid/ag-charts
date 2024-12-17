@@ -23,7 +23,7 @@ outputs:
         value: ${{ steps.nx_config.outputs.base }}
     type:
         description: 'Type of job execution detected'
-        value: ${{ steps.nx_config.type }}
+        value: ${{ steps.nx_config.outputs.type }}
 
 runs:
     using: 'composite'
