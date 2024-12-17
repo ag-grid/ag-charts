@@ -14,8 +14,6 @@ export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = {
     preventDefault(): void;
 };
 
-const MOUSE_STATES = InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
-
 // The purpose of this class is to decouple keyboard input events configuration with
 // navigation commands. For example, keybindings might be different on macOS and Windows,
 // or the charts might include options to reconfigure keybindings.
@@ -46,7 +44,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private isClickable() {
-        return this.interactionManager.isState(MOUSE_STATES);
+        return this.interactionManager.isState(InteractionState.Clickable);
     }
 
     public override destroy() {
@@ -79,7 +77,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         }
 
         // Annotations listen for KeyInteractionEvent<'keydown'> instead of KeyNavEvent<T>:
-        if (!this.interactionManager.isState(InteractionState.Annotations | InteractionState.AnnotationsSelected)) {
+        if (!this.interactionManager.isState(InteractionState.AnnotationsMoveable)) {
             // TODO: annotations should update the focus indicator bounds to surround the current annotation
             this.focusIndicator?.overrideFocusVisible(false);
             return;

@@ -439,19 +439,18 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private setupListeners() {
         const { ctx, optionsToolbar, settingsDialog, toolbar } = this;
-        const { All, Default, Annotations: AnnotationsState, AnnotationsSelected, ZoomDrag } = InteractionState;
+        const { All, AnnotationsDraggable } = InteractionState;
 
         const seriesRegion = ctx.regionManager.getRegion('series');
         const rootRegion = ctx.regionManager.getRegion('root');
-        const annotationsState = Default | ZoomDrag | AnnotationsState | AnnotationsSelected;
 
         this.destroyFns.push(
             // Interactions
             seriesRegion.addListener('hover', this.onHover.bind(this), All),
             seriesRegion.addListener('click', this.onClick.bind(this), All),
             seriesRegion.addListener('dblclick', this.onDoubleClick.bind(this), All),
-            seriesRegion.addListener('drag-start', this.onDragStart.bind(this), annotationsState),
-            seriesRegion.addListener('drag', this.onDrag.bind(this), annotationsState),
+            seriesRegion.addListener('drag-start', this.onDragStart.bind(this), AnnotationsDraggable),
+            seriesRegion.addListener('drag', this.onDrag.bind(this), AnnotationsDraggable),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
             ctx.widgets.seriesWidget.addListener('keydown', this.onKeyDown.bind(this)),
             ctx.widgets.seriesWidget.addListener('keyup', this.onKeyUp.bind(this)),

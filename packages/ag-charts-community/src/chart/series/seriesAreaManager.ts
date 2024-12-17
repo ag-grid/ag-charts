@@ -93,17 +93,13 @@ export class SeriesAreaManager extends BaseManager {
 
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
         super();
-
-        const mouseMoveStates =
-            InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
-        const keyState = InteractionState.Default | InteractionState.Animation;
-        const contextState = InteractionState.All;
+        const { Clickable, All } = InteractionState;
 
         const label1 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label1');
         const label2 = chart.ctx.domManager.addChild('series-area', 'series-area-aria-label2');
         this.swapChain = new FocusSwapChain(label1, label2, this.id, 'img');
-        this.swapChain.addListener('blur', () => this.onBlur(keyState));
-        this.swapChain.addListener('focus', () => this.onFocus(keyState));
+        this.swapChain.addListener('blur', () => this.onBlur());
+        this.swapChain.addListener('focus', () => this.onFocus());
         this.focusIndicator = new FocusIndicator(this.swapChain);
         this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
         this.chart.ctx.keyNavManager.focusIndicator = this.focusIndicator;
@@ -112,17 +108,17 @@ export class SeriesAreaManager extends BaseManager {
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label2'),
-            seriesRegion.addListener('drag', (event) => this.onHoverLikeEvent(event), mouseMoveStates),
-            seriesRegion.addListener('hover', (event) => this.onHover(event), mouseMoveStates),
-            seriesRegion.addListener('leave', () => this.onLeave(), mouseMoveStates),
+            seriesRegion.addListener('drag', (event) => this.onHoverLikeEvent(event), Clickable),
+            seriesRegion.addListener('hover', (event) => this.onHover(event), Clickable),
+            seriesRegion.addListener('leave', () => this.onLeave(), Clickable),
             chart.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
             chart.ctx.domManager.addListener('resize', () => this.clearAll()),
             chart.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            chart.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event, keyState)),
-            chart.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event, keyState)),
-            chart.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event, keyState)),
+            chart.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event)),
+            chart.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event)),
+            chart.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event)),
             chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
-            chart.ctx.regionManager.listenAll('contextmenu', (event) => this.onContextMenu(event), contextState),
+            chart.ctx.regionManager.listenAll('contextmenu', (event) => this.onContextMenu(event), All),
             chart.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
             chart.ctx.regionManager.listenAll('dblclick', (event) => this.onClick(event)),
             chart.ctx.updateService.addListener('pre-scene-render', () => this.preSceneRender()),
@@ -194,13 +190,8 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onContextMenu(event: RegionEvent<'contextmenu'>): void {
-        // If there is already a context menu visible, then re-pick the highlighted node.
-        // We check InteractionState.Default too just in case we were in ContextMenu and the
-        // mouse hasn't moved since (see AG-10233).
-        const { Default, ContextMenu } = InteractionState;
-
         if (event.region === 'root') {
-            if (this.isState(Default | ContextMenu)) {
+            if (this.isState(InteractionState.ContextMenuable)) {
                 this.chart.ctx.contextMenuRegistry.dispatchContext('all', event, {});
             }
             return;
@@ -217,7 +208,7 @@ export class SeriesAreaManager extends BaseManager {
                     pickedNode.midPoint.y
                 );
             }
-        } else if (this.isState(Default | ContextMenu)) {
+        } else if (this.isState(InteractionState.ContextMenuable)) {
             const match = pickNode(this.series, { x: event.regionX, y: event.regionY }, 'context-menu');
             if (match) {
                 this.chart.ctx.highlightManager.updateHighlight(this.id);
@@ -280,37 +271,37 @@ export class SeriesAreaManager extends BaseManager {
         this.chart.fireEvent(newEvent);
     }
 
-    private onFocus(allowedStates: InteractionState): void {
-        if (!this.isState(allowedStates)) return;
+    private onFocus(): void {
+        if (!this.isState(InteractionState.Keyable)) return;
         this.hoverDevice = this.focusIndicator.isFocusVisible() ? 'keyboard' : 'mouse';
         this.handleFocus(0, 0);
     }
 
-    private onBlur(allowedStates: InteractionState) {
-        if (!this.isState(allowedStates)) return;
+    private onBlur() {
+        if (!this.isState(InteractionState.Keyable)) return;
         this.hoverDevice = 'mouse';
         this.clearAll();
         this.focusIndicator.overrideFocusVisible(undefined);
     }
 
-    private onNavVert(event: KeyNavEvent<'nav-vert'>, allowedStates: InteractionState): void {
-        if (!this.isState(allowedStates)) return;
+    private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
+        if (!this.isState(InteractionState.Keyable)) return;
         this.hoverDevice = 'keyboard';
         this.focus.seriesIndex += event.delta;
         this.handleFocus(event.delta, 0);
         event.preventDefault();
     }
 
-    private onNavHori(event: KeyNavEvent<'nav-hori'>, allowedStates: InteractionState): void {
-        if (!this.isState(allowedStates)) return;
+    private onNavHori(event: KeyNavEvent<'nav-hori'>): void {
+        if (!this.isState(InteractionState.Keyable)) return;
         this.hoverDevice = 'keyboard';
         this.focus.datumIndex += event.delta;
         this.handleFocus(0, event.delta);
         event.preventDefault();
     }
 
-    private onSubmit(event: KeyNavEvent<'submit'>, allowedStates: InteractionState): void {
-        if (!this.isState(allowedStates)) return;
+    private onSubmit(event: KeyNavEvent<'submit'>): void {
+        if (!this.isState(InteractionState.Keyable)) return;
         const { series, datum } = this.focus;
         const sourceEvent = event.sourceEvent.sourceEvent;
         if (series !== undefined && datum !== undefined) {
@@ -493,15 +484,7 @@ export class SeriesAreaManager extends BaseManager {
         this.highlight.pendingHoverEvent = undefined;
 
         const event = this.highlight.appliedHoverEvent;
-        if (!event) return;
-
-        if (
-            this.isState(
-                InteractionState.Default || InteractionState.Annotations || InteractionState.AnnotationsSelected
-            )
-        ) {
-            return;
-        }
+        if (!event || !this.isState(InteractionState.Clickable)) return;
 
         const { canvasX, canvasY } = event;
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
@@ -527,13 +510,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private handleHoverTooltip(event: RegionEvent<TooltipEventTypes>, redisplay: boolean) {
-        if (
-            this.isState(
-                InteractionState.Default || InteractionState.Annotations || InteractionState.AnnotationsSelected
-            )
-        ) {
-            return;
-        }
+        if (!this.isState(InteractionState.Clickable)) return;
 
         const { canvasX, canvasY, regionX, regionY } = event;
         const targetElement = event.sourceEvent.target as HTMLElement;
