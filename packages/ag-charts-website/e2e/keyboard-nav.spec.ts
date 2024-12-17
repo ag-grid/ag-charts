@@ -132,6 +132,30 @@ test.describe('keyboard-nav', () => {
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13668-datum-1-focused.png');
     });
 
+    test('AG-13086 series node click / numpad enter', async ({ page }) => {
+        await gotoExample(page, toExamplePageUrl('accessibility', 'keyboard-navigation', 'vanilla').url);
+
+        let lastMessage = '';
+        page.on('console', (msg) => {
+            lastMessage = msg.text();
+        });
+
+        await page.locator('input').first().click();
+        await page.keyboard.press('Tab');
+        await page.keyboard.press('Enter');
+        expect(lastMessage).toEqual('seriesNodeClick BarSeries2-1 2017 2470');
+
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('Space');
+        expect(lastMessage).toEqual('seriesNodeClick BarSeries2-2 2018 2281');
+
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.press('ArrowDown');
+        await page.keyboard.press('NumpadEnter');
+        expect(lastMessage).toEqual('seriesNodeClick BarSeries2-3 2019 866');
+    });
+
     test('polar chart', async ({ page }) => {
         const { url } = toExamplePageUrl('pie-series', 'simple-pie', 'vanilla');
 
