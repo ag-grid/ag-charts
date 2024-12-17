@@ -501,4 +501,55 @@ describe('AgChart', () => {
             },
         });
     });
+
+    // AG-13708 - Ensure removal of options works without error.
+    test('option deletion updateDelta() calls', async () => {
+        chartProxy = AgCharts.create({
+            data: revenueProfitData,
+            theme: {
+                overrides: {
+                    bar: {
+                        axes: {
+                            category: {
+                                label: { autoRotate: false },
+                            },
+                        },
+                    },
+                },
+            },
+            series: [
+                {
+                    xKey: 'month',
+                    yKey: 'revenue',
+                },
+            ],
+        });
+        await waitForChartStability(chartProxy);
+
+        await chartProxy.updateDelta({
+            theme: {
+                overrides: {
+                    bar: {
+                        axes: {
+                            category: {
+                                label: { autoRotate: undefined },
+                            },
+                        },
+                    },
+                },
+            },
+        });
+
+        expect(chartProxy.getOptions().theme).toEqual({
+            overrides: {
+                bar: {
+                    axes: {
+                        category: {
+                            label: {},
+                        },
+                    },
+                },
+            },
+        });
+    });
 });
