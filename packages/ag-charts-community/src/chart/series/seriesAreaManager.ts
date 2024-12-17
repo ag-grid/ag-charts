@@ -118,9 +118,9 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
             chart.ctx.domManager.addListener('resize', () => this.clearAll()),
             chart.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            chart.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event), keyState),
-            chart.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event), keyState),
-            chart.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event), keyState),
+            chart.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event, keyState)),
+            chart.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event, keyState)),
+            chart.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event, keyState)),
             chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.regionManager.listenAll('contextmenu', (event) => this.onContextMenu(event), contextState),
             chart.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
@@ -289,21 +289,24 @@ export class SeriesAreaManager extends BaseManager {
         this.focusIndicator.overrideFocusVisible(undefined);
     }
 
-    private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
+    private onNavVert(event: KeyNavEvent<'nav-vert'>, allowedStates: InteractionState): void {
+        if (!(this.chart.ctx.interactionManager.getState() & allowedStates)) return;
         this.hoverDevice = 'keyboard';
         this.focus.seriesIndex += event.delta;
         this.handleFocus(event.delta, 0);
         event.preventDefault();
     }
 
-    private onNavHori(event: KeyNavEvent<'nav-hori'>): void {
+    private onNavHori(event: KeyNavEvent<'nav-hori'>, allowedStates: InteractionState): void {
+        if (!(this.chart.ctx.interactionManager.getState() & allowedStates)) return;
         this.hoverDevice = 'keyboard';
         this.focus.datumIndex += event.delta;
         this.handleFocus(0, event.delta);
         event.preventDefault();
     }
 
-    private onSubmit(event: KeyNavEvent<'submit'>): void {
+    private onSubmit(event: KeyNavEvent<'submit'>, allowedStates: InteractionState): void {
+        if (!(this.chart.ctx.interactionManager.getState() & allowedStates)) return;
         const { series, datum } = this.focus;
         const sourceEvent = event.sourceEvent.sourceEvent;
         if (series !== undefined && datum !== undefined) {
