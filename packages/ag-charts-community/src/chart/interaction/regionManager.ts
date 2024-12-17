@@ -4,7 +4,6 @@ import type { Widget } from '../../widget/widget';
 import type { DragWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../../widget/widgetEvents';
 import { InteractionManager } from './interactionManager';
 import { InteractionState } from './interactionManager';
-import { type PreventableEvent, buildPreventable } from './preventableEvent';
 import type { WidgetSet } from './widgetSet';
 
 type RegionName = 'root' | 'series';
@@ -20,7 +19,7 @@ type RegionInteractionTypes =
     | 'drag'
     | 'drag-end';
 
-export type RegionEvent<T extends RegionInteractionTypes = RegionInteractionTypes> = PreventableEvent & {
+export type RegionEvent<T extends RegionInteractionTypes = RegionInteractionTypes> = {
     type: T;
     region: RegionName;
     regionX: number;
@@ -31,6 +30,7 @@ export type RegionEvent<T extends RegionInteractionTypes = RegionInteractionType
     deltaY: T extends 'wheel' ? number : never;
     sourceEvent: Event;
     timestamp: number;
+    preventDefault(): void;
 };
 
 export type MockEvent = {
@@ -245,13 +245,14 @@ export class RegionManager {
         const { widget: rootWidget } = this.regions.root.properties;
         if (current == null || currentWidget == null || rootWidget == null) return;
 
-        const event: RegionEvent = buildPreventable({
+        const event: RegionEvent = {
             ...this.computeEventOffsets(currentWidget, rootWidget, widgetEvent),
             sourceEvent: widgetEvent.sourceEvent,
             type: this.widgetEventTypeToRegionEventType(widgetEvent, regionEventType),
             region: current.properties.name,
             timestamp: Date.now(),
-        });
+            preventDefault: () => widgetEvent.sourceEvent.preventDefault(),
+        };
 
         switch (event.type) {
             case 'drag-start': {

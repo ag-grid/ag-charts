@@ -3,7 +3,6 @@ import type { AgContextMenuOptions } from 'ag-charts-types';
 import { Listeners } from '../../util/listeners';
 import type { CategoryLegendDatum } from '../legend/legendDatum';
 import type { ISeries, SeriesNodeDatum } from '../series/seriesTypes';
-import { type PreventableEvent, buildPreventable } from './preventableEvent';
 import type { RegionEvent } from './regionManager';
 
 type ContextTypeMap = {
@@ -13,7 +12,8 @@ type ContextTypeMap = {
     node: { pickedSeries: ISeries<any, any> | undefined; pickedNode: SeriesNodeDatum | undefined };
 };
 
-type ContextEventProperties<K extends ContextType = ContextType> = {
+export type ContextType = keyof ContextTypeMap;
+export type ContextMenuEvent<K extends ContextType = ContextType> = {
     type: K;
     x: number;
     y: number;
@@ -28,9 +28,6 @@ type ContextMenuActionEventMap = {
     'series-area': Parameters<NonNullable<AgContextMenuOptions['extraSeriesAreaActions']>[number]['action']>[0];
     node: Parameters<NonNullable<AgContextMenuOptions['extraNodeActions']>[number]['action']>[0];
 };
-
-export type ContextType = keyof ContextTypeMap;
-export type ContextMenuEvent<K extends ContextType = ContextType> = ContextEventProperties<K> & PreventableEvent;
 
 export type ContextMenuCallback<K extends ContextType> = {
     all: (params: ContextMenuActionEventMap['all']) => void;
@@ -74,7 +71,8 @@ export class ContextMenuRegistry {
         const x = position?.x ?? pointerEvent.canvasX;
         const y = position?.y ?? pointerEvent.canvasY;
         sourceEvent.stopPropagation();
-        this.listeners.dispatch('', buildPreventable({ type, x, y, context, sourceEvent }));
+        const event: ContextMenuEvent = { type, x, y, context, sourceEvent };
+        this.listeners.dispatch('', event);
     }
 
     public addListener(handler: (event: ContextMenuEvent) => void) {

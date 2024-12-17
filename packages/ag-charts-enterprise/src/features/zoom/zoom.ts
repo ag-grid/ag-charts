@@ -515,7 +515,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         this.updateZoom(constrainZoom(newZoom));
-        event.preventDefault();
+        event.sourceEvent.preventDefault();
     }
 
     _didAutoZoomOnMount = false;
