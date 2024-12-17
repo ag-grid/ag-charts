@@ -15,4 +15,9 @@ for (const packageName in matches) {
     }
 }
 
+if (result.framework.length === 0) {
+    // Avoid failing GHA matrix execution due to zero matrix permutations.
+    result.framework.push('none');
+}
+
 console.log(JSON.stringify(result));
