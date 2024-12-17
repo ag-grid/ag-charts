@@ -129,6 +129,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.specialOverrides = this.specialOverridesDefaults({ ...specialOverrides });
         }
 
+        if (stripSymbols) {
+            this.removeLeftoverSymbols(this.userOptions);
+        }
+
         let activeTheme, processedOptions, defaultAxes, fastDelta;
         if (
             !stripSymbols &&
