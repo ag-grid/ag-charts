@@ -2,7 +2,7 @@ import type { FocusIndicator } from '../../dom/focusIndicator';
 import { BaseManager } from '../../util/baseManager';
 import type { KeyboardWidgetEvent } from '../../widget/widgetEvents';
 import type { InteractionManager } from './interactionManager';
-import { InteractionState } from './interactionStateListener';
+import { InteractionState } from './interactionManager';
 import type { WidgetSet } from './widgetSet';
 
 export type KeyNavEventType = 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'undo' | 'redo';

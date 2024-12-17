@@ -3,13 +3,22 @@ import { Listeners } from '../../util/listeners';
 import type { Widget } from '../../widget/widget';
 import type { DragWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../../widget/widgetEvents';
 import { InteractionManager } from './interactionManager';
-import type { PointerInteractionTypes } from './interactionManager';
 import { InteractionState } from './interactionManager';
 import { type PreventableEvent, buildPreventable } from './preventableEvent';
 import type { WidgetSet } from './widgetSet';
 
 type RegionName = 'root' | 'series';
-type RegionInteractionTypes = PointerInteractionTypes | 'drag-start' | 'drag' | 'drag-end';
+type RegionInteractionTypes =
+    | 'contextmenu'
+    | 'click'
+    | 'dblclick'
+    | 'enter'
+    | 'hover'
+    | 'leave'
+    | 'wheel'
+    | 'drag-start'
+    | 'drag'
+    | 'drag-end';
 
 export type RegionEvent<T extends RegionInteractionTypes = RegionInteractionTypes> = PreventableEvent & {
     type: T;
@@ -189,7 +198,10 @@ export class RegionManager {
         return new ObservableRegionImplementation();
     }
 
-    private widgetEventTypeToRegionEventType(widgetEvent: TWidgetEvent, regionEventType?: 'leave' | 'enter') {
+    private widgetEventTypeToRegionEventType(
+        widgetEvent: TWidgetEvent,
+        regionEventType?: 'leave' | 'enter'
+    ): RegionInteractionTypes {
         if (regionEventType !== undefined) return regionEventType;
         const map = {
             contextmenu: 'contextmenu',
