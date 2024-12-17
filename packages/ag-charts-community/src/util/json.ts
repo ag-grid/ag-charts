@@ -137,31 +137,35 @@ export function shallowClone<T>(source: T): T {
  * @param visit callback for each non-primitive and non-array object found
  * @param skip property names to skip when walking
  * @param parallelJson to traverse in parallel
+ * @param acc initial accumulator value
  */
-export function jsonWalk<T, C>(
+export function jsonWalk<T, C, R>(
     json: T,
-    visit: (node: T, parallelNode?: T, ctx?: C) => void,
+    visit: (node: T, parallelNode?: T, ctx?: C, acc?: R) => R,
     skip?: Set<string>,
     parallelJson?: T,
-    ctx?: C
-) {
+    ctx?: C,
+    acc?: R
+): R {
     if (isArray(json)) {
-        visit(json, parallelJson, ctx);
+        acc = visit(json, parallelJson, ctx, acc);
         let index = 0;
         for (const node of json) {
-            jsonWalk(node, visit, skip, (parallelJson as any[])?.[index], ctx);
+            acc = jsonWalk(node, visit, skip, (parallelJson as any[])?.[index], ctx, acc);
             index++;
         }
     } else if (isPlainObject(json)) {
-        visit(json, parallelJson, ctx);
+        acc = visit(json, parallelJson, ctx, acc);
         for (const key of Object.keys(json)) {
             if (skip?.has(key)) {
                 continue;
             }
             const value = json[key as keyof T] as T;
-            jsonWalk(value, visit, skip, (parallelJson as any)?.[key], ctx);
+            acc = jsonWalk(value, visit, skip, (parallelJson as any)?.[key], ctx, acc);
         }
     }
+
+    return acc!;
 }
 
 /**

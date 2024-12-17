@@ -322,7 +322,7 @@ describe('json module', () => {
 
                 const cb = jest.fn();
                 jsonWalk(wrappedTest, cb, undefined, wrappedTest);
-                expect(cb).toHaveBeenCalledWith(wrappedTest, wrappedTest, undefined);
+                expect(cb).toHaveBeenCalledWith(wrappedTest, wrappedTest, undefined, undefined);
                 expect(cb).toHaveBeenCalledTimes(1);
             }
         });
@@ -334,7 +334,7 @@ describe('json module', () => {
             const cb = jest.fn();
             jsonWalk(walked1, cb, undefined, walked2);
             expect(cb).toHaveBeenCalledTimes(1);
-            expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined, undefined);
         });
 
         it('should visit every node for a non-trivial object', () => {
@@ -350,11 +350,33 @@ describe('json module', () => {
 
             const cb = jest.fn();
             jsonWalk(walked1, cb, undefined, walked2);
-            expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined);
-            expect(cb).toHaveBeenCalledWith(walked1.child1, walked2.child1, undefined);
-            expect(cb).toHaveBeenCalledWith(walked1.child2, undefined, undefined);
-            expect(cb).toHaveBeenCalledWith(walked1.child2.child3, undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.child1, walked2.child1, undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.child2, undefined, undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.child2.child3, undefined, undefined, undefined);
             expect(cb).toHaveBeenCalledTimes(4);
+        });
+
+        it('should pass accumulator value appropriately', () => {
+            const walked1 = {
+                a: 1,
+                b: 2,
+                c: 'c',
+                d: FIXED_DATE,
+                child1: { foo: 'bar' },
+                child2: { hello: 'world', child3: { x: 'x' } },
+            };
+            const walked2 = { a: 2, b: 3, c: 'd', d: FIXED_DATE, child1: { foo: 'bar' } };
+
+            const ctx = {};
+            const cb = jest.fn((_a, _b, _c, acc: number = -1) => acc + 1);
+            const result = jsonWalk(walked1, cb, undefined, walked2, ctx, 0);
+            expect(cb).toHaveBeenCalledWith(walked1, walked2, ctx, 0);
+            expect(cb).toHaveBeenCalledWith(walked1.child1, walked2.child1, ctx, 1);
+            expect(cb).toHaveBeenCalledWith(walked1.child2, undefined, ctx, 2);
+            expect(cb).toHaveBeenCalledWith(walked1.child2.child3, undefined, ctx, 3);
+            expect(cb).toHaveBeenCalledTimes(4);
+            expect(result).toEqual(4);
         });
 
         it('should visit every node of an array', () => {
@@ -363,11 +385,11 @@ describe('json module', () => {
 
             const cb = jest.fn();
             jsonWalk(walked1, cb, undefined, walked2);
-            expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined);
-            expect(cb).toHaveBeenCalledWith(walked1[0], walked2[0], undefined);
-            expect(cb).toHaveBeenCalledWith(walked1[1], walked2[1], undefined);
-            expect(cb).toHaveBeenCalledWith(walked1[2], walked2[2], undefined);
-            expect(cb).toHaveBeenCalledWith(walked1[3], undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1[0], walked2[0], undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1[1], walked2[1], undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1[2], walked2[2], undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1[3], undefined, undefined, undefined);
             expect(cb).toHaveBeenCalledTimes(5);
         });
 
@@ -377,12 +399,12 @@ describe('json module', () => {
 
             const cb = jest.fn();
             jsonWalk(walked1, cb, undefined, walked2);
-            expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined);
-            expect(cb).toHaveBeenCalledWith(walked1.prop1, walked2.prop1, undefined);
-            expect(cb).toHaveBeenCalledWith(walked1.prop1[0], walked2.prop1[0], undefined);
-            expect(cb).toHaveBeenCalledWith(walked1.prop1[1], walked2.prop1[1], undefined);
-            expect(cb).toHaveBeenCalledWith(walked1.prop1[2], walked2.prop1[2], undefined);
-            expect(cb).toHaveBeenCalledWith(walked1.prop1[3], undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.prop1, walked2.prop1, undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.prop1[0], walked2.prop1[0], undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.prop1[1], walked2.prop1[1], undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.prop1[2], walked2.prop1[2], undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.prop1[3], undefined, undefined, undefined);
             expect(cb).toHaveBeenCalledTimes(6);
         });
 
@@ -399,8 +421,8 @@ describe('json module', () => {
 
             const cb = jest.fn();
             jsonWalk(walked1, cb, new Set(['child1', 'child3']), walked2);
-            expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined);
-            expect(cb).toHaveBeenCalledWith(walked1.child2, undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1, walked2, undefined, undefined);
+            expect(cb).toHaveBeenCalledWith(walked1.child2, undefined, undefined, undefined);
             expect(cb).toHaveBeenCalledTimes(2);
         });
     });

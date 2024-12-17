@@ -169,6 +169,7 @@ class AgChartsInternal {
         licenseManager?: LicenseManager;
         specialOverrides?: Partial<ChartSpecialOverrides>;
         optionsMetadata?: ChartInternalOptionMetadata;
+        stripSymbols?: boolean;
     }) {
         let { proxy } = opts;
         const {
@@ -178,6 +179,7 @@ class AgChartsInternal {
             specialOverrides = proxy?.chart.chartOptions.specialOverrides ?? {},
             optionsMetadata = proxy?.chart.chartOptions.optionMetadata ?? {},
             deltaOptions,
+            stripSymbols = false,
         } = opts;
         const styles = enterpriseModule.styles != null ? [['ag-charts-enterprise', enterpriseModule.styles]] : [];
 
@@ -212,7 +214,8 @@ class AgChartsInternal {
                 styleContainer,
             },
             optionsMetadata,
-            deltaOptions
+            deltaOptions,
+            stripSymbols
         );
 
         let create = false;
@@ -263,22 +266,36 @@ class AgChartsInternal {
         return proxy;
     }
 
-    private static markRemovedProperties(this: void, node: any) {
-        if (typeof node !== 'object') return;
+    private static markRemovedProperties(this: void, node: any, _: unknown, modified = false) {
+        if (typeof node !== 'object') return modified;
         for (const [key, value] of Object.entries(node)) {
             if (typeof value === 'undefined') {
                 Object.assign(node, { [key]: Symbol('UNSET') });
+                modified ||= true;
             }
         }
+
+        return modified;
     }
 
     static updateUserDelta(proxy: AgChartInstanceProxy, deltaOptions: DeepPartial<AgChartOptions>) {
         deltaOptions = deepClone(deltaOptions, new Set(['data']));
 
-        jsonWalk(deltaOptions, AgChartsInternal.markRemovedProperties, new Set(['data']));
+        const stripSymbols = jsonWalk(
+            deltaOptions,
+            AgChartsInternal.markRemovedProperties,
+            new Set(['data']),
+            undefined,
+            undefined,
+            false
+        );
 
         debug('>>> AgCharts.updateUserDelta() user delta', deltaOptions);
-        AgChartsInternal.createOrUpdate({ proxy, deltaOptions });
+        AgChartsInternal.createOrUpdate({
+            proxy,
+            deltaOptions,
+            stripSymbols,
+        });
     }
 
     private static createChartInstance(this: void, options: ChartOptions, oldChart?: Chart): Chart {
