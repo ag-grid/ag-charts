@@ -102,8 +102,8 @@ export class ZoomToolbar extends BaseProperties {
         this.destroyFns.push(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             this.toolbar.addToolbarListener('button-focused', this.onButtonFocus.bind(this)),
-            ctx.domManager.seriesWidget.addListener('mousemove', this.onHover.bind(this)),
-            ctx.domManager.seriesWidget.addListener('mouseleave', this.onLeave.bind(this)),
+            ctx.domManager.containerWidget.addListener('mousemove', this.onHover.bind(this)),
+            ctx.domManager.containerWidget.addListener('mouseleave', this.onLeave.bind(this)),
             ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             this.teardown.bind(this)
         );
@@ -145,13 +145,13 @@ export class ZoomToolbar extends BaseProperties {
             ctx: { scene },
         } = this;
         const {
-            offsetY,
+            currentY,
             sourceEvent: { target },
         } = event;
 
         const element = container.getElement();
         const detectionY = element.offsetTop - detectionRange;
-        const visible = (offsetY > detectionY && offsetY < scene.canvas.element.offsetHeight) || target === element;
+        const visible = (currentY > detectionY && currentY < scene.canvas.element.offsetHeight) || target === element;
 
         this.toggleVisibility(visible);
     }
