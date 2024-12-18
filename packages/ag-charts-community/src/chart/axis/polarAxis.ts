@@ -3,6 +3,7 @@ import type { BBox } from '../../scene/bbox';
 import { RATIO, UNION, Validate } from '../../util/validation';
 import { Axis } from './axis';
 import type { TickInterval } from './axisTick';
+import { prepareAxisAnimationContext, resetAxisLabelSelectionFn, resetAxisSelectionFn } from './axisUtil';
 
 export interface PolarAxisPathPoint {
     x: number;
@@ -16,7 +17,9 @@ export interface PolarAxisPathPoint {
 export abstract class PolarAxis<
     S extends Scale<D, number, TickInterval<S>> = Scale<any, number, any>,
     D = any,
-> extends Axis<S, D> {
+    TickDatum = any,
+    TickLabelDatum = TickDatum,
+> extends Axis<S, D, TickDatum, TickLabelDatum> {
     gridAngles: number[] | undefined;
     gridRange: number[] | undefined;
 
@@ -27,6 +30,19 @@ export abstract class PolarAxis<
     innerRadiusRatio: number = 0;
 
     protected override defaultTickMinSpacing = 20;
+
+    override updatePosition(): void {
+        super.updatePosition();
+
+        const selectionCtx = prepareAxisAnimationContext(this);
+        const resetAxisFn = resetAxisSelectionFn(selectionCtx);
+
+        this.axisGroup.setProperties(this.getAxisTransform());
+
+        this.gridLineGroupSelection.each(resetAxisFn as any);
+        this.tickLineGroupSelection.each(resetAxisFn as any);
+        this.tickLabelGroupSelection.each(resetAxisLabelSelectionFn() as any);
+    }
 
     computeLabelsBBox(_options: { hideWhenNecessary: boolean }, _seriesRect: BBox): BBox | null {
         return null;

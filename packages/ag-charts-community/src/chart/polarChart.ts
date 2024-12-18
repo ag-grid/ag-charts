@@ -57,7 +57,15 @@ export class PolarChart extends Chart {
         angleAxis.computeRange();
         angleAxis.gridLength = radius;
 
-        radiusAxis.gridAngles = angleScale.ticks?.().map((value) => angleScale.convert(value));
+        radiusAxis.gridAngles = angleScale
+            .ticks?.({
+                nice: angleAxis.nice,
+                interval: undefined,
+                tickCount: undefined,
+                minTickCount: 0,
+                maxTickCount: Infinity,
+            })
+            .map((value) => angleScale.convert(value));
         radiusAxis.gridRange = angleAxis.range;
         radiusAxis.range = [radius, radius * innerRadiusRatio];
 

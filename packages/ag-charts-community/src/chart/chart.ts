@@ -902,10 +902,6 @@ export abstract class Chart extends Observable {
             this.assignSeriesToAxes();
         }
 
-        for (const axis of this.axes) {
-            axis.processData();
-        }
-
         const dataController = new DataController(this.mode, this.suppressFieldDotNotation);
         const seriesPromises = this.series.map((s) => {
             s.resetDatumCallbackCache();
@@ -914,6 +910,10 @@ export abstract class Chart extends Observable {
         const modulePromises = this.modulesManager.mapModules((m) => m.processData?.(dataController));
         this._cachedData = dataController.execute(this._cachedData);
         await Promise.all([...seriesPromises, ...modulePromises]);
+
+        for (const axis of this.axes) {
+            axis.processData();
+        }
 
         this.updateLegends();
     }

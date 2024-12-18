@@ -17,7 +17,13 @@ const {
     Group,
     Path,
     Selection,
+    AxisTickGenerator,
 } = _ModuleSupport;
+
+interface GeneratedTicks {
+    ticks: _ModuleSupport.TickDatum[];
+    labels: _ModuleSupport.LabelNodeDatum[];
+}
 
 class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
     @Validate(BOOLEAN, { optional: true })
@@ -27,12 +33,18 @@ class RadiusAxisLabel extends _ModuleSupport.AxisLabel {
     autoRotateAngle: number = 335;
 }
 
-export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
+export abstract class RadiusAxis<
+    S extends _ModuleSupport.Scale<D, number, _ModuleSupport.TickInterval<S>> = _ModuleSupport.Scale<any, number, any>,
+    D = any,
+> extends _ModuleSupport.PolarAxis<S, D, _ModuleSupport.TickDatum, _ModuleSupport.LabelNodeDatum> {
     protected static override CrossLineConstructor: new () => _ModuleSupport.CrossLine<any> = RadiusCrossLine;
 
     @Validate(NUMBER)
     @Default(0)
     positionAngle: number = 0;
+
+    private readonly tickGenerator = new AxisTickGenerator<S, D>(this as any);
+    private generatedTicks: GeneratedTicks | undefined = undefined;
 
     protected readonly gridPathGroup = this.gridGroup.appendChild(
         new Group({
@@ -45,6 +57,14 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
 
     get direction() {
         return ChartAxisDirection.Y;
+    }
+
+    constructor(moduleCtx: _ModuleSupport.ModuleContext, scale: S) {
+        super(moduleCtx, scale);
+
+        this.axisGroup.appendChild(this.title.caption.node);
+
+        this.destroyFns.push(this.title.caption.registerInteraction(this.moduleCtx, 'afterend'));
     }
 
     protected override getAxisTransform() {
@@ -61,30 +81,126 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
         };
     }
 
-    protected abstract prepareTickData(tickData: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[];
+    override update(): void {
+        super.update();
+
+        this.updateTitle();
+    }
+
+    override calculateTickLayout(
+        domain: D[],
+        initialPrimaryTickCount?: number
+    ): {
+        niceDomain: D[];
+        primaryTickCount: number | undefined;
+        labelFormatter: ((x: any) => string) | undefined;
+        datumFormatter: ((x: any) => string) | undefined;
+        fractionDigits: number;
+        bbox: undefined;
+    } {
+        const { parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
+
+        const tickGenerationResult = this.processTicks(
+            domain,
+            initialPrimaryTickCount,
+            parallelFlipRotation,
+            regularFlipRotation
+        );
+        const tickData = tickGenerationResult?.tickData;
+        const primaryTickCount = tickGenerationResult?.primaryTickCount ?? initialPrimaryTickCount;
+
+        const ticks = tickData?.ticks ?? [];
+        const labels =
+            tickGenerationResult?.tickData.ticks?.map((d) => this.getTickLabelProps(d, tickGenerationResult)) ?? [];
+
+        this.generatedTicks = { ticks, labels };
+
+        const niceDomain = tickData?.niceDomain ?? domain;
+        const labelFormatter = tickData?.labelFormatter;
+        const datumFormatter = tickData?.datumFormatter;
+        const fractionDigits = tickData?.fractionDigits ?? 0;
+
+        return { niceDomain, primaryTickCount, labelFormatter, datumFormatter, fractionDigits, bbox: undefined };
+    }
+
+    private processTicks(
+        domain: D[],
+        primaryTickCount: number | undefined,
+        parallelFlipRotation: number,
+        regularFlipRotation: number
+    ) {
+        const visibleRange: [number, number] = [0, 1];
+        const sideFlag = this.label.getSideFlag();
+        const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
+
+        const ticksEnabled = this.label.enabled || this.tick.enabled || this.gridLine.enabled;
+        const tickGenerationResult = ticksEnabled
+            ? this.tickGenerator.generateTicks({
+                  domain,
+                  visibleRange,
+                  primaryTickCount,
+                  parallelFlipRotation,
+                  regularFlipRotation,
+                  labelX,
+                  sideFlag,
+              })
+            : undefined;
+
+        return tickGenerationResult;
+    }
+
+    protected abstract prepareGridPathTickData(tickData: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[];
     protected abstract getTickRadius(tickDatum: _ModuleSupport.TickDatum): number;
 
-    protected override updateSelections(
-        lineData: _ModuleSupport.AxisLineDatum,
-        data: _ModuleSupport.TickDatum[],
-        params: {
-            combinedRotation: number;
-            textBaseline: CanvasTextBaseline;
-            textAlign: CanvasTextAlign;
-            range: number[];
-        }
-    ) {
-        super.updateSelections(lineData, data, params);
+    protected updateSelections() {
+        const { generatedTicks } = this;
+        if (!generatedTicks) return;
+
+        const { ticks, labels } = generatedTicks;
+
+        this.gridLineGroupSelection.update(this.gridLength ? ticks : []);
+        this.tickLineGroupSelection.update(ticks);
+        this.tickLabelGroupSelection.update(labels);
+        this.gridPathSelection.update(this.gridLine.enabled ? this.prepareGridPathTickData(ticks) : []);
+
+        this.gridLineGroupSelection.cleanup();
+        this.tickLineGroupSelection.cleanup();
+        this.tickLabelGroupSelection.cleanup();
+        this.gridPathSelection.cleanup();
+    }
+
+    // TODO - abstract out
+    protected override updateLabels() {
+        if (!this.label.enabled) return;
+
+        const axisLabelPositionFn = _ModuleSupport.resetAxisLabelSelectionFn();
+
+        // Apply label option values
+        this.tickLabelGroupSelection.each((node, datum) => {
+            node.fill = datum.fill;
+            node.fontFamily = datum.fontFamily;
+            node.fontSize = datum.fontSize;
+            node.fontStyle = datum.fontStyle;
+            node.fontWeight = datum.fontWeight;
+            node.text = datum.text;
+            node.textBaseline = datum.textBaseline;
+            node.textAlign = datum.textAlign ?? 'center';
+
+            node.setProperties(axisLabelPositionFn(node, datum));
+        });
+    }
+
+    protected override updateGridLines(): void {
+        super.updateGridLines();
 
         const {
-            gridLine: { enabled, style, width },
+            gridLine: { style, width },
             shape,
+            generatedTicks,
         } = this;
-        if (!style) {
+        if (!style || !generatedTicks) {
             return;
         }
-
-        const ticks = this.prepareTickData(data);
 
         const styleCount = style.length;
         const setStyle = (node: _ModuleSupport.Path | _ModuleSupport.Arc, index: number) => {
@@ -146,17 +262,14 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
             path.closePath();
         };
 
-        this.gridPathSelection.update(enabled ? ticks : []).each((node, value, index) => {
+        const drawFn = shape === 'circle' ? drawCircleShape : drawPolygonShape;
+        this.gridPathSelection.each((node, value, index) => {
             setStyle(node, index);
-            if (shape === 'circle') {
-                drawCircleShape(node, value);
-            } else {
-                drawPolygonShape(node, value);
-            }
+            drawFn(node, value);
         });
     }
 
-    protected override updateTitle() {
+    private updateTitle() {
         const identityFormatter = (params: AgAxisCaptionFormatterParams) => params.defaultValue;
         const {
             title,
@@ -206,5 +319,34 @@ export abstract class RadiusAxis extends _ModuleSupport.PolarAxis {
 
     protected override createLabel() {
         return new RadiusAxisLabel();
+    }
+
+    // TODO - abstract out (shared with cartesian axis)
+    private getTickLabelProps(
+        datum: _ModuleSupport.TickDatum,
+        tickGenerationResult: _ModuleSupport.TickGenerationResult
+    ): _ModuleSupport.LabelNodeDatum {
+        const { label } = this;
+        const { combinedRotation, textBaseline, textAlign } = tickGenerationResult;
+        const range = this.scale.range;
+        const text = datum.tickLabel;
+        const sideFlag = label.getSideFlag();
+        const labelX = sideFlag * (this.getTickSize() + label.spacing + this.seriesAreaPadding);
+        const visible = text !== '' && text != null;
+
+        return {
+            ...this.getLabelStyles({ value: datum.tickLabel }),
+            tickId: datum.tickId,
+            rotation: combinedRotation,
+            rotationCenterX: labelX,
+            translationY: datum.translationY,
+            text,
+            textAlign,
+            textBaseline,
+            visible,
+            x: labelX,
+            y: 0,
+            range,
+        };
     }
 }

@@ -5,14 +5,31 @@ describe('LogScale', () => {
         {
             const scale = new LogScale();
             scale.domain = [100, 1000000];
-            expect(scale.ticks()).toEqual([100, 1000, 10000, 100000, 1000000]);
-            scale.tickCount = 4;
-            expect(scale.ticks()).toEqual([100, 1000, 10000, 100000, 1000000]);
+
+            const ticks = {
+                nice: true,
+                interval: undefined,
+                tickCount: undefined as number | undefined,
+                minTickCount: 0,
+                maxTickCount: Infinity,
+            };
+            expect(scale.ticks(ticks)).toEqual([100, 1000, 10000, 100000, 1000000]);
+
+            ticks.tickCount = 4;
+            expect(scale.ticks(ticks)).toEqual([100, 1000, 10000, 100000, 1000000]);
         }
         {
             const scale = new LogScale();
             scale.domain = [-1000, -10];
-            expect(scale.ticks()).toEqual([-1000, -300, -100, -30, -10]);
+
+            const ticks = {
+                nice: true,
+                interval: undefined,
+                tickCount: undefined,
+                minTickCount: 0,
+                maxTickCount: Infinity,
+            };
+            expect(scale.ticks(ticks)).toEqual([-1000, -300, -100, -30, -10]);
         }
     });
 
@@ -93,9 +110,16 @@ describe('LogScale', () => {
 
             scale.range = [0, 600];
             scale.domain = domain;
-            scale.interval = interval;
 
-            expect(scale.ticks()).toMatchSnapshot();
+            const ticks = {
+                nice: true,
+                interval,
+                tickCount: undefined,
+                minTickCount: 0,
+                maxTickCount: Infinity,
+            };
+
+            expect(scale.ticks(ticks)).toMatchSnapshot();
         });
     });
 
@@ -117,28 +141,31 @@ describe('LogScale', () => {
         const expTicks = [20.085536923187668, 54.598150033144236, 148.4131591025766, 403.4287934927351];
         const scale = new LogScale();
         scale.domain = [10, 1000];
-        expect(scale.ticks()).not.toEqual(expTicks);
+
+        const ticks = {
+            nice: true,
+            interval: undefined,
+            tickCount: undefined,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        };
+        expect(scale.ticks(ticks)).not.toEqual(expTicks);
         scale.base = Math.E;
-        expect(scale.ticks()).toEqual(expTicks);
+        expect(scale.ticks(ticks)).toEqual(expTicks);
     });
 
     test('nice', () => {
         {
             const scale = new LogScale();
             scale.domain = [57, 775];
-            scale.nice = true;
-            scale.update();
-            expect(scale.nice).toBe(true);
-            expect(scale.niceDomain).toEqual([10, 1000]);
+            expect(scale.niceDomain(null! /* Tick params aren't used */)).toEqual([10, 1000]);
         }
 
         {
             const scale = new LogScale();
             scale.domain = [Math.E * 1.234, Math.E * 5.783];
             scale.base = Math.E;
-            scale.nice = true;
-            scale.update();
-            const domain = scale.niceDomain;
+            const domain = scale.niceDomain(null! /* Tick params aren't used */);
             expect(Math.log(domain[0])).toEqual(1);
             expect(Math.log(domain[1])).toEqual(3);
         }

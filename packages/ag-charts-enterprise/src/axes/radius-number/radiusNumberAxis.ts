@@ -30,9 +30,9 @@ export class RadiusNumberAxis extends RadiusAxis {
         super(moduleCtx, new LinearScale());
     }
 
-    protected prepareTickData(data: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[] {
+    protected prepareGridPathTickData(data: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[] {
         const { scale } = this;
-        const domainTop = scale.getDomain?.()[1];
+        const domainTop = scale.domain[1];
         return data
             .filter(({ tick }) => tick !== domainTop) // Prevent outer tick being drawn behind polar line
             .sort((a, b) => b.tick - a.tick); // Apply grid styles starting from the largest arc

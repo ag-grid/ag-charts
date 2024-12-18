@@ -77,6 +77,18 @@ export class CartesianChart extends Chart {
 
     private lastUpdateClipRect: BBox | undefined = undefined;
 
+    override async processData(): Promise<void> {
+        await super.processData();
+
+        for (const axis of this.axes) {
+            const syncedDomain = this.getSyncedDomain(axis);
+
+            if (syncedDomain != null) {
+                (axis as any).setDomain(syncedDomain);
+            }
+        }
+    }
+
     protected performLayout(ctx: LayoutContext) {
         const { firstSeriesTranslation, seriesRoot, annotationRoot } = this;
         const { clipSeries, seriesRect, visible } = this.updateAxes(ctx.layoutBox);
@@ -219,14 +231,15 @@ export class CartesianChart extends Chart {
 
             this.sizeAxis(axis, seriesRect, position);
 
-            const syncedDomain = this.getSyncedDomain(axis);
             const isVertical = direction === ChartAxisDirection.Y;
-            const layout = axis.calculateLayout(syncedDomain, axis.nice ? primaryTickCounts[direction] : undefined);
+            const { primaryTickCount, bbox } = axis.calculateLayout(
+                axis.nice ? primaryTickCounts[direction] : undefined
+            );
 
-            primaryTickCounts[direction] ??= layout.primaryTickCount;
+            primaryTickCounts[direction] ??= primaryTickCount;
             clipSeries ||= axis.dataDomain.clipped || axis.visibleRange[0] > 0 || axis.visibleRange[1] < 1;
 
-            axisWidths.set(axis.id, Math.ceil(axis.thickness ?? (isVertical ? layout.bbox.width : layout.bbox.height)));
+            axisWidths.set(axis.id, Math.ceil(axis.thickness ?? (isVertical ? bbox?.width ?? 0 : bbox?.height ?? 0)));
         }
 
         const axisGroups = Object.entries(groupBy(this.axes, (axis) => axis.position ?? 'left')) as [

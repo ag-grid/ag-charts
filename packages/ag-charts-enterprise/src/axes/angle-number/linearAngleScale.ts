@@ -1,44 +1,12 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const { range, isDenseInterval, isNumberEqual, LinearScale, Invalidating } = _ModuleSupport;
+const { range, isDenseInterval, isNumberEqual, LinearScale } = _ModuleSupport;
 
 export class LinearAngleScale extends LinearScale {
-    @Invalidating
-    arcLength: number = 0;
-
-    private niceTickStep = 0;
-
-    override ticks(): number[] {
-        if (!this.domain || this.domain.length < 2 || this.domain.some((d) => !isFinite(d)) || this.arcLength <= 0) {
-            return [];
-        }
-        this.refresh();
-
-        const { interval } = this;
-        const [d0, d1] = this.getDomain();
-
-        if (interval) {
-            const step = Math.abs(interval);
-            const availableRange = this.getPixelRange();
-            if (!isDenseInterval((d1 - d0) / step, availableRange)) {
-                return range(d0, d1, step);
-            }
-        }
-
-        const step = this.nice && this.niceTickStep ? this.niceTickStep : this.getTickStep(d0, d1);
-        return range(d0, d1, step);
-    }
-
-    private hasNiceRange() {
-        const sortedRange = this.range.slice().sort((a, b) => a - b);
-        const niceRanges = [Math.PI, 2 * Math.PI];
-        return niceRanges.some((r) => isNumberEqual(r, sortedRange[1] - sortedRange[0]));
-    }
-
-    private getNiceStepAndTickCount() {
-        const [start, stop] = this.niceDomain;
-        let step = this.getTickStep(start, stop);
-        const maxTickCount = isNaN(this.maxTickCount) ? Infinity : this.maxTickCount;
+    static getNiceStepAndTickCount(ticks: _ModuleSupport.ScaleTickParams<number>, domain: number[]) {
+        const [start, stop] = domain;
+        let step = LinearScale.getTickStep(start, stop, ticks);
+        const maxTickCount = isNaN(ticks.maxTickCount) ? Infinity : ticks.maxTickCount;
         const expectedTickCount = Math.abs(stop - start) / step;
         let niceTickCount = Math.pow(2, Math.ceil(Math.log(expectedTickCount) / Math.log(2)));
         if (niceTickCount > maxTickCount) {
@@ -48,19 +16,55 @@ export class LinearAngleScale extends LinearScale {
         return { count: niceTickCount, step };
     }
 
-    protected override updateNiceDomain() {
-        super.updateNiceDomain();
+    arcLength: number = 0;
 
-        if (!this.hasNiceRange()) return;
+    override ticks(ticks: _ModuleSupport.ScaleTickParams<number>, domain: number[] = this.domain): number[] {
+        const { arcLength } = this;
 
-        const reversed = this.niceDomain[0] > this.niceDomain[1];
-        const start = reversed ? this.niceDomain[1] : this.niceDomain[0];
-        const { step, count } = this.getNiceStepAndTickCount();
+        if (!domain || domain.length < 2 || domain.some((d) => !isFinite(d)) || arcLength <= 0) {
+            return [];
+        }
+
+        const { nice, interval } = ticks;
+        const [d0, d1] = domain;
+
+        if (interval) {
+            const step = Math.abs(interval);
+            const availableRange = this.getPixelRange();
+            if (!isDenseInterval((d1 - d0) / step, availableRange)) {
+                return range(d0, d1, step);
+            }
+        }
+
+        let step: number;
+        if (nice && this.hasNiceRange()) {
+            const linearNiceDomain = super.niceDomain(ticks, domain);
+            step = LinearAngleScale.getNiceStepAndTickCount(ticks, linearNiceDomain).step;
+        } else {
+            step = LinearScale.getTickStep(d0, d1, ticks);
+        }
+
+        return range(d0, d1, step);
+    }
+
+    private hasNiceRange() {
+        const sortedRange = this.range.slice().sort((a, b) => a - b);
+        const niceRanges = [Math.PI, 2 * Math.PI];
+        return niceRanges.some((r) => isNumberEqual(r, sortedRange[1] - sortedRange[0]));
+    }
+
+    override niceDomain(ticks: _ModuleSupport.ScaleTickParams<number>, domain: number[] = this.domain): number[] {
+        const linearNiceDomain = super.niceDomain(ticks, domain);
+
+        if (!this.hasNiceRange()) return linearNiceDomain;
+
+        const reversed = linearNiceDomain[0] > linearNiceDomain[1];
+        const start = reversed ? linearNiceDomain[1] : linearNiceDomain[0];
+        const { step, count } = LinearAngleScale.getNiceStepAndTickCount(ticks, linearNiceDomain);
         const s = 1 / step; // Prevent floating point error
         const stop = step >= 1 ? Math.ceil(start / step + count) * step : Math.ceil((start + count * step) * s) / s;
 
-        this.niceDomain = reversed ? [stop, start] : [start, stop];
-        this.niceTickStep = step;
+        return reversed ? [stop, start] : [start, stop];
     }
 
     protected override getPixelRange() {

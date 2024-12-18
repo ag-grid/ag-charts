@@ -2,7 +2,7 @@ import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
 import { dateToNumber } from '../util/timeFormatDefaults';
 import { Invalidating } from './invalidating';
-import type { Scale } from './scale';
+import type { Scale, ScaleFormatParams, ScaleTickParams } from './scale';
 
 /**
  * Maps a discrete domain to a continuous numeric range.
@@ -70,9 +70,8 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         return this._domain;
     }
 
-    ticks(): D[] {
-        this.refresh();
-        return this._domain;
+    ticks(_params: ScaleTickParams<I>, domain: D[] = this.domain, _visibleRange?: [number, number]): D[] {
+        return domain;
     }
 
     convert(d: D): number {
@@ -171,6 +170,7 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
      */
     private _paddingInner = 0;
     set paddingInner(value: number) {
+        this.invalid = true;
         this._paddingInner = clamp(0, value, 1);
     }
     get paddingInner(): number {
@@ -183,6 +183,7 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
      */
     private _paddingOuter = 0;
     set paddingOuter(value: number) {
+        this.invalid = true;
         this._paddingOuter = clamp(0, value, 1);
     }
     get paddingOuter(): number {
@@ -233,5 +234,13 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
 
     private getIndex(value: D) {
         return this.index.get(value instanceof Date ? (value.getTime() as D) : value);
+    }
+
+    tickFormatter(_params: ScaleFormatParams<D>): ((x: any) => string) | undefined {
+        return;
+    }
+
+    datumFormatter(_params: ScaleFormatParams<D>): ((x: any) => string) | undefined {
+        return undefined;
     }
 }

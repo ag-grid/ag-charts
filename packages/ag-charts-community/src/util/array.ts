@@ -49,7 +49,7 @@ export function normalisedExtentWithMetadata(
     return { extent: d, clipped };
 }
 
-export function arraysEqual(a: any[], b: any[]): boolean {
+export function arraysEqual(a: readonly any[], b: readonly any[]): boolean {
     if (a == null || b == null || a.length !== b.length) {
         return false;
     }

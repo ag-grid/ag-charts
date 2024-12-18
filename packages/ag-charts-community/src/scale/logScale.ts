@@ -1,91 +1,89 @@
-import { identity } from '../util/function';
-import { Logger } from '../util/logger';
-import { findRangeExtent, isInteger } from '../util/number';
+import { findMinMax, findRangeExtent, isInteger } from '../util/number';
 import { numberFormat } from '../util/numberFormat';
 import { createTicks, isDenseInterval, range } from '../util/ticks';
-import { isString } from '../util/type-guards';
 import { ContinuousScale } from './continuousScale';
-import { Invalidating } from './invalidating';
+import type { ScaleFormatParams, ScaleTickParams } from './scale';
+
+const logFunctions: Record<number, (base: number, x: number) => number> = {
+    2: (_base, x) => Math.log2(x),
+    [Math.E]: (_base, x) => Math.log(x),
+    10: (_base, x) => Math.log10(x),
+};
+
+const DEFAULT_LOG = (base: number, x: number) => Math.log(x) / Math.log(base);
+
+function log(base: number, domain: number[], x: number) {
+    const start = Math.min(...domain);
+    const fn = logFunctions[base] ?? DEFAULT_LOG;
+    return start >= 0 ? fn(base, x) : -fn(base, -x);
+}
+
+const powFunctions: Record<number, (base: number, x: number) => number> = {
+    [Math.E]: (_base, x) => Math.exp(x),
+    10: (_base, x) => (x >= 0 ? 10 ** x : 1 / 10 ** -x),
+};
+
+const DEFAULT_POW = (base: number, x: number) => base ** x;
+
+function pow(base: number, domain: number[], x: number) {
+    const start = Math.min(...domain);
+    const fn = powFunctions[base] ?? DEFAULT_POW;
+    return start >= 0 ? fn(base, x) : -fn(base, -x);
+}
 
 export class LogScale extends ContinuousScale<number> {
     readonly type = 'log';
 
+    // Handling <1 and crossing 0 cases is tricky, easiest solution is to default to clamping.
+    protected override defaultClamp: boolean = true;
+
     public constructor() {
         super([1, 10], [0, 1]);
-
-        // Handling <1 and crossing 0 cases is tricky, easiest solution is to default to clamping.
-        this.defaultClamp = true;
     }
 
     toDomain(d: number): number {
         return d;
     }
 
-    @Invalidating
     base = 10;
 
     protected override transform(x: any) {
-        const start = Math.min(...this.domain);
-        return start >= 0 ? Math.log(x) : -Math.log(-x);
+        const [min, max] = findMinMax(this.domain);
+        if (min >= 0 !== max >= 0) return NaN;
+        return min >= 0 ? Math.log(x) : -Math.log(-x);
     }
 
     protected override transformInvert(x: any) {
-        const start = Math.min(...this.domain);
-        return start >= 0 ? Math.exp(x) : -Math.exp(-x);
+        const [min, max] = findMinMax(this.domain);
+        if (min >= 0 !== max >= 0) return NaN;
+        return min >= 0 ? Math.exp(x) : -Math.exp(-x);
     }
 
-    protected override refresh(): void {
-        if (this.base <= 0) {
-            this.base = 0;
-            Logger.warnOnce('expecting a finite Number greater than to 0');
-        }
+    private readonly log = (x: number) => log(this.base, this.domain, x);
+    private readonly pow = (x: number) => pow(this.base, this.domain, x);
 
-        super.refresh();
-    }
-
-    update() {
-        if (!this.domain || this.domain.length < 2) {
-            return;
-        }
-        this.baseLog = LogScale.getBaseLogMethod(this.base);
-        this.basePow = LogScale.getBasePowerMethod(this.base);
-        if (this.nice) {
-            this.updateNiceDomain();
-        }
-    }
-
-    private baseLog: (x: number) => number = identity;
-    private basePow: (x: number) => number = identity;
-
-    private readonly log = (x: number) => {
-        const start = Math.min(...this.domain);
-        return start >= 0 ? this.baseLog(x) : -this.baseLog(-x);
-    };
-
-    private readonly pow = (x: number) => {
-        const start = Math.min(...this.domain);
-        return start >= 0 ? this.basePow(x) : -this.basePow(-x);
-    };
-
-    protected updateNiceDomain() {
-        const [d0, d1] = this.domain;
+    niceDomain(_ticks: ScaleTickParams<number>, domain: number[] = this.domain): number[] {
+        const { base } = this;
+        const [d0, d1] = domain;
 
         const roundStart = d0 > d1 ? Math.ceil : Math.floor;
         const roundStop = d0 > d1 ? Math.floor : Math.ceil;
 
-        const n0 = this.pow(roundStart(this.log(d0)));
-        const n1 = this.pow(roundStop(this.log(d1)));
-        this.niceDomain = [n0, n1];
+        const n0 = pow(base, domain, roundStart(log(base, domain, d0)));
+        const n1 = pow(base, domain, roundStop(log(base, domain, d1)));
+
+        return [n0, n1];
     }
 
-    ticks(): number[] {
-        const count = this.tickCount ?? 10;
-        if (!this.domain || this.domain.length < 2 || count < 1) {
+    ticks(
+        { interval, tickCount = ContinuousScale.defaultTickCount }: ScaleTickParams<number>,
+        domain: number[] = this.domain
+    ): number[] {
+        if (!domain || domain.length < 2 || tickCount < 1) {
             return [];
         }
-        this.refresh();
         const base = this.base;
-        const [d0, d1] = this.getDomain();
+        const [d0, d1] = domain;
 
         const start = Math.min(d0, d1);
         const stop = Math.max(d0, d1);
@@ -93,9 +91,9 @@ export class LogScale extends ContinuousScale<number> {
         let p0 = this.log(start);
         let p1 = this.log(stop);
 
-        if (this.interval) {
+        if (interval) {
             const inBounds = (tick: number) => tick >= start && tick <= stop;
-            const step = Math.min(Math.abs(this.interval), Math.abs(p1 - p0));
+            const step = Math.min(Math.abs(interval), Math.abs(p1 - p0));
             const ticks = range(p0, p1, step).map(this.pow).filter(inBounds);
 
             if (!isDenseInterval(ticks.length, this.getPixelRange())) {
@@ -105,8 +103,8 @@ export class LogScale extends ContinuousScale<number> {
 
         // If base is a float or the difference between p1 and p0 is large,
         // returns ticks in the format [10^1, 10^2, 10^3, 10^4, ...].
-        if (!isInteger(base) || p1 - p0 >= count) {
-            return createTicks(p0, p1, Math.min(p1 - p0, count)).map(this.pow);
+        if (!isInteger(base) || p1 - p0 >= tickCount) {
+            return createTicks(p0, p1, Math.min(p1 - p0, tickCount)).map(this.pow);
         }
 
         const ticks: number[] = [];
@@ -114,7 +112,7 @@ export class LogScale extends ContinuousScale<number> {
         p0 = Math.floor(p0) - 1;
         p1 = Math.round(p1) + 1;
 
-        const availableSpacing = findRangeExtent(this.range) / count;
+        const availableSpacing = findRangeExtent(this.range) / tickCount;
         let lastTickPosition = Infinity;
         for (let p = p0; p <= p1; p++) {
             const nextMagnitudeTickPosition = this.convert(this.pow(p + 1));
@@ -134,32 +132,11 @@ export class LogScale extends ContinuousScale<number> {
         return ticks;
     }
 
-    tickFormat({ specifier }: { specifier?: string | ((x: number) => string) }): (x: number) => string {
-        specifier ??= this.base === 10 ? '.0e' : ',';
-        return isString(specifier) ? numberFormat(specifier) : specifier;
+    tickFormatter({ specifier }: ScaleFormatParams<number>): (x: number) => string {
+        return specifier != null ? numberFormat(specifier) : String;
     }
 
-    static getBaseLogMethod(base: number) {
-        switch (base) {
-            case 10:
-                return Math.log10;
-            case Math.E:
-                return Math.log;
-            case 2:
-                return Math.log2;
-            default:
-                return (x: number) => Math.log(x) / Math.log(base);
-        }
-    }
-
-    static getBasePowerMethod(base: number) {
-        switch (base) {
-            case 10:
-                return (x: number) => (x >= 0 ? 10 ** x : 1 / 10 ** -x);
-            case Math.E:
-                return Math.exp;
-            default:
-                return (x: number) => base ** x;
-        }
+    datumFormatter(params: ScaleFormatParams<number>) {
+        return this.tickFormatter(params);
     }
 }

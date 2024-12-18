@@ -24,13 +24,4 @@ export class OrdinalTimeAxis extends _ModuleSupport.CategoryAxis<_ModuleSupport.
         const domain = sortAndUniqueDates(d);
         super.setDomain(domain);
     }
-
-    protected override onFormatChange(ticks: any[], fractionDigits: number, domain: any[], format?: string) {
-        if (format) {
-            super.onFormatChange(ticks, fractionDigits, domain, format);
-        } else {
-            // For time axis labels to look nice, even if date format wasn't set.
-            this.labelFormatter = this.scale.tickFormat({ ticks, domain });
-        }
-    }
 }
