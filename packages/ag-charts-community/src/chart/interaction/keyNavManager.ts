@@ -77,7 +77,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         }
 
         // Annotations listen for KeyInteractionEvent<'keydown'> instead of KeyNavEvent<T>:
-        if (!this.interactionManager.isState(InteractionState.AnnotationsMoveable)) {
+        if (this.interactionManager.isState(InteractionState.AnnotationsMoveable)) {
             // TODO: annotations should update the focus indicator bounds to surround the current annotation
             this.focusIndicator?.overrideFocusVisible(false);
             return;
