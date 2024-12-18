@@ -161,9 +161,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         let labelOverlap = true;
         let labelData: PlacedLabelDatum[] = [];
         let terminate = false;
-        while (labelOverlap && index <= maxIterations) {
-            if (terminate) break;
-
+        while (!terminate && labelOverlap && index <= maxIterations) {
             autoRotation = 0;
             textAlign = getTextAlign(parallel, configuredRotation, 0, sideFlag, regularFlipFlag);
 
@@ -187,7 +185,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
                 textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
                 labelData = createLabelData(tickData.ticks, labelX, labelMatrix, textMeasurer);
-                labelOverlap = label.avoidCollisions ? axisLabelsOverlap(labelData, labelSpacing) : false;
+                labelOverlap = label.avoidCollisions && axisLabelsOverlap(labelData, labelSpacing);
             }
         }
 
@@ -392,7 +390,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             (max, tick) => Math.max(max, typeof tick === 'number' ? countFractionDigits(tick) : 0),
             0
         );
-        const ticks: TickDatum[] = [];
 
         let labelCount = 0;
 
@@ -415,6 +412,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const scaleDomain = scale.domain;
         scale.domain = niceDomain;
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
+        const ticks: TickDatum[] = [];
         for (let i = 0; i < filteredTicks.length; i++) {
             const tick = filteredTicks[i];
             const translationY = scale.convert(tick) + halfBandwidth;

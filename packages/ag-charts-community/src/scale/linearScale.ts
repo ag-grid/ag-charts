@@ -42,6 +42,8 @@ export class LinearScale extends ContinuousScale<number> {
     }
 
     niceDomain(ticks: ScaleTickParams<number>, domain: number[] = this.domain) {
+        if (domain.length < 2) return [];
+
         const { tickCount = ContinuousScale.defaultTickCount } = ticks;
         let [start, stop] = domain;
 

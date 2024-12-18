@@ -63,6 +63,8 @@ export class LogScale extends ContinuousScale<number> {
     private readonly pow = (x: number) => pow(this.base, this.domain, x);
 
     niceDomain(_ticks: ScaleTickParams<number>, domain: number[] = this.domain): number[] {
+        if (domain.length < 2) return [];
+
         const { base } = this;
         const [d0, d1] = domain;
 

@@ -27,6 +27,8 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     }
 
     niceDomain(ticks: ScaleTickParams<TimeInterval | number>, domain: Date[] = this.domain): Date[] {
+        if (domain.length < 2) return [];
+
         const maxAttempts = 4;
         let [d0, d1] = domain;
         for (let i = 0; i < maxAttempts; i++) {
@@ -43,19 +45,9 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     /**
      * Returns uniformly-spaced dates that represent the scale's domain.
      */
-    ticks(
-        {
-            nice,
-            interval,
-            tickCount = ContinuousScale.defaultTickCount,
-            minTickCount,
-            maxTickCount,
-        }: ScaleTickParams<TimeInterval | number>,
-        domain: Date[] = this.domain
-    ): Date[] {
-        if (!domain || domain.length < 2) {
-            return [];
-        }
+    ticks(params: ScaleTickParams<TimeInterval | number>, domain: Date[] = this.domain): Date[] {
+        const { nice, interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount } = params;
+        if (domain.length < 2) return [];
 
         const [start, stop] = findMinMax(domain.map(dateToNumber));
 
@@ -67,7 +59,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         } else if (nice && tickCount === 2) {
             return domain;
         } else if (nice && tickCount === 1) {
-            return domain;
+            return domain.slice(0, 1);
         }
         return getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount });
     }
