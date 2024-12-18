@@ -87,8 +87,8 @@ export class WidgetListenerInternal {
     // listeners. However, we only want 1 DOM element to handle the dragging operation because doing so involves adding
     // temporary capture event listeners to the global `window` object. Therefore, this property much be static.
     //
-    // As a consequence, the widget `'drag-*'` events do not support propagation; but that's sufficient for us because we do
-    // not yet have a use-case when propagation is needed for drag events.
+    // As a consequence, the widget `'drag-*'` events do not support propagation; but that's sufficient for us because
+    // we do not yet have a use-case when propagation is needed for drag events.
     static globalDragCallbacks?: DragCallbacks;
     private localDragCallbacks?: DragCallbacks;
 
