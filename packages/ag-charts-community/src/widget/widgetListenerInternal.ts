@@ -79,7 +79,7 @@ function startMouseDrag(that: { globalDragCallbacks?: DragCallbacks }, cbs: Drag
 }
 
 export class WidgetListenerInternal {
-    private dragTriggerRemovers?: Map<EventHandler<Targetable>, () => void>;
+    private dragTriggerRemover?: () => void;
     private dragStartListeners?: EventHandler<Targetable>[];
     private dragMoveListeners?: EventHandler<Targetable>[];
     private dragEndListeners?: EventHandler<Targetable>[];
@@ -93,8 +93,8 @@ export class WidgetListenerInternal {
     private localDragCallbacks?: DragCallbacks;
 
     destroy(): void {
-        this.dragTriggerRemovers?.forEach((fn) => fn());
-        this.dragTriggerRemovers = undefined;
+        this.dragTriggerRemover?.();
+        this.dragTriggerRemover = undefined;
         this.dragStartListeners = undefined;
         this.dragMoveListeners = undefined;
         this.dragEndListeners = undefined;
@@ -109,19 +109,19 @@ export class WidgetListenerInternal {
             case 'drag-start': {
                 this.dragStartListeners ??= [];
                 this.dragStartListeners.push(handler);
-                this.registerDragTrigger(target, handler);
+                this.registerDragTrigger(target);
                 break;
             }
             case 'drag-move': {
                 this.dragMoveListeners ??= [];
                 this.dragMoveListeners.push(handler);
-                this.registerDragTrigger(target, handler);
+                this.registerDragTrigger(target);
                 break;
             }
             case 'drag-end': {
                 this.dragEndListeners ??= [];
                 this.dragEndListeners.push(handler);
-                this.registerDragTrigger(target, handler);
+                this.registerDragTrigger(target);
                 break;
             }
         }
@@ -144,15 +144,13 @@ export class WidgetListenerInternal {
         if (index !== undefined) array?.splice(index, 1);
     }
 
-    private registerDragTrigger<T extends Targetable>(target: T, handler: EventHandler<unknown>) {
-        if (this.dragTriggerRemovers == null) {
+    private registerDragTrigger<T extends Targetable>(target: T) {
+        if (this.dragTriggerRemover == null) {
             const mouseDownHandler = (event: MouseEvent) => event.button === 0 && this.startMouseDrag(target, event);
-
             target.getElement().addEventListener('mousedown', mouseDownHandler);
-            this.dragTriggerRemovers = new Map();
-            this.dragTriggerRemovers.set(handler, () =>
-                target.getElement().removeEventListener('mousedown', mouseDownHandler)
-            );
+            this.dragTriggerRemover = () => {
+                target.getElement().removeEventListener('mousedown', mouseDownHandler);
+            };
         }
     }
 
