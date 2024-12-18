@@ -67,6 +67,14 @@ const options: AgCartesianChartOptions = {
         maxHeight: 40,
         maxWidth: 800,
     },
+    listeners: {
+        seriesNodeClick: (e) => {
+            console.log(e.type, e.seriesId, e.datum[e.xKey!], e.datum[e.yKey!]);
+        },
+        seriesNodeDoubleClick: (e) => {
+            console.log(e.type, e.seriesId, e.datum[e.xKey!], e.datum[e.yKey!]);
+        },
+    },
 };
 
 const chart = AgCharts.create(options);
