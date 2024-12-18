@@ -5,7 +5,6 @@ import { RadialGaugeSeries } from './radialGaugeSeries';
 
 const {
     ThemeSymbols: {
-        DEFAULT_FONT_FAMILY,
         DEFAULT_HIERARCHY_FILLS,
         DEFAULT_LABEL_COLOUR,
         DEFAULT_MUTED_LABEL_COLOUR,
@@ -52,8 +51,8 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 label: {
                     enabled: true,
                     fontWeight: 'normal' as const,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY,
+                    fontSize: { ref: 'fontSize' as const },
+                    fontFamily: { ref: 'fontFamily' as const },
                     color: DEFAULT_LABEL_COLOUR,
                     spacing: 5,
                 },
@@ -68,7 +67,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 fontWeight: 'normal' as const,
                 fontSize: 56,
                 minimumFontSize: 18,
-                fontFamily: DEFAULT_FONT_FAMILY,
+                fontFamily: { ref: 'fontFamily' as const },
                 color: DEFAULT_LABEL_COLOUR,
             },
             secondaryLabel: {
@@ -76,7 +75,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 fontWeight: 'normal' as const,
                 fontSize: 14,
                 minimumFontSize: 12,
-                fontFamily: DEFAULT_FONT_FAMILY,
+                fontFamily: { ref: 'fontFamily' as const },
                 color: DEFAULT_MUTED_LABEL_COLOUR,
             },
             tooltip: {

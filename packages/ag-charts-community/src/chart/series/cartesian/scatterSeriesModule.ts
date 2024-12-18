@@ -1,6 +1,6 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
-import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR } from '../../themes/symbols';
+import { DEFAULT_LABEL_COLOUR } from '../../themes/symbols';
 import { singleSeriesPaletteFactory } from '../../themes/util';
 import { ScatterSeries } from './scatterSeries';
 
@@ -31,8 +31,8 @@ export const ScatterSeriesModule: SeriesModule<'scatter'> = {
             tooltip: { position: { type: 'node' } },
             label: {
                 enabled: false,
-                fontSize: 12,
-                fontFamily: DEFAULT_FONT_FAMILY,
+                fontSize: { ref: 'fontSize' as const },
+                fontFamily: { ref: 'fontFamily' as const },
                 color: DEFAULT_LABEL_COLOUR,
             },
             errorBar: {

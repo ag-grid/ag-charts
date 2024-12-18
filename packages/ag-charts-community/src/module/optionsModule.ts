@@ -2,6 +2,7 @@ import {
     type AgBaseAxisOptions,
     type AgCartesianAxisOptions,
     type AgChartOptions,
+    type AgChartThemeParams,
     type AgPolarAxisOptions,
     type AgPresetOptions,
     type AgPresetOverrides,
@@ -36,7 +37,7 @@ import { setDocument, setWindow } from '../util/dom';
 import { deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
-import { isEnumValue, isFiniteNumber, isObject, isPlainObject, isString, isSymbol } from '../util/type-guards';
+import { isArray, isEnumValue, isFiniteNumber, isObject, isPlainObject, isString, isSymbol } from '../util/type-guards';
 import type { DeepPartial } from '../util/types';
 import { type PaletteType, paletteType } from './coreModulesTypes';
 import { enterpriseModule } from './enterpriseModule';
@@ -256,6 +257,8 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // so we aim to only do this once in the processing flow.
         processedOptions = deepClone(processedOptions, ChartOptions.OPTIONS_CLONE_OPTS);
 
+        this.processOptionsParams(processedOptions);
+
         // Disable legend by default for single series cartesian charts and polar charts which display legend items per series rather than data items
         if (
             (isAgCartesianChartOptions(processedOptions) ||
@@ -408,6 +411,44 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             );
         });
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
+    }
+
+    private processOptionsParams(options: T) {
+        let params: AgChartThemeParams = { fontFamily: 'Verdana, sans-serif', fontSize: 12 };
+        if (isPlainObject(options.theme) && options.theme.params) {
+            params = options.theme.params;
+        }
+
+        const visit = (node: any) => {
+            if (isArray(node)) {
+                for (let i = 0; i < node.length; i++) {
+                    node[i] = getParamValue(node[i]);
+                }
+            } else {
+                for (const [name, value] of Object.entries(node)) {
+                    node[name] = getParamValue(value);
+                }
+            }
+        };
+
+        const getParamValue = (value: unknown) => {
+            if (!isPlainObject(value)) {
+                return value;
+            }
+
+            if ('ref' in value) {
+                if (value.ref in params) {
+                    return params[value.ref as keyof AgChartThemeParams];
+                }
+                throw new Error(`Unknown 'ref' in theme params: [${value.ref}]`);
+            }
+
+            // TODO: calc, conditionals, etc.
+
+            return value;
+        };
+
+        jsonWalk(options, visit);
     }
 
     private getSeriesPalette(

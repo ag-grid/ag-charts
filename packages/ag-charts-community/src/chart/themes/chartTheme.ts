@@ -38,7 +38,6 @@ import {
     DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FIBONACCI_STROKES,
-    DEFAULT_FONT_FAMILY,
     DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
     DEFAULT_GAUGE_SERIES_COLOR_RANGE,
     DEFAULT_GRIDLINE_ENABLED,
@@ -143,12 +142,12 @@ export class ChartTheme {
                 spacing: 25,
                 fontWeight: 'normal' as const,
                 fontSize: FONT_SIZE.MEDIUM,
-                fontFamily: DEFAULT_FONT_FAMILY,
+                fontFamily: { ref: 'fontFamily' },
                 color: DEFAULT_LABEL_COLOUR,
             },
             label: {
-                fontSize: FONT_SIZE.SMALL,
-                fontFamily: DEFAULT_FONT_FAMILY,
+                fontSize: { ref: 'fontSize' },
+                fontFamily: { ref: 'fontFamily' },
                 spacing: 11,
                 color: DEFAULT_LABEL_COLOUR,
                 avoidCollisions: true,
@@ -175,8 +174,8 @@ export class ChartTheme {
                 strokeWidth: 1,
                 label: {
                     enabled: false,
-                    fontSize: FONT_SIZE.SMALL,
-                    fontFamily: DEFAULT_FONT_FAMILY,
+                    fontSize: { ref: 'fontSize' },
+                    fontFamily: { ref: 'fontFamily' },
                     padding: 5,
                     color: DEFAULT_LABEL_COLOUR,
                 },
@@ -199,7 +198,7 @@ export class ChartTheme {
                 text: 'Title',
                 fontWeight: 'normal' as const,
                 fontSize: FONT_SIZE.LARGE,
-                fontFamily: DEFAULT_FONT_FAMILY,
+                fontFamily: { ref: 'fontFamily' },
                 color: DEFAULT_LABEL_COLOUR,
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
@@ -210,7 +209,7 @@ export class ChartTheme {
                 text: 'Subtitle',
                 spacing: 20,
                 fontSize: FONT_SIZE.MEDIUM,
-                fontFamily: DEFAULT_FONT_FAMILY,
+                fontFamily: { ref: 'fontFamily' },
                 color: DEFAULT_MUTED_LABEL_COLOUR,
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
@@ -221,7 +220,7 @@ export class ChartTheme {
                 text: 'Footnote',
                 spacing: 20,
                 fontSize: FONT_SIZE.MEDIUM,
-                fontFamily: DEFAULT_FONT_FAMILY,
+                fontFamily: { ref: 'fontFamily' },
                 color: 'rgb(140, 140, 140)',
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
@@ -239,8 +238,8 @@ export class ChartTheme {
                     showSeriesStroke: true,
                     label: {
                         color: DEFAULT_LABEL_COLOUR,
-                        fontSize: FONT_SIZE.SMALL,
-                        fontFamily: DEFAULT_FONT_FAMILY,
+                        fontSize: { ref: 'fontSize' },
+                        fontFamily: { ref: 'fontFamily' },
                     },
                 },
                 reverseOrder: false,
@@ -455,7 +454,6 @@ export class ChartTheme {
         params.set(IS_DARK_THEME, false);
         params.set(IS_ENTERPRISE, isEnterprise);
         params.set(IS_COMMUNITY, !isEnterprise);
-        params.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');
         params.set(DEFAULT_LABEL_COLOUR, '#464646');
         params.set(DEFAULT_INVERTED_LABEL_COLOUR, '#fff');
         params.set(DEFAULT_MUTED_LABEL_COLOUR, '#8c8c8c');

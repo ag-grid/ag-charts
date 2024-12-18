@@ -2,6 +2,7 @@ import {
     type AgAnnotationOptionsToolbar,
     type AgAnnotationsThemeableOptions,
     type AgAnnotationsToolbar,
+    type WithThemeParams,
     _ModuleSupport,
 } from 'ag-charts-community';
 
@@ -22,7 +23,7 @@ const handle = {
 const font = {
     color: ThemeSymbols.DEFAULT_TEXT_ANNOTATION_COLOR,
     fontSize: 14,
-    fontFamily: ThemeSymbols.DEFAULT_FONT_FAMILY,
+    fontFamily: { ref: 'fontFamily' as const },
 };
 
 const axisLabel = {
@@ -30,7 +31,7 @@ const axisLabel = {
     enabled: true,
     color: 'white',
     fill: ThemeSymbols.DEFAULT_ANNOTATION_COLOR,
-    fontSize: 12,
+    fontSize: { ref: 'fontSize' as const },
 };
 
 const text = {
@@ -48,7 +49,7 @@ const lineText = {
 
 const measurerStatistics = {
     ...font,
-    fontSize: 12,
+    fontSize: { ref: 'fontSize' as const },
     color: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_COLOR,
     fill: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_FILL,
     stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_STROKE,
@@ -159,7 +160,7 @@ const optionsToolbar: AgAnnotationOptionsToolbar = {
     ],
 };
 
-export const annotationsTheme: AgAnnotationsThemeableOptions = {
+export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = {
     enabled: false,
 
     // Lines

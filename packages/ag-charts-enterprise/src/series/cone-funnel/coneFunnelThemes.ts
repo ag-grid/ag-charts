@@ -1,28 +1,18 @@
-import {
-    type AgCategoryAxisThemeOptions,
-    type AgConeFunnelSeriesThemeableOptions,
-    type AgNumberAxisThemeOptions,
-    type AgSeriesAreaOptions,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgAxisLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
 
 const {
-    ThemeSymbols: { DEFAULT_LABEL_COLOUR, DEFAULT_FONT_FAMILY },
+    ThemeSymbols: { DEFAULT_LABEL_COLOUR },
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
 } = _ModuleSupport;
 
-export const CONE_FUNNEL_SERIES_THEME: {
-    series: AgConeFunnelSeriesThemeableOptions;
-    seriesArea: AgSeriesAreaOptions;
-    axes: { number: AgNumberAxisThemeOptions; category: AgCategoryAxisThemeOptions };
-} = {
+export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'>['themeTemplate'] = {
     series: {
         direction: 'vertical',
         strokeWidth: 0,
         label: {
             enabled: true,
-            fontSize: 12,
-            fontFamily: DEFAULT_FONT_FAMILY,
+            fontSize: { ref: 'fontSize' as const },
+            fontFamily: { ref: 'fontFamily' as const },
             color: DEFAULT_LABEL_COLOUR,
             placement: 'before',
             spacing: 4,
@@ -45,7 +35,7 @@ export const CONE_FUNNEL_SERIES_THEME: {
             },
             label: {
                 enabled: false,
-                formatter(params) {
+                formatter(params: AgAxisLabelFormatterParams) {
                     return Math.abs(params.value).toFixed(params.fractionDigits ?? 0);
                 },
             },

@@ -3,7 +3,6 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { Navigator } from './navigator';
 
 const {
-    DEFAULT_FONT_FAMILY,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_INVERTED_BACKGROUND_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
@@ -49,7 +48,7 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
                 label: {
                     color: DEFAULT_LABEL_COLOUR,
                     fontSize: 10,
-                    fontFamily: DEFAULT_FONT_FAMILY,
+                    fontFamily: { ref: 'fontFamily' as const },
                     spacing: 5,
                 },
                 padding: {

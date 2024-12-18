@@ -1,4 +1,10 @@
-import type { AgChartTheme, AgChartThemeName, AgChartThemeOverrides, AgChartThemePalette } from 'ag-charts-types';
+import type {
+    AgChartTheme,
+    AgChartThemeName,
+    AgChartThemeOverrides,
+    AgChartThemePalette,
+    AgChartThemeParams,
+} from 'ag-charts-types';
 
 import { Logger } from '../../util/logger';
 import { simpleMemorize } from '../../util/memo';
@@ -71,9 +77,11 @@ function createChartTheme(value: unknown): ChartTheme {
 function reduceThemeOptions(options: AgChartTheme): AgChartTheme {
     let maybeNested: AgChartTheme | AgChartThemeName | undefined = options;
     let palette: AgChartThemePalette | undefined;
+    let params: AgChartThemeParams | undefined;
     const overrides: AgChartThemeOverrides[] = [];
     while (typeof maybeNested === 'object') {
         palette ??= maybeNested.palette; // Use first palette found, they can't be merged.
+        params ??= maybeNested.params;
         if (maybeNested.overrides) {
             overrides.push(maybeNested.overrides);
         }
@@ -82,6 +90,7 @@ function reduceThemeOptions(options: AgChartTheme): AgChartTheme {
     return {
         baseTheme: maybeNested,
         overrides: mergeDefaults(...overrides),
+        params,
         palette,
     };
 }
@@ -89,6 +98,7 @@ function reduceThemeOptions(options: AgChartTheme): AgChartTheme {
 const themeOptionsDef: OptionsDefs<AgChartTheme> = {
     baseTheme: or(string, object),
     overrides: object,
+    params: object,
     palette: {
         fills: arrayOf(string),
         strokes: arrayOf(string),

@@ -1,7 +1,6 @@
-import type { AgChartLabelOptions } from 'ag-charts-types';
-
 import type { Point } from '../../../scene/point';
 import type { Text } from '../../../scene/shape/text';
+import type { Label } from '../../label';
 
 type Bounds = {
     x: number;
@@ -18,7 +17,7 @@ type LabelDatum = Point & {
     textBaseline: CanvasTextBaseline;
 };
 
-export function updateLabelNode(textNode: Text, label: AgChartLabelOptions<any, any>, labelDatum?: LabelDatum) {
+export function updateLabelNode(textNode: Text, label: Label, labelDatum?: LabelDatum) {
     if (label.enabled && labelDatum) {
         const { x, y, text, textAlign, textBaseline } = labelDatum;
         const { color: fill, fontStyle, fontWeight, fontSize, fontFamily } = label;

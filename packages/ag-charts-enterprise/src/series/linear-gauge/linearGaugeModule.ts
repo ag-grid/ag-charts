@@ -5,7 +5,6 @@ import { LinearGaugeSeries } from './linearGaugeSeries';
 
 const {
     ThemeSymbols: {
-        DEFAULT_FONT_FAMILY,
         DEFAULT_HIERARCHY_FILLS,
         DEFAULT_LABEL_COLOUR,
         DEFAULT_INVERTED_LABEL_COLOUR,
@@ -51,8 +50,8 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 label: {
                     enabled: true,
                     fontWeight: 'normal' as const,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY,
+                    fontSize: { ref: 'fontSize' as const },
+                    fontFamily: { ref: 'fontFamily' as const },
                     color: DEFAULT_LABEL_COLOUR,
                     spacing: 5,
                 },
@@ -64,7 +63,7 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
                 fontSize: 24,
                 minimumFontSize: 12,
                 spacing: 18,
-                fontFamily: DEFAULT_FONT_FAMILY,
+                fontFamily: { ref: 'fontFamily' as const },
                 color: DEFAULT_INVERTED_LABEL_COLOUR,
             },
             margin: 4,
