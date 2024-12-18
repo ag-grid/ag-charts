@@ -12,12 +12,12 @@ type DragEvents = 'drag-start' | 'drag-move' | 'drag-end';
 type DragOrigin = { pageX: number; pageY: number; offsetX: number; offsetY: number };
 
 type DragCallbacks = {
-    down: (event: MouseEvent) => void;
-    move: (event: MouseEvent) => void;
-    up: (event: MouseEvent) => void;
+    mousedown: (event: MouseEvent) => void;
+    mousemove: (event: MouseEvent) => void;
+    mouseup: (event: MouseEvent) => void;
 };
 
-function makeDragEvent<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent: MouseEvent): DragWidgetEvent<K> {
+function makeMouseDrag<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent: MouseEvent): DragWidgetEvent<K> {
     // [offsetX, offsetY] is relative to the sourceEvent.target, which can be another element
     // such as a legend button. Therefore, calculate [offsetX, offsetY] relative to the axis
     // element that fired the 'mousedown' event.
@@ -35,7 +35,7 @@ function makeDragEvent<K extends DragEvents>(type: K, origin: DragOrigin, source
     };
 }
 
-function startDrag(that: { globalDragCallbacks?: DragCallbacks }, myCallbacks: DragCallbacks, downEvent: MouseEvent) {
+function startMouseDrag(that: { globalDragCallbacks?: DragCallbacks }, cbs: DragCallbacks, downEvent: MouseEvent) {
     if (that.globalDragCallbacks != null) return;
 
     const window = getWindow();
@@ -48,7 +48,7 @@ function startDrag(that: { globalDragCallbacks?: DragCallbacks }, myCallbacks: D
     const mousemove = (moveEvent: MouseEvent) => {
         moveEvent.stopPropagation();
         moveEvent.stopImmediatePropagation();
-        that.globalDragCallbacks?.move(moveEvent);
+        that.globalDragCallbacks?.mousemove(moveEvent);
     };
 
     const mouseup = (upEvent: MouseEvent) => {
@@ -62,7 +62,7 @@ function startDrag(that: { globalDragCallbacks?: DragCallbacks }, myCallbacks: D
             window.removeEventListener('mouseover', mousegeneral, { capture: true });
             window.removeEventListener('mousemove', mousemove, { capture: true });
             window.removeEventListener('mouseup', mouseup, { capture: true });
-            that.globalDragCallbacks?.up(upEvent);
+            that.globalDragCallbacks?.mouseup(upEvent);
             that.globalDragCallbacks = undefined;
         }
     };
@@ -74,8 +74,8 @@ function startDrag(that: { globalDragCallbacks?: DragCallbacks }, myCallbacks: D
     window.addEventListener('mouseover', mousegeneral, { capture: true });
     window.addEventListener('mousemove', mousemove, { capture: true });
     window.addEventListener('mouseup', mouseup, { capture: true });
-    that.globalDragCallbacks = myCallbacks;
-    that.globalDragCallbacks.down(downEvent);
+    that.globalDragCallbacks = cbs;
+    that.globalDragCallbacks.mousedown(downEvent);
 }
 
 export class WidgetListenerInternal {
@@ -146,7 +146,7 @@ export class WidgetListenerInternal {
 
     private registerDragTrigger<T extends Targetable>(target: T, handler: EventHandler<unknown>) {
         if (this.dragTriggerRemovers == null) {
-            const mouseDownHandler = (event: MouseEvent) => event.button === 0 && this.startDrag(target, event);
+            const mouseDownHandler = (event: MouseEvent) => event.button === 0 && this.startMouseDrag(target, event);
 
             target.getElement().addEventListener('mousedown', mouseDownHandler);
             this.dragTriggerRemovers = new Map();
@@ -156,28 +156,28 @@ export class WidgetListenerInternal {
         }
     }
 
-    private startDrag<T extends Targetable>(current: T, initialDownEvent: MouseEvent) {
+    private startMouseDrag<T extends Targetable>(current: T, initialDownEvent: MouseEvent) {
         const origin: DragOrigin = { pageX: NaN, pageY: NaN, offsetX: NaN, offsetY: NaN };
         partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, initialDownEvent);
 
         const dragCallbacks: DragCallbacks = {
-            down: (downEvent: MouseEvent) => {
+            mousedown: (downEvent: MouseEvent) => {
                 this.localDragCallbacks = dragCallbacks;
-                const dragStartEvent = makeDragEvent('drag-start', origin, downEvent);
+                const dragStartEvent = makeMouseDrag('drag-start', origin, downEvent);
                 this.dispatch('drag-start', current, dragStartEvent);
             },
-            move: (moveEvent: MouseEvent) => {
-                const dragMoveEvent = makeDragEvent('drag-move', origin, moveEvent);
+            mousemove: (moveEvent: MouseEvent) => {
+                const dragMoveEvent = makeMouseDrag('drag-move', origin, moveEvent);
                 this.dispatch('drag-move', current, dragMoveEvent);
             },
-            up: (upEvent: MouseEvent) => {
-                const dragEndEvent = makeDragEvent('drag-end', origin, upEvent);
+            mouseup: (upEvent: MouseEvent) => {
+                const dragEndEvent = makeMouseDrag('drag-end', origin, upEvent);
                 this.dispatch('drag-end', current, dragEndEvent);
                 this.endDrag(current, dragEndEvent);
             },
         };
 
-        startDrag(WidgetListenerInternal, dragCallbacks, initialDownEvent);
+        startMouseDrag(WidgetListenerInternal, dragCallbacks, initialDownEvent);
     }
 
     private endDrag(target: Targetable, { sourceEvent, clientX, clientY }: DragWidgetEvent<'drag-end'>) {
