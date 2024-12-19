@@ -25,17 +25,7 @@ export class RadiusCategoryAxis extends RadiusAxis {
         super(moduleCtx, new CategoryScale());
     }
 
-    override normaliseDataDomain(d: Array<string | object>) {
-        const domain = [];
-        const uniqueValues = new Set();
-        for (const v of d) {
-            const key = v instanceof Date ? v.getTime() : v;
-            if (!uniqueValues.has(key)) {
-                uniqueValues.add(key);
-                // Only add unique values
-                domain.push(v);
-            }
-        }
+    override normaliseDataDomain(domain: Array<string | object>) {
         return { domain, clipped: false };
     }
 

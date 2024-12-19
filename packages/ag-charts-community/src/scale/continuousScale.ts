@@ -44,8 +44,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
             const domain = [min, max];
             return { domain, animatable: true };
         } else {
-            const domain = [this.toDomain(NaN), this.toDomain(NaN)];
-            return { domain, animatable: false };
+            return { domain: [], animatable: false };
         }
     }
 
