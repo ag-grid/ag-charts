@@ -264,8 +264,9 @@ export abstract class Shape extends Node {
             element.setAttribute('stroke-opacity', String(this.strokeOpacity));
             element.setAttribute('stroke-width', String(this.strokeWidth));
         }
-        if (this.lineDash != null) {
+        if (this.lineDash != null && this.lineDash.length > 1) {
             element.setAttribute('stroke-dasharray', this.lineDash.join(' '));
+            element.setAttribute('stroke-dashoffset', String(this.lineDashOffset));
         }
     }
 }
