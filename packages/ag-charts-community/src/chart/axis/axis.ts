@@ -15,7 +15,7 @@ import type { ModuleContext, ModuleContextWithParent } from '../../module/module
 import { ModuleMap } from '../../module/moduleMap';
 import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import type { Scale } from '../../scale/scale';
+import type { Scale, ScaleFormatParams } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group, TransformableGroup } from '../../scene/group';
 import { Matrix } from '../../scene/matrix';
@@ -27,6 +27,7 @@ import { Transformable, Translatable } from '../../scene/transformable';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
+import { Logger } from '../../util/logger';
 import { findMinMax } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import { ObserveChanges } from '../../util/proxy';
@@ -79,6 +80,8 @@ export enum AxisGroupZIndexMap {
     AxisLine,
     TickLabels,
 }
+
+export type CrosslineFormatterParams<D> = Omit<ScaleFormatParams<D>, 'specifier'> | undefined;
 
 /**
  * A general purpose linear axis with no notion of orientation.
@@ -221,6 +224,7 @@ export abstract class Axis<
 
     private labelFormatter: ((datum: any) => string) | undefined = undefined;
     private datumFormatter: ((datum: any) => string) | undefined = undefined;
+    private scaleFormatterParams: CrosslineFormatterParams<D> | undefined = undefined;
 
     protected readonly destroyFns: Array<() => void> = [];
 
@@ -451,16 +455,25 @@ export abstract class Axis<
     }
 
     calculateLayout(initialPrimaryTickCount?: number) {
+        const { scale, label } = this;
         const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
         const sideFlag = this.label.getSideFlag();
 
         this.updateScale();
-        const { niceDomain, primaryTickCount, labelFormatter, datumFormatter, fractionDigits, bbox } =
-            this.calculateTickLayout(this.dataDomain.domain, initialPrimaryTickCount);
+        const { niceDomain, primaryTickCount, ticks, visibleTicks, fractionDigits, bbox } = this.calculateTickLayout(
+            this.dataDomain.domain,
+            initialPrimaryTickCount
+        );
         this.scale.domain = niceDomain;
 
-        this.labelFormatter = labelFormatter ?? ((x: any) => this.defaultLabelFormatter(x, fractionDigits));
-        this.datumFormatter = datumFormatter ?? ((x: any) => this.defaultLabelFormatter(x, fractionDigits));
+        const specifier = label.format;
+        this.labelFormatter =
+            scale.tickFormatter({ specifier, ticks, visibleTicks, fractionDigits }) ??
+            ((x: any) => this.defaultLabelFormatter(x, fractionDigits));
+        this.datumFormatter =
+            scale.datumFormatter({ specifier, ticks, visibleTicks, fractionDigits }) ??
+            ((x: any) => this.defaultLabelFormatter(x, fractionDigits));
+        this.scaleFormatterParams = { ticks, visibleTicks, fractionDigits };
 
         this.layout.label = {
             fractionDigits: fractionDigits,
@@ -490,8 +503,8 @@ export abstract class Axis<
     ): {
         niceDomain: D[];
         primaryTickCount: number | undefined;
-        labelFormatter: ((x: any) => string) | undefined;
-        datumFormatter: ((x: any) => string) | undefined;
+        ticks: D[];
+        visibleTicks: D[];
         fractionDigits: number;
         bbox: BBox | undefined;
     };
@@ -648,15 +661,21 @@ export abstract class Axis<
         return String(result ?? value);
     }
 
-    private getScaleValueFormatter(_format?: string): (value: any) => string {
-        // if (format && this.scale.tickFormat) {
-        //     try {
-        //         return this.scale.tickFormat({ specifier: format });
-        //     } catch {
-        //         Logger.warnOnce(`the format string ${format} is invalid, ignoring.`);
-        //     }
-        // }
-        return (value) => this.formatDatum(value);
+    private getScaleValueFormatter(format?: string): (value: any) => string {
+        const { scaleFormatterParams } = this;
+
+        let formatter: ((value: any) => string) | undefined;
+        try {
+            if (format != null && scaleFormatterParams != null) {
+                formatter = this.scale.tickFormatter({ ...scaleFormatterParams, specifier: format });
+            }
+        } catch {
+            Logger.warnOnce(`the format string ${format} is invalid, ignoring.`);
+        }
+
+        formatter ??= (value: any) => this.formatDatum(value);
+
+        return formatter;
     }
 
     getBBox(): BBox {

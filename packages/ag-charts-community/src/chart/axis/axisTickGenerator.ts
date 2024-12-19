@@ -19,12 +19,11 @@ import type { TickDatum } from './axisUtil';
 
 export interface TickData<D = any> {
     rawTicks: D[];
+    rawVisibleTicks: D[];
     fractionDigits: number;
     ticks: TickDatum[];
     labelCount: number;
     niceDomain: D[];
-    labelFormatter: ((datum: any) => string) | undefined;
-    datumFormatter: ((datum: any) => string) | undefined;
 }
 
 export interface TickGenerationParams<D = any> {
@@ -149,11 +148,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         let tickData: TickData = {
             ticks: [],
             rawTicks: [],
+            rawVisibleTicks: [],
             fractionDigits: 0,
             labelCount: 0,
             niceDomain: null!,
-            labelFormatter: undefined,
-            datumFormatter: undefined,
         };
 
         let index = 0;
@@ -397,24 +395,23 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         const start = Math.max(0, Math.floor(visibleRange[0] * rawTicks.length));
         const end = Math.min(rawTicks.length, Math.ceil(visibleRange[1] * rawTicks.length));
 
-        const filteredTicks = rawTicks.slice(start, end);
+        const rawVisibleTicks = rawTicks.slice(start, end);
 
         const formatParams: ScaleFormatParams<D> = {
             ticks: rawTicks,
-            visibleTicks: filteredTicks,
+            visibleTicks: rawVisibleTicks,
             fractionDigits,
             specifier: axis.label.format,
         };
         const labelFormatter = scale.tickFormatter(formatParams);
-        const datumFormatter = scale.datumFormatter(formatParams);
 
         // @todo(AG-13604) - the scale domain isn't updated yet. We need a better way to work out if something is in range.
         const scaleDomain = scale.domain;
         scale.domain = niceDomain;
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const ticks: TickDatum[] = [];
-        for (let i = 0; i < filteredTicks.length; i++) {
-            const tick = filteredTicks[i];
+        for (let i = 0; i < rawVisibleTicks.length; i++) {
+            const tick = rawVisibleTicks[i];
             const translationY = scale.convert(tick) + halfBandwidth;
 
             // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
@@ -433,6 +430,13 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         }
         scale.domain = scaleDomain;
 
-        return { rawTicks, fractionDigits, ticks, labelCount, niceDomain, labelFormatter, datumFormatter };
+        return {
+            rawTicks,
+            rawVisibleTicks,
+            fractionDigits,
+            ticks,
+            labelCount,
+            niceDomain,
+        };
     }
 }

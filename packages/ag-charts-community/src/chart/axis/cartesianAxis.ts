@@ -165,8 +165,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     ): {
         niceDomain: D[];
         primaryTickCount: number | undefined;
-        labelFormatter: ((x: any) => string) | undefined;
-        datumFormatter: ((x: any) => string) | undefined;
+        ticks: D[];
+        visibleTicks: D[];
         fractionDigits: number;
         bbox: BBox;
     } {
@@ -188,13 +188,18 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         this.generatedTicks = { ticks, labels };
 
         const niceDomain = tickData?.niceDomain ?? domain;
-        const labelFormatter = tickData?.labelFormatter;
-        const datumFormatter = tickData?.datumFormatter;
         const fractionDigits = tickData?.fractionDigits ?? 0;
 
         const bbox = this.tickBBox(ticks, labels);
 
-        return { niceDomain, primaryTickCount, labelFormatter, datumFormatter, fractionDigits, bbox };
+        return {
+            niceDomain,
+            primaryTickCount,
+            ticks: tickData?.rawTicks ?? [],
+            visibleTicks: tickData?.rawVisibleTicks ?? [],
+            fractionDigits,
+            bbox,
+        };
     }
 
     override update() {

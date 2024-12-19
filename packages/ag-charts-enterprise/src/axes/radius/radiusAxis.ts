@@ -93,8 +93,8 @@ export abstract class RadiusAxis<
     ): {
         niceDomain: D[];
         primaryTickCount: number | undefined;
-        labelFormatter: ((x: any) => string) | undefined;
-        datumFormatter: ((x: any) => string) | undefined;
+        ticks: D[];
+        visibleTicks: D[];
         fractionDigits: number;
         bbox: undefined;
     } {
@@ -116,11 +116,16 @@ export abstract class RadiusAxis<
         this.generatedTicks = { ticks, labels };
 
         const niceDomain = tickData?.niceDomain ?? domain;
-        const labelFormatter = tickData?.labelFormatter;
-        const datumFormatter = tickData?.datumFormatter;
         const fractionDigits = tickData?.fractionDigits ?? 0;
 
-        return { niceDomain, primaryTickCount, labelFormatter, datumFormatter, fractionDigits, bbox: undefined };
+        return {
+            niceDomain,
+            primaryTickCount,
+            ticks: tickData?.rawTicks ?? [],
+            visibleTicks: tickData?.rawVisibleTicks ?? [],
+            fractionDigits,
+            bbox: undefined,
+        };
     }
 
     private processTicks(

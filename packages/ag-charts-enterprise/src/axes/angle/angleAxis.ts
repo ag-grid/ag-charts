@@ -75,9 +75,9 @@ export abstract class AngleAxis<
     override calculateTickLayout(domain: TDomain[]): {
         niceDomain: any[];
         primaryTickCount: number | undefined;
+        ticks: TDomain[];
+        visibleTicks: TDomain[];
         fractionDigits: number;
-        labelFormatter: ((value: any) => string) | undefined;
-        datumFormatter: ((value: any) => string) | undefined;
         bbox: _ModuleSupport.BBox;
     } {
         const { nice, scale } = this;
@@ -92,14 +92,17 @@ export abstract class AngleAxis<
 
         const niceDomain = nice && scale.niceDomain ? scale.niceDomain(ticksParams, domain) : domain;
 
-        this.tickData = this.generateAngleTicks(niceDomain);
+        const tickData = this.generateAngleTicks(niceDomain);
+        this.tickData = tickData;
+
+        const ticks = tickData.map((t) => t.value);
 
         return {
             niceDomain,
             primaryTickCount: undefined,
+            ticks,
+            visibleTicks: ticks,
             fractionDigits: 0,
-            labelFormatter: undefined,
-            datumFormatter: undefined,
             bbox: this.getBBox(),
         };
     }
