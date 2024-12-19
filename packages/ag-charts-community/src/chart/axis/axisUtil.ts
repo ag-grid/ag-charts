@@ -6,6 +6,16 @@ import type { RotatableText, TransformableText } from '../../scene/shape/text';
 import type { TranslatableType } from '../../scene/transformable';
 import { findMinMax } from '../../util/number';
 
+export interface TickDatum {
+    tickLabel: string;
+    tick: any;
+    tickId: string;
+    translationY: number;
+    tickSize?: number;
+    tickStroke?: string;
+    tickWidth?: number;
+}
+
 export interface AxisLineDatum {
     x: number;
     y1: number;
@@ -29,10 +39,9 @@ interface AxisGroupDatum {
 interface AxisNodeDatum {
     translationY: number;
     tickId: string;
-    visible: boolean;
 }
 
-interface AxisLabelDatum {
+export interface AxisLabelDatum {
     tickId: string;
     x: number;
     y: number;

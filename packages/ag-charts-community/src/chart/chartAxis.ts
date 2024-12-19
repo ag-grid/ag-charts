@@ -50,7 +50,7 @@ export interface AxisGroups {
 
 export interface ChartAxis {
     attachAxis(opts: AxisGroups): void;
-    calculateLayout(domain?: any[], primaryTickCount?: number): { primaryTickCount?: number; bbox: BBox };
+    calculateLayout(primaryTickCount?: number): { primaryTickCount: number | undefined; bbox: BBox | undefined };
     clipGrid(x: number, y: number, width: number, height: number): void;
     clipTickLines(x: number, y: number, width: number, height: number): void;
     createAxisContext(): AxisContext;
@@ -84,6 +84,7 @@ export interface ChartAxis {
     nice: boolean;
     position?: AgCartesianAxisPosition;
     range: [number, number];
+    reverse: boolean;
     rotation: number;
     scale: Scale<any, any, any>;
     seriesAreaPadding: number;

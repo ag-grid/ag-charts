@@ -27,7 +27,8 @@ import {
 } from '../../util/validation';
 import { createDatumId } from '../data/processors';
 import { calculateLabelRotation } from '../label';
-import type { LabelNodeDatum, TickDatum } from './axis';
+import type { LabelNodeDatum } from './axis';
+import type { TickDatum } from './axisUtil';
 import { CategoryAxis } from './categoryAxis';
 import { type TreeLayout, treeLayout } from './tree';
 
@@ -394,13 +395,21 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         const { tickScale, gridLine, gridLength } = this;
         const { separatorLayout } = this.computedLayout;
-        const ticksData: TickDatum[] = tickScale.ticks().map((tick, index) => ({
-            ...separatorLayout[index],
-            tick,
-            tickId: createDatumId(tick, index),
-            tickLabel: tick.filter(Boolean).join(' - '),
-            translationY: Math.round(tickScale.convert(tick)),
-        }));
+        const ticksData: TickDatum[] = tickScale
+            .ticks({
+                nice: false,
+                interval: undefined,
+                tickCount: undefined,
+                minTickCount: 0,
+                maxTickCount: Infinity,
+            })
+            .map((tick, index) => ({
+                ...separatorLayout[index],
+                tick,
+                tickId: createDatumId(tick, index),
+                tickLabel: tick.filter(Boolean).join(' - '),
+                translationY: Math.round(tickScale.convert(tick)),
+            }));
 
         this.gridLineGroupSelection.update(gridLine.enabled && gridLength ? ticksData : []);
         this.tickLineGroupSelection.update(this.tick.enabled ? ticksData : []);
@@ -418,7 +427,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
     override calculateLayout() {
         const { separatorLayout, tickLabelLayout, bbox } = this.computeLayout();
         this.computedLayout = { separatorLayout, tickLabelLayout };
-        return { bbox, primaryTickCount: undefined };
+        return { bbox, primaryTickCount: undefined, niceDomain: this.scale.domain };
     }
 
     /**
@@ -472,8 +481,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
         });
     }
 
-    override updateScale(opts?: { domain?: any[]; skipDomainCalculation?: boolean }): void {
-        super.updateScale(opts);
+    override updateScale(): void {
+        super.updateScale();
         // Outer padding must equal half inner padding to keep groups center point aligned.
         this.scale.paddingOuter = this.scale.paddingInner / 2;
     }

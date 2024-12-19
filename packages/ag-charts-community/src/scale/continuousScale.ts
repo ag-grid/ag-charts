@@ -1,7 +1,5 @@
-import { Logger } from '../util/logger';
 import { findMinMax } from '../util/number';
-import { Invalidating } from './invalidating';
-import type { Scale } from './scale';
+import type { Scale, ScaleFormatParams, ScaleTickParams } from './scale';
 
 export abstract class ContinuousScale<D extends number | Date, I = number> implements Scale<D, number, I> {
     static is(value: unknown): value is ContinuousScale<any, any> {
@@ -15,23 +13,8 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
 
     protected invalid = true;
 
-    @Invalidating
     domain: D[];
-    @Invalidating
     range: number[];
-    @Invalidating
-    nice = false;
-    @Invalidating
-    interval?: I = undefined;
-    @Invalidating
-    tickCount = ContinuousScale.defaultTickCount;
-    @Invalidating
-    minTickCount = 0;
-    @Invalidating
-    maxTickCount = Infinity;
-
-    // TODO(olegat) should be of type D[]
-    niceDomain: any[] = [];
 
     protected defaultClamp = false;
 
@@ -48,9 +31,12 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     }
 
     calcBandwidth(smallestInterval = 1) {
-        const domain = this.getDomain();
+        const { domain } = this;
+
         const rangeDistance = this.getPixelRange();
-        const intervals = Math.abs(domain[1] - domain[0]) / smallestInterval + 1;
+        if (domain.length === 0) return rangeDistance;
+
+        const intervals = Math.abs(domain[1].valueOf() - domain[0].valueOf()) / smallestInterval + 1;
 
         // The number of intervals/bands is used to determine the width of individual bands by dividing the available range.
         // Allow a maximum number of bands to ensure the step does not fall below 1 pixel.
@@ -63,23 +49,14 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
 
     abstract toDomain(d: number): D;
 
-    getDomain() {
-        if (this.nice) {
-            this.refresh();
-            if (this.niceDomain.length) {
-                return this.niceDomain;
-            }
-        }
-        return this.domain;
-    }
+    abstract niceDomain(ticks: ScaleTickParams<I>, domain?: D[]): D[];
 
     convert(x: D, clamp?: boolean) {
         if (!this.domain || this.domain.length < 2) {
             return NaN;
         }
-        this.refresh();
 
-        const domain = this.getDomain().map((d) => this.transform(d));
+        const domain = this.domain.map((d) => this.transform(d));
         const [d0, d1] = domain;
 
         const { range } = this;
@@ -108,8 +85,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
     }
 
     invert(x: number, clamp?: boolean) {
-        this.refresh();
-        const domain = this.getDomain().map((d) => this.transform(d));
+        const domain = this.domain.map((d) => this.transform(d));
         const [d0, d1] = domain;
 
         const { range } = this;
@@ -138,22 +114,11 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         return this.transformInvert(d);
     }
 
-    abstract update(): void;
-    protected abstract updateNiceDomain(): void;
-
-    protected refresh() {
-        if (!this.invalid) return;
-
-        this.invalid = false;
-        this.update();
-
-        if (this.invalid) {
-            Logger.warnOnce('Expected update to not invalidate scale');
-        }
-    }
-
     protected getPixelRange() {
         const [a, b] = this.range;
         return Math.abs(b - a);
     }
+
+    abstract tickFormatter(params: ScaleFormatParams<D>): ((x: any) => string) | undefined;
+    abstract datumFormatter(params: ScaleFormatParams<D>): ((x: any) => string) | undefined;
 }

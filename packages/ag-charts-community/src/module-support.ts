@@ -45,6 +45,7 @@ export * from './chart/background/backgroundModule';
 export * from './chart/chartAnimationPhase';
 export * from './chart/chartAxisDirection';
 export * from './chart/axis/axisUtil';
+export * from './chart/axis/axisTickGenerator';
 export * from './chart/data/dataModel';
 export * from './chart/data/dataController';
 export * from './chart/data/dataService';

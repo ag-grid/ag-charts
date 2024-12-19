@@ -149,9 +149,16 @@ export class GaugeChart extends Chart {
 
         // Must be done on a new scale, as the domain isn't set on the axes
         const scale = new LinearScale();
+        const scaleAxis = horizontal ? xAxis : yAxis;
         scale.domain = [0, 100];
-        scale.range = horizontal ? xAxis.range : yAxis.range;
-        const ticks = scale.ticks();
+        scale.range = scaleAxis.range;
+        const ticks = scale.ticks({
+            nice: scaleAxis.nice,
+            interval: undefined,
+            tickCount: undefined,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        });
 
         if (horizontal) {
             horizontalInset = series.computeInset(ChartAxisDirection.X, ticks);

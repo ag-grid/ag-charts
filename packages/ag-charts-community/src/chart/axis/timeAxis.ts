@@ -1,7 +1,6 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
 import { extent } from '../../util/array';
-import { calculateNiceSecondaryAxis } from '../../util/secondaryAxisTicks';
 import { AND, DATE_OR_DATETIME_MS, GREATER_THAN, LESS_THAN, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
@@ -46,33 +45,5 @@ export class TimeAxis extends CartesianAxis<TimeScale, number | Date> {
         }
 
         return { domain: d, clipped };
-    }
-
-    protected override onFormatChange(ticks: any[], fractionDigits: number, domain: any[], format?: string) {
-        if (format) {
-            super.onFormatChange(ticks, fractionDigits, domain, format);
-        } else {
-            // For time axis labels to look nice, even if date format wasn't set.
-            this.labelFormatter = this.scale.tickFormat({ ticks, domain });
-            this.datumFormatter = this.scale.tickFormat({ ticks, domain, formatOffset: 1 });
-        }
-    }
-
-    override updateSecondaryAxisTicks(primaryTickCount: number | undefined): any[] {
-        if (!this.dataDomain?.domain.length) {
-            return [];
-        }
-
-        const { domain, ticks } = calculateNiceSecondaryAxis(
-            this.dataDomain.domain.map(Number),
-            primaryTickCount ?? 0,
-            this.reverse
-        );
-
-        this.scale.nice = false;
-        this.scale.domain = domain.map((d) => new Date(d));
-        this.scale.update();
-
-        return ticks;
     }
 }

@@ -1,6 +1,7 @@
 import type { AgChartLegendPosition, CssColor, FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { LinearScale } from '../../scale/linearScale';
+import type { ScaleTickParams } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { TranslatableGroup } from '../../scene/group';
 import type { Node } from '../../scene/node';
@@ -69,8 +70,6 @@ export class AxisTicks {
     }
 
     calculateLayout(): BBox {
-        this.scale.interval = this.interval.step;
-
         const boxes: BBox[] = [];
         const tickData = this.generateTicks();
         const { translationX, translationY } = this;
@@ -156,18 +155,18 @@ export class AxisTicks {
             AxisTicks.DefaultMinSpacing
         );
 
-        if (tickCount) {
-            this.scale.tickCount = tickCount;
-            this.scale.minTickCount = minTickCount;
-            this.scale.maxTickCount = maxTickCount;
-        }
-
-        const tickData = this.getTicksData();
+        const tickData = this.getTicksData({
+            nice: false,
+            interval: this.interval.step,
+            tickCount,
+            minTickCount,
+            maxTickCount,
+        });
 
         if (this.position === 'bottom' || this.position === 'top') {
             const measurer = CachedTextMeasurerPool.getMeasurer({ font: this.label });
 
-            const domain = this.scale.getDomain();
+            const { domain } = this.scale;
             const reversed = domain[0] > domain[1];
             const direction = reversed ? -1 : 1;
             let lastTickPosition = -Infinity * direction;
@@ -181,14 +180,19 @@ export class AxisTicks {
         return tickData;
     }
 
-    private getTicksData() {
+    private getTicksData(tickParams: ScaleTickParams<any>) {
         const ticks: TickDatum[] = [];
-        const rawTicks = this.scale.ticks();
+        const rawTicks = this.scale.ticks(tickParams);
         const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
         const idGenerator = createIdsGenerator();
 
         const labelFormatter = this.label.format
-            ? this.scale.tickFormat({ ticks: rawTicks, specifier: this.label.format })
+            ? this.scale.tickFormatter({
+                  ticks: rawTicks,
+                  visibleTicks: rawTicks,
+                  fractionDigits,
+                  specifier: this.label.format,
+              })
             : (x: unknown) => formatValue(x, fractionDigits);
         for (let index = 0; index < rawTicks.length; index++) {
             const tick = rawTicks[index];

@@ -1,4 +1,4 @@
-import type { Scale } from '../../../scale/scale';
+import type { Scale, ScaleFormatParams } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
 import type { Position } from './geojson';
 
@@ -59,5 +59,13 @@ export class MercatorScale implements Scale<Position, XY> {
         const yScale = (y1 - y0) / this.bounds.height;
 
         return [xLon((x - x0) / xScale + this.bounds.x), yLat((y - y0) / yScale + this.bounds.y)];
+    }
+
+    tickFormatter(_params: ScaleFormatParams<Position>): ((x: any) => string) | undefined {
+        return;
+    }
+
+    datumFormatter(_params: ScaleFormatParams<Position>): ((x: any) => string) | undefined {
+        return;
     }
 }

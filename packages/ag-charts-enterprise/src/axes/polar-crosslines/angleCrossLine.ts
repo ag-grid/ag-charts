@@ -12,6 +12,7 @@ const {
     Sector,
     RotatableText,
     ContinuousScale,
+    BandScale,
 } = _ModuleSupport;
 
 export class AngleCrossLine extends PolarCrossLine {
@@ -24,6 +25,8 @@ export class AngleCrossLine extends PolarCrossLine {
     private readonly lineNode = new Path();
     private readonly crossLineRange = new Group();
     private readonly labelNode = new RotatableText();
+
+    public ticks: any[] = [];
 
     constructor() {
         super();
@@ -43,7 +46,7 @@ export class AngleCrossLine extends PolarCrossLine {
             }
 
             const [start, end] = range ?? [value, undefined];
-            const domain = scale.getDomain?.() ?? scale.domain;
+            const { domain } = scale;
             // TODO support clipping if only end is out-of-bounds
             return start >= domain[0] && start <= domain[1] && (type === 'line' || (end >= start && end <= domain[1]));
         };
@@ -59,7 +62,7 @@ export class AngleCrossLine extends PolarCrossLine {
         this.lineGroup.visible = visible;
         this.labelGroup.visible = visible;
 
-        if (type === 'line' && shape === 'circle' && scale instanceof _ModuleSupport.BandScale) {
+        if (type === 'line' && shape === 'circle' && BandScale.is(scale)) {
             this.type = 'range';
             this.range = [value, value];
         }
@@ -105,14 +108,8 @@ export class AngleCrossLine extends PolarCrossLine {
     }
 
     private updatePolygonNode(visible: boolean) {
-        const { polygonNode: polygon, range, scale, shape, type } = this;
+        const { polygonNode: polygon, range, scale, shape, type, ticks } = this;
         if (!visible || type !== 'range' || shape !== 'polygon' || !scale || !range) {
-            polygon.visible = false;
-            return;
-        }
-
-        const ticks = scale.ticks?.();
-        if (!ticks) {
             polygon.visible = false;
             return;
         }
@@ -184,11 +181,13 @@ export class AngleCrossLine extends PolarCrossLine {
     }
 
     private updateLabelNode(visible: boolean) {
-        const { label, labelNode: node, range, scale, type } = this;
+        const { label, labelNode: node, range, scale, type, ticks } = this;
         if (!visible || label.enabled === false || !label.text || !scale || (type === 'range' && !range)) {
-            node.visible = true;
+            node.visible = false;
             return;
         }
+
+        node.visible = true;
 
         const { axisInnerRadius, axisOuterRadius } = this;
 
@@ -218,7 +217,6 @@ export class AngleCrossLine extends PolarCrossLine {
             const isBottomSide = (isNumberEqual(angle, 0) || angle > 0) && angle < Math.PI;
 
             let distance: number;
-            const ticks = scale.ticks?.() ?? [];
             if (this.shape === 'circle' || ticks.length < 3) {
                 distance = axisOuterRadius - label.padding;
             } else {
