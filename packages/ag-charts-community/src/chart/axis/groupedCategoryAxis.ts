@@ -1,7 +1,7 @@
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
-import { BandScale } from '../../scale/bandScale';
+import { CategoryScale } from '../../scale/categoryScale';
 import { BBox } from '../../scene/bbox';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
@@ -96,7 +96,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
     // Label scale (labels are positioned between ticks, tick count = label count + 1).
     // We don't call is `labelScale` for consistency with other axes.
-    readonly tickScale = new BandScale<string[]>();
+    readonly tickScale = new CategoryScale<string[]>();
 
     private computedLayout?: ComputedGroupAxisLayout;
     private tickTreeLayout?: TreeLayout;

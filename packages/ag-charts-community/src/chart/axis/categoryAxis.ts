@@ -1,12 +1,12 @@
 import type { ModuleContext } from '../../module/moduleContext';
-import { BandScale } from '../../scale/bandScale';
+import { CategoryScale } from '../../scale/categoryScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { isFiniteNumber } from '../../util/type-guards';
 import { RATIO, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
 export class CategoryAxis<
-    S extends BandScale<string | object, number> | OrdinalTimeScale = BandScale<string | object, number>,
+    S extends CategoryScale<string | object, number> | OrdinalTimeScale = CategoryScale<string | object, number>,
 > extends CartesianAxis<S> {
     static override is(this: void, value: unknown): value is CategoryAxis<any> {
         return value instanceof CategoryAxis;
@@ -15,7 +15,7 @@ export class CategoryAxis<
     static readonly className: string = 'CategoryAxis';
     static readonly type: 'category' | 'grouped-category' | 'ordinal-time' = 'category';
 
-    constructor(moduleCtx: ModuleContext, scale = new BandScale<string | object>() as S) {
+    constructor(moduleCtx: ModuleContext, scale = new CategoryScale<string | object>() as S) {
         super(moduleCtx, scale);
 
         this.includeInvisibleDomains = true;

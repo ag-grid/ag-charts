@@ -1,8 +1,8 @@
 import { Color } from '../util/color';
 import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
+import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
-import type { Scale, ScaleFormatParams } from './scale';
 
 type OKLCHA = { l: number; c: number; h: number; a: number };
 
@@ -41,7 +41,7 @@ const interpolateOklch = (x: OKLCHA, y: OKLCHA, d: number): Color => {
     return Color.fromOKLCH(l, c, h, a);
 };
 
-export class ColorScale implements Scale<number, string, number> {
+export class ColorScale extends AbstractScale<number, string, number> {
     readonly type = 'color';
     protected invalid = true;
 
@@ -81,6 +81,10 @@ export class ColorScale implements Scale<number, string, number> {
         }
 
         this.parsedRange = this.range.map(convertColorStringToOklcha);
+    }
+
+    override toDomain(): number | undefined {
+        return;
     }
 
     convert(x: number) {
@@ -124,6 +128,10 @@ export class ColorScale implements Scale<number, string, number> {
         return interpolateOklch(c0, c1, q).toRgbaString();
     }
 
+    override invert(): number | undefined {
+        return;
+    }
+
     protected refresh() {
         if (!this.invalid) return;
 
@@ -133,13 +141,5 @@ export class ColorScale implements Scale<number, string, number> {
         if (this.invalid) {
             Logger.warnOnce('Expected update to not invalidate scale');
         }
-    }
-
-    tickFormatter(_params: ScaleFormatParams<number>): ((x: any) => string) | undefined {
-        return;
-    }
-
-    datumFormatter(_params: ScaleFormatParams<number>): ((x: any) => string) | undefined {
-        return;
     }
 }

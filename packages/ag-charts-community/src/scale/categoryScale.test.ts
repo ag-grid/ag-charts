@@ -1,10 +1,10 @@
 import { describe, expect, test } from '@jest/globals';
 
-import { BandScale } from './bandScale';
+import { CategoryScale } from './categoryScale';
 
-describe('BandScale', () => {
+describe('CategoryScale', () => {
     test('initial state', () => {
-        const scale = new BandScale();
+        const scale = new CategoryScale();
 
         expect(scale.domain).toEqual([]);
         expect(scale.range).toEqual([0, 1]);
@@ -14,7 +14,7 @@ describe('BandScale', () => {
     });
 
     test('no implicit domain construction', () => {
-        const scale = new BandScale();
+        const scale = new CategoryScale();
 
         expect(scale.convert('B')).toBe(NaN);
         expect(scale.convert('C')).toBe(NaN);
@@ -24,7 +24,7 @@ describe('BandScale', () => {
     });
 
     test('basic band scale', () => {
-        const scale = new BandScale();
+        const scale = new CategoryScale();
 
         scale.domain = ['A', 'B', 'C', 'D', 'E'];
         scale.range = [0, 500];
@@ -39,7 +39,7 @@ describe('BandScale', () => {
     });
 
     test('date band scale', () => {
-        const scale = new BandScale();
+        const scale = new CategoryScale();
 
         scale.domain = [new Date('2020'), new Date('2021'), new Date('2022'), new Date('2023'), new Date('2024')];
         scale.range = [0, 500];
@@ -54,7 +54,7 @@ describe('BandScale', () => {
     });
 
     test('inner padding', () => {
-        const scale = new BandScale();
+        const scale = new CategoryScale();
 
         scale.domain = ['A', 'B', 'C', 'D', 'E'];
         scale.range = [0, 500];
@@ -68,7 +68,7 @@ describe('BandScale', () => {
     });
 
     test('inner padding with single value', () => {
-        const scale = new BandScale();
+        const scale = new CategoryScale();
 
         scale.domain = ['A'];
         scale.range = [0, 500];
@@ -78,7 +78,7 @@ describe('BandScale', () => {
     });
 
     test('outer padding', () => {
-        const scale = new BandScale();
+        const scale = new CategoryScale();
 
         scale.domain = ['A', 'B', 'C', 'D', 'E'];
         scale.range = [0, 500];
@@ -92,7 +92,7 @@ describe('BandScale', () => {
     });
 
     test('padding', () => {
-        const scale = new BandScale();
+        const scale = new CategoryScale();
 
         scale.domain = ['A', 'B', 'C', 'D', 'E'];
         scale.range = [0, 500];
@@ -109,7 +109,7 @@ describe('BandScale', () => {
     });
 
     test('round', () => {
-        const scale = new BandScale();
+        const scale = new CategoryScale();
 
         scale.domain = ['A', 'B', 'C', 'D', 'E'];
         scale.range = [0, 500];

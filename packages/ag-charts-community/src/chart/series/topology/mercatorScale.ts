@@ -1,4 +1,4 @@
-import type { Scale, ScaleFormatParams } from '../../../scale/scale';
+import { AbstractScale } from '../../../scale/abstractScale';
 import { BBox } from '../../../scene/bbox';
 import type { Position } from './geojson';
 
@@ -11,7 +11,7 @@ const latY = (lat: number) => -Math.log(Math.tan(Math.PI * 0.25 + lat * radsInDe
 const xLon = (x: number) => x / radsInDeg;
 const yLat = (y: number) => (Math.atan(Math.exp(-y)) - Math.PI * 0.25) / (radsInDeg * 0.5);
 
-export class MercatorScale implements Scale<Position, XY> {
+export class MercatorScale extends AbstractScale<Position, XY> {
     readonly type = 'mercator';
     readonly bounds: BBox;
 
@@ -43,7 +43,12 @@ export class MercatorScale implements Scale<Position, XY> {
         public readonly domain: Position[],
         public readonly range: XY[]
     ) {
+        super();
         this.bounds = MercatorScale.bounds(domain);
+    }
+
+    override toDomain(): Position | undefined {
+        return;
     }
 
     convert([lon, lat]: Position): XY {
@@ -59,13 +64,5 @@ export class MercatorScale implements Scale<Position, XY> {
         const yScale = (y1 - y0) / this.bounds.height;
 
         return [xLon((x - x0) / xScale + this.bounds.x), yLat((y - y0) / yScale + this.bounds.y)];
-    }
-
-    tickFormatter(_params: ScaleFormatParams<Position>): ((x: any) => string) | undefined {
-        return;
-    }
-
-    datumFormatter(_params: ScaleFormatParams<Position>): ((x: any) => string) | undefined {
-        return;
     }
 }

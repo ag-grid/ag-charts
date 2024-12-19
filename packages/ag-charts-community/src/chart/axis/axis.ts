@@ -764,10 +764,8 @@ export abstract class Axis<
                     return keys;
                 }, [] as string[]),
             scaleValueFormatter: (specifier?: string) => this.getScaleValueFormatter(specifier),
-            scaleInvert: OrdinalTimeScale.is(scale)
-                ? (val) => scale.invertNearest?.(val)
-                : (val) => scale.invert?.(val),
-            scaleInvertNearest: (val) => scale.invertNearest?.(val),
+            scaleInvert: (val) => scale.invert(val, true),
+            scaleInvertNearest: (val) => scale.invert(val, true),
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (x, tolerance) => this.inRange(x, tolerance),
         };

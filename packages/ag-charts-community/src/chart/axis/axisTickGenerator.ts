@@ -344,7 +344,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             maxTickCount,
         };
 
-        let niceDomain = nice && scale.niceDomain ? scale.niceDomain(tickParams, domain) : domain;
+        let niceDomain = nice ? scale.niceDomain(tickParams, domain) : domain;
 
         let rawTicks: any[];
 
@@ -380,7 +380,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 rawTicks = this.filterTicks(previousTicks, tickCount);
                 break;
             default:
-                rawTicks = scale.ticks?.(tickParams, niceDomain, visibleRange) ?? [];
+                rawTicks = scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
                 break;
         }
 

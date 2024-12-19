@@ -21,7 +21,7 @@ const {
     animationValidation,
     angleBetween,
     createDatumId,
-    BandScale,
+    CategoryScale,
     Sector,
     SectorBox,
     motion,
@@ -75,7 +75,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
 
     protected override readonly NodeEvent = RadialBarSeriesNodeEvent;
 
-    private readonly groupScale = new BandScale<string>();
+    private readonly groupScale = new CategoryScale<string>();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
         super({
