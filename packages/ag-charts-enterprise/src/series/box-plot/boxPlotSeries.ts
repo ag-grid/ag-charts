@@ -255,7 +255,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = this.properties;
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.properties;
 
         return {
             marker: {
@@ -264,6 +264,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
                 stroke,
                 strokeOpacity,
                 strokeWidth,
+                lineDash,
+                lineDashOffset,
             },
         };
     }

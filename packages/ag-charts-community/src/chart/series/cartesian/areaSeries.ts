@@ -806,8 +806,10 @@ export class AreaSeries extends CartesianSeries<
                 fill: useAreaFill ? fill : marker.fill,
                 fillOpacity: useAreaFill ? fillOpacity : marker.fillOpacity,
                 stroke: marker.stroke ?? stroke,
-                strokeOpacity: marker.strokeOpacity ?? strokeOpacity,
-                strokeWidth: marker.strokeWidth ?? 0,
+                strokeOpacity: marker.strokeOpacity,
+                strokeWidth: marker.strokeWidth,
+                lineDash: marker.lineDash,
+                lineDashOffset: marker.lineDashOffset,
                 enabled: marker.enabled || strokeWidth <= 0,
             },
             line: {

@@ -542,6 +542,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                         stroke: undefined,
                         strokeWidth: 0,
                         strokeOpacity: 1,
+                        lineDash: [0],
+                        lineDashOffset: 0,
                     },
                 },
                 data,

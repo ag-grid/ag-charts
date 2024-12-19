@@ -618,8 +618,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private legendItemSymbol(): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity } = this.properties;
-        return { marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } };
+        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
+        return { marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } };
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

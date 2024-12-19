@@ -1332,6 +1332,8 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
                 fillOpacity: this.properties.fillOpacity,
                 strokeOpacity: this.properties.strokeOpacity,
                 strokeWidth: this.properties.strokeWidth,
+                lineDash: this.properties.lineDash,
+                lineDashOffset: this.properties.lineDashOffset,
             },
         };
     }

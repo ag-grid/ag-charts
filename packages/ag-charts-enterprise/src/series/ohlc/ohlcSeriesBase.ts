@@ -515,6 +515,8 @@ export abstract class OhlcSeriesBase<
                         stroke: item.stroke,
                         strokeWidth: item.strokeWidth ?? 1,
                         strokeOpacity: item.strokeOpacity ?? 1,
+                        lineDash: item.lineDash ?? [0],
+                        lineDashOffset: item.lineDashOffset ?? 0,
                     },
                 },
                 data: [

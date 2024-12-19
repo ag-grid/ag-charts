@@ -520,7 +520,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } = this.properties;
+        const { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = this.properties;
 
         return {
             marker: {
@@ -529,6 +529,8 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
                 fillOpacity: fillOpacity,
                 strokeOpacity: strokeOpacity,
                 strokeWidth,
+                lineDash,
+                lineDashOffset,
             },
         };
     }

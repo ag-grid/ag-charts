@@ -623,10 +623,10 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
     }
 
     private legendItemSymbol(datumIndex: number) {
-        const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity } = this.properties;
+        const { fills, strokes, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
         const fill = fills[datumIndex % fills.length] ?? 'black';
         const stroke = strokes[datumIndex % strokes.length] ?? 'black';
-        return { marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity } };
+        return { marker: { fill, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } };
     }
 
     override getLegendData(legendType: _ModuleSupport.ChartLegendType): _ModuleSupport.CategoryLegendDatum[] {

@@ -12,6 +12,8 @@ export interface LegendMarker {
     stroke?: string | Gradient;
     strokeOpacity: number;
     strokeWidth: number;
+    lineDash: number[];
+    lineDashOffset: number;
     enabled?: boolean;
 }
 
@@ -51,7 +53,7 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
     }
 
     if (symbol.marker.enabled !== false) {
-        const { shape, fill, fillOpacity, stroke, strokeOpacity } = symbol.marker;
+        const { shape, fill, fillOpacity, stroke, strokeOpacity, lineDash, lineDashOffset } = symbol.marker;
         const marker = new Marker();
         marker.shape = shape ?? 'square';
         marker.size = size;
@@ -60,6 +62,8 @@ export function legendSymbolSvg(symbol: LegendSymbolOptions, size: number, lineS
         marker.stroke = stroke;
         marker.strokeOpacity = strokeOpacity;
         marker.strokeWidth = markerStrokeWidth;
+        marker.lineDash = lineDash;
+        marker.lineDashOffset = lineDashOffset;
 
         const anchor = Marker.anchor(shape);
         const x = width / 2 + (anchor.x - 0.5) * size;

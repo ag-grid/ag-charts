@@ -546,6 +546,8 @@ export class MapLineSeries extends TopologySeries<
                 stroke: undefined,
                 strokeWidth: 0,
                 strokeOpacity: 0,
+                lineDash: [0],
+                lineDashOffset: 0,
                 enabled: false,
             },
             line: {

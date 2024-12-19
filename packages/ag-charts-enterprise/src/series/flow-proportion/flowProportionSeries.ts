@@ -480,6 +480,8 @@ export abstract class FlowProportionSeries<
             stroke?: string;
             strokeWidth?: number;
             strokeOpacity?: number;
+            lineDash?: number[];
+            lineDashOffset?: number;
         } = {}
     ): _ModuleSupport.LegendSymbolOptions {
         const { fills, strokes } = this.properties;
@@ -490,6 +492,8 @@ export abstract class FlowProportionSeries<
             stroke = strokes[nodeIndex % strokes.length],
             strokeWidth = 0,
             strokeOpacity = 1,
+            lineDash = [0],
+            lineDashOffset = 0,
         } = format;
 
         return {
@@ -499,6 +503,8 @@ export abstract class FlowProportionSeries<
                 stroke,
                 strokeWidth,
                 strokeOpacity,
+                lineDash,
+                lineDashOffset,
             },
         };
     }

@@ -168,6 +168,8 @@ export class CandlestickSeries extends OhlcSeriesBase<CandlestickNode, Candlesti
                 stroke: stroke,
                 strokeWidth: up.strokeWidth ?? 1,
                 strokeOpacity: up.strokeOpacity ?? 1,
+                lineDash: up.lineDash,
+                lineDashOffset: up.lineDashOffset,
             },
         };
     }

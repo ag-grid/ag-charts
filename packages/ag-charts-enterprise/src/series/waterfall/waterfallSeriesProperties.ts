@@ -72,7 +72,7 @@ export class WaterfallSeriesItem extends BaseProperties {
     strokeOpacity = 1;
 
     @Validate(LINE_DASH)
-    lineDash?: number[] = [0];
+    lineDash: number[] = [0];
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
@@ -107,7 +107,7 @@ class WaterfallSeriesConnectorLine extends BaseProperties {
     strokeOpacity: number = 1;
 
     @Validate(LINE_DASH)
-    lineDash?: number[] = [0];
+    lineDash: number[] = [0];
 
     @Validate(POSITIVE_NUMBER)
     lineDashOffset: number = 0;
