@@ -161,16 +161,14 @@ export function ApiReference({
                 ))}
 
             <div className={classnames(styles.reference, styles.apiReference, 'no-zebra')}>
-                <div>
-                    {processMembers(interfaceRef, config).map((member) => (
-                        <NodeFactory
-                            key={member.name}
-                            member={member}
-                            anchorId={`reference-${id}-${member.name}`}
-                            genericsMap={interfaceRef.genericsMap}
-                        />
-                    ))}
-                </div>
+                {processMembers(interfaceRef, config).map((member) => (
+                    <NodeFactory
+                        key={member.name}
+                        member={member}
+                        anchorId={`reference-${id}-${member.name}`}
+                        genericsMap={interfaceRef.genericsMap}
+                    />
+                ))}
             </div>
         </div>
     );
