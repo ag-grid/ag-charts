@@ -11,14 +11,13 @@ import { clamp } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
 import { excludesType } from '../../util/type-guards';
+import type { KeyboardWidgetEvent } from '../../widget/widgetEvents';
 import type { ChartContext } from '../chartContext';
 import type { ChartHighlight } from '../chartHighlight';
 import type { ChartMode } from '../chartMode';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
-import { KeyNavManager } from '../interaction/keyNavManager';
-import type { KeyNavEvent } from '../interaction/keyNavManager';
 import type { RegionEvent } from '../interaction/regionManager';
 import { TooltipManager } from '../interaction/tooltipManager';
 import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
@@ -54,7 +53,6 @@ export class SeriesAreaManager extends BaseManager {
     private hoverRect?: BBox;
     private readonly focusIndicator: FocusIndicator;
     private readonly swapChain: FocusSwapChain;
-    private readonly keyNavManager: KeyNavManager;
 
     private readonly highlight = {
         /** Last received event that still needs to be applied. */
@@ -85,6 +83,16 @@ export class SeriesAreaManager extends BaseManager {
      */
     private hoverDevice: 'mouse' | 'keyboard' = 'mouse';
 
+    /**
+     * This is the "second last" input event. It can be useful for keydown
+     * events that for which don't to set the isFocusVisible state
+     * (e.g. Backspace/Delete key on FC annotations, see AG-13041).
+     *
+     * Use with caution! The focus indicator must ALWAYS be visible for
+     * keyboard-only users.
+     */
+    private previousInputDevice: 'mouse' | 'keyboard' = 'keyboard';
+
     private readonly focus = {
         sortedSeries: [] as Series<SeriesNodeDatum, SeriesProperties<object>>[],
         series: undefined as Series<any, any> | undefined,
@@ -104,8 +112,6 @@ export class SeriesAreaManager extends BaseManager {
         this.swapChain.addListener('focus', () => this.onFocus());
         this.focusIndicator = new FocusIndicator(this.swapChain);
         this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
-        this.keyNavManager = new KeyNavManager(this.chart.ctx.interactionManager, this.chart.ctx.widgets);
-        this.keyNavManager.focusIndicator = this.focusIndicator;
 
         const seriesRegion = chart.ctx.regionManager.getRegion('series');
         this.destroyFns.push(
@@ -113,16 +119,12 @@ export class SeriesAreaManager extends BaseManager {
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label2'),
             seriesRegion.addListener('drag', (event) => this.onHoverLikeEvent(event), Clickable),
             seriesRegion.addListener('hover', (event) => this.onHover(event), Clickable),
+            seriesRegion.addListener('wheel', (event) => this.onWheel(event), Clickable),
             seriesRegion.addListener('leave', () => this.onLeave(), Clickable),
+            chart.ctx.widgets.seriesWidget.addListener('keydown', (event) => this.onKeyDown(event)),
             chart.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
             chart.ctx.domManager.addListener('resize', () => this.clearAll()),
             chart.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            this.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event)),
-            this.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event)),
-            this.keyNavManager.addListener('nav-zoom', (event) => this.onNavZoom(event)),
-            this.keyNavManager.addListener('undo', () => this.chart.ctx.chartEventManager.seriesEvent('series-undo')),
-            this.keyNavManager.addListener('redo', () => this.chart.ctx.chartEventManager.seriesEvent('series-redo')),
-            this.keyNavManager.addListener('submit', (event) => this.onSubmit(event)),
             chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.regionManager.listenAll('contextmenu', (event) => this.onContextMenu(event), All),
             chart.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
@@ -238,8 +240,12 @@ export class SeriesAreaManager extends BaseManager {
         if (!this.focusIndicator.isFocusVisible()) this.clearAll();
     }
 
+    private onWheel(_event: RegionEvent<'wheel'>): void {
+        this.focusIndicator?.overrideFocusVisible(false);
+        this.previousInputDevice = 'mouse';
+    }
+
     private onHover(event: RegionEvent<'hover'>): void {
-        this.hoverDevice = 'mouse';
         this.onHoverLikeEvent(event);
     }
 
@@ -247,6 +253,8 @@ export class SeriesAreaManager extends BaseManager {
         if (excludesType(event, 'drag')) {
             this.tooltip.lastHover = event;
         }
+        this.hoverDevice = 'mouse';
+        this.previousInputDevice = 'mouse';
         this.highlight.pendingHoverEvent = event;
         this.hoverScheduler.schedule();
 
@@ -262,7 +270,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onClick(event: RegionEvent<'click' | 'dblclick'>) {
-        this.hoverDevice = 'mouse';
+        this.focusIndicator.overrideFocusVisible(false);
         this.onHoverLikeEvent(event);
         if (this.seriesRect?.containsPoint(event.canvasX, event.canvasY) && this.checkSeriesNodeClick(event)) {
             this.update(ChartUpdateType.SERIES_UPDATE);
@@ -290,33 +298,87 @@ export class SeriesAreaManager extends BaseManager {
         this.focusIndicator.overrideFocusVisible(undefined);
     }
 
-    private onNavVert(event: KeyNavEvent<'nav-vert'>): void {
+    private onKeyDown(event: KeyboardWidgetEvent<'keydown'>) {
+        if (!this.isState(InteractionState.Keyable)) return;
+
+        const { key, code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
+
+        if (ctrlKey || metaKey) {
+            if (key === 'y' || (key === 'z' && shiftKey)) {
+                this.focusIndicator.overrideFocusVisible(this.previousInputDevice === 'keyboard');
+                return this.chart.ctx.chartEventManager.seriesEvent('series-redo');
+            } else if (key === 'z') {
+                this.focusIndicator.overrideFocusVisible(this.previousInputDevice === 'keyboard');
+                return this.chart.ctx.chartEventManager.seriesEvent('series-undo');
+            }
+        }
+
+        // Annotations listen for KeyInteractionEvent<'keydown'> instead of KeyNavEvent<T>:
+        if (this.isState(InteractionState.AnnotationsMoveable)) {
+            // TODO: annotations should update the focus indicator bounds to surround the current annotation
+            this.focusIndicator?.overrideFocusVisible(false);
+            return;
+        }
+
+        // We must read the key before the modifiers, because the text value can typed using modifiers.
+        switch (key) {
+            case '+':
+                return this.chart.ctx.chartEventManager.seriesKeyNavZoom(1, event);
+            case '-':
+                return this.chart.ctx.chartEventManager.seriesKeyNavZoom(-1, event);
+        }
+        if (altKey || shiftKey || metaKey || ctrlKey) return;
+
+        this.focusIndicator?.overrideFocusVisible(true);
+        if (key === 'Enter') {
+            // AG-13086: Ensure numpad enter + normal enter are treated consistently.
+            return this.onSubmit(event);
+        }
+        switch (code) {
+            case 'ArrowDown':
+                return this.onNavVert(1, event);
+            case 'ArrowUp':
+                return this.onNavVert(-1, event);
+            case 'ArrowLeft':
+                return this.onNavHori(-1, event);
+            case 'ArrowRight':
+                return this.onNavHori(1, event);
+            case 'ZoomIn':
+            case 'Add':
+                return this.chart.ctx.chartEventManager.seriesKeyNavZoom(1, event);
+            case 'ZoomOut':
+            case 'Substract':
+                return this.chart.ctx.chartEventManager.seriesKeyNavZoom(-1, event);
+            case 'Space':
+            case 'Enter':
+                return this.onSubmit(event);
+        }
+    }
+
+    private onNavVert(delta: -1 | 1, event: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.isState(InteractionState.Keyable)) return;
         this.hoverDevice = 'keyboard';
-        this.focus.seriesIndex += event.delta;
-        this.handleFocus(event.delta, 0);
-        event.preventDefault();
+        this.previousInputDevice = 'keyboard';
+        this.focus.seriesIndex += delta;
+        this.handleFocus(delta, 0);
+        event.sourceEvent.preventDefault();
         this.chart.ctx.chartEventManager.seriesEvent('series-focus-change');
     }
 
-    private onNavHori(event: KeyNavEvent<'nav-hori'>): void {
+    private onNavHori(delta: -1 | 1, event: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.isState(InteractionState.Keyable)) return;
         this.hoverDevice = 'keyboard';
-        this.focus.datumIndex += event.delta;
-        this.handleFocus(0, event.delta);
-        event.preventDefault();
+        this.previousInputDevice = 'keyboard';
+        this.focus.datumIndex += delta;
+        this.handleFocus(0, delta);
+        event.sourceEvent.preventDefault();
         this.chart.ctx.chartEventManager.seriesEvent('series-focus-change');
     }
 
-    private onNavZoom(event: KeyNavEvent<'nav-zoom'>): void {
-        if (!this.isState(InteractionState.Keyable)) return;
-        this.chart.ctx.chartEventManager.seriesKeyNavZoom(event.delta, event.sourceEvent);
-    }
-
-    private onSubmit(event: KeyNavEvent<'submit'>): void {
+    private onSubmit(event: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.isState(InteractionState.Keyable)) return;
         const { series, datum } = this.focus;
-        const sourceEvent = event.sourceEvent.sourceEvent;
+        const sourceEvent = event.sourceEvent;
         if (series !== undefined && datum !== undefined) {
             series.fireNodeClickEvent(sourceEvent, datum);
         } else {
@@ -325,7 +387,7 @@ export class SeriesAreaManager extends BaseManager {
                 event: sourceEvent,
             });
         }
-        event.preventDefault();
+        sourceEvent.preventDefault();
     }
 
     private checkSeriesNodeClick(event: RegionEvent<'click' | 'dblclick'> & { preventZoomDblClick?: boolean }) {
