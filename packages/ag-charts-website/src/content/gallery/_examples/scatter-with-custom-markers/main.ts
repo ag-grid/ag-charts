@@ -15,7 +15,7 @@ function agChartsLogo({ path, size }: AgMarkerShapeFnParams) {
 }
 
 function npmLogo({ path, size }: AgMarkerShapeFnParams) {
-    const pathData = 'M0 0H1V1H0H0ZM0.6875 0.8125H0.8125V0.1875H0.1875V0.8125H0.5V0.3125H0.6875V0.8125Z';
+    const pathData = 'M0.8325 0.8325H0.6993V0.2997H0.4995V0.8325H0.1665V0.1665H0.8325V0.8325Z';
     updatePath(pathData, path, size);
 }
 
@@ -43,7 +43,7 @@ const options: AgChartOptions = {
             yKey: 'npmDownloads',
             yName: 'NPM Downloads',
             shape: npmLogo,
-            size: 12,
+            size: 20,
             fillOpacity: 1,
         },
     ],
