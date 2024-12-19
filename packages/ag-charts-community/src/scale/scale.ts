@@ -15,10 +15,16 @@ export interface ScaleFormatParams<D> {
     specifier: string | undefined;
 }
 
+export interface NormalizedDomain<D> {
+    domain: D[];
+    animatable: boolean;
+}
+
 export interface Scale<D, R, I = number> {
     type: ScaleType;
     domain: D[];
     range: R[];
+    normalizeDomains(...domains: D[][]): NormalizedDomain<D>;
     toDomain(value: number): D | undefined;
     convert(value: D, clamp?: boolean): R;
     invert(value: R, exact?: boolean): D | undefined;

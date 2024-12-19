@@ -1,5 +1,6 @@
 import { findMinMax } from '../util/number';
 import { AbstractScale } from './abstractScale';
+import type { NormalizedDomain } from './scale';
 
 export abstract class ContinuousScale<D extends number | Date, I = number> extends AbstractScale<D, number, I> {
     static is(value: unknown): value is ContinuousScale<any, any> {
@@ -15,6 +16,37 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         public range: number[] = []
     ) {
         super();
+    }
+
+    abstract override toDomain(value: number): D;
+
+    normalizeDomains(...domains: D[][]): NormalizedDomain<D> {
+        let min: D | undefined;
+        let minValue = -Infinity;
+        let max: D | undefined;
+        let maxValue = +Infinity;
+
+        for (const domain of domains) {
+            for (const d of domain) {
+                const value = d.valueOf();
+                if (value < minValue) {
+                    minValue = value;
+                    min = d;
+                }
+                if (value > maxValue) {
+                    maxValue = value;
+                    max = d;
+                }
+            }
+        }
+
+        if (min != null && max != null) {
+            const domain = [min, max];
+            return { domain, animatable: true };
+        } else {
+            const domain = [this.toDomain(NaN), this.toDomain(NaN)];
+            return { domain, animatable: false };
+        }
     }
 
     protected transform(x: D) {

@@ -4,7 +4,7 @@ import type { TimeInterval } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
 import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
-import type { ScaleFormatParams, ScaleTickParams } from './scale';
+import type { NormalizedDomain, ScaleFormatParams, ScaleTickParams } from './scale';
 import { getDateTicksForInterval } from './timeScale';
 
 export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
@@ -59,6 +59,26 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
 
     override toDomain(value: number): Date {
         return new Date(value);
+    }
+
+    override normalizeDomains(...domains: Date[][]): NormalizedDomain<Date> {
+        if (domains.length === 0) return { domain: [], animatable: false };
+
+        let domain: Date[];
+        if (domains.length === 1) {
+            domain = domains[0];
+
+            const sortOrder = datesSortOrder(domain);
+            if (sortOrder === -1) {
+                domain = domain.slice().reverse();
+            } else if (sortOrder == null) {
+                domain = sortAndUniqueDates(domain.slice());
+            }
+        } else {
+            domain = sortAndUniqueDates(domains.flat());
+        }
+
+        return { domain, animatable: true };
     }
 
     override ticks(

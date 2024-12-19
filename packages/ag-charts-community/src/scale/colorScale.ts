@@ -3,6 +3,7 @@ import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
+import type { NormalizedDomain } from './scale';
 
 type OKLCHA = { l: number; c: number; h: number; a: number };
 
@@ -81,6 +82,10 @@ export class ColorScale extends AbstractScale<number, string, number> {
         }
 
         this.parsedRange = this.range.map(convertColorStringToOklcha);
+    }
+
+    override normalizeDomains(...domains: number[][]): NormalizedDomain<number> {
+        return { domain: domains.flat(), animatable: true };
     }
 
     override toDomain(): number | undefined {

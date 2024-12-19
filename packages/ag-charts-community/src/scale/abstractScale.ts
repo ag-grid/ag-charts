@@ -1,9 +1,10 @@
-import type { Scale, ScaleFormatParams, ScaleTickParams, ScaleType } from './scale';
+import type { NormalizedDomain, Scale, ScaleFormatParams, ScaleTickParams, ScaleType } from './scale';
 
 export abstract class AbstractScale<D, R, I = number> implements Scale<D, R, I> {
     abstract type: ScaleType;
     abstract domain: D[];
     abstract range: R[];
+    abstract normalizeDomains(...domains: D[][]): NormalizedDomain<D>;
     abstract toDomain(value: number): D | undefined;
     abstract convert(value: D, clamp?: boolean): R;
     abstract invert(value: R, nearest?: boolean): D | undefined;

@@ -1,3 +1,5 @@
+import type { NormalizedDomain } from 'packages/ag-charts-community/src/module-support';
+
 import { AbstractScale } from '../../../scale/abstractScale';
 import { BBox } from '../../../scene/bbox';
 import type { Position } from './geojson';
@@ -49,6 +51,30 @@ export class MercatorScale extends AbstractScale<Position, XY> {
 
     override toDomain(): Position | undefined {
         return;
+    }
+
+    override normalizeDomains(...domains: Position[][]): NormalizedDomain<Position> {
+        let x0 = -Infinity;
+        let x1 = Infinity;
+        let y0 = -Infinity;
+        let y1 = Infinity;
+
+        for (const domain of domains) {
+            for (const [x, y] of domain) {
+                x0 = Math.min(x, x0);
+                x1 = Math.max(x, x1);
+                y0 = Math.min(y, y0);
+                y1 = Math.max(y, y1);
+            }
+        }
+
+        return {
+            domain: [
+                [x0, y0],
+                [x1, y1],
+            ],
+            animatable: true,
+        };
     }
 
     convert([lon, lat]: Position): XY {

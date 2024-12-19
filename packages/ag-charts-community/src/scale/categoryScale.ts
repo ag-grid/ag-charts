@@ -1,5 +1,6 @@
 import { dateToNumber } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
+import type { NormalizedDomain } from './scale';
 
 export class CategoryScale<D, I = number> extends BandScale<D, I> {
     readonly type = 'band' as const;
@@ -35,6 +36,28 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
         return this._domain;
     }
 
+    override normalizeDomains(...domains: D[][]): NormalizedDomain<D> {
+        let normalizedDomain: D[] | undefined = undefined;
+        const seenDomains = new Set<D[]>();
+
+        let animatable = true;
+        for (const domain of domains) {
+            if (seenDomains.has(domain)) continue;
+            seenDomains.add(domain);
+
+            if (normalizedDomain == null) {
+                normalizedDomain = normaliseDataDomain(domain);
+            } else {
+                animatable &&= domainOrderedToNormalizedDomain(domain, normalizedDomain);
+                normalizedDomain = normaliseDataDomain([...normalizedDomain, ...domain]);
+            }
+        }
+
+        normalizedDomain ??= [];
+
+        return { domain: normalizedDomain, animatable };
+    }
+
     override toDomain(_value: number): D | undefined {
         return undefined;
     }
@@ -51,4 +74,39 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
     protected getIndex(value: D) {
         return this.index.get(dateToNumber(value));
     }
+}
+
+function normaliseDataDomain<D>(d: D[]): D[] {
+    const domain = [];
+    const uniqueValues = new Set<D>();
+    for (const value of d) {
+        const key = dateToNumber(value) as D;
+
+        // Avoid additional set lookups
+        const lastSize = uniqueValues.size;
+        uniqueValues.add(key);
+        if (uniqueValues.size !== lastSize) {
+            // Only add unique values
+            domain.push(value);
+        }
+    }
+    return domain;
+}
+
+function domainOrderedToNormalizedDomain<D>(domain: D[], normalizedDomain: D[]) {
+    let normalizedIndex = -1;
+    for (const value of domain) {
+        const normalizedNextIndex = normalizedDomain.indexOf(value);
+
+        if (normalizedNextIndex === -1) {
+            // All subsequent values must be extending (i.e. appending to) the normalized domain
+            normalizedIndex = Infinity;
+        } else if (normalizedNextIndex <= normalizedIndex) {
+            return false;
+        } else {
+            normalizedIndex = normalizedNextIndex;
+        }
+    }
+
+    return true;
 }
