@@ -3,6 +3,7 @@
 set -eu
 
 fw=angular
+fw_package="@angular/cli"
 dev_port=4200
 
 function install_fw {

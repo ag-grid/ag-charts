@@ -3,6 +3,7 @@
 set -eu
 
 fw=vue3
+fw_package=vue
 dev_port=5173
 
 function install_fw {
