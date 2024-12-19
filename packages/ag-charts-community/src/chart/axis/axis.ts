@@ -450,8 +450,23 @@ export abstract class Axis<
         titleNode.setProperties({ visible: true, text, textBaseline, x, y, rotation });
     }
 
+    _lastDomain: D[] | undefined = undefined;
     processData() {
-        this.calculateDomain();
+        const { includeInvisibleDomains, boundSeries, direction } = this;
+        const visibleSeries = includeInvisibleDomains ? boundSeries : boundSeries.filter((s) => s.isEnabled());
+        const domains = visibleSeries.map((series) => series.getDomain(direction) as D[]);
+        const { domain, animatable } = this.scale.normalizeDomains(...domains);
+
+        if (this._lastDomain !== domain) {
+            this.dataDomain = this.normaliseDataDomain(domain);
+
+            if (this.reverse) {
+                this.dataDomain.domain = this.dataDomain.domain.slice().reverse();
+            }
+        }
+        this._lastDomain = domain;
+
+        return { animatable };
     }
 
     calculateLayout(initialPrimaryTickCount?: number) {
@@ -516,13 +531,6 @@ export abstract class Axis<
         return matrix.transformBBox(bbox);
     }
 
-    protected setDomain(domain: D[]) {
-        this.dataDomain = this.normaliseDataDomain(domain);
-        if (this.reverse) {
-            this.dataDomain.domain.reverse();
-        }
-    }
-
     updateScale() {
         this.updateRange();
     }
@@ -559,16 +567,6 @@ export abstract class Axis<
             line.x1 = sideFlag * (datum.tickSize ?? this.getTickSize());
             line.x2 = 0;
         });
-    }
-
-    protected calculateDomain() {
-        const { includeInvisibleDomains, boundSeries, direction } = this;
-        const visibleSeries = includeInvisibleDomains ? boundSeries : boundSeries.filter((s) => s.isEnabled());
-        const domains =
-            visibleSeries.length === 1
-                ? visibleSeries[0].getDomain(direction)
-                : visibleSeries.flatMap((series) => series.getDomain(direction));
-        this.setDomain(domains);
     }
 
     protected getAxisTransform() {

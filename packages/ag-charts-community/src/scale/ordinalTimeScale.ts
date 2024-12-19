@@ -15,43 +15,18 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     }
 
     private _domain: Date[] = [];
-    private _values: Date[] | undefined = undefined;
-    private sortedTimestamps: number[] = [];
-    private isReversed = false;
+    private sortedTimestamps: number[] | undefined;
+    private isReversed: boolean = false;
     private precomputedSteps: Int32Array | undefined;
-    override set domain(values: Date[]) {
-        if (values === this._values) return;
+    override set domain(domain: Date[]) {
+        if (domain === this._domain) return;
 
         this.invalid = true;
-
-        const sortOrder = datesSortOrder(values);
-
-        const domain = sortOrder == null ? sortAndUniqueDates(values) : values;
-        const isReversed = sortOrder === -1;
-
-        const sortedTimestamps = domain.map<number>(dateToNumber);
-        if (isReversed) sortedTimestamps.reverse();
-
-        this._values = values;
         this._domain = domain;
-        this.isReversed = isReversed;
-        this.sortedTimestamps = sortedTimestamps;
+        this.isReversed = domain.length > 0 && domain[0] > domain[domain.length - 1];
+
+        this.sortedTimestamps = undefined;
         this.precomputedSteps = undefined;
-
-        const computedStepCount =
-            values.length < 1e4 ? sortedTimestamps.length : Math.ceil(sortedTimestamps.length / 16);
-        if (computedStepCount <= 1) return;
-
-        this.refresh();
-        const computedSteps = new Int32Array(computedStepCount);
-        const d0 = sortedTimestamps[0].valueOf();
-        const d1 = sortedTimestamps[sortedTimestamps.length - 1].valueOf();
-        const dRange = d1 - d0;
-        for (let i = 0; i < computedSteps.length; i += 1) {
-            computedSteps[i] = this.findInterval(d0 + (i / computedStepCount) * dRange);
-        }
-
-        this.precomputedSteps = computedSteps;
     }
     override get domain(): Date[] {
         return this._domain;
@@ -62,20 +37,26 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     }
 
     override normalizeDomains(...domains: Date[][]): NormalizedDomain<Date> {
-        if (domains.length === 0) return { domain: [], animatable: false };
+        const sortedDomains = domains
+            .filter((domain) => domain.length > 0)
+            .map((domain) => {
+                let sortOrder = datesSortOrder(domain);
+                if (sortOrder == null) {
+                    domain = sortAndUniqueDates(domain.slice());
+                    sortOrder = 1;
+                }
 
-        let domain: Date[];
-        if (domains.length === 1) {
-            domain = domains[0];
+                return { domain, sortOrder };
+            });
 
-            const sortOrder = datesSortOrder(domain);
-            if (sortOrder === -1) {
-                domain = domain.slice().reverse();
-            } else if (sortOrder == null) {
-                domain = sortAndUniqueDates(domain.slice());
-            }
-        } else {
-            domain = sortAndUniqueDates(domains.flat());
+        if (sortedDomains.length === 0) return { domain: [], animatable: false };
+        if (sortedDomains.length === 1) return { domain: sortedDomains[0].domain, animatable: true };
+
+        let domain = sortedDomains.flatMap((s) => s.domain);
+        domain = sortAndUniqueDates(domain);
+
+        if (sortedDomains.every((s) => s.sortOrder === -1)) {
+            domain.reverse();
         }
 
         return { domain, animatable: true };
@@ -86,7 +67,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         domain: Date[] = this.domain,
         visibleRange: [number, number] = [0, 1]
     ): Date[] {
-        if (!this._domain.length) {
+        if (!domain.length) {
             return [];
         }
 
@@ -136,25 +117,43 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         return ticks;
     }
 
-    private findInterval(target: number) {
-        // Binary search for the target
-        const { sortedTimestamps, precomputedSteps } = this;
-        let low: number;
-        let high: number;
-        if (precomputedSteps == null) {
-            low = 0;
-            high = sortedTimestamps.length - 1;
-        } else {
-            const d0 = sortedTimestamps[0].valueOf();
-            const d1 = sortedTimestamps[sortedTimestamps.length - 1].valueOf();
-            const i = Math.min(
-                (((target - d0) / (d1 - d0)) * precomputedSteps.length) | 0,
-                (precomputedSteps.length - 1) | 0
-            );
-            low = precomputedSteps[i];
-            high = i < precomputedSteps.length - 2 ? precomputedSteps[i + 1] : sortedTimestamps.length - 1;
+    private getSortedTimestamps() {
+        let { sortedTimestamps } = this;
+
+        if (sortedTimestamps == null) {
+            sortedTimestamps = this.domain.map<number>(dateToNumber);
+            if (this.isReversed) sortedTimestamps.reverse();
+
+            this.sortedTimestamps = sortedTimestamps;
         }
 
+        return sortedTimestamps;
+    }
+
+    private getPrecomputedSteps() {
+        const { domain } = this;
+        let { precomputedSteps } = this;
+        const computedStepCount = domain.length < 1e4 ? domain.length : Math.ceil(domain.length / 16);
+
+        if (precomputedSteps != null || computedStepCount <= 1) return precomputedSteps;
+
+        const sortedTimestamps = this.getSortedTimestamps();
+
+        precomputedSteps = new Int32Array(computedStepCount);
+        const d0 = sortedTimestamps[0];
+        const d1 = sortedTimestamps[sortedTimestamps.length - 1];
+        const dRange = d1 - d0;
+        const low = 0;
+        const high = sortedTimestamps.length - 1;
+        for (let i = 0; i < precomputedSteps.length; i += 1) {
+            precomputedSteps[i] = this.findIntervalInRange(d0 + (i / computedStepCount) * dRange, low, high);
+        }
+
+        this.precomputedSteps = precomputedSteps;
+    }
+
+    private findIntervalInRange(target: number, low: number, high: number) {
+        const sortedTimestamps = this.getSortedTimestamps();
         while (low <= high) {
             const mid = ((low + high) / 2) | 0;
             if (sortedTimestamps[mid] === target) {
@@ -166,6 +165,29 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
             }
         }
         return low;
+    }
+
+    private findInterval(target: number) {
+        // Binary search for the target
+        const precomputedSteps = this.getPrecomputedSteps();
+        let low: number;
+        let high: number;
+        if (precomputedSteps == null) {
+            low = 0;
+            high = this.domain.length - 1;
+        } else {
+            const sortedTimestamps = this.getSortedTimestamps();
+            const d0 = sortedTimestamps[0];
+            const d1 = sortedTimestamps[sortedTimestamps.length - 1];
+            const i = Math.min(
+                (((target - d0) / (d1 - d0)) * precomputedSteps.length) | 0,
+                (precomputedSteps.length - 1) | 0
+            );
+            low = precomputedSteps[i];
+            high = i < precomputedSteps.length - 2 ? precomputedSteps[i + 1] : sortedTimestamps.length - 1;
+        }
+
+        return this.findIntervalInRange(target, low, high);
     }
 
     /**
@@ -200,8 +222,9 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     }
 
     protected override getIndex(value: Date): number | undefined {
+        const sortedTimestamps = this.getSortedTimestamps();
         const n = Number(value);
-        if (n < this.sortedTimestamps[0]) {
+        if (n < sortedTimestamps[0]) {
             return undefined;
         }
         let i = this.findInterval(n);

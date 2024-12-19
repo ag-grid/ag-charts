@@ -22,9 +22,9 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
 
     normalizeDomains(...domains: D[][]): NormalizedDomain<D> {
         let min: D | undefined;
-        let minValue = -Infinity;
+        let minValue = Infinity;
         let max: D | undefined;
-        let maxValue = +Infinity;
+        let maxValue = -Infinity;
 
         for (const domain of domains) {
             for (const d of domain) {

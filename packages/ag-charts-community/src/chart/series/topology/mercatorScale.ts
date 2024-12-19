@@ -1,6 +1,5 @@
-import type { NormalizedDomain } from 'packages/ag-charts-community/src/module-support';
-
 import { AbstractScale } from '../../../scale/abstractScale';
+import type { NormalizedDomain } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
 import type { Position } from './geojson';
 

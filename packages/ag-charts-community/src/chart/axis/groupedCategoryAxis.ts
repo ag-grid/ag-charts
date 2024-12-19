@@ -443,11 +443,14 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.tickScale.range = this.scale.range;
     }
 
-    protected override calculateDomain() {
+    override processData() {
         const { direction } = this;
         const flatDomains = this.boundSeries.filter((s) => s.visible).flatMap((series) => series.getDomain(direction));
 
-        this.setDomain(extent(flatDomains) ?? unique(flatDomains));
+        this.dataDomain = { domain: extent(flatDomains) ?? unique(flatDomains), clipped: false };
+        if (this.isReversed()) {
+            this.dataDomain.domain.reverse();
+        }
 
         const domain: string[][] = this.dataDomain.domain.map(toArray);
         this.tickTreeLayout = treeLayout(domain);
@@ -460,6 +463,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         this.scale.domain = sortBasedOnArray(this.dataDomain.domain, orderedDomain);
         this.tickScale.domain = domain.concat([['']]);
+
+        return { animatable: true };
     }
 
     protected override updateGridLines() {
