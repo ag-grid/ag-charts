@@ -11,7 +11,6 @@ import type { CursorManager } from '../chart/interaction/cursorManager';
 import type { GestureDetector } from '../chart/interaction/gestureDetector';
 import type { HighlightManager } from '../chart/interaction/highlightManager';
 import type { InteractionManager } from '../chart/interaction/interactionManager';
-import type { KeyNavManager } from '../chart/interaction/keyNavManager';
 import type { RegionManager } from '../chart/interaction/regionManager';
 import type { SyncManager } from '../chart/interaction/syncManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
@@ -51,7 +50,6 @@ export interface ModuleContext {
     readonly highlightManager: HighlightManager;
     readonly historyManager: HistoryManager;
     readonly interactionManager: InteractionManager;
-    readonly keyNavManager: KeyNavManager;
     readonly localeManager: LocaleManager;
     readonly proxyInteractionService: ProxyInteractionService;
     readonly regionManager: RegionManager;

@@ -17,6 +17,7 @@ import type { ChartMode } from '../chartMode';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
+import { KeyNavManager } from '../interaction/keyNavManager';
 import type { KeyNavEvent } from '../interaction/keyNavManager';
 import type { RegionEvent } from '../interaction/regionManager';
 import { TooltipManager } from '../interaction/tooltipManager';
@@ -53,6 +54,7 @@ export class SeriesAreaManager extends BaseManager {
     private hoverRect?: BBox;
     private readonly focusIndicator: FocusIndicator;
     private readonly swapChain: FocusSwapChain;
+    private readonly keyNavManager: KeyNavManager;
 
     private readonly highlight = {
         /** Last received event that still needs to be applied. */
@@ -102,7 +104,8 @@ export class SeriesAreaManager extends BaseManager {
         this.swapChain.addListener('focus', () => this.onFocus());
         this.focusIndicator = new FocusIndicator(this.swapChain);
         this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
-        this.chart.ctx.keyNavManager.focusIndicator = this.focusIndicator;
+        this.keyNavManager = new KeyNavManager(this.chart.ctx.interactionManager, this.chart.ctx.widgets);
+        this.keyNavManager.focusIndicator = this.focusIndicator;
 
         const seriesRegion = chart.ctx.regionManager.getRegion('series');
         this.destroyFns.push(
@@ -114,9 +117,12 @@ export class SeriesAreaManager extends BaseManager {
             chart.ctx.animationManager.addListener('animation-start', () => this.clearAll()),
             chart.ctx.domManager.addListener('resize', () => this.clearAll()),
             chart.ctx.highlightManager.addListener('highlight-change', (event) => this.changeHighlightDatum(event)),
-            chart.ctx.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event)),
-            chart.ctx.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event)),
-            chart.ctx.keyNavManager.addListener('submit', (event) => this.onSubmit(event)),
+            this.keyNavManager.addListener('nav-hori', (event) => this.onNavHori(event)),
+            this.keyNavManager.addListener('nav-vert', (event) => this.onNavVert(event)),
+            this.keyNavManager.addListener('nav-zoom', (event) => this.onNavZoom(event)),
+            this.keyNavManager.addListener('undo', () => this.chart.ctx.chartEventManager.seriesEvent('series-undo')),
+            this.keyNavManager.addListener('redo', () => this.chart.ctx.chartEventManager.seriesEvent('series-redo')),
+            this.keyNavManager.addListener('submit', (event) => this.onSubmit(event)),
             chart.ctx.layoutManager.addListener('layout:complete', (event) => this.layoutComplete(event)),
             chart.ctx.regionManager.listenAll('contextmenu', (event) => this.onContextMenu(event), All),
             chart.ctx.regionManager.listenAll('click', (event) => this.onClick(event)),
@@ -290,6 +296,7 @@ export class SeriesAreaManager extends BaseManager {
         this.focus.seriesIndex += event.delta;
         this.handleFocus(event.delta, 0);
         event.preventDefault();
+        this.chart.ctx.chartEventManager.seriesEvent('series-focus-change');
     }
 
     private onNavHori(event: KeyNavEvent<'nav-hori'>): void {
@@ -298,6 +305,12 @@ export class SeriesAreaManager extends BaseManager {
         this.focus.datumIndex += event.delta;
         this.handleFocus(0, event.delta);
         event.preventDefault();
+        this.chart.ctx.chartEventManager.seriesEvent('series-focus-change');
+    }
+
+    private onNavZoom(event: KeyNavEvent<'nav-zoom'>): void {
+        if (!this.isState(InteractionState.Keyable)) return;
+        this.chart.ctx.chartEventManager.seriesKeyNavZoom(event.delta, event.sourceEvent);
     }
 
     private onSubmit(event: KeyNavEvent<'submit'>): void {

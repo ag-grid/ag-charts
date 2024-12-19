@@ -26,13 +26,11 @@ import { CursorManager } from './interaction/cursorManager';
 import { GestureDetector } from './interaction/gestureDetector';
 import { HighlightManager } from './interaction/highlightManager';
 import { InteractionManager } from './interaction/interactionManager';
-import { KeyNavManager } from './interaction/keyNavManager';
 import { RegionManager } from './interaction/regionManager';
 import type { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import type { WidgetSet } from './interaction/widgetSet';
 import { ZoomManager } from './interaction/zoomManager';
-import type { Keyboard } from './keyboard';
 import { LayoutManager } from './layout/layoutManager';
 import { SeriesLabelLayoutManager } from './layout/seriesLabelLayoutManager';
 import { LegendManager } from './legend/legendManager';
@@ -63,7 +61,6 @@ export class ChartContext implements ModuleContext {
     gestureDetector: GestureDetector;
     historyManager: HistoryManager;
     interactionManager: InteractionManager;
-    keyNavManager: KeyNavManager;
     proxyInteractionService: ProxyInteractionService;
     regionManager: RegionManager;
     scene: Scene;
@@ -76,7 +73,7 @@ export class ChartContext implements ModuleContext {
     private readonly contextModules: ModuleInstance[] = [];
 
     constructor(
-        chart: ChartService & { annotationRoot: Group; keyboard: Keyboard; tooltip: Tooltip },
+        chart: ChartService & { annotationRoot: Group; tooltip: Tooltip },
         vars: {
             chartType: ChartType;
             scene?: Scene;
@@ -129,12 +126,11 @@ export class ChartContext implements ModuleContext {
         this.cursorManager = new CursorManager(this.domManager);
         this.interactionManager = new InteractionManager();
         this.regionManager = new RegionManager(this.interactionManager, this.widgets);
-        this.keyNavManager = new KeyNavManager(this.interactionManager, this.widgets);
         this.contextMenuRegistry = new ContextMenuRegistry();
         this.gestureDetector = new GestureDetector(this.domManager);
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(this.localeManager, this.domManager);
-        this.historyManager = new HistoryManager(this.keyNavManager);
+        this.historyManager = new HistoryManager(this.chartEventManager);
         this.animationManager = new AnimationManager(this.interactionManager, updateMutex);
         this.dataService = new DataService<any>(this.animationManager);
         this.tooltipManager = new TooltipManager(this.domManager, chart.tooltip);
@@ -158,7 +154,6 @@ export class ChartContext implements ModuleContext {
         this.chartEventManager.destroy();
         this.domManager.destroy();
         this.highlightManager.destroy();
-        this.keyNavManager.destroy();
         this.regionManager.destroy();
         this.proxyInteractionService.destroy();
         this.syncManager.destroy();
