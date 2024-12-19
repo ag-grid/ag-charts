@@ -28,7 +28,7 @@ import { normalizeAngle360, toRadians } from '../../util/angle';
 import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
 import { Logger } from '../../util/logger';
-import { findMinMax } from '../../util/number';
+import { findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import { ObserveChanges } from '../../util/proxy';
 import { isArray } from '../../util/type-guards';
@@ -454,17 +454,29 @@ export abstract class Axis<
         this.calculateDomain();
     }
 
+    _niceDomainRange: number = NaN;
     calculateLayout(initialPrimaryTickCount?: number) {
-        const { scale, label } = this;
+        const { scale, label, visibleRange } = this;
+
         const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
         const sideFlag = this.label.getSideFlag();
 
         this.updateScale();
         const { niceDomain, primaryTickCount, ticks, visibleTicks, fractionDigits, bbox } = this.calculateTickLayout(
             this.dataDomain.domain,
+            visibleRange,
             initialPrimaryTickCount
         );
-        this.scale.domain = niceDomain;
+
+        const range = findRangeExtent(this.range);
+
+        if (visibleRange[0] === 0 && visibleRange[1] === 1) {
+            this.scale.domain = niceDomain;
+        } else if (this._niceDomainRange !== range) {
+            this.scale.domain = this.calculateTickLayout(this.dataDomain.domain, [0, 1]).niceDomain;
+        }
+
+        this._niceDomainRange = range;
 
         const specifier = label.format;
         this.labelFormatter =
@@ -499,6 +511,7 @@ export abstract class Axis<
 
     abstract calculateTickLayout(
         domain: D[],
+        visibleRange: [number, number],
         primaryTickCount?: number
     ): {
         niceDomain: D[];

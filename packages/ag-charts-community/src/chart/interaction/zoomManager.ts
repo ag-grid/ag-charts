@@ -417,10 +417,10 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         if (zoom?.x == null || !autoScaleYAxis.enabled || autoScaleYAxis.manuallyAdjusted) return;
 
         const { padding } = autoScaleYAxis;
-        const zoomY = independentAxes
+        let zoomY = independentAxes
             ? this.primaryAxisZoom(ChartAxisDirection.Y, zoom.x, { padding })
             : this.combinedAxisZoom(ChartAxisDirection.Y, zoom.x, { padding });
-        if (zoomY == null) return;
+        zoomY ??= { min: 0, max: 1 };
 
         if (independentAxes) {
             const primaryAxis = this.getPrimaryAxis(ChartAxisDirection.Y);
@@ -578,9 +578,11 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         xScale.range = xScaleRange;
 
+        if (min >= max) return;
+
         const totalPadding = (minPadding ? padding : 0) + (maxPadding ? padding : 0);
-        const paddedDelta = (max - min) * (1 + totalPadding);
-        if (paddedDelta <= 0 || paddedDelta >= 1) return;
+        const paddedDelta = Math.min((max - min) * (1 + totalPadding), 1);
+        if (paddedDelta <= 0) return;
 
         if (minPadding && maxPadding) {
             const mid = (max + min) / 2;

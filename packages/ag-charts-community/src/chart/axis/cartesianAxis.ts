@@ -161,6 +161,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     override calculateTickLayout(
         domain: D[],
+        visibleRange: [number, number],
         initialPrimaryTickCount?: number
     ): {
         niceDomain: D[];
@@ -174,6 +175,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         const tickGenerationResult = this.processTicks(
             domain,
+            visibleRange,
             initialPrimaryTickCount,
             parallelFlipRotation,
             regularFlipRotation
@@ -236,11 +238,11 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     private processTicks(
         domain: D[],
+        visibleRange: [number, number],
         primaryTickCount: number | undefined,
         parallelFlipRotation: number,
         regularFlipRotation: number
     ) {
-        const { visibleRange } = this;
         const sideFlag = this.label.getSideFlag();
         const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
 
