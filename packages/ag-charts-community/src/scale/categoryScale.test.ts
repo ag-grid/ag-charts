@@ -124,4 +124,30 @@ describe('CategoryScale', () => {
 
         expect(scale.bandwidth).toBe(97);
     });
+
+    describe('normalizeDomains', () => {
+        test('de-duplicates categories', () => {
+            expect(new CategoryScale().normalizeDomains(['A', 'A'])).toEqual({ domain: ['A'], animatable: true });
+            expect(new CategoryScale().normalizeDomains(['A', 'B', 'C', 'A'])).toEqual({
+                domain: ['A', 'B', 'C'],
+                animatable: true,
+            });
+            expect(new CategoryScale().normalizeDomains(['A', 'B', 'C'], ['C'])).toEqual({
+                domain: ['A', 'B', 'C'],
+                animatable: true,
+            });
+        });
+
+        test('animatable', () => {
+            expect(new CategoryScale().normalizeDomains(['A', 'B', 'C'], ['C', 'B'])).toEqual({
+                domain: ['A', 'B', 'C'],
+                animatable: false,
+            });
+        });
+
+        test('retains referential equality for a single, ordered domain', () => {
+            const domain = ['A', 'B', 'C'];
+            expect(new CategoryScale().normalizeDomains(domain).domain).toBe(domain);
+        });
+    });
 });

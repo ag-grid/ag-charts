@@ -9,27 +9,18 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
      * Maps datum to its index in the {@link domain} array.
      * Used to check for duplicate data (not allowed).
      */
-    protected index = new Map<D, number>();
+    protected index: Map<D, number> | undefined = undefined;
 
     /**
      * Contains unique data only.
      */
     protected _domain: D[] = [];
     set domain(values: D[]) {
-        this.index.clear();
-        this.invalid = true;
-        this._domain = [];
+        if (this._domain === values) return;
 
-        // In case one wants to have duplicate domain values, for example, two 'Italy' categories,
-        // one should use objects rather than strings for domain values like so:
-        // { toString: () => 'Italy' }
-        // { toString: () => 'Italy' }
-        for (const value of values) {
-            const key = dateToNumber(value) as D;
-            if (this.getIndex(key) === undefined) {
-                this.index.set(key, this._domain.push(value) - 1);
-            }
-        }
+        this.invalid = true;
+        this._domain = values;
+        this.index = undefined;
     }
 
     get domain(): D[] {
@@ -46,10 +37,10 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
             seenDomains.add(domain);
 
             if (normalizedDomain == null) {
-                normalizedDomain = normaliseDataDomain(domain);
+                normalizedDomain = deduplicateCategories(domain);
             } else {
                 animatable &&= domainOrderedToNormalizedDomain(domain, normalizedDomain);
-                normalizedDomain = normaliseDataDomain([...normalizedDomain, ...domain]);
+                normalizedDomain = deduplicateCategories([...normalizedDomain, ...domain]);
             }
         }
 
@@ -72,25 +63,45 @@ export class CategoryScale<D, I = number> extends BandScale<D, I> {
     }
 
     protected getIndex(value: D) {
-        return this.index.get(dateToNumber(value));
+        let { index } = this;
+        if (index == null) {
+            const { domain } = this;
+            index = new Map<D, number>();
+            for (let i = 0; i < domain.length; i++) {
+                index.set(dateToNumber(domain[i]) as D, i);
+            }
+
+            this.index = index;
+        }
+
+        return index.get(dateToNumber(value));
     }
 }
 
-function normaliseDataDomain<D>(d: D[]): D[] {
-    const domain = [];
+function deduplicateCategories<D>(d: D[]): D[] {
+    let domain: D[] | undefined;
     const uniqueValues = new Set<D>();
     for (const value of d) {
+        // In case one wants to have duplicate domain values, for example, two 'Italy' categories,
+        // one should use objects rather than strings for domain values like so:
+        // { toString: () => 'Italy' }
+        // { toString: () => 'Italy' }
         const key = dateToNumber(value) as D;
 
         // Avoid additional set lookups
         const lastSize = uniqueValues.size;
         uniqueValues.add(key);
-        if (uniqueValues.size !== lastSize) {
-            // Only add unique values
-            domain.push(value);
+        const isUniqueValue = uniqueValues.size !== lastSize;
+
+        // Only add unique values
+        if (isUniqueValue) {
+            domain?.push(value);
+        } else {
+            domain ??= d.slice(0, uniqueValues.size);
         }
     }
-    return domain;
+    // Maintain referential equality if the domain was unique
+    return domain ?? d;
 }
 
 function domainOrderedToNormalizedDomain<D>(domain: D[], normalizedDomain: D[]) {
