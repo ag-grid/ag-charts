@@ -15,6 +15,7 @@ import type { KeyNavManager } from '../chart/interaction/keyNavManager';
 import type { RegionManager } from '../chart/interaction/regionManager';
 import type { SyncManager } from '../chart/interaction/syncManager';
 import type { TooltipManager } from '../chart/interaction/tooltipManager';
+import type { WidgetSet } from '../chart/interaction/widgetSet';
 import type { ZoomManager } from '../chart/interaction/zoomManager';
 import type { LayoutManager } from '../chart/layout/layoutManager';
 import type { SeriesLabelLayoutManager } from '../chart/layout/seriesLabelLayoutManager';
@@ -59,6 +60,7 @@ export interface ModuleContext {
     readonly stateManager: StateManager;
     readonly syncManager: SyncManager;
     readonly tooltipManager: TooltipManager;
+    readonly widgets: WidgetSet;
     readonly zoomManager: ZoomManager;
 }
 

@@ -1,4 +1,3 @@
-import type { DOMManager } from '../../dom/domManager';
 import { Debug } from '../../util/debug';
 import { Listeners } from '../../util/listeners';
 import type { Widget } from '../../widget/widget';
@@ -7,6 +6,7 @@ import { InteractionManager } from './interactionManager';
 import type { PointerInteractionTypes } from './interactionManager';
 import { InteractionState } from './interactionManager';
 import { type PreventableEvent, buildPreventable } from './preventableEvent';
+import type { WidgetSet } from './widgetSet';
 
 type RegionName = 'root' | 'series';
 type RegionInteractionTypes = PointerInteractionTypes | 'drag-start' | 'drag' | 'drag-end';
@@ -123,9 +123,9 @@ export class RegionManager {
 
     constructor(
         private readonly interactionManager: InteractionManager,
-        domManager: DOMManager
+        { containerWidget, seriesWidget }: WidgetSet
     ) {
-        this.initRegions(domManager.containerWidget, domManager.seriesWidget);
+        this.initRegions(containerWidget, seriesWidget);
     }
 
     public destroy() {

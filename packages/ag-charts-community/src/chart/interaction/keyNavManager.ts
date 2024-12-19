@@ -1,9 +1,9 @@
-import type { DOMManager } from '../../dom/domManager';
 import type { FocusIndicator } from '../../dom/focusIndicator';
 import { BaseManager } from '../../util/baseManager';
 import type { KeyboardWidgetEvent } from '../../widget/widgetEvents';
 import type { InteractionManager } from './interactionManager';
 import { InteractionState } from './interactionStateListener';
+import type { WidgetSet } from './widgetSet';
 
 export type KeyNavEventType = 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'undo' | 'redo';
 
@@ -33,7 +33,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
 
     constructor(
         readonly interactionManager: InteractionManager,
-        { containerWidget, seriesWidget }: DOMManager
+        { containerWidget, seriesWidget }: WidgetSet
     ) {
         super();
         this.destroyFns.push(
