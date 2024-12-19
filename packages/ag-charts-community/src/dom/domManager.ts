@@ -6,6 +6,7 @@ import { createElement, getDocument, getWindow } from '../util/dom';
 import { GuardedElement } from '../util/guardedElement';
 import { stopPageScrolling } from '../util/keynavUtil';
 import { type Size, SizeMonitor } from '../util/sizeMonitor';
+import { NativeWidget } from '../widget/nativeWidget';
 // TODO move to utils
 import BASE_DOM from './domLayout.html';
 
@@ -89,6 +90,10 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private readonly observer?: IntersectionObserver;
     private readonly sizeMonitor = new SizeMonitor();
 
+    public readonly seriesWidget: NativeWidget<HTMLElement>;
+    public readonly chartWidget: NativeWidget<HTMLElement>;
+    public readonly containerWidget: NativeWidget<HTMLElement>;
+
     constructor(container?: HTMLElement, styleContainer?: HTMLElement) {
         super();
 
@@ -135,10 +140,17 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         const topGuard = createTabGuardElement(guardedElement, 'beforebegin');
         const botGuard = createTabGuardElement(guardedElement, 'afterend');
         this.tabGuards = new GuardedElement(guardedElement, topGuard, botGuard);
+
+        this.seriesWidget = new NativeWidget(this.getParent('series-area'));
+        this.chartWidget = new NativeWidget(this.getParent('canvas-proxy'));
+        this.containerWidget = new NativeWidget(this.getParent('canvas-container'));
     }
 
     override destroy() {
         super.destroy();
+        this.seriesWidget.destroy();
+        this.chartWidget.destroy();
+        this.containerWidget.destroy();
 
         this.observer?.unobserve(this.element);
         if (this.container) {

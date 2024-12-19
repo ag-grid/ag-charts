@@ -238,7 +238,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private onKeyPress() {
-        if (this.enabled && !this.snap) {
+        if (this.enabled && !this.snap && this.ctx.interactionManager.getState() & InteractionState.Default) {
             this.hideCrosshairs();
         }
     }

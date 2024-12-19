@@ -28,6 +28,7 @@ import { ActionOnSet, ProxyProperty } from '../util/proxy';
 import { debouncedCallback } from '../util/render';
 import { isDefined, isFiniteNumber, isFunction } from '../util/type-guards';
 import { BOOLEAN, OBJECT, UNION, Validate } from '../util/validation';
+import { Widget } from '../widget/widget';
 import type { GroupedCategoryAxis } from './axis/groupedCategoryAxis';
 import { Caption } from './caption';
 import type { ChartAnimationPhase } from './chartAnimationPhase';
@@ -334,7 +335,7 @@ export abstract class Chart extends Observable {
             this.subtitle.registerInteraction(moduleContext, 'beforebegin'),
             this.footnote.registerInteraction(moduleContext, 'afterend'),
 
-            ctx.interactionManager.addListener('page-left', () => this.destroy()),
+            Widget.addWindowEvent('page-left', () => this.destroy()),
 
             ctx.animationManager.addListener('animation-frame', () => {
                 this.update(ChartUpdateType.SCENE_RENDER);

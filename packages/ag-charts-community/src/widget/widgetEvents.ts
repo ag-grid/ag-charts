@@ -24,6 +24,8 @@ export type MouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventTy
     offsetY: number;
     clientX: number;
     clientY: number;
+    readonly currentX: number;
+    readonly currentY: number;
     sourceEvent: MouseEvent;
 };
 
@@ -88,9 +90,12 @@ export type WidgetSourceEventMap = {
     [K in keyof WidgetEventMap]: WidgetEventMap[K]['sourceEvent'];
 };
 
-function allocMouseEvent<T extends MouseWidgetEventType>(type: T, sourceEvent: MouseEvent) {
+function allocMouseEvent<T extends MouseWidgetEventType>(type: T, sourceEvent: MouseEvent, current: HTMLElement) {
     const { offsetX, offsetY, clientX, clientY } = sourceEvent;
-    return { type, offsetX, offsetY, clientX, clientY, sourceEvent };
+    const currentRect = current.getBoundingClientRect();
+    const currentX = clientX - currentRect.x;
+    const currentY = clientY - currentRect.y;
+    return { type, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
 }
 
 export type WidgetEventMap_HTML = Pick<WidgetEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
@@ -99,7 +104,8 @@ export type WidgetSourceEventMap_HTML = Pick<WidgetSourceEventMap, (typeof WIDGE
 export type WidgetSourceEventMap_Internal = Omit<WidgetSourceEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
 
 type Allocator<K extends keyof WidgetEventMap_HTML> = (
-    sourceEvent: WidgetSourceEventMap_HTML[K]
+    sourceEvent: WidgetSourceEventMap_HTML[K],
+    current: HTMLElement
 ) => WidgetEventMap_HTML[K];
 const WidgetAllocators: { [K in keyof WidgetEventMap_HTML]: Allocator<K> } = {
     blur: (sourceEvent: FocusEvent): FocusWidgetEvent<'blur'> => {
@@ -108,8 +114,8 @@ const WidgetAllocators: { [K in keyof WidgetEventMap_HTML]: Allocator<K> } = {
     change: (sourceEvent: Event): WidgetEvent => {
         return { type: 'change', sourceEvent };
     },
-    contextmenu: (sourceEvent: MouseEvent): MouseWidgetEvent<'contextmenu'> => {
-        return allocMouseEvent('contextmenu', sourceEvent);
+    contextmenu: (sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'contextmenu'> => {
+        return allocMouseEvent('contextmenu', sourceEvent, current);
     },
     focus: (sourceEvent: FocusEvent): FocusWidgetEvent<'focus'> => {
         return { type: 'focus', sourceEvent };
@@ -120,20 +126,20 @@ const WidgetAllocators: { [K in keyof WidgetEventMap_HTML]: Allocator<K> } = {
     keyup: (sourceEvent: KeyboardEvent): KeyboardWidgetEvent<'keyup'> => {
         return { type: 'keyup', sourceEvent };
     },
-    click: (sourceEvent: MouseEvent): MouseWidgetEvent<'click'> => {
-        return allocMouseEvent('click', sourceEvent);
+    click: (sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'click'> => {
+        return allocMouseEvent('click', sourceEvent, current);
     },
-    dblclick: (sourceEvent: MouseEvent): MouseWidgetEvent<'dblclick'> => {
-        return allocMouseEvent('dblclick', sourceEvent);
+    dblclick: (sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'dblclick'> => {
+        return allocMouseEvent('dblclick', sourceEvent, current);
     },
-    mouseenter: (sourceEvent: MouseEvent): MouseWidgetEvent<'mouseenter'> => {
-        return allocMouseEvent('mouseenter', sourceEvent);
+    mouseenter: (sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'mouseenter'> => {
+        return allocMouseEvent('mouseenter', sourceEvent, current);
     },
-    mousemove: (sourceEvent: MouseEvent): MouseWidgetEvent<'mousemove'> => {
-        return allocMouseEvent('mousemove', sourceEvent);
+    mousemove: (sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'mousemove'> => {
+        return allocMouseEvent('mousemove', sourceEvent, current);
     },
-    mouseleave: (sourceEvent: MouseEvent): MouseWidgetEvent<'mouseleave'> => {
-        return allocMouseEvent('mouseleave', sourceEvent);
+    mouseleave: (sourceEvent: MouseEvent, current: HTMLElement): MouseWidgetEvent<'mouseleave'> => {
+        return allocMouseEvent('mouseleave', sourceEvent, current);
     },
     wheel: (sourceEvent: WheelEvent): WheelWidgetEvent => {
         const { offsetX, offsetY, clientX, clientY, deltaX, deltaY } = sourceEvent;
@@ -144,9 +150,10 @@ const WidgetAllocators: { [K in keyof WidgetEventMap_HTML]: Allocator<K> } = {
 export class WidgetEventUtil {
     static alloc<K extends keyof WidgetEventMap_HTML>(
         type: K,
-        sourceEvent: WidgetSourceEventMap_HTML[K]
+        sourceEvent: WidgetSourceEventMap_HTML[K],
+        current: HTMLElement
     ): WidgetEventMap_HTML[K] {
-        return WidgetAllocators[type](sourceEvent);
+        return WidgetAllocators[type](sourceEvent, current);
     }
 
     static isHTMLEvent(type: keyof WidgetEventMap): type is keyof WidgetEventMap & keyof HTMLElementEventMap {

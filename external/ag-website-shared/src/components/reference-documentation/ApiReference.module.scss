@@ -104,7 +104,7 @@
         border-bottom-color: var(--color-util-gray-400);
     }
 
-    :global(.tabs-outer) & {
+    :global(.tabs-outer) .apiReference > & {
         &:first-child {
             border-top: none;
         }

@@ -1,4 +1,10 @@
-import { type AgAnnotation, type AgAnnotationLineStyleType, type Direction, _ModuleSupport } from 'ag-charts-community';
+import {
+    type AgAnnotation,
+    type AgAnnotationLineStyleType,
+    type Direction,
+    _ModuleSupport,
+    _Widget,
+} from 'ag-charts-community';
 
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';
@@ -447,8 +453,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('drag-start', this.onDragStart.bind(this), annotationsState),
             seriesRegion.addListener('drag', this.onDrag.bind(this), annotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
-            ctx.interactionManager.addListener('keydown', this.onKeyDown.bind(this), All),
-            ctx.interactionManager.addListener('keyup', this.onKeyUp.bind(this), All),
+            ctx.domManager.seriesWidget.addListener('keydown', this.onKeyDown.bind(this)),
+            ctx.domManager.seriesWidget.addListener('keyup', this.onKeyUp.bind(this)),
             rootRegion.addListener('click', this.onCancel.bind(this), All),
 
             // Services
@@ -973,7 +979,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('textInput', { key, shiftKey, textInputValue, bbox, context });
     }
 
-    private onKeyDown(event: _ModuleSupport.KeyInteractionEvent<'keydown'>) {
+    private onKeyDown(event: _Widget.KeyboardWidgetEvent<'keydown'>) {
         const { state } = this;
         const context = this.getAnnotationContext();
         if (!context) {
@@ -1039,7 +1045,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         }
     }
 
-    private onKeyUp(event: _ModuleSupport.KeyInteractionEvent<'keyup'>) {
+    private onKeyUp(event: _Widget.KeyboardWidgetEvent<'keyup'>) {
         const { shiftKey } = event.sourceEvent;
         const context = this.getAnnotationContext();
         if (!context) {
