@@ -1,21 +1,25 @@
+import type { DOMManager } from '../../dom/domManager';
 import type { FocusIndicator } from '../../dom/focusIndicator';
-import type { InteractionEvent, InteractionManager, KeyInteractionEvent } from './interactionManager';
-import { InteractionState, InteractionStateListener } from './interactionStateListener';
-import { type PreventableEvent, dispatchTypedEvent } from './preventableEvent';
-import type { RegionManager } from './regionManager';
+import { BaseManager } from '../../util/baseManager';
+import type { KeyboardWidgetEvent } from '../../widget/widgetEvents';
+import type { InteractionManager } from './interactionManager';
+import { InteractionState } from './interactionStateListener';
 
 export type KeyNavEventType = 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'undo' | 'redo';
 
-export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = PreventableEvent & {
+export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = {
     type: T;
     delta: -1 | 0 | 1;
-    sourceEvent: InteractionEvent;
+    sourceEvent: KeyboardWidgetEvent<'keydown'>;
+    preventDefault(): void;
 };
+
+const MOUSE_STATES = InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
 
 // The purpose of this class is to decouple keyboard input events configuration with
 // navigation commands. For example, keybindings might be different on macOS and Windows,
 // or the charts might include options to reconfigure keybindings.
-export class KeyNavManager extends InteractionStateListener<KeyNavEventType, KeyNavEvent> {
+export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     // This is the "second last" input event. It can be useful for keydown
     // events that for which don't to set the isFocusVisible state
     // (e.g. Backspace/Delete key on FC annotations, see AG-13041).
@@ -29,22 +33,19 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
 
     constructor(
         readonly interactionManager: InteractionManager,
-        regionManager: RegionManager
+        { containerWidget, seriesWidget }: DOMManager
     ) {
         super();
-        const series = regionManager.getRegion('series');
-        const mouseStates =
-            InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
         this.destroyFns.push(
-            interactionManager.addListener('hover', () => this.onMouse(), mouseStates),
-            interactionManager.addListener('wheel', () => this.onClick(), mouseStates),
-            interactionManager.addListener('keydown', (e) => this.onKeyDown(e), InteractionState.All),
-            series.addListener('click', () => this.onClick(), mouseStates),
-            series.addListener('drag-start', () => this.onClick(), mouseStates)
+            containerWidget.addListener('mousemove', () => this.onMouse()),
+            containerWidget.addListener('wheel', () => this.onClick()),
+            containerWidget.addListener('drag-move', () => this.onClick()),
+            seriesWidget.addListener('keydown', (e) => this.onKeyDown(e)),
+            seriesWidget.addListener('click', () => this.onClick())
         );
     }
 
-    protected override getState() {
+    private getState() {
         return this.interactionManager.getState();
     }
 
@@ -53,15 +54,17 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
     }
 
     private onClick() {
+        if (!(this.getState() & MOUSE_STATES)) return;
         this.focusIndicator?.overrideFocusVisible(false);
         this.previousInputDevice = 'mouse';
     }
 
     private onMouse() {
+        if (!(this.getState() & MOUSE_STATES)) return;
         this.previousInputDevice = 'mouse';
     }
 
-    private onKeyDown(event: KeyInteractionEvent<'keydown'>) {
+    private onKeyDown(event: KeyNavEvent['sourceEvent']) {
         const state = this.getState();
 
         // FIXME: key is localised to it could be non-ASCII text like غ
@@ -119,9 +122,16 @@ export class KeyNavManager extends InteractionStateListener<KeyNavEventType, Key
         }
     }
 
-    private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, sourceEvent: InteractionEvent) {
-        const { previousInputDevice } = this;
-        dispatchTypedEvent(this.listeners, { type, delta, sourceEvent, previousInputDevice });
+    private dispatch(type: KeyNavEventType, delta: -1 | 0 | 1, sourceEvent: KeyNavEvent['sourceEvent']) {
+        const keyNavEvent: KeyNavEvent = {
+            type,
+            delta,
+            sourceEvent,
+            preventDefault(): void {
+                sourceEvent.sourceEvent.preventDefault();
+            },
+        };
+        this.listeners.dispatchWrapHandlers(type, (handler, e) => handler(e), keyNavEvent);
         const sharedKbmTypes: readonly (typeof type)[] = ['redo', 'undo', 'nav-zoom'];
         if (sourceEvent.type === 'keydown' && !sharedKbmTypes.includes(type)) {
             this.previousInputDevice = 'keyboard';

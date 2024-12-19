@@ -30,7 +30,7 @@ export class WidgetListenerHTML {
         if (map.has(handler)) throw new Error('AG Charts - duplicate add(handler)');
 
         const sourceHandler = (sourceEvent: SourceEventMap[K]): void => {
-            const widgetEvent = WidgetEventUtil.alloc(type, sourceEvent);
+            const widgetEvent = WidgetEventUtil.alloc(type, sourceEvent, target.getElement());
             handler(widgetEvent, target);
         };
         target.getElement().addEventListener(type, sourceHandler);

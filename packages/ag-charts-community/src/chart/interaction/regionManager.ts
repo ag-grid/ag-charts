@@ -1,3 +1,4 @@
+import type { DOMManager } from '../../dom/domManager';
 import { Debug } from '../../util/debug';
 import { Listeners } from '../../util/listeners';
 import type { Widget } from '../../widget/widget';
@@ -120,29 +121,44 @@ export class RegionManager {
     private isDragMoving = false;
     private blockNextClickEvent = false;
 
-    constructor(private readonly interactionManager: InteractionManager) {}
+    constructor(
+        private readonly interactionManager: InteractionManager,
+        domManager: DOMManager
+    ) {
+        this.initRegions(domManager.containerWidget, domManager.seriesWidget);
+    }
 
     public destroy() {
         this.destroyFns.forEach((fn) => fn());
-
         this.current = undefined;
         this.regions.root.listeners.destroy();
         this.regions.series.listeners.destroy();
     }
 
-    initRegions(root: Widget, series: Widget) {
+    private initRegions(root: Widget, series: Widget) {
         this.regions.root.properties.widget = root;
         this.regions.series.properties.widget = series;
-        root.addListener('wheel', this.processPointerEvent);
-        root.addListener('contextmenu', this.processPointerEvent);
-        root.addListener('click', this.processPointerEvent);
-        root.addListener('dblclick', this.processPointerEvent);
-        root.addListener('mouseenter', this.processPointerEvent);
-        root.addListener('mousemove', this.processPointerEvent);
-        root.addListener('mouseleave', this.processPointerEvent);
-        root.addListener('drag-start', this.processPointerEvent);
-        root.addListener('drag-move', this.processPointerEvent);
-        root.addListener('drag-end', this.processPointerEvent);
+        const events = [
+            'wheel',
+            'contextmenu',
+            'click',
+            'dblclick',
+            'mouseenter',
+            'mousemove',
+            'mouseleave',
+            'drag-start',
+            'drag-move',
+            'drag-end',
+        ] as const;
+
+        for (const type of events) {
+            root.addListener(type, this.processPointerEvent);
+        }
+        this.destroyFns.push(() => {
+            for (const type of events) {
+                root.removeListener(type, this.processPointerEvent);
+            }
+        });
     }
 
     getRegion(name: RegionName) {
