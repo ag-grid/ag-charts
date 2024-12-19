@@ -11,13 +11,18 @@ type Targetable = { getElement(): HTMLElement };
 type DragEvents = 'drag-start' | 'drag-move' | 'drag-end';
 type DragOrigin = { pageX: number; pageY: number; offsetX: number; offsetY: number };
 
-type DragCallbacks = {
-    down: (event: MouseEvent) => void;
-    move: (event: MouseEvent) => void;
-    up: (event: MouseEvent) => void;
+type MouseDragCallbacks = {
+    mousedown: (event: MouseEvent) => void;
+    mousemove: (event: MouseEvent) => void;
+    mouseup: (event: MouseEvent) => void;
 };
 
-function makeDragEvent<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent: MouseEvent): DragWidgetEvent<K> {
+type TouchDragCallbacks = {
+    touchmove: (event: TouchEvent, touch: Touch) => void;
+    touchend: (event: TouchEvent, touch: Touch) => void;
+};
+
+function makeMouseDrag<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent: MouseEvent): DragWidgetEvent<K> {
     // [offsetX, offsetY] is relative to the sourceEvent.target, which can be another element
     // such as a legend button. Therefore, calculate [offsetX, offsetY] relative to the axis
     // element that fired the 'mousedown' event.
@@ -35,8 +40,12 @@ function makeDragEvent<K extends DragEvents>(type: K, origin: DragOrigin, source
     };
 }
 
-function startDrag(that: { globalDragCallbacks?: DragCallbacks }, myCallbacks: DragCallbacks, downEvent: MouseEvent) {
-    if (that.globalDragCallbacks != null) return;
+function startMouseDrag(
+    that: { globalMouseDragCallbacks?: MouseDragCallbacks },
+    myCallbacks: MouseDragCallbacks,
+    downEvent: MouseEvent
+) {
+    if (that.globalMouseDragCallbacks != null) return;
 
     const window = getWindow();
 
@@ -48,7 +57,7 @@ function startDrag(that: { globalDragCallbacks?: DragCallbacks }, myCallbacks: D
     const mousemove = (moveEvent: MouseEvent) => {
         moveEvent.stopPropagation();
         moveEvent.stopImmediatePropagation();
-        that.globalDragCallbacks?.move(moveEvent);
+        that.globalMouseDragCallbacks?.mousemove(moveEvent);
     };
 
     const mouseup = (upEvent: MouseEvent) => {
@@ -62,8 +71,8 @@ function startDrag(that: { globalDragCallbacks?: DragCallbacks }, myCallbacks: D
             window.removeEventListener('mouseover', mousegeneral, { capture: true });
             window.removeEventListener('mousemove', mousemove, { capture: true });
             window.removeEventListener('mouseup', mouseup, { capture: true });
-            that.globalDragCallbacks?.up(upEvent);
-            that.globalDragCallbacks = undefined;
+            that.globalMouseDragCallbacks?.mouseup(upEvent);
+            that.globalMouseDragCallbacks = undefined;
         }
     };
 
@@ -74,12 +83,80 @@ function startDrag(that: { globalDragCallbacks?: DragCallbacks }, myCallbacks: D
     window.addEventListener('mouseover', mousegeneral, { capture: true });
     window.addEventListener('mousemove', mousemove, { capture: true });
     window.addEventListener('mouseup', mouseup, { capture: true });
-    that.globalDragCallbacks = myCallbacks;
-    that.globalDragCallbacks.down(downEvent);
+    that.globalMouseDragCallbacks = myCallbacks;
+    that.globalMouseDragCallbacks.mousedown(downEvent);
+}
+
+function makeTouchDrag<K extends DragEvents>(
+    type: K,
+    origin: DragOrigin,
+    sourceEvent: TouchEvent,
+    touch: Touch
+): DragWidgetEvent<K> {
+    const originDeltaX = touch.pageX - origin.pageX;
+    const originDeltaY = touch.pageY - origin.pageY;
+    return {
+        type,
+        offsetX: origin.offsetX + originDeltaX,
+        offsetY: origin.offsetY + originDeltaY,
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        originDeltaX,
+        originDeltaY,
+        sourceEvent,
+    };
+}
+
+function startTouchDrag(
+    that: { globalTouchDragCallbacks?: TouchDragCallbacks },
+    myCallbacks: TouchDragCallbacks,
+    initialTouch: Touch
+) {
+    if (that.globalTouchDragCallbacks != null) return;
+
+    const findInitialFinger = (touches: TouchList): Touch | undefined =>
+        Array.from(touches).find((v) => v.identifier === initialTouch.identifier);
+
+    const window = getWindow();
+
+    const touchstart = (startEvent: TouchEvent) => {
+        startEvent.stopPropagation();
+        startEvent.stopImmediatePropagation();
+        startEvent.preventDefault();
+    };
+    const touchmove = (moveEvent: TouchEvent) => {
+        moveEvent.stopPropagation();
+        moveEvent.stopImmediatePropagation();
+        moveEvent.preventDefault();
+        const touch = findInitialFinger(moveEvent.targetTouches);
+        if (touch != null) {
+            that.globalTouchDragCallbacks?.touchmove(moveEvent, touch);
+        }
+    };
+    const touchend = (endEvent: TouchEvent) => {
+        endEvent.stopPropagation();
+        endEvent.stopImmediatePropagation();
+        endEvent.preventDefault();
+        const touch = findInitialFinger(endEvent.changedTouches);
+        if (touch != null) {
+            window.removeEventListener('touchstart', touchstart, { capture: true });
+            window.removeEventListener('touchmove', touchmove, { capture: true });
+            window.removeEventListener('touchend', touchend, { capture: true });
+            window.removeEventListener('touchcancel', touchend, { capture: true });
+            that.globalTouchDragCallbacks?.touchend(endEvent, touch);
+            that.globalTouchDragCallbacks = undefined;
+        }
+    };
+
+    window.addEventListener('touchstart', touchstart, { capture: true, passive: true });
+    window.addEventListener('touchmove', touchmove, { capture: true, passive: true });
+    window.addEventListener('touchend', touchend, { capture: true, passive: true });
+    window.addEventListener('touchcancel', touchend, { capture: true, passive: true });
+    that.globalTouchDragCallbacks = myCallbacks;
 }
 
 export class WidgetListenerInternal {
-    private dragTriggerRemovers?: Map<EventHandler<Targetable>, () => void>;
+    private dragTriggerRemover?: () => void;
     private dragStartListeners?: EventHandler<Targetable>[];
     private dragMoveListeners?: EventHandler<Targetable>[];
     private dragEndListeners?: EventHandler<Targetable>[];
@@ -87,19 +164,24 @@ export class WidgetListenerInternal {
     // listeners. However, we only want 1 DOM element to handle the dragging operation because doing so involves adding
     // temporary capture event listeners to the global `window` object. Therefore, this property much be static.
     //
-    // As a consequence, the widget `'drag-*'` events do not support propagation; but that's sufficient for us because we do
-    // not yet have a use-case when propagation is needed for drag events.
-    static globalDragCallbacks?: DragCallbacks;
-    private localDragCallbacks?: DragCallbacks;
+    // As a consequence, the widget `'drag-*'` events do not support propagation; but that's sufficient for us because
+    // we do not yet have a use-case when propagation is needed for drag events.
+    static globalMouseDragCallbacks?: MouseDragCallbacks;
+    static globalTouchDragCallbacks?: TouchDragCallbacks;
+    private localMouseDragCallbacks?: MouseDragCallbacks;
+    private localTouchDragCallbacks?: TouchDragCallbacks;
 
     destroy(): void {
-        this.dragTriggerRemovers?.forEach((fn) => fn());
-        this.dragTriggerRemovers = undefined;
+        this.dragTriggerRemover?.();
+        this.dragTriggerRemover = undefined;
         this.dragStartListeners = undefined;
         this.dragMoveListeners = undefined;
         this.dragEndListeners = undefined;
-        if (WidgetListenerInternal.globalDragCallbacks === this.localDragCallbacks) {
-            WidgetListenerInternal.globalDragCallbacks = undefined;
+        if (WidgetListenerInternal.globalMouseDragCallbacks === this.localMouseDragCallbacks) {
+            WidgetListenerInternal.globalMouseDragCallbacks = undefined;
+        }
+        if (WidgetListenerInternal.globalTouchDragCallbacks === this.localTouchDragCallbacks) {
+            WidgetListenerInternal.globalTouchDragCallbacks = undefined;
         }
     }
 
@@ -109,17 +191,19 @@ export class WidgetListenerInternal {
             case 'drag-start': {
                 this.dragStartListeners ??= [];
                 this.dragStartListeners.push(handler);
-                this.registerDragTrigger(target, handler);
+                this.registerDragTrigger(target);
                 break;
             }
             case 'drag-move': {
                 this.dragMoveListeners ??= [];
                 this.dragMoveListeners.push(handler);
+                this.registerDragTrigger(target);
                 break;
             }
             case 'drag-end': {
                 this.dragEndListeners ??= [];
                 this.dragEndListeners.push(handler);
+                this.registerDragTrigger(target);
                 break;
             }
         }
@@ -142,38 +226,47 @@ export class WidgetListenerInternal {
         if (index !== undefined) array?.splice(index, 1);
     }
 
-    private registerDragTrigger<T extends Targetable>(target: T, handler: EventHandler<unknown>) {
-        const mouseDownHandler = (event: MouseEvent) => event.button === 0 && this.startDrag(target, event);
-
-        target.getElement().addEventListener('mousedown', mouseDownHandler);
-        this.dragTriggerRemovers ??= new Map();
-        this.dragTriggerRemovers.set(handler, () =>
-            target.getElement().removeEventListener('mousedown', mouseDownHandler)
-        );
+    private registerDragTrigger<T extends Targetable>(target: T) {
+        if (this.dragTriggerRemover == null) {
+            const mouseTrigger = (event: MouseEvent) => this.triggerMouseDrag(target, event);
+            const touchTrigger = (event: TouchEvent) => this.triggerTouchDrag(target, event);
+            target.getElement().addEventListener('mousedown', mouseTrigger);
+            target.getElement().addEventListener('touchstart', touchTrigger);
+            this.dragTriggerRemover = () => {
+                target.getElement().removeEventListener('mousedown', mouseTrigger);
+                target.getElement().removeEventListener('touchstart', touchTrigger);
+            };
+        }
     }
 
-    private startDrag<T extends Targetable>(current: T, initialDownEvent: MouseEvent) {
+    private triggerMouseDrag<T extends Targetable>(current: T, downEvent: MouseEvent) {
+        if (downEvent.button === 0) {
+            this.startMouseDrag(current, downEvent);
+        }
+    }
+
+    private startMouseDrag<T extends Targetable>(current: T, initialDownEvent: MouseEvent) {
         const origin: DragOrigin = { pageX: NaN, pageY: NaN, offsetX: NaN, offsetY: NaN };
         partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, initialDownEvent);
 
-        const dragCallbacks: DragCallbacks = {
-            down: (downEvent: MouseEvent) => {
-                this.localDragCallbacks = dragCallbacks;
-                const dragStartEvent = makeDragEvent('drag-start', origin, downEvent);
+        const dragCallbacks: MouseDragCallbacks = {
+            mousedown: (downEvent: MouseEvent) => {
+                this.localMouseDragCallbacks = dragCallbacks;
+                const dragStartEvent = makeMouseDrag('drag-start', origin, downEvent);
                 this.dispatch('drag-start', current, dragStartEvent);
             },
-            move: (moveEvent: MouseEvent) => {
-                const dragMoveEvent = makeDragEvent('drag-move', origin, moveEvent);
+            mousemove: (moveEvent: MouseEvent) => {
+                const dragMoveEvent = makeMouseDrag('drag-move', origin, moveEvent);
                 this.dispatch('drag-move', current, dragMoveEvent);
             },
-            up: (upEvent: MouseEvent) => {
-                const dragEndEvent = makeDragEvent('drag-end', origin, upEvent);
+            mouseup: (upEvent: MouseEvent) => {
+                const dragEndEvent = makeMouseDrag('drag-end', origin, upEvent);
                 this.dispatch('drag-end', current, dragEndEvent);
                 this.endDrag(current, dragEndEvent);
             },
         };
 
-        startDrag(WidgetListenerInternal, dragCallbacks, initialDownEvent);
+        startMouseDrag(WidgetListenerInternal, dragCallbacks, initialDownEvent);
     }
 
     private endDrag(target: Targetable, { sourceEvent, clientX, clientY }: DragWidgetEvent<'drag-end'>) {
@@ -183,6 +276,35 @@ export class WidgetListenerInternal {
             elem.dispatchEvent(new MouseEvent('mouseleave', sourceEvent));
             sourceEvent.target?.dispatchEvent(new MouseEvent('mouseenter', sourceEvent));
         }
+    }
+
+    private triggerTouchDrag<T extends Targetable>(current: T, startEvent: TouchEvent) {
+        const touch = startEvent.targetTouches.item(0);
+        if (startEvent.targetTouches.length === 1 && touch != null) {
+            this.startTouchDrag(current, startEvent, touch);
+        }
+    }
+
+    private startTouchDrag<T extends Targetable>(current: T, initialEvent: TouchEvent, initialTouch: Touch) {
+        const origin: DragOrigin = { pageX: NaN, pageY: NaN, offsetX: NaN, offsetY: NaN };
+        partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, initialTouch);
+
+        const dragCallbacks: TouchDragCallbacks = {
+            touchmove: (moveEvent: TouchEvent, touch: Touch) => {
+                const dragMoveEvent = makeTouchDrag('drag-move', origin, moveEvent, touch);
+                this.dispatch('drag-move', current, dragMoveEvent);
+            },
+            touchend: (cancelEvent: TouchEvent, touch: Touch) => {
+                const dragMoveEvent = makeTouchDrag('drag-end', origin, cancelEvent, touch);
+                this.dispatch('drag-end', current, dragMoveEvent);
+            },
+        };
+        this.localTouchDragCallbacks = dragCallbacks;
+
+        startTouchDrag(WidgetListenerInternal, dragCallbacks, initialTouch);
+
+        const dragStartEvent = makeTouchDrag('drag-start', origin, initialEvent, initialTouch);
+        this.dispatch('drag-start', current, dragStartEvent);
     }
 
     private dispatch<T extends Targetable, K extends EventType>(type: K, current: T, event: EventMap[K]): void {

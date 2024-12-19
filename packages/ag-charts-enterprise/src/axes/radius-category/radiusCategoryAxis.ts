@@ -25,7 +25,21 @@ export class RadiusCategoryAxis extends RadiusAxis {
         super(moduleCtx, new BandScale());
     }
 
-    protected prepareTickData(data: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[] {
+    override normaliseDataDomain(d: Array<string | object>) {
+        const domain = [];
+        const uniqueValues = new Set();
+        for (const v of d) {
+            const key = v instanceof Date ? v.getTime() : v;
+            if (!uniqueValues.has(key)) {
+                uniqueValues.add(key);
+                // Only add unique values
+                domain.push(v);
+            }
+        }
+        return { domain, clipped: false };
+    }
+
+    protected prepareGridPathTickData(data: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[] {
         return data.slice().reverse();
     }
 
@@ -36,7 +50,13 @@ export class RadiusCategoryAxis extends RadiusAxis {
         const minRadius = maxRadius * innerRadiusRatio;
 
         if (scale instanceof BandScale) {
-            const ticks = scale.ticks();
+            const ticks = scale.ticks({
+                nice: this.nice,
+                interval: undefined,
+                tickCount: undefined,
+                minTickCount: 0,
+                maxTickCount: Infinity,
+            });
             const index = ticks.length - 1 - ticks.indexOf(tickDatum.tickId);
             return index === 0 ? minRadius : scale.inset + scale.step * (index - 0.5) + scale.bandwidth / 2;
         } else {

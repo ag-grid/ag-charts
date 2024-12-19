@@ -95,9 +95,9 @@ export class DataWindowProcessor<D extends object> implements UpdateProcessor {
     }
 
     private getAxisWindow(axis: AxisLike, zoom: ZoomState) {
-        const domain = axis.scale.getDomain?.();
+        const { domain } = axis.scale;
 
-        if (!zoom || !domain || domain.length === 0 || isNaN(Number(domain[0]))) return;
+        if (!zoom || domain.length === 0 || isNaN(Number(domain[0]))) return;
 
         const diff = Number(domain[1]) - Number(domain[0]);
 

@@ -1,10 +1,17 @@
+import { formatValue } from '../util/format.util';
 import { createTicks, isDenseInterval, niceTicksDomain, range, tickFormat, tickStep } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
+import type { ScaleFormatParams, ScaleTickParams } from './scale';
 
 /**
  * Maps continuous domain to a continuous range.
  */
 export class LinearScale extends ContinuousScale<number> {
+    protected static getTickStep(start: number, stop: number, ticks: ScaleTickParams<number>) {
+        const { interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount } = ticks;
+        return interval ?? tickStep(start, stop, tickCount, minTickCount, maxTickCount);
+    }
+
     readonly type = 'number';
 
     public constructor() {
@@ -15,47 +22,34 @@ export class LinearScale extends ContinuousScale<number> {
         return d;
     }
 
-    ticks(): number[] {
-        const count = this.tickCount ?? ContinuousScale.defaultTickCount;
-        if (!this.domain || this.domain.length < 2 || count < 1 || !this.domain.every(isFinite)) {
+    ticks(
+        { interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount }: ScaleTickParams<number>,
+        domain: number[] = this.domain
+    ): number[] {
+        if (!domain || domain.length < 2 || tickCount < 1 || !domain.every(isFinite)) {
             return [];
         }
-        this.refresh();
-        const [d0, d1] = this.getDomain();
+        const [d0, d1] = domain;
 
-        if (this.interval) {
-            const step = Math.abs(this.interval);
+        if (interval) {
+            const step = Math.abs(interval);
             if (!isDenseInterval((d1 - d0) / step, this.getPixelRange())) {
                 return range(d0, d1, step);
             }
         }
 
-        return createTicks(d0, d1, count, this.minTickCount, this.maxTickCount);
+        return createTicks(d0, d1, tickCount, minTickCount, maxTickCount);
     }
 
-    update() {
-        if (!this.domain || this.domain.length < 2) {
-            return;
-        }
-        if (this.nice) {
-            this.updateNiceDomain();
-        }
-    }
+    niceDomain(ticks: ScaleTickParams<number>, domain: number[] = this.domain) {
+        if (domain.length < 2) return [];
 
-    protected getTickStep(start: number, stop: number) {
-        return this.interval ?? tickStep(start, stop, this.tickCount, this.minTickCount, this.maxTickCount);
-    }
+        const { tickCount = ContinuousScale.defaultTickCount } = ticks;
+        let [start, stop] = domain;
 
-    /**
-     * Extends the domain so that it starts and ends on nice round values.
-     */
-    protected updateNiceDomain() {
-        const count = this.tickCount;
-        let [start, stop] = this.domain;
-
-        if (count === 1) {
+        if (tickCount === 1) {
             [start, stop] = niceTicksDomain(start, stop);
-        } else if (count > 1) {
+        } else if (tickCount > 1) {
             const roundStart = start > stop ? Math.ceil : Math.floor;
             const roundStop = start > stop ? Math.floor : Math.ceil;
             const maxAttempts = 4;
@@ -63,8 +57,8 @@ export class LinearScale extends ContinuousScale<number> {
             for (let i = 0; i < maxAttempts; i++) {
                 const prev0 = start;
                 const prev1 = stop;
-                const step = this.getTickStep(start, stop);
-                const [d0, d1] = this.domain;
+                const step = LinearScale.getTickStep(start, stop, ticks);
+                const [d0, d1] = domain;
 
                 start = roundStart(d0 / step) * step;
                 stop = roundStop(d1 / step) * step;
@@ -73,10 +67,18 @@ export class LinearScale extends ContinuousScale<number> {
             }
         }
 
-        this.niceDomain = [start, stop];
+        return [start, stop];
     }
 
-    tickFormat({ ticks: specifiedTicks, specifier }: { ticks?: any[]; specifier?: string }) {
-        return tickFormat(specifiedTicks ?? this.ticks(), specifier);
+    tickFormatter({ visibleTicks: specifiedTicks, fractionDigits, specifier }: ScaleFormatParams<number>) {
+        return specifier != null
+            ? tickFormat(specifiedTicks, specifier)
+            : (x: number) => formatValue(x, fractionDigits);
+    }
+
+    datumFormatter({ visibleTicks: specifiedTicks, fractionDigits, specifier }: ScaleFormatParams<number>) {
+        return specifier != null
+            ? tickFormat(specifiedTicks, specifier)
+            : (x: number) => formatValue(x, fractionDigits + 1);
     }
 }

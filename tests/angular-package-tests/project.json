@@ -49,6 +49,7 @@
     "test:package:production-19": {
       "dependsOn": ["^pack"],
       "command": "{projectRoot}/run.sh -p 19",
+      "cache": false,
       "configurations": {
         "update": {
           "command": "{projectRoot}/run.sh -p -u 19"

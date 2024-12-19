@@ -453,8 +453,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             seriesRegion.addListener('drag-start', this.onDragStart.bind(this), annotationsState),
             seriesRegion.addListener('drag', this.onDrag.bind(this), annotationsState),
             seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
-            ctx.domManager.seriesWidget.addListener('keydown', this.onKeyDown.bind(this)),
-            ctx.domManager.seriesWidget.addListener('keyup', this.onKeyUp.bind(this)),
+            ctx.widgets.seriesWidget.addListener('keydown', this.onKeyDown.bind(this)),
+            ctx.widgets.seriesWidget.addListener('keyup', this.onKeyUp.bind(this)),
             rootRegion.addListener('click', this.onCancel.bind(this), All),
 
             // Services

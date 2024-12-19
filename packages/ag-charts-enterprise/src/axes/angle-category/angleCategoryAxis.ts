@@ -27,7 +27,16 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
     protected generateAngleTicks() {
         const { scale, gridLength: radius } = this;
         const { values, minSpacing } = this.interval;
-        const ticks = values ?? scale.ticks() ?? [];
+        const ticks =
+            values ??
+            scale.ticks({
+                nice: this.nice,
+                interval: undefined,
+                tickCount: undefined,
+                minTickCount: 0,
+                maxTickCount: Infinity,
+            }) ??
+            [];
         if (ticks.length < 2 || isNaN(minSpacing)) {
             return ticks.map((value) => {
                 return { value, visible: true };

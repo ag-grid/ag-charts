@@ -1035,8 +1035,7 @@ export abstract class CartesianSeries<
                 range: [range[0], range[1]],
             };
         } else if (scale instanceof ContinuousScale) {
-            const { range } = scale;
-            const domain = scale.getDomain();
+            const { range, domain } = scale;
 
             return {
                 type: 'continuous',

@@ -28,8 +28,14 @@ describe('OrdinalTimeScale', () => {
             new Date(2024, 2, 5),
             new Date(2024, 2, 6),
         ];
-        scale.tickCount = 5;
-        expect(scale.ticks()).toMatchSnapshot();
+        const ticks = {
+            nice: true,
+            interval: undefined,
+            tickCount: 5,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        };
+        expect(scale.ticks(ticks)).toMatchSnapshot();
     });
 
     it('should create nice ticks when reversed', () => {
@@ -44,8 +50,14 @@ describe('OrdinalTimeScale', () => {
             new Date(2024, 2, 5),
             new Date(2024, 2, 6),
         ].reverse();
-        scale.tickCount = 5;
-        expect(scale.ticks()).toMatchSnapshot();
+        const ticks = {
+            nice: true,
+            interval: undefined,
+            tickCount: 5,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        };
+        expect(scale.ticks(ticks)).toMatchSnapshot();
     });
 
     it('should create ticks matching the data domain if the domain length is smaller than maxTickCount', () => {
@@ -60,8 +72,14 @@ describe('OrdinalTimeScale', () => {
             new Date(2024, 2, 5),
             new Date(2024, 2, 6),
         ];
-        scale.maxTickCount = 8;
-        expect(scale.ticks()).toMatchSnapshot();
+        const ticks = {
+            nice: true,
+            interval: undefined,
+            tickCount: undefined,
+            minTickCount: 0,
+            maxTickCount: 8,
+        };
+        expect(scale.ticks(ticks)).toMatchSnapshot();
     });
 
     it('should extend the domain to create nice ticks matching the data domain', () => {
@@ -72,7 +90,15 @@ describe('OrdinalTimeScale', () => {
             new Date(2024, 3, 5),
             new Date(2025, 3, 5),
         ];
-        expect(scale.ticks()).toMatchSnapshot();
+
+        const ticks = {
+            nice: true,
+            interval: undefined,
+            tickCount: undefined,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        };
+        expect(scale.ticks(ticks)).toMatchSnapshot();
     });
 
     describe('should create ticks with configured', () => {
@@ -250,7 +276,14 @@ describe('OrdinalTimeScale', () => {
                 scale.domain = domain;
                 scale.interval = interval;
 
-                expect(scale.ticks()).toMatchSnapshot();
+                const ticks = {
+                    nice: true,
+                    interval,
+                    tickCount: undefined,
+                    minTickCount: 0,
+                    maxTickCount: Infinity,
+                };
+                expect(scale.ticks(ticks)).toMatchSnapshot();
             });
         });
 
@@ -474,7 +507,14 @@ describe('OrdinalTimeScale', () => {
                 scale.domain = domain;
                 scale.interval = interval;
 
-                expect(scale.ticks()).toMatchSnapshot();
+                const ticks = {
+                    nice: true,
+                    interval,
+                    tickCount: undefined,
+                    minTickCount: 0,
+                    maxTickCount: Infinity,
+                };
+                expect(scale.ticks(ticks)).toMatchSnapshot();
             });
         });
     });

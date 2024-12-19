@@ -102,8 +102,8 @@ export class ZoomToolbar extends BaseProperties {
         this.destroyFns.push(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             this.toolbar.addToolbarListener('button-focused', this.onButtonFocus.bind(this)),
-            ctx.domManager.containerWidget.addListener('mousemove', this.onHover.bind(this)),
-            ctx.domManager.containerWidget.addListener('mouseleave', this.onLeave.bind(this)),
+            ctx.widgets.containerWidget.addListener('mousemove', this.onHover.bind(this)),
+            ctx.widgets.containerWidget.addListener('mouseleave', this.onLeave.bind(this)),
             ctx.layoutManager.addListener('layout:complete', this.onLayoutComplete.bind(this)),
             this.teardown.bind(this)
         );

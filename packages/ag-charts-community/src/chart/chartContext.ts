@@ -13,6 +13,7 @@ import { Scene } from '../scene/scene';
 import { CallbackCache } from '../util/callbackCache';
 import type { Mutex } from '../util/mutex';
 import type { TypedEvent } from '../util/observable';
+import { NativeWidget } from '../widget/nativeWidget';
 import { AnnotationManager } from './annotation/annotationManager';
 import { AxisManager } from './axis/axisManager';
 import type { ChartService } from './chartService';
@@ -29,6 +30,7 @@ import { KeyNavManager } from './interaction/keyNavManager';
 import { RegionManager } from './interaction/regionManager';
 import type { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
+import type { WidgetSet } from './interaction/widgetSet';
 import { ZoomManager } from './interaction/zoomManager';
 import type { Keyboard } from './keyboard';
 import { LayoutManager } from './layout/layoutManager';
@@ -68,6 +70,7 @@ export class ChartContext implements ModuleContext {
     syncManager: SyncManager;
     tooltipManager: TooltipManager;
     updateService: UpdateService;
+    widgets: WidgetSet;
     zoomManager: ZoomManager;
 
     private readonly contextModules: ModuleInstance[] = [];
@@ -103,6 +106,11 @@ export class ChartContext implements ModuleContext {
         this.chartService = chart;
         this.syncManager = syncManager;
         this.domManager = new DOMManager(container, styleContainer);
+        this.widgets = {
+            seriesWidget: new NativeWidget(this.domManager.getParent('series-area')),
+            chartWidget: new NativeWidget(this.domManager.getParent('canvas-proxy')),
+            containerWidget: new NativeWidget(this.domManager.getParent('canvas-container')),
+        };
 
         // Sets canvas element if scene exists, otherwise use return value with scene constructor
         const canvasElement = this.domManager.addChild(
@@ -120,8 +128,8 @@ export class ChartContext implements ModuleContext {
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.cursorManager = new CursorManager(this.domManager);
         this.interactionManager = new InteractionManager(chart.keyboard, this.domManager);
-        this.regionManager = new RegionManager(this.interactionManager, this.domManager);
-        this.keyNavManager = new KeyNavManager(this.interactionManager, this.domManager);
+        this.regionManager = new RegionManager(this.interactionManager, this.widgets);
+        this.keyNavManager = new KeyNavManager(this.interactionManager, this.widgets);
         this.contextMenuRegistry = new ContextMenuRegistry();
         this.gestureDetector = new GestureDetector(this.domManager);
         this.updateService = new UpdateService(updateCallback);
@@ -157,6 +165,9 @@ export class ChartContext implements ModuleContext {
         this.syncManager.destroy();
         this.tooltipManager.destroy();
         this.zoomManager.destroy();
+        this.widgets.seriesWidget.destroy();
+        this.widgets.chartWidget.destroy();
+        this.widgets.containerWidget.destroy();
         this.contextModules.forEach((m) => m.destroy());
     }
 }

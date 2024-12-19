@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -eu
+set -eux
 
 editor=false
 mode=docker
@@ -15,6 +15,13 @@ function sed_inplace {
         sed -i '' "$@"
     else
         sed -i'' "$@"
+    fi
+}
+
+function snapshot_versions {
+    if ${production} ; then
+        grep 'ag-charts-' package.json >./e2e/${fw}-${version}-${patch_subdir:-basic}-version.txt
+        grep ${fw_package} package.json >>./e2e/${fw}-${version}-${patch_subdir:-basic}-version.txt
     fi
 }
 
@@ -99,6 +106,7 @@ if [[ ${mode} == "docker" ]] ; then
 
     if ${update} ; then
         cp -R */e2e/*-snapshots ${project_dir}/e2e/
+        cp */e2e/*.txt ${project_dir}/e2e/ || true
     fi
 
     exit ${exitCode}
@@ -164,4 +172,11 @@ if ${interactive} ; then
 else
     echo ">>> playwright test"
     npx playwright test $(${update} && echo "-u" || echo "")
+fi
+
+snapshot_versions
+
+if [[ ${mode} == 'native' && ${update} == 'true' ]] ; then
+    cp -R */e2e/*-snapshots ${project_dir}/e2e/
+    cp */e2e/*.txt ${project_dir}/e2e/ || true
 fi

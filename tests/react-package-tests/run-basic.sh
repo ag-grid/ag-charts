@@ -3,6 +3,7 @@
 set -eu
 
 fw=react
+fw_package=react
 dev_port=5173
 patch_subdir=basic
 

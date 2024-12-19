@@ -2,7 +2,7 @@ import { Color } from '../util/color';
 import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
 import { Invalidating } from './invalidating';
-import type { Scale } from './scale';
+import type { Scale, ScaleFormatParams } from './scale';
 
 type OKLCHA = { l: number; c: number; h: number; a: number };
 
@@ -133,5 +133,13 @@ export class ColorScale implements Scale<number, string, number> {
         if (this.invalid) {
             Logger.warnOnce('Expected update to not invalidate scale');
         }
+    }
+
+    tickFormatter(_params: ScaleFormatParams<number>): ((x: any) => string) | undefined {
+        return;
+    }
+
+    datumFormatter(_params: ScaleFormatParams<number>): ((x: any) => string) | undefined {
+        return;
     }
 }

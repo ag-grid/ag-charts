@@ -11,7 +11,6 @@ const {
     TextWrapper,
     TextUtils,
     Validate,
-    angleBetween,
     isNumberEqual,
     toRadians,
     normalizeAngle360,
@@ -73,14 +72,44 @@ export abstract class AngleAxis<
         return new AngleAxisLabel();
     }
 
+    override calculateTickLayout(domain: TDomain[]): {
+        niceDomain: any[];
+        primaryTickCount: number | undefined;
+        ticks: TDomain[];
+        visibleTicks: TDomain[];
+        fractionDigits: number;
+        bbox: _ModuleSupport.BBox;
+    } {
+        const { nice, scale } = this;
+
+        const ticksParams: _ModuleSupport.ScaleTickParams<any> = {
+            nice,
+            interval: undefined,
+            tickCount: undefined,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        };
+
+        const niceDomain = nice && scale.niceDomain ? scale.niceDomain(ticksParams, domain) : domain;
+
+        const tickData = this.generateAngleTicks(niceDomain);
+        this.tickData = tickData;
+
+        const ticks = tickData.map((t) => t.value);
+
+        return {
+            niceDomain,
+            primaryTickCount: undefined,
+            ticks,
+            visibleTicks: ticks,
+            fractionDigits: 0,
+            bbox: this.getBBox(),
+        };
+    }
+
     override update() {
-        this.updateScale();
-        this.updatePosition();
-        this.updateGridLines();
-        this.updateTickLines();
-        this.updateLabels();
+        super.update();
         this.updateRadiusLine();
-        this.updateCrossLines();
     }
 
     private normalizedAngles(): [number, number] {
@@ -97,12 +126,19 @@ export abstract class AngleAxis<
         this.range = this.normalizedAngles();
     }
 
-    protected override calculateAvailableRange(): number {
-        const { range, gridLength: radius } = this;
-        return angleBetween(range[0], range[1]) * radius;
-    }
+    protected abstract generateAngleTicks(domain: TDomain[]): AngleAxisTickDatum<TDomain>[];
 
-    protected abstract generateAngleTicks(): AngleAxisTickDatum<TDomain>[];
+    protected updateSelections() {
+        const data = this.tickData;
+
+        this.gridLineGroupSelection.update(this.gridLength && this.gridLine.enabled ? data : []);
+        this.tickLineGroupSelection.update(this.tick.enabled ? data : []);
+        this.tickLabelGroupSelection.update(this.label.enabled ? data : []);
+
+        this.gridLineGroupSelection.cleanup();
+        this.tickLineGroupSelection.cleanup();
+        this.tickLabelGroupSelection.cleanup();
+    }
 
     override updatePosition() {
         const { translation, axisGroup, gridGroup, crossLineRangeGroup, crossLineLineGroup, crossLineLabelGroup } =
@@ -194,7 +230,15 @@ export abstract class AngleAxis<
                 );
             }
         } else if (shape === 'polygon') {
-            const angles = scale.ticks?.().map((value) => scale.convert(value));
+            const angles = scale
+                .ticks?.({
+                    nice: this.nice,
+                    interval: undefined,
+                    tickCount: undefined,
+                    minTickCount: 0,
+                    maxTickCount: Infinity,
+                })
+                .map((value) => scale.convert(value));
             if (angles && angles.length > 2) {
                 angles.forEach((angle, i) => {
                     const x = radius * Math.cos(angle);
@@ -212,18 +256,16 @@ export abstract class AngleAxis<
         const {
             scale,
             gridLength: radius,
-            gridLine: { enabled, style, width },
+            gridLine: { style, width },
             innerRadiusRatio,
         } = this;
         if (!(style && radius > 0)) {
             return;
         }
 
-        const ticks = this.tickData;
         const innerRadius = radius * innerRadiusRatio;
         const styleCount = style.length;
-        const idFn = (datum: AngleAxisTickDatum<any>) => datum.value;
-        this.gridLineGroupSelection.update(enabled ? ticks : [], undefined, idFn).each((line, datum, index) => {
+        this.gridLineGroupSelection.each((line, datum, index) => {
             const { value } = datum;
             const { stroke, lineDash } = style[index % styleCount];
             const angle = scale.convert(value);
@@ -242,8 +284,7 @@ export abstract class AngleAxis<
     protected override updateLabels() {
         const { label, tickLabelGroupSelection } = this;
 
-        const ticks = this.tickData;
-        tickLabelGroupSelection.update(label.enabled ? (ticks as any[]) : []).each((node, _, index) => {
+        tickLabelGroupSelection.each((node, _, index) => {
             const labelDatum = this.labelData[index];
             if (!labelDatum || labelDatum.hidden) {
                 node.visible = false;
@@ -271,8 +312,7 @@ export abstract class AngleAxis<
     protected override updateTickLines() {
         const { scale, gridLength: radius, tick, tickLineGroupSelection } = this;
 
-        const ticks = this.tickData;
-        tickLineGroupSelection.update(tick.enabled ? ticks : []).each((line, datum) => {
+        tickLineGroupSelection.each((line, datum) => {
             const { value } = datum;
             const angle = scale.convert(value);
             const cos = Math.cos(angle);
@@ -375,7 +415,6 @@ export abstract class AngleAxis<
     protected abstract avoidLabelCollisions(labelData: AngleAxisLabelDatum[]): void;
 
     override computeLabelsBBox(options: { hideWhenNecessary: boolean }, seriesRect: _ModuleSupport.BBox) {
-        this.tickData = this.generateAngleTicks();
         this.labelData = this.createLabelNodeData(this.tickData, options, seriesRect);
 
         const textBoxes = this.labelData.map(({ box }) => box).filter((box): box is _ModuleSupport.BBox => box != null);
@@ -455,9 +494,10 @@ export abstract class AngleAxis<
     }
 
     protected override updateCrossLines() {
+        const { shape, gridLength: radius, innerRadiusRatio } = this;
         this.crossLines.forEach((crossLine) => {
             if (crossLine instanceof AngleCrossLine) {
-                const { shape, gridLength: radius, innerRadiusRatio } = this;
+                crossLine.ticks = this.tickData.map((t) => t.value);
                 crossLine.shape = shape;
                 crossLine.axisOuterRadius = radius;
                 crossLine.axisInnerRadius = radius * innerRadiusRatio;

@@ -20,17 +20,28 @@ describe('TimeScale', () => {
     it('should create nice domain', () => {
         const scale = new TimeScale();
         scale.domain = [new Date(new Date(2022, 1, 13)), new Date(new Date(2022, 10, 30))];
-        scale.nice = true;
-        scale.update();
-        expect(scale.getDomain()).toEqual([new Date(2022, 1, 1), new Date(2022, 11, 1)]);
+        expect(
+            scale.niceDomain({
+                nice: true,
+                interval: undefined,
+                tickCount: undefined,
+                minTickCount: 0,
+                maxTickCount: Infinity,
+            })
+        ).toEqual([new Date(2022, 1, 1), new Date(2022, 11, 1)]);
     });
 
     it('should create nice ticks', () => {
         const scale = new TimeScale();
         scale.domain = [new Date(2022, 1, 13), new Date(2022, 10, 30)];
-        scale.nice = true;
-        scale.tickCount = 10;
-        expect(scale.ticks()).toEqual([
+        const ticks = {
+            nice: true,
+            interval: undefined,
+            tickCount: 10,
+            minTickCount: 0,
+            maxTickCount: Infinity,
+        };
+        expect(scale.ticks(ticks, scale.niceDomain(ticks))).toEqual([
             new Date(2022, 1, 1),
             new Date(2022, 2, 1),
             new Date(2022, 3, 1),
@@ -47,9 +58,6 @@ describe('TimeScale', () => {
 
     describe('should create ticks with configured', () => {
         describe(`milliseconds interval`, () => {
-            const scale = new TimeScale();
-            scale.nice = true;
-
             const MILLISECONDS_INTERVALS = [
                 {
                     name: 'every minute',
@@ -99,20 +107,24 @@ describe('TimeScale', () => {
             ];
 
             it.each(MILLISECONDS_INTERVALS)(`for $name case`, ({ interval, domain }) => {
-                const scale2 = new TimeScale();
+                const scale = new TimeScale();
 
-                scale2.range = [0, 600];
-                scale2.domain = domain;
-                scale2.interval = interval;
+                scale.range = [0, 600];
+                scale.domain = domain;
 
-                expect(scale2.ticks()).toMatchSnapshot();
+                const ticks = {
+                    nice: false,
+                    interval: interval,
+                    tickCount: undefined,
+                    minTickCount: 0,
+                    maxTickCount: Infinity,
+                };
+
+                expect(scale.ticks(ticks)).toMatchSnapshot();
             });
         });
 
         describe(`time interval`, () => {
-            const scale = new TimeScale();
-            scale.nice = true;
-
             const TIME_INTERVALS = [
                 {
                     name: 'every minute',
@@ -157,13 +169,20 @@ describe('TimeScale', () => {
             ];
 
             it.each(TIME_INTERVALS)(`for $name case`, ({ interval, domain }) => {
-                const scale2 = new TimeScale();
+                const scale = new TimeScale();
 
-                scale2.range = [0, 600];
-                scale2.domain = domain;
-                scale2.interval = interval;
+                scale.range = [0, 600];
+                scale.domain = domain;
 
-                expect(scale2.ticks()).toMatchSnapshot();
+                const ticks = {
+                    nice: false,
+                    interval: interval,
+                    tickCount: undefined,
+                    minTickCount: 0,
+                    maxTickCount: Infinity,
+                };
+
+                expect(scale.ticks(ticks)).toMatchSnapshot();
             });
         });
     });

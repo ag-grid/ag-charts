@@ -227,16 +227,16 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             this.assignSeriesToAxes();
         }
 
-        for (const axis of this.axes) {
-            axis.processData();
-        }
-
         await Promise.all(
             this.series.map((s) => {
                 s.resetDatumCallbackCache();
                 return s.processData(dataController);
             })
         );
+
+        for (const axis of this.axes) {
+            axis.processData();
+        }
     }
 
     computeAxisPadding() {
@@ -299,8 +299,12 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
                 axis.translation.y = height;
             }
 
+            if (!animated) {
+                axis.resetAnimation('initial');
+            }
+
             axis.calculateLayout();
-            axis.update(animated);
+            axis.update();
         });
 
         await Promise.all(this.series.map((series) => series.update({ seriesRect })));

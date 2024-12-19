@@ -184,8 +184,8 @@ export class SeriesAreaManager extends BaseManager {
     private layoutComplete(event: LayoutCompleteEvent): void {
         this.seriesRect = event.series.rect;
         this.hoverRect = event.series.paddedRect;
-        this.chart.ctx.domManager.seriesWidget.setBounds(event.series.paddedRect);
-        this.chart.ctx.domManager.chartWidget.setBounds(event.chart);
+        this.chart.ctx.widgets.seriesWidget.setBounds(event.series.paddedRect);
+        this.chart.ctx.widgets.chartWidget.setBounds(event.chart);
         this.focusIndicator.rect = this.seriesRect;
     }
 

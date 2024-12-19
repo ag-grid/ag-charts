@@ -505,9 +505,9 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     }
 
     private getDomainExtents(axis: ChartAxisLike) {
-        const domain = axis.scale.getDomain?.();
-        const d0 = domain?.at(0);
-        const d1 = domain?.at(-1);
+        const { domain } = axis.scale;
+        const d0 = domain.at(0);
+        const d1 = domain.at(-1);
 
         if (d0 == null || d1 == null) return;
 
@@ -515,9 +515,9 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     }
 
     private getDomainPixelExtents(axis: ChartAxisLike) {
-        const domain = axis.scale.getDomain?.();
-        const d0 = axis.scale.convert?.(domain?.at(0));
-        const d1 = axis.scale.convert?.(domain?.at(-1));
+        const { domain } = axis.scale;
+        const d0 = axis.scale.convert?.(domain.at(0));
+        const d1 = axis.scale.convert?.(domain.at(-1));
 
         if (!isFiniteNumber(d0) || !isFiniteNumber(d1)) return;
 

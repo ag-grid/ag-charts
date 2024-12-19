@@ -10,6 +10,20 @@ export function mockCanvasText() {
     };
 }
 
+const replacements: Partial<Record<string, string>> = {
+    // Math minus
+    '\u2212': '-',
+};
+
+function iterateFontChars(text: string, font: Record<string, string[]>, cb: (pixels: string[]) => void) {
+    // Array.from required for unicode support
+    for (const element of Array.from(text)) {
+        const char = replacements[element] ?? element;
+        const pixels = font[char] ?? font['undefined'];
+        cb(pixels);
+    }
+}
+
 function fillText(context: CanvasRenderingContext2D, text: string, x: number, y: number) {
     text = singleLineText(text);
 
@@ -20,10 +34,7 @@ function fillText(context: CanvasRenderingContext2D, text: string, x: number, y:
     let cx = x - metrics.actualBoundingBoxLeft + pixelSize / 2;
     const cy = y - metrics.fontBoundingBoxAscent;
 
-    for (const element of text) {
-        const char = element;
-        const pixels = font[char] ?? font['undefined'];
-
+    iterateFontChars(text, font, (pixels) => {
         for (let j = 0; j < pixels.length; j++) {
             const line = pixels[j];
             for (let i = 0; i < line.length; i++) {
@@ -34,7 +45,7 @@ function fillText(context: CanvasRenderingContext2D, text: string, x: number, y:
         }
 
         cx += (pixels[0].length + 1) * pixelSize;
-    }
+    });
 }
 
 const alignMultiplier: Record<CanvasTextAlign, number> = {
@@ -55,10 +66,7 @@ function measureText(context: CanvasRenderingContext2D, text: string): TextMetri
     let width = 0;
     let ascent = 0;
     let descent = 0;
-    for (const element of text) {
-        const char = element;
-        const pixels = font[char] ?? font['undefined'];
-
+    iterateFontChars(text, font, (pixels) => {
         const emptyAscent = pixels.findIndex((line) => line.includes('#'));
         const charAscent = MOCK_ASCENT - Math.max(0, emptyAscent);
         const charDescent = pixels.length - MOCK_ASCENT;
@@ -67,7 +75,7 @@ function measureText(context: CanvasRenderingContext2D, text: string): TextMetri
 
         const charWidth = (pixels[0].length + 1) * pixelSize;
         width += charWidth;
-    }
+    });
 
     const actualBoundingBoxLeft = width * alignMultiplier[textAlign];
     const actualBoundingBoxRight = width * (1 - alignMultiplier[textAlign]);

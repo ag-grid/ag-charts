@@ -63,7 +63,7 @@ export function validateDatumPoint(
 }
 
 function validateDatumPointDirection(value: any, context: AnnotationAxisContext) {
-    const domain = context.scale.getDomain?.();
+    const { domain } = context.scale;
     if (domain && context.continuous) {
         return value >= domain[0] && value <= domain.at(-1);
     }

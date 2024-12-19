@@ -47,6 +47,12 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         return { domain: extent, clipped };
     }
 
+    override updateScale(): void {
+        super.updateScale();
+
+        this.scale.arcLength = this.getRangeArcLength();
+    }
+
     protected getRangeArcLength(): number {
         const { range: requestedRange } = this;
 
@@ -57,26 +63,29 @@ export class AngleNumberAxis extends AngleAxis<number, LinearAngleScale> {
         return rotation * radius;
     }
 
-    protected generateAngleTicks() {
-        const arcLength = this.getRangeArcLength();
-        const { scale, range: requestedRange } = this;
-        const { values, minSpacing, maxSpacing } = this.interval;
-
-        const minTicksCount = maxSpacing ? Math.floor(arcLength / maxSpacing) : 1;
-        const maxTicksCount = minSpacing ? Math.floor(arcLength / minSpacing) : Infinity;
-        const preferredTicksCount = Math.floor((4 / Math.PI) * Math.abs(requestedRange[0] - requestedRange[1]));
-
-        scale.tickCount = Math.max(minTicksCount, Math.min(maxTicksCount, preferredTicksCount));
-        scale.minTickCount = minTicksCount;
-        scale.maxTickCount = maxTicksCount;
-        scale.arcLength = arcLength;
+    protected generateAngleTicks(domain: number[]) {
+        const { scale, range: requestedRange, nice } = this;
+        const { values, step, minSpacing, maxSpacing } = this.interval;
 
         let rawTicks: number[];
-        if (values != null) {
-            const [d0, d1] = findMinMax(scale.getDomain().map(Number));
-            rawTicks = values.filter((value) => value >= d0 && value <= d1).sort((a, b) => a - b);
+        if (values == null) {
+            const { arcLength } = scale;
+            const minTickCount = maxSpacing ? Math.floor(arcLength / maxSpacing) : 1;
+            const maxTickCount = minSpacing ? Math.floor(arcLength / minSpacing) : Infinity;
+            const preferredTickCount = Math.floor((4 / Math.PI) * Math.abs(requestedRange[0] - requestedRange[1]));
+            const tickCount = Math.max(minTickCount, Math.min(maxTickCount, preferredTickCount));
+            const tickParams: _ModuleSupport.ScaleTickParams<number> = {
+                nice,
+                interval: step,
+                tickCount,
+                minTickCount,
+                maxTickCount,
+            };
+
+            rawTicks = scale.ticks(tickParams, domain);
         } else {
-            rawTicks = scale.ticks();
+            const [d0, d1] = findMinMax(domain.map(Number));
+            rawTicks = values.filter((value) => value >= d0 && value <= d1).sort((a, b) => a - b);
         }
 
         return rawTicks.map((value) => ({ value, visible: true }));

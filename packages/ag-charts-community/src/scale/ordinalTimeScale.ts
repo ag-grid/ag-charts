@@ -4,9 +4,8 @@ import type { TimeInterval } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
 import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { BandScale } from './bandScale';
-import { ContinuousScale } from './continuousScale';
-import { Invalidating } from './invalidating';
-import { TimeScale } from './timeScale';
+import type { ScaleFormatParams, ScaleTickParams } from './scale';
+import { getDateTicksForInterval } from './timeScale';
 
 export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     override readonly type = 'ordinal-time';
@@ -14,16 +13,6 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
     static override is(value: unknown): value is OrdinalTimeScale {
         return value instanceof OrdinalTimeScale;
     }
-
-    @Invalidating
-    tickCount = ContinuousScale.defaultTickCount;
-    @Invalidating
-    minTickCount = 0;
-    @Invalidating
-    maxTickCount = Infinity;
-
-    @Invalidating
-    override interval?: TimeInterval | number = undefined;
 
     protected override _domain: Date[] = [];
     protected sortedTimestamps: number[] = [];
@@ -69,25 +58,29 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         return this._domain;
     }
 
-    override ticks(visibleRange: [number, number] = [0, 1]): Date[] {
+    override ticks(
+        { interval, maxTickCount }: ScaleTickParams<TimeInterval | number>,
+        domain: Date[] = this.domain,
+        visibleRange: [number, number] = [0, 1]
+    ): Date[] {
         if (!this._domain.length) {
             return [];
         }
 
         this.refresh();
 
-        const { domain, isReversed, interval } = this;
+        const { isReversed } = this;
         const [t0, t1] = [domain[0].valueOf(), domain.at(-1)!.valueOf()];
         const start = Math.min(t0, t1);
         const stop = Math.max(t0, t1);
 
         if (interval == null) {
-            return this.getDefaultTicks(this.maxTickCount, isReversed, visibleRange);
+            return this.getDefaultTicks(maxTickCount, isReversed, visibleRange);
         }
 
         const [r0, r1] = this.range;
         const availableRange = Math.abs(r1 - r0);
-        const ticks = TimeScale.getTicksForInterval({ start, stop, interval, availableRange }) ?? [];
+        const ticks = getDateTicksForInterval({ start, stop, interval, availableRange }) ?? [];
 
         let lastIndex = -1;
         return ticks.filter((tick) => {
@@ -171,16 +164,12 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
      * the {@link TimeLocaleObject.format} method.
      * If no specifier is provided, this method returns the default time format function.
      */
-    tickFormat({
-        ticks,
-        domain,
-        specifier,
-    }: {
-        ticks?: any[];
-        domain?: any[];
-        specifier?: string;
-    }): (date: Date) => string {
-        return specifier == null ? defaultTimeTickFormat(ticks, domain) : buildFormatter(specifier);
+    override tickFormatter({ visibleTicks, ticks, specifier }: ScaleFormatParams<Date>): (date: Date) => string {
+        return specifier != null ? buildFormatter(specifier) : defaultTimeTickFormat(visibleTicks, ticks);
+    }
+
+    override datumFormatter(params: ScaleFormatParams<Date>) {
+        return this.tickFormatter(params);
     }
 
     override invert(position: number): Date {
