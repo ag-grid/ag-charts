@@ -180,11 +180,9 @@ export class Legend extends BaseProperties {
     private readonly truncatedItems: Set<string> = new Set();
 
     private _data: CategoryLegendDatum[] = [];
-    private _symbolsDirty = true;
     set data(value: CategoryLegendDatum[]) {
         this.domProxy.onDataUpdate(this._data, value);
         this._data = value;
-        this._symbolsDirty = true;
         this.updateGroupVisibility();
     }
     get data() {
@@ -412,7 +410,6 @@ export class Legend extends BaseProperties {
 
             bboxes.push(markerLabel.getBBox());
         });
-        this._symbolsDirty = false;
 
         width = Math.max(1, width);
         height = Math.max(1, height);
@@ -516,25 +513,23 @@ export class Legend extends BaseProperties {
             paddedSymbolWidth += spacing + markerWidth;
         }
 
-        if (this._symbolsDirty) {
-            const { marker, line } = markerLabel;
+        const { marker, line } = markerLabel;
 
-            marker.visible = markerEnabled;
-            if (marker.visible) {
-                marker.shape = itemMarker.shape ?? symbol.marker.shape ?? 'square';
-                marker.size = itemMarker.size;
-                applyShapeStyle(marker, this.getMarkerStyles(symbol));
-            }
-
-            line.visible = lineEnabled;
-            if (line.visible) {
-                applyShapeStyle(line, this.getLineStyles(symbol));
-            }
-
-            markerLabel.length = markerWidth;
-            markerLabel.spacing = spacing;
-            markerLabel.isCustomMarker = isCustomMarker;
+        marker.visible = markerEnabled;
+        if (marker.visible) {
+            marker.shape = itemMarker.shape ?? symbol.marker.shape ?? 'square';
+            marker.size = itemMarker.size;
+            applyShapeStyle(marker, this.getMarkerStyles(symbol));
         }
+
+        line.visible = lineEnabled;
+        if (line.visible) {
+            applyShapeStyle(line, this.getLineStyles(symbol));
+        }
+
+        markerLabel.length = markerWidth;
+        markerLabel.spacing = spacing;
+        markerLabel.isCustomMarker = isCustomMarker;
 
         return paddedSymbolWidth;
     }
