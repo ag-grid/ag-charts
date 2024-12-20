@@ -2,19 +2,17 @@ import type { FocusIndicator } from '../../dom/focusIndicator';
 import { BaseManager } from '../../util/baseManager';
 import type { KeyboardWidgetEvent } from '../../widget/widgetEvents';
 import type { InteractionManager } from './interactionManager';
-import { InteractionState } from './interactionStateListener';
+import { InteractionState } from './interactionManager';
 import type { WidgetSet } from './widgetSet';
 
 export type KeyNavEventType = 'nav-hori' | 'nav-vert' | 'nav-zoom' | 'submit' | 'undo' | 'redo';
 
 export type KeyNavEvent<T extends KeyNavEventType = KeyNavEventType> = {
-    type: T;
-    delta: -1 | 0 | 1;
-    sourceEvent: KeyboardWidgetEvent<'keydown'>;
+    readonly type: T;
+    readonly delta: -1 | 0 | 1;
+    readonly sourceEvent: KeyboardWidgetEvent<'keydown'>;
     preventDefault(): void;
 };
-
-const MOUSE_STATES = InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
 
 // The purpose of this class is to decouple keyboard input events configuration with
 // navigation commands. For example, keybindings might be different on macOS and Windows,
@@ -45,8 +43,8 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         );
     }
 
-    private getState() {
-        return this.interactionManager.getState();
+    private isClickable() {
+        return this.interactionManager.isState(InteractionState.Clickable);
     }
 
     public override destroy() {
@@ -54,19 +52,17 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
     }
 
     private onClick() {
-        if (!(this.getState() & MOUSE_STATES)) return;
+        if (!this.isClickable()) return;
         this.focusIndicator?.overrideFocusVisible(false);
         this.previousInputDevice = 'mouse';
     }
 
     private onMouse() {
-        if (!(this.getState() & MOUSE_STATES)) return;
+        if (!this.isClickable()) return;
         this.previousInputDevice = 'mouse';
     }
 
     private onKeyDown(event: KeyNavEvent['sourceEvent']) {
-        const state = this.getState();
-
         // FIXME: key is localised to it could be non-ASCII text like غ
         const { key, code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
 
@@ -81,7 +77,7 @@ export class KeyNavManager extends BaseManager<KeyNavEventType, KeyNavEvent> {
         }
 
         // Annotations listen for KeyInteractionEvent<'keydown'> instead of KeyNavEvent<T>:
-        if (state & (InteractionState.Annotations | InteractionState.AnnotationsSelected)) {
+        if (this.interactionManager.isState(InteractionState.AnnotationsMoveable)) {
             // TODO: annotations should update the focus indicator bounds to surround the current annotation
             this.focusIndicator?.overrideFocusVisible(false);
             return;

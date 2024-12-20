@@ -400,7 +400,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
     private onNavZoom(event: _ModuleSupport.KeyNavEvent<'nav-zoom'>) {
         const { enabled, enableScrolling, scroller } = this;
-        const isDefaultState = !!(this.ctx.interactionManager.getState() & _ModuleSupport.InteractionState.Default);
+        const isDefaultState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Default);
 
         if (!isDefaultState || !enabled || !enableScrolling) return;
         event.preventDefault();
@@ -515,7 +515,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
 
         this.updateZoom(constrainZoom(newZoom));
-        event.preventDefault();
+        event.sourceEvent.preventDefault();
     }
 
     _didAutoZoomOnMount = false;

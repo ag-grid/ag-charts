@@ -3,32 +3,41 @@ import { Listeners } from '../../util/listeners';
 import type { Widget } from '../../widget/widget';
 import type { DragWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../../widget/widgetEvents';
 import { InteractionManager } from './interactionManager';
-import type { PointerInteractionTypes } from './interactionManager';
 import { InteractionState } from './interactionManager';
-import { type PreventableEvent, buildPreventable } from './preventableEvent';
 import type { WidgetSet } from './widgetSet';
 
 type RegionName = 'root' | 'series';
-type RegionInteractionTypes = PointerInteractionTypes | 'drag-start' | 'drag' | 'drag-end';
+type RegionInteractionTypes =
+    | 'contextmenu'
+    | 'click'
+    | 'dblclick'
+    | 'enter'
+    | 'hover'
+    | 'leave'
+    | 'wheel'
+    | 'drag-start'
+    | 'drag'
+    | 'drag-end';
 
-export type RegionEvent<T extends RegionInteractionTypes = RegionInteractionTypes> = PreventableEvent & {
-    type: T;
-    region: RegionName;
-    regionX: number;
-    regionY: number;
-    canvasX: number;
-    canvasY: number;
-    deltaX: T extends 'wheel' ? number : never;
-    deltaY: T extends 'wheel' ? number : never;
-    sourceEvent: Event;
-    timestamp: number;
+export type RegionEvent<T extends RegionInteractionTypes = RegionInteractionTypes> = {
+    readonly type: T;
+    readonly region: RegionName;
+    readonly regionX: number;
+    readonly regionY: number;
+    readonly canvasX: number;
+    readonly canvasY: number;
+    readonly deltaX: T extends 'wheel' ? number : never;
+    readonly deltaY: T extends 'wheel' ? number : never;
+    readonly sourceEvent: Event;
+    readonly timestamp: number;
+    preventDefault(): void;
 };
 
 export type MockEvent = {
-    target: HTMLElement;
-    offsetX: number;
-    offsetY: number;
-    mockRegion?: Pick<RegionEvent, 'region' | 'canvasX' | 'canvasY' | 'regionX' | 'regionY'>;
+    readonly target: HTMLElement;
+    readonly offsetX: number;
+    readonly offsetY: number;
+    readonly mockRegion?: Pick<RegionEvent, 'region' | 'canvasX' | 'canvasY' | 'regionX' | 'regionY'>;
 };
 
 type TWidgetEvent = DragWidgetEvent | MouseWidgetEvent | WheelWidgetEvent;
@@ -63,8 +72,7 @@ function addHandler<T extends RegionEvent['type']>(
 ): () => void {
     return (
         listeners?.addListener(type, (e: RegionEvent) => {
-            const currentState = interactionManager.getState();
-            if (currentState & triggeringStates) {
+            if (interactionManager.isState(triggeringStates)) {
                 handler(e as TypeInfo[T]);
             }
         }) ?? (() => {})
@@ -189,7 +197,10 @@ export class RegionManager {
         return new ObservableRegionImplementation();
     }
 
-    private widgetEventTypeToRegionEventType(widgetEvent: TWidgetEvent, regionEventType?: 'leave' | 'enter') {
+    private widgetEventTypeToRegionEventType(
+        widgetEvent: TWidgetEvent,
+        regionEventType?: 'leave' | 'enter'
+    ): RegionInteractionTypes {
         if (regionEventType !== undefined) return regionEventType;
         const map = {
             contextmenu: 'contextmenu',
@@ -234,13 +245,14 @@ export class RegionManager {
         const { widget: rootWidget } = this.regions.root.properties;
         if (current == null || currentWidget == null || rootWidget == null) return;
 
-        const event: RegionEvent = buildPreventable({
+        const event: RegionEvent = {
             ...this.computeEventOffsets(currentWidget, rootWidget, widgetEvent),
             sourceEvent: widgetEvent.sourceEvent,
             type: this.widgetEventTypeToRegionEventType(widgetEvent, regionEventType),
             region: current.properties.name,
             timestamp: Date.now(),
-        });
+            preventDefault: () => widgetEvent.sourceEvent.preventDefault(),
+        };
 
         switch (event.type) {
             case 'drag-start': {

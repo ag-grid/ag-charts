@@ -4,53 +4,53 @@ type MouseWidgetEventType = 'contextmenu' | 'click' | 'dblclick' | 'mouseenter' 
 type DragWidgetEventType = 'drag-start' | 'drag-move' | 'drag-end';
 
 export type WidgetEvent = {
-    type: keyof WidgetEventMap;
-    sourceEvent: Event;
+    readonly type: keyof WidgetEventMap;
+    readonly sourceEvent: Event;
 };
 
 export type FocusWidgetEvent<T extends FocusWidgetEventType = FocusWidgetEventType> = {
-    type: T;
-    sourceEvent: FocusEvent;
+    readonly type: T;
+    readonly sourceEvent: FocusEvent;
 };
 
 export type KeyboardWidgetEvent<T extends KeyboardWidgetEventType = KeyboardWidgetEventType> = {
-    type: T;
-    sourceEvent: KeyboardEvent;
+    readonly type: T;
+    readonly sourceEvent: KeyboardEvent;
 };
 
 export type MouseWidgetEvent<T extends MouseWidgetEventType = MouseWidgetEventType> = {
-    type: T;
-    offsetX: number;
-    offsetY: number;
-    clientX: number;
-    clientY: number;
+    readonly type: T;
+    readonly offsetX: number;
+    readonly offsetY: number;
+    readonly clientX: number;
+    readonly clientY: number;
     readonly currentX: number;
     readonly currentY: number;
-    sourceEvent: MouseEvent;
+    readonly sourceEvent: MouseEvent;
 };
 
 export type WheelWidgetEvent = {
-    type: 'wheel';
-    offsetX: number;
-    offsetY: number;
-    clientX: number;
-    clientY: number;
-    deltaX: number;
-    deltaY: number;
-    sourceEvent: WheelEvent;
+    readonly type: 'wheel';
+    readonly offsetX: number;
+    readonly offsetY: number;
+    readonly clientX: number;
+    readonly clientY: number;
+    readonly deltaX: number;
+    readonly deltaY: number;
+    readonly sourceEvent: WheelEvent;
 };
 
 // `originDelta` is the offset relative to position of the HTML element when the drag initiated.
 // This is helpful for elements that move during drag actions, like navigator sliders.
 export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType> = {
-    type: T;
-    offsetX: number;
-    offsetY: number;
-    clientX: number;
-    clientY: number;
-    originDeltaX: number;
-    originDeltaY: number;
-    sourceEvent: MouseEvent | TouchEvent;
+    readonly type: T;
+    readonly offsetX: number;
+    readonly offsetY: number;
+    readonly clientX: number;
+    readonly clientY: number;
+    readonly originDeltaX: number;
+    readonly originDeltaY: number;
+    readonly sourceEvent: MouseEvent | TouchEvent;
 };
 
 export type WidgetEventMap = {

@@ -1030,10 +1030,9 @@ export class Legend extends BaseProperties {
     }
 
     private updateHighlight(datum?: HighlightNodeDatum) {
-        const state = this.ctx.interactionManager.getState();
-        if (state === InteractionState.Default) {
+        if (this.ctx.interactionManager.isState(InteractionState.Default)) {
             this.ctx.highlightManager.updateHighlight(this.id, datum);
-        } else if (state === InteractionState.Animation) {
+        } else if (this.ctx.interactionManager.isState(InteractionState.Animation)) {
             // Updating the highlight can interrupt animations, so only clear the highlight if the chart
             // is in a state when highlighting is possible.
             this.pendingHighlightDatum = datum;

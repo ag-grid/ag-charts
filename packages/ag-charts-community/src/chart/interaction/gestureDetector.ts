@@ -2,7 +2,6 @@ import type { DOMManager } from '../../dom/domManager';
 import { BaseManager } from '../../util/baseManager';
 import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
-import { type PreventableEvent, buildPreventable } from './preventableEvent';
 
 type PinchEventTypes = 'pinch-start' | 'pinch-move' | 'pinch-end';
 type GestureEventTypes = PinchEventTypes;
@@ -14,15 +13,16 @@ type Finger = {
 };
 
 export type GestureEvent<T extends GestureEventTypes = GestureEventTypes> = {
-    type: T;
+    readonly type: T;
 };
 
-export type PinchEvent<T extends PinchEventTypes = PinchEventTypes> = PreventableEvent & {
-    type: T;
-    finger1: Finger;
-    finger2: Finger;
-    origin: { x: number; y: number };
-    deltaDistance: number;
+export type PinchEvent<T extends PinchEventTypes = PinchEventTypes> = {
+    readonly type: T;
+    readonly finger1: Readonly<Finger>;
+    readonly finger2: Readonly<Finger>;
+    readonly origin: Readonly<{ x: number; y: number }>;
+    readonly deltaDistance: number;
+    readonly sourceEvent: Event;
 };
 
 enum PinchTrackingStatus {
@@ -96,7 +96,8 @@ export class GestureDetector extends BaseManager<GestureEventTypes, GestureEvent
 
     private dispatchPinchEvent<T extends PinchEventTypes>(type: T, deltaDistance: number, sourceEvent: Event) {
         const { finger1, finger2, origin } = this.pinch;
-        this.listeners.dispatch(type, buildPreventable({ sourceEvent, type, finger1, finger2, deltaDistance, origin }));
+        const event: PinchEvent = { sourceEvent, type, finger1, finger2, deltaDistance, origin };
+        this.listeners.dispatch(type, event);
     }
 
     private onTouchStart(event: TouchEvent) {

@@ -49,7 +49,7 @@ function setupObserver(element: HTMLElement, cb: (intersectionRatio: number) => 
     return observer;
 }
 
-type Events = { type: 'hidden' } | { type: 'resize' } | { type: 'container-changed' };
+type Events = { readonly type: 'hidden' } | { readonly type: 'resize' } | { readonly type: 'container-changed' };
 type LiveDOMElement = {
     element: HTMLElement;
     children: Map<string, HTMLElement>;

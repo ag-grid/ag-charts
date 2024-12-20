@@ -38,7 +38,9 @@ type TooltipPositionType =
 
 type TooltipOffsets = { canvasX: number; canvasY: number };
 export type TooltipEventType = 'hover' | 'click' | 'dblclick' | 'keyboard';
-export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = TooltipOffsets & { type: T };
+export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = Readonly<TooltipOffsets> & {
+    readonly type: T;
+};
 
 export interface TooltipMetaPosition {
     type?: TooltipPositionType;

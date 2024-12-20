@@ -43,14 +43,16 @@ export type ZoomMemento = {
 };
 
 export interface ZoomChangeEvent extends AxisZoomState {
-    type: 'zoom-change';
-    callerId: string;
-    axes: Record<string, ZoomState | undefined>;
+    readonly type: 'zoom-change';
+    readonly x?: Readonly<ZoomState>;
+    readonly y?: Readonly<ZoomState>;
+    readonly callerId: string;
+    readonly axes: Record<string, Readonly<ZoomState> | undefined>;
 }
 
 export interface ZoomPanStartEvent {
-    type: 'zoom-pan-start';
-    callerId: string;
+    readonly type: 'zoom-pan-start';
+    readonly callerId: string;
 }
 
 export type ChartAxisLike = {

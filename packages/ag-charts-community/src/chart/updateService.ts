@@ -6,27 +6,27 @@ import type { ISeries } from './series/seriesTypes';
 export type UpdateCallback = (type: ChartUpdateType, opts?: UpdateOpts) => void;
 
 export interface UpdateCompleteEvent {
-    type: 'update-complete';
-    minRect?: BBox;
-    minVisibleRect?: BBox;
+    readonly type: 'update-complete';
+    readonly minRect?: BBox;
+    readonly minVisibleRect?: BBox;
 }
 
 export interface PreSceneRenderEvent {
-    type: 'pre-scene-render';
-    minRect?: BBox;
-    minVisibleRect?: BBox;
+    readonly type: 'pre-scene-render';
+    readonly minRect?: BBox;
+    readonly minVisibleRect?: BBox;
 }
 
 export interface PreDomUpdateEvent {
-    type: 'pre-dom-update';
-    minRect?: never;
-    minVisibleRect?: never;
+    readonly type: 'pre-dom-update';
+    readonly minRect?: never;
+    readonly minVisibleRect?: never;
 }
 
 export interface PreSceneRenderEvent {
-    type: 'pre-scene-render';
-    minRect?: BBox;
-    minVisibleRect?: BBox;
+    readonly type: 'pre-scene-render';
+    readonly minRect?: BBox;
+    readonly minVisibleRect?: BBox;
 }
 
 export type UpdateOpts = {

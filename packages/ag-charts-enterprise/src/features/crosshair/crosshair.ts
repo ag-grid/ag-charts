@@ -78,9 +78,6 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.labels = {};
 
         const seriesRegion = ctx.regionManager.getRegion('series');
-        const mouseMoveStates =
-            InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
-
         this.hideCrosshairs();
 
         ctx.domManager.addEventListener('focusin', ({ target }) => {
@@ -93,13 +90,9 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         this.destroyFns.push(
             ctx.scene.attachNode(this.crosshairGroup),
-            seriesRegion.addListener('hover', (event) => this.onMouseMove(event), mouseMoveStates),
-            seriesRegion.addListener(
-                'drag',
-                (event) => this.onMouseMove(event),
-                InteractionState.Annotations | InteractionState.AnnotationsSelected
-            ),
-            seriesRegion.addListener('leave', () => this.onMouseOut(), mouseMoveStates),
+            seriesRegion.addListener('hover', (event) => this.onMouseMove(event), InteractionState.Clickable),
+            seriesRegion.addListener('drag', (event) => this.onMouseMove(event), InteractionState.AnnotationsMoveable),
+            seriesRegion.addListener('leave', () => this.onMouseOut(), InteractionState.Clickable),
             ctx.keyNavManager.addListener('nav-hori', () => this.onKeyPress()),
             ctx.keyNavManager.addListener('nav-vert', () => this.onKeyPress()),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.onMouseOut()),
@@ -238,7 +231,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
     }
 
     private onKeyPress() {
-        if (this.enabled && !this.snap && this.ctx.interactionManager.getState() & InteractionState.Default) {
+        if (this.enabled && !this.snap && this.ctx.interactionManager.isState(InteractionState.Default)) {
             this.hideCrosshairs();
         }
     }

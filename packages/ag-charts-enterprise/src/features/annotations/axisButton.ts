@@ -34,9 +34,6 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.snap = Boolean(axisCtx.scale.bandwidth);
 
         const seriesRegion = this.ctx.regionManager.getRegion('series');
-        const mouseMoveStates =
-            InteractionState.Default | InteractionState.Annotations | InteractionState.AnnotationsSelected;
-
         ctx.domManager.addEventListener('focusin', ({ target }) => {
             const htmlTarget = target instanceof HTMLElement ? target : undefined;
             const isSeriesAreaChild = htmlTarget && ctx.domManager.contains(htmlTarget, 'series-area');
@@ -44,13 +41,9 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         });
 
         this.destroyFns.push(
-            seriesRegion.addListener('hover', (event) => this.show(event), mouseMoveStates),
-            seriesRegion.addListener(
-                'drag',
-                (event) => this.show(event),
-                InteractionState.Annotations | InteractionState.AnnotationsSelected
-            ),
-            seriesRegion.addListener('leave', () => this.hide(), mouseMoveStates),
+            seriesRegion.addListener('hover', (event) => this.show(event), InteractionState.Clickable),
+            seriesRegion.addListener('drag', (event) => this.show(event), InteractionState.AnnotationsMoveable),
+            seriesRegion.addListener('leave', () => this.hide(), InteractionState.Clickable),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             ctx.keyNavManager.addListener('nav-hori', () => this.onKeyPress()),
             ctx.keyNavManager.addListener('nav-vert', () => this.onKeyPress()),
@@ -116,7 +109,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     }
 
     private onKeyPress() {
-        if (this.snap && this.ctx.interactionManager.getState() & InteractionState.Default) return;
+        if (this.snap && this.ctx.interactionManager.isState(InteractionState.Default)) return;
         this.hide();
     }
 

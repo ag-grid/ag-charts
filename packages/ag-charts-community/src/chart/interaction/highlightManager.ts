@@ -12,10 +12,10 @@ export interface HighlightNodeDatum extends SeriesNodeDatum {
 }
 
 export interface HighlightChangeEvent {
-    type: 'highlight-change';
-    previousHighlight?: HighlightNodeDatum;
-    currentHighlight?: HighlightNodeDatum;
-    callerId: string;
+    readonly type: 'highlight-change';
+    readonly previousHighlight?: HighlightNodeDatum;
+    readonly currentHighlight?: HighlightNodeDatum;
+    readonly callerId: string;
 }
 
 /**

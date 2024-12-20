@@ -11,8 +11,8 @@ import { InteractionManager, InteractionState } from './interactionManager';
 type AnimationEventType = 'animation-frame' | 'animation-start' | 'animation-stop';
 
 export interface AnimationEvent {
-    type: AnimationEventType;
-    deltaMs: number;
+    readonly type: AnimationEventType;
+    readonly deltaMs: number;
 }
 
 type AnimationEventMap = { [K in AnimationEventType]: AnimationEvent };
