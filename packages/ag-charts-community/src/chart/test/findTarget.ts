@@ -7,12 +7,15 @@ import { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
 import { BBoxValues } from '../../util/bboxinterface';
+import { ListWidget } from '../../widget/listWidget';
 import { NativeWidget } from '../../widget/nativeWidget';
 import { SliderWidget } from '../../widget/sliderWidget';
 import { ToolbarWidget } from '../../widget/toolbarWidget';
+import { Widget } from '../../widget/widget';
 import type { Chart } from '../chart';
 import type { MockEvent } from '../interaction/regionManager';
 import { Legend } from '../legend/legend';
+import { LegendDOMProxy } from '../legend/legendDOMProxy';
 import { LegendMarkerLabel } from '../legend/legendMarkerLabel';
 import { SeriesAreaManager } from '../series/seriesAreaManager';
 
@@ -32,14 +35,22 @@ const CAST_INFO = {
     Scene: new ClassTypePair<Scene, typeof Scene>(Scene),
 
     Legend: new ClassTypePair<Legend, typeof Legend>(Legend),
+    LegendDOMProxy: new ClassTypePair<LegendDOMProxy, typeof LegendDOMProxy>(LegendDOMProxy),
     Navigator: new ClassTypePair<Navigator, Navigator>(Object as any),
     NavigatorDOMProxy: new ClassTypePair<NavigatorDOMProxy, NavigatorDOMProxy>(Object as any),
     SeriesAreaManager: new ClassTypePair<SeriesAreaManager, typeof SeriesAreaManager>(SeriesAreaManager),
 
     ToolbarWidget: new ClassTypePair<ToolbarWidget, typeof ToolbarWidget>(ToolbarWidget),
     SliderWidget: new ClassTypePair<SliderWidget, typeof SliderWidget>(SliderWidget),
+    ListWidget: new ClassTypePair<ListWidget, typeof ListWidget>(ListWidget),
     NativeWidget: new ClassTypePair<NativeWidget, typeof NativeWidget>(NativeWidget),
 } as const;
+
+function isClickable(widget: Widget | undefined): widget is Widget {
+    if (widget == null) return false;
+    const style = widget.getElement().style;
+    return style.display !== 'none' && style.visibility !== 'none' && style.pointerEvents !== 'none';
+}
 
 function findLegendTarget(legendModule: unknown, canvasX: number, canvasY: number): MockEvent | undefined {
     if (legendModule === undefined) return undefined;
@@ -48,8 +59,16 @@ function findLegendTarget(legendModule: unknown, canvasX: number, canvasY: numbe
         .cast(CAST_INFO.Legend)
         .findProperty('group')
         .castProperty('group', CAST_INFO.TranslatableGroup).value;
+    const legendDOMProxy = new Caster(legendModule)
+        .accessProperty('domProxy')
+        .cast(CAST_INFO.LegendDOMProxy)
+        .findProperty('itemList')
+        .castProperty('itemList', CAST_INFO.ListWidget).value;
+
+    if (!isClickable(legendDOMProxy.itemList)) return undefined;
+
     for (const node of Selection.selectByClass(legend.group, LegendMarkerLabel)) {
-        if (!node.proxyButton) return;
+        if (!isClickable(node.proxyButton)) continue;
         const bbox = Transformable.toCanvas(node);
         if (bbox.containsPoint(canvasX, canvasY)) {
             const { x, y } = Transformable.fromCanvasPoint(node, canvasX, canvasY);
@@ -82,7 +101,7 @@ function findNavigatorTarget(navigatorModule: unknown, canvasX: number, canvasY:
         targetWidget = domProxy.sliders[1];
     }
 
-    if (targetWidget) {
+    if (isClickable(targetWidget)) {
         const offsetX = canvasX - targetWidget.cssLeft() - domProxy.toolbar.cssLeft();
         const offsetY = canvasY - targetWidget.cssTop() - domProxy.toolbar.cssTop();
         const target = targetWidget.getElement();
@@ -108,7 +127,7 @@ function findZoomTarget(zoomModule: unknown, canvasX: number, canvasY: number): 
 
         for (const axis of domProxy.axes) {
             const bbox = axis.div.getBounds();
-            if (!axis.div.isHidden() && BBoxValues.containsPoint(bbox, canvasX, canvasY)) {
+            if (isClickable(axis.div) && BBoxValues.containsPoint(bbox, canvasX, canvasY)) {
                 const offsetX = canvasX - bbox.x;
                 const offsetY = canvasY - bbox.y;
                 return { target: axis.div.getElement(), offsetX, offsetY };

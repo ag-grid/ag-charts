@@ -114,12 +114,12 @@ export class LegendDOMProxy {
     }
 
     public update(params: LegendDOMProxyUpdateParams) {
-        this.updateVisibility(params.visible);
         if (params.visible) {
             this.initLegendList(params);
             this.updateItemProxyButtons(params);
             this.updatePaginationProxyButtons(params);
         }
+        this.updateVisibility(params.visible);
     }
 
     private updateVisibility(visible: boolean) {

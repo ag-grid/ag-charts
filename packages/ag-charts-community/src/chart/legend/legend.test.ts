@@ -439,4 +439,23 @@ describe('Legend', () => {
             await compare(chart);
         });
     });
+
+    describe('AG-13753', () => {
+        test('single item legend', async () => {
+            const legendItemClick = jest.fn();
+            const options = prepareTestOptions({
+                data: [{ x: 'Q1', y: 200 }],
+                series: [{ xKey: 'x', yKey: 'y' }],
+                legend: { enabled: true, listeners: { legendItemClick } },
+            });
+
+            chart = deproxy(AgCharts.create(options));
+            await waitForChartStability(chart);
+
+            (window as any).doTheThing = true;
+            await clickAction(400, 570)(chart);
+            delete (window as any).doTheThing;
+            expect(legendItemClick).toBeCalledTimes(1);
+        });
+    });
 });
