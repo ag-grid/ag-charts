@@ -89,6 +89,7 @@ export abstract class RadiusAxis<
 
     override calculateTickLayout(
         domain: D[],
+        _visibleRange: [number, number],
         initialPrimaryTickCount?: number
     ): {
         niceDomain: D[];
