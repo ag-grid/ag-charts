@@ -314,9 +314,9 @@ export class SeriesAreaManager extends BaseManager {
                 return this.chart.ctx.chartEventManager.seriesKeyNavZoom(1, widgetEvent);
             case 'zoomout':
                 return this.chart.ctx.chartEventManager.seriesKeyNavZoom(-1, widgetEvent);
-            case 'arrowdown':
-                return this.onArrow(-1, 0, widgetEvent);
             case 'arrowup':
+                return this.onArrow(-1, 0, widgetEvent);
+            case 'arrowdown':
                 return this.onArrow(1, 0, widgetEvent);
             case 'arrowleft':
                 return this.onArrow(0, -1, widgetEvent);
