@@ -161,7 +161,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private updateComplete() {
-        if (this.focusIndicator.isFocusVisible()) {
+        if (this.focusIndicator.isFocusVisible() && this.isState(InteractionState.Focusable)) {
             // This function is called when something in the scene is redrawn such as a resize, or zoompan change.
             // Therefore we need to update the bounds of the focus indicator, but not aria-label. Hence refresh=true.
             this.handleSeriesFocus(0, 0, true);
@@ -287,13 +287,13 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onFocus(): void {
-        if (!this.isState(InteractionState.Keyable)) return;
+        if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = this.focusIndicator.isFocusVisible() ? 'keyboard' : 'mouse';
         this.handleFocus(0, 0);
     }
 
     private onBlur() {
-        if (!this.isState(InteractionState.Keyable)) return;
+        if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = 'mouse';
         this.clearAll();
         this.focusIndicator.overrideFocusVisible(undefined);
@@ -328,7 +328,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onArrow(seriesIndexDelta: number, datumIndexDelta: number, event: KeyboardWidgetEvent<'keydown'>): void {
-        if (!this.isState(InteractionState.Keyable)) return;
+        if (!this.isState(InteractionState.Focusable)) return;
         this.hoverDevice = 'keyboard';
         this.previousInputDevice = 'keyboard';
         this.focusIndicator.overrideFocusVisible(true);
@@ -340,7 +340,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onSubmit(event: KeyboardWidgetEvent<'keydown'>): void {
-        if (!this.isState(InteractionState.Keyable)) return;
+        if (!this.isState(InteractionState.Focusable)) return;
         const { series, datum } = this.focus;
         const sourceEvent = event.sourceEvent;
         if (series !== undefined && datum !== undefined) {
