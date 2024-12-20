@@ -1,4 +1,4 @@
-import type { KeyNavManager } from '../../chart/interaction/keyNavManager';
+import type { ChartEventManager } from '../../chart/interaction/chartEventManager';
 import { Debug } from '../../util/debug';
 import { DestroyFns } from '../../util/destroy';
 import { VERSION } from '../../version';
@@ -21,10 +21,10 @@ export class HistoryManager {
     private readonly debug = Debug.create(true, 'history');
     private readonly destroyFns = new DestroyFns();
 
-    constructor(keyNavManager: KeyNavManager) {
+    constructor(chartEventManager: ChartEventManager) {
         this.destroyFns.setFns([
-            keyNavManager.addListener('undo', this.undo.bind(this)),
-            keyNavManager.addListener('redo', this.redo.bind(this)),
+            chartEventManager.addListener('series-undo', this.undo.bind(this)),
+            chartEventManager.addListener('series-redo', this.redo.bind(this)),
         ]);
     }
 
