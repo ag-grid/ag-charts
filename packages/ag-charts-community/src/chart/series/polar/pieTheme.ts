@@ -1,36 +1,31 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
 import type { SeriesPaletteFactory } from '../../../module/coreModulesTypes';
-import {
-    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
-    DEFAULT_LABEL_COLOUR,
-    DEFAULT_MUTED_LABEL_COLOUR,
-    DEFAULT_SHADOW_COLOUR,
-} from '../../themes/symbols';
+import { DEFAULT_MUTED_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 
 export const pieTheme: ExtensibleTheme<'pie'> = {
     series: {
         title: {
             enabled: true,
-            fontWeight: 'normal' as const,
+            fontWeight: 'normal',
             fontSize: 14,
-            fontFamily: { ref: 'fontFamily' as const },
+            fontFamily: { ref: 'fontFamily' },
             color: DEFAULT_MUTED_LABEL_COLOUR,
             spacing: 5,
         },
         calloutLabel: {
             enabled: true,
-            fontSize: { ref: 'fontSize' as const },
-            fontFamily: { ref: 'fontFamily' as const },
-            color: DEFAULT_LABEL_COLOUR,
+            fontSize: { ref: 'fontSize' },
+            fontFamily: { ref: 'fontFamily' },
+            color: { ref: 'foregroundColor' },
             offset: 3,
             minAngle: 0,
         },
         sectorLabel: {
             enabled: true,
-            fontWeight: 'normal' as const,
-            fontSize: { ref: 'fontSize' as const },
-            fontFamily: { ref: 'fontFamily' as const },
-            color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+            fontWeight: 'normal',
+            fontSize: { ref: 'fontSize' },
+            fontFamily: { ref: 'fontFamily' },
+            color: { ref: 'backgroundColor' },
             positionOffset: 0,
             positionRatio: 0.5,
         },

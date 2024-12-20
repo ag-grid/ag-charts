@@ -229,7 +229,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     callout: {
         ...stroke,
         ...text,
-        color: ThemeSymbols.DEFAULT_LABEL_COLOUR,
+        color: { ref: 'foregroundColor' },
         handle: { ...handle },
         fill: ThemeSymbols.DEFAULT_ANNOTATION_BACKGROUND_FILL,
         fillOpacity: 0.2,
@@ -245,7 +245,7 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         ...text,
         color: ThemeSymbols.DEFAULT_TEXTBOX_COLOR,
         fill: ThemeSymbols.DEFAULT_ANNOTATION_COLOR,
-        stroke: ThemeSymbols.DEFAULT_ANNOTATION_HANDLE_FILL,
+        stroke: { ref: 'backgroundColor' },
         strokeWidth: 1,
         strokeOpacity: 1,
         handle: { ...handle },

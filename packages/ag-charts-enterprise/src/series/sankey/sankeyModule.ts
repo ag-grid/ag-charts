@@ -2,8 +2,6 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { SankeySeries } from './sankeySeries';
 
-const { DEFAULT_LABEL_COLOUR } = _ModuleSupport.ThemeSymbols;
-
 export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -29,9 +27,9 @@ export const SankeyModule: _ModuleSupport.SeriesModule<'sankey'> = {
                 },
             },
             label: {
-                fontFamily: { ref: 'fontFamily' as const },
-                fontSize: { ref: 'fontSize' as const },
-                color: DEFAULT_LABEL_COLOUR,
+                fontFamily: { ref: 'fontFamily' },
+                fontSize: { ref: 'fontSize' },
+                color: { ref: 'foregroundColor' },
                 spacing: 10,
             },
             node: {

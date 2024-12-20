@@ -1,10 +1,10 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-export const ERROR_BARS_THEME = {
+export const ERROR_BARS_THEME: _ModuleSupport.SeriesOptionModule['themeTemplate'] = {
     series: {
         errorBar: {
             visible: true,
-            stroke: _ModuleSupport.ThemeSymbols.DEFAULT_LABEL_COLOUR,
+            stroke: { ref: 'foregroundColor' },
             strokeWidth: 1,
             strokeOpacity: 1,
             cap: {

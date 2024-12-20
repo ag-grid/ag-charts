@@ -2,12 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { Navigator } from './navigator';
 
-const {
-    DEFAULT_LABEL_COLOUR,
-    DEFAULT_INVERTED_BACKGROUND_COLOUR,
-    DEFAULT_BACKGROUND_COLOUR,
-    DEFAULT_NAVIGATOR_STROKE,
-} = _ModuleSupport.ThemeSymbols;
+const { DEFAULT_INVERTED_BACKGROUND_COLOUR, DEFAULT_NAVIGATOR_STROKE } = _ModuleSupport.ThemeSymbols;
 
 export const NavigatorModule: _ModuleSupport.RootModule = {
     type: 'root',
@@ -28,7 +23,7 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
                 strokeWidth: 1,
             },
             minHandle: {
-                fill: DEFAULT_BACKGROUND_COLOUR,
+                fill: { ref: 'backgroundColor' },
                 stroke: DEFAULT_NAVIGATOR_STROKE,
                 strokeWidth: 1,
                 width: 12,
@@ -36,7 +31,7 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
                 cornerRadius: 4,
             },
             maxHandle: {
-                fill: DEFAULT_BACKGROUND_COLOUR,
+                fill: { ref: 'backgroundColor' },
                 stroke: DEFAULT_NAVIGATOR_STROKE,
                 strokeWidth: 1,
                 width: 12,
@@ -46,9 +41,9 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
             miniChart: {
                 enabled: false,
                 label: {
-                    color: DEFAULT_LABEL_COLOUR,
+                    color: { ref: 'foregroundColor' },
                     fontSize: 10,
-                    fontFamily: { ref: 'fontFamily' as const },
+                    fontFamily: { ref: 'fontFamily' },
                     spacing: 5,
                 },
                 padding: {

@@ -3,7 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { WaterfallSeries } from './waterfallSeries';
 import { WATERFALL_SERIES_THEME } from './waterfallThemes';
 
-const { ThemeSymbols, ThemeConstants } = _ModuleSupport;
+const { ThemeConstants } = _ModuleSupport;
 
 export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
     type: 'series',
@@ -51,21 +51,21 @@ export const WaterfallModule: _ModuleSupport.SeriesModule<'waterfall'> = {
                     fill: palette.altUp.fill,
                     stroke: palette.altUp.stroke,
                     label: {
-                        color: ThemeSymbols.DEFAULT_LABEL_COLOUR,
+                        color: { ref: 'foregroundColor' },
                     },
                 },
                 negative: {
                     fill: palette.altDown.fill,
                     stroke: palette.altDown.stroke,
                     label: {
-                        color: ThemeSymbols.DEFAULT_LABEL_COLOUR,
+                        color: { ref: 'foregroundColor' },
                     },
                 },
                 total: {
                     fill: palette.neutral.fill,
                     stroke: palette.neutral.stroke,
                     label: {
-                        color: ThemeSymbols.DEFAULT_LABEL_COLOUR,
+                        color: { ref: 'foregroundColor' },
                     },
                 },
             },

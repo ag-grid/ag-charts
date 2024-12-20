@@ -2,13 +2,8 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { TreemapSeries } from './treemapSeries';
 
-const {
-    DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
-    DEFAULT_HIERARCHY_FILLS,
-    DEFAULT_HIERARCHY_STROKES,
-    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
-    DEFAULT_LABEL_COLOUR,
-} = _ModuleSupport.ThemeSymbols;
+const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_HIERARCHY_FILLS, DEFAULT_HIERARCHY_STROKES } =
+    _ModuleSupport.ThemeSymbols;
 
 export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
     type: 'series',
@@ -24,11 +19,11 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             group: {
                 label: {
                     enabled: true,
-                    color: DEFAULT_LABEL_COLOUR,
+                    color: { ref: 'foregroundColor' },
                     fontStyle: undefined,
-                    fontWeight: 'normal' as const,
-                    fontSize: { ref: 'fontSize' as const },
-                    fontFamily: { ref: 'fontFamily' as const },
+                    fontWeight: 'normal',
+                    fontSize: { ref: 'fontSize' },
+                    fontFamily: { ref: 'fontFamily' },
                     spacing: 4,
                 },
                 fill: undefined, // Override default fill
@@ -41,24 +36,24 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             tile: {
                 label: {
                     enabled: true,
-                    color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+                    color: { ref: 'backgroundColor' },
                     fontStyle: undefined,
-                    fontWeight: 'normal' as const,
+                    fontWeight: 'normal',
                     fontSize: 18,
                     minimumFontSize: 10,
-                    fontFamily: { ref: 'fontFamily' as const },
+                    fontFamily: { ref: 'fontFamily' },
                     wrapping: 'on-space',
                     overflowStrategy: 'ellipsis',
                     spacing: 2,
                 },
                 secondaryLabel: {
                     enabled: true,
-                    color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+                    color: { ref: 'backgroundColor' },
                     fontStyle: undefined,
                     fontWeight: undefined,
-                    fontSize: { ref: 'fontSize' as const },
+                    fontSize: { ref: 'fontSize' },
                     minimumFontSize: 10,
-                    fontFamily: { ref: 'fontFamily' as const },
+                    fontFamily: { ref: 'fontFamily' },
                     wrapping: 'never',
                     overflowStrategy: 'ellipsis',
                 },
@@ -72,7 +67,7 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
             highlightStyle: {
                 group: {
                     label: {
-                        color: DEFAULT_LABEL_COLOUR,
+                        color: { ref: 'foregroundColor' },
                     },
                     fill: 'rgba(255,255,255, 0.33)',
                     stroke: `rgba(0, 0, 0, 0.4)`,
@@ -80,10 +75,10 @@ export const TreemapModule: _ModuleSupport.SeriesModule<'treemap'> = {
                 },
                 tile: {
                     label: {
-                        color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+                        color: { ref: 'backgroundColor' },
                     },
                     secondaryLabel: {
-                        color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+                        color: { ref: 'backgroundColor' },
                     },
                     fill: 'rgba(255,255,255, 0.33)',
                     stroke: `rgba(0, 0, 0, 0.4)`,

@@ -3,7 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapLineSeries } from './mapLineSeries';
 
-const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE, DEFAULT_LABEL_COLOUR } = _ModuleSupport.ThemeSymbols;
+const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
 
 export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
     type: 'series',
@@ -23,9 +23,9 @@ export const MapLineModule: _ModuleSupport.SeriesModule<'map-line'> = {
             lineDashOffset: 0,
             label: {
                 enabled: true,
-                fontSize: { ref: 'fontSize' as const },
-                fontFamily: { ref: 'fontFamily' as const },
-                color: DEFAULT_LABEL_COLOUR,
+                fontSize: { ref: 'fontSize' },
+                fontFamily: { ref: 'fontFamily' },
+                color: { ref: 'foregroundColor' },
             },
         },
     },
