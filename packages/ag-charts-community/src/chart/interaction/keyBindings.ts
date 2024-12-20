@@ -16,11 +16,11 @@ const KEY_BINDINGS: { [K in KeyActionName]: Readonly<KeyBinding>[] } = {
     arrowleft: [{ code: 'ArrowLeft' }],
     arrowright: [{ code: 'ArrowRight' }],
     arrowup: [{ code: 'ArrowUp' }],
-    undo: [
+    redo: [
         { key: 'y', ctrlOrMeta: true },
         { key: 'z', ctrlOrMeta: true, shift: true },
     ],
-    redo: [{ key: 'z', ctrlOrMeta: true }],
+    undo: [{ key: 'z', ctrlOrMeta: true }],
     submit: [{ key: 'Enter' }, { code: 'Enter' }, { code: 'Space' }],
     zoomin: [{ key: '+' }, { code: 'ZoomIn' }, { code: 'Add' }],
     zoomout: [{ key: '-' }, { code: 'ZoomOut' }, { code: 'Substract' }],
