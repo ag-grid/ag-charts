@@ -18,6 +18,7 @@ import type { ChartMode } from '../chartMode';
 import { ChartUpdateType } from '../chartUpdateType';
 import type { HighlightChangeEvent } from '../interaction/highlightManager';
 import { InteractionState } from '../interaction/interactionManager';
+import { mapKeyboardEventToAction } from '../interaction/keyBindings';
 import type { RegionEvent } from '../interaction/regionManager';
 import { TooltipManager } from '../interaction/tooltipManager';
 import { getPickedFocusBBox, makeKeyboardPointerEvent } from '../keyboardUtil';
@@ -298,79 +299,42 @@ export class SeriesAreaManager extends BaseManager {
         this.focusIndicator.overrideFocusVisible(undefined);
     }
 
-    private onKeyDown(event: KeyboardWidgetEvent<'keydown'>) {
+    private onKeyDown(widgetEvent: KeyboardWidgetEvent<'keydown'>) {
         if (!this.isState(InteractionState.Keyable)) return;
 
-        const { key, code, altKey, shiftKey, metaKey, ctrlKey } = event.sourceEvent;
-
-        if (ctrlKey || metaKey) {
-            if (key === 'y' || (key === 'z' && shiftKey)) {
+        const actionName = mapKeyboardEventToAction(widgetEvent.sourceEvent);
+        switch (actionName) {
+            case 'redo':
                 this.focusIndicator.overrideFocusVisible(this.previousInputDevice === 'keyboard');
                 return this.chart.ctx.chartEventManager.seriesEvent('series-redo');
-            } else if (key === 'z') {
+            case 'undo':
                 this.focusIndicator.overrideFocusVisible(this.previousInputDevice === 'keyboard');
                 return this.chart.ctx.chartEventManager.seriesEvent('series-undo');
-            }
-        }
-
-        // Annotations listen for KeyInteractionEvent<'keydown'> instead of KeyNavEvent<T>:
-        if (this.isState(InteractionState.AnnotationsMoveable)) {
-            // TODO: annotations should update the focus indicator bounds to surround the current annotation
-            this.focusIndicator?.overrideFocusVisible(false);
-            return;
-        }
-
-        // We must read the key before the modifiers, because the text value can typed using modifiers.
-        switch (key) {
-            case '+':
-                return this.chart.ctx.chartEventManager.seriesKeyNavZoom(1, event);
-            case '-':
-                return this.chart.ctx.chartEventManager.seriesKeyNavZoom(-1, event);
-        }
-        if (altKey || shiftKey || metaKey || ctrlKey) return;
-
-        this.focusIndicator?.overrideFocusVisible(true);
-        if (key === 'Enter') {
-            // AG-13086: Ensure numpad enter + normal enter are treated consistently.
-            return this.onSubmit(event);
-        }
-        switch (code) {
-            case 'ArrowDown':
-                return this.onNavVert(1, event);
-            case 'ArrowUp':
-                return this.onNavVert(-1, event);
-            case 'ArrowLeft':
-                return this.onNavHori(-1, event);
-            case 'ArrowRight':
-                return this.onNavHori(1, event);
-            case 'ZoomIn':
-            case 'Add':
-                return this.chart.ctx.chartEventManager.seriesKeyNavZoom(1, event);
-            case 'ZoomOut':
-            case 'Substract':
-                return this.chart.ctx.chartEventManager.seriesKeyNavZoom(-1, event);
-            case 'Space':
-            case 'Enter':
-                return this.onSubmit(event);
+            case 'zoomin':
+                return this.chart.ctx.chartEventManager.seriesKeyNavZoom(1, widgetEvent);
+            case 'zoomout':
+                return this.chart.ctx.chartEventManager.seriesKeyNavZoom(-1, widgetEvent);
+            case 'arrowdown':
+                return this.onArrow(-1, 0, widgetEvent);
+            case 'arrowup':
+                return this.onArrow(1, 0, widgetEvent);
+            case 'arrowleft':
+                return this.onArrow(0, -1, widgetEvent);
+            case 'arrowright':
+                return this.onArrow(0, 1, widgetEvent);
+            case 'submit':
+                return this.onSubmit(widgetEvent);
         }
     }
 
-    private onNavVert(delta: -1 | 1, event: KeyboardWidgetEvent<'keydown'>): void {
+    private onArrow(seriesIndexDelta: number, datumIndexDelta: number, event: KeyboardWidgetEvent<'keydown'>): void {
         if (!this.isState(InteractionState.Keyable)) return;
         this.hoverDevice = 'keyboard';
         this.previousInputDevice = 'keyboard';
-        this.focus.seriesIndex += delta;
-        this.handleFocus(delta, 0);
-        event.sourceEvent.preventDefault();
-        this.chart.ctx.chartEventManager.seriesEvent('series-focus-change');
-    }
-
-    private onNavHori(delta: -1 | 1, event: KeyboardWidgetEvent<'keydown'>): void {
-        if (!this.isState(InteractionState.Keyable)) return;
-        this.hoverDevice = 'keyboard';
-        this.previousInputDevice = 'keyboard';
-        this.focus.datumIndex += delta;
-        this.handleFocus(0, delta);
+        this.focusIndicator.overrideFocusVisible(true);
+        this.focus.seriesIndex += seriesIndexDelta;
+        this.focus.datumIndex += datumIndexDelta;
+        this.handleFocus(seriesIndexDelta, datumIndexDelta);
         event.sourceEvent.preventDefault();
         this.chart.ctx.chartEventManager.seriesEvent('series-focus-change');
     }
