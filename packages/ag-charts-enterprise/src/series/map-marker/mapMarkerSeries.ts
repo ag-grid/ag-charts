@@ -708,7 +708,7 @@ export class MapMarkerSeries
 
     private legendItemSymbol(datumIndex?: number): _ModuleSupport.LegendSymbolOptions {
         const { dataModel, processedData, properties } = this;
-        const { shape, fillOpacity, stroke, strokeWidth, strokeOpacity } = properties;
+        const { shape, fillOpacity, stroke, strokeWidth, strokeOpacity, lineDash, lineDashOffset } = properties;
 
         let { fill } = properties;
         if (datumIndex != null && this.isColorScaleValid()) {
@@ -725,6 +725,8 @@ export class MapMarkerSeries
                 stroke,
                 strokeWidth,
                 strokeOpacity,
+                lineDash,
+                lineDashOffset,
             },
         };
     }

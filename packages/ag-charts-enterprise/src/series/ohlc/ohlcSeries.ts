@@ -143,6 +143,8 @@ export class OhlcSeries extends OhlcSeriesBase<OhlcNode, OhlcSeriesProperties> {
                         stroke: undefined,
                         strokeWidth: 0,
                         strokeOpacity: 1,
+                        lineDash: [0],
+                        lineDashOffset: 0,
                     },
                 },
                 legendItemName,

@@ -541,15 +541,17 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     }
 
     private legendItemSymbol() {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = this.properties;
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this.properties;
 
         return {
             marker: {
                 fill: fill ?? 'rgba(0, 0, 0, 0)',
                 stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                fillOpacity: fillOpacity ?? 1,
-                strokeOpacity: strokeOpacity ?? 1,
+                fillOpacity,
+                strokeOpacity,
                 strokeWidth,
+                lineDash,
+                lineDashOffset,
             },
         };
     }

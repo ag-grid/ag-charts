@@ -1423,6 +1423,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 fillOpacity: this.properties.fillOpacity,
                 strokeOpacity: this.properties.strokeOpacity,
                 strokeWidth: this.properties.strokeWidth,
+                lineDash: this.properties.lineDash,
+                lineDashOffset: this.properties.lineDashOffset,
             },
         };
     }

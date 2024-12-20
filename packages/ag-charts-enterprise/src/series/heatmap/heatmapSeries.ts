@@ -474,6 +474,8 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                           stroke: undefined,
                           strokeWidth: 0,
                           strokeOpacity: 1,
+                          lineDash: [0],
+                          lineDashOffset: 0,
                       },
                   }
                 : undefined;

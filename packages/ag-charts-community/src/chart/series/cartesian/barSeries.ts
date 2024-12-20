@@ -804,7 +804,7 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     private legendItemSymbol(): LegendSymbolOptions {
-        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity } = this.properties;
+        const { fill, stroke, strokeWidth, fillOpacity, strokeOpacity, lineDash, lineDashOffset } = this.properties;
 
         return {
             marker: {
@@ -813,6 +813,8 @@ export class BarSeries extends AbstractBarSeries<
                 stroke,
                 strokeWidth,
                 strokeOpacity,
+                lineDash,
+                lineDashOffset,
             },
         };
     }

@@ -468,16 +468,18 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
 
     private legendItemSymbol(): LegendSymbolOptions {
         const { marker } = this.properties;
-        const { shape, fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = marker;
+        const { shape, fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = marker;
 
         return {
             marker: {
                 shape,
                 fill: fill ?? 'rgba(0, 0, 0, 0)',
                 stroke: stroke ?? 'rgba(0, 0, 0, 0)',
-                fillOpacity: fillOpacity ?? 1,
-                strokeOpacity: strokeOpacity ?? 1,
-                strokeWidth: strokeWidth ?? 0,
+                fillOpacity,
+                strokeOpacity,
+                strokeWidth,
+                lineDash,
+                lineDashOffset,
             },
         };
     }

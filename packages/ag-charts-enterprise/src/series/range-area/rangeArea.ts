@@ -657,6 +657,8 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                 fillOpacity: marker.fillOpacity,
                 strokeOpacity: marker.strokeOpacity,
                 strokeWidth: marker.strokeWidth,
+                lineDash: marker.lineDash,
+                lineDashOffset: marker.lineDashOffset,
             },
             line: {
                 stroke,

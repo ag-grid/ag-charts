@@ -654,8 +654,9 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private legendItemSymbol(item: AgWaterfallSeriesItemType): _ModuleSupport.LegendSymbolOptions {
-        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } = this.getItemConfig(item);
-        return { marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth } };
+        const { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } =
+            this.getItemConfig(item);
+        return { marker: { fill, stroke, fillOpacity, strokeOpacity, strokeWidth, lineDash, lineDashOffset } };
     }
 
     getLegendData(legendType: _ModuleSupport.ChartLegendType) {
