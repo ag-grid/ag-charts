@@ -1,7 +1,7 @@
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
-import { BandScale } from '../../scale/bandScale';
+import { CategoryScale } from '../../scale/categoryScale';
 import { BBox } from '../../scene/bbox';
 import { TransformableText } from '../../scene/shape/text';
 import { Transformable } from '../../scene/transformable';
@@ -96,7 +96,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
     // Label scale (labels are positioned between ticks, tick count = label count + 1).
     // We don't call is `labelScale` for consistency with other axes.
-    readonly tickScale = new BandScale<string[]>();
+    readonly tickScale = new CategoryScale<string[]>();
 
     private computedLayout?: ComputedGroupAxisLayout;
     private tickTreeLayout?: TreeLayout;
@@ -443,11 +443,14 @@ export class GroupedCategoryAxis extends CategoryAxis {
         this.tickScale.range = this.scale.range;
     }
 
-    protected override calculateDomain() {
+    override processData() {
         const { direction } = this;
         const flatDomains = this.boundSeries.filter((s) => s.visible).flatMap((series) => series.getDomain(direction));
 
-        this.setDomain(extent(flatDomains) ?? unique(flatDomains));
+        this.dataDomain = { domain: extent(flatDomains) ?? unique(flatDomains), clipped: false };
+        if (this.isReversed()) {
+            this.dataDomain.domain.reverse();
+        }
 
         const domain: string[][] = this.dataDomain.domain.map(toArray);
         this.tickTreeLayout = treeLayout(domain);
@@ -460,6 +463,8 @@ export class GroupedCategoryAxis extends CategoryAxis {
 
         this.scale.domain = sortBasedOnArray(this.dataDomain.domain, orderedDomain);
         this.tickScale.domain = domain.concat([['']]);
+
+        return { animatable: true };
     }
 
     protected override updateGridLines() {

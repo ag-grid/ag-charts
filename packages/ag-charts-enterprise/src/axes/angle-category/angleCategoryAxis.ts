@@ -5,7 +5,7 @@ import { AngleAxisInterval } from '../angle-number/angleAxisInterval';
 import type { AngleAxisLabelDatum } from '../angle/angleAxis';
 import { AngleAxis } from '../angle/angleAxis';
 
-const { RATIO, OBJECT, Validate, isNumberEqual, BandScale } = _ModuleSupport;
+const { RATIO, OBJECT, Validate, isNumberEqual, CategoryScale } = _ModuleSupport;
 
 export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScale<string>> {
     static readonly className = 'AngleCategoryAxis';
@@ -21,7 +21,7 @@ export class AngleCategoryAxis extends AngleAxis<string, _ModuleSupport.BandScal
     override interval = new AngleAxisInterval();
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super(moduleCtx, new BandScale());
+        super(moduleCtx, new CategoryScale());
     }
 
     protected generateAngleTicks() {

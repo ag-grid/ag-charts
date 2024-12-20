@@ -26,7 +26,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         return new Date(super.invert(value));
     }
 
-    niceDomain(ticks: ScaleTickParams<TimeInterval | number>, domain: Date[] = this.domain): Date[] {
+    override niceDomain(ticks: ScaleTickParams<TimeInterval | number>, domain: Date[] = this.domain): Date[] {
         if (domain.length < 2) return [];
 
         const maxAttempts = 4;
@@ -45,7 +45,7 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     /**
      * Returns uniformly-spaced dates that represent the scale's domain.
      */
-    ticks(params: ScaleTickParams<TimeInterval | number>, domain: Date[] = this.domain): Date[] {
+    override ticks(params: ScaleTickParams<TimeInterval | number>, domain: Date[] = this.domain): Date[] {
         const { nice, interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount } = params;
         if (domain.length < 2) return [];
 
@@ -77,11 +77,11 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
      * @param formatOffset Optional number for applying an offset to the format (e.g., timezone shifts).
      * @returns A function that formats a `Date` object into a string based on the provided specifier or default format.
      */
-    tickFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
+    override tickFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
         return this._tickFormatter(params);
     }
 
-    datumFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
+    override datumFormatter(params: ScaleFormatParams<Date>): (date: Date) => string {
         return this._tickFormatter(params, 1);
     }
 }

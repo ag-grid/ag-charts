@@ -66,19 +66,6 @@ describe('LinearScale', () => {
         expect(scale.invert(75)).toBe(50);
     });
 
-    test('invert linear clamp', () => {
-        const scale = new LinearScale();
-
-        scale.domain = [-100, 100];
-        scale.range = [0, 100];
-
-        expect(scale.invert(-50, true)).toBe(-100);
-        expect(scale.invert(150, true)).toBe(100);
-
-        expect(scale.invert(-50, false)).toBe(-200);
-        expect(scale.invert(150, false)).toBe(200);
-    });
-
     test('invert linear with zero length range', () => {
         const scale = new LinearScale();
 

@@ -1,31 +1,57 @@
 import { findMinMax } from '../util/number';
-import type { Scale, ScaleFormatParams, ScaleTickParams } from './scale';
+import { AbstractScale } from './abstractScale';
+import type { NormalizedDomain } from './scale';
 
-export abstract class ContinuousScale<D extends number | Date, I = number> implements Scale<D, number, I> {
+export abstract class ContinuousScale<D extends number | Date, I = number> extends AbstractScale<D, number, I> {
     static is(value: unknown): value is ContinuousScale<any, any> {
         return value instanceof ContinuousScale;
     }
 
     static readonly defaultTickCount = 5;
-    static readonly defaultMaxTickCount = 6;
-
-    abstract type: Scale<D, number, I>['type'];
-
-    protected invalid = true;
-
-    domain: D[];
-    range: number[];
 
     protected defaultClamp = false;
 
-    protected constructor(domain: D[], range: number[]) {
-        this.domain = domain;
-        this.range = range;
+    protected constructor(
+        public domain: D[] = [],
+        public range: number[] = []
+    ) {
+        super();
+    }
+
+    abstract override toDomain(value: number): D;
+
+    normalizeDomains(...domains: D[][]): NormalizedDomain<D> {
+        let min: D | undefined;
+        let minValue = Infinity;
+        let max: D | undefined;
+        let maxValue = -Infinity;
+
+        for (const domain of domains) {
+            for (const d of domain) {
+                const value = d.valueOf();
+                if (value < minValue) {
+                    minValue = value;
+                    min = d;
+                }
+                if (value > maxValue) {
+                    maxValue = value;
+                    max = d;
+                }
+            }
+        }
+
+        if (min != null && max != null) {
+            const domain = [min, max];
+            return { domain, animatable: true };
+        } else {
+            return { domain: [], animatable: false };
+        }
     }
 
     protected transform(x: D) {
         return x;
     }
+
     protected transformInvert(x: D) {
         return x;
     }
@@ -47,11 +73,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         return rangeDistance / Math.max(1, bands);
     }
 
-    abstract toDomain(d: number): D;
-
-    abstract niceDomain(ticks: ScaleTickParams<I>, domain?: D[]): D[];
-
-    convert(x: D, clamp?: boolean) {
+    convert(x: D, clamp = this.defaultClamp) {
         if (!this.domain || this.domain.length < 2) {
             return NaN;
         }
@@ -64,7 +86,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
 
         x = this.transform(x);
 
-        if (clamp ?? this.defaultClamp) {
+        if (clamp) {
             const [start, stop] = findMinMax(domain.map(Number));
             if (Number(x) < start) {
                 return r0;
@@ -84,25 +106,12 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         return r0 + ((Number(x) - Number(d0)) / (Number(d1) - Number(d0))) * (r1 - r0);
     }
 
-    invert(x: number, clamp?: boolean) {
+    invert(x: number, _nearest?: boolean) {
         const domain = this.domain.map((d) => this.transform(d));
         const [d0, d1] = domain;
 
         const { range } = this;
         const [r0, r1] = range;
-
-        const isReversed = r0 > r1;
-
-        const rMin = isReversed ? r1 : r0;
-        const rMax = isReversed ? r0 : r1;
-
-        if (clamp ?? this.defaultClamp) {
-            if (x < rMin) {
-                return isReversed ? d1 : d0;
-            } else if (x > rMax) {
-                return isReversed ? d0 : d1;
-            }
-        }
 
         let d: any;
         if (r0 === r1) {
@@ -118,7 +127,4 @@ export abstract class ContinuousScale<D extends number | Date, I = number> imple
         const [a, b] = this.range;
         return Math.abs(b - a);
     }
-
-    abstract tickFormatter(params: ScaleFormatParams<D>): ((x: any) => string) | undefined;
-    abstract datumFormatter(params: ScaleFormatParams<D>): ((x: any) => string) | undefined;
 }

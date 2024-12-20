@@ -1,18 +1,18 @@
 import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
-import { dateToNumber } from '../util/timeFormatDefaults';
+import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';
-import type { Scale, ScaleFormatParams, ScaleTickParams } from './scale';
+import type { ScaleTickParams } from './scale';
 
 /**
  * Maps a discrete domain to a continuous numeric range.
  */
-export class BandScale<D, I = number> implements Scale<D, number, I> {
+export abstract class BandScale<D, I = number> extends AbstractScale<D, number, I> {
     static is(value: unknown): value is BandScale<any, any> {
         return value instanceof BandScale;
     }
 
-    readonly type: 'band' | 'ordinal-time' = 'band';
+    abstract override readonly type: 'band' | 'ordinal-time';
 
     protected invalid = true;
 
@@ -25,127 +25,20 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
     @Invalidating
     interval?: I = undefined;
 
-    protected refresh() {
-        if (!this.invalid) return;
-
-        this.invalid = false;
-        this.update();
-
-        if (this.invalid) {
-            Logger.warnOnce('Expected update to not invalidate scale');
-        }
-    }
-
-    /**
-     * Maps datum to its index in the {@link domain} array.
-     * Used to check for duplicate data (not allowed).
-     */
-    protected index = new Map<D, number>();
-
-    /**
-     * Contains unique data only.
-     */
-    protected _domain: D[] = [];
-    set domain(values: D[]) {
-        this.index = new Map<D, number>();
-        this.invalid = true;
-        this._domain = [];
-
-        // In case one wants to have duplicate domain values, for example, two 'Italy' categories,
-        // one should use objects rather than strings for domain values like so:
-        // { toString: () => 'Italy' }
-        // { toString: () => 'Italy' }
-        for (const value of values) {
-            const key = dateToNumber(value) as D;
-            if (this.getIndex(key) === undefined) {
-                this.index.set(key, this._domain.push(value) - 1);
-            }
-        }
-    }
-    get domain(): D[] {
-        return this._domain;
-    }
-
-    getDomain() {
-        return this._domain;
-    }
-
-    ticks(_params: ScaleTickParams<I>, domain: D[] = this.domain, _visibleRange?: [number, number]): D[] {
-        return domain;
-    }
-
-    convert(d: D): number {
-        this.refresh();
-        const i = this.getIndex(d);
-        if (i == null || i < 0 || i >= this.domain.length) {
-            return NaN;
-        }
-        return this.ordinalRange(i);
-    }
-
-    protected invertNearestIndex(position: number) {
-        this.refresh();
-
-        const { domain } = this;
-
-        if (domain.length === 0) return -1;
-
-        let low = 0;
-        let high = domain.length - 1;
-        let closestDistance = Infinity;
-        let closestIndex = 0;
-
-        while (low <= high) {
-            const mid = ((high + low) / 2) | 0;
-            const p = this.ordinalRange(mid);
-            const distance = Math.abs(p - position);
-
-            if (distance === 0) return mid;
-
-            if (distance < closestDistance) {
-                closestDistance = distance;
-                closestIndex = mid;
-            }
-
-            if (p < position) {
-                low = mid + 1;
-            } else {
-                high = mid - 1;
-            }
-        }
-
-        return closestIndex;
-    }
-
-    invert(position: number) {
-        this.refresh();
-
-        const index = this.invertNearestIndex(position);
-        const p = this.ordinalRange(index);
-
-        return position === p ? this.domain[index] : undefined!;
-    }
-
-    invertNearest(position: number) {
-        const index = this.invertNearestIndex(position);
-
-        return this.domain[index];
-    }
-
     private _bandwidth: number = 1;
-    get bandwidth(): number {
+    override get bandwidth(): number {
         this.refresh();
         return this._bandwidth;
     }
 
     private _step: number = 1;
-    get step(): number {
+    override get step(): number {
         this.refresh();
         return this._step;
     }
 
     private _inset: number = 1;
-    get inset(): number {
+    override get inset(): number {
         this.refresh();
         return this._inset;
     }
@@ -190,8 +83,68 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         return this._paddingOuter;
     }
 
+    abstract override domain: D[];
+
+    protected refresh() {
+        if (!this.invalid) return;
+
+        this.invalid = false;
+        this.update();
+
+        if (this.invalid) {
+            Logger.warnOnce('Expected update to not invalidate scale');
+        }
+    }
+
+    override ticks(_params: ScaleTickParams<I>, domain: D[] = this.domain, _visibleRange?: [number, number]): D[] {
+        return domain;
+    }
+
+    convert(d: D, _clamp?: boolean): number {
+        this.refresh();
+        const i = this.getIndex(d);
+        if (i == null || i < 0 || i >= this.domain.length) {
+            return NaN;
+        }
+        return this.ordinalRange(i);
+    }
+
+    protected invertNearestIndex(position: number) {
+        this.refresh();
+
+        const { domain } = this;
+
+        if (domain.length === 0) return -1;
+
+        let low = 0;
+        let high = domain.length - 1;
+        let closestDistance = Infinity;
+        let closestIndex = 0;
+
+        while (low <= high) {
+            const mid = ((high + low) / 2) | 0;
+            const p = this.ordinalRange(mid);
+            const distance = Math.abs(p - position);
+
+            if (distance === 0) return mid;
+
+            if (distance < closestDistance) {
+                closestDistance = distance;
+                closestIndex = mid;
+            }
+
+            if (p < position) {
+                low = mid + 1;
+            } else {
+                high = mid - 1;
+            }
+        }
+
+        return closestIndex;
+    }
+
     update() {
-        const count = this._domain.length;
+        const count = this.domain.length;
 
         if (count === 0) return;
 
@@ -232,15 +185,5 @@ export class BandScale<D, I = number> implements Scale<D, number, I> {
         return clamp(min, inset + step * i, max);
     }
 
-    private getIndex(value: D) {
-        return this.index.get(value instanceof Date ? (value.getTime() as D) : value);
-    }
-
-    tickFormatter(_params: ScaleFormatParams<D>): ((x: any) => string) | undefined {
-        return;
-    }
-
-    datumFormatter(_params: ScaleFormatParams<D>): ((x: any) => string) | undefined {
-        return undefined;
-    }
+    protected abstract getIndex(value: D): number | undefined;
 }

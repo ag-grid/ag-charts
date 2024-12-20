@@ -15,7 +15,7 @@ function deduplicateSortedArray(values: Date[]) {
 
 export function sortAndUniqueDates(values: Date[]) {
     const sortedValues = values.slice().sort(compareDates);
-    return datesSortOrder(values) == null ? deduplicateSortedArray(sortedValues) : sortedValues;
+    return datesSortOrder(sortedValues) == null ? deduplicateSortedArray(sortedValues) : sortedValues;
 }
 
 export function datesSortOrder(d: Date[]): 1 | -1 | undefined {

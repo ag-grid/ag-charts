@@ -1,4 +1,5 @@
-import type { Scale, ScaleFormatParams } from '../../../scale/scale';
+import { AbstractScale } from '../../../scale/abstractScale';
+import type { NormalizedDomain } from '../../../scale/scale';
 import { BBox } from '../../../scene/bbox';
 import type { Position } from './geojson';
 
@@ -11,7 +12,7 @@ const latY = (lat: number) => -Math.log(Math.tan(Math.PI * 0.25 + lat * radsInDe
 const xLon = (x: number) => x / radsInDeg;
 const yLat = (y: number) => (Math.atan(Math.exp(-y)) - Math.PI * 0.25) / (radsInDeg * 0.5);
 
-export class MercatorScale implements Scale<Position, XY> {
+export class MercatorScale extends AbstractScale<Position, XY> {
     readonly type = 'mercator';
     readonly bounds: BBox;
 
@@ -43,7 +44,36 @@ export class MercatorScale implements Scale<Position, XY> {
         public readonly domain: Position[],
         public readonly range: XY[]
     ) {
+        super();
         this.bounds = MercatorScale.bounds(domain);
+    }
+
+    override toDomain(): Position | undefined {
+        return;
+    }
+
+    override normalizeDomains(...domains: Position[][]): NormalizedDomain<Position> {
+        let x0 = -Infinity;
+        let x1 = Infinity;
+        let y0 = -Infinity;
+        let y1 = Infinity;
+
+        for (const domain of domains) {
+            for (const [x, y] of domain) {
+                x0 = Math.min(x, x0);
+                x1 = Math.max(x, x1);
+                y0 = Math.min(y, y0);
+                y1 = Math.max(y, y1);
+            }
+        }
+
+        return {
+            domain: [
+                [x0, y0],
+                [x1, y1],
+            ],
+            animatable: true,
+        };
     }
 
     convert([lon, lat]: Position): XY {
@@ -59,13 +89,5 @@ export class MercatorScale implements Scale<Position, XY> {
         const yScale = (y1 - y0) / this.bounds.height;
 
         return [xLon((x - x0) / xScale + this.bounds.x), yLat((y - y0) / yScale + this.bounds.y)];
-    }
-
-    tickFormatter(_params: ScaleFormatParams<Position>): ((x: any) => string) | undefined {
-        return;
-    }
-
-    datumFormatter(_params: ScaleFormatParams<Position>): ((x: any) => string) | undefined {
-        return;
     }
 }

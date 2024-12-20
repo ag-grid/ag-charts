@@ -142,6 +142,7 @@ export { Padding } from './util/padding';
 export { lineDistanceSquared } from './util/distance';
 export * from './scale/timeScale';
 export * from './scale/bandScale';
+export * from './scale/categoryScale';
 export * from './scale/continuousScale';
 export * from './scale/ordinalTimeScale';
 export * from './scale/colorScale';

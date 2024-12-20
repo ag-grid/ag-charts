@@ -1,12 +1,12 @@
 import type { ModuleContext } from '../../module/moduleContext';
-import { BandScale } from '../../scale/bandScale';
+import { CategoryScale } from '../../scale/categoryScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import { isFiniteNumber } from '../../util/type-guards';
 import { RATIO, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
 export class CategoryAxis<
-    S extends BandScale<string | object, number> | OrdinalTimeScale = BandScale<string | object, number>,
+    S extends CategoryScale<string | object, number> | OrdinalTimeScale = CategoryScale<string | object, number>,
 > extends CartesianAxis<S> {
     static override is(this: void, value: unknown): value is CategoryAxis<any> {
         return value instanceof CategoryAxis;
@@ -15,7 +15,7 @@ export class CategoryAxis<
     static readonly className: string = 'CategoryAxis';
     static readonly type: 'category' | 'grouped-category' | 'ordinal-time' = 'category';
 
-    constructor(moduleCtx: ModuleContext, scale = new BandScale<string | object>() as S) {
+    constructor(moduleCtx: ModuleContext, scale = new CategoryScale<string | object>() as S) {
         super(moduleCtx, scale);
 
         this.includeInvisibleDomains = true;
@@ -30,50 +30,12 @@ export class CategoryAxis<
     @Validate(RATIO, { optional: true })
     paddingOuter?: number;
 
-    private domainOrderedToNormalizedDomain(seriesDomain: any[], normalizedDomain: any[]) {
-        let normalizedIndex = -1;
-        for (const value of seriesDomain) {
-            const normalizedNextIndex = normalizedDomain.indexOf(value);
-
-            if (normalizedNextIndex === -1) {
-                // All subsequent values must be extending (i.e. appending to) the normalized domain
-                normalizedIndex = Infinity;
-            } else if (normalizedNextIndex <= normalizedIndex) {
-                return false;
-            } else {
-                normalizedIndex = normalizedNextIndex;
-            }
-        }
-
-        return true;
-    }
-
     private categoryAnimatable = true;
-    protected override calculateDomain() {
-        let normalizedDomain: any[] | undefined = undefined;
-        const seenDomains = new Set<any[]>();
 
-        let categoryAnimatable = true;
-        for (const series of this.boundSeries) {
-            if (!this.includeInvisibleDomains && !series.isEnabled()) continue;
-
-            const seriesDomain = series.getDomain(this.direction);
-
-            if (seenDomains.has(seriesDomain)) continue;
-            seenDomains.add(seriesDomain);
-
-            if (normalizedDomain == null) {
-                normalizedDomain = this.normaliseDataDomain(seriesDomain).domain;
-            } else {
-                categoryAnimatable &&= this.domainOrderedToNormalizedDomain(seriesDomain, normalizedDomain);
-                normalizedDomain = this.normaliseDataDomain([...normalizedDomain, ...seriesDomain]).domain;
-            }
-        }
-
-        normalizedDomain ??= [];
-
-        this.setDomain(normalizedDomain);
-        this.categoryAnimatable = categoryAnimatable;
+    override processData(): { animatable: boolean } {
+        const out = super.processData();
+        this.categoryAnimatable = out.animatable;
+        return out;
     }
 
     override update() {
@@ -84,17 +46,7 @@ export class CategoryAxis<
         }
     }
 
-    override normaliseDataDomain(d: Array<string | object>) {
-        const domain = [];
-        const uniqueValues = new Set();
-        for (const v of d) {
-            const key = v instanceof Date ? v.getTime() : v;
-            if (!uniqueValues.has(key)) {
-                uniqueValues.add(key);
-                // Only add unique values
-                domain.push(v);
-            }
-        }
+    override normaliseDataDomain(domain: Array<string | object>) {
         return { domain, clipped: false };
     }
 

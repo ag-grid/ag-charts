@@ -15,22 +15,24 @@ export interface ScaleFormatParams<D> {
     specifier: string | undefined;
 }
 
+export interface NormalizedDomain<D> {
+    domain: D[];
+    animatable: boolean;
+}
+
 export interface Scale<D, R, I = number> {
     type: ScaleType;
     domain: D[];
     range: R[];
-    nice?: boolean;
-    tickCount?: number;
-    interval?: I;
-    toDomain?(value: number): D;
+    normalizeDomains(...domains: D[][]): NormalizedDomain<D>;
+    toDomain(value: number): D | undefined;
     convert(value: D, clamp?: boolean): R;
-    invert?(value: R, clamp?: boolean): D;
-    invertNearest?(value: R): D;
-    ticks?(ticks: ScaleTickParams<I>, domain?: D[], visibleRange?: [number, number]): D[];
-    niceDomain?(ticks: ScaleTickParams<I>, domain?: D[]): D[];
+    invert(value: R, exact?: boolean): D | undefined;
+    ticks(ticks: ScaleTickParams<I>, domain?: D[], visibleRange?: [number, number]): D[] | undefined;
+    niceDomain(ticks: ScaleTickParams<I>, domain?: D[]): D[];
     tickFormatter(params: ScaleFormatParams<D>): ((x: any) => string) | undefined;
     datumFormatter(params: ScaleFormatParams<D>): ((x: any) => string) | undefined;
-    readonly bandwidth?: number;
-    readonly step?: number;
-    readonly inset?: number;
+    readonly bandwidth: number | undefined;
+    readonly step: number | undefined;
+    readonly inset: number | undefined;
 }
