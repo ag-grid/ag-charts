@@ -1,6 +1,6 @@
 {
   "name": "ag-charts-angular",
-  "version": "11.0.3-beta.20241219",
+  "version": "11.0.3-beta.20241222",
   "scripts": {
     "ng": "ng",
     "build": "ng build",
@@ -61,7 +61,7 @@
     "zone.js": "~0.14.10"
   },
   "peerDependencies": {
-    "ag-charts-community": "11.0.3-beta.20241219",
+    "ag-charts-community": "11.0.3-beta.20241222",
     "@angular/common": "^17.0.0 || ^18.0.0 || ^19.0.0",
     "@angular/core": "^17.0.0 || ^18.0.0 || ^19.0.0"
   }
