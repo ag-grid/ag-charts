@@ -3,8 +3,18 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
 
-const { Series, DataController, Validate, ARRAY, keyProperty, valueProperty, Selection, Group, TransformableText } =
-    _ModuleSupport;
+const {
+    Series,
+    DataController,
+    Validate,
+    ARRAY,
+    keyProperty,
+    valueProperty,
+    Selection,
+    Group,
+    TransformableText,
+    clamp,
+} = _ModuleSupport;
 
 export enum FlowProportionDatumType {
     Link,
@@ -16,8 +26,10 @@ export type FlowProportionNodeDatumIndex = {
     index: number;
 };
 
-export interface FlowProportionLinkDatum<TNodeDatum extends FlowProportionNodeDatum>
-    extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
+export interface FlowProportionLinkDatum<
+    TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
+    TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
+> extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Link;
     index: number;
     fromNode: TNodeDatum;
@@ -25,27 +37,33 @@ export interface FlowProportionLinkDatum<TNodeDatum extends FlowProportionNodeDa
     size: number;
 }
 
-export interface FlowProportionNodeDatum extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
+export interface FlowProportionNodeDatum<
+    TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
+    TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
+> extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Node;
     index: number;
+    linksBefore: TLinkDatum[];
+    linksAfter: TLinkDatum[];
     id: string;
     size: number;
     label: string | undefined;
 }
 
 export interface FlowProportionSeriesContext<
-    TNodeDatum extends FlowProportionNodeDatum,
-    TLinkDatum extends FlowProportionLinkDatum<TNodeDatum>,
+    TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
+    TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
     TLabel,
 > extends _ModuleSupport.SeriesNodeDataContext<FlowProportionNodeDatumIndex, TDatum<TNodeDatum, TLinkDatum>, TLabel> {}
 
-type TDatum<TNodeDatum extends FlowProportionNodeDatum, TLinkDatum extends FlowProportionLinkDatum<TNodeDatum>> =
-    | TLinkDatum
-    | TNodeDatum;
+type TDatum<
+    TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
+    TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
+> = TLinkDatum | TNodeDatum;
 
 export abstract class FlowProportionSeries<
-        TNodeDatum extends FlowProportionNodeDatum,
-        TLinkDatum extends FlowProportionLinkDatum<TNodeDatum>,
+        TNodeDatum extends FlowProportionNodeDatum<TNodeDatum, TLinkDatum>,
+        TLinkDatum extends FlowProportionLinkDatum<TNodeDatum, TLinkDatum>,
         TLabel,
         TProps extends FlowProportionSeriesProperties<any>,
         TNode extends _ModuleSupport.Node & _ModuleSupport.DistantObject,
@@ -84,7 +102,7 @@ export abstract class FlowProportionSeries<
         TLabel
     >;
 
-    private processedNodes = new Map<string, FlowProportionNodeDatum>();
+    private processedNodes = new Map<string, FlowProportionNodeDatum<TNodeDatum, TLinkDatum>>();
 
     private readonly linkGroup = this.contentGroup.appendChild(new Group({ name: 'linkGroup' }));
     private readonly nodeGroup = this.contentGroup.appendChild(new Group({ name: 'nodeGroup' }));
@@ -175,7 +193,7 @@ export abstract class FlowProportionSeries<
         this.linksDataModel = linksDataModel?.dataModel;
         this.linksProcessedData = linksDataModel?.processedData;
 
-        const processedNodes = new Map<string, FlowProportionNodeDatum>();
+        const processedNodes = new Map<string, FlowProportionNodeDatum<TNodeDatum, TLinkDatum>>();
         if (nodesDataModel == null) {
             const fromIdValues = linksDataModel.dataModel.resolveColumnById<string | undefined>(
                 this,
@@ -188,7 +206,7 @@ export abstract class FlowProportionSeries<
                 linksDataModel.processedData
             );
 
-            const createImplicitNode = (id: string): FlowProportionNodeDatum => {
+            const createImplicitNode = (id: string): FlowProportionNodeDatum<TNodeDatum, TLinkDatum> => {
                 const datumIndex = processedNodes.size;
                 const label = id;
 
@@ -199,6 +217,8 @@ export abstract class FlowProportionSeries<
                     datumIndex: { type: FlowProportionDatumType.Node, index: datumIndex },
                     type: FlowProportionDatumType.Node,
                     index: datumIndex,
+                    linksBefore: [],
+                    linksAfter: [],
                     id,
                     size: 0,
                     label,
@@ -244,6 +264,8 @@ export abstract class FlowProportionSeries<
                     datumIndex: { type: FlowProportionDatumType.Node, index: datumIndex },
                     type: FlowProportionDatumType.Node,
                     index: datumIndex,
+                    linksBefore: [],
+                    linksAfter: [],
                     id,
                     size: 0,
                     label,
@@ -255,8 +277,8 @@ export abstract class FlowProportionSeries<
     }
 
     protected getNodeGraph(
-        createNode: (node: FlowProportionNodeDatum) => TNodeDatum,
-        createLink: (link: FlowProportionLinkDatum<TNodeDatum>) => TLinkDatum,
+        createNode: (node: FlowProportionNodeDatum<TNodeDatum, TLinkDatum>) => TNodeDatum,
+        createLink: (link: FlowProportionLinkDatum<TNodeDatum, TLinkDatum>) => TLinkDatum,
         { includeCircularReferences }: { includeCircularReferences: boolean }
     ) {
         const { linksDataModel, linksProcessedData } = this;
@@ -316,6 +338,11 @@ export abstract class FlowProportionSeries<
             baseLinks,
             includeCircularReferences
         );
+
+        nodeGraph.forEach((node) => {
+            node.datum.linksBefore = node.linksBefore.map((linkedNode) => linkedNode.link);
+            node.datum.linksAfter = node.linksAfter.map((linkedNode) => linkedNode.link);
+        });
 
         this.nodeCount = nodeGraph.size;
         this.linkCount = links.length;
@@ -578,5 +605,61 @@ export abstract class FlowProportionSeries<
                 description,
             });
         }
+    }
+
+    protected abstract computeFocusBounds(node: TNode | TLink): _ModuleSupport.BBox | _ModuleSupport.Path | undefined;
+
+    public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
+        const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
+
+        const currentNodeDatum = this.contextNodeData?.nodeData[opts.datumIndex - opts.datumIndexDelta] as
+            | TNodeDatum
+            | TLinkDatum
+            | undefined;
+        let nextNodeDatum = currentNodeDatum;
+
+        if (currentNodeDatum?.type === FlowProportionDatumType.Link) {
+            if (depthDelta > 0) {
+                nextNodeDatum = currentNodeDatum.toNode;
+            } else if (depthDelta < 0) {
+                nextNodeDatum = currentNodeDatum.fromNode;
+            } else if (depthDelta === 0 && childDelta !== 0) {
+                const allLinks = Array.from(this.linkSelection, (link) => link.datum);
+                const selfIndex = allLinks.indexOf(currentNodeDatum);
+                const nextIndex = clamp(0, selfIndex + childDelta, allLinks.length - 1);
+                nextNodeDatum = allLinks[nextIndex];
+            }
+        } else if (currentNodeDatum?.type === FlowProportionDatumType.Node) {
+            if (depthDelta > 0) {
+                nextNodeDatum = currentNodeDatum.linksAfter[0];
+            } else if (depthDelta < 0) {
+                nextNodeDatum = currentNodeDatum.linksBefore[0];
+            } else if (depthDelta === 0 && childDelta !== 0) {
+                const allNodes = Array.from(this.nodeSelection, (node) => node.datum);
+                const selfIndex = allNodes.indexOf(currentNodeDatum);
+                const nextIndex = clamp(0, selfIndex + childDelta, allNodes.length - 1);
+                nextNodeDatum = allNodes[nextIndex];
+            }
+        }
+
+        if (nextNodeDatum == null) return;
+
+        const nodeDatum =
+            nextNodeDatum.type === FlowProportionDatumType.Node
+                ? Array.from(this.nodeSelection).find((n) => n.datum === nextNodeDatum)
+                : Array.from(this.linkSelection).find((n) => n.datum === nextNodeDatum);
+        if (nodeDatum == null) return;
+
+        const bounds = this.computeFocusBounds(nodeDatum.node);
+        if (bounds == null) return;
+
+        return {
+            datum: nodeDatum.datum,
+            datumIndex: this.contextNodeData?.nodeData.indexOf(nodeDatum.datum) ?? 0,
+            otherIndex: 0,
+            bounds,
+            showFocusBox: true,
+            clipFocusBox: true,
+        };
     }
 }

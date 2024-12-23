@@ -25,7 +25,7 @@ const {
     applyShapeStyle,
 } = _ModuleSupport;
 
-interface ChordNodeDatum extends FlowProportionNodeDatum {
+interface ChordNodeDatum extends FlowProportionNodeDatum<ChordNodeDatum, ChordLinkDatum> {
     centerX: number;
     centerY: number;
     innerRadius: number;
@@ -33,7 +33,7 @@ interface ChordNodeDatum extends FlowProportionNodeDatum {
     startAngle: number;
     endAngle: number;
 }
-interface ChordLinkDatum extends FlowProportionLinkDatum<ChordNodeDatum> {
+interface ChordLinkDatum extends FlowProportionLinkDatum<ChordNodeDatum, ChordLinkDatum> {
     centerX: number;
     centerY: number;
     radius: number;
@@ -647,25 +647,9 @@ export class ChordSeries extends FlowProportionSeries<
         );
     }
 
-    protected computeFocusBounds({
-        datumIndex,
-    }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {
-        const datum = this.contextNodeData?.nodeData[datumIndex];
-
-        if (datum?.type === FlowProportionDatumType.Node) {
-            for (const node of this.nodeSelection) {
-                if (node.datum === datum) {
-                    return node.node;
-                }
-            }
-            return undefined;
-        } else if (datum?.type === FlowProportionDatumType.Link) {
-            for (const link of this.linkSelection) {
-                if (link.datum === datum) {
-                    return link.node;
-                }
-            }
-            return undefined;
-        }
+    protected computeFocusBounds(
+        node: _ModuleSupport.Sector | ChordLink
+    ): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {
+        return node;
     }
 }

@@ -640,22 +640,14 @@ export class SankeySeries extends FlowProportionSeries<
         );
     }
 
-    protected computeFocusBounds({
-        datumIndex,
-    }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {
-        const datum = this.contextNodeData?.nodeData[datumIndex];
-
-        if (datum?.type === FlowProportionDatumType.Node) {
-            const { x, y, width, height } = datum;
+    protected computeFocusBounds(
+        node: _ModuleSupport.Rect | SankeyLink
+    ): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {
+        if (node instanceof Rect) {
+            const { x, y, width, height } = node;
             const bbox = new BBox(x, y, width, height);
             return Transformable.toCanvas(this.contentGroup, bbox);
-        } else if (datum?.type === FlowProportionDatumType.Link) {
-            for (const link of this.linkSelection) {
-                if (link.datum === datum) {
-                    return link.node;
-                }
-            }
-            return undefined;
         }
+        return node;
     }
 }

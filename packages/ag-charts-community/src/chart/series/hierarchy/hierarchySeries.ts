@@ -329,8 +329,6 @@ export abstract class HierarchySeries<
         return this.getDatumIdFromData(node);
     }
 
-    protected abstract computeFocusBounds(node: TNode): BBox | Path | undefined;
-
     private removeMeIndexPathForIndex(index: number): number[] {
         return this.datumSelection.at(index + 1)?.datum.datumIndex ?? [];
     }
@@ -345,6 +343,8 @@ export abstract class HierarchySeries<
     }
 
     protected abstract datumSelection: Selection<any, TNodeClass>;
+
+    protected abstract computeFocusBounds(node: TNode): BBox | Path | undefined;
 
     public override pickFocus(opts: PickFocusInputs): PickFocusOutputs | undefined {
         if (!this.rootNode?.children.length) return undefined;
