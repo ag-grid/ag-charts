@@ -71,9 +71,6 @@ const options: AgCartesianChartOptions = {
         seriesNodeClick: (e) => {
             console.log(e.type, e.seriesId, e.datum[e.xKey!], e.datum[e.yKey!]);
         },
-        seriesNodeDoubleClick: (e) => {
-            console.log(e.type, e.seriesId, e.datum[e.xKey!], e.datum[e.yKey!]);
-        },
     },
 };
 
