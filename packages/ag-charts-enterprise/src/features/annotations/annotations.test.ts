@@ -224,7 +224,6 @@ describe('Annotations', () => {
                         type: 'fibonacci-retracement',
                         start: { x: { __type: 'date', value: '2024-03-01' }, y: 45 },
                         end: { x: { __type: 'date', value: '2024-09-01' }, y: 65 },
-                        reverse: false,
                     },
                 ],
             });
@@ -265,6 +264,65 @@ describe('Annotations', () => {
                         type: 'fibonacci-retracement',
                         start: { x: { __type: 'date', value: '2024-03-01' }, y: 65 },
                         end: { x: { __type: 'date', value: '2024-09-01' }, y: 45 },
+                        reverse: true,
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        // Trend based
+        it('should render a fibonacci retracement annotation with positive gradient', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'fibonacci-retracement-trend-based',
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 45 },
+                        end: { x: { __type: 'date', value: '2024-07-01' }, y: 65 },
+                        endRetracement: { x: { __type: 'date', value: '2024-10-01' }, y: 65 },
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('should render a reversed fibonacci retracement annotation with positive gradient', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'fibonacci-retracement-trend-based',
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 45 },
+                        end: { x: { __type: 'date', value: '2024-07-01' }, y: 65 },
+                        endRetracement: { x: { __type: 'date', value: '2024-10-01' }, y: 65 },
+                        reverse: true,
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('should render a fibonacci retracement annotation with negative gradient', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'fibonacci-retracement-trend-based',
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 65 },
+                        end: { x: { __type: 'date', value: '2024-07-01' }, y: 45 },
+                        endRetracement: { x: { __type: 'date', value: '2024-10-01' }, y: 65 },
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('should render a revered fibonacci retracement annotation with negative gradient', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'fibonacci-retracement-trend-based',
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 65 },
+                        end: { x: { __type: 'date', value: '2024-07-01' }, y: 45 },
+                        endRetracement: { x: { __type: 'date', value: '2024-10-01' }, y: 65 },
                         reverse: true,
                     },
                 ],
