@@ -146,6 +146,7 @@ export type AgAnnotation =
     | AgParallelChannelAnnotation
     // Fibonaccis
     | AgFibonacciRetracementAnnotation
+    | AgFibonacciRetracementTrendBasedAnnotation
     // Texts
     | AgCalloutAnnotation
     | AgCommentAnnotation
@@ -206,7 +207,7 @@ export interface AgCrossLineAnnotation extends Lockable, Visible, StrokeOptions,
 // * Fibonacci Annotations *
 // ***********************/
 
-export interface AgFibonacciRetracementAnnotation
+export interface AgFibonacciAnnotation
     extends AnnotationLinePoints,
         Extendable,
         Lockable,
@@ -214,12 +215,22 @@ export interface AgFibonacciRetracementAnnotation
         StrokeOptions,
         LineOptions,
         AgFibonacciAnnotationStyles {
-    /** Configuration for the fibonacci retracement annotation.*/
-    type: 'fibonacci-retracement';
     /** Configuration for the drag handles. */
     handle?: AgAnnotationHandle;
     /** Configuration for the one line text. */
     text?: AgLineAnnotationText;
+    /** Reverse the lines if `true`. */
+    reverse?: boolean;
+}
+
+export interface AgFibonacciRetracementAnnotation extends AgFibonacciAnnotation {
+    type: 'fibonacci-retracement';
+}
+
+export interface AgFibonacciRetracementTrendBasedAnnotation extends AgFibonacciAnnotation {
+    type: 'fibonacci-retracement-trend-based';
+    /** The retracmeent end point of the fibonacci annotation. */
+    endRetracement: AgAnnotationPoint;
 }
 
 // ***********************
