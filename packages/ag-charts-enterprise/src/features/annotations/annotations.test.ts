@@ -216,6 +216,61 @@ describe('Annotations', () => {
             });
             await compare();
         });
+
+        it('should render a fibonacci retracement annotation with positive gradient', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'fibonacci-retracement',
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 45 },
+                        end: { x: { __type: 'date', value: '2024-09-01' }, y: 65 },
+                        reverse: false,
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('should render a reversed fibonacci retracement annotation with positive gradient', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'fibonacci-retracement',
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 45 },
+                        end: { x: { __type: 'date', value: '2024-09-01' }, y: 65 },
+                        reverse: true,
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('should render a fibonacci retracement annotation with negative gradient', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'fibonacci-retracement',
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 65 },
+                        end: { x: { __type: 'date', value: '2024-09-01' }, y: 45 },
+                    },
+                ],
+            });
+            await compare();
+        });
+
+        it('should render a revered fibonacci retracement annotation with negative gradient', async () => {
+            await prepareChart({
+                annotations: [
+                    {
+                        type: 'fibonacci-retracement',
+                        start: { x: { __type: 'date', value: '2024-03-01' }, y: 65 },
+                        end: { x: { __type: 'date', value: '2024-09-01' }, y: 45 },
+                        reverse: true,
+                    },
+                ],
+            });
+            await compare();
+        });
     });
 
     describe('lines with text', () => {
