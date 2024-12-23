@@ -169,8 +169,15 @@ export class GaugeChart extends Chart {
         const seriesWidth = seriesRect.width - Math.abs(horizontalInset);
         const seriesHeight = seriesRect.height - Math.abs(verticalInset);
 
-        const width = Math.max(horizontal ? seriesWidth : thickness, 0);
-        const height = Math.max(horizontal ? thickness : seriesHeight, 0);
+        const { width, height } = horizontal
+            ? {
+                  width: Math.max(seriesWidth, 0),
+                  height: Math.max(Math.min(seriesHeight, thickness), 0),
+              }
+            : {
+                  width: Math.max(Math.min(seriesWidth, thickness), 0),
+                  height: Math.max(seriesHeight, 0),
+              };
 
         const x0 = seriesRect.x + (seriesWidth - width) / 2 + Math.max(horizontalInset, 0);
         const y0 = seriesRect.y + (seriesHeight - height) / 2 - Math.min(verticalInset, 0);
