@@ -1,20 +1,17 @@
 import { Group } from '../../../scene/group';
 import { Selection } from '../../../scene/selection';
 import type { SeriesTooltip } from '../seriesTooltip';
-import type { SeriesNodeDatum } from '../seriesTypes';
-import { HierarchySeries } from './hierarchySeries';
+import { HierarchyNode, HierarchySeries } from './hierarchySeries';
 import { HierarchySeriesProperties } from './hierarchySeriesProperties';
 
 class ExampleHierarchySeriesProperties extends HierarchySeriesProperties<never> {
     readonly tooltip: SeriesTooltip<never> = null!;
 }
 
-class ExampleHierarchySeries extends HierarchySeries<
-    Group,
-    ExampleHierarchySeriesProperties,
-    { order: number } & SeriesNodeDatum<number[]>
-> {
+class ExampleHierarchySeries extends HierarchySeries<Group, ExampleHierarchySeriesProperties> {
     override properties = new ExampleHierarchySeriesProperties();
+
+    NodeClass = HierarchyNode;
 
     groupSelection = Selection.select(this.contentGroup, Group);
 
@@ -72,14 +69,14 @@ describe('HierarchySeries', () => {
         ]);
         series.processData();
 
-        series.rootNode.walk((node: any) => {
+        series.rootNode!.walk((node: any) => {
             delete node.series;
             delete node.datum;
             delete node.parent;
         });
 
         expect(series.rootNode).toMatchSnapshot();
-        expect(series.rootNode.sumSize).toBe(5 + 1 + 2 + 3 + 5 + 1 + 2 + 4 + 5 + 6 + 3 + 7);
+        expect(series.rootNode!.sumSize).toBe(5 + 1 + 2 + 3 + 5 + 1 + 2 + 4 + 5 + 6 + 3 + 7);
     });
 
     it('handles an empty dataset', () => {
@@ -123,7 +120,7 @@ describe('HierarchySeries', () => {
         series.processData();
 
         let index = 0;
-        series.rootNode.walk((node) => {
+        series.rootNode!.walk((node) => {
             if (node.datum != null) {
                 expect(node.datum.order).toBe(index);
             }

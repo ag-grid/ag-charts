@@ -18,6 +18,7 @@ const {
 class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
     label: LabelLayout | undefined = undefined;
     secondaryLabel: LabelLayout | undefined = undefined;
+    contentHeight: number = 0;
     bbox: _ModuleSupport.BBox | undefined = undefined;
     startAngle: number = 0;
     endAngle: number = 0;
@@ -227,6 +228,10 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.rootNode?.walk((node) => {
             const { datum, depth, startAngle, endAngle, parent, sumSize } = node;
 
+            node.label = undefined;
+            node.secondaryLabel = undefined;
+            node.contentHeight = 0;
+
             let labelValue: string | undefined;
             if (datum != null && depth != null && labelKey != null) {
                 const value = (datum as any)[labelKey];
@@ -329,9 +334,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 sizeFittingHeight
             );
 
-            if (formatting == null) {
-                return;
-            }
+            if (formatting == null) return;
 
             const { width: labelWidth, height: labelHeight, meta: labelPlacement, label, secondaryLabel } = formatting;
 
@@ -403,6 +406,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     theta,
                 };
             }
+
+            node.contentHeight = formatting.height;
         });
 
         const updateSector = (
@@ -455,49 +460,44 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             tag: TextNodeTag,
             highlighted: boolean
         ) => {
-            const { depth } = node;
-            const labelStyle = tag === TextNodeTag.Primary ? this.properties.label : this.properties.secondaryLabel;
-            const label = tag === TextNodeTag.Primary ? node.label : node.secondaryLabel;
+            const { depth, contentHeight } = node;
+            const primary = tag === TextNodeTag.Primary;
+            const label = primary ? node.label : node.secondaryLabel;
             if (depth == null || label == null) {
                 text.visible = false;
                 return;
             }
 
-            const { height: textHeight, labelPlacement, circleQuarter, radius: textRadius, theta } = label;
+            const { labelPlacement, circleQuarter, radius: textRadius, theta } = label;
 
             let highlightedColor: string | undefined;
             if (highlighted) {
-                const highlightedLabelStyle =
-                    tag === TextNodeTag.Primary
-                        ? this.properties.highlightStyle.label
-                        : this.properties.highlightStyle.secondaryLabel;
+                const highlightedLabelStyle = primary
+                    ? this.properties.highlightStyle.label
+                    : this.properties.highlightStyle.secondaryLabel;
                 highlightedColor = highlightedLabelStyle.color;
             }
 
             text.text = label.text;
             text.fontSize = label.fontSize;
             text.lineHeight = label.lineHeight;
-
-            text.fontStyle = labelStyle.fontStyle;
-            text.fontFamily = labelStyle.fontFamily;
-            text.fontWeight = labelStyle.fontWeight;
-            text.fill = highlightedColor ?? labelStyle.color;
+            text.fontStyle = label.fontStyle;
+            text.fontFamily = label.fontFamily;
+            text.fontWeight = label.fontWeight;
+            text.fill = highlightedColor ?? label.color;
 
             switch (labelPlacement) {
                 case LabelPlacement.CenterCircle:
                     text.textAlign = 'center';
                     text.textBaseline = 'top';
                     text.translationX = 0;
-                    text.translationY =
-                        (tag === TextNodeTag.Primary ? 0 : textHeight - label.height) - textHeight * 0.5;
+                    text.translationY = (primary ? 0 : contentHeight - label.height) - contentHeight * 0.5;
                     text.rotation = 0;
                     break;
                 case LabelPlacement.Parallel: {
                     const topHalf = (circleQuarter & CircleQuarter.Top) !== 0;
                     const translationRadius =
-                        (tag === TextNodeTag.Primary) === !topHalf
-                            ? textRadius
-                            : textRadius - (textHeight - label.height);
+                        primary === !topHalf ? textRadius : textRadius - (contentHeight - label.height);
                     text.textAlign = 'center';
                     text.textBaseline = topHalf ? 'bottom' : 'top';
                     text.translationX = Math.cos(theta) * translationRadius;
@@ -508,9 +508,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                 case LabelPlacement.Perpendicular: {
                     const rightHalf = (circleQuarter & CircleQuarter.Right) !== 0;
                     const translation =
-                        (tag === TextNodeTag.Primary) === !rightHalf
-                            ? (textHeight - label.height) * 0.5
-                            : (label.height - textHeight) * 0.5;
+                        primary === !rightHalf
+                            ? (contentHeight - label.height) * 0.5
+                            : (label.height - contentHeight) * 0.5;
                     text.textAlign = 'center';
                     text.textBaseline = 'middle';
                     text.translationX = Math.cos(theta) * textRadius + Math.cos(theta + Math.PI / 2) * translation;

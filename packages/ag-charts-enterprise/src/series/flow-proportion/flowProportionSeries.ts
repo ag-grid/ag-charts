@@ -72,7 +72,7 @@ export abstract class FlowProportionSeries<
     protected nodeCount: number = 0;
     protected linkCount: number = 0;
 
-    protected linksDataModel: _ModuleSupport.DataModel<any, any, true> | undefined = undefined;
+    protected linksDataModel: _ModuleSupport.DataModel<any, any, false> | undefined = undefined;
     protected linksProcessedData: _ModuleSupport.ProcessedData<any> | undefined = undefined;
 
     protected nodesDataModel: _ModuleSupport.DataModel<any, any, true> | undefined = undefined;
@@ -172,6 +172,8 @@ export abstract class FlowProportionSeries<
 
         this.nodesDataModel = nodesDataModel?.dataModel;
         this.nodesProcessedData = nodesDataModel?.processedData;
+        this.linksDataModel = linksDataModel?.dataModel;
+        this.linksProcessedData = linksDataModel?.processedData;
 
         const processedNodes = new Map<string, FlowProportionNodeDatum>();
         if (nodesDataModel == null) {
