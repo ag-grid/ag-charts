@@ -48,6 +48,8 @@ export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType>
     readonly offsetY: number;
     readonly clientX: number;
     readonly clientY: number;
+    readonly currentX: number;
+    readonly currentY: number;
     readonly originDeltaX: number;
     readonly originDeltaY: number;
     readonly sourceEvent: MouseEvent | TouchEvent;
@@ -92,9 +94,7 @@ export type WidgetSourceEventMap = {
 
 function allocMouseEvent<T extends MouseWidgetEventType>(type: T, sourceEvent: MouseEvent, current: HTMLElement) {
     const { offsetX, offsetY, clientX, clientY } = sourceEvent;
-    const currentRect = current.getBoundingClientRect();
-    const currentX = clientX - currentRect.x;
-    const currentY = clientY - currentRect.y;
+    const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current, sourceEvent);
     return { type, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
 }
 
@@ -159,5 +159,13 @@ export class WidgetEventUtil {
     static isHTMLEvent(type: keyof WidgetEventMap): type is keyof WidgetEventMap & keyof HTMLElementEventMap {
         const htmlTypes: readonly string[] = WIDGET_HTML_EVENTS;
         return htmlTypes.includes(type);
+    }
+
+    static calcCurrentXY(
+        current: HTMLElement,
+        event: { clientX: number; clientY: number }
+    ): { currentX: number; currentY: number } {
+        const currentRect = current.getBoundingClientRect();
+        return { currentX: event.clientX - currentRect.x, currentY: event.clientY - currentRect.y };
     }
 }

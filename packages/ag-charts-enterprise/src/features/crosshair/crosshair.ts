@@ -1,4 +1,4 @@
-import { type AgCrosshairLabelRendererResult, _ModuleSupport } from 'ag-charts-community';
+import { type AgCrosshairLabelRendererResult, _ModuleSupport, _Widget } from 'ag-charts-community';
 
 import { CrosshairLabel, CrosshairLabelProperties } from './crosshairLabel';
 
@@ -53,7 +53,6 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
     private readonly axisCtx: _ModuleSupport.AxisContext;
     private seriesRect: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
-    private hoverRect: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
     private bounds: _ModuleSupport.BBox = new BBox(0, 0, 0, 0);
     private axisLayout?: _ModuleSupport.AxisLayout;
     private labelFormatter?: (value: any) => string;
@@ -77,7 +76,6 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.axisCtx = ctx.parent;
         this.labels = {};
 
-        const seriesRegion = ctx.regionManager.getRegion('series');
         this.hideCrosshairs();
 
         ctx.domManager.addEventListener('focusin', ({ target }) => {
@@ -90,9 +88,10 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
 
         this.destroyFns.push(
             ctx.scene.attachNode(this.crosshairGroup),
-            seriesRegion.addListener('hover', (event) => this.onMouseMove(event), InteractionState.Clickable),
-            seriesRegion.addListener('drag', (event) => this.onMouseMove(event), InteractionState.AnnotationsMoveable),
-            seriesRegion.addListener('leave', () => this.onMouseOut(), InteractionState.Clickable),
+            ctx.widgets.seriesWidget.addListener('mousemove', (event) => this.onMouseMove(event)),
+            // TODO(AG-13488) should be seriesWidget.addListener('drag-move')
+            ctx.widgets.containerWidget.addListener('drag-move', (event) => this.onMouseDrag(event)),
+            ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseOut()),
             ctx.chartEventManager.addListener('series-focus-change', () => this.onKeyPress()),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.onMouseOut()),
             ctx.zoomManager.addListener('zoom-change', () => this.onMouseOut()),
@@ -102,11 +101,10 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         );
     }
 
-    private layout({ series: { rect, paddedRect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
+    private layout({ series: { rect, visible }, axes }: _ModuleSupport.LayoutCompleteEvent) {
         if (!visible || !axes || !this.enabled) return;
 
         this.seriesRect = rect;
-        this.hoverRect = paddedRect;
 
         const { position: axisPosition = 'left', axisId } = this.axisCtx;
 
@@ -205,26 +203,28 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         return String(value ?? '');
     }
 
-    private onMouseMove(event: _ModuleSupport.RegionEvent<'hover' | 'drag'>) {
+    private onMouseDrag(event: _Widget.DragWidgetEvent<'drag-move'>) {
+        if (this.ctx.interactionManager.isState(InteractionState.AnnotationsMoveable)) {
+            this.onMouseHoverLike(event);
+        }
+    }
+    private onMouseMove(event: _Widget.MouseWidgetEvent<'mousemove'>) {
+        if (this.ctx.interactionManager.isState(InteractionState.Clickable)) {
+            this.onMouseHoverLike(event);
+        }
+    }
+
+    private onMouseHoverLike(event: _Widget.DragWidgetEvent<'drag-move'> | _Widget.MouseWidgetEvent<'mousemove'>) {
         if (!this.enabled || this.snap) return;
 
-        const { crosshairGroup, hoverRect } = this;
-        const { canvasX, canvasY } = event;
-
-        if (hoverRect.containsPoint(canvasX, canvasY)) {
-            const lineData = this.getData(event);
-
-            this.updatePositions(lineData);
-
-            crosshairGroup.visible = true;
-        } else {
-            this.hideCrosshairs();
-        }
+        this.updatePositions(this.getData(event));
+        this.crosshairGroup.visible = true;
 
         this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
     }
 
     private onMouseOut() {
+        if (!this.ctx.interactionManager.isState(InteractionState.Clickable)) return;
         this.hideCrosshairs();
         this.ctx.updateService.update(_ModuleSupport.ChartUpdateType.SCENE_RENDER);
     }
@@ -289,16 +289,16 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         });
     }
 
-    private getData(event: _ModuleSupport.RegionEvent<'hover' | 'drag'>): {
+    private getData(event: { currentX: number; currentY: number }): {
         [key: string]: { position: number; value: any };
     } {
         const { axisCtx } = this;
         const key = 'pointer';
         const { datum, xKey = '', yKey = '' } = this.activeHighlight ?? {};
-        const { regionX, regionY } = event;
+        const { currentX, currentY } = event;
 
         const isVertical = this.isVertical();
-        const position = isVertical ? regionX : regionY;
+        const position = isVertical ? currentX : currentY;
 
         let value = datum?.[isVertical ? xKey : yKey] ?? '';
         if (axisCtx.continuous) {
