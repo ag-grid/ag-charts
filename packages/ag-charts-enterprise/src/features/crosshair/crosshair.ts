@@ -89,8 +89,7 @@ export class Crosshair extends _ModuleSupport.BaseModuleInstance implements _Mod
         this.destroyFns.push(
             ctx.scene.attachNode(this.crosshairGroup),
             ctx.widgets.seriesWidget.addListener('mousemove', (event) => this.onMouseMove(event)),
-            // TODO(AG-13488) should be seriesWidget.addListener('drag-move')
-            ctx.widgets.containerWidget.addListener('drag-move', (event) => this.onMouseDrag(event)),
+            ctx.widgets.seriesWidget.addListener('drag-move', (event) => this.onMouseDrag(event)),
             ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseOut()),
             ctx.chartEventManager.addListener('series-focus-change', () => this.onKeyPress()),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.onMouseOut()),

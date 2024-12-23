@@ -183,6 +183,8 @@ export class WidgetListenerInternal {
     private localMouseDragCallbacks?: MouseDragCallbacks;
     private localTouchDragCallbacks?: TouchDragCallbacks;
 
+    constructor(private readonly dispatchCallback: (type: EventType, event: EventMap[EventType]) => void) {}
+
     destroy(): void {
         this.dragTriggerRemover?.();
         this.dragTriggerRemover = undefined;
@@ -319,14 +321,19 @@ export class WidgetListenerInternal {
         this.dispatch('drag-start', current, dragStartEvent);
     }
 
-    private dispatch<T extends Targetable, K extends EventType>(type: K, current: T, event: EventMap[K]): void {
+    public dispatch<T extends Targetable, K extends EventType>(type: K, current: T, event: EventMap[K]): void {
         switch (type) {
             case 'drag-start':
-                return this.dragStartListeners?.forEach((handler) => handler(event, current));
+                this.dragStartListeners?.forEach((handler) => handler(event, current));
+                break;
             case 'drag-move':
-                return this.dragMoveListeners?.forEach((handler) => handler(event, current));
+                this.dragMoveListeners?.forEach((handler) => handler(event, current));
+                break;
             case 'drag-end':
-                return this.dragEndListeners?.forEach((handler) => handler(event, current));
+                this.dragEndListeners?.forEach((handler) => handler(event, current));
+                break;
         }
+
+        this.dispatchCallback(type, event);
     }
 }
