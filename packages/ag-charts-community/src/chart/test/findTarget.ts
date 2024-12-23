@@ -19,25 +19,16 @@ import { LegendDOMProxy } from '../legend/legendDOMProxy';
 import { LegendMarkerLabel } from '../legend/legendMarkerLabel';
 import { SeriesAreaManager } from '../series/seriesAreaManager';
 
-type Navigator = {
-    minHandle: Node;
-    maxHandle: Node;
-    mask: Node;
-};
-
-type NavigatorDOMProxy = object;
-
 const CAST_INFO = {
     Array: new ClassTypePair<unknown[], typeof Array>(Array),
 
     BBox: new ClassTypePair<BBox, typeof BBox>(BBox),
     TranslatableGroup: new ClassTypePair<TranslatableGroup, typeof TranslatableGroup>(TranslatableGroup),
     Scene: new ClassTypePair<Scene, typeof Scene>(Scene),
+    Node: new ClassTypePair<Node, typeof Node>(Node),
 
     Legend: new ClassTypePair<Legend, typeof Legend>(Legend),
     LegendDOMProxy: new ClassTypePair<LegendDOMProxy, typeof LegendDOMProxy>(LegendDOMProxy),
-    Navigator: new ClassTypePair<Navigator, Navigator>(Object as any),
-    NavigatorDOMProxy: new ClassTypePair<NavigatorDOMProxy, NavigatorDOMProxy>(Object as any),
     SeriesAreaManager: new ClassTypePair<SeriesAreaManager, typeof SeriesAreaManager>(SeriesAreaManager),
 
     ToolbarWidget: new ClassTypePair<ToolbarWidget, typeof ToolbarWidget>(ToolbarWidget),
@@ -81,10 +72,16 @@ function findNavigatorTarget(navigatorModule: unknown, canvasX: number, canvasY:
     if (navigatorModule === undefined) return undefined;
 
     const caster = new Caster(navigatorModule);
-    const navigator = caster.cast(CAST_INFO.Navigator).findBoolean('enabled').value;
+    const navigator = caster
+        .findBoolean('enabled')
+        .findProperty('minHandle')
+        .castProperty('minHandle', CAST_INFO.Node)
+        .findProperty('maxHandle')
+        .castProperty('maxHandle', CAST_INFO.Node)
+        .findProperty('mask')
+        .castProperty('mask', CAST_INFO.Node).value;
     const domProxy = caster
         .accessProperty('domProxy')
-        .cast(CAST_INFO.NavigatorDOMProxy)
         .findProperty('toolbar')
         .castProperty('toolbar', CAST_INFO.ToolbarWidget)
         .findProperty('sliders')
