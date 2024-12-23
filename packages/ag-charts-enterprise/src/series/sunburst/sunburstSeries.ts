@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import type { AgSunburstSeriesStyle } from 'ag-charts-types';
+import type { AgSunburstSeriesStyle, FontStyle, FontWeight } from 'ag-charts-types';
 
 import { formatLabels } from '../util/labelFormatter';
 import { SunburstSeriesProperties } from './sunburstSeriesProperties';
@@ -15,27 +15,39 @@ const {
     applyShapeStyle,
 } = _ModuleSupport;
 
-interface LabelData {
-    label: string | undefined;
-    secondaryLabel: string | undefined;
+class SunburstNode extends _ModuleSupport.HierarchyNode<SunburstNode> {
+    label: LabelLayout | undefined = undefined;
+    secondaryLabel: LabelLayout | undefined = undefined;
+    bbox: _ModuleSupport.BBox | undefined = undefined;
+    startAngle: number = 0;
+    endAngle: number = 0;
 }
 
-const getAngleData = (
-    node: _ModuleSupport.HierarchyNode,
-    startAngle = 0,
-    angleScale = (2 * Math.PI) / node.sumSize,
-    angleData: Array<{ start: number; end: number } | undefined> = Array.from(node, () => undefined)
-) => {
-    let currentAngle = startAngle;
+interface LabelLayout {
+    text: string;
+    fontSize: number;
+    lineHeight: number;
+    fontStyle: FontStyle;
+    fontFamily: string;
+    fontWeight: FontWeight;
+    color: string;
+    labelPlacement: LabelPlacement;
+    circleQuarter: number;
+    radius: number;
+    theta: number;
+    width: number;
+    height: number;
+}
+
+function setAngleData(node: SunburstNode, startAngle = 0, angleScale = (2 * Math.PI) / node.sumSize) {
     for (const child of node.children) {
-        const start = currentAngle;
-        const end = currentAngle + child.sumSize * angleScale;
-        angleData[child.index] = { start, end };
-        getAngleData(child, start, angleScale, angleData);
-        currentAngle = end;
+        const endAngle = startAngle + child.sumSize * angleScale;
+        child.startAngle = startAngle;
+        child.endAngle = endAngle;
+        setAngleData(child, startAngle, angleScale);
+        startAngle = endAngle;
     }
-    return angleData;
-};
+}
 
 enum CircleQuarter {
     TopLeft = 0b0001,
@@ -65,69 +77,22 @@ type ItemStyle = Pick<AgSunburstSeriesStyle, 'fill' | 'stroke'> &
 export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     _ModuleSupport.ScalableGroup,
     SunburstSeriesProperties,
-    _ModuleSupport.SeriesNodeDatum
+    SunburstNode
 > {
     static readonly className = 'SunburstSeries';
     static readonly type = 'sunburst' as const;
+
+    NodeClass = SunburstNode;
 
     override properties = new SunburstSeriesProperties();
 
     readonly groupSelection = Selection.select(this.contentGroup, ScalableGroup);
     private readonly highlightSelection = Selection.select(this.highlightGroup, ScalableGroup);
 
-    private angleData: Array<{ start: number; end: number } | undefined> = [];
-
-    private labelData?: (LabelData | undefined)[];
-
     override processData() {
-        const { childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName } = this.properties;
-
         super.processData();
 
-        this.angleData = getAngleData(this.rootNode);
-        this.labelData = Array.from(this.rootNode, ({ datum, depth }) => {
-            let label: string | undefined;
-            if (datum != null && depth != null && labelKey != null) {
-                const value = (datum as any)[labelKey];
-                label = this.getLabelText(this.properties.label, {
-                    depth,
-                    datum,
-                    childrenKey,
-                    colorKey,
-                    colorName,
-                    labelKey,
-                    secondaryLabelKey,
-                    sizeKey,
-                    sizeName,
-                    value,
-                });
-            }
-            if (label === '') {
-                label = undefined;
-            }
-
-            let secondaryLabel: string | undefined;
-            if (datum != null && depth != null && secondaryLabelKey != null) {
-                const value = (datum as any)[secondaryLabelKey];
-                secondaryLabel = this.getLabelText(this.properties.secondaryLabel, {
-                    depth,
-                    datum,
-                    childrenKey,
-                    colorKey,
-                    colorName,
-                    labelKey,
-                    secondaryLabelKey,
-                    sizeKey,
-                    sizeName,
-                    value,
-                });
-            }
-            if (secondaryLabel === '') {
-                secondaryLabel = undefined;
-            }
-
-            return label != null || secondaryLabel != null ? { label, secondaryLabel } : undefined;
-        });
+        setAngleData(this.rootNode!);
     }
 
     updateSelections() {
@@ -140,7 +105,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const seriesRect = chart.seriesRect;
         if (seriesRect == null) return;
 
-        const descendants: _ModuleSupport.HierarchyNode[] = Array.from(this.rootNode);
+        const descendants = Array.from(this.rootNode!);
 
         const updateGroup = (group: _ModuleSupport.Group) => {
             group.append([
@@ -168,9 +133,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     private getItemStyleOverrides(
-        datumId: string,
+        datumId: number[],
         datum: any,
-        rootIndex: number,
         depth: number,
         colorValue: number | undefined,
         format: ItemStyle,
@@ -178,6 +142,8 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     ) {
         const { id: seriesId, properties, colorScale } = this;
         const { fills, strokes, itemStyler } = properties;
+
+        const rootIndex = datumId[0];
 
         const fill = format.fill ?? fills[rootIndex % fills.length];
         const stroke = format.stroke ?? strokes[rootIndex % strokes.length];
@@ -191,7 +157,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
         if (itemStyler != null) {
             const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                createDatumId(datumId.join(':'), highlighted ? 'highlight' : 'node'),
                 () => {
                     return itemStyler({
                         seriesId,
@@ -212,14 +178,25 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     }
 
     updateNodes() {
-        const { chart, data, maxDepth, labelData } = this;
+        const { chart, data, maxDepth } = this;
 
-        if (chart == null || data == null || labelData == null) {
+        if (chart == null || data == null) {
             return;
         }
 
         const { width, height } = chart.seriesRect!;
-        const { sectorSpacing = 0, padding = 0, cornerRadius } = this.properties;
+        const {
+            sectorSpacing = 0,
+            padding = 0,
+            cornerRadius,
+            childrenKey,
+            colorKey,
+            colorName,
+            labelKey,
+            secondaryLabelKey,
+            sizeKey,
+            sizeName,
+        } = this.properties;
 
         this.contentGroup.translationX = width / 2;
         this.contentGroup.translationY = height / 2;
@@ -237,90 +214,74 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const labelTextNode = new TransformableText();
         labelTextNode.setFont(this.properties.label);
 
-        this.rootNode.walk((node) => {
-            const angleDatum = this.angleData[node.index];
-            if (node.depth != null && angleDatum != null) {
-                const midAngle = angleDatum.end - angleDatum.start;
+        this.rootNode?.walk((node) => {
+            const { startAngle, endAngle } = node;
+            if (node.depth != null) {
+                const midAngle = endAngle - startAngle;
                 const midRadius = (node.depth + 0.5) * radiusScale;
                 node.midPoint.x = Math.cos(midAngle) * midRadius;
                 node.midPoint.y = Math.sin(midAngle) * midRadius;
             }
         });
 
-        const updateSector = (
-            nodeDatum: _ModuleSupport.HierarchyNode,
-            sector: _ModuleSupport.Sector,
-            style: ItemStyle,
-            highlighted: boolean
-        ) => {
-            const { datum, index, rootIndex, depth, colorValue } = nodeDatum;
-            const angleDatum = this.angleData[index];
-            if (depth == null || angleDatum == null) {
-                sector.visible = false;
-                return;
+        this.rootNode?.walk((node) => {
+            const { datum, depth, startAngle, endAngle, parent, sumSize } = node;
+
+            let labelValue: string | undefined;
+            if (datum != null && depth != null && labelKey != null) {
+                const value = (datum as any)[labelKey];
+                labelValue = this.getLabelText(this.properties.label, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    colorName,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    sizeName,
+                    value,
+                });
+            }
+            if (labelValue === '') {
+                labelValue = undefined;
             }
 
-            sector.visible = true;
-
-            const overrides = this.getItemStyleOverrides(
-                String(index),
-                datum,
-                rootIndex,
-                depth,
-                colorValue,
-                style,
-                highlighted
-            );
-
-            const strokeWidth = overrides.strokeWidth ?? style.strokeWidth;
-
-            applyShapeStyle(sector, style, overrides);
-
-            sector.centerX = 0;
-            sector.centerY = 0;
-            sector.innerRadius = depth * radiusScale;
-            sector.outerRadius = (depth + 1) * radiusScale;
-            sector.startAngle = angleDatum.start + angleOffset;
-            sector.endAngle = angleDatum.end + angleOffset;
-            sector.inset = baseInset + strokeWidth * 0.5;
-            sector.cornerRadius = cornerRadius;
-        };
-
-        const baseFormat = this.getItemBaseStyle(false);
-        this.groupSelection.selectByClass(Sector).forEach((sector) => {
-            updateSector(sector.datum, sector, baseFormat, false);
-        });
-        const highlightFormat = this.getItemBaseStyle(true);
-        this.highlightSelection.selectByClass(Sector).forEach((sector) => {
-            const node: _ModuleSupport.HierarchyNode = sector.datum;
-            const isHighlighted = highlightedNode === node;
-            sector.visible = isHighlighted;
-            if (sector.visible) {
-                updateSector(sector.datum, sector, highlightFormat, true);
+            let secondaryLabelValue: string | undefined;
+            if (datum != null && depth != null && secondaryLabelKey != null) {
+                const value = (datum as any)[secondaryLabelKey];
+                secondaryLabelValue = this.getLabelText(this.properties.secondaryLabel, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    colorName,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    sizeName,
+                    value,
+                });
             }
-        });
-
-        const labelMeta = Array.from(this.rootNode, (node, index) => {
-            const { depth } = node;
-            const labelDatum = labelData[index];
-            const angleData = this.angleData[index];
-            if (depth == null || angleData == null) {
-                return;
+            if (secondaryLabelValue === '') {
+                secondaryLabelValue = undefined;
             }
+
+            if (depth == null) return;
 
             const innerRadius = depth * radiusScale + baseInset;
             const outerRadius = (depth + 1) * radiusScale - baseInset;
             const innerAngleOffset = innerRadius > baseInset ? baseInset / innerRadius : baseInset;
             const outerAngleOffset = outerRadius > baseInset ? baseInset / outerRadius : baseInset;
-            const innerStartAngle = angleData.start + innerAngleOffset;
-            const innerEndAngle = angleData.end + innerAngleOffset;
+            const innerStartAngle = startAngle + innerAngleOffset;
+            const innerEndAngle = endAngle + innerAngleOffset;
             const deltaInnerAngle = innerEndAngle - innerStartAngle;
-            const outerStartAngle = angleData.start + outerAngleOffset;
-            const outerEndAngle = angleData.end + outerAngleOffset;
+            const outerStartAngle = startAngle + outerAngleOffset;
+            const outerEndAngle = endAngle + outerAngleOffset;
             const deltaOuterAngle = outerEndAngle - outerStartAngle;
 
             const sizeFittingHeight = (labelHeight: number) => {
-                const isCenterCircle = depth === 0 && node.parent?.sumSize === node.sumSize;
+                const isCenterCircle = depth === 0 && parent?.sumSize === sumSize;
                 if (isCenterCircle) {
                     const labelWidth = 2 * Math.sqrt(outerRadius ** 2 - (labelHeight * 0.5) ** 2);
                     return { width: labelWidth, height: labelHeight, meta: LabelPlacement.CenterCircle };
@@ -360,9 +321,9 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             };
 
             const formatting = formatLabels<LabelPlacement>(
-                labelDatum?.label,
+                labelValue,
                 this.properties.label,
-                labelDatum?.secondaryLabel,
+                secondaryLabelValue,
                 this.properties.secondaryLabel,
                 { padding },
                 sizeFittingHeight
@@ -374,7 +335,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
             const { width: labelWidth, height: labelHeight, meta: labelPlacement, label, secondaryLabel } = formatting;
 
-            const theta = angleOffset + (angleData.start + angleData.end) / 2;
+            const theta = angleOffset + (startAngle + endAngle) / 2;
             const top = Math.sin(theta) >= 0;
             const right = Math.cos(theta) >= 0;
             const circleQuarter =
@@ -403,34 +364,106 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
                     break;
             }
 
-            return {
-                width: labelWidth,
-                height: labelHeight,
-                labelPlacement,
-                circleQuarter,
-                radius: labelRadius,
-                theta,
-                label,
-                secondaryLabel,
-            };
+            if (label != null) {
+                const {
+                    fontStyle = 'normal',
+                    fontFamily,
+                    fontWeight = 'normal',
+                    color = 'black',
+                } = this.properties.label;
+                node.label = {
+                    ...label,
+                    fontStyle,
+                    fontFamily,
+                    fontWeight,
+                    color,
+                    labelPlacement,
+                    circleQuarter,
+                    radius: labelRadius,
+                    theta,
+                };
+            }
+
+            if (secondaryLabel != null) {
+                const {
+                    fontStyle = 'normal',
+                    fontFamily,
+                    fontWeight = 'normal',
+                    color = 'black',
+                } = this.properties.secondaryLabel;
+                node.secondaryLabel = {
+                    ...secondaryLabel,
+                    fontStyle,
+                    fontFamily,
+                    fontWeight,
+                    color,
+                    labelPlacement,
+                    circleQuarter,
+                    radius: labelRadius,
+                    theta,
+                };
+            }
+        });
+
+        const updateSector = (
+            nodeDatum: SunburstNode,
+            sector: _ModuleSupport.Sector,
+            style: ItemStyle,
+            highlighted: boolean
+        ) => {
+            const { datum, datumIndex, depth, colorValue, startAngle, endAngle } = nodeDatum;
+            if (depth == null) {
+                sector.visible = false;
+                return;
+            }
+
+            sector.visible = true;
+
+            const overrides = this.getItemStyleOverrides(datumIndex, datum, depth, colorValue, style, highlighted);
+
+            const strokeWidth = overrides.strokeWidth ?? style.strokeWidth;
+
+            applyShapeStyle(sector, style, overrides);
+
+            sector.centerX = 0;
+            sector.centerY = 0;
+            sector.innerRadius = depth * radiusScale;
+            sector.outerRadius = (depth + 1) * radiusScale;
+            sector.startAngle = startAngle + angleOffset;
+            sector.endAngle = endAngle + angleOffset;
+            sector.inset = baseInset + strokeWidth * 0.5;
+            sector.cornerRadius = cornerRadius;
+        };
+
+        const baseFormat = this.getItemBaseStyle(false);
+        this.groupSelection.selectByClass(Sector).forEach((sector) => {
+            updateSector(sector.datum, sector, baseFormat, false);
+        });
+        const highlightFormat = this.getItemBaseStyle(true);
+        this.highlightSelection.selectByClass(Sector).forEach((sector) => {
+            const node: _ModuleSupport.HierarchyNode = sector.datum;
+            const isHighlighted = highlightedNode === node;
+            sector.visible = isHighlighted;
+            if (sector.visible) {
+                updateSector(sector.datum, sector, highlightFormat, true);
+            }
         });
 
         const updateText = (
-            node: _ModuleSupport.HierarchyNode,
+            node: SunburstNode,
             text: _ModuleSupport.TransformableText,
             tag: TextNodeTag,
             highlighted: boolean
         ) => {
-            const { index, depth } = node;
-            const meta = labelMeta?.[index];
+            const { depth } = node;
             const labelStyle = tag === TextNodeTag.Primary ? this.properties.label : this.properties.secondaryLabel;
-            const label = tag === TextNodeTag.Primary ? meta?.label : meta?.secondaryLabel;
-            if (depth == null || meta == null || label == null) {
+            const label = tag === TextNodeTag.Primary ? node.label : node.secondaryLabel;
+            if (depth == null || label == null) {
                 text.visible = false;
                 return;
             }
 
-            const { height: textHeight, labelPlacement, circleQuarter, radius: textRadius, theta } = meta;
+            const { height: textHeight, labelPlacement, circleQuarter, radius: textRadius, theta } = label;
 
             let highlightedColor: string | undefined;
             if (highlighted) {
@@ -508,7 +541,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const { id: seriesId, properties } = this;
         const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
             properties;
-        const { datum, index, rootIndex, depth } = nodeDatum;
+        const { datum, datumIndex, depth } = nodeDatum;
         if (datum == null || depth == null) return;
 
         const data: _ModuleSupport.TooltipContentDataRow[] = [];
@@ -524,10 +557,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         }
 
         const format = this.getItemBaseStyle(false) as Required<ItemStyle>;
-        Object.assign(
-            format,
-            this.getItemStyleOverrides(String(index), datum, rootIndex, depth, datumColor, format, false)
-        );
+        Object.assign(format, this.getItemStyleOverrides(datumIndex, datum, depth, datumColor, format, false));
 
         const color = format.fill;
 
@@ -577,11 +607,11 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     protected override animateEmptyUpdateReady({
         datumSelections,
-    }: _ModuleSupport.HierarchyAnimationData<_ModuleSupport.ScalableGroup, _ModuleSupport.SeriesNodeDatum>) {
+    }: _ModuleSupport.HierarchyAnimationData<_ModuleSupport.ScalableGroup, SunburstNode>) {
         fromToMotion<
             _ModuleSupport.ScalableGroup,
             Pick<_ModuleSupport.ScalableGroup, 'scalingX' | 'scalingY'>,
-            _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
+            SunburstNode
         >(this.id, 'nodes', this.ctx.animationManager, datumSelections, {
             toFn() {
                 return { scalingX: 1, scalingY: 1 };
@@ -602,9 +632,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         };
     }
 
-    protected override computeFocusBounds(
-        nodeDatum: _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
-    ): _ModuleSupport.Path | undefined {
+    protected override computeFocusBounds(nodeDatum: SunburstNode): _ModuleSupport.Path | undefined {
         let match: _ModuleSupport.Sector | undefined;
         for (const { node, datum } of this.groupSelection) {
             if (datum === nodeDatum) {

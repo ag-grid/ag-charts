@@ -8,8 +8,8 @@ import type { RegionEvent } from './regionManager';
 type ContextTypeMap = {
     all: object;
     legend: { legendItem: CategoryLegendDatum | undefined };
-    'series-area': { pickedSeries: ISeries<any, any> | undefined; pickedNode: SeriesNodeDatum | undefined };
-    node: { pickedSeries: ISeries<any, any> | undefined; pickedNode: SeriesNodeDatum | undefined };
+    'series-area': { pickedSeries: ISeries<any, any> | undefined; pickedNode: SeriesNodeDatum<unknown> | undefined };
+    node: { pickedSeries: ISeries<any, any> | undefined; pickedNode: SeriesNodeDatum<unknown> | undefined };
 };
 
 export type ContextType = keyof ContextTypeMap;

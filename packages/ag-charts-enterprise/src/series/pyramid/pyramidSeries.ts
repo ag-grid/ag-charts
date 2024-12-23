@@ -41,7 +41,8 @@ interface PyramidNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum, Read
     readonly label: PyramidNodeLabelDatum | undefined;
 }
 
-interface PyramidNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<PyramidNodeDatum, PyramidNodeLabelDatum> {
+interface PyramidNodeDataContext
+    extends _ModuleSupport.DataModelSeriesNodeDataContext<PyramidNodeDatum, PyramidNodeLabelDatum> {
     stageLabelData: PyramidNodeLabelDatum[] | undefined;
 }
 
@@ -609,7 +610,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
 
     override pickNodeClosestDatum({ x, y }: _ModuleSupport.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
 
         this.datumSelection.each((node, datum) => {
             const distanceSquared = node.distanceSquared(x, y);

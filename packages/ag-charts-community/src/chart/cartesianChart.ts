@@ -59,7 +59,7 @@ export class CartesianChart extends Chart {
         }
     }
 
-    override destroySeries(series: Series<any, any>[]) {
+    override destroySeries(series: Series<any, any, any>[]) {
         super.destroySeries(series);
 
         this.firstSeriesTranslation = true;

@@ -5,7 +5,7 @@ import { Chart } from './chart';
 import type { FlowProportionSeries } from './series/flowProportionSeries';
 import type { Series } from './series/series';
 
-function isFlowProportion(series: Series<any, any>): series is FlowProportionSeries {
+function isFlowProportion(series: Series<any, any, any>): series is FlowProportionSeries {
     return series.type === 'sankey' || series.type === 'chord';
 }
 export class FlowProportionChart extends Chart {

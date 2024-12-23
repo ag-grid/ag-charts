@@ -20,7 +20,7 @@ import type { RequiredSeriesType, SeriesPaletteFactory } from './coreModulesType
 import type { ModuleContext } from './moduleContext';
 
 type ModuleInstanceFactory<M> = (moduleContext: ModuleContext) => M;
-export type SeriesFactory = ModuleInstanceFactory<Series<any, any>>;
+export type SeriesFactory = ModuleInstanceFactory<Series<any, any, any>>;
 export type LegendFactory = ModuleInstanceFactory<ChartLegend>;
 
 export interface RemovableModule {

@@ -66,7 +66,7 @@ export class ContextMenu extends _ModuleSupport.BaseModuleInstance implements _M
 
     // State
     private readonly groups: ContextMenuGroups;
-    private pickedNode: _ModuleSupport.SeriesNodeDatum | undefined = undefined;
+    private pickedNode: _ModuleSupport.SeriesNodeDatum<unknown> | undefined = undefined;
     private pickedLegendItem?: _ModuleSupport.CategoryLegendDatum;
     private showEvent: MouseEvent | undefined = undefined;
     private x: number = 0;

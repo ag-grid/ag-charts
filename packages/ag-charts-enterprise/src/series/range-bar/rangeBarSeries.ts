@@ -39,14 +39,15 @@ type Bounds = {
     height: number;
 };
 
-type RangeBarNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
+interface RangeBarNodeLabelDatum extends Readonly<_ModuleSupport.Point> {
+    datumIndex: number;
     text: string;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
     datum: any;
     itemId: string;
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
-};
+}
 
 interface RangeBarNodeDatum
     extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'>,
@@ -313,6 +314,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             };
 
             const labelData: RangeBarNodeDatum['labels'] = this.createLabelData({
+                datumIndex,
                 rect,
                 barAlongX,
                 yLowValue,
@@ -421,6 +423,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     private createLabelData({
+        datumIndex,
         rect,
         barAlongX,
         yLowValue,
@@ -428,6 +431,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         datum,
         series,
     }: {
+        datumIndex: number;
         rect: Bounds;
         barAlongX: boolean;
         yLowValue: number;
@@ -443,6 +447,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const labelPadding = padding * paddingDirection;
 
         const yLowLabel: RangeBarNodeLabelDatum = {
+            datumIndex,
             x: rect.x + (barAlongX ? -labelPadding : rect.width / 2),
             y: rect.y + (barAlongX ? rect.height / 2 : rect.height + labelPadding),
             textAlign: barAlongX ? 'left' : 'center',
@@ -453,6 +458,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             series,
         };
         const yHighLabel: RangeBarNodeLabelDatum = {
+            datumIndex,
             x: rect.x + (barAlongX ? rect.width + labelPadding : rect.width / 2),
             y: rect.y + (barAlongX ? rect.height / 2 : -labelPadding),
             textAlign: barAlongX ? 'right' : 'center',

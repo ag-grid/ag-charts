@@ -19,11 +19,14 @@ import { CategoryAxis } from '../../axis/categoryAxis';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { Marker } from '../../marker/marker';
-import { DataModelSeries, type DataModelSeriesNodeDatum } from '../dataModelSeries';
+import {
+    DataModelSeries,
+    type DataModelSeriesNodeDataContext,
+    type DataModelSeriesNodeDatum,
+} from '../dataModelSeries';
 import type {
     SeriesConstructorOpts,
     SeriesDirectionKeysMapping,
-    SeriesNodeDataContext,
     SeriesNodeEventTypes,
     SeriesNodePickMatch,
 } from '../series';
@@ -43,7 +46,7 @@ type CartesianSeriesOpts<
     TNode extends Node,
     TProps extends CartesianSeriesProperties<any>,
     TDatum extends CartesianSeriesNodeDatum,
-    TLabel extends SeriesNodeDatum,
+    TLabel extends SeriesNodeDatum<number>,
 > = {
     pathsPerSeries: string[];
     pathsZIndexSubOrderOffset: number[];
@@ -73,7 +76,7 @@ export const DEFAULT_CARTESIAN_DIRECTION_NAMES = {
 };
 
 export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTypes> extends SeriesNodeEvent<
-    SeriesNodeDatum,
+    SeriesNodeDatum<number>,
     TEvent
 > {
     readonly xKey?: string;
@@ -81,8 +84,8 @@ export class CartesianSeriesNodeEvent<TEvent extends string = SeriesNodeEventTyp
     constructor(
         type: TEvent,
         nativeEvent: Event,
-        datum: SeriesNodeDatum,
-        series: ISeries<SeriesNodeDatum, { xKey?: string; yKey?: string }>
+        datum: SeriesNodeDatum<number>,
+        series: ISeries<SeriesNodeDatum<number>, { xKey?: string; yKey?: string }>
     ) {
         super(type, nativeEvent, datum, series);
         this.xKey = series.properties.xKey;
@@ -94,7 +97,7 @@ type CartesianAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing' | 'dis
 type CartesianAnimationEvent<
     TNode extends Node,
     TDatum extends CartesianSeriesNodeDatum,
-    TLabel extends SeriesNodeDatum = TDatum,
+    TLabel extends SeriesNodeDatum<number> = TDatum,
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
 > = {
     update: CartesianAnimationData<TNode, TDatum, TLabel, TContext>;
@@ -111,7 +114,7 @@ type CartesianAnimationEvent<
 export interface CartesianAnimationData<
     TNode extends Node,
     TDatum extends CartesianSeriesNodeDatum,
-    TLabel extends SeriesNodeDatum = TDatum,
+    TLabel extends SeriesNodeDatum<number> = TDatum,
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
 > {
     datumSelection: Selection<TNode, TDatum>;
@@ -135,8 +138,8 @@ export abstract class CartesianSeriesProperties<T extends object> extends Series
 
 export interface CartesianSeriesNodeDataContext<
     TDatum extends CartesianSeriesNodeDatum = CartesianSeriesNodeDatum,
-    TLabel extends SeriesNodeDatum = TDatum,
-> extends SeriesNodeDataContext<TDatum, TLabel> {
+    TLabel extends SeriesNodeDatum<number> = TDatum,
+> extends DataModelSeriesNodeDataContext<TDatum, TLabel> {
     scales: { [key in ChartAxisDirection]?: Scaling };
     animationValid?: boolean;
     visible: boolean;
@@ -148,7 +151,7 @@ export abstract class CartesianSeries<
     TNode extends Node,
     TProps extends CartesianSeriesProperties<any>,
     TDatum extends CartesianSeriesNodeDatum,
-    TLabel extends SeriesNodeDatum = TDatum,
+    TLabel extends SeriesNodeDatum<number> = TDatum,
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
 > extends DataModelSeries<TDatum, TProps, TLabel, TContext> {
     private _contextNodeData?: TContext;
@@ -614,7 +617,7 @@ export abstract class CartesianSeries<
         const hitPoint = { x, y };
 
         let minDistance = Infinity;
-        let closestDatum: SeriesNodeDatum | undefined;
+        let closestDatum: SeriesNodeDatum<unknown> | undefined;
 
         for (const datum of contextNodeData.nodeData) {
             const { point: { x: datumX = NaN, y: datumY = NaN } = {} } = datum;
@@ -673,7 +676,7 @@ export abstract class CartesianSeries<
         if (majorDirection !== ChartAxisDirection.X) hitPointCoords.reverse();
 
         const minDistance = [Infinity, Infinity];
-        let closestDatum: SeriesNodeDatum | undefined;
+        let closestDatum: SeriesNodeDatum<unknown> | undefined;
 
         for (const datum of contextNodeData.nodeData) {
             const { x: datumX = NaN, y: datumY = NaN } = datum.point ?? datum.midPoint ?? {};

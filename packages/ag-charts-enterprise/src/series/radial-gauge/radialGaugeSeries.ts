@@ -19,6 +19,7 @@ import {
     NodeDataType,
     type RadialGaugeLabelDatum,
     type RadialGaugeNodeDatum,
+    type RadialGaugeNodeDatumIndex,
     RadialGaugeSeriesProperties,
     type RadialGaugeTargetDatum,
     type RadialGaugeTargetDatumLabel,
@@ -98,8 +99,9 @@ interface RadialGaugeNeedleDatum {
     angle: number;
     series: RadialGaugeSeries;
 }
+
 interface RadialGaugeNodeDataContext
-    extends _ModuleSupport.SeriesNodeDataContext<RadialGaugeNodeDatum, RadialGaugeLabelDatum> {
+    extends _ModuleSupport.SeriesNodeDataContext<0, RadialGaugeNodeDatum, RadialGaugeLabelDatum> {
     needleData: RadialGaugeNeedleDatum[];
     targetData: RadialGaugeTargetDatum[];
     scaleData: RadialGaugeNodeDatum[];
@@ -125,6 +127,7 @@ const insideLabelPlacements: Array<{ textAlign: CanvasTextAlign; textBaseline: C
 
 export class RadialGaugeSeries
     extends _ModuleSupport.Series<
+        RadialGaugeNodeDatumIndex,
         RadialGaugeNodeDatum,
         RadialGaugeSeriesProperties,
         RadialGaugeLabelDatum,
@@ -470,6 +473,7 @@ export class RadialGaugeSeries
                     series: this,
                     itemId: `value`,
                     datum,
+                    datumIndex: { type: NodeDataType.Node },
                     type: NodeDataType.Node,
                     centerX,
                     centerY,
@@ -489,6 +493,7 @@ export class RadialGaugeSeries
                 series: this,
                 itemId: `scale`,
                 datum,
+                datumIndex: { type: NodeDataType.Node },
                 type: NodeDataType.Node,
                 centerX,
                 centerY,
@@ -521,6 +526,7 @@ export class RadialGaugeSeries
                         series: this,
                         itemId: `value-${i}`,
                         datum,
+                        datumIndex: { type: NodeDataType.Node },
                         type: NodeDataType.Node,
                         centerX,
                         centerY,
@@ -540,6 +546,7 @@ export class RadialGaugeSeries
                     series: this,
                     itemId: `scale-${i}`,
                     datum,
+                    datumIndex: { type: NodeDataType.Node },
                     type: NodeDataType.Node,
                     centerX,
                     centerY,
@@ -660,6 +667,7 @@ export class RadialGaugeSeries
                     y: targetRadius * Math.sin(targetAngle) + centerY,
                 },
                 datum: { value: targetValue },
+                datumIndex: { type: NodeDataType.Target, index: i },
                 type: NodeDataType.Target,
                 value: targetValue,
                 text,

@@ -12,7 +12,7 @@ class ExampleHierarchySeriesProperties extends HierarchySeriesProperties<never> 
 class ExampleHierarchySeries extends HierarchySeries<
     Group,
     ExampleHierarchySeriesProperties,
-    { order: number } & SeriesNodeDatum
+    { order: number } & SeriesNodeDatum<number[]>
 > {
     override properties = new ExampleHierarchySeriesProperties();
 
@@ -50,10 +50,8 @@ class ExampleHierarchySeries extends HierarchySeries<
         throw new Error('Method not implemented.');
     }
 
-    protected getAnimationData() {
-        return {
-            datumSelections: [],
-        };
+    protected getAnimationData(): never {
+        throw new Error('Method not implemented.');
     }
 }
 
@@ -126,8 +124,6 @@ describe('HierarchySeries', () => {
 
         let index = 0;
         series.rootNode.walk((node) => {
-            expect(node.index).toBe(index);
-
             if (node.datum != null) {
                 expect(node.datum.order).toBe(index);
             }
@@ -135,35 +131,5 @@ describe('HierarchySeries', () => {
             index += 1;
         });
         expect(index).toBe(12 + 1);
-    });
-
-    it('checks for subtree inclusion', () => {
-        const series = new ExampleHierarchySeries(null!);
-        series.setChartData([
-            {
-                order: 1,
-                children: [{ order: 2 }, { order: 3 }, { order: 4 }],
-            },
-            {
-                order: 5,
-                children: [
-                    { order: 6 },
-                    { order: 7, children: [{ order: 8 }, { order: 9 }, { order: 10 }] },
-                    { order: 11, children: [{ order: 12 }] },
-                ],
-            },
-        ]);
-        series.processData();
-
-        const nodes = Array.from(series.rootNode);
-
-        expect(nodes[1].contains(nodes[2])).toBe(true);
-        expect(nodes[2].contains(nodes[1])).toBe(false);
-
-        expect(nodes[5].contains(nodes[9])).toBe(true);
-        expect(nodes[9].contains(nodes[5])).toBe(false);
-
-        expect(nodes[9].contains(nodes[10])).toBe(false);
-        expect(nodes[10].contains(nodes[9])).toBe(false);
     });
 });

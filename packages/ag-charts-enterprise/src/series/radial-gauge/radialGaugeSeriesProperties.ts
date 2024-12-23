@@ -54,7 +54,9 @@ export enum LabelType {
     Secondary = 'secondary',
 }
 
-export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+export type RadialGaugeNodeDatumIndex = { type: NodeDataType } | { type: NodeDataType.Target; index: number };
+
+export interface RadialGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum<RadialGaugeNodeDatumIndex> {
     type: NodeDataType.Node;
     centerX: number;
     centerY: number;
@@ -82,7 +84,7 @@ export interface RadialGaugeTargetDatumLabel {
     lineHeight: number | undefined;
 }
 
-export interface RadialGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
+export interface RadialGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum<RadialGaugeNodeDatumIndex> {
     type: NodeDataType.Target;
     value: number;
     text: string | undefined;

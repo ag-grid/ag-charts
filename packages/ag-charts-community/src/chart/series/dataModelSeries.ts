@@ -11,16 +11,17 @@ import { Series } from './series';
 import type { SeriesProperties } from './seriesProperties';
 import type { SeriesNodeDatum } from './seriesTypes';
 
-export interface DataModelSeriesNodeDatum extends SeriesNodeDatum {
-    datumIndex: number;
-}
+export interface DataModelSeriesNodeDatum extends SeriesNodeDatum<number> {}
+
+export interface DataModelSeriesNodeDataContext<TDatum, TLabel = TDatum>
+    extends SeriesNodeDataContext<number, TDatum, TLabel> {}
 
 export abstract class DataModelSeries<
-    TDatum extends SeriesNodeDatum,
+    TDatum extends SeriesNodeDatum<number>,
     TProps extends SeriesProperties<any>,
     TLabel = TDatum,
-    TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
-> extends Series<TDatum, TProps, TLabel, TContext> {
+    TContext extends DataModelSeriesNodeDataContext<TDatum, TLabel> = DataModelSeriesNodeDataContext<TDatum, TLabel>,
+> extends Series<number, TDatum, TProps, TLabel, TContext> {
     protected dataModel?: DataModel<any, any, any>;
     protected processedData?: ProcessedData<any>;
     protected showFocusBox: boolean = true;

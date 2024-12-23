@@ -29,6 +29,7 @@ interface HeatmapNodeDatum extends _ModuleSupport.CartesianSeriesNodeDatum {
 }
 
 interface HeatmapLabelDatum extends _ModuleSupport.Point {
+    datumIndex: number;
     series: _ModuleSupport.CartesianSeriesNodeDatum['series'];
     datum: any;
     itemId?: string;
@@ -265,6 +266,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
                     series: this,
                     itemId: yKey,
                     datum,
+                    datumIndex,
                     text,
                     fontSize,
                     lineHeight,

@@ -48,7 +48,7 @@ type HighlightEventTypes = 'hover' | 'drag' | 'click' | 'dblclick';
 export class SeriesAreaManager extends BaseManager {
     readonly id = createId(this);
 
-    private series: Series<any, any>[] = [];
+    private series: Series<any, any, any>[] = [];
     private seriesRect?: BBox;
     private hoverRect?: BBox;
     private readonly focusIndicator: FocusIndicator;
@@ -84,11 +84,11 @@ export class SeriesAreaManager extends BaseManager {
     private hoverDevice: 'mouse' | 'keyboard' = 'mouse';
 
     private readonly focus = {
-        sortedSeries: [] as Series<SeriesNodeDatum, SeriesProperties<object>>[],
-        series: undefined as Series<any, any> | undefined,
+        sortedSeries: [] as Series<unknown, SeriesNodeDatum<unknown>, SeriesProperties<object>>[],
+        series: undefined as Series<any, any, any> | undefined,
         seriesIndex: 0,
         datumIndex: 0,
-        datum: undefined as SeriesNodeDatum | undefined,
+        datum: undefined as SeriesNodeDatum<unknown> | undefined,
     };
 
     public constructor(private readonly chart: SeriesAreaChartDependencies) {
@@ -163,7 +163,7 @@ export class SeriesAreaManager extends BaseManager {
         this.chart.ctx.updateService.update(type, opts);
     }
 
-    public seriesChanged(series: Series<SeriesNodeDatum, SeriesProperties<object>>[]) {
+    public seriesChanged(series: Series<unknown, SeriesNodeDatum<unknown>, SeriesProperties<object>>[]) {
         this.focus.sortedSeries = [...series].sort((a, b) => {
             let fpA = a.properties.focusPriority ?? Infinity;
             let fpB = b.properties.focusPriority ?? Infinity;
@@ -197,7 +197,7 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        let pickedNode: SeriesNodeDatum | undefined;
+        let pickedNode: SeriesNodeDatum<unknown> | undefined;
         let position: { x: number; y: number } | undefined;
         if (this.focusIndicator.isFocusVisible()) {
             pickedNode = this.chart.ctx.highlightManager.getActiveHighlight();
@@ -437,7 +437,10 @@ export class SeriesAreaManager extends BaseManager {
         }
     }
 
-    private getDatumAriaText(datum: SeriesNodeDatum, tooltipContent: TooltipContent | string | undefined): string {
+    private getDatumAriaText(
+        datum: SeriesNodeDatum<unknown>,
+        tooltipContent: TooltipContent | string | undefined
+    ): string {
         const description = tooltipContent == null ? '' : tooltipContentAriaLabel(tooltipContent);
         return this.chart.ctx.localeManager.t('ariaAnnounceHoverDatum', {
             datum: datum.series.getDatumAriaText?.(datum, description) ?? description,

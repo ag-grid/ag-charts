@@ -4,14 +4,14 @@ import type { Series, SeriesNodePickIntent } from './series';
 import type { SeriesNodeDatum } from './seriesTypes';
 
 type PickedNode = {
-    series: Series<any, any>;
-    datum: SeriesNodeDatum;
+    series: Series<any, any, any>;
+    datum: SeriesNodeDatum<unknown>;
     distance: number;
 };
 
 // x/y are local canvas coordinates in CSS pixels, not actual pixels
 export function pickNode(
-    inputSeries: Series<any, any>[],
+    inputSeries: Series<any, any, any>[],
     point: Point,
     intent: SeriesNodePickIntent,
     exactMatchOnly?: boolean
@@ -20,7 +20,7 @@ export function pickNode(
     // declared series.
     const reverseSeries = [...inputSeries].reverse();
 
-    let result: { series: Series<any, any>; datum: SeriesNodeDatum; distance: number } | undefined;
+    let result: { series: Series<any, any, any>; datum: SeriesNodeDatum<unknown>; distance: number } | undefined;
     for (const series of reverseSeries) {
         if (!series.visible || !series.contentGroup.visible) {
             continue;

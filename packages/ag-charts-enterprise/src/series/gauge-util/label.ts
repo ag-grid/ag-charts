@@ -22,7 +22,11 @@ export function formatLabel(value: number | undefined, axis: _ModuleSupport.Char
     return value.toFixed(dp);
 }
 
-export function getLabelText(series: _ModuleSupport.Series<any, any>, datum: GaugeLabelDatum, valueOverride?: number) {
+export function getLabelText(
+    series: _ModuleSupport.Series<any, any, any>,
+    datum: GaugeLabelDatum,
+    valueOverride?: number
+) {
     if (datum.text != null) return datum.text;
 
     const value = valueOverride ?? datum.value;

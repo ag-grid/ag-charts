@@ -91,7 +91,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
             this.onSeriesChange(newValue, oldValue);
         },
     })
-    series: _ModuleSupport.Series<any, any>[] = [];
+    series: _ModuleSupport.Series<any, any, any>[] = [];
 
     constructor(private readonly ctx: _ModuleSupport.ModuleContext) {
         super();
@@ -110,7 +110,10 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         this._destroyed = true;
     }
 
-    private onSeriesChange(newValue: _ModuleSupport.Series<any, any>[], oldValue?: _ModuleSupport.Series<any, any>[]) {
+    private onSeriesChange(
+        newValue: _ModuleSupport.Series<any, any, any>[],
+        oldValue?: _ModuleSupport.Series<any, any, any>[]
+    ) {
         const seriesToDestroy = oldValue?.filter((series) => !newValue.includes(series)) ?? [];
         this.destroySeries(seriesToDestroy);
 
@@ -138,7 +141,7 @@ export class MiniChart extends _ModuleSupport.BaseModuleInstance implements _Mod
         }
     }
 
-    protected destroySeries(allSeries: _ModuleSupport.Series<any, any>[]): void {
+    protected destroySeries(allSeries: _ModuleSupport.Series<any, any, any>[]): void {
         allSeries?.forEach((series) => {
             series.destroy();
             series.detachSeries(this.seriesRoot, this.seriesRoot, undefined);

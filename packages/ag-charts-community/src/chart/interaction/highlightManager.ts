@@ -2,7 +2,7 @@ import { BaseManager } from '../../util/baseManager';
 import { StateTracker } from '../../util/stateTracker';
 import type { SeriesNodeDatum } from '../series/seriesTypes';
 
-export interface HighlightNodeDatum extends SeriesNodeDatum {
+export interface HighlightNodeDatum extends SeriesNodeDatum<unknown> {
     readonly xKey?: string;
     readonly yKey?: string;
     readonly colorValue?: number;
@@ -44,7 +44,7 @@ export class HighlightManager extends BaseManager<'highlight-change', HighlightC
         return this.activeHighlight;
     }
 
-    private isEqual(a?: SeriesNodeDatum, b?: SeriesNodeDatum) {
+    private isEqual(a?: SeriesNodeDatum<unknown>, b?: SeriesNodeDatum<unknown>) {
         return (
             a === b ||
             (a != null && b != null && a?.series === b?.series && a?.itemId === b?.itemId && a?.datum === b?.datum)

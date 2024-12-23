@@ -66,7 +66,9 @@ export enum NodeDataType {
     Target,
 }
 
-export interface LinearGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum {
+export type LinearGaugeNodeDatumIndex = { type: NodeDataType } | { type: NodeDataType.Target; index: number };
+
+export interface LinearGaugeNodeDatum extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex> {
     type: NodeDataType.Node;
     x0: number;
     y0: number;
@@ -98,7 +100,7 @@ export interface LinearGaugeTargetDatumLabel {
     lineHeight: number | undefined;
 }
 
-export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum {
+export interface LinearGaugeTargetDatum extends _ModuleSupport.SeriesNodeDatum<LinearGaugeNodeDatumIndex> {
     type: NodeDataType.Target;
     value: number;
     text: string | undefined;

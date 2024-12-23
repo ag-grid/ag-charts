@@ -3,25 +3,21 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
 
-const {
-    DataModelSeries,
-    DataController,
-    Validate,
-    ARRAY,
-    keyProperty,
-    valueProperty,
-    Selection,
-    Group,
-    TransformableText,
-} = _ModuleSupport;
+const { Series, DataController, Validate, ARRAY, keyProperty, valueProperty, Selection, Group, TransformableText } =
+    _ModuleSupport;
 
 export enum FlowProportionDatumType {
     Link,
     Node,
 }
 
+export type FlowProportionNodeDatumIndex = {
+    type: FlowProportionDatumType;
+    index: number;
+};
+
 export interface FlowProportionLinkDatum<TNodeDatum extends FlowProportionNodeDatum>
-    extends _ModuleSupport.DataModelSeriesNodeDatum {
+    extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Link;
     index: number;
     fromNode: TNodeDatum;
@@ -29,13 +25,19 @@ export interface FlowProportionLinkDatum<TNodeDatum extends FlowProportionNodeDa
     size: number;
 }
 
-export interface FlowProportionNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {
+export interface FlowProportionNodeDatum extends _ModuleSupport.SeriesNodeDatum<FlowProportionNodeDatumIndex> {
     type: FlowProportionDatumType.Node;
     index: number;
     id: string;
     size: number;
     label: string | undefined;
 }
+
+export interface FlowProportionSeriesContext<
+    TNodeDatum extends FlowProportionNodeDatum,
+    TLinkDatum extends FlowProportionLinkDatum<TNodeDatum>,
+    TLabel,
+> extends _ModuleSupport.SeriesNodeDataContext<FlowProportionNodeDatumIndex, TDatum<TNodeDatum, TLinkDatum>, TLabel> {}
 
 type TDatum<TNodeDatum extends FlowProportionNodeDatum, TLinkDatum extends FlowProportionLinkDatum<TNodeDatum>> =
     | TLinkDatum
@@ -49,11 +51,12 @@ export abstract class FlowProportionSeries<
         TNode extends _ModuleSupport.Node & _ModuleSupport.DistantObject,
         TLink extends _ModuleSupport.Node & _ModuleSupport.DistantObject,
     >
-    extends DataModelSeries<
+    extends Series<
+        FlowProportionNodeDatumIndex,
         TDatum<TNodeDatum, TLinkDatum>,
         TProps,
         TLabel,
-        _ModuleSupport.SeriesNodeDataContext<TDatum<TNodeDatum, TLinkDatum>, TLabel>
+        _ModuleSupport.SeriesNodeDataContext<FlowProportionNodeDatumIndex, TDatum<TNodeDatum, TLinkDatum>, TLabel>
     >
     implements _ModuleSupport.FlowProportionSeries
 {
@@ -69,10 +72,17 @@ export abstract class FlowProportionSeries<
     protected nodeCount: number = 0;
     protected linkCount: number = 0;
 
+    protected linksDataModel: _ModuleSupport.DataModel<any, any, true> | undefined = undefined;
+    protected linksProcessedData: _ModuleSupport.ProcessedData<any> | undefined = undefined;
+
     protected nodesDataModel: _ModuleSupport.DataModel<any, any, true> | undefined = undefined;
     protected nodesProcessedData: _ModuleSupport.ProcessedData<any> | undefined = undefined;
 
-    public contextNodeData?: _ModuleSupport.SeriesNodeDataContext<TDatum<TNodeDatum, TLinkDatum>, TLabel>;
+    public contextNodeData?: _ModuleSupport.SeriesNodeDataContext<
+        FlowProportionNodeDatumIndex,
+        TDatum<TNodeDatum, TLinkDatum>,
+        TLabel
+    >;
 
     private processedNodes = new Map<string, FlowProportionNodeDatum>();
 
@@ -117,10 +127,6 @@ export abstract class FlowProportionSeries<
         }
     }
 
-    public override getNodeData(): TDatum<TNodeDatum, TLinkDatum>[] | undefined {
-        return this.contextNodeData?.nodeData;
-    }
-
     protected abstract linkFactory(): TLink;
     protected abstract nodeFactory(): TNode;
 
@@ -147,7 +153,7 @@ export abstract class FlowProportionSeries<
                   })
                 : null;
 
-        const linksDataModelPromise = this.requestDataModel<any, any, false>(dataController, data, {
+        const linksDataModelPromise = dataController.request<any, any, false>(this.id, data, {
             props: [
                 valueProperty(fromKey, undefined, { id: 'fromValue', includeProperty: false }),
                 valueProperty(toKey, undefined, { id: 'toValue', includeProperty: false }),
@@ -188,7 +194,7 @@ export abstract class FlowProportionSeries<
                     series: this,
                     itemId: undefined,
                     datum: {}, // Must be a referential object for tooltips
-                    datumIndex,
+                    datumIndex: { type: FlowProportionDatumType.Node, index: datumIndex },
                     type: FlowProportionDatumType.Node,
                     index: datumIndex,
                     id,
@@ -233,7 +239,7 @@ export abstract class FlowProportionSeries<
                     series: this,
                     itemId: undefined,
                     datum,
-                    datumIndex,
+                    datumIndex: { type: FlowProportionDatumType.Node, index: datumIndex },
                     type: FlowProportionDatumType.Node,
                     index: datumIndex,
                     id,
@@ -251,7 +257,7 @@ export abstract class FlowProportionSeries<
         createLink: (link: FlowProportionLinkDatum<TNodeDatum>) => TLinkDatum,
         { includeCircularReferences }: { includeCircularReferences: boolean }
     ) {
-        const { dataModel: linksDataModel, processedData: linksProcessedData } = this;
+        const { linksDataModel, linksProcessedData } = this;
 
         if (linksDataModel == null || linksProcessedData == null || linksProcessedData.rawData.length === 0) {
             const { links, nodeGraph, maxPathLength } = computeNodeGraph(
@@ -293,7 +299,7 @@ export abstract class FlowProportionSeries<
                 series: this,
                 itemId: undefined,
                 datum,
-                datumIndex,
+                datumIndex: { type: FlowProportionDatumType.Link, index: datumIndex },
                 type: FlowProportionDatumType.Link,
                 index: datumIndex,
                 fromNode,
@@ -531,7 +537,7 @@ export abstract class FlowProportionSeries<
 
     override pickNodeClosestDatum({ x, y }: _ModuleSupport.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
 
         this.linkSelection.each((node, datum) => {
             // @todo(AG-11712) Links don't implement distance squared

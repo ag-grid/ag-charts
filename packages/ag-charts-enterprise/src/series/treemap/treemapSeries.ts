@@ -1,6 +1,8 @@
 import {
     type AgTreemapSeriesStyle,
     type FontOptions,
+    type FontStyle,
+    type FontWeight,
     type TextAlign,
     type VerticalAlign,
     _ModuleSupport,
@@ -12,7 +14,6 @@ import { TreemapSeriesProperties } from './treemapSeriesProperties';
 const {
     TextUtils,
     TextWrapper,
-    clamp,
     isNumberEqual,
     createDatumId,
     Rect,
@@ -20,9 +21,18 @@ const {
     BBox,
     Selection,
     Text,
-    Transformable,
+    // Transformable,
     applyShapeStyle,
 } = _ModuleSupport;
+
+class TreemapNode extends _ModuleSupport.HierarchyNode<TreemapNode> {
+    labelValue: string | undefined = undefined;
+    secondaryLabelValue: string | undefined = undefined;
+    label: LabelLayout | undefined = undefined;
+    secondaryLabel: LabelLayout | undefined = undefined;
+    bbox: _ModuleSupport.BBox | undefined = undefined;
+    padding: Padding | undefined = undefined;
+}
 
 type Side = 'left' | 'right' | 'top' | 'bottom';
 
@@ -33,9 +43,18 @@ interface Padding {
     left: number;
 }
 
-interface LabelData {
-    label: string | undefined;
-    secondaryLabel: string | undefined;
+interface LabelLayout {
+    text: string;
+    fontSize: number;
+    lineHeight: number;
+    fontStyle: FontStyle;
+    fontFamily: string;
+    fontWeight: FontWeight;
+    color: string;
+    textAlign: TextAlign;
+    verticalAlign: VerticalAlign;
+    x: number;
+    y: number;
 }
 
 enum TextNodeTag {
@@ -64,7 +83,7 @@ function getTextSize(text: string, style: FontOptions): { width: number; height:
     return { width, height };
 }
 
-function nodeSize(node: _ModuleSupport.HierarchyNode) {
+function nodeSize(node: TreemapNode) {
     return node.children.length > 0 ? node.sumSize - node.sizeValue : node.sizeValue;
 }
 
@@ -86,11 +105,11 @@ class DistantGroup extends _ModuleSupport.Group implements _ModuleSupport.Distan
     }
 }
 
-export class TreemapSeries<
-    TDatum extends _ModuleSupport.SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum,
-> extends _ModuleSupport.HierarchySeries<DistantGroup, TreemapSeriesProperties, TDatum> {
+export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, TreemapSeriesProperties, TreemapNode> {
     static readonly className = 'TreemapSeries';
     static readonly type = 'treemap' as const;
+
+    override NodeClass = TreemapNode;
 
     override properties = new TreemapSeriesProperties();
 
@@ -98,19 +117,18 @@ export class TreemapSeries<
 
     private readonly rectSelection = Selection.select(this.rectGroup, Rect);
     private readonly labelSelection = Selection.select(this.labelGroup, Group);
-    private readonly highlightSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, _ModuleSupport.HierarchyNode> =
-        Selection.select(this.rectGroup, Rect);
+    private readonly highlightSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, TreemapNode> = Selection.select(
+        this.rectGroup,
+        Rect
+    );
 
-    private labelData?: (LabelData | undefined)[];
-
-    private groupTitleHeight(node: _ModuleSupport.HierarchyNode, bbox: _ModuleSupport.BBox): number | undefined {
-        const label = this.labelData?.[node.index]?.label;
-
+    private groupTitleHeight(node: TreemapNode, bbox: _ModuleSupport.BBox): number | undefined {
+        const { labelValue } = node;
         const { label: font } = this.properties.group;
 
         const heightRatioThreshold = 3;
 
-        if (label == null) {
+        if (labelValue == null) {
             return;
         } else if (
             font.fontSize > bbox.width / heightRatioThreshold ||
@@ -118,13 +136,13 @@ export class TreemapSeries<
         ) {
             return;
         } else {
-            const { height: fontHeight } = getTextSize(label, font);
+            const { height: fontHeight } = getTextSize(labelValue, font);
             return Math.max(fontHeight, font.fontSize);
         }
     }
 
-    private getNodePadding(node: _ModuleSupport.HierarchyNode, bbox: _ModuleSupport.BBox) {
-        if (node.index === 0) {
+    private getNodePadding(node: TreemapNode, bbox: _ModuleSupport.BBox) {
+        if (node.parent == null) {
             return {
                 top: 0,
                 right: 0,
@@ -156,71 +174,12 @@ export class TreemapSeries<
         };
     }
 
-    override processData() {
-        super.processData();
-
-        const { childrenKey, colorKey, colorName, labelKey, secondaryLabelKey, sizeKey, sizeName, tile, group } =
-            this.properties;
-
-        if (!this.data?.length) {
-            this.labelData = undefined;
-            return;
-        }
-
-        this.labelData = Array.from(this.rootNode, ({ datum, depth, children }): LabelData | undefined => {
-            const isLeaf = children.length === 0;
-
-            const labelStyle = isLeaf ? tile.label : group.label;
-            let label: string | undefined;
-            if (datum != null && depth != null && labelKey != null) {
-                const value = (datum as any)[labelKey];
-                label = this.getLabelText(labelStyle, {
-                    depth,
-                    datum,
-                    childrenKey,
-                    colorKey,
-                    colorName,
-                    labelKey,
-                    secondaryLabelKey,
-                    sizeKey,
-                    sizeName,
-                    value,
-                });
-            }
-            if (label === '') {
-                label = undefined;
-            }
-
-            let secondaryLabel: string | undefined;
-            if (isLeaf && datum != null && depth != null && secondaryLabelKey != null) {
-                const value = (datum as any)[secondaryLabelKey];
-                secondaryLabel = this.getLabelText(tile.secondaryLabel, {
-                    depth,
-                    datum,
-                    childrenKey,
-                    colorKey,
-                    colorName,
-                    labelKey,
-                    secondaryLabelKey,
-                    sizeKey,
-                    sizeName,
-                    value,
-                });
-            }
-            if (secondaryLabel === '') {
-                secondaryLabel = undefined;
-            }
-
-            return label != null || secondaryLabel != null ? { label, secondaryLabel } : undefined;
-        });
-    }
-
-    private sortChildren({ children }: _ModuleSupport.HierarchyNode<TDatum>) {
+    private sortChildren({ children }: TreemapNode) {
         const sortedChildrenIndices: number[] = Array.from(children, (_, i) => i)
             .filter((i) => nodeSize(children[i]) > 0)
             .sort((aIndex, bIndex) => nodeSize(children[bIndex]) - nodeSize(children[aIndex]));
 
-        const childAt = (i: number): _ModuleSupport.HierarchyNode<TDatum> => {
+        const childAt = (i: number): TreemapNode => {
             const sortedIndex = sortedChildrenIndices[i];
             return children[sortedIndex];
         };
@@ -231,24 +190,30 @@ export class TreemapSeries<
      * Squarified Treemap algorithm
      * https://www.win.tue.nl/~vanwijk/stm.pdf
      */
-    private squarify(
-        node: _ModuleSupport.HierarchyNode<TDatum>,
-        bbox: _ModuleSupport.BBox,
-        outputBoxes: (_ModuleSupport.BBox | undefined)[],
-        outputPadding: (Padding | undefined)[]
-    ) {
-        const { index, datum, children } = node;
+    private squarify(node: TreemapNode, bbox: _ModuleSupport.BBox) {
+        const { datum, children } = node;
 
         if (bbox.width <= 0 || bbox.height <= 0) {
-            outputBoxes[index] = undefined;
-            outputPadding[index] = undefined;
+            node.bbox = undefined;
+            node.padding = undefined;
+            node.midPoint.x = NaN;
+            node.midPoint.y = NaN;
             return;
         }
 
         const padding = datum != null ? this.getNodePadding(node, bbox) : { top: 0, right: 0, bottom: 0, left: 0 };
 
-        outputBoxes[index] = index === 0 ? undefined : bbox;
-        outputPadding[index] = index === 0 ? undefined : padding;
+        if (node.parent == null) {
+            node.bbox = undefined;
+            node.padding = undefined;
+            node.midPoint.x = NaN;
+            node.midPoint.y = NaN;
+        } else {
+            node.bbox = bbox;
+            node.padding = padding;
+            node.midPoint.x = bbox.x + bbox.width / 2;
+            node.midPoint.y = bbox.y + bbox.height / 2;
+        }
 
         const { sortedChildrenIndices, childAt } = this.sortChildren(node);
 
@@ -304,7 +269,7 @@ export class TreemapSeries<
 
                 const childBbox = new BBox(x, y, stackWidth, stackHeight);
                 this.applyGap(innerBox, childBbox, allLeafNodes);
-                this.squarify(child, childBbox, outputBoxes, outputPadding);
+                this.squarify(child, childBbox);
 
                 partitionSum -= childSize;
                 start += length;
@@ -335,7 +300,7 @@ export class TreemapSeries<
             const childHeight = partition.height * (isVertical ? 1 : part);
             const childBox = new BBox(x, y, childWidth, childHeight);
             this.applyGap(innerBox, childBox, allLeafNodes);
-            this.squarify(child, childBox, outputBoxes, outputPadding);
+            this.squarify(child, childBox);
             start += isVertical ? childWidth : childHeight;
         }
     }
@@ -376,7 +341,7 @@ export class TreemapSeries<
     }
 
     private getGroupStyleOverrides(
-        datumId: string,
+        datumId: number[],
         datum: any,
         depth: number,
         format: ItemStyle,
@@ -398,7 +363,7 @@ export class TreemapSeries<
 
         if (itemStyler != null) {
             const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                createDatumId(datumId.join(':'), highlighted ? 'highlight' : 'node'),
                 () => {
                     return itemStyler({
                         seriesId,
@@ -432,16 +397,17 @@ export class TreemapSeries<
     }
 
     private getTileStyleOverrides(
-        datumId: string,
+        datumId: number[],
         datum: any,
         depth: number,
-        rootIndex: number,
         colorValue: number | undefined,
         format: ItemStyle,
         highlighted: boolean
     ) {
         const { id: seriesId, properties, colorScale } = this;
         const { fills, strokes, itemStyler } = properties;
+
+        const rootIndex = datumId[0];
 
         const fill = format.fill ?? fills[rootIndex % fills.length];
         const stroke = format.stroke ?? strokes[rootIndex % strokes.length];
@@ -455,7 +421,7 @@ export class TreemapSeries<
 
         if (itemStyler != null) {
             const itemStyle = this.cachedDatumCallback(
-                createDatumId(datumId, highlighted ? 'highlight' : 'node'),
+                createDatumId(datumId.join(':'), highlighted ? 'highlight' : 'node'),
                 () => {
                     return itemStyler({
                         seriesId,
@@ -476,8 +442,7 @@ export class TreemapSeries<
     }
 
     override updateSelections() {
-        let highlightedNode: _ModuleSupport.HierarchyNode | undefined =
-            this.ctx.highlightManager?.getActiveHighlight() as any;
+        let highlightedNode: TreemapNode | undefined = this.ctx.highlightManager?.getActiveHighlight() as any;
         if (highlightedNode != null && !this.properties.group.interactive && highlightedNode.children.length !== 0) {
             highlightedNode = undefined;
         }
@@ -494,7 +459,7 @@ export class TreemapSeries<
         const { seriesRect } = this.chart ?? {};
         if (!seriesRect) return;
 
-        const descendants = Array.from(this.rootNode);
+        const descendants = Array.from(this.rootNode!);
 
         const updateLabelGroup = (group: _ModuleSupport.Group) => {
             group.append([new Text({ tag: TextNodeTag.Primary }), new Text({ tag: TextNodeTag.Secondary })]);
@@ -506,38 +471,214 @@ export class TreemapSeries<
 
     updateNodes() {
         const { rootNode, data } = this;
-        const { highlightStyle, tile, group } = this.properties;
+        const {
+            childrenKey,
+            colorKey,
+            colorName,
+            labelKey,
+            secondaryLabelKey,
+            sizeKey,
+            sizeName,
+            highlightStyle,
+            tile,
+            group,
+        } = this.properties;
         const { seriesRect } = this.chart ?? {};
 
         if (!seriesRect || !data) return;
 
-        const { width, height } = seriesRect;
-        const bboxes: (_ModuleSupport.BBox | undefined)[] = Array.from(this.rootNode, () => undefined);
-        const paddings: (Padding | undefined)[] = Array.from(this.rootNode, () => undefined);
-        this.squarify(rootNode, new BBox(0, 0, width, height), bboxes, paddings);
+        this.rootNode?.walk((node) => {
+            const { datum, depth, children } = node;
+            const isLeaf = children.length === 0;
 
-        this.updateNodeMidPoint(bboxes);
+            const labelStyle = isLeaf ? tile.label : group.label;
+            let labelValue: string | undefined;
+            if (datum != null && depth != null && labelKey != null) {
+                const value = (datum as any)[labelKey];
+                labelValue = this.getLabelText(labelStyle, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    colorName,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    sizeName,
+                    value,
+                });
+            }
+            if (labelValue === '') {
+                labelValue = undefined;
+            }
+
+            let secondaryLabelValue: string | undefined;
+            if (isLeaf && datum != null && depth != null && secondaryLabelKey != null) {
+                const value = (datum as any)[secondaryLabelKey];
+                secondaryLabelValue = this.getLabelText(tile.secondaryLabel, {
+                    depth,
+                    datum,
+                    childrenKey,
+                    colorKey,
+                    colorName,
+                    labelKey,
+                    secondaryLabelKey,
+                    sizeKey,
+                    sizeName,
+                    value,
+                });
+            }
+            if (secondaryLabelValue === '') {
+                secondaryLabelValue = undefined;
+            }
+
+            node.labelValue = labelValue;
+            node.secondaryLabelValue = secondaryLabelValue;
+        });
+
+        const { width, height } = seriesRect;
+        this.squarify(rootNode!, new BBox(0, 0, width, height));
+
+        this.rootNode?.walk((node) => {
+            const { bbox, children, labelValue, secondaryLabelValue } = node;
+
+            node.label = undefined;
+            node.secondaryLabel = undefined;
+
+            if (bbox == null) return;
+
+            if (children.length === 0) {
+                const layout = {
+                    width: bbox.width,
+                    height: bbox.height,
+                    meta: null,
+                };
+                const formatting = formatLabels(
+                    labelValue,
+                    this.properties.tile.label,
+                    secondaryLabelValue,
+                    this.properties.tile.secondaryLabel,
+                    { padding: tile.padding },
+                    () => layout
+                );
+                if (formatting == null) {
+                    return;
+                }
+
+                const { height: labelHeight, label, secondaryLabel } = formatting;
+                const { textAlign, verticalAlign, padding } = tile;
+
+                const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
+                const labelX = bbox.x + padding + (bbox.width - 2 * padding) * textAlignFactor;
+
+                const verticalAlignFactor = verticalAlignFactors[verticalAlign] ?? 0.5;
+                const labelYStart =
+                    bbox.y +
+                    padding +
+                    labelHeight * 0.5 +
+                    (bbox.height - 2 * padding - labelHeight) * verticalAlignFactor;
+
+                if (label != null) {
+                    const {
+                        fontStyle = 'normal',
+                        fontFamily,
+                        fontWeight = 'normal',
+                        color = 'black',
+                    } = this.properties.tile.label;
+                    node.label = {
+                        text: label.text,
+                        fontSize: label.fontSize,
+                        lineHeight: label.lineHeight,
+                        fontStyle,
+                        fontFamily,
+                        fontWeight,
+                        color,
+                        textAlign,
+                        verticalAlign: 'middle',
+                        x: labelX,
+                        y: labelYStart - (labelHeight - label.height) * 0.5,
+                    };
+                }
+                if (secondaryLabel != null) {
+                    const {
+                        fontStyle = 'normal',
+                        fontFamily,
+                        fontWeight = 'normal',
+                        color = 'black',
+                    } = this.properties.tile.secondaryLabel;
+                    node.secondaryLabel = {
+                        text: secondaryLabel.text,
+                        fontSize: secondaryLabel.fontSize,
+                        lineHeight: secondaryLabel.fontSize,
+                        fontStyle,
+                        fontFamily,
+                        fontWeight,
+                        color,
+                        textAlign,
+                        verticalAlign: 'middle',
+                        x: labelX,
+                        y: labelYStart + (labelHeight - secondaryLabel.height) * 0.5,
+                    };
+                }
+            } else if (labelValue == null) {
+                return;
+            } else {
+                const { padding, textAlign } = group;
+
+                const groupTitleHeight = this.groupTitleHeight(node, bbox);
+                if (groupTitleHeight == null) return;
+
+                const innerWidth = bbox.width - 2 * padding;
+                const text = TextWrapper.wrapText(labelValue, {
+                    maxWidth: bbox.width - 2 * padding,
+                    font: group.label,
+                    textWrap: 'never',
+                });
+                const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
+
+                const {
+                    fontStyle = 'normal',
+                    fontFamily,
+                    fontWeight = 'normal',
+                    color = 'black',
+                } = this.properties.group.label;
+
+                node.label = {
+                    text,
+                    fontSize: group.label.fontSize,
+                    lineHeight: TextUtils.getLineHeight(group.label.fontSize),
+                    fontStyle,
+                    fontFamily,
+                    fontWeight,
+                    color,
+                    textAlign,
+                    verticalAlign: 'middle',
+                    x: bbox.x + padding + innerWidth * textAlignFactor,
+                    y: bbox.y + padding + groupTitleHeight * 0.5,
+                };
+            }
+        });
 
         const updateRectFn = (
-            node: _ModuleSupport.HierarchyNode,
+            node: TreemapNode,
             rect: _ModuleSupport.Rect,
             groupStyle: ItemStyle,
             tileStyle: ItemStyle,
             highlighted: boolean
         ) => {
-            const bbox = bboxes[node.index];
+            const { bbox } = node;
             if (bbox == null) {
                 rect.visible = false;
                 return;
             }
 
-            const { datum, depth = -1, index, rootIndex, colorValue } = node;
+            const { datum, depth = -1, datumIndex, colorValue } = node;
             const isLeaf = node.children.length === 0;
 
             const style = isLeaf ? tileStyle : groupStyle;
             const overrides = isLeaf
-                ? this.getTileStyleOverrides(String(index), datum, depth, rootIndex, colorValue, style, highlighted)
-                : this.getGroupStyleOverrides(String(index), datum, depth, style, highlighted);
+                ? this.getTileStyleOverrides(datumIndex, datum, depth, colorValue, style, highlighted)
+                : this.getGroupStyleOverrides(datumIndex, datum, depth, style, highlighted);
 
             rect.crisp = true;
 
@@ -547,8 +688,8 @@ export class TreemapSeries<
             rect.zIndex = [0, depth, highlighted ? 1 : 0];
 
             const onlyLeaves = node.parent?.children.every((n) => n.children.length === 0);
-            const parentBbox = node.parent != null ? bboxes[node.parent.index] : undefined;
-            const parentPadding = node.parent != null ? paddings[node.parent.index] : undefined;
+            const parentBbox = node.parent != null ? node.parent.bbox : undefined;
+            const parentPadding = node.parent != null ? node.parent.padding : undefined;
             if (onlyLeaves === true && parentBbox != null && parentPadding != null) {
                 rect.clipBBox = bbox;
                 rect.x = parentBbox.x + parentPadding.left;
@@ -576,116 +717,15 @@ export class TreemapSeries<
             updateRectFn(datum, rect, highlightGroupFormat, highlightTileFormat, true);
         });
 
-        const labelMeta = Array.from(this.rootNode, (node) => {
-            const { index, children } = node;
-            const bbox = bboxes[index];
-            const labelDatum = this.labelData?.[index];
-
-            if (bbox == null || labelDatum == null) {
-                return;
-            }
-
-            if (children.length === 0) {
-                const layout = {
-                    width: bbox.width,
-                    height: bbox.height,
-                    meta: null,
-                };
-                const formatting = formatLabels(
-                    labelDatum.label,
-                    this.properties.tile.label,
-                    labelDatum.secondaryLabel,
-                    this.properties.tile.secondaryLabel,
-                    { padding: tile.padding },
-                    () => layout
-                );
-                if (formatting == null) {
-                    return;
-                }
-
-                const { height: labelHeight, label, secondaryLabel } = formatting;
-                const { textAlign, verticalAlign, padding } = tile;
-
-                const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
-                const labelX = bbox.x + padding + (bbox.width - 2 * padding) * textAlignFactor;
-
-                const verticalAlignFactor = verticalAlignFactors[verticalAlign] ?? 0.5;
-                const labelYStart =
-                    bbox.y +
-                    padding +
-                    labelHeight * 0.5 +
-                    (bbox.height - 2 * padding - labelHeight) * verticalAlignFactor;
-
-                return {
-                    label:
-                        label != null
-                            ? {
-                                  text: label.text,
-                                  fontSize: label.fontSize,
-                                  lineHeight: label.lineHeight,
-                                  style: this.properties.tile.label,
-                                  x: labelX,
-                                  y: labelYStart - (labelHeight - label.height) * 0.5,
-                              }
-                            : undefined,
-                    secondaryLabel:
-                        secondaryLabel != null
-                            ? {
-                                  text: secondaryLabel.text,
-                                  fontSize: secondaryLabel.fontSize,
-                                  lineHeight: secondaryLabel.fontSize,
-                                  style: this.properties.tile.secondaryLabel,
-                                  x: labelX,
-                                  y: labelYStart + (labelHeight - secondaryLabel.height) * 0.5,
-                              }
-                            : undefined,
-                    verticalAlign: 'middle' as const,
-                    textAlign,
-                };
-            } else if (labelDatum?.label == null) {
-                return;
-            } else {
-                const { padding, textAlign } = group;
-
-                const groupTitleHeight = this.groupTitleHeight(node, bbox);
-                if (groupTitleHeight == null) {
-                    return;
-                }
-
-                const innerWidth = bbox.width - 2 * padding;
-                const text = TextWrapper.wrapText(labelDatum.label, {
-                    maxWidth: bbox.width - 2 * padding,
-                    font: group.label,
-                    textWrap: 'never',
-                });
-                const textAlignFactor = textAlignFactors[textAlign] ?? 0.5;
-
-                return {
-                    label: {
-                        text,
-                        fontSize: group.label.fontSize,
-                        lineHeight: TextUtils.getLineHeight(group.label.fontSize),
-                        style: this.properties.group.label,
-                        x: bbox.x + padding + innerWidth * textAlignFactor,
-                        y: bbox.y + padding + groupTitleHeight * 0.5,
-                    },
-                    secondaryLabel: undefined,
-                    verticalAlign: 'middle' as const,
-                    textAlign,
-                };
-            }
-        });
-
         const updateLabelFn = (
-            node: _ModuleSupport.HierarchyNode,
+            node: TreemapNode,
             text: _ModuleSupport.Text,
             tag: TextNodeTag,
             highlighted: boolean
         ) => {
             const isLeaf = node.children.length === 0;
-            const meta = labelMeta[node.index];
-            const label = tag === TextNodeTag.Primary ? meta?.label : meta?.secondaryLabel;
-            if (meta == null || label == null) {
+            const label = tag === TextNodeTag.Primary ? node.label : node.secondaryLabel;
+            if (label == null) {
                 text.visible = false;
                 return;
             }
@@ -705,14 +745,12 @@ export class TreemapSeries<
             text.text = label.text;
             text.fontSize = label.fontSize;
             text.lineHeight = label.lineHeight;
-
-            text.fontStyle = label.style.fontStyle;
-            text.fontFamily = label.style.fontFamily;
-            text.fontWeight = label.style.fontWeight;
-            text.fill = highlightedColor ?? label.style.color;
-
-            text.textAlign = meta.textAlign;
-            text.textBaseline = meta.verticalAlign;
+            text.fontStyle = label.fontStyle;
+            text.fontFamily = label.fontFamily;
+            text.fontWeight = label.fontWeight;
+            text.fill = highlightedColor ?? label.color;
+            text.textAlign = label.textAlign;
+            text.textBaseline = label.verticalAlign;
             text.x = label.x;
             text.y = label.y;
             text.visible = true;
@@ -721,16 +759,6 @@ export class TreemapSeries<
         };
         this.labelSelection.selectByClass(Text).forEach((text) => {
             updateLabelFn(text.datum, text, text.tag, false);
-        });
-    }
-
-    private updateNodeMidPoint(bboxes: (_ModuleSupport.BBox | undefined)[]) {
-        this.rootNode.walk((node) => {
-            const bbox = bboxes[node.index];
-            if (bbox != null) {
-                node.midPoint.x = bbox.x + bbox.width / 2;
-                node.midPoint.y = bbox.y;
-            }
         });
     }
 
@@ -748,13 +776,11 @@ export class TreemapSeries<
         return this.pickNodeNearestDistantObject(point, this.rectSelection.nodes());
     }
 
-    override getTooltipContent(
-        nodeDatum: _ModuleSupport.HierarchyNode
-    ): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: TreemapNode): _ModuleSupport.TooltipContent | string | undefined {
         const { id: seriesId, properties } = this;
         const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
             properties;
-        const { datum, index, rootIndex, depth, children } = nodeDatum;
+        const { datum, datumIndex, depth, children } = nodeDatum;
         if (datum == null || depth == null) return;
 
         const isLeaf = children.length === 0;
@@ -774,13 +800,10 @@ export class TreemapSeries<
         let format: Required<ItemStyle>;
         if (isLeaf) {
             format = this.getTileBaseStyle(false) as Required<ItemStyle>;
-            Object.assign(
-                format,
-                this.getTileStyleOverrides(String(index), datum, depth, rootIndex, datumColor, format, false)
-            );
+            Object.assign(format, this.getTileStyleOverrides(datumIndex, datum, depth, datumColor, format, false));
         } else {
             format = this.getGroupBaseStyle(false) as Required<ItemStyle>;
-            Object.assign(format, this.getGroupStyleOverrides(String(index), datum, depth, format, false));
+            Object.assign(format, this.getGroupStyleOverrides(datumIndex, datum, depth, format, false));
         }
 
         const color = format.fill;
@@ -823,41 +846,38 @@ export class TreemapSeries<
         );
     }
 
-    private focusSorted?: { childAt: (i: number) => _ModuleSupport.HierarchyNode<TDatum> };
+    public override pickFocus(_opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
+        return undefined;
+        // // Initialise this.focusSorted
+        // if (path.length < 2 || this.focusSorted == null) {
+        //     path.length = 1;
+        //     this.focusSorted = this.sortChildren(path[0].nodeDatum);
+        //     path.push({ nodeDatum: this.focusSorted.childAt(0), childIndex: 0 });
+        // }
 
-    public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
-        const { focusPath: path } = this;
+        // const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
+        // const current = path[path.length - 1];
 
-        // Initialise this.focusSorted
-        if (path.length < 2 || this.focusSorted == null) {
-            path.length = 1;
-            this.focusSorted = this.sortChildren(path[0].nodeDatum);
-            path.push({ nodeDatum: this.focusSorted.childAt(0), childIndex: 0 });
-        }
+        // if (depthDelta === 1) {
+        //     if (current.nodeDatum.children.length > 0) {
+        //         this.focusSorted = this.sortChildren(current.nodeDatum);
+        //         const newFocus = { nodeDatum: this.focusSorted.childAt(0), childIndex: 0 };
+        //         path.push(newFocus);
+        //         return this.computeFocusOutputs(newFocus);
+        //     }
+        // } else if (childDelta !== 0) {
+        //     const targetIndex = current.childIndex + childDelta;
+        //     const maxIndex = (current.nodeDatum.parent?.children.length ?? 1) - 1;
+        //     current.childIndex = clamp(0, targetIndex, maxIndex);
+        //     current.nodeDatum = this.focusSorted.childAt(current.childIndex);
+        //     return this.computeFocusOutputs(current);
+        // }
 
-        const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
-        const current = path[path.length - 1];
-
-        if (depthDelta === 1) {
-            if (current.nodeDatum.children.length > 0) {
-                this.focusSorted = this.sortChildren(current.nodeDatum);
-                const newFocus = { nodeDatum: this.focusSorted.childAt(0), childIndex: 0 };
-                path.push(newFocus);
-                return this.computeFocusOutputs(newFocus);
-            }
-        } else if (childDelta !== 0) {
-            const targetIndex = current.childIndex + childDelta;
-            const maxIndex = (current.nodeDatum.parent?.children.length ?? 1) - 1;
-            current.childIndex = clamp(0, targetIndex, maxIndex);
-            current.nodeDatum = this.focusSorted.childAt(current.childIndex);
-            return this.computeFocusOutputs(current);
-        }
-
-        const result = super.pickFocus(opts);
-        if (depthDelta < 0) {
-            this.focusSorted = this.sortChildren(path[path.length - 1].nodeDatum.parent!);
-        }
-        return result;
+        // const result = super.pickFocus(opts);
+        // if (depthDelta < 0) {
+        //     this.focusSorted = this.sortChildren(path[path.length - 1].nodeDatum.parent!);
+        // }
+        // return result;
     }
 
     protected getAnimationData() {
@@ -866,9 +886,8 @@ export class TreemapSeries<
         };
     }
 
-    protected computeFocusBounds(
-        node: _ModuleSupport.HierarchyNode<_ModuleSupport.SeriesNodeDatum>
-    ): _ModuleSupport.BBox | undefined {
-        return Transformable.toCanvas(this.contentGroup, this.rectSelection.at(node.index)?.getBBox());
+    protected computeFocusBounds(_node: TreemapNode): _ModuleSupport.BBox | undefined {
+        // return Transformable.toCanvas(this.contentGroup, this.rectSelection.at(node.index)?.getBBox());
+        return;
     }
 }

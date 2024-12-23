@@ -210,7 +210,7 @@ const verticalAlignFactors: Record<Align, number> = {
 };
 
 export function formatLinearGaugeLabels(
-    series: _ModuleSupport.Series<any, any>,
+    series: _ModuleSupport.Series<any, any, any>,
     selection: _ModuleSupport.Selection<_ModuleSupport.Text, LinearGaugeLabelDatum>,
     opts: { padding: number; horizontal: boolean },
     bboxes: { scale: _ModuleSupport.BBox; bar: _ModuleSupport.BBox },

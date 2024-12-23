@@ -16,7 +16,7 @@ import type { Point } from '../scene/point';
 import type { BaseOptionsModule, ModuleInstance } from './baseModule';
 import type { SeriesContext } from './moduleContext';
 
-export type PickNodeDatumResult = { datum: SeriesNodeDatum; distanceSquared: number } | undefined;
+export type PickNodeDatumResult = { datum: SeriesNodeDatum<unknown>; distanceSquared: number } | undefined;
 
 export type SeriesType = NonNullable<
     | AgCartesianSeriesOptions['type']

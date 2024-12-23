@@ -70,11 +70,13 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
     }
 
     protected override createLabelData({
+        datumIndex,
         rect,
         yDatum,
         datum,
         visible,
     }: {
+        datumIndex: number;
         rect: Bounds;
         barAlongX: boolean;
         yDatum: number;
@@ -93,6 +95,7 @@ export class FunnelSeries extends BaseFunnelSeries<_ModuleSupport.Rect> {
             ),
             itemId: stageKey,
             datum,
+            datumIndex,
             series: this,
             visible,
         };
