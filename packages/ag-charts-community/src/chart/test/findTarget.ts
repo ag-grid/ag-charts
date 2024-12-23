@@ -218,7 +218,7 @@ function findSeriesAreaTarget(chart: unknown, widgets: WidgetSet, clientX: numbe
     const inSeriesRect = seriesRect?.containsPoint(clientX, clientY);
     const target: HTMLElement = inSeriesRect ? seriesWidget.getElement() : containerWidget.getElement();
     const [offsetX, offsetY] = inSeriesRect
-        ? [clientX - seriesWidget.cssTop(), clientY - seriesWidget.cssTop()]
+        ? [clientX - seriesWidget.cssLeft(), clientY - seriesWidget.cssTop()]
         : [clientX, clientY];
     return makeMockEvent({ target, offsetX, offsetY, clientX, clientY });
 }
