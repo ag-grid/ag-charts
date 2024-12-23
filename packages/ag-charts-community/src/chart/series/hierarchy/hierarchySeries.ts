@@ -2,13 +2,15 @@ import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
 import { ColorScale } from '../../../scale/colorScale';
-import type { BBox } from '../../../scene/bbox';
+import { BBox } from '../../../scene/bbox';
 import type { Group } from '../../../scene/group';
 import type { Node } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
+import { arraysEqual } from '../../../util/array';
 import { Logger } from '../../../util/logger';
+import { clamp } from '../../../util/number';
 import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import type { ChartAxisDirection } from '../../chartAxisDirection';
@@ -61,6 +63,10 @@ export class HierarchyNode<This extends HierarchyNode<This, TDatum> = any, TDatu
         public readonly children: This[]
     ) {
         this.midPoint = { x: 0, y: 0 };
+    }
+
+    get hasChildren() {
+        return this.children.length > 0;
     }
 
     walk(callback: (node: This) => void, order = HierarchyNode.Walk.PreOrder) {
@@ -323,44 +329,54 @@ export abstract class HierarchySeries<
         return this.getDatumIdFromData(node);
     }
 
-    protected abstract computeFocusBounds(node: TNodeClass): BBox | Path | undefined;
+    protected abstract computeFocusBounds(node: TNode): BBox | Path | undefined;
 
-    public override pickFocus(_opts: PickFocusInputs): PickFocusOutputs | undefined {
-        // if (!this.rootNode?.children.length) return undefined;
+    private removeMeIndexPathForIndex(index: number): number[] {
+        return this.datumSelection.at(index + 1)?.datum.datumIndex ?? [];
+    }
 
-        // const { datum, datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
-        // const path = datum.index;
-        // const depth = path.length - 2;
+    private removeMeIndexForIndexPath(indexPath: number[]): number {
+        for (const { index, datum } of this.datumSelection) {
+            if (arraysEqual(datum.datumIndex, indexPath)) {
+                return index - 1;
+            }
+        }
+        return 0;
+    }
 
-        // if (depthDelta !== 0 || path.length === 1) {
-        //     const targetDepth = Math.max(0, depth + depthDelta);
-        //     if (path[targetDepth + 1] == null) {
-        //         let deepest = path[path.length - 1];
-        //         while (deepest.nodeDatum.children.length > 0 && (deepest.nodeDatum.depth ?? -1) < targetDepth) {
-        //             const nextDeepest = { nodeDatum: deepest.nodeDatum.children[0], childIndex: 0 };
-        //             path.push(nextDeepest);
-        //             deepest = nextDeepest;
-        //         }
-        //         return this.computeFocusOutputs(deepest);
-        //     } else {
-        //         path.length = targetDepth + 2;
-        //         return this.computeFocusOutputs(path[targetDepth + 1]);
-        //     }
-        // } else if (childDelta === 0) {
-        //     return this.computeFocusOutputs(path[path.length - 1]);
-        // } else {
-        //     const targetChild = path[depth + 1].childIndex + childDelta;
-        //     const currentParent = path[depth].nodeDatum;
-        //     const childCount = currentParent?.children?.length;
-        //     if (childCount != null) {
-        //         const newChild = clamp(0, targetChild, childCount - 1);
-        //         const newFocus = { nodeDatum: currentParent.children[newChild], childIndex: newChild };
-        //         path[depth + 1] = newFocus;
-        //         path.length = depth + 2;
-        //         return this.computeFocusOutputs(newFocus);
-        //     }
-        // }
-        return undefined;
+    protected abstract datumSelection: Selection<any, TNodeClass>;
+
+    public override pickFocus(opts: PickFocusInputs): PickFocusOutputs | undefined {
+        if (!this.rootNode?.children.length) return undefined;
+
+        const index = clamp(0, opts.datumIndex - opts.datumIndexDelta, this.datumSelection.length - 1);
+        const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
+        let path = this.removeMeIndexPathForIndex(index);
+        const currentNode = path.reduce((n, childIndex) => n.children[childIndex], this.rootNode);
+
+        if (depthDelta > 0 && currentNode.hasChildren) {
+            path = [...path, 0];
+        } else if (depthDelta < 0 && path.length > 1) {
+            path = path.slice(0, -1);
+        } else if (depthDelta === 0 && childDelta !== 0) {
+            const maxIndex = currentNode.parent!.children.length - 1;
+            path = path.slice();
+            path[path.length - 1] = clamp(0, path[path.length - 1] + childDelta, maxIndex);
+        }
+
+        const nextNode = path.reduce((n, childIndex) => n.children[childIndex], this.rootNode);
+        const bounds = this.computeFocusBounds(this.datumSelection.at(index + 1));
+
+        if (bounds == null) return;
+
+        return {
+            datum: nextNode,
+            datumIndex: this.removeMeIndexForIndexPath(path),
+            otherIndex: nextNode.depth,
+            bounds,
+            showFocusBox: true,
+            clipFocusBox: true,
+        };
     }
 
     getDatumAriaText(datum: SeriesNodeDatum<number>, description: string): string | undefined {
@@ -374,19 +390,4 @@ export abstract class HierarchySeries<
             description,
         });
     }
-
-    // protected computeFocusOutputs({ nodeDatum, childIndex }: FocusPathNode<TDatum>): PickFocusOutputs | undefined {
-    //     const bounds = this.computeFocusBounds(nodeDatum);
-    //     if (bounds) {
-    //         return {
-    //             datum: nodeDatum,
-    //             datumIndex: childIndex,
-    //             otherIndex: nodeDatum.depth,
-    //             bounds,
-    //             showFocusBox: true,
-    //             clipFocusBox: true,
-    //         };
-    //     }
-    //     return undefined;
-    // }
 }

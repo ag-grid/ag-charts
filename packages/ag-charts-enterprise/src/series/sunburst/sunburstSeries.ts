@@ -87,8 +87,14 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     override properties = new SunburstSeriesProperties();
 
-    readonly groupSelection = Selection.select(this.contentGroup, ScalableGroup);
-    private readonly highlightSelection = Selection.select(this.highlightGroup, ScalableGroup);
+    readonly datumSelection = Selection.select<_ModuleSupport.ScalableGroup, SunburstNode>(
+        this.contentGroup,
+        ScalableGroup
+    );
+    private readonly highlightSelection = Selection.select<_ModuleSupport.ScalableGroup, SunburstNode>(
+        this.highlightGroup,
+        ScalableGroup
+    );
 
     override processData() {
         super.processData();
@@ -116,7 +122,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             ]);
         };
 
-        this.groupSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
+        this.datumSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
         this.highlightSelection.update(descendants, updateGroup, (node) => this.getDatumId(node));
     }
 
@@ -218,7 +224,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         this.rootNode?.walk((node) => {
             const { startAngle, endAngle } = node;
             if (node.depth != null) {
-                const midAngle = endAngle - startAngle;
+                const midAngle = (startAngle + endAngle) / 2 + angleOffset;
                 const midRadius = (node.depth + 0.5) * radiusScale;
                 node.midPoint.x = Math.cos(midAngle) * midRadius;
                 node.midPoint.y = Math.sin(midAngle) * midRadius;
@@ -441,7 +447,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         };
 
         const baseFormat = this.getItemBaseStyle(false);
-        this.groupSelection.selectByClass(Sector).forEach((sector) => {
+        this.datumSelection.selectByClass(Sector).forEach((sector) => {
             updateSector(sector.datum, sector, baseFormat, false);
         });
         const highlightFormat = this.getItemBaseStyle(true);
@@ -522,7 +528,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
             text.visible = true;
         };
 
-        this.groupSelection.selectByClass(TransformableText).forEach((text) => {
+        this.datumSelection.selectByClass(TransformableText).forEach((text) => {
             updateText(text.datum, text, text.tag, false);
         });
         this.highlightSelection.selectByClass(TransformableText).forEach((text) => {
@@ -602,7 +608,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
     protected override pickNodeClosestDatum(
         point: _ModuleSupport.Point
     ): _ModuleSupport.SeriesNodePickMatch | undefined {
-        return this.pickNodeNearestDistantObject(point, this.groupSelection.selectByClass(Sector));
+        return this.pickNodeNearestDistantObject(point, this.datumSelection.selectByClass(Sector));
     }
 
     protected override animateEmptyUpdateReady({
@@ -628,17 +634,15 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
 
     protected getAnimationData() {
         return {
-            datumSelections: [this.groupSelection],
+            datumSelections: [this.datumSelection],
         };
     }
 
-    protected override computeFocusBounds(nodeDatum: SunburstNode): _ModuleSupport.Path | undefined {
-        let match: _ModuleSupport.Sector | undefined;
-        for (const { node, datum } of this.groupSelection) {
-            if (datum === nodeDatum) {
-                match = Selection.selectByClass<_ModuleSupport.Sector>(node, Sector)[0];
+    protected override computeFocusBounds(node: _ModuleSupport.ScalableGroup): _ModuleSupport.Path | undefined {
+        for (const child of node.children()) {
+            if (child instanceof _ModuleSupport.Sector) {
+                return child;
             }
         }
-        return match;
     }
 }

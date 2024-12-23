@@ -21,7 +21,7 @@ const {
     BBox,
     Selection,
     Text,
-    // Transformable,
+    Transformable,
     applyShapeStyle,
 } = _ModuleSupport;
 
@@ -115,8 +115,8 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
 
     private readonly rectGroup = this.contentGroup.appendChild(new Group());
 
-    private readonly rectSelection = Selection.select(this.rectGroup, Rect);
-    private readonly labelSelection = Selection.select(this.labelGroup, Group);
+    protected readonly datumSelection = Selection.select<_ModuleSupport.Rect, TreemapNode>(this.rectGroup, Rect);
+    private readonly labelSelection = Selection.select<_ModuleSupport.Group, TreemapNode>(this.labelGroup, Group);
     private readonly highlightSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, TreemapNode> = Selection.select(
         this.rectGroup,
         Rect
@@ -465,7 +465,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
             group.append([new Text({ tag: TextNodeTag.Primary }), new Text({ tag: TextNodeTag.Secondary })]);
         };
 
-        this.rectSelection.update(descendants, undefined, (node) => this.getDatumId(node));
+        this.datumSelection.update(descendants, undefined, (node) => this.getDatumId(node));
         this.labelSelection.update(descendants, updateLabelGroup, (node) => this.getDatumId(node));
     }
 
@@ -709,7 +709,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
 
         const baseGroupFormat = this.getGroupBaseStyle(false);
         const baseTileFormat = this.getTileBaseStyle(false);
-        this.rectSelection.each((rect, datum) => updateRectFn(datum, rect, baseGroupFormat, baseTileFormat, false));
+        this.datumSelection.each((rect, datum) => updateRectFn(datum, rect, baseGroupFormat, baseTileFormat, false));
 
         const highlightGroupFormat = this.getGroupBaseStyle(true);
         const highlightTileFormat = this.getTileBaseStyle(true);
@@ -773,7 +773,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
         // We don't need to recurse on the tree because the root's nodes bounding-box contain all bounding boxes
         // of the descendants. Therefore the nearest node is always a child of the root. If there is an exact
         // match, then the pickNodeExactShape function will return a result, and this function wouldn't be called.
-        return this.pickNodeNearestDistantObject(point, this.rectSelection.nodes());
+        return this.pickNodeNearestDistantObject(point, this.datumSelection.nodes());
     }
 
     override getTooltipContent(nodeDatum: TreemapNode): _ModuleSupport.TooltipContent | string | undefined {
@@ -846,39 +846,39 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
         );
     }
 
-    public override pickFocus(_opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
-        return undefined;
-        // // Initialise this.focusSorted
-        // if (path.length < 2 || this.focusSorted == null) {
-        //     path.length = 1;
-        //     this.focusSorted = this.sortChildren(path[0].nodeDatum);
-        //     path.push({ nodeDatum: this.focusSorted.childAt(0), childIndex: 0 });
-        // }
+    // public override pickFocus(_opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
+    //     return undefined;
+    // // Initialise this.focusSorted
+    // if (path.length < 2 || this.focusSorted == null) {
+    //     path.length = 1;
+    //     this.focusSorted = this.sortChildren(path[0].nodeDatum);
+    //     path.push({ nodeDatum: this.focusSorted.childAt(0), childIndex: 0 });
+    // }
 
-        // const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
-        // const current = path[path.length - 1];
+    // const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
+    // const current = path[path.length - 1];
 
-        // if (depthDelta === 1) {
-        //     if (current.nodeDatum.children.length > 0) {
-        //         this.focusSorted = this.sortChildren(current.nodeDatum);
-        //         const newFocus = { nodeDatum: this.focusSorted.childAt(0), childIndex: 0 };
-        //         path.push(newFocus);
-        //         return this.computeFocusOutputs(newFocus);
-        //     }
-        // } else if (childDelta !== 0) {
-        //     const targetIndex = current.childIndex + childDelta;
-        //     const maxIndex = (current.nodeDatum.parent?.children.length ?? 1) - 1;
-        //     current.childIndex = clamp(0, targetIndex, maxIndex);
-        //     current.nodeDatum = this.focusSorted.childAt(current.childIndex);
-        //     return this.computeFocusOutputs(current);
-        // }
+    // if (depthDelta === 1) {
+    //     if (current.nodeDatum.children.length > 0) {
+    //         this.focusSorted = this.sortChildren(current.nodeDatum);
+    //         const newFocus = { nodeDatum: this.focusSorted.childAt(0), childIndex: 0 };
+    //         path.push(newFocus);
+    //         return this.computeFocusOutputs(newFocus);
+    //     }
+    // } else if (childDelta !== 0) {
+    //     const targetIndex = current.childIndex + childDelta;
+    //     const maxIndex = (current.nodeDatum.parent?.children.length ?? 1) - 1;
+    //     current.childIndex = clamp(0, targetIndex, maxIndex);
+    //     current.nodeDatum = this.focusSorted.childAt(current.childIndex);
+    //     return this.computeFocusOutputs(current);
+    // }
 
-        // const result = super.pickFocus(opts);
-        // if (depthDelta < 0) {
-        //     this.focusSorted = this.sortChildren(path[path.length - 1].nodeDatum.parent!);
-        // }
-        // return result;
-    }
+    // const result = super.pickFocus(opts);
+    // if (depthDelta < 0) {
+    //     this.focusSorted = this.sortChildren(path[path.length - 1].nodeDatum.parent!);
+    // }
+    // return result;
+    // }
 
     protected getAnimationData() {
         return {
@@ -886,8 +886,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
         };
     }
 
-    protected computeFocusBounds(_node: TreemapNode): _ModuleSupport.BBox | undefined {
-        // return Transformable.toCanvas(this.contentGroup, this.rectSelection.at(node.index)?.getBBox());
-        return;
+    protected computeFocusBounds(node: _ModuleSupport.Group): _ModuleSupport.BBox | undefined {
+        return Transformable.toCanvas(this.contentGroup, node.getBBox());
     }
 }
