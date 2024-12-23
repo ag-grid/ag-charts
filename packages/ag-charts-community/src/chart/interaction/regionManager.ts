@@ -33,13 +33,6 @@ export type RegionEvent<T extends RegionInteractionTypes = RegionInteractionType
     preventDefault(): void;
 };
 
-export type MockEvent = {
-    readonly target: HTMLElement;
-    readonly offsetX: number;
-    readonly offsetY: number;
-    readonly mockRegion?: Pick<RegionEvent, 'region' | 'canvasX' | 'canvasY' | 'regionX' | 'regionY'>;
-};
-
 type TWidgetEvent = DragWidgetEvent | MouseWidgetEvent | WheelWidgetEvent;
 
 // This type-map allows the compiler to automatically figure out the parameter type of handlers
@@ -220,13 +213,6 @@ export class RegionManager {
     private computeEventOffsets(currentWidget: Widget, rootWidget: Widget, widgetEvent: TWidgetEvent) {
         const { deltaX, deltaY } = InteractionManager.getWheelDeltas(widgetEvent.sourceEvent);
 
-        if ('mockRegion' in widgetEvent.sourceEvent) {
-            const mockRegion = widgetEvent.sourceEvent.mockRegion as MockEvent['mockRegion'];
-            if (mockRegion) {
-                return { deltaX, deltaY, ...mockRegion };
-            }
-        }
-
         const rootRect = rootWidget.getElement().getBoundingClientRect();
         const currentWidgetRect = currentWidget.getElement().getBoundingClientRect();
         return {
@@ -344,11 +330,6 @@ export class RegionManager {
     };
 
     private pickRegion({ sourceEvent }: TWidgetEvent) {
-        if ('mockRegion' in sourceEvent && sourceEvent.mockRegion) {
-            return (sourceEvent.mockRegion as NonNullable<MockEvent['mockRegion']>).region === 'series'
-                ? this.regions.series
-                : this.regions.root;
-        }
         if (sourceEvent.target == this.regions.root?.properties.widget?.getElement()) {
             return this.regions.root;
         }

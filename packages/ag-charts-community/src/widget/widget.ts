@@ -144,6 +144,12 @@ export abstract class Widget<
     cssTop(): number {
         return this.parseFloat(this.elem.style.top);
     }
+    cssWidth(): number {
+        return this.parseFloat(this.elem.style.width);
+    }
+    cssHeight(): number {
+        return this.parseFloat(this.elem.style.height);
+    }
 
     focus(): void {
         this.elem.focus();
