@@ -314,7 +314,7 @@ describe('TreemapSeries', () => {
                 data: datasets.data,
             },
             getNodeData: (series) => {
-                const nodes = Array.from(series.rectSelection.nodes());
+                const nodes = Array.from(series.datumSelection.nodes());
                 const maxDepth = Math.max(...nodes.map((n: any) => n.datum.depth ?? -1));
                 return nodes.filter((node: any) => node.datum.depth === maxDepth);
             },

@@ -13,7 +13,7 @@ class ExampleHierarchySeries extends HierarchySeries<Group, ExampleHierarchySeri
 
     NodeClass = HierarchyNode;
 
-    groupSelection = Selection.select(this.contentGroup, Group);
+    datumSelection = Selection.select(this.contentGroup, Group);
 
     override getSeriesDomain(): never {
         throw new Error('Method not implemented.');
@@ -88,9 +88,8 @@ describe('HierarchySeries', () => {
         delete series.rootNode.series;
 
         expect(series.rootNode).toEqual({
-            index: 0,
+            datumIndex: [],
             datum: undefined,
-            rootIndex: 0,
             sizeValue: 0,
             colorValue: undefined,
             sumSize: 0,
