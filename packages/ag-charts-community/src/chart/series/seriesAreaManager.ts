@@ -334,16 +334,15 @@ export class SeriesAreaManager extends BaseManager {
     private onKeyDown(widgetEvent: KeyboardWidgetEvent<'keydown'>) {
         if (!this.isState(InteractionState.Keyable)) return;
 
-        const actionName = mapKeyboardEventToAction(widgetEvent.sourceEvent);
-        switch (actionName) {
-            case 'delete':
-                this.focusIndicator.overrideFocusVisible(this.previousInputDevice === 'keyboard');
-                return;
+        const action = mapKeyboardEventToAction(widgetEvent.sourceEvent);
+        if (action?.activatesFocusIndicator === false) {
+            this.focusIndicator.overrideFocusVisible(this.previousInputDevice === 'keyboard');
+        }
+
+        switch (action?.name) {
             case 'redo':
-                this.focusIndicator.overrideFocusVisible(this.previousInputDevice === 'keyboard');
                 return this.chart.ctx.chartEventManager.seriesEvent('series-redo');
             case 'undo':
-                this.focusIndicator.overrideFocusVisible(this.previousInputDevice === 'keyboard');
                 return this.chart.ctx.chartEventManager.seriesEvent('series-undo');
             case 'zoomin':
                 return this.chart.ctx.chartEventManager.seriesKeyNavZoom(1, widgetEvent);

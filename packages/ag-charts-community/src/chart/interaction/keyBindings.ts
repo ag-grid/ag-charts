@@ -1,4 +1,6 @@
-type KeyBinding = { key: string; ctrlOrMeta?: boolean; shift?: boolean } | { code: string };
+type KeyBinding = Readonly<{ key: string; ctrlOrMeta?: boolean; shift?: boolean } | { code: string }>;
+type KeyActionConfig = Readonly<{ bindings: KeyBinding[]; activatesFocusIndicator?: boolean }>;
+type KeyAction = { name: KeyActionName; activatesFocusIndicator: boolean };
 
 type KeyActionName =
     | 'arrowdown'
@@ -12,20 +14,23 @@ type KeyActionName =
     | 'zoomin'
     | 'zoomout';
 
-const KEY_BINDINGS: { [K in KeyActionName]: Readonly<KeyBinding>[] } = {
-    arrowdown: [{ code: 'ArrowDown' }],
-    arrowleft: [{ code: 'ArrowLeft' }],
-    arrowright: [{ code: 'ArrowRight' }],
-    arrowup: [{ code: 'ArrowUp' }],
-    delete: [{ key: 'Backspace' }, { key: 'Delete' }],
-    redo: [
-        { key: 'y', ctrlOrMeta: true },
-        { key: 'z', ctrlOrMeta: true, shift: true },
-    ],
-    undo: [{ key: 'z', ctrlOrMeta: true }],
-    submit: [{ key: 'Enter' }, { code: 'Enter' }, { code: 'Space' }],
-    zoomin: [{ key: '+' }, { code: 'ZoomIn' }, { code: 'Add' }],
-    zoomout: [{ key: '-' }, { code: 'ZoomOut' }, { code: 'Substract' }],
+const KEY_BINDINGS: { [K in KeyActionName]: KeyActionConfig } = {
+    arrowdown: { bindings: [{ code: 'ArrowDown' }] },
+    arrowleft: { bindings: [{ code: 'ArrowLeft' }] },
+    arrowright: { bindings: [{ code: 'ArrowRight' }] },
+    arrowup: { bindings: [{ code: 'ArrowUp' }] },
+    delete: { bindings: [{ key: 'Backspace' }, { key: 'Delete' }], activatesFocusIndicator: false },
+    redo: {
+        bindings: [
+            { key: 'y', ctrlOrMeta: true },
+            { key: 'z', ctrlOrMeta: true, shift: true },
+        ],
+        activatesFocusIndicator: false,
+    },
+    undo: { bindings: [{ key: 'z', ctrlOrMeta: true }], activatesFocusIndicator: false },
+    submit: { bindings: [{ key: 'Enter' }, { code: 'Enter' }, { code: 'Space' }] },
+    zoomin: { bindings: [{ key: '+' }, { code: 'ZoomIn' }, { code: 'Add' }], activatesFocusIndicator: false },
+    zoomout: { bindings: [{ key: '-' }, { code: 'ZoomOut' }, { code: 'Substract' }], activatesFocusIndicator: false },
 };
 
 function matchesKeyBinding(e: KeyboardEvent, bindings: Readonly<KeyBinding>[]) {
@@ -43,10 +48,11 @@ function matchesKeyBinding(e: KeyboardEvent, bindings: Readonly<KeyBinding>[]) {
     return false;
 }
 
-export function mapKeyboardEventToAction(event: KeyboardEvent): KeyActionName | undefined {
-    for (const [actionName, bindings] of Object.entries(KEY_BINDINGS)) {
+export function mapKeyboardEventToAction(event: KeyboardEvent): KeyAction | undefined {
+    for (const [actionName, { activatesFocusIndicator = true, bindings }] of Object.entries(KEY_BINDINGS)) {
         if (matchesKeyBinding(event, bindings)) {
-            return actionName as keyof typeof KEY_BINDINGS;
+            const name = actionName as keyof typeof KEY_BINDINGS;
+            return { name, activatesFocusIndicator };
         }
     }
     return undefined;
