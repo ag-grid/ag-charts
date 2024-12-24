@@ -3,7 +3,7 @@ import type { TextAlign, VerticalAlign } from 'ag-charts-types';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 import type { Series } from './series';
 
-export interface GaugeSeries extends Series<any, any, any> {
+export interface GaugeSeries extends Series<unknown, any, any> {
     getCaptionText(): string;
 }
 

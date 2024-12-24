@@ -11,7 +11,7 @@ import type { LonLatBBox } from './series/topology/lonLatBbox';
 import { MercatorScale } from './series/topology/mercatorScale';
 import type { ITopology } from './series/topologySeries';
 
-function isTopologySeries(series: Series<any, any, any>): series is ITopology {
+function isTopologySeries(series: Series<unknown, any, any>): series is ITopology {
     return (
         series.type === 'map-shape' ||
         series.type === 'map-line' ||

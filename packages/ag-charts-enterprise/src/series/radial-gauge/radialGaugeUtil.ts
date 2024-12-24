@@ -165,7 +165,7 @@ const verticalAlignFactors: Record<VerticalAlign, number> = {
 };
 
 export function formatRadialGaugeLabels(
-    series: _ModuleSupport.Series<any, any, any>,
+    series: _ModuleSupport.Series<unknown, any, any>,
     selection: _ModuleSupport.Selection<_ModuleSupport.Text, RadialGaugeLabelDatum>,
     opts: { padding: number; textAlign: TextAlign; verticalAlign: VerticalAlign },
     innerRadius: number,

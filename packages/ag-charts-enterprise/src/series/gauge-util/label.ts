@@ -23,7 +23,7 @@ export function formatLabel(value: number | undefined, axis: _ModuleSupport.Char
 }
 
 export function getLabelText(
-    series: _ModuleSupport.Series<any, any, any>,
+    series: _ModuleSupport.Series<unknown, any, any>,
     datum: GaugeLabelDatum,
     valueOverride?: number
 ) {

@@ -48,7 +48,7 @@ type HighlightEventTypes = 'hover' | 'drag' | 'click' | 'dblclick';
 export class SeriesAreaManager extends BaseManager {
     readonly id = createId(this);
 
-    private series: Series<any, any, any>[] = [];
+    private series: Series<unknown, any, any>[] = [];
     private seriesRect?: BBox;
     private hoverRect?: BBox;
     private readonly focusIndicator: FocusIndicator;
@@ -85,7 +85,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private readonly focus = {
         sortedSeries: [] as Series<unknown, SeriesNodeDatum<unknown>, SeriesProperties<object>>[],
-        series: undefined as Series<any, any, any> | undefined,
+        series: undefined as Series<unknown, any, any> | undefined,
         seriesIndex: 0,
         datumIndex: 0,
         datum: undefined as SeriesNodeDatum<unknown> | undefined,

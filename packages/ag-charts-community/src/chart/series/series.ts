@@ -138,7 +138,7 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
     type = 'groupingChanged';
 
     constructor(
-        public series: Series<any, any, any>,
+        public series: Series<unknown, any, any>,
         public seriesGrouping: SeriesGrouping | undefined,
         public oldGrouping: SeriesGrouping | undefined
     ) {}
