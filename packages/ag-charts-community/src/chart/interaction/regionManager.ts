@@ -93,6 +93,7 @@ function shouldIgnore(event: TWidgetEvent): 'none' | 'leave' | 'wait' {
         // Handle drag event on the axis 'add horizontal line annotation' button as canvas events.
         classList.contains('ag-charts-annotations__axis-button-icon') ||
         className === 'ag-charts-swapchain' ||
+        className === 'ag-charts-series-area' ||
         className === 'ag-charts-canvas-container' ||
         className === 'ag-charts-canvas-proxy' ||
         sourceEvent?.target instanceof HTMLCanvasElement // This case is for nodeCanvas tests

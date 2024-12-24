@@ -207,8 +207,22 @@ function contextMenuEvent(offsets: MockEvent, clientX: number, clientY: number):
     return makeMouseEvent('contextmenu', offsets, clientX, clientY);
 }
 
-function dispatchEvent({ bubbleChain }: MockEvent, event: Event) {
-    bubbleChain.forEach((currentTarget) => currentTarget.dispatchEvent(event));
+function dispatchEvent({ bubbleChain, target }: MockEvent, event: Event) {
+    bubbleChain.forEach((currentTarget) => {
+        Object.defineProperty(event, 'target', {
+            value: target,
+            writable: true,
+            configurable: true,
+        });
+        Object.defineProperty(event, 'currentTarget', {
+            value: currentTarget,
+            writable: true,
+            configurable: true,
+        });
+        currentTarget.dispatchEvent(event);
+        delete (event as any).target;
+        delete (event as any).currentTarget;
+    });
 }
 
 export enum WheelDeltaMode {
