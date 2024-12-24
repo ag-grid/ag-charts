@@ -984,14 +984,14 @@ export class Legend extends BaseProperties {
     }
 
     private toTooltipMeta(event: FocusEvent | MouseEvent, node: LegendMarkerLabel): TooltipMeta {
-        let lastPointerEvent: TooltipPointerEvent<'hover' | 'keyboard'>;
+        let lastPointerEvent: TooltipPointerEvent<'mousemove' | 'keyboard'>;
         if (event instanceof FocusEvent) {
             const { x, y } = Transformable.toCanvas(node).computeCenter();
             lastPointerEvent = { type: 'keyboard', canvasX: x, canvasY: y } as const;
         } else {
             event.preventDefault();
             const { x, y } = Transformable.toCanvasPoint(node, event.offsetX, event.offsetY);
-            lastPointerEvent = { type: 'hover', canvasX: x, canvasY: y };
+            lastPointerEvent = { type: 'mousemove', canvasX: x, canvasY: y };
         }
 
         const { canvasX, canvasY } = lastPointerEvent;

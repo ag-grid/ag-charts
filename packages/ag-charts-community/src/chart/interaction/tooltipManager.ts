@@ -80,7 +80,7 @@ export class TooltipManager {
     }
 
     public static makeTooltipMeta(
-        event: TooltipPointerEvent<'hover' | 'click' | 'dblclick' | 'keyboard'>,
+        event: TooltipPointerEvent,
         datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
     ): TooltipMeta {
         const { canvasX, canvasY } = event;

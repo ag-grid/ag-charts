@@ -545,20 +545,17 @@ export class SeriesAreaManager extends BaseManager {
         const event = this.highlight.appliedHoverEvent;
         if (!event || !this.isState(InteractionState.Clickable)) return;
 
-        const { canvasX, canvasY } = event;
+        const { currentX, currentY } = event;
+        const canvasX = event.currentX + (this.hoverRect?.x ?? 0);
+        const canvasY = event.currentY + (this.hoverRect?.y ?? 0);
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
             this.clearHighlight();
             return;
         }
 
-        let pickCoords = { x: event.regionX, y: event.regionY };
-        if (event.region !== 'series') {
-            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, canvasX, canvasY);
-        }
-
         const { range } = this.chart.highlight;
         const intent = range === 'tooltip' ? 'highlight-tooltip' : 'highlight';
-        const found = pickNode(this.series, pickCoords, intent);
+        const found = pickNode(this.series, { x: currentX, y: currentY }, intent);
         if (found) {
             this.chart.ctx.highlightManager.updateHighlight(this.id, found.datum);
             this.hoverDevice = 'mouse';
@@ -568,10 +565,12 @@ export class SeriesAreaManager extends BaseManager {
         this.chart.ctx.highlightManager.updateHighlight(this.id); // FIXME: clearHighlight?
     }
 
-    private handleHoverTooltip(event: RegionEvent<TooltipEventTypes>, redisplay: boolean) {
+    private handleHoverTooltip(event: TooltipWidgetEvent, redisplay: boolean) {
         if (!this.isState(InteractionState.Clickable)) return;
 
-        const { canvasX, canvasY, regionX, regionY } = event;
+        const { type, currentX, currentY } = event;
+        const canvasX = currentX + (this.hoverRect?.x ?? 0);
+        const canvasY = currentY + (this.hoverRect?.y ?? 0);
         const targetElement = event.sourceEvent.target as HTMLElement;
         if (redisplay ? this.chart.ctx.animationManager.isActive() : !this.hoverRect?.containsPoint(canvasX, canvasY)) {
             if (this.hoverDevice == 'mouse') this.clearTooltip();
@@ -587,12 +586,7 @@ export class SeriesAreaManager extends BaseManager {
             return;
         }
 
-        let pickCoords = { x: regionX, y: regionY };
-        if (event.region !== 'series') {
-            pickCoords = Transformable.fromCanvasPoint(this.chart.seriesRoot, canvasX, canvasY);
-        }
-
-        const pick = pickNode(this.series, pickCoords, 'tooltip');
+        const pick = pickNode(this.series, { x: event.currentX, y: event.currentY }, 'tooltip');
         if (!pick) {
             if (this.hoverDevice == 'mouse') this.clearTooltip();
             return;
@@ -603,7 +597,7 @@ export class SeriesAreaManager extends BaseManager {
         const tooltipEnabled = this.chart.tooltip.enabled && pick.series.tooltipEnabled;
         const shouldUpdateTooltip = tooltipEnabled && content != null;
         if (shouldUpdateTooltip) {
-            const meta = TooltipManager.makeTooltipMeta(event, pick.datum);
+            const meta = TooltipManager.makeTooltipMeta({ type, canvasX, canvasY }, pick.datum);
             this.chart.ctx.tooltipManager.updateTooltip(this.id, meta, content);
         }
     }

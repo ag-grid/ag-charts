@@ -25,7 +25,6 @@ import { CursorManager } from './interaction/cursorManager';
 import { GestureDetector } from './interaction/gestureDetector';
 import { HighlightManager } from './interaction/highlightManager';
 import { InteractionManager } from './interaction/interactionManager';
-import { RegionManager } from './interaction/regionManager';
 import type { SyncManager } from './interaction/syncManager';
 import { TooltipManager } from './interaction/tooltipManager';
 import { WidgetSet } from './interaction/widgetSet';
@@ -61,7 +60,6 @@ export class ChartContext implements ModuleContext {
     historyManager: HistoryManager;
     interactionManager: InteractionManager;
     proxyInteractionService: ProxyInteractionService;
-    regionManager: RegionManager;
     scene: Scene;
     syncManager: SyncManager;
     tooltipManager: TooltipManager;
@@ -120,7 +118,6 @@ export class ChartContext implements ModuleContext {
         this.chartTypeOriginator = new ChartTypeOriginator(chart);
         this.cursorManager = new CursorManager(this.domManager);
         this.interactionManager = new InteractionManager();
-        this.regionManager = new RegionManager(this.interactionManager, this.widgets);
         this.contextMenuRegistry = new ContextMenuRegistry();
         this.gestureDetector = new GestureDetector(this.domManager);
         this.updateService = new UpdateService(updateCallback);
@@ -149,7 +146,6 @@ export class ChartContext implements ModuleContext {
         this.chartEventManager.destroy();
         this.domManager.destroy();
         this.highlightManager.destroy();
-        this.regionManager.destroy();
         this.proxyInteractionService.destroy();
         this.syncManager.destroy();
         this.tooltipManager.destroy();

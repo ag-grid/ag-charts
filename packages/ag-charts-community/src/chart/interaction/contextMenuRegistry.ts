@@ -3,7 +3,6 @@ import type { AgContextMenuOptions } from 'ag-charts-types';
 import { Listeners } from '../../util/listeners';
 import type { CategoryLegendDatum } from '../legend/legendDatum';
 import type { ISeries, SeriesNodeDatum } from '../series/seriesTypes';
-import type { RegionEvent } from './regionManager';
 
 type ContextTypeMap = {
     all: object;
@@ -63,7 +62,7 @@ export class ContextMenuRegistry {
 
     public dispatchContext<T extends ContextType>(
         type: T,
-        pointerEvent: Pick<RegionEvent<'contextmenu'>, 'sourceEvent' | 'canvasX' | 'canvasY'>,
+        pointerEvent: { sourceEvent: MouseEvent; canvasX: number; canvasY: number },
         context: ContextTypeMap[T],
         position?: { x: number; y: number }
     ) {
