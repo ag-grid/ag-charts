@@ -5,6 +5,7 @@ type KeyActionName =
     | 'arrowleft'
     | 'arrowright'
     | 'arrowup'
+    | 'delete'
     | 'undo'
     | 'redo'
     | 'submit'
@@ -16,6 +17,7 @@ const KEY_BINDINGS: { [K in KeyActionName]: Readonly<KeyBinding>[] } = {
     arrowleft: [{ code: 'ArrowLeft' }],
     arrowright: [{ code: 'ArrowRight' }],
     arrowup: [{ code: 'ArrowUp' }],
+    delete: [{ key: 'Backspace' }, { key: 'Delete' }],
     redo: [
         { key: 'y', ctrlOrMeta: true },
         { key: 'z', ctrlOrMeta: true, shift: true },

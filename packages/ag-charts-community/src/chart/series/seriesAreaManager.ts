@@ -328,6 +328,9 @@ export class SeriesAreaManager extends BaseManager {
 
         const actionName = mapKeyboardEventToAction(widgetEvent.sourceEvent);
         switch (actionName) {
+            case 'delete':
+                this.focusIndicator.overrideFocusVisible(this.previousInputDevice === 'keyboard');
+                return;
             case 'redo':
                 this.focusIndicator.overrideFocusVisible(this.previousInputDevice === 'keyboard');
                 return this.chart.ctx.chartEventManager.seriesEvent('series-redo');
