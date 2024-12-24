@@ -321,6 +321,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
 
         this.start.toggleLocked(datum.locked ?? false);
         this.end.toggleLocked(datum.locked ?? false);
+        this.endRetracement.toggleLocked(datum.locked ?? false);
     }
 
     protected getHandleCoords(
