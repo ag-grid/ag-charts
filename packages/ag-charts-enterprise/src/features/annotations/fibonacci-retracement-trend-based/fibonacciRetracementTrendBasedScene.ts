@@ -82,7 +82,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
     }
 
     override containsPoint(x: number, y: number) {
-        const { start, end, endRetracement } = this;
+        const { start, end, endRetracement, endRetracementLine } = this;
 
         this.activeHandle = undefined;
 
@@ -101,12 +101,15 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
             return true;
         }
 
-        return super.containsPoint(x, y);
+        return endRetracementLine.isPointInPath(x, y) || super.containsPoint(x, y);
     }
 
     public override getNodeAtCoords(x: number, y: number): string | undefined {
         if (this.start.containsPoint(x, y) || this.end.containsPoint(x, y) || this.endRetracement.containsPoint(x, y))
             return 'handle';
+
+        if (this.endRetracementLine.isPointInPath(x, y)) return 'line';
+
         return super.getNodeAtCoords(x, y);
     }
 
