@@ -125,7 +125,7 @@ export class SeriesAreaManager extends BaseManager {
             seriesWidget.addListener('drag-move', (event) => this.onDragMove(event)),
             seriesWidget.addListener('mousemove', (event) => this.onHover(event)),
             seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
-            seriesWidget.addListener('mouseleave', () => this.onLeave()),
+            seriesWidget.addListener('mouseleave', (event) => this.onLeave(event)),
             seriesWidget.addListener('keydown', (event) => this.onKeyDown(event)),
             seriesWidget.addListener('contextmenu', (event, current) => this.onContextMenu(event, current)),
             seriesWidget.addListener('click', (event, current) => this.onClick(event, current)),
@@ -249,8 +249,16 @@ export class SeriesAreaManager extends BaseManager {
         );
     }
 
-    private onLeave(): void {
+    private onLeave(event: MouseWidgetEvent<'mouseleave'>): void {
         if (!this.isState(InteractionState.Clickable)) return;
+
+        // Edge-case: when clicking an annotation to edit the text, do not consider this 'mouseleave' event. We may want
+        // to remove this check, although it will require a snapshot update.
+        const relatedTarget = event.sourceEvent.relatedTarget as Partial<HTMLElement> | null;
+        if (relatedTarget?.className === 'ag-charts-text-input__textarea') {
+            return;
+        }
+
         this.chart.ctx.cursorManager.updateCursor(this.id);
         if (!this.focusIndicator.isFocusVisible()) this.clearAll();
     }
