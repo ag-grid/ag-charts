@@ -65,11 +65,13 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
         const { reverse } = datum;
 
         const extendedCoords = this.extendLine(coords, datum, context);
-        const data = createFibonacciRangesData(extendedCoords, context, datum.reverse, datum.bands);
+        const yZero = reverse ? extendedCoords.y1 : extendedCoords.y2;
+        const yOne = reverse ? extendedCoords.y2 : extendedCoords.y1;
+
+        const data = createFibonacciRangesData(extendedCoords, context, datum.reverse, yZero, datum.bands);
         this.updateRanges(datum, data, context);
 
-        const y = reverse ? coords.y2 : coords.y1;
-        const oneLinePoints = { ...extendedCoords, y1: y, y2: y };
+        const oneLinePoints = { ...extendedCoords, y1: yOne, y2: yOne };
         this.updateText(datum, oneLinePoints);
     }
 
@@ -239,6 +241,11 @@ export abstract class FibonacciScene<Datum extends FibonacciProperties> extends 
 
     protected updateText(datum: Datum, coords: _ModuleSupport.Vec4) {
         const oneLine = this.rangeStrokesGroupSelection.selectByTag<CollidableLine>(FibonacciNodeTag.OneLine)[0];
+
+        if (!oneLine) {
+            return;
+        }
+
         const { text: textProperties, strokeWidth } = datum;
         this.text = this.updateNode(CollidableText, this.text, !!textProperties.label);
 

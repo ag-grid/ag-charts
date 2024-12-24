@@ -73,11 +73,14 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
 
         const coords = getFibonacciCoords(coords1, coords2);
         const extendedCoords = this.extendLine(coords, datum, context);
-        const data = createFibonacciRangesData(extendedCoords, context, reverse, bands);
+
+        const yZero = extendedCoords.y2;
+        const yOne = extendedCoords.y1;
+
+        const data = !coords2 ? [] : createFibonacciRangesData(extendedCoords, context, reverse, yZero, bands);
         this.updateRanges(datum, data, context);
 
-        const y = reverse ? coords.y2 : coords.y1;
-        const oneLinePoints = { ...extendedCoords, y1: y, y2: y };
+        const oneLinePoints = { ...extendedCoords, y1: yOne, y2: yOne };
         this.updateText(datum, oneLinePoints);
     }
 
