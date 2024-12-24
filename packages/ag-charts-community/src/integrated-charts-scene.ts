@@ -2,7 +2,7 @@
 // DO NOT ADD EXPORTS UNLESS REQUIRED BY INTEGRATED CHARTS.
 export { Caption } from './chart/caption';
 export { Marker } from './chart/marker/marker';
-export { BandScale } from './scale/bandScale';
+export { CategoryScale } from './scale/categoryScale';
 export { LinearScale } from './scale/linearScale';
 export { BBox } from './scene/bbox';
 export { Group, TranslatableGroup } from './scene/group';
