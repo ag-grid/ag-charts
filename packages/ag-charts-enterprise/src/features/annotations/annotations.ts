@@ -439,16 +439,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private setupListeners() {
         const { ctx, optionsToolbar, settingsDialog, toolbar } = this;
-        const { seriesWidget, containerWidget } = ctx.widgets;
+        const { seriesWidget, seriesDragInterpreter, containerWidget } = ctx.widgets;
 
         this.destroyFns.push(
             // Interactions
-            seriesWidget.addListener('mousemove', this.onHover.bind(this)),
-            seriesWidget.addListener('click', this.onClick.bind(this)),
-            seriesWidget.addListener('dblclick', this.onDoubleClick.bind(this)),
-            seriesWidget.addListener('drag-start', this.onDragStart.bind(this)),
-            seriesWidget.addListener('drag-move', this.onDrag.bind(this)),
-            seriesWidget.addListener('drag-end', this.onDragEnd.bind(this)),
+            seriesDragInterpreter.addListener('mousemove', this.onHover.bind(this)),
+            seriesDragInterpreter.addListener('click', this.onClick.bind(this)),
+            seriesDragInterpreter.addListener('dblclick', this.onDoubleClick.bind(this)),
+            seriesDragInterpreter.addListener('drag-start', this.onDragStart.bind(this)),
+            seriesDragInterpreter.addListener('drag-move', this.onDrag.bind(this)),
+            seriesDragInterpreter.addListener('drag-end', this.onDragEnd.bind(this)),
             seriesWidget.addListener('keydown', this.onKeyDown.bind(this)),
             seriesWidget.addListener('keyup', this.onKeyUp.bind(this)),
             containerWidget.addListener('click', this.onCancel.bind(this)),
