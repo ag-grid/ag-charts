@@ -142,10 +142,15 @@ const WidgetAllocators: { [K in keyof WidgetEventMap_HTML]: Allocator<K> } = {
         return allocMouseEvent('mouseleave', sourceEvent, current);
     },
     wheel: (sourceEvent: WheelEvent): WheelWidgetEvent => {
-        const { offsetX, offsetY, clientX, clientY, deltaX, deltaY } = sourceEvent;
+        const { offsetX, offsetY, clientX, clientY } = sourceEvent;
+        const { deltaX, deltaY } = WidgetEventUtil.getWheelDeltas(sourceEvent);
         return { type: 'wheel', offsetX, offsetY, clientX, clientY, deltaX, deltaY, sourceEvent };
     },
 };
+
+function isWheelEvent(event: Event): event is WheelEvent {
+    return event.type === 'wheel';
+}
 
 export class WidgetEventUtil {
     static alloc<K extends keyof WidgetEventMap_HTML>(
@@ -167,5 +172,17 @@ export class WidgetEventUtil {
     ): { currentX: number; currentY: number } {
         const currentRect = current.getBoundingClientRect();
         return { currentX: event.clientX - currentRect.x, currentY: event.clientY - currentRect.y };
+    }
+
+    static getWheelDeltas(event: Event) {
+        let [deltaX, deltaY] = [NaN, NaN];
+        if (isWheelEvent(event)) {
+            // AG-10475 On Chrome (Windows), wheel clicks send deltaMode: 0 events with deltaY: -100 or +100.
+            // So we divide this by 100 to give us the desired step.
+            const factor = event.deltaMode === 0 ? 0.01 : 1;
+            deltaX = event.deltaX * factor;
+            deltaY = event.deltaY * factor;
+        }
+        return { deltaX, deltaY };
     }
 }

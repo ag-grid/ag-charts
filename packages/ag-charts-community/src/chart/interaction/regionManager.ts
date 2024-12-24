@@ -1,7 +1,12 @@
 import { Debug } from '../../util/debug';
 import { Listeners } from '../../util/listeners';
 import type { Widget } from '../../widget/widget';
-import type { DragWidgetEvent, MouseWidgetEvent, WheelWidgetEvent } from '../../widget/widgetEvents';
+import {
+    type DragWidgetEvent,
+    type MouseWidgetEvent,
+    type WheelWidgetEvent,
+    WidgetEventUtil,
+} from '../../widget/widgetEvents';
 import { InteractionManager } from './interactionManager';
 import { InteractionState } from './interactionManager';
 import type { WidgetSet } from './widgetSet';
@@ -212,7 +217,7 @@ export class RegionManager {
     }
 
     private computeEventOffsets(currentWidget: Widget, rootWidget: Widget, widgetEvent: TWidgetEvent) {
-        const { deltaX, deltaY } = InteractionManager.getWheelDeltas(widgetEvent.sourceEvent);
+        const { deltaX, deltaY } = WidgetEventUtil.getWheelDeltas(widgetEvent.sourceEvent);
 
         const rootRect = rootWidget.getElement().getBoundingClientRect();
         const currentWidgetRect = currentWidget.getElement().getBoundingClientRect();
