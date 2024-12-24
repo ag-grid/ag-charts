@@ -439,22 +439,19 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
     private setupListeners() {
         const { ctx, optionsToolbar, settingsDialog, toolbar } = this;
-        const { All, AnnotationsDraggable } = InteractionState;
-
-        const seriesRegion = ctx.regionManager.getRegion('series');
-        const rootRegion = ctx.regionManager.getRegion('root');
+        const { seriesWidget, containerWidget } = ctx.widgets;
 
         this.destroyFns.push(
             // Interactions
-            seriesRegion.addListener('hover', this.onHover.bind(this), All),
-            seriesRegion.addListener('click', this.onClick.bind(this), All),
-            seriesRegion.addListener('dblclick', this.onDoubleClick.bind(this), All),
-            seriesRegion.addListener('drag-start', this.onDragStart.bind(this), AnnotationsDraggable),
-            seriesRegion.addListener('drag', this.onDrag.bind(this), AnnotationsDraggable),
-            seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), All),
-            ctx.widgets.seriesWidget.addListener('keydown', this.onKeyDown.bind(this)),
-            ctx.widgets.seriesWidget.addListener('keyup', this.onKeyUp.bind(this)),
-            rootRegion.addListener('click', this.onCancel.bind(this), All),
+            seriesWidget.addListener('mousemove', this.onHover.bind(this)),
+            seriesWidget.addListener('click', this.onClick.bind(this)),
+            seriesWidget.addListener('dblclick', this.onDoubleClick.bind(this)),
+            seriesWidget.addListener('drag-start', this.onDragStart.bind(this)),
+            seriesWidget.addListener('drag-move', this.onDrag.bind(this)),
+            seriesWidget.addListener('drag-end', this.onDragEnd.bind(this)),
+            seriesWidget.addListener('keydown', this.onKeyDown.bind(this)),
+            seriesWidget.addListener('keyup', this.onKeyUp.bind(this)),
+            containerWidget.addListener('click', this.onCancel.bind(this)),
 
             // Services
             ctx.annotationManager.addListener('restore-annotations', this.onRestoreAnnotations.bind(this)),
@@ -838,13 +835,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         };
     }
 
-    private onHover(event: _ModuleSupport.RegionEvent<'hover'>) {
+    private onHover(event: _Widget.MouseWidgetEvent<'mousemove'>) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const shiftKey = (event.sourceEvent as MouseEvent).shiftKey;
+        const shiftKey = event.sourceEvent.shiftKey;
 
         const offset = Vec2.from(event);
         const point = invertCoords(offset, context);
@@ -852,13 +849,13 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('hover', { offset, point, shiftKey, context });
     }
 
-    private onClick(event: _ModuleSupport.RegionEvent<'click'>) {
+    private onClick(event: _Widget.MouseWidgetEvent<'click'>) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
         if (!context) return;
 
-        const shiftKey = (event.sourceEvent as MouseEvent).shiftKey;
+        const shiftKey = event.sourceEvent.shiftKey;
         const point = invertCoords(Vec2.from(event), context);
         const textInputValue = this.textInput.getValue();
         const bbox = this.textInput.getBBox();
@@ -866,7 +863,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('click', { point, shiftKey, textInputValue, bbox });
     }
 
-    private onDoubleClick(event: _ModuleSupport.RegionEvent<'dblclick'>) {
+    private onDoubleClick(event: _Widget.MouseWidgetEvent<'dblclick'>) {
         const { state } = this;
 
         const context = this.getAnnotationContext();
@@ -918,7 +915,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.state.transition('resize', { textInputValue, bbox });
     }
 
-    private onDragStart(event: _ModuleSupport.RegionEvent<'drag-start'>) {
+    private onDragStart(event: _Widget.DragWidgetEvent<'drag-start'>) {
+        if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
+
         const { state } = this;
 
         const context = this.getAnnotationContext();
@@ -933,7 +932,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         state.transition('dragStart', { context, offset, point, textInputValue, bbox });
     }
 
-    private onDrag(event: _ModuleSupport.RegionEvent<'drag'>) {
+    private onDrag(event: _Widget.DragWidgetEvent<'drag-move'>) {
+        if (!this.ctx.interactionManager.isState(InteractionState.AnnotationsDraggable)) return;
+
         const { state } = this;
 
         const context = this.getAnnotationContext();
@@ -952,7 +953,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.state.transition('dragEnd');
     }
 
-    private onCancel() {
+    private onCancel(widgetEvent?: _Widget.MouseWidgetEvent) {
+        const { sourceEvent } = widgetEvent ?? {};
+        if (sourceEvent?.currentTarget !== sourceEvent?.target) return;
         this.cancel();
         this.reset();
     }
