@@ -30,7 +30,7 @@ export interface FibonacciRangeDatum extends _ModuleSupport.Vec4 {
 export function getFibonacciCoords(coords1: _ModuleSupport.Vec4, coords2?: _ModuleSupport.Vec4) {
     const { x2, y1, y2 } = coords1;
 
-    const trendLineVerticalDistance = y2 - y1;
+    const trendLineVerticalDistance = y1 - y2;
 
     if (coords2 == null) {
         return {
@@ -53,17 +53,17 @@ export function createFibonacciRangesData(
     { x1, y1, x2, y2 }: _ModuleSupport.Vec4,
     context: AnnotationContext,
     reverse: boolean,
+    yZero: number,
     bands: FibonacciBands = 10
 ): FibonacciRangeDatum[] {
-    const verticalDistance = y2 - y1;
+    const verticalDistance = y1 - y2;
 
-    const direction = reverse ? 1 : -1;
-    const y = reverse ? y1 : y2;
-    let startY = y;
+    const direction = reverse ? -1 : 1;
+    let startY = yZero;
     const data: FibonacciRangeDatum[] = [];
 
     FIBONACCI_RATIOS_MAP[bands].forEach((ratio, index) => {
-        const endY = y + verticalDistance * (ratio / 100) * direction;
+        const endY = yZero + verticalDistance * (ratio / 100) * direction;
         const yDatumVal = context.yAxis.scaleInvert(endY);
 
         data.push({
