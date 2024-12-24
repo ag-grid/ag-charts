@@ -300,7 +300,20 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onClick(event: MouseWidgetEvent<'click' | 'dblclick'>, current: Widget) {
-        if (!this.isState(InteractionState.Default) || event.sourceEvent.target != current.getElement()) return;
+        if (!this.isState(InteractionState.Default)) return;
+
+        // Check whether the `event.sourceEvent` targets on the series-area, or the back of the chart. The logic is
+        // different for `seriesWidget` and `containerWidget` because on the `seriesWidget` the target is one of the
+        // focus swapchain elements (descendants of `seriesWidget`). Whereas with `containerWidget` we want an exact
+        // match with the target because we want to ignore events target is the `seriesWidget` (which is a descendant of
+        // `containerWidget`).
+        if (current === this.chart.ctx.widgets.seriesWidget) {
+            if (!current.getElement().contains(event.sourceEvent.target as Node | null)) {
+                return;
+            }
+        } else if (event.sourceEvent.target != current.getElement()) {
+            return;
+        }
 
         this.focusIndicator.overrideFocusVisible(false);
         this.onHoverLikeEvent(event);
