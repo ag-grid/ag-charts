@@ -300,8 +300,6 @@ export class RegionManager {
     }
 
     private readonly processPointerEvent = (event: TWidgetEvent) => {
-        if (event.sourceEvent.currentTarget != this.regions.root.properties.widget?.getElement()) return;
-
         const ignore = shouldIgnore(event);
         const { current } = this;
 
