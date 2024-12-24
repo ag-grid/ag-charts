@@ -292,7 +292,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private onClick(event: MouseWidgetEvent<'click' | 'dblclick'>, current: Widget) {
-        if (event.sourceEvent.currentTarget != current.getElement()) return;
+        if (!this.isState(InteractionState.Default) || event.sourceEvent.target != current.getElement()) return;
 
         this.focusIndicator.overrideFocusVisible(false);
         this.onHoverLikeEvent(event);
