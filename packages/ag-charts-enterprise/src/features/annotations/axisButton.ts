@@ -94,8 +94,9 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         if (this.ctx.interactionManager.isState(InteractionState.Clickable)) this.hide();
     }
 
-    private show({ currentX: x, currentY: y }: { currentX: number; currentY: number }) {
-        if (!(this.enabled && this.seriesRect.containsPoint(x, y))) {
+    private show(event: _Widget.MouseWidgetEvent | _Widget.DragWidgetEvent) {
+        const { sourceEvent, currentX: x, currentY: y } = event;
+        if (!(this.enabled && this.ctx.widgets.seriesWidget.getElement().contains(sourceEvent.target as Node | null))) {
             this.hide();
             return;
         }
