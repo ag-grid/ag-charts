@@ -27,7 +27,6 @@ const {
     UNION,
     Color,
     FloatingToolbar,
-    InteractionState,
     Listeners,
     Menu,
     PropertiesArray,
@@ -159,12 +158,11 @@ export class AnnotationOptionsToolbar extends _ModuleSupport.BaseProperties {
     ) {
         super();
 
-        const seriesRegion = ctx.regionManager.getRegion('series');
         this.destroyFns.push(
             this.toolbar.addToolbarListener('button-pressed', this.onButtonPress.bind(this)),
             this.toolbar.addToolbarListener('toolbar-moved', this.onToolbarMoved.bind(this)),
-            seriesRegion.addListener('drag-start', this.onDragStart.bind(this), InteractionState.All),
-            seriesRegion.addListener('drag-end', this.onDragEnd.bind(this), InteractionState.All),
+            ctx.widgets.seriesWidget.addListener('drag-start', this.onDragStart.bind(this)),
+            ctx.widgets.seriesWidget.addListener('drag-end', this.onDragEnd.bind(this)),
             () => this.colorPicker.destroy()
         );
     }
