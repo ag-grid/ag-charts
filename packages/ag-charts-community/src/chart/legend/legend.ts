@@ -803,7 +803,15 @@ export class Legend extends BaseProperties {
         };
     }
     private getMarkerStyles(datum: LegendSymbolOptions) {
-        const { fill, stroke, strokeOpacity = 1, fillOpacity = 1, strokeWidth } = datum.marker;
+        const {
+            fill,
+            stroke,
+            strokeOpacity = 1,
+            fillOpacity = 1,
+            strokeWidth,
+            lineDash,
+            lineDashOffset,
+        } = datum.marker;
         const defaultLineStrokeWidth = Math.min(2, strokeWidth ?? 1);
 
         return {
@@ -812,6 +820,8 @@ export class Legend extends BaseProperties {
             strokeOpacity,
             fillOpacity,
             strokeWidth: this.item.marker.strokeWidth ?? defaultLineStrokeWidth,
+            lineDash,
+            lineDashOffset,
         };
     }
 
