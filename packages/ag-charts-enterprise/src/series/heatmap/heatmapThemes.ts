@@ -1,8 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 const {
-    ThemeSymbols: { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR },
-    ThemeConstants: { FONT_SIZE },
+    ThemeSymbols: { DEFAULT_LABEL_COLOUR },
 } = _ModuleSupport;
 
 export const HEATMAP_SERIES_THEME = {
@@ -10,8 +9,8 @@ export const HEATMAP_SERIES_THEME = {
         label: {
             enabled: false,
             color: DEFAULT_LABEL_COLOUR,
-            fontSize: FONT_SIZE.SMALL,
-            fontFamily: DEFAULT_FONT_FAMILY,
+            fontSize: { ref: 'fontSize' as const },
+            fontFamily: { ref: 'fontFamily' as const },
             wrapping: 'on-space' as const,
             overflowStrategy: 'ellipsis' as const,
         },

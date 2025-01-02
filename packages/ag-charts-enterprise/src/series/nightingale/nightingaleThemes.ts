@@ -1,7 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 const {
-    ThemeSymbols: { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR },
+    ThemeSymbols: { DEFAULT_LABEL_COLOUR },
     ThemeConstants: { POLAR_AXIS_TYPE, POLAR_AXIS_SHAPE },
 } = _ModuleSupport;
 
@@ -10,8 +10,8 @@ export const NIGHTINGALE_SERIES_THEME = {
         strokeWidth: 1,
         label: {
             enabled: false,
-            fontSize: 12,
-            fontFamily: DEFAULT_FONT_FAMILY,
+            fontSize: { ref: 'fontSize' as const },
+            fontFamily: { ref: 'fontFamily' as const },
             color: DEFAULT_LABEL_COLOUR,
         },
     },

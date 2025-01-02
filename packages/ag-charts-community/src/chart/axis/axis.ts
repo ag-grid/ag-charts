@@ -35,7 +35,7 @@ import { isArray } from '../../util/type-guards';
 import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
-import type { AxisGroups, ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
+import type { AxisGroups, ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
@@ -349,7 +349,7 @@ export abstract class Axis<
         this.gridLineGroupSelection.clear();
     }
 
-    protected createLabel(): ChartAxisLabel {
+    protected createLabel() {
         return new AxisLabel();
     }
 

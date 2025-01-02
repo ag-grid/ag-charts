@@ -6,8 +6,8 @@ export const RANGE_BAR_SERIES_THEME = {
         strokeWidth: 0,
         label: {
             enabled: false,
-            fontSize: 12,
-            fontFamily: _ModuleSupport.ThemeSymbols.DEFAULT_FONT_FAMILY,
+            fontSize: { ref: 'fontSize' as const },
+            fontFamily: { ref: 'fontFamily' as const },
             color: _ModuleSupport.ThemeSymbols.DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
             placement: 'inside' as const,
         },

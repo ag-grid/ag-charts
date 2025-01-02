@@ -11,6 +11,7 @@ import type {
     AgRadialGaugeOptions,
     AgStandaloneSeriesOptions,
     AgTopologySeriesOptions,
+    WithThemeParams,
 } from 'ag-charts-types';
 
 import type { ChartLegend, ChartLegendType } from '../chart/legend/legendDatum';
@@ -60,7 +61,7 @@ type Themes = AgChartThemeOverrides & {
     'radial-gauge'?: { series: AgRadialGaugeOptions };
 };
 
-export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = NonNullable<Themes[SeriesType]>;
+export type ExtensibleTheme<SeriesType extends RequiredSeriesType> = WithThemeParams<NonNullable<Themes[SeriesType]>>;
 
 export type SeriesTypeOptions<SeriesType extends RequiredSeriesType> = Extract<
     SeriesOptionsTypes,

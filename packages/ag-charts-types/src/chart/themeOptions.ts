@@ -78,9 +78,31 @@ export interface AgChartThemePalette {
     neutral?: AgPaletteColors;
 }
 
+export interface AgChartThemeParams {
+    /** TODO */
+    fontFamily?: string;
+    /** TODO */
+    fontSize?: number;
+}
+
+type ExtendLiteralLeaves<T, V> = {
+    [P in keyof T]: T[P] extends (infer U)[]
+        ? ExtendLiteralLeaves<U, V>[]
+        : T[P] extends string | symbol | number | undefined
+          ? T[P] | V
+          : ExtendLiteralLeaves<T[P], V>;
+};
+
+type ThemeParam = keyof AgChartThemeParams;
+type ThemeParamsRef = { ref: ThemeParam };
+
+export type WithThemeParams<T> = ExtendLiteralLeaves<T, ThemeParamsRef>;
+
 export interface AgBaseChartThemeOptions {
     /** The palette to use. If specified, this replaces the palette from the base theme. */
     palette?: AgChartThemePalette;
+    /** TODO */
+    params?: AgChartThemeParams;
     /** Configuration from this object is merged over the defaults specified in the base theme. */
     overrides?: AgThemeOverrides;
 }

@@ -1,7 +1,5 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
-import { FONT_SIZE } from '../../themes/constants';
 import {
-    DEFAULT_FONT_FAMILY,
     DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
@@ -14,14 +12,14 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
             enabled: true,
             fontWeight: 'normal' as const,
             fontSize: 14,
-            fontFamily: DEFAULT_FONT_FAMILY,
+            fontFamily: { ref: 'fontFamily' as const },
             color: DEFAULT_MUTED_LABEL_COLOUR,
             spacing: 5,
         },
         calloutLabel: {
             enabled: true,
-            fontSize: FONT_SIZE.SMALL,
-            fontFamily: DEFAULT_FONT_FAMILY,
+            fontSize: { ref: 'fontSize' as const },
+            fontFamily: { ref: 'fontFamily' as const },
             color: DEFAULT_LABEL_COLOUR,
             offset: 3,
             minAngle: 0,
@@ -29,8 +27,8 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         sectorLabel: {
             enabled: true,
             fontWeight: 'normal' as const,
-            fontSize: FONT_SIZE.SMALL,
-            fontFamily: DEFAULT_FONT_FAMILY,
+            fontSize: { ref: 'fontSize' as const },
+            fontFamily: { ref: 'fontFamily' as const },
             color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
             positionOffset: 0,
             positionRatio: 0.5,
@@ -54,8 +52,8 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
             blur: 5,
         },
         innerLabels: {
-            fontSize: FONT_SIZE.SMALL,
-            fontFamily: DEFAULT_FONT_FAMILY,
+            fontSize: { ref: 'fontSize' as const },
+            fontFamily: { ref: 'fontFamily' as const },
             color: DEFAULT_LABEL_COLOUR,
             spacing: 2,
         },

@@ -184,7 +184,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         const { title, label, range, depthOptions } = this;
         const { depth: maxDepth, nodes: treeLabels } = this.tickTreeLayout;
 
-        const keepEvery = Math.ceil(label.fontSize! / step);
+        const keepEvery = Math.ceil(label.fontSize / step);
         const rotation = toRadians(this.rotation);
         const isHorizontal = this.position === 'top' || this.position === 'bottom';
         const sideFlag = label.getSideFlag();

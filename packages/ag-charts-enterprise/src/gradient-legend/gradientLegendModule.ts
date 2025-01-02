@@ -3,8 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { GradientLegend } from './gradientLegend';
 
 const {
-    ThemeSymbols: { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR },
-    ThemeConstants: { FONT_SIZE },
+    ThemeSymbols: { DEFAULT_LABEL_COLOUR },
 } = _ModuleSupport;
 
 export const GradientLegendModule: _ModuleSupport.LegendModule = {
@@ -24,8 +23,8 @@ export const GradientLegendModule: _ModuleSupport.LegendModule = {
             padding: 13,
             label: {
                 color: DEFAULT_LABEL_COLOUR,
-                fontSize: FONT_SIZE.SMALL,
-                fontFamily: DEFAULT_FONT_FAMILY,
+                fontSize: { ref: 'fontSize' as const },
+                fontFamily: { ref: 'fontFamily' as const },
             },
             interval: {
                 minSpacing: 1,
