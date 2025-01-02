@@ -128,8 +128,6 @@ export interface AgQuickMeasurerAnnotationDirectionStyles extends FillOptions, S
 // ***********
 
 export interface AgAnnotationsOptions extends Toggleable {
-    /** The options for the axes buttons */
-    axesButtons?: AgAnnotationAxesButtons;
     /** Configuration for the toolbar for creating annotations. */
     toolbar?: AgAnnotationsToolbar;
     /** Configuration for the options toolbar for editing an annotation. */

@@ -361,7 +361,19 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             return [{}, annotationsThemes];
         }
 
-        return [{ annotations: { axesButtons, enabled, optionsToolbar, toolbar } }, annotationsThemes];
+        const { presetType } = this.optionMetadata;
+
+        if (presetType == 'price-volume') {
+            return [{ annotations: { axesButtons, enabled, optionsToolbar, toolbar } }, annotationsThemes];
+        }
+
+        if (axesButtons != null) {
+            Logger.warn(`unable to set ['axesButtons'] - property is only supported for financial charts`);
+
+            delete annotations.axesButtons;
+        }
+
+        return [{ annotations: { enabled, optionsToolbar, toolbar } }, annotationsThemes];
     }
 
     private processAxesOptions(options: T, axesThemes: any) {

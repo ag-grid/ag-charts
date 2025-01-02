@@ -5,7 +5,7 @@ const AXIS_TYPE = UNION(['x', 'y', 'xy'], 'an axis type');
 
 export class AxesButtons extends BaseProperties {
     @Validate(BOOLEAN)
-    public enabled: boolean = true;
+    public enabled: boolean = false;
 
     @Validate(AXIS_TYPE, { optional: true })
     public axes?: 'x' | 'y' | 'xy' = 'y';

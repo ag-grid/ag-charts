@@ -80,11 +80,6 @@ const toolbar: AgAnnotationsToolbar = {
             value: 'line-menu',
         },
         {
-            icon: 'fibonacci-retracement-drawing',
-            tooltip: 'toolbarAnnotationsFibonacciAnnotations',
-            value: 'fibonacci-menu',
-        },
-        {
             icon: 'text-annotation',
             tooltip: 'toolbarAnnotationsTextAnnotations',
             value: 'text-menu',
@@ -93,16 +88,6 @@ const toolbar: AgAnnotationsToolbar = {
             icon: 'arrow-drawing',
             tooltip: 'toolbarAnnotationsShapeAnnotations',
             value: 'shape-menu',
-        },
-        {
-            icon: 'measurer-drawing',
-            tooltip: 'toolbarAnnotationsMeasurerAnnotations',
-            value: 'measurer-menu',
-        },
-        {
-            icon: 'delete',
-            tooltip: 'toolbarAnnotationsClearAll',
-            value: 'clear',
         },
     ],
 };
@@ -327,9 +312,6 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
     },
 
     // Toolbars
-    axesButtons: {
-        enabled: true,
-    },
     toolbar,
     optionsToolbar,
 };
