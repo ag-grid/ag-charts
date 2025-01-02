@@ -14,6 +14,7 @@ import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { PlacedLabel } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
+import { findRangeExtent } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
 import type { RequireOptional } from '../../../util/types';
@@ -116,8 +117,33 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         return fixNumericExtent(extent(domain));
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
-        return [NaN, NaN];
+    override getSeriesRange(_direction: ChartAxisDirection, [r0, r1]: [any, any]): [number, number] {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return [NaN, NaN];
+
+        const xScale = this.axes[ChartAxisDirection.X]!.scale;
+        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
+        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
+        const r =
+            this.properties.size *
+            0.5 *
+            Math.abs(r1 - r0) *
+            (findRangeExtent(xScale.range) / findRangeExtent(xScale.domain));
+
+        let yMin = Infinity;
+        let yMax = -Infinity;
+        xValues.forEach((xValue, i) => {
+            const x = xScale.convert(xValue);
+            if (x + r >= r0 && x - r <= r1) {
+                const y = yValues[i];
+                yMin = Math.min(yMin, y);
+                yMax = Math.max(yMax, y);
+            }
+        });
+
+        if (yMin > yMax) return [NaN, NaN];
+
+        return [yMin, yMax];
     }
 
     override createNodeData() {

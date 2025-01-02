@@ -419,10 +419,10 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         if (zoom?.x == null || !autoScaleYAxis.enabled || autoScaleYAxis.manuallyAdjusted) return;
 
         const { padding } = autoScaleYAxis;
-        let zoomY = independentAxes
+        const zoomY = independentAxes
             ? this.primaryAxisZoom(ChartAxisDirection.Y, zoom.x, { padding })
             : this.combinedAxisZoom(ChartAxisDirection.Y, zoom.x, { padding });
-        zoomY ??= { min: 0, max: 1 };
+        if (zoomY == null) return;
 
         if (independentAxes) {
             const primaryAxis = this.getPrimaryAxis(ChartAxisDirection.Y);
