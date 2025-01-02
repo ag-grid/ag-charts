@@ -250,15 +250,16 @@ export enum WheelDeltaMode {
 }
 
 type WheelEventData = {
-    clientX: number;
-    clientY: number;
     deltaX: number;
     deltaY: number;
     deltaMode: WheelDeltaMode;
 };
 
-export function wheelEvent({ clientX, clientY, deltaX, deltaY, deltaMode }: WheelEventData): WheelEvent {
-    return new WheelEvent('wheel', { bubbles: true, clientX, clientY, deltaX, deltaY, deltaMode });
+export function wheelEvent(mockEvent: MockEvent, { deltaX, deltaY, deltaMode }: WheelEventData): WheelEvent {
+    const { offsetX, offsetY, clientX, clientY, clientX: pageX, clientY: pageY } = mockEvent;
+    const event = new WheelEvent('wheel', { bubbles: true, clientX, clientY, deltaX, deltaY, deltaMode });
+    Object.assign(event, { offsetX, offsetY, pageX, pageY });
+    return event;
 }
 
 export function cartesianChartAssertions(params?: { type?: string; axisTypes?: string[]; seriesTypes?: string[] }) {
@@ -478,7 +479,7 @@ export function scrollAction(
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
         const testTarget = findChartTarget(chart, canvasX, canvasY);
-        dispatchEvent(testTarget, wheelEvent({ clientX: canvasX, clientY: canvasY, deltaY, deltaX, deltaMode }));
+        dispatchEvent(testTarget, wheelEvent(testTarget, { deltaY, deltaX, deltaMode }));
         await delay(delayMs);
     };
 }
