@@ -254,19 +254,24 @@ export abstract class Shape extends Node {
     abstract isPointInPath(x: number, y: number): boolean;
 
     protected applySvgFillAttributes(element: SVGElement) {
-        element.setAttribute('fill', typeof this.fill === 'string' ? this.fill : 'none');
-        element.setAttribute('fill-opacity', String(this.fillOpacity));
+        const { fill, fillOpacity } = this;
+        element.setAttribute('fill', typeof fill === 'string' ? fill : 'none');
+        element.setAttribute('fill-opacity', String(fillOpacity));
     }
 
     protected applySvgStrokeAttributes(element: SVGElement) {
-        if (this.stroke != null) {
-            element.setAttribute('stroke', typeof this.stroke === 'string' ? this.stroke : 'none');
-            element.setAttribute('stroke-opacity', String(this.strokeOpacity));
-            element.setAttribute('stroke-width', String(this.strokeWidth));
+        const { stroke, strokeOpacity, strokeWidth, lineDash, lineDashOffset } = this;
+        if (stroke != null) {
+            element.setAttribute('stroke', typeof stroke === 'string' ? stroke : 'none');
+            element.setAttribute('stroke-opacity', String(strokeOpacity));
+            element.setAttribute('stroke-width', String(strokeWidth));
         }
-        if (this.lineDash != null && this.lineDash.length > 1) {
-            element.setAttribute('stroke-dasharray', this.lineDash.join(' '));
-            element.setAttribute('stroke-dashoffset', String(this.lineDashOffset));
+        if (lineDash?.some((d) => d !== 0) === true) {
+            // https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/setLineDash#segments
+            // If the number of elements in the array is odd, the elements of the array get copied and concatenated
+            const svgLineDash = lineDash.length % 2 === 1 ? [...lineDash, ...lineDash] : lineDash;
+            element.setAttribute('stroke-dasharray', svgLineDash.join(' '));
+            element.setAttribute('stroke-dashoffset', String(lineDashOffset));
         }
     }
 }
