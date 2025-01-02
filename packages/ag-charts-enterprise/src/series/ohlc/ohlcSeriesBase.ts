@@ -33,6 +33,7 @@ const {
     Logger,
     ContinuousScale,
     OrdinalTimeScale,
+    BandScale,
 } = _ModuleSupport;
 
 export interface OhlcNodeDatum extends Omit<_ModuleSupport.CartesianSeriesNodeDatum, 'yKey' | 'yValue'> {
@@ -235,6 +236,8 @@ export abstract class OhlcSeriesBase<
         // CRT-340 Use atleast 1px width to prevent nothing being drawn.
         const effectiveBarWidth = barWidth >= 1 ? barWidth : groupScale.rawBandwidth;
 
+        const applyWidthOffset = BandScale.is(xAxis.scale);
+
         const context = {
             itemId: xKey,
             nodeData,
@@ -256,7 +259,8 @@ export abstract class OhlcSeriesBase<
         ) => {
             const datum = rawData[datumIndex];
 
-            const centerX = xAxis.scale.convert(xValue) + groupOffset + width / 2;
+            const xOffset = applyWidthOffset ? width / 2 : 0;
+            const centerX = xAxis.scale.convert(xValue) + groupOffset + xOffset;
             const yOpen = yAxis.scale.convert(openValue);
             const yClose = yAxis.scale.convert(closeValue);
             const yHigh = yAxis.scale.convert(highValue);
