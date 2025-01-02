@@ -73,24 +73,24 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
         return rangeDistance / Math.max(1, bands);
     }
 
-    convert(x: D, clamp = this.defaultClamp) {
-        if (!this.domain || this.domain.length < 2) {
+    convert(value: D, clamp = this.defaultClamp) {
+        const { domain } = this;
+        if (!domain || domain.length < 2) {
             return NaN;
         }
 
-        const domain = this.domain.map((d) => this.transform(d));
-        const [d0, d1] = domain;
+        const d0 = Number(this.transform(domain[0]));
+        const d1 = Number(this.transform(domain[1]));
+        const x = Number(this.transform(value));
 
         const { range } = this;
         const [r0, r1] = range;
 
-        x = this.transform(x);
-
         if (clamp) {
-            const [start, stop] = findMinMax(domain.map(Number));
-            if (Number(x) < start) {
+            const [start, stop] = findMinMax([d0, d1]);
+            if (x < start) {
                 return r0;
-            } else if (Number(x) > stop) {
+            } else if (x > stop) {
                 return r1;
             }
         }
@@ -103,7 +103,7 @@ export abstract class ContinuousScale<D extends number | Date, I = number> exten
             return r1;
         }
 
-        return r0 + ((Number(x) - Number(d0)) / (Number(d1) - Number(d0))) * (r1 - r0);
+        return r0 + ((x - d0) / (d1 - d0)) * (r1 - r0);
     }
 
     invert(x: number, _nearest?: boolean) {

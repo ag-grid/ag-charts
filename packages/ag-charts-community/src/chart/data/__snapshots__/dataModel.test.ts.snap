@@ -166,7 +166,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
     "aggValues": [
       [
         0,
-        0.012,
+        0.012000000000000004,
       ],
     ],
     "groups": [
@@ -201,7 +201,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       "aggregation": [
         [
           0,
-          0.012,
+          0.012000000000000004,
         ],
       ],
       "datumIndices": [
@@ -480,7 +480,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       "aggregation": [
         [
           0,
-          25.5455,
+          25.545454545454547,
         ],
       ],
       "datumIndices": [
@@ -505,7 +505,7 @@ exports[`DataModel grouped processing - calculated grouping should generated the
       "aggregation": [
         [
           0,
-          24.4286,
+          24.428571428571427,
         ],
       ],
       "datumIndices": [
@@ -1056,7 +1056,7 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       "aggregation": [
         [
           0,
-          6.7,
+          6.699999999999999,
         ],
       ],
       "datumIndices": [
@@ -1071,7 +1071,7 @@ exports[`DataModel grouped processing - grouped example should generated the exp
       "aggregation": [
         [
           0,
-          6.8,
+          6.800000000000001,
         ],
       ],
       "datumIndices": [
@@ -1378,7 +1378,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     "aggValues": [
       [
         0,
-        100,
+        100.00000000000001,
       ],
     ],
     "groups": [
@@ -1467,7 +1467,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "aggregation": [
         [
           0,
-          100,
+          100.00000000000001,
         ],
       ],
       "datumIndices": [
@@ -1497,7 +1497,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "aggregation": [
         [
           0,
-          100,
+          99.99999999999999,
         ],
       ],
       "datumIndices": [
@@ -1527,7 +1527,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "aggregation": [
         [
           0,
-          100,
+          100.00000000000001,
         ],
       ],
       "datumIndices": [
@@ -1557,7 +1557,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "aggregation": [
         [
           0,
-          100,
+          99.99999999999999,
         ],
       ],
       "datumIndices": [
@@ -1572,7 +1572,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "aggregation": [
         [
           0,
-          100,
+          99.99999999999999,
         ],
       ],
       "datumIndices": [
@@ -1587,7 +1587,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "aggregation": [
         [
           0,
-          100,
+          100.00000000000001,
         ],
       ],
       "datumIndices": [
@@ -1602,7 +1602,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "aggregation": [
         [
           0,
-          100,
+          100.00000000000001,
         ],
       ],
       "datumIndices": [
@@ -1617,7 +1617,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "aggregation": [
         [
           0,
-          100,
+          99.99999999999999,
         ],
       ],
       "datumIndices": [
@@ -1632,7 +1632,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "aggregation": [
         [
           0,
-          100,
+          99.99999999999997,
         ],
       ],
       "datumIndices": [
@@ -1942,7 +1942,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
     "aggValues": [
       [
         0,
-        100,
+        100.00000000000001,
       ],
     ],
     "groups": [
@@ -2018,7 +2018,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "aggregation": [
         [
           0,
-          100,
+          100.00000000000001,
         ],
       ],
       "datumIndices": [
@@ -2033,7 +2033,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "aggregation": [
         [
           0,
-          100,
+          99.99999999999999,
         ],
       ],
       "datumIndices": [
@@ -2048,7 +2048,7 @@ exports[`DataModel grouped processing - stacked and normalised example should ge
       "aggregation": [
         [
           0,
-          100,
+          99.99999999999999,
         ],
       ],
       "datumIndices": [
@@ -2650,7 +2650,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
   "domain": {
     "aggValues": [
       [
-        23.7745,
+        23.774509803921568,
         100,
       ],
     ],
@@ -2715,7 +2715,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     {
       "aggregation": [
         [
-          76.0913,
+          76.09130289903365,
           100,
         ],
       ],
@@ -2730,7 +2730,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     {
       "aggregation": [
         [
-          64.1101,
+          64.11008346492217,
           100,
         ],
       ],
@@ -2745,7 +2745,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     {
       "aggregation": [
         [
-          92.0191,
+          92.01913393756294,
           100,
         ],
       ],
@@ -2760,7 +2760,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     {
       "aggregation": [
         [
-          25.2511,
+          25.251116071428573,
           100,
         ],
       ],
@@ -2775,7 +2775,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     {
       "aggregation": [
         [
-          44.0818,
+          44.081810269799824,
           100,
         ],
       ],
@@ -2790,7 +2790,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     {
       "aggregation": [
         [
-          70.4934,
+          70.4933586337761,
           100,
         ],
       ],
@@ -2805,7 +2805,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     {
       "aggregation": [
         [
-          27.1552,
+          27.155172413793103,
           100,
         ],
       ],
@@ -2820,7 +2820,7 @@ exports[`DataModel grouped processing - stacked with accumulation and normalised
     {
       "aggregation": [
         [
-          23.7745,
+          23.774509803921568,
           100,
         ],
       ],
