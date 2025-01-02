@@ -1,4 +1,4 @@
-import type { AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
+import type { AgErrorBoundSeriesTooltipRendererParams, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
 import { fromToMotion } from '../../../motion/fromToMotion';
@@ -453,6 +453,49 @@ export class LineSeries extends CartesianSeries<
         updateClipPath(this, lineNode);
     }
 
+    private getMarkerItemBaseStyle(highlighted: boolean): RequireOptional<AgSeriesMarkerStyle> {
+        const { properties } = this;
+
+        const { marker } = properties;
+        const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
+        return {
+            size: marker.size,
+            shape: marker.shape,
+            fill: highlightStyle?.fill ?? marker.fill,
+            fillOpacity: highlightStyle?.fillOpacity ?? marker.fillOpacity,
+            stroke: highlightStyle?.stroke ?? marker.stroke,
+            strokeWidth: highlightStyle?.strokeWidth ?? marker.strokeWidth,
+            strokeOpacity: highlightStyle?.strokeOpacity ?? marker.strokeOpacity,
+            lineDash: highlightStyle?.lineDash ?? marker.lineDash,
+            lineDashOffset: highlightStyle?.lineDashOffset ?? marker.lineDashOffset,
+        };
+    }
+
+    private getMarkerItemStyleOverrides(
+        datumId: string,
+        datum: any,
+        format: RequireOptional<AgSeriesMarkerStyle>,
+        highlighted: boolean
+    ) {
+        const { id: seriesId, properties } = this;
+
+        const { xKey, yKey, marker } = properties;
+        const { itemStyler } = marker;
+
+        if (itemStyler == null) return;
+
+        return this.cachedDatumCallback(createDatumId(datumId, highlighted ? 'highlight' : 'node'), () => {
+            const xDomain = this.getSeriesDomain(ChartAxisDirection.X);
+            const yDomain = this.getSeriesDomain(ChartAxisDirection.Y);
+            return itemStyler({
+                seriesId,
+                ...datumStylerProperties(datum, xKey, yKey, xDomain, yDomain),
+                highlighted,
+                ...format,
+            });
+        });
+    }
+
     protected override updateMarkerSelection(opts: {
         nodeData: LineNodeDatum[];
         markerSelection: Selection<Marker, LineNodeDatum>;
@@ -547,6 +590,9 @@ export class LineSeries extends CartesianSeries<
 
         if (xValue == null) return;
 
+        const format = this.getMarkerItemBaseStyle(false);
+        Object.assign(format, this.getMarkerItemStyleOverrides(String(datumIndex), datum, format, false));
+
         return tooltip.formatTooltip(
             {
                 heading: xAxis.formatDatum(xValue),
@@ -561,6 +607,7 @@ export class LineSeries extends CartesianSeries<
                 xName,
                 yKey,
                 yName,
+                ...format,
                 ...(this.getModuleTooltipParams() as RequireOptional<AgErrorBoundSeriesTooltipRendererParams>),
             }
         );
