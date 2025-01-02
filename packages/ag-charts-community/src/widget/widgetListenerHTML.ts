@@ -46,7 +46,7 @@ export class WidgetListenerHTML {
     remove<T extends Targetable, K extends EventType>(type: K, target: T, handler: Handler<unknown, K>): void {
         const listeners = this.lazyGetWidgetListeners(type, target);
         const index = listeners.indexOf(handler);
-        index > -1 && listeners.splice(index, 1);
+        if(index > -1) listeners.splice(index, 1);
     }
 
     destroy<T extends Targetable>(target: T): void {
