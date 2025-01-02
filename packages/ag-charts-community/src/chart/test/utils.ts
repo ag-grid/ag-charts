@@ -171,7 +171,17 @@ export async function waitForChartStability<O extends AgChartOptions | AgFinanci
     }
 }
 
-function makeMouseEvent<T extends 'mousedown' | 'mouseup' | 'mousemove' | 'click' | 'dblclick' | 'contextmenu'>(
+type TMouseEvent =
+    | 'mousedown'
+    | 'mouseup'
+    | 'mouseenter'
+    | 'mouseleave'
+    | 'mousemove'
+    | 'click'
+    | 'dblclick'
+    | 'contextmenu';
+
+function makeMouseEvent<T extends TMouseEvent>(
     type: T,
     testTarget: MockEvent,
     clientX: number,
@@ -189,6 +199,14 @@ function mouseDownEvent(offsets: MockEvent, clientX: number, clientY: number): M
 
 function mouseUpEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
     return makeMouseEvent('mouseup', offsets, clientX, clientY);
+}
+
+function mouseEnterEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
+    return makeMouseEvent('mouseenter', offsets, clientX, clientY);
+}
+
+function mouseLeaveEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
+    return makeMouseEvent('mouseleave', offsets, clientX, clientY);
 }
 
 function mouseMoveEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
@@ -327,6 +345,28 @@ export function hoverAction(canvasX: number, canvasY: number): (chart: ChartOrPr
         const testTarget = findChartTarget(chart, canvasX, canvasY);
         checkTargetValid(testTarget);
 
+        // Implement 'mouseenter' and 'mouseleave' events on this chart.
+        // TODO: the testLastMouseMoveBubbleChain property should be correct setup & teared out by test fixtures.
+        const testChart = chartOrProxy as unknown as { testLastMouseMoveBubbleChain: MockEvent['bubbleChain'] };
+        const enterChain: MockEvent['bubbleChain'] = [];
+        const leaveChain: MockEvent['bubbleChain'] = [];
+        testChart.testLastMouseMoveBubbleChain ??= [];
+        for (const element of testTarget.bubbleChain) {
+            if (!testChart.testLastMouseMoveBubbleChain.includes(element)) {
+                enterChain.push(element);
+            }
+        }
+        for (const element of testChart.testLastMouseMoveBubbleChain) {
+            if (!testTarget.bubbleChain.includes(element)) {
+                leaveChain.push(element);
+            }
+        }
+        const leaveTarget: MockEvent = { ...testTarget, bubbleChain: leaveChain };
+        const enterTarget: MockEvent = { ...testTarget, bubbleChain: enterChain };
+        testChart.testLastMouseMoveBubbleChain = testTarget.bubbleChain;
+
+        dispatchEvent(leaveTarget, mouseLeaveEvent(leaveTarget, canvasX, canvasY));
+        dispatchEvent(enterTarget, mouseEnterEvent(enterTarget, canvasX, canvasY));
         dispatchEvent(testTarget, mouseMoveEvent(testTarget, canvasX, canvasY));
         return delay(50);
     };
