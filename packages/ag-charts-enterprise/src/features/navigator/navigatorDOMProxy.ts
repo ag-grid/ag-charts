@@ -125,7 +125,7 @@ export class NavigatorDOMProxy {
         if (index === 1) return; // ignore pan-handle
 
         const frontSlider = this.sliders[index];
-        const otherSlider = this.sliders[[2, NaN, 0][index]];
+        const otherSlider = this.sliders[2 - index];
         this.toolbar.moveChild(otherSlider, frontSlider.domIndex! - 1);
     }
 
