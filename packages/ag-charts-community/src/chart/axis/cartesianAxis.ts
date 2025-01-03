@@ -173,19 +173,22 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     } {
         const { parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
 
-        const tickGenerationResult = this.processTicks(
+        const sideFlag = this.label.getSideFlag();
+        const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
+
+        const tickGenerationResult = this.tickGenerator.generateTicks({
             domain,
             visibleRange,
-            initialPrimaryTickCount,
+            primaryTickCount: initialPrimaryTickCount,
             parallelFlipRotation,
-            regularFlipRotation
-        );
-        const tickData = tickGenerationResult?.tickData;
-        const primaryTickCount = tickGenerationResult?.primaryTickCount ?? initialPrimaryTickCount;
+            regularFlipRotation,
+            labelX,
+            sideFlag,
+        });
+        const { tickData, primaryTickCount = initialPrimaryTickCount } = tickGenerationResult;
 
         const ticks = tickData?.ticks ?? [];
-        const labels =
-            tickGenerationResult?.tickData.ticks?.map((d) => this.getTickLabelProps(d, tickGenerationResult)) ?? [];
+        const labels = tickData.ticks?.map((d) => this.getTickLabelProps(d, tickGenerationResult)) ?? [];
 
         this.generatedTicks = { ticks, labels };
 
@@ -238,32 +241,6 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         super.updatePosition();
 
         this.axisGroup.datum = this.getAxisTransform();
-    }
-
-    private processTicks(
-        domain: D[],
-        visibleRange: [number, number],
-        primaryTickCount: number | undefined,
-        parallelFlipRotation: number,
-        regularFlipRotation: number
-    ) {
-        const sideFlag = this.label.getSideFlag();
-        const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
-
-        const ticksEnabled = this.label.enabled || this.tick.enabled || this.gridLine.enabled;
-        const tickGenerationResult = ticksEnabled
-            ? this.tickGenerator.generateTicks({
-                  domain,
-                  visibleRange,
-                  primaryTickCount,
-                  parallelFlipRotation,
-                  regularFlipRotation,
-                  labelX,
-                  sideFlag,
-              })
-            : undefined;
-
-        return tickGenerationResult;
     }
 
     private tickBBox(ticks: TickDatum[], labels: LabelNodeDatum[]) {
