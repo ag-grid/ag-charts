@@ -211,6 +211,10 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         super.update();
 
+        if (!this.animatable) {
+            this.moduleCtx.animationManager.skip();
+        }
+
         if (this.generatedTicks) {
             const { ticks } = this.generatedTicks;
 
