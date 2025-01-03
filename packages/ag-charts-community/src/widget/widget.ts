@@ -178,6 +178,14 @@ export abstract class Widget<
         this.onChildRemoved(child);
     }
 
+    moveChild(child: TChildWidget, domIndex: number) {
+        if (child.domIndex === domIndex) return;
+
+        child.domIndex = domIndex;
+        this.removeChildFromDOM(child);
+        this.addChildToDOM(child, this.getBefore(child));
+    }
+
     addClass(...tokens: string[]) {
         this.elem.classList.add(...tokens);
     }

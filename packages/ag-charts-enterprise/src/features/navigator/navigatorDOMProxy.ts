@@ -48,13 +48,14 @@ export class NavigatorDOMProxy {
             }),
             ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
-                domIndex: 0,
+                domIndex: -Infinity,
                 ariaLabel: { id: 'ariaLabelNavigatorRange' },
                 parent: this.toolbar,
                 cursor: 'grab',
             }),
             ctx.proxyInteractionService.createProxyElement({
                 type: 'slider',
+                domIndex: 2,
                 ariaLabel: { id: 'ariaLabelNavigatorMaximum' },
                 parent: this.toolbar,
                 cursor: 'ew-resize',
@@ -67,7 +68,7 @@ export class NavigatorDOMProxy {
             slider.keyboardStep = SliderWidget.STEP_ONE;
             slider.orientation = 'horizontal';
             slider.setPreventsDefault(false);
-            slider.addListener('drag-start', (ev) => this.onDragStart(slider, ev, key));
+            slider.addListener('drag-start', (ev) => this.onDragStart(index, ev, key));
             slider.addListener('drag-move', (ev) => this.onDrag(slider, ev, key));
             slider.addListener('drag-end', () => this.updateSliderRatios());
             slider.addListener('contextmenu', (ev) => this.onContextMenu(slider, ev));
@@ -120,14 +121,20 @@ export class NavigatorDOMProxy {
         return { offsetX: this.dragStartX + event.originDeltaX };
     }
 
-    private onDragStart(
-        slider: _ModuleSupport.SliderWidget,
-        event: _ModuleSupport.DragWidgetEvent<'drag-start'>,
-        key: NavigatorButtonType
-    ) {
+    private moveToFront(index: number) {
+        if (index === 1) return; // ignore pan-handle
+
+        const frontSlider = this.sliders[index];
+        const otherSlider = this.sliders[[2, NaN, 0][index]];
+        this.toolbar.moveChild(otherSlider, frontSlider.domIndex! - 1);
+    }
+
+    private onDragStart(index: number, event: _ModuleSupport.DragWidgetEvent<'drag-start'>, key: NavigatorButtonType) {
+        const slider: _ModuleSupport.SliderWidget = this.sliders[index];
         const toolbarLeft = this.toolbar.cssLeft();
         const sliderLeft = slider.cssLeft();
         this.dragStartX = toolbarLeft + sliderLeft + event.offsetX;
+        this.moveToFront(index); // AG-13780
         this.sliderHandlers.onDragStart(key, this.toCanvasOffsets(event));
     }
 
