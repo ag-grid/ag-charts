@@ -1,7 +1,7 @@
 import { BBoxValues } from '../util/bboxinterface';
 import { getWindow } from '../util/dom';
 import { partialAssign } from '../util/object';
-import type { DragWidgetEvent, WidgetEventMap_Internal } from './widgetEvents';
+import { type DragWidgetEvent, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';
 
 type EventMap = WidgetEventMap_Internal;
 type EventType = keyof WidgetEventMap_Internal;
@@ -22,7 +22,13 @@ type TouchDragCallbacks = {
     touchend: (event: TouchEvent, touch: Touch) => void;
 };
 
-function makeMouseDrag<K extends DragEvents>(type: K, origin: DragOrigin, sourceEvent: MouseEvent): DragWidgetEvent<K> {
+function makeMouseDrag<K extends DragEvents>(
+    current: Targetable,
+    type: K,
+    origin: DragOrigin,
+    sourceEvent: MouseEvent
+): DragWidgetEvent<K> {
+    const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current.getElement(), sourceEvent);
     // [offsetX, offsetY] is relative to the sourceEvent.target, which can be another element
     // such as a legend button. Therefore, calculate [offsetX, offsetY] relative to the axis
     // element that fired the 'mousedown' event.
@@ -34,6 +40,8 @@ function makeMouseDrag<K extends DragEvents>(type: K, origin: DragOrigin, source
         offsetY: origin.offsetY + originDeltaY,
         clientX: sourceEvent.clientX,
         clientY: sourceEvent.clientY,
+        currentX,
+        currentY,
         originDeltaX,
         originDeltaY,
         sourceEvent,
@@ -88,11 +96,13 @@ function startMouseDrag(
 }
 
 function makeTouchDrag<K extends DragEvents>(
+    current: Targetable,
     type: K,
     origin: DragOrigin,
     sourceEvent: TouchEvent,
     touch: Touch
 ): DragWidgetEvent<K> {
+    const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current.getElement(), touch);
     const originDeltaX = touch.pageX - origin.pageX;
     const originDeltaY = touch.pageY - origin.pageY;
     return {
@@ -101,6 +111,8 @@ function makeTouchDrag<K extends DragEvents>(
         offsetY: origin.offsetY + originDeltaY,
         clientX: touch.clientX,
         clientY: touch.clientY,
+        currentX,
+        currentY,
         originDeltaX,
         originDeltaY,
         sourceEvent,
@@ -170,6 +182,8 @@ export class WidgetListenerInternal {
     static globalTouchDragCallbacks?: TouchDragCallbacks;
     private localMouseDragCallbacks?: MouseDragCallbacks;
     private localTouchDragCallbacks?: TouchDragCallbacks;
+
+    constructor(private readonly dispatchCallback: (type: EventType, event: EventMap[EventType]) => void) {}
 
     destroy(): void {
         this.dragTriggerRemover?.();
@@ -252,15 +266,15 @@ export class WidgetListenerInternal {
         const dragCallbacks: MouseDragCallbacks = {
             mousedown: (downEvent: MouseEvent) => {
                 this.localMouseDragCallbacks = dragCallbacks;
-                const dragStartEvent = makeMouseDrag('drag-start', origin, downEvent);
+                const dragStartEvent = makeMouseDrag(current, 'drag-start', origin, downEvent);
                 this.dispatch('drag-start', current, dragStartEvent);
             },
             mousemove: (moveEvent: MouseEvent) => {
-                const dragMoveEvent = makeMouseDrag('drag-move', origin, moveEvent);
+                const dragMoveEvent = makeMouseDrag(current, 'drag-move', origin, moveEvent);
                 this.dispatch('drag-move', current, dragMoveEvent);
             },
             mouseup: (upEvent: MouseEvent) => {
-                const dragEndEvent = makeMouseDrag('drag-end', origin, upEvent);
+                const dragEndEvent = makeMouseDrag(current, 'drag-end', origin, upEvent);
                 this.dispatch('drag-end', current, dragEndEvent);
                 this.endDrag(current, dragEndEvent);
             },
@@ -291,11 +305,11 @@ export class WidgetListenerInternal {
 
         const dragCallbacks: TouchDragCallbacks = {
             touchmove: (moveEvent: TouchEvent, touch: Touch) => {
-                const dragMoveEvent = makeTouchDrag('drag-move', origin, moveEvent, touch);
+                const dragMoveEvent = makeTouchDrag(current, 'drag-move', origin, moveEvent, touch);
                 this.dispatch('drag-move', current, dragMoveEvent);
             },
             touchend: (cancelEvent: TouchEvent, touch: Touch) => {
-                const dragMoveEvent = makeTouchDrag('drag-end', origin, cancelEvent, touch);
+                const dragMoveEvent = makeTouchDrag(current, 'drag-end', origin, cancelEvent, touch);
                 this.dispatch('drag-end', current, dragMoveEvent);
             },
         };
@@ -303,18 +317,23 @@ export class WidgetListenerInternal {
 
         startTouchDrag(WidgetListenerInternal, dragCallbacks, initialTouch);
 
-        const dragStartEvent = makeTouchDrag('drag-start', origin, initialEvent, initialTouch);
+        const dragStartEvent = makeTouchDrag(current, 'drag-start', origin, initialEvent, initialTouch);
         this.dispatch('drag-start', current, dragStartEvent);
     }
 
-    private dispatch<T extends Targetable, K extends EventType>(type: K, current: T, event: EventMap[K]): void {
+    public dispatch<T extends Targetable, K extends EventType>(type: K, current: T, event: EventMap[K]): void {
         switch (type) {
             case 'drag-start':
-                return this.dragStartListeners?.forEach((handler) => handler(event, current));
+                this.dragStartListeners?.forEach((handler) => handler(event, current));
+                break;
             case 'drag-move':
-                return this.dragMoveListeners?.forEach((handler) => handler(event, current));
+                this.dragMoveListeners?.forEach((handler) => handler(event, current));
+                break;
             case 'drag-end':
-                return this.dragEndListeners?.forEach((handler) => handler(event, current));
+                this.dragEndListeners?.forEach((handler) => handler(event, current));
+                break;
         }
+
+        this.dispatchCallback(type, event);
     }
 }

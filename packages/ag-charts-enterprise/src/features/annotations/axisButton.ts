@@ -33,7 +33,6 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
 
         this.snap = Boolean(axisCtx.scale.bandwidth);
 
-        const seriesRegion = this.ctx.regionManager.getRegion('series');
         ctx.domManager.addEventListener('focusin', ({ target }) => {
             const htmlTarget = target instanceof HTMLElement ? target : undefined;
             const isSeriesAreaChild = htmlTarget && ctx.domManager.contains(htmlTarget, 'series-area');
@@ -41,9 +40,9 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         });
 
         this.destroyFns.push(
-            seriesRegion.addListener('hover', (event) => this.show(event), InteractionState.Clickable),
-            seriesRegion.addListener('drag', (event) => this.show(event), InteractionState.AnnotationsMoveable),
-            seriesRegion.addListener('leave', () => this.hide(), InteractionState.Clickable),
+            ctx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
+            ctx.widgets.containerWidget.addListener('drag-move', (e) => this.onMouseDrag(e)),
+            ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseLeave()),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             ctx.chartEventManager.addListener('series-focus-change', () => this.onKeyPress()),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.hide()),
@@ -83,10 +82,21 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.ctx.domManager.removeChild('canvas-overlay', DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
     }
 
-    private show(event: _ModuleSupport.RegionEvent<'hover' | 'drag'>) {
-        const { canvasX: x, canvasY: y } = event;
+    private onMouseMove(e: _Widget.MouseWidgetEvent) {
+        if (this.ctx.interactionManager.isState(InteractionState.Clickable)) this.show(e);
+    }
 
-        if (!(this.enabled && this.seriesRect.containsPoint(x, y))) {
+    private onMouseDrag(e: _Widget.DragWidgetEvent) {
+        if (this.ctx.interactionManager.isState(InteractionState.AnnotationsMoveable)) this.show(e);
+    }
+
+    private onMouseLeave() {
+        if (this.ctx.interactionManager.isState(InteractionState.Clickable)) this.hide();
+    }
+
+    private show(event: _Widget.MouseWidgetEvent | _Widget.DragWidgetEvent) {
+        const { sourceEvent, currentX: x, currentY: y } = event;
+        if (!(this.enabled && this.ctx.widgets.seriesWidget.getElement().contains(sourceEvent.target as Node | null))) {
             this.hide();
             return;
         }

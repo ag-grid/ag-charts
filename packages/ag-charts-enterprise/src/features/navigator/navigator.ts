@@ -128,7 +128,7 @@ export class Navigator extends BaseModuleInstance implements _ModuleSupport.Modu
     }
 
     private canDrag() {
-        return this.enabled && this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.NavigatorDraggable);
+        return this.enabled && this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.ZoomDraggable);
     }
 
     onDragStart(dragging: NavigatorButtonType, { offsetX }: { offsetX: number }) {

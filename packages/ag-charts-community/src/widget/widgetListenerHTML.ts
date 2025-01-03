@@ -7,57 +7,54 @@ type SourceEventMap = WidgetSourceEventMap_HTML;
 type Targetable = { getElement(): HTMLElement };
 type Handler<T, K extends EventType> = (event: EventMap[K], current: T) => unknown;
 
-type TypedMap<K extends EventType> = Map<
-    (widgetEvent: EventMap[K], current: Targetable) => unknown,
-    (this: HTMLElement, sourceEvent: SourceEventMap[K]) => void
->;
+type WidgetListener<K extends EventType> = (widgetEvent: EventMap[K], current: Targetable) => unknown;
+type SourceListener<K extends EventType> = (this: HTMLElement, sourceEvent: SourceEventMap[K]) => void;
 
 export class WidgetListenerHTML {
-    private readonly maps: { [K in EventType]?: TypedMap<K> } = {};
+    private widgetListeners?: { [K in EventType]?: WidgetListener<EventType>[] } = {};
+    private sourceListeners?: { [K in EventType]?: SourceListener<K> } = {};
 
-    private lazyGetMap<K extends EventType>(type: K): TypedMap<K> {
-        let result = this.maps[type];
-        if (result === undefined) {
-            result = new Map();
-            this.maps[type] = result;
+    private initSourceHandler<K extends EventType>(type: K, handler: SourceListener<K>): void;
+    private initSourceHandler<K extends EventType>(type: K, handler: (this: HTMLElement, event: unknown) => void) {
+        this.sourceListeners ??= {};
+        this.sourceListeners[type] = handler;
+    }
+
+    private lazyGetWidgetListeners<T extends Targetable, K extends EventType>(type: K, target: T): WidgetListener<K>[] {
+        if (!(type in (this.sourceListeners ?? {}))) {
+            const sourceHandler = (sourceEvent: SourceEventMap[K]): void => {
+                const widgetEvent = WidgetEventUtil.alloc(type, sourceEvent, target.getElement());
+                for (const widgetListener of this.widgetListeners?.[type] ?? []) {
+                    widgetListener(widgetEvent, target);
+                }
+            };
+            this.initSourceHandler(type, sourceHandler);
+            target.getElement().addEventListener(type, sourceHandler);
         }
-        return result;
+        this.widgetListeners ??= {};
+        this.widgetListeners[type] ??= [];
+        return this.widgetListeners[type] as NonNullable<(typeof this.widgetListeners)[K]>;
     }
 
     add<T extends Targetable, K extends EventType>(type: K, target: T, handler: Handler<T, K>): void;
     add<T extends Targetable, K extends EventType>(type: K, target: T, handler: Handler<unknown, K>): void {
-        const map = this.lazyGetMap(type);
-        if (map.has(handler)) throw new Error('AG Charts - duplicate add(handler)');
-
-        const sourceHandler = (sourceEvent: SourceEventMap[K]): void => {
-            const widgetEvent = WidgetEventUtil.alloc(type, sourceEvent, target.getElement());
-            handler(widgetEvent, target);
-        };
-        target.getElement().addEventListener(type, sourceHandler);
-        map.set(handler, sourceHandler);
+        const listeners = this.lazyGetWidgetListeners(type, target);
+        listeners.push(handler);
     }
 
     remove<T extends Targetable, K extends EventType>(type: K, target: T, handler: Handler<T, K>): void;
     remove<T extends Targetable, K extends EventType>(type: K, target: T, handler: Handler<unknown, K>): void {
-        const map = this.lazyGetMap(type);
-        const sourceHandler = map.get(handler);
-        if (sourceHandler) {
-            target.getElement().removeEventListener(type, sourceHandler);
-        }
-        map.delete(handler);
+        const listeners = this.lazyGetWidgetListeners(type, target);
+        const index = listeners.indexOf(handler);
+        if (index > -1) listeners.splice(index, 1);
     }
 
     destroy<T extends Targetable>(target: T): void {
-        for (const type of Object.keys(this.maps) as EventType[]) {
-            this.typedDestroy(type, target);
-        }
-    }
-
-    private typedDestroy<T extends Targetable, K extends EventType>(type: K, target: T): void {
-        const map = this.maps[type];
-        if (map == null) return;
-        for (const [_widgetHandler, sourceHandler] of map.entries()) {
+        for (const [key, sourceHandler] of Object.entries(this.sourceListeners ?? {})) {
+            const type = key as keyof typeof this.sourceListeners;
             target.getElement().removeEventListener(type, sourceHandler);
         }
+        this.widgetListeners = undefined;
+        this.sourceListeners = undefined;
     }
 }

@@ -57,8 +57,8 @@ export class ZoomPanner {
         }
     }
 
-    update(event: { regionX: number; regionY: number }) {
-        this.updateCoords(event.regionX, event.regionY);
+    update(event: { currentX: number; currentY: number }) {
+        this.updateCoords(event.currentX, event.currentY);
         const { x1 = 0, y1 = 0, x2 = 0, y2 = 0 } = this.coords ?? {};
         this.onUpdate?.({
             type: 'update',

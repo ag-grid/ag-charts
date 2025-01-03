@@ -9,13 +9,15 @@ export enum InteractionState {
     Animation = 2,
     AnnotationsSelected = 1,
 
-    NavigatorDraggable = Default | Animation | ZoomDrag,
     Clickable = Default | Annotations | AnnotationsSelected,
     Focusable = Default | Animation,
     Keyable = Default | Animation | Annotations | AnnotationsSelected,
     ContextMenuable = Default | ContextMenu, // AG-10233
     AnnotationsMoveable = Annotations | AnnotationsSelected,
     AnnotationsDraggable = Default | ZoomDrag | Annotations | AnnotationsSelected,
+    ZoomDraggable = Default | Animation | ZoomDrag,
+    ZoomClickable = Default | Animation,
+    ZoomWheelable = Default | Animation | ZoomDrag | Annotations | AnnotationsSelected,
 
     All = Default | ZoomDrag | Annotations | ContextMenu | Animation | AnnotationsSelected,
 }
@@ -34,21 +36,5 @@ export class InteractionManager {
     public isState(allowedStates: InteractionState): boolean {
         // Bitwise operation to get the least significant bit:
         return !!(this.stateQueue & -this.stateQueue & allowedStates);
-    }
-
-    private static isWheelEvent(event: Event): event is WheelEvent {
-        return event.type === 'wheel';
-    }
-
-    static getWheelDeltas(event: Event) {
-        let [deltaX, deltaY] = [NaN, NaN];
-        if (this.isWheelEvent(event)) {
-            // AG-10475 On Chrome (Windows), wheel clicks send deltaMode: 0 events with deltaY: -100 or +100.
-            // So we divide this by 100 to give us the desired step.
-            const factor = event.deltaMode === 0 ? 0.01 : 1;
-            deltaX = event.deltaX * factor;
-            deltaY = event.deltaY * factor;
-        }
-        return { deltaX, deltaY };
     }
 }

@@ -25,8 +25,7 @@ import {
 import type { Chart } from '../chart';
 import type { AgChartProxy } from '../chartProxy';
 import { AnimationManager } from '../interaction/animationManager';
-import type { MockEvent } from '../interaction/regionManager';
-import { findChartTarget } from './findTarget';
+import { type MockEvent, findChartTarget } from './findTarget';
 
 export type { Chart } from '../chart';
 export type { AgChartProxy } from '../chartProxy';
@@ -172,7 +171,17 @@ export async function waitForChartStability<O extends AgChartOptions | AgFinanci
     }
 }
 
-function makeMouseEvent<T extends 'mousedown' | 'mouseup' | 'mousemove' | 'click' | 'dblclick' | 'contextmenu'>(
+type TMouseEvent =
+    | 'mousedown'
+    | 'mouseup'
+    | 'mouseenter'
+    | 'mouseleave'
+    | 'mousemove'
+    | 'click'
+    | 'dblclick'
+    | 'contextmenu';
+
+function makeMouseEvent<T extends TMouseEvent>(
     type: T,
     testTarget: MockEvent,
     clientX: number,
@@ -181,9 +190,6 @@ function makeMouseEvent<T extends 'mousedown' | 'mouseup' | 'mousemove' | 'click
     const { offsetX, offsetY } = testTarget;
     const event = new MouseEvent(type, { bubbles: true, clientX, clientY });
     Object.assign(event, { offsetX, offsetY, pageX: clientX, pageY: clientY });
-    if (testTarget.mockRegion) {
-        (event as { mockRegion?: unknown }).mockRegion = testTarget.mockRegion;
-    }
     return event;
 }
 
@@ -193,6 +199,14 @@ function mouseDownEvent(offsets: MockEvent, clientX: number, clientY: number): M
 
 function mouseUpEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
     return makeMouseEvent('mouseup', offsets, clientX, clientY);
+}
+
+function mouseEnterEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
+    return makeMouseEvent('mouseenter', offsets, clientX, clientY);
+}
+
+function mouseLeaveEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
+    return makeMouseEvent('mouseleave', offsets, clientX, clientY);
 }
 
 function mouseMoveEvent(offsets: MockEvent, clientX: number, clientY: number): MouseEvent {
@@ -211,6 +225,24 @@ function contextMenuEvent(offsets: MockEvent, clientX: number, clientY: number):
     return makeMouseEvent('contextmenu', offsets, clientX, clientY);
 }
 
+function dispatchEvent({ bubbleChain, target }: MockEvent, event: Event) {
+    bubbleChain.forEach((currentTarget) => {
+        Object.defineProperty(event, 'target', {
+            value: target,
+            writable: true,
+            configurable: true,
+        });
+        Object.defineProperty(event, 'currentTarget', {
+            value: currentTarget,
+            writable: true,
+            configurable: true,
+        });
+        currentTarget.dispatchEvent(event);
+        delete (event as any).target;
+        delete (event as any).currentTarget;
+    });
+}
+
 export enum WheelDeltaMode {
     Pixels = 0,
     Lines = 1,
@@ -218,15 +250,16 @@ export enum WheelDeltaMode {
 }
 
 type WheelEventData = {
-    clientX: number;
-    clientY: number;
     deltaX: number;
     deltaY: number;
     deltaMode: WheelDeltaMode;
 };
 
-export function wheelEvent({ clientX, clientY, deltaX, deltaY, deltaMode }: WheelEventData): WheelEvent {
-    return new WheelEvent('wheel', { bubbles: true, clientX, clientY, deltaX, deltaY, deltaMode });
+export function wheelEvent(mockEvent: MockEvent, { deltaX, deltaY, deltaMode }: WheelEventData): WheelEvent {
+    const { offsetX, offsetY, clientX, clientY, clientX: pageX, clientY: pageY } = mockEvent;
+    const event = new WheelEvent('wheel', { bubbles: true, clientX, clientY, deltaX, deltaY, deltaMode });
+    Object.assign(event, { offsetX, offsetY, pageX, pageY });
+    return event;
 }
 
 export function cartesianChartAssertions(params?: { type?: string; axisTypes?: string[]; seriesTypes?: string[] }) {
@@ -313,7 +346,29 @@ export function hoverAction(canvasX: number, canvasY: number): (chart: ChartOrPr
         const testTarget = findChartTarget(chart, canvasX, canvasY);
         checkTargetValid(testTarget);
 
-        testTarget.target.dispatchEvent(mouseMoveEvent(testTarget, canvasX, canvasY));
+        // Implement 'mouseenter' and 'mouseleave' events on this chart.
+        // TODO: the testLastMouseMoveBubbleChain property should be correct setup & teared out by test fixtures.
+        const testChart = chartOrProxy as unknown as { testLastMouseMoveBubbleChain: MockEvent['bubbleChain'] };
+        const enterChain: MockEvent['bubbleChain'] = [];
+        const leaveChain: MockEvent['bubbleChain'] = [];
+        testChart.testLastMouseMoveBubbleChain ??= [];
+        for (const element of testTarget.bubbleChain) {
+            if (!testChart.testLastMouseMoveBubbleChain.includes(element)) {
+                enterChain.push(element);
+            }
+        }
+        for (const element of testChart.testLastMouseMoveBubbleChain) {
+            if (!testTarget.bubbleChain.includes(element)) {
+                leaveChain.push(element);
+            }
+        }
+        const leaveTarget: MockEvent = { ...testTarget, bubbleChain: leaveChain };
+        const enterTarget: MockEvent = { ...testTarget, bubbleChain: enterChain };
+        testChart.testLastMouseMoveBubbleChain = testTarget.bubbleChain;
+
+        dispatchEvent(leaveTarget, mouseLeaveEvent(leaveTarget, canvasX, canvasY));
+        dispatchEvent(enterTarget, mouseEnterEvent(enterTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, mouseMoveEvent(testTarget, canvasX, canvasY));
         return delay(50);
     };
 }
@@ -326,7 +381,7 @@ export function mouseDownAction(canvasX: number, canvasY: number): (chart: Chart
         const testTarget = findChartTarget(chart, canvasX, canvasY);
         checkTargetValid(testTarget);
 
-        testTarget.target.dispatchEvent(mouseDownEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, mouseDownEvent(testTarget, canvasX, canvasY));
         return delay(50);
     };
 }
@@ -337,7 +392,7 @@ export function mouseUpAction(canvasX: number, canvasY: number): (chart: ChartOr
         const testTarget = findChartTarget(chart, canvasX, canvasY);
         checkTargetValid(testTarget);
 
-        testTarget.target.dispatchEvent(mouseUpEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, mouseUpEvent(testTarget, canvasX, canvasY));
         return delay(50);
     };
 }
@@ -357,9 +412,9 @@ export function clickAction(
         checkTargetValid(testTarget);
 
         const mousedownOffset = opts?.mousedown ? { ...testTarget, ...opts.mousedown } : testTarget;
-        testTarget.target?.dispatchEvent(mouseDownEvent(mousedownOffset, canvasX, canvasY));
-        testTarget.target?.dispatchEvent(mouseUpEvent(testTarget, canvasX, canvasY));
-        testTarget.target?.dispatchEvent(clickEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, mouseDownEvent(mousedownOffset, canvasX, canvasY));
+        dispatchEvent(testTarget, mouseUpEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, clickEvent(testTarget, canvasX, canvasY));
         return delay(50);
     };
 }
@@ -369,15 +424,15 @@ export function doubleClickAction(canvasX: number, canvasY: number): (chart: Cha
         const chart = deproxy(chartOrProxy);
         const testTarget = findChartTarget(chart, canvasX, canvasY);
         // A double click is always preceded by two single clicks, simulate here to ensure correct handling
-        testTarget.target?.dispatchEvent(mouseDownEvent(testTarget, canvasX, canvasY));
-        testTarget.target?.dispatchEvent(mouseUpEvent(testTarget, canvasX, canvasY));
-        testTarget.target?.dispatchEvent(clickEvent(testTarget, canvasX, canvasY));
-        testTarget.target?.dispatchEvent(mouseDownEvent(testTarget, canvasX, canvasY));
-        testTarget.target?.dispatchEvent(mouseUpEvent(testTarget, canvasX, canvasY));
-        testTarget.target?.dispatchEvent(clickEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, mouseDownEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, mouseUpEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, clickEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, mouseDownEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, mouseUpEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, clickEvent(testTarget, canvasX, canvasY));
         await delay(50);
         await waitForChartStability(chart);
-        testTarget.target?.dispatchEvent(doubleClickEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, doubleClickEvent(testTarget, canvasX, canvasY));
         return delay(50);
     };
 }
@@ -388,7 +443,7 @@ export function contextMenuAction(canvasX: number, canvasY: number): (chart: Cha
         const testTarget = findChartTarget(chart, canvasX, canvasY);
         checkTargetValid(testTarget);
 
-        testTarget.target?.dispatchEvent(contextMenuEvent(testTarget, canvasX, canvasY));
+        dispatchEvent(testTarget, contextMenuEvent(testTarget, canvasX, canvasY));
         return delay(50);
     };
 }
@@ -404,11 +459,11 @@ export function dragAction(
         checkTargetValid(fromTarget);
         checkTargetValid(toTarget);
 
-        fromTarget.target?.dispatchEvent(mouseDownEvent(fromTarget, from.x, from.y));
+        dispatchEvent(fromTarget, mouseDownEvent(fromTarget, from.x, from.y));
         await delay(500);
-        fromTarget.target?.dispatchEvent(mouseMoveEvent(fromTarget, from.x, from.y));
-        toTarget.target?.dispatchEvent(mouseMoveEvent(toTarget, to.x, to.y));
-        toTarget.target?.dispatchEvent(mouseUpEvent(toTarget, to.x, to.y));
+        dispatchEvent(fromTarget, mouseMoveEvent(fromTarget, from.x, from.y));
+        dispatchEvent(toTarget, mouseMoveEvent(toTarget, to.x, to.y));
+        dispatchEvent(toTarget, mouseUpEvent(toTarget, to.x, to.y));
         return delay(50);
     };
 }
@@ -423,8 +478,8 @@ export function scrollAction(
 ): (chart: ChartOrProxy) => Promise<void> {
     return async (chartOrProxy) => {
         const chart = deproxy(chartOrProxy);
-        const { target } = findChartTarget(chart, canvasX, canvasY);
-        target?.dispatchEvent(wheelEvent({ clientX: canvasX, clientY: canvasY, deltaY, deltaX, deltaMode }));
+        const testTarget = findChartTarget(chart, canvasX, canvasY);
+        dispatchEvent(testTarget, wheelEvent(testTarget, { deltaY, deltaX, deltaMode }));
         await delay(delayMs);
     };
 }

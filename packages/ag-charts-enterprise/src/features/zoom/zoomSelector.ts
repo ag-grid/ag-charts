@@ -24,14 +24,16 @@ export class ZoomSelector {
     }
 
     update(
-        event: { canvasX: number; canvasY: number },
+        event: { currentX: number; currentY: number },
         props: ZoomProperties,
         bbox?: _ModuleSupport.BBox,
         currentZoom?: _ModuleSupport.AxisZoomState
     ): void {
+        const canvasX = event.currentX + (bbox?.x ?? 0);
+        const canvasY = event.currentY + (bbox?.y ?? 0);
         this.rect.visible = true;
 
-        this.updateCoords(event.canvasX, event.canvasY, props, bbox, currentZoom);
+        this.updateCoords(canvasX, canvasY, props, bbox, currentZoom);
         this.updateRect(bbox);
     }
 

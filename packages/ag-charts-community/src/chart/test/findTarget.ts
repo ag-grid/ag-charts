@@ -7,17 +7,33 @@ import { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
 import { BBoxValues } from '../../util/bboxinterface';
+import { CANVAS_HEIGHT, CANVAS_WIDTH } from '../../util/test/mockCanvas';
 import { ListWidget } from '../../widget/listWidget';
 import { NativeWidget } from '../../widget/nativeWidget';
 import { SliderWidget } from '../../widget/sliderWidget';
 import { ToolbarWidget } from '../../widget/toolbarWidget';
 import { Widget } from '../../widget/widget';
 import type { Chart } from '../chart';
-import type { MockEvent } from '../interaction/regionManager';
+import { WidgetSet } from '../interaction/widgetSet';
 import { Legend } from '../legend/legend';
 import { LegendDOMProxy } from '../legend/legendDOMProxy';
 import { LegendMarkerLabel } from '../legend/legendMarkerLabel';
 import { SeriesAreaManager } from '../series/seriesAreaManager';
+
+export type MockEvent = {
+    bubbleChain: HTMLElement[];
+    target: HTMLElement;
+    offsetX: number;
+    offsetY: number;
+    clientX: number;
+    clientY: number;
+};
+
+const KNOWN_AG_CHARTS_CLASSES: readonly string[] = [
+    'ag-charts-series-area',
+    'ag-charts-canvas-proxy',
+    'ag-charts-canvas-container',
+] as const;
 
 const CAST_INFO = {
     Array: new ClassTypePair<unknown[], typeof Array>(Array),
@@ -35,7 +51,61 @@ const CAST_INFO = {
     SliderWidget: new ClassTypePair<SliderWidget, typeof SliderWidget>(SliderWidget),
     ListWidget: new ClassTypePair<ListWidget, typeof ListWidget>(ListWidget),
     NativeWidget: new ClassTypePair<NativeWidget, typeof NativeWidget>(NativeWidget),
+    WidgetSet: new ClassTypePair<WidgetSet, typeof WidgetSet>(WidgetSet),
 } as const;
+
+function makeMockEvent(opts: Pick<MockEvent, 'target' | 'offsetX' | 'offsetY' | 'clientX' | 'clientY'>): MockEvent {
+    const bubbleChain: HTMLElement[] = [opts.target];
+    let parent: HTMLElement | null = opts.target.parentElement;
+    while (parent != null) {
+        if (KNOWN_AG_CHARTS_CLASSES.includes(parent.className)) {
+            bubbleChain.push(parent);
+        }
+        parent = parent.parentElement;
+    }
+    return { bubbleChain, ...opts };
+}
+
+function initBoundingClientRect(widgets: WidgetSet) {
+    // getBoundingClientRect doesn't work correctly in node.js, but it's used in some parts of ag-charts.
+    const canvasBounds = (): DOMRect => {
+        return {
+            bottom: 0,
+            left: 0,
+            right: 0,
+            top: 0,
+            x: 0,
+            y: 0,
+            height: CANVAS_HEIGHT,
+            width: CANVAS_WIDTH,
+            toJSON() {
+                return `{bottom:0,left:0,right:0,top:0,x:0,y:0,height:${CANVAS_HEIGHT},width:${CANVAS_WIDTH}}`;
+            },
+        };
+    };
+    const seriesBounds = (): DOMRect => {
+        const left = widgets.seriesWidget.cssLeft();
+        const top = widgets.seriesWidget.cssTop();
+        const height = widgets.seriesWidget.cssHeight();
+        const width = widgets.seriesWidget.cssWidth();
+        return {
+            bottom: 0,
+            left,
+            right: 0,
+            top,
+            x: left,
+            y: top,
+            height,
+            width,
+            toJSON() {
+                return `{bottom:0,left:${left},right:0,top:${top},x:${left},y:${top},height:${height},width:${width}}`;
+            },
+        };
+    };
+    (widgets.chartWidget.getElement() as any)['getBoundingClientRect'] = canvasBounds;
+    (widgets.containerWidget.getElement() as any)['getBoundingClientRect'] = canvasBounds;
+    (widgets.seriesWidget.getElement() as any)['getBoundingClientRect'] = seriesBounds;
+}
 
 function isClickable(widget: Widget | undefined): widget is Widget {
     if (widget == null) return false;
@@ -43,7 +113,7 @@ function isClickable(widget: Widget | undefined): widget is Widget {
     return style.display !== 'none' && style.visibility !== 'none' && style.pointerEvents !== 'none';
 }
 
-function findLegendTarget(legendModule: unknown, canvasX: number, canvasY: number): MockEvent | undefined {
+function findLegendTarget(legendModule: unknown, clientX: number, clientY: number): MockEvent | undefined {
     if (legendModule === undefined) return undefined;
 
     const legend = new Caster(legendModule)
@@ -61,14 +131,15 @@ function findLegendTarget(legendModule: unknown, canvasX: number, canvasY: numbe
     for (const node of Selection.selectByClass(legend.group, LegendMarkerLabel)) {
         if (!isClickable(node.proxyButton)) continue;
         const bbox = Transformable.toCanvas(node);
-        if (bbox.containsPoint(canvasX, canvasY)) {
-            const { x, y } = Transformable.fromCanvasPoint(node, canvasX, canvasY);
-            return { target: node.proxyButton.getElement(), offsetX: x, offsetY: y };
+        if (bbox.containsPoint(clientX, clientY)) {
+            const { x: offsetX, y: offsetY } = Transformable.fromCanvasPoint(node, clientX, clientY);
+            const target = node.proxyButton.getElement();
+            return makeMockEvent({ target, offsetX, offsetY, clientX, clientY });
         }
     }
 }
 
-function findNavigatorTarget(navigatorModule: unknown, canvasX: number, canvasY: number): MockEvent | undefined {
+function findNavigatorTarget(navigatorModule: unknown, clientX: number, clientY: number): MockEvent | undefined {
     if (navigatorModule === undefined) return undefined;
 
     const caster = new Caster(navigatorModule);
@@ -90,25 +161,25 @@ function findNavigatorTarget(navigatorModule: unknown, canvasX: number, canvasY:
     if (!navigator.enabled) return undefined;
 
     let targetWidget: SliderWidget | undefined;
-    if (Transformable.toCanvas(navigator.minHandle).containsPoint(canvasX, canvasY)) {
+    if (Transformable.toCanvas(navigator.minHandle).containsPoint(clientX, clientY)) {
         targetWidget = domProxy.sliders[0];
-    } else if (Transformable.toCanvas(navigator.maxHandle).containsPoint(canvasX, canvasY)) {
+    } else if (Transformable.toCanvas(navigator.maxHandle).containsPoint(clientX, clientY)) {
         targetWidget = domProxy.sliders[2];
-    } else if (Transformable.toCanvas(navigator.mask).containsPoint(canvasX, canvasY)) {
+    } else if (Transformable.toCanvas(navigator.mask).containsPoint(clientX, clientY)) {
         targetWidget = domProxy.sliders[1];
     }
 
     if (isClickable(targetWidget)) {
-        const offsetX = canvasX - targetWidget.cssLeft() - domProxy.toolbar.cssLeft();
-        const offsetY = canvasY - targetWidget.cssTop() - domProxy.toolbar.cssTop();
+        const offsetX = clientX - targetWidget.cssLeft() - domProxy.toolbar.cssLeft();
+        const offsetY = clientY - targetWidget.cssTop() - domProxy.toolbar.cssTop();
         const target = targetWidget.getElement();
-        return { target, offsetX, offsetY };
+        return makeMockEvent({ target, offsetX, offsetY, clientX, clientY });
     }
 
     return undefined;
 }
 
-function findZoomTarget(zoomModule: unknown, canvasX: number, canvasY: number): MockEvent | undefined {
+function findZoomTarget(zoomModule: unknown, clientX: number, clientY: number): MockEvent | undefined {
     if (zoomModule === undefined) return undefined;
 
     const caster = new Caster(zoomModule);
@@ -124,10 +195,11 @@ function findZoomTarget(zoomModule: unknown, canvasX: number, canvasY: number): 
 
         for (const axis of domProxy.axes) {
             const bbox = axis.div.getBounds();
-            if (isClickable(axis.div) && BBoxValues.containsPoint(bbox, canvasX, canvasY)) {
-                const offsetX = canvasX - bbox.x;
-                const offsetY = canvasY - bbox.y;
-                return { target: axis.div.getElement(), offsetX, offsetY };
+            if (isClickable(axis.div) && BBoxValues.containsPoint(bbox, clientX, clientY)) {
+                const offsetX = clientX - bbox.x;
+                const offsetY = clientY - bbox.y;
+                const target = axis.div.getElement();
+                return makeMockEvent({ target, offsetX, offsetY, clientX, clientY });
             }
         }
     }
@@ -135,39 +207,31 @@ function findZoomTarget(zoomModule: unknown, canvasX: number, canvasY: number): 
     return undefined;
 }
 
-function findSeriesAreaTarget(chart: unknown, canvasX: number, canvasY: number): MockEvent {
-    const caster = new Caster(chart)
+function findSeriesAreaTarget(chart: unknown, widgets: WidgetSet, clientX: number, clientY: number): MockEvent {
+    const seriesRect = new Caster(chart)
         .accessProperty('seriesAreaManager')
         .cast(CAST_INFO.SeriesAreaManager)
         .findProperty('seriesRect')
-        .castProperty('seriesRect', CAST_INFO.BBox);
+        .castProperty('seriesRect', CAST_INFO.BBox).value.seriesRect;
+    const { seriesWidget, containerWidget } = widgets;
 
-    const seriesRect = caster.value.seriesRect;
-    const scene = caster
-        .accessProperty('chart')
-        .accessProperty('ctx')
-        .accessProperty('scene')
-        .cast(CAST_INFO.Scene).value;
-
-    const target = scene.canvas.element;
-    const [offsetX, offsetY] = [NaN, NaN];
-    if (seriesRect?.containsPoint(canvasX, canvasY)) {
-        const regionX = canvasX - seriesRect.x;
-        const regionY = canvasY - seriesRect.y;
-        return { target, offsetX, offsetY, mockRegion: { region: 'series', canvasX, canvasY, regionX, regionY } };
-    } else {
-        const regionX = canvasX;
-        const regionY = canvasY;
-        return { target, offsetX, offsetY, mockRegion: { region: 'root', canvasX, canvasY, regionX, regionY } };
-    }
+    const inSeriesRect = seriesRect?.containsPoint(clientX, clientY);
+    const target: HTMLElement = inSeriesRect ? seriesWidget.getElement() : containerWidget.getElement();
+    const [offsetX, offsetY] = inSeriesRect
+        ? [clientX - seriesWidget.cssLeft(), clientY - seriesWidget.cssTop()]
+        : [clientX, clientY];
+    return makeMockEvent({ target, offsetX, offsetY, clientX, clientY });
 }
 
-export function findChartTarget(chart: Chart, canvasX: number, canvasY: number): MockEvent {
+export function findChartTarget(chart: Chart, clientX: number, clientY: number): MockEvent {
+    const widgets = new Caster(chart).accessProperty('ctx').accessProperty('widgets').cast(CAST_INFO.WidgetSet).value;
+    initBoundingClientRect(widgets);
+
     const getModule = (s: string) => chart.modulesManager.getModule<unknown>(s);
     return (
-        findLegendTarget(getModule('legend'), canvasX, canvasY) ??
-        findNavigatorTarget(getModule('navigator'), canvasX, canvasY) ??
-        findZoomTarget(getModule('zoom'), canvasX, canvasY) ??
-        findSeriesAreaTarget(chart, canvasX, canvasY)
+        findLegendTarget(getModule('legend'), clientX, clientY) ??
+        findNavigatorTarget(getModule('navigator'), clientX, clientY) ??
+        findZoomTarget(getModule('zoom'), clientX, clientY) ??
+        findSeriesAreaTarget(chart, widgets, clientX, clientY)
     );
 }
