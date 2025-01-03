@@ -30,22 +30,6 @@ export class CategoryAxis<
     @Validate(RATIO, { optional: true })
     paddingOuter?: number;
 
-    private categoryAnimatable = true;
-
-    override processData(): { animatable: boolean } {
-        const out = super.processData();
-        this.categoryAnimatable = out.animatable;
-        return out;
-    }
-
-    override update() {
-        super.update();
-
-        if (!this.categoryAnimatable) {
-            this.moduleCtx.animationManager.skip();
-        }
-    }
-
     override normaliseDataDomain(domain: Array<string | object>) {
         return { domain, clipped: false };
     }

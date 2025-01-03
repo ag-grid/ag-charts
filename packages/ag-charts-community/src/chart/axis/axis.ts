@@ -450,11 +450,16 @@ export abstract class Axis<
         titleNode.setProperties({ visible: true, text, textBaseline, x, y, rotation });
     }
 
-    _lastDomain: D[] | undefined = undefined;
     processData() {
         const { includeInvisibleDomains, boundSeries, direction } = this;
         const visibleSeries = includeInvisibleDomains ? boundSeries : boundSeries.filter((s) => s.isEnabled());
         const domains = visibleSeries.map((series) => series.getDomain(direction) as D[]);
+        this.setDomains(...domains);
+    }
+
+    private _lastDomain: D[] | undefined = undefined;
+    protected animatable = true;
+    setDomains(...domains: D[][]) {
         const { domain, animatable } = this.scale.normalizeDomains(...domains);
 
         if (this._lastDomain !== domain) {
@@ -464,9 +469,9 @@ export abstract class Axis<
                 this.dataDomain.domain = this.dataDomain.domain.slice().reverse();
             }
         }
-        this._lastDomain = domain;
 
-        return { animatable };
+        this._lastDomain = domain;
+        this.animatable = animatable;
     }
 
     _niceDomainRange: number = NaN;
