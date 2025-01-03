@@ -1,22 +1,21 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 const {
-    ThemeSymbols: { DEFAULT_LABEL_COLOUR },
     ThemeConstants: { POLAR_AXIS_TYPE },
 } = _ModuleSupport;
 
-const BASE_RADAR_SERIES_THEME = {
+const BASE_RADAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radar-line' | 'radar-area'>['themeTemplate'] = {
     series: {
         label: {
             enabled: false,
-            fontSize: { ref: 'fontSize' as const },
-            fontFamily: { ref: 'fontFamily' as const },
-            color: DEFAULT_LABEL_COLOUR,
+            fontSize: { ref: 'fontSize' },
+            fontFamily: { ref: 'fontFamily' },
+            color: { ref: 'foregroundColor' },
         },
         marker: {
             enabled: true,
             fillOpacity: 1,
-            shape: 'circle' as const,
+            shape: 'circle',
             size: 6,
             strokeOpacity: 1,
             strokeWidth: 0,

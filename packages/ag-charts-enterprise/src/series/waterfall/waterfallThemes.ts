@@ -8,13 +8,13 @@ const itemTheme = {
         fontWeight: 'normal' as const,
         fontSize: { ref: 'fontSize' as const },
         fontFamily: { ref: 'fontFamily' as const },
-        color: _ModuleSupport.ThemeSymbols.DEFAULT_LABEL_COLOUR,
+        color: { ref: 'foregroundColor' as const },
         formatter: undefined,
         placement: 'outside-end' as const,
     },
 };
 
-export const WATERFALL_SERIES_THEME = {
+export const WATERFALL_SERIES_THEME: _ModuleSupport.SeriesModule<'waterfall'>['themeTemplate'] = {
     series: {
         item: {
             positive: itemTheme,

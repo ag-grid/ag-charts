@@ -1,18 +1,14 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-const {
-    ThemeSymbols: { DEFAULT_LABEL_COLOUR },
-} = _ModuleSupport;
-
-export const HEATMAP_SERIES_THEME = {
+export const HEATMAP_SERIES_THEME: _ModuleSupport.SeriesModule<'heatmap'>['themeTemplate'] = {
     series: {
         label: {
             enabled: false,
-            color: DEFAULT_LABEL_COLOUR,
-            fontSize: { ref: 'fontSize' as const },
-            fontFamily: { ref: 'fontFamily' as const },
-            wrapping: 'on-space' as const,
-            overflowStrategy: 'ellipsis' as const,
+            color: { ref: 'foregroundColor' },
+            fontSize: { ref: 'fontSize' },
+            fontFamily: { ref: 'fontFamily' },
+            wrapping: 'on-space',
+            overflowStrategy: 'ellipsis',
         },
         itemPadding: 3,
     },

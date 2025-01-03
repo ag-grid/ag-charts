@@ -239,6 +239,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         } = this.getSeriesThemeConfig(chartType, activeTheme);
 
         const [annotationsOptions, annotationsThemes] = this.splitAnnotationsOptions(annotations);
+        this.annotationThemes = deepClone(annotationsThemes);
 
         let processedOptions = mergeDefaults(
             processedOverrides,
@@ -251,13 +252,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.processSeriesOptions(processedOptions, activeTheme);
         this.processMiniChartSeriesOptions(processedOptions, activeTheme);
 
-        this.annotationThemes = annotationsThemes;
-
         // Create isolated copy of options before we start mutations - this is performance sensitive,
         // so we aim to only do this once in the processing flow.
         processedOptions = deepClone(processedOptions, ChartOptions.OPTIONS_CLONE_OPTS);
 
-        this.processOptionsParams(processedOptions);
+        let publicParameters = activeTheme.getPublicParameters();
+        if (isPlainObject(processedOptions.theme) && processedOptions.theme.params) {
+            publicParameters = mergeDefaults(processedOptions.theme.params, publicParameters);
+        }
+
+        this.resolveOptionsParams(publicParameters, processedOptions);
+        this.resolveOptionsParams(publicParameters, this.annotationThemes);
 
         // Disable legend by default for single series cartesian charts and polar charts which display legend items per series rather than data items
         if (
@@ -413,12 +418,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
     }
 
-    private processOptionsParams(options: T) {
-        let params: AgChartThemeParams = { fontFamily: 'Verdana, sans-serif', fontSize: 12 };
-        if (isPlainObject(options.theme) && options.theme.params) {
-            params = options.theme.params;
-        }
-
+    private resolveOptionsParams(params: AgChartThemeParams, options: T) {
         const visit = (node: any) => {
             if (isArray(node)) {
                 for (let i = 0; i < node.length; i++) {
@@ -682,7 +682,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private static enableConfiguredJsonOptions(this: void, visitingUserOpts: any, visitingMergedOpts: any) {
         if (
-            visitingMergedOpts &&
+            typeof visitingMergedOpts === 'object' &&
             'enabled' in visitingMergedOpts &&
             !visitingMergedOpts._enabledFromTheme &&
             visitingUserOpts.enabled == null

@@ -2,8 +2,6 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { ChordSeries } from './chordSeries';
 
-const { DEFAULT_LABEL_COLOUR } = _ModuleSupport.ThemeSymbols;
-
 export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
     type: 'series',
     optionsKey: 'series[]',
@@ -23,8 +21,8 @@ export const ChordModule: _ModuleSupport.SeriesModule<'chord'> = {
                 },
             },
             label: {
-                fontFamily: { ref: 'fontFamily' as const },
-                color: DEFAULT_LABEL_COLOUR,
+                fontFamily: { ref: 'fontFamily' },
+                color: { ref: 'foregroundColor' },
                 spacing: 5,
                 maxWidth: 100,
             },

@@ -80,6 +80,10 @@ export interface AgChartThemePalette {
 
 export interface AgChartThemeParams {
     /** TODO */
+    backgroundColor?: CssColor;
+    /** TODO */
+    foregroundColor?: CssColor;
+    /** TODO */
     fontFamily?: string;
     /** TODO */
     fontSize?: number;

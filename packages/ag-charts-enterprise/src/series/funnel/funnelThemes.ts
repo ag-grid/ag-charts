@@ -1,7 +1,6 @@
 import { type AgAxisLabelFormatterParams, type AgFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 
 const {
-    ThemeSymbols: { DEFAULT_INSIDE_SERIES_LABEL_COLOUR },
     ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
 } = _ModuleSupport;
 
@@ -39,9 +38,9 @@ export const FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'funnel'>['themeTe
         spacingRatio: 0.25,
         label: {
             enabled: true,
-            fontSize: { ref: 'fontSize' as const },
-            fontFamily: { ref: 'fontFamily' as const },
-            color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+            fontSize: { ref: 'fontSize' },
+            fontFamily: { ref: 'fontFamily' },
+            color: { ref: 'backgroundColor' },
         },
         dropOff: {
             enabled: true,

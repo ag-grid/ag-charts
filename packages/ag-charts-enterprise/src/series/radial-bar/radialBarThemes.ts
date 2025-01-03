@@ -5,13 +5,13 @@ const {
     ThemeConstants: { POLAR_AXIS_TYPE },
 } = _ModuleSupport;
 
-export const RADIAL_BAR_SERIES_THEME = {
+export const RADIAL_BAR_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-bar'>['themeTemplate'] = {
     series: {
         strokeWidth: 0,
         label: {
             enabled: false,
-            fontSize: { ref: 'fontSize' as const },
-            fontFamily: { ref: 'fontFamily' as const },
+            fontSize: { ref: 'fontSize' },
+            fontFamily: { ref: 'fontFamily' },
             color: DEFAULT_INVERTED_LABEL_COLOUR,
         },
     },

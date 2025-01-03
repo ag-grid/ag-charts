@@ -2,10 +2,6 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { GradientLegend } from './gradientLegend';
 
-const {
-    ThemeSymbols: { DEFAULT_LABEL_COLOUR },
-} = _ModuleSupport;
-
 export const GradientLegendModule: _ModuleSupport.LegendModule = {
     type: 'legend',
     optionsKey: 'gradientLegend',
@@ -22,9 +18,9 @@ export const GradientLegendModule: _ModuleSupport.LegendModule = {
         scale: {
             padding: 13,
             label: {
-                color: DEFAULT_LABEL_COLOUR,
-                fontSize: { ref: 'fontSize' as const },
-                fontFamily: { ref: 'fontFamily' as const },
+                color: { ref: 'foregroundColor' },
+                fontSize: { ref: 'fontSize' },
+                fontFamily: { ref: 'fontFamily' },
             },
             interval: {
                 minSpacing: 1,

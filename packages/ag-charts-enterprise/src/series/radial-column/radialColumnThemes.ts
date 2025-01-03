@@ -1,20 +1,19 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 const {
-    ThemeSymbols: { DEFAULT_LABEL_COLOUR },
     ThemeConstants: { POLAR_AXIS_TYPE, POLAR_AXIS_SHAPE },
 } = _ModuleSupport;
 
-export const RADIAL_COLUMN_SERIES_THEME = {
+export const RADIAL_COLUMN_SERIES_THEME: _ModuleSupport.SeriesModule<'radial-column'>['themeTemplate'] = {
     series: {
         columnWidthRatio: 0.5,
         maxColumnWidthRatio: 0.5,
         strokeWidth: 0,
         label: {
             enabled: false,
-            fontSize: { ref: 'fontSize' as const },
-            fontFamily: { ref: 'fontFamily' as const },
-            color: DEFAULT_LABEL_COLOUR,
+            fontSize: { ref: 'fontSize' },
+            fontFamily: { ref: 'fontFamily' },
+            color: { ref: 'foregroundColor' },
         },
     },
     axes: {

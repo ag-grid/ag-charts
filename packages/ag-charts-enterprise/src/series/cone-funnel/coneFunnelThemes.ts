@@ -1,7 +1,6 @@
 import { type AgAxisLabelFormatterParams, _ModuleSupport } from 'ag-charts-community';
 
 const {
-    ThemeSymbols: { DEFAULT_LABEL_COLOUR },
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
 } = _ModuleSupport;
 
@@ -11,9 +10,9 @@ export const CONE_FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'cone-funnel'
         strokeWidth: 0,
         label: {
             enabled: true,
-            fontSize: { ref: 'fontSize' as const },
-            fontFamily: { ref: 'fontFamily' as const },
-            color: DEFAULT_LABEL_COLOUR,
+            fontSize: { ref: 'fontSize' },
+            fontFamily: { ref: 'fontFamily' },
+            color: { ref: 'foregroundColor' },
             placement: 'before',
             spacing: 4,
         },

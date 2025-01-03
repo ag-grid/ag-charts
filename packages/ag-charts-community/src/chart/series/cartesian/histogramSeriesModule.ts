@@ -1,6 +1,6 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
-import { DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
+import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { HistogramSeries } from './histogramSeries';
 
 export const HistogramSeriesModule: SeriesModule<'histogram'> = {
@@ -31,9 +31,9 @@ export const HistogramSeriesModule: SeriesModule<'histogram'> = {
             lineDashOffset: 0,
             label: {
                 enabled: false,
-                fontSize: { ref: 'fontSize' as const },
-                fontFamily: { ref: 'fontFamily' as const },
-                color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+                fontSize: { ref: 'fontSize' },
+                fontFamily: { ref: 'fontFamily' },
+                color: { ref: 'backgroundColor' },
             },
             shadow: {
                 enabled: false,

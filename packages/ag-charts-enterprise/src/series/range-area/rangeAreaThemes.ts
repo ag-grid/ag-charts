@@ -13,9 +13,9 @@ export const RANGE_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'range-area'>[
             enabled: false,
             placement: 'outside',
             padding: 10,
-            fontSize: { ref: 'fontSize' as const },
-            fontFamily: { ref: 'fontFamily' as const },
-            color: _ModuleSupport.ThemeSymbols.DEFAULT_LABEL_COLOUR,
+            fontSize: { ref: 'fontSize' },
+            fontFamily: { ref: 'fontFamily' },
+            color: { ref: 'foregroundColor' },
         },
         interpolation: {
             type: 'linear',

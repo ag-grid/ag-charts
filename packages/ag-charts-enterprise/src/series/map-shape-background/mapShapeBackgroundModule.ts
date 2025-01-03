@@ -3,7 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapShapeBackgroundSeries } from './mapShapeBackgroundSeries';
 
-const { DEFAULT_BACKGROUND_COLOUR, DEFAULT_HIERARCHY_FILLS } = _ModuleSupport.ThemeSymbols;
+const { DEFAULT_HIERARCHY_FILLS } = _ModuleSupport.ThemeSymbols;
 
 export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-background'> = {
     type: 'series',
@@ -17,7 +17,7 @@ export const MapShapeBackgroundModule: _ModuleSupport.SeriesModule<'map-shape-ba
     themeTemplate: {
         ...MAP_THEME_DEFAULTS,
         series: {
-            stroke: DEFAULT_BACKGROUND_COLOUR,
+            stroke: { ref: 'backgroundColor' },
             strokeWidth: 1,
         },
     },
