@@ -103,8 +103,6 @@ export class FocusSwapChain {
             'aria-hidden': false,
             tabindex: userTabIndex,
         });
-        setElementStyle(this.inactiveAnnouncer, 'pointer-events', 'none');
-        setElementStyle(this.activeAnnouncer, 'pointer-events', undefined);
 
         this.dispatch('swap', this.activeAnnouncer);
     }
