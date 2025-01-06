@@ -221,4 +221,32 @@ test.describe('keyboard-nav', () => {
         await page.keyboard.press('ArrowDown');
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`sankey-link-highlight.png`);
     });
+
+    test('gauge chart', async ({ page }) => {
+        const { url } = toExamplePageUrl('linear-gauge', 'custom-targets', 'vanilla');
+
+        await gotoExample(page, url);
+
+        await page.locator(SELECTORS.canvasCenter).first().click();
+
+        await page.keyboard.press('ArrowUp'); // should make the focus indicator appear
+        await page.keyboard.press('ArrowUp'); // should have no effect
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-bar-highlight.png`);
+
+        await page.keyboard.press('ArrowDown');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-target0-highlight.png`);
+
+        await page.keyboard.press('ArrowRight');
+        await page.keyboard.press('ArrowRight');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-target2-highlight.png`);
+
+        await page.keyboard.press('ArrowLeft');
+        await page.keyboard.press('ArrowLeft');
+        await page.keyboard.press('ArrowLeft'); // should have no effect
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-target0-highlight.png`);
+
+        await page.keyboard.press('ArrowDown'); // should have no effect
+        await page.keyboard.press('ArrowUp');
+        await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-bar-highlight.png`);
+    });
 });
