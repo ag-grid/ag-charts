@@ -3,18 +3,8 @@ import { _ModuleSupport } from 'ag-charts-community';
 import type { FlowProportionSeriesProperties } from './flowProportionProperties';
 import { computeNodeGraph } from './flowProportionUtil';
 
-const {
-    Series,
-    DataController,
-    Validate,
-    ARRAY,
-    keyProperty,
-    valueProperty,
-    Selection,
-    Group,
-    TransformableText,
-    clamp,
-} = _ModuleSupport;
+const { Series, DataController, Validate, ARRAY, keyProperty, valueProperty, Selection, Group, TransformableText } =
+    _ModuleSupport;
 
 export enum FlowProportionDatumType {
     Link,
@@ -626,8 +616,15 @@ export abstract class FlowProportionSeries<
             } else if (depthDelta === 0 && childDelta !== 0) {
                 const allLinks = Array.from(this.linkSelection, (link) => link.datum);
                 const selfIndex = allLinks.indexOf(currentNodeDatum);
-                const nextIndex = clamp(0, selfIndex + childDelta, allLinks.length - 1);
-                nextNodeDatum = allLinks[nextIndex];
+                const nextIndex = selfIndex + childDelta;
+                if (nextIndex >= 0 && nextIndex < allLinks.length) {
+                    nextNodeDatum = allLinks[nextIndex];
+                } else if (nextIndex > 0) {
+                    nextNodeDatum = allLinks[allLinks.length - 1];
+                } else {
+                    const allNodes = Array.from(this.nodeSelection, (node) => node.datum);
+                    nextNodeDatum = allNodes[allNodes.length - 1];
+                }
             }
         } else if (currentNodeDatum?.type === FlowProportionDatumType.Node) {
             if (depthDelta > 0) {
@@ -637,8 +634,15 @@ export abstract class FlowProportionSeries<
             } else if (depthDelta === 0 && childDelta !== 0) {
                 const allNodes = Array.from(this.nodeSelection, (node) => node.datum);
                 const selfIndex = allNodes.indexOf(currentNodeDatum);
-                const nextIndex = clamp(0, selfIndex + childDelta, allNodes.length - 1);
-                nextNodeDatum = allNodes[nextIndex];
+                const nextIndex = selfIndex + childDelta;
+                if (nextIndex >= 0 && nextIndex < allNodes.length) {
+                    nextNodeDatum = allNodes[nextIndex];
+                } else if (nextIndex < 0) {
+                    nextNodeDatum = allNodes[0];
+                } else {
+                    const allLinks = Array.from(this.linkSelection, (link) => link.datum);
+                    nextNodeDatum = allLinks[0];
+                }
             }
         }
 
