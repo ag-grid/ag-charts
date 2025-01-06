@@ -1,4 +1,4 @@
-import { AgChartOptions, AgCharts, AgMarkerShapeFnParams, Marker } from 'ag-charts-enterprise';
+import { AgChartOptions, AgCharts, AgMarkerShapeFnParams } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
