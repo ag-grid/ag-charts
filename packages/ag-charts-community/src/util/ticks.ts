@@ -126,6 +126,7 @@ export function tickStep(start: number, end: number, count: number, minCount = 0
         minDiff = Infinity,
         isInBounds = false;
     for (const multiplier of TickMultipliers) {
+        // @todo(AG-10444) - this should be Math.floor(extent / (multiplier * step)) + 1
         const c = Math.ceil(extent / (multiplier * step));
         const validBounds = c >= minCount && c <= maxCount;
         if (isInBounds && !validBounds) continue;
