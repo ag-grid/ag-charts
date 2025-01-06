@@ -35,6 +35,7 @@ export type Bounds = {
 };
 
 export type FunnelNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
+    datumIndex: number;
     text: string;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;
@@ -347,6 +348,7 @@ export abstract class BaseFunnelSeries<
             };
 
             const labelData: FunnelNodeDatum['label'] = this.createLabelData({
+                datumIndex,
                 rect,
                 barAlongX,
                 yDatum,
@@ -429,10 +431,12 @@ export abstract class BaseFunnelSeries<
     }
 
     protected abstract createLabelData({
+        datumIndex,
         rect,
         yDatum,
         datum,
     }: {
+        datumIndex: number;
         rect: Bounds;
         barAlongX: boolean;
         yDatum: number;

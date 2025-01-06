@@ -27,7 +27,7 @@ export abstract class AbstractBarSeries<
     TNode extends QuadtreeCompatibleNode,
     TProps extends AbstractBarSeriesProperties<any>,
     TDatum extends CartesianSeriesNodeDatum,
-    TLabel extends SeriesNodeDatum = TDatum,
+    TLabel extends SeriesNodeDatum<number> = TDatum,
     TContext extends CartesianSeriesNodeDataContext<TDatum, TLabel> = CartesianSeriesNodeDataContext<TDatum, TLabel>,
 > extends CartesianSeries<TNode, TProps, TDatum, TLabel, TContext> {
     /**

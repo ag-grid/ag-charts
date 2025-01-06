@@ -12,7 +12,8 @@ import {
 
 const { createDatumId, SeriesNodePickMode, Validate, Logger, Selection, Group, PointerEvents } = _ModuleSupport;
 
-interface MapShapeBackgroundNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<MapShapeBackgroundNodeDatum> {}
+interface MapShapeBackgroundNodeDataContext
+    extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeBackgroundNodeDatum> {}
 
 export class MapShapeBackgroundSeries
     extends TopologySeries<
@@ -131,6 +132,7 @@ export class MapShapeBackgroundSeries
                 series: this,
                 itemId: index,
                 datum: feature,
+                datumIndex: 0,
                 index,
                 projectedGeometry,
             });

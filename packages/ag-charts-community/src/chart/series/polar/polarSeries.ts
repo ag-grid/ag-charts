@@ -10,10 +10,9 @@ import { Text } from '../../../scene/shape/text';
 import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
 import { ChartAxisDirection } from '../../chartAxisDirection';
-import { DataModelSeries } from '../dataModelSeries';
+import { DataModelSeries, type DataModelSeriesNodeDatum } from '../dataModelSeries';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import type { SeriesProperties } from '../seriesProperties';
-import type { SeriesNodeDatum } from '../seriesTypes';
 import { PolarZIndexMap } from './polarZIndexMap';
 
 export type PolarAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
@@ -37,7 +36,7 @@ type PolarSeriesProperties = {
 };
 
 export abstract class PolarSeries<
-    TDatum extends SeriesNodeDatum,
+    TDatum extends DataModelSeriesNodeDatum,
     TProps extends SeriesProperties<any> & PolarSeriesProperties,
     TNode extends Node,
 > extends DataModelSeries<TDatum, TProps> {

@@ -30,7 +30,6 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
     readonly yValue: NonNullable<CartesianSeriesNodeDatum['yValue']>;
     readonly point: Readonly<SizedPoint>;
     readonly yKey: string;
-    readonly index: number;
     readonly fill?: string;
     readonly stroke?: string;
     readonly strokeWidth: number;
@@ -38,8 +37,7 @@ export interface MarkerSelectionDatum extends CartesianSeriesNodeDatum {
     readonly selected: boolean | undefined;
 }
 
-export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum {
-    readonly index: number;
+export interface LabelSelectionDatum extends Readonly<Point>, SeriesNodeDatum<number> {
     readonly itemId: any;
     readonly labelText: string;
 }

@@ -371,7 +371,6 @@ export class AreaSeries extends CartesianSeries<
 
                 if (validPoint && marker) {
                     markerData.push({
-                        index: datumIndex,
                         series: this,
                         itemId: yKey,
                         datum: seriesDatum,
@@ -402,10 +401,10 @@ export class AreaSeries extends CartesianSeries<
                     });
 
                     labelData.push({
-                        index: datumIndex,
                         series: this,
                         itemId: yKey,
                         datum: seriesDatum,
+                        datumIndex,
                         x: point.x,
                         y: point.y,
                         labelText,

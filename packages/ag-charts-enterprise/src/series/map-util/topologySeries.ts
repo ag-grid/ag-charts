@@ -1,11 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-interface TopologySeriesNodeDatum extends _ModuleSupport.SeriesNodeDatum {}
+interface TopologySeriesNodeDatum extends _ModuleSupport.DataModelSeriesNodeDatum {}
 
 interface TopologySeriesNodeDataContext<
     TDatum extends TopologySeriesNodeDatum = TopologySeriesNodeDatum,
     TLabel extends object = object,
-> extends _ModuleSupport.SeriesNodeDataContext<TDatum, TLabel> {}
+> extends _ModuleSupport.DataModelSeriesNodeDataContext<TDatum, TLabel> {}
 
 abstract class TopologySeriesProperties<T extends object> extends _ModuleSupport.SeriesProperties<T> {}
 

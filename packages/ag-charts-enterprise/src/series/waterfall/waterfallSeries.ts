@@ -37,7 +37,7 @@ type WaterfallNodeLabelDatum = Readonly<_ModuleSupport.Point> & {
     readonly textBaseline: CanvasTextBaseline;
 };
 
-type WaterfallNodePointDatum = _ModuleSupport.SeriesNodeDatum['point'] & {
+type WaterfallNodePointDatum = _ModuleSupport.DataModelSeriesNodeDatum['point'] & {
     readonly x2: number;
     readonly y2: number;
 };

@@ -34,14 +34,14 @@ const {
 
 const ALIGNMENT = UNION(['left', 'right', 'center', 'justify'], 'a justification value');
 
-export interface SankeyNodeDatum extends FlowProportionNodeDatum {
+export interface SankeyNodeDatum extends FlowProportionNodeDatum<SankeyNodeDatum, SankeyLinkDatum> {
     size: number;
     x: number;
     y: number;
     width: number;
     height: number;
 }
-export interface SankeyLinkDatum extends FlowProportionLinkDatum<SankeyNodeDatum> {
+export interface SankeyLinkDatum extends FlowProportionLinkDatum<SankeyNodeDatum, SankeyLinkDatum> {
     x1: number;
     x2: number;
     y1: number;

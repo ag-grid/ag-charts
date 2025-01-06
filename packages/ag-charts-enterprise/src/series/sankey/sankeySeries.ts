@@ -458,7 +458,7 @@ export class SankeySeries extends FlowProportionSeries<
             const overrides = this.getNodeStyleOverrides(
                 String(datumIndex),
                 datum,
-                datumIndex,
+                datumIndex.index,
                 size,
                 label,
                 style,
@@ -567,7 +567,7 @@ export class SankeySeries extends FlowProportionSeries<
             const overrides = this.getLinkStyleOverrides(
                 String(datumIndex),
                 datum,
-                fromNodeDatumIndex,
+                fromNodeDatumIndex.index,
                 style,
                 isHighlight
             );
@@ -585,7 +585,7 @@ export class SankeySeries extends FlowProportionSeries<
     }
 
     override getTooltipContent(seriesDatum: SankeyDatum): _ModuleSupport.TooltipContent | string | undefined {
-        const { id: seriesId, processedData, nodesProcessedData, properties } = this;
+        const { id: seriesId, linksProcessedData, nodesProcessedData, properties } = this;
         const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
 
         const { datumIndex } = seriesDatum;
@@ -596,9 +596,9 @@ export class SankeySeries extends FlowProportionSeries<
                 ? `${seriesDatum.fromNode.label} - ${seriesDatum.toNode.label}`
                 : seriesDatum.label;
         const datum =
-            seriesDatum.type === FlowProportionDatumType.Link
-                ? processedData?.rawData[seriesDatum.datumIndex]
-                : nodesProcessedData?.rawData[seriesDatum.datumIndex];
+            datumIndex.type === FlowProportionDatumType.Link
+                ? linksProcessedData?.rawData[datumIndex.index]
+                : nodesProcessedData?.rawData[datumIndex.index];
         const size = seriesDatum.size;
 
         let format: Required<NodeStyle>;
@@ -607,7 +607,7 @@ export class SankeySeries extends FlowProportionSeries<
             const linkFormat = this.getBaseLinkStyle(false);
             Object.assign(
                 linkFormat,
-                this.getLinkStyleOverrides(String(datumIndex), datum, fromNodeDatumIndex, linkFormat, false)
+                this.getLinkStyleOverrides(String(datumIndex), datum, fromNodeDatumIndex.index, linkFormat, false)
             );
             format = linkFormat as any;
         } else {
@@ -615,7 +615,7 @@ export class SankeySeries extends FlowProportionSeries<
             const nodeFormat = this.getBaseNodeStyle(false);
             Object.assign(
                 nodeFormat,
-                this.getNodeStyleOverrides(String(datumIndex), datum, datumIndex, size, label, nodeFormat, false)
+                this.getNodeStyleOverrides(String(datumIndex), datum, datumIndex.index, size, label, nodeFormat, false)
             );
             format = nodeFormat as any;
         }
@@ -640,22 +640,14 @@ export class SankeySeries extends FlowProportionSeries<
         );
     }
 
-    protected override computeFocusBounds({
-        datumIndex,
-    }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {
-        const datum = this.contextNodeData?.nodeData[datumIndex];
-
-        if (datum?.type === FlowProportionDatumType.Node) {
-            const { x, y, width, height } = datum;
+    protected computeFocusBounds(
+        node: _ModuleSupport.Rect | SankeyLink
+    ): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {
+        if (node instanceof Rect) {
+            const { x, y, width, height } = node;
             const bbox = new BBox(x, y, width, height);
             return Transformable.toCanvas(this.contentGroup, bbox);
-        } else if (datum?.type === FlowProportionDatumType.Link) {
-            for (const link of this.linkSelection) {
-                if (link.datum === datum) {
-                    return link.node;
-                }
-            }
-            return undefined;
         }
+        return node;
     }
 }

@@ -13,6 +13,7 @@ const {
 } = _ModuleSupport;
 
 export interface RangeAreaLabelDatum extends Readonly<_ModuleSupport.Point> {
+    datumIndex: number;
     text: string;
     textAlign: CanvasTextAlign;
     textBaseline: CanvasTextBaseline;

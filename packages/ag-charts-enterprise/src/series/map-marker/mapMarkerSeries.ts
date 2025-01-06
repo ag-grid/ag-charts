@@ -34,7 +34,7 @@ const {
 } = _ModuleSupport;
 
 interface MapMarkerNodeDataContext
-    extends _ModuleSupport.SeriesNodeDataContext<MapMarkerNodeDatum, MapMarkerNodeLabelDatum> {}
+    extends _ModuleSupport.DataModelSeriesNodeDataContext<MapMarkerNodeDatum, MapMarkerNodeLabelDatum> {}
 
 type MapMarkerAnimationState = 'empty' | 'ready' | 'waiting' | 'clearing';
 type MapMarkerAnimationEvent = {
@@ -690,7 +690,7 @@ export class MapMarkerSeries
         const { x: x0, y: y0 } = p;
 
         let minDistanceSquared = Infinity;
-        let minDatum: _ModuleSupport.SeriesNodeDatum | undefined;
+        let minDatum: _ModuleSupport.SeriesNodeDatum<unknown> | undefined;
 
         this.contextNodeData?.nodeData.forEach((datum) => {
             const { x, y, size } = datum.point;

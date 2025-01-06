@@ -13,11 +13,11 @@ import { ChartAxisDirection } from './chartAxisDirection';
 import type { GaugeSeries, LinearGaugeSeries, RadialGaugeSeries } from './series/gaugeSeries';
 import type { Series } from './series/series';
 
-function isRadialGaugeSeries(series: Series<any, any>): series is RadialGaugeSeries {
+function isRadialGaugeSeries(series: Series<unknown, any, any>): series is RadialGaugeSeries {
     return series.type === 'radial-gauge';
 }
 
-function isLinearGaugeSeries(series: Series<any, any>): series is LinearGaugeSeries {
+function isLinearGaugeSeries(series: Series<unknown, any, any>): series is LinearGaugeSeries {
     return series.type === 'linear-gauge';
 }
 

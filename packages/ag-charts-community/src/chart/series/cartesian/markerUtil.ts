@@ -153,7 +153,7 @@ export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus:
     return { fromFn, toFn };
 }
 
-interface MarkerNodeDatum extends SeriesNodeDatum {
+interface MarkerNodeDatum extends SeriesNodeDatum<unknown> {
     readonly point: Point & SizedPoint;
 }
 

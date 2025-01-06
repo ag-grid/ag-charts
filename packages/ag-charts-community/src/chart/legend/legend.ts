@@ -925,6 +925,7 @@ export class Legend extends BaseProperties {
                 series,
                 itemId,
                 datum: undefined,
+                datumIndex: undefined,
             });
         } else {
             highlightManager.updateHighlight(this.id);
@@ -1023,7 +1024,7 @@ export class Legend extends BaseProperties {
         }
 
         if (datum?.enabled && series) {
-            this.updateHighlight({ series, itemId: datum?.itemId, datum: undefined });
+            this.updateHighlight({ series, itemId: datum?.itemId, datum: undefined, datumIndex: undefined });
         } else {
             this.updateHighlight();
         }

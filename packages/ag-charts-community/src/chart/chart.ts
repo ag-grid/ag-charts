@@ -735,7 +735,7 @@ export abstract class Chart extends Observable {
             this.onSeriesChange(newValue, oldValue);
         },
     })
-    series: Series<any, any>[] = [];
+    series: Series<unknown, any, any>[] = [];
 
     protected onAxisChange(newValue: ChartAxis[], oldValue?: ChartAxis[]) {
         if (oldValue == null && newValue.length === 0) return;
@@ -743,7 +743,7 @@ export abstract class Chart extends Observable {
         this.ctx.axisManager.updateAxes(oldValue ?? [], newValue);
     }
 
-    protected onSeriesChange(newValue: Series<any, any>[], oldValue?: Series<any, any>[]) {
+    protected onSeriesChange(newValue: Series<unknown, any, any>[], oldValue?: Series<unknown, any, any>[]) {
         const seriesToDestroy = oldValue?.filter((series) => !newValue.includes(series)) ?? [];
         this.destroySeries(seriesToDestroy);
         this.seriesLayerManager?.setSeriesCount(newValue.length);
@@ -775,7 +775,7 @@ export abstract class Chart extends Observable {
         this.seriesAreaManager?.seriesChanged(newValue);
     }
 
-    protected destroySeries(allSeries: Series<any, any>[]): void {
+    protected destroySeries(allSeries: Series<unknown, any, any>[]): void {
         allSeries?.forEach((series) => {
             series.removeEventListener('nodeClick', this.onSeriesNodeClick);
             series.removeEventListener('nodeDoubleClick', this.onSeriesNodeDoubleClick);
@@ -788,7 +788,7 @@ export abstract class Chart extends Observable {
         });
     }
 
-    private addSeriesListeners(series: Series<any, any>) {
+    private addSeriesListeners(series: Series<unknown, any, any>) {
         if (this.hasEventListener('seriesNodeClick')) {
             series.addEventListener('nodeClick', this.onSeriesNodeClick);
         }
@@ -1284,7 +1284,7 @@ export abstract class Chart extends Observable {
             'axes[].label',
         ]);
 
-        const series = miniChart.series as Series<any, any>[];
+        const series = miniChart.series as Series<unknown, any, any>[];
         for (const s of series) {
             // AG-12681
             s.properties.id = undefined;
@@ -1364,7 +1364,7 @@ export abstract class Chart extends Observable {
         return modulesChanged;
     }
 
-    private initSeriesDeclarationOrder(series: Series<any, any>[]) {
+    private initSeriesDeclarationOrder(series: Series<unknown, any, any>[]) {
         // Ensure declaration order is set, this is used for correct z-index behavior for combo charts.
         for (let idx = 0; idx < series.length; idx++) {
             series[idx].setSeriesIndex(idx);
@@ -1372,7 +1372,7 @@ export abstract class Chart extends Observable {
     }
 
     private applySeries(
-        chart: { series: Series<any, any>[] },
+        chart: { series: Series<unknown, any, any>[] },
         optSeries: AgChartOptions['series'],
         oldOptSeries?: AgChartOptions['series']
     ): SeriesChangeType {
@@ -1481,14 +1481,18 @@ export abstract class Chart extends Observable {
         return true;
     }
 
-    private createSeries(seriesOptions: SeriesOptionsTypes): Series<any, any> {
-        const seriesInstance = seriesRegistry.create(seriesOptions.type, this.getModuleContext()) as Series<any, any>;
+    private createSeries(seriesOptions: SeriesOptionsTypes): Series<unknown, any, any> {
+        const seriesInstance = seriesRegistry.create(seriesOptions.type, this.getModuleContext()) as Series<
+            any,
+            any,
+            any
+        >;
         this.applySeriesOptionModules(seriesInstance, seriesOptions);
         this.applySeriesValues(seriesInstance, seriesOptions);
         return seriesInstance;
     }
 
-    private applySeriesOptionModules(series: Series<any, any>, options: SeriesOptionsTypes) {
+    private applySeriesOptionModules(series: Series<unknown, any, any>, options: SeriesOptionsTypes) {
         const moduleContext = series.createModuleContext();
         const moduleMap = series.getModuleMap();
 
@@ -1499,7 +1503,7 @@ export abstract class Chart extends Observable {
         }
     }
 
-    private applySeriesValues(target: Series<any, any>, options: SeriesOptionsTypes) {
+    private applySeriesValues(target: Series<unknown, any, any>, options: SeriesOptionsTypes) {
         const moduleMap = target.getModuleMap();
         const { type: _, data, listeners, seriesGrouping, showInMiniChart: __, ...seriesOptions } = options as any;
 

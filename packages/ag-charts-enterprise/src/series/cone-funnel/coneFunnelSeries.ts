@@ -73,12 +73,14 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
     }
 
     protected override createLabelData({
+        datumIndex,
         rect,
         barAlongX,
         yDatum,
         datum,
         visible,
     }: {
+        datumIndex: number;
         rect: Bounds;
         barAlongX: boolean;
         yDatum: number;
@@ -138,6 +140,7 @@ export class ConeFunnelSeries extends BaseFunnelSeries<_ModuleSupport.Line> {
             ),
             itemId: valueKey,
             datum,
+            datumIndex,
             series: this,
             visible,
         };

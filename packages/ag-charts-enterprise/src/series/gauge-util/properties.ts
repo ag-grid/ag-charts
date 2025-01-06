@@ -6,7 +6,7 @@ export const FILL_MODE = UNION(['continuous', 'discrete'], 'a fill mode');
 export const TARGET_MARKER_SHAPE = OR(MARKER_SHAPE, UNION(['line'], 'a marker shape'));
 export const CORNER_MODE = UNION(['container', 'item'], 'a corner mode');
 
-export type UnknownGaugeNodeDatum = _ModuleSupport.SeriesNodeDatum & { value?: unknown; text?: unknown };
+export type UnknownGaugeNodeDatum = _ModuleSupport.SeriesNodeDatum<unknown> & { value?: unknown; text?: unknown };
 
 export function parseUnknownGaugeNodeDatum(nodeDatum: UnknownGaugeNodeDatum): { value?: number; text?: string } {
     let value: number | undefined;

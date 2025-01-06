@@ -260,6 +260,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
                         enabled: true,
                     });
                     const highLabelDatum: RangeAreaLabelDatum = this.createLabelData({
+                        datumIndex,
                         point: { x, y },
                         value: yValue,
                         yLowValue,
@@ -359,6 +360,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
     }
 
     private createLabelData({
+        datumIndex,
         point,
         value,
         itemId,
@@ -366,6 +368,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         datum,
         series,
     }: {
+        datumIndex: number;
         point: _ModuleSupport.Point;
         value: any;
         yLowValue: any;
@@ -393,6 +396,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             series,
             itemId,
             datum,
+            datumIndex,
             text: this.getLabelText(label, {
                 value,
                 datum,

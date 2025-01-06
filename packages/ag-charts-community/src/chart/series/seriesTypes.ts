@@ -27,8 +27,8 @@ export interface ISeries<TDatum, TProps, TLabel = TDatum> {
     hasEventListener(type: string): boolean;
     update(opts: { seriesRect?: BBox }): Promise<void> | void;
     updatePlacedLabelData?(labels: PlacedLabel<TLabel>[]): void;
-    fireNodeClickEvent(event: Event, datum: SeriesNodeDatum): void;
-    fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum): void;
+    fireNodeClickEvent(event: Event, datum: SeriesNodeDatum<unknown>): void;
+    fireNodeDoubleClickEvent(event: Event, datum: SeriesNodeDatum<unknown>): void;
     createNodeContextMenuActionEvent(event: Event, datum: TDatum): NodeContextMenuActionEvent;
     getLegendData<T extends ChartLegendType>(legendType: T): ChartLegendDatum<T>[];
     getLegendData(legendType: ChartLegendType): ChartLegendDatum<ChartLegendType>[];
@@ -43,7 +43,7 @@ export interface ISeries<TDatum, TProps, TLabel = TDatum> {
     getKeyProperties(direction: ChartAxisDirection): string[];
     getNames(direction: ChartAxisDirection): (string | undefined)[];
     getMinRects(width: number, height: number): { minRect: BBox; minVisibleRect: BBox } | undefined;
-    datumMidPoint?<T extends SeriesNodeDatum>(datum: T): Point | undefined;
+    datumMidPoint?<T extends SeriesNodeDatum<unknown>>(datum: T): Point | undefined;
     isEnabled(): boolean;
     type: string;
     visible: boolean;
@@ -54,10 +54,11 @@ export interface ISeries<TDatum, TProps, TLabel = TDatum> {
  * Processed series datum used in node selections,
  * contains information used to render pie sectors, bars, markers, etc.
  */
-export interface SeriesNodeDatum {
+export interface SeriesNodeDatum<I> {
     readonly series: ISeries<any, any>;
     readonly itemId?: any;
     readonly datum: any;
+    readonly datumIndex: I;
     readonly point?: Readonly<Point> & SizedPoint;
     readonly missing?: boolean;
     readonly enabled?: boolean;
@@ -79,7 +80,7 @@ export type NodeDataDependencies = { seriesRectWidth: number; seriesRectHeight: 
 export type NodeDataDependant = { readonly nodeDataDependencies: NodeDataDependencies };
 
 export function getDatumRefPoint(
-    datum: SeriesNodeDatum & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
+    datum: SeriesNodeDatum<unknown> & Pick<ErrorBoundSeriesNodeDatum, 'yBar'>
 ): { canvasX: number; canvasY: number } | undefined {
     // On `line` and `scatter` series, the tooltip covers the top of error-bars when using datum.midPoint.
     // Using datum.yBar.upperPoint renders the tooltip higher up.

@@ -5,6 +5,7 @@ import {
     type FlowProportionLinkDatum,
     type FlowProportionNodeDatum,
     FlowProportionSeries,
+    type FlowProportionSeriesContext,
 } from '../flow-proportion/flowProportionSeries';
 import { ChordLink, bezierControlPoints } from './chordLink';
 import { ChordSeriesProperties } from './chordSeriesProperties';
@@ -24,7 +25,7 @@ const {
     applyShapeStyle,
 } = _ModuleSupport;
 
-interface ChordNodeDatum extends FlowProportionNodeDatum {
+interface ChordNodeDatum extends FlowProportionNodeDatum<ChordNodeDatum, ChordLinkDatum> {
     centerX: number;
     centerY: number;
     innerRadius: number;
@@ -32,7 +33,7 @@ interface ChordNodeDatum extends FlowProportionNodeDatum {
     startAngle: number;
     endAngle: number;
 }
-interface ChordLinkDatum extends FlowProportionLinkDatum<ChordNodeDatum> {
+interface ChordLinkDatum extends FlowProportionLinkDatum<ChordNodeDatum, ChordLinkDatum> {
     centerX: number;
     centerY: number;
     radius: number;
@@ -58,7 +59,8 @@ type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 's
 
 type LinkStyle = NodeStyle & { tension: number };
 
-interface ChordNodeDataContext extends _ModuleSupport.SeriesNodeDataContext<ChordDatum, ChordNodeLabelDatum> {}
+interface ChordNodeDataContext
+    extends FlowProportionSeriesContext<ChordNodeDatum, ChordLinkDatum, ChordNodeLabelDatum> {}
 
 const nodeMidAngle = (node: ChordNodeDatum) => node.startAngle + angleBetween(node.startAngle, node.endAngle) / 2;
 export class ChordSeries extends FlowProportionSeries<
@@ -450,7 +452,7 @@ export class ChordSeries extends FlowProportionSeries<
             const overrides = this.getNodeStyleOverrides(
                 String(datumIndex),
                 datum,
-                datumIndex,
+                datumIndex.index,
                 size,
                 label,
                 format,
@@ -570,7 +572,7 @@ export class ChordSeries extends FlowProportionSeries<
             const overrides = this.getLinkStyleOverrides(
                 String(datumIndex),
                 datum,
-                fromNodeDatumIndex,
+                fromNodeDatumIndex.index,
                 style,
                 isHighlight
             );
@@ -590,7 +592,7 @@ export class ChordSeries extends FlowProportionSeries<
     }
 
     override getTooltipContent(seriesDatum: ChordDatum): _ModuleSupport.TooltipContent | string | undefined {
-        const { id: seriesId, processedData, nodesProcessedData, properties } = this;
+        const { id: seriesId, linksProcessedData, nodesProcessedData, properties } = this;
         const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
 
         const { datumIndex } = seriesDatum;
@@ -601,9 +603,9 @@ export class ChordSeries extends FlowProportionSeries<
                 ? `${seriesDatum.fromNode.label} - ${seriesDatum.toNode.label}`
                 : seriesDatum.label;
         const datum =
-            seriesDatum.type === FlowProportionDatumType.Link
-                ? processedData?.rawData[seriesDatum.datumIndex]
-                : nodesProcessedData?.rawData[seriesDatum.datumIndex];
+            datumIndex.type === FlowProportionDatumType.Link
+                ? linksProcessedData?.rawData[datumIndex.index]
+                : nodesProcessedData?.rawData[datumIndex.index];
         const size = seriesDatum.size;
 
         let format: Required<NodeStyle>;
@@ -612,7 +614,7 @@ export class ChordSeries extends FlowProportionSeries<
             const linkFormat = this.getBaseLinkStyle(false);
             Object.assign(
                 linkFormat,
-                this.getLinkStyleOverrides(String(datumIndex), datum, fromNodeDatumIndex, linkFormat, false)
+                this.getLinkStyleOverrides(String(datumIndex), datum, fromNodeDatumIndex.index, linkFormat, false)
             );
             format = linkFormat as any;
         } else {
@@ -620,7 +622,7 @@ export class ChordSeries extends FlowProportionSeries<
             const nodeFormat = this.getBaseNodeStyle(false);
             Object.assign(
                 nodeFormat,
-                this.getNodeStyleOverrides(String(datumIndex), datum, datumIndex, size, label, nodeFormat, false)
+                this.getNodeStyleOverrides(String(datumIndex), datum, datumIndex.index, size, label, nodeFormat, false)
             );
             format = nodeFormat as any;
         }
@@ -645,25 +647,9 @@ export class ChordSeries extends FlowProportionSeries<
         );
     }
 
-    protected override computeFocusBounds({
-        datumIndex,
-    }: _ModuleSupport.PickFocusInputs): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {
-        const datum = this.contextNodeData?.nodeData[datumIndex];
-
-        if (datum?.type === FlowProportionDatumType.Node) {
-            for (const node of this.nodeSelection) {
-                if (node.datum === datum) {
-                    return node.node;
-                }
-            }
-            return undefined;
-        } else if (datum?.type === FlowProportionDatumType.Link) {
-            for (const link of this.linkSelection) {
-                if (link.datum === datum) {
-                    return link.node;
-                }
-            }
-            return undefined;
-        }
+    protected computeFocusBounds(
+        node: _ModuleSupport.Sector | ChordLink
+    ): _ModuleSupport.BBox | _ModuleSupport.Path | undefined {
+        return node;
     }
 }

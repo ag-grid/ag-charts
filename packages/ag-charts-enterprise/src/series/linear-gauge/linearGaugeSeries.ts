@@ -16,6 +16,7 @@ import {
     type LinearGaugeLabelDatum,
     LinearGaugeLabelProperties,
     type LinearGaugeNodeDatum,
+    type LinearGaugeNodeDatumIndex,
     LinearGaugeSeriesProperties,
     type LinearGaugeTargetDatum,
     type LinearGaugeTargetDatumLabel,
@@ -88,7 +89,11 @@ type GaugeAnimationEvent = {
 };
 
 interface LinearGaugeNodeDataContext
-    extends _ModuleSupport.SeriesNodeDataContext<LinearGaugeNodeDatum, LinearGaugeLabelDatum> {
+    extends _ModuleSupport.SeriesNodeDataContext<
+        LinearGaugeNodeDatumIndex,
+        LinearGaugeNodeDatum,
+        LinearGaugeLabelDatum
+    > {
     targetData: LinearGaugeTargetDatum[];
     scaleData: LinearGaugeNodeDatum[];
 }
@@ -106,6 +111,7 @@ const verticalTargetPlacementRotation: Record<AgLinearGaugeTargetPlacement, numb
 
 export class LinearGaugeSeries
     extends _ModuleSupport.Series<
+        LinearGaugeNodeDatumIndex,
         LinearGaugeNodeDatum,
         LinearGaugeSeriesProperties,
         LinearGaugeLabelDatum,
@@ -534,6 +540,7 @@ export class LinearGaugeSeries
                     series: this,
                     itemId: `value`,
                     datum,
+                    datumIndex: { type: NodeDataType.Node },
                     type: NodeDataType.Node,
                     x0: originX + x0 - barCornerXInset - barXInset,
                     y0: originY + y0 - barCornerYInset - barYInset,
@@ -563,6 +570,7 @@ export class LinearGaugeSeries
                 series: this,
                 itemId: `scale`,
                 datum,
+                datumIndex: { type: NodeDataType.Node },
                 type: NodeDataType.Node,
                 x0: originX + x0 - scaleCornerXInset,
                 y0: originY + y0 - scaleCornerYInset,
@@ -611,6 +619,7 @@ export class LinearGaugeSeries
                         series: this,
                         itemId: `value-${i}`,
                         datum,
+                        datumIndex: { type: NodeDataType.Node },
                         type: NodeDataType.Node,
                         x0: originX + (horizontal ? itemStart : x0),
                         y0: originY + (horizontal ? y0 : itemStart),
@@ -634,6 +643,7 @@ export class LinearGaugeSeries
                     series: this,
                     itemId: `scale-${i}`,
                     datum,
+                    datumIndex: { type: NodeDataType.Node },
                     type: NodeDataType.Node,
                     x0: originX + (horizontal ? itemStart : x0),
                     y0: originY + (horizontal ? y0 : itemStart),
@@ -685,6 +695,7 @@ export class LinearGaugeSeries
                 itemId: `target-${i}`,
                 midPoint: targetPoint,
                 datum: { value: targetValue },
+                datumIndex: { type: NodeDataType.Target, index: i },
                 type: NodeDataType.Target,
                 value: targetValue,
                 text,

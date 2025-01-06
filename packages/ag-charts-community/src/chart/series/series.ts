@@ -55,7 +55,7 @@ export enum SeriesNodePickMode {
 export type SeriesNodePickIntent = 'tooltip' | 'highlight' | 'highlight-tooltip' | 'context-menu' | 'event';
 
 export type SeriesNodePickMatch = {
-    datum: SeriesNodeDatum;
+    datum: SeriesNodeDatum<unknown>;
     distance: number;
 };
 
@@ -71,14 +71,14 @@ export type PickFocusInputs = {
 
 export type PickFocusOutputs = {
     datumIndex: number;
-    datum: SeriesNodeDatum;
+    datum: SeriesNodeDatum<unknown>;
     otherIndex?: number;
     bounds: BBox | Path;
     showFocusBox: boolean;
     clipFocusBox: boolean;
 };
 
-export type PickResult = { pickMode: SeriesNodePickMode; match: SeriesNodeDatum; distance: number };
+export type PickResult = { pickMode: SeriesNodePickMode; match: SeriesNodeDatum<unknown>; distance: number };
 
 export type SeriesNodeEventTypes = 'nodeClick' | 'nodeDoubleClick' | 'nodeContextMenuAction' | 'groupingChanged';
 
@@ -91,15 +91,15 @@ interface INodeEvent<TEvent extends string = SeriesNodeEventTypes> extends Typed
 }
 
 export type INodeEventConstructor<
-    TDatum extends SeriesNodeDatum,
-    TSeries extends Series<TDatum, any>,
+    TDatum extends SeriesNodeDatum<unknown>,
+    TSeries extends Series<any, TDatum, any>,
     TEvent extends string = SeriesNodeEventTypes,
 > = new <T extends TEvent>(type: T, event: Event, { datum }: TDatum, series: TSeries) => INodeEvent<T>;
 
 const CROSS_FILTER_MARKER_FILL_OPACITY_FACTOR = 0.25;
 const CROSS_FILTER_MARKER_STROKE_OPACITY_FACTOR = 0.125;
 
-export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends string = SeriesNodeEventTypes>
+export class SeriesNodeEvent<TDatum extends SeriesNodeDatum<unknown>, TEvent extends string = SeriesNodeEventTypes>
     implements INodeEvent<TEvent>
 {
     readonly datum: unknown;
@@ -116,7 +116,7 @@ export class SeriesNodeEvent<TDatum extends SeriesNodeDatum, TEvent extends stri
     }
 }
 
-export type SeriesNodeDataContext<S = SeriesNodeDatum, L = S> = {
+export type SeriesNodeDataContext<I, S = SeriesNodeDatum<I>, L = S> = {
     itemId: string;
     nodeData: S[];
     labelData: L[];
@@ -138,7 +138,7 @@ export class SeriesGroupingChangedEvent implements TypedEvent {
     type = 'groupingChanged';
 
     constructor(
-        public series: Series<any, any>,
+        public series: Series<unknown, any, any>,
         public seriesGrouping: SeriesGrouping | undefined,
         public oldGrouping: SeriesGrouping | undefined
     ) {}
@@ -155,10 +155,15 @@ export type SeriesConstructorOpts<TProps extends SeriesProperties<any>> = {
 };
 
 export abstract class Series<
-        TDatum extends SeriesNodeDatum,
+        TDatumIndex,
+        TDatum extends SeriesNodeDatum<TDatumIndex>,
         TProps extends SeriesProperties<any>,
         TLabel = TDatum,
-        TContext extends SeriesNodeDataContext<TDatum, TLabel> = SeriesNodeDataContext<TDatum, TLabel>,
+        TContext extends SeriesNodeDataContext<TDatumIndex, TDatum, TLabel> = SeriesNodeDataContext<
+            TDatumIndex,
+            TDatum,
+            TLabel
+        >,
     >
     extends Observable
     implements ISeries<TDatum, TProps, TLabel>
@@ -173,7 +178,7 @@ export abstract class Series<
         return 'main';
     }
 
-    @ActionOnSet<Series<TDatum, TProps, TLabel>>({
+    @ActionOnSet<Series<TDatumIndex, TDatum, TProps, TLabel>>({
         changeValue: function (newVal, oldVal) {
             this.onSeriesGroupingChange(oldVal, newVal);
         },
