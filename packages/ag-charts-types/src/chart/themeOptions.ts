@@ -87,6 +87,8 @@ export interface AgChartThemeParams {
     fontFamily?: string;
     /** The font size. */
     fontSize?: number;
+    /** The font weight, as a multiple of 100. */
+    fontWeight?: number;
 }
 
 type ExtendLiteralLeaves<T, V> = {

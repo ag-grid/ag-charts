@@ -45,7 +45,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
                 spacing: 5,
                 label: {
                     enabled: true,
-                    fontWeight: 'normal',
+                    fontWeight: { ref: 'fontWeight' },
                     fontSize: { ref: 'fontSize' },
                     fontFamily: { ref: 'fontFamily' },
                     color: { ref: 'foregroundColor' },
@@ -59,7 +59,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             },
             label: {
                 enabled: true,
-                fontWeight: 'normal',
+                fontWeight: { ref: 'fontWeight' },
                 fontSize: 56,
                 minimumFontSize: 18,
                 fontFamily: { ref: 'fontFamily' },
@@ -67,7 +67,7 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             },
             secondaryLabel: {
                 enabled: true,
-                fontWeight: 'normal',
+                fontWeight: { ref: 'fontWeight' },
                 fontSize: 14,
                 minimumFontSize: 12,
                 fontFamily: { ref: 'fontFamily' },

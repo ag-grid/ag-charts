@@ -5,7 +5,7 @@ const itemTheme = {
     label: {
         enabled: false,
         fontStyle: undefined,
-        fontWeight: 'normal' as const,
+        fontWeight: { ref: 'fontWeight' as const },
         fontSize: { ref: 'fontSize' as const },
         fontFamily: { ref: 'fontFamily' as const },
         color: { ref: 'foregroundColor' as const },

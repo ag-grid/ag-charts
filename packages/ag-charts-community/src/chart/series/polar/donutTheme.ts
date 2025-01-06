@@ -5,7 +5,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
     series: {
         title: {
             enabled: true,
-            fontWeight: 'normal' as const,
+            fontWeight: { ref: 'fontWeight' },
             fontSize: 14,
             fontFamily: { ref: 'fontFamily' },
             color: DEFAULT_MUTED_LABEL_COLOUR,
@@ -21,7 +21,7 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
         },
         sectorLabel: {
             enabled: true,
-            fontWeight: 'normal',
+            fontWeight: { ref: 'fontWeight' },
             fontSize: { ref: 'fontSize' },
             fontFamily: { ref: 'fontFamily' },
             color: { ref: 'backgroundColor' },

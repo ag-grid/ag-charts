@@ -139,7 +139,7 @@ export class ChartTheme {
                 enabled: false,
                 text: 'Axis Title',
                 spacing: 25,
-                fontWeight: 'normal' as const,
+                fontWeight: { ref: 'fontWeight' },
                 fontSize: FONT_SIZE.MEDIUM,
                 fontFamily: { ref: 'fontFamily' },
                 color: { ref: 'foregroundColor' },
@@ -195,7 +195,7 @@ export class ChartTheme {
             title: {
                 enabled: false,
                 text: 'Title',
-                fontWeight: 'normal',
+                fontWeight: { ref: 'fontWeight' },
                 fontSize: FONT_SIZE.LARGE,
                 fontFamily: { ref: 'fontFamily' },
                 color: { ref: 'foregroundColor' },
@@ -452,6 +452,7 @@ export class ChartTheme {
             foregroundColor: '#464646',
             fontFamily: 'Verdana, sans-serif',
             fontSize: 12,
+            fontWeight: 400,
 
             // TODO: Should these directly use `backgroundColor` or should they be their own params with a ref to it?
             // insideSeriesLabelColor: { ref: 'backgroundColor' },

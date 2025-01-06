@@ -237,6 +237,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             foregroundColor: 'foreground-color',
             fontFamily: 'font-family',
             fontSize: 'font-size',
+            fontWeight: 'font-weight',
         };
 
         const lengthKeys = ['fontSize'];
