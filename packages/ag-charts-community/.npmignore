@@ -5,6 +5,7 @@ tools
 .prettierignore
 .swcrc
 .dependency-cruiser.js
+.size-limit.js
 jest.*
 tsconfig.*
 project.json
