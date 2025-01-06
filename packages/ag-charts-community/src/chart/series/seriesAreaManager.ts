@@ -476,7 +476,10 @@ export class SeriesAreaManager extends BaseManager {
         const { focus, hoverRect } = this;
         if (pick === undefined || focus.series === undefined || hoverRect === undefined) return;
 
-        const { datum, datumIndex } = pick;
+        const { datum, datumIndex, otherIndex } = pick;
+        if (otherIndex !== undefined) {
+            focus.seriesIndex = otherIndex;
+        }
         focus.datumIndex = datumIndex;
         focus.datum = datum;
 
