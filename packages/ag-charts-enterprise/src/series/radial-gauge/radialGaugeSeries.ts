@@ -30,9 +30,9 @@ import {
     resetRadialGaugeSeriesResetNeedleFunction,
     resetRadialGaugeSeriesResetSectorFunction,
 } from './radialGaugeUtil';
+import { pickGaugeFocus } from '../gauge-util/focus';
 
 const {
-    clamp,
     fromToMotion,
     resetMotion,
     SeriesNodePickMode,
@@ -170,7 +170,7 @@ export class RadialGaugeSeries
         this.scaleGroup,
         () => this.nodeFactory()
     );
-    private datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum> = Selection.select(
+    public datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory()
     );
@@ -178,7 +178,7 @@ export class RadialGaugeSeries
         this.itemNeedleGroup,
         RadialGaugeNeedle
     );
-    private targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum> = Selection.select(
+    public targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum> = Selection.select(
         this.itemTargetGroup,
         () => this.markerFactory()
     );
@@ -1163,24 +1163,7 @@ export class RadialGaugeSeries
     }
 
     override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
-        const others = [
-            { data: this.contextNodeData?.nodeData, selection: this.datumSelection },
-            { data: this.contextNodeData?.targetData, selection: this.targetSelection },
-        ];
-        const otherIndex = clamp(0, opts.otherIndex + opts.otherIndexDelta, 1);
-
-        const { data, selection } = others[otherIndex];
-        if (data == null || data.length === 0) return;
-
-        const datumIndex = Math.min(Math.max(opts.datumIndex, 0), data.length - 1);
-        const datum = data[datumIndex];
-
-        for (const node of selection) {
-            if (node.datum === datum) {
-                const bounds = node.node;
-                return { bounds, showFocusBox: true, clipFocusBox: true, datum, datumIndex, otherIndex };
-            }
-        }
+        return pickGaugeFocus(this, opts);
     }
 
     getCaptionText(): string {

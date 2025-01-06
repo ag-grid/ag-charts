@@ -27,6 +27,7 @@ import {
     prepareLinearGaugeSeriesAnimationFunctions,
     resetLinearGaugeSeriesResetRectFunction,
 } from './linearGaugeUtil';
+import { pickGaugeFocus } from '../gauge-util/focus';
 
 const {
     fromToMotion,
@@ -45,7 +46,6 @@ const {
     Text,
     LinearGradient,
     Marker,
-    clamp,
     easing,
 } = _ModuleSupport;
 
@@ -180,11 +180,11 @@ export class LinearGaugeSeries
         this.scaleGroup,
         () => this.nodeFactory()
     );
-    private datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum> = Selection.select(
+    public datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory()
     );
-    private targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum> = Selection.select(
+    public targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum> = Selection.select(
         this.itemTargetGroup,
         () => this.markerFactory()
     );
@@ -1113,24 +1113,7 @@ export class LinearGaugeSeries
     }
 
     override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
-        const others = [
-            { data: this.contextNodeData?.nodeData, selection: this.datumSelection },
-            { data: this.contextNodeData?.targetData, selection: this.targetSelection },
-        ];
-        const otherIndex = clamp(0, opts.otherIndex + opts.otherIndexDelta, 1);
-
-        const { data, selection } = others[otherIndex];
-        if (data == null || data.length === 0) return;
-
-        const datumIndex = Math.min(Math.max(opts.datumIndex, 0), data.length - 1);
-        const datum = data[datumIndex];
-
-        for (const node of selection) {
-            if (node.datum === datum) {
-                const bounds = node.node;
-                return { bounds, showFocusBox: true, clipFocusBox: true, datum, datumIndex, otherIndex };
-            }
-        }
+        return pickGaugeFocus(this, opts);
     }
 
     getCaptionText(): string {
