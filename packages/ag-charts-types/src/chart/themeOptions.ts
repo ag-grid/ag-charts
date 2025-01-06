@@ -79,13 +79,13 @@ export interface AgChartThemePalette {
 }
 
 export interface AgChartThemeParams {
-    /** TODO */
+    /** The outer chart background color. */
     backgroundColor?: CssColor;
-    /** TODO */
+    /** The font color and other related colors. */
     foregroundColor?: CssColor;
-    /** TODO */
+    /** The font family. */
     fontFamily?: string;
-    /** TODO */
+    /** The font size. */
     fontSize?: number;
 }
 
@@ -105,7 +105,7 @@ export type WithThemeParams<T> = ExtendLiteralLeaves<T, ThemeParamsRef>;
 export interface AgBaseChartThemeOptions {
     /** The palette to use. If specified, this replaces the palette from the base theme. */
     palette?: AgChartThemePalette;
-    /** TODO */
+    /** Global parameters to set styles across the whole chart. */
     params?: AgChartThemeParams;
     /** Configuration from this object is merged over the defaults specified in the base theme. */
     overrides?: AgThemeOverrides;
