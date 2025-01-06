@@ -28,6 +28,30 @@ const options: AgFinancialChartOptions = {
                     y: 39830.30360752416,
                 },
             },
+            {
+                type: 'fibonacci-retracement-trend-based',
+                endRetracement: {
+                    x: {
+                        __type: 'date',
+                        value: '2024-03-21T18:59:00.000Z',
+                    },
+                    y: 39824.246612868774,
+                },
+                start: {
+                    x: {
+                        __type: 'date',
+                        value: '2024-03-21T18:38:00.000Z',
+                    },
+                    y: 39822.62080641716,
+                },
+                end: {
+                    x: {
+                        __type: 'date',
+                        value: '2024-03-21T18:47:00.000Z',
+                    },
+                    y: 39830.20790319135,
+                },
+            },
         ],
     },
 };
