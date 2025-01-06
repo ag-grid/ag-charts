@@ -23,7 +23,7 @@ export function pickGaugeFocus(self: GaugeSeriesProperties, opts: _ModuleSupport
     const { data, selection } = others[otherIndex];
     if (data == null || data.length === 0) return;
 
-    const datumIndex = Math.min(Math.max(opts.datumIndex, 0), data.length - 1);
+    const datumIndex = clamp(0, opts.datumIndex, data.length - 1);
     const datum = data[datumIndex];
 
     for (const node of selection) {
