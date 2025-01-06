@@ -123,7 +123,10 @@
         "commands": ["nx run-many -t test --parallel 1", "nx run-many -t validate-examples"]
       }
     },
-    "clean": { "cache": false, "command": "rimraf dist/ 'packages/*/dist/'" },
+    "clean": {
+      "cache": false,
+      "command": "rimraf dist/ 'packages/*/dist/' 'packages/ag-charts-website/node_modules/.vite/'"
+    },
     "nuke": {
       "cache": false,
       "dependsOn": ["clean"],
