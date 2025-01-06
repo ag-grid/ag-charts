@@ -108,17 +108,6 @@ function toKeyString(keys: any[]) {
     return keys.map((key) => (isObject(key) ? JSON.stringify(key) : key)).join('-');
 }
 
-function round(val: number): number {
-    const accuracy = 10000;
-    if (Number.isInteger(val)) {
-        return val;
-    } else if (Math.abs(val) > accuracy) {
-        return Math.trunc(val);
-    }
-
-    return Math.round(val * accuracy) / accuracy;
-}
-
 export function fixNumericExtent(extent: Array<number | Date> | null): [] | [number, number] {
     const numberExtent = extent?.map(Number) as [number, number] | undefined;
     return numberExtent?.every(Number.isFinite) ? numberExtent : [];
@@ -849,9 +838,7 @@ export class DataModel<
                             ContinuousDomain.extendDomain(valuesAgg, groupAggValues);
                     }
 
-                    const finalValues = (def.finalFunction?.(groupAggValues) ?? groupAggValues).map((v) =>
-                        round(v)
-                    ) as [number, number];
+                    const finalValues = def.finalFunction?.(groupAggValues) ?? groupAggValues;
 
                     aggregation[index] = finalValues;
                     ContinuousDomain.extendDomain(finalValues, domainAggValues[index]);
@@ -883,9 +870,7 @@ export class DataModel<
                         }
                     }
 
-                    const finalValues = (def.finalFunction?.(groupAggValues) ?? groupAggValues).map((v) =>
-                        round(v)
-                    ) as [number, number];
+                    const finalValues = def.finalFunction?.(groupAggValues) ?? groupAggValues;
 
                     group.aggregation[index] = finalValues;
                     ContinuousDomain.extendDomain(finalValues, domainAggValues[index]);

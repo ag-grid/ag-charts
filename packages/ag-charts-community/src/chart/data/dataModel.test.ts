@@ -392,9 +392,9 @@ describe('DataModel', () => {
 
                 const result = dataModel2.processData(data2)!;
 
-                expect(result.domain.aggValues).toEqual([[0, 15]]);
-                expect(result.groups[0].aggregation).toEqual([[0, 12]]);
-                expect(result.groups[1].aggregation).toEqual([[0, 15]]);
+                expect(result.domain.aggValues).toEqual([[0, expect.closeTo(15)]]);
+                expect(result.groups[0].aggregation).toEqual([[0, expect.closeTo(12)]]);
+                expect(result.groups[1].aggregation).toEqual([[0, expect.closeTo(15)]]);
             });
         });
     });
@@ -553,9 +553,9 @@ describe('DataModel', () => {
 
                 const result = dataModel2.processData(data2)!;
 
-                expect(result.domain.aggValues).toEqual([[0, 15]]);
-                expect(result.groups[0].aggregation).toEqual([[0, 12]]);
-                expect(result.groups[1].aggregation).toEqual([[0, 15]]);
+                expect(result.domain.aggValues).toEqual([[0, expect.closeTo(15)]]);
+                expect(result.groups[0].aggregation).toEqual([[0, expect.closeTo(12)]]);
+                expect(result.groups[1].aggregation).toEqual([[0, expect.closeTo(15)]]);
             });
         });
     });
@@ -636,17 +636,17 @@ describe('DataModel', () => {
 
                 expect(result.groups.map((g) => g.aggregation)).toEqual([
                     [
-                        [0, 12],
-                        [0, 6],
+                        [0, expect.closeTo(12)],
+                        [0, expect.closeTo(6)],
                     ],
                     [
-                        [0, 15],
-                        [0, 6],
+                        [0, expect.closeTo(15)],
+                        [0, expect.closeTo(6)],
                     ],
                 ]);
                 expect(result.domain.aggValues).toEqual([
-                    [0, 15],
-                    [0, 6],
+                    [0, expect.closeTo(15)],
+                    [0, expect.closeTo(6)],
                 ]);
             });
         });
@@ -766,7 +766,7 @@ describe('DataModel', () => {
             expect(result).toMatchSnapshot({
                 time: expect.any(Number),
             });
-            expect(result.domain.aggValues).toEqual([[0, 100]]);
+            expect(result.domain.aggValues).toEqual([[0, expect.closeTo(100)]]);
         });
 
         describe('property tests', () => {
@@ -805,8 +805,8 @@ describe('DataModel', () => {
                     ],
                 ]);
                 expect(result.domain.aggValues).toEqual([
-                    [0, 100],
-                    [0, 100],
+                    [0, expect.closeTo(100)],
+                    [0, expect.closeTo(100)],
                 ]);
 
                 expect(result.groups.map((g) => g.datumIndices.map((d) => result.columns.map((c) => c[d])))).toEqual([
