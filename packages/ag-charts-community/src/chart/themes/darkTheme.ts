@@ -10,7 +10,6 @@ import {
     DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
     DEFAULT_ANNOTATION_STATISTICS_FILL,
     DEFAULT_ANNOTATION_STATISTICS_STROKE,
-    DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
@@ -20,7 +19,6 @@ import {
     DEFAULT_HIERARCHY_STROKES,
     DEFAULT_INVERTED_BACKGROUND_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
-    DEFAULT_NAVIGATOR_STROKE,
     DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SEPARATION_LINES_COLOUR,
     DEFAULT_TEXTBOX_COLOR,
@@ -77,7 +75,9 @@ export class DarkTheme extends ChartTheme {
         return {
             ...super.getPublicParameters(),
             backgroundColor: DEFAULT_DARK_BACKGROUND_FILL,
+            borderColor: '#4b525d',
             foregroundColor: '#fff',
+            gridLineColor: '#545a6e',
         };
     }
 
@@ -87,10 +87,7 @@ export class DarkTheme extends ChartTheme {
         params.set(IS_DARK_THEME, true);
         params.set(DEFAULT_POLAR_SERIES_STROKE, DEFAULT_DARK_BACKGROUND_FILL);
 
-        params.set(DEFAULT_NAVIGATOR_STROKE, '#4b525d');
-
         params.set(DEFAULT_MUTED_LABEL_COLOUR, '#7d91a0');
-        params.set(DEFAULT_AXIS_GRID_COLOUR, '#545a6e');
         params.set(DEFAULT_CROSS_LINES_COLOUR, '#fff');
         params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#7f8389');
 

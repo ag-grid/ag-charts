@@ -44,7 +44,7 @@ import type { AgAnnotationsThemeableOptions } from './annotationsOptions';
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
 import type { AgChartToolbarThemeableOptions } from './chartToolbarOptions';
 import type { AgLocaleThemeableOptions } from './localeOptions';
-import type { CssColor } from './types';
+import type { CssColor, FontFamily, FontSize, FontWeight } from './types';
 
 export type AgChartThemeName =
     | 'ag-default'
@@ -79,16 +79,22 @@ export interface AgChartThemePalette {
 }
 
 export interface AgChartThemeParams {
+    /** The color of axis lines and ticks. */
+    axisColor?: CssColor;
     /** The outer chart background color. */
     backgroundColor?: CssColor;
+    /** The border color of buttons and other UI elements. */
+    borderColor?: CssColor;
     /** The font color and other related colors. */
     foregroundColor?: CssColor;
     /** The font family. */
-    fontFamily?: string;
+    fontFamily?: FontFamily;
     /** The font size. */
-    fontSize?: number;
-    /** The font weight, as a multiple of 100. */
-    fontWeight?: number;
+    fontSize?: FontSize;
+    /** The font weight. */
+    fontWeight?: FontWeight;
+    /** The color of the grid lines. */
+    gridLineColor?: CssColor;
 }
 
 type ExtendLiteralLeaves<T, V> = {

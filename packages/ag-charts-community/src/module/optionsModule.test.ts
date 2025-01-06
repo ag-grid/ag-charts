@@ -439,7 +439,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-      "fontWeight": "normal",
+      "fontWeight": 400,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -481,7 +481,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-      "fontWeight": "normal",
+      "fontWeight": 400,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -523,7 +523,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-      "fontWeight": "normal",
+      "fontWeight": 400,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -565,7 +565,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-      "fontWeight": "normal",
+      "fontWeight": 400,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -694,7 +694,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-      "fontWeight": "normal",
+      "fontWeight": 400,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -736,7 +736,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-      "fontWeight": "normal",
+      "fontWeight": 400,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -778,7 +778,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-      "fontWeight": "normal",
+      "fontWeight": 400,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -820,7 +820,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-      "fontWeight": "normal",
+      "fontWeight": 400,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -949,7 +949,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-      "fontWeight": "normal",
+      "fontWeight": 400,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -991,7 +991,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-      "fontWeight": "normal",
+      "fontWeight": 400,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -1033,7 +1033,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-      "fontWeight": "normal",
+      "fontWeight": 400,
       "placement": "inside-center",
     },
     "lineDash": [
@@ -1075,7 +1075,7 @@ describe('ChartOptions', () => {
       "enabled": false,
       "fontFamily": "Verdana, sans-serif",
       "fontSize": 12,
-      "fontWeight": "normal",
+      "fontWeight": 400,
       "placement": "inside-center",
     },
     "lineDash": [

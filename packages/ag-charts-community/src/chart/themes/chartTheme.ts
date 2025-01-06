@@ -31,8 +31,6 @@ import {
     DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
     DEFAULT_ANNOTATION_STATISTICS_FILL,
     DEFAULT_ANNOTATION_STATISTICS_STROKE,
-    DEFAULT_AXIS_GRID_COLOUR,
-    DEFAULT_AXIS_LINE_COLOUR,
     DEFAULT_BACKGROUND_COLOUR,
     DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
@@ -47,7 +45,6 @@ import {
     DEFAULT_INVERTED_BACKGROUND_COLOUR,
     DEFAULT_INVERTED_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
-    DEFAULT_NAVIGATOR_STROKE,
     DEFAULT_PADDING,
     DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SEPARATION_LINES_COLOUR,
@@ -154,16 +151,16 @@ export class ChartTheme {
             line: {
                 enabled: true,
                 width: 1,
-                stroke: DEFAULT_AXIS_LINE_COLOUR,
+                stroke: { ref: 'axisColor' },
             },
             tick: {
                 enabled: false,
                 width: 1,
-                stroke: DEFAULT_AXIS_LINE_COLOUR,
+                stroke: { ref: 'axisColor' },
             },
             gridLine: {
                 enabled: true,
-                style: [{ stroke: DEFAULT_AXIS_GRID_COLOUR, lineDash: [] }],
+                style: [{ stroke: { ref: 'gridLineColor' }, lineDash: [] }],
             },
             crossLines: {
                 enabled: false,
@@ -448,11 +445,14 @@ export class ChartTheme {
 
     getPublicParameters(): Required<AgChartThemeParams> {
         return {
+            axisColor: '#c3c3c3',
             backgroundColor: DEFAULT_BACKGROUND_FILL,
+            borderColor: '#ddd',
             foregroundColor: '#464646',
             fontFamily: 'Verdana, sans-serif',
             fontSize: 12,
             fontWeight: 400,
+            gridLineColor: '#e0eaf1',
 
             // TODO: Should these directly use `backgroundColor` or should they be their own params with a ref to it?
             // insideSeriesLabelColor: { ref: 'backgroundColor' },
@@ -469,11 +469,8 @@ export class ChartTheme {
         params.set(IS_COMMUNITY, !isEnterprise);
         params.set(DEFAULT_INVERTED_LABEL_COLOUR, '#fff');
         params.set(DEFAULT_MUTED_LABEL_COLOUR, '#8c8c8c');
-        params.set(DEFAULT_AXIS_GRID_COLOUR, '#e0eaf1');
-        params.set(DEFAULT_AXIS_LINE_COLOUR, '#c3c3c3');
         params.set(DEFAULT_CROSS_LINES_COLOUR, '#464646');
         params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#d9d9d9');
-        params.set(DEFAULT_NAVIGATOR_STROKE, '#ddd');
         params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL); // TODO: remove uses in paletteFactory()
         params.set(DEFAULT_INVERTED_BACKGROUND_COLOUR, 'black');
         params.set(DEFAULT_SHADOW_COLOUR, '#00000080');

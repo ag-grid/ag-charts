@@ -2,7 +2,6 @@ import { ChartTheme } from './chartTheme';
 import {
     DEFAULT_ANNOTATION_BACKGROUND_FILL,
     DEFAULT_ANNOTATION_COLOR,
-    DEFAULT_AXIS_GRID_COLOUR,
     DEFAULT_CAPTION_ALIGNMENT,
     DEFAULT_CAPTION_LAYOUT_STYLE,
     DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
@@ -39,6 +38,13 @@ export class FinancialLight extends ChartTheme {
         };
     }
 
+    override getPublicParameters() {
+        return {
+            ...super.getPublicParameters(),
+            gridLineColor: '#f2f3f3',
+        };
+    }
+
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
 
@@ -50,7 +56,6 @@ export class FinancialLight extends ChartTheme {
 
         params.set(DEFAULT_ANNOTATION_COLOR, FINANCIAL_LIGHT_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, FINANCIAL_LIGHT_FILLS.BLUE);
-        params.set(DEFAULT_AXIS_GRID_COLOUR, '#F2F3F3');
 
         params.set(DEFAULT_PADDING, 0);
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'overlay');

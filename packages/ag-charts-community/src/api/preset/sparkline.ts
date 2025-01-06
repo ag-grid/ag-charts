@@ -19,9 +19,10 @@ import {
     type AgSparklineTooltip,
     type AgTimeAxisOptions,
     type AgTooltipPositionType,
+    type WithThemeParams,
 } from 'ag-charts-types';
 
-import { DEFAULT_AXIS_GRID_COLOUR, DEFAULT_SPARKLINE_CROSSHAIR_STROKE } from '../../chart/themes/symbols';
+import { DEFAULT_SPARKLINE_CROSSHAIR_STROKE } from '../../chart/themes/symbols';
 import { simpleMemorize } from '../../util/memo';
 import { IGNORED_PROP, pickProps } from './presetUtils';
 
@@ -59,12 +60,12 @@ const tooltipDefaults = {
     },
 };
 
-const barGridLineDefaults: AgAxisGridLineOptions = {
-    style: [{ stroke: DEFAULT_AXIS_GRID_COLOUR }],
+const barGridLineDefaults: WithThemeParams<AgAxisGridLineOptions> = {
+    style: [{ stroke: { ref: 'gridLineColor' } }],
     width: 2,
 };
 
-const barAxisDefaults: AgCommonThemeableAxisOptions = {
+const barAxisDefaults: WithThemeParams<AgCommonThemeableAxisOptions> = {
     number: {
         gridLine: barGridLineDefaults,
     },
@@ -76,7 +77,7 @@ const barAxisDefaults: AgCommonThemeableAxisOptions = {
     },
 };
 
-const SPARKLINE_THEME: AgChartTheme = {
+const SPARKLINE_THEME: WithThemeParams<AgChartTheme> = {
     overrides: {
         common: {
             animation: { enabled: false },
@@ -165,8 +166,8 @@ const setInitialBaseTheme = simpleMemorize(createInitialBaseTheme);
 
 function createInitialBaseTheme(
     baseTheme: AgChartTheme | AgChartThemeName | undefined,
-    initialBaseTheme: AgChartTheme
-): AgChartTheme {
+    initialBaseTheme: WithThemeParams<AgChartTheme>
+): WithThemeParams<AgChartTheme> {
     if (typeof baseTheme === 'string') {
         return {
             ...initialBaseTheme,
@@ -354,7 +355,7 @@ export function sparkline(opts: AgSparklineOptions): AgCartesianChartOptions {
         renderer: tooltipRendererFn(context, tooltip, datumKey),
     };
 
-    chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME);
+    chartOpts.theme = setInitialBaseTheme(baseTheme, SPARKLINE_THEME) as AgChartTheme; // TODO: Remove cast when `WithThemeParams` is public
     chartOpts.data = data;
     chartOpts.series = [seriesOptions];
 
