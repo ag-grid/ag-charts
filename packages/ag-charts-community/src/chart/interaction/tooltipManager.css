@@ -8,9 +8,8 @@
 
     width: max-content;
     max-width: 100%;
-    font:
-        12px Verdana,
-        sans-serif;
+    font-family: var(--ag-charts-font-family);
+    font-size: var(--ag-charts-font-size);
     color: var(--ag-charts-tooltip-text-color);
     background: var(--ag-charts-tooltip-background-color);
     border: var(--ag-charts-tooltip-border);
