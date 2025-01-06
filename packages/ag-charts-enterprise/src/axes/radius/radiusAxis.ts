@@ -89,6 +89,7 @@ export abstract class RadiusAxis<
 
     override calculateTickLayout(
         domain: D[],
+        niceMode: _ModuleSupport.NiceMode,
         _visibleRange: [number, number],
         initialPrimaryTickCount?: number
     ): {
@@ -107,6 +108,7 @@ export abstract class RadiusAxis<
 
         const tickGenerationResult = this.tickGenerator.generateTicks({
             domain,
+            niceMode,
             visibleRange,
             primaryTickCount: initialPrimaryTickCount,
             parallelFlipRotation,

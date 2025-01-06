@@ -48,7 +48,7 @@ import { AxisLabel } from './axisLabel';
 import { AxisLine } from './axisLine';
 import { AxisTick, type TickInterval } from './axisTick';
 import { AxisTitle } from './axisTitle';
-import type { AxisLineDatum } from './axisUtil';
+import { type AxisLineDatum, NiceMode } from './axisUtil';
 
 export interface LabelNodeDatum {
     tickId: string;
@@ -474,29 +474,47 @@ export abstract class Axis<
         this.animatable = animatable;
     }
 
-    _niceDomainRange: number = NaN;
+    _scaleNiceDomainRange: number = NaN;
     calculateLayout(initialPrimaryTickCount?: number) {
-        const { scale, label, visibleRange } = this;
+        const { scale, label, visibleRange, nice } = this;
 
         const { rotation, parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
         const sideFlag = this.label.getSideFlag();
 
         this.updateScale();
+
+        const range = findRangeExtent(this.range);
+
+        const domain = this.dataDomain.domain;
+        let tickLayoutDomain: D[] | undefined;
+        if (visibleRange[0] === 0 && visibleRange[1] === 1) {
+            tickLayoutDomain = undefined;
+        } else if (!nice) {
+            tickLayoutDomain = domain;
+        } else if (this._scaleNiceDomainRange === range) {
+            tickLayoutDomain = this.scale.domain;
+        } else {
+            tickLayoutDomain = this.calculateTickLayout(domain, NiceMode.TickAndDomain, [0, 1]).niceDomain;
+        }
+
+        let niceMode: NiceMode;
+        if (!nice) {
+            niceMode = NiceMode.Off;
+        } else if (tickLayoutDomain == null) {
+            niceMode = NiceMode.TickAndDomain;
+        } else {
+            niceMode = NiceMode.TicksOnly;
+        }
         const { niceDomain, primaryTickCount, ticks, visibleTicks, fractionDigits, bbox } = this.calculateTickLayout(
-            this.dataDomain.domain,
+            tickLayoutDomain ?? domain,
+            niceMode,
             visibleRange,
             initialPrimaryTickCount
         );
 
-        const range = findRangeExtent(this.range);
+        this.scale.domain = niceDomain;
 
-        if (visibleRange[0] === 0 && visibleRange[1] === 1) {
-            this.scale.domain = niceDomain;
-        } else if (this._niceDomainRange !== range) {
-            this.scale.domain = this.calculateTickLayout(this.dataDomain.domain, [0, 1]).niceDomain;
-        }
-
-        this._niceDomainRange = range;
+        this._scaleNiceDomainRange = nice ? range : NaN;
 
         const specifier = label.format;
         this.labelFormatter =
@@ -531,6 +549,7 @@ export abstract class Axis<
 
     abstract calculateTickLayout(
         domain: D[],
+        niceMode: NiceMode,
         visibleRange: [number, number],
         primaryTickCount?: number
     ): {

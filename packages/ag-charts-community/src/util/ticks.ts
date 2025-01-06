@@ -1,5 +1,5 @@
 import { Logger } from './logger';
-import { clamp, countFractionDigits } from './number';
+import { clamp, countFractionDigits, round } from './number';
 import { numberFormat, parseFormat } from './numberFormat';
 import { day } from './time/day';
 import {
@@ -227,18 +227,20 @@ export function niceTicksDomain(start: number, end: number) {
 
 export function estimateTickCount(
     rangeExtent: number,
+    zoomExtent: number,
     minSpacing: number,
     maxSpacing: number,
     defaultTickCount: number,
     defaultMinSpacing: number
 ) {
+    const zoomedRangeExtent = round(rangeExtent / zoomExtent, 2);
     defaultMinSpacing = Math.max(defaultMinSpacing, rangeExtent / (defaultTickCount + 1));
 
     if (isNaN(minSpacing)) {
         minSpacing = defaultMinSpacing;
     }
     if (isNaN(maxSpacing)) {
-        maxSpacing = rangeExtent;
+        maxSpacing = 2 * minSpacing;
     }
     if (minSpacing > maxSpacing) {
         if (minSpacing === defaultMinSpacing) {
@@ -248,8 +250,8 @@ export function estimateTickCount(
         }
     }
 
-    const maxTickCount = Math.max(1, Math.floor(rangeExtent / minSpacing));
-    const minTickCount = Math.min(maxTickCount, Math.ceil(rangeExtent / maxSpacing));
+    const maxTickCount = Math.max(1, Math.floor(zoomedRangeExtent / minSpacing));
+    const minTickCount = Math.min(maxTickCount, Math.ceil(zoomedRangeExtent / maxSpacing));
     const tickCount = clamp(minTickCount, defaultTickCount, maxTickCount);
 
     return { minTickCount, maxTickCount, tickCount };

@@ -23,7 +23,7 @@ export const GradientLegendModule: _ModuleSupport.LegendModule = {
                 fontFamily: { ref: 'fontFamily' },
             },
             interval: {
-                minSpacing: 1,
+                minSpacing: 15,
             },
         },
         gradient: {
