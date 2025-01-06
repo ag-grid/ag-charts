@@ -112,7 +112,7 @@ export const AG_CHARTS_LOCALE_EN_US: Record<string, string> = {
     // Text for the annotation toolbar's Fibonacci Retracement button
     toolbarAnnotationsFibonacciRetracement: 'Fib Retracement',
     // Text for the annotation toolbar's Fibonacci Retracement Trend Based button
-    toolbarAnnotationsFibonacciRetracementTrendBased: 'Fib Retracement Trend Based',
+    toolbarAnnotationsFibonacciRetracementTrendBased: 'Fib Trend Based',
     // Text for the annotation toolbar's horizontal line button
     toolbarAnnotationsHorizontalLine: 'Horizontal Line',
     // Text for the annotation toolbar's vertical line button

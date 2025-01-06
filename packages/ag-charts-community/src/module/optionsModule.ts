@@ -2,6 +2,7 @@ import {
     type AgBaseAxisOptions,
     type AgCartesianAxisOptions,
     type AgChartOptions,
+    type AgChartThemeParams,
     type AgPolarAxisOptions,
     type AgPresetOptions,
     type AgPresetOverrides,
@@ -36,7 +37,7 @@ import { setDocument, setWindow } from '../util/dom';
 import { deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
 import { Logger } from '../util/logger';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
-import { isEnumValue, isFiniteNumber, isObject, isPlainObject, isString, isSymbol } from '../util/type-guards';
+import { isArray, isEnumValue, isFiniteNumber, isObject, isPlainObject, isString, isSymbol } from '../util/type-guards';
 import type { DeepPartial } from '../util/types';
 import { type PaletteType, paletteType } from './coreModulesTypes';
 import { enterpriseModule } from './enterpriseModule';
@@ -238,6 +239,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         } = this.getSeriesThemeConfig(chartType, activeTheme);
 
         const [annotationsOptions, annotationsThemes] = this.splitAnnotationsOptions(annotations);
+        this.annotationThemes = deepClone(annotationsThemes);
 
         let processedOptions = mergeDefaults(
             processedOverrides,
@@ -250,11 +252,17 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.processSeriesOptions(processedOptions, activeTheme);
         this.processMiniChartSeriesOptions(processedOptions, activeTheme);
 
-        this.annotationThemes = annotationsThemes;
-
         // Create isolated copy of options before we start mutations - this is performance sensitive,
         // so we aim to only do this once in the processing flow.
         processedOptions = deepClone(processedOptions, ChartOptions.OPTIONS_CLONE_OPTS);
+
+        let publicParameters = activeTheme.getPublicParameters();
+        if (isPlainObject(processedOptions.theme) && processedOptions.theme.params) {
+            publicParameters = mergeDefaults(processedOptions.theme.params, publicParameters);
+        }
+
+        this.resolveOptionsParams(publicParameters, processedOptions);
+        this.resolveOptionsParams(publicParameters, this.annotationThemes);
 
         // Disable legend by default for single series cartesian charts and polar charts which display legend items per series rather than data items
         if (
@@ -408,6 +416,39 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             );
         });
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
+    }
+
+    private resolveOptionsParams(params: AgChartThemeParams, options: T) {
+        const visit = (node: any) => {
+            if (isArray(node)) {
+                for (let i = 0; i < node.length; i++) {
+                    node[i] = getParamValue(node[i]);
+                }
+            } else {
+                for (const [name, value] of Object.entries(node)) {
+                    node[name] = getParamValue(value);
+                }
+            }
+        };
+
+        const getParamValue = (value: unknown) => {
+            if (!isPlainObject(value)) {
+                return value;
+            }
+
+            if ('ref' in value) {
+                if (value.ref in params) {
+                    return params[value.ref as keyof AgChartThemeParams];
+                }
+                throw new Error(`Unknown 'ref' in theme params: [${value.ref}]`);
+            }
+
+            // TODO: calc, conditionals, etc.
+
+            return value;
+        };
+
+        jsonWalk(options, visit);
     }
 
     private getSeriesPalette(
@@ -641,7 +682,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
     private static enableConfiguredJsonOptions(this: void, visitingUserOpts: any, visitingMergedOpts: any) {
         if (
-            visitingMergedOpts &&
+            typeof visitingMergedOpts === 'object' &&
             'enabled' in visitingMergedOpts &&
             !visitingMergedOpts._enabledFromTheme &&
             visitingUserOpts.enabled == null

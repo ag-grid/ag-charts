@@ -1,12 +1,9 @@
-import { type AgRangeAreaSeriesThemeableOptions, type InteractionRange, _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport } from 'ag-charts-community';
 
-export const RANGE_AREA_SERIES_THEME: {
-    series: AgRangeAreaSeriesThemeableOptions;
-    axes: any;
-} = {
+export const RANGE_AREA_SERIES_THEME: _ModuleSupport.SeriesModule<'range-area'>['themeTemplate'] = {
     series: {
         fillOpacity: 0.7,
-        nodeClickRange: 'nearest' as InteractionRange,
+        nodeClickRange: 'nearest',
         marker: {
             enabled: false,
             size: 6,
@@ -16,13 +13,12 @@ export const RANGE_AREA_SERIES_THEME: {
             enabled: false,
             placement: 'outside',
             padding: 10,
-            fontSize: 12,
-            fontFamily: _ModuleSupport.ThemeSymbols.DEFAULT_FONT_FAMILY,
-            color: _ModuleSupport.ThemeSymbols.DEFAULT_LABEL_COLOUR,
+            fontSize: { ref: 'fontSize' },
+            fontFamily: { ref: 'fontFamily' },
+            color: { ref: 'foregroundColor' },
         },
         interpolation: {
             type: 'linear',
-            // @ts-expect-error - users shouldn't specify all options, but we have to for theming to work
             tension: 1,
             position: 'end',
         },

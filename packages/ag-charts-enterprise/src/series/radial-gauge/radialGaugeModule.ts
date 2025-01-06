@@ -4,13 +4,7 @@ import defaultColorStops from '../gauge-util/defaultColorStops';
 import { RadialGaugeSeries } from './radialGaugeSeries';
 
 const {
-    ThemeSymbols: {
-        DEFAULT_FONT_FAMILY,
-        DEFAULT_HIERARCHY_FILLS,
-        DEFAULT_LABEL_COLOUR,
-        DEFAULT_MUTED_LABEL_COLOUR,
-        DEFAULT_GAUGE_SERIES_COLOR_RANGE,
-    },
+    ThemeSymbols: { DEFAULT_HIERARCHY_FILLS, DEFAULT_MUTED_LABEL_COLOUR, DEFAULT_GAUGE_SERIES_COLOR_RANGE },
     ThemeConstants: { POLAR_AXIS_TYPE },
 } = _ModuleSupport;
 
@@ -43,40 +37,40 @@ export const RadialGaugeModule: _ModuleSupport.SeriesModule<'radial-gauge'> = {
             },
             // @ts-expect-error Private
             defaultTarget: {
-                fill: DEFAULT_LABEL_COLOUR,
-                stroke: DEFAULT_LABEL_COLOUR,
+                fill: { ref: 'foregroundColor' },
+                stroke: { ref: 'foregroundColor' },
                 size: 10,
                 shape: 'triangle',
                 placement: 'outside',
                 spacing: 5,
                 label: {
                     enabled: true,
-                    fontWeight: 'normal' as const,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY,
-                    color: DEFAULT_LABEL_COLOUR,
+                    fontWeight: 'normal',
+                    fontSize: { ref: 'fontSize' },
+                    fontFamily: { ref: 'fontFamily' },
+                    color: { ref: 'foregroundColor' },
                     spacing: 5,
                 },
             },
             needle: {
                 enabled: false,
-                fill: DEFAULT_LABEL_COLOUR,
+                fill: { ref: 'foregroundColor' },
                 spacing: 10,
             },
             label: {
                 enabled: true,
-                fontWeight: 'normal' as const,
+                fontWeight: 'normal',
                 fontSize: 56,
                 minimumFontSize: 18,
-                fontFamily: DEFAULT_FONT_FAMILY,
-                color: DEFAULT_LABEL_COLOUR,
+                fontFamily: { ref: 'fontFamily' },
+                color: { ref: 'foregroundColor' },
             },
             secondaryLabel: {
                 enabled: true,
-                fontWeight: 'normal' as const,
+                fontWeight: 'normal',
                 fontSize: 14,
                 minimumFontSize: 12,
-                fontFamily: DEFAULT_FONT_FAMILY,
+                fontFamily: { ref: 'fontFamily' },
                 color: DEFAULT_MUTED_LABEL_COLOUR,
             },
             tooltip: {

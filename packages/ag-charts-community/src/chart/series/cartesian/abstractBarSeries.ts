@@ -1,6 +1,6 @@
 import type { Direction } from 'ag-charts-types';
 
-import { BandScale } from '../../../scale/bandScale';
+import { CategoryScale } from '../../../scale/categoryScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Point } from '../../../scene/point';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
@@ -33,7 +33,7 @@ export abstract class AbstractBarSeries<
     /**
      * Used to get the position of bars within each group.
      */
-    protected groupScale = new BandScale<string>();
+    protected groupScale = new CategoryScale<string>();
 
     protected smallestDataInterval?: number = undefined;
     protected largestDataInterval?: number = undefined;

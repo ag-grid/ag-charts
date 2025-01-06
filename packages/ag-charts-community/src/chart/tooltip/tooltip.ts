@@ -37,7 +37,7 @@ type TooltipPositionType =
     | 'sparkline-constrained';
 
 type TooltipOffsets = { canvasX: number; canvasY: number };
-export type TooltipEventType = 'hover' | 'click' | 'dblclick' | 'keyboard';
+export type TooltipEventType = 'mousemove' | 'click' | 'dblclick' | 'keyboard';
 export type TooltipPointerEvent<T extends TooltipEventType = TooltipEventType> = Readonly<TooltipOffsets> & {
     readonly type: T;
 };

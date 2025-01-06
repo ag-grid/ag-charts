@@ -101,14 +101,20 @@ export abstract class RadiusAxis<
     } {
         const { parallelFlipRotation, regularFlipRotation } = this.calculateRotations();
 
-        const tickGenerationResult = this.processTicks(
+        const visibleRange: [number, number] = [0, 1];
+        const sideFlag = this.label.getSideFlag();
+        const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
+
+        const tickGenerationResult = this.tickGenerator.generateTicks({
             domain,
-            initialPrimaryTickCount,
+            visibleRange,
+            primaryTickCount: initialPrimaryTickCount,
             parallelFlipRotation,
-            regularFlipRotation
-        );
-        const tickData = tickGenerationResult?.tickData;
-        const primaryTickCount = tickGenerationResult?.primaryTickCount ?? initialPrimaryTickCount;
+            regularFlipRotation,
+            labelX,
+            sideFlag,
+        });
+        const { tickData, primaryTickCount = initialPrimaryTickCount } = tickGenerationResult;
 
         const ticks = tickData?.ticks ?? [];
         const labels =
@@ -127,32 +133,6 @@ export abstract class RadiusAxis<
             fractionDigits,
             bbox: undefined,
         };
-    }
-
-    private processTicks(
-        domain: D[],
-        primaryTickCount: number | undefined,
-        parallelFlipRotation: number,
-        regularFlipRotation: number
-    ) {
-        const visibleRange: [number, number] = [0, 1];
-        const sideFlag = this.label.getSideFlag();
-        const labelX = sideFlag * (this.getTickSize() + this.label.spacing + this.seriesAreaPadding);
-
-        const ticksEnabled = this.label.enabled || this.tick.enabled || this.gridLine.enabled;
-        const tickGenerationResult = ticksEnabled
-            ? this.tickGenerator.generateTicks({
-                  domain,
-                  visibleRange,
-                  primaryTickCount,
-                  parallelFlipRotation,
-                  regularFlipRotation,
-                  labelX,
-                  sideFlag,
-              })
-            : undefined;
-
-        return tickGenerationResult;
     }
 
     protected abstract prepareGridPathTickData(tickData: _ModuleSupport.TickDatum[]): _ModuleSupport.TickDatum[];

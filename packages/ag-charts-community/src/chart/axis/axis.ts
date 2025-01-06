@@ -35,7 +35,7 @@ import { isArray } from '../../util/type-guards';
 import { BOOLEAN, OBJECT, STRING_ARRAY, Validate } from '../../util/validation';
 import { Caption } from '../caption';
 import type { ChartAnimationPhase } from '../chartAnimationPhase';
-import type { AxisGroups, ChartAxis, ChartAxisLabel, ChartAxisLabelFlipFlag } from '../chartAxis';
+import type { AxisGroups, ChartAxis, ChartAxisLabelFlipFlag } from '../chartAxis';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import { CartesianCrossLine } from '../crossline/cartesianCrossLine';
 import type { CrossLine } from '../crossline/crossLine';
@@ -349,7 +349,7 @@ export abstract class Axis<
         this.gridLineGroupSelection.clear();
     }
 
-    protected createLabel(): ChartAxisLabel {
+    protected createLabel() {
         return new AxisLabel();
     }
 
@@ -451,7 +451,27 @@ export abstract class Axis<
     }
 
     processData() {
-        this.calculateDomain();
+        const { includeInvisibleDomains, boundSeries, direction } = this;
+        const visibleSeries = includeInvisibleDomains ? boundSeries : boundSeries.filter((s) => s.isEnabled());
+        const domains = visibleSeries.map((series) => series.getDomain(direction) as D[]);
+        this.setDomains(...domains);
+    }
+
+    private _lastDomain: D[] | undefined = undefined;
+    protected animatable = true;
+    setDomains(...domains: D[][]) {
+        const { domain, animatable } = this.scale.normalizeDomains(...domains);
+
+        if (this._lastDomain !== domain) {
+            this.dataDomain = this.normaliseDataDomain(domain);
+
+            if (this.reverse) {
+                this.dataDomain.domain = this.dataDomain.domain.slice().reverse();
+            }
+        }
+
+        this._lastDomain = domain;
+        this.animatable = animatable;
     }
 
     _niceDomainRange: number = NaN;
@@ -529,13 +549,6 @@ export abstract class Axis<
         return matrix.transformBBox(bbox);
     }
 
-    protected setDomain(domain: D[]) {
-        this.dataDomain = this.normaliseDataDomain(domain);
-        if (this.reverse) {
-            this.dataDomain.domain.reverse();
-        }
-    }
-
     updateScale() {
         this.updateRange();
     }
@@ -572,16 +585,6 @@ export abstract class Axis<
             line.x1 = sideFlag * (datum.tickSize ?? this.getTickSize());
             line.x2 = 0;
         });
-    }
-
-    protected calculateDomain() {
-        const { includeInvisibleDomains, boundSeries, direction } = this;
-        const visibleSeries = includeInvisibleDomains ? boundSeries : boundSeries.filter((s) => s.isEnabled());
-        const domains =
-            visibleSeries.length === 1
-                ? visibleSeries[0].getDomain(direction)
-                : visibleSeries.flatMap((series) => series.getDomain(direction));
-        this.setDomain(domains);
     }
 
     protected getAxisTransform() {
@@ -777,10 +780,8 @@ export abstract class Axis<
                     return keys;
                 }, [] as string[]),
             scaleValueFormatter: (specifier?: string) => this.getScaleValueFormatter(specifier),
-            scaleInvert: OrdinalTimeScale.is(scale)
-                ? (val) => scale.invertNearest?.(val)
-                : (val) => scale.invert?.(val),
-            scaleInvertNearest: (val) => scale.invertNearest?.(val),
+            scaleInvert: (val) => scale.invert(val, true),
+            scaleInvertNearest: (val) => scale.invert(val, true),
             attachLabel: (node: Node) => this.attachLabel(node),
             inRange: (x, tolerance) => this.inRange(x, tolerance),
         };

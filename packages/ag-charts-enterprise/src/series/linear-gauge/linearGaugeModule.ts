@@ -4,13 +4,7 @@ import defaultColorStops from '../gauge-util/defaultColorStops';
 import { LinearGaugeSeries } from './linearGaugeSeries';
 
 const {
-    ThemeSymbols: {
-        DEFAULT_FONT_FAMILY,
-        DEFAULT_HIERARCHY_FILLS,
-        DEFAULT_LABEL_COLOUR,
-        DEFAULT_INVERTED_LABEL_COLOUR,
-        DEFAULT_GAUGE_SERIES_COLOR_RANGE,
-    },
+    ThemeSymbols: { DEFAULT_HIERARCHY_FILLS, DEFAULT_INVERTED_LABEL_COLOUR, DEFAULT_GAUGE_SERIES_COLOR_RANGE },
     ThemeConstants: { CARTESIAN_AXIS_TYPE },
 } = _ModuleSupport;
 
@@ -42,29 +36,29 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
             },
             // @ts-expect-error Private
             defaultTarget: {
-                fill: DEFAULT_LABEL_COLOUR,
-                stroke: DEFAULT_LABEL_COLOUR,
+                fill: { ref: 'foregroundColor' },
+                stroke: { ref: 'foregroundColor' },
                 size: 10,
                 shape: 'triangle',
                 placement: 'after',
                 spacing: 5,
                 label: {
                     enabled: true,
-                    fontWeight: 'normal' as const,
-                    fontSize: 12,
-                    fontFamily: DEFAULT_FONT_FAMILY,
-                    color: DEFAULT_LABEL_COLOUR,
+                    fontWeight: 'normal',
+                    fontSize: { ref: 'fontSize' },
+                    fontFamily: { ref: 'fontFamily' },
+                    color: { ref: 'foregroundColor' },
                     spacing: 5,
                 },
             },
             label: {
                 enabled: false,
                 placement: 'inside-start',
-                fontWeight: 'normal' as const,
+                fontWeight: 'normal',
                 fontSize: 24,
                 minimumFontSize: 12,
                 spacing: 18,
-                fontFamily: DEFAULT_FONT_FAMILY,
+                fontFamily: { ref: 'fontFamily' },
                 color: DEFAULT_INVERTED_LABEL_COLOUR,
             },
             margin: 4,

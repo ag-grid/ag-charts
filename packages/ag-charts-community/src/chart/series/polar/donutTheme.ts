@@ -1,12 +1,5 @@
 import type { ExtensibleTheme } from '../../../module/coreModules';
-import { FONT_SIZE } from '../../themes/constants';
-import {
-    DEFAULT_FONT_FAMILY,
-    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
-    DEFAULT_LABEL_COLOUR,
-    DEFAULT_MUTED_LABEL_COLOUR,
-    DEFAULT_SHADOW_COLOUR,
-} from '../../themes/symbols';
+import { DEFAULT_MUTED_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 
 export const donutTheme: ExtensibleTheme<'donut'> = {
     series: {
@@ -14,24 +7,24 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
             enabled: true,
             fontWeight: 'normal' as const,
             fontSize: 14,
-            fontFamily: DEFAULT_FONT_FAMILY,
+            fontFamily: { ref: 'fontFamily' },
             color: DEFAULT_MUTED_LABEL_COLOUR,
             spacing: 5,
         },
         calloutLabel: {
             enabled: true,
-            fontSize: FONT_SIZE.SMALL,
-            fontFamily: DEFAULT_FONT_FAMILY,
-            color: DEFAULT_LABEL_COLOUR,
+            fontSize: { ref: 'fontSize' },
+            fontFamily: { ref: 'fontFamily' },
+            color: { ref: 'foregroundColor' },
             offset: 3,
             minAngle: 0,
         },
         sectorLabel: {
             enabled: true,
-            fontWeight: 'normal' as const,
-            fontSize: FONT_SIZE.SMALL,
-            fontFamily: DEFAULT_FONT_FAMILY,
-            color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+            fontWeight: 'normal',
+            fontSize: { ref: 'fontSize' },
+            fontFamily: { ref: 'fontFamily' },
+            color: { ref: 'backgroundColor' },
             positionOffset: 0,
             positionRatio: 0.5,
         },
@@ -54,9 +47,9 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
             blur: 5,
         },
         innerLabels: {
-            fontSize: FONT_SIZE.SMALL,
-            fontFamily: DEFAULT_FONT_FAMILY,
-            color: DEFAULT_LABEL_COLOUR,
+            fontSize: { ref: 'fontSize' },
+            fontFamily: { ref: 'fontFamily' },
+            color: { ref: 'foregroundColor' },
             spacing: 2,
         },
     },

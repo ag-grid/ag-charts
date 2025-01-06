@@ -37,8 +37,8 @@ export class LogScale extends ContinuousScale<number> {
     // Handling <1 and crossing 0 cases is tricky, easiest solution is to default to clamping.
     protected override defaultClamp: boolean = true;
 
-    public constructor() {
-        super([1, 10], [0, 1]);
+    public constructor(d: number[] = [1, 10], r: number[] = [0, 1]) {
+        super(d, r);
     }
 
     toDomain(d: number): number {
@@ -62,7 +62,7 @@ export class LogScale extends ContinuousScale<number> {
     private readonly log = (x: number) => log(this.base, this.domain, x);
     private readonly pow = (x: number) => pow(this.base, this.domain, x);
 
-    niceDomain(_ticks: ScaleTickParams<number>, domain: number[] = this.domain): number[] {
+    override niceDomain(_ticks: ScaleTickParams<number>, domain: number[] = this.domain): number[] {
         if (domain.length < 2) return [];
 
         const { base } = this;
@@ -77,7 +77,7 @@ export class LogScale extends ContinuousScale<number> {
         return [n0, n1];
     }
 
-    ticks(
+    override ticks(
         { interval, tickCount = ContinuousScale.defaultTickCount }: ScaleTickParams<number>,
         domain: number[] = this.domain
     ): number[] {
@@ -134,11 +134,11 @@ export class LogScale extends ContinuousScale<number> {
         return ticks;
     }
 
-    tickFormatter({ specifier }: ScaleFormatParams<number>): (x: number) => string {
+    override tickFormatter({ specifier }: ScaleFormatParams<number>): (x: number) => string {
         return specifier != null ? numberFormat(specifier) : String;
     }
 
-    datumFormatter(params: ScaleFormatParams<number>) {
+    override datumFormatter(params: ScaleFormatParams<number>) {
         return this.tickFormatter(params);
     }
 }

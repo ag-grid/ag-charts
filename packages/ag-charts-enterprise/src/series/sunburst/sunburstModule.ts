@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { SunburstSeries } from './sunburstSeries';
 
-const { DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_DIVERGING_SERIES_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
+const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
 
 export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
     type: 'series',
@@ -19,7 +19,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             label: {
                 fontSize: 14,
                 minimumFontSize: 9,
-                color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+                color: { ref: 'backgroundColor' as const },
                 overflowStrategy: 'ellipsis',
                 wrapping: 'never',
                 spacing: 2,
@@ -27,7 +27,7 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             secondaryLabel: {
                 fontSize: 8,
                 minimumFontSize: 7,
-                color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+                color: { ref: 'backgroundColor' as const },
                 overflowStrategy: 'ellipsis',
                 wrapping: 'never',
             },
@@ -35,10 +35,10 @@ export const SunburstModule: _ModuleSupport.SeriesModule<'sunburst'> = {
             padding: 3,
             highlightStyle: {
                 label: {
-                    color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+                    color: { ref: 'backgroundColor' as const },
                 },
                 secondaryLabel: {
-                    color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+                    color: { ref: 'backgroundColor' as const },
                 },
                 fill: 'rgba(255,255,255, 0.33)',
                 stroke: `rgba(0, 0, 0, 0.4)`,

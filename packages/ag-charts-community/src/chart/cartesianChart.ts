@@ -84,7 +84,7 @@ export class CartesianChart extends Chart {
             const syncedDomain = this.getSyncedDomain(axis);
 
             if (syncedDomain != null) {
-                (axis as any).setDomain(syncedDomain);
+                (axis as any).setDomains(syncedDomain);
             }
         }
     }

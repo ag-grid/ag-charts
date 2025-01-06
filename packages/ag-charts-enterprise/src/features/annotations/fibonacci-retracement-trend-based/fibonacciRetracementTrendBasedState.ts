@@ -35,7 +35,7 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
     constructor(ctx: FibonacciRetracementTrendBasedStateMachineContext) {
         const actionCreate = ({ point }: { point: Point }) => {
             const datum = this.createDatum();
-            datum.set({ start: point, end: point, endRetacement: undefined });
+            datum.set({ start: point, end: point });
             ctx.create(datum);
         };
 
@@ -54,6 +54,12 @@ export class FibonacciRetracementTrendBasedStateMachine extends StateMachine<
         };
 
         const actionEndFinish = () => {
+            const { datum } = this;
+            if (!datum) return;
+
+            datum.endRetracement.x = datum.end.x;
+            datum.endRetracement.y = datum.end.y;
+
             this.node?.toggleHandles({ end: true });
             ctx.update();
         };

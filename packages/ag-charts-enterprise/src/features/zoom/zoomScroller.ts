@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Widget } from 'ag-charts-community';
 
 import type { AxisZoomStates, DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
@@ -13,12 +13,12 @@ import {
 
 export class ZoomScroller {
     updateAxes(
-        event: _ModuleSupport.RegionEvent<'wheel'>,
+        event: _Widget.WheelWidgetEvent,
         props: ZoomProperties,
         bbox: _ModuleSupport.BBox,
         zooms: AxisZoomStates
     ): AxisZoomStates {
-        const sourceEvent = event.sourceEvent as WheelEvent;
+        const sourceEvent = event.sourceEvent;
         const newZooms: AxisZoomStates = {};
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
@@ -52,14 +52,16 @@ export class ZoomScroller {
     }
 
     update(
-        event: _ModuleSupport.RegionEvent<'wheel'>,
+        event: _Widget.WheelWidgetEvent,
         props: ZoomProperties,
         bbox: _ModuleSupport.BBox,
         oldZoom: DefinedZoomState
     ): DefinedZoomState {
         const { anchorPointX, anchorPointY, isScalingX, isScalingY, scrollingStep } = props;
 
-        const origin = pointToRatio(bbox, event.canvasX, event.canvasY);
+        const canvasX = event.offsetX + bbox.x;
+        const canvasY = event.offsetY + bbox.y;
+        const origin = pointToRatio(bbox, canvasX, canvasY);
 
         // Scale the zoom bounding box
         const dir = event.deltaY;

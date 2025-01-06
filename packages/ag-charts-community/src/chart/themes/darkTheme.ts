@@ -18,9 +18,7 @@ import {
     DEFAULT_GAUGE_SERIES_COLOR_RANGE,
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_HIERARCHY_STROKES,
-    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_INVERTED_BACKGROUND_COLOUR,
-    DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_NAVIGATOR_STROKE,
     DEFAULT_POLAR_SERIES_STROKE,
@@ -75,6 +73,14 @@ export class DarkTheme extends ChartTheme {
         };
     }
 
+    override getPublicParameters() {
+        return {
+            ...super.getPublicParameters(),
+            backgroundColor: DEFAULT_DARK_BACKGROUND_FILL,
+            foregroundColor: '#fff',
+        };
+    }
+
     override getTemplateParameters() {
         const params = super.getTemplateParameters();
 
@@ -83,7 +89,6 @@ export class DarkTheme extends ChartTheme {
 
         params.set(DEFAULT_NAVIGATOR_STROKE, '#4b525d');
 
-        params.set(DEFAULT_LABEL_COLOUR, '#fff');
         params.set(DEFAULT_MUTED_LABEL_COLOUR, '#7d91a0');
         params.set(DEFAULT_AXIS_GRID_COLOUR, '#545a6e');
         params.set(DEFAULT_CROSS_LINES_COLOUR, '#fff');
@@ -111,9 +116,8 @@ export class DarkTheme extends ChartTheme {
         ]);
         params.set(DEFAULT_HIERARCHY_FILLS, ['#192834', '#253746', '#324859', '#3f596c', '#4d6a80']);
         params.set(DEFAULT_HIERARCHY_STROKES, ['#192834', '#3b5164', '#496275', '#577287', '#668399']);
-        params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
+        params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_DARK_BACKGROUND_FILL); // TODO: remove uses in paletteFactory()
         params.set(DEFAULT_INVERTED_BACKGROUND_COLOUR, 'white');
-        params.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_DARK_BACKGROUND_FILL);
 
         params.set(DEFAULT_ANNOTATION_COLOR, DEFAULT_DARK_FILLS.BLUE);
         params.set(DEFAULT_TEXT_ANNOTATION_COLOR, '#fff');

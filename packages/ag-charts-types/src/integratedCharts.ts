@@ -8,8 +8,8 @@ import type { AgChartInstance, AgChartInstanceOptions, AgSparklineOptions } from
 import type {
     Arc,
     BBox,
-    BandScale,
     Caption,
+    CategoryScale,
     Group,
     Line,
     LinearScale,
@@ -58,7 +58,7 @@ export interface _IScene {
     TranslatableGroup: { new (): TranslatableGroup } & TranslatableGroup;
     RadialColumnShape: { new (): RadialColumnShape } & RadialColumnShape;
     Caption: { new (): Caption } & Caption;
-    BandScale: { new (): BandScale } & BandScale;
+    CategoryScale: { new (): CategoryScale } & CategoryScale;
     LinearScale: { new (): LinearScale } & LinearScale;
     toRadians(degrees: number): number;
     getRadialColumnWidth(

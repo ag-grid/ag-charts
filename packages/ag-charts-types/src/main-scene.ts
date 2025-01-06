@@ -15,7 +15,7 @@ export type Line = any;
 export type Sector = any;
 export type RadialColumnShape = any;
 
-export type BandScale = any;
+export type CategoryScale = any;
 export type LinearScale = any;
 
 export type BBox = any;

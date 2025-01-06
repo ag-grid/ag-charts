@@ -8,7 +8,7 @@ import {
 } from '../util/attributeUtil';
 import type { BBoxValues } from '../util/bboxinterface';
 import { getElementBBox, getWindow, setElementBBox } from '../util/dom';
-import { type WidgetEventMap, WidgetEventUtil } from './widgetEvents';
+import { type WidgetEventMap, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';
 import { WidgetListenerHTML } from './widgetListenerHTML';
 import { WidgetListenerInternal } from './widgetListenerInternal';
 
@@ -144,6 +144,12 @@ export abstract class Widget<
     cssTop(): number {
         return this.parseFloat(this.elem.style.top);
     }
+    cssWidth(): number {
+        return this.parseFloat(this.elem.style.width);
+    }
+    cssHeight(): number {
+        return this.parseFloat(this.elem.style.height);
+    }
 
     focus(): void {
         this.elem.focus();
@@ -170,6 +176,14 @@ export abstract class Widget<
         this.children.splice(i, 1);
         this.removeChildFromDOM(child);
         this.onChildRemoved(child);
+    }
+
+    moveChild(child: TChildWidget, domIndex: number) {
+        if (child.domIndex === domIndex) return;
+
+        child.domIndex = domIndex;
+        this.removeChildFromDOM(child);
+        this.addChildToDOM(child, this.getBefore(child));
     }
 
     addClass(...tokens: string[]) {
@@ -218,7 +232,7 @@ export abstract class Widget<
             this.htmlListener ??= new WidgetListenerHTML();
             this.htmlListener.add(type, this, listener);
         } else {
-            this.internalListener ??= new WidgetListenerInternal();
+            this.internalListener ??= new WidgetListenerInternal(this.onDispatch.bind(this));
             this.internalListener.add(type, this, listener);
         }
         return () => this.removeListener(type, listener);
@@ -230,6 +244,20 @@ export abstract class Widget<
             this.htmlListener?.remove(type, this, listener);
         } else if (this.htmlListener != null) {
             this.internalListener?.remove(type, this, listener);
+        }
+    }
+
+    private onDispatch<K extends keyof WidgetEventMap_Internal>(type: K, event: WidgetEventMap_Internal[K]) {
+        // Handle event bubbling for drag events.
+        if (!event.sourceEvent.bubbles) return;
+        let { parent } = this;
+        while (parent != null) {
+            const { internalListener } = parent;
+            if (internalListener != null) {
+                const parentEvent = { ...event, ...WidgetEventUtil.calcCurrentXY(parent.getElement(), event) };
+                internalListener.dispatch(type, parent, parentEvent);
+            }
+            parent = parent.parent;
         }
     }
 

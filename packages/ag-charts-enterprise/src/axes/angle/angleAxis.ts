@@ -90,7 +90,7 @@ export abstract class AngleAxis<
             maxTickCount: Infinity,
         };
 
-        const niceDomain = nice && scale.niceDomain ? scale.niceDomain(ticksParams, domain) : domain;
+        const niceDomain = nice ? scale.niceDomain(ticksParams, domain) : domain;
 
         const tickData = this.generateAngleTicks(niceDomain);
         this.tickData = tickData;
@@ -231,14 +231,14 @@ export abstract class AngleAxis<
             }
         } else if (shape === 'polygon') {
             const angles = scale
-                .ticks?.({
+                .ticks({
                     nice: this.nice,
                     interval: undefined,
                     tickCount: undefined,
                     minTickCount: 0,
                     maxTickCount: Infinity,
                 })
-                .map((value) => scale.convert(value));
+                ?.map((value) => scale.convert(value));
             if (angles && angles.length > 2) {
                 angles.forEach((angle, i) => {
                     const x = radius * Math.cos(angle);

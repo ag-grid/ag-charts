@@ -1,6 +1,6 @@
 import type { SeriesModule } from '../../../module/coreModules';
 import { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION } from '../../themes/constants';
-import { DEFAULT_FONT_FAMILY, DEFAULT_LABEL_COLOUR, DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
+import { DEFAULT_SHADOW_COLOUR } from '../../themes/symbols';
 import { markerPaletteFactory } from '../../themes/util';
 import { AreaSeries } from './areaSeries';
 
@@ -42,7 +42,6 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
             },
             interpolation: {
                 type: 'linear',
-                // @ts-expect-error - users shouldn't specify all options, but we have to for theming to work
                 tension: 1,
                 position: 'end',
             },
@@ -54,9 +53,9 @@ export const AreaSeriesModule: SeriesModule<'area'> = {
             },
             label: {
                 enabled: false,
-                fontSize: 12,
-                fontFamily: DEFAULT_FONT_FAMILY,
-                color: DEFAULT_LABEL_COLOUR,
+                fontSize: { ref: 'fontSize' },
+                fontFamily: { ref: 'fontFamily' },
+                color: { ref: 'foregroundColor' },
             },
         },
     },

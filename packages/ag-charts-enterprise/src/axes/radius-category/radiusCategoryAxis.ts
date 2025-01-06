@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { RadiusAxis } from '../radius/radiusAxis';
 
-const { RATIO, ProxyPropertyOnWrite, Validate, BandScale } = _ModuleSupport;
+const { RATIO, ProxyPropertyOnWrite, Validate, CategoryScale } = _ModuleSupport;
 
 export class RadiusCategoryAxis extends RadiusAxis {
     static readonly className = 'RadiusCategoryAxis';
@@ -22,20 +22,10 @@ export class RadiusCategoryAxis extends RadiusAxis {
     paddingOuter: number = 0;
 
     constructor(moduleCtx: _ModuleSupport.ModuleContext) {
-        super(moduleCtx, new BandScale());
+        super(moduleCtx, new CategoryScale());
     }
 
-    override normaliseDataDomain(d: Array<string | object>) {
-        const domain = [];
-        const uniqueValues = new Set();
-        for (const v of d) {
-            const key = v instanceof Date ? v.getTime() : v;
-            if (!uniqueValues.has(key)) {
-                uniqueValues.add(key);
-                // Only add unique values
-                domain.push(v);
-            }
-        }
+    override normaliseDataDomain(domain: Array<string | object>) {
         return { domain, clipped: false };
     }
 
@@ -49,7 +39,7 @@ export class RadiusCategoryAxis extends RadiusAxis {
         const maxRadius = scale.range[0];
         const minRadius = maxRadius * innerRadiusRatio;
 
-        if (scale instanceof BandScale) {
+        if (CategoryScale.is(scale)) {
             const ticks = scale.ticks({
                 nice: this.nice,
                 interval: undefined,

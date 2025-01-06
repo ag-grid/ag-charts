@@ -1,5 +1,5 @@
 import type { AgZoomAnchorPoint } from 'ag-charts-community';
-import { _ModuleSupport } from 'ag-charts-community';
+import { _ModuleSupport, _Widget } from 'ag-charts-community';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
@@ -38,6 +38,7 @@ const {
     ChartAxisDirection,
     ChartUpdateType,
     Validate,
+    InteractionState,
     ProxyProperty,
     round: sharedRound,
 } = _ModuleSupport;
@@ -177,6 +178,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private shouldFlipXY?: boolean;
     private minRatioX = 0;
     private minRatioY = 0;
+    private readonly isState = (state: _ModuleSupport.InteractionState) => this.ctx.interactionManager.isState(state);
 
     private destroyContextMenuActions: (() => void) | undefined = undefined;
 
@@ -198,15 +200,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             this.updateZoom.bind(this)
         );
 
-        const { Default, ZoomDrag, Animation, Annotations, AnnotationsSelected } = _ModuleSupport.InteractionState;
-        const draggableState = Default | Animation | ZoomDrag;
-        const clickableState = Default | Animation;
-        const wheelableState = draggableState | Annotations | AnnotationsSelected;
-        const region = ctx.regionManager.getRegion('series');
-
         this.domProxy = new ZoomDOMProxy({
             onDragStart: (id, dir) => this.onAxisDragStart(id, dir),
-            onDrag: (ev) => this.onDrag({ regionX: ev.offsetX, regionY: ev.offsetY, canvasX: NaN, canvasY: NaN }),
+            onDrag: (ev) => this.onDragMove({ currentX: ev.offsetX, currentY: ev.offsetY }),
             onDragEnd: () => this.onDragEnd(),
             onDoubleClick: (id, direction) => {
                 this.hoveredAxis = { id, direction };
@@ -215,15 +211,14 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             },
         });
 
-        const dragStartEventType = 'drag-start';
         this.destroyFns.push(
             ctx.scene.attachNode(selectionRect),
-            ctx.keyNavManager.addListener('nav-zoom', (event) => this.onNavZoom(event)),
-            region.addListener('dblclick', (event) => this.onDoubleClick(event), clickableState),
-            region.addListener('drag', (event) => this.onDrag(event), draggableState),
-            region.addListener(dragStartEventType, (event) => this.onDragStart(event), draggableState),
-            region.addListener('drag-end', () => this.onDragEnd(), draggableState),
-            region.addListener('wheel', (event) => this.onWheel(event), wheelableState),
+            ctx.chartEventManager.addListener('series-keynav-zoom', (event) => this.onNavZoom(event)),
+            ctx.widgets.seriesWidget.addListener('dblclick', (event) => this.onDoubleClick(event)),
+            ctx.widgets.seriesWidget.addListener('drag-move', (event) => this.onDragMove(event)),
+            ctx.widgets.seriesWidget.addListener('drag-start', (event) => this.onDragStart(event)),
+            ctx.widgets.seriesWidget.addListener('drag-end', () => this.onDragEnd()),
+            ctx.widgets.seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
             ctx.gestureDetector.addListener('pinch-move', (event) => this.onPinchMove(event as PinchEvent)),
             ctx.layoutManager.addListener('layout:complete', (event) => this.onLayoutComplete(event)),
             ctx.updateService.addListener('update-complete', (event) => this.onUpdateComplete(event)),
@@ -251,7 +246,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDoubleClick(event?: _ModuleSupport.RegionEvent<'dblclick'> & { preventZoomDblClick?: boolean }) {
+    private onDoubleClick(event?: _Widget.MouseWidgetEvent<'dblclick'> & { preventZoomDblClick?: boolean }) {
         const {
             enabled,
             enableDoubleClickToReset,
@@ -259,7 +254,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx: { zoomManager },
         } = this;
 
-        if (!enabled || !enableDoubleClickToReset) return;
+        if (!enabled || !enableDoubleClickToReset || !this.isState(InteractionState.ZoomClickable)) return;
 
         if (hoveredAxis) {
             zoomManager.resetAxisZoom('zoom', hoveredAxis.id);
@@ -268,7 +263,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDragStart(event: _ModuleSupport.RegionEvent<'drag-start'> | undefined) {
+    private onDragStart(event: _Widget.DragWidgetEvent<'drag-start'> | undefined) {
         const {
             enabled,
             enableAxisDragging,
@@ -278,7 +273,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx: { cursorManager, zoomManager },
         } = this;
 
-        if (!enabled) return;
+        if (!enabled || !this.isState(InteractionState.ZoomDraggable)) return;
 
         this.panner.stopInteractions();
 
@@ -308,7 +303,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onDrag(event: Pick<_ModuleSupport.RegionEvent, 'regionX' | 'regionY' | 'canvasX' | 'canvasY'>) {
+    private onDragMove(event: { currentX: number; currentY: number }) {
         const {
             anchorPointX,
             anchorPointY,
@@ -323,7 +318,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx: { interactionManager, tooltipManager, updateService, zoomManager },
         } = this;
 
-        if (!enabled || !paddedRect || !seriesRect) return;
+        if (!enabled || !paddedRect || !seriesRect || !this.isState(InteractionState.ZoomDraggable)) return;
 
         interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
 
@@ -398,23 +393,22 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         tooltipManager.removeTooltip(TOOLTIP_ID);
     }
 
-    private onNavZoom(event: _ModuleSupport.KeyNavEvent<'nav-zoom'>) {
+    private onNavZoom(event: _ModuleSupport.SeriesKeyNavZoomChartEvent) {
         const { enabled, enableScrolling, scroller } = this;
         const isDefaultState = this.ctx.interactionManager.isState(_ModuleSupport.InteractionState.Default);
 
         if (!isDefaultState || !enabled || !enableScrolling) return;
-        event.preventDefault();
+        event.widgetEvent.sourceEvent.preventDefault();
 
         this.updateZoom(scroller.updateDelta(event.delta, this.getModuleProperties(), this.getZoom()));
     }
 
-    private onWheel(event: _ModuleSupport.RegionEvent<'wheel'>) {
+    private onWheel(event: _Widget.WheelWidgetEvent) {
         const { enabled, enablePanning, enableScrolling, paddedRect } = this;
 
-        if (!enabled || !enableScrolling || !paddedRect) return;
+        if (!enabled || !enableScrolling || !paddedRect || !this.isState(InteractionState.ZoomWheelable)) return;
 
-        const sourceEvent = event.sourceEvent as WheelEvent;
-        const { deltaX, deltaY } = sourceEvent;
+        const { deltaX, deltaY } = event.sourceEvent;
         const isHorizontalScrolling = deltaX != null && deltaY != null && Math.abs(deltaX) > Math.abs(deltaY);
 
         if (enablePanning && isHorizontalScrolling) {
@@ -424,7 +418,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onWheelPanning(event: _ModuleSupport.RegionEvent<'wheel'>) {
+    private onWheelPanning(event: _Widget.WheelWidgetEvent) {
         const {
             scrollingStep,
             scrollPanner,
@@ -434,7 +428,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
 
         if (!seriesRect) return;
 
-        event.preventDefault();
+        event.sourceEvent.preventDefault();
 
         const newZooms = scrollPanner.update(event, scrollingStep, seriesRect, zoomManager.getAxisZooms());
         for (const [axisId, { direction, zoom }] of Object.entries(newZooms)) {
@@ -442,7 +436,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         }
     }
 
-    private onWheelScrolling(event: _ModuleSupport.RegionEvent<'wheel'>) {
+    private onWheelScrolling(event: _Widget.WheelWidgetEvent) {
         const {
             enableAxisDragging,
             enableIndependentAxes,
@@ -458,7 +452,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         const isZoomCapped = (this.isMaxZoom(zoom) && event.deltaY > 0) || (this.isMinZoom(zoom) && event.deltaY < 0);
 
         if (!this.isFirstWheelEvent || !isZoomCapped) {
-            event.preventDefault();
+            event.sourceEvent.preventDefault();
         }
 
         // Prevent browser scrolling when smooth wheel events continue being fired after the chart

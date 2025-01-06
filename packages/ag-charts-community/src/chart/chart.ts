@@ -1294,6 +1294,7 @@ export abstract class Chart extends Observable {
         const horizontalAxis = axes.find((axis) => axis.direction === ChartAxisDirection.X);
 
         for (const axis of axes) {
+            axis.nice = false;
             axis.gridLine.enabled = false;
             axis.label.enabled = axis === horizontalAxis;
             axis.tick.enabled = false;

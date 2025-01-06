@@ -3,6 +3,7 @@ import type {
     AgChartThemeOptions,
     AgChartThemeOverrides,
     AgChartThemePalette,
+    AgChartThemeParams,
     AgCommonThemeableChartOptions,
     AgPaletteColors,
     AgPresetOverrides,
@@ -38,16 +39,13 @@ import {
     DEFAULT_CROSS_LINES_COLOUR,
     DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_FIBONACCI_STROKES,
-    DEFAULT_FONT_FAMILY,
     DEFAULT_FUNNEL_SERIES_COLOR_RANGE,
     DEFAULT_GAUGE_SERIES_COLOR_RANGE,
     DEFAULT_GRIDLINE_ENABLED,
     DEFAULT_HIERARCHY_FILLS,
     DEFAULT_HIERARCHY_STROKES,
-    DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
     DEFAULT_INVERTED_BACKGROUND_COLOUR,
     DEFAULT_INVERTED_LABEL_COLOUR,
-    DEFAULT_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
     DEFAULT_NAVIGATOR_STROKE,
     DEFAULT_PADDING,
@@ -143,14 +141,14 @@ export class ChartTheme {
                 spacing: 25,
                 fontWeight: 'normal' as const,
                 fontSize: FONT_SIZE.MEDIUM,
-                fontFamily: DEFAULT_FONT_FAMILY,
-                color: DEFAULT_LABEL_COLOUR,
+                fontFamily: { ref: 'fontFamily' },
+                color: { ref: 'foregroundColor' },
             },
             label: {
-                fontSize: FONT_SIZE.SMALL,
-                fontFamily: DEFAULT_FONT_FAMILY,
+                fontSize: { ref: 'fontSize' },
+                fontFamily: { ref: 'fontFamily' },
                 spacing: 11,
-                color: DEFAULT_LABEL_COLOUR,
+                color: { ref: 'foregroundColor' },
                 avoidCollisions: true,
             },
             line: {
@@ -175,10 +173,10 @@ export class ChartTheme {
                 strokeWidth: 1,
                 label: {
                     enabled: false,
-                    fontSize: FONT_SIZE.SMALL,
-                    fontFamily: DEFAULT_FONT_FAMILY,
+                    fontSize: { ref: 'fontSize' },
+                    fontFamily: { ref: 'fontFamily' },
                     padding: 5,
-                    color: DEFAULT_LABEL_COLOUR,
+                    color: { ref: 'foregroundColor' },
                 },
             },
             crosshair: {
@@ -191,16 +189,16 @@ export class ChartTheme {
         return {
             minHeight: 300,
             minWidth: 300,
-            background: { visible: true, fill: DEFAULT_BACKGROUND_COLOUR },
+            background: { visible: true, fill: { ref: 'backgroundColor' } },
             padding: { top: DEFAULT_PADDING, right: DEFAULT_PADDING, bottom: DEFAULT_PADDING, left: DEFAULT_PADDING },
             keyboard: { enabled: true },
             title: {
                 enabled: false,
                 text: 'Title',
-                fontWeight: 'normal' as const,
+                fontWeight: 'normal',
                 fontSize: FONT_SIZE.LARGE,
-                fontFamily: DEFAULT_FONT_FAMILY,
-                color: DEFAULT_LABEL_COLOUR,
+                fontFamily: { ref: 'fontFamily' },
+                color: { ref: 'foregroundColor' },
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
                 textAlign: DEFAULT_CAPTION_ALIGNMENT,
@@ -210,7 +208,7 @@ export class ChartTheme {
                 text: 'Subtitle',
                 spacing: 20,
                 fontSize: FONT_SIZE.MEDIUM,
-                fontFamily: DEFAULT_FONT_FAMILY,
+                fontFamily: { ref: 'fontFamily' },
                 color: DEFAULT_MUTED_LABEL_COLOUR,
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
@@ -221,7 +219,7 @@ export class ChartTheme {
                 text: 'Footnote',
                 spacing: 20,
                 fontSize: FONT_SIZE.MEDIUM,
-                fontFamily: DEFAULT_FONT_FAMILY,
+                fontFamily: { ref: 'fontFamily' },
                 color: 'rgb(140, 140, 140)',
                 wrapping: 'hyphenate',
                 layoutStyle: DEFAULT_CAPTION_LAYOUT_STYLE,
@@ -238,18 +236,18 @@ export class ChartTheme {
                     marker: { size: 15, padding: 8 },
                     showSeriesStroke: true,
                     label: {
-                        color: DEFAULT_LABEL_COLOUR,
-                        fontSize: FONT_SIZE.SMALL,
-                        fontFamily: DEFAULT_FONT_FAMILY,
+                        color: { ref: 'foregroundColor' },
+                        fontSize: { ref: 'fontSize' },
+                        fontFamily: { ref: 'fontFamily' },
                     },
                 },
                 reverseOrder: false,
                 pagination: {
                     marker: { size: 12 },
-                    activeStyle: { fill: DEFAULT_LABEL_COLOUR },
+                    activeStyle: { fill: { ref: 'foregroundColor' } },
                     inactiveStyle: { fill: DEFAULT_MUTED_LABEL_COLOUR },
-                    highlightStyle: { fill: DEFAULT_LABEL_COLOUR },
-                    label: { color: DEFAULT_LABEL_COLOUR },
+                    highlightStyle: { fill: { ref: 'foregroundColor' } },
+                    label: { color: { ref: 'foregroundColor' } },
                 },
             },
             tooltip: {
@@ -448,6 +446,19 @@ export class ChartTheme {
         };
     }
 
+    getPublicParameters(): Required<AgChartThemeParams> {
+        return {
+            backgroundColor: DEFAULT_BACKGROUND_FILL,
+            foregroundColor: '#464646',
+            fontFamily: 'Verdana, sans-serif',
+            fontSize: 12,
+
+            // TODO: Should these directly use `backgroundColor` or should they be their own params with a ref to it?
+            // insideSeriesLabelColor: { ref: 'backgroundColor' },
+            // annotationHandleFillColor: { ref: 'backgroundColor' },
+        };
+    }
+
     getTemplateParameters() {
         const { isEnterprise } = enterpriseModule;
 
@@ -455,8 +466,6 @@ export class ChartTheme {
         params.set(IS_DARK_THEME, false);
         params.set(IS_ENTERPRISE, isEnterprise);
         params.set(IS_COMMUNITY, !isEnterprise);
-        params.set(DEFAULT_FONT_FAMILY, 'Verdana, sans-serif');
-        params.set(DEFAULT_LABEL_COLOUR, '#464646');
         params.set(DEFAULT_INVERTED_LABEL_COLOUR, '#fff');
         params.set(DEFAULT_MUTED_LABEL_COLOUR, '#8c8c8c');
         params.set(DEFAULT_AXIS_GRID_COLOUR, '#e0eaf1');
@@ -464,8 +473,7 @@ export class ChartTheme {
         params.set(DEFAULT_CROSS_LINES_COLOUR, '#464646');
         params.set(DEFAULT_SEPARATION_LINES_COLOUR, '#d9d9d9');
         params.set(DEFAULT_NAVIGATOR_STROKE, '#ddd');
-        params.set(DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_BACKGROUND_FILL);
-        params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL);
+        params.set(DEFAULT_BACKGROUND_COLOUR, DEFAULT_BACKGROUND_FILL); // TODO: remove uses in paletteFactory()
         params.set(DEFAULT_INVERTED_BACKGROUND_COLOUR, 'black');
         params.set(DEFAULT_SHADOW_COLOUR, '#00000080');
         params.set(DEFAULT_DIVERGING_SERIES_COLOR_RANGE, [

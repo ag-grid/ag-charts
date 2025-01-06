@@ -1,13 +1,6 @@
-import {
-    type AgCategoryAxisThemeOptions,
-    type AgFunnelSeriesOptions,
-    type AgFunnelSeriesThemeableOptions,
-    type AgNumberAxisThemeOptions,
-    _ModuleSupport,
-} from 'ag-charts-community';
+import { type AgAxisLabelFormatterParams, type AgFunnelSeriesOptions, _ModuleSupport } from 'ag-charts-community';
 
 const {
-    ThemeSymbols: { DEFAULT_INSIDE_SERIES_LABEL_COLOUR, DEFAULT_FONT_FAMILY },
     ThemeConstants: { CARTESIAN_AXIS_TYPE, CARTESIAN_POSITION },
 } = _ModuleSupport;
 
@@ -38,19 +31,16 @@ export function funnelSeriesAxes(series: Pick<AgFunnelSeriesOptions, 'direction'
           ];
 }
 
-export const FUNNEL_SERIES_THEME: {
-    series: AgFunnelSeriesThemeableOptions;
-    axes: { number: AgNumberAxisThemeOptions; category: AgCategoryAxisThemeOptions };
-} = {
+export const FUNNEL_SERIES_THEME: _ModuleSupport.SeriesModule<'funnel'>['themeTemplate'] = {
     series: {
         direction: 'vertical',
         strokeWidth: 0,
         spacingRatio: 0.25,
         label: {
             enabled: true,
-            fontSize: 12,
-            fontFamily: DEFAULT_FONT_FAMILY,
-            color: DEFAULT_INSIDE_SERIES_LABEL_COLOUR,
+            fontSize: { ref: 'fontSize' },
+            fontFamily: { ref: 'fontFamily' },
+            color: { ref: 'backgroundColor' },
         },
         dropOff: {
             enabled: true,
@@ -69,7 +59,7 @@ export const FUNNEL_SERIES_THEME: {
             },
             label: {
                 enabled: false,
-                formatter(params) {
+                formatter(params: AgAxisLabelFormatterParams) {
                     return Math.abs(params.value).toFixed(params.fractionDigits ?? 0);
                 },
             },

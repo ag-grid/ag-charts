@@ -73,16 +73,19 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
 
         const coords = getFibonacciCoords(coords1, coords2);
         const extendedCoords = this.extendLine(coords, datum, context);
-        const data = createFibonacciRangesData(extendedCoords, context, reverse, bands);
+
+        const yZero = extendedCoords.y2;
+        const yOne = extendedCoords.y1;
+
+        const data = !coords2 ? [] : createFibonacciRangesData(extendedCoords, context, reverse, yZero, bands);
         this.updateRanges(datum, data, context);
 
-        const y = reverse ? coords.y2 : coords.y1;
-        const oneLinePoints = { ...extendedCoords, y1: y, y2: y };
+        const oneLinePoints = { ...extendedCoords, y1: yOne, y2: yOne };
         this.updateText(datum, oneLinePoints);
     }
 
     override containsPoint(x: number, y: number) {
-        const { start, end, endRetracement } = this;
+        const { start, end, endRetracement, endRetracementLine } = this;
 
         this.activeHandle = undefined;
 
@@ -101,12 +104,15 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
             return true;
         }
 
-        return super.containsPoint(x, y);
+        return endRetracementLine.isPointInPath(x, y) || super.containsPoint(x, y);
     }
 
     public override getNodeAtCoords(x: number, y: number): string | undefined {
         if (this.start.containsPoint(x, y) || this.end.containsPoint(x, y) || this.endRetracement.containsPoint(x, y))
             return 'handle';
+
+        if (this.endRetracementLine.isPointInPath(x, y)) return 'line';
+
         return super.getNodeAtCoords(x, y);
     }
 
@@ -318,6 +324,7 @@ export class FibonacciRetracementTrendBasedScene extends FibonacciScene<Fibonacc
 
         this.start.toggleLocked(datum.locked ?? false);
         this.end.toggleLocked(datum.locked ?? false);
+        this.endRetracement.toggleLocked(datum.locked ?? false);
     }
 
     protected getHandleCoords(

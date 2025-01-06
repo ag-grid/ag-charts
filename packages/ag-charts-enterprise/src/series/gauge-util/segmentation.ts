@@ -33,14 +33,14 @@ class GaugeSegmentationIntervalProperties extends BaseProperties {
             ticks = Array.from({ length: segments + 1 }, (_, i) => (i / segments) * (d1 - d0) + d0);
         } else {
             const segments = scale
-                .ticks?.({
+                .ticks({
                     nice: true,
                     interval: undefined,
                     tickCount: undefined,
                     minTickCount: 0,
                     maxTickCount: Infinity,
                 })
-                .filter((v) => v > d0 && v < d1);
+                ?.filter((v) => v > d0 && v < d1);
             ticks = segments != null ? [d0, ...segments, d1] : undefined;
         }
 

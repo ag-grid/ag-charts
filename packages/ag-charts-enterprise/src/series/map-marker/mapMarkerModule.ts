@@ -3,7 +3,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 import { MAP_THEME_DEFAULTS } from '../map-util/mapThemeDefaults';
 import { MapMarkerSeries } from './mapMarkerSeries';
 
-const { DEFAULT_LABEL_COLOUR, DEFAULT_DIVERGING_SERIES_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
+const { DEFAULT_DIVERGING_SERIES_COLOR_RANGE } = _ModuleSupport.ThemeSymbols;
 
 export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
     type: 'series',
@@ -21,7 +21,7 @@ export const MapMarkerModule: _ModuleSupport.SeriesModule<'map-marker'> = {
             maxSize: 30,
             fillOpacity: 0.5,
             label: {
-                color: DEFAULT_LABEL_COLOUR,
+                color: { ref: 'foregroundColor' },
             },
         },
     },
