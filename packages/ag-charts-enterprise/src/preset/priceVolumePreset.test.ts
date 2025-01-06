@@ -9,9 +9,9 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from 'ag-charts-community-test';
+import { setupEnterpriseModules } from 'ag-charts-enterprise';
 import type { AgChartInstance, AgFinancialChartOptions } from 'ag-charts-types';
 
-import { setupEnterpriseModules } from '../main';
 import { getStockData } from './test/stockData';
 
 const EXAMPLES: Record<string, AgFinancialChartOptions> = {
