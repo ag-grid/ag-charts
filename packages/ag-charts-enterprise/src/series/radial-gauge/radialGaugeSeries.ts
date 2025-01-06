@@ -32,6 +32,7 @@ import {
 } from './radialGaugeUtil';
 
 const {
+    clamp,
     fromToMotion,
     resetMotion,
     SeriesNodePickMode,
@@ -1162,17 +1163,22 @@ export class RadialGaugeSeries
     }
 
     override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
-        const targetData = this.contextNodeData?.targetData;
-        if (targetData == null || targetData.length === 0) return;
+        const others = [
+            { data: this.contextNodeData?.nodeData, selection: this.datumSelection },
+            { data: this.contextNodeData?.targetData, selection: this.targetSelection },
+        ];
+        const otherIndex = clamp(0, opts.otherIndex + opts.otherIndexDelta, 1);
 
-        const datumIndex = Math.min(Math.max(opts.datumIndex, 0), targetData.length - 1);
+        const { data, selection } = others[otherIndex];
+        if (data == null || data.length === 0) return;
 
-        const datum = targetData[datumIndex];
+        const datumIndex = Math.min(Math.max(opts.datumIndex, 0), data.length - 1);
+        const datum = data[datumIndex];
 
-        for (const node of this.targetSelection) {
+        for (const node of selection) {
             if (node.datum === datum) {
                 const bounds = node.node;
-                return { bounds, showFocusBox: true, clipFocusBox: true, datum, datumIndex };
+                return { bounds, showFocusBox: true, clipFocusBox: true, datum, datumIndex, otherIndex };
             }
         }
     }
