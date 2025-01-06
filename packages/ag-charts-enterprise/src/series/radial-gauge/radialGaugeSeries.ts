@@ -9,6 +9,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 
+import { pickGaugeFocus } from '../gauge-util/focus';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { type UnknownGaugeNodeDatum, parseUnknownGaugeNodeDatum } from '../gauge-util/properties';
@@ -30,7 +31,6 @@ import {
     resetRadialGaugeSeriesResetNeedleFunction,
     resetRadialGaugeSeriesResetSectorFunction,
 } from './radialGaugeUtil';
-import { pickGaugeFocus } from '../gauge-util/focus';
 
 const {
     fromToMotion,
