@@ -60,8 +60,10 @@ if [ "$1" == "--host" ] ; then
     /bin/bash -l playwright.sh $@
 
   docker logs -f ${container_name} &
-  docker wait ${container_name}
-  exit $?
+  
+  exit_code=$(docker wait ${container_name})
+  echo "Exit code from docker wait: $exit_code"
+  exit $exit_code
 fi
 
 echo "Waiting for connection to ${PUBLIC_SITE_URL}..."
