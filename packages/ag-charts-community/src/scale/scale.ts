@@ -28,7 +28,7 @@ export interface Scale<D, R, I = number> {
     toDomain(value: number): D | undefined;
     convert(value: D, clamp?: boolean): R;
     invert(value: R, exact?: boolean): D | undefined;
-    ticks(ticks: ScaleTickParams<I>, domain?: D[], visibleRange?: [number, number]): D[] | undefined;
+    ticks(ticks: ScaleTickParams<I>, domain?: D[]): D[] | undefined;
     niceDomain(ticks: ScaleTickParams<I>, domain?: D[]): D[];
     tickFormatter(params: ScaleFormatParams<D>): ((x: any) => string) | undefined;
     datumFormatter(params: ScaleFormatParams<D>): ((x: any) => string) | undefined;

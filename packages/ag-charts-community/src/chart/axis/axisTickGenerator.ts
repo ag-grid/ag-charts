@@ -239,12 +239,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             this.createTickData(
                 domain,
                 niceMode,
+                visibleRange,
+                primaryTickCount,
                 tickGenerationType,
                 index,
                 tickData,
-                terminate,
-                primaryTickCount,
-                visibleRange
+                terminate
             );
 
         strategies.push(tickGenerationStrategy);
@@ -260,12 +260,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 this.createTickData(
                     domain,
                     niceMode,
+                    visibleRange,
+                    primaryTickCount,
                     TickGenerationType.FILTER,
                     index,
                     tickData,
-                    terminate,
-                    primaryTickCount,
-                    visibleRange
+                    terminate
                 );
             strategies.push(tickFilterStrategy);
         }
@@ -286,12 +286,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     private createTickData(
         domain: D[],
         niceMode: NiceMode,
+        visibleRange: [number, number],
+        primaryTickCount: number | undefined,
         tickGenerationType: TickGenerationType,
         index: number,
         tickData: TickData,
-        terminate: boolean,
-        primaryTickCount: number | undefined,
-        visibleRange: [number, number]
+        terminate: boolean
     ): TickStrategyResult {
         const { scale, interval } = this.axis;
         const { step, values, minSpacing, maxSpacing } = interval;
@@ -314,6 +314,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             tickData = this.getTicks({
                 domain,
                 niceMode,
+                visibleRange,
                 tickGenerationType,
                 previousTicks,
                 minTickCount,
@@ -335,6 +336,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     private getTicks({
         domain,
         niceMode,
+        visibleRange,
         tickGenerationType,
         previousTicks,
         tickCount,
@@ -344,6 +346,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
     }: {
         domain: D[];
         niceMode: NiceMode;
+        visibleRange: [number, number];
         tickGenerationType: TickGenerationType;
         previousTicks: TickDatum[];
         tickCount: number;
@@ -352,7 +355,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         primaryTickCount?: number;
     }): TickData {
         const { axis } = this;
-        const { range, scale, visibleRange, interval } = axis;
+        const { range, scale, interval } = axis;
         const idGenerator = createIdsGenerator();
 
         const domainParams: ScaleTickParams<any> = {
@@ -397,14 +400,14 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     niceDomain = secondaryAxisTicks.domain.map((d) => scaleStopTsComplaining.toDomain(d));
                 } else {
                     // AG-10654 Just use normal ticks for categorical axes.
-                    rawTicks = scaleStopTsComplaining.ticks(tickParams, niceDomain, visibleRange) ?? [];
+                    rawTicks = scaleStopTsComplaining.ticks(tickParams, niceDomain) ?? [];
                 }
                 break;
             case TickGenerationType.FILTER:
                 rawTicks = this.filterTicks(previousTicks, tickCount);
                 break;
             default:
-                rawTicks = scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
+                rawTicks = scale.ticks(tickParams, niceDomain) ?? [];
                 break;
         }
 

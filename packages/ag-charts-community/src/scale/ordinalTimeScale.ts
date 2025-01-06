@@ -64,8 +64,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
 
     override ticks(
         { interval, maxTickCount }: ScaleTickParams<TimeInterval | number>,
-        domain: Date[] = this.domain,
-        visibleRange: [number, number] = [0, 1]
+        domain: Date[] = this.domain
     ): Date[] {
         if (!domain.length) {
             return [];
@@ -79,7 +78,7 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         const stop = Math.max(t0, t1);
 
         if (interval == null) {
-            return this.getDefaultTicks(maxTickCount, isReversed, visibleRange);
+            return this.getDefaultTicks(maxTickCount, isReversed);
         }
 
         const [r0, r1] = this.range;
@@ -96,10 +95,10 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         });
     }
 
-    private getDefaultTicks(maxTickCount: number, isReversed: boolean, visibleRange: [number, number]) {
+    private getDefaultTicks(maxTickCount: number, isReversed: boolean) {
         const { domain } = this;
         const ticks: Date[] = [];
-        const tickEvery = Math.ceil((domain.length * (visibleRange[1] - visibleRange[0])) / maxTickCount);
+        const tickEvery = Math.ceil(domain.length / maxTickCount);
         const tickOffset = Math.floor(tickEvery / 2);
 
         for (let index = 0; index < domain.length; index += 1) {

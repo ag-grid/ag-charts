@@ -1,5 +1,5 @@
 import { Logger } from './logger';
-import { clamp, countFractionDigits, round } from './number';
+import { clamp, countFractionDigits } from './number';
 import { numberFormat, parseFormat } from './numberFormat';
 import { day } from './time/day';
 import {
@@ -233,14 +233,13 @@ export function estimateTickCount(
     defaultTickCount: number,
     defaultMinSpacing: number
 ) {
-    const zoomedRangeExtent = round(rangeExtent / zoomExtent, 2);
     defaultMinSpacing = Math.max(defaultMinSpacing, rangeExtent / (defaultTickCount + 1));
 
     if (isNaN(minSpacing)) {
         minSpacing = defaultMinSpacing;
     }
     if (isNaN(maxSpacing)) {
-        maxSpacing = 2 * minSpacing;
+        maxSpacing = rangeExtent;
     }
     if (minSpacing > maxSpacing) {
         if (minSpacing === defaultMinSpacing) {
@@ -250,9 +249,9 @@ export function estimateTickCount(
         }
     }
 
-    const maxTickCount = Math.max(1, Math.floor(zoomedRangeExtent / minSpacing));
-    const minTickCount = Math.min(maxTickCount, Math.ceil(zoomedRangeExtent / maxSpacing));
-    const tickCount = clamp(minTickCount, defaultTickCount, maxTickCount);
+    const maxTickCount = Math.max(1, Math.floor(rangeExtent / (zoomExtent * minSpacing)));
+    const minTickCount = Math.min(maxTickCount, Math.ceil(rangeExtent / (zoomExtent * maxSpacing)));
+    const tickCount = clamp(minTickCount, Math.floor(defaultTickCount / zoomExtent), maxTickCount);
 
     return { minTickCount, maxTickCount, tickCount };
 }
