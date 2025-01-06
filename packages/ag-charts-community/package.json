@@ -7,18 +7,22 @@
   "module": "./dist/package/main.esm.mjs",
   "exports": {
     ".": {
-      "import": "./dist/package/main.esm.mjs",
-      "require": "./dist/package/main.cjs.js",
       "types": "./dist/types/src/main.d.ts",
+      "require": "./dist/package/main.cjs.js",
+      "import": "./dist/package/main.esm.mjs",
       "default": "./dist/package/main.cjs.js"
     },
-    "./scene": {
-      "import": "./dist/package/integrated-charts-scene.esm.mjs",
-      "require": "./dist/package/integrated-charts-scene.cjs.js",
-      "types": "./dist/types/src/integrated-charts-scene.d.ts",
-      "default": "./dist/package/integrated-charts-scene.cjs.js"
+    "./modules": {
+      "types": "./dist/types/src/main-modules.d.ts",
+      "require": "./dist/package/main-modules.cjs.js",
+      "import": "./dist/package/main-modules.esm.mjs",
+      "default": "./dist/package/main-modules.cjs.js"
     }
   },
+  "sideEffects": [
+    "*.css",
+    "*.html"
+  ],
   "scripts": {
     "lint:prune": "npx ts-prune -p tsconfig.lib.json"
   },
