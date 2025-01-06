@@ -249,4 +249,44 @@ test.describe('keyboard-nav', () => {
         await page.keyboard.press('ArrowUp');
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot(`linear-gauge-bar-highlight.png`);
     });
+
+    test('radial gauge chart with needle', async ({ page }) => {
+        const { url } = toExamplePageUrl('radial-gauge', 'needle', 'vanilla');
+
+        await gotoExample(page, url);
+
+        const canvas = page.locator(SELECTORS.canvasCenter).first();
+        const hideNeedle = page.getByText('Hide Needle').first();
+        const showNeedle = page.getByText('Show Needle').first();
+        const hideBar = page.getByText('Hide Bar').first();
+        const showBar = page.getByText('Show Bar').first();
+
+        await canvas.click();
+        await page.keyboard.press('ArrowLeft');
+        await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-hideBar.png`);
+
+        await hideNeedle.click();
+        await hideBar.click();
+        await canvas.click();
+        await page.keyboard.press('ArrowLeft');
+        await expect(canvas).toHaveScreenshot(`radial-gauge-hideNeedle-hideBar.png`);
+
+        await hideNeedle.click();
+        await showBar.click();
+        await canvas.click();
+        await page.keyboard.press('ArrowLeft');
+        await expect(canvas).toHaveScreenshot(`radial-gauge-hideNeedle-showBar.png`);
+
+        await showNeedle.click();
+        await hideBar.click();
+        await canvas.click();
+        await page.keyboard.press('ArrowLeft');
+        await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-hideBar.png`);
+
+        await showNeedle.click();
+        await showBar.click();
+        await canvas.click();
+        await page.keyboard.press('ArrowLeft');
+        await expect(canvas).toHaveScreenshot(`radial-gauge-showNeedle-showBar.png`);
+    });
 });
