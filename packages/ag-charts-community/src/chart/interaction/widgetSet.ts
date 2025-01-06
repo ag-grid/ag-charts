@@ -8,11 +8,12 @@ class DOMManagerWidget extends NativeWidget<HTMLElement> {
         super(elem);
     }
 
-    // Adding/removing elements from the DOM is managed by the DOMManager
-    /* eslint-disable sonarjs/no-empty-function */
-    protected override addChildToDOM() {}
-    protected override removeChildFromDOM() {}
-    /* eslint-enable sonarjs/no-empty-function */
+    protected override addChildToDOM() {
+        // Adding/removing elements from the DOM is managed by the DOMManager
+    }
+    protected override removeChildFromDOM() {
+        // Adding/removing elements from the DOM is managed by the DOMManager
+    }
 }
 
 export class WidgetSet {
