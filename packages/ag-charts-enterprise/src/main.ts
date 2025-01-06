@@ -1,8 +1,33 @@
-import { setupEnterpriseModules } from './setup';
+import { AgCharts, VERSION, _Scene, _Theme, _Util, setupCommunityModules } from 'ag-charts-community';
+import type { IntegratedModule } from 'ag-charts-types';
 
-// Export types.
+import { LicenseManager as RealLicenseManager } from './license/licenseManager';
+import { setupEnterpriseModules as internalSetup } from './setup';
+
+internalSetup();
+
 export * from 'ag-charts-community';
-export * from './main-modules';
-// Needed for UMD global exports to work correctly.
 
-setupEnterpriseModules();
+export const LicenseManager = {
+    setLicenseKey(key: string) {
+        RealLicenseManager.setLicenseKey(key);
+    },
+};
+
+export function setupEnterpriseModules() {
+    internalSetup();
+    setupCommunityModules();
+}
+
+export const AgChartsEnterpriseModule: IntegratedModule = {
+    VERSION,
+    _Scene,
+    _Theme,
+    _Util,
+    create: AgCharts.create.bind(AgCharts),
+    createSparkline: AgCharts.__createSparkline.bind(AgCharts),
+    setup: setupEnterpriseModules,
+    setGridContext: RealLicenseManager.setGridContext.bind(RealLicenseManager),
+    setLicenseKey: RealLicenseManager.setLicenseKey.bind(RealLicenseManager),
+    isEnterprise: true,
+};
