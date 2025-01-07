@@ -29,6 +29,7 @@ export class WidgetSet {
         this.containerWidget.addChild(this.chartWidget);
         this.chartWidget.addChild(this.seriesWidget);
 
+        this.seriesWidget.setMultiTouchEnabled(true);
         this.seriesDragInterpreter = new DragInterpreter(this.seriesWidget);
     }
 
