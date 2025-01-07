@@ -6,7 +6,6 @@ import {
     DEFAULT_CAPTION_LAYOUT_STYLE,
     DEFAULT_DIVERGING_SERIES_COLOR_RANGE,
     DEFAULT_GRIDLINE_ENABLED,
-    DEFAULT_PADDING,
     DEFAULT_TOOLBAR_POSITION,
 } from './symbols';
 
@@ -42,6 +41,7 @@ export class FinancialDark extends DarkTheme {
         return {
             ...super.getPublicParameters(),
             gridLineColor: '#343a4e',
+            padding: 0,
         };
     }
 
@@ -57,7 +57,6 @@ export class FinancialDark extends DarkTheme {
         params.set(DEFAULT_ANNOTATION_COLOR, FINANCIAL_DARK_FILLS.BLUE);
         params.set(DEFAULT_ANNOTATION_BACKGROUND_FILL, FINANCIAL_DARK_FILLS.BLUE);
 
-        params.set(DEFAULT_PADDING, 0);
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'overlay');
         params.set(DEFAULT_CAPTION_ALIGNMENT, 'left');
         params.set(DEFAULT_TOOLBAR_POSITION, 'bottom');

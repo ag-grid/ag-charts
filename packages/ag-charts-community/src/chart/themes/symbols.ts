@@ -9,7 +9,6 @@ export const DEFAULT_BACKGROUND_COLOUR = Symbol('default-background-colour') as 
 export const DEFAULT_INVERTED_BACKGROUND_COLOUR = Symbol('default-inverted-background-colour') as unknown as string;
 export const DEFAULT_SHADOW_COLOUR = Symbol('default-shadow-colour') as unknown as string;
 export const DEFAULT_COLOURS = Symbol('default-colours') as unknown as string;
-export const DEFAULT_PADDING = Symbol('default-padding') as unknown as string;
 export const DEFAULT_CAPTION_LAYOUT_STYLE = Symbol('default-caption-layout-style') as unknown as string;
 export const DEFAULT_CAPTION_ALIGNMENT = Symbol('default-caption-alignment') as unknown as string;
 export const PALETTE_UP_STROKE = Symbol('palette-up-stroke') as unknown as string;

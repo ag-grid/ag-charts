@@ -241,6 +241,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
             fontSize: 'font-size',
             fontWeight: 'font-weight',
             gridLineColor: 'grid-line-color',
+            padding: 'padding',
         };
 
         const lengthKeys = ['fontSize'];

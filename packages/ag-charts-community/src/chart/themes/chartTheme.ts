@@ -45,7 +45,6 @@ import {
     DEFAULT_INVERTED_BACKGROUND_COLOUR,
     DEFAULT_INVERTED_LABEL_COLOUR,
     DEFAULT_MUTED_LABEL_COLOUR,
-    DEFAULT_PADDING,
     DEFAULT_POLAR_SERIES_STROKE,
     DEFAULT_SEPARATION_LINES_COLOUR,
     DEFAULT_SHADOW_COLOUR,
@@ -187,7 +186,12 @@ export class ChartTheme {
             minHeight: 300,
             minWidth: 300,
             background: { visible: true, fill: { ref: 'backgroundColor' } },
-            padding: { top: DEFAULT_PADDING, right: DEFAULT_PADDING, bottom: DEFAULT_PADDING, left: DEFAULT_PADDING },
+            padding: {
+                top: { ref: 'padding' },
+                right: { ref: 'padding' },
+                bottom: { ref: 'padding' },
+                left: { ref: 'padding' },
+            },
             keyboard: { enabled: true },
             title: {
                 enabled: false,
@@ -453,6 +457,7 @@ export class ChartTheme {
             fontSize: 12,
             fontWeight: 400,
             gridLineColor: '#e0eaf1',
+            padding: 20,
 
             // TODO: Should these directly use `backgroundColor` or should they be their own params with a ref to it?
             // insideSeriesLabelColor: { ref: 'backgroundColor' },
@@ -491,7 +496,6 @@ export class ChartTheme {
             '#b9d3f1',
             '#cbdef5',
         ]);
-        params.set(DEFAULT_PADDING, 20);
         params.set(DEFAULT_CAPTION_LAYOUT_STYLE, 'block');
         params.set(DEFAULT_CAPTION_ALIGNMENT, 'center');
         params.set(DEFAULT_HIERARCHY_FILLS, ['#fff', '#e0e5ea', '#c1ccd5', '#a3b4c1', '#859cad']);
