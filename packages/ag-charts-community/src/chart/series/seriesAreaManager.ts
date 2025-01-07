@@ -119,9 +119,11 @@ export class SeriesAreaManager extends BaseManager {
         this.focusIndicator.overrideFocusVisible(chart.mode === 'integrated' ? false : undefined); // AG-13197
 
         const { seriesWidget, containerWidget } = chart.ctx.widgets;
+        seriesWidget.setTabIndex(-1);
         this.destroyFns.push(
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label1'),
             () => chart.ctx.domManager.removeChild('series-area', 'series-area-aria-label2'),
+            seriesWidget.addListener('focus', () => this.swapChain.focus()),
             seriesWidget.addListener('drag-move', (event) => this.onDragMove(event)),
             seriesWidget.addListener('mousemove', (event) => this.onHover(event)),
             seriesWidget.addListener('wheel', (event) => this.onWheel(event)),

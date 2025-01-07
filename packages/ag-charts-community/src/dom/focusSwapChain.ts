@@ -20,8 +20,14 @@ export class FocusSwapChain {
         focus: [],
         swap: [],
     };
-    private readonly onBlur = (e: FocusEvent) => !this.skipDispatch && this.dispatch('blur', e);
-    private readonly onFocus = (e: FocusEvent) => !this.skipDispatch && this.dispatch('focus', e);
+    private readonly onBlur = (e: FocusEvent) => {
+        setElementStyle(e.target as HTMLElement, 'pointer-events', undefined);
+        return !this.skipDispatch && this.dispatch('blur', e);
+    };
+    private readonly onFocus = (e: FocusEvent) => {
+        setElementStyle(e.target as HTMLElement, 'pointer-events', 'auto');
+        return !this.skipDispatch && this.dispatch('focus', e);
+    };
 
     private createAnnouncer(role: BaseAttributeTypeMap['role']) {
         const announcer = createElement('div');
@@ -103,8 +109,6 @@ export class FocusSwapChain {
             'aria-hidden': false,
             tabindex: userTabIndex,
         });
-        setElementStyle(this.inactiveAnnouncer, 'pointer-events', 'none');
-        setElementStyle(this.activeAnnouncer, 'pointer-events', undefined);
 
         this.dispatch('swap', this.activeAnnouncer);
     }
