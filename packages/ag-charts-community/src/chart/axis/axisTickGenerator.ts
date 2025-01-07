@@ -19,8 +19,8 @@ import type { TickDatum } from './axisUtil';
 import { NiceMode } from './axisUtil';
 
 export interface TickData<D = any> {
+    tickDomain: D[];
     rawTicks: D[];
-    rawVisibleTicks: D[];
     fractionDigits: number;
     ticks: TickDatum[];
     labelCount: number;
@@ -149,9 +149,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         };
 
         let tickData: TickData = {
+            tickDomain: [],
             ticks: [],
             rawTicks: [],
-            rawVisibleTicks: [],
             fractionDigits: 0,
             labelCount: 0,
             niceDomain: null!,
@@ -373,6 +373,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         let niceDomain = niceMode === NiceMode.TickAndDomain ? scale.niceDomain(domainParams, domain) : domain;
 
+        let tickDomain: D[] = niceDomain;
         let rawTicks: any[];
 
         // @todo(xxx) - removing this references makes TS errors
@@ -380,6 +381,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
+                tickDomain = interval.values!;
                 rawTicks = interval.values!;
                 if (ContinuousScale.is(scaleStopTsComplaining)) {
                     const [d0, d1] = findMinMax(niceDomain.map(Number));
@@ -418,15 +420,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
 
         let labelCount = 0;
 
-        // Only get the ticks within a sliding window of the visible range to improve performance
-        const start = Math.max(0, Math.floor(visibleRange[0] * rawTicks.length));
-        const end = Math.min(rawTicks.length, Math.ceil(visibleRange[1] * rawTicks.length));
-
-        const rawVisibleTicks = rawTicks.slice(start, end);
-
         const formatParams: ScaleFormatParams<D> = {
+            domain: tickDomain,
             ticks: rawTicks,
-            visibleTicks: rawVisibleTicks,
             fractionDigits,
             specifier: axis.label.format,
         };
@@ -437,15 +433,15 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         scale.domain = niceDomain;
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;
         const ticks: TickDatum[] = [];
-        for (let i = 0; i < rawVisibleTicks.length; i++) {
-            const tick = rawVisibleTicks[i];
+        for (let i = 0; i < rawTicks.length; i++) {
+            const tick = rawTicks[i];
             const translationY = scale.convert(tick) + halfBandwidth;
 
             // Do not render ticks outside the range with a small tolerance. A clip rect would trim long labels, so
             // instead hide ticks based on their translation.
             if (range.length > 0 && !axis.inRange(translationY, 0.001)) continue;
 
-            const tickLabel = axis.formatTick(tick, start + i, fractionDigits, labelFormatter);
+            const tickLabel = axis.formatTick(tick, i, fractionDigits, labelFormatter);
 
             // Create a tick id from the label, or as an increment of the last label if this tick label is blank
             ticks.push({ tick, tickId: idGenerator(tickLabel), tickLabel, translationY: Math.floor(translationY) });
@@ -458,8 +454,8 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         scale.domain = scaleDomain;
 
         return {
+            tickDomain,
             rawTicks,
-            rawVisibleTicks,
             fractionDigits,
             ticks,
             labelCount,

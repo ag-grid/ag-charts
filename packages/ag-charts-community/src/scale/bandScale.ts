@@ -96,8 +96,14 @@ export abstract class BandScale<D, I = number> extends AbstractScale<D, number, 
         }
     }
 
-    override ticks(_params: ScaleTickParams<I>, domain: D[] = this.domain, _visibleRange?: [number, number]): D[] {
-        return domain;
+    override ticks(_params: ScaleTickParams<I>, domain: D[] = this.domain, visibleRange?: [number, number]): D[] {
+        let ticks = domain;
+        if (visibleRange != null) {
+            const t0 = Math.max(0, Math.floor(visibleRange[0] * ticks.length));
+            const t1 = Math.min(ticks.length, Math.ceil(visibleRange[1] * ticks.length));
+            ticks = ticks.slice(t0, t1);
+        }
+        return ticks;
     }
 
     convert(d: D, _clamp?: boolean): number {

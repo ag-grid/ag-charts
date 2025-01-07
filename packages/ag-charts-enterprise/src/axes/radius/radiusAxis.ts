@@ -95,8 +95,8 @@ export abstract class RadiusAxis<
     ): {
         niceDomain: D[];
         primaryTickCount: number | undefined;
+        tickDomain: D[];
         ticks: D[];
-        visibleTicks: D[];
         fractionDigits: number;
         bbox: undefined;
     } {
@@ -130,8 +130,8 @@ export abstract class RadiusAxis<
         return {
             niceDomain,
             primaryTickCount,
+            tickDomain: tickData?.tickDomain ?? niceDomain,
             ticks: tickData?.rawTicks ?? [],
-            visibleTicks: tickData?.rawVisibleTicks ?? [],
             fractionDigits,
             bbox: undefined,
         };

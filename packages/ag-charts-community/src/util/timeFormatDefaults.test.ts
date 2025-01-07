@@ -31,7 +31,7 @@ describe('Default Date/Time Formatting', () => {
     describe('defaultTimeTickFormat', () => {
         it('should generate format for millisecond extent', () => {
             const ticks = createRange(DEFAULT_DATE_MS_OFFSET, 100);
-            const formatter = defaultTimeTickFormat(ticks);
+            const formatter = defaultTimeTickFormat(ticks, ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
   ".300",
@@ -42,7 +42,7 @@ describe('Default Date/Time Formatting', () => {
 
         it('should generate format for second extent with millisecond offset', () => {
             const ticks = createRange(DEFAULT_DATE_MS_OFFSET, 3000);
-            const formatter = defaultTimeTickFormat(ticks);
+            const formatter = defaultTimeTickFormat(ticks, ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
   ":17",
@@ -53,7 +53,7 @@ describe('Default Date/Time Formatting', () => {
 
         it('should generate format for second extent', () => {
             const ticks = createRange(DEFAULT_DATE_SECOND_OFFSET, 3000);
-            const formatter = defaultTimeTickFormat(ticks);
+            const formatter = defaultTimeTickFormat(ticks, ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
   ":15",
@@ -64,7 +64,7 @@ describe('Default Date/Time Formatting', () => {
 
         it('should generate format for hour extent with minute offset', () => {
             const ticks = createRange(DEFAULT_DATE_MINUTE_OFFSET, 2 * HOUR);
-            const formatter = defaultTimeTickFormat(ticks);
+            const formatter = defaultTimeTickFormat(ticks, ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
   "03:50PM",
@@ -77,7 +77,7 @@ describe('Default Date/Time Formatting', () => {
             const ticks = createRange(DEFAULT_DATE_MINUTE_OFFSET, 2 * HOUR, 240);
             ticks.splice(4, ticks.length - 5);
 
-            const formatter = defaultTimeTickFormat(ticks);
+            const formatter = defaultTimeTickFormat(ticks, ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
   "03:50:00PM",
@@ -93,7 +93,7 @@ describe('Default Date/Time Formatting', () => {
             const ticks = createRange(DEFAULT_DATE_MINUTE_OFFSET, 2 * HOUR, 24000);
             ticks.splice(4, ticks.length - 5);
 
-            const formatter = defaultTimeTickFormat(ticks);
+            const formatter = defaultTimeTickFormat(ticks, ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
   "03:50:00.000PM",
@@ -107,7 +107,7 @@ describe('Default Date/Time Formatting', () => {
 
         it('should generate format for hour extent', () => {
             const ticks = createRange(DEFAULT_DATE_HOUR_OFFSET, 2 * HOUR);
-            const formatter = defaultTimeTickFormat(ticks);
+            const formatter = defaultTimeTickFormat(ticks, ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
   "03:00PM",
@@ -118,7 +118,7 @@ describe('Default Date/Time Formatting', () => {
 
         it('should generate format for day extent', () => {
             const ticks = createRange(DEFAULT_DATE_DAY_OFFSET, 2 * DAY);
-            const formatter = defaultTimeTickFormat(ticks);
+            const formatter = defaultTimeTickFormat(ticks, ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
   "Tue",
@@ -129,7 +129,7 @@ describe('Default Date/Time Formatting', () => {
 
         it('should generate format for week extent', () => {
             const ticks = createRange(DEFAULT_DATE_DAY_OFFSET, 3 * WEEK);
-            const formatter = defaultTimeTickFormat(ticks);
+            const formatter = defaultTimeTickFormat(ticks, ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
   "Sep 03",
@@ -140,7 +140,7 @@ describe('Default Date/Time Formatting', () => {
 
         it('should generate format for month extent', () => {
             const ticks = createRange(DEFAULT_DATE_DAY_OFFSET, 5 * WEEK);
-            const formatter = defaultTimeTickFormat(ticks);
+            const formatter = defaultTimeTickFormat(ticks, ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
   "September",
@@ -155,7 +155,7 @@ describe('Default Date/Time Formatting', () => {
                 new Date(DEFAULT_DATE.getTime() + 30 * DAY),
                 new Date(DEFAULT_DATE.getTime() + 61 * DAY),
             ];
-            const formatter = defaultTimeTickFormat(ticks);
+            const formatter = defaultTimeTickFormat(ticks, ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
   "September",
@@ -167,7 +167,7 @@ describe('Default Date/Time Formatting', () => {
 
         it('should generate format for month extent with year change', () => {
             const ticks = createRange(DEFAULT_DATE, 5 * 30 * DAY, 5);
-            const formatter = defaultTimeTickFormat(ticks);
+            const formatter = defaultTimeTickFormat(ticks, ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
   "Sep 01 2019",
@@ -182,7 +182,7 @@ describe('Default Date/Time Formatting', () => {
 
         it('should generate format for year extent', () => {
             const ticks = createRange(DEFAULT_DATE_DAY_OFFSET, 55 * WEEK);
-            const formatter = defaultTimeTickFormat(ticks);
+            const formatter = defaultTimeTickFormat(ticks, ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
   "2019",
@@ -193,7 +193,7 @@ describe('Default Date/Time Formatting', () => {
 
         it('should generate format for multi-year extent', () => {
             const ticks = createRange(DEFAULT_DATE_DAY_OFFSET, 200 * WEEK);
-            const formatter = defaultTimeTickFormat(ticks);
+            const formatter = defaultTimeTickFormat(ticks, ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
   "2019",
@@ -204,7 +204,7 @@ describe('Default Date/Time Formatting', () => {
 
         it('should generate format for single value', () => {
             const ticks = [DEFAULT_DATE_DAY_OFFSET];
-            const formatter = defaultTimeTickFormat(ticks);
+            const formatter = defaultTimeTickFormat(ticks, ticks);
             expect(ticks.map((v) => formatter(v))).toMatchInlineSnapshot(`
 [
   "Sep 03",

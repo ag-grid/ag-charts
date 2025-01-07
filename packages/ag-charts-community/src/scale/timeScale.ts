@@ -73,8 +73,8 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         return getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange });
     }
 
-    private _tickFormatter({ visibleTicks, ticks, specifier }: ScaleFormatParams<Date>, formatOffset?: number) {
-        return specifier != null ? buildFormatter(specifier) : defaultTimeTickFormat(visibleTicks, ticks, formatOffset);
+    private _tickFormatter({ domain, ticks, specifier }: ScaleFormatParams<Date>, formatOffset?: number) {
+        return specifier != null ? buildFormatter(specifier) : defaultTimeTickFormat(ticks, domain, formatOffset);
     }
 
     /**
@@ -125,7 +125,7 @@ export function getDateTicksForInterval({
     stop: number;
     interval: number | TimeInterval;
     availableRange: number;
-    visibleRange: [number, number];
+    visibleRange: [number, number] | undefined;
 }): Date[] | undefined {
     if (!interval) {
         return [];

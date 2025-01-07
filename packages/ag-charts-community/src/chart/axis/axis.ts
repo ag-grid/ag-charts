@@ -505,7 +505,7 @@ export abstract class Axis<
         } else {
             niceMode = NiceMode.TicksOnly;
         }
-        const { niceDomain, primaryTickCount, ticks, visibleTicks, fractionDigits, bbox } = this.calculateTickLayout(
+        const { niceDomain, primaryTickCount, ticks, tickDomain, fractionDigits, bbox } = this.calculateTickLayout(
             tickLayoutDomain ?? domain,
             niceMode,
             visibleRange,
@@ -518,12 +518,12 @@ export abstract class Axis<
 
         const specifier = label.format;
         this.labelFormatter =
-            scale.tickFormatter({ specifier, ticks, visibleTicks, fractionDigits }) ??
+            scale.tickFormatter({ domain: tickDomain, specifier, ticks, fractionDigits }) ??
             ((x: any) => this.defaultLabelFormatter(x, fractionDigits));
         this.datumFormatter =
-            scale.datumFormatter({ specifier, ticks, visibleTicks, fractionDigits }) ??
+            scale.datumFormatter({ domain: tickDomain, specifier, ticks, fractionDigits }) ??
             ((x: any) => this.defaultLabelFormatter(x, fractionDigits));
-        this.scaleFormatterParams = { ticks, visibleTicks, fractionDigits };
+        this.scaleFormatterParams = { domain: tickDomain, ticks, fractionDigits };
 
         this.layout.label = {
             fractionDigits: fractionDigits,
@@ -555,8 +555,8 @@ export abstract class Axis<
     ): {
         niceDomain: D[];
         primaryTickCount: number | undefined;
+        tickDomain: D[];
         ticks: D[];
-        visibleTicks: D[];
         fractionDigits: number;
         bbox: BBox | undefined;
     };

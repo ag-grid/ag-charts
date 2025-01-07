@@ -167,8 +167,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
     ): {
         niceDomain: D[];
         primaryTickCount: number | undefined;
+        tickDomain: D[];
         ticks: D[];
-        visibleTicks: D[];
         fractionDigits: number;
         bbox: BBox;
     } {
@@ -202,8 +202,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return {
             niceDomain,
             primaryTickCount,
+            tickDomain: tickData?.tickDomain ?? niceDomain,
             ticks: tickData?.rawTicks ?? [],
-            visibleTicks: tickData?.rawVisibleTicks ?? [],
             fractionDigits,
             bbox,
         };

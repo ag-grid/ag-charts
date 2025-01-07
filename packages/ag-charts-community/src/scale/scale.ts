@@ -9,7 +9,7 @@ export interface ScaleTickParams<I> {
 }
 
 export interface ScaleFormatParams<D> {
-    visibleTicks: D[];
+    domain: D[];
     ticks: D[];
     fractionDigits: number;
     specifier: string | undefined;

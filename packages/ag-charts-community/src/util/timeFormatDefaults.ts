@@ -5,6 +5,7 @@ import { month } from '../util/time/month';
 import { second } from '../util/time/second';
 import { sunday as week } from '../util/time/week';
 import { year } from '../util/time/year';
+import { findMinMax } from './number';
 import { durationDay, durationHour, durationMinute, durationSecond, durationWeek, durationYear } from './time/duration';
 import { buildFormatter } from './timeFormat';
 
@@ -23,20 +24,22 @@ export function dateToNumber(value: any) {
     return value instanceof Date ? value.getTime() : value;
 }
 
-export function defaultTimeTickFormat(ticks?: any[], domain?: any[], formatOffset?: number) {
+export function defaultTimeTickFormat(ticks: (Date | number)[], domain: (Date | number)[], formatOffset?: number) {
     const formatString = calculateDefaultTimeTickFormat(ticks, domain, formatOffset);
     const formatter = buildFormatter(formatString);
     return (date: Date) => formatter(date);
 }
 
-export function calculateDefaultTimeTickFormat(ticks: any[] = [], domain = ticks, formatOffset = 0) {
+export function calculateDefaultTimeTickFormat(ticks: (Date | number)[], domain: (Date | number)[], formatOffset = 0) {
     let minInterval: number = Infinity;
     for (let i = 1; i < ticks.length; i++) {
-        minInterval = Math.min(minInterval, Math.abs(ticks[i] - ticks[i - 1]));
+        minInterval = Math.min(minInterval, Math.abs(ticks[i].valueOf() - ticks[i - 1].valueOf()));
     }
 
-    const startYear = new Date(domain[0]).getFullYear();
-    const stopYear = new Date(domain.at(-1)).getFullYear();
+    const [d0, d1] =
+        domain.length === 0 ? [0, 0] : findMinMax([domain[0].valueOf(), domain[domain.length - 1].valueOf()]);
+    const startYear = new Date(d0).getFullYear();
+    const stopYear = new Date(d1).getFullYear();
     const yearChange = stopYear - startYear > 0;
     const timeFormat = isFinite(minInterval)
         ? getIntervalLowestGranularityFormat(minInterval, ticks)

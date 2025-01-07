@@ -189,8 +189,8 @@ export class AxisTicks {
 
         const labelFormatter = this.label.format
             ? this.scale.tickFormatter({
+                  domain: niceDomain,
                   ticks: rawTicks,
-                  visibleTicks: rawTicks,
                   fractionDigits,
                   specifier: this.label.format,
               })
