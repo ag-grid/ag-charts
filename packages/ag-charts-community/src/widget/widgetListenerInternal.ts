@@ -95,6 +95,11 @@ function startMouseDrag(
     that.globalMouseDragCallbacks.mousedown(downEvent);
 }
 
+function getTouchOffsets(current: Targetable, { pageX, pageY }: Touch): { offsetX: number; offsetY: number } {
+    const { x, y } = current.getElement().getBoundingClientRect();
+    return { offsetX: pageX - x, offsetY: pageY - y };
+}
+
 function makeTouchDrag<K extends DragEvents>(
     current: Targetable,
     type: K,
@@ -300,8 +305,8 @@ export class WidgetListenerInternal {
     }
 
     private startTouchDrag<T extends Targetable>(current: T, initialEvent: TouchEvent, initialTouch: Touch) {
-        const origin: DragOrigin = { pageX: NaN, pageY: NaN, offsetX: NaN, offsetY: NaN };
-        partialAssign(['pageX', 'pageY', 'offsetX', 'offsetY'], origin, initialTouch);
+        const origin: DragOrigin = { pageX: NaN, pageY: NaN, ...getTouchOffsets(current, initialTouch) };
+        partialAssign(['pageX', 'pageY'], origin, initialTouch);
 
         const dragCallbacks: TouchDragCallbacks = {
             touchmove: (moveEvent: TouchEvent, touch: Touch) => {
