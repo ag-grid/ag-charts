@@ -116,9 +116,14 @@ const mapExampleHeights = 360;
                 <div class={styles.heroHeadings}>
                     <noscript>
                         <h1>The Best JavaScript Charts in the World</h1>
+                        <style>
+                            .only-script {
+                                display: none !important;
+                            }
+                        </style>
                     </noscript>
 
-                    <h1>
+                    <h1 class="only-script">
                         <span>The Best</span>
                         <FrameworkTextAnimation suffix="Charts" client:load />
                         <span>in the world</span>
