@@ -376,14 +376,11 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         let tickDomain: D[] = niceDomain;
         let rawTicks: any[];
 
-        // @todo(xxx) - removing this references makes TS errors
-        const scaleStopTsComplaining = scale;
-
         switch (tickGenerationType) {
             case TickGenerationType.VALUES:
                 tickDomain = interval.values!;
                 rawTicks = interval.values!;
-                if (ContinuousScale.is(scaleStopTsComplaining)) {
+                if (ContinuousScale.is(scale)) {
                     const [d0, d1] = findMinMax(niceDomain.map(Number));
                     rawTicks = rawTicks
                         .filter((value) => Number(value) >= d0 && Number(value) <= d1)
@@ -391,7 +388,7 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                 }
                 break;
             case TickGenerationType.CREATE_SECONDARY:
-                if (ContinuousScale.is(scaleStopTsComplaining)) {
+                if (ContinuousScale.is(scale)) {
                     const secondaryAxisTicks = calculateNiceSecondaryAxis(
                         domain.map(Number),
                         primaryTickCount ?? 0,
@@ -399,10 +396,10 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     );
 
                     rawTicks = secondaryAxisTicks.ticks;
-                    niceDomain = secondaryAxisTicks.domain.map((d) => scaleStopTsComplaining.toDomain(d));
+                    niceDomain = secondaryAxisTicks.domain.map((d) => scale.toDomain(d));
                 } else {
                     // AG-10654 Just use normal ticks for categorical axes.
-                    rawTicks = scaleStopTsComplaining.ticks(tickParams, niceDomain, visibleRange) ?? [];
+                    rawTicks = scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
                 }
                 break;
             case TickGenerationType.FILTER:
