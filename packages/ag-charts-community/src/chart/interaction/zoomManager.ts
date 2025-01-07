@@ -62,6 +62,8 @@ export type ChartAxisLike = {
     scale: Scale<any, any>;
     range: [number, number];
     boundSeries: ISeries<any, any>[];
+    min?: number;
+    max?: number;
 };
 
 type ZoomEvents = ZoomChangeEvent | ZoomPanStartEvent;
@@ -576,6 +578,15 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
                 max = y1;
                 maxPadding = !connectsToYAxis || yValue1 > 0;
             }
+        }
+
+        // We could avoid the loop if both these are set, but it's not worth the complexity
+        if (isFiniteNumber(yAxis.min)) {
+            min = 0;
+        }
+
+        if (isFiniteNumber(yAxis.max)) {
+            max = 1;
         }
 
         xScale.range = xScaleRange;
