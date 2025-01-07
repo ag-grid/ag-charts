@@ -123,6 +123,7 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         });
 
         this.setSizeOptions();
+        this.updateContainerSize();
 
         this.addStyles('ag-charts-community', STYLES);
 
@@ -165,8 +166,14 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     private updateContainerSize() {
         const { style: centerStyle } = this.rootElements['canvas-center'].element;
 
-        centerStyle.width = `${this.containerSize?.width ?? 0}px`;
-        centerStyle.height = `${this.containerSize?.height ?? 0}px`;
+        centerStyle.visibility = this.containerSize == null ? 'hidden' : '';
+        if (this.containerSize) {
+            centerStyle.width = `${this.containerSize.width ?? 0}px`;
+            centerStyle.height = `${this.containerSize.height ?? 0}px`;
+        } else {
+            centerStyle.width = '';
+            centerStyle.height = '';
+        }
     }
 
     setTabGuardIndex(tabIndex: number) {
