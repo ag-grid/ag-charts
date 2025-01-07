@@ -62,10 +62,7 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
 
     @media screen and (min-width: $breakpoint-hero-large) {
         align-items: flex-start;
-        padding-top: $spacing-size-12;
-    }
-
-    @media screen and (min-width: $breakpoint-hero-large) {
+        padding-top: $spacing-size-20;
         text-align: unset;
     }
 
@@ -138,6 +135,10 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
             transform: translateX(4px);
         }
     }
+}
+
+.heroTopLine {
+    display: flex;
 }
 
 .galleryScroller {
