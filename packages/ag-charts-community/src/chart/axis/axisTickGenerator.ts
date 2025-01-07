@@ -400,14 +400,14 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     niceDomain = secondaryAxisTicks.domain.map((d) => scaleStopTsComplaining.toDomain(d));
                 } else {
                     // AG-10654 Just use normal ticks for categorical axes.
-                    rawTicks = scaleStopTsComplaining.ticks(tickParams, niceDomain) ?? [];
+                    rawTicks = scaleStopTsComplaining.ticks(tickParams, niceDomain, visibleRange) ?? [];
                 }
                 break;
             case TickGenerationType.FILTER:
                 rawTicks = this.filterTicks(previousTicks, tickCount);
                 break;
             default:
-                rawTicks = scale.ticks(tickParams, niceDomain) ?? [];
+                rawTicks = scale.ticks(tickParams, niceDomain, visibleRange) ?? [];
                 break;
         }
 

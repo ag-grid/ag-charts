@@ -64,7 +64,8 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
 
     override ticks(
         { interval, maxTickCount }: ScaleTickParams<TimeInterval | number>,
-        domain: Date[] = this.domain
+        domain: Date[] = this.domain,
+        visibleRange: [number, number] = [0, 1]
     ): Date[] {
         if (!domain.length) {
             return [];
@@ -78,12 +79,12 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         const stop = Math.max(t0, t1);
 
         if (interval == null) {
-            return this.getDefaultTicks(maxTickCount, isReversed);
+            return this.getDefaultTicks(maxTickCount, isReversed, visibleRange);
         }
 
         const [r0, r1] = this.range;
         const availableRange = Math.abs(r1 - r0);
-        const ticks = getDateTicksForInterval({ start, stop, interval, availableRange }) ?? [];
+        const ticks = getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange }) ?? [];
 
         let lastIndex = -1;
         return ticks.filter((tick) => {
@@ -95,13 +96,16 @@ export class OrdinalTimeScale extends BandScale<Date, TimeInterval | number> {
         });
     }
 
-    private getDefaultTicks(maxTickCount: number, isReversed: boolean) {
+    private getDefaultTicks(maxTickCount: number, isReversed: boolean, visibleRange: [number, number]) {
         const { domain } = this;
         const ticks: Date[] = [];
         const tickEvery = Math.ceil(domain.length / maxTickCount);
         const tickOffset = Math.floor(tickEvery / 2);
 
-        for (let index = 0; index < domain.length; index += 1) {
+        const startIndex = Math.floor(visibleRange[0] * domain.length);
+        const endIndex = Math.ceil(visibleRange[1] * domain.length);
+
+        for (let index = startIndex; index < endIndex; index += 1) {
             const value = domain[index];
             const tickIndex = isReversed ? domain.length - 1 - index : index;
             if (tickEvery <= 0 || (tickIndex + tickOffset) % tickEvery === 0) {
