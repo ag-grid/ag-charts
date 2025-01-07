@@ -1,21 +1,20 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
 const { clamp } = _ModuleSupport;
-
-type SelectionNode = { node: _ModuleSupport.Path; datum: _ModuleSupport.SeriesNodeDatum };
+type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum<unknown>;
+type SelectionNode = { node: _ModuleSupport.Path; datum: SeriesNodeDatum };
+type PickFocusInputs = _ModuleSupport.PickFocusInputs;
+type PickFocusOutputs = _ModuleSupport.PickFocusOutputs;
 type GaugeSeriesProperties = {
     contextNodeData?: {
-        nodeData: _ModuleSupport.SeriesNodeDatum[];
-        targetData: _ModuleSupport.SeriesNodeDatum[];
+        nodeData: SeriesNodeDatum[];
+        targetData: SeriesNodeDatum[];
     };
     datumSelection: Iterable<SelectionNode>;
     targetSelection: Iterable<SelectionNode>;
 };
 
-export function pickGaugeFocus(
-    self: GaugeSeriesProperties,
-    opts: _ModuleSupport.PickFocusInputs
-): _ModuleSupport.PickFocusOutputs | undefined {
+export function pickGaugeFocus(self: GaugeSeriesProperties, opts: PickFocusInputs): PickFocusOutputs | undefined {
     const others = [
         { data: self.contextNodeData?.nodeData, selection: self.datumSelection },
         { data: self.contextNodeData?.targetData, selection: self.targetSelection },
