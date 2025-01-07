@@ -9,6 +9,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 
+import { pickGaugeFocus } from '../gauge-util/focus';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { type UnknownGaugeNodeDatum, parseUnknownGaugeNodeDatum } from '../gauge-util/properties';
@@ -169,7 +170,7 @@ export class RadialGaugeSeries
         this.scaleGroup,
         () => this.nodeFactory()
     );
-    private datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum> = Selection.select(
+    public datumSelection: _ModuleSupport.Selection<_ModuleSupport.Sector, RadialGaugeNodeDatum> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory()
     );
@@ -177,7 +178,7 @@ export class RadialGaugeSeries
         this.itemNeedleGroup,
         RadialGaugeNeedle
     );
-    private targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum> = Selection.select(
+    public targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, RadialGaugeTargetDatum> = Selection.select(
         this.itemTargetGroup,
         () => this.markerFactory()
     );
@@ -456,7 +457,7 @@ export class RadialGaugeSeries
         const maxTicks = Math.ceil(normalizeAngle360Inclusive(containerEndAngle - containerStartAngle) * radius);
         let segments = segmentation.enabled ? segmentation.interval.getSegments(angleAxis.scale, maxTicks) : undefined;
 
-        const barFill = bar.fill ?? this.createConicGradient(bar.fills, bar.fillMode);
+        const barFill = !bar.enabled ? 'rgba(0,0,0,0)' : bar.fill ?? this.createConicGradient(bar.fills, bar.fillMode);
         const scaleFill =
             scale.fill ??
             (bar.enabled && scale.fills.length === 0 ? scale.defaultFill : undefined) ??
@@ -468,26 +469,24 @@ export class RadialGaugeSeries
             const appliedCornerRadius = Math.min(cornerRadius, (outerRadius - innerRadius) / 2);
             const angleInset = appliedCornerRadius / ((innerRadius + outerRadius) / 2);
 
-            if (bar.enabled) {
-                nodeData.push({
-                    series: this,
-                    itemId: `value`,
-                    datum,
-                    datumIndex: { type: NodeDataType.Node },
-                    type: NodeDataType.Node,
-                    centerX,
-                    centerY,
-                    outerRadius,
-                    innerRadius,
-                    startAngle: containerStartAngle - angleInset,
-                    endAngle: containerEndAngle + angleInset,
-                    clipStartAngle: undefined,
-                    clipEndAngle: undefined,
-                    startCornerRadius: cornerRadius,
-                    endCornerRadius: cornerRadius,
-                    fill: barFill,
-                });
-            }
+            nodeData.push({
+                series: this,
+                itemId: `value`,
+                datum,
+                datumIndex: { type: NodeDataType.Node },
+                type: NodeDataType.Node,
+                centerX,
+                centerY,
+                outerRadius,
+                innerRadius,
+                startAngle: containerStartAngle - angleInset,
+                endAngle: containerEndAngle + angleInset,
+                clipStartAngle: undefined,
+                clipEndAngle: undefined,
+                startCornerRadius: cornerRadius,
+                endCornerRadius: cornerRadius,
+                fill: barFill,
+            });
 
             scaleData.push({
                 series: this,
@@ -521,26 +520,24 @@ export class RadialGaugeSeries
                 const itemStartAngle = angleScale.convert(segmentStart);
                 const itemEndAngle = angleScale.convert(segmentEnd);
 
-                if (bar.enabled) {
-                    nodeData.push({
-                        series: this,
-                        itemId: `value-${i}`,
-                        datum,
-                        datumIndex: { type: NodeDataType.Node },
-                        type: NodeDataType.Node,
-                        centerX,
-                        centerY,
-                        outerRadius,
-                        innerRadius,
-                        startAngle: itemStartAngle,
-                        endAngle: itemEndAngle,
-                        clipStartAngle: containerStartAngle,
-                        clipEndAngle: containerEndAngle,
-                        startCornerRadius: cornersOnAllItems || isStart ? cornerRadius : 0,
-                        endCornerRadius: cornersOnAllItems || isEnd ? cornerRadius : 0,
-                        fill: barFill,
-                    });
-                }
+                nodeData.push({
+                    series: this,
+                    itemId: `value-${i}`,
+                    datum,
+                    datumIndex: { type: NodeDataType.Node },
+                    type: NodeDataType.Node,
+                    centerX,
+                    centerY,
+                    outerRadius,
+                    innerRadius,
+                    startAngle: itemStartAngle,
+                    endAngle: itemEndAngle,
+                    clipStartAngle: containerStartAngle,
+                    clipEndAngle: containerEndAngle,
+                    startCornerRadius: cornersOnAllItems || isStart ? cornerRadius : 0,
+                    endCornerRadius: cornersOnAllItems || isEnd ? cornerRadius : 0,
+                    fill: barFill,
+                });
 
                 scaleData.push({
                     series: this,
@@ -1162,19 +1159,7 @@ export class RadialGaugeSeries
     }
 
     override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
-        const targetData = this.contextNodeData?.targetData;
-        if (targetData == null || targetData.length === 0) return;
-
-        const datumIndex = Math.min(Math.max(opts.datumIndex, 0), targetData.length - 1);
-
-        const datum = targetData[datumIndex];
-
-        for (const node of this.targetSelection) {
-            if (node.datum === datum) {
-                const bounds = node.node;
-                return { bounds, showFocusBox: true, clipFocusBox: true, datum, datumIndex };
-            }
-        }
+        return pickGaugeFocus(this, opts);
     }
 
     getCaptionText(): string {

@@ -439,8 +439,8 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private handleSeriesFocus(otherIndexDelta: number, datumIndexDelta: number, refresh = false) {
-        if (this.chart.chartType === 'hierarchy') {
-            this.handleHierarchySeriesFocus(otherIndexDelta, datumIndexDelta, refresh);
+        if (this.chart.chartType === 'hierarchy' || this.chart.chartType === 'gauge') {
+            this.handleSoloSeriesFocus(otherIndexDelta, datumIndexDelta, refresh);
             return;
         }
         const { focus, seriesRect } = this;
@@ -457,10 +457,11 @@ export class SeriesAreaManager extends BaseManager {
         this.updatePickedFocus(pick, refresh);
     }
 
-    private handleHierarchySeriesFocus(otherIndexDelta: number, datumIndexDelta: number, refresh: boolean) {
-        // Hierarchial charts (treemap, sunburst) can only have 1 series. So we'll repurpose the focus.seriesIndex
-        // value to control the focused depth. This allows the hierarchial charts to piggy-back on the base keyboard
-        // handling implementation.
+    private handleSoloSeriesFocus(otherIndexDelta: number, datumIndexDelta: number, refresh: boolean) {
+        // Some chart type (treemap, sunburst, gauges) can only have 1 series. So we'll repurpose the focus.seriesIndex
+        // value. Hierarchial charts use arrowup/down to change depth and gauges use arrowup/down to change datum type
+        // (bar/needle, targets). This allows the hierarchial and gauge charts to piggy-backon the base keyboard handling
+        // implementation.
         this.focus.series = this.focus.sortedSeries[0];
         const {
             focus: { series, seriesIndex: otherIndex, datumIndex },
@@ -475,7 +476,10 @@ export class SeriesAreaManager extends BaseManager {
         const { focus, hoverRect } = this;
         if (pick === undefined || focus.series === undefined || hoverRect === undefined) return;
 
-        const { datum, datumIndex } = pick;
+        const { datum, datumIndex, otherIndex } = pick;
+        if (otherIndex !== undefined) {
+            focus.seriesIndex = otherIndex;
+        }
         focus.datumIndex = datumIndex;
         focus.datum = datum;
 

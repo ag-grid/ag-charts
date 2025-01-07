@@ -7,6 +7,7 @@ import {
     _ModuleSupport,
 } from 'ag-charts-community';
 
+import { pickGaugeFocus } from '../gauge-util/focus';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
 import { type UnknownGaugeNodeDatum, parseUnknownGaugeNodeDatum } from '../gauge-util/properties';
@@ -179,11 +180,11 @@ export class LinearGaugeSeries
         this.scaleGroup,
         () => this.nodeFactory()
     );
-    private datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum> = Selection.select(
+    public datumSelection: _ModuleSupport.Selection<_ModuleSupport.Rect, LinearGaugeNodeDatum> = Selection.select(
         this.itemGroup,
         () => this.nodeFactory()
     );
-    private targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum> = Selection.select(
+    public targetSelection: _ModuleSupport.Selection<_ModuleSupport.Marker, LinearGaugeTargetDatum> = Selection.select(
         this.itemTargetGroup,
         () => this.markerFactory()
     );
@@ -1112,19 +1113,7 @@ export class LinearGaugeSeries
     }
 
     override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
-        const targetData = this.contextNodeData?.targetData;
-        if (targetData == null || targetData.length === 0) return;
-
-        const datumIndex = Math.min(Math.max(opts.datumIndex, 0), targetData.length - 1);
-
-        const datum = targetData[datumIndex];
-
-        for (const node of this.targetSelection) {
-            if (node.datum === datum) {
-                const bounds = node.node;
-                return { bounds, showFocusBox: true, clipFocusBox: true, datum, datumIndex };
-            }
-        }
+        return pickGaugeFocus(this, opts);
     }
 
     getCaptionText(): string {
