@@ -89,7 +89,7 @@ export interface AgChartThemeParams {
     foregroundColor?: CssColor;
     /** The font family. */
     fontFamily?: FontFamily;
-    /** The font size. */
+    /** The font size for all text except titles and footer. */
     fontSize?: FontSize;
     /** The font weight. */
     fontWeight?: FontWeight;
