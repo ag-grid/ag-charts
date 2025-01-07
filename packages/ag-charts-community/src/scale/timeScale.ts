@@ -111,7 +111,7 @@ function getDefaultDateTicks({
     visibleRange: [number, number];
 }) {
     const t = getTickInterval(start, stop, tickCount, minTickCount, maxTickCount);
-    return t ? t.range(new Date(start), new Date(stop), undefined, visibleRange) : []; // inclusive stop
+    return t ? t.range(new Date(start), new Date(stop), { visibleRange }) : []; // inclusive stop
 }
 
 export function getDateTicksForInterval({
@@ -132,7 +132,7 @@ export function getDateTicksForInterval({
     }
 
     if (interval instanceof TimeInterval) {
-        const ticks = interval.range(new Date(start), new Date(stop), undefined, visibleRange);
+        const ticks = interval.range(new Date(start), new Date(stop), { visibleRange });
         if (isDenseInterval(ticks.length, availableRange)) {
             return;
         }
@@ -148,7 +148,7 @@ export function getDateTicksForInterval({
 
     if (timeInterval) {
         const i = timeInterval.timeInterval.every(absInterval / (timeInterval.duration / timeInterval.step));
-        return i.range(new Date(start), new Date(stop), undefined, visibleRange);
+        return i.range(new Date(start), new Date(stop), { visibleRange });
     }
 
     let date = new Date(start);
@@ -183,7 +183,7 @@ function updateNiceDomainIteration(d0: Date, d1: Date, ticks: ScaleTickParams<Ti
     }
 
     if (i) {
-        const intervalRange = i.range(new Date(start), new Date(stop), true);
+        const intervalRange = i.range(new Date(start), new Date(stop), { extend: true });
         const domain = isReversed ? [...intervalRange].reverse() : intervalRange;
         const n0 = domain[0];
         const n1 = domain.at(-1)!;

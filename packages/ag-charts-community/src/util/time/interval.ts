@@ -53,7 +53,11 @@ export class TimeInterval {
      * @param stop Range end.
      * @param extend If specified, the requested range will be extended to the closest "nice" values.
      */
-    range(start: Date, stop: Date, extend: boolean = false, visibleRange?: [number, number]): Date[] {
+    range(
+        start: Date,
+        stop: Date,
+        { extend = false, visibleRange }: { extend?: boolean; visibleRange?: [number, number] } = {}
+    ): Date[] {
         const rangeCallback = this._rangeCallback?.(start, stop);
 
         const e0 = this._encode(extend ? this.floor(start) : this.ceil(start));
