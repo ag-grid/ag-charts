@@ -79,7 +79,8 @@ export class LogScale extends ContinuousScale<number> {
 
     override ticks(
         { interval, tickCount = ContinuousScale.defaultTickCount }: ScaleTickParams<number>,
-        domain: number[] = this.domain
+        domain: number[] = this.domain,
+        visibleRange?: [number, number]
     ): number[] {
         if (!domain || domain.length < 2 || tickCount < 1) {
             return [];
@@ -109,7 +110,7 @@ export class LogScale extends ContinuousScale<number> {
             return createTicks(p0, p1, Math.min(p1 - p0, tickCount)).map(this.pow);
         }
 
-        const ticks: number[] = [];
+        let ticks: number[] = [];
         const isPositive = start > 0;
         p0 = Math.floor(p0) - 1;
         p1 = Math.round(p1) + 1;
@@ -131,6 +132,13 @@ export class LogScale extends ContinuousScale<number> {
                 }
             }
         }
+
+        if (visibleRange != null) {
+            const t0 = Math.max(0, Math.floor(visibleRange[0] * ticks.length));
+            const t1 = Math.min(ticks.length, Math.ceil(visibleRange[1] * ticks.length));
+            ticks = ticks.slice(t0, t1);
+        }
+
         return ticks;
     }
 

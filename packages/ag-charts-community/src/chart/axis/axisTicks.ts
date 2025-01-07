@@ -9,7 +9,7 @@ import { Selection } from '../../scene/selection';
 import { Text } from '../../scene/shape/text';
 import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
-import { countFractionDigits, findMinMax, findRangeExtent, round } from '../../util/number';
+import { countFractionDigits, findMinMax, findRangeExtent } from '../../util/number';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { CachedTextMeasurerPool } from '../../util/textMeasurer';
 import { estimateTickCount } from '../../util/ticks';
@@ -50,7 +50,7 @@ interface LabelNodeDatum {
 
 export class AxisTicks {
     static readonly DefaultTickCount = 5;
-    static readonly DefaultMinSpacing = 50;
+    static readonly DefaultMinSpacing = 10;
 
     readonly id = createId(this);
 
@@ -146,9 +146,9 @@ export class AxisTicks {
 
     private generateTicks() {
         const { minSpacing, maxSpacing } = this.interval;
-        const extentWithBleed = round(findRangeExtent(this.scale.range), 2);
         const { maxTickCount, minTickCount, tickCount } = estimateTickCount(
-            extentWithBleed,
+            findRangeExtent(this.scale.range),
+            1,
             minSpacing,
             maxSpacing,
             AxisTicks.DefaultTickCount,
@@ -156,7 +156,7 @@ export class AxisTicks {
         );
 
         const tickData = this.getTicksData({
-            nice: false,
+            nice: true,
             interval: this.interval.step,
             tickCount,
             minTickCount,
@@ -182,14 +182,15 @@ export class AxisTicks {
 
     private getTicksData(tickParams: ScaleTickParams<any>) {
         const ticks: TickDatum[] = [];
-        const rawTicks = this.scale.ticks(tickParams);
+        const niceDomain = tickParams.nice ? this.scale.niceDomain(tickParams) : this.scale.domain;
+        const rawTicks = this.scale.ticks(tickParams, niceDomain);
         const fractionDigits = rawTicks.reduce((max, tick) => Math.max(max, countFractionDigits(tick)), 0);
         const idGenerator = createIdsGenerator();
 
         const labelFormatter = this.label.format
             ? this.scale.tickFormatter({
+                  domain: niceDomain,
                   ticks: rawTicks,
-                  visibleTicks: rawTicks,
                   fractionDigits,
                   specifier: this.label.format,
               })

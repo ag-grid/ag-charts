@@ -45,7 +45,11 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
     /**
      * Returns uniformly-spaced dates that represent the scale's domain.
      */
-    override ticks(params: ScaleTickParams<TimeInterval | number>, domain: Date[] = this.domain): Date[] {
+    override ticks(
+        params: ScaleTickParams<TimeInterval | number>,
+        domain: Date[] = this.domain,
+        visibleRange: [number, number] = [0, 1]
+    ): Date[] {
         const { nice, interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount } = params;
         if (domain.length < 2) return [];
 
@@ -53,19 +57,24 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
 
         if (interval != null) {
             return (
-                getDateTicksForInterval({ start, stop, interval, availableRange: this.getPixelRange() }) ??
-                getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount })
+                getDateTicksForInterval({
+                    start,
+                    stop,
+                    interval,
+                    availableRange: this.getPixelRange(),
+                    visibleRange,
+                }) ?? getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange })
             );
         } else if (nice && tickCount === 2) {
             return domain;
         } else if (nice && tickCount === 1) {
             return domain.slice(0, 1);
         }
-        return getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount });
+        return getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange });
     }
 
-    private _tickFormatter({ visibleTicks, ticks, specifier }: ScaleFormatParams<Date>, formatOffset?: number) {
-        return specifier != null ? buildFormatter(specifier) : defaultTimeTickFormat(visibleTicks, ticks, formatOffset);
+    private _tickFormatter({ domain, ticks, specifier }: ScaleFormatParams<Date>, formatOffset?: number) {
+        return specifier != null ? buildFormatter(specifier) : defaultTimeTickFormat(ticks, domain, formatOffset);
     }
 
     /**
@@ -92,15 +101,17 @@ function getDefaultDateTicks({
     tickCount,
     minTickCount,
     maxTickCount,
+    visibleRange,
 }: {
     start: number;
     stop: number;
     tickCount: number;
     minTickCount: number;
     maxTickCount: number;
+    visibleRange: [number, number];
 }) {
     const t = getTickInterval(start, stop, tickCount, minTickCount, maxTickCount);
-    return t ? t.range(new Date(start), new Date(stop)) : []; // inclusive stop
+    return t ? t.range(new Date(start), new Date(stop), { visibleRange }) : []; // inclusive stop
 }
 
 export function getDateTicksForInterval({
@@ -108,18 +119,20 @@ export function getDateTicksForInterval({
     stop,
     interval,
     availableRange,
+    visibleRange,
 }: {
     start: number;
     stop: number;
     interval: number | TimeInterval;
     availableRange: number;
+    visibleRange: [number, number] | undefined;
 }): Date[] | undefined {
     if (!interval) {
         return [];
     }
 
     if (interval instanceof TimeInterval) {
-        const ticks = interval.range(new Date(start), new Date(stop));
+        const ticks = interval.range(new Date(start), new Date(stop), { visibleRange });
         if (isDenseInterval(ticks.length, availableRange)) {
             return;
         }
@@ -135,7 +148,7 @@ export function getDateTicksForInterval({
 
     if (timeInterval) {
         const i = timeInterval.timeInterval.every(absInterval / (timeInterval.duration / timeInterval.step));
-        return i.range(new Date(start), new Date(stop));
+        return i.range(new Date(start), new Date(stop), { visibleRange });
     }
 
     let date = new Date(start);
@@ -170,7 +183,7 @@ function updateNiceDomainIteration(d0: Date, d1: Date, ticks: ScaleTickParams<Ti
     }
 
     if (i) {
-        const intervalRange = i.range(new Date(start), new Date(stop), true);
+        const intervalRange = i.range(new Date(start), new Date(stop), { extend: true });
         const domain = isReversed ? [...intervalRange].reverse() : intervalRange;
         const n0 = domain[0];
         const n1 = domain.at(-1)!;

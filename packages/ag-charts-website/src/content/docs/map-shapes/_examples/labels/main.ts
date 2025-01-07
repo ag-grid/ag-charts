@@ -29,13 +29,9 @@ const options: AgChartOptions = {
     gradientLegend: {
         enabled: true,
         scale: {
-            interval: {
-                minSpacing: 1,
-                values: [0, 1e6, 2e6, 3e6, 4e6],
-            },
             label: {
                 fontSize: 9,
-                formatter: ({ value }) => `$${Math.floor(+value / 1e6)}M`,
+                formatter: ({ value }) => `$${Math.floor(+value / 1e6)}T`,
             },
         },
     },

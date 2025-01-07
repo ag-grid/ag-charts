@@ -18,7 +18,7 @@ import { ChartAxisDirection } from '../chartAxisDirection';
 import type { AnimationManager } from '../interaction/animationManager';
 import { Axis, AxisGroupZIndexMap, type LabelNodeDatum, TranslatableLine } from './axis';
 import { AxisTickGenerator, type TickGenerationResult } from './axisTickGenerator';
-import type { AxisLabelDatum, TickDatum } from './axisUtil';
+import type { AxisLabelDatum, NiceMode, TickDatum } from './axisUtil';
 import {
     prepareAxisAnimationContext,
     prepareAxisAnimationFunctions,
@@ -161,13 +161,14 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
     override calculateTickLayout(
         domain: D[],
+        niceMode: NiceMode,
         visibleRange: [number, number],
         initialPrimaryTickCount?: number
     ): {
         niceDomain: D[];
         primaryTickCount: number | undefined;
+        tickDomain: D[];
         ticks: D[];
-        visibleTicks: D[];
         fractionDigits: number;
         bbox: BBox;
     } {
@@ -178,6 +179,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
 
         const tickGenerationResult = this.tickGenerator.generateTicks({
             domain,
+            niceMode,
             visibleRange,
             primaryTickCount: initialPrimaryTickCount,
             parallelFlipRotation,
@@ -200,8 +202,8 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         return {
             niceDomain,
             primaryTickCount,
+            tickDomain: tickData?.tickDomain ?? niceDomain,
             ticks: tickData?.rawTicks ?? [],
-            visibleTicks: tickData?.rawVisibleTicks ?? [],
             fractionDigits,
             bbox,
         };

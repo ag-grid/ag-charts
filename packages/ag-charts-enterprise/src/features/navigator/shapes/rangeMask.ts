@@ -79,7 +79,9 @@ export class RangeMask extends Path {
 
         clippedRoundRect(path, ax, ay, aw, ah, cornerRadiusParams, new BBox(ax, ay, minX - ax, ah));
         clippedRoundRect(path, ax, ay, aw, ah, cornerRadiusParams, new BBox(maxX, ay, aw + ax - maxX, ah));
-        clippedRoundRect(visiblePath, ax, ay, aw, ah, cornerRadiusParams, new BBox(minX, ay, maxX - minX, ah));
+        if (maxX - minX > 1) {
+            clippedRoundRect(visiblePath, ax, ay, aw, ah, cornerRadiusParams, new BBox(minX, ay, maxX - minX, ah));
+        }
     }
 
     protected override renderStroke(ctx: _ModuleSupport.CanvasContext, path?: Path2D): void {

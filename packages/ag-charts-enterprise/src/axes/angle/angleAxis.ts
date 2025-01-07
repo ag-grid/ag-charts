@@ -75,8 +75,8 @@ export abstract class AngleAxis<
     override calculateTickLayout(domain: TDomain[]): {
         niceDomain: any[];
         primaryTickCount: number | undefined;
+        tickDomain: TDomain[];
         ticks: TDomain[];
-        visibleTicks: TDomain[];
         fractionDigits: number;
         bbox: _ModuleSupport.BBox;
     } {
@@ -100,8 +100,8 @@ export abstract class AngleAxis<
         return {
             niceDomain,
             primaryTickCount: undefined,
+            tickDomain: niceDomain,
             ticks,
-            visibleTicks: ticks,
             fractionDigits: 0,
             bbox: this.getBBox(),
         };

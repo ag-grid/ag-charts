@@ -187,7 +187,7 @@ export interface TimeInterval {
      * Returns an array of dates representing every interval boundary after or equal to start (inclusive) and before stop (exclusive).
      * @param start Range start.
      * @param stop Range end.
-     * @param extend If specified, the requested range will be extended to the closest "nice" values.
+     * @param params If specified, the requested range will be extended to the closest "nice" values.
      */
-    range(start: Date, stop: Date, extend?: boolean): Date[];
+    range(start: Date, stop: Date, params?: { extend?: boolean }): Date[];
 }

@@ -6,6 +6,12 @@ import type { RotatableText, TransformableText } from '../../scene/shape/text';
 import type { TranslatableType } from '../../scene/transformable';
 import { findMinMax } from '../../util/number';
 
+export enum NiceMode {
+    TickAndDomain,
+    TicksOnly,
+    Off,
+}
+
 export interface TickDatum {
     tickLabel: string;
     tick: any;

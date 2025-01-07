@@ -53,7 +53,11 @@ export class TimeInterval {
      * @param stop Range end.
      * @param extend If specified, the requested range will be extended to the closest "nice" values.
      */
-    range(start: Date, stop: Date, extend?: boolean): Date[] {
+    range(
+        start: Date,
+        stop: Date,
+        { extend = false, visibleRange }: { extend?: boolean; visibleRange?: [number, number] } = {}
+    ): Date[] {
         const rangeCallback = this._rangeCallback?.(start, stop);
 
         const e0 = this._encode(extend ? this.floor(start) : this.ceil(start));
@@ -62,8 +66,12 @@ export class TimeInterval {
             return [];
         }
 
+        const de = e1 - e0;
+        const startIndex = visibleRange != null ? Math.floor(e0 + visibleRange[0] * de) : e0;
+        const endIndex = visibleRange != null ? Math.ceil(e0 + visibleRange[1] * de) : e1;
+
         const range: Date[] = [];
-        for (let e = e0; e <= e1; e++) {
+        for (let e = startIndex; e <= endIndex; e += 1) {
             const d = this._decode(e);
             range.push(d);
         }

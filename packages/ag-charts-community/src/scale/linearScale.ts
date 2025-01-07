@@ -24,7 +24,8 @@ export class LinearScale extends ContinuousScale<number> {
 
     override ticks(
         { interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount }: ScaleTickParams<number>,
-        domain: number[] = this.domain
+        domain: number[] = this.domain,
+        visibleRange?: [number, number]
     ): number[] {
         if (!domain || domain.length < 2 || tickCount < 1 || !domain.every(isFinite)) {
             return [];
@@ -38,7 +39,15 @@ export class LinearScale extends ContinuousScale<number> {
             }
         }
 
-        return createTicks(d0, d1, tickCount, minTickCount, maxTickCount);
+        let ticks = createTicks(d0, d1, tickCount, minTickCount, maxTickCount);
+
+        if (visibleRange != null) {
+            const t0 = Math.max(0, Math.floor(visibleRange[0] * ticks.length));
+            const t1 = Math.min(ticks.length, Math.ceil(visibleRange[1] * ticks.length));
+            ticks = ticks.slice(t0, t1);
+        }
+
+        return ticks;
     }
 
     override niceDomain(ticks: ScaleTickParams<number>, domain: number[] = this.domain) {
@@ -70,13 +79,13 @@ export class LinearScale extends ContinuousScale<number> {
         return [start, stop];
     }
 
-    override tickFormatter({ visibleTicks: specifiedTicks, fractionDigits, specifier }: ScaleFormatParams<number>) {
+    override tickFormatter({ ticks: specifiedTicks, fractionDigits, specifier }: ScaleFormatParams<number>) {
         return specifier != null
             ? tickFormat(specifiedTicks, specifier)
             : (x: number) => formatValue(x, fractionDigits);
     }
 
-    override datumFormatter({ visibleTicks: specifiedTicks, fractionDigits, specifier }: ScaleFormatParams<number>) {
+    override datumFormatter({ ticks: specifiedTicks, fractionDigits, specifier }: ScaleFormatParams<number>) {
         return specifier != null
             ? tickFormat(specifiedTicks, specifier)
             : (x: number) => formatValue(x, fractionDigits + 1);

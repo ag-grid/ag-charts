@@ -126,6 +126,7 @@ export function tickStep(start: number, end: number, count: number, minCount = 0
         minDiff = Infinity,
         isInBounds = false;
     for (const multiplier of TickMultipliers) {
+        // @todo(AG-10444) - this should be Math.floor(extent / (multiplier * step)) + 1
         const c = Math.ceil(extent / (multiplier * step));
         const validBounds = c >= minCount && c <= maxCount;
         if (isInBounds && !validBounds) continue;
@@ -227,6 +228,7 @@ export function niceTicksDomain(start: number, end: number) {
 
 export function estimateTickCount(
     rangeExtent: number,
+    zoomExtent: number,
     minSpacing: number,
     maxSpacing: number,
     defaultTickCount: number,
@@ -248,9 +250,9 @@ export function estimateTickCount(
         }
     }
 
-    const maxTickCount = Math.max(1, Math.floor(rangeExtent / minSpacing));
-    const minTickCount = Math.min(maxTickCount, Math.ceil(rangeExtent / maxSpacing));
-    const tickCount = clamp(minTickCount, defaultTickCount, maxTickCount);
+    const maxTickCount = Math.max(1, Math.floor(rangeExtent / (zoomExtent * minSpacing)));
+    const minTickCount = Math.min(maxTickCount, Math.ceil(rangeExtent / (zoomExtent * maxSpacing)));
+    const tickCount = clamp(minTickCount, Math.floor(defaultTickCount / zoomExtent), maxTickCount);
 
     return { minTickCount, maxTickCount, tickCount };
 }
