@@ -15,6 +15,7 @@ import { Version } from '@ag-website-shared/components/whats-new/components/Vers
 import whatsNewData from '@ag-website-shared/content/whats-new/data.json';
 import { HomepageGalleryExamples } from '@components/homepage/components/HomepageGalleryExamples';
 import HomepageDocsExample from '@components/homepage/components/HomepageDocsExample.astro';
+import { FrameworkTextAnimation } from '@ag-website-shared/components/framework-text-animation/FrameworkTextAnimation';
 
 const { blogPrefix } = whatsNewData['charts'];
 
@@ -113,10 +114,23 @@ const mapExampleHeights = 360;
         <div class={styles.homepageHero}>
             <div class:list={[styles.heroInner, 'layout-max-width-small']}>
                 <div class={styles.heroHeadings}>
-                    <p>The Best</p>
-                    <h1>JavaScript Charts</h1>
-                    <p>in the World</p>
+                    <noscript>
+                        <h1>The Best JavaScript Charts in the World</h1>
+                        <style>
+                            .only-script {
+                                display: none !important;
+                            }
+                        </style>
+                    </noscript>
+
+                    <h1 class="only-script">
+                        <span>The Best</span>
+                        <FrameworkTextAnimation suffix="Charts" client:load />
+                        <span>in the world</span>
+                    </h1>
+
                     <h2>The professional choice for developers building enterprise applications</h2>
+
                     <a
                         href={urlWithBaseUrl(
                             '/gallery?utm_source=charts-homepage&utm_medium=hero-section&utm_campaign=homepage-cta'
