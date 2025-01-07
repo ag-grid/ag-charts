@@ -60,7 +60,6 @@
   ],
   "homepage": "https://ag-grid.com/charts/",
   "dependencies": {
-    "ag-charts-core": "11.0.3-beta.20250105",
     "ag-charts-types": "11.0.3-beta.20250105",
     "ag-charts-locale": "11.0.3-beta.20250105"
   },
@@ -71,6 +70,7 @@
     "@types/node": "^16.0.0",
     "@types/pixelmatch": "^5.2.4",
     "@types/pngjs": "^6.0.1",
+    "ag-charts-core": "11.0.3-beta.20250105",
     "ag-charts-test": "11.0.3-beta.20250105",
     "canvas": "^2.10.2",
     "jest": "^29.5.0",
