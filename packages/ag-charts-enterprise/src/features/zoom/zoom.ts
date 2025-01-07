@@ -11,6 +11,7 @@ import { ZoomScrollPanner } from './zoomScrollPanner';
 import { ZoomScroller } from './zoomScroller';
 import { ZoomSelector } from './zoomSelector';
 import { ZoomToolbar } from './zoomToolbar';
+import { ZoomTwoFingers } from './zoomTwoFingers';
 import type { DefinedZoomState, ZoomProperties } from './zoomTypes';
 import {
     DEFAULT_ANCHOR_POINT_X,
@@ -52,6 +53,7 @@ enum DragState {
     Axis,
     Pan,
     Select,
+    TwoFingers,
 }
 
 interface ZoomAutoScale {
@@ -169,6 +171,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private readonly selector: ZoomSelector;
     private readonly scroller = new ZoomScroller();
     private readonly scrollPanner = new ZoomScrollPanner();
+    private readonly twoFingers = new ZoomTwoFingers();
     private readonly domProxy: ZoomDOMProxy;
 
     @ProxyProperty('panner.deceleration')
@@ -221,6 +224,10 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.widgets.seriesDragInterpreter.addListener('drag-start', (event) => this.onDragStart(event)),
             ctx.widgets.seriesDragInterpreter.addListener('drag-end', () => this.onDragEnd()),
             ctx.widgets.seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
+            ctx.widgets.seriesWidget.addListener('touchstart', (event) => this.onTouchStart(event)),
+            ctx.widgets.seriesWidget.addListener('touchmove', (event, current) => this.onTouchMove(event, current)),
+            ctx.widgets.seriesWidget.addListener('touchend', (event) => this.onTouchEnd(event)),
+            ctx.widgets.seriesWidget.addListener('touchcancel', (event) => this.onTouchEnd(event)),
             ctx.layoutManager.addListener('layout:complete', (event) => this.onLayoutComplete(event)),
             ctx.zoomManager.addListener('zoom-change', (event) => this.onZoomChange(event)),
             ctx.zoomManager.addListener('zoom-pan-start', (event) => this.onZoomPanStart(event)),
@@ -273,7 +280,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         } = this;
 
         if (!enabled) return;
-        if (!this.hoveredAxis && !this.isState(InteractionState.ZoomDraggable)) return;
+        if (!this.hoveredAxis) {
+            if (!this.isState(InteractionState.ZoomDraggable) || this.dragState !== DragState.None) return;
+        }
 
         this.panner.stopInteractions();
 
@@ -486,6 +495,27 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onAxisDragStart(id: string, direction: _ModuleSupport.ChartAxisDirection) {
         this.hoveredAxis = { id, direction };
         this.onDragStart(undefined);
+    }
+
+    private onTouchStart(event: _Widget.TouchWidgetEvent<'touchstart'>) {
+        if (this.dragState !== DragState.None) return;
+        if (this.twoFingers.start(event, this.getZoom())) {
+            this.dragState = DragState.TwoFingers;
+        }
+    }
+
+    private onTouchMove(event: _Widget.TouchWidgetEvent<'touchmove'>, current: _Widget.Widget) {
+        if (this.dragState !== DragState.TwoFingers) return;
+        const newZoom = this.twoFingers.update(event, current);
+        this.updateZoom(newZoom);
+    }
+
+    private onTouchEnd(event: _Widget.TouchWidgetEvent<'touchend' | 'touchcancel'>) {
+        if (this.dragState !== DragState.TwoFingers) return;
+        event.sourceEvent.preventDefault();
+        if (this.twoFingers.end(event)) {
+            this.dragState = DragState.None;
+        }
     }
 
     private onLayoutComplete(event: _ModuleSupport.LayoutCompleteEvent) {

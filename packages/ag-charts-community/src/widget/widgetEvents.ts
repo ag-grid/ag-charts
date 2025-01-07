@@ -1,6 +1,7 @@
 type FocusWidgetEventType = 'blur' | 'focus';
 type KeyboardWidgetEventType = 'keyup' | 'keydown';
 type MouseWidgetEventType = 'contextmenu' | 'click' | 'dblclick' | 'mouseenter' | 'mousemove' | 'mouseleave';
+type TouchWidgetEventType = 'touchstart' | 'touchmove' | 'touchend' | 'touchcancel';
 type DragWidgetEventType = 'drag-start' | 'drag-move' | 'drag-end';
 
 export type WidgetEvent = {
@@ -40,6 +41,11 @@ export type WheelWidgetEvent = {
     readonly sourceEvent: WheelEvent;
 };
 
+export type TouchWidgetEvent<T extends TouchWidgetEventType = TouchWidgetEventType> = {
+    readonly type: T;
+    readonly sourceEvent: TouchEvent;
+};
+
 // `originDelta` is the offset relative to position of the HTML element when the drag initiated.
 // This is helpful for elements that move during drag actions, like navigator sliders.
 export type DragWidgetEvent<T extends DragWidgetEventType = DragWidgetEventType> = {
@@ -71,6 +77,10 @@ export type WidgetEventMap = {
     mousemove: MouseWidgetEvent<'mousemove'>;
     mouseleave: MouseWidgetEvent<'mouseleave'>;
     wheel: WheelWidgetEvent;
+    touchstart: TouchWidgetEvent<'touchstart'>;
+    touchmove: TouchWidgetEvent<'touchmove'>;
+    touchend: TouchWidgetEvent<'touchend'>;
+    touchcancel: TouchWidgetEvent<'touchcancel'>;
 };
 
 export const WIDGET_HTML_EVENTS: readonly (keyof WidgetEventMap & keyof HTMLElementEventMap)[] = [
@@ -86,6 +96,10 @@ export const WIDGET_HTML_EVENTS: readonly (keyof WidgetEventMap & keyof HTMLElem
     'mousemove',
     'mouseleave',
     'wheel',
+    'touchstart',
+    'touchmove',
+    'touchend',
+    'touchcancel',
 ] satisfies (keyof WidgetEventMap & keyof HTMLElementEventMap)[];
 
 export type WidgetSourceEventMap = {
@@ -96,6 +110,10 @@ function allocMouseEvent<T extends MouseWidgetEventType>(type: T, sourceEvent: M
     const { offsetX, offsetY, clientX, clientY } = sourceEvent;
     const { currentX, currentY } = WidgetEventUtil.calcCurrentXY(current, sourceEvent);
     return { type, offsetX, offsetY, clientX, clientY, currentX, currentY, sourceEvent };
+}
+
+function allocTouchEvent<T extends TouchWidgetEventType>(type: T, sourceEvent: TouchEvent, _current: HTMLElement) {
+    return { type, sourceEvent };
 }
 
 export type WidgetEventMap_HTML = Pick<WidgetEventMap, (typeof WIDGET_HTML_EVENTS)[number]>;
@@ -149,6 +167,18 @@ const WidgetAllocators: { [K in keyof WidgetEventMap_HTML]: Allocator<K> } = {
         const deltaX = sourceEvent.deltaX * factor;
         const deltaY = sourceEvent.deltaY * factor;
         return { type: 'wheel', offsetX, offsetY, clientX, clientY, deltaX, deltaY, sourceEvent };
+    },
+    touchstart: (sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchstart'> => {
+        return allocTouchEvent('touchstart', sourceEvent, current);
+    },
+    touchmove: (sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchmove'> => {
+        return allocTouchEvent('touchmove', sourceEvent, current);
+    },
+    touchend: (sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchend'> => {
+        return allocTouchEvent('touchend', sourceEvent, current);
+    },
+    touchcancel: (sourceEvent: TouchEvent, current: HTMLElement): TouchWidgetEvent<'touchcancel'> => {
+        return allocTouchEvent('touchcancel', sourceEvent, current);
     },
 };
 
