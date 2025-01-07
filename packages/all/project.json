@@ -162,6 +162,7 @@
     }
   },
   "implicitDependencies": [
+    "ag-charts-core",
     "ag-charts-community",
     "ag-charts-enterprise",
     "ag-charts-community-examples",

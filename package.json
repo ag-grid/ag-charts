@@ -123,6 +123,7 @@
   "workspaces": {
     "packages": [
       "external/ag-shared",
+      "packages/ag-charts-core",
       "packages/ag-charts-community",
       "packages/ag-charts-community-examples",
       "packages/ag-charts-enterprise",
