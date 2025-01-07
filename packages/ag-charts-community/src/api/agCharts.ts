@@ -233,7 +233,7 @@ class AgChartsInternal {
                 chart = AgChartsInternal.createChartInstance(chartOptions, chart);
             }
 
-            styles?.forEach(([id, css]) => {
+            styles.forEach(([id, css]) => {
                 chart?.ctx.domManager.addStyles(id, css);
             });
         }

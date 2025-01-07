@@ -1,3 +1,5 @@
+import type { AgChartThemeParams } from 'ag-charts-types';
+
 import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
 import { setAttribute } from '../util/attributeUtil';
@@ -226,6 +228,26 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         });
 
         this.element.classList.add(themeClassName);
+    }
+
+    // TODO: don't use AgChartThemeParams
+    setThemeParameters(params: AgChartThemeParams) {
+        const keysMap: Record<keyof AgChartThemeParams, string> = {
+            backgroundColor: 'background-color',
+            foregroundColor: 'foreground-color',
+            fontFamily: 'font-family',
+            fontSize: 'font-size',
+        };
+
+        const lengthKeys = ['fontSize'];
+
+        for (const [key, value] of Object.entries(params) as Array<[keyof AgChartThemeParams, string]>) {
+            let formattedValue = value;
+            if (lengthKeys.includes(key)) {
+                formattedValue = `${value}px`;
+            }
+            this.element.style.setProperty(`--ag-charts-${keysMap[key]}`, formattedValue);
+        }
     }
 
     updateCanvasLabel(ariaLabel: string) {

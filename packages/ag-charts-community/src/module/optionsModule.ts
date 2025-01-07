@@ -96,6 +96,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     processedOverrides: Partial<T>;
     specialOverrides: ChartSpecialOverrides;
     optionMetadata: ChartInternalOptionMetadata;
+    themeParameters: AgChartThemeParams = {};
     annotationThemes: any;
     fastDelta?: DeepPartial<T>;
 
@@ -134,7 +135,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
             this.removeLeftoverSymbols(this.userOptions);
         }
 
-        let activeTheme, processedOptions, defaultAxes, fastDelta;
+        let activeTheme, processedOptions, defaultAxes, fastDelta, themeParameters;
         if (
             !stripSymbols &&
             deltaOptions != null &&
@@ -146,7 +147,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 baseChartOptions
             ));
         } else {
-            ({ activeTheme, processedOptions, defaultAxes } = this.slowSetup(
+            ({ activeTheme, processedOptions, defaultAxes, themeParameters } = this.slowSetup(
                 processedOverrides,
                 deltaOptions,
                 stripSymbols
@@ -157,6 +158,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         this.processedOptions = processedOptions;
         this.defaultAxes = defaultAxes;
         this.fastDelta = fastDelta;
+        this.themeParameters = themeParameters ?? {};
     }
 
     private fastSetup(deltaOptions: DeepPartial<T>, baseChartOptions: ChartOptions<T>) {
@@ -256,13 +258,13 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         // so we aim to only do this once in the processing flow.
         processedOptions = deepClone(processedOptions, ChartOptions.OPTIONS_CLONE_OPTS);
 
-        let publicParameters = activeTheme.getPublicParameters();
+        let themeParameters = activeTheme.getPublicParameters();
         if (isPlainObject(processedOptions.theme) && processedOptions.theme.params) {
-            publicParameters = mergeDefaults(processedOptions.theme.params, publicParameters);
+            themeParameters = mergeDefaults(processedOptions.theme.params, themeParameters);
         }
 
-        this.resolveOptionsParams(publicParameters, processedOptions);
-        this.resolveOptionsParams(publicParameters, this.annotationThemes);
+        this.resolveThemeParameters(themeParameters, processedOptions);
+        this.resolveThemeParameters(themeParameters, this.annotationThemes);
 
         // Disable legend by default for single series cartesian charts and polar charts which display legend items per series rather than data items
         if (
@@ -285,7 +287,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
 
         this.debug('AgCharts.createOrUpdate() - processed options', processedOptions);
 
-        return { activeTheme, processedOptions, defaultAxes };
+        return { activeTheme, processedOptions, defaultAxes, themeParameters };
     }
 
     diffOptions(other?: ChartOptions): Partial<T> {
@@ -418,7 +420,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
         options.navigator!.miniChart!.series = this.setSeriesGroupingOptions(miniChartSeries) as any;
     }
 
-    private resolveOptionsParams(params: AgChartThemeParams, options: T) {
+    private resolveThemeParameters(params: AgChartThemeParams, options: T) {
         const visit = (node: any) => {
             if (isArray(node)) {
                 for (let i = 0; i < node.length; i++) {
