@@ -27,10 +27,9 @@ export class ZoomTwoFingers {
         this.originZoom.y.max = zoom.y?.max ?? 1;
 
         for (const i of [0, 1]) {
-            const [origin, touch] = [this.origins[i], targetTouches[i]];
-            origin.identifier = touch.identifier;
-            origin.clientX = touch.clientX;
-            origin.clientY = touch.clientY;
+            this.origins[i].identifier = targetTouches[i].identifier;
+            this.origins[i].clientX = targetTouches[i].clientX;
+            this.origins[i].clientY = targetTouches[i].clientY;
         }
         return true;
     }
