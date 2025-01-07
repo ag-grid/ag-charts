@@ -172,7 +172,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
-        if (processedData.type !== 'grouped' || processedData.rawData.length === 0) return;
+        if (processedData.type !== 'grouped') return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || OrdinalTimeScale.is(xAxis.scale))) return;
@@ -235,9 +235,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(data && xAxis && yAxis && dataModel && processedData?.rawData.length)) {
-            return;
-        }
+        if (!(data && xAxis && yAxis && dataModel && processedData?.rawData)) return;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -585,7 +583,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+        if (!dataModel || !processedData || !xAxis || !yAxis) {
             return;
         }
 

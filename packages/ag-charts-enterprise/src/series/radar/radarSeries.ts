@@ -181,9 +181,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
     override createNodeData() {
         const { processedData, dataModel } = this;
 
-        if (!processedData || !dataModel || processedData.rawData.length === 0 || !this.properties.isValid()) {
-            return;
-        }
+        if (!processedData || !dataModel || !this.properties.isValid()) return;
 
         const { angleKey, radiusKey, angleName, radiusName, marker, label } = this.properties;
         const angleScale = this.axes[ChartAxisDirection.X]?.scale;
@@ -417,9 +415,7 @@ export abstract class RadarSeries extends _ModuleSupport.PolarSeries<
         const angleAxis = axes[ChartAxisDirection.X];
         const radiusAxis = axes[ChartAxisDirection.Y];
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0 || !angleAxis || !radiusAxis) {
-            return;
-        }
+        if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
 
         const { datumIndex } = nodeDatum;
         const datum = processedData.rawData[datumIndex];

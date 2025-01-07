@@ -255,9 +255,6 @@ export class BarSeries extends AbstractBarSeries<
 
         if (dataModel == null || processedData == null) return [];
 
-        const rawData = processedData.rawDataSources?.get(this.id) ?? processedData.rawData;
-        if (rawData == null || rawData.length === 0) return [];
-
         const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
         const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
 
@@ -280,7 +277,9 @@ export class BarSeries extends AbstractBarSeries<
         } else if (this.getValueAxis() instanceof LogAxis) {
             return fixNumericExtent(yExtent);
         } else {
-            const fixedYExtent = [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])];
+            const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
+                ? [Math.min(0, yExtent[0]), Math.max(0, yExtent[1])]
+                : [];
             return fixNumericExtent(fixedYExtent);
         }
     }
@@ -332,7 +331,7 @@ export class BarSeries extends AbstractBarSeries<
         }
 
         const rawData = processedData.rawDataSources?.get(this.id) ?? processedData.rawData;
-        if (rawData == null || rawData.length === 0) return;
+        if (rawData == null) return;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -767,7 +766,7 @@ export class BarSeries extends AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+        if (!dataModel || !processedData || !xAxis || !yAxis) {
             return;
         }
 

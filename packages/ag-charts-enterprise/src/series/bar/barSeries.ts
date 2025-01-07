@@ -19,7 +19,7 @@ export class BarSeries extends _ModuleSupport.BarSeries {
         dataModel: _ModuleSupport.DataModel<any, any, false>,
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
-        if (processedData.rawData.length === 0 || processedData.type !== 'ungrouped') return;
+        if (processedData?.type !== 'ungrouped') return;
 
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || OrdinalTimeScale.is(xAxis.scale))) return;

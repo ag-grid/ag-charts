@@ -169,11 +169,12 @@ export class MapShapeSeries
             ],
         });
 
-        const featureValues =
-            processedData.rawData.length !== 0
-                ? dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(this, `featureValue`, processedData)
-                : undefined;
-        this.topologyBounds = featureValues?.reduce<_ModuleSupport.LonLatBBox | undefined>((current, feature) => {
+        const featureValues = dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(
+            this,
+            `featureValue`,
+            processedData
+        );
+        this.topologyBounds = featureValues.reduce<_ModuleSupport.LonLatBBox | undefined>((current, feature) => {
             const geometry = feature?.geometry;
             if (geometry == null) return current;
             return geometryBbox(geometry, current);
@@ -307,7 +308,7 @@ export class MapShapeSeries
         const { id: seriesId, dataModel, processedData, properties, scale, previousLabelLayouts } = this;
         const { idKey, colorKey, labelKey, label } = properties;
 
-        if (dataModel == null || processedData == null || processedData.rawData.length === 0) return;
+        if (dataModel == null || processedData == null) return;
 
         const scaling = scale != null ? (scale.range[1][0] - scale.range[0][0]) / scale.bounds.width : NaN;
 
@@ -646,7 +647,7 @@ export class MapShapeSeries
     override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | string | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const { idKey, idName, colorKey, colorName, labelKey, labelName, legendItemName, title, tooltip } = properties;
-        if (!dataModel || !processedData?.rawData.length) return;
+        if (!dataModel || !processedData) return;
 
         const { datumIndex } = seriesDatum;
         const datum = processedData.rawData[datumIndex];

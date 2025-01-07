@@ -151,11 +151,12 @@ export class MapLineSeries extends TopologySeries<
             ],
         });
 
-        const featureValues =
-            processedData.rawData.length !== 0
-                ? dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(this, `featureValue`, processedData)
-                : undefined;
-        this.topologyBounds = featureValues?.reduce<_ModuleSupport.LonLatBBox | undefined>((current, feature) => {
+        const featureValues = dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(
+            this,
+            `featureValue`,
+            processedData
+        );
+        this.topologyBounds = featureValues.reduce<_ModuleSupport.LonLatBBox | undefined>((current, feature) => {
             const geometry = feature?.geometry;
             if (geometry == null) return current;
             return geometryBbox(geometry, current);
@@ -243,7 +244,7 @@ export class MapLineSeries extends TopologySeries<
         const { id: seriesId, dataModel, processedData, sizeScale, properties, scale } = this;
         const { idKey, sizeKey, colorKey, labelKey, label } = properties;
 
-        if (dataModel == null || processedData == null || processedData.rawData.length === 0) return;
+        if (dataModel == null || processedData == null) return;
 
         const idValues = dataModel.resolveColumnById<string>(this, `idValue`, processedData);
         const featureValues = dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(
@@ -614,7 +615,7 @@ export class MapLineSeries extends TopologySeries<
             legendItemName,
             tooltip,
         } = properties;
-        if (!dataModel || !processedData?.rawData.length) return;
+        if (!dataModel || !processedData) return;
 
         const { datumIndex } = seriesDatum;
 

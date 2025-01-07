@@ -225,15 +225,12 @@ export class MapMarkerSeries
             ],
         });
 
-        const hasData = processedData.rawData.length !== 0;
         const featureValues =
-            hasData && idKey != null
+            idKey != null
                 ? dataModel.resolveColumnById<_ModuleSupport.Feature | undefined>(this, `featureValue`, processedData)
                 : undefined;
-        const latValues =
-            hasData && hasLatLon ? dataModel.resolveColumnById<number>(this, `latValue`, processedData) : undefined;
-        const lonValues =
-            hasData && hasLatLon ? dataModel.resolveColumnById<number>(this, `lonValue`, processedData) : undefined;
+        const latValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `latValue`, processedData) : undefined;
+        const lonValues = hasLatLon ? dataModel.resolveColumnById<number>(this, `lonValue`, processedData) : undefined;
         this.topologyBounds = processedData.rawData.reduce<_ModuleSupport.LonLatBBox | undefined>(
             (current, _datum, datumIndex) => {
                 const feature: _ModuleSupport.Feature | undefined = featureValues?.[datumIndex];
@@ -345,7 +342,7 @@ export class MapMarkerSeries
         const { id: seriesId, dataModel, processedData, sizeScale, properties, scale } = this;
         const { idKey, latitudeKey, longitudeKey, sizeKey, colorKey, labelKey, label } = properties;
 
-        if (dataModel == null || processedData == null || processedData.rawData.length === 0 || scale == null) return;
+        if (dataModel == null || processedData == null || scale == null) return;
 
         const hasLatLon = latitudeKey != null && longitudeKey != null;
 
@@ -790,7 +787,7 @@ export class MapMarkerSeries
             legendItemName,
             tooltip,
         } = properties;
-        if (!dataModel || !processedData?.rawData.length) return;
+        if (!dataModel || !processedData) return;
 
         const { datumIndex } = seriesDatum;
         const datum = processedData.rawData[datumIndex];

@@ -359,7 +359,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         } = this;
         const { rotation } = this.properties;
 
-        if (!processedData?.rawData.length || !dataModel || processedData.type !== 'ungrouped') return;
+        if (!dataModel || processedData?.type !== 'ungrouped') return;
 
         const {
             angleValues,
@@ -1274,7 +1274,7 @@ export class PieSeries extends PolarSeries<PieNodeDatum, PieSeriesProperties, Se
         } = properties;
         const title = this.properties.title.text;
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0) return;
+        if (!dataModel || !processedData) return;
 
         const { datumIndex } = nodeDatum;
 

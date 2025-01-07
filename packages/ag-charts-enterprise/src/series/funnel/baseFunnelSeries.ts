@@ -273,17 +273,7 @@ export abstract class BaseFunnelSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (
-            !(
-                hasData &&
-                data &&
-                xAxis &&
-                yAxis &&
-                dataModel &&
-                processedData?.type === 'ungrouped' &&
-                processedData.rawData.length !== 0
-            )
-        ) {
+        if (!(hasData && data && xAxis && yAxis && dataModel && processedData?.type === 'ungrouped')) {
             return;
         }
 
@@ -529,9 +519,7 @@ export abstract class BaseFunnelSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
-            return;
-        }
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const { datumIndex } = nodeDatum;
         const datum = processedData.rawData[datumIndex];

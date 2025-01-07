@@ -170,9 +170,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(data && dataModel && processedData?.rawData.length && visible && xAxis && yAxis)) {
-            return;
-        }
+        if (!(data && dataModel && processedData && visible && xAxis && yAxis)) return;
 
         if (xAxis.type !== 'category' || yAxis.type !== 'category') {
             Logger.warnOnce(
@@ -436,9 +434,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
-            return;
-        }
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const { datumIndex } = nodeDatum;
         const datum = processedData.rawData[datumIndex];
