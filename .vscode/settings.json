@@ -16,6 +16,7 @@
   ],
   "files.watcherExclude": {
     "**/.nx/**": true,
+    "**/cache/**": true,
     "**/dist/**": true,
     "**/node_modules/**": true
   }
