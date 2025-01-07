@@ -43,10 +43,10 @@ export class ZoomTwoFingers {
         const targetTouches = Array.from(event.sourceEvent.targetTouches);
         const touches = [0, 1].map((i) => targetTouches.find((t) => t.identifier === origins[i].identifier)!);
 
-        const dx0 = touches[0].clientX - origins[0].clientX;
-        const dy0 = touches[0].clientY - origins[0].clientY;
-        const dx1 = touches[1].clientX - origins[1].clientX;
-        const dy1 = touches[1].clientY - origins[1].clientY;
+        const dx0 = +(touches[0].clientX - origins[0].clientX);
+        const dy0 = -(touches[0].clientY - origins[0].clientY);
+        const dx1 = +(touches[1].clientX - origins[1].clientX);
+        const dy1 = -(touches[1].clientY - origins[1].clientY);
 
         const avgDx = (dx0 + dx1) / 2;
         const avgDy = (dy0 + dy1) / 2;
