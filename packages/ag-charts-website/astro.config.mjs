@@ -77,9 +77,6 @@ export default defineConfig({
             agHotModuleReload(),
             agAutoRedirect(['/javascript', '/react', '/vue', '/angular', '/gallery']),
         ],
-        resolve: {
-            conditions: ['require'],
-        },
         optimizeDeps: {
             exclude: [
                 'ag-charts-angular',

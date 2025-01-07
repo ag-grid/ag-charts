@@ -11,7 +11,7 @@ import {
 } from 'ag-charts-community-test';
 import type { AgChartInstance, AgFinancialChartOptions } from 'ag-charts-types';
 
-import { setupEnterpriseModules } from '../main-modules';
+import { setupEnterpriseModules } from '../setup';
 import { getStockData } from './test/stockData';
 
 const EXAMPLES: Record<string, AgFinancialChartOptions> = {

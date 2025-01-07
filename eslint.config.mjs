@@ -77,6 +77,7 @@ export default [
             '**/eslint.config.mjs',
             '**/jest.*.{cjs,js}',
             '**/.dependency-cruiser.js',
+            '**/.size-limit.js',
         ],
     },
     pluginJs.configs.recommended,

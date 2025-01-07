@@ -16,13 +16,13 @@
     },
     "build:types": {
       "options": {
-        "additionalEntryPoints": ["{projectRoot}/src/integrated-charts-scene.ts"]
+        "additionalEntryPoints": ["{projectRoot}/src/main-modules.ts"]
       }
     },
     "build:test": {},
     "build:package": {
       "options": {
-        "additionalEntryPoints": ["{projectRoot}/src/integrated-charts-scene.ts"]
+        "additionalEntryPoints": ["{projectRoot}/src/main-modules.ts"]
       }
     },
     "build:umd": {
@@ -124,6 +124,14 @@
       "inputs": ["allOutputs"],
       "options": {
         "commands": ["node tools/package/sanity-check-package.js dist/packages/contents/ag-charts-community/package"]
+      }
+    },
+    "validate-size": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["build"],
+      "options": {
+        "cwd": "{projectRoot}",
+        "command": "size-limit"
       }
     }
   },
