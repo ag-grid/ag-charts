@@ -69,15 +69,15 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
         text-align: unset;
     }
 
-    p,
     h1,
     h2 {
         line-height: 1.1;
         color: var(--color-white);
     }
 
-    p,
     h1 {
+        display: flex;
+        flex-direction: column;
         margin-bottom: 0;
         font-size: 28px;
 
@@ -88,10 +88,6 @@ $z-index-debug-panel: $z-index-debug-canvas + 200;
         @media screen and (min-width: $breakpoint-hero-large) {
             font-size: min(3.4vw, 54px);
         }
-    }
-
-    p {
-        font-weight: var(--text-bold);
     }
 
     h2 {
