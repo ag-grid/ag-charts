@@ -1,6 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
-
-const { Logger } = _ModuleSupport;
+import { Logger } from 'ag-charts-core';
 
 interface Node {
     id: string;

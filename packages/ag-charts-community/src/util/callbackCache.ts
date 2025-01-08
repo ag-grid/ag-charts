@@ -1,4 +1,4 @@
-import { Logger } from './logger';
+import { Logger } from 'ag-charts-core';
 
 export class CallbackCache {
     private cache: WeakMap<Function, Map<string, any>> = new WeakMap();

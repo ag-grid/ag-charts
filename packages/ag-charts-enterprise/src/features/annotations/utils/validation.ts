@@ -1,8 +1,7 @@
 import { type Direction, _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 
 import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
-
-const { Logger } = _ModuleSupport;
 
 export function validateDatumLine(
     context: AnnotationContext,

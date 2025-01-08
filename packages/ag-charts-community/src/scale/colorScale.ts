@@ -1,5 +1,6 @@
+import { Logger } from 'ag-charts-core';
+
 import { Color } from '../util/color';
-import { Logger } from '../util/logger';
 import { clamp } from '../util/number';
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';

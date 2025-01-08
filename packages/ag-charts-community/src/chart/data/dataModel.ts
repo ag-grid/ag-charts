@@ -1,6 +1,7 @@
+import { Logger } from 'ag-charts-core';
+
 import { Debug } from '../../util/debug';
 import { iterate } from '../../util/iterator';
-import { Logger } from '../../util/logger';
 import { isNegative } from '../../util/number';
 import { isObject } from '../../util/type-guards';
 import type { ChartMode } from '../chartMode';

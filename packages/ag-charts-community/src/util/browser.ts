@@ -1,5 +1,6 @@
+import { Logger } from 'ag-charts-core';
+
 import { getWindow } from './dom';
-import { Logger } from './logger';
 
 const isSafariRegexp = /^((?!chrome|android).)*safari/i;
 const safariVersionRegexp = /Version\/(\d+(\.\d+)?)/;

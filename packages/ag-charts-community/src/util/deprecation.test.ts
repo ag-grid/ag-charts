@@ -1,7 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, jest } from '@jest/globals';
 
+import { Logger } from 'ag-charts-core';
+
 import { Deprecated, DeprecatedAndRenamedTo } from './deprecation';
-import { doOnce } from './function';
 
 interface TestDeprecationObject {
     usualProp: number;
@@ -17,7 +18,7 @@ describe('deprecation module', () => {
     const originalConsoleWarn = console.warn;
 
     beforeEach(() => {
-        doOnce.clear();
+        Logger.reset();
 
         class TestDeprecation implements TestDeprecationObject {
             usualProp = 7;

@@ -1,8 +1,8 @@
+import { Logger } from 'ag-charts-core';
 import type { AgChartOptions } from 'ag-charts-types';
 
 import type { LegendModule, RootModule } from '../../module/coreModules';
 import { moduleRegistry } from '../../module/module';
-import { Logger } from '../../util/logger';
 import { isAgGaugeChartOptions, optionsType } from '../mapping/types';
 import { chartTypes } from './chartTypes';
 import { EXPECTED_ENTERPRISE_MODULES } from './expectedEnterpriseModules';

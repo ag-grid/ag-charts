@@ -1,3 +1,4 @@
+import { Logger } from 'ag-charts-core';
 import type { AgBaseAxisOptions, AgChartInstance, AgChartOptions, AgInitialStateLegendOptions } from 'ag-charts-types';
 
 import type { AxisOptionModule } from '../module/axisOptionModule';
@@ -17,7 +18,6 @@ import { Debug } from '../util/debug';
 import { isInputPending } from '../util/dom';
 import { createId } from '../util/id';
 import { jsonApply, jsonDiff } from '../util/json';
-import { Logger } from '../util/logger';
 import { Mutex } from '../util/mutex';
 import { mergeDefaults, without } from '../util/object';
 import type { TypedEvent, TypedEventListener } from '../util/observable';

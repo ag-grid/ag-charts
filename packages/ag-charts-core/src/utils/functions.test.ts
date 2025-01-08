@@ -1,34 +1,6 @@
-import { debounce, doOnce, identity, throttle } from './function';
+import { debounce, throttle } from './functions';
 
 describe('function utils', () => {
-    describe('doOnce', () => {
-        beforeEach(() => {
-            // Clear the state before each test
-            doOnce.clear();
-        });
-
-        it('should call a function once per key', () => {
-            const mockFn = jest.fn();
-            doOnce(mockFn, 'uniqueKey');
-            doOnce(mockFn, 'uniqueKey');
-            expect(mockFn).toHaveBeenCalledTimes(1);
-        });
-
-        it('should allow different keys to call the function', () => {
-            const mockFn = jest.fn();
-            doOnce(mockFn, 'key1');
-            doOnce(mockFn, 'key2');
-            expect(mockFn).toHaveBeenCalledTimes(2);
-        });
-    });
-
-    describe('identity', () => {
-        it('should return the same value passed in', () => {
-            expect(identity(5)).toBe(5);
-            expect(identity('test')).toBe('test');
-        });
-    });
-
     describe('debounce', () => {
         jest.useFakeTimers();
 

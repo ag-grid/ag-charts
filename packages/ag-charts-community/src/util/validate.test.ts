@@ -23,11 +23,6 @@ import {
     validate,
 } from './validate';
 
-// Mock the Logger to avoid actual logging during tests
-jest.mock('./logger', () => ({
-    Logger: { warn: jest.fn() },
-}));
-
 describe('Validation', () => {
     beforeEach(() => {
         console.warn = jest.fn();

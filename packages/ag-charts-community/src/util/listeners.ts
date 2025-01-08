@@ -1,4 +1,4 @@
-import { Logger } from './logger';
+import { Logger } from 'ag-charts-core';
 
 type Handler = (...args: any[]) => void;
 
@@ -40,21 +40,7 @@ export class Listeners<EventType extends string, EventHandler extends Handler> {
             try {
                 listener.handler(...params);
             } catch (e) {
-                Logger.errorOnce(e);
-            }
-        }
-    }
-
-    public dispatchWrapHandlers(
-        eventType: EventType,
-        wrapFn: (handler: EventHandler, ...params: Parameters<EventHandler>) => void,
-        ...params: Parameters<EventHandler>
-    ) {
-        for (const listener of this.getListenersByType(eventType)) {
-            try {
-                wrapFn(listener.handler, ...params);
-            } catch (e) {
-                Logger.errorOnce(e);
+                Logger.errorOnce(String(e));
             }
         }
     }

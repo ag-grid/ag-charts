@@ -1,4 +1,5 @@
 import { type AgMapLineSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { GeometryType, containsType, geometryBbox, largestLineString, projectGeometry } from '../map-util/geometryUtil';
@@ -16,7 +17,6 @@ const {
     valueProperty,
     CachedTextMeasurerPool,
     Validate,
-    Logger,
     ColorScale,
     LinearScale,
     Selection,

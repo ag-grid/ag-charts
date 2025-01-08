@@ -1,9 +1,10 @@
+import { Logger } from 'ag-charts-core';
+
 import type { AdditionalAnimationOptions, AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
 import { Debug } from '../../util/debug';
 import { getWindow } from '../../util/dom';
 import { EventEmitter, type EventListener } from '../../util/eventEmitter';
-import { Logger } from '../../util/logger';
 import type { Mutex } from '../../util/mutex';
 import { AnimationBatch } from './animationBatch';
 import { InteractionManager, InteractionState } from './interactionManager';

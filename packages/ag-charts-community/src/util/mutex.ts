@@ -1,4 +1,4 @@
-import { Logger } from './logger';
+import { Logger } from 'ag-charts-core';
 
 type MutexCallback = (...args: any[]) => Promise<void> | void;
 

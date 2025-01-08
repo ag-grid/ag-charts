@@ -1,3 +1,4 @@
+import { Logger } from 'ag-charts-core';
 import type { AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
@@ -9,7 +10,6 @@ import { includes } from '../../util/array';
 import { BaseManager } from '../../util/baseManager';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { deepClone } from '../../util/json';
-import { Logger } from '../../util/logger';
 import { findMinMax } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
