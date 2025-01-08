@@ -87,7 +87,6 @@ export interface ParameterNode {
     kind: 'param';
     name: string;
     type: TypeNode;
-    _genericType?: TypeNode;
 }
 
 export interface TypeParameterNode {
