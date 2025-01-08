@@ -2,6 +2,11 @@
     "header": {
         "items": [
             {
+                "title": "AG Grid",
+                "url": "https://ag-grid.com/",
+                "isCollapsed": true
+            },
+            {
                 "title": "Gallery",
                 "path": "/gallery"
             },
