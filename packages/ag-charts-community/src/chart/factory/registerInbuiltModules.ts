@@ -35,7 +35,6 @@ export function registerInbuiltModules() {
     for (const AxisConstructor of [NumberAxis, CategoryAxis, TimeAxis, GroupedCategoryAxis, LogAxis]) {
         axisRegistry.register(AxisConstructor.type, {
             moduleFactory: (ctx) => new AxisConstructor(ctx),
-            hidden: AxisConstructor === GroupedCategoryAxis,
         });
     }
 }

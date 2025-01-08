@@ -644,7 +644,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
                 // If any of the axes type is invalid remove all user provided options in favour of our defaults.
                 if (!isAxisOptionType(type)) {
                     delete options.axes;
-                    const expectedTypes = axisRegistry.publicKeys().join(', ');
+                    const expectedTypes = [...axisRegistry.keys()].join(', ');
                     Logger.warnOnce(`unknown axis type: ${type}; expected one of: ${expectedTypes}`);
                 }
             }
