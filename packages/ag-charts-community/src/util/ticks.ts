@@ -251,8 +251,8 @@ export function estimateTickCount(
         }
     }
 
-    const maxTickCount = Math.max(1, Math.floor(round(rangeExtent / zoomExtent, 2) * minSpacing));
-    const minTickCount = Math.min(maxTickCount, Math.ceil(round(rangeExtent / zoomExtent, 2) * maxSpacing));
+    const maxTickCount = Math.max(1, Math.floor(round(rangeExtent / zoomExtent, 2) / minSpacing));
+    const minTickCount = Math.min(maxTickCount, Math.ceil(round(rangeExtent / zoomExtent, 2) / maxSpacing));
     const tickCount = clamp(minTickCount, Math.floor(round(1 / zoomExtent, 2) * defaultTickCount), maxTickCount);
 
     return { minTickCount, maxTickCount, tickCount };
