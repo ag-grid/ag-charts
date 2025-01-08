@@ -8,6 +8,7 @@ import type {
     Styler,
 } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 
 import { GEOJSON_OBJECT } from '../map-util/validation';
 
@@ -27,7 +28,6 @@ const {
     Validate,
     SeriesProperties,
     SeriesTooltip,
-    Logger,
     Label,
 } = _ModuleSupport;
 

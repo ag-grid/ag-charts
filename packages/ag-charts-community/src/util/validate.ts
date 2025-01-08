@@ -1,4 +1,5 @@
-import { Logger } from './logger';
+import { Logger } from 'ag-charts-core';
+
 import { joinFormatted, stringifyValue } from './string.util';
 import { isArray, isBoolean, isFiniteNumber, isFunction, isObject, isString } from './type-guards';
 

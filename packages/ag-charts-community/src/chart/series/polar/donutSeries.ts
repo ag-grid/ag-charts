@@ -1,3 +1,4 @@
+import { Logger } from 'ag-charts-core';
 import type { AgDonutSeriesStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -15,7 +16,6 @@ import { Text } from '../../../scene/shape/text';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
 import { normalizeAngle180, toRadians } from '../../../util/angle';
 import { jsonDiff } from '../../../util/json';
-import { Logger } from '../../../util/logger';
 import { mod } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import type { Has } from '../../../util/types';

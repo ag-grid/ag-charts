@@ -1,5 +1,6 @@
 import { describe } from '@jest/globals';
 
+import { Logger } from 'ag-charts-core';
 import type {
     AgAreaSeriesOptions,
     AgBarSeriesOptions,
@@ -14,7 +15,6 @@ import { seriesRegistry } from '../chart/factory/seriesRegistry';
 import { setupModules } from '../chart/factory/setupModules';
 import * as examples from '../chart/test/examples';
 import { ChartTheme } from '../chart/themes/chartTheme';
-import { doOnce } from '../util/function';
 import { ChartOptions } from './optionsModule';
 import type { SeriesType } from './optionsModuleTypes';
 
@@ -421,7 +421,7 @@ describe('ChartOptions', () => {
 
     beforeEach(() => {
         console.warn = jest.fn();
-        doOnce.clear();
+        Logger.reset();
     });
 
     describe('#processSeriesOptions', () => {

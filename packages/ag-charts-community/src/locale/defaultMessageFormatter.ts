@@ -1,6 +1,5 @@
+import { Logger } from 'ag-charts-core';
 import type { Formatter, MessageFormatterParams } from 'ag-charts-types';
-
-import { Logger } from '../util/logger';
 
 const messageRegExp = /\$\{(\w+)}(?:\[(\w+)])?/gi;
 

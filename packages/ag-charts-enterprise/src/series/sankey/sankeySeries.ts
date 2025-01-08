@@ -1,4 +1,5 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 
 import { FlowProportionDatumType, FlowProportionSeries } from '../flow-proportion/flowProportionSeries';
 import type { NodeGraphEntry } from '../flow-proportion/flowProportionUtil';
@@ -12,10 +13,17 @@ import {
     SankeySeriesProperties,
 } from './sankeySeriesProperties';
 
-const { Transformable, applyShapeStyle } = _ModuleSupport;
-
-const { SeriesNodePickMode, CachedTextMeasurerPool, TextWrapper, TextUtils, createDatumId, Logger, Rect, BBox } =
-    _ModuleSupport;
+const {
+    Transformable,
+    applyShapeStyle,
+    SeriesNodePickMode,
+    CachedTextMeasurerPool,
+    TextWrapper,
+    TextUtils,
+    createDatumId,
+    Rect,
+    BBox,
+} = _ModuleSupport;
 
 type NodeStyle = Pick<FillOptions & StrokeOptions & LineDashOptions, 'fill' | 'stroke'> &
     Omit<Required<FillOptions & StrokeOptions & LineDashOptions>, 'fill' | 'stroke'>;

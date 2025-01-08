@@ -1,6 +1,7 @@
+import { Logger } from 'ag-charts-core';
+
 import { normalizeAngle360 } from '../util/angle';
 import { arcDistanceSquared, lineDistanceSquared } from '../util/distance';
-import { Logger } from '../util/logger';
 import { BBox } from './bbox';
 import { arcIntersections, cubicSegmentIntersections, segmentIntersection } from './intersection';
 import { calculateDerivativeExtremaXY, evaluateBezier } from './util/bezier';

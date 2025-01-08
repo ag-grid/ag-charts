@@ -1,4 +1,5 @@
-import { Logger } from '../util/logger';
+import { Logger } from 'ag-charts-core';
+
 import { clamp } from '../util/number';
 import { AbstractScale } from './abstractScale';
 import { Invalidating } from './invalidating';

@@ -1,3 +1,4 @@
+import { Logger } from 'ag-charts-core';
 import type {
     AgChartTheme,
     AgChartThemeName,
@@ -6,7 +7,6 @@ import type {
     AgChartThemeParams,
 } from 'ag-charts-types';
 
-import { Logger } from '../../util/logger';
 import { simpleMemorize } from '../../util/memo';
 import { mergeDefaults } from '../../util/object';
 import { type OptionsDefs, arrayOf, isValid, object, or, string } from '../../util/validate';

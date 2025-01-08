@@ -1,3 +1,4 @@
+import { Logger } from 'ag-charts-core';
 import type { TextAlign, VerticalAlign } from 'ag-charts-types';
 
 import type { LayoutContext } from '../module/baseModule';
@@ -5,7 +6,6 @@ import { LinearScale } from '../scale/linearScale';
 import type { BBox } from '../scene/bbox';
 import { sectorBox } from '../scene/util/sector';
 import { isBetweenAngles, normalizeAngle360Inclusive } from '../util/angle';
-import { Logger } from '../util/logger';
 import { CartesianAxis } from './axis/cartesianAxis';
 import { PolarAxis } from './axis/polarAxis';
 import { Chart } from './chart';

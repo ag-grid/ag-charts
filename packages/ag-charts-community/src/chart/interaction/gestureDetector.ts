@@ -1,6 +1,7 @@
+import { Logger } from 'ag-charts-core';
+
 import type { DOMManager } from '../../dom/domManager';
 import { BaseManager } from '../../util/baseManager';
-import { Logger } from '../../util/logger';
 import { partialAssign } from '../../util/object';
 
 type PinchEventTypes = 'pinch-start' | 'pinch-move' | 'pinch-end';

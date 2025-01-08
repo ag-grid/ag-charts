@@ -1,5 +1,6 @@
 import type { AgZoomAnchorPoint } from 'ag-charts-community';
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
+import { debounce } from 'ag-charts-core';
 
 import { ZoomRect } from './scenes/zoomRect';
 import { ZoomAxisDragger } from './zoomAxisDragger';
@@ -183,7 +184,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private destroyContextMenuActions: (() => void) | undefined = undefined;
 
     private isFirstWheelEvent = true;
-    private readonly debouncedWheelReset = _ModuleSupport.debounce(() => {
+    private readonly debouncedWheelReset = debounce(() => {
         this.isFirstWheelEvent = true;
     }, 100);
 

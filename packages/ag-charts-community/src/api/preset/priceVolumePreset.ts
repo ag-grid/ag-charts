@@ -1,3 +1,4 @@
+import { Logger } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
     AgBarSeriesItemStylerParams,
@@ -28,7 +29,6 @@ import {
     PALETTE_UP_FILL,
     PALETTE_UP_STROKE,
 } from '../../chart/themes/symbols';
-import { Logger } from '../../util/logger';
 import { mergeDefaults } from '../../util/object';
 import { isObject } from '../../util/type-guards';
 

@@ -1,3 +1,4 @@
+import { Logger } from 'ag-charts-core';
 import type {
     AgDonutSeriesItemStylerParams,
     AgDonutSeriesLabelFormatterParams,
@@ -8,7 +9,6 @@ import type {
 } from 'ag-charts-types';
 
 import { DropShadow } from '../../../scene/dropShadow';
-import { Logger } from '../../../util/logger';
 import { BaseProperties, PropertiesArray } from '../../../util/properties';
 import {
     BOOLEAN,

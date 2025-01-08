@@ -1,4 +1,4 @@
-import { Logger } from '../logger';
+import { Logger } from 'ag-charts-core';
 
 /**
  * Converts the specified Date into a count of years,

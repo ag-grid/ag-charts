@@ -1,5 +1,6 @@
 import type { AgErrorBarThemeableOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 
 import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
 import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
@@ -12,7 +13,6 @@ const {
     mergeDefaults,
     valueProperty,
     ChartAxisDirection,
-    Logger,
 } = _ModuleSupport;
 
 type ErrorBoundCartesianSeries = Omit<

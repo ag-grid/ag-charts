@@ -9,24 +9,20 @@ interface ThrottleOptions {
     trailing?: boolean;
 }
 
-const doOnceState = new Map<string, boolean>();
-
 /**
- * If the key was passed before, then doesn't execute the func
+ * Creates a debounced function that delays invoking the provided callback until
+ * after `waitMs` milliseconds have elapsed since the last time the function was called.
+ *
+ * @template T - The type of the callback function.
+ * @param callback - The function to debounce.
+ * @param waitMs - The number of milliseconds to delay (default is 0).
+ * @param options - Optional configuration:
+ *  - `leading` (default: false): If true, the callback will be invoked on the leading edge of the timeout.
+ *  - `trailing` (default: true): If true, the callback will be invoked on the trailing edge of the timeout.
+ *  - `maxWait` (default: Infinity): The maximum time the callback can be delayed before it's invoked.
+ * @returns A debounced version of the callback with a `cancel` method to clear the timer.
+ * @throws If `maxWait` is less than `waitMs`.
  */
-export function doOnce(func: () => void, key: string) {
-    if (doOnceState.has(key)) return;
-    doOnceState.set(key, true);
-    func();
-}
-
-/** Clear doOnce() state (for test purposes). */
-doOnce.clear = () => doOnceState.clear();
-
-export function identity<T>(x: T): T {
-    return x;
-}
-
 export function debounce<T extends (...args: Parameters<T>) => void>(
     callback: T,
     waitMs = 0,
@@ -72,6 +68,18 @@ export function debounce<T extends (...args: Parameters<T>) => void>(
     });
 }
 
+/**
+ * Creates a throttled function that only invokes the provided callback at most once
+ * every `waitMs` milliseconds.
+ *
+ * @template T - The type of the callback function.
+ * @param callback - The function to throttle.
+ * @param waitMs - The number of milliseconds to throttle invocations.
+ * @param options - Optional configuration:
+ *  - `leading` (default: true): If true, the callback will be invoked on the leading edge of the timeout.
+ *  - `trailing` (default: true): If true, the callback will be invoked on the trailing edge of the timeout.
+ * @returns A throttled version of the callback with a `cancel` method to clear the timer.
+ */
 export function throttle<T extends (...args: Parameters<T>) => void>(
     callback: T,
     waitMs: number,

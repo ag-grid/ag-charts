@@ -1,4 +1,5 @@
-import { Logger } from './logger';
+import { Logger } from 'ag-charts-core';
+
 import { SKIP_JS_BUILTINS } from './object';
 import { isProperties } from './properties';
 import { isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } from './type-guards';

@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 
 import { MiniChartGroup } from './shapes/miniChartGroup';
 
@@ -11,7 +12,6 @@ const {
     CategoryAxis,
     TextUtils,
     Padding,
-    Logger,
     Group,
     BBox,
     ProxyProperty,

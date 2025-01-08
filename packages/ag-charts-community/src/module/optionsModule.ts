@@ -1,3 +1,4 @@
+import { Logger } from 'ag-charts-core';
 import {
     type AgBaseAxisOptions,
     type AgCartesianAxisOptions,
@@ -35,7 +36,6 @@ import { circularSliceArray, groupBy, unique } from '../util/array';
 import { Debug } from '../util/debug';
 import { setDocument, setWindow } from '../util/dom';
 import { deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
-import { Logger } from '../util/logger';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
 import { isArray, isEnumValue, isFiniteNumber, isObject, isPlainObject, isString, isSymbol } from '../util/type-guards';
 import type { DeepPartial } from '../util/types';

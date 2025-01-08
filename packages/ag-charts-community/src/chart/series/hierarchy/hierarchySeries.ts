@@ -1,3 +1,5 @@
+import { Logger } from 'ag-charts-core';
+
 import type { ModuleContext } from '../../../module/moduleContext';
 import type { AnimationValue } from '../../../motion/animation';
 import { resetMotion } from '../../../motion/resetMotion';
@@ -9,7 +11,6 @@ import type { Point } from '../../../scene/point';
 import type { Selection } from '../../../scene/selection';
 import type { Path } from '../../../scene/shape/path';
 import { arraysEqual } from '../../../util/array';
-import { Logger } from '../../../util/logger';
 import { clamp } from '../../../util/number';
 import { StateMachine } from '../../../util/stateMachine';
 import type { ChartAnimationPhase } from '../../chartAnimationPhase';
