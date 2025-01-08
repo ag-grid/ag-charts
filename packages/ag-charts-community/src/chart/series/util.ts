@@ -90,7 +90,7 @@ export function visibleRangeIndices(
     length: number,
     [range0, range1]: [number, number],
     xRange: (index: number) => [number, number] | undefined
-) {
+): [number, number] {
     const xMinIndex =
         findMinIndex(0, length - 1, (index) => {
             const x1 = xRange(index)?.[1];

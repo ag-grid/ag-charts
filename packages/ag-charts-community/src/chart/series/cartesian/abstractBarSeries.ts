@@ -14,6 +14,7 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { SeriesNodePickMatch } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
+import { visibleRangeIndices } from '../util';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesProperties } from './cartesianSeries';
 import { type QuadtreeCompatibleNode, addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
@@ -85,6 +86,20 @@ export abstract class AbstractBarSeries<
         return ContinuousScale.is(xAxis.scale)
             ? xAxis.scale.calcBandwidth(this.smallestDataInterval)
             : xAxis.scale.bandwidth;
+    }
+
+    protected getXRangeInVisibleRange(visibleRange: [number, number]): [number, number] | undefined {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData || this.getBarDirection() === ChartAxisDirection.X) return;
+
+        const xScale = this.axes[ChartAxisDirection.X]!.scale;
+        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const barWidth = xScale.bandwidth ?? 0;
+
+        return visibleRangeIndices(xValues.length, visibleRange, (index) => {
+            const x = xScale.convert(xValues[index]);
+            return [x, x + barWidth];
+        });
     }
 
     protected updateGroupScale(xAxis: ChartAxis) {

@@ -20,8 +20,6 @@ const {
     Color,
     ContinuousScale,
     motion,
-    visibleRangeIndices,
-    ChartAxisDirection,
 } = _ModuleSupport;
 
 class BoxPlotSeriesNodeEvent<
@@ -130,18 +128,10 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
     override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): [number, number] {
         const { dataModel, processedData } = this;
-        if (!dataModel || !processedData) return [NaN, NaN];
+        const xRange = this.getXRangeInVisibleRange(visibleRange);
+        if (!dataModel || !processedData || !xRange) return [NaN, NaN];
 
-        const xScale = this.axes[ChartAxisDirection.X]!.scale;
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const barWidth = xScale.bandwidth ?? 0;
-
-        const [x0, x1] = visibleRangeIndices(xValues.length, visibleRange, (index) => {
-            const x = xScale.convert(xValues[index]);
-            return [x, x + barWidth];
-        });
-
-        return dataModel.getDomainBetweenRange(this, ['maxValue', 'minValue'], [x0, x1], processedData);
+        return dataModel.getDomainBetweenRange(this, ['maxValue', 'minValue'], xRange, processedData);
     }
 
     override createNodeData() {
