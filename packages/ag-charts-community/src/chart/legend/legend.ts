@@ -1,3 +1,4 @@
+import { Logger } from 'ag-charts-core';
 import type {
     AgChartLegendClickEvent,
     AgChartLegendContextMenuEvent,
@@ -21,7 +22,6 @@ import type { Scene } from '../../scene/scene';
 import { Selection } from '../../scene/selection';
 import { Transformable } from '../../scene/transformable';
 import { createId } from '../../util/id';
-import { Logger } from '../../util/logger';
 import { clamp } from '../../util/number';
 import { objectsEqual } from '../../util/object';
 import { BaseProperties } from '../../util/properties';

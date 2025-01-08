@@ -1,4 +1,5 @@
-import { Logger } from './logger';
+import { Logger } from 'ag-charts-core';
+
 import { clamp, countFractionDigits, round } from './number';
 import { numberFormat, parseFormat } from './numberFormat';
 import { day } from './time/day';

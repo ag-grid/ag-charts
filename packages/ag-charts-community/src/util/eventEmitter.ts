@@ -1,4 +1,4 @@
-import { Logger } from './logger';
+import { Logger } from 'ag-charts-core';
 
 export type EventListener<T> = (event: T) => void | Promise<void>;
 

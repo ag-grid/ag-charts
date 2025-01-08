@@ -9,7 +9,6 @@ export { extractDecoratedProperties, isDecoratedObject, listDecoratedProperties 
 export * from './util/dom';
 export * from './util/deprecation';
 export * from './util/format.util';
-export * from './util/function';
 export * from './util/json';
 export * from './util/keynavUtil';
 export * from './util/listeners';
@@ -132,7 +131,6 @@ export { isDenseInterval, range } from './util/ticks';
 export { Color } from './util/color';
 export { setAttribute, setAttributes, setElementStyle } from './util/attributeUtil';
 export { Debug } from './util/debug';
-export { Logger } from './util/logger';
 export { sanitizeHtml } from './util/sanitize';
 export { isContinuous } from './util/value';
 export type { PlacedLabel, PointLabelDatum, LabelPlacement } from './scene/util/labelPlacement';

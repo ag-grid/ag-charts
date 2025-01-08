@@ -1,5 +1,6 @@
+import { Logger } from 'ag-charts-core';
+
 import { moduleRegistry } from '../../module/module';
-import { Logger } from '../../util/logger';
 import { mergeDefaults } from '../../util/object';
 import { axisRegistry } from './axisRegistry';
 import { chartDefaults } from './chartTypes';

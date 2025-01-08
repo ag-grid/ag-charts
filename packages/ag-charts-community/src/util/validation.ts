@@ -1,6 +1,7 @@
+import { Logger } from 'ag-charts-core';
+
 import { Color } from './color';
 import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './decorator';
-import { Logger } from './logger';
 import { isProperties } from './properties';
 import {
     isArray,

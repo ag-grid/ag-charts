@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 import type { AgMapShapeSeriesStyle } from 'ag-charts-types';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
@@ -24,7 +25,6 @@ const {
     Validate,
     CachedTextMeasurerPool,
     TextUtils,
-    Logger,
     ColorScale,
     Group,
     Selection,

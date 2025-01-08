@@ -1,4 +1,5 @@
 import { type FillOptions, type LineDashOptions, type StrokeOptions, _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 
 import {
     FlowProportionDatumType,
@@ -19,7 +20,6 @@ const {
     angleBetween,
     normalizeAngle360,
     isBetweenAngles,
-    Logger,
     Sector,
     evaluateBezier,
     applyShapeStyle,

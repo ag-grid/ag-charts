@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 
 import { GeoGeometry, GeoGeometryRenderMode } from '../map-util/geoGeometry';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -10,7 +11,7 @@ import {
     MapShapeBackgroundSeriesProperties,
 } from './mapShapeBackgroundSeriesProperties';
 
-const { createDatumId, SeriesNodePickMode, Validate, Logger, Selection, Group, PointerEvents } = _ModuleSupport;
+const { createDatumId, SeriesNodePickMode, Validate, Selection, Group, PointerEvents } = _ModuleSupport;
 
 interface MapShapeBackgroundNodeDataContext
     extends _ModuleSupport.DataModelSeriesNodeDataContext<MapShapeBackgroundNodeDatum> {}

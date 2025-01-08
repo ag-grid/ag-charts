@@ -1,6 +1,7 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 
-const { BaseProperties, Validate, OBJECT, BOOLEAN, NUMBER, NUMBER_ARRAY, Logger } = _ModuleSupport;
+const { BaseProperties, Validate, OBJECT, BOOLEAN, NUMBER, NUMBER_ARRAY } = _ModuleSupport;
 
 class GaugeSegmentationIntervalProperties extends BaseProperties {
     @Validate(NUMBER_ARRAY, { optional: true })

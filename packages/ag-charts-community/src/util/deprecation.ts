@@ -1,5 +1,6 @@
+import { Logger } from 'ag-charts-core';
+
 import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './decorator';
-import { Logger } from './logger';
 import { getPath, setPath } from './object';
 
 export function createDeprecationWarning() {

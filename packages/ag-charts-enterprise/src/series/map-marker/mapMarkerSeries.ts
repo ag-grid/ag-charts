@@ -1,4 +1,5 @@
 import { type AgMapMarkerSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 
 import { extendBbox } from '../map-util/bboxUtil';
 import { geometryBbox, projectGeometry } from '../map-util/geometryUtil';
@@ -23,7 +24,6 @@ const {
     SeriesNodePickMode,
     valueProperty,
     computeMarkerFocusBounds,
-    Logger,
     ColorScale,
     LinearScale,
     Group,

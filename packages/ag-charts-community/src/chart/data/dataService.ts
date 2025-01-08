@@ -1,7 +1,7 @@
+import { Logger, throttle } from 'ag-charts-core';
+
 import { Debug } from '../../util/debug';
-import { throttle } from '../../util/function';
 import { Listeners } from '../../util/listeners';
-import { Logger } from '../../util/logger';
 import { ActionOnSet } from '../../util/proxy';
 import type { AnimationManager } from '../interaction/animationManager';
 

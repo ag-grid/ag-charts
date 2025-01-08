@@ -1,5 +1,6 @@
 import type { AgContextMenuOptions } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 
 import { DEFAULT_CONTEXT_MENU_CLASS, DEFAULT_CONTEXT_MENU_DARK_CLASS } from './contextMenuStyles';
 
@@ -15,7 +16,7 @@ type ContextMenuEvent = _ModuleSupport.ContextMenuEvent;
 type ContextMenuAction<T extends ContextType = ContextType> = _ModuleSupport.ContextMenuAction<T>;
 type ContextMenuCallback<T extends ContextType> = _ModuleSupport.ContextMenuCallback<T>;
 
-const { BOOLEAN, Validate, createElement, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry, Logger } =
+const { BOOLEAN, Validate, createElement, initMenuKeyNav, makeAccessibleClickListener, ContextMenuRegistry } =
     _ModuleSupport;
 
 const moduleId = 'context-menu';

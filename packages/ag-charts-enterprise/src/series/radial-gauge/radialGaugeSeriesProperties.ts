@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgGaugeFillMode,
@@ -38,7 +39,6 @@ const {
     RATIO,
     STRING,
     UNION,
-    Logger,
     Label,
 } = _ModuleSupport;
 

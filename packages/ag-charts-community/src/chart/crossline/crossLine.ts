@@ -1,10 +1,10 @@
+import { Logger } from 'ag-charts-core';
 import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import type { Group } from '../../scene/group';
-import { Logger } from '../../util/logger';
 import type { TimeInterval } from '../../util/time/interval';
 import { predicateWithMessage, stringify } from '../../util/validation';
 import { checkDatum } from '../../util/value';

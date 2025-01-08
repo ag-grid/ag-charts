@@ -5,6 +5,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 
 import {
     CLOSE,
@@ -30,7 +31,6 @@ const {
     animationValidation,
     computeBarFocusBounds,
     visibleRangeIndices,
-    Logger,
     ContinuousScale,
     OrdinalTimeScale,
     BandScale,

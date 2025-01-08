@@ -1,3 +1,4 @@
+import { Logger } from 'ag-charts-core';
 import type {
     AgAxisBoundSeries,
     AgBaseAxisLabelStyleOptions,
@@ -27,7 +28,6 @@ import { Transformable, Translatable } from '../../scene/transformable';
 import { normalizeAngle360, toRadians } from '../../util/angle';
 import { formatValue } from '../../util/format.util';
 import { createId } from '../../util/id';
-import { Logger } from '../../util/logger';
 import { findMinMax, findRangeExtent } from '../../util/number';
 import { mergeDefaults } from '../../util/object';
 import { ObserveChanges } from '../../util/proxy';

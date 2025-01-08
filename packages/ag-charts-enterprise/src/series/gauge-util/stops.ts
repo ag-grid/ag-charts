@@ -1,6 +1,7 @@
 import { type AgGaugeFillMode, _ModuleSupport } from 'ag-charts-community';
+import { Logger } from 'ag-charts-core';
 
-const { BaseProperties, Validate, COLOR_STRING, NUMBER, Logger, ColorScale } = _ModuleSupport;
+const { BaseProperties, Validate, COLOR_STRING, NUMBER, ColorScale } = _ModuleSupport;
 
 export class GaugeStopProperties extends BaseProperties {
     @Validate(NUMBER, { optional: true })
