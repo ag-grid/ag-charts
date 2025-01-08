@@ -32,12 +32,14 @@ These are all contants in screen pixels.
 
 Let's also define:
 
--   $x_i \in{[0, 1]}$ as the initial normalised value of finger $i$ on the
+-   $x_i \in{[0, N]}$ as the initial normalised value of finger $i$ on the
     current axis.
 -   $a_i \in [R_x, R_W]$ as the initial screen value of finger $i$ on the current
     axis.
 -   $Z_{min}, Z_{max} \in [0, 1]$ as the initial normalised zoom values on the current
     axis.
+
+$N$ is typically $1$, but it can be set to a higher value for more precision.
 
 Note that, in the interest of simplicity, the assumption here is that fingers
 will always stay with bounds the series-area. In practice however the user can
@@ -52,7 +54,7 @@ The $x_1$, and $x_2$ values can
 calculated using interpolation:
 
 \begin{equation}
-x_i = \frac{a_i - R_x}{R_W} (Z_{max} - Z_{min}) + Z_{min} \qquad i \in \{1, 2\}
+x_i = N \cdot \left( \frac{a_i - R_x}{R_W} (Z_{max} - Z_{min}) + Z_{min} \right) \qquad i \in \{1, 2\}
 \end{equation}
 
 
@@ -71,7 +73,7 @@ normalised zoom values on the current axis.
 
 The interpolation logic is the same during a `'touchmove'` event:
 \begin{equation}
-x'_i = \frac{a'_i - R_x}{R_W} (Z'_{max} - Z'_{min}) + Z'_{min} \qquad i \in \{1, 2\}
+x'_i = N \cdot \left( \frac{a'_i - R_x}{R_W} (Z'_{max} - Z'_{min}) + Z'_{min} \right) \qquad i \in \{1, 2\}
 \end{equation}
 
 We want the fingers to keep touching the same point on the chart. This means
@@ -81,44 +83,44 @@ Fortunately, we have two fingers. This gives us two equations with the two
 unknowns $(Z'_{min}, Z'_{max})$ that we are looking for:
 
 \begin{align*}
-x_1 &= \frac{a'_1 - R_x}{R_W} (Z'_{max} - Z'_{min}) + Z'_{min} \qquad (1) \\
-x_2 &= \frac{a'_2 - R_x}{R_W} (Z'_{max} - Z'_{min}) + Z'_{min} \qquad (2) \\
+x_1 &= N \cdot \left( \frac{a'_1 - R_x}{R_W} (Z'_{max} - Z'_{min}) + Z'_{min} \right) \qquad (1) \\
+x_2 &= N \cdot \left( \frac{a'_2 - R_x}{R_W} (Z'_{max} - Z'_{min}) + Z'_{min} \right) \qquad (2) \\
 \end{align*}
 
 Which we can rewrite as:
 \begin{align*}
-x_1 &= f_1 (Z'_{max} - Z'_{min}) + Z'_{min} \qquad (1) \\
-x_2 &= f_2 (Z'_{max} - Z'_{min}) + Z'_{min} \qquad (2) \\ \\
-\textrm{where }f_i &= \frac{a'_i - R_x}{R_W}
+x_1 &= f_1 (Z'_{max} - Z'_{min}) +  N \cdot Z'_{min} \qquad (1) \\
+x_2 &= f_2 (Z'_{max} - Z'_{min}) +  N \cdot Z'_{min} \qquad (2) \\ \\
+\textrm{where }f_i &=  N \cdot \frac{a'_i - R_x}{R_W}
 \end{align*}
 
 We can use equation $(2)$ to express $Z'_{max}$ in terms of $Z'_{min}$:
 \begin{align*}
-x_2 &= f_2 (Z'_{max} - Z'_{min}) + Z'_{min} \\
-x_2 &= f_2 Z'_{max} - f_2 Z'_{min} + Z'_{min} \\
-x_2 &= f_2 Z'_{max} - (f_2 - 1) Z'_{min} \\
-x_2 + (f_2 - 1) Z'_{min} &= f_2 Z'_{max} \\
+x_2 &= f_2 (Z'_{max} - Z'_{min}) + N \cdot Z'_{min} \\
+x_2 &= f_2 Z'_{max} - f_2 Z'_{min} +  N \cdot Z'_{min} \\
+x_2 &= f_2 Z'_{max} - (f_2 - N) Z'_{min} \\
+x_2 + (f_2 - N) Z'_{min} &= f_2 Z'_{max} \\
 \therefore
-Z'_{max} &= \frac{x_2 + (f_2 - 1) Z'_{min}}{f_2} \\
+Z'_{max} &= \frac{x_2 + (f_2 - N) Z'_{min}}{f_2} \\
 \end{align*}
 
 Now we can substitue $Z'_{max}$ into equation $(1)$:
 \begin{align*}
-x_1                &= f_1 (Z'_{max} - Z'_{min}) + Z'_{min} \\
-x_1                &= f_1 Z'_{max} - f_1 Z'_{min} + Z'_{min} \\
-x_1 - f_1 Z'_{max} &= -f_1 Z'_{min} + Z'_{min} \\
-                   &= (1 - f_1) Z'_{min} \\
-x_1 - f_1 \frac {x_2 + (f_2 - 1) Z'_{min}} {f_2} &= (1 - f_1) Z'_{min} \\
-x_1 - \frac{f_1}{f_2} x_2 - \frac{f_1}{f_2} (f_2 -1) Z'_{min} &=  (1 - f_1) Z'_{min} \\
-x_1 - \frac{f_1}{f_2} x_2 &=  (1 - f_1) Z'_{min} + \frac{f_1}{f_2} (f_2 -1) Z'_{min} \\
+x_1                &= f_1 (Z'_{max} - Z'_{min}) + N \cdot Z'_{min} \\
+x_1                &= f_1 Z'_{max} - f_1 Z'_{min} + N \cdot Z'_{min} \\
+x_1 - f_1 Z'_{max} &= -f_1 Z'_{min} + N \cdot Z'_{min} \\
+                   &= (N - f_1) Z'_{min} \\
+x_1 - f_1 \frac {x_2 + (f_2 - N) Z'_{min}} {f_2} &= (N - f_1) Z'_{min} \\
+x_1 - \frac{f_1}{f_2} x_2 - \frac{f_1}{f_2} (f_2 - N) Z'_{min} &=  (N - f_1) Z'_{min} \\
+x_1 - \frac{f_1}{f_2} x_2 &=  (N - f_1) Z'_{min} + \frac{f_1}{f_2} (f_2 -1) Z'_{min} \\
 \end{align*}
 
 Let $g = \frac{f_1}{f_2}$
 \begin{align*}
-x_1 - g x_2 &=  (1 - f_1) Z'_{min} + g (f_2 -1) Z'_{min} \\
-x_1 - g x_2 &=  Z'_{min} ( (1 - f_1) + g (f_2 -1) ) \\
+x_1 - g x_2 &=  (N - f_1) Z'_{min} + g (f_2 - N) Z'_{min} \\
+x_1 - g x_2 &=  Z'_{min} ( (N - f_1) + g (f_2 - N) ) \\
 \therefore
-Z'_{min} &= \frac{x_1 - g x_2}{1 - f_1 + g (f_2 -1)} \\
+Z'_{min} &= \frac{x_1 - g x_2}{N - f_1 + g (f_2 - N)} \\
 \end{align*}
 
 
@@ -134,7 +136,7 @@ X-min and X-max computation:
 \begin{align*}
 R_x &:= R_y \\
 R_W &:= R_H \\
-x_i &:= 1 - y_i \\
+x_i &:= N - y_i \\
 a'_i &:= (R_H + R_y) - b'_i
 \end{align*}
 

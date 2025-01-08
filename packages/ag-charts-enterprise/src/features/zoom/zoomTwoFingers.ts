@@ -2,10 +2,12 @@ import { _ModuleSupport, _Widget } from 'ag-charts-community';
 
 type Origin = { identifier: number; normalX: number; normalY: number };
 
+const N = 1_000_000;
+
 // Interpolate `a` from [Rx, Rw] to [min, max]
 function clientToNormal({ min, max }: _ModuleSupport.ZoomState, a: number, Rx: number, Rw: number): number {
     if (Rw === 0) return 0; // don't divide by 0.
-    return ((a - Rx) / Rw) * (max - min) + min;
+    return N * (((a - Rx) / Rw) * (max - min) + min);
 }
 
 function solveTwoUnknowns(
@@ -21,12 +23,12 @@ function solveTwoUnknowns(
     [x1, x2] = [Math.min(x1, x2), Math.max(x1, x2)];
     [a1, a2] = [Math.min(a1, a2), Math.max(a1, a2)];
 
-    const f1 = (a1 - Rx) / Rw;
-    const f2 = (a2 - Rx) / Rw;
+    const f1 = (N * (a1 - Rx)) / Rw;
+    const f2 = (N * (a2 - Rx)) / Rw;
     const g = (a1 - Rx) / (a2 - Rx); // === f1 / f2;
 
-    const min = (x1 - g * x2) / (1 - f1 + g * (f2 - 1));
-    const max = (x2 + (f2 - 1) * min) / f2;
+    const min = (x1 - g * x2) / (N - f1 + g * (f2 - N));
+    const max = (x2 + (f2 - N) * min) / f2;
 
     return { min, max };
 }
@@ -74,8 +76,8 @@ export class ZoomTwoFingers {
             ),
             // Note: For the Y axis, normalised 0 is the bottom, but screen 0 is the top. Hence (MaxY - y) computation.
             y: solveTwoUnknowns(
-                1 - origins[0].normalY,
-                1 - origins[1].normalY,
+                N - origins[0].normalY,
+                N - origins[1].normalY,
                 rect.height + rect.y - touches[0].clientY,
                 rect.height + rect.y - touches[1].clientY,
                 rect.y,
