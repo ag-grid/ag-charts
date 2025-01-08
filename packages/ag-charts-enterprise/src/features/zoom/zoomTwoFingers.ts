@@ -9,24 +9,24 @@ function clientToNormal({ min, max }: _ModuleSupport.ZoomState, a: number, Rx: n
 }
 
 function solveTwoUnknowns(
-    x0: number,
     x1: number,
-    a0: number,
+    x2: number,
     a1: number,
+    a2: number,
     Rx: number,
     Rw: number
 ): _ModuleSupport.ZoomState {
-    // The math expects x0 <= x1 (and a0 <= a1).
-    // If x0 > x1, then the gesture will be reversed (i.e. fingers moving closer would zoom in).
-    [x0, x1] = [Math.min(x0, x1), Math.max(x0, x1)];
-    [a0, a1] = [Math.min(a0, a1), Math.max(a0, a1)];
+    // The math expects x1 <= x2 (and a1 <= a2).
+    // If x1 > x2, then the gesture will be reversed (i.e. fingers moving closer would zoom in).
+    [x1, x2] = [Math.min(x1, x2), Math.max(x1, x2)];
+    [a1, a2] = [Math.min(a1, a2), Math.max(a1, a2)];
 
-    const k0 = (a0 - Rx) / Rw;
     const k1 = (a1 - Rx) / Rw;
-    const g = (a0 - Rx) / (a1 - Rx); // === k0 / k1;
+    const k2 = (a2 - Rx) / Rw;
+    const g = (a1 - Rx) / (a2 - Rx); // === k1 / k2;
 
-    const min = (x0 - g * x1) / (1 - k0 - g * (k1 - 1));
-    const max = (x1 + (k1 - 1) * min) / k1;
+    const min = (x1 - g * x2) / (1 - k1 - g * (k2 - 1));
+    const max = (x2 + (k2 - 1) * min) / k2;
 
     return { min, max };
 }
