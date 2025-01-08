@@ -72,15 +72,15 @@ export class ZoomTwoFingers {
                 rect.x,
                 rect.width
             ),
-            // y: solveTwoUnknowns(
-            //     origins[0].normalY,
-            //     origins[1].normalY,
-            //     touches[0].clientY,
-            //     touches[1].clientY,
-            //     rect.y,
-            //     rect.height
-            // ),
-            y: { min: 0, max: 1 },
+            // Note: For the Y axis, normalised 0 is the bottom, but screen 0 is the top. Hence (MaxY - y) computation.
+            y: solveTwoUnknowns(
+                1 - origins[0].normalY,
+                1 - origins[1].normalY,
+                (rect.height + rect.y) - touches[0].clientY,
+                (rect.height + rect.y) - touches[1].clientY,
+                rect.y,
+                rect.height
+            ),
         };
     }
 
