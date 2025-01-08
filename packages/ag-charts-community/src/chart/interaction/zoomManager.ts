@@ -550,9 +550,9 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         const xScaleRange = xScale.range;
         xScale.range = [0, 1];
 
-        // We can't use the yAxis, because it might be 'nice',
-        // which will mean an inconsistent domain
-        const [d0, d1] = findMinMax(yAxis.scale.domain);
+        const yScale = yAxis.scale;
+        const yScaleRange = yScale.range;
+        yScale.range = [0, 1];
 
         let min = 1;
         let minPadding = false;
@@ -561,8 +561,8 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         for (const series of yAxis.boundSeries) {
             const [yValue0, yValue1] = series.getRange(ChartAxisDirection.Y, [zoom.min, zoom.max]);
 
-            let y0 = (yValue0 - d0) / (d1 - d0);
-            let y1 = (yValue1 - d0) / (d1 - d0);
+            let y0 = yScale.convert(yValue0);
+            let y1 = yScale.convert(yValue1);
             [y0, y1] = findMinMax([y0, y1]);
 
             if (!Number.isFinite(y0) || !Number.isFinite(y1)) continue;
@@ -590,6 +590,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         }
 
         xScale.range = xScaleRange;
+        yScale.range = yScaleRange;
 
         if (min >= max) return;
 

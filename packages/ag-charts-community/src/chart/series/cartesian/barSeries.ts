@@ -34,7 +34,7 @@ import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { applyShapeStyle } from '../shapeUtil';
-import { datumStylerProperties, visibleRangeIndices } from '../util';
+import { datumStylerProperties } from '../util';
 import { AbstractBarSeries } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
 import {
@@ -287,20 +287,13 @@ export class BarSeries extends AbstractBarSeries<
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
         const { dataModel, processedData } = this;
-        if (!dataModel || !processedData || this.getBarDirection() === ChartAxisDirection.X) return [NaN, NaN];
+        const xRange = this.getXRangeInVisibleRange(visibleRange);
+        if (!dataModel || !processedData || !xRange) return [NaN, NaN];
 
-        const xScale = this.axes[ChartAxisDirection.X]!.scale;
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-        const barWidth = xScale.bandwidth ?? 0;
-
-        const [x0, x1] = visibleRangeIndices(xValues.length, visibleRange, (index) => {
-            const x = xScale.convert(xValues[index]);
-            return [x, x + barWidth];
-        });
         const [y0, y1] = dataModel.getDomainBetweenRange(
             this,
             processedData.type === 'ungrouped' ? ['yValue-raw'] : ['yValue-end'],
-            [x0, x1],
+            xRange,
             processedData
         );
         return [Math.min(y0, 0), Math.max(y1, 0)];
