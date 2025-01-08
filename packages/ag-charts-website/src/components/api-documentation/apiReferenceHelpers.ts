@@ -239,8 +239,22 @@ function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberN
         const typeParams: TypeParameterNode[] = (reference.get(type) as any)?.typeParams;
         if (typeParams) {
             apiNode.params = apiNode.params?.map((nodeParam) => {
-                const genericValue = typeArguments[typeParams.findIndex((param) => param.name === nodeParam.type)];
-                return genericValue ? { ...nodeParam, type: genericValue } : nodeParam;
+                const genericType = nodeParam._genericType;
+                const genericValue =
+                    typeArguments[
+                        typeParams.findIndex((param) => {
+                            return param.name === nodeParam.type || param.name === genericType;
+                        })
+                    ];
+
+                return genericValue
+                    ? {
+                          ...nodeParam,
+                          // Store `_genericType` for future checks
+                          _genericType: genericType ? genericType : nodeParam.type,
+                          type: genericValue,
+                      }
+                    : nodeParam;
             });
 
             if (typeof apiNode.returnType === 'object' && apiNode.returnType.kind === 'union') {
