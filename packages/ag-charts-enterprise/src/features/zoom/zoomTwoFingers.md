@@ -87,38 +87,38 @@ x_2 &= \frac{a'_2 - R_x}{R_W} (Z'_{max} - Z'_{min}) + Z'_{min} \qquad (2) \\
 
 Which we can rewrite as:
 \begin{align*}
-x_1 &= k_1 (Z'_{max} - Z'_{min}) + Z'_{min} \qquad (1) \\
-x_2 &= k_2 (Z'_{max} - Z'_{min}) + Z'_{min} \qquad (2) \\ \\
-\textrm{where }k_i &= \frac{a'_i - R_x}{R_W}
+x_1 &= f_1 (Z'_{max} - Z'_{min}) + Z'_{min} \qquad (1) \\
+x_2 &= f_2 (Z'_{max} - Z'_{min}) + Z'_{min} \qquad (2) \\ \\
+\textrm{where }f_i &= \frac{a'_i - R_x}{R_W}
 \end{align*}
 
 We can use equation $(2)$ to express $Z'_{max}$ in terms of $Z'_{min}$:
 \begin{align*}
-x_2 &= k_2 (Z'_{max} - Z'_{min}) + Z'_{min} \\
-x_2 &= k_2 Z'_{max} - k_2 Z'_{min} + Z'_{min} \\
-x_2 &= k_2 Z'_{max} - (k_2 - 1) Z'_{min} \\
-x_2 + (k_2 - 1) Z'_{min} &= k_2 Z'_{max} \\
+x_2 &= f_2 (Z'_{max} - Z'_{min}) + Z'_{min} \\
+x_2 &= f_2 Z'_{max} - f_2 Z'_{min} + Z'_{min} \\
+x_2 &= f_2 Z'_{max} - (f_2 - 1) Z'_{min} \\
+x_2 + (f_2 - 1) Z'_{min} &= f_2 Z'_{max} \\
 \therefore
-Z'_{max} &= \frac{x_2 + (k_2 - 1) Z'_{min}}{k_2} \\
+Z'_{max} &= \frac{x_2 + (f_2 - 1) Z'_{min}}{f_2} \\
 \end{align*}
 
 Now we can substitue $Z'_{max}$ into equation $(1)$:
 \begin{align*}
-x_1                &= k_1 (Z'_{max} - Z'_{min}) + Z'_{min} \\
-x_1                &= k_1 Z'_{max} - k_1 Z'_{min} + Z'_{min} \\
-x_1 - k_1 Z'_{max} &= -k_1 Z'_{min} + Z'_{min} \\
-                   &= (1 - k_1) Z'_{min} \\
-x_1 - k_1 \frac {x_2 + (k_2 - 1) Z'_{min}} {k_2} &= (1 - k_1) Z'_{min} \\
-x_1 - \frac{k_1}{k_2} x_2 - \frac{k_1}{k_2} (k_2 -1) Z'_{min} &=  (1 - k_1) Z'_{min} \\
-x_1 - \frac{k_1}{k_2} x_2 &=  (1 - k_1) Z'_{min} + \frac{k_1}{k_2} (k_2 -1) Z'_{min} \\
+x_1                &= f_1 (Z'_{max} - Z'_{min}) + Z'_{min} \\
+x_1                &= f_1 Z'_{max} - f_1 Z'_{min} + Z'_{min} \\
+x_1 - f_1 Z'_{max} &= -f_1 Z'_{min} + Z'_{min} \\
+                   &= (1 - f_1) Z'_{min} \\
+x_1 - f_1 \frac {x_2 + (f_2 - 1) Z'_{min}} {f_2} &= (1 - f_1) Z'_{min} \\
+x_1 - \frac{f_1}{f_2} x_2 - \frac{f_1}{f_2} (f_2 -1) Z'_{min} &=  (1 - f_1) Z'_{min} \\
+x_1 - \frac{f_1}{f_2} x_2 &=  (1 - f_1) Z'_{min} + \frac{f_1}{f_2} (f_2 -1) Z'_{min} \\
 \end{align*}
 
-Let $g = \frac{k_1}{k_2}$
+Let $g = \frac{f_1}{f_2}$
 \begin{align*}
-x_1 - g x_2 &=  (1 - k_1) Z'_{min} + g (k_2 -1) Z'_{min} \\
-x_1 - g x_2 &=  Z'_{min} ( (1 - k_1) + g (k_2 -1) ) \\
+x_1 - g x_2 &=  (1 - f_1) Z'_{min} + g (f_2 -1) Z'_{min} \\
+x_1 - g x_2 &=  Z'_{min} ( (1 - f_1) + g (f_2 -1) ) \\
 \therefore
-Z'_{min} &= \frac{x_1 - g x_2}{1 - k_1 + g (k_2 -1)} \\
+Z'_{min} &= \frac{x_1 - g x_2}{1 - f_1 + g (f_2 -1)} \\
 \end{align*}
 
 
