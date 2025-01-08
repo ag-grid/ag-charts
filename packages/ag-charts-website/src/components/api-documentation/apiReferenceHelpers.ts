@@ -234,37 +234,43 @@ export function formatTypeToCode(
 }
 
 function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberNode, reference: ApiReferenceType) {
+    let { params, returnType } = apiNode;
+
     if (typeof member.type === 'object' && member.type.kind === 'typeRef' && member.type.typeArguments) {
         const { type, typeArguments } = member.type;
         const typeParams: TypeParameterNode[] = (reference.get(type) as any)?.typeParams;
+
         if (typeParams) {
-            apiNode.params = apiNode.params?.map((nodeParam) => {
+            params = apiNode.params?.map((nodeParam) => {
                 const genericValue = typeArguments[typeParams.findIndex((param) => param.name === nodeParam.type)];
                 return genericValue ? { ...nodeParam, type: genericValue } : nodeParam;
             });
 
-            if (typeof apiNode.returnType === 'object' && apiNode.returnType.kind === 'union') {
-                apiNode.returnType.type = apiNode.returnType.type.map(
-                    (returnType) =>
-                        typeArguments[typeParams.findIndex((param) => param.name === returnType)] ?? returnType
-                );
+            if (typeof returnType === 'object' && returnType.kind === 'union') {
+                returnType = {
+                    ...returnType,
+                    type: returnType.type.map(
+                        (nodeReturnType) =>
+                            typeArguments[typeParams.findIndex((param) => param.name === nodeReturnType)] ??
+                            nodeReturnType
+                    ),
+                };
             } else {
-                apiNode.returnType =
-                    typeArguments[typeParams.findIndex((param) => param.name === apiNode.returnType)] ??
-                    apiNode.returnType;
+                returnType = typeArguments[typeParams.findIndex((param) => param.name === returnType)] ?? returnType;
             }
         }
     }
 
-    const returnType =
-        typeof apiNode.returnType === 'object' &&
-        apiNode.returnType.kind === 'typeRef' &&
-        apiNode.returnType.type === 'Required' &&
-        typeof apiNode.returnType.typeArguments?.[0] === 'string'
-            ? apiNode.returnType.typeArguments[0]
-            : apiNode.returnType;
+    if (
+        typeof returnType === 'object' &&
+        returnType.kind === 'typeRef' &&
+        returnType.type === 'Required' &&
+        typeof returnType.typeArguments?.[0] === 'string'
+    ) {
+        returnType = returnType.typeArguments[0];
+    }
 
-    const additionalTypes = apiNode.params
+    const additionalTypes = params
         ?.map((param) => param.type)
         .concat(returnType)
         .flatMap(function typeMapper(type): PossibleTypeNode {
@@ -282,9 +288,8 @@ function formatFunctionCode(name: string, apiNode: FunctionNode, member: MemberN
         })
         .filter((t): t is Exclude<TypeNode, string> => Boolean(t));
 
-    const params = apiNode.params?.map((param) => `${param.name}: ${normalizeType(param.type)}`).join(', ');
-
-    const codeSample = `function ${name}(${params ?? ''}): ${normalizeType(apiNode.returnType, true)};`;
+    const paramsString = params?.map((param) => `${param.name}: ${normalizeType(param.type)}`).join(', ') ?? '';
+    const codeSample = `function ${name}(${paramsString}): ${normalizeType(returnType, true)};`;
 
     return additionalTypes
         ? [codeSample].concat(additionalTypes.map((type) => formatTypeToCode(type, member, reference))).join('\n\n')
