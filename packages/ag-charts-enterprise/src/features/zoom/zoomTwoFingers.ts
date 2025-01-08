@@ -76,8 +76,8 @@ export class ZoomTwoFingers {
             y: solveTwoUnknowns(
                 1 - origins[0].normalY,
                 1 - origins[1].normalY,
-                (rect.height + rect.y) - touches[0].clientY,
-                (rect.height + rect.y) - touches[1].clientY,
+                rect.height + rect.y - touches[0].clientY,
+                rect.height + rect.y - touches[1].clientY,
                 rect.y,
                 rect.height
             ),
