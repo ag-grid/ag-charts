@@ -33,7 +33,7 @@ validatePackageJsonExists()
 checkFilesExist() {
   local -n expected_files=$1
   local missing_files=()
-  
+
   for file in "${expected_files[@]}"; do
     if [[ ! -e "$file" ]]; then
       missing_files+=("$file")
@@ -91,6 +91,13 @@ validateCommonDist()
   if [[ $count -eq 0 ]]
   then
     echo "ERROR: $directory/dist/types should have at type files - none found"
+    exit 1
+  fi
+
+  local sourceMappingCount=`grep sourceMappingURL $directory/dist/package/*.*js | wc -l`
+  if [[ $sourceMappingCount -ne 0 ]]
+  then
+    echo "ERROR: $directory/dist/package has source map references"
     exit 1
   fi
 }
