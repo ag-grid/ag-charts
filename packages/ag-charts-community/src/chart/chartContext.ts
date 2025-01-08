@@ -22,7 +22,6 @@ import { AnimationManager } from './interaction/animationManager';
 import { ChartEventManager } from './interaction/chartEventManager';
 import { ContextMenuRegistry } from './interaction/contextMenuRegistry';
 import { CursorManager } from './interaction/cursorManager';
-import { GestureDetector } from './interaction/gestureDetector';
 import { HighlightManager } from './interaction/highlightManager';
 import { InteractionManager } from './interaction/interactionManager';
 import type { SyncManager } from './interaction/syncManager';
@@ -56,7 +55,6 @@ export class ChartContext implements ModuleContext {
     cursorManager: CursorManager;
     dataService: DataService<any>;
     domManager: DOMManager;
-    gestureDetector: GestureDetector;
     historyManager: HistoryManager;
     interactionManager: InteractionManager;
     proxyInteractionService: ProxyInteractionService;
@@ -119,7 +117,6 @@ export class ChartContext implements ModuleContext {
         this.cursorManager = new CursorManager(this.domManager);
         this.interactionManager = new InteractionManager();
         this.contextMenuRegistry = new ContextMenuRegistry();
-        this.gestureDetector = new GestureDetector(this.domManager);
         this.updateService = new UpdateService(updateCallback);
         this.proxyInteractionService = new ProxyInteractionService(this.localeManager, this.domManager);
         this.historyManager = new HistoryManager(this.chartEventManager);
