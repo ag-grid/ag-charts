@@ -15,6 +15,7 @@ import { Sector } from '../../../scene/shape/sector';
 import { Text } from '../../../scene/shape/text';
 import { boxCollidesSector, isPointInSector } from '../../../scene/util/sector';
 import { normalizeAngle180, toRadians } from '../../../util/angle';
+import { formatValue } from '../../../util/format.util';
 import { jsonDiff } from '../../../util/json';
 import { mod } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
@@ -1390,7 +1391,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                     {
                         label,
                         fallbackLabel: angleKey,
-                        value: String(angleRawValue),
+                        value: formatValue(angleRawValue, 3),
                     },
                 ],
             },
