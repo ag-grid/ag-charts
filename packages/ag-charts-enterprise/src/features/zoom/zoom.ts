@@ -224,7 +224,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx.widgets.seriesDragInterpreter.addListener('drag-start', (event) => this.onDragStart(event)),
             ctx.widgets.seriesDragInterpreter.addListener('drag-end', () => this.onDragEnd()),
             ctx.widgets.seriesWidget.addListener('wheel', (event) => this.onWheel(event)),
-            ctx.widgets.seriesWidget.addListener('touchstart', (event) => this.onTouchStart(event)),
+            ctx.widgets.seriesWidget.addListener('touchstart', (event, current) => this.onTouchStart(event, current)),
             ctx.widgets.seriesWidget.addListener('touchmove', (event, current) => this.onTouchMove(event, current)),
             ctx.widgets.seriesWidget.addListener('touchend', (event) => this.onTouchEnd(event)),
             ctx.widgets.seriesWidget.addListener('touchcancel', (event) => this.onTouchEnd(event)),
@@ -497,9 +497,9 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
         this.onDragStart(undefined);
     }
 
-    private onTouchStart(event: _Widget.TouchWidgetEvent<'touchstart'>) {
+    private onTouchStart(event: _Widget.TouchWidgetEvent<'touchstart'>, current: _Widget.Widget) {
         if (this.dragState !== DragState.None) return;
-        if (this.twoFingers.start(event, this.getZoom())) {
+        if (this.twoFingers.start(event, current, this.getZoom())) {
             this.dragState = DragState.TwoFingers;
         }
     }
