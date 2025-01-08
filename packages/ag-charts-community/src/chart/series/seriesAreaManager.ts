@@ -599,10 +599,7 @@ export class SeriesAreaManager extends BaseManager {
     }
 
     private handleHoverTooltip(event: TooltipWidgetEvent, redisplay: boolean) {
-        if (!this.isState(InteractionState.Default)) {
-            this.clearTooltip();
-            return;
-        }
+        if (!this.isState(InteractionState.Clickable)) return;
         const { type, currentX, currentY } = event;
         const canvasX = currentX + (this.hoverRect?.x ?? 0);
         const canvasY = currentY + (this.hoverRect?.y ?? 0);
