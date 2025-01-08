@@ -9,6 +9,7 @@ import type { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
+import { findMinMax } from '../../../util/number';
 import { createTicks, tickStep } from '../../../util/ticks';
 import { isNumber } from '../../../util/type-guards';
 import { ChartAxisDirection } from '../../chartAxisDirection';
@@ -221,8 +222,30 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         return fixNumericExtent(yDomain);
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [any, any]): [number, number] {
-        return [NaN, NaN];
+    override getSeriesRange(_direction: ChartAxisDirection, [r0, r1]: [any, any]): [number, number] {
+        const { dataModel, processedData } = this;
+        if (!dataModel || processedData?.type !== 'grouped') return [NaN, NaN];
+
+        const xScale = this.axes[ChartAxisDirection.X]!.scale;
+
+        const yMin = 0;
+        let yMax = -Infinity;
+        processedData.groups.forEach(({ keys, aggregation }) => {
+            const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
+            const domain = keys;
+            const [xDomainMin, xDomainMax] = domain;
+
+            const [x0, x1] = findMinMax([xScale.convert(xDomainMin), xScale.convert(xDomainMax)]);
+
+            if (x1 >= r0 && x0 <= r1) {
+                const total = negativeAgg + positiveAgg;
+                yMax = Math.max(yMax, total);
+            }
+        });
+
+        if (yMin > yMax) return [NaN, NaN];
+
+        return [yMin, yMax];
     }
 
     override createNodeData() {
