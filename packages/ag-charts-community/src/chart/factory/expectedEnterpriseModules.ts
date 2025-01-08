@@ -1,7 +1,9 @@
+import type { ChartType } from './chartTypes';
+
 type EnterpriseModuleStub = {
     packageType?: 'enterprise';
     identifier?: string;
-    chartTypes: ('cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'standalone' | 'gauge')[];
+    chartTypes: ChartType[];
     useCount?: number;
     optionsInnerKey?: string;
     community?: boolean;

@@ -9,6 +9,7 @@ import type {
 import { CartesianChart } from '../chart/cartesianChart';
 import { Chart } from '../chart/chart';
 import { AgChartInstanceProxy, type FactoryApi } from '../chart/chartProxy';
+import type { ChartType } from '../chart/factory/chartTypes';
 import { registerInbuiltModules } from '../chart/factory/registerInbuiltModules';
 import { setupModules } from '../chart/factory/setupModules';
 import { FlowProportionChart } from '../chart/flowProportionChart';
@@ -45,9 +46,7 @@ function debugOptions(msg: string, options?: object) {
     }
 }
 
-function chartType(
-    options: any
-): 'cartesian' | 'polar' | 'hierarchy' | 'topology' | 'flow-proportion' | 'standalone' | 'gauge' {
+function chartType(options: any): ChartType {
     if (isAgCartesianChartOptions(options)) {
         return 'cartesian';
     } else if (isAgPolarChartOptions(options)) {
