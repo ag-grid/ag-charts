@@ -37,6 +37,13 @@ import { VERSION } from '../version';
 import { MementoCaretaker } from './state/memento';
 
 const debug = Debug.create(true, 'opts');
+function debugOptions(msg: string, options?: object) {
+    if (debug.check()) {
+        // Deep clone options so that we can guarantee log messages have the actual options used at the point of logging,
+        // not a later state if they are (incorrectly) mutated.
+        debug(msg, deepClone(options));
+    }
+}
 
 function chartType(
     options: any
@@ -187,12 +194,12 @@ class AgChartsInternal {
 
         AgChartsInternal.initialiseModules();
 
-        debug('>>> AgCharts.createOrUpdate() user options', userOptions);
+        debugOptions('>>> AgCharts.createOrUpdate() user options', userOptions);
 
         let mutableOptions = userOptions;
         if (AgCharts.optionsMutationFn && mutableOptions) {
             mutableOptions = AgCharts.optionsMutationFn(deepClone(mutableOptions), presetType);
-            debug('>>> AgCharts.createOrUpdate() MUTATED user options', mutableOptions);
+            debugOptions('>>> AgCharts.createOrUpdate() MUTATED user options', mutableOptions);
         }
 
         const {
@@ -290,7 +297,7 @@ class AgChartsInternal {
             false
         );
 
-        debug('>>> AgCharts.updateUserDelta() user delta', deltaOptions);
+        debugOptions('>>> AgCharts.updateUserDelta() user delta', deltaOptions);
         AgChartsInternal.createOrUpdate({
             proxy,
             deltaOptions,
