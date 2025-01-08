@@ -456,7 +456,7 @@ export abstract class Series<
         return moduleDomains.length !== 0 ? seriesDomain.concat(moduleDomains) : seriesDomain;
     }
 
-    getRange(direction: ChartAxisDirection, visibleRange: [number, number]): [number, number] {
+    getRange(direction: ChartAxisDirection, visibleRange: [number, number]): any[] {
         return this.getSeriesRange(direction, visibleRange);
     }
 
@@ -464,7 +464,7 @@ export abstract class Series<
     abstract getSeriesDomain(direction: ChartAxisDirection): any[];
 
     // Needed for auto-scaling zoom
-    abstract getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [number, number]): [number, number];
+    abstract getSeriesRange(_direction: ChartAxisDirection, _visibleRange: [number, number]): any[];
 
     // Fetch required values from the `chart.data` or `series.data` objects and process them.
     abstract processData(dataController: DataController): Promise<void> | void;

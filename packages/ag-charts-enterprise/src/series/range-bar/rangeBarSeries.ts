@@ -215,8 +215,8 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         }
     }
 
-    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        return this.yDomainForXRange('xValue', ['yHighValue', 'yLowValue'], visibleRange) ?? [NaN, NaN];
+    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
+        return this.yDomainForXRange(['yHighValue', 'yLowValue'], this.visibleXRange('xValue', visibleRange));
     }
 
     override createNodeData() {

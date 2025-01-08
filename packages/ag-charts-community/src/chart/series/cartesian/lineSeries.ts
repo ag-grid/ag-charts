@@ -34,7 +34,7 @@ import type { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { axisExtent, datumStylerProperties, visibleRangeIndices } from '../util';
+import { axisExtent, datumStylerProperties } from '../util';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
     CartesianSeries,
@@ -208,33 +208,9 @@ export class LineSeries extends CartesianSeries<
         this.animationState.transition('updateData');
     }
 
-    private visibleRangeIndices(range: [any, any], indices?: number[]): [number, number] {
-        const { dataModel, processedData } = this;
-        if (!dataModel || !processedData) return [0, 0];
-
-        const xScale = this.axes[ChartAxisDirection.X]!.scale;
-        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
-
-        return visibleRangeIndices(indices?.length ?? xValues.length, range, (index) => {
-            const x = xScale.convert(xValues[indices?.[index] ?? index]);
-            return [x, x];
-        });
-    }
-
-    private yDomainForXRange(range: [any, any] | undefined, indices?: number[]) {
-        const { processedData, dataModel, axes } = this;
-        if (!processedData || !dataModel || !processedData) return;
-
-        const xAxis = axes[ChartAxisDirection.X];
-        if (!xAxis) return;
-
-        const stackCount = this.seriesGrouping?.stackCount ?? 1;
-        const yKey = stackCount > 1 ? 'yValueEnd' : 'yValueRaw';
-
-        if (range == null) return dataModel.getDomain(this, yKey, 'value', processedData) as [number, number];
-
-        const xRange = this.visibleRangeIndices(range, indices);
-        return dataModel.getDomainBetweenRange(this, [yKey], xRange, processedData);
+    override xCoordinateRange(xValue: any): [number, number] {
+        const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
+        return [x, x];
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
@@ -253,12 +229,14 @@ export class LineSeries extends CartesianSeries<
             return fixNumericExtent(extent(domain));
         }
 
-        const yExtent = this.yDomainForXRange(axisExtent(xAxis!)) ?? [];
+        const clippedRange = this.clippedXRange('xValue', axisExtent(xAxis!));
+        const yExtent = this.yDomainForXRange(['yValueRaw'], clippedRange);
         return fixNumericExtent(yExtent);
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        return this.yDomainForXRange(visibleRange) ?? [NaN, NaN];
+        const [y0, y1] = this.yDomainForXRange(['yValueRaw'], this.visibleXRange('xValue', visibleRange));
+        return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 
     protected aggregateData(
@@ -389,7 +367,7 @@ export class LineSeries extends CartesianSeries<
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         const indices = dataAggregationFilter?.indices;
-        let [start, end] = this.visibleRangeIndices(xAxis.range, indices);
+        let [start, end] = this.visibleXRange('xValue', xAxis.range, indices);
         start = Math.max(start - 1, 0);
         end = Math.min(end + 1, indices?.length ?? xValues.length);
         // @todo(AG-13575) Remove this if block

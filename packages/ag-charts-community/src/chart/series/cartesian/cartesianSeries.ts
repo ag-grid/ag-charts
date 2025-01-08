@@ -33,6 +33,7 @@ import type {
 import { SeriesNodeEvent } from '../series';
 import { SeriesProperties } from '../seriesProperties';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
+import { clippedRangeIndices, visibleRangeIndices } from '../util';
 import type { Scaling } from './scaling';
 
 export interface CartesianSeriesNodeDatum extends DataModelSeriesNodeDatum {
@@ -737,6 +738,37 @@ export abstract class CartesianSeries<
 
     shouldFlipXY(): boolean {
         return false;
+    }
+
+    protected xCoordinateRange(_xValue: any): [number, number] {
+        return [NaN, NaN];
+    }
+
+    // Workaround - it would be nice if this difference didn't exist
+    private xValues(xKey: string) {
+        const key = this.dataModel!.resolveProcessedDataIndexById(this, xKey);
+        return this.processedData!.keys[key] ?? this.processedData!.columns[key];
+    }
+
+    protected visibleXRange(xKey: string, visibleRange: [any, any], indices?: number[]) {
+        const xValues = this.xValues(xKey);
+        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, (index) =>
+            this.xCoordinateRange(xValues[indices?.[index] ?? index])
+        );
+    }
+
+    protected clippedXRange(xKey: string, range: [any, any] | undefined) {
+        if (!range) return;
+
+        const xValues = this.xValues(xKey);
+        return clippedRangeIndices(xValues.length, range, (index) => xValues[index]);
+    }
+
+    protected yDomainForXRange(yKeys: string[], xRange: [any, any] | undefined) {
+        const { processedData, dataModel } = this;
+        return xRange == null
+            ? yKeys.flatMap((yKey) => dataModel!.getDomain(this, yKey, 'value', processedData!))
+            : dataModel!.getDomainBetweenRange(this, yKeys, xRange, processedData!);
     }
 
     /**

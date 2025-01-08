@@ -126,8 +126,8 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         return this.padBandExtent(keys);
     }
 
-    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        return this.yDomainForXRange('xValue', ['maxValue', 'minValue'], visibleRange) ?? [NaN, NaN];
+    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
+        return this.yDomainForXRange(['maxValue', 'minValue'], this.visibleXRange('xValue', visibleRange));
     }
 
     override createNodeData() {

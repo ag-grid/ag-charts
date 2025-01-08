@@ -44,7 +44,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
-import { axisExtent, datumStylerProperties, visibleRangeIndices } from '../util';
+import { axisExtent, datumStylerProperties } from '../util';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
     type AreaSeriesNodeDataContext,
@@ -242,29 +242,14 @@ export class AreaSeries extends CartesianSeries<
         this.animationState.transition('updateData');
     }
 
-    private yDomainForXRange(range: [any, any] | undefined) {
-        const { processedData, dataModel, axes } = this;
-        if (!processedData || !dataModel || !processedData) return;
-
-        const xAxis = axes[ChartAxisDirection.X];
-        if (!xAxis) return;
-
-        const xKey = 'xValue';
-        const yKey = 'yValueEnd';
-        if (range == null) return dataModel.getDomain(this, yKey, 'value', processedData);
-
-        const xScale = xAxis.scale;
-        const xValues = dataModel.resolveKeysById(this, xKey, processedData) as number[];
-        const xRange = visibleRangeIndices(xValues.length, range, (index) => {
-            const x = xScale.convert(xValues[index]);
-            return [x, x];
-        });
-        return dataModel.getDomainBetweenRange(this, [yKey], xRange, processedData);
+    override xCoordinateRange(xValue: any): [number, number] {
+        const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
+        return [x, x];
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel, axes } = this;
-        if (!processedData || !dataModel || !processedData) return [];
+        if (!processedData || !dataModel) return [];
 
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
@@ -279,7 +264,8 @@ export class AreaSeries extends CartesianSeries<
             return fixNumericExtent(extent(keys));
         }
 
-        const yExtent = this.yDomainForXRange(axisExtent(xAxis!)) ?? [];
+        const clippedRange = this.clippedXRange('xValue', axisExtent(xAxis!));
+        const yExtent = this.yDomainForXRange(['yValueEnd'], clippedRange);
 
         if (yAxis instanceof LogAxis || yAxis instanceof TimeAxis) {
             return fixNumericExtent(yExtent);
@@ -292,7 +278,7 @@ export class AreaSeries extends CartesianSeries<
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const [y0, y1] = this.yDomainForXRange(visibleRange) ?? [NaN, NaN];
+        const [y0, y1] = this.yDomainForXRange(['yValueEnd'], this.visibleXRange('xValue', visibleRange));
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 

@@ -191,8 +191,8 @@ export abstract class OhlcSeriesBase<
         return this.padBandExtent(keys);
     }
 
-    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        return this.yDomainForXRange('xValue', ['highValue', 'lowValue'], visibleRange) ?? [NaN, NaN];
+    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
+        return this.yDomainForXRange(['highValue', 'lowValue'], this.visibleXRange('xValue', visibleRange));
     }
 
     override createNodeData() {

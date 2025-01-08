@@ -127,3 +127,27 @@ export function visibleRangeIndices(
 
     return [xMinIndex, xMaxIndex];
 }
+
+export function clippedRangeIndices(
+    length: number,
+    range: [any, any],
+    xValue: (index: number) => any
+): [number, number] {
+    const range0 = range[0].valueOf();
+    const range1 = range[1].valueOf();
+
+    const xMinIndex =
+        findMinIndex(0, length - 1, (index) => {
+            const x = xValue(index)?.valueOf();
+            return !Number.isFinite(x) || x > range0;
+        }) ?? 0;
+
+    let xMaxIndex =
+        findMaxIndex(0, length - 1, (index) => {
+            const x = xValue(index)?.valueOf();
+            return !Number.isFinite(x) || x! < range1;
+        }) ?? length - 1;
+    xMaxIndex = Math.min(xMaxIndex + 1, length);
+
+    return [xMinIndex, xMaxIndex];
+}

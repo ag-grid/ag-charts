@@ -14,7 +14,6 @@ import { ChartAxisDirection } from '../../chartAxisDirection';
 import { fixNumericExtent } from '../../data/dataModel';
 import type { SeriesNodePickMatch } from '../series';
 import type { SeriesNodeDatum } from '../seriesTypes';
-import { visibleRangeIndices } from '../util';
 import type { CartesianSeriesNodeDataContext, CartesianSeriesNodeDatum } from './cartesianSeries';
 import { CartesianSeries, CartesianSeriesProperties } from './cartesianSeries';
 import { type QuadtreeCompatibleNode, addHitTestersToQuadtree, findQuadtreeMatch } from './quadtreeUtil';
@@ -88,21 +87,11 @@ export abstract class AbstractBarSeries<
             : xAxis.scale.bandwidth;
     }
 
-    protected yDomainForXRange(xKey: string, yKeys: string[], range: [any, any] | undefined): [any, any] | undefined {
-        const { dataModel, processedData } = this;
-        if (!dataModel || !processedData || this.getBarDirection() === ChartAxisDirection.X) return;
-
-        if (range == null) return dataModel.getDomain(this, xKey, 'value', processedData) as [any, any];
-
+    override xCoordinateRange(xValue: any): [number, number] {
         const xScale = this.axes[ChartAxisDirection.X]!.scale;
-        const xValues = dataModel.resolveKeysById(this, xKey, processedData);
         const barWidth = xScale.bandwidth ?? 0;
-
-        const xRange = visibleRangeIndices(xValues.length, range, (index) => {
-            const x = xScale.convert(xValues[index]);
-            return [x, x + barWidth];
-        });
-        return dataModel.getDomainBetweenRange(this, yKeys, xRange, processedData);
+        const x = xScale.convert(xValue);
+        return [x, x + barWidth];
     }
 
     protected updateGroupScale(xAxis: ChartAxis) {
