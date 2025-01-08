@@ -34,7 +34,7 @@ import type { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { datumStylerProperties, visibleRangeIndices } from '../util';
+import { axisExtent, datumStylerProperties, visibleRangeIndices } from '../util';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
     CartesianSeries,
@@ -208,46 +208,57 @@ export class LineSeries extends CartesianSeries<
         this.animationState.transition('updateData');
     }
 
-    override getSeriesDomain(direction: ChartAxisDirection): any[] {
-        const { dataModel, processedData } = this;
-        if (!dataModel || !processedData) return [];
-
-        const xDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
-        if (direction === ChartAxisDirection.X) {
-            const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
-            if (xDef?.def.type === 'value' && xDef.def.valueType === 'category') {
-                return domain;
-            }
-
-            return fixNumericExtent(extent(domain));
-        } else {
-            const stackCount = this.seriesGrouping?.stackCount ?? 1;
-            const domain =
-                stackCount > 1
-                    ? dataModel.getDomain(this, `yValueEnd`, 'value', processedData)
-                    : dataModel.getDomain(this, `yValueRaw`, 'value', processedData);
-            return fixNumericExtent(domain);
-        }
-    }
-
-    private visibleRangeIndices(visibleRange: [any, any], indices?: number[]) {
+    private visibleRangeIndices(range: [any, any], indices?: number[]): [number, number] {
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return [0, 0];
 
         const xScale = this.axes[ChartAxisDirection.X]!.scale;
         const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
 
-        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, (index) => {
+        return visibleRangeIndices(indices?.length ?? xValues.length, range, (index) => {
             const x = xScale.convert(xValues[indices?.[index] ?? index]);
             return [x, x];
         });
     }
 
+    private yDomainForXRange(range: [any, any] | undefined, indices?: number[]) {
+        const { processedData, dataModel, axes } = this;
+        if (!processedData || !dataModel || !processedData) return;
+
+        const xAxis = axes[ChartAxisDirection.X];
+        if (!xAxis) return;
+
+        const stackCount = this.seriesGrouping?.stackCount ?? 1;
+        const yKey = stackCount > 1 ? 'yValueEnd' : 'yValueRaw';
+
+        if (range == null) return dataModel.getDomain(this, yKey, 'value', processedData) as [number, number];
+
+        const xRange = this.visibleRangeIndices(range, indices);
+        return dataModel.getDomainBetweenRange(this, [yKey], xRange, processedData);
+    }
+
+    override getSeriesDomain(direction: ChartAxisDirection): any[] {
+        const { dataModel, processedData, axes } = this;
+        if (!dataModel || !processedData) return [];
+
+        const xAxis = axes[ChartAxisDirection.X];
+
+        if (direction === ChartAxisDirection.X) {
+            const xDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
+            const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
+            if (xDef?.def.type === 'value' && xDef.def.valueType === 'category') {
+                return domain;
+            }
+
+            return fixNumericExtent(extent(domain));
+        }
+
+        const yExtent = this.yDomainForXRange(axisExtent(xAxis!)) ?? [];
+        return fixNumericExtent(yExtent);
+    }
+
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const { dataModel, processedData } = this;
-        if (!dataModel || !processedData) return [NaN, NaN];
-        const [x0, x1] = this.visibleRangeIndices(visibleRange);
-        return dataModel.getDomainBetweenRange(this, ['yValueRaw'], [x0, x1], processedData);
+        return this.yDomainForXRange(visibleRange) ?? [NaN, NaN];
     }
 
     protected aggregateData(

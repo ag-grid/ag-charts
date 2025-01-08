@@ -34,7 +34,7 @@ import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { applyShapeStyle } from '../shapeUtil';
-import { datumStylerProperties } from '../util';
+import { axisExtent, datumStylerProperties } from '../util';
 import { AbstractBarSeries } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
 import {
@@ -251,17 +251,21 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
-        const { processedData, dataModel } = this;
+        const { processedData, dataModel, axes } = this;
 
         if (dataModel == null || processedData == null) return [];
 
-        const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
-        const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
+        if (direction === this.getCategoryDirection()) {
+            const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
+            const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
+            if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
+                return keys;
+            }
+            return this.padBandExtent(keys);
+        }
 
-        let yExtent =
-            processedData.type === 'grouped'
-                ? dataModel.getDomain(this, `yValue-end`, 'value', processedData)
-                : dataModel.getDomain(this, `yValue-raw`, 'value', processedData);
+        const domainKey = processedData.type === 'grouped' ? 'yValue-end' : 'yValue-raw';
+        let yExtent = this.yDomainForXRange('xValue', [domainKey], axisExtent(axes[ChartAxisDirection.X]!)) ?? [];
         const yFilterExtent = this.crossFilteringEnabled()
             ? dataModel.getDomain(this, `yFilterValue`, 'value', processedData)
             : undefined;
@@ -269,12 +273,7 @@ export class BarSeries extends AbstractBarSeries<
             yExtent = [Math.min(yExtent[0], yFilterExtent[0]), Math.max(yExtent[1], yFilterExtent[1])];
         }
 
-        if (direction === this.getCategoryDirection()) {
-            if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
-                return keys;
-            }
-            return this.padBandExtent(keys);
-        } else if (this.getValueAxis() instanceof LogAxis) {
+        if (this.getValueAxis() instanceof LogAxis) {
             return fixNumericExtent(yExtent);
         } else {
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
@@ -285,16 +284,8 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const { dataModel, processedData } = this;
-        const xRange = this.getXRangeInVisibleRange(visibleRange);
-        if (!dataModel || !processedData || !xRange) return [NaN, NaN];
-
-        const [y0, y1] = dataModel.getDomainBetweenRange(
-            this,
-            processedData.type === 'ungrouped' ? ['yValue-raw'] : ['yValue-end'],
-            xRange,
-            processedData
-        );
+        const domainKey = this.processedData?.type === 'grouped' ? 'yValue-end' : 'yValue-raw';
+        const [y0, y1] = this.yDomainForXRange('xValue', [domainKey], visibleRange) ?? [NaN, NaN];
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 

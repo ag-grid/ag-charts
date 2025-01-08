@@ -88,18 +88,21 @@ export abstract class AbstractBarSeries<
             : xAxis.scale.bandwidth;
     }
 
-    protected getXRangeInVisibleRange(visibleRange: [number, number]): [number, number] | undefined {
+    protected yDomainForXRange(xKey: string, yKeys: string[], range: [any, any] | undefined): [any, any] | undefined {
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData || this.getBarDirection() === ChartAxisDirection.X) return;
 
+        if (range == null) return dataModel.getDomain(this, xKey, 'value', processedData) as [any, any];
+
         const xScale = this.axes[ChartAxisDirection.X]!.scale;
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
+        const xValues = dataModel.resolveKeysById(this, xKey, processedData);
         const barWidth = xScale.bandwidth ?? 0;
 
-        return visibleRangeIndices(xValues.length, visibleRange, (index) => {
+        const xRange = visibleRangeIndices(xValues.length, range, (index) => {
             const x = xScale.convert(xValues[index]);
             return [x, x + barWidth];
         });
+        return dataModel.getDomainBetweenRange(this, yKeys, xRange, processedData);
     }
 
     protected updateGroupScale(xAxis: ChartAxis) {

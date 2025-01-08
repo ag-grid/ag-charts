@@ -1,5 +1,8 @@
 import type { Point } from '../../scene/point';
 import { findMaxIndex, findMinIndex } from '../../util/binarySearch';
+import { NumberAxis } from '../axis/numberAxis';
+import { TimeAxis } from '../axis/timeAxis';
+import type { ChartAxis } from '../chartAxis';
 import type { Series, SeriesNodePickIntent } from './series';
 import type { SeriesNodeDatum } from './seriesTypes';
 
@@ -84,6 +87,24 @@ export function datumStylerProperties<TDatum extends { xValue: any; yValue: any 
         min,
         max,
     };
+}
+
+export function axisExtent(axis: ChartAxis): [number | Date, number | Date] | undefined {
+    let min: number | Date | undefined;
+    let max: number | Date | undefined;
+    if (axis instanceof NumberAxis && (Number.isFinite(axis.min) || Number.isFinite(axis.max))) {
+        min = Number.isFinite(axis.min) ? axis.min : undefined;
+        max = Number.isFinite(axis.max) ? axis.max : undefined;
+    } else if (axis instanceof TimeAxis && (axis.min != null || axis.max != null)) {
+        ({ min, max } = axis);
+    }
+
+    if (min == null && max == null) return;
+
+    min ??= -Infinity;
+    max ??= Infinity;
+
+    return [min, max];
 }
 
 export function visibleRangeIndices(

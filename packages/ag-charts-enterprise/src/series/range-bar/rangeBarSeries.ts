@@ -216,11 +216,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const { dataModel, processedData } = this;
-        const xRange = this.getXRangeInVisibleRange(visibleRange);
-        if (!dataModel || !processedData || !xRange) return [NaN, NaN];
-
-        return dataModel.getDomainBetweenRange(this, ['yHighValue', 'yLowValue'], xRange, processedData);
+        return this.yDomainForXRange('xValue', ['yHighValue', 'yLowValue'], visibleRange) ?? [NaN, NaN];
     }
 
     override createNodeData() {
