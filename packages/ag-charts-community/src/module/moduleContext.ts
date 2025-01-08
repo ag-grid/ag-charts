@@ -8,7 +8,6 @@ import type { AnimationManager } from '../chart/interaction/animationManager';
 import type { ChartEventManager } from '../chart/interaction/chartEventManager';
 import type { ContextMenuRegistry } from '../chart/interaction/contextMenuRegistry';
 import type { CursorManager } from '../chart/interaction/cursorManager';
-import type { GestureDetector } from '../chart/interaction/gestureDetector';
 import type { HighlightManager } from '../chart/interaction/highlightManager';
 import type { InteractionManager } from '../chart/interaction/interactionManager';
 import type { SyncManager } from '../chart/interaction/syncManager';
@@ -30,7 +29,6 @@ export interface ModuleContext {
     readonly scene: Scene;
 
     readonly callbackCache: CallbackCache;
-    readonly gestureDetector: GestureDetector;
 
     readonly chartService: ChartService;
     readonly dataService: DataService<any>;
