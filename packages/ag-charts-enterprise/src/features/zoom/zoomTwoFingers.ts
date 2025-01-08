@@ -25,7 +25,7 @@ function solveTwoUnknowns(
     const f2 = (a2 - Rx) / Rw;
     const g = (a1 - Rx) / (a2 - Rx); // === f1 / f2;
 
-    const min = (x1 - g * x2) / (1 - f1 - g * (f2 - 1));
+    const min = (x1 - g * x2) / (1 - f1 + g * (f2 - 1));
     const max = (x2 + (f2 - 1) * min) / f2;
 
     return { min, max };
