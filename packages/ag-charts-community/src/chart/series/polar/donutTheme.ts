@@ -53,4 +53,5 @@ export const donutTheme: ExtensibleTheme<'donut'> = {
             spacing: 2,
         },
     },
+    legend: { enabled: true },
 };

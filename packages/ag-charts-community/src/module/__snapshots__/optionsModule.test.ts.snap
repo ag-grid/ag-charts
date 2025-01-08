@@ -8064,6 +8064,7 @@ exports[`ChartOptions #prepareOptions for SIMPLE_DONUT_CHART_EXAMPLE it should p
     "enabled": true,
   },
   "legend": {
+    "enabled": true,
     "item": {
       "label": {
         "color": "#464646",

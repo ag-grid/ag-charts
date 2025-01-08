@@ -48,6 +48,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
             blur: 5,
         },
     },
+    legend: { enabled: true },
 };
 
 export const piePaletteFactory: SeriesPaletteFactory<'pie'> = ({ takeColors, colorsCount }) => {
