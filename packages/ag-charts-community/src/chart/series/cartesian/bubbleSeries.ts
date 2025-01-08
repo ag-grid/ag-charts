@@ -205,7 +205,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(dataModel && processedData?.rawData.length && visible && xAxis && yAxis)) {
+        if (!(dataModel && processedData && visible && xAxis && yAxis)) {
             return;
         }
 
@@ -442,9 +442,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
-            return;
-        }
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const { datumIndex } = nodeDatum;
         const datum = processedData.rawData[datumIndex];

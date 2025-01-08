@@ -272,12 +272,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
             animationValid: true,
             visible: this.visible,
         };
-        if (
-            !this.visible ||
-            processedData == null ||
-            processedData.rawData.length === 0 ||
-            processedData.type !== 'grouped'
-        ) {
+        if (!this.visible || processedData == null || processedData.type !== 'grouped') {
             return context;
         }
 
@@ -478,7 +473,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!dataModel || processedData?.type !== 'grouped' || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+        if (!dataModel || processedData?.type !== 'grouped' || !xAxis || !yAxis) {
             return;
         }
 

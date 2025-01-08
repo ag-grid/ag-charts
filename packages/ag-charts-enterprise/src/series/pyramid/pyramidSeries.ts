@@ -149,7 +149,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
             stageLabel,
         } = properties;
 
-        if (dataModel == null || processedData == null || processedData.rawData.length === 0) return;
+        if (dataModel == null || processedData == null) return;
 
         const horizontal = direction === 'horizontal';
 
@@ -555,9 +555,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         const { id: seriesId, dataModel, processedData, properties } = this;
         const { stageKey, valueKey, tooltip } = properties;
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0) {
-            return;
-        }
+        if (!dataModel || !processedData) return;
 
         const { datumIndex } = nodeDatum;
         const datum = processedData.rawData[datumIndex];

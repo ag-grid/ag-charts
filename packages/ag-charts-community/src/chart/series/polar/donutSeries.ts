@@ -371,7 +371,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
             return { itemId: seriesId, nodeData: [], labelData: [] };
         }
 
-        if (!processedData?.rawData.length || !dataModel || processedData.type !== 'ungrouped') return;
+        if (!dataModel || processedData?.type !== 'ungrouped') return;
 
         const {
             angleValues,
@@ -1365,7 +1365,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         } = properties;
         const title = this.properties.title.text;
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0) return;
+        if (!dataModel || !processedData) return;
 
         const { datumIndex } = nodeDatum;
 

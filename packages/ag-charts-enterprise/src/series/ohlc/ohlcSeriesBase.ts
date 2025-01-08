@@ -152,8 +152,6 @@ export abstract class OhlcSeriesBase<
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.UngroupedData<any>
     ) {
-        if (processedData.rawData.length === 0) return;
-
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || OrdinalTimeScale.is(xAxis.scale))) return;
 
@@ -207,9 +205,7 @@ export abstract class OhlcSeriesBase<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!(dataModel && processedData != null && processedData.rawData.length !== 0 && xAxis && yAxis)) {
-            return;
-        }
+        if (!(dataModel && processedData && xAxis && yAxis)) return;
 
         const nodeData: OhlcNodeDatum[] = [];
         const { xKey, highKey, lowKey } = this.properties;
@@ -478,9 +474,7 @@ export abstract class OhlcSeriesBase<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
-            return;
-        }
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const { datumIndex } = nodeDatum;
         const datum = processedData.rawData[datumIndex];

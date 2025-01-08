@@ -273,7 +273,7 @@ export abstract class FlowProportionSeries<
     ) {
         const { linksDataModel, linksProcessedData } = this;
 
-        if (linksDataModel == null || linksProcessedData == null || linksProcessedData.rawData.length === 0) {
+        if (linksDataModel == null || linksProcessedData == null) {
             const { links, nodeGraph, maxPathLength } = computeNodeGraph(
                 new Map<string, TNodeDatum>().values(),
                 [],

@@ -206,13 +206,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
     override createNodeData() {
         const { processedData, dataModel } = this;
 
-        if (
-            !dataModel ||
-            !processedData ||
-            processedData.type !== 'ungrouped' ||
-            processedData.rawData.length === 0 ||
-            !this.properties.isValid()
-        ) {
+        if (!dataModel || !processedData || processedData.type !== 'ungrouped' || !this.properties.isValid()) {
             return;
         }
 
@@ -501,9 +495,7 @@ export class RadialBarSeries extends _ModuleSupport.PolarSeries<
         const angleAxis = axes[ChartAxisDirection.X];
         const radiusAxis = axes[ChartAxisDirection.Y];
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0 || !angleAxis || !radiusAxis) {
-            return;
-        }
+        if (!dataModel || !processedData || !angleAxis || !radiusAxis) return;
 
         const { datumIndex } = nodeDatum;
         const datum = processedData.rawData[datumIndex];

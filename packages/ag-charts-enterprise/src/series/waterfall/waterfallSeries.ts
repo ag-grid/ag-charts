@@ -216,14 +216,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const categoryAxis = this.getCategoryAxis();
         const valueAxis = this.getValueAxis();
 
-        if (
-            !data ||
-            !categoryAxis ||
-            !valueAxis ||
-            !dataModel ||
-            processedData == null ||
-            processedData.rawData.length === 0
-        ) {
+        if (!data || !categoryAxis || !valueAxis || !dataModel || !processedData) {
             return;
         }
 
@@ -604,9 +597,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         const xAxis = this.getCategoryAxis();
         const yAxis = this.getValueAxis();
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
-            return;
-        }
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const { datumIndex } = nodeDatum;
         const datum = processedData.rawData[datumIndex];

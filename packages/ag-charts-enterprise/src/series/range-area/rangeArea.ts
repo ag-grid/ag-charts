@@ -141,8 +141,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         dataModel: _ModuleSupport.DataModel<any, any, any>,
         processedData: _ModuleSupport.ProcessedData<any>
     ) {
-        if (processedData.rawData.length === 0) return;
-
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || OrdinalTimeScale.is(xAxis.scale))) return;
 
@@ -212,9 +210,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!(data && xAxis && yAxis && dataModel && processedData != null && processedData.rawData.length !== 0)) {
-            return;
-        }
+        if (!(data && xAxis && yAxis && dataModel && processedData)) return;
 
         const xScale = xAxis.scale;
         const yScale = yAxis.scale;
@@ -611,9 +607,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
-            return;
-        }
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const { datumIndex } = nodeDatum;
         const datum = processedData.rawData[datumIndex];

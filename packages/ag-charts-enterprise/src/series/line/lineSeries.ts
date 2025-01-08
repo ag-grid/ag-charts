@@ -9,8 +9,6 @@ export class LineSeries extends _ModuleSupport.LineSeries {
         dataModel: _ModuleSupport.DataModel<any, any, false>,
         processedData: _ModuleSupport.UngroupedData<any>
     ) {
-        if (processedData.rawData.length === 0) return;
-
         const xAxis = this.axes[ChartAxisDirection.X];
         if (xAxis == null || !(ContinuousScale.is(xAxis.scale) || OrdinalTimeScale.is(xAxis.scale))) return;
 

@@ -210,7 +210,7 @@ export class LineSeries extends CartesianSeries<
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
-        if (!dataModel || !processedData?.rawData.length) return [];
+        if (!dataModel || !processedData) return [];
 
         const xDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
         if (direction === ChartAxisDirection.X) {
@@ -262,9 +262,7 @@ export class LineSeries extends CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
-            return;
-        }
+        if (!dataModel || !processedData || !xAxis || !yAxis) return;
 
         const {
             xKey,
@@ -579,7 +577,7 @@ export class LineSeries extends CartesianSeries<
         const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
-        if (!dataModel || !processedData || processedData.rawData.length === 0 || !xAxis || !yAxis) {
+        if (!dataModel || !processedData || !xAxis || !yAxis) {
             return;
         }
 
