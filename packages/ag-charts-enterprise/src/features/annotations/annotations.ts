@@ -135,8 +135,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         return new AnnotationsStateMachine({
             resetToIdle: () => {
                 ctx.cursorManager.updateCursor('annotations');
-                ctx.interactionManager.popState(InteractionState.Annotations);
-                ctx.tooltipManager.unsuppressTooltip('annotations');
+                this.popAnnotationState(InteractionState.Annotations);
                 this.hideOverlays();
                 this.optionsToolbar.hide();
                 this.deleteEphemeralAnnotations();
@@ -151,6 +150,12 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                     if (contains) hovered ??= index;
                     annotation.toggleHovered(contains || active === index);
                 });
+
+                if (hovered != null) {
+                    ctx.tooltipManager.suppressTooltip('annotations');
+                } else {
+                    ctx.tooltipManager.unsuppressTooltip('annotations');
+                }
 
                 this.ctx.cursorManager.updateCursor(
                     'annotations',
@@ -200,12 +205,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
 
             select: (index?: number, previous?: number) => {
-                const {
-                    annotations,
-                    optionsToolbar,
-                    toolbar,
-                    ctx: { interactionManager, tooltipManager },
-                } = this;
+                const { annotations, optionsToolbar, toolbar } = this;
 
                 this.hideOverlays();
                 toolbar.clearActiveButton();
@@ -226,9 +226,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                 optionsToolbar.hide();
 
                 if (selectedNode) {
-                    interactionManager.pushState(InteractionState.AnnotationsSelected);
+                    this.pushAnnotationState(InteractionState.AnnotationsSelected);
                     selectedNode.toggleActive(true);
-                    tooltipManager.suppressTooltip('annotations');
                     optionsToolbar.updateButtons(this.annotationData.at(index!)!);
                     this.postUpdateFns.push(() => {
                         // Set the annotation options to be visible _before_ setting the anchor to ensure the toolbar
@@ -237,9 +236,8 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
                         optionsToolbar.setAnchorScene(selectedNode);
                     });
                 } else {
-                    interactionManager.popState(InteractionState.AnnotationsSelected);
-                    interactionManager.popState(InteractionState.Annotations);
-                    tooltipManager.unsuppressTooltip('annotations');
+                    this.popAnnotationState(InteractionState.AnnotationsSelected);
+                    this.popAnnotationState(InteractionState.Annotations);
                 }
 
                 this.deleteEphemeralAnnotations();
@@ -247,16 +245,16 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             },
 
             selectLast: () => {
-                this.ctx.interactionManager.pushState(InteractionState.AnnotationsSelected);
+                this.pushAnnotationState(InteractionState.AnnotationsSelected);
                 return this.annotationData.length - 1;
             },
 
             startInteracting: () => {
-                this.ctx.interactionManager.pushState(InteractionState.Annotations);
+                this.pushAnnotationState(InteractionState.Annotations);
             },
 
             stopInteracting: () => {
-                this.ctx.interactionManager.popState(InteractionState.Annotations);
+                this.popAnnotationState(InteractionState.Annotations);
             },
 
             create: (type: AnnotationType, datum: AnnotationProperties) => {
@@ -468,7 +466,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
             }),
             toolbar.addListener('pressed-create-annotation', ({ annotation }) => {
                 this.cancel();
-                this.ctx.interactionManager.pushState(InteractionState.Annotations);
+                this.pushAnnotationState(InteractionState.Annotations);
                 this.state.transition(annotation);
                 this.update();
             }),
@@ -881,12 +879,9 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         const context = this.getAnnotationContext();
         if (!this.annotationData || !context) return;
 
-        const {
-            state,
-            ctx: { interactionManager },
-        } = this;
+        const { state } = this;
 
-        interactionManager.pushState(InteractionState.Annotations);
+        this.pushAnnotationState(InteractionState.Annotations);
 
         const isHorizontal = direction === 'horizontal';
         state.transition(isHorizontal ? AnnotationType.HorizontalLine : AnnotationType.VerticalLine);
@@ -1092,6 +1087,20 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
         this.settingsDialog.hide();
         this.toolbar.hideOverlays();
         this.optionsToolbar.hideOverlays();
+    }
+
+    private pushAnnotationState(
+        state: _ModuleSupport.InteractionState.Annotations | _ModuleSupport.InteractionState.AnnotationsSelected
+    ) {
+        this.ctx.interactionManager.pushState(state);
+        this.ctx.tooltipManager.suppressTooltip('annotations');
+    }
+
+    private popAnnotationState(
+        state: _ModuleSupport.InteractionState.Annotations | _ModuleSupport.InteractionState.AnnotationsSelected
+    ) {
+        this.ctx.interactionManager.popState(state);
+        this.ctx.tooltipManager.unsuppressTooltip('annotations');
     }
 
     private update(status = ChartUpdateType.PRE_SCENE_RENDER) {
