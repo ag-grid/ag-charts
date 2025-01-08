@@ -1,5 +1,5 @@
 import { Logger } from './logger';
-import { clamp, countFractionDigits } from './number';
+import { clamp, countFractionDigits, round } from './number';
 import { numberFormat, parseFormat } from './numberFormat';
 import { day } from './time/day';
 import {
@@ -234,13 +234,13 @@ export function estimateTickCount(
     defaultTickCount: number,
     defaultMinSpacing: number
 ) {
-    defaultMinSpacing = Math.max(defaultMinSpacing, rangeExtent / (defaultTickCount + 1));
+    defaultMinSpacing = Math.max(defaultMinSpacing, round(rangeExtent, 2) / (defaultTickCount + 1));
 
     if (isNaN(minSpacing)) {
         minSpacing = defaultMinSpacing;
     }
     if (isNaN(maxSpacing)) {
-        maxSpacing = rangeExtent;
+        maxSpacing = round(rangeExtent, 2);
     }
     if (minSpacing > maxSpacing) {
         if (minSpacing === defaultMinSpacing) {
