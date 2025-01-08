@@ -16,6 +16,11 @@ function solveTwoUnknowns(
     Rx: number,
     Rw: number
 ): _ModuleSupport.ZoomState {
+    // The math expects x0 <= x1 (and a0 <= a1).
+    // If x0 > x1, then the gesture will be reversed (i.e. fingers moving closer would zoom in).
+    [x0, x1] = [Math.min(x0, x1), Math.max(x0, x1)];
+    [a0, a1] = [Math.min(a0, a1), Math.max(a0, a1)];
+
     const k0 = (a0 - Rx) / Rw;
     const k1 = (a1 - Rx) / Rw;
     const g = (a0 - Rx) / (a1 - Rx); // === k0 / k1;
