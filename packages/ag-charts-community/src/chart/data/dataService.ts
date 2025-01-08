@@ -1,5 +1,4 @@
-import { throttle } from 'ag-charts-core';
-import { Logger } from 'ag-charts-core';
+import { Logger, throttle } from 'ag-charts-core';
 
 import { Debug } from '../../util/debug';
 import { Listeners } from '../../util/listeners';
