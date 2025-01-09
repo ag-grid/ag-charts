@@ -132,6 +132,19 @@ test.describe('keyboard-nav', () => {
         await expect(page.locator(SELECTORS.canvasCenter)).toHaveScreenshot('AG-13668-datum-1-focused.png');
     });
 
+    test('AG-13488 mouse dragging hides focus indicator', async ({ page }) => {
+        const { url } = toExamplePageUrl('financial-charts-configuration', 'default-configuration', 'vanilla');
+        await gotoExample(page, url);
+
+        await page.getByText('1M').click();
+        await page.locator(SELECTORS.canvasCenter).click();
+        await page.keyboard.press('ArrowRight');
+        await page.mouse.move(400, 300);
+        await page.mouse.down({ button: 'left' });
+        await page.mouse.move(100, 300);
+        await expect(page).toHaveScreenshot('AG-13488-mouse-dragging-hides-focus-indicator.png');
+    });
+
     test('AG-13086 series node click / numpad enter', async ({ page }) => {
         await gotoExample(page, toExamplePageUrl('accessibility', 'keyboard-navigation', 'vanilla').url);
 
