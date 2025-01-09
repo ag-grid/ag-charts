@@ -46,15 +46,16 @@ export class ZoomTwoFingers {
         if (event.sourceEvent.targetTouches.length !== 2) return false;
         event.sourceEvent.preventDefault();
         const targetTouches = Array.from(event.sourceEvent.targetTouches);
-        const rect = target.getBoundingClientRect();
+        const { x: Rx, y: Ry, width: Rw, height: Rh } = target.getBoundingClientRect();
 
         for (const i of [0, 1]) {
-            const origin = this.origins[i];
-            const touch = targetTouches[i];
-            origin.identifier = touch.identifier;
-            origin.normalX = clientToNormal(zoom.x ?? { min: 0, max: 1 }, touch.clientX, rect.x, rect.width);
-            origin.normalY = clientToNormal(zoom.y ?? { min: 0, max: 1 }, touch.clientY, rect.y, rect.height);
+            const a = targetTouches[i].clientX;
+            const b = Ry + Rh - targetTouches[i].clientY;
+            this.origins[i].identifier = targetTouches[i].identifier;
+            this.origins[i].normalX = clientToNormal(zoom.x ?? { min: 0, max: 1 }, a, Rx, Rw);
+            this.origins[i].normalY = clientToNormal(zoom.y ?? { min: 0, max: 1 }, b, Ry, Rh);
         }
+
         return true;
     }
 
@@ -63,26 +64,20 @@ export class ZoomTwoFingers {
         const targetTouches = Array.from(event.sourceEvent.targetTouches);
 
         const { origins } = this;
-        const rect = target.getBoundingClientRect();
+        const { x: Rx, y: Ry, width: Rw, height: Rh } = target.getBoundingClientRect();
+
         const touches = [0, 1].map((i) => targetTouches.find((t) => t.identifier === origins[i].identifier)!);
+        const x1 = origins[0].normalX;
+        const x2 = origins[1].normalX;
+        const a1 = touches[0].clientX;
+        const a2 = touches[1].clientX;
+        const y1 = origins[0].normalY;
+        const y2 = origins[1].normalY;
+        const b1 = Ry + Rh - touches[0].clientY;
+        const b2 = Ry + Rh - touches[1].clientY;
         return {
-            x: solveTwoUnknowns(
-                origins[0].normalX,
-                origins[1].normalX,
-                touches[0].clientX,
-                touches[1].clientX,
-                rect.x,
-                rect.width
-            ),
-            // Note: For the Y axis, normalised 0 is the bottom, but screen 0 is the top. Hence (MaxY - y) computation.
-            y: solveTwoUnknowns(
-                N - origins[0].normalY,
-                N - origins[1].normalY,
-                rect.height + rect.y - touches[0].clientY,
-                rect.height + rect.y - touches[1].clientY,
-                rect.y,
-                rect.height
-            ),
+            x: solveTwoUnknowns(x1, x2, a1, a2, Rx, Rw),
+            y: solveTwoUnknowns(y1, y2, b1, b2, Ry, Rh),
         };
     }
 

@@ -136,7 +136,7 @@ X-min and X-max computation:
 \begin{align*}
 R_x &:= R_y \\
 R_W &:= R_H \\
-x_i &:= N - y_i \\
+x_i &:= y_i \\
 a'_i &:= (R_H + R_y) - b'_i
 \end{align*}
 
