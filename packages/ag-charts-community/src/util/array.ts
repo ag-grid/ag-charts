@@ -1,4 +1,4 @@
-export function extent(values: Array<Date | number | unknown>): [number, number] | null {
+export function extent(values: Array<unknown>): [number, number] | null {
     if (values.length === 0) {
         return null;
     }
@@ -6,18 +6,14 @@ export function extent(values: Array<Date | number | unknown>): [number, number]
     let min = Infinity;
     let max = -Infinity;
 
-    for (let n of values) {
-        if (n instanceof Date) {
-            n = n.getTime();
+    for (const n of values) {
+        const v = n instanceof Date ? n.getTime() : n;
+        if (typeof v !== 'number') continue;
+        if (v < min) {
+            min = v;
         }
-        if (typeof n !== 'number') {
-            continue;
-        }
-        if (n < min) {
-            min = n;
-        }
-        if (n > max) {
-            max = n;
+        if (v > max) {
+            max = v;
         }
     }
 

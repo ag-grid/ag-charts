@@ -52,7 +52,6 @@ export const sonarjsConfig = [
 
             // For review - new for eslint 9.
             'sonarjs/no-redeclare': 1,
-            'sonarjs/updated-loop-counter': 1,
             'sonarjs/function-return-type': 1,
 
             // Duplicates @typescript-eslint
