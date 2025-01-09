@@ -274,6 +274,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onDragMove(event: DragWidgetEvent<'drag-move'>): void {
         if (!this.isState(InteractionState.Clickable)) return;
+        this.focusIndicator?.overrideFocusVisible(false);
         this.onHoverLikeEvent(event);
     }
 
