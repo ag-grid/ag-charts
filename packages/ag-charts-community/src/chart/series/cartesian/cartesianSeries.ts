@@ -749,33 +749,32 @@ export abstract class CartesianSeries<
         return this.processedData!.keys[key] ?? this.processedData!.columns[key];
     }
 
+    protected visibleRange(axisKey: string, visibleRange: [any, any], sorted: boolean, indices?: number[]) {
+        const xScale = this.axes[ChartAxisDirection.X]!.scale;
+        const [r0, r1] = visibleRange;
+        const xValues = this.keysOrValues(axisKey);
+        const pixelSize = Math.abs(r1 - r0) * (findRangeExtent(xScale.range) / findRangeExtent(xScale.domain));
+        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, sorted, (topIndex) => {
+            const datumIndex = indices?.[topIndex] ?? topIndex;
+            return this.xCoordinateRange(xValues[datumIndex], datumIndex, pixelSize);
+        });
+    }
+
     protected domainForVisibleRange(
-        direction: ChartAxisDirection,
+        _direction: ChartAxisDirection,
         axisKeys: string[],
         crossAxisKey: string,
         visibleRange: [any, any],
         sorted: boolean,
         indices?: number[]
     ) {
-        const { processedData, dataModel, axes } = this;
+        const { processedData, dataModel } = this;
 
         const [r0, r1] = visibleRange;
-        const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
-        const xScale = axes[crossDirection]!.scale;
         const crossAxisValues = this.keysOrValues(crossAxisKey);
 
         if (sorted) {
-            const pixelSize = Math.abs(r1 - r0) * (findRangeExtent(xScale.range) / findRangeExtent(xScale.domain));
-            const crossAxisRange = visibleRangeIndices(
-                indices?.length ?? crossAxisValues.length,
-                visibleRange,
-                sorted,
-                (topIndex) => {
-                    const datumIndex = indices?.[topIndex] ?? topIndex;
-                    return this.xCoordinateRange(crossAxisValues[datumIndex], datumIndex, pixelSize);
-                }
-            );
-
+            const crossAxisRange = this.visibleRange(crossAxisKey, visibleRange, sorted, indices);
             return dataModel!.getDomainBetweenRange(this, axisKeys, crossAxisRange, processedData!);
         }
 
@@ -787,7 +786,8 @@ export abstract class CartesianSeries<
             const [x0, x1] = this.xCoordinateRange(crossAxisValue, i, 0);
             if (x1 < r0 || x0 > r1) return;
 
-            for (const axisValue of allAxisValues[i]) {
+            for (let j = 0; j < axisKeys.length; j++) {
+                const axisValue = allAxisValues[j][i];
                 axisMin = Math.min(axisMin, axisValue);
                 axisMax = Math.max(axisMax, axisValue);
             }

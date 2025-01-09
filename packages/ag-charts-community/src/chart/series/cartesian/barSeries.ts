@@ -9,7 +9,6 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
-import { findMinMax } from '../../../util/number';
 import { isFiniteNumber } from '../../../util/type-guards';
 import type { RequireOptional } from '../../../util/types';
 import { LogAxis } from '../../axis/logAxis';
@@ -101,6 +100,7 @@ const SPAN: BarSeriesAggregationIndexes['span'] = 4;
 export interface BarSeriesDataAggregationFilter {
     maxRange: number;
     indexData: Int32Array;
+    indices: number[];
     indexes: BarSeriesAggregationIndexes;
 }
 
@@ -294,15 +294,6 @@ export class BarSeries extends AbstractBarSeries<
         _processedData: ProcessedData<any>
     ): BarSeriesDataAggregationFilter[] | undefined {
         return;
-    }
-
-    protected visibleRange(
-        length: number,
-        _x0: number,
-        _x1: number,
-        _xFor: (index: number) => number
-    ): [number, number] {
-        return [0, length];
     }
 
     createNodeData() {
@@ -526,7 +517,6 @@ export class BarSeries extends AbstractBarSeries<
             }
         };
 
-        const [x0, x1] = findMinMax(xAxis.range);
         const [r0, r1] = xScale.range;
         const range = r1 - r0;
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
@@ -555,7 +545,7 @@ export class BarSeries extends AbstractBarSeries<
             });
         } else if (dataAggregationFilter == null) {
             const width = barWidth;
-            let [start, end] = this.visibleRange(rawData.length, x0, x1, xPosition);
+            let [start, end] = this.visibleRange('xValue', xAxis.range, true);
             // @todo(AG-13575) Remove this if block
             if (processedData.rawData.length < 1e3) {
                 start = 0;
@@ -569,15 +559,8 @@ export class BarSeries extends AbstractBarSeries<
                 handleDatum(datumIndex, 0, x, width, 0, yEnd, yEnd, 1);
             }
         } else {
-            const { maxRange, indexData } = dataAggregationFilter;
-
-            const [start, end] = this.visibleRange(maxRange, x0, x1, (index) => {
-                const aggIndex = index * SPAN;
-                const xMinIndex = indexData[aggIndex + X_MIN];
-                const xMaxIndex = indexData[aggIndex + X_MAX];
-                const midDatumIndex = ((xMinIndex + xMaxIndex) / 2) | 0;
-                return xMinIndex !== -1 ? xPosition(midDatumIndex) : NaN;
-            });
+            const { indexData, indices } = dataAggregationFilter;
+            const [start, end] = this.visibleRange('xValue', xAxis.range, true, indices);
 
             for (let i = start; i < end; i += 1) {
                 const aggIndex = i * SPAN;

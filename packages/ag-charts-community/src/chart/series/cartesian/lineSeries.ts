@@ -364,7 +364,7 @@ export class LineSeries extends CartesianSeries<
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         const indices = dataAggregationFilter?.indices;
-        let [start, end] = this.visibleXRange('xValue', xAxis.range, true, indices);
+        let [start, end] = this.visibleRange('xValue', xAxis.range, true, indices);
         start = Math.max(start - 1, 0);
         end = Math.min(end + 1, indices?.length ?? xValues.length);
         // @todo(AG-13575) Remove this if block

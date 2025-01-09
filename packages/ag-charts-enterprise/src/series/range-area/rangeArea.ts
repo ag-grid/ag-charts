@@ -309,7 +309,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const topIndices = dataAggregationFilter?.topIndices;
         const bottomIndices = dataAggregationFilter?.bottomIndices;
 
-        let [start, end] = this.visibleXRange('xValue', xAxis.range, true, topIndices);
+        let [start, end] = this.visibleRange('xValue', xAxis.range, true, topIndices);
         start = Math.max(start - 1, 0);
         end = Math.min(end + 1, topIndices?.length ?? xValues.length);
         // @todo(AG-13575) Remove this if block
