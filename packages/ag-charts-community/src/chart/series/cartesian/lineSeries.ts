@@ -227,13 +227,12 @@ export class LineSeries extends CartesianSeries<
             return fixNumericExtent(extent(domain));
         }
 
-        const clippedRange = this.clippedXRange('xValue', this.axisExtent(ChartAxisDirection.X), true);
-        const yExtent = this.yDomainForXRange(['yValueRaw'], clippedRange);
+        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['yValueRaw'], 'xValue', true);
         return fixNumericExtent(yExtent);
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const [y0, y1] = this.yDomainForXRange(['yValueRaw'], this.visibleXRange('xValue', visibleRange, true));
+        const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, ['yValueRaw'], 'xValue', visibleRange, true);
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 

@@ -178,13 +178,18 @@ export abstract class OhlcSeriesBase<
             return this.padBandExtent(keys);
         }
 
-        const clippedRange = this.clippedXRange('xValue', this.axisExtent(ChartAxisDirection.X), true);
-        const yExtent = this.yDomainForXRange(['highValue', 'lowValue'], clippedRange);
+        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['highValue', 'lowValue'], 'xValue', true);
         return fixNumericExtent(yExtent);
     }
 
     override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
-        return this.yDomainForXRange(['highValue', 'lowValue'], this.visibleXRange('xValue', visibleRange, true));
+        return this.domainForVisibleRange(
+            ChartAxisDirection.Y,
+            ['highValue', 'lowValue'],
+            'xValue',
+            visibleRange,
+            true
+        );
     }
 
     override createNodeData() {

@@ -176,15 +176,25 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             }
             return fixNumericExtent(extent(keys));
         } else {
-            const clippedRange = this.clippedXRange('xValue', this.axisExtent(ChartAxisDirection.X), true);
-            const yExtent = this.yDomainForXRange(['yHighValue', 'yLowValue'], clippedRange);
+            const yExtent = this.domainForClippedRange(
+                ChartAxisDirection.Y,
+                ['yHighValue', 'yLowValue'],
+                'xValue',
+                true
+            );
             const fixedYExtent = findMinMax(yExtent);
             return fixNumericExtent(fixedYExtent);
         }
     }
 
     override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
-        return this.yDomainForXRange(['yHighValue', 'yLowValue'], this.visibleXRange('xValue', visibleRange, true));
+        return this.domainForVisibleRange(
+            ChartAxisDirection.Y,
+            ['yHighValue', 'yLowValue'],
+            'xValue',
+            visibleRange,
+            true
+        );
     }
 
     override createNodeData() {
