@@ -14,9 +14,10 @@ import type {
     WithThemeParams,
 } from 'ag-charts-types';
 
+import type { ChartType } from '../chart/factory/chartTypes';
 import type { ChartLegend, ChartLegendType } from '../chart/legend/legendDatum';
 import type { Series } from '../chart/series/series';
-import type { BaseModule, BaseOptionsModule, ChartTypes, ModuleInstance } from './baseModule';
+import type { BaseModule, BaseOptionsModule, ModuleInstance } from './baseModule';
 import type { RequiredSeriesType, SeriesPaletteFactory } from './coreModulesTypes';
 import type { ModuleContext } from './moduleContext';
 
@@ -89,8 +90,8 @@ export type SeriesTooltipDefaults = {
 
 export interface SeriesModule<
     SeriesType extends RequiredSeriesType = RequiredSeriesType,
-    ChartType extends ChartTypes = ChartTypes,
-> extends BaseOptionsModule<ChartType> {
+    _ChartType extends ChartType = ChartType,
+> extends BaseOptionsModule<_ChartType> {
     type: 'series';
 
     identifier: SeriesType;
