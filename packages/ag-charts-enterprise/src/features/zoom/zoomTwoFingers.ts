@@ -23,13 +23,12 @@ function solveTwoUnknowns(
     [x1, x2] = [Math.min(x1, x2), Math.max(x1, x2)];
     [a1, a2] = [Math.min(a1, a2), Math.max(a1, a2)];
 
-    const f1 = (N * (a1 - Rx)) / Rw;
-    const f2 = (N * (a2 - Rx)) / Rw;
-    const g = (a1 - Rx) / (a2 - Rx); // === f1 / f2;
+    const t1 = (N * (a1 - Rx)) / Rw;
+    const t2 = (N * (a2 - Rx)) / Rw;
+    const c = (a1 - Rx) / (a2 - Rx); // === (t1 / t2);
 
-    const min = (x1 - g * x2) / (N - f1 + g * (f2 - N));
-    const max = (x2 + (f2 - N) * min) / f2;
-
+    const min = (x1 - c * x2) / (N - t1 + c * (t2 - N));
+    const max = (x2 + (t2 - N) * min) / t2;
     return { min, max };
 }
 

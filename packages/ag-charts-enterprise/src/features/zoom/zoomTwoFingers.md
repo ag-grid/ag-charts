@@ -89,38 +89,38 @@ x_2 &= N \cdot \left( \frac{a'_2 - R_x}{R_W} (Z'_{max} - Z'_{min}) + Z'_{min} \r
 
 Which we can rewrite as:
 \begin{align*}
-x_1 &= f_1 (Z'_{max} - Z'_{min}) +  N \cdot Z'_{min} \qquad (1) \\
-x_2 &= f_2 (Z'_{max} - Z'_{min}) +  N \cdot Z'_{min} \qquad (2) \\ \\
-\textrm{where }f_i &=  N \cdot \frac{a'_i - R_x}{R_W}
+x_1 &= t_1 (Z'_{max} - Z'_{min}) +  N \cdot Z'_{min} \qquad (1) \\
+x_2 &= t_2 (Z'_{max} - Z'_{min}) +  N \cdot Z'_{min} \qquad (2) \\ \\
+\textrm{where }t_i &=  N \cdot \frac{a'_i - R_x}{R_W}
 \end{align*}
 
 We can use equation $(2)$ to express $Z'_{max}$ in terms of $Z'_{min}$:
 \begin{align*}
-x_2 &= f_2 (Z'_{max} - Z'_{min}) + N \cdot Z'_{min} \\
-x_2 &= f_2 Z'_{max} - f_2 Z'_{min} +  N \cdot Z'_{min} \\
-x_2 &= f_2 Z'_{max} - (f_2 - N) Z'_{min} \\
-x_2 + (f_2 - N) Z'_{min} &= f_2 Z'_{max} \\
+x_2 &= t_2 (Z'_{max} - Z'_{min}) + N \cdot Z'_{min} \\
+x_2 &= t_2 Z'_{max} - t_2 Z'_{min} +  N \cdot Z'_{min} \\
+x_2 &= t_2 Z'_{max} - (t_2 - N) Z'_{min} \\
+x_2 + (t_2 - N) Z'_{min} &= t_2 Z'_{max} \\
 \therefore
-Z'_{max} &= \frac{x_2 + (f_2 - N) Z'_{min}}{f_2} \\
+Z'_{max} &= \frac{x_2 + (t_2 - N) Z'_{min}}{t_2} \\
 \end{align*}
 
 Now we can substitue $Z'_{max}$ into equation $(1)$:
 \begin{align*}
-x_1                &= f_1 (Z'_{max} - Z'_{min}) + N \cdot Z'_{min} \\
-x_1                &= f_1 Z'_{max} - f_1 Z'_{min} + N \cdot Z'_{min} \\
-x_1 - f_1 Z'_{max} &= -f_1 Z'_{min} + N \cdot Z'_{min} \\
-                   &= (N - f_1) Z'_{min} \\
-x_1 - f_1 \frac {x_2 + (f_2 - N) Z'_{min}} {f_2} &= (N - f_1) Z'_{min} \\
-x_1 - \frac{f_1}{f_2} x_2 - \frac{f_1}{f_2} (f_2 - N) Z'_{min} &=  (N - f_1) Z'_{min} \\
-x_1 - \frac{f_1}{f_2} x_2 &=  (N - f_1) Z'_{min} + \frac{f_1}{f_2} (f_2 -1) Z'_{min} \\
+x_1                &= t_1 (Z'_{max} - Z'_{min}) + N \cdot Z'_{min} \\
+x_1                &= t_1 Z'_{max} - t_1 Z'_{min} + N \cdot Z'_{min} \\
+x_1 - t_1 Z'_{max} &= -t_1 Z'_{min} + N \cdot Z'_{min} \\
+                   &= (N - t_1) Z'_{min} \\
+x_1 - t_1 \frac {x_2 + (t_2 - N) Z'_{min}} {t_2} &= (N - t_1) Z'_{min} \\
+x_1 - \frac{t_1}{t_2} x_2 - \frac{t_1}{t_2} (t_2 - N) Z'_{min} &=  (N - t_1) Z'_{min} \\
+x_1 - \frac{t_1}{t_2} x_2 &=  (N - t_1) Z'_{min} + \frac{t_1}{t_2} (t_2 -1) Z'_{min} \\
 \end{align*}
 
-Let $g = \frac{f_1}{f_2}$
+Let $c = \frac{t_1}{t_2}$
 \begin{align*}
-x_1 - g \cdot x_2 &=  (N - f_1) Z'_{min} + g \cdot (f_2 - N) Z'_{min} \\
-x_1 - g \cdot x_2 &=  Z'_{min} ( (N - f_1) + g \cdot (f_2 - N) ) \\
+x_1 - c \cdot x_2 &=  (N - t_1) Z'_{min} + c \cdot (t_2 - N) Z'_{min} \\
+x_1 - c \cdot x_2 &=  Z'_{min} ( (N - t_1) + c \cdot (t_2 - N) ) \\
 \therefore
-Z'_{min} &= \frac{x_1 - g \cdot x_2}{N - f_1 + g \cdot (f_2 - N)} \\
+Z'_{min} &= \frac{x_1 - c \cdot x_2}{N - t_1 + c \cdot (t_2 - N)} \\
 \end{align*}
 
 
