@@ -46,5 +46,4 @@ GRID_VERSION=$(node ${TOOLS_DIR}/calculate-grid-version.js "$NEW_VERSION")
 node ${TOOLS_DIR}/update-grid-version.js "$GRID_VERSION"
 
 # Ensure consistent package.json formatting.
-npm i -g -y @trivago/prettier-plugin-sort-imports@^4.2.0
 npx -y prettier@^3.2.5 -w $(git status -s | grep package.json | awk '{ print $2 }')
