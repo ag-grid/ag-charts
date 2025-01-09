@@ -1,23 +1,19 @@
 import { _ModuleSupport, _Widget } from 'ag-charts-community';
 
 type Origin = { identifier: number; normalX: number; normalY: number };
+type ZoomState = _ModuleSupport.ZoomState;
+type AxisZoomState = _ModuleSupport.AxisZoomState;
+type DefinedZoomState = _ModuleSupport.DefinedZoomState;
 
 const N = 1_000_000;
 
 // Interpolate `a` from [Rx, Rw] to [min, max]
-function clientToNormal({ min, max }: _ModuleSupport.ZoomState, a: number, Rx: number, Rw: number): number {
+function clientToNormal({ min, max }: ZoomState, a: number, Rx: number, Rw: number): number {
     if (Rw === 0) return 0; // don't divide by 0.
     return N * (((a - Rx) / Rw) * (max - min) + min);
 }
 
-function solveTwoUnknowns(
-    x1: number,
-    x2: number,
-    a1: number,
-    a2: number,
-    Rx: number,
-    Rw: number
-): _ModuleSupport.ZoomState {
+function solveTwoUnknowns(x1: number, x2: number, a1: number, a2: number, Rx: number, Rw: number): ZoomState {
     // The math expects x1 <= x2 (and a1 <= a2).
     // If x1 > x2, then the gesture will be reversed (i.e. fingers moving closer would zoom in).
     [x1, x2] = [Math.min(x1, x2), Math.max(x1, x2)];
@@ -37,11 +33,8 @@ export class ZoomTwoFingers {
         { identifier: 0, normalX: NaN, normalY: NaN },
         { identifier: 0, normalX: NaN, normalY: NaN },
     ];
-    start(
-        event: _Widget.TouchWidgetEvent<'touchstart'>,
-        target: _Widget.Widget,
-        zoom: _ModuleSupport.AxisZoomState
-    ): boolean {
+
+    start(event: _Widget.TouchWidgetEvent<'touchstart'>, target: _Widget.Widget, zoom: AxisZoomState): boolean {
         if (event.sourceEvent.targetTouches.length !== 2) return false;
         event.sourceEvent.preventDefault();
         const targetTouches = Array.from(event.sourceEvent.targetTouches);
@@ -58,7 +51,7 @@ export class ZoomTwoFingers {
         return true;
     }
 
-    update(event: _Widget.TouchWidgetEvent<'touchmove'>, target: _Widget.Widget): _ModuleSupport.DefinedZoomState {
+    update(event: _Widget.TouchWidgetEvent<'touchmove'>, target: _Widget.Widget): DefinedZoomState {
         event.sourceEvent.preventDefault();
         const targetTouches = Array.from(event.sourceEvent.targetTouches);
 
