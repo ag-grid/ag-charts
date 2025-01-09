@@ -17,6 +17,7 @@ import {
     DEFAULT_ANCHOR_POINT_X,
     DEFAULT_ANCHOR_POINT_Y,
     UNIT,
+    constrainZoom,
     definedZoomState,
     dx,
     dy,
@@ -507,7 +508,7 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
     private onTouchMove(event: _Widget.TouchWidgetEvent<'touchmove'>, current: _Widget.Widget) {
         if (this.dragState !== DragState.TwoFingers) return;
         const newZoom = this.twoFingers.update(event, current);
-        this.updateZoom(newZoom);
+        this.updateZoom(constrainZoom(newZoom));
     }
 
     private onTouchEnd(event: _Widget.TouchWidgetEvent<'touchend' | 'touchcancel'>) {
