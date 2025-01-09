@@ -141,6 +141,17 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         this.animationState.transition('updateData');
     }
 
+    override xCoordinateRange(xValue: any, index: number, pixelSize: number): [number, number] {
+        const { properties, sizeScale } = this;
+        const { size, sizeKey } = properties;
+        const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
+        const sizeValues =
+            sizeKey != null ? this.dataModel!.resolveColumnById(this, `sizeValue`, this.processedData!) : undefined;
+        const sizeValue = sizeValues != null ? sizeScale.convert(sizeValues[index]) : size;
+        const r = 0.5 * sizeValue * pixelSize;
+        return [x - r, x + r];
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];

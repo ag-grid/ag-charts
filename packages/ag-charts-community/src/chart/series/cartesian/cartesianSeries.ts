@@ -13,6 +13,7 @@ import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
+import { findRangeExtent } from '../../../util/number';
 import { StateMachine } from '../../../util/stateMachine';
 import { BOOLEAN, STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
@@ -33,7 +34,7 @@ import type {
 import { SeriesNodeEvent } from '../series';
 import { SeriesProperties } from '../seriesProperties';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
-import { clippedRangeIndices, visibleRangeIndices } from '../util';
+import { axisExtent, clippedRangeIndices, visibleRangeIndices } from '../util';
 import type { Scaling } from './scaling';
 
 export interface CartesianSeriesNodeDatum extends DataModelSeriesNodeDatum {
@@ -740,9 +741,7 @@ export abstract class CartesianSeries<
         return false;
     }
 
-    protected xCoordinateRange(_xValue: any): [number, number] {
-        return [NaN, NaN];
-    }
+    protected abstract xCoordinateRange(xValue: any, index: number, pixelSize: number): [number, number];
 
     // Workaround - it would be nice if this difference didn't exist
     private xValues(xKey: string) {
@@ -750,11 +749,19 @@ export abstract class CartesianSeries<
         return this.processedData!.keys[key] ?? this.processedData!.columns[key];
     }
 
+    protected axisExtent(direction: ChartAxisDirection) {
+        return axisExtent(this.axes[direction]!);
+    }
+
     protected visibleXRange(xKey: string, visibleRange: [any, any], sorted: boolean, indices?: number[]) {
+        const xScale = this.axes[ChartAxisDirection.X]!.scale;
+        const [r0, r1] = visibleRange;
         const xValues = this.xValues(xKey);
-        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, sorted, (index) =>
-            this.xCoordinateRange(xValues[indices?.[index] ?? index])
-        );
+        const pixelSize = Math.abs(r1 - r0) * (findRangeExtent(xScale.range) / findRangeExtent(xScale.domain));
+        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, sorted, (topIndex) => {
+            const datumIndex = indices?.[topIndex] ?? topIndex;
+            return this.xCoordinateRange(xValues[datumIndex], datumIndex, pixelSize);
+        });
     }
 
     protected clippedXRange(xKey: string, range: [any, any] | undefined, sorted: boolean) {

@@ -19,6 +19,7 @@ const {
     createDatumId,
     Color,
     ContinuousScale,
+    ChartAxisDirection,
     motion,
 } = _ModuleSupport;
 
@@ -111,19 +112,18 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 
-        if (direction === this.getBarDirection()) {
-            const minValues = dataModel.getDomain(this, `minValue`, 'value', processedData);
-            const maxValues = dataModel.getDomain(this, `maxValue`, 'value', processedData);
-
-            return fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)]);
+        if (direction !== this.getBarDirection()) {
+            const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
+            const keys = processedData.domain.keys[index];
+            if (def.type === 'key' && def.valueType === 'category') {
+                return keys;
+            }
+            return this.padBandExtent(keys);
         }
 
-        const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
-        const keys = processedData.domain.keys[index];
-        if (def.type === 'key' && def.valueType === 'category') {
-            return keys;
-        }
-        return this.padBandExtent(keys);
+        const clippedRange = this.clippedXRange('xValue', this.axisExtent(ChartAxisDirection.X), true);
+        const yExtent = this.yDomainForXRange(['minValue', 'maxValue'], clippedRange);
+        return fixNumericExtent(yExtent);
     }
 
     override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {

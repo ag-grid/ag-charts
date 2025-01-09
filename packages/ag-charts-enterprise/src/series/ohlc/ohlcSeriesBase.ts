@@ -169,26 +169,18 @@ export abstract class OhlcSeriesBase<
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 
-        const { openKey } = this.properties;
-
-        if (direction === this.getBarDirection()) {
-            const lowValues = dataModel.getDomain(this, `lowValue`, 'value', processedData);
-            const highValues = dataModel.getDomain(this, `highValue`, 'value', processedData);
-            const openValues = openKey ? dataModel.getDomain(this, `openValue`, 'value', processedData) : [];
-            const closeValues = dataModel.getDomain(this, `closeValue`, 'value', processedData);
-
-            return fixNumericExtent([
-                Math.min(...lowValues, ...highValues, ...openValues, ...closeValues),
-                Math.max(...highValues, ...lowValues, ...openValues, ...closeValues),
-            ]);
+        if (direction !== this.getBarDirection()) {
+            const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
+            const keys = processedData.domain.keys[index];
+            if (def.type === 'key' && def.valueType === 'category') {
+                return keys;
+            }
+            return this.padBandExtent(keys);
         }
 
-        const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
-        const keys = processedData.domain.keys[index];
-        if (def.type === 'key' && def.valueType === 'category') {
-            return keys;
-        }
-        return this.padBandExtent(keys);
+        const clippedRange = this.clippedXRange('xValue', this.axisExtent(ChartAxisDirection.X), true);
+        const yExtent = this.yDomainForXRange(['highValue', 'lowValue'], clippedRange);
+        return fixNumericExtent(yExtent);
     }
 
     override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {

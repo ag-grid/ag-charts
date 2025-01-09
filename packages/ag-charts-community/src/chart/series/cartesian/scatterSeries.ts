@@ -104,6 +104,12 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         this.animationState.transition('updateData');
     }
 
+    override xCoordinateRange(xValue: any, _index: number, pixelSize: number): [number, number] {
+        const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
+        const r = 0.5 * this.properties.size * pixelSize;
+        return [x - r, x + r];
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];

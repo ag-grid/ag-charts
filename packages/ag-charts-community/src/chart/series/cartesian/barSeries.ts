@@ -34,7 +34,7 @@ import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import type { ErrorBoundSeriesNodeDatum } from '../seriesTypes';
 import { applyShapeStyle } from '../shapeUtil';
-import { axisExtent, datumStylerProperties } from '../util';
+import { datumStylerProperties } from '../util';
 import { AbstractBarSeries } from './abstractBarSeries';
 import { BarSeriesProperties } from './barSeriesProperties';
 import {
@@ -251,7 +251,7 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
-        const { processedData, dataModel, axes } = this;
+        const { processedData, dataModel } = this;
 
         if (dataModel == null || processedData == null) return [];
 
@@ -265,7 +265,7 @@ export class BarSeries extends AbstractBarSeries<
         }
 
         const yKey = processedData.type === 'grouped' ? 'yValue-end' : 'yValue-raw';
-        const clippedRange = this.clippedXRange('xValue', axisExtent(axes[ChartAxisDirection.X]!), true);
+        const clippedRange = this.clippedXRange('xValue', this.axisExtent(ChartAxisDirection.X), true);
         let yExtent = this.yDomainForXRange([yKey], clippedRange);
         const yFilterExtent = this.crossFilteringEnabled()
             ? dataModel.getDomain(this, `yFilterValue`, 'value', processedData)

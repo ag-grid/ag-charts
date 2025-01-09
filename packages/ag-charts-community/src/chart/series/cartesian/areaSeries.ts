@@ -44,7 +44,7 @@ import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
 import { SeriesContentZIndexMap, SeriesZIndexMap } from '../seriesZIndexMap';
-import { axisExtent, datumStylerProperties } from '../util';
+import { datumStylerProperties } from '../util';
 import { AreaSeriesProperties } from './areaSeriesProperties';
 import {
     type AreaSeriesNodeDataContext,
@@ -251,7 +251,6 @@ export class AreaSeries extends CartesianSeries<
         const { processedData, dataModel, axes } = this;
         if (!processedData || !dataModel) return [];
 
-        const xAxis = axes[ChartAxisDirection.X];
         const yAxis = axes[ChartAxisDirection.Y];
 
         if (direction === ChartAxisDirection.X) {
@@ -264,7 +263,7 @@ export class AreaSeries extends CartesianSeries<
             return fixNumericExtent(extent(keys));
         }
 
-        const clippedRange = this.clippedXRange('xValue', axisExtent(xAxis!), true);
+        const clippedRange = this.clippedXRange('xValue', this.axisExtent(ChartAxisDirection.X), true);
         const yExtent = this.yDomainForXRange(['yValueEnd'], clippedRange);
 
         if (yAxis instanceof LogAxis || yAxis instanceof TimeAxis) {

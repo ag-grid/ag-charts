@@ -34,7 +34,7 @@ import type { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { axisExtent, datumStylerProperties } from '../util';
+import { datumStylerProperties } from '../util';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
     CartesianSeries,
@@ -214,10 +214,8 @@ export class LineSeries extends CartesianSeries<
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
-        const { dataModel, processedData, axes } = this;
+        const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return [];
-
-        const xAxis = axes[ChartAxisDirection.X];
 
         if (direction === ChartAxisDirection.X) {
             const xDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
@@ -229,7 +227,7 @@ export class LineSeries extends CartesianSeries<
             return fixNumericExtent(extent(domain));
         }
 
-        const clippedRange = this.clippedXRange('xValue', axisExtent(xAxis!), true);
+        const clippedRange = this.clippedXRange('xValue', this.axisExtent(ChartAxisDirection.X), true);
         const yExtent = this.yDomainForXRange(['yValueRaw'], clippedRange);
         return fixNumericExtent(yExtent);
     }

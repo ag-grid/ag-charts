@@ -30,6 +30,7 @@ const {
     PointerEvents,
     motion,
     applyShapeStyle,
+    findMinMax,
 } = _ModuleSupport;
 
 type Bounds = {
@@ -193,7 +194,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const {
             keys: [keys],
-            values,
         } = processedData.domain;
 
         if (direction === this.getCategoryDirection()) {
@@ -203,14 +203,9 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             }
             return this.padBandExtent(keys);
         } else {
-            const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue');
-            const yLowExtent = values[yLowIndex];
-            const yHighIndex = dataModel.resolveProcessedDataIndexById(this, 'yHighValue');
-            const yHighExtent = values[yHighIndex];
-            const fixedYExtent = [
-                yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],
-                yHighExtent[1] < yLowExtent[1] ? yLowExtent[1] : yHighExtent[1],
-            ];
+            const clippedRange = this.clippedXRange('xValue', this.axisExtent(ChartAxisDirection.X), true);
+            const yExtent = this.yDomainForXRange(['yHighValue', 'yLowValue'], clippedRange);
+            const fixedYExtent = findMinMax(yExtent);
             return fixNumericExtent(fixedYExtent);
         }
     }
