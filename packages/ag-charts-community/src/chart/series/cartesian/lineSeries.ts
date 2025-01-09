@@ -229,13 +229,13 @@ export class LineSeries extends CartesianSeries<
             return fixNumericExtent(extent(domain));
         }
 
-        const clippedRange = this.clippedXRange('xValue', axisExtent(xAxis!));
+        const clippedRange = this.clippedXRange('xValue', axisExtent(xAxis!), true);
         const yExtent = this.yDomainForXRange(['yValueRaw'], clippedRange);
         return fixNumericExtent(yExtent);
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const [y0, y1] = this.yDomainForXRange(['yValueRaw'], this.visibleXRange('xValue', visibleRange));
+        const [y0, y1] = this.yDomainForXRange(['yValueRaw'], this.visibleXRange('xValue', visibleRange, true));
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 
@@ -367,7 +367,7 @@ export class LineSeries extends CartesianSeries<
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         const indices = dataAggregationFilter?.indices;
-        let [start, end] = this.visibleXRange('xValue', xAxis.range, indices);
+        let [start, end] = this.visibleXRange('xValue', xAxis.range, true, indices);
         start = Math.max(start - 1, 0);
         end = Math.min(end + 1, indices?.length ?? xValues.length);
         // @todo(AG-13575) Remove this if block

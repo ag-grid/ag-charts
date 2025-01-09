@@ -192,7 +192,7 @@ export abstract class OhlcSeriesBase<
     }
 
     override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
-        return this.yDomainForXRange(['highValue', 'lowValue'], this.visibleXRange('xValue', visibleRange));
+        return this.yDomainForXRange(['highValue', 'lowValue'], this.visibleXRange('xValue', visibleRange, true));
     }
 
     override createNodeData() {
@@ -292,7 +292,7 @@ export abstract class OhlcSeriesBase<
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         if (dataAggregationFilter == null) {
-            let [start, end] = visibleRangeIndices(rawData.length, xAxis.range, (index) => {
+            let [start, end] = visibleRangeIndices(rawData.length, xAxis.range, true, (index) => {
                 const x = xPosition(index);
                 return [x, x + effectiveBarWidth];
             });
@@ -333,7 +333,7 @@ export abstract class OhlcSeriesBase<
             }
         } else {
             const { maxRange, indexData } = dataAggregationFilter;
-            const [start, end] = visibleRangeIndices(maxRange, xAxis.range, (index) => {
+            const [start, end] = visibleRangeIndices(maxRange, xAxis.range, true, (index) => {
                 const aggIndex = index * SPAN;
                 const openIndex = indexData[aggIndex + OPEN];
                 const closeIndex = indexData[aggIndex + CLOSE];

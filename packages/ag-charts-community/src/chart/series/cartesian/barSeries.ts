@@ -265,7 +265,7 @@ export class BarSeries extends AbstractBarSeries<
         }
 
         const yKey = processedData.type === 'grouped' ? 'yValue-end' : 'yValue-raw';
-        const clippedRange = this.clippedXRange('xValue', axisExtent(axes[ChartAxisDirection.X]!));
+        const clippedRange = this.clippedXRange('xValue', axisExtent(axes[ChartAxisDirection.X]!), true);
         let yExtent = this.yDomainForXRange([yKey], clippedRange);
         const yFilterExtent = this.crossFilteringEnabled()
             ? dataModel.getDomain(this, `yFilterValue`, 'value', processedData)
@@ -286,7 +286,7 @@ export class BarSeries extends AbstractBarSeries<
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
         const yKey = this.processedData?.type === 'grouped' ? 'yValue-end' : 'yValue-raw';
-        const [y0, y1] = this.yDomainForXRange([yKey], this.visibleXRange('xValue', visibleRange));
+        const [y0, y1] = this.yDomainForXRange([yKey], this.visibleXRange('xValue', visibleRange, true));
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 

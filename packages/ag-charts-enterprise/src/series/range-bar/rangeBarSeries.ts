@@ -216,7 +216,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
     }
 
     override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
-        return this.yDomainForXRange(['yHighValue', 'yLowValue'], this.visibleXRange('xValue', visibleRange));
+        return this.yDomainForXRange(['yHighValue', 'yLowValue'], this.visibleXRange('xValue', visibleRange, true));
     }
 
     override createNodeData() {
@@ -344,7 +344,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (dataAggregationFilter != null) {
             const { maxRange, indexData } = dataAggregationFilter;
-            const [start, end] = visibleRangeIndices(maxRange, xAxis.range, (index) => {
+            const [start, end] = visibleRangeIndices(maxRange, xAxis.range, true, (index) => {
                 const aggIndex = index * SPAN;
                 const xMinIndex = indexData[aggIndex + X_MIN];
                 const xMaxIndex = indexData[aggIndex + X_MAX];
@@ -375,7 +375,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 handleDatum(midDatumIndex, 0, x, width, yLow, yHigh, false);
             }
         } else if (processedData.type === 'ungrouped') {
-            let [start, end] = visibleRangeIndices(rawData.length, xAxis.range, (index) => {
+            let [start, end] = visibleRangeIndices(rawData.length, xAxis.range, true, (index) => {
                 const x = xPosition(index);
                 return [x, effectiveBarWidth];
             });

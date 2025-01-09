@@ -191,7 +191,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const xScale = this.axes[ChartAxisDirection.X]!.scale;
         const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
 
-        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, (index) => {
+        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, true, (index) => {
             const x = xScale.convert(xValues[indices?.[index] ?? index]);
             return [x, x];
         });

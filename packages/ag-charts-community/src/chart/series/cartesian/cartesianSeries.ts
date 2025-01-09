@@ -750,18 +750,18 @@ export abstract class CartesianSeries<
         return this.processedData!.keys[key] ?? this.processedData!.columns[key];
     }
 
-    protected visibleXRange(xKey: string, visibleRange: [any, any], indices?: number[]) {
+    protected visibleXRange(xKey: string, visibleRange: [any, any], sorted: boolean, indices?: number[]) {
         const xValues = this.xValues(xKey);
-        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, (index) =>
+        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, sorted, (index) =>
             this.xCoordinateRange(xValues[indices?.[index] ?? index])
         );
     }
 
-    protected clippedXRange(xKey: string, range: [any, any] | undefined) {
+    protected clippedXRange(xKey: string, range: [any, any] | undefined, sorted: boolean) {
         if (!range) return;
 
         const xValues = this.xValues(xKey);
-        return clippedRangeIndices(xValues.length, range, (index) => xValues[index]);
+        return clippedRangeIndices(xValues.length, range, sorted, (index) => xValues[index]);
     }
 
     protected yDomainForXRange(yKeys: string[], xRange: [any, any] | undefined) {

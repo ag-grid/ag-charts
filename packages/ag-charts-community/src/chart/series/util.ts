@@ -110,19 +110,36 @@ export function axisExtent(axis: ChartAxis): [number | Date, number | Date] | un
 export function visibleRangeIndices(
     length: number,
     [range0, range1]: [number, number],
+    sorted: boolean,
     xRange: (index: number) => [number, number] | undefined
 ): [number, number] {
-    const xMinIndex =
-        findMinIndex(0, length - 1, (index) => {
-            const x1 = xRange(index)?.[1];
-            return !Number.isFinite(x1) || x1! > range0;
-        }) ?? 0;
+    let xMinIndex = 0;
+    let xMaxIndex = 0;
 
-    let xMaxIndex =
-        findMaxIndex(0, length - 1, (index) => {
-            const x0 = xRange(index)?.[0];
-            return !Number.isFinite(x0) || x0! < range1;
-        }) ?? length - 1;
+    if (sorted) {
+        xMinIndex =
+            findMinIndex(0, length - 1, (index) => {
+                const x1 = xRange(index)?.[1] ?? NaN;
+                return !Number.isFinite(x1) || x1 > range0;
+            }) ?? 0;
+
+        xMaxIndex =
+            findMaxIndex(0, length - 1, (index) => {
+                const x0 = xRange(index)?.[0] ?? NaN;
+                return !Number.isFinite(x0) || x0 < range1;
+            }) ?? length - 1;
+    } else {
+        for (let i = 0; i < length; i += 1) {
+            const [x0, x1] = xRange(i) ?? [NaN, NaN];
+            if (Number.isFinite(x1) && x1 > range0) {
+                xMinIndex = Math.min(i, xMinIndex);
+            }
+            if (Number.isFinite(x1) && x0 < range1) {
+                xMinIndex = Math.max(i, xMinIndex);
+            }
+        }
+    }
+
     xMaxIndex = Math.min(xMaxIndex + 1, length);
 
     return [xMinIndex, xMaxIndex];
@@ -131,22 +148,39 @@ export function visibleRangeIndices(
 export function clippedRangeIndices(
     length: number,
     range: [any, any],
+    sorted: boolean,
     xValue: (index: number) => any
 ): [number, number] {
     const range0 = range[0].valueOf();
     const range1 = range[1].valueOf();
 
-    const xMinIndex =
-        findMinIndex(0, length - 1, (index) => {
-            const x = xValue(index)?.valueOf();
-            return !Number.isFinite(x) || x > range0;
-        }) ?? 0;
+    let xMinIndex = 0;
+    let xMaxIndex = 0;
 
-    let xMaxIndex =
-        findMaxIndex(0, length - 1, (index) => {
-            const x = xValue(index)?.valueOf();
-            return !Number.isFinite(x) || x! < range1;
-        }) ?? length - 1;
+    if (sorted) {
+        xMinIndex =
+            findMinIndex(0, length - 1, (index) => {
+                const x = xValue(index)?.valueOf();
+                return !Number.isFinite(x) || x >= range0;
+            }) ?? 0;
+
+        xMaxIndex =
+            findMaxIndex(0, length - 1, (index) => {
+                const x = xValue(index)?.valueOf();
+                return !Number.isFinite(x) || x! <= range1;
+            }) ?? length - 1;
+    } else {
+        for (let i = 0; i < length; i += 1) {
+            const x = xValue(i)?.valueOf();
+            if (x >= range0) {
+                xMinIndex = Math.min(i, xMinIndex);
+            }
+            if (x <= range1) {
+                xMinIndex = Math.max(i, xMinIndex);
+            }
+        }
+    }
+
     xMaxIndex = Math.min(xMaxIndex + 1, length);
 
     return [xMinIndex, xMaxIndex];
