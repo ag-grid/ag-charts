@@ -68,8 +68,8 @@ Our only inputs when receive `'touchmove'` event is $R$ (series-rect), which is
 should be unchanged, and $a'_1, a'_2 \in [R_x, R_W]$, the new screen values of
 the two fingers on the current axis.
 
-Our desired outputs are $Z'_{min}, Z'_{max} \in [0, 1]$, the new initial
-normalised zoom values on the current axis.
+Our desired outputs are $Z'_{min}, Z'_{max} \in [0, 1]$, the new normalised zoom
+values on the current axis.
 
 The interpolation logic is the same during a `'touchmove'` event:
 \begin{equation}
