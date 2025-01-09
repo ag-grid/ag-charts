@@ -349,28 +349,10 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private splitAnnotationsOptions(annotations: any) {
-        const {
-            axesButtons = null,
-            enabled = null,
-            optionsToolbar = null,
-            toolbar = null,
-            ...annotationsThemes
-        } = annotations;
+        const { enabled = null, optionsToolbar = null, toolbar = null, ...annotationsThemes } = annotations;
 
-        if (axesButtons == null && enabled == null && optionsToolbar == null && toolbar == null) {
+        if (enabled == null && optionsToolbar == null && toolbar == null) {
             return [{}, annotationsThemes];
-        }
-
-        const { presetType } = this.optionMetadata;
-
-        if (presetType == 'price-volume') {
-            return [{ annotations: { axesButtons, enabled, optionsToolbar, toolbar } }, annotationsThemes];
-        }
-
-        if (axesButtons != null) {
-            Logger.warn(`unable to set ['axesButtons'] - property is only supported for financial charts`);
-
-            delete annotations.axesButtons;
         }
 
         return [{ annotations: { enabled, optionsToolbar, toolbar } }, annotationsThemes];

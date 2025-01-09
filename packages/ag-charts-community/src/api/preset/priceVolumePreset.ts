@@ -143,7 +143,7 @@ export function priceVolume(
                 enabled: toolbar,
             },
             // @ts-expect-error undocumented option
-            axesButtons: {
+            __axesButtons: {
                 enabled: toolbar,
             },
             data,
