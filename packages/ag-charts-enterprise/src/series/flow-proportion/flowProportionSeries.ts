@@ -11,9 +11,15 @@ export enum FlowProportionDatumType {
     Node,
 }
 
+interface FlowProportionLinkHistory {
+    linksForwards: number[];
+    linksBackwards: number[];
+}
+
 export type FlowProportionNodeDatumIndex = {
     type: FlowProportionDatumType;
     index: number;
+    history: FlowProportionLinkHistory | undefined;
 };
 
 export interface FlowProportionLinkDatum<
@@ -204,7 +210,7 @@ export abstract class FlowProportionSeries<
                     series: this,
                     itemId: undefined,
                     datum: {}, // Must be a referential object for tooltips
-                    datumIndex: { type: FlowProportionDatumType.Node, index: datumIndex },
+                    datumIndex: { type: FlowProportionDatumType.Node, index: datumIndex, history: undefined },
                     type: FlowProportionDatumType.Node,
                     index: datumIndex,
                     linksBefore: [],
@@ -251,7 +257,7 @@ export abstract class FlowProportionSeries<
                     series: this,
                     itemId: undefined,
                     datum,
-                    datumIndex: { type: FlowProportionDatumType.Node, index: datumIndex },
+                    datumIndex: { type: FlowProportionDatumType.Node, index: datumIndex, history: undefined },
                     type: FlowProportionDatumType.Node,
                     index: datumIndex,
                     linksBefore: [],
@@ -313,7 +319,7 @@ export abstract class FlowProportionSeries<
                 series: this,
                 itemId: undefined,
                 datum,
-                datumIndex: { type: FlowProportionDatumType.Link, index: datumIndex },
+                datumIndex: { type: FlowProportionDatumType.Link, index: datumIndex, history: undefined },
                 type: FlowProportionDatumType.Link,
                 index: datumIndex,
                 fromNode,
@@ -599,6 +605,8 @@ export abstract class FlowProportionSeries<
 
     protected abstract computeFocusBounds(node: TNode | TLink): _ModuleSupport.BBox | _ModuleSupport.Path | undefined;
 
+    // @todo(AG-13772) Remove this when pickFocus uses the correct datumIndex type
+    private previousHistory: FlowProportionLinkHistory | undefined = undefined;
     public override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
         const { datumIndexDelta: childDelta, otherIndexDelta: depthDelta } = opts;
 
@@ -606,13 +614,26 @@ export abstract class FlowProportionSeries<
             | TNodeDatum
             | TLinkDatum
             | undefined;
-        let nextNodeDatum = currentNodeDatum;
+        let nextNodeDatum: TNodeDatum | TLinkDatum | undefined = currentNodeDatum;
+
+        const { previousHistory } = this;
+        let nextHistory: FlowProportionLinkHistory | undefined = undefined;
 
         if (currentNodeDatum?.type === FlowProportionDatumType.Link) {
             if (depthDelta > 0) {
                 nextNodeDatum = currentNodeDatum.toNode;
+                const index = currentNodeDatum.toNode.linksBefore.indexOf(currentNodeDatum);
+                nextHistory = {
+                    linksBackwards: [...(previousHistory?.linksBackwards ?? []), index],
+                    linksForwards: previousHistory?.linksForwards ?? [],
+                };
             } else if (depthDelta < 0) {
                 nextNodeDatum = currentNodeDatum.fromNode;
+                const index = currentNodeDatum.fromNode.linksAfter.indexOf(currentNodeDatum);
+                nextHistory = {
+                    linksBackwards: previousHistory?.linksBackwards ?? [],
+                    linksForwards: [...(previousHistory?.linksForwards ?? []), index],
+                };
             } else if (depthDelta === 0 && childDelta !== 0) {
                 const allLinks = Array.from(this.linkSelection, (link) => link.datum);
                 const selfIndex = allLinks.indexOf(currentNodeDatum);
@@ -628,9 +649,31 @@ export abstract class FlowProportionSeries<
             }
         } else if (currentNodeDatum?.type === FlowProportionDatumType.Node) {
             if (depthDelta > 0) {
-                nextNodeDatum = currentNodeDatum.linksAfter[0];
+                let index: number;
+                if (previousHistory?.linksForwards.length) {
+                    index = previousHistory.linksForwards[previousHistory.linksForwards.length - 1];
+                    nextHistory = {
+                        linksBackwards: previousHistory.linksBackwards,
+                        linksForwards: previousHistory.linksForwards.slice(0, -1),
+                    };
+                } else {
+                    index = 0;
+                    nextHistory = previousHistory;
+                }
+                nextNodeDatum = currentNodeDatum.linksAfter[index];
             } else if (depthDelta < 0) {
-                nextNodeDatum = currentNodeDatum.linksBefore[0];
+                let index: number;
+                if (previousHistory?.linksBackwards.length) {
+                    index = previousHistory.linksBackwards[previousHistory.linksBackwards.length - 1];
+                    nextHistory = {
+                        linksBackwards: previousHistory.linksBackwards.slice(0, -1),
+                        linksForwards: previousHistory.linksForwards,
+                    };
+                } else {
+                    index = 0;
+                    nextHistory = previousHistory;
+                }
+                nextNodeDatum = currentNodeDatum.linksBefore[index];
             } else if (depthDelta === 0 && childDelta !== 0) {
                 const allNodes = Array.from(this.nodeSelection, (node) => node.datum);
                 const selfIndex = allNodes.indexOf(currentNodeDatum);
@@ -647,6 +690,10 @@ export abstract class FlowProportionSeries<
         }
 
         if (nextNodeDatum == null) return;
+
+        if (nextNodeDatum !== currentNodeDatum) {
+            this.previousHistory = nextHistory;
+        }
 
         const nodeDatum =
             nextNodeDatum.type === FlowProportionDatumType.Node
