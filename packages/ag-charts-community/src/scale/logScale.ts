@@ -3,6 +3,7 @@ import { numberFormat } from '../util/numberFormat';
 import { createTicks, isDenseInterval, range } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
 import type { ScaleFormatParams, ScaleTickParams } from './scale';
+import { filterVisibleTicks } from './scaleUtil';
 
 const logFunctions: Record<number, (base: number, x: number) => number> = {
     2: (_base, x) => Math.log2(x),
@@ -133,11 +134,7 @@ export class LogScale extends ContinuousScale<number> {
             }
         }
 
-        if (visibleRange != null) {
-            const t0 = Math.max(0, Math.floor(visibleRange[0] * ticks.length));
-            const t1 = Math.min(ticks.length, Math.ceil(visibleRange[1] * ticks.length));
-            ticks = ticks.slice(t0, t1);
-        }
+        ticks = filterVisibleTicks(ticks, isPositive, visibleRange);
 
         return ticks;
     }

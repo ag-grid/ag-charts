@@ -2,6 +2,7 @@ import { formatValue } from '../util/format.util';
 import { createTicks, isDenseInterval, niceTicksDomain, range, tickFormat, tickStep } from '../util/ticks';
 import { ContinuousScale } from './continuousScale';
 import type { ScaleFormatParams, ScaleTickParams } from './scale';
+import { filterVisibleTicks } from './scaleUtil';
 
 /**
  * Maps continuous domain to a continuous range.
@@ -40,12 +41,7 @@ export class LinearScale extends ContinuousScale<number> {
         }
 
         let ticks = createTicks(d0, d1, tickCount, minTickCount, maxTickCount);
-
-        if (visibleRange != null) {
-            const t0 = Math.max(0, Math.floor(visibleRange[0] * ticks.length));
-            const t1 = Math.min(ticks.length, Math.ceil(visibleRange[1] * ticks.length));
-            ticks = ticks.slice(t0, t1);
-        }
+        ticks = filterVisibleTicks(ticks, d0 > d1, visibleRange);
 
         return ticks;
     }

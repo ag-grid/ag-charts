@@ -56,8 +56,14 @@ export class TimeInterval {
     range(
         start: Date,
         stop: Date,
-        { extend = false, visibleRange }: { extend?: boolean; visibleRange?: [number, number] } = {}
+        { extend = false, visibleRange = [0, 1] }: { extend?: boolean; visibleRange?: [number, number] } = {}
     ): Date[] {
+        let reversed = false;
+        if (start.getTime() > stop.getTime()) {
+            [start, stop] = [stop, start];
+            reversed = true;
+        }
+
         const rangeCallback = this._rangeCallback?.(start, stop);
 
         const e0 = this._encode(extend ? this.floor(start) : this.ceil(start));
@@ -67,8 +73,15 @@ export class TimeInterval {
         }
 
         const de = e1 - e0;
-        const startIndex = visibleRange != null ? Math.floor(e0 + visibleRange[0] * de) : e0;
-        const endIndex = visibleRange != null ? Math.ceil(e0 + visibleRange[1] * de) : e1;
+        let startIndex: number;
+        let endIndex: number;
+        if (reversed) {
+            startIndex = Math.ceil(e0 + (1 - visibleRange[1]) * de);
+            endIndex = Math.floor(e0 + (1 - visibleRange[0]) * de);
+        } else {
+            startIndex = Math.floor(e0 + visibleRange[0] * de);
+            endIndex = Math.ceil(e0 + visibleRange[1] * de);
+        }
 
         const range: Date[] = [];
         for (let e = startIndex; e <= endIndex; e += 1) {

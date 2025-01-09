@@ -1,4 +1,3 @@
-import { findMinMax } from '../util/number';
 import { TickIntervals, getTickInterval, isDenseInterval } from '../util/ticks';
 import { TimeInterval } from '../util/time/interval';
 import { buildFormatter } from '../util/timeFormat';
@@ -53,17 +52,15 @@ export class TimeScale extends ContinuousScale<Date, TimeInterval | number> {
         const { nice, interval, tickCount = ContinuousScale.defaultTickCount, minTickCount, maxTickCount } = params;
         if (domain.length < 2) return [];
 
-        const [start, stop] = findMinMax(domain.map(dateToNumber));
+        const timestamps = domain.map(dateToNumber);
+        const start = timestamps[0];
+        const stop = timestamps[timestamps.length - 1];
 
         if (interval != null) {
+            const availableRange = this.getPixelRange();
             return (
-                getDateTicksForInterval({
-                    start,
-                    stop,
-                    interval,
-                    availableRange: this.getPixelRange(),
-                    visibleRange,
-                }) ?? getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange })
+                getDateTicksForInterval({ start, stop, interval, availableRange, visibleRange }) ??
+                getDefaultDateTicks({ start, stop, tickCount, minTickCount, maxTickCount, visibleRange })
             );
         } else if (nice && tickCount === 2) {
             return domain;
@@ -142,7 +139,7 @@ export function getDateTicksForInterval({
 
     const absInterval = Math.abs(interval);
 
-    if (isDenseInterval((stop - start) / absInterval, availableRange)) return;
+    if (isDenseInterval(Math.abs(stop - start) / absInterval, availableRange)) return;
 
     const timeInterval = TickIntervals.findLast((tickInterval) => absInterval % tickInterval.duration === 0);
 
@@ -151,8 +148,8 @@ export function getDateTicksForInterval({
         return i.range(new Date(start), new Date(stop), { visibleRange });
     }
 
-    let date = new Date(start);
-    const stopDate = new Date(stop);
+    let date = new Date(Math.min(start, stop));
+    const stopDate = new Date(Math.max(start, stop));
     const ticks = [];
     while (date <= stopDate) {
         ticks.push(date);
