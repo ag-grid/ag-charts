@@ -207,7 +207,7 @@ export class MapLineBackgroundSeries
         return [];
     }
 
-    override getTooltipContent(_seriesDatum: any): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(_seriesDatum: any): _ModuleSupport.TooltipContent | undefined {
         return;
     }
 

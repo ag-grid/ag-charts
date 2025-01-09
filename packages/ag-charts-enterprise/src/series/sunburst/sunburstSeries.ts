@@ -541,9 +541,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         });
     }
 
-    override getTooltipContent(
-        nodeDatum: _ModuleSupport.HierarchyNode
-    ): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: _ModuleSupport.HierarchyNode): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
         const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
             properties;

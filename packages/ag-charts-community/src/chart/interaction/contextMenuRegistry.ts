@@ -80,7 +80,7 @@ export class ContextMenuRegistry {
 
     public filterActions(type: ContextType): ContextMenuAction<ContextType>[] {
         return this.defaultActions.filter((action) => {
-            return action.id && !this.hiddenActions.has(action.id) && ['all', type].includes(action.type);
+            return action.id != null && !this.hiddenActions.has(action.id) && ['all', type].includes(action.type);
         });
     }
 

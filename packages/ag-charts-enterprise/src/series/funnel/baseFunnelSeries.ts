@@ -512,7 +512,7 @@ export abstract class BaseFunnelSeries<
 
     protected abstract tooltipStyle(datum: any, datumIndex: number): Required<AgFunnelSeriesStyle>;
 
-    override getTooltipContent(nodeDatum: FunnelNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: FunnelNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const { stageKey, valueKey, tooltip } = properties;
         const xAxis = this.getCategoryAxis();

@@ -592,7 +592,7 @@ export class SankeySeries extends FlowProportionSeries<
         });
     }
 
-    override getTooltipContent(seriesDatum: SankeyDatum): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(seriesDatum: SankeyDatum): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, linksProcessedData, nodesProcessedData, properties } = this;
         const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
 

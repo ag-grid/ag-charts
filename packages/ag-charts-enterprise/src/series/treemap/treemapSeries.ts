@@ -776,7 +776,7 @@ export class TreemapSeries extends _ModuleSupport.HierarchySeries<DistantGroup, 
         return this.pickNodeNearestDistantObject(point, this.datumSelection.nodes());
     }
 
-    override getTooltipContent(nodeDatum: TreemapNode): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: TreemapNode): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
         const { labelKey, secondaryLabelKey, childrenKey, sizeKey, sizeName, colorKey, colorName, tooltip } =
             properties;

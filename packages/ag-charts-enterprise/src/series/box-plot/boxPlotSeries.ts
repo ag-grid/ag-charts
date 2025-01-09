@@ -293,7 +293,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         ];
     }
 
-    override getTooltipContent(nodeDatum: BoxPlotNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: BoxPlotNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const {
             xKey,

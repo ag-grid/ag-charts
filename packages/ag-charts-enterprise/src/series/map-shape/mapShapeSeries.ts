@@ -644,7 +644,7 @@ export class MapShapeSeries
         }
     }
 
-    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const { idKey, idName, colorKey, colorName, labelKey, labelName, legendItemName, title, tooltip } = properties;
         if (!dataModel || !processedData) return;

@@ -276,7 +276,7 @@ export function formatSingleLabel<Meta>(
 }
 
 function hasInvalidFontSize(label?: AutoSizedBaseLabelOptions) {
-    return label?.minimumFontSize != null && label?.fontSize && label?.minimumFontSize > label?.fontSize;
+    return label?.minimumFontSize != null && label?.fontSize != null && label?.minimumFontSize > label?.fontSize;
 }
 
 export function formatLabels<Meta = never>(

@@ -433,7 +433,7 @@ export class BubbleSeries extends CartesianSeries<Group, BubbleSeriesProperties,
         });
     }
 
-    override getTooltipContent(nodeDatum: BubbleNodeDatum): TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: BubbleNodeDatum): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xKey, xName, yKey, yName, sizeKey, sizeName, labelKey, labelName, title, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];

@@ -435,7 +435,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: HeatmapNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: HeatmapNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties, colorScale } = this;
         const { xKey, xName, yKey, yName, colorKey, colorName, colorRange, title, legendItemName, tooltip } =
             properties;

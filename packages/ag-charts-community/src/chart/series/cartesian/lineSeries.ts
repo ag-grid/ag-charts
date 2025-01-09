@@ -557,7 +557,7 @@ export class LineSeries extends CartesianSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: LineNodeDatum): TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: LineNodeDatum): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xKey, xName, yKey, yName, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];

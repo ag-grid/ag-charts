@@ -490,7 +490,7 @@ export abstract class RadialColumnSeriesBase<
         seriesLabelFadeOutAnimation(this, 'labels', animationManager, this.labelSelection);
     }
 
-    override getTooltipContent(nodeDatum: RadialColumnNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: RadialColumnNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { angleKey, angleName, radiusKey, radiusName, tooltip } = properties;
         const angleAxis = axes[ChartAxisDirection.X];
