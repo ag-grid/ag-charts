@@ -31,7 +31,7 @@ export const BarSeriesModule: SeriesModule<'bar'> = {
             lineDashOffset: 0,
             label: {
                 enabled: false,
-                fontWeight: 'normal',
+                fontWeight: { ref: 'fontWeight' },
                 fontSize: { ref: 'fontSize' },
                 fontFamily: { ref: 'fontFamily' },
                 color: { ref: 'backgroundColor' },

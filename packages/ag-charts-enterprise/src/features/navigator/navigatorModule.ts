@@ -2,7 +2,7 @@ import { _ModuleSupport } from 'ag-charts-community';
 
 import { Navigator } from './navigator';
 
-const { DEFAULT_INVERTED_BACKGROUND_COLOUR, DEFAULT_NAVIGATOR_STROKE } = _ModuleSupport.ThemeSymbols;
+const { DEFAULT_INVERTED_BACKGROUND_COLOUR } = _ModuleSupport.ThemeSymbols;
 
 export const NavigatorModule: _ModuleSupport.RootModule = {
     type: 'root',
@@ -19,12 +19,12 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
             mask: {
                 fill: DEFAULT_INVERTED_BACKGROUND_COLOUR,
                 fillOpacity: 0.1,
-                stroke: DEFAULT_NAVIGATOR_STROKE,
+                stroke: { ref: 'borderColor' },
                 strokeWidth: 1,
             },
             minHandle: {
                 fill: { ref: 'backgroundColor' },
-                stroke: DEFAULT_NAVIGATOR_STROKE,
+                stroke: { ref: 'borderColor' },
                 strokeWidth: 1,
                 width: 12,
                 height: 24,
@@ -32,7 +32,7 @@ export const NavigatorModule: _ModuleSupport.RootModule = {
             },
             maxHandle: {
                 fill: { ref: 'backgroundColor' },
-                stroke: DEFAULT_NAVIGATOR_STROKE,
+                stroke: { ref: 'borderColor' },
                 strokeWidth: 1,
                 width: 12,
                 height: 24,

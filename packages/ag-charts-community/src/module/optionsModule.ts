@@ -78,6 +78,35 @@ enum GroupingType {
 
 const unthemedSeries = new Set<SeriesType>(['map-shape-background', 'map-line-background']);
 
+function resolveThemeParametersVisitor(node: any, _: any, params?: AgChartThemeParams) {
+    if (isArray(node)) {
+        for (let i = 0; i < node.length; i++) {
+            node[i] = resolveThemeParameterValue(node[i], params);
+        }
+    } else {
+        for (const [name, value] of Object.entries(node)) {
+            node[name] = resolveThemeParameterValue(value, params);
+        }
+    }
+}
+
+function resolveThemeParameterValue(value: unknown, params?: AgChartThemeParams) {
+    if (!params || !isPlainObject(value)) {
+        return value;
+    }
+
+    if ('ref' in value) {
+        if (value.ref in params) {
+            return params[value.ref as keyof AgChartThemeParams];
+        }
+        throw new Error(`Unknown 'ref' in theme params: [${value.ref}]`);
+    }
+
+    // TODO: calc, conditionals, etc.
+
+    return value;
+}
+
 export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     private static readonly OPTIONS_CLONE_OPTS = new Set(['data', 'container']);
 
@@ -421,36 +450,7 @@ export class ChartOptions<T extends AgChartOptions = AgChartOptions> {
     }
 
     private resolveThemeParameters(params: AgChartThemeParams, options: T) {
-        const visit = (node: any) => {
-            if (isArray(node)) {
-                for (let i = 0; i < node.length; i++) {
-                    node[i] = getParamValue(node[i]);
-                }
-            } else {
-                for (const [name, value] of Object.entries(node)) {
-                    node[name] = getParamValue(value);
-                }
-            }
-        };
-
-        const getParamValue = (value: unknown) => {
-            if (!isPlainObject(value)) {
-                return value;
-            }
-
-            if ('ref' in value) {
-                if (value.ref in params) {
-                    return params[value.ref as keyof AgChartThemeParams];
-                }
-                throw new Error(`Unknown 'ref' in theme params: [${value.ref}]`);
-            }
-
-            // TODO: calc, conditionals, etc.
-
-            return value;
-        };
-
-        jsonWalk(options, visit);
+        jsonWalk(options, resolveThemeParametersVisitor, undefined, undefined, params);
     }
 
     private getSeriesPalette(

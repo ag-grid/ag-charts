@@ -2,10 +2,18 @@ import { AgChartOptions, AgChartTheme, AgCharts } from 'ag-charts-community';
 
 import { getData } from './data';
 
-var myTheme: AgChartTheme = {
+const myTheme: AgChartTheme = {
     palette: {
         fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
-        strokes: ['gray'],
+        strokes: ['#881008'],
+    },
+    params: {
+        axisColor: '#881008',
+        backgroundColor: '#FFE8E0',
+        foregroundColor: '#881008',
+        fontFamily: 'Georgia, serif',
+        fontSize: 16,
+        gridLineColor: '#881008',
     },
     overrides: {
         common: {
@@ -19,18 +27,12 @@ var myTheme: AgChartTheme = {
             axes: {
                 category: {
                     line: {
-                        stroke: 'gray',
-                    },
-                    tick: {
-                        stroke: 'gray',
+                        width: 4,
                     },
                 },
                 number: {
                     line: {
-                        stroke: 'gray',
-                    },
-                    tick: {
-                        stroke: 'gray',
+                        width: 2,
                     },
                 },
             },
@@ -63,7 +65,7 @@ var myTheme: AgChartTheme = {
                     enabled: true,
                 },
                 calloutLine: {
-                    colors: ['gray'],
+                    colors: ['#881008'],
                 },
             },
         },

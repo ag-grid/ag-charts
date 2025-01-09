@@ -240,10 +240,15 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
     // TODO: don't use AgChartThemeParams
     setThemeParameters(params: AgChartThemeParams) {
         const keysMap: Record<keyof AgChartThemeParams, string> = {
+            axisColor: 'axis-color',
             backgroundColor: 'background-color',
+            borderColor: 'border-color',
             foregroundColor: 'foreground-color',
             fontFamily: 'font-family',
             fontSize: 'font-size',
+            fontWeight: 'font-weight',
+            gridLineColor: 'grid-line-color',
+            padding: 'padding',
         };
 
         const lengthKeys = ['fontSize'];

@@ -6,7 +6,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
     series: {
         title: {
             enabled: true,
-            fontWeight: 'normal',
+            fontWeight: { ref: 'fontWeight' },
             fontSize: 14,
             fontFamily: { ref: 'fontFamily' },
             color: DEFAULT_MUTED_LABEL_COLOUR,
@@ -22,7 +22,7 @@ export const pieTheme: ExtensibleTheme<'pie'> = {
         },
         sectorLabel: {
             enabled: true,
-            fontWeight: 'normal',
+            fontWeight: { ref: 'fontWeight' },
             fontSize: { ref: 'fontSize' },
             fontFamily: { ref: 'fontFamily' },
             color: { ref: 'backgroundColor' },

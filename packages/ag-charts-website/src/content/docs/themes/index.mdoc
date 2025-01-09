@@ -49,8 +49,31 @@ A custom theme is an object with the following optional properties:
 -   `baseTheme` - The name of the theme to base this theme upon (if not specified, the `'ag-default'` theme is used).
 -   `overrides` - The object to be merged with the base theme's defaults and override them.
 -   `palette` - The palette to use, replaces the palette of the base theme.
+-   `params` - The theme parameters to set global styles.
 
 See the [Themes API page](/themes-api/) for the complete options structure.
+
+### Theme Parameters
+
+The `params` object is used to set styles across the whole chart in one place.
+
+{% chartExampleRunner title="Theme Parameters" name="theme-parameters" type="generated"  /%}
+
+```js
+const myTheme: AgChartTheme = {
+    params: {
+        fontFamily: 'Georgia, serif',
+        fontSize: 16,
+    },
+};
+```
+
+In the above example:
+
+-   All text elements are set to the same font family.
+-   All text, except the titles and footer, are set to the same font size.
+
+### Overrides
 
 The `overrides` object is similar in its structure to the chart's options and is used as follows:
 
@@ -62,7 +85,7 @@ The `overrides` object is similar in its structure to the chart's options and is
 {% chartExampleRunner title="Custom Theme" name="custom-theme" type="generated"  /%}
 
 ```js
-var myTheme = {
+const myTheme = {
     palette: {
         fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
         strokes: ['black'],
@@ -97,10 +120,17 @@ In the above example:
 {% chartExampleRunner title="Advanced Themes" name="advanced-theme" type="generated" /%}
 
 ```js
-var myTheme: AgChartTheme = {
+const myTheme: AgChartTheme = {
     palette: {
         fills: ['#5C2983', '#0076C5', '#21B372', '#FDDE02', '#F76700', '#D30018'],
-        strokes: ['gray'],
+        strokes: ['#881008'],
+    },
+    params: {
+        backgroundColor: '#FFE8E0',
+        foregroundColor: '#881008',
+        fontFamily: 'Georgia, serif',
+        fontSize: 16,
+        gridLineColor: '#881008',
     },
     overrides: {
         common: {
@@ -114,18 +144,12 @@ var myTheme: AgChartTheme = {
             axes: {
                 category: {
                     line: {
-                        stroke: 'gray',
-                    },
-                    tick: {
-                        stroke: 'gray',
+                        width: 4,
                     },
                 },
                 number: {
                     line: {
-                        stroke: 'gray',
-                    },
-                    tick: {
-                        stroke: 'gray',
+                        width: 2,
                     },
                 },
             },
@@ -158,7 +182,7 @@ var myTheme: AgChartTheme = {
                     enabled: true,
                 },
                 calloutLine: {
-                    colors: ['gray'],
+                    colors: ['#881008'],
                 },
             },
         },
@@ -169,6 +193,7 @@ var myTheme: AgChartTheme = {
 In the above example:
 
 -   A different palette of colours and strokes is provided for all series to use.
+-   Some `param` global styles are specified.
 -   Some `common` overrides are specified which apply to all chart types.
 -   Different axes overrides are specified for `category` and `number` axes types.
 -   Different series specific overrides are specified for `bar`, `line` and `pie` series.

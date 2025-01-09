@@ -44,7 +44,7 @@ import type { AgAnnotationsThemeableOptions } from './annotationsOptions';
 import type { AgBaseChartOptions, AgBaseThemeableChartOptions } from './chartOptions';
 import type { AgChartToolbarThemeableOptions } from './chartToolbarOptions';
 import type { AgLocaleThemeableOptions } from './localeOptions';
-import type { CssColor } from './types';
+import type { CssColor, FontFamily, FontSize, FontWeight, PixelSize } from './types';
 
 export type AgChartThemeName =
     | 'ag-default'
@@ -79,14 +79,24 @@ export interface AgChartThemePalette {
 }
 
 export interface AgChartThemeParams {
-    /** TODO */
+    /** The color of axis lines and ticks. */
+    axisColor?: CssColor;
+    /** The outer chart background color. */
     backgroundColor?: CssColor;
-    /** TODO */
+    /** The border color of buttons and other UI elements. */
+    borderColor?: CssColor;
+    /** The font color and other related colors. */
     foregroundColor?: CssColor;
-    /** TODO */
-    fontFamily?: string;
-    /** TODO */
-    fontSize?: number;
+    /** The font family. */
+    fontFamily?: FontFamily;
+    /** The font size for all text except titles and footer. */
+    fontSize?: FontSize;
+    /** The font weight. */
+    fontWeight?: FontWeight;
+    /** The color of the grid lines. */
+    gridLineColor?: CssColor;
+    /** The outer chart padding. */
+    padding?: PixelSize;
 }
 
 type ExtendLiteralLeaves<T, V> = {
@@ -105,7 +115,7 @@ export type WithThemeParams<T> = ExtendLiteralLeaves<T, ThemeParamsRef>;
 export interface AgBaseChartThemeOptions {
     /** The palette to use. If specified, this replaces the palette from the base theme. */
     palette?: AgChartThemePalette;
-    /** TODO */
+    /** Global parameters to set styles across the whole chart. */
     params?: AgChartThemeParams;
     /** Configuration from this object is merged over the defaults specified in the base theme. */
     overrides?: AgThemeOverrides;
