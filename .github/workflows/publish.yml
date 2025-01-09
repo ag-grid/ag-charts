@@ -26,6 +26,11 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: '20'
+                  cache: 'yarn'
+
+            - name: yarn install
+              id: yarn_install
+              run: yarn install --ci
 
             - name: Calculate Next Beta Version
               id: next_version
