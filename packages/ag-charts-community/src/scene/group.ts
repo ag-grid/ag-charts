@@ -20,7 +20,7 @@ interface OffscreenImageBitmap {
 let sharedOffscreenCanvas: HdpiOffscreenCanvas | undefined;
 
 export class Group extends Node {
-    static className = 'Group';
+    static readonly className: string = 'Group';
 
     static is(value: unknown): value is Group {
         return value instanceof Group;

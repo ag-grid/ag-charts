@@ -84,7 +84,7 @@ export abstract class AgCharts {
     }
 
     /** @private - for use by Charts website dark-mode support. */
-    static optionsMutationFn?: (opts: AgChartOptions, preset?: string) => AgChartOptions;
+    static readonly optionsMutationFn?: (opts: AgChartOptions, preset?: string) => AgChartOptions;
 
     public static getLicenseDetails(licenseKey: string) {
         return enterpriseModule.licenseManager?.({}).getLicenseDetails(licenseKey);

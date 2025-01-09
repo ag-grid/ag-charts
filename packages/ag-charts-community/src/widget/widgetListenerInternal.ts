@@ -172,19 +172,22 @@ function startTouchDrag(
     that.globalTouchDragCallbacks = myCallbacks;
 }
 
-export class WidgetListenerInternal {
-    private dragTriggerRemover?: () => void;
-    private dragStartListeners?: EventHandler<Targetable>[];
-    private dragMoveListeners?: EventHandler<Targetable>[];
-    private dragEndListeners?: EventHandler<Targetable>[];
+const GlobalCallbacks: {
     // The 'mousedown' event get fired on the target DOM element and all its ancestors that have 'mousedown' event
     // listeners. However, we only want 1 DOM element to handle the dragging operation because doing so involves adding
     // temporary capture event listeners to the global `window` object. Therefore, this property much be static.
     //
     // As a consequence, the widget `'drag-*'` events do not support propagation; but that's sufficient for us because
     // we do not yet have a use-case when propagation is needed for drag events.
-    static globalMouseDragCallbacks?: MouseDragCallbacks;
-    static globalTouchDragCallbacks?: TouchDragCallbacks;
+    globalMouseDragCallbacks?: MouseDragCallbacks;
+    globalTouchDragCallbacks?: TouchDragCallbacks;
+} = {};
+
+export class WidgetListenerInternal {
+    private dragTriggerRemover?: () => void;
+    private dragStartListeners?: EventHandler<Targetable>[];
+    private dragMoveListeners?: EventHandler<Targetable>[];
+    private dragEndListeners?: EventHandler<Targetable>[];
     private localMouseDragCallbacks?: MouseDragCallbacks;
     private localTouchDragCallbacks?: TouchDragCallbacks;
 
@@ -196,11 +199,11 @@ export class WidgetListenerInternal {
         this.dragStartListeners = undefined;
         this.dragMoveListeners = undefined;
         this.dragEndListeners = undefined;
-        if (WidgetListenerInternal.globalMouseDragCallbacks === this.localMouseDragCallbacks) {
-            WidgetListenerInternal.globalMouseDragCallbacks = undefined;
+        if (GlobalCallbacks.globalMouseDragCallbacks === this.localMouseDragCallbacks) {
+            GlobalCallbacks.globalMouseDragCallbacks = undefined;
         }
-        if (WidgetListenerInternal.globalTouchDragCallbacks === this.localTouchDragCallbacks) {
-            WidgetListenerInternal.globalTouchDragCallbacks = undefined;
+        if (GlobalCallbacks.globalTouchDragCallbacks === this.localTouchDragCallbacks) {
+            GlobalCallbacks.globalTouchDragCallbacks = undefined;
         }
     }
 
@@ -285,7 +288,7 @@ export class WidgetListenerInternal {
             },
         };
 
-        startMouseDrag(WidgetListenerInternal, dragCallbacks, initialDownEvent);
+        startMouseDrag(GlobalCallbacks, dragCallbacks, initialDownEvent);
     }
 
     private endDrag(target: Targetable, { sourceEvent, clientX, clientY }: DragWidgetEvent<'drag-end'>) {
@@ -320,7 +323,7 @@ export class WidgetListenerInternal {
         };
         this.localTouchDragCallbacks = dragCallbacks;
 
-        startTouchDrag(WidgetListenerInternal, dragCallbacks, initialTouch);
+        startTouchDrag(GlobalCallbacks, dragCallbacks, initialTouch);
 
         const dragStartEvent = makeTouchDrag(current, 'drag-start', origin, initialEvent, initialTouch);
         this.dispatch('drag-start', current, dragStartEvent);

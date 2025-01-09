@@ -38,7 +38,7 @@ export class CartesianChart extends Chart {
     static readonly className = 'CartesianChart';
     static readonly type = 'cartesian';
 
-    static AxesPadding = 15; // TODO should come from theme
+    private static readonly AxesPadding = 15; // TODO should come from theme
 
     /** Integrated Charts feature state - not used in Standalone Charts. */
     public readonly paired: boolean = true;
