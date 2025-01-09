@@ -117,10 +117,10 @@ x_1 - \frac{f_1}{f_2} x_2 &=  (N - f_1) Z'_{min} + \frac{f_1}{f_2} (f_2 -1) Z'_{
 
 Let $g = \frac{f_1}{f_2}$
 \begin{align*}
-x_1 - g x_2 &=  (N - f_1) Z'_{min} + g (f_2 - N) Z'_{min} \\
-x_1 - g x_2 &=  Z'_{min} ( (N - f_1) + g (f_2 - N) ) \\
+x_1 - g \cdot x_2 &=  (N - f_1) Z'_{min} + g \cdot (f_2 - N) Z'_{min} \\
+x_1 - g \cdot x_2 &=  Z'_{min} ( (N - f_1) + g \cdot (f_2 - N) ) \\
 \therefore
-Z'_{min} &= \frac{x_1 - g x_2}{N - f_1 + g (f_2 - N)} \\
+Z'_{min} &= \frac{x_1 - g \cdot x_2}{N - f_1 + g \cdot (f_2 - N)} \\
 \end{align*}
 
 
