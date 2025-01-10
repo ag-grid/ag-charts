@@ -1,4 +1,4 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, isObject } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
     AgBarSeriesItemStylerParams,
@@ -30,7 +30,6 @@ import {
     PALETTE_UP_STROKE,
 } from '../../chart/themes/symbols';
 import { mergeDefaults } from '../../util/object';
-import { isObject } from '../../util/type-guards';
 
 type ThemeType = AgChartTheme | AgChartThemeName;
 

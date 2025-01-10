@@ -1,9 +1,8 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, isString } from 'ag-charts-core';
 import type { AgFinancialChartOptions, AgInitialStateChartType } from 'ag-charts-types';
 
 import type { ChartService } from '../../chart/chartService';
 import { includes } from '../../util/array';
-import { isString } from '../../util/type-guards';
 import type { MementoOriginator } from '../state/memento';
 
 type ChartTypeMemento = AgInitialStateChartType;

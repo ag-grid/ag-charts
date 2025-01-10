@@ -1,4 +1,5 @@
 import { type AgBoxPlotSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import type { DeepRequired } from 'ag-charts-core';
 
 import { prepareBoxPlotFromTo, resetBoxPlotSelectionsScalingCenterFn } from './blotPlotUtil';
 import { BoxPlotGroup } from './boxPlotGroup';
@@ -466,7 +467,7 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
 
             boxPlotGroup.updateDatumStyles(
                 nodeDatum,
-                activeStyles as _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyle>,
+                activeStyles as DeepRequired<AgBoxPlotSeriesStyle>,
                 isVertical,
                 isReversedValueAxis
             );

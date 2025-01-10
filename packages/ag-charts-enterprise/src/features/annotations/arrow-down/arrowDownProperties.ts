@@ -1,9 +1,10 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isObject } from 'ag-charts-core';
 
 import { AnnotationType } from '../annotationTypes';
 import { ShapePointProperties } from '../properties/shapePointProperties';
 
-const { STRING, Validate, isObject } = _ModuleSupport;
+const { STRING, Validate } = _ModuleSupport;
 
 export class ArrowDownProperties extends ShapePointProperties {
     static override is(this: void, value: unknown): value is ArrowDownProperties {

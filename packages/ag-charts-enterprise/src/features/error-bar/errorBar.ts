@@ -1,19 +1,13 @@
 import type { AgErrorBarThemeableOptions, AgSeriesVisibilityChange } from 'ag-charts-community';
 import { AgErrorBarSupportedSeriesTypes, _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, isDefined } from 'ag-charts-core';
 
 import type { ErrorBarNodeDatum, ErrorBarStylingOptions } from './errorBarNode';
 import { ErrorBarGroup, ErrorBarNode } from './errorBarNode';
 import { ErrorBarProperties } from './errorBarProperties';
 
-const {
-    fixNumericExtent,
-    groupAccumulativeValueProperty,
-    isDefined,
-    mergeDefaults,
-    valueProperty,
-    ChartAxisDirection,
-} = _ModuleSupport;
+const { fixNumericExtent, groupAccumulativeValueProperty, mergeDefaults, valueProperty, ChartAxisDirection } =
+    _ModuleSupport;
 
 type ErrorBoundCartesianSeries = Omit<
     _ModuleSupport.CartesianSeries<

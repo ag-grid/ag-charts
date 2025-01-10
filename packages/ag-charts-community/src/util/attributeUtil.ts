@@ -1,6 +1,5 @@
+import type { Nullable } from 'ag-charts-core';
 import type { Direction } from 'ag-charts-types';
-
-import type { Nullable } from './types';
 
 type ElementID = string;
 

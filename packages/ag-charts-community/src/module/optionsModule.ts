@@ -1,4 +1,14 @@
-import { Logger } from 'ag-charts-core';
+import type { DeepPartial } from 'ag-charts-core';
+import {
+    Logger,
+    isArray,
+    isEnumValue,
+    isFiniteNumber,
+    isObject,
+    isPlainObject,
+    isString,
+    isSymbol,
+} from 'ag-charts-core';
 import {
     type AgBaseAxisOptions,
     type AgCartesianAxisOptions,
@@ -37,8 +47,6 @@ import { Debug } from '../util/debug';
 import { setDocument, setWindow } from '../util/dom';
 import { deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';
-import { isArray, isEnumValue, isFiniteNumber, isObject, isPlainObject, isString, isSymbol } from '../util/type-guards';
-import type { DeepPartial } from '../util/types';
 import { type PaletteType, paletteType } from './coreModulesTypes';
 import { enterpriseModule } from './enterpriseModule';
 import type { SeriesType } from './optionsModuleTypes';

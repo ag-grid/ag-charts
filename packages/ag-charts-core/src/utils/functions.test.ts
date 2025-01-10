@@ -1,6 +1,6 @@
 import { debounce, throttle } from './functions';
 
-describe('function utils', () => {
+describe('Functions utils', () => {
     describe('debounce', () => {
         jest.useFakeTimers();
 

@@ -1,7 +1,8 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { isPlainObject } from 'ag-charts-core';
+
 import { expectWarningsCalls, setupMockConsole } from '../../chart/test/utils';
-import { isPlainObject } from '../../util/type-guards';
 import type { MementoOriginator } from './memento';
 import { MementoCaretaker } from './memento';
 

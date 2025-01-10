@@ -1,3 +1,4 @@
+import type { DeepPartial } from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -12,7 +13,6 @@ import { moduleRegistry } from '../module/module';
 import type { ChartInternalOptionMetadata, ChartSpecialOverrides } from '../module/optionsModule';
 import { deepClone } from '../util/json';
 import { ActionOnSet } from '../util/proxy';
-import type { DeepPartial } from '../util/types';
 import type { Chart } from './chart';
 import { ChartUpdateType } from './chartUpdateType';
 

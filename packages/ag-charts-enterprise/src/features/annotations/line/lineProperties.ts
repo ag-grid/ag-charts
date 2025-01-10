@@ -1,4 +1,5 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
+import { isObject } from 'ag-charts-core';
 
 import { Cappable, Extendable, LineStyle, LineTextProperties, Localisable, Stroke } from '../annotationProperties';
 import { type AnnotationContext, type AnnotationOptionsColorPickerType, AnnotationType } from '../annotationTypes';
@@ -6,7 +7,7 @@ import { StartEndProperties } from '../properties/startEndProperties';
 import { getLineCap, getLineDash } from '../utils/line';
 import { validateDatumLine } from '../utils/validation';
 
-const { OBJECT, STRING, Validate, isObject } = _ModuleSupport;
+const { OBJECT, STRING, Validate } = _ModuleSupport;
 
 export abstract class LineTypeProperties extends Localisable(
     Cappable(Extendable(Stroke(LineStyle(StartEndProperties))))

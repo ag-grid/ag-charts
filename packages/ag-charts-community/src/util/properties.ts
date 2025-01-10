@@ -1,7 +1,6 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, isArray } from 'ag-charts-core';
 
 import { extractDecoratedPropertyMetadata, listDecoratedProperties } from './decorator';
-import { isArray } from './type-guards';
 
 export class BaseProperties<T extends object = object> {
     set(properties: T) {

@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import type { RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgGaugeFillMode,
@@ -134,9 +135,7 @@ export type LinearGaugeLabelDatum = {
     wrapping: TextWrap;
     overflowStrategy: OverflowStrategy;
     formatter:
-        | Formatter<
-              AgChartLabelFormatterParams<any> & _ModuleSupport.RequireOptional<AgLinearGaugeLabelFormatterParams>
-          >
+        | Formatter<AgChartLabelFormatterParams<any> & RequireOptional<AgLinearGaugeLabelFormatterParams>>
         | undefined;
 };
 

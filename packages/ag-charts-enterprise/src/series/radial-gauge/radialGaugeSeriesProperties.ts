@@ -1,5 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, type RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgGaugeFillMode,
@@ -119,9 +119,7 @@ export type RadialGaugeLabelDatum = {
     fontFamily: string;
     lineHeight: number | undefined;
     formatter:
-        | Formatter<
-              AgChartLabelFormatterParams<any> & _ModuleSupport.RequireOptional<AgRadialGaugeLabelFormatterParams>
-          >
+        | Formatter<AgChartLabelFormatterParams<any> & RequireOptional<AgRadialGaugeLabelFormatterParams>>
         | undefined;
 };
 

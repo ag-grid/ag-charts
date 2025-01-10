@@ -1,3 +1,5 @@
+import type { RequireOptional } from 'ag-charts-core';
+import { isDefined } from 'ag-charts-core';
 import type { AgErrorBoundSeriesTooltipRendererParams, AgSeriesMarkerStyle } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -13,8 +15,6 @@ import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
-import { isDefined } from '../../../util/type-guards';
-import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import type { DataModel, DataModelOptions, DatumPropertyDefinition, UngroupedData } from '../../data/dataModel';

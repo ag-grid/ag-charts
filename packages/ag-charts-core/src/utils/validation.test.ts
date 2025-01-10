@@ -20,10 +20,10 @@ import {
     required,
     string,
     union,
-    validate,
-} from './validate';
+    validation,
+} from './validation';
 
-describe('Validation', () => {
+describe('Validation utils', () => {
     beforeEach(() => {
         console.warn = jest.fn();
     });
@@ -107,7 +107,7 @@ describe('Validation', () => {
                 (value: unknown) => string(value) && value !== '',
                 'a non-empty string'
             );
-            expect(validate({ str: '' }, { str: describedValidator }).errors).toMatchSnapshot();
+            expect(validation({ str: '' }, { str: describedValidator }).errors).toMatchSnapshot();
         });
     });
 
@@ -232,8 +232,8 @@ describe('Validation', () => {
                 extraField: 'should be ignored', // Unknown option
             };
 
-            const { valid: validatedValidUser, errors: errorsValidUser } = validate(validUser, userSchema);
-            const { valid: validatedInvalidUser, errors: errorsInvalidUser } = validate(invalidUser, userSchema);
+            const { valid: validatedValidUser, errors: errorsValidUser } = validation(validUser, userSchema);
+            const { valid: validatedInvalidUser, errors: errorsInvalidUser } = validation(invalidUser, userSchema);
 
             expect(validatedValidUser).toEqual(validUser);
             expect(errorsValidUser).toEqual([]);

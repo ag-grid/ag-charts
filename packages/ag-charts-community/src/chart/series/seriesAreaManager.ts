@@ -10,7 +10,6 @@ import { createId } from '../../util/id';
 import { clamp } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { debouncedAnimationFrame } from '../../util/render';
-import { excludesType } from '../../util/type-guards';
 import type { Widget } from '../../widget/widget';
 import type {
     DragWidgetEvent,
@@ -663,4 +662,11 @@ export class SeriesAreaManager extends BaseManager {
             this.update(ChartUpdateType.SERIES_UPDATE, { seriesToUpdate });
         }
     }
+}
+
+function excludesType<T extends string, O extends { type: T }, X extends T>(
+    obj: O & { type: T },
+    excluded: X
+): obj is O & { type: Exclude<T, X> } {
+    return obj.type !== excluded;
 }

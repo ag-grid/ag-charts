@@ -1,7 +1,7 @@
+import type { RequireOptional } from 'ag-charts-core';
 import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult, InteractionRange } from 'ag-charts-types';
 
 import { BaseProperties } from '../../util/properties';
-import type { RequireOptional } from '../../util/types';
 import { BOOLEAN, FUNCTION, INTERACTION_RANGE, OBJECT, STRING, Validate } from '../../util/validation';
 import { type TooltipContent, TooltipPosition } from '../tooltip/tooltip';
 

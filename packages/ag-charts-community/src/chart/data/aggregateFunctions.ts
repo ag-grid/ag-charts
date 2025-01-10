@@ -1,4 +1,5 @@
-import { isFiniteNumber } from '../../util/type-guards';
+import { isFiniteNumber } from 'ag-charts-core';
+
 import { ContinuousDomain } from './dataDomain';
 import type { AggregatePropertyDefinition, DatumPropertyDefinition } from './dataModel';
 

@@ -1,11 +1,11 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isFiniteNumber } from 'ag-charts-core';
 
 import { LabelTextProperties } from '../annotationProperties';
 import type { AnnotationOptionsColorPickerType, FibonacciBands } from '../annotationTypes';
 import { LineTypeProperties } from '../line/lineProperties';
 
-const { OBJECT, BOOLEAN, COLOR_STRING, COLOR_STRING_ARRAY, Validate, predicateWithMessage, isFiniteNumber } =
-    _ModuleSupport;
+const { OBJECT, BOOLEAN, COLOR_STRING, COLOR_STRING_ARRAY, Validate, predicateWithMessage } = _ModuleSupport;
 
 const fibonacciBands = [10, 6, 4];
 const FIBONACCI_BANDS = predicateWithMessage(

@@ -1,3 +1,4 @@
+import type { RequireOptional } from 'ag-charts-core';
 import type {
     AgMarkerShape,
     AgSeriesMarkerStyle,
@@ -8,7 +9,6 @@ import type {
 
 import { SceneChangeDetection } from '../../scene/changeDetectable';
 import { ChangeDetectableProperties } from '../../scene/util/changeDetectableProperties';
-import type { RequireOptional } from '../../util/types';
 import {
     BOOLEAN,
     COLOR_STRING,

@@ -1,4 +1,4 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, type OptionsDefs, arrayOf, isValid, object, or, string } from 'ag-charts-core';
 import type {
     AgChartTheme,
     AgChartThemeName,
@@ -9,7 +9,6 @@ import type {
 
 import { simpleMemorize } from '../../util/memo';
 import { mergeDefaults } from '../../util/object';
-import { type OptionsDefs, arrayOf, isValid, object, or, string } from '../../util/validate';
 import { ChartTheme } from '../themes/chartTheme';
 import { DarkTheme } from '../themes/darkTheme';
 import { FinancialDark } from '../themes/financialDark';

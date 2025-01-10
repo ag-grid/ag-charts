@@ -1,4 +1,5 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
+import { isObject } from 'ag-charts-core';
 
 import {
     Background,
@@ -19,7 +20,7 @@ import {
 import { StartEndProperties } from '../properties/startEndProperties';
 import { getLineCap, getLineDash } from '../utils/line';
 
-const { BOOLEAN, OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
+const { BOOLEAN, OBJECT, STRING, BaseProperties, Validate } = _ModuleSupport;
 
 class MeasurerStatisticsDivider extends Stroke(BaseProperties) {}
 

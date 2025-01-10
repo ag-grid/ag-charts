@@ -1,4 +1,4 @@
-import { _ModuleSupport } from 'ag-charts-community';
+import { isObject } from 'ag-charts-core';
 
 import type {
     AnnotationProperties,
@@ -14,8 +14,6 @@ import { QuickDatePriceRangeProperties } from '../measurer/measurerProperties';
 import { NoteProperties } from '../note/noteProperties';
 import { ShapePointProperties } from '../properties/shapePointProperties';
 import { isChannelType, isEphemeralType, isLineType, isMeasurerType, isTextType } from './types';
-
-const { isObject } = _ModuleSupport;
 
 export function hasFontSize(datum?: AnnotationProperties): datum is Exclude<TextualPropertiesType, NoteProperties> {
     return isTextType(datum) && !NoteProperties.is(datum);

@@ -1,4 +1,5 @@
-import { isString } from '../util/type-guards';
+import { isString } from 'ag-charts-core';
+
 import type { BaseOptionsModule, ModuleInstance } from './baseModule';
 
 interface Module<I extends ModuleInstance = ModuleInstance, C = object> extends BaseOptionsModule {

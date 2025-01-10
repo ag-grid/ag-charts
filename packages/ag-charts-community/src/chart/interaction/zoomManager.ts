@@ -1,4 +1,4 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, isFiniteNumber, isObject } from 'ag-charts-core';
 import type { AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
@@ -13,7 +13,6 @@ import { deepClone } from '../../util/json';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
-import { isFiniteNumber, isObject } from '../../util/type-guards';
 import { ChartAxisDirection } from '../chartAxisDirection';
 import type { LayoutManager } from '../layout/layoutManager';
 import type { ISeries } from '../series/seriesTypes';

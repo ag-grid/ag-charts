@@ -1,5 +1,5 @@
-import { isFiniteNumber, isString, isValidDate } from './type-guards';
-import type { PlainObject } from './types';
+import { isFiniteNumber, isString, isValidDate } from 'ag-charts-core';
+import type { PlainObject } from 'ag-charts-core';
 
 type StringObject = PlainObject & { toString: () => string };
 type NumberObject = PlainObject & { valueOf: () => number };

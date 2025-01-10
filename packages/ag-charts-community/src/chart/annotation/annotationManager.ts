@@ -1,3 +1,4 @@
+import { isArray } from 'ag-charts-core';
 import type { AgAnnotation, AgAnnotationsThemeableOptions } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
@@ -5,7 +6,6 @@ import type { Group } from '../../scene/group';
 import type { Node } from '../../scene/node';
 import { BaseManager } from '../../util/baseManager';
 import { mergeDefaults } from '../../util/object';
-import { isArray } from '../../util/type-guards';
 
 interface AnnotationsRestoreEvent {
     type: 'restore-annotations';

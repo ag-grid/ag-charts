@@ -1,3 +1,4 @@
+import type { RequireOptional } from 'ag-charts-core';
 import type {
     AgErrorBoundSeriesTooltipRendererParams,
     FillOptions,
@@ -16,7 +17,6 @@ import type { PlacedLabel } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
 import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
-import type { RequireOptional } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';
 import { fixNumericExtent } from '../../data/dataModel';

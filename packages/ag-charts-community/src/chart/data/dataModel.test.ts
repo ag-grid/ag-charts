@@ -1,6 +1,7 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { isFiniteNumber } from '../../util/type-guards';
+import { isFiniteNumber } from 'ag-charts-core';
+
 import { DATA_BROWSER_MARKET_SHARE } from '../test/data';
 import * as examples from '../test/examples';
 import { expectWarningsCalls, setupMockConsole } from '../test/utils';

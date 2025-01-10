@@ -1,7 +1,6 @@
-import { Logger } from 'ag-charts-core';
-
-import { joinFormatted, stringifyValue } from './string.util';
-import { isArray, isBoolean, isFiniteNumber, isFunction, isObject, isString } from './type-guards';
+import { Logger } from '../globals/logger';
+import { joinFormatted, stringifyValue } from './strings';
+import { isArray, isBoolean, isFiniteNumber, isFunction, isObject, isString } from './typeGuards';
 
 const descriptionSymbol = Symbol('description');
 const requiredSymbol = Symbol('required');
@@ -37,7 +36,7 @@ interface ValidationError {
  * @returns A boolean indicating whether the options are valid.
  */
 export function isValid<T extends object>(options: unknown, optionsDefs: OptionsDefs<T>, path?: string): options is T {
-    const { errors } = validate(options, optionsDefs, path);
+    const { errors } = validation(options, optionsDefs, path);
     for (const { message } of errors) {
         Logger.warn(message);
     }
@@ -51,7 +50,7 @@ function validateMessage(path: string, value: unknown, validatorOrDefs: Validato
     return `${prefix} cannot be set to \`${stringifyValue(value)}\`${expecting}, ignoring.`;
 }
 
-export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path = '') {
+export function validation<T>(options: unknown, optionsDefs: OptionsDefs<T>, path = '') {
     if (!isObject(options)) {
         return {
             valid: null,
@@ -81,7 +80,7 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
                 errors.push({ key, path, value, message: validateMessage(extendPath(key), value, validatorOrDefs) });
             }
         } else {
-            const nestedResult = validate(value, validatorOrDefs, extendPath(key));
+            const nestedResult = validation(value, validatorOrDefs, extendPath(key));
             valid[key as keyof T] = nestedResult.valid as any;
             errors.push(...nestedResult.errors);
         }
