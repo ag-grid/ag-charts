@@ -50,7 +50,9 @@
   ],
   "homepage": "https://ag-grid.com/charts/",
   "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "@jest/globals": "29.6.1"
+  },
   "publishConfig": {
     "access": "public"
   }
