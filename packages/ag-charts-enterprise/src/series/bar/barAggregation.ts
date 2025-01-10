@@ -23,6 +23,15 @@ const indexes: _ModuleSupport.BarSeriesAggregationIndexes = {
 const AGGREGATION_THRESHOLD = 1e3;
 const PRECISION = 5;
 
+function getIndices(maxRange: number, indexData: Int32Array): number[] {
+    return Array.from({ length: maxRange }, (_, index) => {
+        const aggIndex = index * SPAN;
+        const xMinIndex = indexData[aggIndex + X_MIN];
+        const xMaxIndex = indexData[aggIndex + X_MAX];
+        return ((xMinIndex + xMaxIndex) / 2) | 0;
+    });
+}
+
 export function aggregateBarData(
     xValues: any[],
     yValues: any[],
@@ -34,13 +43,15 @@ export function aggregateBarData(
 
     let maxRange = maxRangeFittingPoints(xValues, PRECISION);
     let { indexData, valueData } = createAggregationIndices(xValues, yValues, yValues, d0, d1, maxRange);
+    let indices = getIndices(maxRange, indexData);
 
-    const filters: _ModuleSupport.BarSeriesDataAggregationFilter[] = [{ maxRange, indexData, indexes }];
+    const filters: _ModuleSupport.BarSeriesDataAggregationFilter[] = [{ maxRange, indexData, indices, indexes }];
 
     while (maxRange > 64) {
         ({ indexData, valueData, maxRange } = compactAggregationIndices(indexData, valueData, maxRange));
+        indices = getIndices(maxRange, indexData);
 
-        filters.push({ maxRange, indexData, indexes });
+        filters.push({ maxRange, indexData, indices, indexes });
     }
 
     filters.reverse();

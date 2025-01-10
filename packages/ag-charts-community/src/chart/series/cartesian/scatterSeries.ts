@@ -14,7 +14,6 @@ import type { Selection } from '../../../scene/selection';
 import { Text } from '../../../scene/shape/text';
 import type { PlacedLabel } from '../../../scene/util/labelPlacement';
 import { extent } from '../../../util/array';
-import { findRangeExtent } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
 import { CachedTextMeasurerPool } from '../../../util/textMeasurer';
 import type { RequireOptional } from '../../../util/types';
@@ -104,46 +103,37 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         this.animationState.transition('updateData');
     }
 
+    override xCoordinateRange(xValue: any, _index: number, pixelSize: number): [number, number] {
+        const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
+        const r = 0.5 * this.properties.size * pixelSize;
+        return [x - r, x + r];
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
 
-        const id = direction === ChartAxisDirection.X ? `xValue` : `yValue`;
+        const dataValues: Record<ChartAxisDirection, string> = {
+            [ChartAxisDirection.X]: 'xValue',
+            [ChartAxisDirection.Y]: 'yValue',
+        };
+
+        const id = dataValues[direction];
         const dataDef = dataModel.resolveProcessedDataDefById(this, id);
         const domain = dataModel.getDomain(this, id, 'value', processedData);
         if (dataDef?.def.type === 'value' && dataDef?.def.valueType === 'category') {
             return domain;
         }
-        return fixNumericExtent(extent(domain));
+
+        const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
+        const crossId = dataValues[crossDirection];
+
+        const ext = this.domainForClippedRange(direction, [id], crossId, false);
+        return fixNumericExtent(extent(ext));
     }
 
-    override getSeriesRange(_direction: ChartAxisDirection, [r0, r1]: [any, any]): [number, number] {
-        const { dataModel, processedData } = this;
-        if (!dataModel || !processedData) return [NaN, NaN];
-
-        const xScale = this.axes[ChartAxisDirection.X]!.scale;
-        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
-        const yValues = dataModel.resolveColumnById(this, `yValue`, processedData);
-        const r =
-            this.properties.size *
-            0.5 *
-            Math.abs(r1 - r0) *
-            (findRangeExtent(xScale.range) / findRangeExtent(xScale.domain));
-
-        let yMin = Infinity;
-        let yMax = -Infinity;
-        xValues.forEach((xValue, i) => {
-            const x = xScale.convert(xValue);
-            if (x + r >= r0 && x - r <= r1) {
-                const y = yValues[i];
-                yMin = Math.min(yMin, y);
-                yMax = Math.max(yMax, y);
-            }
-        });
-
-        if (yMin > yMax) return [NaN, NaN];
-
-        return [yMin, yMax];
+    override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
+        return this.domainForVisibleRange(ChartAxisDirection.Y, ['yValue'], 'xValue', visibleRange, false);
     }
 
     override createNodeData() {

@@ -9,7 +9,6 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
-import { findMinMax } from '../../../util/number';
 import { isFiniteNumber } from '../../../util/type-guards';
 import type { RequireOptional } from '../../../util/types';
 import { LogAxis } from '../../axis/logAxis';
@@ -101,6 +100,7 @@ const SPAN: BarSeriesAggregationIndexes['span'] = 4;
 export interface BarSeriesDataAggregationFilter {
     maxRange: number;
     indexData: Int32Array;
+    indices: number[];
     indexes: BarSeriesAggregationIndexes;
 }
 
@@ -255,13 +255,17 @@ export class BarSeries extends AbstractBarSeries<
 
         if (dataModel == null || processedData == null) return [];
 
-        const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
-        const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
+        if (direction === this.getCategoryDirection()) {
+            const keyDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
+            const keys = dataModel.getDomain(this, `xValue`, 'key', processedData);
+            if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
+                return keys;
+            }
+            return this.padBandExtent(keys);
+        }
 
-        let yExtent =
-            processedData.type === 'grouped'
-                ? dataModel.getDomain(this, `yValue-end`, 'value', processedData)
-                : dataModel.getDomain(this, `yValue-raw`, 'value', processedData);
+        const yKey = processedData.type === 'grouped' ? 'yValue-end' : 'yValue-raw';
+        let yExtent = this.domainForClippedRange(ChartAxisDirection.Y, [yKey], 'xValue', true);
         const yFilterExtent = this.crossFilteringEnabled()
             ? dataModel.getDomain(this, `yFilterValue`, 'value', processedData)
             : undefined;
@@ -269,12 +273,7 @@ export class BarSeries extends AbstractBarSeries<
             yExtent = [Math.min(yExtent[0], yFilterExtent[0]), Math.max(yExtent[1], yFilterExtent[1])];
         }
 
-        if (direction === this.getCategoryDirection()) {
-            if (keyDef?.def.type === 'key' && keyDef.def.valueType === 'category') {
-                return keys;
-            }
-            return this.padBandExtent(keys);
-        } else if (this.getValueAxis() instanceof LogAxis) {
+        if (this.getValueAxis() instanceof LogAxis) {
             return fixNumericExtent(yExtent);
         } else {
             const fixedYExtent = Number.isFinite(yExtent[1] - yExtent[0])
@@ -285,16 +284,8 @@ export class BarSeries extends AbstractBarSeries<
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const { dataModel, processedData } = this;
-        const xRange = this.getXRangeInVisibleRange(visibleRange);
-        if (!dataModel || !processedData || !xRange) return [NaN, NaN];
-
-        const [y0, y1] = dataModel.getDomainBetweenRange(
-            this,
-            processedData.type === 'ungrouped' ? ['yValue-raw'] : ['yValue-end'],
-            xRange,
-            processedData
-        );
+        const yKey = this.processedData?.type === 'grouped' ? 'yValue-end' : 'yValue-raw';
+        const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, [yKey], 'xValue', visibleRange, true);
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 
@@ -303,15 +294,6 @@ export class BarSeries extends AbstractBarSeries<
         _processedData: ProcessedData<any>
     ): BarSeriesDataAggregationFilter[] | undefined {
         return;
-    }
-
-    protected visibleRange(
-        length: number,
-        _x0: number,
-        _x1: number,
-        _xFor: (index: number) => number
-    ): [number, number] {
-        return [0, length];
     }
 
     createNodeData() {
@@ -535,7 +517,6 @@ export class BarSeries extends AbstractBarSeries<
             }
         };
 
-        const [x0, x1] = findMinMax(xAxis.range);
         const [r0, r1] = xScale.range;
         const range = r1 - r0;
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
@@ -564,7 +545,7 @@ export class BarSeries extends AbstractBarSeries<
             });
         } else if (dataAggregationFilter == null) {
             const width = barWidth;
-            let [start, end] = this.visibleRange(rawData.length, x0, x1, xPosition);
+            let [start, end] = this.visibleRange('xValue', xAxis.range, true);
             // @todo(AG-13575) Remove this if block
             if (processedData.rawData.length < 1e3) {
                 start = 0;
@@ -578,15 +559,8 @@ export class BarSeries extends AbstractBarSeries<
                 handleDatum(datumIndex, 0, x, width, 0, yEnd, yEnd, 1);
             }
         } else {
-            const { maxRange, indexData } = dataAggregationFilter;
-
-            const [start, end] = this.visibleRange(maxRange, x0, x1, (index) => {
-                const aggIndex = index * SPAN;
-                const xMinIndex = indexData[aggIndex + X_MIN];
-                const xMaxIndex = indexData[aggIndex + X_MAX];
-                const midDatumIndex = ((xMinIndex + xMaxIndex) / 2) | 0;
-                return xMinIndex !== -1 ? xPosition(midDatumIndex) : NaN;
-            });
+            const { indexData, indices } = dataAggregationFilter;
+            const [start, end] = this.visibleRange('xValue', xAxis.range, true, indices);
 
             for (let i = start; i < end; i += 1) {
                 const aggIndex = i * SPAN;

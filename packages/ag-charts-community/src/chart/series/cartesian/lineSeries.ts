@@ -34,7 +34,7 @@ import type { Marker } from '../../marker/marker';
 import { type TooltipContent } from '../../tooltip/tooltip';
 import { type PickFocusInputs, SeriesNodePickMode } from '../series';
 import { resetLabelFn, seriesLabelFadeInAnimation } from '../seriesLabelUtil';
-import { datumStylerProperties, visibleRangeIndices } from '../util';
+import { datumStylerProperties } from '../util';
 import type { CartesianAnimationData } from './cartesianSeries';
 import {
     CartesianSeries,
@@ -208,46 +208,32 @@ export class LineSeries extends CartesianSeries<
         this.animationState.transition('updateData');
     }
 
+    override xCoordinateRange(xValue: any): [number, number] {
+        const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
+        return [x, x];
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!dataModel || !processedData) return [];
 
-        const xDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
         if (direction === ChartAxisDirection.X) {
+            const xDef = dataModel.resolveProcessedDataDefById(this, `xValue`);
             const domain = dataModel.getDomain(this, `xValue`, 'value', processedData);
             if (xDef?.def.type === 'value' && xDef.def.valueType === 'category') {
                 return domain;
             }
 
             return fixNumericExtent(extent(domain));
-        } else {
-            const stackCount = this.seriesGrouping?.stackCount ?? 1;
-            const domain =
-                stackCount > 1
-                    ? dataModel.getDomain(this, `yValueEnd`, 'value', processedData)
-                    : dataModel.getDomain(this, `yValueRaw`, 'value', processedData);
-            return fixNumericExtent(domain);
         }
-    }
 
-    private visibleRangeIndices(visibleRange: [any, any], indices?: number[]) {
-        const { dataModel, processedData } = this;
-        if (!dataModel || !processedData) return [0, 0];
-
-        const xScale = this.axes[ChartAxisDirection.X]!.scale;
-        const xValues = dataModel.resolveColumnById(this, `xValue`, processedData);
-
-        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, (index) => {
-            const x = xScale.convert(xValues[indices?.[index] ?? index]);
-            return [x, x];
-        });
+        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['yValueRaw'], 'xValue', true);
+        return fixNumericExtent(yExtent);
     }
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const { dataModel, processedData } = this;
-        if (!dataModel || !processedData) return [NaN, NaN];
-        const [x0, x1] = this.visibleRangeIndices(visibleRange);
-        return dataModel.getDomainBetweenRange(this, ['yValueRaw'], [x0, x1], processedData);
+        const [y0, y1] = this.domainForVisibleRange(ChartAxisDirection.Y, ['yValueRaw'], 'xValue', visibleRange, true);
+        return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 
     protected aggregateData(
@@ -378,7 +364,7 @@ export class LineSeries extends CartesianSeries<
         const dataAggregationFilter = dataAggregationFilters?.find((f) => f.maxRange > range);
 
         const indices = dataAggregationFilter?.indices;
-        let [start, end] = this.visibleRangeIndices(xAxis.range, indices);
+        let [start, end] = this.visibleRange('xValue', xAxis.range, true, indices);
         start = Math.max(start - 1, 0);
         end = Math.min(end + 1, indices?.length ?? xValues.length);
         // @todo(AG-13575) Remove this if block

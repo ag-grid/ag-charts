@@ -207,6 +207,10 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         this.animationState.transition('updateData');
     }
 
+    override xCoordinateRange(): [number, number] {
+        return [NaN, NaN];
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
 

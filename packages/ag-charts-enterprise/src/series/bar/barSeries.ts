@@ -1,20 +1,10 @@
 import { _ModuleSupport } from 'ag-charts-community';
 
-import { visibleRange } from '../../utils/aggregation';
 import { aggregateBarData } from './barAggregation';
 
 const { ChartAxisDirection, ContinuousScale, OrdinalTimeScale } = _ModuleSupport;
 
 export class BarSeries extends _ModuleSupport.BarSeries {
-    protected override visibleRange(
-        length: number,
-        x0: number,
-        x1: number,
-        xPosition: (index: number) => number
-    ): [number, number] {
-        return visibleRange(length, x0, x1, xPosition);
-    }
-
     protected override aggregateData(
         dataModel: _ModuleSupport.DataModel<any, any, false>,
         processedData: _ModuleSupport.ProcessedData<any>

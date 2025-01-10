@@ -13,6 +13,7 @@ import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
+import { findRangeExtent } from '../../../util/number';
 import { StateMachine } from '../../../util/stateMachine';
 import { BOOLEAN, STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
@@ -33,6 +34,7 @@ import type {
 import { SeriesNodeEvent } from '../series';
 import { SeriesProperties } from '../seriesProperties';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
+import { axisExtent, clippedRangeIndices, visibleRangeIndices } from '../util';
 import type { Scaling } from './scaling';
 
 export interface CartesianSeriesNodeDatum extends DataModelSeriesNodeDatum {
@@ -737,6 +739,109 @@ export abstract class CartesianSeries<
 
     shouldFlipXY(): boolean {
         return false;
+    }
+
+    protected abstract xCoordinateRange(xValue: any, index: number, pixelSize: number): [number, number];
+
+    // Workaround - it would be nice if this difference didn't exist
+    private keysOrValues(xKey: string) {
+        const key = this.dataModel!.resolveProcessedDataIndexById(this, xKey);
+        return this.processedData!.keys[key] ?? this.processedData!.columns[key];
+    }
+
+    protected visibleRange(axisKey: string, visibleRange: [any, any], sorted: boolean, indices?: number[]) {
+        const xScale = this.axes[ChartAxisDirection.X]!.scale;
+        const [r0, r1] = visibleRange;
+        const xValues = this.keysOrValues(axisKey);
+        const pixelSize = Math.abs(r1 - r0) * (findRangeExtent(xScale.range) / findRangeExtent(xScale.domain));
+        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, sorted, (topIndex) => {
+            const datumIndex = indices?.[topIndex] ?? topIndex;
+            return this.xCoordinateRange(xValues[datumIndex], datumIndex, pixelSize);
+        });
+    }
+
+    protected domainForVisibleRange(
+        _direction: ChartAxisDirection,
+        axisKeys: string[],
+        crossAxisKey: string,
+        visibleRange: [any, any],
+        sorted: boolean,
+        indices?: number[]
+    ) {
+        const { processedData, dataModel } = this;
+
+        const [r0, r1] = visibleRange;
+        const crossAxisValues = this.keysOrValues(crossAxisKey);
+
+        if (sorted) {
+            const crossAxisRange = this.visibleRange(crossAxisKey, visibleRange, sorted, indices);
+            return dataModel!.getDomainBetweenRange(this, axisKeys, crossAxisRange, processedData!);
+        }
+
+        const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));
+
+        let axisMin = Infinity;
+        let axisMax = -Infinity;
+        crossAxisValues.forEach((crossAxisValue, i) => {
+            const [x0, x1] = this.xCoordinateRange(crossAxisValue, i, 0);
+            if (x1 < r0 || x0 > r1) return;
+
+            for (let j = 0; j < axisKeys.length; j++) {
+                const axisValue = allAxisValues[j][i];
+                axisMin = Math.min(axisMin, axisValue);
+                axisMax = Math.max(axisMax, axisValue);
+            }
+        });
+
+        if (axisMin > axisMax) return [NaN, NaN];
+
+        return [axisMin, axisMax];
+    }
+
+    protected domainForClippedRange(
+        direction: ChartAxisDirection,
+        axisKeys: string[],
+        crossAxisKey: string,
+        sorted: boolean
+    ) {
+        const { processedData, dataModel, axes } = this;
+
+        const crossDirection = direction === ChartAxisDirection.X ? ChartAxisDirection.Y : ChartAxisDirection.X;
+        const crossAxisRange = axisExtent(axes[crossDirection]!);
+
+        if (!crossAxisRange) {
+            return axisKeys.flatMap((axisKey) => dataModel!.getDomain(this, axisKey, 'value', processedData!));
+        }
+
+        const crossAxisValues = this.keysOrValues(crossAxisKey);
+        if (sorted) {
+            const crossRange = clippedRangeIndices(
+                crossAxisValues.length,
+                crossAxisRange,
+                sorted,
+                (index) => crossAxisValues[index]
+            );
+            return dataModel!.getDomainBetweenRange(this, axisKeys, crossRange, processedData!);
+        }
+
+        const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));
+        const range0 = crossAxisRange[0].valueOf();
+        const range1 = crossAxisRange[1].valueOf();
+        const axisValues: any[] = [];
+        crossAxisValues.forEach((crossAxisValue, i) => {
+            const c = crossAxisValue.valueOf();
+            if (c < range0 || c > range1) return;
+
+            const values = allAxisValues.map((v) => v[i]);
+            if (c >= range0) {
+                axisValues.push(...values);
+            }
+            if (c <= range1) {
+                axisValues.push(...values);
+            }
+        });
+
+        return axisValues;
     }
 
     /**

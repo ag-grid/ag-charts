@@ -235,7 +235,6 @@ export abstract class BaseFunnelSeries<
 
         const {
             keys: [keys],
-            values,
         } = processedData.domain;
 
         if (direction === this.getCategoryDirection()) {
@@ -246,9 +245,9 @@ export abstract class BaseFunnelSeries<
             }
             return this.padBandExtent(keys);
         } else {
-            const yIndex = dataModel.resolveProcessedDataIndexById(this, 'yValue');
-            const yExtent = values[yIndex][1];
-            const fixedYExtent = [-yExtent, yExtent];
+            const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['yValue'], 'xValue', true);
+            const maxExtent = Math.max(...yExtent);
+            const fixedYExtent = [-maxExtent, maxExtent];
             return fixNumericExtent(fixedYExtent);
         }
     }

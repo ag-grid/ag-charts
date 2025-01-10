@@ -145,6 +145,14 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return !colorDataMissing;
     }
 
+    override xCoordinateRange(xValue: any, _index: number, pixelSize: number): [number, number] {
+        const xScale = this.axes[ChartAxisDirection.X]!.scale;
+        const xOffset = (pixelSize * (xScale.bandwidth ?? 0)) / 2;
+        const x = xScale.convert(xValue) + xOffset;
+        const width = pixelSize * (xScale.bandwidth ?? 10);
+        return [x, x + width];
+    }
+
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
 

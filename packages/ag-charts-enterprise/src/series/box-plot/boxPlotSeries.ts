@@ -19,6 +19,7 @@ const {
     createDatumId,
     Color,
     ContinuousScale,
+    ChartAxisDirection,
     motion,
 } = _ModuleSupport;
 
@@ -111,27 +112,21 @@ export class BoxPlotSeries extends _ModuleSupport.AbstractBarSeries<
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
 
-        if (direction === this.getBarDirection()) {
-            const minValues = dataModel.getDomain(this, `minValue`, 'value', processedData);
-            const maxValues = dataModel.getDomain(this, `maxValue`, 'value', processedData);
-
-            return fixNumericExtent([Math.min(...minValues), Math.max(...maxValues)]);
+        if (direction !== this.getBarDirection()) {
+            const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
+            const keys = processedData.domain.keys[index];
+            if (def.type === 'key' && def.valueType === 'category') {
+                return keys;
+            }
+            return this.padBandExtent(keys);
         }
 
-        const { index, def } = dataModel.resolveProcessedDataDefById(this, `xValue`);
-        const keys = processedData.domain.keys[index];
-        if (def.type === 'key' && def.valueType === 'category') {
-            return keys;
-        }
-        return this.padBandExtent(keys);
+        const yExtent = this.domainForClippedRange(ChartAxisDirection.Y, ['minValue', 'maxValue'], 'xValue', true);
+        return fixNumericExtent(yExtent);
     }
 
-    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const { dataModel, processedData } = this;
-        const xRange = this.getXRangeInVisibleRange(visibleRange);
-        if (!dataModel || !processedData || !xRange) return [NaN, NaN];
-
-        return dataModel.getDomainBetweenRange(this, ['maxValue', 'minValue'], xRange, processedData);
+    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
+        return this.domainForVisibleRange(ChartAxisDirection.Y, ['maxValue', 'minValue'], 'xValue', visibleRange, true);
     }
 
     override createNodeData() {

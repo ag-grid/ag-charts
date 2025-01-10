@@ -37,13 +37,13 @@ const {
     fromToMotion,
     pathMotion,
     extent,
-    visibleRangeIndices,
     createDatumId,
     PointerEvents,
     Group,
     BBox,
     ContinuousScale,
     OrdinalTimeScale,
+    findMinMax,
 } = _ModuleSupport;
 
 class RangeAreaSeriesNodeEvent<
@@ -154,6 +154,11 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         return aggregateData(xValues, yHighValues, yLowValues, domain);
     }
 
+    override xCoordinateRange(xValue: any): [number, number] {
+        const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
+        return [x, x];
+    }
+
     override getSeriesDomain(direction: _ModuleSupport.ChartAxisDirection): any[] {
         const { processedData, dataModel } = this;
         if (!(processedData && dataModel)) return [];
@@ -161,7 +166,6 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const {
             domain: {
                 keys: [keys],
-                values,
             },
         } = processedData;
 
@@ -172,36 +176,25 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
             }
             return fixNumericExtent(extent(keys));
         } else {
-            const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue');
-            const yLowExtent = values[yLowIndex];
-            const yHighIndex = dataModel.resolveProcessedDataIndexById(this, 'yHighValue');
-            const yHighExtent = values[yHighIndex];
-            const fixedYExtent = [
-                yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],
-                yHighExtent[1] < yLowExtent[1] ? yLowExtent[1] : yHighExtent[1],
-            ];
+            const yExtent = this.domainForClippedRange(
+                ChartAxisDirection.Y,
+                ['yHighValue', 'yLowValue'],
+                'xValue',
+                true
+            );
+            const fixedYExtent = findMinMax(yExtent);
             return fixNumericExtent(fixedYExtent);
         }
     }
 
-    private visibleRangeIndices(visibleRange: [any, any], indices?: number[]) {
-        const { dataModel, processedData } = this;
-        if (!dataModel || !processedData) return [0, 0];
-
-        const xScale = this.axes[ChartAxisDirection.X]!.scale;
-        const xValues = dataModel.resolveKeysById(this, `xValue`, processedData);
-
-        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, (index) => {
-            const x = xScale.convert(xValues[indices?.[index] ?? index]);
-            return [x, x];
-        });
-    }
-
-    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const { dataModel, processedData } = this;
-        if (!dataModel || !processedData) return [NaN, NaN];
-        const [x0, x1] = this.visibleRangeIndices(visibleRange);
-        return dataModel.getDomainBetweenRange(this, ['yLowValue', 'yHighValue'], [x0, x1], processedData);
+    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
+        return this.domainForVisibleRange(
+            ChartAxisDirection.Y,
+            ['yHighValue', 'yLowValue'],
+            'xValue',
+            visibleRange,
+            true
+        );
     }
 
     override createNodeData() {
@@ -316,7 +309,7 @@ export class RangeAreaSeries extends _ModuleSupport.CartesianSeries<
         const topIndices = dataAggregationFilter?.topIndices;
         const bottomIndices = dataAggregationFilter?.bottomIndices;
 
-        let [start, end] = this.visibleRangeIndices(xAxis.range, topIndices);
+        let [start, end] = this.visibleRange('xValue', xAxis.range, true, topIndices);
         start = Math.max(start - 1, 0);
         end = Math.min(end + 1, topIndices?.length ?? xValues.length);
         // @todo(AG-13575) Remove this if block

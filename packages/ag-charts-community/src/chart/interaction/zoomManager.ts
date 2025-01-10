@@ -10,7 +10,6 @@ import { includes } from '../../util/array';
 import { BaseManager } from '../../util/baseManager';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { deepClone } from '../../util/json';
-import { findMinMax } from '../../util/number';
 import type { TypedEvent } from '../../util/observable';
 import { calcPanToBBoxRatios } from '../../util/panToBBox';
 import { StateTracker } from '../../util/stateTracker';
@@ -559,24 +558,23 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         let max = 0;
         let maxPadding = false;
         for (const series of yAxis.boundSeries) {
-            const [yValue0, yValue1] = series.getRange(ChartAxisDirection.Y, [zoom.min, zoom.max]);
-
-            let y0 = yScale.convert(yValue0);
-            let y1 = yScale.convert(yValue1);
-            [y0, y1] = findMinMax([y0, y1]);
-
-            if (!Number.isFinite(y0) || !Number.isFinite(y1)) continue;
-
             const { connectsToYAxis } = series;
+            const yValues = series.getRange(ChartAxisDirection.Y, [zoom.min, zoom.max]);
 
-            if (y0 < min) {
-                min = y0;
-                minPadding = !connectsToYAxis || yValue0 < 0;
-            }
+            for (const yValue of yValues) {
+                const y = yScale.convert(yValue);
 
-            if (y1 > max) {
-                max = y1;
-                maxPadding = !connectsToYAxis || yValue1 > 0;
+                if (!Number.isFinite(y)) continue;
+
+                if (y < min) {
+                    min = y;
+                    minPadding = !connectsToYAxis || yValue < 0;
+                }
+
+                if (y > max) {
+                    max = y;
+                    maxPadding = !connectsToYAxis || yValue > 0;
+                }
             }
         }
 

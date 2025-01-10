@@ -30,6 +30,7 @@ const {
     PointerEvents,
     motion,
     applyShapeStyle,
+    findMinMax,
 } = _ModuleSupport;
 
 type Bounds = {
@@ -193,7 +194,6 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         const {
             keys: [keys],
-            values,
         } = processedData.domain;
 
         if (direction === this.getCategoryDirection()) {
@@ -203,24 +203,25 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
             }
             return this.padBandExtent(keys);
         } else {
-            const yLowIndex = dataModel.resolveProcessedDataIndexById(this, 'yLowValue');
-            const yLowExtent = values[yLowIndex];
-            const yHighIndex = dataModel.resolveProcessedDataIndexById(this, 'yHighValue');
-            const yHighExtent = values[yHighIndex];
-            const fixedYExtent = [
-                yLowExtent[0] > yHighExtent[0] ? yHighExtent[0] : yLowExtent[0],
-                yHighExtent[1] < yLowExtent[1] ? yLowExtent[1] : yHighExtent[1],
-            ];
+            const yExtent = this.domainForClippedRange(
+                ChartAxisDirection.Y,
+                ['yHighValue', 'yLowValue'],
+                'xValue',
+                true
+            );
+            const fixedYExtent = findMinMax(yExtent);
             return fixNumericExtent(fixedYExtent);
         }
     }
 
-    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): [number, number] {
-        const { dataModel, processedData } = this;
-        const xRange = this.getXRangeInVisibleRange(visibleRange);
-        if (!dataModel || !processedData || !xRange) return [NaN, NaN];
-
-        return dataModel.getDomainBetweenRange(this, ['yHighValue', 'yLowValue'], xRange, processedData);
+    override getSeriesRange(_direction: _ModuleSupport.ChartAxisDirection, visibleRange: [any, any]): any[] {
+        return this.domainForVisibleRange(
+            ChartAxisDirection.Y,
+            ['yHighValue', 'yLowValue'],
+            'xValue',
+            visibleRange,
+            true
+        );
     }
 
     override createNodeData() {
@@ -348,7 +349,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
 
         if (dataAggregationFilter != null) {
             const { maxRange, indexData } = dataAggregationFilter;
-            const [start, end] = visibleRangeIndices(maxRange, xAxis.range, (index) => {
+            const [start, end] = visibleRangeIndices(maxRange, xAxis.range, true, (index) => {
                 const aggIndex = index * SPAN;
                 const xMinIndex = indexData[aggIndex + X_MIN];
                 const xMaxIndex = indexData[aggIndex + X_MAX];
@@ -379,7 +380,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
                 handleDatum(midDatumIndex, 0, x, width, yLow, yHigh, false);
             }
         } else if (processedData.type === 'ungrouped') {
-            let [start, end] = visibleRangeIndices(rawData.length, xAxis.range, (index) => {
+            let [start, end] = visibleRangeIndices(rawData.length, xAxis.range, true, (index) => {
                 const x = xPosition(index);
                 return [x, effectiveBarWidth];
             });

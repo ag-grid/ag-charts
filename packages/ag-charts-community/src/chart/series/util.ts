@@ -1,5 +1,8 @@
 import type { Point } from '../../scene/point';
 import { findMaxIndex, findMinIndex } from '../../util/binarySearch';
+import { NumberAxis } from '../axis/numberAxis';
+import { TimeAxis } from '../axis/timeAxis';
+import type { ChartAxis } from '../chartAxis';
 import type { Series, SeriesNodePickIntent } from './series';
 import type { SeriesNodeDatum } from './seriesTypes';
 
@@ -86,22 +89,98 @@ export function datumStylerProperties<TDatum extends { xValue: any; yValue: any 
     };
 }
 
+export function axisExtent(axis: ChartAxis): [number | Date, number | Date] | undefined {
+    let min: number | Date | undefined;
+    let max: number | Date | undefined;
+    if (axis instanceof NumberAxis && (Number.isFinite(axis.min) || Number.isFinite(axis.max))) {
+        min = Number.isFinite(axis.min) ? axis.min : undefined;
+        max = Number.isFinite(axis.max) ? axis.max : undefined;
+    } else if (axis instanceof TimeAxis && (axis.min != null || axis.max != null)) {
+        ({ min, max } = axis);
+    }
+
+    if (min == null && max == null) return;
+
+    min ??= -Infinity;
+    max ??= Infinity;
+
+    return [min, max];
+}
+
 export function visibleRangeIndices(
     length: number,
     [range0, range1]: [number, number],
+    sorted: boolean,
     xRange: (index: number) => [number, number] | undefined
 ): [number, number] {
-    const xMinIndex =
-        findMinIndex(0, length - 1, (index) => {
-            const x1 = xRange(index)?.[1];
-            return !Number.isFinite(x1) || x1! > range0;
-        }) ?? 0;
+    let xMinIndex = 0;
+    let xMaxIndex = 0;
 
-    let xMaxIndex =
-        findMaxIndex(0, length - 1, (index) => {
-            const x0 = xRange(index)?.[0];
-            return !Number.isFinite(x0) || x0! < range1;
-        }) ?? length - 1;
+    if (sorted) {
+        xMinIndex =
+            findMinIndex(0, length - 1, (index) => {
+                const x1 = xRange(index)?.[1] ?? NaN;
+                return !Number.isFinite(x1) || x1 > range0;
+            }) ?? 0;
+
+        xMaxIndex =
+            findMaxIndex(0, length - 1, (index) => {
+                const x0 = xRange(index)?.[0] ?? NaN;
+                return !Number.isFinite(x0) || x0 < range1;
+            }) ?? length - 1;
+    } else {
+        for (let i = 0; i < length; i += 1) {
+            const [x0, x1] = xRange(i) ?? [NaN, NaN];
+            if (Number.isFinite(x1) && x1 > range0) {
+                xMinIndex = Math.min(i, xMinIndex);
+            }
+            if (Number.isFinite(x1) && x0 < range1) {
+                xMinIndex = Math.max(i, xMinIndex);
+            }
+        }
+    }
+
+    xMaxIndex = Math.min(xMaxIndex + 1, length);
+
+    return [xMinIndex, xMaxIndex];
+}
+
+export function clippedRangeIndices(
+    length: number,
+    range: [any, any],
+    sorted: boolean,
+    xValue: (index: number) => any
+): [number, number] {
+    const range0 = range[0].valueOf();
+    const range1 = range[1].valueOf();
+
+    let xMinIndex = 0;
+    let xMaxIndex = 0;
+
+    if (sorted) {
+        xMinIndex =
+            findMinIndex(0, length - 1, (index) => {
+                const x = xValue(index)?.valueOf();
+                return !Number.isFinite(x) || x >= range0;
+            }) ?? 0;
+
+        xMaxIndex =
+            findMaxIndex(0, length - 1, (index) => {
+                const x = xValue(index)?.valueOf();
+                return !Number.isFinite(x) || x! <= range1;
+            }) ?? length - 1;
+    } else {
+        for (let i = 0; i < length; i += 1) {
+            const x = xValue(i)?.valueOf();
+            if (x >= range0) {
+                xMinIndex = Math.min(i, xMinIndex);
+            }
+            if (x <= range1) {
+                xMinIndex = Math.max(i, xMinIndex);
+            }
+        }
+    }
+
     xMaxIndex = Math.min(xMaxIndex + 1, length);
 
     return [xMinIndex, xMaxIndex];
