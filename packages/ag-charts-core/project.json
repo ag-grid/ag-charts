@@ -45,5 +45,5 @@
       "dependsOn": ["build:test"]
     }
   },
-  "tags": ["no-batching"]
+  "tags": ["no-batching", "no-sharding"]
 }
