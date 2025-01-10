@@ -12,7 +12,6 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     public enabled = true;
 
     private readonly button: _Widget.ButtonWidget;
-    private readonly wrapper: HTMLElement;
     private readonly snap: boolean = false;
     private padding: number = 0;
     private coords?: _ModuleSupport.Vec2;
@@ -25,9 +24,7 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     ) {
         super();
 
-        const { button, wrapper } = this.setup();
-        this.wrapper = wrapper;
-        this.button = button;
+        this.button = this.setup();
         this.toggleVisibility(false);
         this.updateButtonElement();
 
@@ -40,15 +37,14 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         });
 
         this.destroyFns.push(
-            ctx.widgets.containerWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
-            ctx.widgets.containerWidget.addListener('drag-move', (e) => this.onMouseDrag(e)),
+            ctx.widgets.seriesWidget.addListener('drag-move', (e) => this.onMouseDrag(e)),
+            ctx.widgets.seriesWidget.addListener('mousemove', (e) => this.onMouseMove(e)),
             ctx.widgets.seriesWidget.addListener('mouseleave', () => this.onMouseLeave()),
             ctx.highlightManager.addListener('highlight-change', (event) => this.onHighlightChange(event)),
             ctx.chartEventManager.addListener('series-focus-change', () => this.onKeyPress()),
             ctx.zoomManager.addListener('zoom-pan-start', () => this.hide()),
             ctx.zoomManager.addListener('zoom-change', () => this.hide()),
             () => this.destroyElements(),
-            () => this.wrapper.remove(),
             () => this.button.destroy()
         );
     }
@@ -59,23 +55,12 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     }
 
     private setup() {
-        const wrapper = this.ctx.domManager.addChild(
-            'canvas-overlay',
-            `${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-${this.axisCtx.axisId}`
-        );
-        wrapper.classList.add(`${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-wrapper`);
-
         const button = new _Widget.ButtonWidget();
         button.addClass(DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS);
         button.setTabIndex(-1);
         button.setAriaLabel(this.ctx.localeManager.t('ariaLabelAddHorizontalLine'));
-
-        wrapper.appendChild(button.getElement());
-
-        return {
-            wrapper,
-            button,
-        };
+        this.ctx.widgets.seriesWidget.getElement().appendChild(button.getElement());
+        return button;
     }
 
     private destroyElements() {
@@ -104,7 +89,10 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         this.toggleVisibility(true);
 
         const buttonCoords = this.getButtonCoordinates({ x, y });
-        this.coords = this.getAxisCoordinates(buttonCoords);
+        this.coords = {
+            x: buttonCoords.x + this.button.clientWidth / 2,
+            y: buttonCoords.y + this.button.clientHeight / 2,
+        };
         this.updatePosition(buttonCoords);
     }
 
@@ -133,8 +121,8 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
 
         const { clientWidth: buttonWidth, clientHeight: buttonHeight } = this.button;
 
-        const [minY, maxY] = [seriesRect.y, seriesRect.y + seriesRect.height];
-        const [minX, maxX] = [seriesRect.x, seriesRect.x + seriesRect.width];
+        const [minY, maxY] = [0, seriesRect.height];
+        const [minX, maxX] = [0, seriesRect.width];
 
         if (snap) {
             x = convert(invert(x - seriesRect.x, axisCtx), axisCtx) + seriesRect.x;
@@ -158,18 +146,6 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
         return { x, y };
     }
 
-    private getAxisCoordinates(coords: _ModuleSupport.Vec2) {
-        const { seriesRect } = this;
-        const { clientWidth: buttonWidth, clientHeight: buttonHeight } = this.button;
-
-        const x = coords.x - seriesRect.x + buttonWidth / 2;
-        const y = coords.y - seriesRect.y + buttonHeight / 2;
-        return {
-            x,
-            y,
-        };
-    }
-
     private toggleVisibility(visible: boolean) {
         const { button } = this;
         if (button == null) return;
@@ -179,11 +155,11 @@ export class AxisButton extends BaseModuleInstance implements _ModuleSupport.Mod
     }
 
     private toggleClass(name: string, include: boolean) {
-        this.wrapper.classList.toggle(`${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-wrapper-${name}`, include);
+        this.button.toggleClass(`${DEFAULT_ANNOTATION_AXIS_BUTTON_CLASS}-${name}`, include);
     }
 
     private updatePosition({ x, y }: _ModuleSupport.Vec2) {
-        this.wrapper.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+        this.button.getElement().style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
     }
 
     private updateButtonElement() {
