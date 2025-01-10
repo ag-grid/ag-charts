@@ -208,9 +208,11 @@ export class LineSeries extends CartesianSeries<
         this.animationState.transition('updateData');
     }
 
-    override xCoordinateRange(xValue: any): [number, number] {
+    override xCoordinateRange(xValue: any, pixelSize: number): [number, number] {
+        const { marker } = this.properties;
         const x = this.axes[ChartAxisDirection.X]!.scale.convert(xValue);
-        return [x, x];
+        const r = marker.enabled ? 0.5 * marker.size * pixelSize : 0;
+        return [x - r, x + r];
     }
 
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
