@@ -1,6 +1,7 @@
 import { Logger } from 'ag-charts-core';
 import type {
     AgAnnotationsOptions,
+    AgAnnotationsToolbarButton,
     AgBarSeriesItemStylerParams,
     AgBarSeriesOptions,
     AgBaseFinancialPresetOptions,
@@ -41,6 +42,39 @@ function fromTheme<T>(theme: ThemeType | undefined, cb: (theme: AgChartTheme) =>
 }
 
 const chartTypes = ['ohlc', 'line', 'step-line', 'hlc', 'high-low', 'candlestick', 'hollow-candlestick'];
+
+const toolbarButtons: AgAnnotationsToolbarButton[] = [
+    {
+        icon: 'trend-line-drawing',
+        tooltip: 'toolbarAnnotationsLineAnnotations',
+        value: 'line-menu',
+    },
+    {
+        icon: 'fibonacci-retracement-drawing',
+        tooltip: 'toolbarAnnotationsFibonacciAnnotations',
+        value: 'fibonacci-menu',
+    },
+    {
+        icon: 'text-annotation',
+        tooltip: 'toolbarAnnotationsTextAnnotations',
+        value: 'text-menu',
+    },
+    {
+        icon: 'arrow-drawing',
+        tooltip: 'toolbarAnnotationsShapeAnnotations',
+        value: 'shape-menu',
+    },
+    {
+        icon: 'measurer-drawing',
+        tooltip: 'toolbarAnnotationsMeasurerAnnotations',
+        value: 'measurer-menu',
+    },
+    {
+        icon: 'delete',
+        tooltip: 'toolbarAnnotationsClearAll',
+        value: 'clear',
+    },
+];
 
 export function priceVolume(
     opts: AgPriceVolumePreset & AgBaseFinancialPresetOptions,
@@ -103,11 +137,15 @@ export function priceVolume(
             enabled: toolbar,
             toolbar: {
                 enabled: toolbar,
+                buttons: toolbarButtons,
             },
             optionsToolbar: {
                 enabled: toolbar,
             },
             // @ts-expect-error undocumented option
+            __axesButtons: {
+                enabled: toolbar,
+            },
             data,
             xKey: dateKey,
             volumeKey: volume ? volumeKey : undefined,

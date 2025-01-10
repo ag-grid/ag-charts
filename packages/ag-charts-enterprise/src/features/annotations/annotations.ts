@@ -88,7 +88,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
     });
 
     @Validate(OBJECT)
-    public axesButtons = new AxesButtons();
+    public __axesButtons = new AxesButtons();
 
     // Hidden options for use with measurer statistics
     public data?: any[] = undefined;
@@ -707,7 +707,7 @@ export class Annotations extends _ModuleSupport.BaseModuleInstance implements _M
 
         const lineDirection = axisCtx.direction === ChartAxisDirection.X ? 'vertical' : 'horizontal';
 
-        const { axesButtons } = this;
+        const { __axesButtons: axesButtons } = this;
         const buttonEnabled =
             this.enabled && axesButtons.enabled && (axesButtons.axes === 'xy' || axesButtons.axes === direction);
         if (buttonEnabled) {
