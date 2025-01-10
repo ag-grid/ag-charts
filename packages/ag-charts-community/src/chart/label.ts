@@ -1,3 +1,4 @@
+import type { RequireOptional } from 'ag-charts-core';
 import type {
     AgChartLabelFormatterParams,
     AgChartLabelOptions,
@@ -12,7 +13,6 @@ import type { PlacedLabelDatum } from '../scene/util/labelPlacement';
 import { normalizeAngle360, toRadians } from '../util/angle';
 import { BaseProperties } from '../util/properties';
 import { type TextMeasurer, TextUtils } from '../util/textMeasurer';
-import type { RequireOptional } from '../util/types';
 import {
     BOOLEAN,
     COLOR_STRING,

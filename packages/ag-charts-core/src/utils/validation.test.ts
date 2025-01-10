@@ -21,9 +21,9 @@ import {
     string,
     union,
     validate,
-} from './validate';
+} from './validation';
 
-describe('Validation', () => {
+describe('Validation utils', () => {
     beforeEach(() => {
         console.warn = jest.fn();
     });

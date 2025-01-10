@@ -1,6 +1,6 @@
 import type { AgBoxPlotSeriesStyle } from 'ag-charts-community';
 import { _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { type DeepRequired, Logger } from 'ag-charts-core';
 
 import type { BoxPlotNodeDatum } from './boxPlotTypes';
 
@@ -31,7 +31,7 @@ export class BoxPlotGroup extends ScalableGroup implements _ModuleSupport.Distan
 
     updateDatumStyles(
         datum: BoxPlotNodeDatum,
-        activeStyles: _ModuleSupport.DeepRequired<AgBoxPlotSeriesStyle>,
+        activeStyles: DeepRequired<AgBoxPlotSeriesStyle>,
         isVertical: boolean,
         isReversedValueAxis: boolean | undefined
     ) {

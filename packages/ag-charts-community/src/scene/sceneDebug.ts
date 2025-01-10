@@ -1,10 +1,9 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, isString } from 'ag-charts-core';
 
 import { toArray } from '../util/array';
 import { Debug } from '../util/debug';
 import { getWindow } from '../util/dom';
 import { SimpleTextMeasurer } from '../util/textMeasurer';
-import { isString } from '../util/type-guards';
 import { BBox } from './bbox';
 import { Group } from './group';
 import type { LayersManager } from './layersManager';

@@ -1,3 +1,4 @@
+import { isNumber } from 'ag-charts-core';
 import type { AgHistogramBinDatum } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -11,7 +12,6 @@ import type { Text } from '../../../scene/shape/text';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { findMinMax } from '../../../util/number';
 import { createTicks, tickStep } from '../../../util/ticks';
-import { isNumber } from '../../../util/type-guards';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { area, groupAverage, groupCount, groupSum } from '../../data/aggregateFunctions';
 import type { DataController } from '../../data/dataController';

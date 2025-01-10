@@ -1,31 +1,8 @@
 import { expect, test } from '@jest/globals';
 
-import { isFiniteNumber as isNumber } from './type-guards';
 import { isContinuous, isStringObject } from './value';
 
 describe('value module', () => {
-    test('isNumber', () => {
-        expect(isNumber(1)).toBe(true);
-        expect(isNumber(0)).toBe(true);
-        expect(isNumber(-1)).toBe(true);
-        expect(isNumber(Number(1))).toBe(true);
-        expect(isNumber(Number('wow'))).toBe(false);
-        expect(isNumber(Infinity)).toBe(false);
-        expect(isNumber(-Infinity)).toBe(false);
-        expect(isNumber(NaN)).toBe(false);
-        expect(isNumber(null)).toBe(false);
-        expect(isNumber(undefined)).toBe(false);
-        expect(isNumber('1')).toBe(false);
-        expect(isNumber({})).toBe(false);
-        expect(isNumber([])).toBe(false);
-        expect(isNumber('')).toBe(false);
-        expect(
-            isNumber({
-                valueOf: () => 0,
-            })
-        ).toBe(false);
-    });
-
     test('isContinuous', () => {
         expect(isContinuous(1)).toBe(true);
         expect(isContinuous(0)).toBe(true);

@@ -19,6 +19,7 @@
 # Charts library code to be reviewed by Chart TL.
 /packages/ag-charts-community/** @alantreadway
 /packages/ag-charts-enterprise/** @alantreadway
+/packages/ag-charts-core/** @alantreadway
 
 # Sensitive build/repo files to be reviewed by Chart TL.
 **/package.json @alantreadway
@@ -26,3 +27,6 @@ nx.json @alantreadway
 **/project.json @alantreadway
 **/tsconfig.json @alantreadway
 **/tsconfig.*.json @alantreadway
+
+# Sensitive core library code to be reviewed with extra care
+/packages/ag-charts-core/src/** @iMoses

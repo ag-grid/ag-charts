@@ -1,7 +1,6 @@
-import { Logger } from 'ag-charts-core';
-
-import { joinFormatted, stringifyValue } from './string.util';
-import { isArray, isBoolean, isFiniteNumber, isFunction, isObject, isString } from './type-guards';
+import { Logger } from '../globals/logger';
+import { joinFormatted, stringifyValue } from './strings';
+import { isArray, isBoolean, isFiniteNumber, isFunction, isObject, isString } from './typeGuards';
 
 const descriptionSymbol = Symbol('description');
 const requiredSymbol = Symbol('required');

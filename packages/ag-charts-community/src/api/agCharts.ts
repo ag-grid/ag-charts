@@ -1,3 +1,4 @@
+import type { DeepPartial } from 'ag-charts-core';
 import type {
     AgChartInstance,
     AgChartOptions,
@@ -33,7 +34,6 @@ import { type ChartInternalOptionMetadata, ChartOptions, type ChartSpecialOverri
 import { Debug } from '../util/debug';
 import { deepClone, jsonWalk } from '../util/json';
 import { Pool } from '../util/pool';
-import type { DeepPartial } from '../util/types';
 import { VERSION } from '../version';
 import { MementoCaretaker } from './state/memento';
 

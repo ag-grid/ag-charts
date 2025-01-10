@@ -1,5 +1,5 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, isObject } from 'ag-charts-core';
 
 import {
     Annotation,
@@ -16,7 +16,7 @@ import { type AnnotationContext, type AnnotationOptionsColorPickerType, Annotati
 import { getLineCap, getLineDash } from '../utils/line';
 import { validateDatumLine } from '../utils/validation';
 
-const { NUMBER, STRING, OBJECT, BaseProperties, Validate, isObject } = _ModuleSupport;
+const { NUMBER, STRING, OBJECT, BaseProperties, Validate } = _ModuleSupport;
 
 export class ParallelChannelProperties extends Annotation(
     Background(Line(Handle(Extendable(Stroke(LineStyle(BaseProperties))))))

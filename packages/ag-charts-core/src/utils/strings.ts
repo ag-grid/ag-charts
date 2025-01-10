@@ -19,7 +19,7 @@ export function joinFormatted(
     values = values.map(format);
     const lastValue = values.pop();
     if (values.length >= maxItems) {
-        const remainingCount = values.length - maxItems - 1;
+        const remainingCount = values.length - (maxItems - 1);
         return `${values.slice(0, maxItems - 1).join(', ')}, and ${remainingCount} more ${conjunction} ${lastValue}`;
     }
     return `${values.join(', ')} ${conjunction} ${lastValue}`;
@@ -65,7 +65,7 @@ export function stringifyValue(value: any, maxLength = Infinity): string {
  * @param {string} text The input string.
  * @returns {number} The number of lines, with at least one line for non-empty strings.
  */
-export function countLines(text: string) {
+export function countLines(text: string): number {
     let count = 1;
     for (let i = 0; i < text.length; i++) {
         if (text.charCodeAt(i) === 10) {

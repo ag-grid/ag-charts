@@ -1,3 +1,4 @@
+import type { Has } from 'ag-charts-core';
 import { Logger } from 'ag-charts-core';
 import type { AgPieSeriesStyle } from 'ag-charts-types';
 
@@ -18,7 +19,6 @@ import { formatValue } from '../../../util/format.util';
 import { jsonDiff } from '../../../util/json';
 import { mod } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
-import type { Has } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { ChartUpdateType } from '../../chartUpdateType';
 import type { DataController } from '../../data/dataController';

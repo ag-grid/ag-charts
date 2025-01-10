@@ -1,10 +1,9 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, isNumber } from 'ag-charts-core';
 
 import type { ModuleContext } from '../../module/moduleContext';
 import { LogScale } from '../../scale/logScale';
 import { normalisedExtentWithMetadata } from '../../util/array';
 import { Default } from '../../util/default';
-import { isNumber } from '../../util/type-guards';
 import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate, predicateWithMessage } from '../../util/validation';
 import { NumberAxis } from './numberAxis';
 

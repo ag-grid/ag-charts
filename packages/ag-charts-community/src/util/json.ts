@@ -1,9 +1,8 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } from 'ag-charts-core';
+import type { DeepPartial, PlainObject } from 'ag-charts-core';
 
 import { SKIP_JS_BUILTINS } from './object';
 import { isProperties } from './properties';
-import { isArray, isDate, isFunction, isHtmlElement, isObject, isPlainObject, isRegExp } from './type-guards';
-import type { DeepPartial, PlainObject } from './types';
 
 const CLASS_INSTANCE_TYPE = 'class-instance';
 

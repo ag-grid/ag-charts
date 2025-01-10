@@ -1,3 +1,4 @@
+import { countLines } from 'ag-charts-core';
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -10,7 +11,6 @@ import { extent, sortBasedOnArray, toArray, unique } from '../../util/array';
 import { iterate } from '../../util/iterator';
 import { inRange } from '../../util/number';
 import { BaseProperties, PropertiesArray } from '../../util/properties';
-import { countLines } from '../../util/string.util';
 import { createIdsGenerator } from '../../util/tempUtils';
 import { TextUtils } from '../../util/textMeasurer';
 import {

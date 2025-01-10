@@ -1,3 +1,5 @@
+import type { RequireOptional } from 'ag-charts-core';
+import { isFiniteNumber } from 'ag-charts-core';
 import type { AgBarSeriesStyle, AgErrorBoundSeriesTooltipRendererParams } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../../module/moduleContext';
@@ -9,8 +11,6 @@ import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Rect } from '../../../scene/shape/rect';
 import type { Text } from '../../../scene/shape/text';
-import { isFiniteNumber } from '../../../util/type-guards';
-import type { RequireOptional } from '../../../util/types';
 import { LogAxis } from '../../axis/logAxis';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import type { DataController } from '../../data/dataController';

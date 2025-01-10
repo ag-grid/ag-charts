@@ -1,7 +1,8 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { isFiniteNumber } from 'ag-charts-core';
 
 function isValidCoordinate(v: any) {
-    return Array.isArray(v) && v.length >= 2 && v.every(_ModuleSupport.isFiniteNumber);
+    return Array.isArray(v) && v.length >= 2 && v.every(isFiniteNumber);
 }
 
 function isValidCoordinates(v: any) {

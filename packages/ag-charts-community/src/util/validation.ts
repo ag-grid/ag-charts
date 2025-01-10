@@ -1,9 +1,5 @@
-import { Logger } from 'ag-charts-core';
-
-import { Color } from './color';
-import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './decorator';
-import { isProperties } from './properties';
 import {
+    Logger,
     isArray,
     isBoolean,
     isFiniteNumber,
@@ -12,7 +8,11 @@ import {
     isObject,
     isString,
     isValidDate,
-} from './type-guards';
+} from 'ag-charts-core';
+
+import { Color } from './color';
+import { BREAK_TRANSFORM_CHAIN, addTransformToInstanceProperty } from './decorator';
+import { isProperties } from './properties';
 
 interface ValidateOptions {
     optional?: boolean;

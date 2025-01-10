@@ -1,4 +1,5 @@
 import { type AgRadialSeriesStyle, _ModuleSupport } from 'ag-charts-community';
+import { isDefined } from 'ag-charts-core';
 
 import { RadiusCategoryAxis } from '../../axes/radius-category/radiusCategoryAxis';
 import type { RadialColumnNodeDatum } from '../radial-column/radialColumnSeriesBase';
@@ -9,7 +10,6 @@ const {
     ChartAxisDirection,
     PolarAxis,
     diff,
-    isDefined,
     groupAccumulativeValueProperty,
     keyProperty,
     normaliseGroupTo,

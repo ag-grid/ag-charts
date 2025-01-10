@@ -1,7 +1,8 @@
+import { isFiniteNumber } from 'ag-charts-core';
+
 import { Default } from '../../util/default';
 import { BaseProperties } from '../../util/properties';
 import { TimeInterval } from '../../util/time';
-import { isFiniteNumber } from '../../util/type-guards';
 import { ARRAY, MAX_SPACING, MIN_SPACING, Validate, predicateWithMessage } from '../../util/validation';
 import type { TickInterval } from './axisTick';
 

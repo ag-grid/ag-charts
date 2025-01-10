@@ -1,3 +1,4 @@
+import { isArray } from 'ag-charts-core';
 import type {
     AgChartTheme,
     AgChartThemeOptions,
@@ -14,7 +15,6 @@ import { type PaletteType, paletteType } from '../../module/coreModulesTypes';
 import { enterpriseModule } from '../../module/enterpriseModule';
 import { deepClone, jsonWalk } from '../../util/json';
 import { deepFreeze, mergeDefaults } from '../../util/object';
-import { isArray } from '../../util/type-guards';
 import { axisRegistry } from '../factory/axisRegistry';
 import { type ChartType, chartDefaults, chartTypes } from '../factory/chartTypes';
 import { legendRegistry } from '../factory/legendRegistry';

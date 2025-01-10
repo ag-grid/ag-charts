@@ -1,11 +1,12 @@
 import { type PixelSize, _ModuleSupport } from 'ag-charts-community';
+import { isObject } from 'ag-charts-core';
 
 import { Annotation, AxisLabel, Handle, LineStyle, LineTextProperties, Stroke, Value } from '../annotationProperties';
 import { type AnnotationContext, AnnotationType } from '../annotationTypes';
 import { getLineCap, getLineDash } from '../utils/line';
 import { validateDatumValue } from '../utils/validation';
 
-const { OBJECT, STRING, BaseProperties, Validate, isObject } = _ModuleSupport;
+const { OBJECT, STRING, BaseProperties, Validate } = _ModuleSupport;
 
 export class HorizontalLineProperties extends Annotation(Value(Handle(AxisLabel(Stroke(LineStyle(BaseProperties)))))) {
     readonly direction = 'horizontal';

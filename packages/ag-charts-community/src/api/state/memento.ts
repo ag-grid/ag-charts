@@ -1,6 +1,4 @@
-import { Logger } from 'ag-charts-core';
-
-import { isDate, isObject } from '../../util/type-guards';
+import { Logger, isDate, isObject } from 'ag-charts-core';
 
 export interface MementoOriginator<Memento = any> {
     mementoOriginatorKey: string;

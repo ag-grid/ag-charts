@@ -5,6 +5,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
+import { isFiniteNumber } from 'ag-charts-core';
 
 import { type RadarNodeDatum, RadarSeriesProperties } from './radarSeriesProperties';
 
@@ -19,7 +20,6 @@ const {
     resetMarkerFn,
     animationValidation,
     computeMarkerFocusBounds,
-    isFiniteNumber,
     extent,
     isNumberEqual,
     createDatumId,

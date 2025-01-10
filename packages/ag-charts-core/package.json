@@ -9,9 +9,9 @@
   "module": "./dist/package/main.esm.mjs",
   "exports": {
     ".": {
-      "import": "./dist/package/main.esm.mjs",
-      "require": "./dist/package/main.cjs.js",
       "types": "./dist/types/src/main.d.ts",
+      "require": "./dist/package/main.cjs.js",
+      "import": "./dist/package/main.esm.mjs",
       "default": "./dist/package/main.cjs.js"
     }
   },
@@ -50,7 +50,9 @@
   ],
   "homepage": "https://ag-grid.com/charts/",
   "dependencies": {},
-  "devDependencies": {},
+  "devDependencies": {
+    "@jest/globals": "29.6.1"
+  },
   "publishConfig": {
     "access": "public"
   }

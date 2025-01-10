@@ -1,5 +1,6 @@
+import { isFunction } from 'ag-charts-core';
+
 import { addTransformToInstanceProperty } from './decorator';
-import { isFunction } from './type-guards';
 
 export function Default(defaultValue: any, replaces: (undefined | null | '' | number)[] = [undefined]) {
     return addTransformToInstanceProperty((_, __, v: any) => {

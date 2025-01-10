@@ -1,6 +1,7 @@
+import { isArray } from 'ag-charts-core';
+
 import { addObserverToInstanceProperty, addTransformToInstanceProperty } from './decorator';
 import { getPath, setPath } from './object';
-import { isArray } from './type-guards';
 
 export function ProxyProperty(proxyPath: string | string[], configMetadata?: { optional?: boolean }) {
     const pathArray = isArray(proxyPath) ? proxyPath : proxyPath.split('.');

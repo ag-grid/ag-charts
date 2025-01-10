@@ -5,7 +5,7 @@ import {
     type StrokeOptions,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { Logger } from 'ag-charts-core';
+import { Logger, type RequireOptional } from 'ag-charts-core';
 
 import {
     CLOSE,
@@ -402,7 +402,7 @@ export abstract class OhlcSeriesBase<
     protected getItemBaseStyle(
         itemId: 'up' | 'down',
         highlighted: boolean
-    ): _ModuleSupport.RequireOptional<FillOptions & StrokeOptions & LineDashOptions> {
+    ): RequireOptional<FillOptions & StrokeOptions & LineDashOptions> {
         const { properties } = this;
         const item = properties.item[itemId];
         const highlightStyle = highlighted ? properties.highlightStyle.item : undefined;
@@ -421,7 +421,7 @@ export abstract class OhlcSeriesBase<
         datumId: string,
         datum: any,
         itemId: 'up' | 'down',
-        format: _ModuleSupport.RequireOptional<FillOptions & StrokeOptions & LineDashOptions>,
+        format: RequireOptional<FillOptions & StrokeOptions & LineDashOptions>,
         highlighted: boolean
     ) {
         const { id: seriesId, properties } = this;

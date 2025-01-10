@@ -1,7 +1,8 @@
+import { isFiniteNumber } from 'ag-charts-core';
+
 import type { ModuleContext } from '../../module/moduleContext';
 import { CategoryScale } from '../../scale/categoryScale';
 import type { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
-import { isFiniteNumber } from '../../util/type-guards';
 import { RATIO, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 

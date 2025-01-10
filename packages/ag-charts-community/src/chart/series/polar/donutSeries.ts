@@ -1,3 +1,4 @@
+import type { Has } from 'ag-charts-core';
 import { Logger } from 'ag-charts-core';
 import type { AgDonutSeriesStyle } from 'ag-charts-types';
 
@@ -6,8 +7,7 @@ import { fromToMotion } from '../../../motion/fromToMotion';
 import { LinearScale } from '../../../scale/linearScale';
 import { BBox } from '../../../scene/bbox';
 import { Group, TranslatableGroup } from '../../../scene/group';
-import { Node } from '../../../scene/node';
-import { PointerEvents } from '../../../scene/node';
+import { Node, PointerEvents } from '../../../scene/node';
 import type { Point } from '../../../scene/point';
 import { Selection } from '../../../scene/selection';
 import { Line } from '../../../scene/shape/line';
@@ -19,7 +19,6 @@ import { formatValue } from '../../../util/format.util';
 import { jsonDiff } from '../../../util/json';
 import { mod } from '../../../util/number';
 import { mergeDefaults } from '../../../util/object';
-import type { Has } from '../../../util/types';
 import { ChartAxisDirection } from '../../chartAxisDirection';
 import { ChartUpdateType } from '../../chartUpdateType';
 import type { DataController } from '../../data/dataController';

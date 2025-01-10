@@ -5,6 +5,7 @@ import {
     _ModuleSupport,
     _Widget,
 } from 'ag-charts-community';
+import { isValidDate } from 'ag-charts-core';
 
 import { TextInput } from '../text-input/textInput';
 import { AxesButtons } from './annotationAxesButtons';
@@ -41,7 +42,6 @@ const {
     Validate,
     ChartAxisDirection,
     Vec2,
-    isValidDate,
     keyProperty,
     valueProperty,
     Selection,

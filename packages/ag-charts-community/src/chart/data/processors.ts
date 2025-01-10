@@ -1,7 +1,8 @@
+import { isArray, isFiniteNumber } from 'ag-charts-core';
+
 import type { ScaleType } from '../../scale/scale';
 import { memo } from '../../util/memo';
 import { clamp, isNegative } from '../../util/number';
-import { isArray, isFiniteNumber } from '../../util/type-guards';
 import { isContinuous, transformIntegratedCategoryValue } from '../../util/value';
 import { accumulatedValue, range, trailingAccumulatedValue } from './aggregateFunctions';
 import {

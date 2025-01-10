@@ -1,3 +1,5 @@
+import type { RequireOptional } from 'ag-charts-core';
+import { isDefined } from 'ag-charts-core';
 import type {
     AgErrorBoundSeriesTooltipRendererParams,
     AgSeriesMarkerStyle,
@@ -19,8 +21,6 @@ import type { Path } from '../../../scene/shape/path';
 import type { Text } from '../../../scene/shape/text';
 import { extent } from '../../../util/array';
 import { mergeDefaults } from '../../../util/object';
-import { isDefined } from '../../../util/type-guards';
-import type { RequireOptional } from '../../../util/types';
 import { isContinuous } from '../../../util/value';
 import { LogAxis } from '../../axis/logAxis';
 import { TimeAxis } from '../../axis/timeAxis';

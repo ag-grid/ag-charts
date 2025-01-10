@@ -1,7 +1,7 @@
 {
   "name": "ag-charts-core",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "packages/ag-charts-core/src",
+  "sourceRoot": "{projectRoot}/src",
   "projectType": "library",
   "targets": {
     "build": {
@@ -14,36 +14,9 @@
         "production": {}
       }
     },
-    "build:types": {
-      "options": {}
-    },
-    "build:package": {
-      "options": {}
-    },
-    "docs-debug-interfaces": {
-      "executor": "ag-charts-generate-code-reference-files:generate",
-      "dependsOn": ["ag-charts-generate-code-reference-files:build"],
-      "inputs": ["{projectRoot}/src/**/*.ts", { "dependentTasksOutputFiles": "**/*", "transitive": false }],
-      "outputs": ["{options.output}"],
-      "cache": true,
-      "options": {
-        "mode": "debug-interfaces",
-        "inputs": ["{projectRoot}/src"],
-        "output": "dist/{projectRoot}/debug-interfaces.AUTO.json"
-      }
-    },
-    "docs-resolved-interfaces": {
-      "executor": "ag-charts-generate-code-reference-files:generate",
-      "dependsOn": ["ag-charts-generate-code-reference-files:build"],
-      "inputs": ["{projectRoot}/src/**/*.ts", { "dependentTasksOutputFiles": "**/*", "transitive": false }],
-      "outputs": ["{options.output}"],
-      "cache": true,
-      "options": {
-        "mode": "docs-interfaces",
-        "inputs": ["{projectRoot}/src"],
-        "output": "dist/{projectRoot}/resolved-interfaces.AUTO.json"
-      }
-    },
+    "build:types": {},
+    "build:test": {},
+    "build:package": {},
     "lint:eslint": {},
     "lint:circular": {},
     "lint:depcruise": {},
@@ -53,7 +26,24 @@
       "configurations": {
         "fix": {}
       }
+    },
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}", "{workspaceRoot}/reports/ag-charts-core.xml"],
+      "options": {
+        "jestConfig": "{projectRoot}/jest.config.ts",
+        "passWithNoTests": false
+      },
+      "configurations": {
+        "watch": {
+          "watch": true
+        },
+        "update": {
+          "updateSnapshot": true
+        }
+      },
+      "dependsOn": ["build:test"]
     }
   },
-  "tags": ["no-batching"]
+  "tags": ["no-batching", "no-sharding"]
 }

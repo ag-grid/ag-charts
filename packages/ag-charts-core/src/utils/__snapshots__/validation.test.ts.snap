@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Validation Utility Functions attachDescription adds a description to a validator 1`] = `
+exports[`Validation utils Utility Functions attachDescription adds a description to a validator 1`] = `
 [
   {
     "key": "str",
@@ -11,7 +11,7 @@ exports[`Validation Utility Functions attachDescription adds a description to a 
 ]
 `;
 
-exports[`Validation Validate Method validate returns expected validated object and errors 1`] = `
+exports[`Validation utils Validate Method validate returns expected validated object and errors 1`] = `
 [
   {
     "key": "name",
