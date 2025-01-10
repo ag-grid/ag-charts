@@ -20,7 +20,7 @@ import {
     required,
     string,
     union,
-    validation,
+    validate,
 } from './validation';
 
 describe('Validation utils', () => {
@@ -107,7 +107,7 @@ describe('Validation utils', () => {
                 (value: unknown) => string(value) && value !== '',
                 'a non-empty string'
             );
-            expect(validation({ str: '' }, { str: describedValidator }).errors).toMatchSnapshot();
+            expect(validate({ str: '' }, { str: describedValidator }).errors).toMatchSnapshot();
         });
     });
 
@@ -232,8 +232,8 @@ describe('Validation utils', () => {
                 extraField: 'should be ignored', // Unknown option
             };
 
-            const { valid: validatedValidUser, errors: errorsValidUser } = validation(validUser, userSchema);
-            const { valid: validatedInvalidUser, errors: errorsInvalidUser } = validation(invalidUser, userSchema);
+            const { valid: validatedValidUser, errors: errorsValidUser } = validate(validUser, userSchema);
+            const { valid: validatedInvalidUser, errors: errorsInvalidUser } = validate(invalidUser, userSchema);
 
             expect(validatedValidUser).toEqual(validUser);
             expect(errorsValidUser).toEqual([]);
