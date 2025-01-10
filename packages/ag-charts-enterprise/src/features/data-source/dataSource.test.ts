@@ -59,8 +59,7 @@ describe('DataSource', () => {
         },
         zoom: {
             scrollingStep: 0.5, // Make sure we zoom enough in a single step so we can detect it
-            minVisibleItemsX: 1,
-            minVisibleItemsY: 1,
+            minVisibleItems: 1,
         },
     };
 

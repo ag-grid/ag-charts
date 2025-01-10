@@ -154,3 +154,42 @@ export function clippedRangeIndices(
 
     return [xMinIndex, xMaxIndex];
 }
+
+/**
+ * Counts the number of items that match a condition within a specified range, starting at a given index and expanding
+ * outwards until a certain count is reached.
+ *
+ * @param {number} min - The minimum number in the range.
+ * @param {number} max - The maximum number in the range.
+ * @param {number} start - The index at which to centre the search.
+ * @param {number} countUntil - The maximum number until which to count.
+ * @param {function(number): boolean} iteratee - A function that takes an index and returns a boolean to indicate if the value should be counted.
+ * @returns {number} The count of items that matched the condition of the iteratee.
+ */
+export function countExpandingSearch(
+    min: number,
+    max: number,
+    start: number,
+    countUntil: number,
+    iteratee: (index: number) => boolean
+): number {
+    let i = -1;
+    let count = 0;
+    let shift = 0;
+    let reachedAnEnd = false;
+
+    while (count < countUntil && i <= max - min) {
+        i += 1;
+        const index = start + shift;
+        if (!reachedAnEnd) shift *= -1;
+        if (shift >= 0) shift += 1;
+        if (reachedAnEnd && shift < 0) shift -= 1;
+        if (index < min || index > max) {
+            reachedAnEnd = true;
+            continue;
+        }
+        if (iteratee(index)) count += 1;
+    }
+
+    return count;
+}

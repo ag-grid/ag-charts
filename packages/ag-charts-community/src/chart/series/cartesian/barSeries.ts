@@ -289,6 +289,15 @@ export class BarSeries extends AbstractBarSeries<
         return [Math.min(y0, 0), Math.max(y1, 0)];
     }
 
+    override getVisibleItems(
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number],
+        minVisibleItems: number
+    ): number {
+        const yKey = this.processedData?.type === 'grouped' ? 'yValue-end' : 'yValue-raw';
+        return this.countVisibleItems('xValue', [yKey], xVisibleRange, yVisibleRange, minVisibleItems);
+    }
+
     protected aggregateData(
         _dataModel: DataModel<any, any, any>,
         _processedData: ProcessedData<any>

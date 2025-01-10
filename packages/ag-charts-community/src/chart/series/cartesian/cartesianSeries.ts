@@ -33,7 +33,7 @@ import type {
 import { SeriesNodeEvent } from '../series';
 import { SeriesProperties } from '../seriesProperties';
 import type { ISeries, SeriesNodeDatum } from '../seriesTypes';
-import { axisExtent, clippedRangeIndices, visibleRangeIndices } from '../util';
+import { axisExtent, clippedRangeIndices, countExpandingSearch, visibleRangeIndices } from '../util';
 import type { Scaling } from './scaling';
 
 export interface CartesianSeriesNodeDatum extends DataModelSeriesNodeDatum {
@@ -186,15 +186,6 @@ export abstract class CartesianSeries<
     private highlightLabelSelection = Selection.select<Text, TLabel>(this.highlightLabel, Text);
 
     public annotationSelections: Set<Selection<NodeWithOpacity, TDatum>> = new Set();
-
-    private minRectsCache: {
-        dirtyNodeData: boolean;
-        sizeCache?: string;
-        minRect?: BBox;
-        minVisibleRect?: BBox;
-    } = {
-        dirtyNodeData: true,
-    };
 
     private readonly opts: CartesianSeriesOpts<TNode, TProps, TDatum, TLabel>;
     private readonly debug = Debug.create();
@@ -408,7 +399,6 @@ export abstract class CartesianSeries<
             if (this._contextNodeData) {
                 this._contextNodeData.animationValid ??= animationValid;
             }
-            this.minRectsCache.dirtyNodeData = true;
 
             const { dataModel, processedData } = this;
             if (dataModel !== undefined && processedData !== undefined) {
@@ -741,6 +731,7 @@ export abstract class CartesianSeries<
     }
 
     protected abstract xCoordinateRange(xValue: any, pixelSize: number, index: number): [number, number];
+    protected abstract yCoordinateRange(yValues: any[], pixelSize: number, index: number): [number, number];
 
     // Workaround - it would be nice if this difference didn't exist
     private keysOrValues(xKey: string) {
@@ -841,99 +832,54 @@ export abstract class CartesianSeries<
         return axisValues;
     }
 
-    /**
-     * Get the minimum bounding box that contains any adjacent two nodes. The axes are treated independently, so this
-     * may not represent the same two points for both directions. The dimensions represent the greatest distance
-     * between any two adjacent nodes.
-     */
-    override getMinRects(width: number, height: number) {
-        const { dirtyNodeData, sizeCache, minRect, minVisibleRect } = this.minRectsCache;
+    protected countVisibleItems(
+        crossAxisKey: string,
+        axisKeys: string[],
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number],
+        minVisibleItems: number
+    ): number {
+        const { dataModel, processedData } = this;
+        if (!dataModel || !processedData) return Infinity;
 
-        const newSizeCache = JSON.stringify({ width, height });
-        const dirtySize = newSizeCache !== sizeCache;
+        const crossValues = this.keysOrValues(crossAxisKey);
+        const allAxisValues = axisKeys.map((axisKey) => this.keysOrValues(axisKey));
 
-        if (!dirtySize && !dirtyNodeData && minRect && minVisibleRect) {
-            return { minRect, minVisibleRect };
-        }
+        // The provided visible ranges `[xy]VisibleRange` are relative to the unzoomed axis ranges `[xy]Axis.range`.
+        // `[xy]Axis.visibleRange` are relative to the zoomed scale ranges `[xy]Axis.scale.range`.
+        // So we need to scale the provided visible ranges relative to the zoomed scale range to find the min and max
+        // position in pixels that the visible range ratio covers.
+        const crossAxis = this.axes[ChartAxisDirection.X]!;
+        const axis = this.axes[ChartAxisDirection.Y]!;
 
-        const rects = this.computeMinRects(width, height);
+        const crossRange = crossAxis.range.toSorted();
+        const range = axis.range.toSorted();
 
-        this.minRectsCache = {
-            dirtyNodeData: false,
-            sizeCache: newSizeCache,
-            minRect: rects?.minRect,
-            minVisibleRect: rects?.minVisibleRect,
+        const convert = (d: number[], r: number[], v: number) => {
+            return d[0] + ((v - r[0]) / (r[1] - r[0])) * (d[1] - d[0]);
         };
 
-        return rects;
-    }
+        const crossMin = convert(crossRange, crossAxis.visibleRange, xVisibleRange[0]);
+        const crossMax = convert(crossRange, crossAxis.visibleRange, xVisibleRange[1]);
+        const axisMin = convert(range, axis.visibleRange, yVisibleRange[0]);
+        const axisMax = convert(range, axis.visibleRange, yVisibleRange[1]);
 
-    private computeMinRects(width: number, height: number) {
-        const context = this._contextNodeData;
+        const startIndex = Math.round(
+            (xVisibleRange[0] + (xVisibleRange[1] - xVisibleRange[0]) / 2) * crossValues.length
+        );
+        const pixelSize = 1;
+        const shouldFlipXY = this.shouldFlipXY();
 
-        if (!context?.nodeData.length) {
-            return;
-        }
-
-        const { nodeData } = context;
-
-        // Get the sorted midpoints for both directions
-        const minRectXs = Array(nodeData.length);
-        const minRectYs = Array(nodeData.length);
-
-        for (const [i, { midPoint }] of nodeData.entries()) {
-            minRectXs[i] = midPoint?.x ?? 0;
-            minRectYs[i] = midPoint?.y ?? 0;
-        }
-
-        minRectXs.sort((a, b) => a - b);
-        minRectYs.sort((a, b) => a - b);
-
-        // Take the visible slice from the sorted data as the points >= 0 and <= width/height
-        let zeroX, widthX, zeroY, heightY;
-        let maxWidth = 0;
-        let maxHeight = 0;
-
-        for (let i = 1; i < nodeData.length; i++) {
-            if (minRectXs[i] >= 0) zeroX ??= i;
-            if (minRectXs[i] > width) widthX ??= i;
-            if (minRectYs[i] >= 0) zeroY ??= i;
-            if (minRectYs[i] > height) heightY ??= i;
-
-            // Find the max distance between adjacent points in both directions
-            maxWidth = Math.max(maxWidth, minRectXs[i] - minRectXs[i - 1]);
-            maxHeight = Math.max(maxHeight, minRectYs[i] - minRectYs[i - 1]);
-        }
-
-        widthX ??= nodeData.length;
-        heightY ??= nodeData.length;
-
-        const minVisibleRectXs = zeroX != null && widthX != null ? minRectXs.slice(zeroX, widthX) : [];
-        const minVisibleRectYs = zeroY != null && heightY != null ? minRectYs.slice(zeroY, heightY) : [];
-
-        // Find the max visible distance between adjacent points in both directions
-        let maxVisibleWidth = 0;
-        let maxVisibleHeight = 0;
-
-        for (let i = 1; i < Math.max(minVisibleRectXs.length, minVisibleRectYs.length); i++) {
-            const x1 = minVisibleRectXs[i];
-            const x2 = minVisibleRectXs[i - 1];
-            const y1 = minVisibleRectYs[i];
-            const y2 = minVisibleRectYs[i - 1];
-
-            if (x1 != null && x2 != null) {
-                maxVisibleWidth = Math.max(maxVisibleWidth, x1 - x2);
-            }
-
-            if (y1 != null && y2 != null) {
-                maxVisibleHeight = Math.max(maxVisibleHeight, y1 - y2);
-            }
-        }
-
-        const minRect = new BBox(0, 0, maxWidth, maxHeight);
-        const minVisibleRect = new BBox(0, 0, maxVisibleWidth, maxVisibleHeight);
-
-        return { minRect, minVisibleRect };
+        return countExpandingSearch(0, crossValues.length - 1, startIndex, minVisibleItems, (index) => {
+            let [x0, x1] = this.xCoordinateRange(crossValues[index], pixelSize, index);
+            let [y0, y1] = this.yCoordinateRange(
+                allAxisValues.map((axisValues) => axisValues[index]),
+                pixelSize,
+                index
+            );
+            if (shouldFlipXY) [x0, x1, y0, y1] = [y0, y1, x0, x1];
+            return x0 >= crossMin && x1 <= crossMax && y0 >= axisMin && y1 <= axisMax;
+        });
     }
 
     protected updateHighlightSelectionItem(opts: {

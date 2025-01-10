@@ -58,8 +58,7 @@ export const ZoomModule: _ModuleSupport.Module = {
             enableScrolling: true,
             enableSelecting: false,
             deceleration: 'short',
-            minVisibleItemsX: 2,
-            minVisibleItemsY: 2,
+            minVisibleItems: 2,
             panKey: 'alt',
             scrollingStep: 0.1,
             autoScaling: {

@@ -192,6 +192,20 @@ export abstract class OhlcSeriesBase<
         );
     }
 
+    override getVisibleItems(
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number],
+        minVisibleItems: number
+    ): number {
+        return this.countVisibleItems(
+            'xValue',
+            ['highValue', 'lowValue'],
+            xVisibleRange,
+            yVisibleRange,
+            minVisibleItems
+        );
+    }
+
     override createNodeData() {
         const { visible, dataModel, processedData } = this;
 

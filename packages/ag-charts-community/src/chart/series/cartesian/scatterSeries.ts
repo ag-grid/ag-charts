@@ -109,6 +109,12 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         return [x - r, x + r];
     }
 
+    override yCoordinateRange(yValues: any[], pixelSize: number): [number, number] {
+        const y = this.axes[ChartAxisDirection.Y]!.scale.convert(yValues[0]);
+        const r = 0.5 * this.properties.size * pixelSize;
+        return [y - r, y + r];
+    }
+
     override getSeriesDomain(direction: ChartAxisDirection): any[] {
         const { dataModel, processedData } = this;
         if (!processedData || !dataModel) return [];
@@ -134,6 +140,14 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
 
     override getSeriesRange(_direction: ChartAxisDirection, visibleRange: [any, any]): any[] {
         return this.domainForVisibleRange(ChartAxisDirection.Y, ['yValue'], 'xValue', visibleRange, false);
+    }
+
+    override getVisibleItems(
+        xVisibleRange: [number, number],
+        yVisibleRange: [number, number],
+        minVisibleItems: number
+    ): number {
+        return this.countVisibleItems('xValue', ['yValue'], xVisibleRange, yVisibleRange, minVisibleItems);
     }
 
     override createNodeData() {
