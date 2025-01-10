@@ -89,6 +89,11 @@ const toolbar: AgAnnotationsToolbar = {
             tooltip: 'toolbarAnnotationsShapeAnnotations',
             value: 'shape-menu',
         },
+        {
+            icon: 'delete',
+            tooltip: 'toolbarAnnotationsClearAll',
+            value: 'clear',
+        },
     ],
 };
 
