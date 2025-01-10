@@ -591,7 +591,7 @@ export class WaterfallSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: WaterfallNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: WaterfallNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const { xKey, xName, yKey, yName, tooltip } = properties;
         const xAxis = this.getCategoryAxis();

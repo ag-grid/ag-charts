@@ -340,7 +340,7 @@ export class ScatterSeries extends CartesianSeries<Group, ScatterSeriesPropertie
         });
     }
 
-    override getTooltipContent(nodeDatum: ScatterNodeDatum): TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: ScatterNodeDatum): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, axes, properties } = this;
         const { xKey, xName, yKey, yName, labelKey, labelName, title, tooltip } = properties;
         const xAxis = axes[ChartAxisDirection.X];

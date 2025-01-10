@@ -68,7 +68,10 @@ export class TextWrapper {
                 continue;
             }
 
-            for (let i = 0, estimatedWidth = 0, lastSpaceIndex = 0; i < line.length; i++) {
+            let i = 0;
+            let estimatedWidth = 0;
+            let lastSpaceIndex = 0;
+            while (i < line.length) {
                 const char = line.charAt(i);
 
                 estimatedWidth += measurer.textWidth(char);
@@ -84,6 +87,7 @@ export class TextWrapper {
                     const actualWidth = measurer.textWidth(line.slice(0, i + 1));
                     if (actualWidth <= options.maxWidth) {
                         estimatedWidth = actualWidth;
+                        i++;
                         continue;
                     }
 
@@ -95,7 +99,7 @@ export class TextWrapper {
                             result.push(line.slice(0, lastSpaceIndex).trimEnd());
                             line = line.slice(lastSpaceIndex).trimStart();
 
-                            i = -1; // reset the index after cutting the line
+                            i = 0; // reset the index after cutting the line
                             estimatedWidth = 0; // reset the width
                             lastSpaceIndex = 0; // reset last space index
                             continue;
@@ -137,6 +141,8 @@ export class TextWrapper {
                     estimatedWidth = 0; // reset the width
                     lastSpaceIndex = 0; // reset last space index
                 }
+
+                i++;
             }
 
             if (line) {

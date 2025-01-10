@@ -591,7 +591,7 @@ export class ChordSeries extends FlowProportionSeries<
         });
     }
 
-    override getTooltipContent(seriesDatum: ChordDatum): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(seriesDatum: ChordDatum): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, linksProcessedData, nodesProcessedData, properties } = this;
         const { fromKey, toKey, sizeKey, sizeName, tooltip } = properties;
 

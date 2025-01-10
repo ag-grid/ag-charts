@@ -131,7 +131,7 @@ export class Caption extends BaseProperties implements CaptionLike {
             moduleCtx.tooltipManager.updateTooltip(
                 this.id,
                 { canvasX, canvasY, lastPointerEvent, showArrow: false },
-                { title: this.text }
+                { type: 'structured', title: this.text }
             );
         }
     }

@@ -464,7 +464,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         return findQuadtreeMatch(this, point);
     }
 
-    override getTooltipContent(nodeDatum: HistogramNodeDatum): TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: HistogramNodeDatum): TooltipContent | undefined {
         const {
             id: seriesId,
             dataModel,

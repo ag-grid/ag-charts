@@ -447,7 +447,7 @@ export abstract class OhlcSeriesBase<
         });
     }
 
-    override getTooltipContent(nodeDatum: OhlcNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: OhlcNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const {
             xKey,

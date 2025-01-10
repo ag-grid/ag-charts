@@ -768,7 +768,7 @@ export class MapMarkerSeries
         }
     }
 
-    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(seriesDatum: any): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const {
             idKey,

@@ -551,7 +551,7 @@ export class PyramidSeries extends _ModuleSupport.DataModelSeries<
         }
     }
 
-    override getTooltipContent(nodeDatum: PyramidNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: PyramidNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const { stageKey, valueKey, tooltip } = properties;
 

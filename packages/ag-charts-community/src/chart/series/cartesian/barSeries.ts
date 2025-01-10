@@ -727,7 +727,7 @@ export class BarSeries extends AbstractBarSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: BarNodeDatum): TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: BarNodeDatum): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const { xKey, xName, yKey, yName, legendItemName, stackGroup, tooltip } = properties;
         const xAxis = this.getCategoryAxis();

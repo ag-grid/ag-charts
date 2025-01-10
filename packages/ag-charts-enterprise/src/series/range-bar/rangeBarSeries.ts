@@ -571,7 +571,7 @@ export class RangeBarSeries extends _ModuleSupport.AbstractBarSeries<
         });
     }
 
-    override getTooltipContent(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: RangeBarNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const { xKey, xName, yName, yLowKey, yHighKey, yLowName, yHighName, tooltip } = properties;
         const xAxis = this.getCategoryAxis();

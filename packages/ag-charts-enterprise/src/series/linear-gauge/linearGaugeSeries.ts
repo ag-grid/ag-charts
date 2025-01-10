@@ -1096,7 +1096,7 @@ export class LinearGaugeSeries
         return [];
     }
 
-    override getTooltipContent(nodeDatum: UnknownGaugeNodeDatum): _ModuleSupport.TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: UnknownGaugeNodeDatum): _ModuleSupport.TooltipContent | undefined {
         const { id: seriesId, properties } = this;
         const { tooltip } = properties;
 

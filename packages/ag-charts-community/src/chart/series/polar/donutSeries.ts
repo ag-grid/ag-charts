@@ -1350,7 +1350,7 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
         return pickByMatchingAngle(this, point);
     }
 
-    override getTooltipContent(nodeDatum: DonutNodeDatum): TooltipContent | string | undefined {
+    override getTooltipContent(nodeDatum: DonutNodeDatum): TooltipContent | undefined {
         const { id: seriesId, dataModel, processedData, properties } = this;
         const {
             legendItemKey,

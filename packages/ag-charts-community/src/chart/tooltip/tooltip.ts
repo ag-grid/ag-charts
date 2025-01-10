@@ -59,18 +59,22 @@ export type TooltipContentDataRow =
     | { label: string; fallbackLabel?: string; value: string }
     | { label: undefined; fallbackLabel: string; value: string };
 
-export interface TooltipContent {
+export type TooltipStructuredContent = {
     heading?: string;
     title?: string;
     symbol?: LegendSymbolOptions;
     data?: TooltipContentDataRow[];
-}
+};
+export type TooltipContent =
+    | ({
+          type: 'structured';
+      } & TooltipStructuredContent)
+    | { type: 'raw'; rawHtmlString: string };
 
-export function tooltipContentAriaLabel(content: TooltipContent | string) {
-    if (typeof content === 'string') return '';
-
+export function tooltipContentAriaLabel(content: TooltipContent) {
     const ariaLabel: string[] = [];
 
+    if (content.type === 'raw') return '';
     if (content.heading != null) ariaLabel.push(content.heading);
     if (content.title != null) ariaLabel.push(content.title);
     content.data?.forEach((datum) => {
@@ -98,8 +102,8 @@ function dataHtml(label: string | undefined, value: string, inline: boolean) {
     return rowHtml;
 }
 
-function tooltipContentHtml(content: TooltipContent | string) {
-    if (typeof content === 'string') return content;
+function tooltipContentHtml(content: TooltipContent) {
+    if (content.type === 'raw') return content.rawHtmlString;
 
     let html = '';
 
@@ -301,7 +305,7 @@ export class Tooltip extends BaseProperties {
         boundingRect: DOMRect,
         canvasRect: DOMRect,
         meta: TooltipMeta,
-        content?: TooltipContent | string | null,
+        content?: TooltipContent | null,
         instantly = false
     ) {
         const { element } = this;
