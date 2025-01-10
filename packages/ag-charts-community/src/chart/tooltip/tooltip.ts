@@ -248,6 +248,10 @@ export class Tooltip extends BaseProperties {
         return this._visible;
     }
 
+    contains(node: Node | null): boolean {
+        return this.element?.contains(node) ?? false;
+    }
+
     private updateTooltipPosition() {
         const { element, positionParams } = this;
         if (element == null || positionParams == null) return;

@@ -261,6 +261,9 @@ export class SeriesAreaManager extends BaseManager {
         if (relatedTarget?.className === 'ag-charts-text-input__textarea') {
             return;
         }
+        if (this.chart.ctx.tooltipManager.isEnteringInteractiveTooltip(event)) {
+            return;
+        }
 
         this.chart.ctx.cursorManager.updateCursor(this.id);
         if (!this.focusIndicator.isFocusVisible()) this.clearAll();
