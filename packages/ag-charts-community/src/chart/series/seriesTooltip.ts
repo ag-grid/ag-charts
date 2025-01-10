@@ -3,7 +3,7 @@ import type { AgSeriesTooltipRendererParams, AgTooltipRendererResult, Interactio
 import { BaseProperties } from '../../util/properties';
 import type { RequireOptional } from '../../util/types';
 import { BOOLEAN, FUNCTION, INTERACTION_RANGE, OBJECT, STRING, Validate } from '../../util/validation';
-import { type TooltipContent, TooltipPosition } from '../tooltip/tooltip';
+import { type TooltipContent, TooltipPosition, type TooltipStructuredContent } from '../tooltip/tooltip';
 
 type TooltipRenderer<P> = (params: P) => string | AgTooltipRendererResult;
 
@@ -34,10 +34,10 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends
     @Validate(STRING, { optional: true })
     class?: string = undefined;
 
-    public formatTooltip(content: TooltipContent, params: RequireOptional<P>): TooltipContent {
+    public formatTooltip(content: TooltipStructuredContent, params: RequireOptional<P>): TooltipContent {
         const overrides = this.renderer?.(params);
-        if (typeof overrides === 'string') return { rawHtmlString: overrides };
-        if (overrides != null) return { ...content, ...overrides };
-        return content;
+        if (typeof overrides === 'string') return { type: 'raw', rawHtmlString: overrides };
+        if (overrides != null) return { type: 'structured', ...content, ...overrides };
+        return { type: 'structured', ...content };
     }
 }
