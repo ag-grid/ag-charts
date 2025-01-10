@@ -64,13 +64,13 @@ export interface TooltipContent {
     title?: string;
     symbol?: LegendSymbolOptions;
     data?: TooltipContentDataRow[];
-    string?: string;
+    rawHtmlString?: string;
 }
 
 export function tooltipContentAriaLabel(content: TooltipContent) {
     const ariaLabel: string[] = [];
 
-    if (content.string != null) return '';
+    if (content.rawHtmlString != null) return '';
     if (content.heading != null) ariaLabel.push(content.heading);
     if (content.title != null) ariaLabel.push(content.title);
     content.data?.forEach((datum) => {
@@ -99,7 +99,7 @@ function dataHtml(label: string | undefined, value: string, inline: boolean) {
 }
 
 function tooltipContentHtml(content: TooltipContent) {
-    if (content.string != null) return content.string;
+    if (content.rawHtmlString != null) return content.rawHtmlString;
 
     let html = '';
 

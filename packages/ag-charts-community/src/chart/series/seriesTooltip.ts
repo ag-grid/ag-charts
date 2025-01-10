@@ -36,7 +36,7 @@ export class SeriesTooltip<P extends AgSeriesTooltipRendererParams<any>> extends
 
     public formatTooltip(content: TooltipContent, params: RequireOptional<P>): TooltipContent {
         const overrides = this.renderer?.(params);
-        if (typeof overrides === 'string') return { string: overrides };
+        if (typeof overrides === 'string') return { rawHtmlString: overrides };
         if (overrides != null) return { ...content, ...overrides };
         return content;
     }
