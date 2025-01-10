@@ -44,10 +44,9 @@ test.describe('axis-button', () => {
     test('drag', async ({ page }) => {
         await gotoExample(page, url);
         const axisButton = page.locator(SELECTORS.axisButton).first();
-        let bbox: GetPromiseReturnType<typeof axisButton.boundingBox>;
 
         await page.mouse.move(400, 100);
-        bbox = await axisButton.boundingBox();
+        const bbox = await axisButton.boundingBox();
         await page.mouse.move(bbox.x, bbox.y);
         await page.mouse.down({ button: 'left' });
         await page.mouse.move(400, 200);
