@@ -13,7 +13,6 @@ import { Path } from '../../../scene/shape/path';
 import { Text } from '../../../scene/shape/text';
 import { QuadtreeNearest } from '../../../scene/util/quadtree';
 import { Debug } from '../../../util/debug';
-import { findRangeExtent } from '../../../util/number';
 import { StateMachine } from '../../../util/stateMachine';
 import { BOOLEAN, STRING, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
@@ -741,7 +740,7 @@ export abstract class CartesianSeries<
         return false;
     }
 
-    protected abstract xCoordinateRange(xValue: any, index: number, pixelSize: number): [number, number];
+    protected abstract xCoordinateRange(xValue: any, pixelSize: number, index: number): [number, number];
 
     // Workaround - it would be nice if this difference didn't exist
     private keysOrValues(xKey: string) {
@@ -750,13 +749,12 @@ export abstract class CartesianSeries<
     }
 
     protected visibleRange(axisKey: string, visibleRange: [any, any], sorted: boolean, indices?: number[]) {
-        const xScale = this.axes[ChartAxisDirection.X]!.scale;
-        const [r0, r1] = visibleRange;
         const xValues = this.keysOrValues(axisKey);
-        const pixelSize = Math.abs(r1 - r0) * (findRangeExtent(xScale.range) / findRangeExtent(xScale.domain));
+        // @todo(AG-7083) - figure out how to determine this
+        const pixelSize = 0;
         return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, sorted, (topIndex) => {
             const datumIndex = indices?.[topIndex] ?? topIndex;
-            return this.xCoordinateRange(xValues[datumIndex], datumIndex, pixelSize);
+            return this.xCoordinateRange(xValues[datumIndex], pixelSize, datumIndex);
         });
     }
 

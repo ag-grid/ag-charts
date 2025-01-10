@@ -665,6 +665,10 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
             }
         }
 
+        const delta = 1e-6;
+        if (min < delta) min = 0;
+        if (max > 1 - delta) max = 1;
+
         if (min > max) return;
 
         return { min, max };

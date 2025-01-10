@@ -145,7 +145,7 @@ export class HeatmapSeries extends _ModuleSupport.CartesianSeries<
         return !colorDataMissing;
     }
 
-    override xCoordinateRange(xValue: any, _index: number, pixelSize: number): [number, number] {
+    override xCoordinateRange(xValue: any, pixelSize: number): [number, number] {
         const xScale = this.axes[ChartAxisDirection.X]!.scale;
         const xOffset = (pixelSize * (xScale.bandwidth ?? 0)) / 2;
         const x = xScale.convert(xValue) + xOffset;
