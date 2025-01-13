@@ -206,7 +206,7 @@ export abstract class Axis<
     readonly gridLine = new AxisGridLine();
     readonly label = this.createLabel();
 
-    protected defaultTickMinSpacing: number = Axis.defaultTickMinSpacing;
+    defaultTickMinSpacing: number = Axis.defaultTickMinSpacing;
 
     readonly translation = { x: 0, y: 0 };
     rotation: number = 0; // axis rotation angle in degrees
