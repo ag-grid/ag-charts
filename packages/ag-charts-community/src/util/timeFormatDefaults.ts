@@ -1,11 +1,5 @@
-import { day } from '../util/time/day';
-import { hour } from '../util/time/hour';
-import { minute } from '../util/time/minute';
-import { month } from '../util/time/month';
-import { second } from '../util/time/second';
-import { sunday as week } from '../util/time/week';
-import { year } from '../util/time/year';
 import { findMinMax } from './number';
+import { day, hour, minute, month, second, sunday as week, year } from './time';
 import { durationDay, durationHour, durationMinute, durationSecond, durationWeek, durationYear } from './time/duration';
 import { buildFormatter } from './timeFormat';
 

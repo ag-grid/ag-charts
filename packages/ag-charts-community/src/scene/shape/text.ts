@@ -1,5 +1,6 @@
 import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
+import { createSvgElement } from '../../util/dom';
 import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';
@@ -168,7 +169,7 @@ export class Text extends Shape {
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
         if (!this.visible || !this.text) return;
 
-        const element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+        const element = createSvgElement('text');
 
         this.applySvgFillAttributes(element);
         element.setAttribute('font-family', this.fontFamily?.split(',')[0] ?? '');

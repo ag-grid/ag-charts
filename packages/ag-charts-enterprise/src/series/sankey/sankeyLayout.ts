@@ -20,8 +20,7 @@ function sortNodesByY(column: Column) {
 
 function justifyNodesAcrossColumn({ nodes, size }: Column, { seriesRectHeight, nodeSpacing, sizeScale }: Layout) {
     const nodesHeight = seriesRectHeight * size * sizeScale;
-    const outerPadding = (seriesRectHeight - (nodesHeight + nodeSpacing * (nodes.length - 1))) / 2;
-    let y = outerPadding;
+    let y = (seriesRectHeight - (nodesHeight + nodeSpacing * (nodes.length - 1))) / 2; // outerPadding
     nodes.forEach(({ datum: node }) => {
         const height = seriesRectHeight * node.size * sizeScale;
         node.y = y;

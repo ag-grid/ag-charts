@@ -172,12 +172,6 @@ export class AnimationBatch {
         }
     }
 
-    pause() {
-        for (const controller of this.controllers.values()) {
-            controller.pause();
-        }
-    }
-
     stop() {
         for (const controller of this.controllers.values()) {
             try {

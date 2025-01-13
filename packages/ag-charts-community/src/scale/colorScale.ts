@@ -43,7 +43,7 @@ const interpolateOklch = (x: OKLCHA, y: OKLCHA, d: number): Color => {
     return Color.fromOKLCH(l, c, h, a);
 };
 
-export class ColorScale extends AbstractScale<number, string, number> {
+export class ColorScale extends AbstractScale<number, string> {
     readonly type = 'color';
     protected invalid = true;
 

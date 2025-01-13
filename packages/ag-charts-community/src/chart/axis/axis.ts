@@ -206,7 +206,7 @@ export abstract class Axis<
     readonly gridLine = new AxisGridLine();
     readonly label = this.createLabel();
 
-    protected defaultTickMinSpacing: number = Axis.defaultTickMinSpacing;
+    defaultTickMinSpacing: number = Axis.defaultTickMinSpacing;
 
     readonly translation = { x: 0, y: 0 };
     rotation: number = 0; // axis rotation angle in degrees
@@ -310,11 +310,11 @@ export abstract class Axis<
     }
 
     protected defaultDatumFormatter(datum: any, fractionDigits: number): string {
-        return formatValue(datum, fractionDigits);
+        return formatValue(datum, fractionDigits + 1);
     }
 
     protected defaultLabelFormatter(datum: any, fractionDigits: number): string {
-        return formatValue(datum, fractionDigits + 1);
+        return formatValue(datum, fractionDigits);
     }
 
     @Validate(OBJECT)
@@ -521,7 +521,7 @@ export abstract class Axis<
             ((x: any) => this.defaultLabelFormatter(x, fractionDigits));
         this.datumFormatter =
             scale.datumFormatter({ domain: tickDomain, specifier, ticks, fractionDigits }) ??
-            ((x: any) => this.defaultLabelFormatter(x, fractionDigits));
+            ((x: any) => this.defaultDatumFormatter(x, fractionDigits));
         this.scaleFormatterParams = { domain: tickDomain, ticks, fractionDigits };
 
         this.layout.label = {
@@ -623,10 +623,6 @@ export abstract class Axis<
         crossLineLineGroup.setProperties({ rotation, translationX, translationY });
         crossLineLabelGroup.setProperties({ rotation, translationX, translationY });
         gridGroup.setProperties({ rotation, translationX, translationY });
-    }
-
-    protected updateSecondaryAxisTicks(_primaryTickCount: number | undefined): any[] {
-        throw new Error('AG Charts - unexpected call to updateSecondaryAxisTicks() - check axes configuration.');
     }
 
     protected abstract updateSelections(): void;

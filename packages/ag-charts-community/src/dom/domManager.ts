@@ -365,18 +365,6 @@ export class DOMManager extends BaseManager<Events['type'], Events> {
         return BBox.merge(childRects);
     }
 
-    calculateCanvasPosition(el: HTMLElement) {
-        let x = 0;
-        let y = 0;
-
-        const { x: cx = 0, y: cy = 0 } = this.getChildBoundingClientRect('canvas') ?? {};
-        const elRect = el.getBoundingClientRect();
-        x = elRect.x - cx;
-        y = elRect.y - cy;
-
-        return { x, y };
-    }
-
     isManagedChildDOMElement(el: HTMLElement, domElementClass: DOMElementClass, id: string) {
         const { children } = this.rootElements[domElementClass];
 

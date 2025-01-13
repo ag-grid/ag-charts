@@ -80,7 +80,7 @@ export function jsonPropertyCompare<T>(source: Partial<T>, target: T) {
  * Recursively clones of primitives and objects.
  *
  * @param source object | array
- * @param options
+ * @param shallow
  *
  * @return deep clone of source
  */
@@ -137,6 +137,7 @@ export function shallowClone<T>(source: T): T {
  * @param visit callback for each non-primitive and non-array object found
  * @param skip property names to skip when walking
  * @param parallelJson to traverse in parallel
+ * @param ctx
  * @param acc initial accumulator value
  */
 export function jsonWalk<T, C, R>(

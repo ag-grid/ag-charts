@@ -1030,8 +1030,8 @@ export class DonutSeries extends PolarSeries<DonutNodeDatum, DonutSeriesProperti
                 box.x + box.width > other.x &&
                 (direction === 'to-top' ? box.y < other.y + other.height : box.y + box.height > other.y);
             if (collidesOrBehind) {
-                const dy = direction === 'to-top' ? box.y - other.y - other.height : box.y + box.height - other.y;
-                next.calloutLabel.collisionOffsetY = dy;
+                next.calloutLabel.collisionOffsetY =
+                    direction === 'to-top' ? box.y - other.y - other.height : box.y + box.height - other.y;
             }
         };
 

@@ -39,10 +39,8 @@ class TreeNode {
     change: number = 0;
     shift: number = 0;
     index: number = 0;
-    // screenX and screenY are meant to be recomputed from (layout) x and y
-    // when the tree is resized (without performing another layout)
+    // screenX is meant to be recomputed from (layout) x when the tree is resized (without performing another layout)
     screenX: number = 0;
-    screenY: number = 0;
 
     constructor(
         public label: string = '',
@@ -281,17 +279,5 @@ export class TreeLayout {
             scalingX *= -1;
         }
         return scalingX;
-    }
-
-    scalingY(height: number, flip?: boolean) {
-        let scalingY = 1;
-        if (height > 0) {
-            const { top, bottom } = this.dimensions;
-            scalingY = height / (bottom - top);
-        }
-        if (flip) {
-            scalingY *= -1;
-        }
-        return scalingY;
     }
 }

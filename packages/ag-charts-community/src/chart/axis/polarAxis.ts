@@ -29,7 +29,7 @@ export abstract class PolarAxis<
     @Validate(RATIO)
     innerRadiusRatio: number = 0;
 
-    protected override defaultTickMinSpacing = 20;
+    override defaultTickMinSpacing = 20;
 
     override updatePosition(): void {
         super.updatePosition();

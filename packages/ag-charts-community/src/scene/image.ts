@@ -2,17 +2,8 @@ import type { RenderContext } from './node';
 import { Node, SceneChangeDetection } from './node';
 
 export class Image extends Node {
-    constructor(private sourceImage?: HTMLImageElement | ImageBitmap) {
+    constructor(private readonly sourceImage?: HTMLImageElement | ImageBitmap) {
         super();
-    }
-
-    updateBitmap(newBitmap: ImageBitmap, bitmapPixelRatio: number, x: number, y: number) {
-        this.sourceImage = newBitmap;
-        this.width = newBitmap.width / bitmapPixelRatio;
-        this.height = newBitmap.height / bitmapPixelRatio;
-        this.x = x / bitmapPixelRatio;
-        this.y = y / bitmapPixelRatio;
-        this.markDirty();
     }
 
     @SceneChangeDetection()

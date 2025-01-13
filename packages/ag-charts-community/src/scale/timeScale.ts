@@ -1,5 +1,5 @@
 import { TickIntervals, getTickInterval, isDenseInterval } from '../util/ticks';
-import { TimeInterval } from '../util/time/interval';
+import { TimeInterval } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';
 import { dateToNumber, defaultTimeTickFormat } from '../util/timeFormatDefaults';
 import { ContinuousScale } from './continuousScale';

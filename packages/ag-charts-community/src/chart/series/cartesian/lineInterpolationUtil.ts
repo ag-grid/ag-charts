@@ -115,9 +115,8 @@ function validateCategorySorting(newData: SpanContext, oldData: SpanContext) {
     let x0 = -Infinity;
     for (const oldValue of oldScale.domain) {
         const x = scale(oldValue, newScale);
-        if (!Number.isFinite(x)) {
-            continue;
-        } else if (x < x0) {
+        if (!Number.isFinite(x)) continue;
+        if (x < x0) {
             // Unsorted
             return false;
         } else {
@@ -132,9 +131,8 @@ function validateAxisEntriesOrder(axisValues: ValueEntry[], data: SpanContext) {
     let x0 = -Infinity;
     for (const axisValue of axisValues) {
         const x = scale(axisValue.value, data.scales.x);
-        if (!Number.isFinite(x)) {
-            continue;
-        } else if (x < x0) {
+        if (!Number.isFinite(x)) continue;
+        if (x < x0) {
             // Unsorted
             return false;
         } else {

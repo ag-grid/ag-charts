@@ -169,7 +169,7 @@ export class GradientLegend {
             gradientRect.height = thickness;
         }
 
-        const linearGradient = new LinearGradient(
+        gradientRect.fill = new LinearGradient(
             'oklch',
             colorRange.map((color, i) => ({
                 offset: i / (colorRange.length - 1),
@@ -177,7 +177,6 @@ export class GradientLegend {
             })),
             angle
         );
-        gradientRect.fill = linearGradient;
     }
 
     private updateAxis(data: _ModuleSupport.GradientLegendDatum) {

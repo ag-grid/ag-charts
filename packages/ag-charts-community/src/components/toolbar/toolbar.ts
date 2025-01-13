@@ -165,10 +165,7 @@ export abstract class BaseToolbar<
     protected abstract createButtonWidget(): ButtonWidget;
 }
 
-export class Toolbar<ButtonOptions extends ToolbarButtonOptions> extends BaseToolbar<
-    ButtonOptions,
-    ToolbarButtonWidget
-> {
+export class Toolbar<ButtonOptions extends ToolbarButtonOptions> extends BaseToolbar<ButtonOptions> {
     protected createButtonWidget() {
         return new ToolbarButtonWidget(this.localeManager);
     }

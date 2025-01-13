@@ -120,22 +120,6 @@ export class AnimationManager {
         this.requestAnimation();
     }
 
-    public pause() {
-        if (!this.isPlaying) {
-            return;
-        }
-
-        this.isPlaying = false;
-        this.cancelAnimation();
-        this.debug('AnimationManager.pause()');
-
-        try {
-            this.batch.pause();
-        } catch (error: unknown) {
-            this.failsafeOnError(error);
-        }
-    }
-
     public stop() {
         this.isPlaying = false;
         this.cancelAnimation();

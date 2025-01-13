@@ -1,4 +1,5 @@
 import { lineDistanceSquared } from '../../util/distance';
+import { createSvgElement } from '../../util/dom';
 import type { DistantObject } from '../../util/nearest';
 import { BBox } from '../bbox';
 import type { NodeOptions, RenderContext } from '../node';
@@ -101,7 +102,7 @@ export class Line extends Shape implements DistantObject {
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
         if (!this.visible) return;
 
-        const element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        const element = createSvgElement('line');
 
         element.setAttribute('x1', String(this.x1));
         element.setAttribute('y1', String(this.y1));

@@ -1,12 +1,12 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, stringifyValue } from 'ag-charts-core';
 import type { AgBaseCrossLineLabelOptions, AgCrossLineLabelPosition } from 'ag-charts-types';
 
 import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import type { Group } from '../../scene/group';
-import type { TimeInterval } from '../../util/time/interval';
-import { predicateWithMessage, stringify } from '../../util/validation';
+import type { TimeInterval } from '../../util/time';
+import { predicateWithMessage } from '../../util/validation';
 import { checkDatum } from '../../util/value';
 import type { ChartAxisDirection } from '../chartAxisDirection';
 
@@ -57,13 +57,13 @@ export const validateCrossLineValues = (
 
     if (rangeCrossLine) {
         if (!validStart) {
-            message.push(`range start ${stringify(start)}`);
+            message.push(`range start ${stringifyValue(start)}`);
         }
         if (!validEnd) {
-            message.push(`${validStart ? '' : 'and '}range end ${stringify(end)}`);
+            message.push(`${validStart ? '' : 'and '}range end ${stringifyValue(end)}`);
         }
     } else {
-        message.push(`value ${stringify(start)}`);
+        message.push(`value ${stringifyValue(start)}`);
     }
 
     message.push(`to match the axis scale domain.`);

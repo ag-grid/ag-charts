@@ -8,6 +8,7 @@ import {
     isObject,
     isString,
     isValidDate,
+    stringifyValue,
 } from 'ag-charts-core';
 
 import { Color } from './color';
@@ -62,13 +63,7 @@ export function Validate(predicate: ValidatePredicate, options: ValidateOptions 
 
             const cleanKey = overrideProperty ?? String(property).replace(/^_*/, '');
             const targetName = target.constructor.className ?? target.constructor.name.replace(/Properties$/, '');
-
-            let valueString = stringify(value);
-            const maxLength = 50;
-            if (valueString != null && valueString.length > maxLength) {
-                const excessCharacters = valueString.length - maxLength;
-                valueString = valueString.slice(0, maxLength) + `... (+${excessCharacters} characters)`;
-            }
+            const valueString = stringifyValue(value, 50);
 
             Logger.warn(
                 `Property [${cleanKey}] of [${targetName}] cannot be set to [${valueString}]${
@@ -294,13 +289,4 @@ function attachObjectRestrictions(predicate: ValidatePredicate): ValidateObjectP
             );
         },
     });
-}
-
-export function stringify(value: any): string {
-    if (typeof value === 'number') {
-        if (isNaN(value)) return 'NaN';
-        if (value === Infinity) return 'Infinity';
-        if (value === -Infinity) return '-Infinity';
-    }
-    return JSON.stringify(value);
 }

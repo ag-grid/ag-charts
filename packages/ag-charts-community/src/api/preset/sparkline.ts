@@ -210,7 +210,7 @@ function axisPreset(
 ): AgCartesianAxisOptions {
     switch (opts?.type) {
         case 'number': {
-            const { type, visible: _visible, stroke: _stroke, strokeWidth: _strokeWidth, min, max, reverse } = opts;
+            const { type, min, max, reverse } = opts;
             return pickProps<Pick<AgNumberAxisOptions, 'type' | 'reverse' | 'min' | 'max'>>(opts, {
                 type,
                 reverse,
@@ -219,7 +219,7 @@ function axisPreset(
             });
         }
         case 'time': {
-            const { type, visible: _visible, stroke: _stroke, strokeWidth: _strokeWidth, min, max, reverse } = opts;
+            const { type, min, max, reverse } = opts;
             return pickProps<Pick<AgTimeAxisOptions, 'type' | 'reverse' | 'min' | 'max'>>(opts, {
                 type,
                 reverse,
@@ -228,15 +228,7 @@ function axisPreset(
             });
         }
         case 'category': {
-            const {
-                type,
-                visible: _visible,
-                stroke: _stroke,
-                strokeWidth: _strokeWidth,
-                paddingInner,
-                paddingOuter,
-                reverse,
-            } = opts;
+            const { type, paddingInner, paddingOuter, reverse } = opts;
             return pickProps<Pick<AgCategoryAxisOptions, 'type' | 'reverse' | 'paddingInner' | 'paddingOuter'>>(opts, {
                 type,
                 reverse,

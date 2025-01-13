@@ -48,10 +48,6 @@ export class TooltipManager {
         this.suppressState.delete(callerId);
     }
 
-    public getTooltipMeta(callerId: string): TooltipMeta | undefined {
-        return this.stateTracker.get(callerId)?.meta;
-    }
-
     public destroy() {
         this.domManager.removeStyles('tooltip');
     }

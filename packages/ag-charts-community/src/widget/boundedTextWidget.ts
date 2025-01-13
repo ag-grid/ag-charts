@@ -1,5 +1,5 @@
-import { createElementNS, getDocument } from '../util/dom';
-import { Widget } from '../widget/widget';
+import { createSvgElement, getDocument } from '../util/dom';
+import { Widget } from './widget';
 
 // This class represents text that is sized by bounds rather than font size.
 // Its main purpose to tell screenreaders about the bounds & content of text scene nodes.
@@ -25,10 +25,10 @@ export class BoundedTextWidget extends Widget<HTMLDivElement> {
 
     constructor() {
         super(getDocument().createElement('div'));
-        this.textElement = createElementNS('http://www.w3.org/2000/svg', 'text');
+        this.textElement = createSvgElement('text');
         this.textElement.role = 'presentation';
 
-        this.svgElement = createElementNS('http://www.w3.org/2000/svg', 'svg');
+        this.svgElement = createSvgElement('svg');
         this.svgElement.appendChild(this.textElement);
         this.svgElement.style.width = '100%';
         this.svgElement.style.opacity = '0';

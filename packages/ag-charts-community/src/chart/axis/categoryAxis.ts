@@ -7,7 +7,7 @@ import { RATIO, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 
 export class CategoryAxis<
-    S extends CategoryScale<string | object, number> | OrdinalTimeScale = CategoryScale<string | object, number>,
+    S extends CategoryScale<string | object> | OrdinalTimeScale = CategoryScale<string | object>,
 > extends CartesianAxis<S> {
     static override is(this: void, value: unknown): value is CategoryAxis<any> {
         return value instanceof CategoryAxis;

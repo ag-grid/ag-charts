@@ -2,7 +2,7 @@ import { Logger } from 'ag-charts-core';
 
 import { clamp, countFractionDigits } from './number';
 import { numberFormat, parseFormat } from './numberFormat';
-import { day } from './time/day';
+import { day, hour, millisecond, minute, month, second, sunday as week, year } from './time';
 import {
     durationDay,
     durationHour,
@@ -12,14 +12,7 @@ import {
     durationWeek,
     durationYear,
 } from './time/duration';
-import { hour } from './time/hour';
 import { type CountableTimeInterval, type TimeInterval } from './time/interval';
-import { millisecond } from './time/millisecond';
-import { minute } from './time/minute';
-import { month } from './time/month';
-import { second } from './time/second';
-import { sunday as week } from './time/week';
-import { year } from './time/year';
 
 const tInterval = (timeInterval: CountableTimeInterval, baseDuration: number, step: number) => ({
     duration: baseDuration * step,

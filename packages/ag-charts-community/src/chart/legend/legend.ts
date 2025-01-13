@@ -305,7 +305,6 @@ export class Legend extends BaseProperties {
         this.ctx.domManager.removeChild('canvas-overlay', `${this.id}-pagination`);
         this.destroyFns.forEach((f) => f());
 
-        this.pagination.destroy();
         this.itemSelection.clear();
         this.domProxy.destroy();
     }

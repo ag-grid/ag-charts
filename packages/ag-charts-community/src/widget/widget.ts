@@ -18,7 +18,7 @@ type EventType = keyof WidgetEventMap;
 interface IWidget<TElement extends HTMLElement> {
     index: number;
     domIndex?: number;
-    parent?: Widget<HTMLElement, IWidget<HTMLElement>>;
+    parent?: Widget;
     destroy(): void;
     getElement(): TElement;
 }
@@ -61,7 +61,7 @@ export abstract class Widget<
     // WARNING (not implemented): setting domIndex will not move it in the DOM. This property is currently only used
     // when adding child widgets.
     public domIndex?: number;
-    public parent?: Widget<HTMLElement, IWidget<HTMLElement>>;
+    public parent?: Widget;
 
     protected readonly children: TChildWidget[] = [];
     protected htmlListener?: WidgetListenerHTML;

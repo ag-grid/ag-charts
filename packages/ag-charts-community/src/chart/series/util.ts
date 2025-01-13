@@ -1,5 +1,6 @@
+import { findMaxIndex, findMinIndex } from 'ag-charts-core';
+
 import type { Point } from '../../scene/point';
-import { findMaxIndex, findMinIndex } from '../../util/binarySearch';
 import { NumberAxis } from '../axis/numberAxis';
 import { TimeAxis } from '../axis/timeAxis';
 import type { ChartAxis } from '../chartAxis';

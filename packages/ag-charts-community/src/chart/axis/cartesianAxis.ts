@@ -295,9 +295,7 @@ export abstract class CartesianAxis<S extends Scale<D, number, any> = Scale<any,
         }
 
         const bbox = BBox.merge(boxes);
-        const transformedBBox = this.getTransformBox(bbox);
-
-        return transformedBBox;
+        return this.getTransformBox(bbox);
     }
 
     private getTickLabelProps(datum: TickDatum, tickGenerationResult: TickGenerationResult): LabelNodeDatum {

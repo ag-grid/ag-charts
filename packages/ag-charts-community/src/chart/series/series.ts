@@ -795,8 +795,7 @@ export abstract class Series<
                 const [dx, dy] = (['x', 'y'] satisfies (keyof Point)[]).map(
                     (key) => (activeStyle.strokeWidth ?? 0) + Math.abs(center[key] - point[key])
                 );
-                const customSize = Math.max(bb.width + dx, bb.height + dy);
-                point.focusSize = customSize;
+                point.focusSize = Math.max(bb.width + dx, bb.height + dy);
             }
         }
     }

@@ -1,3 +1,4 @@
+import { createSvgElement } from '../../util/dom';
 import type { DistantObject } from '../../util/nearest';
 import { ExtendedPath2D } from '../extendedPath2D';
 import type { ChildNodeCounts, RenderContext } from '../node';
@@ -147,7 +148,7 @@ export class Path extends Shape implements DistantObject {
     override toSVG(): { elements: SVGElement[]; defs?: SVGElement[] } | undefined {
         if (!this.visible) return;
 
-        const element = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const element = createSvgElement('path');
 
         element.setAttribute('d', this.svgPathData());
         this.applySvgFillAttributes(element);

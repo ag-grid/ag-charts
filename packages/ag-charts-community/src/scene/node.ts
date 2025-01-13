@@ -1,3 +1,4 @@
+import { createSvgElement } from '../util/dom';
 import { createId } from '../util/id';
 import { toIterable } from '../util/iterator';
 import { BBox } from './bbox';
@@ -56,13 +57,13 @@ export abstract class Node {
 
         if (svg == null || (!svg.elements.length && !svg.defs?.length)) return;
 
-        const root = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        const root = createSvgElement('svg');
         root.setAttribute('width', String(width));
         root.setAttribute('height', String(height));
         root.setAttribute('viewBox', `0 0 ${width} ${height}`);
 
         if (svg.defs?.length) {
-            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+            const defs = createSvgElement('defs');
             defs.append(...svg.defs);
             root.append(defs);
         }

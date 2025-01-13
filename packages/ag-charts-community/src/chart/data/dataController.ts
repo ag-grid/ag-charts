@@ -89,7 +89,7 @@ export class DataController {
         for (const { data, ids, opts, resolves, rejects } of merged) {
             const reusableCache = cachedData?.find((cacheItem) => canReuseCachedData(cacheItem, data, ids, opts));
 
-            let dataModel: DataModel<any, string, undefined>;
+            let dataModel: DataModel<any, string>;
             let processedData: UngroupedData<any> | undefined;
             if (reusableCache == null) {
                 try {

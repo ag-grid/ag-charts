@@ -6,7 +6,6 @@ import { ContinuousScale } from '../../scale/continuousScale';
 import { OrdinalTimeScale } from '../../scale/ordinalTimeScale';
 import type { Scale } from '../../scale/scale';
 import type { BBox } from '../../scene/bbox';
-import { includes } from '../../util/array';
 import { BaseManager } from '../../util/baseManager';
 import type { BBoxValues } from '../../util/bboxinterface';
 import { deepClone } from '../../util/json';
@@ -136,7 +135,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         if (!isObject(blob)) return false;
 
         for (const key of Object.keys(blob)) {
-            if (!includes(expectedMementoKeys, key)) {
+            if (!expectedMementoKeys.includes(key as keyof ZoomMemento)) {
                 return false;
             }
         }

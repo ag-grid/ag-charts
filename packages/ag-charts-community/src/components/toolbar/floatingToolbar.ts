@@ -23,7 +23,7 @@ interface FloatingToolbarEventMap<ButtonOptions extends ToolbarButtonOptions> ex
     };
 }
 
-class FloatingToolbarPopover extends DraggablePopover<PopoverOptions> {
+class FloatingToolbarPopover extends DraggablePopover {
     override dragHandleDraggingClass = 'ag-charts-floating-toolbar__drag-handle--dragging';
 
     constructor(

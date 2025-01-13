@@ -50,7 +50,7 @@ export interface TooltipMetaPosition {
 
 export interface TooltipMeta extends TooltipOffsets {
     showArrow?: boolean;
-    lastPointerEvent?: TooltipPointerEvent<TooltipEventType>;
+    lastPointerEvent?: TooltipPointerEvent;
     position?: TooltipMetaPosition;
     enableInteraction?: boolean;
 }
@@ -246,6 +246,7 @@ export class Tooltip extends BaseProperties {
 
     destroy(domManager: DOMManager) {
         domManager.removeChild('canvas-overlay', DEFAULT_TOOLTIP_CLASS);
+        this.destroyFns.forEach((f) => f());
     }
 
     isVisible(): boolean {
