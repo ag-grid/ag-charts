@@ -12,7 +12,7 @@ const LICENSE_TYPES = {
     '0102': 'BOTH',
 };
 
-const LICENSING_HELP_URL = 'https://ag-grid.com/charts/licensing/';
+const LICENSING_HELP_URL = 'https://www.ag-grid.com/charts/licensing/';
 
 export class LicenseManager {
     private static readonly RELEASE_INFORMATION: string = 'MTczNDYwMzc0NjU5NA==';
