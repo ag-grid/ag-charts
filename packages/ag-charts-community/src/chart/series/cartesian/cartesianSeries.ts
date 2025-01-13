@@ -781,7 +781,7 @@ export abstract class CartesianSeries<
         let axisMin = Infinity;
         let axisMax = -Infinity;
         crossAxisValues.forEach((crossAxisValue, i) => {
-            const [x0, x1] = this.xCoordinateRange(crossAxisValue, i, 0);
+            const [x0, x1] = this.xCoordinateRange(crossAxisValue, 0, i);
             if (x1 < r0 || x0 > r1) return;
 
             for (let j = 0; j < axisKeys.length; j++) {
