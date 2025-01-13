@@ -16,10 +16,7 @@ const options: AgCartesianChartOptions = {
     },
     listeners: {
         zoom: (event) => {
-            const percentX = Math.floor(100 / (event.ratioX.end - event.ratioX.start));
-            const percentY = Math.floor(100 / (event.ratioY.end - event.ratioY.start));
-            options.subtitle!.text = `Zoom: x = ${percentX}%, y = ${percentY}%`;
-            chart.update(options);
+            console.log(event);
         },
     },
     data: getData(),
