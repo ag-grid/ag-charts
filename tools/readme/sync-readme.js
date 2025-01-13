@@ -45,7 +45,8 @@ const updateContent = (readme) => {
 
     // Update Content
     newReadme = rootReadme
-        .replaceAll('https://ag-grid.com/charts/javascript/', `https://ag-grid.com/charts/${framework}/`)
+        .replaceAll('https://www.ag-grid.com/charts/javascript/', `https://www.ag-grid.com/charts/${framework}/`)
+        .replaceAll('https://ag-grid.com/charts/javascript/', `https://www.ag-grid.com/charts/${framework}/`)
         .replaceAll('/ag-charts-community', `/${packageName}`)
         .replaceAll('JavaScript', `${packageTitle}`)
         .replaceAll('/javascript-data-grid/', `/${framework}-data-grid/`)

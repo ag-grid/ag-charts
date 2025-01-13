@@ -68,7 +68,7 @@
     "not op_mini all",
     "not operamobile >= 0"
   ],
-  "homepage": "https://ag-grid.com/charts/",
+  "homepage": "https://www.ag-grid.com/charts/",
   "dependencies": {
     "ag-charts-types": "11.0.3-beta.20250112",
     "ag-charts-locale": "11.0.3-beta.20250112"

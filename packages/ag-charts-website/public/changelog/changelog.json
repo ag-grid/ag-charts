@@ -708,7 +708,7 @@
         "status": "Done",
         "resolution": "Done",
         "features": null,
-        "moreInformation": "Consider using `innerRadiusRatio`, added as part of `28.2.0` / `6.2.0` to avoid the need for reactive updates.\r\nEven with `innerRadiusOffset` it is possible to use the `updateChart` method to update via API - see https://ag-grid.com/javascript-data-grid/integrated-charts-events/#event-driven-chart-updates",
+        "moreInformation": "Consider using `innerRadiusRatio`, added as part of `28.2.0` / `6.2.0` to avoid the need for reactive updates.\r\nEven with `innerRadiusOffset` it is possible to use the `updateChart` method to update via API - see https://www.ag-grid.com/javascript-data-grid/integrated-charts-events/#event-driven-chart-updates",
         "deprecationNotes": null,
         "breakingChangesNotes": null,
         "documentationUrl": null
@@ -4197,7 +4197,7 @@
         "moreInformation": null,
         "deprecationNotes": null,
         "breakingChangesNotes": null,
-        "documentationUrl": "https://ag-grid.com/javascript-grid-charts-pivot-chart/"
+        "documentationUrl": "https://www.ag-grid.com/javascript-grid-charts-pivot-chart/"
     },
     {
         "key": "AG-3168",
@@ -4225,7 +4225,7 @@
         "moreInformation": "aggFunc: The aggregation function that should be applied to all series data. Built-in aggregation functions can be used by supplying one of the strings keys: sum, min, max, count, avg, first, last. Custom aggregation functions can also be directly supplied if they conform to the IAggFunc interface shown above.\r\n\r\nNote that 'aggregate: boolean' has been replaced with aggFunc instead.\r\n",
         "deprecationNotes": null,
         "breakingChangesNotes": null,
-        "documentationUrl": "https://ag-grid.com/javascript-grid-charts-chart-range-api/#chart-range-api-1"
+        "documentationUrl": "https://www.ag-grid.com/javascript-grid-charts-chart-range-api/#chart-range-api-1"
     },
     {
         "key": "AG-3160",
@@ -4239,7 +4239,7 @@
         "moreInformation": "Bubble charts are now available in the Chart Settings Menu. Also see link to example of a bubble chart using the chart api.",
         "deprecationNotes": null,
         "breakingChangesNotes": null,
-        "documentationUrl": "https://ag-grid.com/javascript-grid-charts-customisation/#example-saving-user-preferences"
+        "documentationUrl": "https://www.ag-grid.com/javascript-grid-charts-customisation/#example-saving-user-preferences"
     },
     {
         "key": "AG-3159",

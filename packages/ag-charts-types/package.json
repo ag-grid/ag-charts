@@ -52,7 +52,7 @@
     "not op_mini all",
     "not operamobile >= 0"
   ],
-  "homepage": "https://ag-grid.com/charts/",
+  "homepage": "https://www.ag-grid.com/charts/",
   "dependencies": {},
   "devDependencies": {},
   "publishConfig": {
