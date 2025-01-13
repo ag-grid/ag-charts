@@ -1,7 +1,9 @@
+import { createElement } from 'ag-charts-core';
+
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import type { BBoxValues } from '../../util/bboxinterface';
-import { createElement, getIconClassNames } from '../../util/dom';
+import { getIconClassNames } from '../../util/dom';
 import { clamp } from '../../util/number';
 import type { Vec2 } from '../../util/vector';
 import { NativeWidget } from '../../widget/nativeWidget';

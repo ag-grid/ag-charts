@@ -1,6 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
-
-const { createElement } = _ModuleSupport;
+import { createElement } from 'ag-charts-core';
 
 export function injectWatermark(domManager: _ModuleSupport.DOMManager, text: string) {
     const element = domManager.addChild('canvas-overlay', 'watermark');

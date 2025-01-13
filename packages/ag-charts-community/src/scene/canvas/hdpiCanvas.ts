@@ -1,4 +1,5 @@
-import { createElement, getWindow } from '../../util/dom';
+import { createElement, getWindow } from 'ag-charts-core';
+
 import { ObserveChanges } from '../../util/proxy';
 import { clearContext, debugContext } from './canvasUtil';
 

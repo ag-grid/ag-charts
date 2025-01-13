@@ -1,3 +1,4 @@
+import { arraysEqual, diffArrays } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { AxisContext } from '../../module/axisContext';
@@ -8,8 +9,6 @@ import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
 import { Group } from '../../scene/group';
 import { TransformableText } from '../../scene/shape/text';
-import { arraysEqual } from '../../util/array';
-import { diffArrays } from '../../util/diff.util';
 import { StateMachine } from '../../util/stateMachine';
 import { POSITION, POSITIVE_NUMBER, Validate } from '../../util/validation';
 import { Caption } from '../caption';

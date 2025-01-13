@@ -1,5 +1,6 @@
+import { createElement } from 'ag-charts-core';
+
 import { getAttribute, setAttribute } from '../util/attributeUtil';
-import { getDocument } from '../util/dom';
 import { formatPercent } from '../util/format.util';
 import { clamp } from '../util/number';
 import type { RovingDirection } from './rovingDirection';
@@ -58,7 +59,7 @@ export class SliderWidget extends Widget<HTMLInputElement> {
     }
 
     constructor() {
-        super(getDocument().createElement('input'));
+        super(createElement('input'));
         this.orientation = 'both';
     }
 

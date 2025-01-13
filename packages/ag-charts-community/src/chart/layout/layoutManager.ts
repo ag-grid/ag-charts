@@ -1,5 +1,3 @@
-import { Logger } from 'ag-charts-core';
-
 import type { LayoutContext as ILayoutContext } from '../../module/baseModule';
 import type { Scale } from '../../scale/scale';
 import { BBox } from '../../scene/bbox';
@@ -71,9 +69,7 @@ export class LayoutManager {
         const context = new LayoutContext(width, height);
         for (const element of Object.values(LayoutElement)) {
             if (typeof element !== 'number') continue;
-            this.elements.get(element)?.forEach((listener) => {
-                listener(context)?.catch((e) => Logger.error(e));
-            });
+            this.elements.get(element)?.forEach((listener) => listener(context));
         }
         return context;
     }

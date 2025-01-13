@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { getWindow } from 'ag-charts-core';
 
 import type { AxisZoomStates, ZoomCoords } from './zoomTypes';
 import { UNIT, constrainZoom, definedZoomState, dx, dy, pointToRatio, translateZoom } from './zoomUtils';
@@ -104,7 +105,7 @@ export class ZoomPanner {
             const velocity = Math.hypot(xVelocity, yVelocity);
             const angle = Math.atan2(yVelocity, xVelocity);
             const t0 = performance.now();
-            this.inertiaHandle = _ModuleSupport.getWindow().requestAnimationFrame((t) => {
+            this.inertiaHandle = getWindow().requestAnimationFrame((t) => {
                 this.animateInertia(t, t, t0, velocity, angle);
             });
         }

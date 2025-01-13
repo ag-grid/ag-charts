@@ -1,6 +1,6 @@
-import { createSvgElement } from '../util/dom';
+import { createSvgElement, toIterable } from 'ag-charts-core';
+
 import { createId } from '../util/id';
-import { toIterable } from '../util/iterator';
 import { BBox } from './bbox';
 import { SceneChangeDetection } from './changeDetectable';
 import type { LayersManager } from './layersManager';

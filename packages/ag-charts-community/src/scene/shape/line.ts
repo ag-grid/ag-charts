@@ -1,5 +1,6 @@
+import { createSvgElement } from 'ag-charts-core';
+
 import { lineDistanceSquared } from '../../util/distance';
-import { createSvgElement } from '../../util/dom';
 import type { DistantObject } from '../../util/nearest';
 import { BBox } from '../bbox';
 import type { NodeOptions, RenderContext } from '../node';

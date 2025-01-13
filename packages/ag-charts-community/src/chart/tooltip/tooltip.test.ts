@@ -1,9 +1,10 @@
 import { describe, expect, it } from '@jest/globals';
 
+import { getDocument } from 'ag-charts-core';
 import { type AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
-import { getDocument } from '../../util/dom';
+import type { AgChartProxy, Chart } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,
     createChart,
@@ -15,7 +16,6 @@ import {
     setupMockConsole,
     waitForChartStability,
 } from '../test/utils';
-import type { AgChartProxy, Chart } from '../test/utils';
 
 describe('Tooltip', () => {
     setupMockConsole();

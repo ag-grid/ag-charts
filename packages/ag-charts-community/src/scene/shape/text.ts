@@ -1,6 +1,6 @@
+import { createSvgElement } from 'ag-charts-core';
 import type { FontFamily, FontSize, FontStyle, FontWeight } from 'ag-charts-types';
 
-import { createSvgElement } from '../../util/dom';
 import { CachedTextMeasurerPool, type MeasureOptions, TextUtils } from '../../util/textMeasurer';
 import { BBox } from '../bbox';
 import type { RenderContext } from '../node';

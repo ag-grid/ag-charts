@@ -1,4 +1,5 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { createElement, getWindow } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
 import { ColorPicker } from '../color-picker/colorPicker';
@@ -10,13 +11,11 @@ const {
     Vec2,
     createButton,
     createCheckbox,
-    createElement,
     createElementId,
     createSelect,
     createTextArea,
     initRovingTabIndex,
     getIconClassNames,
-    getWindow,
     mapValues,
     setAttribute,
     setAttributes,

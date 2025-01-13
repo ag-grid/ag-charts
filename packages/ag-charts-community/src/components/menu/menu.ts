@@ -1,5 +1,7 @@
+import { createElement } from 'ag-charts-core';
+
 import type { LabelIcon } from '../../dom/elements';
-import { createElement, getIconClassNames } from '../../util/dom';
+import { getIconClassNames } from '../../util/dom';
 import { type MenuCloser, initMenuKeyNav, isButtonClickEvent } from '../../util/keynavUtil';
 import { AnchoredPopover, type AnchoredPopoverOptions } from '../popover/anchoredPopover';
 

@@ -1,7 +1,7 @@
+import { createElement } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
 import { type AttributeSet, type InputAttributeSet, setAttribute, setAttributes } from '../util/attributeUtil';
-import { createElement } from '../util/dom';
 import { isButtonClickEvent } from '../util/keynavUtil';
 
 // These types force a compilation error if the developer tries to add an icon-only

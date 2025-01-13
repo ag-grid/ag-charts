@@ -1,5 +1,5 @@
 import { type AgChartSyncOptions, _ModuleSupport } from 'ag-charts-community';
-import { Logger, isDate, isDefined, isFiniteNumber } from 'ag-charts-core';
+import { Logger, isDate, isDefined, isFiniteNumber, unique } from 'ag-charts-core';
 
 const {
     BOOLEAN,
@@ -8,7 +8,6 @@ const {
     BaseProperties,
     CartesianAxis,
     ChartUpdateType,
-    unique,
     ObserveChanges,
     TooltipManager,
     Validate,
