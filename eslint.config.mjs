@@ -44,15 +44,13 @@ export const sonarjsConfig = [
             'sonarjs/sonar-max-params': env !== 'nx-task' ? 1 : 0,
             'sonarjs/todo-tag': env !== 'nx-task' ? 1 : 0,
             'sonarjs/fixme-tag': env !== 'nx-task' ? 1 : 0,
+            'sonarjs/no-redeclare': env !== 'nx-task' ? 1 : 0,
+            'sonarjs/function-return-type': env !== 'nx-task' ? 1 : 0,
 
             // We don't really care about these.
             'sonarjs/no-selector-parameter': 0,
             'sonarjs/redundant-type-aliases': 0,
             'sonarjs/new-cap': 0,
-
-            // For review - new for eslint 9.
-            'sonarjs/no-redeclare': 1,
-            'sonarjs/function-return-type': 1,
 
             // Duplicates @typescript-eslint
             'sonarjs/sonar-no-unused-vars': 0,
