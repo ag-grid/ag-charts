@@ -309,8 +309,12 @@ export abstract class Axis<
         return value >= min - tolerance && value <= max + tolerance;
     }
 
-    protected defaultLabelFormatter(datum: any, fractionDigits: number): string {
+    protected defaultDatumFormatter(datum: any, fractionDigits: number): string {
         return formatValue(datum, fractionDigits + 1);
+    }
+
+    protected defaultLabelFormatter(datum: any, fractionDigits: number): string {
+        return formatValue(datum, fractionDigits);
     }
 
     @Validate(OBJECT)
@@ -517,7 +521,7 @@ export abstract class Axis<
             ((x: any) => this.defaultLabelFormatter(x, fractionDigits));
         this.datumFormatter =
             scale.datumFormatter({ domain: tickDomain, specifier, ticks, fractionDigits }) ??
-            ((x: any) => this.defaultLabelFormatter(x, fractionDigits));
+            ((x: any) => this.defaultDatumFormatter(x, fractionDigits));
         this.scaleFormatterParams = { domain: tickDomain, ticks, fractionDigits };
 
         this.layout.label = {
