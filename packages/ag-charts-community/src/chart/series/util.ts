@@ -124,7 +124,7 @@ export function visibleRangeIndices(
             return !Number.isFinite(x0) || x0 < range1;
         }) ?? length - 1;
 
-    xMaxIndex = Math.min(xMaxIndex + 1, length - 1);
+    xMaxIndex = Math.min(xMaxIndex + 1, length);
 
     return [xMinIndex, xMaxIndex];
 }
@@ -149,7 +149,7 @@ export function clippedRangeIndices(
 
     if (xMinIndex == null || xMaxIndex == null) return [0, 0];
 
-    xMaxIndex = Math.min(xMaxIndex + 1, length - 1);
+    xMaxIndex = Math.min(xMaxIndex + 1, length);
 
     return [xMinIndex, xMaxIndex];
 }
