@@ -260,6 +260,9 @@ export class SeriesAreaManager extends BaseManager {
         if (relatedTarget?.className === 'ag-charts-text-input__textarea') {
             return;
         }
+        if (this.chart.ctx.tooltipManager.isEnteringInteractiveTooltip(event)) {
+            return;
+        }
 
         this.chart.ctx.cursorManager.updateCursor(this.id);
         if (!this.focusIndicator.isFocusVisible()) this.clearAll();
@@ -273,6 +276,7 @@ export class SeriesAreaManager extends BaseManager {
 
     private onDragMove(event: DragWidgetEvent<'drag-move'>): void {
         if (!this.isState(InteractionState.Clickable)) return;
+        this.focusIndicator?.overrideFocusVisible(false);
         this.onHoverLikeEvent(event);
     }
 

@@ -12,6 +12,7 @@ export const SELECTORS = {
     canvas: '.ag-charts-canvas-proxy',
     canvasCenter: '.ag-charts-canvas-center',
     legendItems: 'button[role="switch"][class="ag-charts-proxy-elem"]',
+    axisButton: '.ag-charts-annotations__axis-button',
 } as const;
 
 export function getExamples() {

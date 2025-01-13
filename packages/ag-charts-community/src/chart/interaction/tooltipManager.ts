@@ -1,5 +1,6 @@
 import type { DOMManager } from '../../dom/domManager';
 import { StateTracker } from '../../util/stateTracker';
+import type { MouseWidgetEvent } from '../../widget/widgetEvents';
 import type { SeriesTooltip } from '../series/seriesTooltip';
 import { type ErrorBoundSeriesNodeDatum, type SeriesNodeDatum, getDatumRefPoint } from '../series/seriesTypes';
 import type { Tooltip, TooltipContent, TooltipMeta, TooltipPointerEvent } from '../tooltip/tooltip';
@@ -100,5 +101,11 @@ export class TooltipManager {
         }
 
         return meta;
+    }
+
+    public isEnteringInteractiveTooltip(event: MouseWidgetEvent<'mouseleave'>): boolean {
+        const { tooltip } = this;
+        const relatedTarget = event.sourceEvent.relatedTarget as Node | null;
+        return tooltip.interactive && tooltip.enabled && tooltip.isVisible() && tooltip.contains(relatedTarget);
     }
 }

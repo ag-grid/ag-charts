@@ -268,7 +268,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx: { cursorManager, zoomManager },
         } = this;
 
-        if (!enabled || !this.isState(InteractionState.ZoomDraggable)) return;
+        if (!enabled) return;
+        if (!this.hoveredAxis && !this.isState(InteractionState.ZoomDraggable)) return;
 
         this.panner.stopInteractions();
 
@@ -313,7 +314,8 @@ export class Zoom extends _ModuleSupport.BaseModuleInstance implements _ModuleSu
             ctx: { interactionManager, tooltipManager, updateService, zoomManager },
         } = this;
 
-        if (!enabled || !paddedRect || !seriesRect || !this.isState(InteractionState.ZoomDraggable)) return;
+        if (!enabled || !paddedRect || !seriesRect) return;
+        if (!this.hoveredAxis && !this.isState(InteractionState.ZoomDraggable)) return;
 
         interactionManager.pushState(_ModuleSupport.InteractionState.ZoomDrag);
 
