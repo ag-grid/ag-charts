@@ -2,8 +2,8 @@ import { AgCartesianChartOptions, AgCharts } from 'ag-charts-enterprise';
 
 import { getData } from './data';
 
-const options: AgCartesianChartOptions = {
-    container: document.getElementById('myChart'),
+const options1: AgCartesianChartOptions = {
+    container: document.getElementById('myChart1'),
     data: getData(),
     zoom: { enabled: true },
     series: [
@@ -76,4 +76,12 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-const chart = AgCharts.create(options);
+const options2 = {
+    ...options1,
+    container: document.getElementById('myChart2'),
+    background: {},
+    title: { text: 'second chart' },
+};
+
+AgCharts.create(options1);
+AgCharts.create(options2);
