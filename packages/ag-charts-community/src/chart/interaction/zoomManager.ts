@@ -1,5 +1,5 @@
 import { Logger, isFiniteNumber, isObject } from 'ag-charts-core';
-import type { AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
+import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
 import { ContinuousScale } from '../../scale/continuousScale';
@@ -25,6 +25,7 @@ export interface ZoomState {
 export interface AxisZoomState {
     x?: ZoomState;
     y?: ZoomState;
+    autoScaleYAxis?: boolean;
 }
 
 export interface DefinedZoomState {
@@ -37,7 +38,7 @@ export type ZoomMemento = {
     rangeY?: AgZoomRange;
     ratioX?: AgZoomRatio;
     ratioY?: AgZoomRatio;
-    autoScaleYAxis?: boolean;
+    autoScaledAxes?: AgAutoScaledAxes;
 };
 
 export interface ZoomChangeEvent extends AxisZoomState {
@@ -66,7 +67,7 @@ export type ChartAxisLike = {
 
 type ZoomEvents = ZoomChangeEvent | ZoomPanStartEvent;
 
-const expectedMementoKeys: Array<keyof ZoomMemento> = ['rangeX', 'rangeY', 'ratioX', 'ratioY', 'autoScaleYAxis'];
+const expectedMementoKeys: Array<keyof ZoomMemento> = ['rangeX', 'rangeY', 'ratioX', 'ratioY', 'autoScaledAxes'];
 
 class ZoomManagerAutoScaleAxis {
     enabled = false;
@@ -126,7 +127,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     public createMemento() {
         const memento: ZoomMemento = this.getMementoRanges();
         if (this.autoScaleYAxis.enabled) {
-            memento.autoScaleYAxis = !this.autoScaleYAxis.manuallyAdjusted;
+            memento.autoScaledAxes = this.autoScaleYAxis.manuallyAdjusted ? '' : 'y';
         }
         return memento;
     }
@@ -155,7 +156,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         // Migration from older versions can be implemented here.
 
-        const zoom = this.getDefinedZoom();
+        const zoom: AxisZoomState = this.getDefinedZoom();
 
         if (memento?.rangeX) {
             zoom.x = this.rangeToRatio(memento.rangeX, ChartAxisDirection.X) ?? { min: 0, max: 1 };
@@ -170,20 +171,22 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         // Do not adjust the y-axis zoom if the navigator module is enabled by itself
         if (!this.navigatorModule || this.zoomModule) {
+            let yAutoScale: boolean | undefined = memento?.autoScaledAxes?.includes('y');
             if (memento?.rangeY) {
                 zoom.y = this.rangeToRatio(memento.rangeY, ChartAxisDirection.Y) ?? { min: 0, max: 1 };
+                yAutoScale ??= false;
             } else if (memento?.ratioY) {
                 zoom.y = {
                     min: memento.ratioY.start ?? 0,
                     max: memento.ratioY.end ?? 1,
                 };
+                yAutoScale ??= false;
             } else {
                 zoom.y = { min: 0, max: 1 };
+                yAutoScale ??= true;
             }
-        }
 
-        if (memento?.autoScaleYAxis != null) {
-            this.autoScaleYAxis.manuallyAdjusted = !memento.autoScaleYAxis;
+            zoom.autoScaleYAxis = yAutoScale;
         }
 
         this.lastRestoredState = zoom;
@@ -250,6 +253,11 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         this.state.set(callerId, newZoom);
 
+        const autoScaleYAxis = newZoom?.autoScaleYAxis;
+        if (autoScaleYAxis != null) {
+            this.autoScaleYAxis.manuallyAdjusted = !autoScaleYAxis;
+        }
+
         this.axisZoomManagers.forEach((axis) => {
             axis.updateZoom(callerId, newZoom?.[axis.getDirection()]);
         });
@@ -270,6 +278,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         this.updateZoom(callerId, {
             x: { min: zoom?.x?.min ?? 0, max: zoom?.x?.max ?? 1 },
             y: { min: zoom?.y?.min ?? 0, max: zoom?.y?.max ?? 1 },
+            autoScaleYAxis: zoom?.autoScaleYAxis ?? true,
         });
     }
 
@@ -277,10 +286,12 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         const axisZoomManager = this.axisZoomManagers.get(axisId);
         const direction = axisZoomManager?.getDirection();
         if (direction == null) return;
+        const restoredZoom = this.getRestoredZoom();
         if (direction === ChartAxisDirection.Y) {
-            this.autoScaleYAxis.manuallyAdjusted = false;
+            const autoScaleYAxis = restoredZoom?.autoScaleYAxis ?? true;
+            this.autoScaleYAxis.manuallyAdjusted = !autoScaleYAxis;
         }
-        this.updateAxisZoom(callerId, axisId, this.getRestoredZoom()?.[direction] ?? { min: 0, max: 1 });
+        this.updateAxisZoom(callerId, axisId, restoredZoom?.[direction] ?? { min: 0, max: 1 });
     }
 
     public setAxisManuallyAdjusted(_callerId: string, axisId: string) {
