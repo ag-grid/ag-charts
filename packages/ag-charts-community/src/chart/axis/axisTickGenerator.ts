@@ -161,6 +161,9 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
         let labelOverlap = true;
         let terminate = false;
         while (!terminate && labelOverlap && index <= maxIterations) {
+            autoRotation = 0;
+            labelOverlap = false;
+
             for (const strategy of this.getTickStrategies({ domain, niceMode, secondaryAxis, index })) {
                 ({ tickData, index, autoRotation, terminate } = strategy({
                     index,
@@ -172,8 +175,6 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     visibleRange,
                 }));
 
-                textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
-
                 if (checkLabelOverlap) {
                     const rotated = configuredRotation !== 0 || autoRotation !== 0;
                     const labelRotation = initialRotation + autoRotation;
@@ -181,13 +182,12 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
                     Matrix.updateTransformMatrix(labelMatrix, 1, 1, labelRotation, 0, 0);
 
                     const labelData = createLabelData(tickData.ticks, labelX, labelMatrix, textMeasurer);
-                    labelOverlap = label.avoidCollisions && axisLabelsOverlap(labelData, labelSpacing);
-                } else {
-                    labelOverlap = false;
+                    labelOverlap = axisLabelsOverlap(labelData, labelSpacing);
                 }
             }
         }
 
+        textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
         const combinedRotation = defaultRotation + configuredRotation + autoRotation;
 
         if (!secondaryAxis && tickData.rawTicks.length > 0) {
