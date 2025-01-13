@@ -1,4 +1,5 @@
-import { findMinValue } from '../util/binarySearch';
+import { findMinValue } from 'ag-charts-core';
+
 import { datesSortOrder, sortAndUniqueDates } from '../util/date';
 import type { TimeInterval } from '../util/time';
 import { buildFormatter } from '../util/timeFormat';

@@ -2,10 +2,10 @@ import { type AgAnnotationHandleStyles, _ModuleSupport } from 'ag-charts-communi
 
 import type { AnnotationContext } from '../annotationTypes';
 import type { TextualStartEndProperties } from '../properties/textualStartEndProperties';
-import { StartEndScene } from '../scenes/startEndScene';
 import { getBBox, updateTextNode } from '../text/util';
 import { validateDatumPoint } from '../utils/validation';
 import { convertLine, invertCoords } from '../utils/values';
+import { StartEndScene } from './startEndScene';
 
 const { Vec2, Vec4 } = _ModuleSupport;
 

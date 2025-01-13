@@ -11,7 +11,6 @@ class TestApply {
     date?: Date = undefined;
     array?: number[] = undefined;
     recurse?: TestApply = undefined;
-    recurseArray?: TestApply[] = undefined;
     _declarationOrder?: number = undefined;
 
     constructor(params: { [K in keyof TestApply]?: TestApply[K] } = {}) {

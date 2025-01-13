@@ -278,34 +278,6 @@ export class ExtendedPath2D {
         return best;
     }
 
-    getPoints(): Array<{ x: number; y: number }> {
-        const { commands, params } = this;
-
-        const coords: Array<{ x: number; y: number }> = [];
-        let pi = 0;
-
-        for (const command of commands) {
-            switch (command) {
-                case Command.Move:
-                case Command.Line:
-                    coords.push({ x: params[pi++], y: params[pi++] });
-                    break;
-                case Command.Curve:
-                    pi += 4;
-                    coords.push({ x: params[pi++], y: params[pi++] });
-                    break;
-                case Command.Arc:
-                    coords.push({ x: params[pi++], y: params[pi++] });
-                    pi += 4;
-                    break;
-                case Command.ClosePath:
-                    break;
-            }
-        }
-
-        return coords;
-    }
-
     // https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/d
     toSVG(transform: (x: number, y: number) => { x: number; y: number } = (x, y) => ({ x, y })): string {
         const buffer: (string | number)[] = [];

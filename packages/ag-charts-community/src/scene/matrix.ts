@@ -148,29 +148,6 @@ export class Matrix {
         return new Matrix([d, -b, -c, a, c * f - d * e, b * e - a * f]);
     }
 
-    /**
-     * Save the inverse of this matrix to the given matrix.
-     */
-    inverseTo(other: Matrix): this {
-        const el = this.elements;
-        let a = el[0],
-            b = el[1],
-            c = el[2],
-            d = el[3];
-        const e = el[4],
-            f = el[5];
-        const rD = 1 / (a * d - b * c); // reciprocal of determinant
-
-        a *= rD;
-        b *= rD;
-        c *= rD;
-        d *= rD;
-
-        other.setElements([d, -b, -c, a, c * f - d * e, b * e - a * f]);
-
-        return this;
-    }
-
     invertSelf(): this {
         const el = this.elements;
         let a = el[0],
@@ -258,11 +235,6 @@ export class Matrix {
         ctx.transform(e[0], e[1], e[2], e[3], e[4], e[5]);
     }
 
-    private static readonly instance = new Matrix();
-    static flyweight(sourceMatrix: Matrix): Matrix {
-        return Matrix.instance.setElements(sourceMatrix.elements);
-    }
-
     static updateTransformMatrix(
         matrix: Matrix,
         scalingX: number,
@@ -334,10 +306,5 @@ export class Matrix {
         ]);
 
         return matrix;
-    }
-
-    static fromContext(ctx: CanvasTransform) {
-        const domMatrix = ctx.getTransform();
-        return new Matrix([domMatrix.a, domMatrix.b, domMatrix.c, domMatrix.d, domMatrix.e, domMatrix.f]);
     }
 }

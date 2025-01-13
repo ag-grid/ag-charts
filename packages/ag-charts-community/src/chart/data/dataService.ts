@@ -19,10 +19,6 @@ export interface DataLoadEvent<D extends object> {
     data: D[];
 }
 
-export interface DataErrorEvent {
-    type: 'data-error';
-}
-
 export class DataService<D extends object> extends Listeners<EventType, EventHandler<D>> {
     public dispatchOnlyLatest = true;
 

@@ -3,7 +3,6 @@ import type { AgInitialStateLegendOptions } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
 import { BaseManager } from '../../util/baseManager';
-import type { ChartService } from '../chartService';
 import type { CategoryLegendDatum } from './legendDatum';
 
 export interface LegendChangeEvent {
@@ -18,9 +17,6 @@ export class LegendManager
     extends BaseManager<LegendChangeEvent['type'], LegendChangeEvent>
     implements MementoOriginator<LegendDataMemento>
 {
-    public constructor(readonly chartService: ChartService) {
-        super();
-    }
     public mementoOriginatorKey = 'legend' as const;
 
     private readonly legendDataMap: LegendDataMap = new Map();

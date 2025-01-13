@@ -101,9 +101,7 @@ export function getColorStops(
             previousDefinedStopIndex = i;
         }
 
-        const offset = (stop - d0) / (d1 - d0);
-
-        offsets[i] = offset;
+        offsets[i] = (stop - d0) / (d1 - d0);
     }
 
     let lastDefinedColor = fills.find((c) => c.color != null)?.color;

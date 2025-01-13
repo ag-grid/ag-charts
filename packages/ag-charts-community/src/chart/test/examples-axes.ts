@@ -1,7 +1,7 @@
 import type { AgCartesianChartOptions } from 'ag-charts-types';
 
 import { mergeDefaults } from '../../util/object';
-import { day } from '../../util/time/day';
+import { day } from '../../util/time';
 import { DATA_TOTAL_GAME_WINNINGS_GROUPED_BY_COUNTRY_EXTENDED } from './data';
 import * as data from './data-axes';
 import * as examples from './examples';

@@ -6,15 +6,6 @@ export class Image extends Node {
         super();
     }
 
-    updateBitmap(newBitmap: ImageBitmap, bitmapPixelRatio: number, x: number, y: number) {
-        this.sourceImage = newBitmap;
-        this.width = newBitmap.width / bitmapPixelRatio;
-        this.height = newBitmap.height / bitmapPixelRatio;
-        this.x = x / bitmapPixelRatio;
-        this.y = y / bitmapPixelRatio;
-        this.markDirty();
-    }
-
     @SceneChangeDetection()
     x: number = 0;
 

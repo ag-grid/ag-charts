@@ -59,15 +59,6 @@ export function toDegrees(radians: number): number {
     return (radians / Math.PI) * 180;
 }
 
-export function angleDiff(angle0: number, angle1: number, counterClockwise: boolean) {
-    if (counterClockwise) {
-        [angle0, angle1] = [angle1, angle0];
-    }
-    const a0 = normalizeAngle360(angle0);
-    const a1 = normalizeAngle360(angle1) + twoPi;
-    return (a1 - a0) % twoPi;
-}
-
 /**
  * Returns a rotation angle between two other angles.
  * @param angle0 Angle in radians.
@@ -78,35 +69,6 @@ export function angleBetween(angle0: number, angle1: number) {
     angle0 = normalizeAngle360(angle0);
     angle1 = normalizeAngle360(angle1);
     return angle1 - angle0 + (angle0 > angle1 ? twoPi : 0);
-}
-
-export function displacePointFromVector(
-    centerX: number,
-    centerY: number,
-    radius: number,
-    angle: number
-): { x: number; y: number } {
-    const x = centerX + radius * Math.cos(angle);
-    const y = centerY + radius * Math.sin(angle);
-    return { x, y };
-}
-
-const delta = 1e-6;
-export function clockwiseAngle(angle: number, relativeToStartAngle: number) {
-    if (angleBetween(angle, relativeToStartAngle) < delta) {
-        // Handle floating point errors
-        return relativeToStartAngle;
-    } else {
-        return normalizeAngle360(angle - relativeToStartAngle) + relativeToStartAngle;
-    }
-}
-
-export function clockwiseAngles(startAngle: number, endAngle: number, relativeToStartAngle = 0) {
-    const fullPie = Math.abs(endAngle - startAngle) >= twoPi;
-    const sweepAngle = fullPie ? twoPi : normalizeAngle360(endAngle - startAngle);
-    startAngle = clockwiseAngle(startAngle, relativeToStartAngle);
-    endAngle = startAngle + sweepAngle;
-    return { startAngle, endAngle };
 }
 
 /**

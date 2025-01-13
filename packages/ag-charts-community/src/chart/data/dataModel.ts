@@ -74,8 +74,6 @@ export type ProcessedOutputDiff = {
     moved: Set<string>;
 };
 
-export type GroupedDataItem<D> = UngroupedDataItem<number[], D[], any[][]> & { area?: number };
-
 export interface ProcessedDataDef {
     index: number;
     def: PropertyDefinition<any>;
@@ -406,10 +404,6 @@ export class DataModel<
         return this.resolveProcessedDataDefById(scope, searchId).index;
     }
 
-    resolveProcessedDataDefsByIds<T extends string>(scope: ScopeProvider, searchIds: T[]): [T, ProcessedDataDef][] {
-        return searchIds.map((searchId) => [searchId, this.resolveProcessedDataDefById(scope, searchId)]);
-    }
-
     resolveKeysById<T = string>(
         scope: ScopeProvider,
         searchId: string,
@@ -434,18 +428,6 @@ export class DataModel<
             throw new Error(`AG Charts - didn't find column for [${searchId}, ${scope.id}]`);
         }
         return column;
-    }
-
-    resolveProcessedDataDefsValues<T extends string>(
-        defs: [T, ProcessedDataDef][],
-        { keys, values }: { keys: unknown[]; values: unknown[] }
-    ): Record<T, any> {
-        const result: Record<string, any> = {};
-        for (const [searchId, { index, def }] of defs) {
-            const processedData = def.type === 'key' ? keys : values;
-            result[searchId] = processedData[index];
-        }
-        return result;
     }
 
     getDomain(
@@ -823,7 +805,7 @@ export class DataModel<
         const { keys, columns, rawData } = processedData;
 
         if (processedData.type === 'ungrouped') {
-            const resultAggregation = rawData.map((_datum, datumIndex) => {
+            processedData.aggregation = rawData.map((_datum, datumIndex) => {
                 const aggregation: [number, number][] = [];
 
                 for (const [index, def] of this.aggregates.entries()) {
@@ -846,8 +828,6 @@ export class DataModel<
 
                 return aggregation;
             });
-
-            processedData.aggregation = resultAggregation;
         } else {
             for (const [index, def] of this.aggregates.entries()) {
                 const indices = this.valueGroupIdxLookup(def);

@@ -272,9 +272,8 @@ export class CrossLineScene extends AnnotationScene {
         if (datum.value == null) return;
 
         let x1 = 0;
-        let x2 = 0;
         let y1 = 0;
-        let y2 = 0;
+        let x2: number, y2: number;
 
         const { bounds, scale } = context;
         const halfBandwidth = (scale.bandwidth ?? 0) / 2;

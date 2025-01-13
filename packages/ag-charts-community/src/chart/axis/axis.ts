@@ -309,10 +309,6 @@ export abstract class Axis<
         return value >= min - tolerance && value <= max + tolerance;
     }
 
-    protected defaultDatumFormatter(datum: any, fractionDigits: number): string {
-        return formatValue(datum, fractionDigits);
-    }
-
     protected defaultLabelFormatter(datum: any, fractionDigits: number): string {
         return formatValue(datum, fractionDigits + 1);
     }
@@ -623,10 +619,6 @@ export abstract class Axis<
         crossLineLineGroup.setProperties({ rotation, translationX, translationY });
         crossLineLabelGroup.setProperties({ rotation, translationX, translationY });
         gridGroup.setProperties({ rotation, translationX, translationY });
-    }
-
-    protected updateSecondaryAxisTicks(_primaryTickCount: number | undefined): any[] {
-        throw new Error('AG Charts - unexpected call to updateSecondaryAxisTicks() - check axes configuration.');
     }
 
     protected abstract updateSelections(): void;

@@ -97,16 +97,6 @@ export const PREV_NEXT_KEYS = {
     vertical: { nextKey: 'ArrowDown', prevKey: 'ArrowUp' },
 } as const;
 
-// https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Roles/toolbar_role
-export function initToolbarKeyNav(
-    opts: { toolbar: HTMLElement } & Parameters<typeof initRovingTabIndex>[0]
-): ReturnType<typeof initRovingTabIndex> {
-    opts.toolbar.role = 'toolbar';
-    opts.toolbar.ariaOrientation = opts.orientation;
-    opts.toolbar.ariaHidden = (opts.buttons.length === 0).toString();
-    return initRovingTabIndex(opts);
-}
-
 // https://www.w3.org/WAI/ARIA/apg/practices/keyboard-interface/#kbd_roving_tabindex
 export function initRovingTabIndex(opts: {
     orientation: 'horizontal' | 'vertical';

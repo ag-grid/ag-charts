@@ -815,8 +815,7 @@ export class MapMarkerSeries
 
         let heading: string | undefined;
         if (idKey != null) {
-            const idValue = dataModel.resolveColumnById<string>(this, `idValue`, processedData)[datumIndex];
-            heading = idValue;
+            heading = dataModel.resolveColumnById<string>(this, `idValue`, processedData)[datumIndex];
         } else if (latitudeKey != null && longitudeKey != null) {
             const latValue = dataModel.resolveColumnById<number>(this, `latValue`, processedData)[datumIndex];
             const lonValue = dataModel.resolveColumnById<number>(this, `lonValue`, processedData)[datumIndex];

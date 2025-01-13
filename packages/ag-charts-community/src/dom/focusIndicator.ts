@@ -1,7 +1,7 @@
 import { BBox } from '../scene/bbox';
 import { Path } from '../scene/shape/path';
 import { Transformable } from '../scene/transformable';
-import { getDocument, getWindow, setElementBBox } from '../util/dom';
+import { createSvgElement, getDocument, getWindow, setElementBBox } from '../util/dom';
 import { ObserveChanges } from '../util/proxy';
 import type { FocusSwapChain } from './focusSwapChain';
 
@@ -24,8 +24,8 @@ export class FocusIndicator {
 
     constructor(private readonly swapChain: FocusSwapChain) {
         this.div = getDocument().createElement('div');
-        this.svg = getDocument().createElementNS('http://www.w3.org/2000/svg', 'svg');
-        this.path = getDocument().createElementNS('http://www.w3.org/2000/svg', 'path');
+        this.svg = createSvgElement('svg');
+        this.path = createSvgElement('path');
         this.svg.append(this.path);
 
         this.element = getDocument().createElement('div');

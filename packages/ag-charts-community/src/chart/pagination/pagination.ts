@@ -105,7 +105,6 @@ export class Pagination extends BaseProperties {
     private readonly group = new TranslatableGroup({ name: 'pagination' });
     private readonly labelNode: Text = new Text();
     private highlightActive?: 'previous' | 'next';
-    private readonly destroyFns: (() => void)[] = [];
 
     constructor(
         private readonly chartUpdateCallback: (type: ChartUpdateType) => void,
@@ -125,10 +124,6 @@ export class Pagination extends BaseProperties {
 
         this.update();
         this.updateMarkers();
-    }
-
-    destroy() {
-        this.destroyFns.forEach((f) => f());
     }
 
     totalPages: number = 0;

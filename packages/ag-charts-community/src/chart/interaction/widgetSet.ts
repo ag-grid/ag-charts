@@ -3,7 +3,7 @@ import { NativeWidget } from '../../widget/nativeWidget';
 import { type Widget } from '../../widget/widget';
 import { DragInterpreter } from './dragInterpreter';
 
-class DOMManagerWidget extends NativeWidget<HTMLElement> {
+class DOMManagerWidget extends NativeWidget {
     constructor(elem: HTMLElement) {
         super(elem);
     }

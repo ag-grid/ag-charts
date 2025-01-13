@@ -146,10 +146,6 @@ export class Selection<TChild extends Node = Node, TDatum = any> {
         return this.garbageBin.has(node);
     }
 
-    hasGarbage() {
-        return this.garbageBin.size > 0;
-    }
-
     each(iterate: (node: TChild, datum: TDatum, index: number) => void) {
         for (const entry of this._nodes.entries()) {
             iterate(entry[1], entry[1].datum, entry[0]);

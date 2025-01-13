@@ -350,7 +350,7 @@ export function animationValidation(valueKeyIds?: string[]): ProcessorOutputProp
                 for (let i = 0; validation !== 0 && i < valuesDef.length; i++) {
                     const value = valuesDef[i];
 
-                    if (!valueKeyIds?.includes(value.id as string) === true) continue;
+                    if (!valueKeyIds?.includes(value.id as string)) continue;
 
                     validation &= animationValidationProcessKey(count, value, domainValues[i], columns[i]);
                 }

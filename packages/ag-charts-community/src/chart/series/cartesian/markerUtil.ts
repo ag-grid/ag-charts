@@ -8,12 +8,10 @@ import type { Selection } from '../../../scene/selection';
 import { Transformable } from '../../../scene/transformable';
 import { clamp } from '../../../util/number';
 import type { AnimationManager } from '../../interaction/animationManager';
-import type { Marker } from '../../marker/marker';
 import type { PickFocusInputs } from '../series';
 import type { ISeries, NodeDataDependant, SeriesNodeDatum } from '../seriesTypes';
 import * as easing from './../../../motion/easing';
 import type { CartesianSeriesNodeDatum } from './cartesianSeries';
-import type { PathNodeDatumLike, PathPoint, PathPointMap } from './pathUtil';
 
 type NodeWithOpacity = Node & { opacity: number };
 export function markerFadeInAnimation<T>(
@@ -79,78 +77,6 @@ export function resetMarkerPositionFn<T extends CartesianSeriesNodeDatum>(_node:
         translationX: datum.point?.x ?? NaN,
         translationY: datum.point?.y ?? NaN,
     };
-}
-
-export function prepareMarkerAnimation(pairMap: PathPointMap<any>, parentStatus: NodeUpdateState) {
-    const readFirstPair = (xValue: string, type: keyof typeof pairMap) => {
-        const val = pairMap[type][xValue];
-        return Array.isArray(val) ? val[0] : val;
-    };
-    const markerStatus = (datum: PathNodeDatumLike): { point?: PathPoint; status: NodeUpdateState } => {
-        const { xValue } = datum;
-
-        if (pairMap.moved[xValue]) {
-            return { point: readFirstPair(xValue, 'moved'), status: 'updated' };
-        } else if (pairMap.removed[xValue]) {
-            return { point: readFirstPair(xValue, 'removed'), status: 'removed' };
-        } else if (pairMap.added[xValue]) {
-            return { point: readFirstPair(xValue, 'added'), status: 'added' };
-        }
-
-        return { status: 'unknown' };
-    };
-    const fromFn = (marker: Marker, datum: PathNodeDatumLike) => {
-        const { status, point } = markerStatus(datum);
-        if (status === 'unknown') return { opacity: 0 };
-
-        const defaults = {
-            translationX: point?.from?.x ?? marker.translationX,
-            translationY: point?.from?.y ?? marker.translationY,
-            opacity: marker.opacity,
-            phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[status],
-        };
-
-        if (parentStatus === 'added') {
-            return {
-                ...defaults,
-                opacity: 0,
-                translationX: point?.to?.x,
-                translationY: point?.to?.y,
-                phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING['added'],
-            };
-        }
-        if (status === 'added') {
-            defaults.opacity = 0;
-        }
-
-        return defaults;
-    };
-
-    const toFn = (_marker: Marker, datum: PathNodeDatumLike) => {
-        const { status, point } = markerStatus(datum);
-        if (status === 'unknown') return { opacity: 0 };
-
-        const defaults = {
-            translationX: datum.point.x,
-            translationY: datum.point.y,
-            opacity: 1,
-            phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING[status],
-        };
-
-        if (status === 'removed' || parentStatus === 'removed') {
-            return {
-                ...defaults,
-                translationX: point?.to?.x,
-                translationY: point?.to?.y,
-                opacity: 0,
-                phase: NODE_UPDATE_STATE_TO_PHASE_MAPPING['removed'],
-            };
-        }
-
-        return defaults;
-    };
-
-    return { fromFn, toFn };
 }
 
 interface MarkerNodeDatum extends SeriesNodeDatum<unknown> {

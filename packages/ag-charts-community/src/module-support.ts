@@ -18,7 +18,6 @@ export * from './util/object';
 export * from './util/placement';
 export * from './util/properties';
 export * from './util/proxy';
-export * from './util/binarySearch';
 export * from './util/stateMachine';
 export * from './util/timeFormatDefaults';
 export * from './util/textMeasurer';

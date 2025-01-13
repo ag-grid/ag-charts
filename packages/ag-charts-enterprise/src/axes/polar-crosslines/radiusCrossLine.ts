@@ -83,8 +83,7 @@ export class RadiusCrossLine extends PolarCrossLine {
 
         const getRadius = (value: number) => axisOuterRadius + axisInnerRadius - value;
 
-        let outerRadius = 0;
-        let innerRadius = 0;
+        let outerRadius, innerRadius;
 
         if (type === 'line') {
             outerRadius = getRadius(scale.convert(this.value));
@@ -166,7 +165,7 @@ export class RadiusCrossLine extends PolarCrossLine {
         const isBottomSide = (isNumberEqual(angle, 0) || angle > 0) && angle < Math.PI;
         const rotation = isBottomSide ? angle - Math.PI / 2 : angle + Math.PI / 2;
 
-        let distance = 0;
+        let distance: number;
         const angles = this.gridAngles ?? [];
         if (type === 'line') {
             distance = innerRadius + label.padding;

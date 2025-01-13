@@ -236,8 +236,7 @@ export class HistogramSeries extends CartesianSeries<Rect, HistogramSeriesProper
         let yMax = -Infinity;
         processedData.groups.forEach(({ keys, aggregation }) => {
             const [[negativeAgg, positiveAgg] = [0, 0]] = aggregation;
-            const domain = keys;
-            const [xDomainMin, xDomainMax] = domain;
+            const [xDomainMin, xDomainMax] = keys;
 
             const [x0, x1] = findMinMax([xScale.convert(xDomainMin), xScale.convert(xDomainMax)]);
 

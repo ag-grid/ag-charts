@@ -94,14 +94,4 @@ export class ChartEventManager extends BaseManager<ChartEventType, ChartEvents> 
 
         this.listeners.dispatch('legend-item-double-click', event);
     }
-
-    axisHover(axisId: string, direction: ChartAxisDirection) {
-        const event: AxisHoverChartEvent = {
-            type: 'axis-hover',
-            axisId,
-            direction,
-        };
-
-        this.listeners.dispatch('axis-hover', event);
-    }
 }

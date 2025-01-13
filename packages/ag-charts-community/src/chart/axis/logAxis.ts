@@ -52,10 +52,6 @@ export class LogAxis extends NumberAxis {
         super(moduleCtx, new LogScale());
     }
 
-    protected override defaultDatumFormatter(datum: any, _fractionDigits: number): string {
-        return String(datum);
-    }
-
     protected override defaultLabelFormatter(datum: any, _fractionDigits: number): string {
         return String(datum);
     }

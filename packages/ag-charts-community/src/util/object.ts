@@ -31,10 +31,6 @@ export function objectsEqualWith<T extends PlainObject>(a: T, b: T, cmp: (a: T, 
     return true;
 }
 
-export function deepMerge<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(...sources: TArgs) {
-    return mergeDefaults(...sources.reverse());
-}
-
 export function mergeDefaults<TSource extends PlainObject, TArgs extends (TSource | FalsyType)[]>(...sources: TArgs) {
     const target: PlainObject = {};
 

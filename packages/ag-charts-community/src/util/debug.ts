@@ -46,6 +46,7 @@ interface DebugTimingOpts {
     logArgs: boolean;
     logData: (target: any) => any;
 }
+
 export function DebugTiming(name: string, opts: Partial<DebugTimingOpts>) {
     const { logResult = true, logStack = false, logArgs = false, logData } = opts;
     return function (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) {

@@ -61,9 +61,7 @@ export function translate<VectorName extends string>(
     Object.entries(vectors).forEach(([name, vector]) => {
         const translatedVec = Vec2.add(vector as _ModuleSupport.Vec2, translation);
         vecs.push(translatedVec);
-        const point = invertCoords(translatedVec, context);
-
-        result[name as VectorName] = point;
+        result[name as VectorName] = invertCoords(translatedVec, context);
     });
 
     const { xAxis, yAxis } = context;

@@ -72,7 +72,7 @@ export class Color implements IColor {
             return !!Color.stringToRgba(str);
         }
 
-        return !!Color.nameToHex.has(str.toLowerCase());
+        return Color.nameToHex.has(str.toLowerCase());
     }
 
     /**

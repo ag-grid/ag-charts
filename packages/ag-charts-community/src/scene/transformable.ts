@@ -1,3 +1,4 @@
+import { createSvgElement } from '../util/dom';
 import type { BBox } from './bbox';
 import { IDENTITY_MATRIX_ELEMENTS, Matrix } from './matrix';
 import { Node, type RenderContext, SceneChangeDetection } from './node';
@@ -143,7 +144,7 @@ function MatrixTransform<N extends Node>(Parent: Constructor<N>) {
             const matrix = this[TRANSFORM_MATRIX];
             if (matrix.identity || svg == null) return svg;
 
-            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            const g = createSvgElement('g');
             g.append(...svg.elements);
 
             const [a, b, c, d, e, f] = matrix.e;

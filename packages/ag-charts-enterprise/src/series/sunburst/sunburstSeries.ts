@@ -453,8 +453,7 @@ export class SunburstSeries extends _ModuleSupport.HierarchySeries<
         const highlightFormat = this.getItemBaseStyle(true);
         this.highlightSelection.selectByClass(Sector).forEach((sector) => {
             const node: _ModuleSupport.HierarchyNode = sector.datum;
-            const isHighlighted = highlightedNode === node;
-            sector.visible = isHighlighted;
+            sector.visible = highlightedNode === node;
             if (sector.visible) {
                 updateSector(sector.datum, sector, highlightFormat, true);
             }

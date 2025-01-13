@@ -1,8 +1,7 @@
-import { Logger, isString } from 'ag-charts-core';
+import { Logger } from 'ag-charts-core';
 import type { AgFinancialChartOptions, AgInitialStateChartType } from 'ag-charts-types';
 
 import type { ChartService } from '../../chart/chartService';
-import { includes } from '../../util/array';
 import type { MementoOriginator } from '../state/memento';
 
 type ChartTypeMemento = AgInitialStateChartType;
@@ -29,7 +28,7 @@ export class ChartTypeOriginator implements MementoOriginator<ChartTypeMemento> 
     }
 
     public guardMemento(blob: unknown): blob is ChartTypeMemento | undefined {
-        return blob == null || (isString(blob) && includes(chartTypes, blob));
+        return blob == null || chartTypes.includes(blob as AgInitialStateChartType);
     }
 
     public restoreMemento(_version: string, _mementoVersion: string, memento: ChartTypeMemento | undefined) {
