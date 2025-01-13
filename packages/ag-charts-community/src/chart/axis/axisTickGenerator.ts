@@ -46,13 +46,13 @@ export interface TickGenerationResult<D = any> {
 }
 
 interface TickStrategyParams<D = any> {
-    index: number;
-    tickData: TickData<D>;
-    textProps: TextSizeProperties;
-    labelOverlap: boolean;
-    terminate: boolean;
-    primaryTickCount: number | undefined;
-    visibleRange: [number, number];
+    readonly index: number;
+    readonly tickData: TickData<D>;
+    readonly textProps: TextSizeProperties;
+    readonly terminate: boolean;
+    readonly primaryTickCount: number | undefined;
+    readonly visibleRange: [number, number];
+    readonly labelOverlap: boolean;
 }
 
 interface TickStrategyResult<D = any> {
@@ -146,6 +146,21 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             textAlign,
         };
 
+        const checkLabelOverlap = label.enabled && label.avoidCollisions;
+
+        const getLabelOverlap = ({ ticks }: TickData, iterationRotation: number) => {
+            if (!checkLabelOverlap) return false;
+
+            const rotated = configuredRotation !== 0 || iterationRotation !== 0;
+            const labelRotation = initialRotation + iterationRotation;
+            const labelSpacing = getLabelSpacing(label.minSpacing, rotated);
+
+            Matrix.updateTransformMatrix(labelMatrix, 1, 1, labelRotation, 0, 0);
+
+            const labelData = createLabelData(ticks, labelX, labelMatrix, textMeasurer);
+            return axisLabelsOverlap(labelData, labelSpacing);
+        };
+
         let tickData: TickData = {
             tickDomain: [],
             ticks: [],
@@ -154,37 +169,29 @@ export class AxisTickGenerator<S extends Scale<D, number, TickInterval<S>>, D> {
             niceDomain: null!,
         };
 
-        const checkLabelOverlap = label.enabled && label.avoidCollisions;
-
         let index = 0;
         let autoRotation = 0;
         let labelOverlap = true;
         let terminate = false;
         while (!terminate && labelOverlap && index <= maxIterations) {
             autoRotation = 0;
-            labelOverlap = false;
 
             for (const strategy of this.getTickStrategies({ domain, niceMode, secondaryAxis, index })) {
                 ({ tickData, index, autoRotation, terminate } = strategy({
                     index,
                     tickData,
                     textProps,
-                    labelOverlap,
                     terminate,
                     primaryTickCount,
                     visibleRange,
+                    // Lazily generate as only one strategy actually uses this, and it's expensive to compute
+                    get labelOverlap() {
+                        return getLabelOverlap(tickData, autoRotation);
+                    },
                 }));
-
-                if (checkLabelOverlap) {
-                    const rotated = configuredRotation !== 0 || autoRotation !== 0;
-                    const labelRotation = initialRotation + autoRotation;
-                    const labelSpacing = getLabelSpacing(label.minSpacing, rotated);
-                    Matrix.updateTransformMatrix(labelMatrix, 1, 1, labelRotation, 0, 0);
-
-                    const labelData = createLabelData(tickData.ticks, labelX, labelMatrix, textMeasurer);
-                    labelOverlap = axisLabelsOverlap(labelData, labelSpacing);
-                }
             }
+
+            labelOverlap = getLabelOverlap(tickData, autoRotation);
         }
 
         textAlign = getTextAlign(parallel, configuredRotation, autoRotation, sideFlag, regularFlipFlag);
