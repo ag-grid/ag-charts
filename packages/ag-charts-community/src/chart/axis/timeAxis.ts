@@ -1,6 +1,6 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { TimeScale } from '../../scale/timeScale';
-import { extent } from '../../util/array';
+import { extent } from '../../util/extent';
 import { AND, DATE_OR_DATETIME_MS, GREATER_THAN, LESS_THAN, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 

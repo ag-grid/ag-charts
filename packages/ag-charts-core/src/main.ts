@@ -1,10 +1,19 @@
+// Globals (side-effects)
+export * from './globals/globalsProxy';
 export * from './globals/logger';
 
+// Interfaces
 export * from './interfaces/globalTypes';
 
+// Utils
+export * from './utils/dom/domDownload';
+export * from './utils/dom/domElements';
+
+export * from './utils/arrays';
 export * from './utils/binarySearch';
+export * from './utils/diff';
 export * from './utils/functions';
-export * from './utils/iterator';
+export * from './utils/iterators';
 export * from './utils/strings';
 export * from './utils/typeGuards';
 export * from './utils/validation';

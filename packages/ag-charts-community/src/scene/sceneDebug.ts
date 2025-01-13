@@ -1,8 +1,6 @@
-import { Logger, isString } from 'ag-charts-core';
+import { Logger, getWindow, isString, toArray } from 'ag-charts-core';
 
-import { toArray } from '../util/array';
 import { Debug } from '../util/debug';
-import { getWindow } from '../util/dom';
 import { SimpleTextMeasurer } from '../util/textMeasurer';
 import { BBox } from './bbox';
 import { Group } from './group';

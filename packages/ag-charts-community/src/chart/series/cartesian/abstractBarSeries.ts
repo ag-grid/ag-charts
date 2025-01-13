@@ -5,7 +5,7 @@ import { CategoryScale } from '../../../scale/categoryScale';
 import { ContinuousScale } from '../../../scale/continuousScale';
 import type { Point } from '../../../scene/point';
 import type { QuadtreeNearest } from '../../../scene/util/quadtree';
-import { extent } from '../../../util/array';
+import { extent } from '../../../util/extent';
 import { DIRECTION, Validate } from '../../../util/validation';
 import { CategoryAxis } from '../../axis/categoryAxis';
 import { GroupedCategoryAxis } from '../../axis/groupedCategoryAxis';

@@ -1,8 +1,8 @@
 import type { ModuleContext } from '../../module/moduleContext';
 import { LinearScale } from '../../scale/linearScale';
 import type { LogScale } from '../../scale/logScale';
-import { normalisedExtentWithMetadata } from '../../util/array';
 import { Default } from '../../util/default';
+import { normalisedExtentWithMetadata } from '../../util/extent';
 import { AND, GREATER_THAN, LESS_THAN, NUMBER_OR_NAN, Validate } from '../../util/validation';
 import { CartesianAxis } from './cartesianAxis';
 

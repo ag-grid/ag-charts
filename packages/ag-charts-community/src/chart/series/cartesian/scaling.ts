@@ -1,4 +1,4 @@
-import { arraysEqual } from '../../../util/array';
+import { arraysEqual } from 'ag-charts-core';
 
 export type Scaling = ContinuousScaling | CategoryScaling | LogScaling;
 

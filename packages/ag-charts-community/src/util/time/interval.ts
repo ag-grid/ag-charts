@@ -101,8 +101,7 @@ interface CountableTimeIntervalOptions {
 
 export class CountableTimeInterval extends TimeInterval {
     private getOffset(snapTo: Date, step: number) {
-        const s = typeof snapTo === 'number' || snapTo instanceof Date ? this._encode(new Date(snapTo)) : 0;
-        return Math.floor(s) % step;
+        return Math.floor(this._encode(new Date(snapTo))) % step;
     }
 
     /**
@@ -135,14 +134,8 @@ export class CountableTimeInterval extends TimeInterval {
             offset = this.getOffset(snapTo, step);
         }
 
-        const encode = (date: Date) => {
-            const e = this._encode(date);
-            return Math.floor((e - offset) / step);
-        };
-
-        const decode = (encoded: number) => {
-            return this._decode(encoded * step + offset);
-        };
+        const encode = (date: Date) => Math.floor((this._encode(date) - offset) / step);
+        const decode = (encoded: number) => this._decode(encoded * step + offset);
 
         return new TimeInterval(encode, decode, rangeCallback);
     }

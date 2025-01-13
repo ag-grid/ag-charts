@@ -1,5 +1,6 @@
+import { createElement } from 'ag-charts-core';
+
 import { setAttribute, setElementStyle } from '../util/attributeUtil';
-import { getDocument } from '../util/dom';
 import { Widget } from './widget';
 import type { WidgetEventMap as EventMap } from './widgetEvents';
 
@@ -7,7 +8,7 @@ type R = ReturnType<Widget['addListener']>;
 
 export class ButtonWidget extends Widget<HTMLButtonElement> {
     constructor() {
-        super(getDocument().createElement('button'));
+        super(createElement('button'));
         this.setEnabled(true);
     }
 

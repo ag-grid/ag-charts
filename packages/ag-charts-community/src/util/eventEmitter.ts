@@ -1,6 +1,4 @@
-import { Logger } from 'ag-charts-core';
-
-export type EventListener<T> = (event: T) => void | Promise<void>;
+export type EventListener<T> = (event: T) => void;
 
 export class EventEmitter<EventMap extends object> {
     private readonly events = new Map<keyof EventMap, Set<EventListener<any>>>();
@@ -40,12 +38,7 @@ export class EventEmitter<EventMap extends object> {
      * @param event The event payload.
      */
     emit<K extends keyof EventMap>(eventName: K, event: EventMap[K]) {
-        for (const callback of this.events.get(eventName) ?? []) {
-            const result = callback(event);
-            if (result) {
-                result.catch((e) => Logger.error(e));
-            }
-        }
+        this.events.get(eventName)?.forEach((callback) => callback(event));
     }
 
     /**

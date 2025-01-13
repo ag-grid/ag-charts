@@ -1,4 +1,4 @@
-import { Logger } from 'ag-charts-core';
+import { Logger, arraysEqual, groupBy } from 'ag-charts-core';
 import type { AgCartesianAxisPosition } from 'ag-charts-types';
 
 import type { LayoutContext, ModuleInstance } from '../module/baseModule';
@@ -6,7 +6,6 @@ import type { ChartOptions } from '../module/optionsModule';
 import { staticFromToMotion } from '../motion/fromToMotion';
 import { ContinuousScale } from '../scale/continuousScale';
 import type { BBox } from '../scene/bbox';
-import { arraysEqual, groupBy } from '../util/array';
 import { findMinMax } from '../util/number';
 import { CategoryAxis } from './axis/categoryAxis';
 import type { TransferableResources } from './chart';

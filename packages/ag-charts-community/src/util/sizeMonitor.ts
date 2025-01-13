@@ -1,4 +1,4 @@
-import { getDocument, getWindow } from './dom';
+import { getDocument, getWindow } from 'ag-charts-core';
 
 export type Size = {
     width: number;

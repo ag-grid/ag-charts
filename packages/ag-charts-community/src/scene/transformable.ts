@@ -1,4 +1,5 @@
-import { createSvgElement } from '../util/dom';
+import { createSvgElement } from 'ag-charts-core';
+
 import type { BBox } from './bbox';
 import { IDENTITY_MATRIX_ELEMENTS, Matrix } from './matrix';
 import { Node, type RenderContext, SceneChangeDetection } from './node';
