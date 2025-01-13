@@ -545,7 +545,7 @@ export class BarSeries extends AbstractBarSeries<
             });
         } else if (dataAggregationFilter == null) {
             const width = barWidth;
-            let [start, end] = this.visibleRange('xValue', xAxis.range, true);
+            let [start, end] = this.visibleRange('xValue', xAxis.range);
             // @todo(AG-13575) Remove this if block
             if (processedData.rawData.length < 1e3) {
                 start = 0;
@@ -560,7 +560,7 @@ export class BarSeries extends AbstractBarSeries<
             }
         } else {
             const { indexData, indices } = dataAggregationFilter;
-            const [start, end] = this.visibleRange('xValue', xAxis.range, true, indices);
+            const [start, end] = this.visibleRange('xValue', xAxis.range, indices);
 
             for (let i = start; i < end; i += 1) {
                 const aggIndex = i * SPAN;

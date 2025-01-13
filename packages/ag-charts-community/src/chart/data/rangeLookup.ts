@@ -83,7 +83,8 @@ export class RangeLookup {
         return into;
     }
 
-    rangeBetween(start: number, end: number) {
+    rangeBetween(start: number, end: number): [number, number] {
+        if (start > end) return [NaN, NaN];
         const { maxLevelSize, buffer } = this;
         const range: [number, number] = [Infinity, -Infinity];
         this.computeRangeInto(buffer, start, end, 0, 0, maxLevelSize, range);
