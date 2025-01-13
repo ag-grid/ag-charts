@@ -66,9 +66,9 @@ export class RangeLookup {
     ) {
         const currentEnd = currentStart + step - 1;
 
-        if (currentEnd < start || currentStart > end) return into;
+        if (currentEnd < start || currentStart >= end) return into;
 
-        if (currentStart >= start && currentEnd <= end) {
+        if (currentStart >= start && currentEnd < end) {
             const min = buffer[((bufferIndex * SPAN) | 0) + MIN];
             const max = buffer[((bufferIndex * SPAN) | 0) + MAX];
             if (Number.isFinite(min)) into[0] = Math.min(into[0], min);
@@ -83,7 +83,8 @@ export class RangeLookup {
         return into;
     }
 
-    rangeBetween(start: number, end: number) {
+    rangeBetween(start: number, end: number): [number, number] {
+        if (start > end) return [NaN, NaN];
         const { maxLevelSize, buffer } = this;
         const range: [number, number] = [Infinity, -Infinity];
         this.computeRangeInto(buffer, start, end, 0, 0, maxLevelSize, range);

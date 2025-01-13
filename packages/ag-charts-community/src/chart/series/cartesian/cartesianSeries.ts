@@ -748,11 +748,11 @@ export abstract class CartesianSeries<
         return this.processedData!.keys[key] ?? this.processedData!.columns[key];
     }
 
-    protected visibleRange(axisKey: string, visibleRange: [any, any], sorted: boolean, indices?: number[]) {
+    protected visibleRange(axisKey: string, visibleRange: [any, any], indices?: number[]) {
         const xValues = this.keysOrValues(axisKey);
         // @todo(AG-7083) - figure out how to determine this
         const pixelSize = 0;
-        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, sorted, (topIndex) => {
+        return visibleRangeIndices(indices?.length ?? xValues.length, visibleRange, (topIndex) => {
             const datumIndex = indices?.[topIndex] ?? topIndex;
             return this.xCoordinateRange(xValues[datumIndex], pixelSize, datumIndex);
         });
@@ -772,7 +772,7 @@ export abstract class CartesianSeries<
         const crossAxisValues = this.keysOrValues(crossAxisKey);
 
         if (sorted) {
-            const crossAxisRange = this.visibleRange(crossAxisKey, visibleRange, sorted, indices);
+            const crossAxisRange = this.visibleRange(crossAxisKey, visibleRange, indices);
             return dataModel!.getDomainBetweenRange(this, axisKeys, crossAxisRange, processedData!);
         }
 
@@ -781,7 +781,7 @@ export abstract class CartesianSeries<
         let axisMin = Infinity;
         let axisMax = -Infinity;
         crossAxisValues.forEach((crossAxisValue, i) => {
-            const [x0, x1] = this.xCoordinateRange(crossAxisValue, i, 0);
+            const [x0, x1] = this.xCoordinateRange(crossAxisValue, 0, i);
             if (x1 < r0 || x0 > r1) return;
 
             for (let j = 0; j < axisKeys.length; j++) {
@@ -816,7 +816,6 @@ export abstract class CartesianSeries<
             const crossRange = clippedRangeIndices(
                 crossAxisValues.length,
                 crossAxisRange,
-                sorted,
                 (index) => crossAxisValues[index]
             );
             return dataModel!.getDomainBetweenRange(this, axisKeys, crossRange, processedData!);

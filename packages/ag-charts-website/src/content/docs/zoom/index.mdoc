@@ -140,6 +140,22 @@ zoom: {
 }
 ```
 
+## Automatic Zooming
+
+Auto Scaling allows the user to zoom the x-axis, and have the y-axis automatically zoom to fit the visible data into the viewport.
+
+{% chartExampleRunner title="Auto Scaling" name="auto-scaling" type="generated" /%}
+
+```ts
+zoom: {
+    autoScaling: {
+        enabled: true,
+    }
+}
+```
+
+Auto Scaling can be disabled when the user manually adjusts the y-axis by dragging on the y-axis. It will be re-enabled when the y-axis is reset by double clicking on the y-axis.
+
 ## Navigator
 
 The zoom functionality can be used together with the [Navigator](./navigator/) to add a visual reference to the zoom position.

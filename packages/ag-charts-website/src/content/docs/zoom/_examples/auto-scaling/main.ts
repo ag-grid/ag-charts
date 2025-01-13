@@ -32,9 +32,4 @@ const options: AgCartesianChartOptions = {
     ],
 };
 
-const chart = AgCharts.create(options);
-
-function setData(points: number) {
-    options.data = getData(points);
-    chart.update(options);
-}
+AgCharts.create(options);
