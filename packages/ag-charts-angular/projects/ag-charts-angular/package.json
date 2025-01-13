@@ -18,11 +18,11 @@
   },
   "homepage": "https://www.ag-grid.com/charts/",
   "peerDependencies": {
-    "ag-charts-community": "11.0.3-beta.20250112",
     "@angular/common": "^17.0.0 || ^18.0.0 || ^19.0.0",
     "@angular/core": "^17.0.0 || ^18.0.0 || ^19.0.0"
   },
   "dependencies": {
+    "ag-charts-community": "11.0.3-beta.20250112",
     "tslib": "^2.3.0"
   }
 }
