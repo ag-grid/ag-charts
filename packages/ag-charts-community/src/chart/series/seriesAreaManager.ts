@@ -274,9 +274,10 @@ export class SeriesAreaManager extends BaseManager {
         this.previousInputDevice = 'mouse';
     }
 
-    private onDragMove(_event: DragWidgetEvent<'drag-move'>): void {
+    private onDragMove(event: DragWidgetEvent<'drag-move'>): void {
         if (!this.isState(InteractionState.Clickable)) return;
         this.focusIndicator?.overrideFocusVisible(false);
+        this.onHoverLikeEvent(event);
     }
 
     private onHover(event: MouseWidgetEvent<'mousemove'>): void {
