@@ -38,7 +38,7 @@ export function getData(days: number) {
         const high = Math.max(open, close) + random() * maxRangeDelta;
         const low = Math.min(open, close) - random() * maxRangeDelta;
 
-        const timestamp = new Date(2024, 0, 1, -i);
+        const timestamp = new Date(2024, 0, 0 /* End of 2023 */, -i);
 
         return { timestamp, open, close, high, low };
     }).reverse();
