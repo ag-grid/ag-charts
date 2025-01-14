@@ -182,7 +182,14 @@ module.exports = {
             severity: 'error',
             from: { path: ['^src/util/'] },
             to: {
-                pathNot: ['^src/util/', 'ag-charts-core', 'ag-charts-types', 'node_modules', '^fs$', 'ag-charts-test'],
+                pathNot: [
+                    '^src/(util|core)/',
+                    'ag-charts-core',
+                    'ag-charts-types',
+                    'node_modules',
+                    '^fs$',
+                    'ag-charts-test',
+                ],
             },
         },
         {
@@ -190,14 +197,14 @@ module.exports = {
             comment: 'Options modules should be isolated from implementation modules.',
             severity: 'error',
             from: { path: '^src/scale/' },
-            to: { pathNot: ['ag-charts-core', '^src/(util|scale)/', 'node_modules'] },
+            to: { pathNot: ['ag-charts-core', '^src/(util|core|scale)/', 'node_modules'] },
         },
         {
             name: 'ag-isolated-scene',
             comment: 'Options modules should be isolated from implementation modules.',
             severity: 'error',
             from: { path: '^src/scene/' },
-            to: { pathNot: ['ag-charts-core', 'ag-charts-types', '^src/(scale|scene|util)/', 'node_modules'] },
+            to: { pathNot: ['ag-charts-core', 'ag-charts-types', '^src/(scale|scene|util|core)/', 'node_modules'] },
         },
         {
             name: 'ag-isolated-dom',
@@ -208,7 +215,7 @@ module.exports = {
                 pathNot: [
                     'ag-charts-core',
                     'ag-charts-types',
-                    '^src/(dom|scene|widget|locale|util)/',
+                    '^src/(dom|scene|widget|locale|util|core)/',
                     '^src/.*\\.css',
                     'node_modules',
                 ],
@@ -224,7 +231,7 @@ module.exports = {
                     'ag-charts-core',
                     'ag-charts-types',
                     'ag-charts-locale',
-                    '^src/(locale|module|util)/',
+                    '^src/(locale|module|util|core)/',
                     'node_modules',
                 ],
             },
@@ -234,7 +241,7 @@ module.exports = {
             comment: 'Widget modules should be isolated.',
             severity: 'error',
             from: { path: '^src/widget/' },
-            to: { pathNot: ['ag-charts-core', 'ag-charts-types', '^src/(widget|util)/', 'node_modules'] },
+            to: { pathNot: ['ag-charts-core', 'ag-charts-types', '^src/(widget|util|core)/', 'node_modules'] },
         },
         {
             name: 'ag-avoid-bundles',
