@@ -1,20 +1,32 @@
 import { _ModuleSupport } from 'ag-charts-community';
+import { iterate } from 'ag-charts-core';
 
 const { clamp } = _ModuleSupport;
+type SceneNode = _ModuleSupport.Node;
+type Point = _ModuleSupport.Point;
 type SeriesNodeDatum = _ModuleSupport.SeriesNodeDatum<unknown>;
+type SeriesNodePickMatch = _ModuleSupport.SeriesNodePickMatch;
 type SelectionNode = { node: _ModuleSupport.Path; datum: SeriesNodeDatum };
+type Selection = Iterable<SelectionNode> & { nodes(): Iterable<SceneNode> };
 type PickFocusInputs = _ModuleSupport.PickFocusInputs;
 type PickFocusOutputs = _ModuleSupport.PickFocusOutputs;
-type GaugeSeriesProperties = {
+
+type GaugeSeries = {
     contextNodeData?: {
         nodeData: SeriesNodeDatum[];
         targetData: SeriesNodeDatum[];
     };
-    datumSelection: Iterable<SelectionNode>;
-    targetSelection: Iterable<SelectionNode>;
+    datumSelection: Selection;
+    targetSelection: Selection;
+    pickNodeNearestDistantObject(point: Point, items: Iterable<SceneNode>): SeriesNodePickMatch | undefined;
 };
 
-export function pickGaugeFocus(self: GaugeSeriesProperties, opts: PickFocusInputs): PickFocusOutputs | undefined {
+export function pickGaugeNearestDatum(self: GaugeSeries, point: Point): SeriesNodePickMatch | undefined {
+    const it = iterate(self.datumSelection.nodes(), self.targetSelection.nodes());
+    return self.pickNodeNearestDistantObject(point, it);
+}
+
+export function pickGaugeFocus(self: GaugeSeries, opts: PickFocusInputs): PickFocusOutputs | undefined {
     const others = [
         { data: self.contextNodeData?.nodeData, selection: self.datumSelection },
         { data: self.contextNodeData?.targetData, selection: self.targetSelection },

@@ -6,11 +6,10 @@ import {
     type FontWeight,
     _ModuleSupport,
 } from 'ag-charts-community';
-import { iterate } from 'ag-charts-core';
 
-import { pickGaugeFocus } from '../gauge-util/focus';
 import { fadeInFns, formatLabel, getLabelText } from '../gauge-util/label';
 import { lineMarker } from '../gauge-util/lineMarker';
+import { pickGaugeFocus, pickGaugeNearestDatum } from '../gauge-util/pick';
 import { type UnknownGaugeNodeDatum, parseUnknownGaugeNodeDatum } from '../gauge-util/properties';
 import { type GaugeStopProperties, getColorStops } from '../gauge-util/stops';
 import { getLineHeight } from '../util/labelFormatter';
@@ -1114,8 +1113,7 @@ export class LinearGaugeSeries
     }
 
     override pickNodeClosestDatum(point: _ModuleSupport.Point): _ModuleSupport.SeriesNodePickMatch | undefined {
-        const it = iterate(this.datumSelection.nodes(), this.targetSelection.nodes());
-        return this.pickNodeNearestDistantObject(point, it);
+        return pickGaugeNearestDatum(this, point);
     }
 
     override pickFocus(opts: _ModuleSupport.PickFocusInputs): _ModuleSupport.PickFocusOutputs | undefined {
