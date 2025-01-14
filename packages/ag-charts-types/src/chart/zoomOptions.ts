@@ -6,7 +6,7 @@ export type AgZoomAnchorPoint = 'pointer' | 'start' | 'middle' | 'end';
 export type AgZoomAxes = 'x' | 'y' | 'xy';
 export type AgZoomPanKey = 'alt' | 'ctrl' | 'meta' | 'shift';
 export type AgZoomDeceleration = 'off' | 'short' | 'long' | Ratio;
-export type AgAutoScaledAxes = 'y' | '';
+export type AgAutoScaledAxes = Array<'y'>;
 
 export interface AgZoomRange {
     /** The start of the axis zoom range. */

@@ -127,7 +127,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     public createMemento() {
         const memento: ZoomMemento = this.getMementoRanges();
         if (this.autoScaleYAxis.enabled) {
-            memento.autoScaledAxes = this.autoScaleYAxis.manuallyAdjusted ? '' : 'y';
+            memento.autoScaledAxes = this.autoScaleYAxis.manuallyAdjusted ? [] : ['y'];
         }
         return memento;
     }
