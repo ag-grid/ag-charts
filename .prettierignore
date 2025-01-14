@@ -14,3 +14,4 @@
 /tests/**/patches/*
 
 /.nx/cache
+/.nx/workspace-data

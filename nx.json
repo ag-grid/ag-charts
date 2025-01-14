@@ -180,7 +180,6 @@
         }
       }
     },
-
     "lint": {
       "inputs": ["default", "buildOutputExcludes", "{workspaceRoot}/eslint*"],
       "outputs": [],
@@ -305,5 +304,6 @@
   },
   "disabledNxCloudAccessToken": "ZDJhN2YwMWMtYWZiMS00MzY2LWFiZDgtZTc0ZTg4MTk4ZDE2fHJlYWQ=",
   "defaultProject": "all",
-  "defaultBase": "latest"
+  "defaultBase": "latest",
+  "useLegacyCache": true
 }

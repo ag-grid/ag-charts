@@ -1,0 +1,79 @@
+{
+    "migrations": [
+        {
+            "cli": "nx",
+            "version": "19.2.0-beta.2",
+            "description": "Updates the default workspace data directory to .nx/workspace-data",
+            "implementation": "./src/migrations/update-19-2-0/move-workspace-data-directory",
+            "package": "nx",
+            "name": "19-2-0-move-graph-cache-directory"
+        },
+        {
+            "cli": "nx",
+            "version": "19.2.2-beta.0",
+            "description": "Updates the nx wrapper.",
+            "implementation": "./src/migrations/update-17-3-0/update-nxw",
+            "package": "nx",
+            "name": "19-2-2-update-nx-wrapper"
+        },
+        {
+            "version": "19.2.4-beta.0",
+            "description": "Set project name in nx.json explicitly",
+            "implementation": "./src/migrations/update-19-2-4/set-project-name",
+            "x-repair-skip": true,
+            "package": "nx",
+            "name": "19-2-4-set-project-name"
+        },
+        {
+            "version": "20.0.0-beta.7",
+            "description": "Migration for v20.0.0-beta.7",
+            "implementation": "./src/migrations/update-20-0-0/move-use-daemon-process",
+            "package": "nx",
+            "name": "move-use-daemon-process"
+        },
+        {
+            "version": "20.0.1",
+            "description": "Set `useLegacyCache` to true for migrating workspaces",
+            "implementation": "./src/migrations/update-20-0-1/use-legacy-cache",
+            "x-repair-skip": true,
+            "package": "nx",
+            "name": "use-legacy-cache"
+        },
+        {
+            "version": "19.6.0-beta.0",
+            "description": "Add dependsOn: [build] to preview targets using preview-server",
+            "implementation": "./src/migrations/update-19-6-0/add-depends-on-for-preview",
+            "package": "@nx/vite",
+            "name": "update-19-6-0-add-depends-on-for-preview-server"
+        },
+        {
+            "version": "20.0.4-beta.0",
+            "description": "Add gitignore entry for temporary vite config files.",
+            "implementation": "./src/migrations/update-20-0-4/add-vite-temp-files-to-git-ignore",
+            "package": "@nx/vite",
+            "name": "update-20-0-4"
+        },
+        {
+            "version": "20.0.6-beta.0",
+            "description": "Add gitignore entry for temporary vite config files and remove previous incorrect glob.",
+            "implementation": "./src/migrations/update-20-0-4/add-vite-temp-files-to-git-ignore",
+            "package": "@nx/vite",
+            "name": "update-20-0-6"
+        },
+        {
+            "version": "20.3.0-beta.2",
+            "description": "Add gitignore entry for temporary vitest config files.",
+            "implementation": "./src/migrations/update-20-3-0/add-vitest-temp-files-to-git-ignore",
+            "package": "@nx/vite",
+            "name": "update-20-3-0"
+        },
+        {
+            "cli": "nx",
+            "version": "20.0.0-beta.5",
+            "description": "replace getJestProjects with getJestProjectsAsync",
+            "implementation": "./src/migrations/update-20-0-0/replace-getJestProjects-with-getJestProjectsAsync",
+            "package": "@nx/jest",
+            "name": "replace-getJestProjects-with-getJestProjectsAsync"
+        }
+    ]
+}

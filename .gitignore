@@ -55,3 +55,6 @@ packages/ag-charts-website/.env
 .astro
 src/env.d.ts
 .env.local
+
+vite.config.*.timestamp*
+vitest.config.*.timestamp*
