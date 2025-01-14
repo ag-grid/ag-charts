@@ -453,6 +453,7 @@ export class GroupedCategoryAxis extends CategoryAxis {
         }
 
         const domain: string[][] = this.dataDomain.domain.map((datum) =>
+            // Handle integrated charts data when provided as an object
             toArray(isObject(datum) && 'value' in datum ? datum.value : datum)
         );
         this.tickTreeLayout = treeLayout(domain);
