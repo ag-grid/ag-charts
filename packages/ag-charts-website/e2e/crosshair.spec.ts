@@ -1,5 +1,5 @@
 import { expect, test } from './fixture';
-import { gotoExample, setupIntrinsicAssertions, toExamplePageUrls } from './util';
+import { gotoExample, setupIntrinsicAssertions, toExamplePageUrl, toExamplePageUrls } from './util';
 
 test.describe('crosshair', () => {
     setupIntrinsicAssertions();
@@ -35,4 +35,15 @@ test.describe('crosshair', () => {
             });
         });
     }
+
+    test('click', async ({ page }) => {
+        const { url } = toExamplePageUrl('financial-charts-configuration', 'default-configuration', 'vanilla');
+        await gotoExample(page, url);
+
+        await page.mouse.move(400, 300);
+        await expect(page).toHaveScreenshot('crosshair-visible.png');
+
+        await page.mouse.click(400, 300, { button: 'left' });
+        await expect(page).toHaveScreenshot('crosshair-visible.png');
+    });
 });
