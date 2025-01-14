@@ -63,7 +63,7 @@ export const LinearGaugeModule: _ModuleSupport.SeriesModule<'linear-gauge'> = {
             },
             margin: 4,
             tooltip: {
-                enabled: true,
+                enabled: false,
             },
         },
         axes: {
