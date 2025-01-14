@@ -1,4 +1,5 @@
 import type { Ratio } from './types';
+import type { AgAutoScaledAxes } from './zoomOptions';
 
 interface AgChartEvent<T extends string> {
     type: T;
@@ -56,6 +57,7 @@ export interface AgZoomEvent {
     rangeY?: AgZoomEventRange;
     ratioX: AgZoomEventRatio;
     ratioY: AgZoomEventRatio;
+    autoScaledAxes?: AgAutoScaledAxes;
 }
 
 export interface AgZoomEventRange {

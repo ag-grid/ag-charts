@@ -1,6 +1,7 @@
 import type { AgAnnotation } from '../chart/annotationsOptions';
 import type { AgInitialStateLegendOptions } from '../chart/legendOptions';
 import type { Ratio } from '../chart/types';
+import type { AgAutoScaledAxes } from '../chart/zoomOptions';
 import type { AgPriceVolumeChartType } from '../presets/financial/priceVolumeOptions';
 import type { AgStateSerializableDate } from './stateTypes';
 
@@ -29,6 +30,8 @@ export interface AgInitialStateZoomOptions {
     rangeY?: AgInitialStateZoomRange;
     ratioX?: AgInitialStateZoomRatio;
     ratioY?: AgInitialStateZoomRatio;
+    /** Enable auto scaling for specified axes, if also enabled in `zoom.autoScaling` options. */
+    autoScaledAxes?: AgAutoScaledAxes;
 }
 
 export interface AgInitialStateZoomRange {

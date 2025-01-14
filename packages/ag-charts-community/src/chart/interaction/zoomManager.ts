@@ -1,4 +1,4 @@
-import { Logger, isFiniteNumber, isObject } from 'ag-charts-core';
+import { Logger, type RequireOptional, isFiniteNumber, isObject } from 'ag-charts-core';
 import type { AgAutoScaledAxes, AgZoomEvent, AgZoomRange, AgZoomRatio } from 'ag-charts-types';
 
 import type { MementoOriginator } from '../../api/state/memento';
@@ -124,11 +124,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
     }
 
     public createMemento() {
-        const memento: ZoomMemento = this.getMementoRanges();
-        if (this.autoScaleYAxis.enabled) {
-            memento.autoScaledAxes = this.autoScaleYAxis.manuallyAdjusted ? [] : ['y'];
-        }
-        return memento;
+        return this.getMementoRanges() as ZoomMemento;
     }
 
     public guardMemento(blob: unknown): blob is ZoomMemento | undefined {
@@ -414,12 +410,21 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
     private getMementoRanges() {
         const zoom = this.getDefinedZoom();
-        return {
+        let autoScaledAxes: AgAutoScaledAxes | undefined;
+        if (this.autoScaleYAxis.enabled) {
+            autoScaledAxes = this.autoScaleYAxis.manuallyAdjusted ? [] : ['y'];
+        }
+        const memento: RequireOptional<ZoomMemento> & {
+            ratioX: Required<AgZoomRatio>;
+            ratioY: Required<AgZoomRatio>;
+        } = {
             rangeX: this.getRangeDirection(zoom.x, ChartAxisDirection.X),
             rangeY: this.getRangeDirection(zoom.y, ChartAxisDirection.Y),
             ratioX: { start: zoom.x.min, end: zoom.x.max },
             ratioY: { start: zoom.y.min, end: zoom.y.max },
+            autoScaledAxes,
         };
+        return memento;
     }
 
     private autoScaleYZoom(callerId: string, applyChanges = true) {
@@ -482,11 +487,11 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
         let end;
 
         if (d0 <= d1) {
-            start = axis.scale.invert?.(0); // 0 is the start of the visible axis
-            end = axis.scale.invert?.(d0 + (d1 - d0) * ratio.max);
+            start = axis.scale.invert(0); // 0 is the start of the visible axis
+            end = axis.scale.invert(d0 + (d1 - d0) * ratio.max);
         } else {
-            start = axis.scale.invert?.(d0 - (d0 - d1) * ratio.min);
-            end = axis.scale.invert?.(0);
+            start = axis.scale.invert(d0 - (d0 - d1) * ratio.min);
+            end = axis.scale.invert(0);
         }
 
         return { start, end };
@@ -598,6 +603,7 @@ export class ZoomManager extends BaseManager<ZoomEvents['type'], ZoomEvents> imp
 
         xScale.range = xScaleRange;
         yScale.range = yScaleRange;
+        // console.log([min, max]);
 
         if (min >= max) return;
 
