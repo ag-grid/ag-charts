@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 
-type Stringifiable = string | number | boolean | { toString(): string };
+type Stringifiable = string | number | boolean;
 
 const doOnceCache = new Set<string>();
 
