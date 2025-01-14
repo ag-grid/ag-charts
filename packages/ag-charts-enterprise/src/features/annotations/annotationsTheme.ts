@@ -45,6 +45,31 @@ const lineText = {
     color: { ref: 'foregroundColor' as const },
 };
 
+const measurerStatistics = {
+    ...font,
+    fontSize: { ref: 'fontSize' as const },
+    color: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_COLOR,
+    fill: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_FILL,
+    stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_STROKE,
+    strokeWidth: 1,
+    divider: {
+        stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DIVIDER_STROKE,
+        strokeWidth: 1,
+        strokeOpacity: 0.5,
+    },
+};
+
+const measurer = {
+    ...stroke,
+    background: {
+        fill: { ref: 'foregroundColor' as const },
+        fillOpacity: 0.075,
+    },
+    handle: { ...handle },
+    text: { ...lineText },
+    statistics: { ...measurerStatistics },
+};
+
 const toolbar: AgAnnotationsToolbar = {
     buttons: [
         {
@@ -169,6 +194,25 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         text: { ...lineText },
     },
 
+    // Fibonnaccis
+    'fibonacci-retracement': {
+        ...stroke,
+        strokes: ThemeSymbols.DEFAULT_FIBONACCI_STROKES as unknown as string[],
+        rangeStroke: { ref: 'foregroundColor' },
+        handle: { ...handle },
+        text: { ...lineText, position: 'center' },
+        label: { ...font, color: undefined, fontSize: 10 },
+    },
+
+    'fibonacci-retracement-trend-based': {
+        ...stroke,
+        strokes: ThemeSymbols.DEFAULT_FIBONACCI_STROKES as unknown as string[],
+        rangeStroke: { ref: 'foregroundColor' },
+        handle: { ...handle },
+        text: { ...lineText, position: 'center' },
+        label: { ...font, color: undefined, fontSize: 10 },
+    },
+
     // Texts
     callout: {
         ...stroke,
@@ -219,6 +263,56 @@ export const annotationsTheme: WithThemeParams<AgAnnotationsThemeableOptions> = 
         handle: { ...handle, stroke: { ref: 'foregroundColor' } },
     },
 
+    // Measurers
+    'date-range': {
+        ...measurer,
+    },
+    'price-range': {
+        ...measurer,
+    },
+    'date-price-range': {
+        ...measurer,
+    },
+    'quick-date-price-range': {
+        up: {
+            ...stroke,
+            fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
+            fillOpacity: 0.2,
+            handle: { ...handle },
+            statistics: {
+                ...measurerStatistics,
+                color: '#fff',
+                fill: ThemeSymbols.DEFAULT_FINANCIAL_CHARTS_ANNOTATION_BACKGROUND_FILL,
+                strokeWidth: 0,
+                divider: {
+                    stroke: '#fff',
+                    strokeWidth: 1,
+                    strokeOpacity: 0.5,
+                },
+            },
+        },
+        down: {
+            ...stroke,
+            stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
+            fill: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL,
+            fillOpacity: 0.2,
+            handle: {
+                ...handle,
+                stroke: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_STROKE,
+            },
+            statistics: {
+                ...measurerStatistics,
+                color: '#fff',
+                fill: ThemeSymbols.DEFAULT_ANNOTATION_STATISTICS_DOWN_FILL,
+                strokeWidth: 0,
+                divider: {
+                    stroke: '#fff',
+                    strokeWidth: 1,
+                    strokeOpacity: 0.5,
+                },
+            },
+        },
+    },
     // Toolbars
     toolbar,
     optionsToolbar,
