@@ -1,6 +1,7 @@
 import * as fromToMotion from './motion/fromToMotion';
 import * as resetMotion from './motion/resetMotion';
 
+export * from './core';
 export * from './util/angle';
 export * from './util/date';
 export * from './util/default';

@@ -1,5 +1,4 @@
-import { getWindow } from 'ag-charts-core';
-
+import { getWindow } from '../core';
 import { BBoxValues } from '../util/bboxinterface';
 import { partialAssign } from '../util/object';
 import { type DragWidgetEvent, type WidgetEventMap_Internal, WidgetEventUtil } from './widgetEvents';

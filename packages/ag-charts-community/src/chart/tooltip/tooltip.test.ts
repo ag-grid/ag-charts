@@ -1,9 +1,9 @@
 import { describe, expect, it } from '@jest/globals';
 
-import { getDocument } from 'ag-charts-core';
 import { type AgChartOptions } from 'ag-charts-types';
 
 import { AgCharts } from '../../api/agCharts';
+import { getDocument } from '../../core';
 import type { AgChartProxy, Chart } from '../test/utils';
 import {
     IMAGE_SNAPSHOT_DEFAULTS,

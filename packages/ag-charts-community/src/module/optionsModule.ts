@@ -10,8 +10,6 @@ import {
     isPlainObject,
     isString,
     isSymbol,
-    setDocument,
-    setWindow,
     unique,
 } from 'ag-charts-core';
 import {
@@ -47,6 +45,7 @@ import {
     isSeriesOptionType,
 } from '../chart/mapping/types';
 import { type ChartTheme } from '../chart/themes/chartTheme';
+import { setDocument, setWindow } from '../core';
 import { Debug } from '../util/debug';
 import { deepClone, jsonDiff, jsonPropertyCompare, jsonWalk } from '../util/json';
 import { mergeArrayDefaults, mergeDefaults } from '../util/object';

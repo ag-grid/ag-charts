@@ -1,5 +1,4 @@
-import { createElement } from 'ag-charts-core';
-
+import { createElement } from '../../core';
 import { PHASE_METADATA } from '../../motion/animation';
 import { DEFAULT_OVERLAY_CLASS } from './overlay';
 

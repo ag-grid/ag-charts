@@ -1,5 +1,4 @@
-import { createElement } from 'ag-charts-core';
-
+import { createElement } from '../../core';
 import type { ModuleContext } from '../../module/moduleContext';
 import { BBox } from '../../scene/bbox';
 import type { BBoxValues } from '../../util/bboxinterface';
