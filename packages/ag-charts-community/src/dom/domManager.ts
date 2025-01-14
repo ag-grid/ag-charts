@@ -1,6 +1,6 @@
-import { createElement, getDocument, getWindow } from 'ag-charts-core';
 import type { AgChartThemeParams } from 'ag-charts-types';
 
+import { createElement, getDocument, getWindow } from '../core';
 import { BBox } from '../scene/bbox';
 import STYLES from '../styles.css';
 import { setAttribute } from '../util/attributeUtil';

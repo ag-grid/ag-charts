@@ -1,6 +1,6 @@
-import { getWindow } from 'ag-charts-core';
 import type { InteractionRange, TextWrap } from 'ag-charts-types';
 
+import { getWindow } from '../../core';
 import type { DOMManager } from '../../dom/domManager';
 import { clamp } from '../../util/number';
 import { type Bounds, calculatePlacement } from '../../util/placement';

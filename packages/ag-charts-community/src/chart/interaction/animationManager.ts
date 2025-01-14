@@ -1,5 +1,6 @@
-import { Logger, getWindow } from 'ag-charts-core';
+import { Logger } from 'ag-charts-core';
 
+import { getWindow } from '../../core';
 import type { AdditionalAnimationOptions, AnimationOptions, AnimationValue, IAnimation } from '../../motion/animation';
 import { Animation } from '../../motion/animation';
 import { Debug } from '../../util/debug';

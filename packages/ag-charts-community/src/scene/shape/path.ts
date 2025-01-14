@@ -1,5 +1,4 @@
-import { createSvgElement } from 'ag-charts-core';
-
+import { createSvgElement } from '../../core';
 import type { DistantObject } from '../../util/nearest';
 import { ExtendedPath2D } from '../extendedPath2D';
 import type { ChildNodeCounts, RenderContext } from '../node';

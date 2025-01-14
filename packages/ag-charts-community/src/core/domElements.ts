@@ -1,4 +1,4 @@
-import { getDocument } from '../../globals/globalsProxy';
+import { getDocument } from './globalsProxy';
 
 /**
  * Creates an HTML element with optional class names and inline styles.

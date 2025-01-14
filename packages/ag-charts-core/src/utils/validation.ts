@@ -1,4 +1,3 @@
-import { Logger } from '../globals/logger';
 import { joinFormatted, stringifyValue } from './strings';
 import { isArray, isBoolean, isFiniteNumber, isFunction, isObject, isString } from './typeGuards';
 
@@ -29,27 +28,12 @@ interface ValidationError {
 }
 
 /**
- * Validates the provided options object against the specified options definitions. Logs warnings for any invalid options encountered.
+ * Validates the provided options against the specified definitions.
  * @param options The options object to validate.
  * @param optionsDefs The definitions against which to validate the options.
- * @param path (Optional) The current path in the options object, for nested properties.
- * @returns A boolean indicating whether the options are valid.
+ * @param path The current path in the options object, for nested properties.
+ * @returns An object containing valid options and validation errors.
  */
-export function isValid<T extends object>(options: unknown, optionsDefs: OptionsDefs<T>, path?: string): options is T {
-    const { errors } = validate(options, optionsDefs, path);
-    for (const { message } of errors) {
-        Logger.warn(message);
-    }
-    return errors.length === 0;
-}
-
-function validateMessage(path: string, value: unknown, validatorOrDefs: Validator | OptionsDefs<any> | string): string {
-    const description = isString(validatorOrDefs) ? validatorOrDefs : validatorOrDefs[descriptionSymbol];
-    const expecting = description ? `; expecting ${description}` : '';
-    const prefix = path ? `Option \`${path}\`` : 'Value';
-    return `${prefix} cannot be set to \`${stringifyValue(value)}\`${expecting}, ignoring.`;
-}
-
 export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path = '') {
     if (!isObject(options)) {
         return {
@@ -96,6 +80,32 @@ export function validate<T>(options: unknown, optionsDefs: OptionsDefs<T>, path 
     }
 
     return { valid, errors };
+}
+
+/**
+ * Validates the provided options object against the specified options definitions. Logs warnings for any invalid options encountered.
+ * @param options The options object to validate.
+ * @param optionsDefs The definitions against which to validate the options.
+ * @param path (Optional) The current path in the options object, for nested properties.
+ * @returns A boolean indicating whether the options are valid.
+ */
+export function isValid<T extends object>(options: unknown, optionsDefs: OptionsDefs<T>, path?: string): options is T {
+    const { errors } = validate(options, optionsDefs, path);
+    return errors.length === 0;
+}
+
+/**
+ * Generates a validation error message based on the path, value, and expected type.
+ * @param path The path to the option.
+ * @param value The invalid value.
+ * @param validatorOrDefs The expected type or validator.
+ * @returns A formatted error message.
+ */
+function validateMessage(path: string, value: unknown, validatorOrDefs: Validator | OptionsDefs<any> | string): string {
+    const description = isString(validatorOrDefs) ? validatorOrDefs : validatorOrDefs[descriptionSymbol];
+    const expecting = description ? `; expecting ${description}` : '';
+    const prefix = path ? `Option \`${path}\`` : 'Value';
+    return `${prefix} cannot be set to \`${stringifyValue(value)}\`${expecting}, ignoring.`;
 }
 
 /**

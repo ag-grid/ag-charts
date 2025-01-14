@@ -1,5 +1,4 @@
-import { downloadUrl } from 'ag-charts-core';
-
+import { downloadUrl } from '../core';
 import { Debug } from '../util/debug';
 import { createId } from '../util/id';
 import type { BBox } from './bbox';

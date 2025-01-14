@@ -1,5 +1,4 @@
-import { createElement, createSvgElement } from 'ag-charts-core';
-
+import { createElement, createSvgElement } from '../core';
 import { Widget } from './widget';
 
 // This class represents text that is sized by bounds rather than font size.

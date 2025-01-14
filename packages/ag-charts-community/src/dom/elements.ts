@@ -1,6 +1,6 @@
-import { createElement } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
+import { createElement } from '../core';
 import { type AttributeSet, type InputAttributeSet, setAttribute, setAttributes } from '../util/attributeUtil';
 import { isButtonClickEvent } from '../util/keynavUtil';
 

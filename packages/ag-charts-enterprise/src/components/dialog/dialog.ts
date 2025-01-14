@@ -1,5 +1,4 @@
 import { _ModuleSupport } from 'ag-charts-community';
-import { createElement, getWindow } from 'ag-charts-core';
 import type { AgIconName } from 'ag-charts-types';
 
 import { ColorPicker } from '../color-picker/colorPicker';
@@ -19,6 +18,8 @@ const {
     mapValues,
     setAttribute,
     setAttributes,
+    createElement,
+    getWindow,
 } = _ModuleSupport;
 
 export interface DialogOptions extends _ModuleSupport.PopoverOptions {}
