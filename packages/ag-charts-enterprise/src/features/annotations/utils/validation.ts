@@ -2,7 +2,7 @@ import { type Direction, _ModuleSupport } from 'ag-charts-community';
 import { Logger } from 'ag-charts-core';
 
 import type { AnnotationAxisContext, AnnotationContext, Point } from '../annotationTypes';
-import { type PointType, getGroupingValue } from './scale';
+import { getGroupingValue } from './scale';
 
 export function validateDatumLine(
     context: AnnotationContext,
@@ -20,14 +20,15 @@ export function validateDatumLine(
 
 export function validateDatumValue(
     context: AnnotationContext,
-    datum: { value?: PointType; direction?: Direction },
+    datum: { value?: Point['x' | 'y']; direction?: Direction },
     warningPrefix: string
 ) {
     const axis = datum.direction === 'horizontal' ? context.yAxis : context.xAxis;
     const valid = validateDatumPointDirection(datum.value, axis);
 
     if (!valid && warningPrefix) {
-        Logger.warnOnce(`${warningPrefix}is outside the axis domain, ignoring. - value: [${datum.value}]]`);
+        const { value } = getGroupingValue(datum.value);
+        Logger.warnOnce(`${warningPrefix}is outside the axis domain, ignoring. - value: [${value}]]`);
     }
 
     return valid;
@@ -54,7 +55,9 @@ export function validateDatumPoint(
         if (validX) text = 'y domain';
         if (validY) text = 'x domain';
         if (warningPrefix) {
-            Logger.warnOnce(`${warningPrefix}is outside the ${text}, ignoring. - x: [${point.x}], y: ${point.y}]`);
+            const { value: xValue } = getGroupingValue(point.x);
+            const { value: yValue } = getGroupingValue(point.y);
+            Logger.warnOnce(`${warningPrefix}is outside the ${text}, ignoring. - x: [${xValue}], y: ${yValue}]`);
         }
         return false;
     }

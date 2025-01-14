@@ -17,6 +17,7 @@ import type {
     LineTextAlignment,
     LineTextPosition,
 } from './annotationTypes';
+import type { PointType } from './utils/scale';
 
 const {
     BOOLEAN,
@@ -44,9 +45,6 @@ const {
 /**************
  * Components *
  **************/
-type ValueType = number | string | Date | undefined;
-type GroupingValueType = { value: ValueType; groupPercentage: number };
-type PointType = ValueType | GroupingValueType;
 
 const GROUPING_VALUE_KEYS = ['value', 'groupPercentage'];
 const GROUPING_VALUE = predicateWithMessage(
