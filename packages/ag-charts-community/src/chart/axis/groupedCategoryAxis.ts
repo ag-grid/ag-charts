@@ -452,7 +452,9 @@ export class GroupedCategoryAxis extends CategoryAxis {
             this.dataDomain.domain.reverse();
         }
 
-        const domain: string[][] = this.dataDomain.domain.map(toArray);
+        const domain: string[][] = this.dataDomain.domain.map((datum) =>
+            toArray(typeof datum === 'object' && 'value' in datum ? datum.value : datum)
+        );
         this.tickTreeLayout = treeLayout(domain);
 
         const orderedDomain: string[][] = [];
