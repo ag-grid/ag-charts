@@ -1,4 +1,4 @@
-import { countLines } from 'ag-charts-core';
+import { countLines, isObject } from 'ag-charts-core';
 import type { FontStyle, FontWeight } from 'ag-charts-types';
 
 import type { ModuleContext } from '../../module/moduleContext';
@@ -452,7 +452,10 @@ export class GroupedCategoryAxis extends CategoryAxis {
             this.dataDomain.domain.reverse();
         }
 
-        const domain: string[][] = this.dataDomain.domain.map(toArray);
+        const domain: string[][] = this.dataDomain.domain.map((datum) =>
+            // Handle integrated charts data when provided as an object
+            toArray(isObject(datum) && 'value' in datum ? datum.value : datum)
+        );
         this.tickTreeLayout = treeLayout(domain);
 
         const orderedDomain: string[][] = [];
