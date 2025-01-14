@@ -605,6 +605,61 @@ const BAR_STACKED_NORMALISED: AgCartesianChartOptions = {
     ],
 };
 
+const BAR_DUPLICATE_VALUES: AgCartesianChartOptions = {
+    ...COMMON,
+    data: COMMON.data.slice(0, 4).concat({
+        age: addToString({
+            id: 4,
+            value: 21,
+        }),
+        gold: 3,
+        silver: 1,
+        bronze: 2,
+    }),
+    axes: [
+        {
+            type: 'category',
+            position: 'left',
+        },
+        {
+            type: 'number',
+            position: 'bottom',
+        },
+    ],
+    series: [
+        {
+            type: 'bar',
+            direction: 'horizontal',
+            grouped: true,
+            stacked: false,
+            xKey: 'age',
+            xName: 'Age',
+            yKey: 'gold',
+            yName: 'Gold',
+        },
+        {
+            type: 'bar',
+            direction: 'horizontal',
+            grouped: true,
+            stacked: false,
+            xKey: 'age',
+            xName: 'Age',
+            yKey: 'silver',
+            yName: 'Silver',
+        },
+        {
+            type: 'bar',
+            direction: 'horizontal',
+            grouped: true,
+            stacked: false,
+            xKey: 'age',
+            xName: 'Age',
+            yKey: 'bronze',
+            yName: 'Bronze',
+        },
+    ],
+};
+
 const COMMON_POLAR = {
     ...COMMON,
     data: [
@@ -769,6 +824,26 @@ const COMMON_POLAR = {
 
 const PIE_BASIC: AgPolarChartOptions = {
     ...COMMON_POLAR,
+    series: [
+        {
+            type: 'pie',
+            angleKey: 'gold',
+            angleName: 'Gold',
+            sectorLabelKey: 'gold',
+            calloutLabelKey: 'age',
+            calloutLabelName: 'Age',
+        },
+    ],
+};
+
+const PIE_DUPLICATE_VALUES: AgPolarChartOptions = {
+    ...COMMON_POLAR,
+    data: COMMON_POLAR.data.slice(0, 4).concat({
+        age: 21,
+        gold: 3,
+        silver: 0,
+        bronze: 0,
+    }),
     series: [
         {
             type: 'pie',
@@ -1707,7 +1782,9 @@ export const EXAMPLES: Record<string, TestCase> = {
     BAR_BASIC: { options: BAR_BASIC },
     BAR_STACKED: { options: BAR_STACKED },
     BAR_STACKED_NORMALISED: { options: BAR_STACKED_NORMALISED },
+    BAR_DUPLICATE_VALUES: { options: BAR_DUPLICATE_VALUES },
     PIE_BASIC: { options: PIE_BASIC },
+    PIE_DUPLICATE_VALUES: { options: PIE_DUPLICATE_VALUES },
     DONUT_BASIC: { options: DONUT_BASIC },
     LINE_BASIC: { options: LINE_BASIC },
     SCATTER_BASIC: { options: SCATTER_BASIC },
